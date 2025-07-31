@@ -7,12 +7,12 @@ import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial';
 
 // --- 1. Define Visual Metaphor Logic ---
 // This helper function is the heart of our new system.
-const getVisualsForNode = (node: GraphNode) => {
+const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string) => {
   const visuals = {
     geometryType: 'sphere' as 'sphere' | 'box' | 'octahedron' | 'icosahedron',
     scale: 1.0,
-    color: new THREE.Color('#00ffff'), // Default cyan
-    emissive: new THREE.Color('#00ffff'),
+    color: new THREE.Color(settingsBaseColor || '#00ffff'), // Use base color from settings
+    emissive: new THREE.Color(settingsBaseColor || '#00ffff'),
     pulseSpeed: 0.5,
   };
 
@@ -51,44 +51,76 @@ const getVisualsForNode = (node: GraphNode) => {
   const connectionScale = 1 + hyperlinkCount * 0.05;
   visuals.scale = THREE.MathUtils.clamp(sizeScale * connectionScale, 0.5, 3.0);
 
-  // METAPHOR 3: Color from Recency (lastModified) or Type
+  // METAPHOR 3: Color modulation from Recency (lastModified) or Type - ADDITIVE to base color
+  const originalColor = new THREE.Color(visuals.color); // Store original base color
   const lastModified = metadata.lastModified ? new Date(metadata.lastModified).getTime() : 0;
+  
   if (lastModified > 0) {
     const ageInDays = (Date.now() - lastModified) / (1000 * 60 * 60 * 24);
-    // Fade from hot (yellow/white) to cold (cyan/blue) over 90 days
+    // Create age-based color modulation (heat effect)
     const heat = Math.max(0, 1 - ageInDays / 90);
-    const hue = 0.5 + heat * 0.1; // Shift from cyan (0.5) to yellow (0.6)
-    const saturation = 0.6 + heat * 0.4; // More saturated when hot
-    const lightness = 0.4 + heat * 0.3; // Brighter when hot
-    visuals.color.setHSL(hue, saturation, lightness);
+    
+    // Convert base color to HSL for modulation
+    const hsl = { h: 0, s: 0, l: 0 };
+    originalColor.getHSL(hsl);
+    
+    // Modulate the base color: shift hue slightly toward warm colors when recent
+    const hueShift = heat * 0.15; // More noticeable hue shift toward yellow/orange
+    const saturationBoost = heat * 0.3; // Increase saturation for recent files
+    const lightnessBoost = heat * 0.25; // Brighten recent files
+    
+    visuals.color.setHSL(
+      (hsl.h + hueShift) % 1,
+      Math.min(1, hsl.s + saturationBoost),
+      Math.min(1, hsl.l + lightnessBoost)
+    );
   } else if (metadata.type) {
-    // Fallback to type-based colors if no lastModified
-    const typeColors: Record<string, string> = {
-      'folder': '#FFD700',     // Gold
-      'file': '#00CED1',       // Dark turquoise
-      'function': '#FF6B6B',   // Coral
-      'class': '#4ECDC4',      // Turquoise
-      'variable': '#95E1D3',   // Mint
-      'import': '#F38181',     // Light coral
-      'export': '#AA96DA',     // Lavender
-      'default': '#00ffff'     // Default cyan
+    // Apply more noticeable type-based color tinting to base color
+    const typeColorShifts: Record<string, { hue: number, sat: number, light: number }> = {
+      'folder': { hue: 0.1, sat: 0.2, light: 0.15 },     // Yellow shift
+      'file': { hue: 0.0, sat: 0.1, light: 0.05 },       // Slight saturation boost
+      'function': { hue: -0.1, sat: 0.2, light: 0.1 },   // Red shift
+      'class': { hue: 0.05, sat: 0.15, light: 0.1 },     // Green shift
+      'variable': { hue: 0.15, sat: 0.12, light: 0.08 }, // Green shift
+      'import': { hue: -0.06, sat: 0.1, light: 0.05 },   // Red shift
+      'export': { hue: -0.15, sat: 0.15, light: 0.08 },  // Purple shift
+      'default': { hue: 0.0, sat: 0.0, light: 0.0 }      // No change
     };
-    const color = typeColors[metadata.type] || typeColors['default'];
-    visuals.color.set(color);
+    
+    const shift = typeColorShifts[metadata.type] || typeColorShifts['default'];
+    const hsl = { h: 0, s: 0, l: 0 };
+    originalColor.getHSL(hsl);
+    
+    visuals.color.setHSL(
+      (hsl.h + shift.hue) % 1,
+      Math.min(1, hsl.s + shift.sat),
+      Math.min(1, hsl.l + shift.light)
+    );
   } else {
-    // Use connectivity-based color as another fallback
+    // Apply connectivity-based subtle modulation to base color
     const colorIntensity = Math.min(hyperlinkCount / 10, 1);
-    const hue = 0.5 - colorIntensity * 0.3; // From cyan to purple based on connections
-    const saturation = 0.6 + colorIntensity * 0.4;
-    const lightness = 0.5;
-    visuals.color.setHSL(hue, saturation, lightness);
+    const hsl = { h: 0, s: 0, l: 0 };
+    originalColor.getHSL(hsl);
+    
+    // More noticeable modulation based on connectivity
+    const saturationBoost = colorIntensity * 0.25;
+    const lightnessBoost = colorIntensity * 0.2;
+    
+    visuals.color.setHSL(
+      hsl.h,
+      Math.min(1, hsl.s + saturationBoost),
+      Math.min(1, hsl.l + lightnessBoost)
+    );
   }
 
-  // METAPHOR 4: Emissive Glow from AI Processing (perplexityLink)
+  // METAPHOR 4: Emissive Glow from AI Processing (perplexityLink) - ADDITIVE to base color
   if (metadata.perplexityLink) {
-    visuals.emissive.set('#FFD700'); // Gold emissive for AI-processed nodes
+    // Blend gold glow with base color for AI-processed nodes
+    const goldTint = new THREE.Color('#FFD700');
+    visuals.emissive.copy(originalColor).lerp(goldTint, 0.6); // 60% gold, 40% base color
   } else {
-    visuals.emissive.copy(visuals.color).multiplyScalar(0.5);
+    // Use modulated color for emissive at reduced intensity
+    visuals.emissive.copy(visuals.color).multiplyScalar(0.3);
   }
 
   // METAPHOR 5: Pulse Speed from File Size
@@ -137,8 +169,11 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
   // Group nodes by their new geometry type for instanced rendering
   const nodeGroups = useMemo(() => {
     const groups = new Map<string, { nodes: GraphNode[], originalIndices: number[] }>();
+    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+    const baseColor = nodeSettings?.baseColor || '#00ffff';
+    
     nodes.forEach((node, index) => {
-      const { geometryType } = getVisualsForNode(node);
+      const { geometryType } = getVisualsForNode(node, baseColor);
       if (!groups.has(geometryType)) {
         groups.set(geometryType, { nodes: [], originalIndices: [] });
       }
@@ -146,7 +181,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
       groups.get(geometryType)!.originalIndices.push(index);
     });
     return groups;
-  }, [nodes]);
+  }, [nodes, settings]);
 
   // Frame loop to update instances
   useFrame((state) => {
@@ -164,7 +199,9 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
         const originalIndex = group.originalIndices[localIndex];
         const i3 = originalIndex * 3;
 
-        const visuals = getVisualsForNode(node);
+        const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+        const baseColorForNode = nodeSettings?.baseColor || '#00ffff';
+        const visuals = getVisualsForNode(node, baseColorForNode);
         material.uniforms.pulseSpeed.value = visuals.pulseSpeed;
 
         // Position & Scale
