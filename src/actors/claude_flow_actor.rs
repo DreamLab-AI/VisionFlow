@@ -5,8 +5,29 @@ use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder, Ag
 use crate::actors::messages::UpdateBotsGraph;
 use crate::actors::GraphServiceActor;
 use std::collections::HashMap;
-use chrono::Utc;
+use chrono::{Utc, DateTime};
 use uuid::Uuid;
+
+// Communication link data structure for agent interactions
+#[derive(Debug, Clone)]
+pub struct CommunicationLink {
+    pub source_agent: String,
+    pub target_agent: String,
+    pub interaction_count: u32,
+    pub message_frequency: f32, // messages per second
+    pub last_interaction: DateTime<Utc>,
+    pub collaboration_score: f32, // 0.0 to 1.0
+}
+
+// Combined swarm state snapshot
+#[derive(Debug, Clone)]
+pub struct SwarmStateSnapshot {
+    pub agents: Vec<AgentStatus>,
+    pub communication_links: Vec<CommunicationLink>,
+    pub topology_type: String,
+    pub coordination_efficiency: f32,
+    pub timestamp: DateTime<Utc>,
+}
 
 pub struct ClaudeFlowActor {
     client: ClaudeFlowClient,
@@ -165,6 +186,84 @@ impl ClaudeFlowActor {
         ]
     }
 
+    fn create_mock_communication_links(agents: &[AgentStatus]) -> Vec<CommunicationLink> {
+        let mut links = Vec::new();
+        
+        // Create communication patterns based on agent types
+        for (i, source_agent) in agents.iter().enumerate() {
+            for (j, target_agent) in agents.iter().enumerate() {
+                if i != j {
+                    // Calculate communication intensity based on agent roles
+                    let intensity = Self::calculate_mock_communication_intensity(
+                        &source_agent.profile.agent_type,
+                        &target_agent.profile.agent_type
+                    );
+                    
+                    if intensity > 0.0 {
+                        links.push(CommunicationLink {
+                            source_agent: source_agent.agent_id.clone(),
+                            target_agent: target_agent.agent_id.clone(),
+                            interaction_count: (intensity * 50.0) as u32,
+                            message_frequency: intensity * 2.0,
+                            last_interaction: Utc::now() - chrono::Duration::seconds((60.0 / intensity) as i64),
+                            collaboration_score: intensity,
+                        });
+                    }
+                }
+            }
+        }
+        
+        links
+    }
+
+    fn calculate_mock_communication_intensity(source: &AgentType, target: &AgentType) -> f32 {
+        match (source, target) {
+            // Coordinator communicates heavily with all types
+            (AgentType::Coordinator, _) | (_, AgentType::Coordinator) => 0.9,
+            // Coder and Tester collaborate closely
+            (AgentType::Coder, AgentType::Tester) | (AgentType::Tester, AgentType::Coder) => 0.8,
+            // Researcher and Analyst share data
+            (AgentType::Researcher, AgentType::Analyst) | (AgentType::Analyst, AgentType::Researcher) => 0.7,
+            // Architect coordinates with Coder and Analyst
+            (AgentType::Architect, AgentType::Coder) | (AgentType::Coder, AgentType::Architect) => 0.7,
+            (AgentType::Architect, AgentType::Analyst) | (AgentType::Analyst, AgentType::Architect) => 0.6,
+            // Default moderate communication
+            _ => 0.4,
+        }
+    }
+
+    async fn retrieve_communication_links(_client: &ClaudeFlowClient, agents: &[AgentStatus]) -> Vec<CommunicationLink> {
+        // For now, we'll create mock communication links as the MCP protocol
+        // doesn't have direct support for communication link retrieval.
+        // In a real implementation, this would query the Claude Flow system
+        // for actual agent interaction data.
+        
+        // TODO: Implement actual communication link retrieval when MCP supports it
+        Self::create_mock_communication_links(agents)
+    }
+
+    fn calculate_coordination_efficiency(agents: &[AgentStatus]) -> f32 {
+        if agents.is_empty() {
+            return 0.0;
+        }
+        
+        let total_success_rate: f64 = agents.iter().map(|a| a.success_rate).sum();
+        let avg_success_rate = total_success_rate / agents.len() as f64;
+        
+        // Factor in active vs total tasks
+        let total_active: u32 = agents.iter().map(|a| a.active_tasks_count).sum();
+        let total_completed: u32 = agents.iter().map(|a| a.completed_tasks_count).sum();
+        
+        let activity_factor = if total_active + total_completed > 0 {
+            total_completed as f32 / (total_active + total_completed) as f32
+        } else {
+            0.5
+        };
+        
+        // Combine success rate and activity factor
+        (avg_success_rate as f32 * 0.7 + activity_factor * 0.3).min(1.0)
+    }
+
     pub async fn new(graph_service_addr: Addr<GraphServiceActor>) -> Result<Self, String> {
         info!("ClaudeFlowActor: Initializing Claude Flow via stdio (direct process spawn)");
 
@@ -220,16 +319,25 @@ impl ClaudeFlowActor {
         if !self.is_connected {
             let graph_addr = self.graph_service_addr.clone();
 
-            // Create mock agents for visualization
+            // Create mock agents and communication links for visualization
             ctx.run_interval(Duration::from_secs(10), move |_act, _ctx| {
                 let mock_agents = Self::create_mock_agents();
-                info!("Providing {} mock agents for visualization.", mock_agents.len());
-                graph_addr.do_send(UpdateBotsGraph { agents: mock_agents });
+                let mock_links = Self::create_mock_communication_links(&mock_agents);
+                let snapshot = SwarmStateSnapshot {
+                    agents: mock_agents,
+                    communication_links: mock_links,
+                    topology_type: "hierarchical".to_string(),
+                    coordination_efficiency: 0.85,
+                    timestamp: Utc::now(),
+                };
+                info!("Providing mock swarm snapshot with {} agents and {} communication links.", 
+                     snapshot.agents.len(), snapshot.communication_links.len());
+                graph_addr.do_send(UpdateBotsGraph { agents: snapshot.agents });
             });
             return;
         }
 
-        // Poll for agent updates every 5 seconds
+        // Poll for agent updates and communication links every 5 seconds
         ctx.run_interval(Duration::from_secs(5), |act, _ctx| {
             if !act.is_connected {
                 return;
@@ -239,12 +347,29 @@ impl ClaudeFlowActor {
             let graph_addr = act.graph_service_addr.clone();
 
             actix::spawn(async move {
-                match client.list_agents(false).await {
+                // Retrieve agents
+                let agents_result = client.list_agents(false).await;
+                
+                match agents_result {
                     Ok(agents) => {
                         if !agents.is_empty() {
-                            info!("Polled {} active agents from Claude Flow.", agents.len());
-                            // Send the agent data to the GraphServiceActor to be processed
-                            graph_addr.do_send(UpdateBotsGraph { agents });
+                            // Retrieve communication links between agents
+                            let communication_links = Self::retrieve_communication_links(&client, &agents).await;
+                            
+                            // Create combined swarm state snapshot
+                            let snapshot = SwarmStateSnapshot {
+                                agents: agents.clone(),
+                                communication_links,
+                                topology_type: "dynamic".to_string(),
+                                coordination_efficiency: Self::calculate_coordination_efficiency(&agents),
+                                timestamp: Utc::now(),
+                            };
+                            
+                            info!("Polled {} active agents with {} communication links from Claude Flow.", 
+                                 snapshot.agents.len(), snapshot.communication_links.len());
+                            
+                            // Send complete snapshot via UpdateBotsGraph
+                            graph_addr.do_send(UpdateBotsGraph { agents: snapshot.agents });
                         }
                     }
                     Err(e) => error!("Failed to poll agents from Claude Flow: {}", e),

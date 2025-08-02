@@ -18,6 +18,7 @@ export interface WebSocketMessage {
 type MessageHandler = (message: WebSocketMessage) => void;
 type BinaryMessageHandler = (data: ArrayBuffer) => void;
 type ConnectionStatusHandler = (connected: boolean) => void;
+type EventHandler = (data: any) => void;
 
 class WebSocketService {
   private static instance: WebSocketService;
@@ -25,6 +26,7 @@ class WebSocketService {
   private messageHandlers: MessageHandler[] = [];
   private binaryMessageHandlers: BinaryMessageHandler[] = [];
   private connectionStatusHandlers: ConnectionStatusHandler[] = [];
+  private eventHandlers: Map<string, EventHandler[]> = new Map();
   private reconnectInterval: number = 2000;
   private maxReconnectAttempts: number = 10;
   private reconnectAttempts: number = 0;
@@ -72,7 +74,10 @@ class WebSocketService {
       this.maxReconnectAttempts = settings.system.websocket.reconnectAttempts || 10;
     }
 
-    if (settings.system?.customBackendUrl && settings.system.customBackendUrl.trim() !== '') {
+    // Only use custom backend URL if it's not the problematic hardcoded IP
+    if (settings.system?.customBackendUrl && 
+        settings.system.customBackendUrl.trim() !== '' &&
+        !settings.system.customBackendUrl.includes('192.168.0.51')) {
       const customUrl = settings.system.customBackendUrl.trim();
       const protocol = customUrl.startsWith('https://') ? 'wss://' : 'ws://';
       const hostAndPath = customUrl.replace(/^(https?:\/\/)?/, '');
@@ -82,6 +87,9 @@ class WebSocketService {
       }
     } else {
       if (debugState.isEnabled()) {
+        if (settings.system?.customBackendUrl?.includes('192.168.0.51')) {
+          logger.warn('Ignoring problematic hardcoded IP address 192.168.0.51, using default URL instead');
+        }
         logger.info(`Using default WebSocket URL: ${newUrl}`);
       }
     }
@@ -96,13 +104,25 @@ class WebSocketService {
   }
 
   private determineWebSocketUrl(): string {
-    // Always use a relative path. Nginx handles proxying in dev,
-    // and the browser resolves it correctly in production.
-    const url = '/wss'; // Main backend WebSocket for Logseq
-    if (debugState.isEnabled()) { // Log only if debug is enabled
-        logger.info(`Determined Logseq WebSocket URL (relative): ${url}`);
+    // Check if we're in development mode (Vite dev server)
+    if (import.meta.env.DEV) {
+      // In development, connect through the Vite dev server proxy
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.hostname;
+      const port = window.location.port || '3001'; // Default to 3001 if no port
+      const url = `${protocol}//${host}:${port}/wss`;
+      if (debugState.isEnabled()) {
+        logger.info(`Determined WebSocket URL (dev): ${url}`);
+      }
+      return url;
+    } else {
+      // In production, use relative path for proper routing
+      const url = '/wss';
+      if (debugState.isEnabled()) {
+        logger.info(`Determined WebSocket URL (production): ${url}`);
+      }
+      return url;
     }
-    return url;
   }
 
   /**
@@ -256,6 +276,17 @@ class WebSocketService {
         logger.debug(`Processing binary data: ${data.byteLength} bytes`);
       }
 
+      // Check if binary data contains bots nodes (agent flag 0x80)
+      const hasBotsData = this.detectBotsData(data);
+      
+      if (hasBotsData) {
+        // Emit bots-position-update event for bots visualization
+        this.emit('bots-position-update', data);
+        if (debugState.isDataDebugEnabled()) {
+          logger.debug('Emitted bots-position-update event');
+        }
+      }
+
       // Only process binary data for Logseq graphs (check graph type)
       if (graphDataManager.getGraphType() === 'logseq') {
         try {
@@ -279,6 +310,28 @@ class WebSocketService {
       });
     } catch (error) {
       logger.error('Error processing binary data:', createErrorMetadata(error));
+    }
+  }
+
+  private detectBotsData(data: ArrayBuffer): boolean {
+    try {
+      const view = new DataView(data);
+      const nodeCount = data.byteLength / 28; // 28 bytes per node
+
+      // Check if any nodes have the bots flag (0x80)
+      for (let i = 0; i < nodeCount; i++) {
+        const offset = i * 28;
+        if (offset + 24 < data.byteLength) {
+          const flags = view.getUint8(offset + 24); // flags are at offset 24
+          if (flags & 0x80) {
+            return true; // Found bots data
+          }
+        }
+      }
+      return false;
+    } catch (error) {
+      logger.error('Error detecting bots data:', createErrorMetadata(error));
+      return false;
     }
   }
 
@@ -398,6 +451,36 @@ class WebSocketService {
 
   public isReady(): boolean {
     return this.isConnected && this.isServerReady;
+  }
+
+  public emit(eventName: string, data: any): void {
+    const handlers = this.eventHandlers.get(eventName);
+    if (handlers) {
+      handlers.forEach(handler => {
+        try {
+          handler(data);
+        } catch (error) {
+          logger.error(`Error in event handler for ${eventName}:`, createErrorMetadata(error));
+        }
+      });
+    }
+  }
+
+  public on(eventName: string, handler: EventHandler): () => void {
+    if (!this.eventHandlers.has(eventName)) {
+      this.eventHandlers.set(eventName, []);
+    }
+    this.eventHandlers.get(eventName)!.push(handler);
+    
+    return () => {
+      const handlers = this.eventHandlers.get(eventName);
+      if (handlers) {
+        const index = handlers.indexOf(handler);
+        if (index > -1) {
+          handlers.splice(index, 1);
+        }
+      }
+    };
   }
 
   public close(): void {

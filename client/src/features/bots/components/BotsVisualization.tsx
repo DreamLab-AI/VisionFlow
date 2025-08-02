@@ -8,7 +8,6 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { apiService } from '../../../services/apiService';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 import { useBotsBinaryUpdates } from '../hooks/useBotsBinaryUpdates';
-import { botsPhysicsWorker } from '../workers/BotsPhysicsWorker';
 // BotsStatusIndicator merged into main VisionFlow panel
 import { BotsDebugInfo } from './BotsVisualizationDebugInfo';
 import { debugState } from '../../../utils/debugState';
@@ -459,7 +458,7 @@ export const BotsVisualization: React.FC = () => {
   const [botsData, setBotsData] = useState<BotsGraphData>({ nodes: [], edges: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<'mcp' | 'api' | 'mock'>('mock'); // Default to mock until MCP orchestrator is available
+  const [dataSource, setDataSource] = useState<'mcp' | 'websocket' | 'mock'>('websocket'); // Default to websocket for GPU physics
   const [mcpConnected, setMcpConnected] = useState(false);
   const positionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
 
@@ -472,25 +471,31 @@ export const BotsVisualization: React.FC = () => {
   // Position buffer from backend
   const positionBufferRef = useRef<Float32Array | null>(null);
 
-  // Binary position updates from WebSocket
+  // Binary position updates from WebSocket - now using GPU-computed positions
   const { positions: binaryPositions } = useBotsBinaryUpdates({
-    enabled: !isLoading && botsData.nodes.length > 0,
+    enabled: !isLoading, // Enable as soon as we're not loading
     onPositionUpdate: (positions) => {
-      // Update the positions ref when binary updates arrive
+      // Update the positions buffer when GPU-computed positions arrive
       positionBufferRef.current = positions;
+      
+      if (debugState.isEnabled()) {
+        logger.debug(`Received GPU positions update: ${positions.length / 3} agents`);
+      }
 
-      // Convert to Vector3 map
+      // Convert to Vector3 map - positions come with node IDs from GPU
       if (positions && botsData.nodes.length > 0) {
         botsData.nodes.forEach((node, i) => {
           const i3 = i * 3;
-          if (!positionsRef.current.has(node.id)) {
-            positionsRef.current.set(node.id, new THREE.Vector3());
+          if (i3 + 2 < positions.length) {
+            if (!positionsRef.current.has(node.id)) {
+              positionsRef.current.set(node.id, new THREE.Vector3());
+            }
+            positionsRef.current.get(node.id)!.set(
+              positions[i3],
+              positions[i3 + 1],
+              positions[i3 + 2]
+            );
           }
-          positionsRef.current.get(node.id)!.set(
-            positions[i3],
-            positions[i3 + 1],
-            positions[i3 + 2]
-          );
         });
       }
     }
@@ -507,26 +512,27 @@ export const BotsVisualization: React.FC = () => {
         // console.log('[VISIONFLOW] Initializing VisionFlow visualization...');
         setIsLoading(true);
 
-        // Initialize physics worker
-        botsPhysicsWorker.init();
+        // Physics are now handled by GPU on the backend
 
         // Use integrated WebSocket service for both connections
         const connectionStatus = botsWebSocketIntegration.getConnectionStatus();
         logger.info('WebSocket connection status:', connectionStatus);
 
-        // Set up real-time updates through integrated service
+        // Set up real-time updates through integrated WebSocket service
+        // All agent metadata and physics positions now come via WebSocket
         botsWebSocketIntegration.on('bots-agents-update', (agents) => {
-          logger.debug('Received bots agents update', agents);
+          logger.debug('Received WebSocket bots agents update', agents);
           processAgentsUpdate(agents);
+          setDataSource('websocket'); // Update data source to reflect WebSocket origin
         });
 
         botsWebSocketIntegration.on('bots-edges-update', (edges) => {
-          logger.debug('Received bots edges update', edges);
+          logger.debug('Received WebSocket bots edges update', edges);
           processEdgesUpdate(edges);
         });
 
         botsWebSocketIntegration.on('bots-token-usage', (tokenUsage) => {
-          logger.debug('Received token usage update', tokenUsage);
+          logger.debug('Received WebSocket token usage update', tokenUsage);
           setBotsData(prev => ({ ...prev, tokenUsage }));
         });
 
@@ -541,33 +547,11 @@ export const BotsVisualization: React.FC = () => {
         // Request initial data through integration service
         try {
           await botsWebSocketIntegration.requestInitialData();
-
+          logger.info('Initial bots data requested via WebSocket integration');
           // MCP connections are handled by the backend only
         } catch (error) {
           logger.warn('Failed to get initial data through integration:', error);
-
-          // Try API fallback
-          try {
-            logger.info('[VISIONFLOW] Fetching bots data from API...');
-            const data = await apiService.getBotsData();
-            logger.info('[VISIONFLOW] API response:', data);
-
-            if (data && data.nodes && data.nodes.length > 0) {
-              logger.info('[VISIONFLOW] Got real data from API with', data.nodes.length, 'nodes');
-              setDataSource('api');
-              processBotsData(data);
-            } else if (data && data._isMock) {
-              logger.warn('[VISIONFLOW] API returned mock data');
-              setDataSource('mock');
-              processBotsData(data);
-            } else {
-              logger.warn('[VISIONFLOW] API returned empty or invalid data:', data);
-              setError('No bots data available from server');
-            }
-          } catch (apiError) {
-            logger.error('API also failed:', apiError);
-            setError('Unable to connect to VisionFlow data source');
-          }
+          setError('Unable to connect to VisionFlow WebSocket data source');
         }
 
         setError(null);
@@ -610,8 +594,7 @@ export const BotsVisualization: React.FC = () => {
       // Update bots data with new agents
       setBotsData(prev => ({ ...prev, nodes: agents }));
 
-      // Update physics
-      botsPhysicsWorker.updateAgents(agents);
+      // GPU physics handles agent updates on backend
     };
 
     const processEdgesUpdate = (edges: BotsEdge[]) => {
@@ -635,8 +618,7 @@ export const BotsVisualization: React.FC = () => {
         edges: Array.from(edgeMapRef.current.values())
       }));
 
-      // Update physics
-      botsPhysicsWorker.updateEdges(Array.from(edgeMapRef.current.values()));
+      // GPU physics handles edge updates on backend
     };
 
     const processBotsData = (data: any) => {
@@ -674,9 +656,7 @@ export const BotsVisualization: React.FC = () => {
 
       setBotsData({ nodes, edges: Array.from(edgeMapRef.current.values()) });
 
-      // Update physics
-      botsPhysicsWorker.updateAgents(nodes);
-      botsPhysicsWorker.updateEdges(Array.from(edgeMapRef.current.values()));
+      // GPU physics handles agent and edge updates on backend
     };
 
     // Remove mock data generation - only use real data
@@ -703,7 +683,7 @@ export const BotsVisualization: React.FC = () => {
 
       // Clean up integrated WebSocket listeners
       // Note: We don't disconnect the integration service as it's shared
-      botsPhysicsWorker.cleanup();
+      // Physics cleanup handled by GPU backend
     };
   }, []);
 
@@ -731,57 +711,22 @@ export const BotsVisualization: React.FC = () => {
     });
   }, [botsData.nodes.length, botsData.edges.length, dataSource]);
 
-  // Poll for updates periodically
+  // Removed REST polling - using WebSocket-only updates for real-time data
+  // Agent metadata and positions are now provided via WebSocket streams
+
+  // Physics configuration is now handled by GPU backend
+  // Frontend only provides fallback physics when GPU is unavailable
   useEffect(() => {
-    const pollInterval = setInterval(async () => {
-      if (dataSource === 'live' || dataSource === 'api') {
-        try {
-          const data = await apiService.get('/bots/data');
-          if (data && data.nodes && data.nodes.length > 0 && !data._isMock) {
-            logger.debug('[VISIONFLOW] Polling update: got', data.nodes.length, 'nodes');
-            processBotsData(data);
-          }
-        } catch (error) {
-          logger.error('[VISIONFLOW] Polling error:', error);
-        }
-      }
-    }, 5000); // Poll every 5 seconds
-
-    return () => clearInterval(pollInterval);
-  }, [dataSource]);
-
-  // Update physics configuration when settings change
-  useEffect(() => {
-    const physicsSettings = settings?.visualisation?.physics;
-    if (physicsSettings) {
-      // Extract physics configuration from settings
-      const physicsConfig = {
-        springStrength: physicsSettings.springStrength ?? 0.3,
-        linkDistance: physicsSettings.linkDistance ?? 20,
-        damping: physicsSettings.damping ?? 0.95,
-        nodeRepulsion: physicsSettings.nodeRepulsion ?? 15,
-        gravityStrength: physicsSettings.gravityStrength ?? 0.1,
-        maxVelocity: physicsSettings.maxVelocity ?? 0.5
-      };
-
-      // Update the physics worker with new configuration
-      botsPhysicsWorker.updateConfig(physicsConfig);
-      logger.debug('Updated physics configuration:', physicsConfig);
+    if (settings?.visualisation?.physics && debugState.isEnabled()) {
+      logger.debug('Physics settings detected - will be handled by GPU backend:', settings.visualisation.physics);
     }
   }, [settings?.visualisation?.physics]);
 
   useFrame((state, delta) => {
-    // Try to get positions from physics worker first
-    const workerPositions = botsPhysicsWorker.getPositions();
-    if (workerPositions && workerPositions.size > 0) {
-      workerPositions.forEach((pos, id) => {
-        if (!positionsRef.current.has(id)) {
-          positionsRef.current.set(id, new THREE.Vector3());
-        }
-        positionsRef.current.get(id)!.set(pos.x, pos.y, pos.z);
-      });
-    } else if (botsData.nodes.length > 0 && settings?.visualisation?.physics?.enabled !== false) {
-      // Fallback to simple physics simulation if worker not available
+    // Positions are primarily provided by GPU backend via binary stream
+    // Only use fallback physics if GPU positions are not available
+    if (botsData.nodes.length > 0 && !positionBufferRef.current && settings?.visualisation?.physics?.enabled !== false) {
+      // Fallback to simple physics simulation if GPU positions not available
       const dt = Math.min(delta, 0.016);
       const physics = {
         damping: 0.95,
@@ -838,6 +783,12 @@ export const BotsVisualization: React.FC = () => {
           pos.normalize().multiplyScalar(maxDist);
         }
       });
+      
+      if (debugState.isEnabled()) {
+        logger.debug('Using fallback client-side physics - GPU positions not available');
+      }
+    } else if (positionBufferRef.current && debugState.isEnabled()) {
+      logger.debug('Using GPU-computed positions from backend');
     }
 
     // Update instanced mesh if available

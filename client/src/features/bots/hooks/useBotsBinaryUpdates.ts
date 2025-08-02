@@ -98,8 +98,8 @@ export function useBotsBinaryUpdates({
   useEffect(() => {
     if (!enabled) return;
 
-    // Subscribe to binary updates
-    const unsubscribe = webSocketService.onBinaryMessage(handleBinaryData);
+    // Subscribe to bots-position-update events from WebSocketService
+    const unsubscribe = webSocketService.on('bots-position-update', handleBinaryData);
 
     // Request initial bots positions
     requestBotsPositions();

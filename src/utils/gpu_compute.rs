@@ -9,6 +9,7 @@ use crate::models::graph::GraphData;
 use std::collections::HashMap;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::utils::edge_data::EdgeData;
 use crate::types::vec3::Vec3Data;
 use std::path::Path;
 use std::env;
@@ -36,7 +37,9 @@ pub struct GPUCompute {
     pub device: Arc<CudaDevice>,
     pub force_kernel: CudaFunction,
     pub node_data: CudaSlice<BinaryNodeData>,
+    pub edge_data: CudaSlice<EdgeData>,
     pub num_nodes: u32,
+    pub num_edges: u32,
     pub node_indices: HashMap<u32, usize>,
     pub simulation_params: SimulationParams,
     pub iteration_count: u32,
@@ -277,8 +280,11 @@ impl GPUCompute {
         let force_kernel = device.get_func("compute_forces_kernel", "compute_forces_kernel")
             .ok_or_else(|| Error::new(ErrorKind::Other, "Function compute_forces_kernel not found"))?;
         
-        info!("Allocating device memory for {} nodes", num_nodes);
+        let num_edges = graph.edges.len() as u32;
+        info!("Allocating device memory for {} nodes and {} edges", num_nodes, num_edges);
         let node_data = device.alloc_zeros::<BinaryNodeData>(num_nodes as usize)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+        let edge_data = device.alloc_zeros::<EdgeData>(num_edges as usize)
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         
         info!("Creating GPU compute instance");
@@ -291,7 +297,9 @@ impl GPUCompute {
             device: Arc::clone(&device),
             force_kernel,
             node_data,
+            edge_data,
             num_nodes,
+            num_edges,
             node_indices,
             simulation_params: SimulationParams::default(),
             iteration_count: 0,
@@ -309,11 +317,16 @@ impl GPUCompute {
         for (idx, node) in graph.nodes.iter().enumerate() {
             self.node_indices.insert(node.id, idx);
         }
-        if graph.nodes.len() as u32 != self.num_nodes {
-            info!("Reallocating GPU buffer for {} nodes", graph.nodes.len());
+        let new_num_edges = graph.edges.len() as u32;
+        
+        if graph.nodes.len() as u32 != self.num_nodes || new_num_edges != self.num_edges {
+            info!("Reallocating GPU buffers for {} nodes and {} edges", graph.nodes.len(), new_num_edges);
             self.node_data = self.device.alloc_zeros::<BinaryNodeData>(graph.nodes.len())
                 .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            self.edge_data = self.device.alloc_zeros::<EdgeData>(new_num_edges as usize)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
             self.num_nodes = graph.nodes.len() as u32;
+            self.num_edges = new_num_edges;
             self.iteration_count = 0;
         }
         let mut node_data = Vec::with_capacity(graph.nodes.len());
@@ -347,9 +360,36 @@ impl GPUCompute {
                 );
             }
         }
-        trace!("Copying {} nodes to GPU", graph.nodes.len());
+        // Prepare edge data for GPU
+        let mut gpu_edge_data = Vec::with_capacity(graph.edges.len());
+        for edge in &graph.edges {
+            // Map node IDs to indices
+            let source_idx = self.node_indices.get(&edge.source)
+                .copied()
+                .ok_or_else(|| Error::new(ErrorKind::Other, format!("Source node {} not found", edge.source)))?;
+            let target_idx = self.node_indices.get(&edge.target)
+                .copied()
+                .ok_or_else(|| Error::new(ErrorKind::Other, format!("Target node {} not found", edge.target)))?;
+            
+            gpu_edge_data.push(EdgeData {
+                source_idx: source_idx as i32,
+                target_idx: target_idx as i32,
+                weight: edge.weight,
+            });
+        }
+        
+        trace!("Copying {} nodes and {} edges to GPU", graph.nodes.len(), graph.edges.len());
+        
+        // Copy node data
         self.device.htod_sync_copy_into(&node_data, &mut self.node_data)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy node data to GPU: {}", e)))?;
+        
+        // Copy edge data
+        if !gpu_edge_data.is_empty() {
+            self.device.htod_sync_copy_into(&gpu_edge_data, &mut self.edge_data)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data to GPU: {}", e)))?;
+        }
+        
         Ok(())
     }
 
@@ -377,7 +417,9 @@ impl GPUCompute {
         unsafe {
             self.force_kernel.clone().launch(cfg, (
                 &self.node_data,
+                &self.edge_data,
                 self.num_nodes as i32,
+                self.num_edges as i32,
                 self.simulation_params.spring_strength,
                 self.simulation_params.damping,
                 self.simulation_params.repulsion,
