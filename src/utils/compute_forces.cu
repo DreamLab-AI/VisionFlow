@@ -24,9 +24,18 @@ extern "C" {
         unsigned char padding[2]; // 2 bytes - matches Rust padding
     };
 
+    // EdgeData struct to match Rust's EdgeData for communication intensity
+    struct EdgeData {
+        int source_idx;    // 4 bytes - source node index
+        int target_idx;    // 4 bytes - target node index
+        float weight;      // 4 bytes - communication intensity (0.0 to 1.0)
+    };
+
     __global__ void compute_forces_kernel(
         BinaryNodeData* nodes,
+        EdgeData* edges,
         int num_nodes,
+        int num_edges,
         float spring_k,
         float damping,
         float repel_k,
@@ -76,20 +85,29 @@ extern "C" {
 
         if (!is_active) return; // Skip inactive nodes
 
-        // Process all node interactions
-        for (int j = 0; j < num_nodes; j++) {
-            if (j == idx) continue;
+        // Process edge-based interactions using communication intensity
+        for (int edge_idx = 0; edge_idx < num_edges; edge_idx++) {
+            EdgeData edge = edges[edge_idx];
+            
+            // Check if this edge involves the current node
+            int other_node_idx = -1;
+            
+            if (edge.source_idx == idx) {
+                other_node_idx = edge.target_idx;
+            } else if (edge.target_idx == idx) {
+                other_node_idx = edge.source_idx;
+            }
+            
+            // Skip if edge doesn't involve current node
+            if (other_node_idx == -1 || other_node_idx >= num_nodes) continue;
 
-            // All nodes are considered active by default
-            // We no longer check the flags since all nodes are treated as active
-
-            // Handle other node's mass the same way
-            float other_mass = (nodes[j].mass == 0) ? 0.5f : (nodes[j].mass + 1.0f) / 256.0f;
+            // Get other node data
+            float other_mass = (nodes[other_node_idx].mass == 0) ? 0.5f : (nodes[other_node_idx].mass + 1.0f) / 256.0f;
 
             float3 other_pos = make_float3(
-                nodes[j].position.x,
-                nodes[j].position.y,
-                nodes[j].position.z
+                nodes[other_node_idx].position.x,
+                nodes[other_node_idx].position.y,
+                nodes[other_node_idx].position.z
             );
 
             float3 diff = make_float3(
@@ -99,6 +117,7 @@ extern "C" {
             );
 
             float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+            
             // Only process if nodes are at a meaningful distance apart
             if (dist > MIN_DISTANCE) {
                 float3 dir = make_float3(
@@ -107,41 +126,81 @@ extern "C" {
                     diff.z / dist
                 );
 
-                // Apply spring forces to all nodes by default
-                {
-                    // Use natural length of 1.0 to match world units
-                    float natural_length = 1.0f;
+                // Use communication intensity (edge weight) to modulate spring force
+                float communication_intensity = edge.weight; // 0.0 to 1.0 range
+                
+                // Natural length scales with communication intensity
+                // Higher communication = shorter desired distance (stronger attraction)
+                float base_natural_length = 1.5f;
+                float natural_length = base_natural_length * (1.0f - communication_intensity * 0.5f);
 
-                    // Progressive spring forces - stronger when further apart
-                    // Apply the ramp_up_factor to gradually increase spring forces
-                    float spring_force = -spring_k * ramp_up_factor * (dist - natural_length);
+                // Spring force proportional to communication intensity
+                float spring_force = -spring_k * ramp_up_factor * communication_intensity * (dist - natural_length);
 
-                    // Apply progressively stronger springs for very distant nodes
-                    if (dist > natural_length * 3.0f) {
-                        spring_force *= (1.0f + (dist - natural_length * 3.0f) * 0.1f);
-                    }
+                // Apply progressively stronger springs for very distant highly-communicating nodes
+                if (dist > natural_length * 2.0f && communication_intensity > 0.5f) {
+                    spring_force *= (1.0f + (dist - natural_length * 2.0f) * communication_intensity);
+                }
 
+                float spring_scale = mass * other_mass;
+                float force_magnitude = spring_force * spring_scale;
 
-                    float spring_scale = mass * other_mass;
-                    float force_magnitude = spring_force * spring_scale;
-
-                    // Repulsion forces - only apply at close distances
-                    if (dist < max_repulsion_dist) {
-                        float repel_scale = repel_k * mass * other_mass;
-                        // Apply the ramp_up_factor to gradually increase repulsion forces
-                        float dist_sq = fmaxf(dist * dist, MIN_DISTANCE);
-                        // Cap maximum repulsion force to prevent explosion
-                        float repel_force = fminf(repel_scale / dist_sq, repel_scale * 2.0f);
-                        total_force.x -= dir.x * repel_force;
-                        total_force.y -= dir.y * repel_force;
-                        total_force.z -= dir.z * repel_force;
-                    } else {
-                        // Always apply spring forces
-                        // We use -= because spring_force is negative for attraction
-                        total_force.x -= dir.x * force_magnitude;
-                        total_force.y -= dir.y * force_magnitude;
-                        total_force.z -= dir.z * force_magnitude;
-                    }
+                // Repulsion forces - weaker for high-communication pairs
+                if (dist < max_repulsion_dist) {
+                    float repel_scale = repel_k * mass * other_mass * (1.0f - communication_intensity * 0.7f);
+                    float dist_sq = fmaxf(dist * dist, MIN_DISTANCE);
+                    float repel_force = fminf(repel_scale / dist_sq, repel_scale * 2.0f);
+                    
+                    total_force.x -= dir.x * repel_force;
+                    total_force.y -= dir.y * repel_force;
+                    total_force.z -= dir.z * repel_force;
+                } else {
+                    // Apply communication-weighted spring forces
+                    total_force.x -= dir.x * force_magnitude;
+                    total_force.y -= dir.y * force_magnitude;
+                    total_force.z -= dir.z * force_magnitude;
+                }
+            }
+        }
+        
+        // Add weak repulsion between non-connected nodes to prevent clustering
+        for (int j = 0; j < num_nodes; j++) {
+            if (j == idx) continue;
+            
+            // Check if there's an edge between these nodes
+            bool has_edge = false;
+            for (int edge_idx = 0; edge_idx < num_edges; edge_idx++) {
+                EdgeData edge = edges[edge_idx];
+                if ((edge.source_idx == idx && edge.target_idx == j) || 
+                    (edge.source_idx == j && edge.target_idx == idx)) {
+                    has_edge = true;
+                    break;
+                }
+            }
+            
+            // Apply weak repulsion only to non-connected nodes
+            if (!has_edge) {
+                float3 other_pos = make_float3(
+                    nodes[j].position.x,
+                    nodes[j].position.y,
+                    nodes[j].position.z
+                );
+                
+                float3 diff = make_float3(
+                    other_pos.x - pos.x,
+                    other_pos.y - pos.y,
+                    other_pos.z - pos.z
+                );
+                
+                float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+                
+                if (dist > 0.0f && dist < max_repulsion_dist * 2.0f) {
+                    float3 dir = make_float3(diff.x / dist, diff.y / dist, diff.z / dist);
+                    float weak_repel = repel_k * 0.1f * mass / (dist * dist + 0.1f);
+                    
+                    total_force.x -= dir.x * weak_repel;
+                    total_force.y -= dir.y * weak_repel;
+                    total_force.z -= dir.z * weak_repel;
                 }
             }
         }

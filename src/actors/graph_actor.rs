@@ -325,6 +325,68 @@ impl GraphServiceActor {
         // Now binary_protocol expects (u32, BinaryNodeData) directly
         Ok(binary_protocol::encode_node_data(positions))
     }
+
+    /// Calculate Communication Intensity between two agents based on:
+    /// - Agent types and their collaboration patterns
+    /// - Activity levels (active tasks)
+    /// - Performance metrics (success rates)
+    fn calculate_communication_intensity(
+        &self,
+        source_type: &crate::services::claude_flow::AgentType,
+        target_type: &crate::services::claude_flow::AgentType,
+        source_active_tasks: u32,
+        target_active_tasks: u32,
+        source_success_rate: f32,
+        target_success_rate: f32,
+    ) -> f32 {
+        // Base communication intensity based on agent type relationships
+        let base_intensity = match (source_type, target_type) {
+            // Coordinator has high communication with all agent types
+            (crate::services::claude_flow::AgentType::Coordinator, _) |
+            (_, crate::services::claude_flow::AgentType::Coordinator) => 0.9,
+            
+            // High collaboration pairs
+            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Tester) |
+            (crate::services::claude_flow::AgentType::Tester, crate::services::claude_flow::AgentType::Coder) => 0.8,
+            
+            (crate::services::claude_flow::AgentType::Researcher, crate::services::claude_flow::AgentType::Analyst) |
+            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Researcher) => 0.7,
+            
+            (crate::services::claude_flow::AgentType::Architect, crate::services::claude_flow::AgentType::Coder) |
+            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Architect) => 0.7,
+            
+            // Medium collaboration pairs
+            (crate::services::claude_flow::AgentType::Architect, crate::services::claude_flow::AgentType::Analyst) |
+            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Architect) => 0.6,
+            
+            (crate::services::claude_flow::AgentType::Reviewer, crate::services::claude_flow::AgentType::Coder) |
+            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Reviewer) => 0.6,
+            
+            (crate::services::claude_flow::AgentType::Optimizer, crate::services::claude_flow::AgentType::Analyst) |
+            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Optimizer) => 0.6,
+            
+            // Default moderate communication for other pairs
+            _ => 0.4,
+        };
+        
+        // Activity factor: agents with more active tasks communicate more
+        let max_tasks = std::cmp::max(source_active_tasks, target_active_tasks);
+        let activity_factor = if max_tasks > 0 {
+            1.0 + (max_tasks as f32 * 0.1).min(0.5) // Cap at 50% boost
+        } else {
+            0.7 // Reduce for inactive agents
+        };
+        
+        // Performance factor: higher success rates lead to more collaboration
+        let avg_success_rate = (source_success_rate + target_success_rate) / 200.0; // Convert to 0-1 range
+        let performance_factor = 0.5 + avg_success_rate * 0.5; // Range: 0.5 to 1.0
+        
+        // Calculate final intensity with all factors
+        let final_intensity = base_intensity * activity_factor * performance_factor;
+        
+        // Clamp to reasonable range
+        final_intensity.min(1.0).max(0.0)
+    }
 }
 
 impl Actor for GraphServiceActor {
@@ -511,11 +573,12 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
         // This logic converts `AgentStatus` objects into `Node` and `Edge` objects
         let mut nodes = vec![];
-        let edges = vec![]; // Edges can be derived from agent communication patterns
+        let mut edges = vec![];
         
         // Use a high ID range (starting at 10000) to avoid conflicts with main graph
         let bot_id_offset = 10000;
         
+        // Create nodes for each agent
         for (i, agent) in msg.agents.iter().enumerate() {
             let node_id = bot_id_offset + i as u32;
             
@@ -534,30 +597,59 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             });
             
             node.label = agent.profile.name.clone();
-            // node.shape = "circle".to_string(); // Node struct doesn't have a shape field
             node.size = Some(20.0 + (agent.active_tasks_count as f32 * 5.0)); // Size based on activity
             
-            // Add metadata
+            // Add metadata including agent flag for GPU physics
             node.metadata.insert("agent_type".to_string(), format!("{:?}", agent.profile.agent_type));
             node.metadata.insert("status".to_string(), agent.status.clone());
             node.metadata.insert("active_tasks".to_string(), agent.active_tasks_count.to_string());
             node.metadata.insert("completed_tasks".to_string(), agent.completed_tasks_count.to_string());
+            node.metadata.insert("is_agent".to_string(), "true".to_string()); // Agent node flag
             
             nodes.push(node);
+        }
+        
+        // Create edges based on communication intensity
+        for (i, source_agent) in msg.agents.iter().enumerate() {
+            for (j, target_agent) in msg.agents.iter().enumerate() {
+                if i != j {
+                    let source_node_id = bot_id_offset + i as u32;
+                    let target_node_id = bot_id_offset + j as u32;
+                    
+                    // Calculate Communication Intensity
+                    let communication_intensity = self.calculate_communication_intensity(
+                        &source_agent.profile.agent_type,
+                        &target_agent.profile.agent_type,
+                        source_agent.active_tasks_count,
+                        target_agent.active_tasks_count,
+                        source_agent.success_rate as f32,
+                        target_agent.success_rate as f32,
+                    );
+                    
+                    // Only create edges for significant communication
+                    if communication_intensity > 0.1 {
+                        let mut edge = Edge::new(source_node_id, target_node_id, communication_intensity);
+                        // Initialize metadata HashMap if None
+                        edge.metadata = Some(HashMap::new());
+                        if let Some(ref mut metadata) = edge.metadata {
+                            metadata.insert("communication_type".to_string(), "agent_collaboration".to_string());
+                            metadata.insert("intensity".to_string(), communication_intensity.to_string());
+                        }
+                        edges.push(edge);
+                    }
+                }
+            }
         }
         
         // Update the bots graph data
         self.bots_graph_data.nodes = nodes;
         self.bots_graph_data.edges = edges;
         
-        // Create a message to broadcast the bots graph update to clients
-        // This would need to be implemented based on how the client expects bot data
-        // For now, we'll just log the update
-        info!("Updated bots graph with {} agents", msg.agents.len());
+        info!("Updated bots graph with {} agents and {} communication edges", 
+             msg.agents.len(), self.bots_graph_data.edges.len());
         
-        // TODO: Implement broadcasting bots graph to clients
-        // This might involve creating a new message type or modifying the existing
-        // binary protocol to support dual graphs
+        // Remove CPU physics calculations for agent graph - delegate to GPU
+        // The GPU will use the edge weights (communication intensity) for spring forces
     }
 }
 

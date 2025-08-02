@@ -11,7 +11,6 @@ import { BotsDebugInfo } from './BotsVisualizationDebugInfo';
 import { BotsControlPanel } from './BotsControlPanel';
 import { debugState } from '../../../utils/debugState';
 import { useBotsData } from '../contexts/BotsDataContext';
-import { mockDataGenerator } from '../services/MockDataGenerator';
 import { configurationMapper, VisualizationConfig } from '../services/ConfigurationMapper';
 
 const logger = createLogger('BotsVisualizationEnhanced');
@@ -276,9 +275,6 @@ export const BotsVisualizationEnhanced: React.FC = () => {
   useEffect(() => {
     logger.info('Initializing enhanced visualization with unified GPU physics...');
 
-    // Initialize mock data generator
-    mockDataGenerator.initialize(12);
-
     // Initialize physics worker with shared ground truth
     botsPhysicsWorker.init();
     botsPhysicsWorker.setDataType('visionflow');
@@ -306,18 +302,11 @@ export const BotsVisualizationEnhanced: React.FC = () => {
       });
     });
 
-    // Set up data update interval
+    // Set up data update interval - now relies on live MCP data
     const updateData = () => {
-      const nodes = mockDataGenerator.getAgents();
-      const edges = mockDataGenerator.getEdges();
-      const tokenUsage = mockDataGenerator.getTokenUsage();
-
-      setBotsData({ nodes, edges, tokenUsage });
-
-      // Update physics
-      botsPhysicsWorker.updateAgents(nodes);
-      botsPhysicsWorker.updateEdges(edges);
-      if (tokenUsage) botsPhysicsWorker.updateTokenUsage(tokenUsage);
+      // Data will be provided via useBotsData hook from MCP WebSocket connection
+      // This component now receives live data instead of generating mock data
+      logger.debug('Waiting for live bots data from MCP connection...');
     };
 
     updateData();
@@ -329,7 +318,6 @@ export const BotsVisualizationEnhanced: React.FC = () => {
     return () => {
       clearInterval(interval);
       configurationMapper.unsubscribe(configId);
-      mockDataGenerator.destroy();
       botsPhysicsWorker.cleanup();
     };
   }, []);
@@ -341,7 +329,7 @@ export const BotsVisualizationEnhanced: React.FC = () => {
       edgeCount: botsData.edges.length,
       tokenCount: botsData.tokenUsage?.total || 0,
       mcpConnected: false,
-      dataSource: 'mock'
+      dataSource: 'live'
     });
   }, [botsData, updateBotsData]);
 

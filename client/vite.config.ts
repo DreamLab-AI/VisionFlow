@@ -30,7 +30,18 @@ export default defineConfig({
       usePolling: true,
       interval: 1000, // Poll every second
     },
-    // Proxy is now handled by Nginx, remove proxy config from Vite
+    // Add proxy configuration for development
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/wss': {
+        target: 'ws://localhost:3001',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
