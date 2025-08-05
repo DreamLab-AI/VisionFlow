@@ -1,6 +1,6 @@
-# LogseqXR Agent Visualization Documentation
+# VisionFlow Agent Visualization Documentation
 
-Welcome to the comprehensive documentation for the LogseqXR agent visualization system. This system provides real-time 3D visualization of AI agent swarms, knowledge graphs, and collaborative workflows.
+Welcome to the comprehensive documentation for the VisionFlow agent visualization system. This system provides real-time 3D visualization of AI agent swarms, knowledge graphs, and collaborative workflows.
 
 ## Quick Start
 

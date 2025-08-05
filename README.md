@@ -1,4 +1,4 @@
-# LogseqXR: AI Agent Swarm Visualization & Knowledge Graph Explorer
+# VisionFlow: AI Agent Swarm Visualization & Knowledge Graph Explorer
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Visualization" style="width:100%; display:block; margin:0 auto;">
 
@@ -724,5 +724,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ---
 
-**Built with ❤️ by the LogseqXR community**
+**Built with ❤️ by the VisionFlow community**
 ```
