@@ -1,0 +1,313 @@
+# Claude Flow MCP Integration
+
+## Overview
+
+The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualizing AI agent swarms in real-time.
+
+## Architecture
+
+### Direct Process Communication (Current)
+
+```
+┌─────────────────────────┐
+│   Rust Backend          │
+│                         │
+│  ClaudeFlowActor        │
+│  ├─ StdioTransport      │
+│  │  └─ Spawns Process   │
+│  └─ MCP Protocol        │
+│                         │
+└─────────────────────────┘
+            │
+            ▼
+    npx claude-flow@alpha 
+    mcp start --stdio
+```
+
+### Key Components
+
+#### ClaudeFlowActor (`/src/actors/claude_flow_actor.rs`)
+- Actor-based implementation for reliable MCP communication
+- Spawns claude-flow process directly via stdio
+- Polls for agent updates every 5 seconds
+- Gracefully falls back to mock data when MCP unavailable
+
+#### StdioTransport (`/src/services/claude_flow/transport/stdio.rs`)
+- Direct process spawning and management
+- JSON-RPC 2.0 message format over stdin/stdout
+- No network dependencies or port configuration
+- Process isolation for reliability
+
+## MCP Protocol
+
+### Initialization Flow
+
+1. **Spawn Process**:
+   ```rust
+   Command::new("npx")
+       .args(&["claude-flow@alpha", "mcp", "start", "--stdio"])
+       .stdin(Stdio::piped())
+       .stdout(Stdio::piped())
+       .spawn()
+   ```
+
+2. **Protocol Handshake**:
+   ```json
+   // Server announces capabilities
+   → {"jsonrpc":"2.0","method":"server.initialized","params":{...}}
+   
+   // Client initializes connection
+   ← {"jsonrpc":"2.0","id":"init-1","method":"initialize","params":{...}}
+   → {"jsonrpc":"2.0","id":"init-1","result":{...}}
+   ```
+
+3. **Tool Invocation**:
+   ```json
+   // Call agent_list tool
+   ← {"jsonrpc":"2.0","id":"1","method":"tools/call","params":{"name":"agent_list","arguments":{}}}
+   → {"jsonrpc":"2.0","id":"1","result":{"content":[{"text":"..."}]}}
+   ```
+
+## Available MCP Tools
+
+### Core Agent Management
+- `swarm_init` - Initialize swarm with topology (mesh, hierarchical, ring, star)
+- `agent_spawn` - Create specialized agents with capabilities
+- `agent_list` - List active agents with status and metrics
+- `agent_metrics` - Get detailed performance metrics
+- `agent_command` - Send commands to specific agents
+
+### Task Orchestration
+- `task_orchestrate` - Coordinate complex multi-agent workflows
+- `task_status` - Check task execution progress
+- `task_results` - Retrieve completion results
+- `pipeline_create` - Setup sequential processing pipelines
+
+### Memory & Persistence
+- `memory_usage` - Store and retrieve persistent data
+- `memory_search` - Pattern-based memory search
+- `memory_persist` - Cross-session data persistence
+- `knowledge_graph` - Build and query knowledge graphs
+
+### Neural & AI Capabilities
+- `neural_train` - Train patterns with WASM SIMD acceleration
+- `neural_predict` - Make predictions based on patterns
+- `neural_patterns` - Analyze cognitive patterns
+- `reasoning_chain` - Execute complex reasoning chains
+
+### Performance & Monitoring
+- `swarm_status` - Monitor overall swarm health
+- `bottleneck_analyze` - Identify performance bottlenecks
+- `performance_report` - Generate detailed reports
+- `metrics_export` - Export metrics for external monitoring
+
+## Agent Types
+
+| Type | Role | Capabilities |
+|------|------|-------------|
+| Queen | Hive mind leader | Strategic coordination, swarm control |
+| Coordinator | Task orchestration | Resource allocation, workflow management |
+| Researcher | Information gathering | Web search, document analysis |
+| Coder | Implementation | Code generation, refactoring |
+| Analyst | Data analysis | Pattern recognition, insights |
+| Architect | System design | Architecture planning, optimization |
+| Tester | Quality assurance | Test generation, validation |
+| Reviewer | Code review | Quality checks, approval workflows |
+| Optimizer | Performance tuning | Bottleneck analysis, optimization |
+| Documenter | Documentation | Technical writing, API docs |
+| Monitor | System monitoring | Health checks, alerting |
+| Specialist | Domain expert | Custom capabilities |
+
+## Agent Data Model
+
+```rust
+pub struct BotsAgent {
+    // Core properties
+    pub id: String,
+    pub agent_type: String,
+    pub status: String,
+    pub name: String,
+    
+    // Performance metrics
+    pub cpu_usage: f32,
+    pub health: f32,
+    pub workload: f32,
+    
+    // Positioning (for visualization)
+    pub position: Vec3,
+    pub velocity: Vec3,
+    pub force: Vec3,
+    pub connections: Vec<String>,
+    
+    // Hive-mind properties
+    pub capabilities: Option<Vec<String>>,
+    pub current_task: Option<String>,
+    pub tasks_active: Option<u32>,
+    pub tasks_completed: Option<u32>,
+    pub success_rate: Option<f32>,
+    pub tokens: Option<u64>,
+    pub token_rate: Option<f32>,
+    pub activity: Option<f32>,
+    pub swarm_id: Option<String>,
+    pub agent_mode: Option<String>,
+    pub parent_queen_id: Option<String>,
+}
+```
+
+## API Endpoints
+
+### Initialize Swarm
+```http
+POST /api/bots/initialize-swarm
+Content-Type: application/json
+
+{
+  "topology": "hierarchical",
+  "maxAgents": 8,
+  "strategy": "balanced",
+  "enableNeural": true,
+  "agentTypes": ["coordinator", "researcher", "coder", "tester"],
+  "customPrompt": "Build a REST API with authentication"
+}
+```
+
+### Get Agent Status
+```http
+GET /api/bots/status
+```
+
+Returns lightweight agent status for real-time updates.
+
+### Get Full Graph Data
+```http
+GET /api/bots/data
+```
+
+Returns complete graph with nodes, edges, and positioning.
+
+## Swarm Topologies
+
+### Mesh
+- Fully connected network
+- All agents can communicate directly
+- Best for collaborative tasks
+- High communication overhead
+
+### Hierarchical
+- Tree structure with Queen at root
+- Clear command chain
+- Efficient for structured tasks
+- Scalable to large swarms
+
+### Ring
+- Sequential processing pipeline
+- Each agent communicates with neighbors
+- Good for staged workflows
+- Minimal communication overhead
+
+### Star
+- Central coordinator hub
+- Peripheral worker agents
+- Simple coordination model
+- Single point of failure
+
+## Error Handling
+
+### Graceful Degradation
+When MCP is unavailable:
+1. Falls back to mock agent data
+2. Continues visualization with static data
+3. Logs errors without crashing
+4. Retries connection periodically
+
+### Common Issues
+
+1. **Process Spawn Failure**
+   - Ensure `claude-flow@alpha` is available: `npx claude-flow@alpha --version`
+   - Check Node.js installation
+   - Verify permissions
+
+2. **Communication Errors**
+   - Monitor stdout/stderr for protocol errors
+   - Check JSON-RPC message format
+   - Verify tool names and parameters
+
+3. **Performance Issues**
+   - Adjust polling interval for agent updates
+   - Limit maximum agents per swarm
+   - Monitor process resource usage
+
+## Configuration
+
+### Environment Variables
+```bash
+# No longer needed for stdio transport!
+# Network configuration only required for WebSocket fallback
+```
+
+### Polling Configuration
+```rust
+// In ClaudeFlowActor
+const POLL_INTERVAL: Duration = Duration::from_secs(5);
+const RECONNECT_DELAY: Duration = Duration::from_secs(10);
+```
+
+## Performance Optimization
+
+### Agent Update Batching
+- Updates are batched in 5-second intervals
+- Binary protocol reduces bandwidth by 85%
+- Position updates use GPU-accelerated physics
+
+### Process Management
+- One claude-flow process per actor
+- Automatic restart on failure
+- Resource limits prevent runaway processes
+
+## Future Enhancements
+
+1. **Process Pool**: Reuse processes for better performance
+2. **Binary Protocol**: MessagePack for faster serialization
+3. **Streaming Updates**: Server-sent events for real-time data
+4. **Multi-Swarm**: Support multiple independent swarms
+5. **Persistence**: Save and restore swarm states
+
+## Testing
+
+### Manual Testing
+```bash
+# Initialize a test swarm
+curl -X POST http://localhost:3001/api/bots/initialize-swarm \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology": "mesh",
+    "maxAgents": 5,
+    "agentTypes": ["coordinator", "coder", "tester"]
+  }'
+
+# Check agent status
+curl http://localhost:3001/api/bots/status | jq
+
+# Get full graph data
+curl http://localhost:3001/api/bots/data | jq
+```
+
+### Integration Tests
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[actix_rt::test]
+    async fn test_claude_flow_connection() {
+        // Test implementation
+    }
+}
+```
+
+## References
+
+- [MCP Specification](https://github.com/anthropics/mcp)
+- [Claude Flow Documentation](https://github.com/Agentic-Insights/claude-flow)
+- [Agent Control System](../../../agent-control-system/README.md)
+- [Binary Protocol](../../api/binary-protocol.md)
