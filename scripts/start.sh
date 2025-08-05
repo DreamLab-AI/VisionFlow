@@ -10,10 +10,26 @@ log() {
 log "Checking GPU environment variables..."
 
 if [ -z "${NVIDIA_GPU_UUID:-}" ]; then
-    # Use the specific GPU UUID that we know works
-    NVIDIA_GPU_UUID="GPU-553dc306-dab3-32e2-c69b-28175a6f4da6"
-    log "Setting NVIDIA_GPU_UUID to known value: $NVIDIA_GPU_UUID"
-    export NVIDIA_GPU_UUID
+    # Try to auto-detect the first available GPU
+    if command -v nvidia-smi &>/dev/null; then
+        DETECTED_UUID=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | head -n1)
+        if [ -n "$DETECTED_UUID" ]; then
+            NVIDIA_GPU_UUID="$DETECTED_UUID"
+            log "Auto-detected GPU UUID: $NVIDIA_GPU_UUID"
+            export NVIDIA_GPU_UUID
+        else
+            log "ERROR: No GPU detected by nvidia-smi"
+            log "Please set NVIDIA_GPU_UUID environment variable or ensure GPU is available"
+            exit 1
+        fi
+    else
+        log "ERROR: nvidia-smi not available and NVIDIA_GPU_UUID not set"
+        log "Please either:"
+        log "  1. Set NVIDIA_GPU_UUID environment variable"
+        log "  2. Ensure NVIDIA drivers are installed"
+        log "  3. Run without GPU by setting ENABLE_GPU_PHYSICS=false"
+        exit 1
+    fi
     
     # Also set NVIDIA_VISIBLE_DEVICES to ensure Docker uses this GPU
     if [ -z "${NVIDIA_VISIBLE_DEVICES:-}" ]; then
@@ -28,7 +44,7 @@ if [ -z "${NVIDIA_GPU_UUID:-}" ]; then
         log "Setting CUDA_VISIBLE_DEVICES to: $CUDA_VISIBLE_DEVICES"
     fi
 else
-    log "Using GPU UUID: $NVIDIA_GPU_UUID"
+    log "Using provided GPU UUID: $NVIDIA_GPU_UUID"
 fi
 
 # Parse command line arguments

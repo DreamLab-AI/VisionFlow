@@ -1,29 +1,27 @@
-# Claude Flow Direct Stdio Integration
+# Claude Flow WebSocket Integration (DEPRECATED)
+
+**NOTE: This document describes an outdated stdio approach. The current implementation uses WebSocket connections to the multi-agent-container. See [Claude Flow MCP Integration](server/features/claude-flow-mcp-integration.md) for current documentation.**
 
 ## Overview
 
-This document describes the updated integration between the Rust-based force-directed graph visualization backend and the claude-flow hive-mind system using direct stdio communication via the Model Context Protocol (MCP).
-
-## Architecture
-
-### Direct Process Spawning
-
-The integration now uses direct process spawning instead of WebSocket connections:
+This document is kept for historical reference. The system no longer uses direct stdio communication.
 
 ```
 ┌─────────────────────────┐
 │   ext (Rust Backend)    │
 │                         │
 │  ClaudeFlowActor        │
-│  ├─ StdioTransport      │
-│  │  └─ Spawns Process   │
+│  ├─ WebSocket Client    │
+│  │  └─ Connects to      │
 │  └─ MCP Protocol        │
 │                         │
 └─────────────────────────┘
             │
-            ▼
-    npx claude-flow@alpha 
-    mcp start --stdio
+            ▼ WebSocket
+┌─────────────────────────┐
+│ multi-agent-container   │
+│   (Agent Docker)        │
+└─────────────────────────┘
 ```
 
 ### Key Benefits

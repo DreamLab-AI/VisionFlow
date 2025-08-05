@@ -5,8 +5,8 @@
 
 import { createLogger } from '../../../utils/logger';
 import { graphDataManager } from '../managers/graphDataManager';
-import { mcpWebSocketService } from '../../bots/services/MCPWebSocketService';
 import { botsPhysicsWorker } from '../../bots/workers/botsPhysicsWorker';
+import { apiService } from '../../../services/apiService';
 import type { GraphData } from '../managers/graphWorkerProxy';
 import type { BotsAgent, BotsEdge, TokenUsage, BotsVisualConfig } from '../../bots/types/BotsTypes';
 
@@ -63,9 +63,6 @@ class ParallelGraphCoordinator {
     // Configure graph data manager for Logseq
     graphDataManager.setGraphType('logseq');
 
-    // Configure MCP WebSocket service for VisionFlow
-    mcpWebSocketService.setDataType('visionflow');
-
     // Configure bots physics worker for VisionFlow
     botsPhysicsWorker.setDataType('visionflow');
 
@@ -99,11 +96,11 @@ class ParallelGraphCoordinator {
     this.notifyListeners();
 
     if (enabled) {
-      // Connect to VisionFlow WebSocket
-      this.connectVisionFlow();
+      // Start polling for VisionFlow data
+      this.startVisionFlowPolling();
     } else {
-      // Disconnect from VisionFlow
-      mcpWebSocketService.disconnect();
+      // Stop polling
+      this.stopVisionFlowPolling();
     }
   }
 
@@ -146,66 +143,66 @@ class ParallelGraphCoordinator {
    * Setup VisionFlow data listeners
    */
   private setupVisionFlowListeners(): void {
-    // Listen for MCP updates
-    mcpWebSocketService.on('update', async (data) => {
-      if (!this.state.visionflow.enabled || data.dataType !== 'visionflow') {
-        return;
-      }
+    // VisionFlow data is now fetched via polling the REST API
+    // Position updates come through the main WebSocket binary protocol
+    logger.info('VisionFlow listeners configured for REST API polling');
+  }
 
-      try {
-        // Fetch latest agents and communications
-        const agents = await mcpWebSocketService.getAgents();
-        const tokenUsage = await mcpWebSocketService.getTokenUsage();
-        const communications = await mcpWebSocketService.getCommunications();
+  private pollingInterval: NodeJS.Timeout | null = null;
 
-        // Process communications into edges
-        const edgeMap = new Map<string, BotsEdge>();
-        communications.forEach(comm => {
-          comm.receivers.forEach(receiver => {
-            const edgeId = `${comm.sender}-${receiver}`;
-            const reverseEdgeId = `${receiver}-${comm.sender}`;
+  /**
+   * Start polling for VisionFlow data
+   */
+  private async startVisionFlowPolling(): Promise<void> {
+    // Clear any existing interval
+    this.stopVisionFlowPolling();
 
-            // Check if edge already exists (in either direction)
-            let edge = edgeMap.get(edgeId) || edgeMap.get(reverseEdgeId);
+    // Initial fetch
+    await this.fetchVisionFlowData();
 
-            if (!edge) {
-              edge = {
-                id: edgeId,
-                source: comm.sender,
-                target: receiver,
-                dataVolume: 0,
-                messageCount: 0,
-                lastMessageTime: 0
-              };
-              edgeMap.set(edgeId, edge);
-            }
+    // Poll every 5 seconds (matching backend polling rate)
+    this.pollingInterval = setInterval(() => {
+      this.fetchVisionFlowData();
+    }, 5000);
+  }
 
-            // Update edge metrics
-            edge.dataVolume += comm.metadata.size;
-            edge.messageCount += 1;
-            edge.lastMessageTime = Math.max(
-              edge.lastMessageTime,
-              new Date(comm.timestamp).getTime()
-            );
-          });
-        });
+  /**
+   * Stop polling for VisionFlow data
+   */
+  private stopVisionFlowPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
 
+  /**
+   * Fetch VisionFlow data from REST API
+   */
+  private async fetchVisionFlowData(): Promise<void> {
+    if (!this.state.visionflow.enabled) {
+      return;
+    }
+
+    try {
+      // Fetch bots data from backend API
+      const botsData = await apiService.getBotsData();
+      
+      if (botsData && botsData.nodes && botsData.edges) {
         // Update physics simulation
-        botsPhysicsWorker.updateAgents(agents);
-        botsPhysicsWorker.updateEdges(Array.from(edgeMap.values()));
-        botsPhysicsWorker.updateTokenUsage(tokenUsage);
+        botsPhysicsWorker.updateAgents(botsData.nodes);
+        botsPhysicsWorker.updateEdges(botsData.edges);
 
         // Update state
-        this.state.visionflow.agents = agents;
-        this.state.visionflow.edges = Array.from(edgeMap.values());
-        this.state.visionflow.tokenUsage = tokenUsage;
+        this.state.visionflow.agents = botsData.nodes;
+        this.state.visionflow.edges = botsData.edges;
         this.state.visionflow.lastUpdate = Date.now();
 
         this.notifyListeners();
-      } catch (error) {
-        logger.error('Error processing VisionFlow update:', error);
       }
-    });
+    } catch (error) {
+      logger.error('Error fetching VisionFlow data:', error);
+    }
   }
 
   /**
@@ -226,21 +223,6 @@ class ParallelGraphCoordinator {
     }
   }
 
-  /**
-   * Connect to VisionFlow WebSocket
-   */
-  private async connectVisionFlow(): Promise<void> {
-    if (!this.state.visionflow.enabled) {
-      return;
-    }
-
-    try {
-      await mcpWebSocketService.connect();
-      logger.info('Connected to VisionFlow WebSocket');
-    } catch (error) {
-      logger.error('Error connecting to VisionFlow:', error);
-    }
-  }
 
   /**
    * Notify all listeners of state changes

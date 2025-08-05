@@ -5,22 +5,24 @@ The Claude Flow integration has been updated to use WebSocket transport instead 
 
 ## Architecture Components
 
-### 1. PowerDev Container
-- **Role**: Hosts the MCP WebSocket relay
-- **Port**: 3000
-- **Service**: `mcp-ws-relay.js`
-- **Location**: `/workspace/ext/src/mcp-ws-relay.js`
+### 1. Multi-Agent Container
+- **Role**: Hosts the agent control system with MCP integration
+- **Port**: 9500 (TCP server for agent control)
+- **Service**: Agent Control System (JavaScript)
+- **Location**: `/workspace/agent-control-system/`
 
-### 2. WebSocket Relay
-The relay acts as a bridge between WebSocket clients and the Claude Flow MCP stdio process:
+### 2. Communication Architecture
+The system uses TCP for inter-container communication:
 ```
-Rust Client <--WebSocket--> mcp-ws-relay.js <--stdio--> claude-flow@alpha MCP
+Rust Backend <--TCP--> Agent Control System <--stdio--> claude-flow@alpha MCP
+(VisionFlow)           (multi-agent-container)           (MCP Server)
 ```
 
-### 3. Rust Backend (logseq_spring_thing_webxr)
-- **ClaudeFlowActor**: Manages WebSocket connection to PowerDev
-- **Connection**: `ws://powerdev:3000/ws`
+### 3. Rust Backend (VisionFlow)
+- **AgentControlActor**: Manages TCP connection to multi-agent-container
+- **Connection**: `tcp://multi-agent-container:9500`
 - **Features**: 
+  - JSON-RPC 2.0 protocol over TCP
   - Automatic reconnection with exponential backoff
   - Graceful degradation to mock data when disconnected
   - Health monitoring
@@ -30,19 +32,18 @@ Rust Client <--WebSocket--> mcp-ws-relay.js <--stdio--> claude-flow@alpha MCP
 ### Environment Variables
 ```bash
 # In Rust container (.env or docker-compose.yml)
-CLAUDE_FLOW_HOST=powerdev  # Docker service name
-CLAUDE_FLOW_PORT=3000       # WebSocket relay port
+AGENT_CONTROL_URL=multi-agent-container:9500  # TCP connection to agent container
 ```
 
 ### Docker Networking
 - Both containers must be on the same Docker network
-- PowerDev exposes port 3000 internally
+- Multi-agent-container exposes port 9500 internally
 - No host port mapping required for container-to-container communication
 
 ## Startup Sequence
 
-1. **PowerDev starts** with MCP WebSocket relay
-2. **Rust container starts** and attempts connection
+1. **Multi-agent-container starts** with Agent Control System
+2. **Rust container starts** and attempts TCP connection
 3. **If connection fails**, Rust enters degraded mode with mock data
 4. **Automatic reconnection** attempts with exponential backoff
 

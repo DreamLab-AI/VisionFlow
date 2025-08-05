@@ -1,6 +1,6 @@
 # Client Documentation
 
-The LogseqXR frontend is a modern React application built with TypeScript, Three.js for 3D visualization, and Material-UI for the interface.
+The VisionFlow frontend is a modern React application built with TypeScript, Three.js for 3D visualization, and Material-UI for the interface.
 
 ## Architecture Overview
 

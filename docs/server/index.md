@@ -1,6 +1,6 @@
 # Server Documentation
 
-The LogseqXR backend is built with Rust using the Actix web framework and an actor-based architecture for high-performance, concurrent operations.
+The VisionFlow backend is built with Rust using the Actix web framework and an actor-based architecture for high-performance, concurrent operations.
 
 ## Architecture Overview
 
