@@ -1155,7 +1155,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     )
     .service(
         web::resource("/status")
-            .route(web::get().to(get_agent_status))
+            .route(web::get().to(crate::handlers::agent_control_handler::get_agents))
     )
     .service(
         web::resource("/update")
@@ -1163,6 +1163,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     )
     .service(
         web::resource("/initialize-swarm")
-            .route(web::post().to(initialize_swarm))
+            .route(web::post().to(crate::handlers::agent_control_handler::initialize_swarm))
     );
 }

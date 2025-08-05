@@ -11,3 +11,4 @@ pub mod bots_handler;
 pub mod mcp_relay_handler;
 pub mod bots_visualization_handler;
 pub mod mcp_health_handler;
+pub mod agent_control_handler;

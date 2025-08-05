@@ -3,7 +3,8 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn, error};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor};
+use crate::services::agent_control_client::AgentControlActor;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;
@@ -34,7 +35,7 @@ pub struct AppState {
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
-    pub claude_flow_addr: Option<Addr<ClaudeFlowActor>>,
+    pub agent_control_addr: Option<Addr<AgentControlActor>>,
 }
 
 impl AppState {
@@ -75,41 +76,15 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient");
         let bots_client = Arc::new(BotsClient::new());
 
-        // Initialize ClaudeFlowActor if MCP is configured
-        let claude_flow_addr = if std::env::var("CLAUDE_FLOW_HOST").is_ok() {
-            info!("[AppState::new] Starting ClaudeFlowActor");
+        // Initialize AgentControlActor if configured
+        let agent_control_addr = if let Ok(agent_control_url) = std::env::var("AGENT_CONTROL_URL") {
+            info!("[AppState::new] Starting AgentControlActor");
+            info!("[AppState::new] Agent Control URL: {}", agent_control_url);
             
-            // Ensure MCP relay is running first
-            use crate::services::mcp_relay_manager::ensure_mcp_ready;
-            match ensure_mcp_ready().await {
-                Ok(_) => {
-                    info!("[AppState::new] MCP relay is ready");
-                }
-                Err(e) => {
-                    warn!("[AppState::new] Could not ensure MCP relay is running: {}", e);
-                    warn!("[AppState::new] Proceeding anyway - ClaudeFlowActor may fail to connect");
-                }
-            }
-            
-            // Create ClaudeFlowClient
-            use crate::services::claude_flow::ClaudeFlowClientBuilder;
-            match ClaudeFlowClientBuilder::new()
-                .use_stdio()
-                .build()
-                .await {
-                Ok(client) => {
-                    info!("[AppState::new] Created ClaudeFlowClient, starting ClaudeFlowActor");
-                    let actor = ClaudeFlowActor::new(client, graph_service_addr.clone());
-                    Some(actor.start())
-                }
-                Err(e) => {
-                    error!("[AppState::new] Failed to create ClaudeFlowActor: {}", e);
-                    warn!("[AppState::new] Continuing without Claude Flow integration");
-                    None
-                }
-            }
+            let actor = AgentControlActor::new(agent_control_url);
+            Some(actor.start())
         } else {
-            info!("[AppState::new] ClaudeFlowActor not configured (CLAUDE_FLOW_HOST not set)");
+            info!("[AppState::new] AgentControlActor not configured (AGENT_CONTROL_URL not set)");
             None
         };
 
@@ -132,7 +107,7 @@ impl AppState {
             ragflow_session_id,
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
-            claude_flow_addr,
+            agent_control_addr,
         })
     }
 
