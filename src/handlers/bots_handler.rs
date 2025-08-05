@@ -20,7 +20,7 @@ use chrono; // UPDATED: Added for timestamp generation
 use glam::Vec3;
 
 // UPDATED: Enhanced BotsAgent to match claude-flow hive-mind agent properties
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BotsAgent {
     pub id: String,
@@ -29,6 +29,7 @@ pub struct BotsAgent {
     pub status: String,
     pub name: String,
     pub cpu_usage: f32,
+    pub memory_usage: f32,
     pub health: f32,
     pub workload: f32,
     
@@ -52,6 +53,9 @@ pub struct BotsAgent {
     pub swarm_id: Option<String>,
     pub agent_mode: Option<String>, // centralized, distributed, strategic
     pub parent_queen_id: Option<String>,
+    pub processing_logs: Option<Vec<String>>,
+    pub created_at: Option<String>, // ISO 8601
+    pub age: Option<u64>, // milliseconds
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -122,7 +126,8 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
                         ClaudeAgentType::Optimizer => "optimizer",
                         ClaudeAgentType::Documenter => "documenter",
                         ClaudeAgentType::Monitor => "monitor",
-                        ClaudeAgentType::Specialist => "specialist"
+                        ClaudeAgentType::Specialist => "specialist",
+                        ClaudeAgentType::Queen => "queen"
                     };
                     
                     // Extract current task from metadata or use active task count
@@ -179,20 +184,24 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
                         agent_type: agent_type.to_string(),
                         status: agent.status,
                         name: agent.profile.name,
-                        cpu_usage,
-                        health: health as f32,
+                        cpu_usage: agent.cpu_usage as f32,
+                        memory_usage: agent.memory_usage as f32,
+                        health: agent.health as f32,
                         workload,
                         capabilities: Some(agent.profile.capabilities),
                         current_task: current_task,
-                        tasks_active: Some(agent.active_tasks_count as u32),
-                        tasks_completed: Some(agent.completed_tasks_count as u32),
-                        success_rate: Some(agent.success_rate as f32),
-                        tokens: agent.metadata.get("total_tokens").and_then(|v| v.as_u64()),
-                        token_rate: Some(token_rate),
-                        activity: Some(activity),
-                        swarm_id,
-                        agent_mode,
-                        parent_queen_id: None, // Will be set based on hierarchy detection
+                        tasks_active: Some(agent.tasks_active),
+                        tasks_completed: Some(agent.performance_metrics.tasks_completed),
+                        success_rate: Some(agent.performance_metrics.success_rate as f32),
+                        tokens: Some(agent.token_usage.total),
+                        token_rate: Some(agent.token_usage.token_rate as f32),
+                        activity: Some(agent.activity as f32),
+                        swarm_id: agent.swarm_id,
+                        agent_mode: agent.agent_mode,
+                        parent_queen_id: agent.parent_queen_id,
+                        processing_logs: agent.processing_logs,
+                        created_at: Some(agent.timestamp.to_rfc3339()),
+                        age: Some(chrono::Utc::now().timestamp_millis() as u64 - agent.timestamp.timestamp_millis() as u64),
                         // Add missing fields with default values
                         position: Vec3::new(0.0, 0.0, 0.0),
                         velocity: Vec3::ZERO,
@@ -202,30 +211,30 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
                 }).collect();
                 
                 // Establish hierarchical relationships
-                // Find Coordinator agents (acting as Queen-like leaders)
+                // Find Queen and Coordinator agents (acting as leaders)
                 let queen_ids: Vec<String> = bots_agents.iter()
-                    .filter(|a| a.agent_type == "coordinator")
+                    .filter(|a| a.agent_type == "queen" || a.agent_type == "coordinator")
                     .map(|a| a.id.clone())
                     .collect();
                 
-                // If we have coordinators, assign parent relationships
+                // If we have leaders, assign parent relationships if not already set
                 if !queen_ids.is_empty() {
-                    // Create a mapping of swarm_id to coordinator_id
-                    let swarm_coordinators: std::collections::HashMap<String, String> = bots_agents.iter()
-                        .filter(|a| a.agent_type == "coordinator")
+                    // Create a mapping of swarm_id to leader_id (prioritize queen, then coordinator)
+                    let swarm_leaders: std::collections::HashMap<String, String> = bots_agents.iter()
+                        .filter(|a| a.agent_type == "queen" || a.agent_type == "coordinator")
                         .filter_map(|a| a.swarm_id.as_ref().map(|s| (s.clone(), a.id.clone())))
                         .collect();
                     
                     for agent in &mut bots_agents {
-                        if agent.agent_type != "coordinator" {
-                            // Assign to a coordinator based on swarm_id or round-robin
+                        if agent.agent_type != "queen" && agent.agent_type != "coordinator" && agent.parent_queen_id.is_none() {
+                            // Assign to a leader based on swarm_id or round-robin
                             if let Some(swarm_id) = &agent.swarm_id {
-                                // Try to find a coordinator in the same swarm
-                                agent.parent_queen_id = swarm_coordinators.get(swarm_id)
+                                // Try to find a leader in the same swarm
+                                agent.parent_queen_id = swarm_leaders.get(swarm_id)
                                     .cloned()
                                     .or_else(|| queen_ids.first().cloned());
                             } else {
-                                // Assign to first coordinator if no swarm_id
+                                // Assign to first leader if no swarm_id
                                 agent.parent_queen_id = queen_ids.first().cloned();
                             }
                         }

@@ -7,6 +7,7 @@ pub mod client_manager_actor;
 pub mod gpu_compute_actor;
 pub mod protected_settings_actor;
 pub mod claude_flow_actor;
+pub mod claude_flow_actor_enhanced;
 pub mod messages;
 
 pub use graph_actor::GraphServiceActor;
@@ -15,5 +16,8 @@ pub use metadata_actor::MetadataActor;
 pub use client_manager_actor::ClientManagerActor;
 pub use gpu_compute_actor::GPUComputeActor;
 pub use protected_settings_actor::ProtectedSettingsActor;
-pub use claude_flow_actor::ClaudeFlowActor;
+// Export the enhanced actor as the main ClaudeFlowActor
+pub use claude_flow_actor_enhanced::EnhancedClaudeFlowActor as ClaudeFlowActor;
+// Keep the basic actor available for reference
+pub use claude_flow_actor::ClaudeFlowActor as BasicClaudeFlowActor;
 pub use messages::*;

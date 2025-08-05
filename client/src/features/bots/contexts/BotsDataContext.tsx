@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { BotsAgent, BotsFullUpdateMessage } from '../types/BotsTypes';
+import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 
 interface BotsData {
   nodeCount: number;
@@ -6,11 +8,23 @@ interface BotsData {
   tokenCount: number;
   mcpConnected: boolean;
   dataSource: string;
+  // Enhanced fields for full agent data
+  agents: BotsAgent[];
+  swarmMetrics?: {
+    totalAgents: number;
+    activeAgents: number;
+    totalTasks: number;
+    completedTasks: number;
+    avgSuccessRate: number;
+    totalTokens: number;
+  };
+  lastUpdate?: string;
 }
 
 interface BotsDataContextType {
   botsData: BotsData | null;
   updateBotsData: (data: BotsData) => void;
+  updateFromFullUpdate: (update: BotsFullUpdateMessage) => void;
 }
 
 const BotsDataContext = createContext<BotsDataContextType | undefined>(undefined);
@@ -21,15 +35,39 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     edgeCount: 0,
     tokenCount: 0,
     mcpConnected: false,
-    dataSource: 'mock'
+    dataSource: 'mock',
+    agents: []
   });
 
   const updateBotsData = (data: BotsData) => {
     setBotsData(data);
   };
 
+  const updateFromFullUpdate = (update: BotsFullUpdateMessage) => {
+    setBotsData(prev => ({
+      ...prev!,
+      agents: update.agents,
+      nodeCount: update.agents.length,
+      edgeCount: 0, // Will be calculated from communication patterns
+      tokenCount: update.swarmMetrics.totalTokens,
+      mcpConnected: true,
+      dataSource: 'live',
+      swarmMetrics: update.swarmMetrics,
+      lastUpdate: update.timestamp
+    }));
+  };
+
+  // Subscribe to WebSocket updates
+  useEffect(() => {
+    const unsubscribe = botsWebSocketIntegration.on('bots-full-update', (update: BotsFullUpdateMessage) => {
+      updateFromFullUpdate(update);
+    });
+
+    return unsubscribe;
+  }, []);
+
   return (
-    <BotsDataContext.Provider value={{ botsData, updateBotsData }}>
+    <BotsDataContext.Provider value={{ botsData, updateBotsData, updateFromFullUpdate }}>
       {children}
     </BotsDataContext.Provider>
   );

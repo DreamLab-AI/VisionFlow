@@ -89,6 +89,21 @@ export interface MCPMessage {
   requestId?: string;
 }
 
+// Enhanced WebSocket message for full agent data updates
+export interface BotsFullUpdateMessage {
+  type: 'bots-full-update';
+  agents: BotsAgent[];
+  swarmMetrics: {
+    totalAgents: number;
+    activeAgents: number;
+    totalTasks: number;
+    completedTasks: number;
+    avgSuccessRate: number;
+    totalTokens: number;
+  };
+  timestamp: string; // ISO 8601
+}
+
 export interface MCPRequest {
   jsonrpc: '2.0';
   id: string;

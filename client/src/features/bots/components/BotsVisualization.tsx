@@ -5,8 +5,7 @@ import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState } from '../types/botsTypes';
 import { createLogger } from '../../../utils/logger';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { apiService } from '../../../services/apiService';
-import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
+// Data is now provided via BotsDataContext only
 import { useBotsBinaryUpdates } from '../hooks/useBotsBinaryUpdates';
 // BotsStatusIndicator merged into main VisionFlow panel
 import { BotsDebugInfo } from './BotsVisualizationDebugInfo';
@@ -466,7 +465,7 @@ export const BotsVisualization: React.FC = () => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const labelsRef = useRef<THREE.Group>(null);
   const settings = useSettingsStore(state => state.settings);
-  const { updateBotsData } = useBotsData();
+  const { botsData: contextBotsData } = useBotsData();
 
   // Position buffer from backend
   const positionBufferRef = useRef<Float32Array | null>(null);
@@ -514,45 +513,9 @@ export const BotsVisualization: React.FC = () => {
 
         // Physics are now handled by GPU on the backend
 
-        // Use integrated WebSocket service for both connections
-        const connectionStatus = botsWebSocketIntegration.getConnectionStatus();
-        logger.info('WebSocket connection status:', connectionStatus);
-
-        // Set up real-time updates through integrated WebSocket service
-        // All agent metadata and physics positions now come via WebSocket
-        botsWebSocketIntegration.on('bots-agents-update', (agents) => {
-          logger.debug('Received WebSocket bots agents update', agents);
-          processAgentsUpdate(agents);
-          setDataSource('websocket'); // Update data source to reflect WebSocket origin
-        });
-
-        botsWebSocketIntegration.on('bots-edges-update', (edges) => {
-          logger.debug('Received WebSocket bots edges update', edges);
-          processEdgesUpdate(edges);
-        });
-
-        botsWebSocketIntegration.on('bots-token-usage', (tokenUsage) => {
-          logger.debug('Received WebSocket token usage update', tokenUsage);
-          setBotsData(prev => ({ ...prev, tokenUsage }));
-        });
-
-        botsWebSocketIntegration.on('mcp-connected', ({ connected }) => {
-          setMcpConnected(connected);
-          if (connected) {
-            setDataSource('mcp');
-            logger.info('MCP connection established through integration service');
-          }
-        });
-
-        // Request initial data through integration service
-        try {
-          await botsWebSocketIntegration.requestInitialData();
-          logger.info('Initial bots data requested via WebSocket integration');
-          // MCP connections are handled by the backend only
-        } catch (error) {
-          logger.warn('Failed to get initial data through integration:', error);
-          setError('Unable to connect to VisionFlow WebSocket data source');
-        }
+        // Data now comes from BotsDataContext which handles WebSocket integration
+        logger.info('[VISIONFLOW] Waiting for data from BotsDataContext...');
+        setDataSource('context'); // Data comes from context
 
         setError(null);
       } catch (err) {

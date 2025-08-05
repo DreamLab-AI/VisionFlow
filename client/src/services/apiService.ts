@@ -246,6 +246,20 @@ class ApiService {
   public async updateBotsData(data: { nodes: any[], edges: any[] }): Promise<any> {
     return await this.post('/bots/update', data);
   }
+
+  /**
+   * Initialize a new swarm with the specified configuration
+   */
+  public async initializeSwarm(config: {
+    topology: string;
+    maxAgents: number;
+    strategy: string;
+    enableNeural: boolean;
+    agentTypes: string[];
+    customPrompt?: string;
+  }): Promise<{ success: boolean; message?: string; error?: string }> {
+    return await this.post('/bots/initialize-swarm', config);
+  }
 }
 
 export const apiService = ApiService.getInstance();

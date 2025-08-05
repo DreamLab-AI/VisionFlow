@@ -91,8 +91,17 @@ impl AppState {
                 }
             }
             
-            match ClaudeFlowActor::new(graph_service_addr.clone()).await {
-                Ok(actor) => Some(actor.start()),
+            // Create ClaudeFlowClient
+            use crate::services::claude_flow::ClaudeFlowClientBuilder;
+            match ClaudeFlowClientBuilder::new()
+                .use_stdio()
+                .build()
+                .await {
+                Ok(client) => {
+                    info!("[AppState::new] Created ClaudeFlowClient, starting ClaudeFlowActor");
+                    let actor = ClaudeFlowActor::new(client, graph_service_addr.clone());
+                    Some(actor.start())
+                }
                 Err(e) => {
                     error!("[AppState::new] Failed to create ClaudeFlowActor: {}", e);
                     warn!("[AppState::new] Continuing without Claude Flow integration");

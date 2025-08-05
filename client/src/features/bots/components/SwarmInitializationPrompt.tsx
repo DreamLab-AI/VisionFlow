@@ -18,6 +18,7 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
   const [maxAgents, setMaxAgents] = useState(8);
   const [enableNeural, setEnableNeural] = useState(true);
   const [agentTypes, setAgentTypes] = useState({
+    queen: false,
     coordinator: true,
     researcher: true,
     coder: true,
@@ -27,6 +28,8 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
     optimizer: true,
     reviewer: false,
     documenter: false,
+    monitor: false,
+    specialist: false,
   });
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -189,25 +192,62 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
           gap: '8px',
           fontSize: '14px',
         }}>
-          {Object.entries(agentTypes).map(([type, enabled]) => (
-            <label key={type} style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              cursor: 'pointer',
-              color: enabled ? '#F1C40F' : 'rgba(255, 255, 255, 0.5)',
-            }}>
-              <input
-                type="checkbox"
-                checked={enabled}
-                onChange={(e) => setAgentTypes(prev => ({
-                  ...prev,
-                  [type]: e.target.checked
-                }))}
-                style={{ marginRight: '8px' }}
-              />
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </label>
-          ))}
+          {Object.entries(agentTypes).map(([type, enabled]) => {
+            const agentTypeInfo: Record<string, { icon: string; description: string }> = {
+              queen: { icon: '👑', description: 'Hive mind leader' },
+              coordinator: { icon: '🎯', description: 'Task orchestration' },
+              researcher: { icon: '🔍', description: 'Information gathering' },
+              coder: { icon: '💻', description: 'Code implementation' },
+              analyst: { icon: '📊', description: 'Data analysis' },
+              tester: { icon: '🧪', description: 'Quality assurance' },
+              architect: { icon: '🏗️', description: 'System design' },
+              optimizer: { icon: '⚡', description: 'Performance tuning' },
+              reviewer: { icon: '👁️', description: 'Code review' },
+              documenter: { icon: '📝', description: 'Documentation' },
+              monitor: { icon: '📡', description: 'System monitoring' },
+              specialist: { icon: '🔧', description: 'Specialized tasks' },
+            };
+            
+            const info = agentTypeInfo[type] || { icon: '🤖', description: type };
+            
+            return (
+              <label key={type} style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                cursor: 'pointer',
+                color: enabled ? '#F1C40F' : 'rgba(255, 255, 255, 0.5)',
+                padding: '4px',
+                borderRadius: '4px',
+                backgroundColor: enabled ? 'rgba(241, 196, 15, 0.1)' : 'transparent',
+                transition: 'all 0.2s ease',
+              }}
+              title={info.description}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={(e) => setAgentTypes(prev => ({
+                    ...prev,
+                    [type]: e.target.checked
+                  }))}
+                  style={{ marginRight: '8px' }}
+                />
+                <span style={{ marginRight: '4px' }}>{info.icon}</span>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </label>
+            );
+          })}
+        </div>
+        <div style={{ 
+          fontSize: '12px', 
+          color: 'rgba(255, 255, 255, 0.6)',
+          marginTop: '8px',
+        }}>
+          {topology === 'hierarchical' && !agentTypes.queen && (
+            <span style={{ color: '#F39C12' }}>
+              💡 Tip: Enable Queen agent for hierarchical topology
+            </span>
+          )}
         </div>
       </div>
 
