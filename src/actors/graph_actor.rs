@@ -648,6 +648,51 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         info!("Updated bots graph with {} agents and {} communication edges", 
              msg.agents.len(), self.bots_graph_data.edges.len());
         
+        // Send bots-full-update WebSocket message with complete agent data
+        let bots_full_update = serde_json::json!({
+            "type": "bots-full-update",
+            "agents": msg.agents.iter().map(|agent| {
+                serde_json::json!({
+                    "id": agent.agent_id,
+                    "type": format!("{:?}", agent.profile.agent_type),
+                    "status": agent.status,
+                    "name": agent.profile.name,
+                    "cpuUsage": agent.cpu_usage,
+                    "memoryUsage": agent.memory_usage,
+                    "health": agent.health,
+                    "workload": agent.activity,
+                    "capabilities": agent.profile.capabilities,
+                    "currentTask": agent.current_task.as_ref().map(|t| t.description.clone()),
+                    "tasksActive": agent.tasks_active,
+                    "tasksCompleted": agent.performance_metrics.tasks_completed,
+                    "successRate": agent.performance_metrics.success_rate,
+                    "tokens": agent.token_usage.total,
+                    "tokenRate": agent.token_usage.token_rate,
+                    "activity": agent.activity,
+                    "swarmId": agent.swarm_id,
+                    "agentMode": agent.agent_mode,
+                    "parentQueenId": agent.parent_queen_id,
+                    "processingLogs": agent.processing_logs,
+                    "createdAt": agent.timestamp.to_rfc3339(),
+                    "age": chrono::Utc::now().timestamp_millis() - agent.timestamp.timestamp_millis(),
+                })
+            }).collect::<Vec<_>>(),
+            "swarmMetrics": {
+                "totalAgents": msg.agents.len(),
+                "activeAgents": msg.agents.iter().filter(|a| a.status == "active").count(),
+                "totalTasks": msg.agents.iter().map(|a| a.tasks_active).sum::<u32>(),
+                "completedTasks": msg.agents.iter().map(|a| a.performance_metrics.tasks_completed).sum::<u32>(),
+                "avgSuccessRate": msg.agents.iter().map(|a| a.performance_metrics.success_rate).sum::<f64>() / msg.agents.len().max(1) as f64,
+                "totalTokens": msg.agents.iter().map(|a| a.token_usage.total).sum::<u64>(),
+            },
+            "timestamp": chrono::Utc::now().to_rfc3339(),
+        });
+        
+        // Broadcast the full update to all connected clients
+        self.client_manager.do_send(BroadcastMessage {
+            message: bots_full_update.to_string(),
+        });
+        
         // Remove CPU physics calculations for agent graph - delegate to GPU
         // The GPU will use the edge weights (communication intensity) for spring forces
     }

@@ -6,6 +6,7 @@ import ConversationPane from './ConversationPane';
 import NarrativeGoldminePanel from './NarrativeGoldminePanel';
 import { ProgrammaticMonitorControl } from '../../features/bots/components/ProgrammaticMonitorControl';
 import { SpacePilotButtonPanel } from '../../features/visualisation/components/SpacePilotButtonPanel';
+import { SystemHealthPanel, ActivityLogPanel, AgentDetailPanel } from '../../features/bots/components';
 import {
   Collapsible,
   CollapsibleContent,
@@ -68,6 +69,45 @@ const RightPaneControlPanel: React.FC = () => {
         <CollapsibleContent className="overflow-hidden">
           <div className="p-2">
             <SpacePilotButtonPanel compact={true} showLabels={true} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* System Health Panel - Collapsible */}
+      <Collapsible defaultOpen={true} className="flex-shrink-0 border-t">
+        <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+          <h3 className="text-sm font-semibold">System Health</h3>
+          <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=closed]:-rotate-90" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden">
+          <div className="p-2">
+            <SystemHealthPanel />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Activity Log Panel - Collapsible */}
+      <Collapsible defaultOpen={false} className="flex-shrink-0 border-t">
+        <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+          <h3 className="text-sm font-semibold">Activity Log</h3>
+          <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=closed]:-rotate-90" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden">
+          <div className="p-2">
+            <ActivityLogPanel />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Agent Detail Panel - Collapsible */}
+      <Collapsible defaultOpen={false} className="flex-shrink-0 border-t">
+        <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+          <h3 className="text-sm font-semibold">Agent Details</h3>
+          <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=closed]:-rotate-90" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden">
+          <div className="p-2">
+            <AgentDetailPanel />
           </div>
         </CollapsibleContent>
       </Collapsible>

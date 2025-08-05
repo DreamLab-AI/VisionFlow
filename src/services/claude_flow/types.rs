@@ -134,6 +134,7 @@ pub enum AgentType {
     Documenter,
     Monitor,
     Specialist,
+    Queen,
 }
 
 impl FromStr for AgentType {
@@ -152,6 +153,7 @@ impl FromStr for AgentType {
             "documenter" => Ok(AgentType::Documenter),
             "monitor" => Ok(AgentType::Monitor),
             "specialist" => Ok(AgentType::Specialist),
+            "queen" => Ok(AgentType::Queen),
             _ => Err("Unknown agent type"),
         }
     }
@@ -171,6 +173,7 @@ impl std::fmt::Display for AgentType {
             AgentType::Documenter => write!(f, "documenter"),
             AgentType::Monitor => write!(f, "monitor"),
             AgentType::Specialist => write!(f, "specialist"),
+            AgentType::Queen => write!(f, "queen"),
         }
     }
 }
@@ -202,6 +205,31 @@ pub struct AgentProfile {
     pub working_directory: Option<String>,
 }
 
+// Performance metrics structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformanceMetrics {
+    #[serde(rename = "tasksCompleted")]
+    pub tasks_completed: u32,
+    #[serde(rename = "successRate")]
+    pub success_rate: f64,
+    #[serde(rename = "averageResponseTime")]
+    pub average_response_time: f64,
+    #[serde(rename = "resourceUtilization")]
+    pub resource_utilization: f64,
+}
+
+// Token usage tracking
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenUsage {
+    pub total: u64,
+    #[serde(rename = "inputTokens")]
+    pub input_tokens: u64,
+    #[serde(rename = "outputTokens")]
+    pub output_tokens: u64,
+    #[serde(rename = "tokenRate")]
+    pub token_rate: f64, // tokens per minute
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentStatus {
     #[serde(rename = "agentId")]
@@ -227,6 +255,28 @@ pub struct AgentStatus {
     pub current_task: Option<TaskReference>,
     #[serde(default)]
     pub metadata: HashMap<String, serde_json::Value>,
+    
+    // New fields for enhanced observability
+    #[serde(rename = "performanceMetrics")]
+    pub performance_metrics: PerformanceMetrics,
+    #[serde(rename = "tokenUsage")]
+    pub token_usage: TokenUsage,
+    #[serde(rename = "tasksActive")]
+    pub tasks_active: u32,
+    pub health: f64, // 0-100
+    #[serde(rename = "cpuUsage")]
+    pub cpu_usage: f64, // percentage
+    #[serde(rename = "memoryUsage")]
+    pub memory_usage: f64, // percentage
+    pub activity: f64, // 0-1 activity level
+    #[serde(rename = "swarmId", skip_serializing_if = "Option::is_none")]
+    pub swarm_id: Option<String>,
+    #[serde(rename = "agentMode", skip_serializing_if = "Option::is_none")]
+    pub agent_mode: Option<String>, // centralized, distributed, strategic
+    #[serde(rename = "parentQueenId", skip_serializing_if = "Option::is_none")]
+    pub parent_queen_id: Option<String>,
+    #[serde(rename = "processingLogs", skip_serializing_if = "Option::is_none")]
+    pub processing_logs: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -368,4 +418,38 @@ pub struct SwarmStatus {
     pub completed_tasks: u32,
     pub uptime: u64,
     pub status: String,
+}
+
+// Swarm initialization configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmConfig {
+    pub topology: SwarmTopology,
+    #[serde(rename = "agentTypes")]
+    pub agent_types: Vec<AgentTypeConfig>,
+    pub prompt: String,
+    #[serde(rename = "maxAgents", skip_serializing_if = "Option::is_none")]
+    pub max_agents: Option<u32>,
+    #[serde(rename = "coordinationStrategy", skip_serializing_if = "Option::is_none")]
+    pub coordination_strategy: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SwarmTopology {
+    Hierarchical,
+    Mesh,
+    Ring,
+    Star,
+    Dynamic,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentTypeConfig {
+    #[serde(rename = "type")]
+    pub agent_type: AgentType,
+    pub count: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capabilities: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<u32>,
 }

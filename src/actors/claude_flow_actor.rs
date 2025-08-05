@@ -1,8 +1,8 @@
 use actix::prelude::*;
 use std::time::Duration;
 use log::{info, error, warn};
-use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder, AgentStatus, AgentProfile, AgentType};
-use crate::actors::messages::UpdateBotsGraph;
+use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
+use crate::actors::messages::{UpdateBotsGraph, GetSwarmStatus, GetAgentMetrics, SwarmMonitor, SpawnAgent};
 use crate::actors::GraphServiceActor;
 use std::collections::HashMap;
 use chrono::{Utc, DateTime};
@@ -66,6 +66,27 @@ impl ClaudeFlowActor {
                 success_rate: 100.0,
                 current_task: None,
                 metadata: HashMap::new(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: 15,
+                    success_rate: 100.0,
+                    average_response_time: 3000.0,
+                    resource_utilization: 0.3,
+                },
+                token_usage: TokenUsage {
+                    total: 1500,
+                    input_tokens: 800,
+                    output_tokens: 700,
+                    token_rate: 20.0,
+                },
+                tasks_active: 3,
+                health: 95.0,
+                cpu_usage: 30.0,
+                memory_usage: 25.0,
+                activity: 0.3,
+                swarm_id: Some("main-swarm".to_string()),
+                agent_mode: Some("centralized".to_string()),
+                parent_queen_id: None,
+                processing_logs: Some(vec!["Initialized system coordinator".to_string()]),
             },
             AgentStatus {
                 agent_id: "researcher-001".to_string(),
@@ -95,6 +116,27 @@ impl ClaudeFlowActor {
                 success_rate: 95.2,
                 current_task: None,
                 metadata: HashMap::new(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: 20,
+                    success_rate: 95.2,
+                    average_response_time: 3000.0,
+                    resource_utilization: 0.4,
+                },
+                token_usage: TokenUsage {
+                    total: 2000,
+                    input_tokens: 1100,
+                    output_tokens: 900,
+                    token_rate: 33.3,
+                },
+                tasks_active: 2,
+                health: 90.0,
+                cpu_usage: 40.0,
+                memory_usage: 35.0,
+                activity: 0.4,
+                swarm_id: Some("main-swarm".to_string()),
+                agent_mode: Some("distributed".to_string()),
+                parent_queen_id: Some("coordinator-001".to_string()),
+                processing_logs: Some(vec!["Gathering research data".to_string()]),
             },
             AgentStatus {
                 agent_id: "coder-001".to_string(),
@@ -124,6 +166,27 @@ impl ClaudeFlowActor {
                 success_rate: 93.8,
                 current_task: None,
                 metadata: HashMap::new(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: 30,
+                    success_rate: 93.8,
+                    average_response_time: 3000.0,
+                    resource_utilization: 0.33,
+                },
+                token_usage: TokenUsage {
+                    total: 3000,
+                    input_tokens: 1200,
+                    output_tokens: 1800,
+                    token_rate: 33.3,
+                },
+                tasks_active: 1,
+                health: 88.0,
+                cpu_usage: 33.0,
+                memory_usage: 40.0,
+                activity: 0.33,
+                swarm_id: Some("main-swarm".to_string()),
+                agent_mode: Some("centralized".to_string()),
+                parent_queen_id: Some("coordinator-001".to_string()),
+                processing_logs: Some(vec!["Implementing feature request".to_string()]),
             },
             AgentStatus {
                 agent_id: "analyst-001".to_string(),
@@ -153,6 +216,27 @@ impl ClaudeFlowActor {
                 success_rate: 100.0,
                 current_task: None,
                 metadata: HashMap::new(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: 18,
+                    success_rate: 100.0,
+                    average_response_time: 3000.0,
+                    resource_utilization: 0.5,
+                },
+                token_usage: TokenUsage {
+                    total: 1800,
+                    input_tokens: 1000,
+                    output_tokens: 800,
+                    token_rate: 33.3,
+                },
+                tasks_active: 2,
+                health: 98.0,
+                cpu_usage: 50.0,
+                memory_usage: 30.0,
+                activity: 0.5,
+                swarm_id: Some("main-swarm".to_string()),
+                agent_mode: Some("distributed".to_string()),
+                parent_queen_id: Some("coordinator-001".to_string()),
+                processing_logs: Some(vec!["Analyzing data patterns".to_string()]),
             },
             AgentStatus {
                 agent_id: "tester-001".to_string(),
@@ -182,6 +266,27 @@ impl ClaudeFlowActor {
                 success_rate: 89.3,
                 current_task: None,
                 metadata: HashMap::new(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: 25,
+                    success_rate: 89.3,
+                    average_response_time: 3000.0,
+                    resource_utilization: 0.0,
+                },
+                token_usage: TokenUsage {
+                    total: 2500,
+                    input_tokens: 1300,
+                    output_tokens: 1200,
+                    token_rate: 33.3,
+                },
+                tasks_active: 0,
+                health: 85.0,
+                cpu_usage: 5.0,
+                memory_usage: 20.0,
+                activity: 0.0,
+                swarm_id: Some("main-swarm".to_string()),
+                agent_mode: Some("centralized".to_string()),
+                parent_queen_id: Some("coordinator-001".to_string()),
+                processing_logs: Some(vec!["Idle, waiting for test tasks".to_string()]),
             },
         ]
     }
@@ -640,5 +745,211 @@ impl Handler<MarkConnected> for ClaudeFlowActor {
             info!("ClaudeFlowActor marked as connected, restarting polling");
             self.poll_for_updates(ctx);
         }
+    }
+}
+
+// Handler for GetSwarmStatus
+impl Handler<GetSwarmStatus> for ClaudeFlowActor {
+    type Result = ResponseFuture<Result<crate::actors::messages::SwarmStatus, String>>;
+
+    fn handle(&mut self, _msg: GetSwarmStatus, _ctx: &mut Context<Self>) -> Self::Result {
+        if !self.is_connected {
+            return Box::pin(async move {
+                // Return mock swarm status when not connected
+                Ok(crate::actors::messages::SwarmStatus {
+                    active_agents: 5,
+                    total_agents: 5,
+                    task_completion_rate: 85.5,
+                    error_rate: 2.1,
+                    health_score: 93.4,
+                    coordination_efficiency: 87.2,
+                })
+            });
+        }
+
+        let client = self.client.clone();
+        Box::pin(async move {
+            match client.get_swarm_status().await {
+                Ok(status) => {
+                    // Convert MCP SwarmStatus to our SwarmStatus
+                    Ok(crate::actors::messages::SwarmStatus {
+                        active_agents: status.active_agents,
+                        total_agents: status.total_agents,
+                        task_completion_rate: (status.completed_tasks as f32 / status.total_tasks.max(1) as f32) * 100.0,
+                        error_rate: 0.0, // Calculate from agent statuses if needed
+                        health_score: if status.status == "healthy" { 100.0 } else { 75.0 },
+                        coordination_efficiency: 85.0, // Calculate from actual metrics
+                    })
+                }
+                Err(e) => Err(e.to_string())
+            }
+        })
+    }
+}
+
+// Handler for GetAgentMetrics
+impl Handler<GetAgentMetrics> for ClaudeFlowActor {
+    type Result = ResponseFuture<Result<Vec<crate::actors::messages::AgentMetrics>, String>>;
+
+    fn handle(&mut self, _msg: GetAgentMetrics, _ctx: &mut Context<Self>) -> Self::Result {
+        if !self.is_connected {
+            return Box::pin(async move {
+                // Return mock metrics when not connected
+                let mock_agents = ClaudeFlowActor::create_mock_agents();
+                Ok(mock_agents.into_iter().map(|agent| {
+                    crate::actors::messages::AgentMetrics {
+                        agent_id: agent.agent_id,
+                        cpu_usage: agent.cpu_usage,
+                        memory_usage: agent.memory_usage,
+                        task_count: agent.tasks_active,
+                        success_rate: agent.performance_metrics.success_rate as f32,
+                        resource_utilization: agent.performance_metrics.resource_utilization as f32,
+                        token_usage: agent.token_usage.total,
+                    }
+                }).collect())
+            });
+        }
+
+        let client = self.client.clone();
+        Box::pin(async move {
+            match client.list_agents(false).await {
+                Ok(agents) => {
+                    // Convert AgentStatus to AgentMetrics
+                    Ok(agents.into_iter().map(|agent| {
+                        crate::actors::messages::AgentMetrics {
+                            agent_id: agent.agent_id,
+                            cpu_usage: agent.cpu_usage,
+                            memory_usage: agent.memory_usage,
+                            task_count: agent.tasks_active,
+                            success_rate: agent.performance_metrics.success_rate as f32,
+                            resource_utilization: agent.performance_metrics.resource_utilization as f32,
+                            token_usage: agent.token_usage.total,
+                        }
+                    }).collect())
+                }
+                Err(e) => Err(e.to_string())
+            }
+        })
+    }
+}
+
+// Handler for SwarmMonitor
+impl Handler<SwarmMonitor> for ClaudeFlowActor {
+    type Result = ResponseFuture<Result<crate::actors::messages::SwarmMonitorData, String>>;
+
+    fn handle(&mut self, _msg: SwarmMonitor, _ctx: &mut Context<Self>) -> Self::Result {
+        if !self.is_connected {
+            return Box::pin(async move {
+                // Return mock monitor data when not connected
+                Ok(crate::actors::messages::SwarmMonitorData {
+                    timestamp: Utc::now(),
+                    swarm_health: 95.0,
+                    agent_statuses: HashMap::new(),
+                    active_communications: vec![],
+                    resource_usage: crate::actors::messages::ResourceUsage {
+                        total_cpu: 35.0,
+                        total_memory: 40.0,
+                        network_bandwidth: 150.0,
+                    },
+                })
+            });
+        }
+
+        let client = self.client.clone();
+        Box::pin(async move {
+            // Get current swarm status and agents
+            let agents = client.list_agents(false).await.map_err(|e| e.to_string())?;
+            let swarm_status = client.get_swarm_status().await.map_err(|e| e.to_string())?;
+            
+            // Calculate aggregate metrics
+            let total_cpu: f64 = agents.iter().map(|a| a.cpu_usage).sum();
+            let total_memory: f64 = agents.iter().map(|a| a.memory_usage).sum();
+            let avg_health: f64 = agents.iter().map(|a| a.health).sum::<f64>() / agents.len().max(1) as f64;
+            
+            // Build agent status map
+            let mut agent_statuses = HashMap::new();
+            for agent in agents {
+                agent_statuses.insert(
+                    agent.agent_id.clone(),
+                    crate::actors::messages::AgentStatusInfo {
+                        status: agent.status,
+                        task_count: agent.tasks_active,
+                        last_active: agent.timestamp,
+                    }
+                );
+            }
+            
+            // Get communication links
+            let comms = ClaudeFlowActor::retrieve_communication_links(&client, &[]).await;
+            let active_communications = comms.into_iter().map(|link| {
+                crate::actors::messages::CommunicationLink {
+                    source: link.source_agent,
+                    target: link.target_agent,
+                    message_count: link.interaction_count,
+                    bandwidth_usage: link.message_frequency * 100.0, // Convert to bandwidth estimate
+                }
+            }).collect();
+            
+            Ok(crate::actors::messages::SwarmMonitorData {
+                timestamp: Utc::now(),
+                swarm_health: avg_health as f32,
+                agent_statuses,
+                active_communications,
+                resource_usage: crate::actors::messages::ResourceUsage {
+                    total_cpu: total_cpu as f32,
+                    total_memory: total_memory as f32,
+                    network_bandwidth: 200.0, // Placeholder
+                },
+            })
+        })
+    }
+}
+
+// Handler for the enhanced SpawnAgent message
+impl Handler<SpawnAgent> for ClaudeFlowActor {
+    type Result = ResponseFuture<Result<AgentStatus, String>>;
+
+    fn handle(&mut self, msg: SpawnAgent, _ctx: &mut Context<Self>) -> Self::Result {
+        if !self.is_connected {
+            return Box::pin(async move {
+                Err("Cannot spawn agent: not connected to Claude Flow".to_string())
+            });
+        }
+
+        let client = self.client.clone();
+        Box::pin(async move {
+            use crate::services::claude_flow::{client::SpawnAgentParams, AgentType};
+
+            let agent_type = match msg.agent_type.as_str() {
+                "coordinator" => AgentType::Coordinator,
+                "researcher" => AgentType::Researcher,
+                "coder" => AgentType::Coder,
+                "analyst" => AgentType::Analyst,
+                "architect" => AgentType::Architect,
+                "tester" => AgentType::Tester,
+                "optimizer" => AgentType::Optimizer,
+                "reviewer" => AgentType::Reviewer,
+                "documenter" => AgentType::Documenter,
+                "monitor" => AgentType::Monitor,
+                "specialist" => AgentType::Specialist,
+                "queen" => AgentType::Queen,
+                _ => AgentType::Specialist,
+            };
+
+            let params = SpawnAgentParams {
+                agent_type,
+                name: msg.name,
+                capabilities: Some(msg.capabilities),
+                system_prompt: None,
+                max_concurrent_tasks: Some(3),
+                priority: Some(5),
+                environment: None,
+                working_directory: None,
+            };
+
+            client.spawn_agent(params)
+                .await
+                .map_err(|e| e.to_string())
+        })
     }
 }

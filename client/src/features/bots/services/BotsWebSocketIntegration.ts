@@ -44,6 +44,15 @@ export class BotsWebSocketIntegration {
       if (message.type === 'graph-update') {
         logger.debug('Received Logseq graph update', message.data);
         this.emit('logseq-graph-update', message.data);
+      } else if (message.type === 'bots-full-update') {
+        logger.debug('Received bots full update with', message.agents?.length || 0, 'agents');
+        this.emit('bots-full-update', message);
+        // Also emit individual updates for backward compatibility
+        this.processBotsUpdate({
+          agents: message.agents,
+          swarmMetrics: message.swarmMetrics,
+          timestamp: message.timestamp
+        });
       }
     });
 
