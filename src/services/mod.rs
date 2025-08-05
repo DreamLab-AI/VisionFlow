@@ -10,3 +10,4 @@ pub mod claude_flow;
 pub mod agent_visualization_processor;
 pub mod agent_visualization_protocol;
 pub mod mcp_relay_manager;
+pub mod agent_control_client;
