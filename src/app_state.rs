@@ -3,7 +3,7 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn, error};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
 use crate::services::agent_control_client::AgentControlActor;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
@@ -36,6 +36,7 @@ pub struct AppState {
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
     pub agent_control_addr: Option<Addr<AgentControlActor>>,
+    pub claude_flow_addr: Option<Addr<ClaudeFlowActor>>,
 }
 
 impl AppState {
@@ -88,6 +89,32 @@ impl AppState {
             None
         };
 
+        // Initialize ClaudeFlowActor
+        let claude_flow_addr = {
+            use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder};
+
+            let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+            let port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string()).parse::<u16>().unwrap_or(3002);
+
+            let client_result = ClaudeFlowClientBuilder::new()
+                .host(&host)
+                .port(port)
+                .use_websocket()
+                .build()
+                .await;
+
+            match client_result {
+                Ok(client) => {
+                    info!("[AppState::new] Starting ClaudeFlowActor");
+                    Some(ClaudeFlowActor::new(client, graph_service_addr.clone()).start())
+                }
+                Err(e) => {
+                    error!("[AppState::new] Failed to build ClaudeFlowClient, ClaudeFlowActor will not start: {}", e);
+                    None
+                }
+            }
+        };
+
         info!("[AppState::new] Actor system initialization complete");
 
         Ok(Self {
@@ -108,6 +135,7 @@ impl AppState {
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
             agent_control_addr,
+            claude_flow_addr,
         })
     }
 

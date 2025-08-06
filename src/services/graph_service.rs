@@ -964,8 +964,8 @@ impl GraphService {
             .cloned()
             .collect();
 
-        let page_nodes: Vec<crate::utils::socket_flow_messages::Node> = model_page_nodes.iter().map(|model_node| {
-            crate::utils::socket_flow_messages::Node {
+        let page_nodes: Vec<crate::utils::socket_flow_messages::SocketNode> = model_page_nodes.iter().map(|model_node| {
+            crate::utils::socket_flow_messages::SocketNode {
                 id: model_node.id.to_string(), // Convert u32 to String
                 metadata_id: model_node.metadata_id.clone(),
                 label: model_node.label.clone(),

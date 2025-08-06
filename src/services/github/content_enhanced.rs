@@ -1,5 +1,5 @@
 use super::api::GitHubClient;
-use super::types::{GitHubFileMetadata, GitHubError, RateLimitInfo};
+use super::types::{GitHubFileMetadata, GitHubFileBasicMetadata, GitHubError, RateLimitInfo};
 use chrono::{DateTime, Utc};
 use log::{debug, error, info, warn};
 use std::error::Error;
@@ -7,6 +7,7 @@ use std::sync::Arc;
 use serde_json::Value;
 
 /// Enhanced content API that can detect actual file content changes
+#[derive(Clone)] // Add Clone trait
 pub struct EnhancedContentAPI {
     client: Arc<GitHubClient>,
 }
@@ -14,6 +15,76 @@ pub struct EnhancedContentAPI {
 impl EnhancedContentAPI {
     pub fn new(client: Arc<GitHubClient>) -> Self {
         Self { client }
+    }
+
+    /// List all markdown files in the repository's base path
+    pub async fn list_markdown_files(&self, path: &str) -> Result<Vec<GitHubFileBasicMetadata>, Box<dyn Error + Send + Sync>> {
+        let contents_url = self.client.get_contents_url(path).await;
+        debug!("Listing markdown files from: {}", contents_url);
+
+        let response = self.client.client()
+            .get(&contents_url)
+            .header("Authorization", format!("Bearer {}", self.client.token()))
+            .header("Accept", "application/vnd.github+json")
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await?;
+            return Err(format!("GitHub API error listing files: {}", error_text).into());
+        }
+
+        let files: Vec<Value> = response.json().await?;
+        let mut markdown_files = Vec::new();
+
+        for file in files {
+            if file["type"].as_str() == Some("file") {
+                if let Some(name) = file["name"].as_str() {
+                    if name.ends_with(".md") {
+                        markdown_files.push(GitHubFileBasicMetadata {
+                            name: name.to_string(),
+                            path: file["path"].as_str().unwrap_or("").to_string(),
+                            sha: file["sha"].as_str().unwrap_or("").to_string(),
+                            size: file["size"].as_u64().unwrap_or(0),
+                            download_url: file["download_url"].as_str().unwrap_or("").to_string(),
+                        });
+                    }
+                }
+            } else if file["type"].as_str() == Some("dir") {
+                // Recursively list files in subdirectories if needed, but for now, just top-level
+                // For this task, we only need top-level markdown files.
+            }
+        }
+        Ok(markdown_files)
+    }
+
+    /// Check if a file is public (i.e., its download_url is accessible without authentication)
+    pub async fn check_file_public(&self, download_url: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        debug!("Checking if file is public: {}", download_url);
+        let client = reqwest::Client::builder()
+            .user_agent("github-public-file-checker")
+            .timeout(std::time::Duration::from_secs(10))
+            .build()?;
+
+        let response = client.get(download_url).send().await?;
+        Ok(response.status().is_success())
+    }
+
+    /// Fetch the content of a file from its download URL
+    pub async fn fetch_file_content(&self, download_url: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
+        debug!("Fetching file content from: {}", download_url);
+        let response = self.client.client()
+            .get(download_url)
+            .header("Authorization", format!("Bearer {}", self.client.token()))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await?;
+            return Err(format!("Failed to fetch file content: {}", error_text).into());
+        }
+
+        Ok(response.text().await?)
     }
 
     /// Get the last time a file's content was actually modified (not just touched in a commit)
@@ -115,7 +186,7 @@ impl EnhancedContentAPI {
             for file in files {
                 if let Some(filename) = file["filename"].as_str() {
                     // Check if this is our file (need to match the path format)
-                    if filename == file_path || filename.ends_with(&format!("/{}", file_path)) {
+                    if filename == file_path || filename.ends_with(&format!("/{}", file_path)) || filename == file_path.replace("%2F", "/") || filename.ends_with(&format!("/{}", file_path.replace("%2F", "/"))) {
                         // Check if there were actual changes
                         let additions = file["additions"].as_u64().unwrap_or(0);
                         let deletions = file["deletions"].as_u64().unwrap_or(0);

@@ -291,48 +291,57 @@ impl FileService {
         Self::ensure_directories()?;
 
         // Get all markdown files from GitHub
-        let github_files = content_api.list_markdown_files("").await?;
-        info!("Found {} markdown files in GitHub", github_files.len());
+        let basic_github_files = content_api.list_markdown_files("").await?;
+        info!("Found {} markdown files in GitHub", basic_github_files.len());
 
         let mut metadata_store = MetadataStore::new();
 
         // Process files in batches to prevent timeouts
         const BATCH_SIZE: usize = 5;
-        for chunk in github_files.chunks(BATCH_SIZE) {
+        for chunk in basic_github_files.chunks(BATCH_SIZE) {
             let mut futures = Vec::new();
             
-            for file_meta in chunk {
-                let file_meta = file_meta.clone();
+            for file_basic_meta in chunk {
+                let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
                 
                 futures.push(async move {
                     // First check if file is public
-                    match content_api.check_file_public(&file_meta.download_url).await {
+                    match content_api.check_file_public(&file_basic_meta.download_url).await {
                         Ok(is_public) => {
                             if !is_public {
-                                debug!("Skipping non-public file: {}", file_meta.name);
+                                debug!("Skipping non-public file: {}", file_basic_meta.name);
                                 return Ok(None);
                             }
 
+                            // Fetch extended metadata for the file
+                            let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
+                                Ok(meta) => meta,
+                                Err(e) => {
+                                    error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
+                                    return Err(e);
+                                }
+                            };
+
                             // Only fetch full content for public files
-                            match content_api.fetch_file_content(&file_meta.download_url).await {
+                            match content_api.fetch_file_content(&file_extended_meta.download_url).await {
                                 Ok(content) => {
-                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_meta.name);
+                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
                                     if let Err(e) = fs::write(&file_path, &content) {
                                         error!("Failed to write file {}: {}", file_path, e);
                                         return Err(e.into());
                                     }
 
-                                    Ok(Some((file_meta, content)))
+                                    Ok(Some((file_extended_meta, content)))
                                 }
                                 Err(e) => {
-                                    error!("Failed to fetch content for {}: {}", file_meta.name, e);
+                                    error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
                                     Err(e)
                                 }
                             }
                         }
                         Err(e) => {
-                            error!("Failed to check public status for {}: {}", file_meta.name, e);
+                            error!("Failed to check public status for {}: {}", file_basic_meta.name, e);
                             Err(e)
                         }
                     }
@@ -344,30 +353,30 @@ impl FileService {
             
             for result in results {
                 match result {
-                    Ok(Some((file_meta, content))) => {
-                        let _node_name = file_meta.name.trim_end_matches(".md").to_string();
+                    Ok(Some((file_extended_meta, content))) => {
+                        let _node_name = file_extended_meta.name.trim_end_matches(".md").to_string();
                         let file_size = content.len();
                         let node_size = Self::calculate_node_size(file_size);
 
                         // Create metadata entry
                         let metadata = Metadata {
-                            file_name: file_meta.name.clone(),
+                            file_name: file_extended_meta.name.clone(),
                             file_size,
                             node_size,
                             node_id: "0".to_string(), // Will be assigned properly later
                             hyperlink_count: Self::count_hyperlinks(&content),
                             sha1: Self::calculate_sha1(&content),
-                            last_modified: file_meta.last_modified.unwrap_or_else(|| Utc::now()),
-                            last_content_change: file_meta.last_content_change,
-                            last_commit: file_meta.last_modified,
+                            last_modified: file_extended_meta.last_content_modified, // Use last_content_modified from extended metadata
+                            last_content_change: Some(file_extended_meta.last_content_modified),
+                            last_commit: Some(file_extended_meta.last_content_modified), // Assuming last_commit is same as last_content_modified for simplicity
                             change_count: None, // Could be populated with API calls to get commit count
-                            file_blob_sha: file_meta.file_blob_sha.clone(),
+                            file_blob_sha: Some(file_extended_meta.sha.clone()), // Use SHA from extended metadata as file_blob_sha
                             perplexity_link: String::new(),
                             last_perplexity_process: None,
                             topic_counts: HashMap::new(), // Will be updated later
                         };
 
-                        metadata_store.insert(file_meta.name, metadata);
+                        metadata_store.insert(file_extended_meta.name, metadata);
                     }
                     Ok(None) => continue, // Skipped non-public file
                     Err(e) => {
@@ -513,31 +522,40 @@ impl FileService {
         let mut processed_files = Vec::new();
 
         // Get all markdown files from GitHub
-        let github_files = content_api.list_markdown_files("").await?;
-        info!("Found {} markdown files in GitHub", github_files.len());
+        let basic_github_files = content_api.list_markdown_files("").await?;
+        info!("Found {} markdown files in GitHub", basic_github_files.len());
 
         // Process files in batches to prevent timeouts
         const BATCH_SIZE: usize = 5;
-        for chunk in github_files.chunks(BATCH_SIZE) {
+        for chunk in basic_github_files.chunks(BATCH_SIZE) {
             let mut futures = Vec::new();
             
-            for file_meta in chunk {
-                let file_meta = file_meta.clone();
+            for file_basic_meta in chunk {
+                let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
                 
                 futures.push(async move {
                     // First check if file is public
-                    match content_api.check_file_public(&file_meta.download_url).await {
+                    match content_api.check_file_public(&file_basic_meta.download_url).await {
                         Ok(is_public) => {
                             if !is_public {
-                                debug!("Skipping non-public file: {}", file_meta.name);
+                                debug!("Skipping non-public file: {}", file_basic_meta.name);
                                 return Ok(None);
                             }
 
+                            // Fetch extended metadata for the file
+                            let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
+                                Ok(meta) => meta,
+                                Err(e) => {
+                                    error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
+                                    return Err(e);
+                                }
+                            };
+
                             // Only fetch full content for public files
-                            match content_api.fetch_file_content(&file_meta.download_url).await {
+                            match content_api.fetch_file_content(&file_extended_meta.download_url).await {
                                 Ok(content) => {
-                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_meta.name);
+                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
                                     if let Err(e) = fs::write(&file_path, &content) {
                                         error!("Failed to write file {}: {}", file_path, e);
                                         return Err(e.into());
@@ -547,37 +565,37 @@ impl FileService {
                                     let node_size = Self::calculate_node_size(file_size);
 
                                     let metadata = Metadata {
-                                        file_name: file_meta.name.clone(),
+                                        file_name: file_extended_meta.name.clone(),
                                         file_size,
                                         node_size,
                                         node_id: "0".to_string(), // Will be assigned properly later
                                         hyperlink_count: Self::count_hyperlinks(&content),
                                         sha1: Self::calculate_sha1(&content),
-                                        last_modified: file_meta.last_modified.unwrap_or_else(|| Utc::now()),
-                                        last_content_change: file_meta.last_content_change,
-                                        last_commit: file_meta.last_modified,
+                                        last_modified: file_extended_meta.last_content_modified, // Use last_content_modified from extended metadata
+                                        last_content_change: Some(file_extended_meta.last_content_modified),
+                                        last_commit: Some(file_extended_meta.last_content_modified), // Assuming last_commit is same as last_content_modified for simplicity
                                         change_count: None, // Could be populated with API calls to get commit count
-                                        file_blob_sha: file_meta.file_blob_sha.clone(),
+                                        file_blob_sha: Some(file_extended_meta.sha.clone()), // Use SHA from extended metadata as file_blob_sha
                                         perplexity_link: String::new(),
                                         last_perplexity_process: None,
                                         topic_counts: HashMap::new(), // Will be updated later
                                     };
 
                                     Ok(Some(ProcessedFile {
-                                        file_name: file_meta.name.clone(),
+                                        file_name: file_extended_meta.name.clone(),
                                         content,
                                         is_public: true,
                                         metadata,
                                     }))
                                 }
                                 Err(e) => {
-                                    error!("Failed to fetch content for {}: {}", file_meta.name, e);
+                                    error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
                                     Err(e)
                                 }
                             }
                         }
                         Err(e) => {
-                            error!("Failed to check public status for {}: {}", file_meta.name, e);
+                            error!("Failed to check public status for {}: {}", file_basic_meta.name, e);
                             Err(e)
                         }
                     }

@@ -12,7 +12,7 @@ use log::debug;
 
 #[derive(Clone)]
 pub struct ClaudeFlowClient {
-    transport: Arc<Mutex<Box<dyn Transport>>>,
+    pub transport: Arc<Mutex<Box<dyn Transport>>>,
     session_id: Option<String>,
     initialized: bool,
 }
@@ -115,7 +115,10 @@ impl ClaudeFlowClient {
                     .and_then(|a| a.as_str())
                     .unwrap_or("unknown")
                     .to_string(),
-                status: "active".to_string(),
+                status: tool_result.get("status")
+                    .and_then(|s| s.as_str())
+                    .unwrap_or("active")
+                    .to_string(),
                 session_id: self.session_id.clone().unwrap_or_else(|| Uuid::new_v4().to_string()),
                 profile: AgentProfile {
                     name: agent_params.name,
@@ -129,14 +132,35 @@ impl ClaudeFlowClient {
                     working_directory: agent_params.working_directory,
                 },
                 timestamp: chrono::Utc::now(),
-                active_tasks_count: 0,
-                completed_tasks_count: 0,
-                failed_tasks_count: 0,
-                total_execution_time: 0,
-                average_task_duration: 0.0,
-                success_rate: 100.0,
-                current_task: None,
+                active_tasks_count: tool_result.get("activeTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                completed_tasks_count: tool_result.get("completedTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                failed_tasks_count: tool_result.get("failedTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                total_execution_time: tool_result.get("totalExecutionTime").and_then(|t| t.as_u64()).unwrap_or(0),
+                average_task_duration: tool_result.get("averageTaskDuration").and_then(|a| a.as_f64()).unwrap_or(0.0),
+                success_rate: tool_result.get("successRate").and_then(|s| s.as_f64()).unwrap_or(100.0),
+                current_task: None, // Assuming current_task is not directly available from spawn_agent response
                 metadata: Default::default(),
+                performance_metrics: PerformanceMetrics {
+                    tasks_completed: tool_result.get("performanceMetrics").and_then(|p| p.get("tasksCompleted")).and_then(|t| t.as_u64()).unwrap_or(0) as u32,
+                    success_rate: tool_result.get("performanceMetrics").and_then(|p| p.get("successRate")).and_then(|s| s.as_f64()).unwrap_or(100.0),
+                    average_response_time: tool_result.get("performanceMetrics").and_then(|p| p.get("averageResponseTime")).and_then(|a| a.as_f64()).unwrap_or(0.0),
+                    resource_utilization: tool_result.get("performanceMetrics").and_then(|p| p.get("resourceUtilization")).and_then(|r| r.as_f64()).unwrap_or(0.0),
+                },
+                token_usage: TokenUsage {
+                    total: tool_result.get("tokenUsage").and_then(|t| t.get("total")).and_then(|t| t.as_u64()).unwrap_or(0),
+                    input_tokens: tool_result.get("tokenUsage").and_then(|t| t.get("inputTokens")).and_then(|i| i.as_u64()).unwrap_or(0),
+                    output_tokens: tool_result.get("tokenUsage").and_then(|t| t.get("outputTokens")).and_then(|o| o.as_u64()).unwrap_or(0),
+                    token_rate: tool_result.get("tokenUsage").and_then(|t| t.get("tokenRate")).and_then(|t| t.as_f64()).unwrap_or(0.0),
+                },
+                tasks_active: tool_result.get("tasksActive").and_then(|t| t.as_u64()).unwrap_or(0) as u32,
+                health: tool_result.get("health").and_then(|h| h.as_f64()).unwrap_or(100.0),
+                cpu_usage: tool_result.get("cpuUsage").and_then(|c| c.as_f64()).unwrap_or(0.0),
+                memory_usage: tool_result.get("memoryUsage").and_then(|m| m.as_f64()).unwrap_or(0.0),
+                activity: tool_result.get("activity").and_then(|a| a.as_f64()).unwrap_or(0.0),
+                swarm_id: tool_result.get("swarmId").and_then(|s| s.as_str()).map(|s| s.to_string()),
+                agent_mode: tool_result.get("agentMode").and_then(|a| a.as_str()).map(|s| s.to_string()),
+                parent_queen_id: tool_result.get("parentQueenId").and_then(|p| p.as_str()).map(|s| s.to_string()),
+                processing_logs: tool_result.get("processingLogs").and_then(|p| p.as_array()).map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()),
             })
         } else {
             Err(ConnectorError::Protocol("Failed to spawn agent".to_string()))
@@ -221,22 +245,33 @@ impl ClaudeFlowClient {
                                             .filter_map(|v| v.as_str().map(|s| s.to_string()))
                                             .collect())
                                         .unwrap_or_default(),
-                                    system_prompt: None,
-                                    max_concurrent_tasks: 3,
-                                    priority: 5,
-                                    retry_policy: Default::default(),
-                                    environment: None,
-                                    working_directory: None,
+                                    system_prompt: agent_value.get("profile").and_then(|p| p.get("systemPrompt")).and_then(|s| s.as_str()).map(|s| s.to_string()),
+                                    max_concurrent_tasks: agent_value.get("profile").and_then(|p| p.get("maxConcurrentTasks")).and_then(|m| m.as_u64()).unwrap_or(3) as u32,
+                                    priority: agent_value.get("profile").and_then(|p| p.get("priority")).and_then(|p| p.as_u64()).unwrap_or(5) as u32,
+                                    retry_policy: Default::default(), // Assuming default for now
+                                    environment: agent_value.get("profile").and_then(|p| p.get("environment")).and_then(|e| serde_json::from_value(e.clone()).ok()).unwrap_or_default(),
+                                    working_directory: agent_value.get("profile").and_then(|p| p.get("workingDirectory")).and_then(|w| w.as_str()).map(|s| s.to_string()),
                                 },
                                 timestamp: chrono::Utc::now(),
-                                active_tasks_count: 0,
-                                completed_tasks_count: 0,
-                                failed_tasks_count: 0,
-                                total_execution_time: 0,
-                                average_task_duration: 0.0,
-                                success_rate: 100.0,
-                                current_task: None,
-                                metadata: Default::default(),
+                                active_tasks_count: agent_value.get("activeTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                                completed_tasks_count: agent_value.get("completedTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                                failed_tasks_count: agent_value.get("failedTasksCount").and_then(|c| c.as_u64()).unwrap_or(0) as u32,
+                                total_execution_time: agent_value.get("totalExecutionTime").and_then(|t| t.as_u64()).unwrap_or(0),
+                                average_task_duration: agent_value.get("averageTaskDuration").and_then(|a| a.as_f64()).unwrap_or(0.0),
+                                success_rate: agent_value.get("successRate").and_then(|s| s.as_f64()).unwrap_or(100.0),
+                                current_task: agent_value.get("currentTask").and_then(|c| serde_json::from_value(c.clone()).ok()),
+                                metadata: agent_value.get("metadata").and_then(|m| serde_json::from_value(m.clone()).ok()).unwrap_or_default(),
+                                performance_metrics: agent_value.get("performanceMetrics").and_then(|p| serde_json::from_value(p.clone()).ok()).unwrap_or_default(),
+                                token_usage: agent_value.get("tokenUsage").and_then(|t| serde_json::from_value(t.clone()).ok()).unwrap_or_default(),
+                                tasks_active: agent_value.get("tasksActive").and_then(|t| t.as_u64()).unwrap_or(0) as u32,
+                                health: agent_value.get("health").and_then(|h| h.as_f64()).unwrap_or(100.0),
+                                cpu_usage: agent_value.get("cpuUsage").and_then(|c| c.as_f64()).unwrap_or(0.0),
+                                memory_usage: agent_value.get("memoryUsage").and_then(|m| m.as_f64()).unwrap_or(0.0),
+                                activity: agent_value.get("activity").and_then(|a| a.as_f64()).unwrap_or(0.0),
+                                swarm_id: agent_value.get("swarmId").and_then(|s| s.as_str()).map(|s| s.to_string()),
+                                agent_mode: agent_value.get("agentMode").and_then(|a| a.as_str()).map(|s| s.to_string()),
+                                parent_queen_id: agent_value.get("parentQueenId").and_then(|p| p.as_str()).map(|s| s.to_string()),
+                                processing_logs: agent_value.get("processingLogs").and_then(|p| p.as_array()).map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect()),
                             });
                         }
                     }

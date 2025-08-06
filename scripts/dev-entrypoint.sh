@@ -95,6 +95,16 @@ start_rust_server() {
     else
         log "fuser command not found. Skipping fuser check. Port ${TARGET_PORT} might still be in use if Rust server fails to start."
     fi
+    # Check if Rust needs rebuild due to source changes
+    if [ -f /app/scripts/check-rust-rebuild.sh ]; then
+        log "Checking if Rust rebuild is needed..."
+        if /app/scripts/check-rust-rebuild.sh; then
+            log "Rust binary is ready"
+        else
+            log "WARNING: Rust rebuild check failed, continuing anyway"
+        fi
+    fi
+    
     # Rotate log before starting
     rotate_log_file "${RUST_LOG_FILE}"
     # Start Rust server, redirect stdout/stderr to its log file
