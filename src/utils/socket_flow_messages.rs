@@ -65,7 +65,7 @@ fn default_timestamp() -> u64 {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct Node {
+pub struct SocketNode { // Renamed from Node to SocketNode
     // Core data
     pub id: String,
     pub metadata_id: String,  // Store the original filename for lookup
@@ -95,7 +95,7 @@ pub struct Node {
     pub user_data: Option<HashMap<String, String>>,
 }
 
-impl Node {
+impl SocketNode { // Renamed from Node to SocketNode
     pub fn new(metadata_id: String) -> Self {
         // Generate a unique numeric ID for binary protocol compatibility
         let id = NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst).to_string();

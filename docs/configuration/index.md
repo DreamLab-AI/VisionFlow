@@ -2,7 +2,7 @@
 
 ## Overview
 
-LogseqSpringThing uses a layered configuration system combining YAML files, environment variables, and runtime settings. This guide covers all configuration options and best practices.
+VisionFlow uses a layered configuration system combining YAML files, environment variables, and runtime settings. This guide covers all configuration options and best practices.
 
 ## Configuration Hierarchy
 
@@ -22,6 +22,44 @@ Priority order (highest to lowest):
 2. Command-line arguments
 3. YAML configuration files
 4. Default values
+
+## Configuration Flow Map
+
+### Settings Sources and Their Rust Structures
+
+| Configuration Source | File/Location | Rust Structure | Purpose |
+|---------------------|---------------|----------------|----------|
+| **Main Settings** | `data/settings.yaml` | `AppFullSettings` | Complete application configuration |
+| **Environment Overrides** | `.env` file | Merged into `AppFullSettings` | Secrets and deployment-specific values |
+| **Protected Settings** | In-memory only | `ProtectedSettings` | API keys and sensitive user data |
+| **UI Settings** | Derived from above | `UISettings` | Safe subset sent to frontend |
+| **User Settings** | `/app/user_settings/<pubkey>.yaml` | `UserSettings` | Per-user preferences |
+
+### Key Configuration Mappings
+
+#### Environment Variable → settings.yaml → Rust Struct
+
+| Environment Variable | settings.yaml Path | Rust Struct Field | Type | Description |
+|---------------------|-------------------|------------------|------|-------------|
+| **Core Configuration** ||||
+| `AGENT_CONTROL_URL` | *(runtime only)* | `app_state.agent_control_url` | `String` | MCP server URL for agent control |
+| `RUST_LOG` | `logging.level` | `AppFullSettings.logging.level` | `String` | Log level (trace/debug/info/warn/error) |
+| `DATABASE_URL` | `database.url` | `AppFullSettings.database.url` | `String` | PostgreSQL connection string |
+| **GPU Configuration** ||||
+| `ENABLE_GPU_PHYSICS` | `gpu.enabled` | `AppFullSettings.gpu.enabled` | `bool` | Enable CUDA physics simulation |
+| `NVIDIA_GPU_UUID` | `gpu.device_uuid` | `AppFullSettings.gpu.device_uuid` | `String` | Specific GPU device UUID |
+| `CUDA_VISIBLE_DEVICES` | `gpu.device_id` | `AppFullSettings.gpu.device_id` | `u32` | GPU device index |
+| **Physics Simulation** ||||
+| `PHYSICS_UPDATE_RATE` | `graph.simulation.update_rate` | `AppFullSettings.graph.simulation.update_rate` | `f32` | Updates per second |
+| `PHYSICS_TIME_STEP` | `graph.simulation.time_step` | `AppFullSettings.graph.simulation.time_step` | `f32` | Simulation timestep |
+| `PHYSICS_DAMPING` | `graph.simulation.damping` | `AppFullSettings.graph.simulation.damping` | `f32` | Velocity damping factor |
+| **AI Services** ||||
+| `RAGFLOW_API_KEY` | `ragflow.api_key` | `AppFullSettings.ragflow.api_key` | `String` | RAGFlow API authentication |
+| `PERPLEXITY_API_KEY` | `perplexity.api_key` | `AppFullSettings.perplexity.api_key` | `String` | Perplexity AI API key |
+| `OPENAI_API_KEY` | `openai.api_key` | `AppFullSettings.openai.api_key` | `String` | OpenAI API key |
+| **Feature Access** ||||
+| `POWER_USER_KEY_*` | `features.power_user_keys[]` | `AppFullSettings.features.power_user_keys` | `Vec<String>` | Array of power user keys |
+| `FEATURES_ENABLED` | `features.enabled_features[]` | `AppFullSettings.features.enabled_features` | `Vec<String>` | Enabled feature flags |
 
 ## Configuration Files
 
@@ -184,7 +222,7 @@ HOT_RELOAD=true
 ```bash
 # Docker-specific
 DOCKER_BUILDKIT=1
-COMPOSE_PROJECT_NAME=logseq-spring-thing
+COMPOSE_PROJECT_NAME=visionflow
 
 # Volumes
 DATA_PATH=/data
@@ -260,6 +298,72 @@ pub struct AppFullSettings {
     // User settings
     pub user_settings: UserSettings,
 }
+```
+
+### Detailed Structure Mappings
+
+#### ServerConfig
+```rust
+pub struct ServerConfig {
+    pub host: String,              // Default: "0.0.0.0"
+    pub port: u16,                 // Default: 8080
+    pub workers: usize,            // Default: CPU cores
+    pub shutdown_timeout: u64,     // Default: 30 seconds
+    pub max_connections: u32,      // Default: 10000
+}
+```
+
+#### GraphConfig
+```rust
+pub struct GraphConfig {
+    pub max_nodes: usize,          // Default: 100000
+    pub simulation: SimulationParams,
+    pub visualization: VisualizationConfig,
+}
+
+pub struct SimulationParams {
+    pub repulsion_strength: f32,   // Default: 100.0
+    pub attraction_strength: f32,  // Default: 0.01
+    pub centering_strength: f32,   // Default: 0.01
+    pub damping: f32,              // Default: 0.9
+    pub time_step: f32,            // Default: 0.016
+    pub update_rate: f32,          // Default: 60.0
+    pub link_distance: f32,        // Default: 30.0
+    pub collision_radius: f32,     // Default: 10.0
+}
+```
+
+#### ProtectedSettings vs UISettings
+```rust
+// Protected settings (never sent to frontend)
+pub struct ProtectedSettings {
+    pub api_keys: HashMap<String, String>,
+    pub database_credentials: DatabaseConfig,
+    pub jwt_secret: String,
+    pub encryption_keys: Vec<String>,
+}
+
+// UI settings (safe subset for frontend)
+pub struct UISettings {
+    pub theme: String,
+    pub visualization: VisualizationConfig,
+    pub features: EnabledFeatures,
+    pub user_preferences: UserPreferences,
+}
+```
+
+#### Settings Inheritance Flow
+```mermaid
+graph LR
+    A[Environment Variables] --> B[settings.yaml]
+    B --> C[AppFullSettings]
+    C --> D[ProtectedSettings]
+    C --> E[UISettings]
+    E --> F[Frontend Client]
+    D --> G[Backend Only]
+    
+    style D fill:#ff9999,stroke:#333,stroke-width:2px
+    style E fill:#99ff99,stroke:#333,stroke-width:2px
 ```
 
 ### Validation
@@ -393,6 +497,65 @@ features:
     - bulk_operations
 ```
 
+## Configuration Complexity Guide
+
+### Understanding the Settings System
+
+The VisionFlow configuration system has multiple layers that can seem complex at first. Here's a guide to understanding how they work together:
+
+#### 1. Configuration Sources Priority
+```
+Highest Priority (Overrides everything below)
+↓ Environment Variables (e.g., ENABLE_GPU_PHYSICS=true)
+↓ Command-line arguments (e.g., --port 8080)
+↓ User-specific settings (/app/user_settings/<pubkey>.yaml)
+↓ Main settings file (data/settings.yaml)
+↓ Default configuration (config.yml)
+Lowest Priority (Default values in code)
+```
+
+#### 2. Common Configuration Scenarios
+
+**Scenario: Enable GPU Physics**
+```bash
+# Method 1: Environment variable (temporary)
+export ENABLE_GPU_PHYSICS=true
+
+# Method 2: settings.yaml (persistent)
+# Edit data/settings.yaml:
+gpu:
+  enabled: true
+  device_id: 0
+
+# Method 3: Docker compose (deployment)
+# In docker-compose.yml:
+environment:
+  - ENABLE_GPU_PHYSICS=true
+  - NVIDIA_GPU_UUID=auto  # Auto-detect GPU
+```
+
+**Scenario: Configure AI Services**
+```yaml
+# In data/settings.yaml:
+ragflow:
+  api_key: "${RAGFLOW_API_KEY}"  # Reference env var
+  base_url: "https://api.ragflow.com"
+  timeout: 30
+
+perplexity:
+  api_key: "${PERPLEXITY_API_KEY}"
+  model: "mixtral-8x7b-instruct"
+```
+
+#### 3. Settings Actor Communication
+```rust
+// Frontend requests settings
+WebSocket → SettingsActor::GetUISettings → UISettings → Frontend
+
+// Backend updates settings
+API → SettingsActor::SetSettingByPath → Validation → Persistence → Broadcast
+```
+
 ## Best Practices
 
 1. **Environment-Specific Configs**
@@ -471,7 +634,123 @@ std::env::set_var("CONFIG_DEBUG", "true");
 info!("Loaded config: {:?}", settings);
 ```
 
+### Configuration Validation Errors
+
+1. **Missing Required Fields**
+   ```
+   Error: missing field `api_key` at line 15 column 3
+   Solution: Ensure all required fields are present in settings.yaml
+   ```
+
+2. **Type Mismatches**
+   ```
+   Error: invalid type: string "true", expected a boolean
+   Solution: Use boolean values without quotes (true, not "true")
+   ```
+
+3. **Environment Variable Not Found**
+   ```
+   Error: environment variable `RAGFLOW_API_KEY` not found
+   Solution: Set the variable or provide a default value
+   ```
+
+### Settings Actor Issues
+
+1. **Settings Not Updating**
+   ```rust
+   // Check if settings actor is running
+   let settings = settings_actor.send(GetSettings).await?;
+   log::info!("Current settings: {:?}", settings);
+   ```
+
+2. **WebSocket Settings Sync Failed**
+   ```
+   Error: Failed to broadcast settings update
+   Solution: Check WebSocket connection and client handlers
+   ```
+
+### Docker Configuration Issues
+
+1. **MCP Connection Failed**
+   ```bash
+   # Verify network exists
+   docker network ls | grep mcp-visionflow-net
+   
+   # Check container connectivity
+   docker exec visionflow-server ping multi-agent-container
+   ```
+
+2. **GPU Not Detected**
+   ```bash
+   # Verify GPU runtime
+   docker run --rm --gpus all nvidia/cuda:11.7.0-base-ubuntu20.04 nvidia-smi
+   
+   # Check GPU UUID
+   nvidia-smi --query-gpu=uuid --format=csv,noheader
+   ```
+
+## Common Configuration Patterns
+
+### Docker Network Configuration
+```yaml
+# Agent control URL for MCP connection
+AGENT_CONTROL_URL: "tcp://multi-agent-container:9500"
+
+# Network settings
+networks:
+  visionflow-net:
+    name: "mcp-visionflow-net"
+    external: true
+```
+
+### GPU Configuration
+```bash
+# Auto-detect GPU
+NVIDIA_GPU_UUID=auto
+
+# Or specify exact GPU
+NVIDIA_GPU_UUID="GPU-553dc306-dab3-32e2-c69b-28175a6f4da6"
+
+# Fallback to CPU if GPU fails
+ENABLE_GPU_PHYSICS=true
+GPU_FALLBACK_TO_CPU=true
+```
+
+### Feature Flags
+```yaml
+# Enable specific features
+features:
+  enabled_features:
+    - graph_visualization
+    - ai_chat
+    - visionflow_swarm
+    - gpu_physics
+  
+  # Power user access
+  power_user_keys:
+    - "${POWER_USER_KEY_1}"
+    - "${POWER_USER_KEY_2}"
+```
+
 ## Migration Guide
+
+### From LogseqXR to VisionFlow
+
+```yaml
+# Old LogseqXR format
+logseq_xr:
+  visualization:
+    type: "spring"
+    
+# New VisionFlow format
+visionflow:
+  visualization:
+    graphs:
+      logseq:
+        enabled: true
+      visionflow:
+        enabled: true
+```
 
 ### From v1 to v2
 
@@ -489,7 +768,9 @@ ragflow:
 
 ## Related Documentation
 
+- [Quick Reference](./quick-reference.md) - Essential configuration cheatsheet
 - [Server Configuration](../server/config.md) - Server-specific settings
 - [Feature Access](../server/feature-access.md) - Feature flag system
 - [Environment Setup](../development/setup.md) - Development environment
 - [Deployment](../deployment/index.md) - Production configuration
+- [MCP Architecture](../mcp-architecture.md) - Understanding agent connections

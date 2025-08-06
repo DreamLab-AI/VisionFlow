@@ -629,12 +629,13 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                     // Only create edges for significant communication
                     if communication_intensity > 0.1 {
                         let mut edge = Edge::new(source_node_id, target_node_id, communication_intensity);
-                        // Initialize metadata HashMap if None
-                        edge.metadata = Some(HashMap::new());
-                        if let Some(ref mut metadata) = edge.metadata {
-                            metadata.insert("communication_type".to_string(), "agent_collaboration".to_string());
-                            metadata.insert("intensity".to_string(), communication_intensity.to_string());
-                        }
+                        // Correctly handle Option<HashMap>
+                        let metadata = edge.metadata.get_or_insert_with(HashMap::new);
+                        metadata.insert(
+                            "communication_type".to_string(),
+                            "agent_collaboration".to_string(),
+                        );
+                        metadata.insert("intensity".to_string(), communication_intensity.to_string());
                         edges.push(edge);
                     }
                 }

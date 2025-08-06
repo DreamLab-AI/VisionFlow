@@ -206,7 +206,7 @@ pub struct AgentProfile {
 }
 
 // Performance metrics structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PerformanceMetrics {
     #[serde(rename = "tasksCompleted")]
     pub tasks_completed: u32,
@@ -219,7 +219,7 @@ pub struct PerformanceMetrics {
 }
 
 // Token usage tracking
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TokenUsage {
     pub total: u64,
     #[serde(rename = "inputTokens")]

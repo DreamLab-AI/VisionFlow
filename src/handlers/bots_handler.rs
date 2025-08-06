@@ -105,10 +105,10 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
     if let Some(claude_flow_addr) = &state.claude_flow_addr {
         info!("Fetching live hive-mind agent data via ClaudeFlowActor");
         
-        use crate::actors::claude_flow_actor::GetActiveAgents;
+        use crate::actors::messages::GetCachedAgentStatuses;
         use crate::services::claude_flow::{/*McpTool,*/ AgentType as ClaudeAgentType};
         
-        match claude_flow_addr.send(GetActiveAgents).await {
+        match claude_flow_addr.send(GetCachedAgentStatuses).await {
             Ok(Ok(agent_statuses)) => {
                 info!("Successfully fetched {} agents from ClaudeFlowActor", agent_statuses.len());
                 
@@ -365,6 +365,7 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             status: "active".to_string(),
             name: "Queen Coordinator Alpha".to_string(),
             cpu_usage: 25.0,
+            memory_usage: 45.0,
             health: 98.0,
             workload: 0.8,
             position: Vec3::ZERO,
@@ -387,6 +388,9 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             swarm_id: Some("hive-mind-001".to_string()),
             agent_mode: Some("centralized".to_string()),
             parent_queen_id: None,
+            processing_logs: Some(vec!["Initializing hive mind network".to_string()]),
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(3600000), // 1 hour in milliseconds
         },
         BotsAgent {
             id: "researcher-beta".to_string(),
@@ -394,6 +398,7 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             status: "active".to_string(),
             name: "Research Agent Beta".to_string(),
             cpu_usage: 67.0,
+            memory_usage: 55.0,
             health: 92.0,
             workload: 0.9,
             position: Vec3::ZERO,
@@ -415,6 +420,9 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             swarm_id: Some("hive-mind-001".to_string()),
             agent_mode: Some("distributed".to_string()),
             parent_queen_id: Some("queen-alpha".to_string()),
+            processing_logs: Some(vec!["Analyzing authentication patterns".to_string()]),
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(1800000), // 30 minutes in milliseconds
         },
         BotsAgent {
             id: "coder-gamma".to_string(),
@@ -422,6 +430,7 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             status: "active".to_string(),
             name: "Implementation Coder Gamma".to_string(),
             cpu_usage: 89.0,
+            memory_usage: 72.0,
             health: 88.0,
             workload: 0.95,
             position: Vec3::ZERO,
@@ -444,6 +453,9 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             swarm_id: Some("hive-mind-001".to_string()),
             agent_mode: Some("hierarchical".to_string()),
             parent_queen_id: Some("queen-alpha".to_string()),
+            processing_logs: Some(vec!["Writing authentication middleware".to_string()]),
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(2400000), // 40 minutes in milliseconds
         },
         BotsAgent {
             id: "tester-delta".to_string(),
@@ -451,6 +463,7 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             status: "idle".to_string(),
             name: "Test Engineer Delta".to_string(),
             cpu_usage: 32.0,
+            memory_usage: 28.0,
             health: 95.0,
             workload: 0.4,
             position: Vec3::ZERO,
@@ -472,6 +485,9 @@ fn create_hive_mind_mock_data() -> Vec<BotsAgent> {
             swarm_id: Some("hive-mind-001".to_string()),
             agent_mode: Some("distributed".to_string()),
             parent_queen_id: Some("queen-alpha".to_string()),
+            processing_logs: Some(vec!["Waiting for test targets".to_string()]),
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(900000), // 15 minutes in milliseconds
         },
     ]
 }
@@ -761,6 +777,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
             status: agent.status.clone(),
             name: agent.name.clone(),
             cpu_usage: agent.cpu_usage,
+            memory_usage: agent.memory_usage,
             health: agent.health,
             workload: agent.workload,
             position: Vec3::ZERO,
@@ -778,6 +795,9 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
             swarm_id: None,
             agent_mode: None,
             parent_queen_id: None,
+            processing_logs: None,
+            created_at: agent.created_at.clone(),
+            age: agent.age,
         }).collect();
 
         // Convert to nodes for graph visualization
@@ -839,6 +859,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 status: "active".to_string(),
                 name: "Coordinator Alpha".to_string(),
                 cpu_usage: 45.0,
+                memory_usage: 35.0,
                 health: 95.0,
                 workload: 0.7,
                 position: Vec3::ZERO,
@@ -856,6 +877,9 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 swarm_id: None,
                 agent_mode: None,
                 parent_queen_id: None,
+                processing_logs: None,
+                created_at: Some(chrono::Utc::now().to_rfc3339()),
+                age: Some(0),
             },
             BotsAgent {
                 id: "agent-2".to_string(),
@@ -863,6 +887,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 status: "active".to_string(),
                 name: "Coder Beta".to_string(),
                 cpu_usage: 78.0,
+                memory_usage: 65.0,
                 health: 88.0,
                 workload: 0.9,
                 position: Vec3::ZERO,
@@ -880,6 +905,9 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 swarm_id: None,
                 agent_mode: None,
                 parent_queen_id: None,
+                processing_logs: None,
+                created_at: Some(chrono::Utc::now().to_rfc3339()),
+                age: Some(0),
             },
             BotsAgent {
                 id: "agent-3".to_string(),
@@ -887,6 +915,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 status: "active".to_string(),
                 name: "Tester Gamma".to_string(),
                 cpu_usage: 32.0,
+                memory_usage: 25.0,
                 health: 92.0,
                 workload: 0.5,
                 position: Vec3::ZERO,
@@ -904,6 +933,9 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 swarm_id: None,
                 agent_mode: None,
                 parent_queen_id: None,
+                processing_logs: None,
+                created_at: Some(chrono::Utc::now().to_rfc3339()),
+                age: Some(0),
             },
             BotsAgent {
                 id: "agent-4".to_string(),
@@ -911,6 +943,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 status: "active".to_string(),
                 name: "Analyst Delta".to_string(),
                 cpu_usage: 56.0,
+                memory_usage: 45.0,
                 health: 90.0,
                 workload: 0.6,
                 position: Vec3::ZERO,
@@ -928,6 +961,9 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
                 swarm_id: None,
                 agent_mode: None,
                 parent_queen_id: None,
+                processing_logs: None,
+                created_at: Some(chrono::Utc::now().to_rfc3339()),
+                age: Some(0),
             },
         ];
 
@@ -986,6 +1022,7 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
             status: agent.status.clone(),
             name: agent.name.clone(),
             cpu_usage: agent.cpu_usage,
+            memory_usage: agent.memory_usage,
             health: agent.health,
             workload: agent.workload,
             position: Vec3::ZERO,
@@ -1003,6 +1040,9 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
             swarm_id: None,
             agent_mode: None,
             parent_queen_id: None,
+            processing_logs: None,
+            created_at: agent.created_at.clone(),
+            age: agent.age,
         }).collect();
 
         return convert_agents_to_nodes(agents);

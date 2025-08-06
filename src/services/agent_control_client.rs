@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use actix::fut;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -8,9 +9,9 @@ use log::{info, error, warn, debug};
 
 /// Agent Control System TCP Client
 /// Connects to the agent-control-system running in the agent Docker container
+#[derive(Clone)]
 pub struct AgentControlClient {
     addr: String,
-    stream: Option<TcpStream>,
     message_id: u64,
 }
 
@@ -18,32 +19,23 @@ impl AgentControlClient {
     pub fn new(addr: String) -> Self {
         Self {
             addr,
-            stream: None,
             message_id: 0,
         }
     }
     
-    pub async fn connect(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn connect(&mut self) -> Result<TcpStream, Box<dyn std::error::Error>> {
         info!("Connecting to Agent Control System at {}", self.addr);
         let stream = TcpStream::connect(&self.addr).await?;
-        self.stream = Some(stream);
-        
-        // Initialize protocol
-        let response = self.initialize().await?;
-        info!("Connected to Agent Control System: {:?}", response);
-        
-        Ok(())
+        Ok(stream)
     }
     
-    pub async fn disconnect(&mut self) {
-        if let Some(mut stream) = self.stream.take() {
+    pub async fn disconnect(&mut self, stream: &mut Option<TcpStream>) {
+        if let Some(mut stream) = stream.take() {
             let _ = stream.shutdown().await;
         }
     }
     
-    async fn send_request(&mut self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error>> {
-        let stream = self.stream.as_mut().ok_or("Not connected")?;
-        
+    async fn send_request(&mut self, stream: &mut TcpStream, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error>> {
         self.message_id += 1;
         let request = json!({
             "jsonrpc": "2.0",
@@ -72,8 +64,8 @@ impl AgentControlClient {
         Ok(response.get("result").cloned().unwrap_or(Value::Null))
     }
     
-    async fn initialize(&mut self) -> Result<Value, Box<dyn std::error::Error>> {
-        self.send_request("initialize", json!({
+    pub async fn initialize(&mut self, stream: &mut TcpStream) -> Result<Value, Box<dyn std::error::Error>> {
+        self.send_request(stream, "initialize", json!({
             "protocolVersion": "0.1.0",
             "clientInfo": {
                 "name": "rust-backend",
@@ -82,8 +74,8 @@ impl AgentControlClient {
         })).await
     }
     
-    pub async fn initialize_swarm(&mut self, topology: &str, agent_types: Vec<&str>) -> Result<Value, Box<dyn std::error::Error>> {
-        self.send_request("tools/call", json!({
+    pub async fn initialize_swarm(&mut self, stream: &mut TcpStream, topology: &str, agent_types: Vec<&str>) -> Result<Value, Box<dyn std::error::Error>> {
+        self.send_request(stream, "tools/call", json!({
             "name": "swarm.initialize",
             "arguments": {
                 "topology": topology,
@@ -93,8 +85,8 @@ impl AgentControlClient {
         })).await
     }
     
-    pub async fn get_visualization_snapshot(&mut self) -> Result<VisualizationSnapshot, Box<dyn std::error::Error>> {
-        let result = self.send_request("tools/call", json!({
+    pub async fn get_visualization_snapshot(&mut self, stream: &mut TcpStream) -> Result<VisualizationSnapshot, Box<dyn std::error::Error>> {
+        let result = self.send_request(stream, "tools/call", json!({
             "name": "visualization.snapshot",
             "arguments": {
                 "includePositions": true,
@@ -105,8 +97,8 @@ impl AgentControlClient {
         Ok(serde_json::from_value(result)?)
     }
     
-    pub async fn get_all_agents(&mut self) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
-        let result = self.send_request("agents/list", json!({})).await?;
+    pub async fn get_all_agents(&mut self, stream: &mut TcpStream) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
+        let result = self.send_request(stream, "agents/list", json!({})).await?;
         
         if let Some(agents) = result.get("agents") {
             Ok(serde_json::from_value(agents.clone())?)
@@ -115,8 +107,8 @@ impl AgentControlClient {
         }
     }
     
-    pub async fn get_metrics(&mut self) -> Result<SystemMetrics, Box<dyn std::error::Error>> {
-        let result = self.send_request("tools/call", json!({
+    pub async fn get_metrics(&mut self, stream: &mut TcpStream) -> Result<SystemMetrics, Box<dyn std::error::Error>> {
+        let result = self.send_request(stream, "tools/call", json!({
             "name": "metrics.get",
             "arguments": {
                 "includeAgents": true,
@@ -243,12 +235,14 @@ pub struct PerformanceMetrics {
 // Actor for managing the client connection
 pub struct AgentControlActor {
     client: AgentControlClient,
+    stream: Option<TcpStream>,
 }
 
 impl AgentControlActor {
     pub fn new(addr: String) -> Self {
         Self {
             client: AgentControlClient::new(addr),
+            stream: None,
         }
     }
 }
@@ -260,21 +254,27 @@ impl Actor for AgentControlActor {
         info!("AgentControlActor started");
         
         // Connect to agent control system
+        let mut client = self.client.clone();
         let fut = async move {
-            self.client.connect().await
-        }.into_actor(self);
-        
-        ctx.spawn(fut.map(|result, _actor, ctx| {
+            let mut stream = client.connect().await?;
+            client.initialize(&mut stream).await?;
+            Ok(stream)
+        }
+        .into_actor(self)
+        .then(|result: Result<TcpStream, Box<dyn std::error::Error>>, actor, ctx| {
             match result {
-                Ok(()) => {
+                Ok(stream) => {
                     info!("Successfully connected to Agent Control System");
+                    actor.stream = Some(stream);
                 }
                 Err(e) => {
                     error!("Failed to connect to Agent Control System: {}", e);
                     ctx.stop();
                 }
             }
-        }));
+            fut::ready(())
+        });
+        ctx.spawn(fut);
     }
     
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -307,12 +307,23 @@ impl Handler<InitializeSwarm> for AgentControlActor {
     type Result = ResponseFuture<Result<Value, String>>;
     
     fn handle(&mut self, msg: InitializeSwarm, _ctx: &mut Self::Context) -> Self::Result {
-        Box::pin(async move {
+        let mut client = self.client.clone();
+        if let Some(stream) = &mut self.stream {
             let agent_types: Vec<&str> = msg.agent_types.iter().map(|s| s.as_str()).collect();
-            self.client.initialize_swarm(&msg.topology, agent_types)
-                .await
-                .map_err(|e| e.to_string())
-        }.into_actor(self))
+            let topology = msg.topology.clone();
+            
+            let fut = async move {
+                client.initialize_swarm(stream, &topology, agent_types).await
+            }
+            .into_actor(self)
+            .then(|result, _actor, _ctx| {
+                fut::ready(result.map_err(|e| e.to_string()))
+            });
+            
+            Box::pin(fut)
+        } else {
+            Box::pin(fut::ready(Err("Not connected".to_string())))
+        }
     }
 }
 
@@ -320,11 +331,20 @@ impl Handler<GetAllAgents> for AgentControlActor {
     type Result = ResponseFuture<Result<Vec<Agent>, String>>;
     
     fn handle(&mut self, _msg: GetAllAgents, _ctx: &mut Self::Context) -> Self::Result {
-        Box::pin(async move {
-            self.client.get_all_agents()
-                .await
-                .map_err(|e| e.to_string())
-        }.into_actor(self))
+        let mut client = self.client.clone();
+        if let Some(stream) = &mut self.stream {
+            let fut = async move {
+                client.get_all_agents(stream).await
+            }
+            .into_actor(self)
+            .then(|result, _actor, _ctx| {
+                fut::ready(result.map_err(|e| e.to_string()))
+            });
+            
+            Box::pin(fut)
+        } else {
+            Box::pin(fut::ready(Err("Not connected".to_string())))
+        }
     }
 }
 
@@ -332,11 +352,20 @@ impl Handler<GetVisualizationSnapshot> for AgentControlActor {
     type Result = ResponseFuture<Result<VisualizationSnapshot, String>>;
     
     fn handle(&mut self, _msg: GetVisualizationSnapshot, _ctx: &mut Self::Context) -> Self::Result {
-        Box::pin(async move {
-            self.client.get_visualization_snapshot()
-                .await
-                .map_err(|e| e.to_string())
-        }.into_actor(self))
+        let mut client = self.client.clone();
+        if let Some(stream) = &mut self.stream {
+            let fut = async move {
+                client.get_visualization_snapshot(stream).await
+            }
+            .into_actor(self)
+            .then(|result, _actor, _ctx| {
+                fut::ready(result.map_err(|e| e.to_string()))
+            });
+            
+            Box::pin(fut)
+        } else {
+            Box::pin(fut::ready(Err("Not connected".to_string())))
+        }
     }
 }
 
@@ -344,10 +373,19 @@ impl Handler<GetSystemMetrics> for AgentControlActor {
     type Result = ResponseFuture<Result<SystemMetrics, String>>;
     
     fn handle(&mut self, _msg: GetSystemMetrics, _ctx: &mut Self::Context) -> Self::Result {
-        Box::pin(async move {
-            self.client.get_metrics()
-                .await
-                .map_err(|e| e.to_string())
-        }.into_actor(self))
+        let mut client = self.client.clone();
+        if let Some(stream) = &mut self.stream {
+            let fut = async move {
+                client.get_metrics(stream).await
+            }
+            .into_actor(self)
+            .then(|result, _actor, _ctx| {
+                fut::ready(result.map_err(|e| e.to_string()))
+            });
+            
+            Box::pin(fut)
+        } else {
+            Box::pin(fut::ready(Err("Not connected".to_string())))
+        }
     }
 }

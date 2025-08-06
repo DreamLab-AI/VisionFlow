@@ -4,7 +4,8 @@ use crate::actors::messages::{GetSettings, GetMetadata};
 use serde::Serialize;
 use futures::future::join_all;
 use crate::models::metadata::Metadata;
-use crate::services::github::GitHubFileMetadata;
+use crate::services::github::types::GitHubFileMetadata;
+use crate::services::github::content_enhanced::ExtendedFileMetadata;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -48,31 +49,19 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
                     log::debug!("Processing file: {} (ID: {})", file_name, id);
                 }
 
-                let github_meta = content_api
-                    .list_markdown_files("")  // Empty string since base path is already configured
+                let extended_github_meta = content_api
+                    .get_file_metadata_extended(&file_name)
                     .await;
 
-                match github_meta {
-                    Ok(files) => {
+                match extended_github_meta {
+                    Ok(file_meta) => {
                         if debug_enabled {
-                            log::debug!("Found {} GitHub files for {}", files.len(), file_name);
+                            log::debug!("Found extended GitHub metadata for {}: {:?}", file_name, file_meta);
                         }
-
-                        let matching_file = files.into_iter()
-                            .find(|f| f.name == file_name);
-
-                        if debug_enabled {
-                            if let Some(ref file) = matching_file {
-                                log::debug!("Found matching GitHub file for {}: {:?}", file_name, file);
-                            } else {
-                                log::debug!("No matching GitHub file found for {}", file_name);
-                            }
-                        }
-
-                        Ok((id, meta, matching_file))
+                        Ok((id, meta, Some(file_meta)))
                     },
                     Err(e) => {
-                        log::error!("Failed to fetch GitHub metadata for {}: {}", file_name, e);
+                        log::error!("Failed to fetch extended GitHub metadata for {}: {}", file_name, e);
                         Ok((id, meta, None))
                     }
                 }
@@ -87,7 +76,7 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     let results = join_all(futures).await;
     
     let pages: Vec<PageInfo> = results.into_iter()
-        .filter_map(|result: Result<(String, Metadata, Option<GitHubFileMetadata>), actix_web::Error>| {
+        .filter_map(|result: Result<(String, Metadata, Option<ExtendedFileMetadata>), actix_web::Error>| {
             match result {
                 Ok((id, meta, github_meta)) => {
                     if debug_enabled {
@@ -95,8 +84,7 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
                     }
 
                     let modified = github_meta
-                        .and_then(|gm| gm.last_modified)
-                        .map(|dt| dt.timestamp())
+                        .map(|gm| gm.last_content_modified.timestamp())
                         .unwrap_or_else(|| {
                             if debug_enabled {
                                 log::debug!("No modification time found for {}, using 0", meta.file_name);

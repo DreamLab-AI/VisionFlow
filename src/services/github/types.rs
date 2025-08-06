@@ -110,6 +110,16 @@ pub struct GitHubFileMetadata {
     pub file_blob_sha: Option<String>,
 }
 
+/// Basic file metadata from GitHub API (for directory listings)
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GitHubFileBasicMetadata {
+    pub name: String,
+    pub path: String,
+    pub sha: String,
+    pub size: u64,
+    pub download_url: String,
+}
+
 /// Response from content-related API calls
 #[derive(Debug, Deserialize)]
 pub struct ContentResponse {

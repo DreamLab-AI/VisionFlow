@@ -36,11 +36,18 @@ pub struct Agent {
     pub health: f32,
     #[serde(default = "default_workload")]
     pub workload: f32,
+    #[serde(default = "default_memory_usage")]
+    pub memory_usage: f32,
+    #[serde(rename = "createdAt", skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>, // ISO 8601 timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub age: Option<u64>, // milliseconds
 }
 
 fn default_cpu_usage() -> f32 { 50.0 }
 fn default_health() -> f32 { 90.0 }
 fn default_workload() -> f32 { 0.7 }
+fn default_memory_usage() -> f32 { 30.0 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BotsMetrics {
@@ -332,6 +339,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 45.0,
             health: 95.0,
             workload: 0.7,
+            memory_usage: 30.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
         Agent {
             id: "agent-coder-1".to_string(),
@@ -344,6 +354,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 78.0,
             health: 88.0,
             workload: 0.9,
+            memory_usage: 65.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
         Agent {
             id: "agent-tester-1".to_string(),
@@ -356,6 +369,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 32.0,
             health: 92.0,
             workload: 0.5,
+            memory_usage: 25.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
         Agent {
             id: "agent-analyst-1".to_string(),
@@ -368,6 +384,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 56.0,
             health: 90.0,
             workload: 0.6,
+            memory_usage: 45.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
         Agent {
             id: "agent-researcher-1".to_string(),
@@ -380,6 +399,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 41.0,
             health: 94.0,
             workload: 0.4,
+            memory_usage: 35.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
         Agent {
             id: "agent-architect-1".to_string(),
@@ -392,6 +414,9 @@ fn generate_mock_bots_update() -> BotsUpdate {
             cpu_usage: 62.0,
             health: 91.0,
             workload: 0.8,
+            memory_usage: 55.0,
+            created_at: Some(chrono::Utc::now().to_rfc3339()),
+            age: Some(0),
         },
     ];
 

@@ -282,9 +282,7 @@ class ParallelGraphCoordinator {
    */
   public dispose(): void {
     this.listeners.clear();
-    if (this.state.visionflow.enabled) {
-      mcpWebSocketService.disconnect();
-    }
+    this.stopVisionFlowPolling();
     logger.info('Parallel graph coordinator disposed');
   }
 }

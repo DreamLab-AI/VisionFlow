@@ -8,6 +8,9 @@ services:
         CUDA_ARCH: ${CUDA_ARCH:-86}
     volumes:
       - ./client:/app/client
+      - ./src:/app/src # Mount Rust source code for development
+      - ./Cargo.toml:/app/Cargo.toml # Mount Cargo.toml for dependency changes
+      - ./Cargo.lock:/app/Cargo.lock # Mount Cargo.lock for consistency
       - ./data/markdown:/app/data/markdown
       - ./data/metadata:/app/data/metadata
       - ./data/user_settings:/app/user_settings
@@ -16,6 +19,8 @@ services:
       - ./logs/nginx:/var/log/nginx # Mount nginx logs to host
       - ./logs:/app/logs
       - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro # Mount exec proxy
+      - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro # Mount rebuild check script
+      - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro # Mount manual rebuild script
       - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro # Mount supervisor config
       - /var/run/docker.sock:/var/run/docker.sock:ro # Docker socket for controlled access
       - npm-cache:/root/.npm

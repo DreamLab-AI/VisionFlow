@@ -166,8 +166,6 @@ pub struct SendToClientText(pub String);
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
 use crate::services::claude_flow::AgentStatus;
 use crate::models::graph::GraphData;
-use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -455,3 +453,7 @@ pub struct PollSystemMetrics;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct RetryMCPConnection;
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<AgentStatus>, String>")]
+pub struct GetCachedAgentStatuses;

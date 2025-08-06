@@ -7,13 +7,13 @@
 //! - Configuration: Environment-based configuration
 
 mod api;
-mod content;
+pub mod content_enhanced;
 mod pr;
 pub mod types;
 pub mod config;
 
 pub use api::GitHubClient;
-pub use content::ContentAPI;
+pub use content_enhanced::EnhancedContentAPI as ContentAPI;
 pub use pr::PullRequestAPI;
 pub use types::{GitHubError, GitHubFile, GitHubFileMetadata};
 pub use config::GitHubConfig;
