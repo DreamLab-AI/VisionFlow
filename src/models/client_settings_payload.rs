@@ -212,18 +212,40 @@ pub struct ClientCameraSettings {
 }
 
 
+// --- Graph-specific Settings (for multi-graph support) ---
+#[derive(Deserialize, Debug, Default, Clone)]
+pub struct ClientGraphSettings {
+    pub nodes: Option<ClientNodeSettings>,
+    pub edges: Option<ClientEdgeSettings>,
+    pub labels: Option<ClientLabelSettings>,
+    pub physics: Option<ClientPhysicsSettings>,
+}
+
+// --- Multi-graph container ---
+#[derive(Deserialize, Debug, Default, Clone)]
+pub struct ClientGraphsSettings {
+    pub logseq: Option<ClientGraphSettings>,
+    pub visionflow: Option<ClientGraphSettings>,
+}
+
 // --- Visualisation Settings DTO (Aggregator) ---
 #[derive(Deserialize, Debug, Default, Clone)]
 pub struct ClientVisualisationSettings {
+    // Legacy single-graph fields (for backwards compatibility)
     pub nodes: Option<ClientNodeSettings>,
     pub edges: Option<ClientEdgeSettings>,
     pub physics: Option<ClientPhysicsSettings>,
+    pub labels: Option<ClientLabelSettings>,
+    
+    // Global settings (shared across graphs)
     pub rendering: Option<ClientRenderingSettings>,
     pub animations: Option<ClientAnimationSettings>,
-    pub labels: Option<ClientLabelSettings>,
     pub bloom: Option<ClientBloomSettings>,
     pub hologram: Option<ClientHologramSettings>,
     pub camera: Option<ClientCameraSettings>, // Client can send camera settings
+    
+    // Multi-graph support (NEW)
+    pub graphs: Option<ClientGraphsSettings>,
 }
 
 // --- WebSocket Settings DTO (from client/src/features/settings/config/settings.ts) ---

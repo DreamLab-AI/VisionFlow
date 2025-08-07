@@ -56,13 +56,28 @@ impl Node {
             }
         };
         
+        // BREADCRUMB: Use node ID to generate deterministic but spread out initial positions
+        // This prevents all nodes from starting at the origin which causes clustering
+        let id_hash = id as f32;
+        let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
+        let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
+        
         Self {
             id,
             metadata_id: metadata_id.clone(),
             label: String::new(), // Initialize as empty string, will be set from metadata later
             data: BinaryNodeData {
-                position: Vec3Data::zero(),
-                velocity: Vec3Data::zero(),
+                // Use spherical coordinates for initial position
+                position: Vec3Data::new(
+                    radius * angle.cos() * 2.0,
+                    radius * angle.sin() * 2.0,
+                    (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
+                ),
+                velocity: Vec3Data::new(
+                    0.0,  // Start with zero velocity
+                    0.0,  // Physics will handle the movement
+                    0.0,
+                ),
                 mass: 0,
                 flags: 1, // Active by default
                 padding: [0, 0],

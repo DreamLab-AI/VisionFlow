@@ -228,8 +228,21 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
+        // BREADCRUMB: Simulation step running - check if GPU is available
+        
         // Use GPU compute actor if available
         if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+            let node_count = self.graph_data.nodes.len();
+            
+            // Only log periodically to avoid spam
+            static mut LOG_COUNTER: u32 = 0;
+            unsafe {
+                if LOG_COUNTER % 60 == 0 {
+                    info!("GraphServiceActor: Sending {} nodes to GPU for physics simulation", node_count);
+                }
+                LOG_COUNTER += 1;
+            }
+            
             // Send graph data to GPU
             let graph_data_for_gpu = crate::models::graph::GraphData {
                 nodes: self.graph_data.nodes.clone(),
@@ -294,111 +307,8 @@ impl GraphServiceActor {
         }
     }
 
-    fn calculate_layout_cpu(&self) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-        // Proper CPU physics simulation using actual physics parameters
-        let mut updated_positions = Vec::new();
-        let nodes = &self.graph_data.nodes;
-        let edges = &self.graph_data.edges;
-        
-        // Use the actual physics parameters
-        let params = &self.simulation_params;
-        let dt = params.time_step;
-        
-        for (i, node) in nodes.iter().enumerate() {
-            let mut force_x = 0.0f32;
-            let mut force_y = 0.0f32;
-            let mut force_z = 0.0f32;
-            
-            // Current position and velocity
-            let pos = &node.data.position;
-            let vel = &node.data.velocity;
-            
-            // Apply repulsion forces from other nodes
-            for (j, other) in nodes.iter().enumerate() {
-                if i != j {
-                    let other_pos = &other.data.position;
-                    let dx = pos.x - other_pos.x;
-                    let dy = pos.y - other_pos.y;
-                    let dz = pos.z - other_pos.z;
-                    
-                    let dist_sq = dx * dx + dy * dy + dz * dz;
-                    let dist = dist_sq.sqrt().max(0.1); // Avoid division by zero
-                    
-                    if dist < params.max_repulsion_distance {
-                        // Repulsion force
-                        let force_magnitude = params.repulsion / (dist_sq + 1.0);
-                        force_x += (dx / dist) * force_magnitude;
-                        force_y += (dy / dist) * force_magnitude;
-                        force_z += (dz / dist) * force_magnitude;
-                    }
-                }
-            }
-            
-            // Apply spring forces from edges
-            for edge in edges {
-                let other_idx = if edge.source == node.id {
-                    nodes.iter().position(|n| n.id == edge.target)
-                } else if edge.target == node.id {
-                    nodes.iter().position(|n| n.id == edge.source)
-                } else {
-                    None
-                };
-                
-                if let Some(other_idx) = other_idx {
-                    if other_idx != i {
-                        let other_pos = &nodes[other_idx].data.position;
-                        let dx = other_pos.x - pos.x;
-                        let dy = other_pos.y - pos.y;
-                        let dz = other_pos.z - pos.z;
-                        
-                        let dist = (dx * dx + dy * dy + dz * dz).sqrt().max(0.1);
-                        
-                        // Spring force
-                        let force_magnitude = params.spring_strength * (dist - 50.0); // Rest length of 50
-                        force_x += (dx / dist) * force_magnitude * edge.weight;
-                        force_y += (dy / dist) * force_magnitude * edge.weight;
-                        force_z += (dz / dist) * force_magnitude * edge.weight;
-                    }
-                }
-            }
-            
-            // Apply boundary forces if enabled
-            if params.enable_bounds {
-                let bounds = params.viewport_bounds;
-                let boundary_force = 10.0;
-                
-                if pos.x.abs() > bounds * 0.9 {
-                    force_x -= pos.x.signum() * boundary_force;
-                }
-                if pos.y.abs() > bounds * 0.9 {
-                    force_y -= pos.y.signum() * boundary_force;
-                }
-                if pos.z.abs() > bounds * 0.9 {
-                    force_z -= pos.z.signum() * boundary_force;
-                }
-            }
-            
-            // Update velocity with damping
-            let mut new_data = node.data.clone();
-            new_data.velocity.x = (vel.x + force_x * dt) * params.damping;
-            new_data.velocity.y = (vel.y + force_y * dt) * params.damping;
-            new_data.velocity.z = (vel.z + force_z * dt) * params.damping;
-            
-            // Update position
-            new_data.position.x = pos.x + new_data.velocity.x * dt;
-            new_data.position.y = pos.y + new_data.velocity.y * dt;
-            new_data.position.z = pos.z + new_data.velocity.z * dt;
-            
-            updated_positions.push((node.id, new_data));
-        }
-        
-        Ok(updated_positions)
-    }
-
-    fn encode_node_positions(&self, positions: &[(u32, BinaryNodeData)]) -> Result<Vec<u8>, String> {
-        // Now binary_protocol expects (u32, BinaryNodeData) directly
-        Ok(binary_protocol::encode_node_data(positions))
-    }
+    // CPU physics removed - all physics now handled by GPU compute actor
+    // BREADCRUMB: CPU fallback was removed as GPU is always available in our architecture
 
     /// Calculate Communication Intensity between two agents based on:
     /// - Agent types and their collaboration patterns

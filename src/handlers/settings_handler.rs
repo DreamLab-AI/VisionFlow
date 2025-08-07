@@ -227,9 +227,20 @@ async fn update_user_settings(
         // Macros are now defined at module level
         
         // Store whether physics was updated before we move the payload
+        // Check both legacy single-graph physics and new multi-graph structure
         let physics_updated = client_payload.visualisation.as_ref()
-            .and_then(|v| v.physics.as_ref())
-            .is_some();
+            .and_then(|v| {
+                // Check legacy physics field
+                if v.physics.is_some() {
+                    return Some(true);
+                }
+                // Check multi-graph physics (logseq is the knowledge graph)
+                v.graphs.as_ref()
+                    .and_then(|g| g.logseq.as_ref())
+                    .and_then(|l| l.physics.as_ref())
+                    .map(|_| true)
+            })
+            .unwrap_or(false);
 
         if let Some(vis_dto) = client_payload.visualisation {
             let target_vis = &mut settings.visualisation;
@@ -257,7 +268,24 @@ async fn update_user_settings(
                 // Note: ClientEdgeSettings DTO has extra fields not in server's EdgeSettings.
                 // They are ignored here as AppFullSettings.visualisation.edges doesn't have them.
             }
-            if let Some(physics_dto) = vis_dto.physics { // physics_dto is ClientPhysicsSettings
+            // Handle physics from multi-graph structure first, then fall back to legacy
+            // BREADCRUMB: Multi-graph physics extraction for knowledge graph (logseq)
+            let has_multi_graph = vis_dto.graphs.is_some();
+            let has_logseq_physics = vis_dto.graphs.as_ref()
+                .and_then(|g| g.logseq.as_ref())
+                .and_then(|l| l.physics.as_ref())
+                .is_some();
+            let has_legacy_physics = vis_dto.physics.is_some();
+            
+            debug!("Physics settings extraction - multi_graph: {}, logseq_physics: {}, legacy_physics: {}", 
+                   has_multi_graph, has_logseq_physics, has_legacy_physics);
+            
+            let physics_to_apply = vis_dto.graphs.as_ref()
+                .and_then(|g| g.logseq.as_ref())
+                .and_then(|l| l.physics.as_ref())
+                .or(vis_dto.physics.as_ref());
+                
+            if let Some(physics_dto) = physics_to_apply { // physics_dto is ClientPhysicsSettings
                 let target_physics = &mut target_vis.physics; // Type: config::PhysicsSettings
                 merge_copy_option!(target_physics.attraction_strength, physics_dto.attraction_strength);
                 merge_copy_option!(target_physics.bounds_size, physics_dto.bounds_size);
@@ -454,6 +482,12 @@ async fn update_user_settings(
                     
                     // Extract physics settings to create simulation params
                     let physics_settings = &settings.visualisation.physics;
+                    
+                    // BREADCRUMB: Log the physics values being sent to GPU
+                    info!("Sending physics to GPU - damping: {}, spring: {}, repulsion: {}, iterations: {}", 
+                          physics_settings.damping, physics_settings.spring_strength, 
+                          physics_settings.repulsion_strength, physics_settings.iterations);
+                    
                     let sim_params = crate::models::simulation_params::SimulationParams {
                         iterations: physics_settings.iterations,
                         spring_strength: physics_settings.spring_strength,
@@ -514,9 +548,20 @@ async fn update_user_settings(
         let target_ui_settings = &mut user_settings.settings;
         
         // Store whether physics was updated before we move the payload
+        // Check both legacy single-graph physics and new multi-graph structure
         let physics_updated = client_payload.visualisation.as_ref()
-            .and_then(|v| v.physics.as_ref())
-            .is_some();
+            .and_then(|v| {
+                // Check legacy physics field
+                if v.physics.is_some() {
+                    return Some(true);
+                }
+                // Check multi-graph physics (logseq is the knowledge graph)
+                v.graphs.as_ref()
+                    .and_then(|g| g.logseq.as_ref())
+                    .and_then(|l| l.physics.as_ref())
+                    .map(|_| true)
+            })
+            .unwrap_or(false);
 
         if let Some(vis_dto) = client_payload.visualisation { // vis_dto is ClientVisualisationSettings
             let target_vis = &mut target_ui_settings.visualisation; // Type: config::VisualisationSettings
@@ -544,7 +589,24 @@ async fn update_user_settings(
                 merge_clone_option!(target_edges.quality, edges_dto.quality);
                 // Extra fields in ClientEdgeSettings DTO (enable_flow_effect etc.) are ignored as they are not in config::EdgeSettings
             }
-            if let Some(physics_dto) = vis_dto.physics { // physics_dto is ClientPhysicsSettings
+            // Handle physics from multi-graph structure first, then fall back to legacy
+            // BREADCRUMB: Multi-graph physics extraction for knowledge graph (logseq)
+            let has_multi_graph = vis_dto.graphs.is_some();
+            let has_logseq_physics = vis_dto.graphs.as_ref()
+                .and_then(|g| g.logseq.as_ref())
+                .and_then(|l| l.physics.as_ref())
+                .is_some();
+            let has_legacy_physics = vis_dto.physics.is_some();
+            
+            debug!("Physics settings extraction - multi_graph: {}, logseq_physics: {}, legacy_physics: {}", 
+                   has_multi_graph, has_logseq_physics, has_legacy_physics);
+            
+            let physics_to_apply = vis_dto.graphs.as_ref()
+                .and_then(|g| g.logseq.as_ref())
+                .and_then(|l| l.physics.as_ref())
+                .or(vis_dto.physics.as_ref());
+                
+            if let Some(physics_dto) = physics_to_apply { // physics_dto is ClientPhysicsSettings
                 let target_physics = &mut target_vis.physics; // Type: config::PhysicsSettings
                 merge_copy_option!(target_physics.attraction_strength, physics_dto.attraction_strength);
                 merge_copy_option!(target_physics.bounds_size, physics_dto.bounds_size);
