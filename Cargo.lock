@@ -3661,6 +3661,7 @@ dependencies = [
  "cudarc",
  "dashmap",
  "dotenvy",
+ "fastrand",
  "flate2",
  "futures",
  "futures-util",
