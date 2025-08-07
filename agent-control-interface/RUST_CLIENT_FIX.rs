@@ -1,3 +1,6 @@
+// Fixed implementation for /workspace/ext/src/services/agent_control_client.rs
+// This replaces the existing agent_control_client.rs file
+
 use actix::prelude::*;
 use actix::fut;
 use serde::{Deserialize, Serialize};
@@ -25,7 +28,7 @@ impl AgentControlClient {
         }
     }
 
-    pub async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error>> {
         info!("Connecting to Agent Control System at {}", self.addr);
         let stream = TcpStream::connect(&self.addr).await?;
         Ok(stream)
@@ -103,18 +106,6 @@ impl AgentControlClient {
         })).await
     }
 
-    pub async fn get_visualization_snapshot(&self, stream: TcpStream) -> Result<(TcpStream, VisualizationSnapshot), Box<dyn std::error::Error + Send + Sync>> {
-        let (stream, result) = self.send_request_on_stream(stream, "tools/call", json!({
-            "name": "visualization.snapshot",
-            "arguments": {
-                "includePositions": true,
-                "includeConnections": true
-            }
-        })).await?;
-
-        Ok((stream, serde_json::from_value(result)?))
-    }
-
     pub async fn get_all_agents(&self, stream: TcpStream) -> Result<(TcpStream, Vec<Agent>), Box<dyn std::error::Error + Send + Sync>> {
         let (stream, result) = self.send_request_on_stream(stream, "agents/list", json!({})).await?;
         
@@ -126,6 +117,18 @@ impl AgentControlClient {
         };
         
         Ok((stream, agents))
+    }
+
+    pub async fn get_visualization_snapshot(&self, stream: TcpStream) -> Result<(TcpStream, VisualizationSnapshot), Box<dyn std::error::Error + Send + Sync>> {
+        let (stream, result) = self.send_request_on_stream(stream, "tools/call", json!({
+            "name": "visualization.snapshot",
+            "arguments": {
+                "includePositions": true,
+                "includeConnections": true
+            }
+        })).await?;
+
+        Ok((stream, serde_json::from_value(result)?))
     }
 
     pub async fn get_system_metrics(&self, stream: TcpStream) -> Result<(TcpStream, SystemMetrics), Box<dyn std::error::Error + Send + Sync>> {
@@ -141,8 +144,7 @@ impl AgentControlClient {
     }
 }
 
-// Data structures matching the Agent Control System
-
+// Data structures (keep existing ones)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
     pub id: String,
@@ -176,15 +178,6 @@ pub struct AgentMetrics {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VisualizationSnapshot {
-    pub timestamp: String,
-    #[serde(rename = "agentCount")]
-    pub agent_count: u32,
-    pub positions: HashMap<String, Position>,
-    pub connections: Vec<Connection>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
@@ -203,11 +196,12 @@ pub struct Connection {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SystemMetrics {
+pub struct VisualizationSnapshot {
     pub timestamp: String,
-    pub system: SystemInfo,
-    pub agents: Option<AgentStats>,
-    pub performance: Option<PerformanceMetrics>,
+    #[serde(rename = "agentCount")]
+    pub agent_count: u32,
+    pub positions: HashMap<String, Position>,
+    pub connections: Vec<Connection>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -217,6 +211,14 @@ pub struct SystemInfo {
     pub memory_usage: MemoryUsage,
     #[serde(rename = "cpuUsage")]
     pub cpu_usage: CpuUsage,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemMetrics {
+    pub timestamp: String,
+    pub system: SystemInfo,
+    pub agents: Option<AgentStats>,
+    pub performance: Option<PerformanceMetrics>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -266,6 +268,17 @@ impl AgentControlActor {
             stream: None,
         }
     }
+
+    async fn ensure_connected(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        if self.stream.is_none() {
+            info!("Reconnecting to Agent Control System...");
+            let stream = self.client.connect().await?;
+            let (stream, _) = self.client.initialize(stream).await?;
+            self.stream = Some(stream);
+            info!("Reconnected successfully");
+        }
+        Ok(())
+    }
 }
 
 impl Actor for AgentControlActor {
@@ -281,14 +294,14 @@ impl Actor for AgentControlActor {
                 Ok(stream) => {
                     match client.initialize(stream).await {
                         Ok((stream, _)) => Ok(stream),
-                        Err(e) => Err(e as Box<dyn std::error::Error + Send + Sync>)
+                        Err(e) => Err(e)
                     }
                 }
-                Err(e) => Err(e as Box<dyn std::error::Error + Send + Sync>)
+                Err(e) => Err(e)
             }
         }
         .into_actor(self)
-        .then(|result: Result<TcpStream, Box<dyn std::error::Error + Send + Sync>>, actor, _ctx| {
+        .then(|result: Result<TcpStream, Box<dyn std::error::Error + Send + Sync>>, actor, ctx| {
             match result {
                 Ok(stream) => {
                     info!("Successfully connected to Agent Control System");
@@ -335,6 +348,8 @@ impl Handler<InitializeSwarm> for AgentControlActor {
     type Result = ResponseFuture<Result<Value, String>>;
 
     fn handle(&mut self, msg: InitializeSwarm, ctx: &mut Self::Context) -> Self::Result {
+        // Ensure we're connected
+        let ensure_fut = self.ensure_connected();
         let client = self.client.clone();
         let stream = self.stream.take();
         
