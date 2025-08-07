@@ -105,13 +105,16 @@ Response: {
 
 ## MCP Integration Strategy
 
-### mcp-observability Integration
+### mcp-observability Integration (Bundled)
+- **Self-contained**: Included in `mcp-observability/` subdirectory
 - Started as subprocess with stdio communication
 - Already provides comprehensive agent tracking
 - Handles message flow and performance metrics
+- No external dependencies - fully portable
 
 ### Direct Tool Integration
-- claude-flow and ruv-swarm accessed via MCP protocol
+- claude-flow accessed from `/app/claude-flow` if available
+- ruv-swarm accessed via MCP protocol if available
 - Tool availability checked at startup
 - Graceful degradation when unavailable
 

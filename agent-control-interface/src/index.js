@@ -8,6 +8,16 @@
  */
 
 const net = require('net');
+const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+// Load environment variables from .env file if it exists
+const envPath = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
+
 const { Logger } = require('./logger');
 const { JSONRPCHandler } = require('./json-rpc-handler');
 const { TelemetryAggregator } = require('./telemetry-aggregator');

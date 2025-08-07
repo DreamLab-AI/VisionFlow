@@ -47,15 +47,16 @@ echo ""
 echo "Checking MCP Tool Availability:"
 echo "--------------------------------"
 
-# Check mcp-observability
-if [ -d "/workspace/mcp-observability" ]; then
-    echo "✓ mcp-observability found"
-    if [ ! -d "/workspace/mcp-observability/node_modules" ]; then
+# Check mcp-observability (now in local directory)
+MCP_OBS_PATH="${MCP_OBSERVABILITY_PATH:-$SCRIPT_DIR/mcp-observability}"
+if [ -d "$MCP_OBS_PATH" ]; then
+    echo "✓ mcp-observability found at $MCP_OBS_PATH"
+    if [ ! -d "$MCP_OBS_PATH/node_modules" ]; then
         echo "  Installing mcp-observability dependencies..."
-        (cd /workspace/mcp-observability && npm install --silent)
+        (cd "$MCP_OBS_PATH" && npm install --silent)
     fi
 else
-    echo "✗ mcp-observability not found (will use mock data)"
+    echo "✗ mcp-observability not found at $MCP_OBS_PATH (will use mock data)"
 fi
 
 # Check for claude-flow
