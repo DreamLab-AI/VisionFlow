@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
-import { BotsAgent, BotsEdge, BotsState } from '../types/botsTypes';
+import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/logger';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useBotsBinaryUpdates } from '../hooks/useBotsBinaryUpdates';
@@ -15,7 +15,7 @@ const logger = createLogger('BotsVisualization');
 // Generate mock processing logs for visualization
 const generateMockProcessingLogs = (agentType: string, status: string): string[] => {
   const logs: string[] = [];
-  
+
   const activityTemplates = {
     coordinator: [
       'Analyzing swarm topology and agent distribution patterns...',
@@ -74,15 +74,15 @@ const generateMockProcessingLogs = (agentType: string, status: string): string[]
       'Updating internal state and synchronizing...'
     ]
   };
-  
+
   const templates = activityTemplates[agentType] || activityTemplates.default;
-  
+
   // Generate 3 random logs
   for (let i = 0; i < 3; i++) {
     const template = templates[Math.floor(Math.random() * templates.length)];
     logs.push(template);
   }
-  
+
   return logs;
 };
 
@@ -100,7 +100,7 @@ const getVisionFlowColors = (settings: any) => {
     reviewer: '#16A085',    // Green sea
     documenter: '#229954',  // Forest green
     specialist: '#239B56',  // Emerald dark
-    
+
     // Meta roles - Golds for coordination
     queen: '#F39C12',       // Orange gold (leader)
     coordinator: baseColor,  // Primary gold
@@ -108,11 +108,11 @@ const getVisionFlowColors = (settings: any) => {
     monitor: '#E67E22',     // Carrot orange
     analyst: '#D68910',     // Dark gold
     optimizer: '#B7950B',   // Dark gold variant
-    
+
     // Connections
     edge: '#3498DB',        // Bright blue
     activeEdge: '#2980B9',  // Peter river blue
-    
+
     // States
     active: '#2ECC71',
     busy: '#F39C12',
@@ -188,7 +188,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         }}>
           {agent.status}
         </div>
-        
+
         <div style={{
           padding: '3px 8px',
           borderRadius: '12px',
@@ -238,7 +238,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
             <div style={{ fontStyle: 'italic' }}>{agent.currentTask}</div>
           ) : (
             displayLogs.map((log, index) => (
-              <div 
+              <div
                 key={log.key}
                 style={{
                   opacity: 1 - (index * 0.3),
@@ -399,7 +399,7 @@ interface BotsEdgeProps {
   color: string;
 }
 
-const BotsEdge: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos, color }) => {
+const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos, color }) => {
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
@@ -435,26 +435,27 @@ const BotsEdge: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos, color }
 export const BotsVisualization: React.FC = () => {
   const settings = useSettingsStore(state => state.settings);
   const { botsData: contextBotsData } = useBotsData();
-  
+
   // Component state
   const [botsData, setBotsData] = useState<BotsState>({
-    nodes: [],
-    edges: [],
-    tokenUsage: { total: 0 }
+    agents: new Map(),
+    edges: new Map(),
+    communications: [],
+    tokenUsage: { total: 0, byAgent: {} },
+    lastUpdate: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mcpConnected, setMcpConnected] = useState(false);
-  
+
   // Refs for physics simulation
   const positionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
   const velocitiesRef = useRef<Map<string, THREE.Vector3>>(new Map());
-  
+
   // Binary updates for GPU physics
-  const { positionBuffer: positionBufferRef, updateInterval } = useBotsBinaryUpdates(
-    botsData.nodes,
-    positionsRef
-  );
+  const { positions: positionBufferRef, requestUpdate } = useBotsBinaryUpdates({
+    enabled: true,
+  });
 
   // Colors
   const colors = useMemo(() => getVisionFlowColors(settings), [settings]);
@@ -468,10 +469,12 @@ export const BotsVisualization: React.FC = () => {
 
     logger.info('[VISIONFLOW] Processing bots data from context', contextBotsData);
     setIsLoading(false);
-    
+
     // Update local state with context data
     const agents = contextBotsData.agents || [];
-    const nodes = agents.map((agent, index) => {
+    const agentMap = new Map<string, BotsAgent>();
+    agents.forEach((agent, index) => {
+      agentMap.set(agent.id, agent);
       // Initialize position if not exists
       if (!positionsRef.current.has(agent.id)) {
         const radius = 25;
@@ -485,37 +488,39 @@ export const BotsVisualization: React.FC = () => {
         positionsRef.current.set(agent.id, newPosition);
         velocitiesRef.current.set(agent.id, new THREE.Vector3());
       }
-      
-      return agent;
     });
-    
+
     // Generate edges based on parent relationships
-    const edges: BotsEdge[] = [];
+    const edgeMap = new Map<string, BotsEdge>();
     agents.forEach(agent => {
       if (agent.parentQueenId) {
-        edges.push({
-          id: `${agent.parentQueenId}-${agent.id}`,
+        const edgeId = `${agent.parentQueenId}-${agent.id}`;
+        edgeMap.set(edgeId, {
+          id: edgeId,
           source: agent.parentQueenId,
           target: agent.id,
-          weight: 1,
+          dataVolume: 0,
+          messageCount: 0,
           lastMessageTime: Date.now()
         });
       }
     });
-    
+
     setBotsData({
-      nodes,
-      edges,
-      tokenUsage: { total: contextBotsData.totalTokens || 0 }
+      agents: agentMap,
+      edges: edgeMap,
+      communications: [],
+      tokenUsage: (contextBotsData as any).tokenUsage || { total: 0, byAgent: {} },
+      lastUpdate: Date.now(),
     });
-    
-    setMcpConnected(nodes.length > 0);
+
+    setMcpConnected(agentMap.size > 0);
   }, [contextBotsData]);
 
   // Simple physics simulation
   useFrame((state, delta) => {
-    if (botsData.nodes.length === 0 || positionBufferRef.current) return;
-    
+    if (botsData.agents.size === 0 || !positionBufferRef) return;
+
     const dt = Math.min(delta, 0.016);
     const physics = {
       damping: 0.95,
@@ -525,24 +530,24 @@ export const BotsVisualization: React.FC = () => {
     };
 
     // Update velocities and positions
-    botsData.nodes.forEach(node => {
+    botsData.agents.forEach(node => {
       const pos = positionsRef.current.get(node.id);
       const vel = velocitiesRef.current.get(node.id);
-      
+
       if (!pos || !vel) return;
 
       // Apply forces
       const force = new THREE.Vector3();
-      
+
       // Center gravity
       force.add(pos.clone().multiplyScalar(-physics.centerGravity));
-      
+
       // Node repulsion
-      botsData.nodes.forEach(otherNode => {
+      botsData.agents.forEach(otherNode => {
         if (otherNode.id === node.id) return;
         const otherPos = positionsRef.current.get(otherNode.id);
         if (!otherPos) return;
-        
+
         const diff = pos.clone().sub(otherPos);
         const distance = diff.length();
         if (distance > 0 && distance < physics.nodeRepulsion * 2) {
@@ -552,13 +557,13 @@ export const BotsVisualization: React.FC = () => {
           force.add(repulsion);
         }
       });
-      
+
       // Edge attraction
       botsData.edges.forEach(edge => {
         let otherNodeId: string | null = null;
         if (edge.source === node.id) otherNodeId = edge.target;
         if (edge.target === node.id) otherNodeId = edge.source;
-        
+
         if (otherNodeId) {
           const otherPos = positionsRef.current.get(otherNodeId);
           if (otherPos) {
@@ -573,7 +578,7 @@ export const BotsVisualization: React.FC = () => {
           }
         }
       });
-      
+
       // Update velocity and position
       vel.add(force.multiplyScalar(dt));
       vel.multiplyScalar(physics.damping);
@@ -603,7 +608,7 @@ export const BotsVisualization: React.FC = () => {
     );
   }
 
-  if (botsData.nodes.length === 0) {
+  if (botsData.agents.size === 0) {
     return (
       <Html center>
         <div style={{ color: '#95A5A6', padding: '20px', textAlign: 'center' }}>
@@ -622,14 +627,14 @@ export const BotsVisualization: React.FC = () => {
   return (
     <group>
       {/* Render edges */}
-      {botsData.edges.map(edge => {
+      {Array.from(botsData.edges.values()).map(edge => {
         const sourcePos = positionsRef.current.get(edge.source);
         const targetPos = positionsRef.current.get(edge.target);
-        
+
         if (!sourcePos || !targetPos) return null;
-        
+
         return (
-          <BotsEdge
+          <BotsEdgeComponent
             key={edge.id}
             edge={edge}
             sourcePos={sourcePos}
@@ -640,12 +645,12 @@ export const BotsVisualization: React.FC = () => {
       })}
 
       {/* Render nodes */}
-      {botsData.nodes.map((node, index) => {
+      {Array.from(botsData.agents.values()).map((node, index) => {
         const position = positionsRef.current.get(node.id);
         if (!position) return null;
-        
+
         const nodeColor = colors[node.type] || colors.coordinator;
-        
+
         return (
           <BotsNode
             key={node.id}
@@ -660,11 +665,12 @@ export const BotsVisualization: React.FC = () => {
       {/* Debug info */}
       {debugState.isEnabled() && (
         <BotsDebugInfo
-          nodeCount={botsData.nodes.length}
-          edgeCount={botsData.edges.length}
-          updateInterval={updateInterval}
+          nodeCount={botsData.agents.size}
+          edgeCount={botsData.edges.size}
           mcpConnected={mcpConnected}
-          dataSource="context"
+          dataSource="mcp"
+          isLoading={isLoading}
+          error={error}
         />
       )}
     </group>
