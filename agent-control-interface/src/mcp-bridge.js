@@ -38,10 +38,11 @@ class MCPBridge extends EventEmitter {
     }
 
     async startMCPObservability() {
-        const mcpObservabilityPath = '/workspace/mcp-observability';
+        const mcpObservabilityPath = process.env.MCP_OBSERVABILITY_PATH || 
+                                     '/workspace/ext/agent-control-interface/mcp-observability';
         
         try {
-            this.logger.info('Starting mcp-observability subprocess...');
+            this.logger.info(`Starting mcp-observability subprocess from ${mcpObservabilityPath}...`);
             
             const mcpProcess = spawn('node', ['src/index.js'], {
                 cwd: mcpObservabilityPath,

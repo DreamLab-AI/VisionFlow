@@ -200,11 +200,11 @@ Environment variables:
 
 The interface automatically detects and uses available MCP tools:
 
-1. **mcp-observability** - Primary source for agent telemetry
-2. **claude-flow** - Advanced swarm orchestration
-3. **ruv-swarm** - WASM-optimized agent management
+1. **mcp-observability** - Primary source for agent telemetry (included in `mcp-observability/` subdirectory)
+2. **claude-flow** - Advanced swarm orchestration (from `/app/claude-flow` if available)
+3. **ruv-swarm** - WASM-optimized agent management (via MCP protocol if available)
 
-If MCP tools are unavailable, the system falls back to mock data for testing.
+The module includes mcp-observability as a self-contained component, making it fully portable. If other MCP tools are unavailable, the system falls back to mock data for testing.
 
 ## Troubleshooting
 
@@ -225,13 +225,15 @@ netstat -tlnp | grep 9500
 ```
 
 ### MCP tools not found
-The system will work with mock data. To enable real MCP integration:
+The module includes mcp-observability. If it's not working:
 ```bash
-# Install mcp-observability
-cd /workspace/mcp-observability
-npm install
+# Check mcp-observability is present
+ls -la mcp-observability/
 
-# Ensure claude-flow is available
+# Install its dependencies
+cd mcp-observability && npm install
+
+# For other tools, ensure they're available
 which claude-flow
 ```
 
@@ -246,12 +248,19 @@ agent-control-interface/
 │   ├── telemetry-aggregator.js # Data aggregation logic
 │   ├── mcp-bridge.js         # MCP tool integration
 │   └── logger.js             # Logging utility
+├── mcp-observability/        # Bundled MCP observability tool
+│   ├── src/                  # MCP observability source
+│   └── package.json          # MCP dependencies
 ├── tests/
 │   └── test-client.js        # Test client implementation
 ├── logs/                     # Server logs
+├── .env                      # Environment configuration
+├── .env.example              # Configuration template
 ├── start.sh                  # Startup script
 ├── stop.sh                   # Shutdown script
-└── package.json
+├── package.json              # Project dependencies
+├── README.md                 # This file
+└── IMPLEMENTATION.md         # Technical documentation
 ```
 
 ### Adding New MCP Sources

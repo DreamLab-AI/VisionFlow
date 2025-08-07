@@ -22,11 +22,11 @@ class TelemetryAggregator extends EventEmitter {
             lastUpdate: null
         };
         
-        // Configuration
+        // Configuration (use environment variables if available)
         this.config = {
-            updateInterval: 1000, // 1 second
-            cacheTTL: 5000, // 5 seconds
-            aggregationStrategy: 'merge' // or 'replace'
+            updateInterval: parseInt(process.env.TELEMETRY_UPDATE_INTERVAL) || 1000, // 1 second
+            cacheTTL: parseInt(process.env.TELEMETRY_CACHE_TTL) || 5000, // 5 seconds
+            aggregationStrategy: process.env.AGGREGATION_STRATEGY || 'merge' // or 'replace'
         };
         
         this.updateTimer = null;
