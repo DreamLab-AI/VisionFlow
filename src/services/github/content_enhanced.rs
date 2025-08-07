@@ -1,7 +1,7 @@
 use super::api::GitHubClient;
-use super::types::{GitHubFileMetadata, GitHubFileBasicMetadata, GitHubError, RateLimitInfo};
+use super::types::GitHubFileBasicMetadata;
 use chrono::{DateTime, Utc};
-use log::{debug, error, info, warn};
+use log::{debug, warn};
 use std::error::Error;
 use std::sync::Arc;
 use serde_json::Value;

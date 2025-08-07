@@ -256,6 +256,10 @@ class WebSocketService {
         }
       }
 
+      // BREADCRUMB: Physics settings are updated via REST API, not WebSocket
+      // Position and velocity data comes through WebSocket binary protocol
+      // Settings changes should be handled by the settings store after REST updates
+
       // Notify all message handlers
       this.messageHandlers.forEach(handler => {
         try {

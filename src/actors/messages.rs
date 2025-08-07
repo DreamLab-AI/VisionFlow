@@ -414,7 +414,7 @@ pub struct UpdateGPUGraphData {
     pub graph: ModelsGraphData,
 }
 
-#[derive(Message)]
+#[derive(Message, Clone)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateSimulationParams {
     pub params: SimulationParams,

@@ -72,15 +72,15 @@ pub struct SimulationParams {
 impl SimulationParams {
     pub fn new() -> Self {
         Self {
-            iterations: 100,
+            iterations: 200,
             time_step: 0.2,
-            spring_strength: 0.5,
-            repulsion: 100.0,
-            max_repulsion_distance: 500.0,
-            mass_scale: 1.0,
-            damping: 0.5,
+            spring_strength: 0.02,
+            repulsion: 1500.0,
+            max_repulsion_distance: 2000.0,
+            mass_scale: 1.5,
+            damping: 0.85,
             boundary_damping: 0.9,
-            viewport_bounds: 1000.0,
+            viewport_bounds: 5000.0,
             enable_bounds: true,
             phase: SimulationPhase::Initial,
             mode: SimulationMode::Remote,
@@ -90,43 +90,43 @@ impl SimulationParams {
     pub fn with_phase(phase: SimulationPhase) -> Self {
         match phase {
             SimulationPhase::Initial => Self {
-                iterations: 300,
+                iterations: 500,
                 time_step: 0.2,
-                spring_strength: 0.3,      // Reduced for initial spread
-                repulsion: 200.0,          // Increased for better separation
-                max_repulsion_distance: 800.0, // Larger range for initial layout
-                mass_scale: 1.2,           // Slightly higher mass influence
-                damping: 0.95,             // High damping for stability
+                spring_strength: 0.01,      // Much lower for better spread
+                repulsion: 2500.0,          // Much higher for separation
+                max_repulsion_distance: 3000.0, // Much larger range
+                mass_scale: 2.0,           // Higher mass influence
+                damping: 0.9,             // Slightly lower damping
                 boundary_damping: 0.95,
-                viewport_bounds: 1000.0,
+                viewport_bounds: 8000.0,   // Much larger bounds
                 enable_bounds: true,
                 phase,
                 mode: SimulationMode::Remote,
             },
             SimulationPhase::Dynamic => Self {
-                iterations: 50,
+                iterations: 100,
                 time_step: 0.2,
-                spring_strength: 0.5,
-                repulsion: 100.0,
-                max_repulsion_distance: 500.0,
-                mass_scale: 1.0,
-                damping: 0.5,
+                spring_strength: 0.02,
+                repulsion: 1000.0,
+                max_repulsion_distance: 1500.0,
+                mass_scale: 1.5,
+                damping: 0.75,
                 boundary_damping: 0.9,
-                viewport_bounds: 1000.0,
+                viewport_bounds: 5000.0,
                 enable_bounds: true,
                 phase,
                 mode: SimulationMode::Remote,
             },
             SimulationPhase::Finalize => Self {
-                iterations: 200,
+                iterations: 300,
                 time_step: 0.2,
-                spring_strength: 0.1,      // Minimal spring forces
-                repulsion: 50.0,           // Reduced repulsion
-                max_repulsion_distance: 300.0, // Tighter packing
-                mass_scale: 0.8,           // Reduced mass influence
+                spring_strength: 0.005,      // Minimal spring forces
+                repulsion: 800.0,           // Still good repulsion
+                max_repulsion_distance: 1200.0, // Maintain spacing
+                mass_scale: 1.2,           // Moderate mass influence
                 damping: 0.95,             // High damping for stability
                 boundary_damping: 0.95,
-                viewport_bounds: 1000.0,
+                viewport_bounds: 5000.0,
                 enable_bounds: true,
                 phase,
                 mode: SimulationMode::Remote,

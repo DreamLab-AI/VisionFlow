@@ -1,7 +1,7 @@
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
-use log::{info, warn, error};
+use log::{info, error};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
 use crate::services::agent_control_client::AgentControlActor;
@@ -56,6 +56,9 @@ impl AppState {
         info!("[AppState::new] Starting ClientManagerActor");
         let client_manager_addr = ClientManagerActor::new().start();
 
+        // Extract physics settings before moving settings
+        let physics_settings = settings.visualisation.physics.clone();
+        
         info!("[AppState::new] Starting SettingsActor");
         let settings_addr = SettingsActor::new(settings).start();
 
@@ -70,6 +73,34 @@ impl AppState {
             client_manager_addr.clone(),
             gpu_compute_addr.clone()
         ).start();
+        
+        // Send initial physics settings to both GraphServiceActor and GPUComputeActor
+        let sim_params = crate::models::simulation_params::SimulationParams {
+            iterations: physics_settings.iterations,
+            spring_strength: physics_settings.spring_strength,
+            repulsion: physics_settings.repulsion_strength,
+            damping: physics_settings.damping,
+            max_repulsion_distance: physics_settings.repulsion_distance,
+            viewport_bounds: physics_settings.bounds_size,
+            mass_scale: physics_settings.mass_scale,
+            boundary_damping: physics_settings.boundary_damping,
+            enable_bounds: physics_settings.enable_bounds,
+            time_step: 0.016, // 60 FPS target
+            phase: crate::models::simulation_params::SimulationPhase::Dynamic,
+            mode: crate::models::simulation_params::SimulationMode::Remote,
+        };
+        
+        let update_msg = crate::actors::messages::UpdateSimulationParams {
+            params: sim_params,
+        };
+        
+        // Send to GraphServiceActor
+        graph_service_addr.do_send(update_msg.clone());
+        
+        // Send to GPUComputeActor if available
+        if let Some(ref gpu_addr) = gpu_compute_addr {
+            gpu_addr.do_send(update_msg);
+        }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
         let protected_settings_addr = ProtectedSettingsActor::new(ProtectedSettings::default()).start();
@@ -91,7 +122,7 @@ impl AppState {
 
         // Initialize ClaudeFlowActor
         let claude_flow_addr = {
-            use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder};
+            use crate::services::claude_flow::ClaudeFlowClientBuilder;
 
             let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
             let port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string()).parse::<u16>().unwrap_or(3002);

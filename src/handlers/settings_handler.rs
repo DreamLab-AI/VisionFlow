@@ -225,6 +225,11 @@ async fn update_user_settings(
 
         // --- Merge from ClientSettingsPayload DTO into AppFullSettings ---
         // Macros are now defined at module level
+        
+        // Store whether physics was updated before we move the payload
+        let physics_updated = client_payload.visualisation.as_ref()
+            .and_then(|v| v.physics.as_ref())
+            .is_some();
 
         if let Some(vis_dto) = client_payload.visualisation {
             let target_vis = &mut settings.visualisation;
@@ -440,6 +445,52 @@ async fn update_user_settings(
         match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
             Ok(Ok(())) => {
                 info!("Power user {} updated global settings", pubkey);
+                
+                // BREADCRUMB: Physics settings update propagation for power users
+                // Power users can update global settings that affect all users
+                // Propagate physics changes to the GPU compute actor for immediate effect
+                if physics_updated {
+                    info!("Global physics settings updated by power user {}, propagating to GPU simulation", pubkey);
+                    
+                    // Extract physics settings to create simulation params
+                    let physics_settings = &settings.visualisation.physics;
+                    let sim_params = crate::models::simulation_params::SimulationParams {
+                        iterations: physics_settings.iterations,
+                        spring_strength: physics_settings.spring_strength,
+                        repulsion: physics_settings.repulsion_strength,
+                        damping: physics_settings.damping,
+                        max_repulsion_distance: physics_settings.repulsion_distance,
+                        viewport_bounds: physics_settings.bounds_size,
+                        mass_scale: physics_settings.mass_scale,
+                        boundary_damping: physics_settings.boundary_damping,
+                        enable_bounds: physics_settings.enable_bounds,
+                        time_step: 0.016, // 60 FPS target
+                        phase: crate::models::simulation_params::SimulationPhase::Dynamic,
+                        mode: crate::models::simulation_params::SimulationMode::Remote,
+                    };
+                    
+                    // Send update to both GPU compute actor and GraphServiceActor
+                    let update_msg = crate::actors::messages::UpdateSimulationParams {
+                        params: sim_params.clone(),
+                    };
+                    
+                    // Update GPU compute actor if available
+                    if let Some(gpu_addr) = &state.gpu_compute_addr {
+                        if let Err(e) = gpu_addr.send(update_msg.clone()).await {
+                            warn!("Failed to update GPU simulation params: {}", e);
+                        }
+                    }
+                    
+                    // Update GraphServiceActor (which handles the actual simulation)
+                    if let Err(e) = state.graph_service_addr.send(update_msg).await {
+                        warn!("Failed to update GraphServiceActor simulation params: {}", e);
+                    }
+                    
+                    // BREADCRUMB: Physics settings have been sent to GPU compute actor
+                    // Clients will get the updated settings in the HTTP response
+                    // and should apply them to their local simulation immediately
+                }
+                
                 let updated_ui_settings = convert_to_ui_settings(&settings);
                 Ok(HttpResponse::Ok().json(updated_ui_settings))
             }
@@ -461,6 +512,11 @@ async fn update_user_settings(
 
         // Merge relevant parts of ClientSettingsPayload into user_settings.settings (UISettings)
         let target_ui_settings = &mut user_settings.settings;
+        
+        // Store whether physics was updated before we move the payload
+        let physics_updated = client_payload.visualisation.as_ref()
+            .and_then(|v| v.physics.as_ref())
+            .is_some();
 
         if let Some(vis_dto) = client_payload.visualisation { // vis_dto is ClientVisualisationSettings
             let target_vis = &mut target_ui_settings.visualisation; // Type: config::VisualisationSettings
@@ -650,6 +706,47 @@ async fn update_user_settings(
         if let Err(e) = user_settings.save() {
             error!("Failed to save user settings for {}: {}", pubkey, e);
             return Ok(HttpResponse::InternalServerError().body(format!("Failed to save user settings: {}", e)));
+        }
+
+        // BREADCRUMB: Physics settings update propagation to GPU simulation
+        // When a regular user updates physics settings, propagate to GPU compute actor
+        // This ensures the force simulation uses the updated parameters immediately
+        if physics_updated {
+            info!("Physics settings updated by user {}, propagating to GPU simulation", pubkey);
+            
+            // Extract physics settings to create simulation params
+            let physics_settings = &user_settings.settings.visualisation.physics;
+            let sim_params = crate::models::simulation_params::SimulationParams {
+                iterations: physics_settings.iterations,
+                spring_strength: physics_settings.spring_strength,
+                repulsion: physics_settings.repulsion_strength,
+                damping: physics_settings.damping,
+                max_repulsion_distance: physics_settings.repulsion_distance,
+                viewport_bounds: physics_settings.bounds_size,
+                mass_scale: physics_settings.mass_scale,
+                boundary_damping: physics_settings.boundary_damping,
+                enable_bounds: physics_settings.enable_bounds,
+                time_step: 0.016, // 60 FPS target
+                phase: crate::models::simulation_params::SimulationPhase::Dynamic,
+                mode: crate::models::simulation_params::SimulationMode::Remote,
+            };
+            
+            // Send update to both GPU compute actor and GraphServiceActor
+            let update_msg = crate::actors::messages::UpdateSimulationParams {
+                params: sim_params.clone(),
+            };
+            
+            // Update GPU compute actor if available
+            if let Some(gpu_addr) = &state.gpu_compute_addr {
+                if let Err(e) = gpu_addr.send(update_msg.clone()).await {
+                    warn!("Failed to update GPU simulation params: {}", e);
+                }
+            }
+            
+            // Update GraphServiceActor (which handles the actual simulation)
+            if let Err(e) = state.graph_service_addr.send(update_msg).await {
+                warn!("Failed to update GraphServiceActor simulation params: {}", e);
+            }
         }
 
         debug!("User {} updated their settings", pubkey);

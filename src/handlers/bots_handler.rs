@@ -147,13 +147,13 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
                     };
                     
                     // Determine swarm_id from session or metadata
-                    let swarm_id = agent.metadata.get("swarm_id")
+                    let _swarm_id = agent.metadata.get("swarm_id")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())
                         .or_else(|| Some(agent.session_id.clone()));
                     
                     // Determine agent mode based on capabilities
-                    let agent_mode = if agent.profile.capabilities.contains(&"distributed".to_string()) {
+                    let _agent_mode = if agent.profile.capabilities.contains(&"distributed".to_string()) {
                         Some("distributed".to_string())
                     } else if agent.profile.capabilities.contains(&"strategic".to_string()) {
                         Some("strategic".to_string())
@@ -171,10 +171,10 @@ async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<
                     };
                     
                     // Calculate CPU usage based on activity and execution time
-                    let cpu_usage = (activity * 100.0 * 0.8 + (token_rate / 20.0).min(20.0)).min(100.0);
+                    let _cpu_usage = (activity * 100.0 * 0.8 + (token_rate / 20.0).min(20.0)).min(100.0);
                     
                     // Calculate health based on success rate and activity
-                    let health = agent.success_rate.min(100.0);
+                    let _health = agent.success_rate.min(100.0);
                     
                     // Calculate workload based on active tasks
                     let workload = activity;
