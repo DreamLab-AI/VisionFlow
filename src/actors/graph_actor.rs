@@ -9,13 +9,13 @@ use log::{debug, info, warn, error};
 // use actix::fut::WrapFuture; // Unused import
  
 use crate::actors::messages::*;
+use crate::utils::binary_protocol;
 use crate::actors::client_manager_actor::ClientManagerActor;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
 use crate::models::metadata::MetadataStore;
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
-use crate::utils::binary_protocol;
 use crate::actors::gpu_compute_actor::GPUComputeActor;
 
 pub struct GraphServiceActor {
@@ -704,5 +704,55 @@ impl Handler<GetBotsGraphData> for GraphServiceActor {
 
     fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
         Ok(self.bots_graph_data.clone())
+    }
+}
+
+impl Handler<RequestPositionSnapshot> for GraphServiceActor {
+    type Result = Result<PositionSnapshot, String>;
+    
+    fn handle(&mut self, msg: RequestPositionSnapshot, _ctx: &mut Self::Context) -> Self::Result {
+        let mut knowledge_nodes = Vec::new();
+        let mut agent_nodes = Vec::new();
+        
+        // Collect knowledge graph positions if requested
+        if msg.include_knowledge_graph {
+            for node in &self.graph_data.nodes {
+                // Skip agent nodes in main graph
+                if node.metadata.get("is_agent").map_or(false, |v| v == "true") {
+                    continue;
+                }
+                
+                let node_data = BinaryNodeData {
+                    position: node.data.position.clone(),
+                    velocity: node.data.velocity.clone(),
+                    mass: node.data.mass,
+                    flags: node.data.flags | 0x40, // Set knowledge graph flag
+                    padding: node.data.padding,
+                };
+                
+                knowledge_nodes.push((node.id, node_data));
+            }
+        }
+        
+        // Collect agent graph positions if requested
+        if msg.include_agent_graph {
+            for node in &self.bots_graph_data.nodes {
+                let node_data = BinaryNodeData {
+                    position: node.data.position.clone(),
+                    velocity: node.data.velocity.clone(),
+                    mass: node.data.mass,
+                    flags: node.data.flags | 0x80, // Set agent flag
+                    padding: node.data.padding,
+                };
+                
+                agent_nodes.push((node.id, node_data));
+            }
+        }
+        
+        Ok(PositionSnapshot {
+            knowledge_nodes,
+            agent_nodes,
+            timestamp: std::time::Instant::now(),
+        })
     }
 }

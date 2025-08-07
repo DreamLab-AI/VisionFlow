@@ -471,6 +471,120 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     }
                                 }
                             }
+                            Some("update_physics_params") => {
+                                info!("Client requested physics parameter update");
+                                
+                                // Parse the graph type and parameters
+                                if let (Some(graph_type_str), Some(params_obj)) = 
+                                    (msg.get("graph_type").and_then(|g| g.as_str()),
+                                     msg.get("params").and_then(|p| p.as_object())) {
+                                    
+                                    // Parse graph type
+                                    let graph_type = match graph_type_str {
+                                        "knowledge" => crate::actors::gpu_compute_actor::GraphType::Knowledge,
+                                        "agent" => crate::actors::gpu_compute_actor::GraphType::Agent,
+                                        _ => {
+                                            error!("Invalid graph type: {}", graph_type_str);
+                                            return;
+                                        }
+                                    };
+                                    
+                                    // Parse physics parameters
+                                    let mut params = crate::models::simulation_params::SimulationParams::default();
+                                    
+                                    if let Some(v) = params_obj.get("spring_strength").and_then(|s| s.as_f64()) {
+                                        params.spring_strength = v as f32;
+                                    }
+                                    if let Some(v) = params_obj.get("damping").and_then(|d| d.as_f64()) {
+                                        params.damping = v as f32;
+                                    }
+                                    if let Some(v) = params_obj.get("repulsion").and_then(|r| r.as_f64()) {
+                                        params.repulsion = v as f32;
+                                    }
+                                    if let Some(v) = params_obj.get("time_step").and_then(|d| d.as_f64()) {
+                                        params.time_step = v as f32;
+                                    }
+                                    
+                                    // Send update to GPU compute actor
+                                    if let Some(gpu_addr) = self.app_state.gpu_compute_addr.clone() {
+                                        let fut = async move {
+                                            use crate::actors::messages::UpdatePhysicsParams;
+                                            gpu_addr.send(UpdatePhysicsParams {
+                                                graph_type,
+                                                params,
+                                            }).await
+                                        };
+                                        
+                                        let fut = actix::fut::wrap_future::<_, Self>(fut);
+                                        ctx.spawn(fut.map(move |result, _act, ctx| {
+                                            match result {
+                                                Ok(Ok(())) => {
+                                                    // Send confirmation to client
+                                                    ctx.text(r#"{"type":"physics_params_updated","status":"success"}"#);
+                                                    info!("Physics parameters updated successfully");
+                                                }
+                                                _ => {
+                                                    ctx.text(r#"{"type":"physics_params_updated","status":"error"}"#);
+                                                    error!("Failed to update physics parameters");
+                                                }
+                                            }
+                                        }));
+                                    } else {
+                                        ctx.text(r#"{"type":"physics_params_updated","status":"error","message":"GPU compute actor not initialized"}"#);
+                                        warn!("Cannot update physics parameters: GPU compute actor not initialized");
+                                    }
+                                }
+                            }
+                            Some("request_full_snapshot") => {
+                                info!("Client requested full position snapshot");
+                                
+                                // Parse which graphs to include
+                                let include_knowledge = msg.get("graphs")
+                                    .and_then(|g| g.as_array())
+                                    .map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("knowledge")));
+                                let include_agent = msg.get("graphs")
+                                    .and_then(|g| g.as_array())
+                                    .map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("agent")));
+                                
+                                // Request snapshot from graph actor
+                                let graph_addr = self.app_state.graph_service_addr.clone();
+                                let fut = async move {
+                                    use crate::actors::messages::RequestPositionSnapshot;
+                                    graph_addr.send(RequestPositionSnapshot {
+                                        include_knowledge_graph: include_knowledge,
+                                        include_agent_graph: include_agent,
+                                    }).await
+                                };
+                                
+                                let fut = actix::fut::wrap_future::<_, Self>(fut);
+                                ctx.spawn(fut.map(move |result, _act, ctx| {
+                                    match result {
+                                        Ok(Ok(snapshot)) => {
+                                            // Encode positions with proper type flags
+                                            let mut all_nodes = Vec::new();
+                                            
+                                            // Add knowledge nodes with flags
+                                            for (id, data) in snapshot.knowledge_nodes {
+                                                all_nodes.push((binary_protocol::set_knowledge_flag(id), data));
+                                            }
+                                            
+                                            // Add agent nodes with flags
+                                            for (id, data) in snapshot.agent_nodes {
+                                                all_nodes.push((binary_protocol::set_agent_flag(id), data));
+                                            }
+                                            
+                                            if !all_nodes.is_empty() {
+                                                let binary_data = binary_protocol::encode_node_data(&all_nodes);
+                                                ctx.binary(binary_data);
+                                                info!("Sent position snapshot with {} nodes", all_nodes.len());
+                                            }
+                                        }
+                                        _ => {
+                                            error!("Failed to get position snapshot");
+                                        }
+                                    }
+                                }));
+                            }
                             Some("requestInitialData") => {
                                 info!("Client requested initial data - sending authoritative server state");
 

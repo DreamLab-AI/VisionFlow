@@ -18,7 +18,7 @@ export interface BinaryNodeData {
 
 /**
  * Node binary format:
- * - Node ID: 4 bytes (uint32)
+ * - Node ID: 4 bytes (uint32) - includes type flags in high bits
  * - Position: 12 bytes (3 float32 values)
  * - Velocity: 12 bytes (3 float32 values)
  * Total: 28 bytes per node
@@ -27,6 +27,38 @@ export const BINARY_NODE_SIZE = 28;
 export const BINARY_NODE_ID_OFFSET = 0;
 export const BINARY_POSITION_OFFSET = 4;
 export const BINARY_VELOCITY_OFFSET = 16;
+
+// Node type flag constants (must match server)
+export const AGENT_NODE_FLAG = 0x80000000;     // Bit 31 indicates agent node
+export const KNOWLEDGE_NODE_FLAG = 0x40000000; // Bit 30 indicates knowledge graph node  
+export const NODE_ID_MASK = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
+
+export enum NodeType {
+  Knowledge = 'knowledge',
+  Agent = 'agent',
+  Unknown = 'unknown'
+}
+
+export function getNodeType(nodeId: number): NodeType {
+  if ((nodeId & AGENT_NODE_FLAG) !== 0) {
+    return NodeType.Agent;
+  } else if ((nodeId & KNOWLEDGE_NODE_FLAG) !== 0) {
+    return NodeType.Knowledge;
+  }
+  return NodeType.Unknown;
+}
+
+export function getActualNodeId(nodeId: number): number {
+  return nodeId & NODE_ID_MASK;
+}
+
+export function isAgentNode(nodeId: number): boolean {
+  return (nodeId & AGENT_NODE_FLAG) !== 0;
+}
+
+export function isKnowledgeNode(nodeId: number): boolean {
+  return (nodeId & KNOWLEDGE_NODE_FLAG) !== 0;
+}
 
 /**
  * Parse binary data buffer into an array of BinaryNodeData objects
@@ -70,8 +102,9 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         break;
       }
       
-      // Read node ID (uint32, 4 bytes)
-      const nodeId = view.getUint32(offset + BINARY_NODE_ID_OFFSET, true);
+      // Read node ID (uint32, 4 bytes) - includes type flags
+      const rawNodeId = view.getUint32(offset + BINARY_NODE_ID_OFFSET, true);
+      const nodeId = getActualNodeId(rawNodeId);  // Extract actual ID without flags
       
       // Read position (3 float32 values, 12 bytes)
       const position: Vec3 = {
