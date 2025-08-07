@@ -10,6 +10,7 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
 import { BotsVisualization } from '../../bots/components';
 import { HologramManager } from '../../visualisation/renderers/HologramManager';
+import { EnhancedHologramSystem } from '../../visualisation/renderers/EnhancedHologramSystem';
 
 // Ensure Three.js types are properly loaded if not globally done
 // import '../../../types/react-three-fiber.d.ts';
@@ -174,11 +175,11 @@ const GraphViewport: React.FC = () => {
           {/* Using GraphManager for all graph rendering */}
           <GraphManager />
 
-          {/* Render HologramManager when hologram is enabled */}
+          {/* Render Enhanced Hologram System when hologram is enabled */}
           {hologramEnabled && (
-            <HologramManager
+            <EnhancedHologramSystem
               position={graphCenter}
-              isXRMode={false}
+              scale={graphSize > 0 ? graphSize / 100 : 1}
             />
           )}
 

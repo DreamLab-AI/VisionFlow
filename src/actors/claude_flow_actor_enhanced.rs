@@ -1,8 +1,8 @@
 use actix::prelude::*;
 use actix::fut;
 use std::time::Duration;
-use log::{info, error, warn, debug};
-use crate::services::claude_flow::{ClaudeFlowClient, ClaudeFlowClientBuilder, AgentStatus, AgentProfile, AgentType};
+use log::{info, error, debug};
+use crate::services::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use std::collections::HashMap;
@@ -126,7 +126,7 @@ impl EnhancedClaudeFlowActor {
     /// Update system metrics with real-time data
     fn update_system_metrics(&mut self, agents: &[AgentStatus]) {
         let active_agents = agents.iter().filter(|a| a.status == "active").count() as u32;
-        let total_agents = agents.len() as u32;
+        let _total_agents = agents.len() as u32;
 
         // Calculate message rate based on recent message flow
         let recent_messages = self.message_flow_history

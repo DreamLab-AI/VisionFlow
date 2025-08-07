@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use tokio::net::TcpStream;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, AsyncReadExt};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use log::{info, error, warn, debug};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -50,7 +50,7 @@ impl AgentControlClient {
         });
 
         // Split the stream for reading and writing
-        let (mut read_half, mut write_half) = stream.into_split();
+        let (read_half, mut write_half) = stream.into_split();
 
         // Send request
         let msg = format!("{}\n", request);

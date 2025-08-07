@@ -4,7 +4,6 @@ use crate::actors::messages::{GetSettings, GetMetadata};
 use serde::Serialize;
 use futures::future::join_all;
 use crate::models::metadata::Metadata;
-use crate::services::github::types::GitHubFileMetadata;
 use crate::services::github::content_enhanced::ExtendedFileMetadata;
 
 #[derive(Serialize)]

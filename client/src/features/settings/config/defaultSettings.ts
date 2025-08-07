@@ -7,16 +7,16 @@ import { Settings, GraphSettings } from './settings';
 const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings => {
   const colors = {
     blue: {
-      nodeColor: "#0008ff",
-      edgeColor: "#56b6c2",
-      labelColor: "#f8f8f2",
-      labelOutlineColor: "#181c28"
+      nodeColor: "#00e5ff",
+      edgeColor: "#4fc3f7",
+      labelColor: "#ffffff",
+      labelOutlineColor: "#0a0e1a"
     },
     green: {
-      nodeColor: "#00ff88",
-      edgeColor: "#7ec850",
-      labelColor: "#e8f8e2",
-      labelOutlineColor: "#182818"
+      nodeColor: "#40ff00",
+      edgeColor: "#76ff03",
+      labelColor: "#f0fff0",
+      labelOutlineColor: "#0a1a0a"
     }
   };
 
@@ -25,31 +25,31 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
   return {
     nodes: {
       baseColor: theme.nodeColor,
-      metalness: 0.63,
-      opacity: 0.65,
-      roughness: 0.73,
-      nodeSize: 0.5,
-      quality: "medium",
-      enableInstancing: false,
+      metalness: 0.85,
+      opacity: 0.95,
+      roughness: 0.15,
+      nodeSize: 1.2,
+      quality: "high",
+      enableInstancing: true,
       enableHologram: true,
-      enableMetadataShape: false,
-      enableMetadataVisualisation: false,
+      enableMetadataShape: true,
+      enableMetadataVisualisation: true,
     },
     edges: {
       arrowSize: 0.02,
       baseWidth: 0.5,
       color: theme.edgeColor,
       enableArrows: false,
-      opacity: 0.25,
-      widthRange: [0.2, 1.0],
-      quality: "medium",
+      opacity: 0.45,
+      widthRange: [0.3, 1.5],
+      quality: "high",
       enableFlowEffect: true,
-      flowSpeed: 1,
-      flowIntensity: 0.6,
-      glowStrength: 1,
-      distanceIntensity: 1,
+      flowSpeed: 2,
+      flowIntensity: 0.8,
+      glowStrength: 2.5,
+      distanceIntensity: 1.5,
       useGradient: true,
-      gradientColors: ["#ffffff", "#000000"],
+      gradientColors: ["#ffffff", "#00ffff"],
     },
     labels: {
       desktopFontSize: 0.5,
@@ -64,20 +64,20 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       maxLabelWidth: 5,
     },
     physics: {
-      attractionStrength: 0.3,
-      boundsSize: 15.0,
-      collisionRadius: 0.5,
-      damping: 0.95,
+      attractionStrength: 0.05,
+      boundsSize: 150.0,
+      collisionRadius: 5.0,
+      damping: 0.85,
       enableBounds: true,
       enabled: true,
-      iterations: 100,
-      maxVelocity: 0.02,
-      repulsionStrength: 0.5,
-      springStrength: 0.3,
-      repulsionDistance: 2.0,
-      massScale: 1.0,
-      boundaryDamping: 0.95,
-      updateThreshold: 0.1,
+      iterations: 200,
+      maxVelocity: 0.5,
+      repulsionStrength: 15.0,
+      springStrength: 0.02,
+      repulsionDistance: 50.0,
+      massScale: 1.5,
+      boundaryDamping: 0.9,
+      updateThreshold: 0.05,
     },
   };
 };
@@ -90,9 +90,9 @@ export const defaultSettings: Settings = {
       visionflow: createDefaultGraphSettings('green'),
     },
     rendering: {
-      ambientLightIntensity: 0.8, // From JSON (camelCase, was 1.65)
-      backgroundColor: "#181c28", // From JSON (camelCase, was #000000)
-      directionalLightIntensity: 0.7, // From JSON (camelCase, was 1.3)
+      ambientLightIntensity: 1.2,
+      backgroundColor: "#0a0e1a",
+      directionalLightIntensity: 1.5,
       enableAmbientOcclusion: false,
       enableAntialiasing: false, // From JSON (camelCase, was true)
       enableShadows: false, // From JSON (camelCase, was true)
@@ -117,30 +117,30 @@ export const defaultSettings: Settings = {
       waveSpeed: 0.5,
     },
     bloom: { // This section is for visualisation.bloom specific settings
-      edgeBloomStrength: 0.5, // From JSON (camelCase, was 2.8)
-      enabled: true, // From JSON (camelCase)
-      environmentBloomStrength: 0.6, // From JSON (camelCase, was 3.8)
-      nodeBloomStrength: 0.7, // From JSON (camelCase, was 1.5)
-      radius: 0.4,
-      strength: 0.5,
-      threshold: 0.2,
+      edgeBloomStrength: 2.5,
+      enabled: true,
+      environmentBloomStrength: 3.0,
+      nodeBloomStrength: 2.0,
+      radius: 0.85,
+      strength: 1.5,
+      threshold: 0.15,
     },
     hologram: {
-      ringCount: 3, // From JSON (camelCase, was 3)
-      ringColor: "#c2a200", // From JSON (camelCase, was #ffffff)
-      ringOpacity: 0.5, // From JSON (camelCase, was 1)
-      sphereSizes: [10, 20], // From JSON (camelCase, was [40.5, 80])
-      ringRotationSpeed: 5.0, // From JSON (camelCase, was 12)
-      enableBuckminster: false,
-      buckminsterSize: 10,
-      buckminsterOpacity: 0.05,
-      enableGeodesic: false,
-      geodesicSize: 10,
-      geodesicOpacity: 0.05,
-      enableTriangleSphere: false, // From JSON (camelCase, was true)
-      triangleSphereSize: 15, // From JSON (camelCase, was 60)
-      triangleSphereOpacity: 0.3, // From JSON (camelCase, was 0.3)
-      globalRotationSpeed: 1.0, // From JSON (camelCase, was 0.2)
+      ringCount: 5,
+      ringColor: "#00ffff",
+      ringOpacity: 0.8,
+      sphereSizes: [40, 80],
+      ringRotationSpeed: 12.0,
+      enableBuckminster: true,
+      buckminsterSize: 50,
+      buckminsterOpacity: 0.3,
+      enableGeodesic: true,
+      geodesicSize: 60,
+      geodesicOpacity: 0.25,
+      enableTriangleSphere: true,
+      triangleSphereSize: 70,
+      triangleSphereOpacity: 0.4,
+      globalRotationSpeed: 0.5,
       // color: 65535, // Removed, does not exist in HologramSettings
       // opacity: 0.7, // Removed, not in HologramSettings
     },

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
-use log::{debug, info, warn, error};
+use log::{debug, info, warn};
 // use actix::fut::WrapFuture; // Unused import
  
 use crate::actors::messages::*;
@@ -17,32 +17,35 @@ use crate::models::metadata::MetadataStore;
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
 use crate::actors::gpu_compute_actor::GPUComputeActor;
+use crate::models::simulation_params::SimulationParams;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
     node_map: HashMap<u32, Node>,
-    // gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Unused
+    gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Re-enable for physics updates
     client_manager: Addr<ClientManagerActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
     next_node_id: AtomicU32,
     bots_graph_data: GraphData, // Add a new field for the bots graph
+    simulation_params: SimulationParams, // Physics simulation parameters
 }
 
 impl GraphServiceActor {
     pub fn new(
         client_manager: Addr<ClientManagerActor>,
-        _gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Marked as unused
+        gpu_compute_addr: Option<Addr<GPUComputeActor>>,
     ) -> Self {
         Self {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
             node_map: HashMap::new(),
-            // gpu_compute_addr, // Unused
+            gpu_compute_addr,
             client_manager,
             simulation_running: AtomicBool::new(false),
             shutdown_complete: Arc::new(AtomicBool::new(false)),
             next_node_id: AtomicU32::new(1),
             bots_graph_data: GraphData::new(),
+            simulation_params: SimulationParams::default(), // Initialize with default physics
         }
     }
 
@@ -173,6 +176,13 @@ impl GraphServiceActor {
         info!("Built graph from metadata: {} nodes, {} edges",
               self.graph_data.nodes.len(), self.graph_data.edges.len());
         
+        // Send the graph data to GPU compute actor
+        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+            let graph_data_for_gpu = (*self.graph_data).clone();
+            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
+            info!("Sent initial graph data to GPU compute actor");
+        }
+        
         Ok(())
     }
 
@@ -208,112 +218,176 @@ impl GraphServiceActor {
         info!("Starting physics simulation loop");
 
         // Start the simulation interval
-        ctx.run_interval(Duration::from_millis(16), |actor, _ctx| {
+        ctx.run_interval(Duration::from_millis(16), |actor, ctx| {
             if !actor.simulation_running.load(Ordering::SeqCst) {
                 return;
             }
 
-            actor.run_simulation_step();
+            actor.run_simulation_step(ctx);
         });
     }
 
-    fn run_simulation_step(&mut self) {
-        // Run physics calculation (GPU or CPU fallback)
-        match self.calculate_layout() {
-            Ok(updated_positions) => {
-                if !updated_positions.is_empty() {
-                    // Update positions
-                    self.update_node_positions(updated_positions.clone());
-                    
-                    // Broadcast to clients
-                    if let Ok(binary_data) = self.encode_node_positions(&updated_positions) {
-                        self.client_manager.do_send(BroadcastNodePositions { 
-                            positions: binary_data 
-                        });
-                    }
-                }
-            }
-            Err(e) => {
-                error!("Physics simulation step failed: {}", e);
-            }
-        }
-    }
-
-    fn calculate_layout(&self) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-        // For now, always use CPU fallback since GPU actor communication is async
-        // TODO: Refactor simulation loop to handle async GPU computation properly
-        self.calculate_layout_cpu()
-    }
-
-    /*
-    fn initiate_gpu_computation(&self, ctx: &mut Context<Self>) {
-        // Send GPU computation request if GPU compute actor is available
+    fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
+        // Use GPU compute actor if available
         if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            // Update graph data in GPU
-            let graph_data_for_gpu = crate::models::graph::GraphData { // Renamed to avoid conflict
+            // Send graph data to GPU
+            let graph_data_for_gpu = crate::models::graph::GraphData {
                 nodes: self.graph_data.nodes.clone(),
                 edges: self.graph_data.edges.clone(),
-                metadata: self.graph_data.metadata.clone(), // Include metadata
-                id_to_metadata: self.graph_data.id_to_metadata.clone(), // Include id_to_metadata
+                metadata: self.graph_data.metadata.clone(),
+                id_to_metadata: self.graph_data.id_to_metadata.clone(),
             };
             
             gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
             
             // Request computation
-            let addr = gpu_compute_addr.clone();
-            // Collect node IDs beforehand to avoid borrowing `self` inside the async block
-            let node_ids_in_order: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
-
-            let future = async move {
-                match addr.send(ComputeForces).await {
-                    Ok(Ok(())) => {
-                        // Now get the results
-                        match addr.send(GetNodeData).await {
-                            Ok(Ok(node_data)) => {
-                                // Convert to position updates
-                                let mut positions = Vec::new();
-                                for (index, data) in node_data.iter().enumerate() {
-                                    // Use the pre-collected node_ids_in_order
-                                    if let Some(node_id) = node_ids_in_order.get(index) {
-                                        positions.push((*node_id, data.clone()));
-                                    }
-                                }
-                                positions
-                            },
-                            _ => Vec::new()
-                        }
-                    },
-                    _ => Vec::new()
-                }
-            };
+            gpu_compute_addr.do_send(ComputeForces);
             
-            // Convert future to ActorFuture and spawn it
-            ctx.wait(future.into_actor(self).map(|positions, actor, _ctx| {
-                if !positions.is_empty() {
-                    actor.update_node_positions(positions.clone());
-                    
-                    // Broadcast to clients
-                    if let Ok(binary_data) = actor.encode_node_positions(&positions) {
-                        actor.client_manager.do_send(BroadcastNodePositions {
-                            positions: binary_data
-                        });
+            // Request node data back
+            let gpu_addr = gpu_compute_addr.clone();
+            let client_manager = self.client_manager.clone();
+            let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
+            
+            // Get self address to send position updates back
+            let self_addr = ctx.address();
+            
+            // Spawn async task to get results and broadcast
+            actix::spawn(async move {
+                // Small delay to let GPU compute
+                tokio::time::sleep(Duration::from_millis(5)).await;
+                
+                // Get the computed positions
+                match gpu_addr.send(GetNodeData).await {
+                    Ok(Ok(node_data)) => {
+                        // Convert to position updates with node IDs
+                        let mut positions = Vec::new();
+                        for (index, data) in node_data.iter().enumerate() {
+                            if let Some(node_id) = node_ids.get(index) {
+                                positions.push((*node_id, data.clone()));
+                            }
+                        }
+                        
+                        if !positions.is_empty() {
+                            // Update local node positions
+                            self_addr.do_send(UpdateNodePositions { 
+                                positions: positions.clone() 
+                            });
+                            
+                            // Encode and broadcast
+                            let binary_data = binary_protocol::encode_node_data(&positions);
+                            client_manager.do_send(BroadcastNodePositions { 
+                                positions: binary_data 
+                            });
+                        }
+                    }
+                    Ok(Err(e)) => {
+                        warn!("Failed to get GPU node data: {}", e);
+                    }
+                    Err(e) => {
+                        warn!("Failed to communicate with GPU actor: {}", e);
                     }
                 }
-            }));
+            });
+        } else {
+            // No GPU available, skip this frame
+            warn!("No GPU compute actor available for physics simulation");
         }
     }
-    */
 
     fn calculate_layout_cpu(&self) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-        // Simple CPU physics simulation
+        // Proper CPU physics simulation using actual physics parameters
         let mut updated_positions = Vec::new();
+        let nodes = &self.graph_data.nodes;
+        let edges = &self.graph_data.edges;
         
-        for node in &self.graph_data.nodes {
-            // Simple physics: apply some random movement for demo
+        // Use the actual physics parameters
+        let params = &self.simulation_params;
+        let dt = params.time_step;
+        
+        for (i, node) in nodes.iter().enumerate() {
+            let mut force_x = 0.0f32;
+            let mut force_y = 0.0f32;
+            let mut force_z = 0.0f32;
+            
+            // Current position and velocity
+            let pos = &node.data.position;
+            let vel = &node.data.velocity;
+            
+            // Apply repulsion forces from other nodes
+            for (j, other) in nodes.iter().enumerate() {
+                if i != j {
+                    let other_pos = &other.data.position;
+                    let dx = pos.x - other_pos.x;
+                    let dy = pos.y - other_pos.y;
+                    let dz = pos.z - other_pos.z;
+                    
+                    let dist_sq = dx * dx + dy * dy + dz * dz;
+                    let dist = dist_sq.sqrt().max(0.1); // Avoid division by zero
+                    
+                    if dist < params.max_repulsion_distance {
+                        // Repulsion force
+                        let force_magnitude = params.repulsion / (dist_sq + 1.0);
+                        force_x += (dx / dist) * force_magnitude;
+                        force_y += (dy / dist) * force_magnitude;
+                        force_z += (dz / dist) * force_magnitude;
+                    }
+                }
+            }
+            
+            // Apply spring forces from edges
+            for edge in edges {
+                let other_idx = if edge.source == node.id {
+                    nodes.iter().position(|n| n.id == edge.target)
+                } else if edge.target == node.id {
+                    nodes.iter().position(|n| n.id == edge.source)
+                } else {
+                    None
+                };
+                
+                if let Some(other_idx) = other_idx {
+                    if other_idx != i {
+                        let other_pos = &nodes[other_idx].data.position;
+                        let dx = other_pos.x - pos.x;
+                        let dy = other_pos.y - pos.y;
+                        let dz = other_pos.z - pos.z;
+                        
+                        let dist = (dx * dx + dy * dy + dz * dz).sqrt().max(0.1);
+                        
+                        // Spring force
+                        let force_magnitude = params.spring_strength * (dist - 50.0); // Rest length of 50
+                        force_x += (dx / dist) * force_magnitude * edge.weight;
+                        force_y += (dy / dist) * force_magnitude * edge.weight;
+                        force_z += (dz / dist) * force_magnitude * edge.weight;
+                    }
+                }
+            }
+            
+            // Apply boundary forces if enabled
+            if params.enable_bounds {
+                let bounds = params.viewport_bounds;
+                let boundary_force = 10.0;
+                
+                if pos.x.abs() > bounds * 0.9 {
+                    force_x -= pos.x.signum() * boundary_force;
+                }
+                if pos.y.abs() > bounds * 0.9 {
+                    force_y -= pos.y.signum() * boundary_force;
+                }
+                if pos.z.abs() > bounds * 0.9 {
+                    force_z -= pos.z.signum() * boundary_force;
+                }
+            }
+            
+            // Update velocity with damping
             let mut new_data = node.data.clone();
-            new_data.position.x += (rand::random::<f32>() - 0.5) * 0.1;
-            new_data.position.y += (rand::random::<f32>() - 0.5) * 0.1;
-            new_data.position.z += (rand::random::<f32>() - 0.5) * 0.1;
+            new_data.velocity.x = (vel.x + force_x * dt) * params.damping;
+            new_data.velocity.y = (vel.y + force_y * dt) * params.damping;
+            new_data.velocity.z = (vel.z + force_z * dt) * params.damping;
+            
+            // Update position
+            new_data.position.x = pos.x + new_data.velocity.x * dt;
+            new_data.position.y = pos.y + new_data.velocity.y * dt;
+            new_data.position.z = pos.z + new_data.velocity.z * dt;
             
             updated_positions.push((node.id, new_data));
         }
@@ -539,9 +613,9 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
 impl Handler<SimulationStep> for GraphServiceActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, _msg: SimulationStep, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, _msg: SimulationStep, ctx: &mut Self::Context) -> Self::Result {
         // Just run one simulation step
-        self.run_simulation_step();
+        self.run_simulation_step(ctx);
         Ok(())
     }
 }
@@ -704,6 +778,22 @@ impl Handler<GetBotsGraphData> for GraphServiceActor {
 
     fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
         Ok(self.bots_graph_data.clone())
+    }
+}
+
+impl Handler<UpdateSimulationParams> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GraphServiceActor updating physics simulation parameters");
+        self.simulation_params = msg.params.clone();
+        
+        // Also update GPU compute actor if available
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            gpu_addr.do_send(msg);
+        }
+        
+        Ok(())
     }
 }
 
