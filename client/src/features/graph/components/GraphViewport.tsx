@@ -8,7 +8,7 @@ import { VisualEnhancementToggle } from './VisualEnhancementToggle';
 import CameraController from '../../visualisation/components/CameraController'; // Adjusted path
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
-import { BotsVisualization } from '../../bots/components/BotsVisualization';
+import { BotsVisualization } from '../../bots/components';
 import { HologramManager } from '../../visualisation/renderers/HologramManager';
 
 // Ensure Three.js types are properly loaded if not globally done
@@ -26,7 +26,7 @@ const GraphViewport: React.FC = () => {
   // Settings for camera and visuals
   const settings = useSettingsStore(state => state.settings);
   const [viewportRefresh, setViewportRefresh] = useState(0);
-  
+
   // Subscribe to viewport updates for real-time changes
   useEffect(() => {
     const unsubscribe = useSettingsStore.getState().subscribe(
@@ -37,10 +37,10 @@ const GraphViewport: React.FC = () => {
       },
       false
     );
-    
+
     return unsubscribe;
   }, []);
-  
+
   const cameraSettings = settings.visualisation.camera;
   const renderingSettings = settings.visualisation.rendering;
   const bloomSettingsStore = settings.visualisation.bloom;
@@ -173,10 +173,10 @@ const GraphViewport: React.FC = () => {
         <Suspense fallback={null}>
           {/* Using GraphManager for all graph rendering */}
           <GraphManager />
-          
+
           {/* Render HologramManager when hologram is enabled */}
           {hologramEnabled && (
-            <HologramManager 
+            <HologramManager
               position={graphCenter}
               isXRMode={false}
             />

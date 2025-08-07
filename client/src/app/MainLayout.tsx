@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import GraphManager from '../features/graph/components/GraphManager';
-import { BotsVisualization } from '../features/bots/components/BotsVisualization';
+import { BotsVisualization } from '../features/bots/components';
 // import { DualVisualizationControls } from '../features/graph/components/DualVisualizationControls'; // Removed - both graphs now at origin
 import { PostProcessingEffects } from '../features/graph/components/PostProcessingEffects';
 import { SpacePilotSimpleIntegration } from '../features/visualisation/components/SpacePilotSimpleIntegration';
