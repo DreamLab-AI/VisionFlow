@@ -1,4 +1,98 @@
 visualisation:
+  # Multi-graph support - CRITICAL for server startup
+  graphs:
+    logseq:
+      nodes:
+        base_color: '#66d9ef'
+        metalness: 0.85
+        opacity: 0.95
+        roughness: 0.15
+        node_size: 1.2
+        quality: 'high'
+        enable_instancing: true
+        enable_hologram: true
+        enable_metadata_shape: true
+        enable_metadata_visualisation: true
+      edges:
+        arrow_size: 0.02
+        base_width: 0.5
+        color: '#56b6c2'
+        enable_arrows: false
+        opacity: 0.25
+        width_range:
+          - 0.2
+          - 1.0
+        quality: 'medium'
+      labels:
+        desktop_font_size: 0.5
+        enable_labels: true
+        text_color: '#f8f8f2'
+        text_outline_color: '#181c28'
+        text_outline_width: 0.005
+        text_resolution: 32
+        text_padding: 0.6
+        billboard_mode: 'camera'
+      physics:
+        attraction_strength: 0.05
+        bounds_size: 150.0
+        collision_radius: 5.0
+        damping: 0.85
+        enable_bounds: true
+        enabled: true
+        iterations: 200
+        max_velocity: 0.5
+        repulsion_strength: 15.0
+        spring_strength: 0.02
+        repulsion_distance: 50.0
+        mass_scale: 1.5
+        boundary_damping: 0.9
+    visionflow:
+      nodes:
+        base_color: '#ff8800'
+        metalness: 0.7
+        opacity: 0.9
+        roughness: 0.3
+        node_size: 1.5
+        quality: 'high'
+        enable_instancing: true
+        enable_hologram: true
+        enable_metadata_shape: true
+        enable_metadata_visualisation: true
+      edges:
+        arrow_size: 0.7
+        base_width: 0.15
+        color: '#ffaa00'
+        enable_arrows: true
+        opacity: 0.6
+        width_range:
+          - 0.15
+          - 1.5
+        quality: 'high'
+      labels:
+        desktop_font_size: 16.0
+        enable_labels: true
+        text_color: '#ffaa00'
+        text_outline_color: '#000000'
+        text_outline_width: 2.5
+        text_resolution: 256
+        text_padding: 5.0
+        billboard_mode: 'screen'
+      physics:
+        enabled: true
+        iterations: 150
+        damping: 0.85
+        spring_strength: 0.5
+        repulsion_strength: 150.0
+        repulsion_distance: 200.0
+        attraction_strength: 0.002
+        max_velocity: 15.0
+        collision_radius: 60.0
+        bounds_size: 3000.0
+        enable_bounds: false
+        mass_scale: 1.2
+        boundary_damping: 0.6
+  
+  # Legacy flat structure for backward compatibility
   nodes:
     base_color: '#66d9ef'
     metalness: 0.85
@@ -60,6 +154,18 @@ visualisation:
     friction: 0.85
     attraction: 0.01
     spring_length: 100
+  labels:
+    desktop_font_size: 0.5
+    enable_labels: true
+    text_color: '#f8f8f2'
+    text_outline_color: '#181c28'
+    text_outline_width: 0.005
+    text_resolution: 32
+    text_padding: 0.6
+    billboard_mode: 'camera'
+    enabled: true
+    show_metadata: true
+    max_label_width: 5
   rendering:
     ambient_light_intensity: 1.2
     background_color: '#0a0e1a'

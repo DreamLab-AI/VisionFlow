@@ -7,6 +7,9 @@ use std::path::PathBuf;
 // use std::collections::BTreeMap; // For ordered map during serialization - Removed as unused
 
 pub mod feature_access;
+pub mod unified;
+pub mod migration;
+pub mod minimal;
 
 // Recursive function to convert JSON Value keys to snake_case
 fn keys_to_snake_case(value: Value) -> Value {
@@ -180,17 +183,39 @@ pub struct HologramSettings {
     pub global_rotation_speed: f32,
 }
 
+// Graph-specific settings (for multi-graph support)
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct GraphSettings {
+    pub nodes: NodeSettings,
+    pub edges: EdgeSettings,
+    pub labels: LabelSettings,
+    pub physics: PhysicsSettings,
+}
+
+// Multi-graph container
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct GraphsSettings {
+    pub logseq: GraphSettings,
+    pub visionflow: GraphSettings,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 // #[serde(rename_all = "camelCase")] // Reverted
 pub struct VisualisationSettings {
+    // Legacy flat fields (for backward compatibility)
     pub nodes: NodeSettings,
     pub edges: EdgeSettings,
     pub physics: PhysicsSettings,
+    pub labels: LabelSettings,
+    
+    // Global settings (shared across graphs)
     pub rendering: RenderingSettings,
     pub animations: AnimationSettings,
-    pub labels: LabelSettings,
     pub bloom: BloomSettings,
     pub hologram: HologramSettings,
+    
+    // CRITICAL FIX: Multi-graph support
+    pub graphs: GraphsSettings,
 }
 
 // --- Server-Specific Config Structs (from YAML, snake_case) ---

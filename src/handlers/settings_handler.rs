@@ -286,6 +286,7 @@ async fn update_user_settings(
                 .or(vis_dto.physics.as_ref());
                 
             if let Some(physics_dto) = physics_to_apply { // physics_dto is ClientPhysicsSettings
+                // Update legacy flat physics for backward compatibility
                 let target_physics = &mut target_vis.physics; // Type: config::PhysicsSettings
                 merge_copy_option!(target_physics.attraction_strength, physics_dto.attraction_strength);
                 merge_copy_option!(target_physics.bounds_size, physics_dto.bounds_size);
@@ -300,6 +301,24 @@ async fn update_user_settings(
                 merge_copy_option!(target_physics.repulsion_distance, physics_dto.repulsion_distance);
                 merge_copy_option!(target_physics.mass_scale, physics_dto.mass_scale);
                 merge_copy_option!(target_physics.boundary_damping, physics_dto.boundary_damping);
+                
+                // CRITICAL FIX: Also update multi-graph physics structure for logseq graph
+                let target_logseq_physics = &mut target_vis.graphs.logseq.physics;
+                merge_copy_option!(target_logseq_physics.attraction_strength, physics_dto.attraction_strength);
+                merge_copy_option!(target_logseq_physics.bounds_size, physics_dto.bounds_size);
+                merge_copy_option!(target_logseq_physics.collision_radius, physics_dto.collision_radius);
+                merge_copy_option!(target_logseq_physics.damping, physics_dto.damping);
+                merge_copy_option!(target_logseq_physics.enable_bounds, physics_dto.enable_bounds);
+                merge_copy_option!(target_logseq_physics.enabled, physics_dto.enabled);
+                merge_copy_option!(target_logseq_physics.iterations, physics_dto.iterations);
+                merge_copy_option!(target_logseq_physics.max_velocity, physics_dto.max_velocity);
+                merge_copy_option!(target_logseq_physics.repulsion_strength, physics_dto.repulsion_strength);
+                merge_copy_option!(target_logseq_physics.spring_strength, physics_dto.spring_strength);
+                merge_copy_option!(target_logseq_physics.repulsion_distance, physics_dto.repulsion_distance);
+                merge_copy_option!(target_logseq_physics.mass_scale, physics_dto.mass_scale);
+                merge_copy_option!(target_logseq_physics.boundary_damping, physics_dto.boundary_damping);
+                
+                info!("Updated both legacy and multi-graph physics settings");
             }
              if let Some(rendering_dto) = vis_dto.rendering { // rendering_dto is ClientRenderingSettings
                 let target_rendering = &mut target_vis.rendering; // Type: config::RenderingSettings
@@ -361,6 +380,108 @@ async fn update_user_settings(
                 merge_copy_option!(target_hologram.triangle_sphere_size, hologram_dto.triangle_sphere_size);
                 merge_copy_option!(target_hologram.triangle_sphere_opacity, hologram_dto.triangle_sphere_opacity);
                 merge_copy_option!(target_hologram.global_rotation_speed, hologram_dto.global_rotation_speed);
+            }
+            // Handle multi-graph structure if provided by client
+            if let Some(graphs_dto) = vis_dto.graphs {
+                // Handle logseq graph settings
+                if let Some(logseq_dto) = graphs_dto.logseq {
+                    let target_logseq = &mut target_vis.graphs.logseq;
+                    
+                    // Merge nodes settings
+                    if let Some(nodes_dto) = logseq_dto.nodes {
+                        merge_clone_option!(target_logseq.nodes.base_color, nodes_dto.base_color);
+                        merge_copy_option!(target_logseq.nodes.metalness, nodes_dto.metalness);
+                        merge_copy_option!(target_logseq.nodes.opacity, nodes_dto.opacity);
+                        merge_copy_option!(target_logseq.nodes.roughness, nodes_dto.roughness);
+                        merge_copy_option!(target_logseq.nodes.node_size, nodes_dto.node_size);
+                        merge_clone_option!(target_logseq.nodes.quality, nodes_dto.quality);
+                        merge_copy_option!(target_logseq.nodes.enable_instancing, nodes_dto.enable_instancing);
+                        merge_copy_option!(target_logseq.nodes.enable_hologram, nodes_dto.enable_hologram);
+                        merge_copy_option!(target_logseq.nodes.enable_metadata_shape, nodes_dto.enable_metadata_shape);
+                        merge_copy_option!(target_logseq.nodes.enable_metadata_visualisation, nodes_dto.enable_metadata_visualisation);
+                    }
+                    
+                    // Merge edges settings
+                    if let Some(edges_dto) = logseq_dto.edges {
+                        merge_copy_option!(target_logseq.edges.arrow_size, edges_dto.arrow_size);
+                        merge_copy_option!(target_logseq.edges.base_width, edges_dto.base_width);
+                        merge_clone_option!(target_logseq.edges.color, edges_dto.color);
+                        merge_copy_option!(target_logseq.edges.enable_arrows, edges_dto.enable_arrows);
+                        merge_copy_option!(target_logseq.edges.opacity, edges_dto.opacity);
+                        merge_clone_option!(target_logseq.edges.width_range, edges_dto.width_range);
+                        merge_clone_option!(target_logseq.edges.quality, edges_dto.quality);
+                    }
+                    
+                    // Merge labels settings
+                    if let Some(labels_dto) = logseq_dto.labels {
+                        merge_copy_option!(target_logseq.labels.desktop_font_size, labels_dto.desktop_font_size);
+                        merge_copy_option!(target_logseq.labels.enable_labels, labels_dto.enable_labels);
+                        merge_clone_option!(target_logseq.labels.text_color, labels_dto.text_color);
+                        merge_clone_option!(target_logseq.labels.text_outline_color, labels_dto.text_outline_color);
+                        merge_copy_option!(target_logseq.labels.text_outline_width, labels_dto.text_outline_width);
+                        merge_copy_option!(target_logseq.labels.text_resolution, labels_dto.text_resolution);
+                        merge_copy_option!(target_logseq.labels.text_padding, labels_dto.text_padding);
+                        merge_clone_option!(target_logseq.labels.billboard_mode, labels_dto.billboard_mode);
+                    }
+                    
+                    // Physics is already handled above
+                }
+                
+                // Handle visionflow graph settings  
+                if let Some(visionflow_dto) = graphs_dto.visionflow {
+                    let target_visionflow = &mut target_vis.graphs.visionflow;
+                    
+                    // Similar merging logic for visionflow graph
+                    if let Some(nodes_dto) = visionflow_dto.nodes {
+                        merge_clone_option!(target_visionflow.nodes.base_color, nodes_dto.base_color);
+                        merge_copy_option!(target_visionflow.nodes.metalness, nodes_dto.metalness);
+                        merge_copy_option!(target_visionflow.nodes.opacity, nodes_dto.opacity);
+                        merge_copy_option!(target_visionflow.nodes.roughness, nodes_dto.roughness);
+                        merge_copy_option!(target_visionflow.nodes.node_size, nodes_dto.node_size);
+                        merge_clone_option!(target_visionflow.nodes.quality, nodes_dto.quality);
+                        merge_copy_option!(target_visionflow.nodes.enable_instancing, nodes_dto.enable_instancing);
+                        merge_copy_option!(target_visionflow.nodes.enable_hologram, nodes_dto.enable_hologram);
+                        merge_copy_option!(target_visionflow.nodes.enable_metadata_shape, nodes_dto.enable_metadata_shape);
+                        merge_copy_option!(target_visionflow.nodes.enable_metadata_visualisation, nodes_dto.enable_metadata_visualisation);
+                    }
+                    
+                    if let Some(edges_dto) = visionflow_dto.edges {
+                        merge_copy_option!(target_visionflow.edges.arrow_size, edges_dto.arrow_size);
+                        merge_copy_option!(target_visionflow.edges.base_width, edges_dto.base_width);
+                        merge_clone_option!(target_visionflow.edges.color, edges_dto.color);
+                        merge_copy_option!(target_visionflow.edges.enable_arrows, edges_dto.enable_arrows);
+                        merge_copy_option!(target_visionflow.edges.opacity, edges_dto.opacity);
+                        merge_clone_option!(target_visionflow.edges.width_range, edges_dto.width_range);
+                        merge_clone_option!(target_visionflow.edges.quality, edges_dto.quality);
+                    }
+                    
+                    if let Some(labels_dto) = visionflow_dto.labels {
+                        merge_copy_option!(target_visionflow.labels.desktop_font_size, labels_dto.desktop_font_size);
+                        merge_copy_option!(target_visionflow.labels.enable_labels, labels_dto.enable_labels);
+                        merge_clone_option!(target_visionflow.labels.text_color, labels_dto.text_color);
+                        merge_clone_option!(target_visionflow.labels.text_outline_color, labels_dto.text_outline_color);
+                        merge_copy_option!(target_visionflow.labels.text_outline_width, labels_dto.text_outline_width);
+                        merge_copy_option!(target_visionflow.labels.text_resolution, labels_dto.text_resolution);
+                        merge_copy_option!(target_visionflow.labels.text_padding, labels_dto.text_padding);
+                        merge_clone_option!(target_visionflow.labels.billboard_mode, labels_dto.billboard_mode);
+                    }
+                    
+                    if let Some(physics_dto) = visionflow_dto.physics {
+                        merge_copy_option!(target_visionflow.physics.attraction_strength, physics_dto.attraction_strength);
+                        merge_copy_option!(target_visionflow.physics.bounds_size, physics_dto.bounds_size);
+                        merge_copy_option!(target_visionflow.physics.collision_radius, physics_dto.collision_radius);
+                        merge_copy_option!(target_visionflow.physics.damping, physics_dto.damping);
+                        merge_copy_option!(target_visionflow.physics.enable_bounds, physics_dto.enable_bounds);
+                        merge_copy_option!(target_visionflow.physics.enabled, physics_dto.enabled);
+                        merge_copy_option!(target_visionflow.physics.iterations, physics_dto.iterations);
+                        merge_copy_option!(target_visionflow.physics.max_velocity, physics_dto.max_velocity);
+                        merge_copy_option!(target_visionflow.physics.repulsion_strength, physics_dto.repulsion_strength);
+                        merge_copy_option!(target_visionflow.physics.spring_strength, physics_dto.spring_strength);
+                        merge_copy_option!(target_visionflow.physics.repulsion_distance, physics_dto.repulsion_distance);
+                        merge_copy_option!(target_visionflow.physics.mass_scale, physics_dto.mass_scale);
+                        merge_copy_option!(target_visionflow.physics.boundary_damping, physics_dto.boundary_damping);
+                    }
+                }
             }
             // Camera settings are not part of AppFullSettings.visualisation, so ignore vis_dto.camera
         }
@@ -481,7 +602,8 @@ async fn update_user_settings(
                     info!("Global physics settings updated by power user {}, propagating to GPU simulation", pubkey);
                     
                     // Extract physics settings to create simulation params
-                    let physics_settings = &settings.visualisation.physics;
+                    // CRITICAL FIX: Use multi-graph physics for logseq knowledge graph
+                    let physics_settings = &settings.visualisation.graphs.logseq.physics;
                     
                     // BREADCRUMB: Log the physics values being sent to GPU
                     info!("Sending physics to GPU - damping: {}, spring: {}, repulsion: {}, iterations: {}", 
@@ -607,6 +729,7 @@ async fn update_user_settings(
                 .or(vis_dto.physics.as_ref());
                 
             if let Some(physics_dto) = physics_to_apply { // physics_dto is ClientPhysicsSettings
+                // Update legacy flat physics for backward compatibility
                 let target_physics = &mut target_vis.physics; // Type: config::PhysicsSettings
                 merge_copy_option!(target_physics.attraction_strength, physics_dto.attraction_strength);
                 merge_copy_option!(target_physics.bounds_size, physics_dto.bounds_size);
@@ -621,6 +744,24 @@ async fn update_user_settings(
                 merge_copy_option!(target_physics.repulsion_distance, physics_dto.repulsion_distance);
                 merge_copy_option!(target_physics.mass_scale, physics_dto.mass_scale);
                 merge_copy_option!(target_physics.boundary_damping, physics_dto.boundary_damping);
+                
+                // CRITICAL FIX: Also update multi-graph physics structure for logseq graph
+                let target_logseq_physics = &mut target_vis.graphs.logseq.physics;
+                merge_copy_option!(target_logseq_physics.attraction_strength, physics_dto.attraction_strength);
+                merge_copy_option!(target_logseq_physics.bounds_size, physics_dto.bounds_size);
+                merge_copy_option!(target_logseq_physics.collision_radius, physics_dto.collision_radius);
+                merge_copy_option!(target_logseq_physics.damping, physics_dto.damping);
+                merge_copy_option!(target_logseq_physics.enable_bounds, physics_dto.enable_bounds);
+                merge_copy_option!(target_logseq_physics.enabled, physics_dto.enabled);
+                merge_copy_option!(target_logseq_physics.iterations, physics_dto.iterations);
+                merge_copy_option!(target_logseq_physics.max_velocity, physics_dto.max_velocity);
+                merge_copy_option!(target_logseq_physics.repulsion_strength, physics_dto.repulsion_strength);
+                merge_copy_option!(target_logseq_physics.spring_strength, physics_dto.spring_strength);
+                merge_copy_option!(target_logseq_physics.repulsion_distance, physics_dto.repulsion_distance);
+                merge_copy_option!(target_logseq_physics.mass_scale, physics_dto.mass_scale);
+                merge_copy_option!(target_logseq_physics.boundary_damping, physics_dto.boundary_damping);
+                
+                info!("Updated both legacy and multi-graph physics settings");
             }
              if let Some(rendering_dto) = vis_dto.rendering { // rendering_dto is ClientRenderingSettings
                 let target_rendering = &mut target_vis.rendering; // Type: config::RenderingSettings
@@ -777,7 +918,8 @@ async fn update_user_settings(
             info!("Physics settings updated by user {}, propagating to GPU simulation", pubkey);
             
             // Extract physics settings to create simulation params
-            let physics_settings = &user_settings.settings.visualisation.physics;
+            // CRITICAL FIX: Use multi-graph physics for logseq knowledge graph
+            let physics_settings = &user_settings.settings.visualisation.graphs.logseq.physics;
             let sim_params = crate::models::simulation_params::SimulationParams {
                 iterations: physics_settings.iterations,
                 spring_strength: physics_settings.spring_strength,
