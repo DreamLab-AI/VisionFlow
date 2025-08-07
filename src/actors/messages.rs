@@ -441,6 +441,29 @@ pub struct GPUStatus {
     pub num_nodes: u32,
 }
 
+// Position synchronization messages
+#[derive(Message, Clone)]
+#[rtype(result = "Result<PositionSnapshot, String>")]
+pub struct RequestPositionSnapshot {
+    pub include_knowledge_graph: bool,
+    pub include_agent_graph: bool,
+}
+
+// Physics parameter update messages
+#[derive(Message, Clone)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdatePhysicsParams {
+    pub graph_type: crate::actors::gpu_compute_actor::GraphType,
+    pub params: SimulationParams,
+}
+
+#[derive(Debug, Clone)]
+pub struct PositionSnapshot {
+    pub knowledge_nodes: Vec<(u32, BinaryNodeData)>,
+    pub agent_nodes: Vec<(u32, BinaryNodeData)>,
+    pub timestamp: std::time::Instant,
+}
+
 // Enhanced Claude Flow Actor Messages (for polling and retry)
 #[derive(Message)]
 #[rtype(result = "()")]

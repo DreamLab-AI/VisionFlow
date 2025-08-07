@@ -98,6 +98,9 @@ class GraphWorker {
     maxVelocity: 0.02,
     updateThreshold: 0.05,
   };
+  
+  // Flag to enable/disable local physics simulation
+  private useServerPhysics: boolean = true;  // Changed to true - server is authoritative
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
 
@@ -291,6 +294,17 @@ class GraphWorker {
   async pinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.add(nodeId); }
   async unpinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.delete(nodeId); }
 
+  // Method to switch between server and local physics
+  async setUseServerPhysics(useServer: boolean): Promise<void> {
+    this.useServerPhysics = useServer;
+    console.log(`GraphWorker: Physics mode set to ${useServer ? 'server' : 'local'}`);
+  }
+  
+  // Get current physics mode
+  async getPhysicsMode(): Promise<boolean> {
+    return this.useServerPhysics;
+  }
+  
   async updateUserDrivenNodePosition(nodeId: number, position: Vec3): Promise<void> {
     const stringNodeId = this.reverseNodeIdMap.get(nodeId);
     if (stringNodeId) {
@@ -319,6 +333,24 @@ class GraphWorker {
     // Clamp deltaTime to prevent physics explosion when tab regains focus
     const dt = Math.min(deltaTime, 0.016); // Cap at ~60fps (16ms) to avoid large jumps
 
+    // When using server physics, only interpolate between current and target positions
+    if (this.useServerPhysics) {
+      // Simple exponential smoothing for server positions
+      const lerpFactor = 1.0 - Math.exp(-5.0 * dt); // Smooth interpolation
+      
+      for (let i = 0; i < this.graphData.nodes.length; i++) {
+        const i3 = i * 3;
+        
+        // Interpolate towards server positions
+        this.currentPositions[i3] += (this.targetPositions[i3] - this.currentPositions[i3]) * lerpFactor;
+        this.currentPositions[i3 + 1] += (this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1]) * lerpFactor;
+        this.currentPositions[i3 + 2] += (this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2]) * lerpFactor;
+      }
+      
+      return this.currentPositions;
+    }
+
+    // Legacy: Local physics simulation (disabled when using server physics)
     const { springStrength, damping, maxVelocity, updateThreshold } = this.physicsSettings;
 
     for (let i = 0; i < this.graphData.nodes.length; i++) {

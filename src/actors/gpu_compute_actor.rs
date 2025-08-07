@@ -34,18 +34,47 @@ const DEBUG_THROTTLE: u32 = 60;
 const MAX_GPU_FAILURES: u32 = 5;
 const FAILURE_RESET_INTERVAL: Duration = Duration::from_secs(60);
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GraphType {
+    Knowledge,  // Logseq knowledge graph
+    Agent,      // AI agent swarm
+}
+
 #[derive(Debug)]
 pub struct GPUComputeActor {
     device: Option<Arc<CudaDevice>>,
     force_kernel: Option<CudaFunction>,
+    dual_graph_kernel: Option<CudaFunction>,  // New kernel for dual graph physics
+    
+    // Separate data for each graph type
+    knowledge_node_data: Option<CudaSlice<BinaryNodeData>>,
+    agent_node_data: Option<CudaSlice<BinaryNodeData>>,
+    
+    // Combined node data for legacy single-graph mode
     node_data: Option<CudaSlice<BinaryNodeData>>,
-    num_nodes: u32,
-    node_indices: HashMap<u32, usize>,
-    simulation_params: SimulationParams,
+    
+    num_knowledge_nodes: u32,
+    num_agent_nodes: u32,
+    num_nodes: u32,  // Total for legacy compatibility
+    
+    // Track which graph each node belongs to
+    graph_type_map: HashMap<u32, GraphType>,
+    knowledge_node_indices: HashMap<u32, usize>,
+    agent_node_indices: HashMap<u32, usize>,
+    node_indices: HashMap<u32, usize>,  // Legacy combined map
+    
+    // Separate physics parameters for each graph type
+    knowledge_sim_params: SimulationParams,
+    agent_sim_params: SimulationParams,
+    simulation_params: SimulationParams,  // Legacy combined params
+    
     iteration_count: u32,
     gpu_failure_count: u32,
     last_failure_reset: Instant,
     cpu_fallback_active: bool,
+    
+    // Flag to enable dual graph mode
+    dual_graph_mode: bool,
 }
 
 // Struct to hold the results of GPU initialization
@@ -59,17 +88,44 @@ struct GpuInitializationResult {
 
 impl GPUComputeActor {
     pub fn new() -> Self {
+        // Create default physics params for knowledge graph (gentler forces)
+        let mut knowledge_params = SimulationParams::default();
+        knowledge_params.spring_strength = 0.15;  // Gentler springs
+        knowledge_params.damping = 0.85;          // More damping for stability
+        knowledge_params.repulsion = 50.0;        // Less repulsion
+        knowledge_params.time_step = 0.016;       // Standard 60 FPS timestep
+        
+        // Agent graph uses default params (more dynamic)
+        let agent_params = SimulationParams::default();
+        
         Self {
             device: None,
             force_kernel: None,
+            dual_graph_kernel: None,
+            
+            knowledge_node_data: None,
+            agent_node_data: None,
             node_data: None,
+            
+            num_knowledge_nodes: 0,
+            num_agent_nodes: 0,
             num_nodes: 0,
+            
+            graph_type_map: HashMap::new(),
+            knowledge_node_indices: HashMap::new(),
+            agent_node_indices: HashMap::new(),
             node_indices: HashMap::new(),
+            
+            knowledge_sim_params: knowledge_params,
+            agent_sim_params: agent_params,
             simulation_params: SimulationParams::default(),
+            
             iteration_count: 0,
             gpu_failure_count: 0,
             last_failure_reset: Instant::now(),
             cpu_fallback_active: false,
+            
+            dual_graph_mode: false,  // Start in legacy mode by default
         }
     }
 
@@ -404,6 +460,28 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
         trace!("Updating simulation parameters: {:?}", msg.params);
         self.simulation_params = msg.params;
+        Ok(())
+    }
+}
+
+impl Handler<UpdatePhysicsParams> for GPUComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: UpdatePhysicsParams, _ctx: &mut Self::Context) -> Self::Result {
+        match msg.graph_type {
+            GraphType::Knowledge => {
+                self.knowledge_sim_params = msg.params.clone();
+                info!("Updated knowledge graph physics parameters");
+            }
+            GraphType::Agent => {
+                self.agent_sim_params = msg.params.clone();
+                info!("Updated agent graph physics parameters");
+            }
+        }
+        
+        // Also update legacy combined params for backwards compatibility
+        self.simulation_params = msg.params;
+        
         Ok(())
     }
 }

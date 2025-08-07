@@ -3,9 +3,10 @@ use crate::types::vec3::Vec3Data;
 use bytemuck::{Pod, Zeroable};
 use log::{trace, debug};
 
-// Agent node flag constants
-const AGENT_NODE_FLAG: u32 = 0x80000000; // High bit indicates agent node
-const NODE_ID_MASK: u32 = 0x7FFFFFFF;    // Mask to extract actual node ID
+// Node type flag constants
+const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
+const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
+const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
 /// Explicit wire format struct for WebSocket binary protocol
 /// This struct represents exactly what is sent over the wire
@@ -32,12 +33,16 @@ static_assertions::const_assert_eq!(std::mem::size_of::<WireNodeDataItem>(), 28)
 // that this node represents an agent rather than a document/metadata node.
 // This allows the client to distinguish between different node types for visualization.
 
-/// Utility functions for agent node flag manipulation
+/// Utility functions for node type flag manipulation
 pub fn set_agent_flag(node_id: u32) -> u32 {
-    node_id | AGENT_NODE_FLAG
+    (node_id & NODE_ID_MASK) | AGENT_NODE_FLAG
 }
 
-pub fn clear_agent_flag(node_id: u32) -> u32 {
+pub fn set_knowledge_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | KNOWLEDGE_NODE_FLAG
+}
+
+pub fn clear_all_flags(node_id: u32) -> u32 {
     node_id & NODE_ID_MASK
 }
 
@@ -45,12 +50,37 @@ pub fn is_agent_node(node_id: u32) -> bool {
     (node_id & AGENT_NODE_FLAG) != 0
 }
 
+pub fn is_knowledge_node(node_id: u32) -> bool {
+    (node_id & KNOWLEDGE_NODE_FLAG) != 0
+}
+
 pub fn get_actual_node_id(node_id: u32) -> u32 {
     node_id & NODE_ID_MASK
 }
 
-/// Enhanced encoding function that accepts metadata about which nodes are agents
-pub fn encode_node_data_with_flags(nodes: &[(u32, BinaryNodeData)], agent_node_ids: &[u32]) -> Vec<u8> {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum NodeType {
+    Knowledge,
+    Agent,
+    Unknown,
+}
+
+pub fn get_node_type(node_id: u32) -> NodeType {
+    if is_agent_node(node_id) {
+        NodeType::Agent
+    } else if is_knowledge_node(node_id) {
+        NodeType::Knowledge
+    } else {
+        NodeType::Unknown
+    }
+}
+
+/// Enhanced encoding function that accepts metadata about node types
+pub fn encode_node_data_with_types(
+    nodes: &[(u32, BinaryNodeData)], 
+    agent_node_ids: &[u32],
+    knowledge_node_ids: &[u32]
+) -> Vec<u8> {
     // Only log non-empty node transmissions to reduce spam
     if nodes.len() > 0 {
         trace!("Encoding {} nodes with agent flags for binary transmission", nodes.len());
@@ -65,11 +95,13 @@ pub fn encode_node_data_with_flags(nodes: &[(u32, BinaryNodeData)], agent_node_i
     }
     
     for (node_id, node) in nodes {
-        // Check if this node is an agent and set the flag accordingly
+        // Check node type and set the appropriate flag
         let flagged_id = if agent_node_ids.contains(node_id) {
             set_agent_flag(*node_id)
+        } else if knowledge_node_ids.contains(node_id) {
+            set_knowledge_flag(*node_id)
         } else {
-            *node_id
+            *node_id  // No flags for unknown nodes
         };
         
         // Log the first few nodes for debugging
@@ -98,6 +130,11 @@ pub fn encode_node_data_with_flags(nodes: &[(u32, BinaryNodeData)], agent_node_i
         trace!("Encoded binary data with agent flags: {} bytes for {} nodes", buffer.len(), nodes.len());
     }
     buffer
+}
+
+/// Backwards-compatible encoding function for agent nodes only
+pub fn encode_node_data_with_flags(nodes: &[(u32, BinaryNodeData)], agent_node_ids: &[u32]) -> Vec<u8> {
+    encode_node_data_with_types(nodes, agent_node_ids, &[])
 }
 
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
