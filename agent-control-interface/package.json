@@ -1,0 +1,22 @@
+{
+  "name": "agent-control-interface",
+  "version": "1.0.0",
+  "description": "TCP interface for agent telemetry serving to VisionFlow visualization",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js --debug",
+    "test": "node tests/test-client.js",
+    "install-deps": "npm install"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

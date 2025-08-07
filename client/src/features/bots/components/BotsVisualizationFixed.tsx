@@ -277,6 +277,7 @@ interface BotsNodeProps {
 }
 
 const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) => {
+  const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
@@ -308,11 +309,10 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   }, [agent.status, size]);
 
   useFrame((state) => {
-    if (!meshRef.current || !glowRef.current) return;
+    if (!groupRef.current || !meshRef.current || !glowRef.current) return;
 
-    // Update position
-    meshRef.current.position.copy(position);
-    glowRef.current.position.copy(position);
+    // Update group position (this moves everything including labels)
+    groupRef.current.position.copy(position);
 
     // Pulse animation for active agents
     if (agent.status === 'active' || agent.status === 'busy') {
@@ -331,7 +331,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const mockLogs = agent.processingLogs || generateMockProcessingLogs(agent.type, agent.status);
 
   return (
-    <group>
+    <group ref={groupRef}>
       {/* Glow effect */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[size * 1.5, 16, 16]} />
@@ -362,13 +362,15 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       {/* Agent info on hover or when active */}
       {(hover || agent.status === 'active' || agent.status === 'busy') && (
         <Html
-          position={[0, size + 1, 0]}
           center
           distanceFactor={10}
           style={{
             transition: 'all 0.2s',
             opacity: hover ? 1 : 0.8,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            position: 'absolute',
+            top: `${-size * 20}px`, // Adjust positioning relative to the node
+            left: '0',
           }}
         >
           <AgentStatusBadges agent={agent} logs={mockLogs} />
@@ -376,17 +378,24 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       )}
 
       {/* 3D Text label */}
-      <Text
-        position={[0, -size - 0.5, 0]}
-        fontSize={0.4}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.05}
-        outlineColor="black"
+      <Billboard
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
       >
-        {agent.name || agent.id.slice(0, 8)}
-      </Text>
+        <Text
+          position={[0, -size - 0.5, 0]}
+          fontSize={0.4}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.05}
+          outlineColor="black"
+        >
+          {agent.name || agent.id.slice(0, 8)}
+        </Text>
+      </Billboard>
     </group>
   );
 };
@@ -467,7 +476,7 @@ export const BotsVisualization: React.FC = () => {
       return;
     }
 
-    logger.info('[VISIONFLOW] Processing bots data from context', contextBotsData);
+    logger.debug('[VISIONFLOW] Processing bots data from context', contextBotsData);
     setIsLoading(false);
 
     // Update local state with context data

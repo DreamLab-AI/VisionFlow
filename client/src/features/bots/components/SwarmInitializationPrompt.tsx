@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/logger';
 import { apiService } from '../../../services/apiService';
 
@@ -9,9 +10,9 @@ interface SwarmInitializationPromptProps {
   onInitialized: () => void;
 }
 
-export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps> = ({ 
-  onClose, 
-  onInitialized 
+export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps> = ({
+  onClose,
+  onInitialized
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [topology, setTopology] = useState<'mesh' | 'hierarchical' | 'ring' | 'star'>('mesh');
@@ -33,6 +34,26 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
   });
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Create a portal container at the root level
+    const container = document.createElement('div');
+    container.id = 'swarm-modal-portal';
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.zIndex = '9999999';
+    container.style.pointerEvents = 'none';
+    document.body.appendChild(container);
+    setPortalContainer(container);
+
+    return () => {
+      document.body.removeChild(container);
+    };
+  }, []);
 
   const handleInitialize = async () => {
     setIsLoading(true);
@@ -87,25 +108,27 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
     }
   };
 
-  return (
+  if (!portalContainer) return null;
+
+  return ReactDOM.createPortal(
     <div style={{
       position: 'fixed',
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      backgroundColor: 'rgba(20, 20, 20, 0.98)',
-      border: '1px solid #F1C40F',
+      backgroundColor: '#141414',  // Solid black background
+      border: '2px solid #F1C40F',
       borderRadius: '8px',
       padding: '20px',
       maxWidth: '500px',
       width: '90%',
       maxHeight: '80vh',
       overflow: 'auto',
-      zIndex: 10000,
-      boxShadow: '0 4px 20px rgba(241, 196, 15, 0.3)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.9), 0 0 80px rgba(241, 196, 15, 0.4)',
+      pointerEvents: 'auto',
     }}>
-      <h2 style={{ 
-        margin: '0 0 20px 0', 
+      <h2 style={{
+        margin: '0 0 20px 0',
         color: '#F1C40F',
         display: 'flex',
         alignItems: 'center',
@@ -161,10 +184,18 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
             color: 'white',
           }}
         >
-          <option value="mesh">Mesh - Fully connected, best for collaboration</option>
-          <option value="hierarchical">Hierarchical - Structured with clear command chain</option>
-          <option value="ring">Ring - Sequential processing pipeline</option>
-          <option value="star">Star - Central coordinator with workers</option>
+          <option value="mesh" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
+            Mesh - Fully connected, best for collaboration
+          </option>
+          <option value="hierarchical" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
+            Hierarchical - Structured with clear command chain
+          </option>
+          <option value="ring" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
+            Ring - Sequential processing pipeline
+          </option>
+          <option value="star" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
+            Star - Central coordinator with workers
+          </option>
         </select>
       </div>
 
@@ -186,9 +217,9 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
         <label style={{ display: 'block', marginBottom: '8px', color: '#F1C40F' }}>
           Agent Types
         </label>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(2, 1fr)', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '8px',
           fontSize: '14px',
         }}>
@@ -207,12 +238,12 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
               monitor: { icon: '📡', description: 'System monitoring' },
               specialist: { icon: '🔧', description: 'Specialized tasks' },
             };
-            
+
             const info = agentTypeInfo[type] || { icon: '🤖', description: type };
-            
+
             return (
-              <label key={type} style={{ 
-                display: 'flex', 
+              <label key={type} style={{
+                display: 'flex',
                 alignItems: 'center',
                 cursor: 'pointer',
                 color: enabled ? '#F1C40F' : 'rgba(255, 255, 255, 0.5)',
@@ -238,8 +269,8 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
             );
           })}
         </div>
-        <div style={{ 
-          fontSize: '12px', 
+        <div style={{
+          fontSize: '12px',
           color: 'rgba(255, 255, 255, 0.6)',
           marginTop: '8px',
         }}>
@@ -252,8 +283,8 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
       </div>
 
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ 
-          display: 'flex', 
+        <label style={{
+          display: 'flex',
           alignItems: 'center',
           marginBottom: '8px',
           color: '#F1C40F',
@@ -267,8 +298,8 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
           />
           Enable Neural Enhancements
         </label>
-        <div style={{ 
-          fontSize: '12px', 
+        <div style={{
+          fontSize: '12px',
           color: 'rgba(255, 255, 255, 0.6)',
           marginLeft: '24px',
         }}>
@@ -296,8 +327,8 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
             resize: 'vertical',
           }}
         />
-        <div style={{ 
-          fontSize: '12px', 
+        <div style={{
+          fontSize: '12px',
           color: 'rgba(255, 255, 255, 0.6)',
           marginTop: '4px',
         }}>
@@ -338,6 +369,7 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
           {isLoading ? 'Spawning...' : 'Spawn Hive Mind'}
         </button>
       </div>
-    </div>
+    </div>,
+    portalContainer
   );
 };
