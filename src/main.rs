@@ -197,7 +197,6 @@ async fn main() -> std::io::Result<()> {
         Ok(graph_data) => {
             // Update graph data in the GraphServiceActor
             use webxr::actors::messages::{UpdateGraphData, InitializeGPU};
-            use webxr::models::graph::GraphData as ModelsGraphData;
 
             // Send graph data to GraphServiceActor
             if let Err(e) = app_state.graph_service_addr.send(UpdateGraphData {
@@ -282,7 +281,7 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600)
             .supports_credentials();
 
-        let mut app = App::new()
+        let app = App::new()
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .wrap(middleware::Compress::default())

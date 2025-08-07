@@ -11,6 +11,7 @@ use cudarc::driver::sys::CUdevice_attribute_enum;
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::utils::edge_data::EdgeData;
 use crate::types::vec3::Vec3Data;
 use crate::actors::messages::*;
 use std::path::Path;
@@ -53,6 +54,10 @@ pub struct GPUComputeActor {
     // Combined node data for legacy single-graph mode
     node_data: Option<CudaSlice<BinaryNodeData>>,
     
+    // CRITICAL FIX: Add edge data for spring force calculations
+    edge_data: Option<CudaSlice<EdgeData>>,
+    num_edges: u32,
+    
     num_knowledge_nodes: u32,
     num_agent_nodes: u32,
     num_nodes: u32,  // Total for legacy compatibility
@@ -82,7 +87,9 @@ struct GpuInitializationResult {
     device: Arc<CudaDevice>,
     force_kernel: CudaFunction,
     node_data: CudaSlice<BinaryNodeData>,
+    edge_data: Option<CudaSlice<EdgeData>>,  // CRITICAL FIX: Include edge data
     num_nodes: u32,
+    num_edges: u32,  // CRITICAL FIX: Include edge count
     node_indices: HashMap<u32, usize>,
 }
 
@@ -106,10 +113,12 @@ impl GPUComputeActor {
             knowledge_node_data: None,
             agent_node_data: None,
             node_data: None,
+            edge_data: None,  // CRITICAL FIX: Initialize edge data
             
             num_knowledge_nodes: 0,
             num_agent_nodes: 0,
             num_nodes: 0,
+            num_edges: 0,  // CRITICAL FIX: Initialize edge count
             
             graph_type_map: HashMap::new(),
             knowledge_node_indices: HashMap::new(),
@@ -229,11 +238,48 @@ impl GPUComputeActor {
         let (force_kernel, node_data, node_indices) = Self::static_load_compute_kernel(device.clone(), num_nodes, &graph.nodes).await?;
         info!("(Static Logic) Compute kernel loaded and data copied");
         
+        // CRITICAL FIX: Process and upload edge data during initialization
+        let num_edges = graph.edges.len() as u32;
+        let edge_data = if !graph.edges.is_empty() {
+            info!("(Static Logic) Processing {} edges for spring forces", num_edges);
+            let mut host_edge_data = Vec::with_capacity(graph.edges.len());
+            
+            for edge in &graph.edges {
+                // Find indices for source and target nodes
+                let source_idx = node_indices.get(&edge.source)
+                    .copied()
+                    .unwrap_or(0) as i32;
+                let target_idx = node_indices.get(&edge.target)
+                    .copied()
+                    .unwrap_or(0) as i32;
+                
+                host_edge_data.push(EdgeData {
+                    source_idx,
+                    target_idx,
+                    weight: edge.weight,
+                });
+            }
+            
+            let mut edge_slice = device.alloc_zeros::<EdgeData>(graph.edges.len())
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate edge buffer: {}", e)))?;
+            
+            device.htod_sync_copy_into(&host_edge_data, &mut edge_slice)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data to GPU: {}", e)))?;
+            
+            info!("(Static Logic) Successfully uploaded {} edges to GPU", num_edges);
+            Some(edge_slice)
+        } else {
+            info!("(Static Logic) No edges in graph - spring forces will not be applied");
+            None
+        };
+        
         Ok(GpuInitializationResult {
             device, // No Some() needed, it's Arc<CudaDevice>
             force_kernel, // No Some()
             node_data,    // No Some()
+            edge_data,    // CRITICAL FIX: Include edge data
             num_nodes,
+            num_edges,    // CRITICAL FIX: Include edge count
             node_indices,
         })
     }
@@ -244,7 +290,7 @@ impl GPUComputeActor {
         let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
         let node_data_slice = self.node_data.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
  
-        trace!("Updating graph data for {} nodes", graph.nodes.len());
+        info!("Updating graph data for {} nodes and {} edges", graph.nodes.len(), graph.edges.len());
         
         self.node_indices.clear();
         for (idx, node) in graph.nodes.iter().enumerate() {
@@ -272,6 +318,46 @@ impl GPUComputeActor {
 
         device.htod_sync_copy_into(&host_node_data, node_data_slice)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy node data to GPU: {}", e)))?;
+        
+        // CRITICAL FIX: Process and upload edge data for spring forces
+        if graph.edges.len() as u32 != self.num_edges || self.edge_data.is_none() {
+            info!("Reallocating GPU buffer for {} edges", graph.edges.len());
+            if graph.edges.is_empty() {
+                self.edge_data = None;
+                self.num_edges = 0;
+            } else {
+                let edge_slice = device.alloc_zeros::<EdgeData>(graph.edges.len())
+                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate edge buffer: {}", e)))?;
+                self.edge_data = Some(edge_slice);
+                self.num_edges = graph.edges.len() as u32;
+            }
+        }
+        
+        // Convert edges to EdgeData format with node indices
+        if !graph.edges.is_empty() {
+            let mut host_edge_data = Vec::with_capacity(graph.edges.len());
+            for edge in &graph.edges {
+                // Find indices for source and target nodes
+                let source_idx = self.node_indices.get(&edge.source)
+                    .copied()
+                    .unwrap_or(0) as i32;
+                let target_idx = self.node_indices.get(&edge.target)
+                    .copied()
+                    .unwrap_or(0) as i32;
+                
+                host_edge_data.push(EdgeData {
+                    source_idx,
+                    target_idx,
+                    weight: edge.weight,
+                });
+            }
+            
+            if let Some(edge_slice) = self.edge_data.as_mut() {
+                device.htod_sync_copy_into(&host_edge_data, edge_slice)
+                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data to GPU: {}", e)))?;
+                info!("Successfully uploaded {} edges to GPU", host_edge_data.len());
+            }
+        }
         
         Ok(())
     }
@@ -306,22 +392,62 @@ impl GPUComputeActor {
             shared_mem_bytes: SHARED_MEM_SIZE,
         };
 
-        let launch_result = unsafe {
-            force_kernel.clone().launch(cfg, (
-                node_data,
-                self.num_nodes as i32,
-                self.simulation_params.spring_strength,
-                self.simulation_params.damping,
-                self.simulation_params.repulsion,
-                self.simulation_params.time_step,
-                self.simulation_params.max_repulsion_distance,
-                if self.simulation_params.enable_bounds {
-                    self.simulation_params.viewport_bounds
-                } else {
-                    f32::MAX
-                },
-                self.iteration_count as i32,
-            ))
+        // BREADCRUMB: Log physics params being sent to GPU kernel
+        if self.iteration_count % 60 == 0 { // Log every second at 60 FPS
+            info!("GPU kernel params - spring: {}, damping: {}, repulsion: {}, timestep: {}, edges: {}",
+                  self.simulation_params.spring_strength,
+                  self.simulation_params.damping,
+                  self.simulation_params.repulsion,
+                  self.simulation_params.time_step,
+                  self.num_edges);
+        }
+        
+        // CRITICAL FIX: Include edge data in kernel launch
+        // The kernel signature expects: nodes, edges, num_nodes, num_edges, spring_k, damping, repel_k, dt, max_dist, bounds, iteration
+        let launch_result = if let Some(edge_data) = self.edge_data.as_ref() {
+            unsafe {
+                force_kernel.clone().launch(cfg, (
+                    node_data,
+                    edge_data,  // CRITICAL: Pass edge data
+                    self.num_nodes as i32,
+                    self.num_edges as i32,  // CRITICAL: Pass edge count
+                    self.simulation_params.spring_strength,
+                    self.simulation_params.damping,
+                    self.simulation_params.repulsion,
+                    self.simulation_params.time_step,
+                    self.simulation_params.max_repulsion_distance,
+                    if self.simulation_params.enable_bounds {
+                        self.simulation_params.viewport_bounds
+                    } else {
+                        f32::MAX
+                    },
+                    self.iteration_count as i32,
+                ))
+            }
+        } else {
+            // If no edges, create a dummy edge buffer to satisfy kernel signature
+            warn!("No edges in graph - spring forces will not be applied!");
+            let dummy_edges = device.alloc_zeros::<EdgeData>(1)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate dummy edge buffer: {}", e)))?;
+            unsafe {
+                force_kernel.clone().launch(cfg, (
+                    node_data,
+                    &dummy_edges,  // Dummy edge data
+                    self.num_nodes as i32,
+                    0i32,  // Zero edges
+                    self.simulation_params.spring_strength,
+                    self.simulation_params.damping,
+                    self.simulation_params.repulsion,
+                    self.simulation_params.time_step,
+                    self.simulation_params.max_repulsion_distance,
+                    if self.simulation_params.enable_bounds {
+                        self.simulation_params.viewport_bounds
+                    } else {
+                        f32::MAX
+                    },
+                    self.iteration_count as i32,
+                ))
+            }
         };
 
         match launch_result {
@@ -391,7 +517,9 @@ impl Handler<InitializeGPU> for GPUComputeActor {
 
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
         let graph_data_owned = msg.graph;
-
+        let node_count = graph_data_owned.nodes.len();
+        info!("GPU: InitializeGPU received with {} nodes", node_count);
+        
         let fut = GPUComputeActor::perform_gpu_initialization(graph_data_owned);
         
         // Use FutureActorExt trait's into_actor method
@@ -404,7 +532,9 @@ impl Handler<InitializeGPU> for GPUComputeActor {
                         actor.device = Some(init_result.device);
                         actor.force_kernel = Some(init_result.force_kernel);
                         actor.node_data = Some(init_result.node_data);
+                        actor.edge_data = init_result.edge_data;  // CRITICAL FIX
                         actor.num_nodes = init_result.num_nodes;
+                        actor.num_edges = init_result.num_edges;  // CRITICAL FIX
                         actor.node_indices = init_result.node_indices;
                         
                         // Reset other relevant state
@@ -436,14 +566,17 @@ impl Handler<UpdateGPUGraphData> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateGPUGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        let node_count = msg.graph.nodes.len();
+        info!("GPU: UpdateGPUGraphData received with {} nodes", node_count);
+        
         if self.device.is_none() {
-            warn!("Attempted to update GPU graph data, but GPU is not initialized. CPU fallback may be active.");
-            // Depending on desired behavior, could return Ok(()) or an error.
-            // For now, let it proceed to update_graph_data_internal which will fail if device is None.
+            error!("GPU NOT INITIALIZED! Cannot update graph data. Need to call InitializeGPU first!");
+            return Err("GPU not initialized - call InitializeGPU first".to_string());
         }
+        
         match self.update_graph_data_internal(&msg.graph) {
             Ok(_) => {
-                trace!("Graph data updated successfully");
+                info!("GPU: Graph data updated successfully with {} nodes", node_count);
                 Ok(())
             },
             Err(e) => {
@@ -458,8 +591,11 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        trace!("Updating simulation parameters: {:?}", msg.params);
+        info!("GPU: Received physics update - damping: {}, spring: {}, repulsion: {}, iterations: {}", 
+              msg.params.damping, msg.params.spring_strength, 
+              msg.params.repulsion, msg.params.iterations);
         self.simulation_params = msg.params;
+        info!("GPU: Physics parameters updated successfully");
         Ok(())
     }
 }
@@ -490,12 +626,26 @@ impl Handler<ComputeForces> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, _msg: ComputeForces, _ctx: &mut Self::Context) -> Self::Result {
-        if self.device.is_none() {
-            warn!("Attempted to compute forces, but GPU is not initialized. CPU fallback may be active.");
-            return Ok(()); // Or Err, if strict GPU mode is required
+        if self.iteration_count % 60 == 0 { // Log every second
+            info!("GPU: ComputeForces called (iteration {}), nodes: {}", 
+                  self.iteration_count, self.num_nodes);
         }
+        
+        if self.device.is_none() {
+            error!("GPU NOT INITIALIZED! Cannot compute forces!");
+            return Err("GPU not initialized".to_string());
+        }
+        
+        if self.num_nodes == 0 {
+            warn!("GPU: No nodes to compute forces for!");
+            return Ok(());
+        }
+        
         match self.compute_forces_internal() {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                // iteration_count is already incremented in compute_forces_internal
+                Ok(())
+            },
             Err(e) => {
                 if self.cpu_fallback_active {
                     warn!("GPU compute failed, CPU fallback active: {}", e);
