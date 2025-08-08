@@ -5,12 +5,12 @@ The configuration module manages application settings, environment variables, an
 
 ## Settings Management
 
-### Core Structure: `AppFullSettings`
-The primary configuration struct is `AppFullSettings`, defined in [`src/config/mod.rs`](../../src/config/mod.rs). This struct aggregates all server-side settings, which are then used to derive client-facing settings (`UISettings`).
+### Core Structure: `Settings`
+The primary configuration struct is `Settings`, defined in [`src/config/mod.rs`](../../src/config/mod.rs). This struct aggregates all server-side settings, which are then used to derive client-facing settings (`UISettings`).
 
 ```rust
 // In src/config/mod.rs
-pub struct AppFullSettings {
+pub struct Settings {
     pub visualisation: VisualisationSettings,
     pub system: ServerSystemConfigFromFile, // Contains network, websocket, security, debug
     pub xr: XRSettings,
@@ -24,7 +24,7 @@ pub struct AppFullSettings {
 }
 ```
 
-#### Main Categories in `AppFullSettings`:
+#### Main Categories in `Settings`:
 -   **`visualisation: VisualisationSettings`**: Configures 3D graph rendering, physics, animations, labels, bloom, and hologram effects. Contains nested structs like `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, etc.
 -   **`system: ServerSystemConfigFromFile`**: Contains core server system settings:
     -   `network: NetworkSettings` (e.g., `bind_address`, `port`, `enable_tls`)
@@ -39,13 +39,13 @@ pub struct AppFullSettings {
     -   `openai: Option<OpenAIConfig>` (may include API keys for various OpenAI services like TTS, STT/Whisper)
     -   `kokoro: Option<KokoroConfig>`
 
-Note: `whisper` settings are now included as `Option<WhisperSettings>` within `AppFullSettings`.
+Note: `whisper` settings are now included as `Option<WhisperSettings>` within `Settings`.
 
 ### Environment Loading
 Settings are loaded from a YAML file (defaulting to `/app/settings.yaml`) and can be overridden by environment variables. The `config` crate is used for this hierarchical loading.
 
 ```rust
-impl AppFullSettings {
+impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         dotenvy::dotenv().ok(); // Loads .env file
         let settings_path = std::env::var("SETTINGS_FILE_PATH")
@@ -102,7 +102,7 @@ For detailed information about feature access control, see [Feature Access Docum
 
 ## Security Settings
 
-Security-related configurations are defined in the `SecuritySettings` struct, which is nested within `ServerSystemConfigFromFile` (i.e., `app_full_settings.system.security`).
+Security-related configurations are defined in the `SecuritySettings` struct, which is nested within `ServerSystemConfigFromFile` (i.e., `settings.system.security`).
 
 ```rust
 pub struct SecuritySettings {
@@ -127,14 +127,14 @@ Rate limiting is configured within `NetworkSettings` (e.g., `rate_limit_requests
 3.  **Default Values**: Provided by `Default` implementations for structs if not specified elsewhere.
 
 ### Validation Rules
-Settings are validated during deserialization by the `config` crate. Custom validation logic can be implemented within `AppFullSettings` or its sub-structs if needed.
+Settings are validated during deserialization by the `config` crate. Custom validation logic can be implemented within `Settings` or its sub-structs if needed.
 
 ### Hot Reload
 The current implementation does not support hot reloading of configuration. Changes to `settings.yaml` or environment variables require a server restart to take effect.
 
 ### Saving Settings
-`AppFullSettings` implements a `save(&self) -> Result<(), String>` method to persist the current settings state back to the specified YAML file (typically `settings.yaml`). This serialization is done using `serde_yaml` and handles converting the Rust struct (usually in snake_case or as defined by `serde` attributes) to YAML format. This method is invoked when power users modify global settings that need to be persisted.
-The `AppFullSettings` struct itself derives `Serialize` and `Deserialize` from `serde` for this purpose.
+`Settings` implements a `save(&self) -> Result<(), String>` method to persist the current settings state back to the specified YAML file (typically `settings.yaml`). This serialization is done using `serde_yaml` and handles converting the Rust struct (usually in snake_case or as defined by `serde` attributes) to YAML format. This method is invoked when power users modify global settings that need to be persisted.
+The `Settings` struct itself derives `Serialize` and `Deserialize` from `serde` for this purpose.
 
 ## Client Settings Integration
 

@@ -84,6 +84,9 @@ RUN nvcc --version && \
 RUN cargo build --features gpu && \
     cp target/debug/webxr /app/webxr
 
+# Copy settings file
+COPY data/settings.yaml /app/settings.yaml
+
 # PTX compilation - now happens during container build
 COPY scripts/compile_ptx.sh ./scripts/
 COPY src/utils/compute_forces.cu ./src/utils/

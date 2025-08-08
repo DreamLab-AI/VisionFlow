@@ -109,6 +109,9 @@ COPY --from=builder /build/target/release/webxr /app/webxr
 COPY --from=builder /build/client/dist /app/client/dist
 COPY --from=builder /build/src/utils/compute_forces.ptx /app/src/utils/compute_forces.ptx
 
+# Copy settings file
+COPY data/settings.yaml /app/settings.yaml
+
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 

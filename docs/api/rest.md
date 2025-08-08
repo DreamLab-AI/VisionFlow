@@ -184,22 +184,74 @@ The endpoint `/api/files/upload` is not defined in `src/handlers/api_handler/fil
 
 ## Settings API
 
-### Get Public Settings
+### Get Settings
 ```http
-GET /api/user-settings
+GET /api/settings
 ```
 
-Returns `UISettings` (camelCase) as defined in `src/models/ui_settings.rs`, derived from the server's `AppFullSettings`. This endpoint does not require authentication.
+Returns the current settings configuration in camelCase format as defined in `src/models/ui_settings.rs`. This endpoint does not require authentication.
+
+**Response:**
+```json
+{
+  "visualisation": {
+    "nodes": {
+      "baseColor": "#00e5ff",
+      "metalness": 0.85,
+      "size": 1.2
+    },
+    "physics": {
+      "enabled": true,
+      "repulsionStrength": 15.0,
+      "springStrength": 0.02
+    }
+  },
+  "system": {
+    "debug": false,
+    "performanceMonitoring": true
+  }
+}
+```
+
+### Update Settings
+```http
+POST /api/settings
+```
+
+Updates settings with partial data. Accepts `ClientSettingsPayload` from `src/models/client_settings_payload.rs` (camelCase).
+
+**Request Body:**
+```json
+{
+  "visualisation": {
+    "nodes": {
+      "baseColor": "#ff0080"
+    }
+  }
+}
+```
+
+**Response:**
+Returns the updated settings object.
 
 ### Get User-Specific Settings
 ```http
-GET /api/user-settings/sync
+GET /api/settings/user
 ```
 
-Requires authentication.
-**GET Response:** Returns `UISettings`. For power users, these are global settings. For regular users, these are their persisted settings.
-**POST Request Body:** `ClientSettingsPayload` from `src/models/client_settings_payload.rs` (camelCase).
-**POST Response:** The updated `UISettings`.
+Requires authentication via `X-Nostr-Pubkey` header.
+**Response:** Returns user-specific settings. For power users, these are global settings. For regular users, these are their persisted settings.
+
+### Update User Settings
+```http
+POST /api/settings/user
+```
+
+**Headers:**
+- `X-Nostr-Pubkey`: User's public key for authentication
+
+**Request Body:** Partial settings payload (camelCase)
+**Response:** The updated user settings
 
 ### Get Visualisation Settings by Category
 ```http

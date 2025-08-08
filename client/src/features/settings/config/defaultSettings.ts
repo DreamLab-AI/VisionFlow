@@ -84,7 +84,7 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
 
 export const defaultSettings: Settings = {
   visualisation: {
-    // Graph-specific settings with different themes
+    // Graph-specific settings with optimized themes
     graphs: {
       logseq: createDefaultGraphSettings('blue'),
       visionflow: createDefaultGraphSettings('green'),
@@ -94,35 +94,30 @@ export const defaultSettings: Settings = {
       backgroundColor: "#0a0e1a",
       directionalLightIntensity: 1.5,
       enableAmbientOcclusion: false,
-      enableAntialiasing: true, // FIXED: Enabled for crisp rendering
-      enableShadows: true, // FIXED: Enabled for depth and realism
+      enableAntialiasing: true, // Enabled for crisp rendering
+      enableShadows: true, // Enabled for depth and realism
       environmentIntensity: 0.7,
       shadowMapSize: "2048",
       shadowBias: 0.0001,
       context: "desktop",
-      // pixelRatio: 1.5, // Removed, does not exist in RenderingSettings
-      // enableBloom: true, // Removed, not in RenderingSettings. Use visualisation.bloom.enabled
-      // bloomStrength: 1.5, // Removed, not in RenderingSettings
-      // bloomThreshold: 0.4, // Removed, not in RenderingSettings
-      // bloomRadius: 0.85, // Removed, not in RenderingSettings
     },
     animations: {
       enableMotionBlur: false,
-      enableNodeAnimations: true, // Enable animated shaders
+      enableNodeAnimations: true, // Enable node animations
       motionBlurStrength: 0.2,
-      selectionWaveEnabled: true, // Enable wave effects
-      pulseEnabled: true, // Enable pulsing effects
-      pulseSpeed: 1.2, // Faster pulse
-      pulseStrength: 0.8, // Stronger pulse
+      selectionWaveEnabled: true, // Enable selection wave effects
+      pulseEnabled: true, // Enable node pulsing effects
+      pulseSpeed: 1.2, // Optimized pulse speed
+      pulseStrength: 0.8, // Optimized pulse strength
       waveSpeed: 0.5,
     },
-    bloom: { // This section is for visualisation.bloom specific settings
-      edgeBloomStrength: 3.5, // Stronger edge glow
+    bloom: {
+      edgeBloomStrength: 3.5, // Edge connection glow
       enabled: true,
       environmentBloomStrength: 3.0,
-      nodeBloomStrength: 3.0, // Stronger node glow
+      nodeBloomStrength: 3.0, // Node glow intensity
       radius: 0.85,
-      strength: 2.0, // Increased bloom intensity
+      strength: 2.0, // Overall bloom strength
       threshold: 0.15,
     },
     hologram: {
@@ -141,8 +136,6 @@ export const defaultSettings: Settings = {
       triangleSphereSize: 70,
       triangleSphereOpacity: 0.4,
       globalRotationSpeed: 0.5,
-      // color: 65535, // Removed, does not exist in HologramSettings
-      // opacity: 0.7, // Removed, not in HologramSettings
     },
     camera: {
       fov: 75,
@@ -169,21 +162,6 @@ export const defaultSettings: Settings = {
         6: 'frontView',
       },
     },
-    // sceneBackground: 0, // Removed, not in VisualisationSettings
-    // icons: { // Removed, not in VisualisationSettings
-    //   enabled: true,
-    //   size: 1,
-    //   opacity: 0.8,
-    //   color: "#ffffff",
-    // },
-    // metrics: { // Removed, not in VisualisationSettings
-    //   enabled: false,
-    //   refreshRate: 1000,
-    //   position: "top-right",
-    // },
-    // showStats: false, // Removed, not in VisualisationSettings; likely controlled by system.debug.enablePerformanceDebug
-    // showAxes: false, // Removed, not in VisualisationSettings
-    // showGrid: false, // Removed, not in VisualisationSettings
   },
   system: {
     websocket: {
@@ -212,25 +190,22 @@ export const defaultSettings: Settings = {
       enableWebsocketDebug: false,
       logBinaryHeaders: false,
       logFullJson: false,
-      logLevel: "info", // From JSON (camelCase, was 'warn')
-      logFormat: "text", // From JSON (camelCase, was 'json')
+      logLevel: "info",
+      logFormat: "text",
       enablePhysicsDebug: false,
       enableNodeDebug: false,
       enableShaderDebug: false,
       enableMatrixDebug: false,
       enablePerformanceDebug: false,
-      // showPerformance: false, // Removed, does not exist in DebugSettings
-      // showDataUpdates: false, // Removed, not in DebugSettings
     },
-    persistSettings: false, // From JSON (camelCase, was true)
+    persistSettings: false,
     customBackendUrl: "",
-    // apiEndpoint: "/api", // Removed, not in SystemSettings type
   },
   xr: {
-    enabled: false, // Changed from null to boolean based on type
+    enabled: false,
     clientSideEnableXR: false,
-    displayMode: "immersive-vr", // From JSON (camelCase, was 'inline')
-    roomScale: 1.0, // Changed from true to 1.0 based on type
+    displayMode: "immersive-vr",
+    roomScale: 1.0,
     spaceType: "local-floor",
     quality: "medium",
     enableHandTracking: true,
@@ -248,12 +223,12 @@ export const defaultSettings: Settings = {
     pinchThreshold: 0.3,
     rotationThreshold: 0.08,
     interactionRadius: 0.15,
-    movementSpeed: 1.0, // From JSON (camelCase, was 0.08)
+    movementSpeed: 1.0,
     deadZone: 0.12,
     movementAxes: {
       horizontal: 2,
       vertical: 3
-    }, // From JSON - nested object structure matching YAML
+    },
     enableLightEstimation: false,
     enablePlaneDetection: false,
     enableSceneUnderstanding: false,
@@ -271,22 +246,14 @@ export const defaultSettings: Settings = {
     portalEdgeWidth: 0.02,
     controllerModel: "default",
     renderScale: 1.0,
-    interactionDistance: 1.5, // From JSON (camelCase, was 1.0)
+    interactionDistance: 1.5,
     locomotionMethod: "teleport",
     teleportRayColor: "#ffffff",
     controllerRayColor: "#ffffff",
-    // handTracking: true, // Duplicate of enableHandTracking
-    // mode: "inline", // Duplicate of displayMode
-    // teleportEnabled: true, // Removed, not in XRSettings
-    // showFloor: true, // Removed, not in XRSettings
-    // handInteraction: true, // Removed, not in XRSettings
-    // grabThreshold: 0.1, // Removed, not in XRSettings
-    // controllerPointerSize: 0.01, // Removed, not in XRSettings
-    // hapticFeedback: true, // Duplicate of enableHaptics
   },
   auth: {
-    enabled: false, // Auth not enabled by default
-    provider: "nostr", // From JSON (camelCase, was '')
+    enabled: false,
+    provider: "nostr",
     required: false,
   },
   ragflow: {

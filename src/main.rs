@@ -40,48 +40,15 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     // Load settings first to get the log level
-    // Check if we should use minimal settings
-    let use_minimal = std::env::var("USE_MINIMAL_SETTINGS")
-        .unwrap_or_else(|_| "false".to_string()) == "true";
-    
-    let settings = if use_minimal {
-        // Use minimal settings for cleaner configuration
-        match webxr::config::minimal::MinimalSettings::load() {
-            Ok(s) => {
-                info!("MinimalSettings loaded successfully");
-                // TODO: Convert MinimalSettings to AppFullSettings for compatibility
-                // For now, still use AppFullSettings
-                match AppFullSettings::new() {
-                    Ok(s) => Arc::new(RwLock::new(s)),
-                    Err(e) => {
-                        error!("Failed to load AppFullSettings: {:?}", e);
-                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
-                    }
-                }
-            },
-            Err(e) => {
-                error!("Failed to load MinimalSettings: {}, falling back to AppFullSettings", e);
-                match AppFullSettings::new() {
-                    Ok(s) => Arc::new(RwLock::new(s)),
-                    Err(e) => {
-                        error!("Failed to load AppFullSettings: {:?}", e);
-                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
-                    }
-                }
-            }
-        }
-    } else {
-        // Use AppFullSettings here as this is the main server configuration loaded from YAML/Env
-        match AppFullSettings::new() { // Changed to AppFullSettings::new()
-            Ok(s) => {
-                info!("AppFullSettings loaded successfully from: {}",
-                    std::env::var("SETTINGS_FILE_PATH").unwrap_or_else(|_| "/app/settings.yaml".to_string()));
-                Arc::new(RwLock::new(s)) // Now holds Arc<RwLock<AppFullSettings>>
-            },
-            Err(e) => {
-                error!("Failed to load AppFullSettings: {:?}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
-            }
+    let settings = match AppFullSettings::new() {
+        Ok(s) => {
+            info!("AppFullSettings loaded successfully from: {}",
+                std::env::var("SETTINGS_FILE_PATH").unwrap_or_else(|_| "/app/settings.yaml".to_string()));
+            Arc::new(RwLock::new(s)) // Now holds Arc<RwLock<AppFullSettings>>
+        },
+        Err(e) => {
+            error!("Failed to load AppFullSettings: {:?}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
         }
     };
 

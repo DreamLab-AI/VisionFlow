@@ -88,19 +88,19 @@ pub enum SimulationMode {
 ### Settings Models
 The definitive source for all server-side settings structures is `src/config/mod.rs`.
 
--   **`AppFullSettings`**: The root struct for all server-side configurations, loaded from `settings.yaml` (snake_case) and environment variables. It contains:
+-   **`Settings`**: The root struct for all server-side configurations, loaded from `settings.yaml` (snake_case) and environment variables. It contains:
     -   `visualisation: VisualisationSettings`
     -   `system: ServerSystemConfigFromFile` (which includes `NetworkSettings`, `ServerFullWebSocketSettings`, `SecuritySettings`, `DebugSettings`)
     -   `xr: XRSettings`
     -   `auth: AuthSettings`
     -   Optional AI configurations: `ragflow: Option<RAGFlowConfig>`, `perplexity: Option<PerplexityConfig>`, `openai: Option<OpenAIConfig>`, `kokoro: Option<KokoroConfig>`. (Note: `WhisperSettings` is not a direct field; Whisper STT is usually part of `OpenAIConfig` or handled within `SpeechService`).
 
--   **`Settings`**: This is the client-facing settings structure, typically serialized as camelCase JSON. It's derived from `AppFullSettings`. It includes:
+-   **`UISettings`**: This is the client-facing settings structure, typically serialized as camelCase JSON. It's derived from `Settings`. It includes:
     -   `visualisation: VisualisationSettings` (same as server's)
     -   `system: ClientSystemSettings` (a subset/transformation of `ServerSystemConfigFromFile`, containing `ClientWebSocketSettings` and `DebugSettings` relevant to the client)
     -   `xr: XRSettings` (same as server's)
     -   `auth: AuthSettings` (same as server's, though client primarily uses tokens/features derived from this)
-    -   Optional AI configurations (mirrored from `AppFullSettings` if present, but client usually doesn't get API keys directly this way).
+    -   Optional AI configurations (mirrored from `Settings` if present, but client usually doesn't get API keys directly this way).
 
 -   **Specific Sub-Structs** (all defined in `src/config/mod.rs`):
     -   `VisualisationSettings` (and its nested `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, `RenderingSettings`, `AnimationSettings`, `LabelSettings`, `BloomSettings`, `HologramSettings`, `CameraSettings`)
