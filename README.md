@@ -2,9 +2,7 @@
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Visualization" style="width:100%; display:block; margin:0 auto;">
 
-![Runtime Old Screenshot](./jarvisOld.png)
-
-**Experience the future of knowledge management:** Real-time 3D visualization of AI agent swarms working alongside your Logseq knowledge graph.
+Real-time 3D visualization of AI agent swarms working alongside your Logseq knowledge graph.
 
 **Inspired by the innovative work of Prof. Rob Aspin:** [https://github.com/trebornipsa](https://github.com/trebornipsa)
 
