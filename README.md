@@ -1,4 +1,4 @@
-# VisionFlow: AI Agent Swarm Visualization & Knowledge Graph Explorer
+# VisionFlow: AI Agent Visualization & Knowledge Graph Explorer
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Visualization" style="width:100%; display:block; margin:0 auto;">
 
