@@ -639,7 +639,7 @@ impl GraphService {
     fn initialize_random_positions(graph: &mut GraphData) {
         let mut rng = rand::thread_rng();
         let node_count = graph.nodes.len() as f32;
-        let initial_radius = 3.0; // Increasing radius for better visibility
+        let initial_radius = 30.0; // 10x larger initial radius for much better node separation
         let golden_ratio = (1.0 + 5.0_f32.sqrt()) / 2.0;
         
         // Log the initialization process
