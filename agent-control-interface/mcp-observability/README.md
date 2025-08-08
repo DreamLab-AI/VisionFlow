@@ -35,26 +35,117 @@ The server will start on stdio, ready to accept MCP protocol connections.
 
 ```mermaid
 graph TD
-    subgraph ClientApp["Frontend Application"]
+    subgraph ClientApp["Frontend"]
         direction TB
         AppInit[AppInitializer]
         TwoPane[TwoPaneLayout]
-        GraphView["GraphViewport<br/>(3D Scene Container)"]
-        GraphCanvas["GraphCanvas<br/>(Three.js Renderer)"]
-        BotsPanel[BotsControlPanel]
-        ActivityLog[ActivityLogPanel]
-        
+        GraphView["GraphViewport<br/>3D Scene Container"]
+        GraphCanvas["GraphCanvas<br/>Three.js Canvas"]
+        RightCtlPanel[RightPaneControlPanel]
+        SettingsUI[SettingsPanelRedesignOptimized]
+        ConvoPane[ConversationPane]
+        NarrativePane[NarrativeGoldminePanel]
+        SettingsMgr[settingsStore]
+        GraphDataMgr[GraphDataManager]
+        RenderEngine["GraphCanvas & GraphManager"]
+        WebSocketSvc[WebSocketService]
+        APISvc[api]
+        NostrAuthSvcClient[nostrAuthService]
+        XRController[XRController]
+
         AppInit --> TwoPane
+        AppInit --> SettingsMgr
+        AppInit --> NostrAuthSvcClient
+        AppInit --> WebSocketSvc
+        AppInit --> GraphDataMgr
+
         TwoPane --> GraphView
-        GraphView --> GraphCanvas
-        TwoPane --> BotsPanel
-        BotsPanel --> ActivityLog
+        TwoPane --> RightCtlPanel
+        TwoPane --> ConvoPane
+        TwoPane --> NarrativePane
+        RightCtlPanel --> SettingsUI
+
+        SettingsUI --> SettingsMgr
+        GraphView --> RenderEngine
+        RenderEngine <--> GraphDataMgr
+        GraphDataMgr <--> WebSocketSvc
+        GraphDataMgr <--> APISvc
+        NostrAuthSvcClient <--> APISvc
+        XRController <--> RenderEngine
+        XRController <--> SettingsMgr
     end
-    
-    subgraph MCPServer["MCP Observability Server"]
+
+    subgraph ServerApp["Backend"]
+        direction TB
+        Actix[ActixWebServer]
+
+        subgraph Handlers_Srv["API_WebSocket_Handlers"]
+            direction TB
+            SettingsH[SettingsHandler]
+            NostrAuthH[NostrAuthHandler]
+            GraphAPI_H[GraphAPIHandler]
+            FilesAPI_H[FilesAPIHandler]
+            RAGFlowH_Srv[RAGFlowHandler]
+            SocketFlowH[SocketFlowHandler]
+            SpeechSocketH[SpeechSocketHandler]
+            HealthH[HealthHandler]
+        end
+
+        subgraph Services_Srv["Core_Services"]
+            direction TB
+            GraphSvc_Srv[GraphService]
+            FileSvc_Srv[FileService]
+            NostrSvc_Srv[NostrService]
+            SpeechSvc_Srv[SpeechService]
+            RAGFlowSvc_Srv[RAGFlowService]
+            PerplexitySvc_Srv[PerplexityService]
+        end
+
+        subgraph Actors_Srv["Actor_System"]
+            direction TB
+            GraphServiceActor[GraphServiceActor]
+            SettingsActor[SettingsActor]
+            MetadataActor[MetadataActor]
+            ClientManagerActor[ClientManagerActor]
+            GPUComputeActor[GPUComputeActor]
+            ProtectedSettingsActor[ProtectedSettingsActor]
+        end
+        AppState_Srv["AppState holds Addr..."]
+
+        Actix --> Handlers_Srv
+
+        Handlers_Srv --> AppState_Srv
+        SocketFlowH --> ClientManagerActor
+        GraphAPI_H --> GraphServiceActor
+        SettingsH --> SettingsActor
+        NostrAuthH --> ProtectedSettingsActor
+
+        GraphServiceActor --> ClientManagerActor
+        GraphServiceActor --> MetadataActor
+        GraphServiceActor --> GPUComputeActor
+        GraphServiceActor --> SettingsActor
+
+        FileSvc_Srv --> MetadataActor
+        NostrSvc_Srv --> ProtectedSettingsActor
+        SpeechSvc_Srv --> SettingsActor
+        RAGFlowSvc_Srv --> SettingsActor
+        PerplexitySvc_Srv --> SettingsActor
+    end
+
+    subgraph External_Srv["External_Services"]
+        direction LR
+        GitHub[GitHubAPI]
+        NostrRelays_Ext[NostrRelays]
+        OpenAI[OpenAIAPI]
+        PerplexityAI_Ext[PerplexityAIAPI]
+        RAGFlow_Ext[RAGFlowAPI]
+        Kokoro_Ext[KokoroAPI]
+    end
+
+    subgraph MCPObservability["MCP Bot Observability"]
         direction TB
         AgentMgr[Agent Manager]
-        Physics["Physics Engine<br/>(Spring-based)"]
+        Physics["Physics Engine<br/>Spring-based"]
         MsgFlow[Message Flow Tracker]
         PerfMon[Performance Monitor]
         Neural[Neural Pattern Learning]
@@ -66,40 +157,79 @@ graph TD
         Neural <--> Memory
         PerfMon <--> Neural
     end
-    
-    subgraph Tools["MCP Tools"]
-        direction LR
-        AgentTools["Agent Tools<br/>(6 tools)"]
-        SwarmTools["Swarm Tools<br/>(4 tools)"]
-        MsgTools["Message Tools<br/>(6 tools)"]
-        PerfTools["Performance Tools<br/>(5 tools)"]
-        VizTools["Visualization Tools<br/>(5 tools)"]
-        NeuralTools["Neural Tools<br/>(5 tools)"]
-        MemTools["Memory Tools<br/>(7 tools)"]
-    end
-    
-    subgraph DataFlow["Data Flow"]
-        direction TB
-        BinaryStream["Binary Position Updates<br/>(28 bytes/agent)"]
-        WebSocket["WebSocket Connection"]
-        JSONRPC["JSON-RPC 2.0 Protocol"]
-    end
-    
-    MCPClient["MCP Client<br/>(Claude)"] <-->|"stdio"| JSONRPC
-    JSONRPC <--> MCPServer
-    MCPServer <--> Tools
-    MCPServer <-->|"Real-time Updates"| WebSocket
-    WebSocket <--> BinaryStream
-    BinaryStream <--> ClientApp
-    
-    GraphCanvas <-->|"3D Visualization"| VisionFlow["VisionFlow 3D<br/>(Spring-Physics Graph)"]
-    VisionFlow <--> BinaryStream
-    
-    style MCPClient fill:#e1f5fe
-    style MCPServer fill:#fff3e0
-    style ClientApp fill:#f3e5f5
-    style Tools fill:#e8f5e9
-    style DataFlow fill:#fce4ec
+
+    WebSocketSvc <--> SocketFlowH
+    APISvc <--> Actix
+
+    FileSvc_Srv --> GitHub
+    NostrSvc_Srv --> NostrRelays_Ext
+    SpeechSvc_Srv --> OpenAI
+    SpeechSvc_Srv --> Kokoro_Ext
+    PerplexitySvc_Srv --> PerplexityAI_Ext
+    RAGFlowSvc_Srv --> RAGFlow_Ext
+
+    GraphDataMgr <--> MCPObservability
+    MCPObservability <-->|"Binary Updates"| WebSocketSvc
+
+    style ClientApp fill:#282C34,stroke:#61DAFB,stroke-width:2px,color:#FFFFFF
+    style ServerApp fill:#282C34,stroke:#A2AAAD,stroke-width:2px,color:#FFFFFF
+    style External_Srv fill:#282C34,stroke:#F7DF1E,stroke-width:2px,color:#FFFFFF
+    style MCPObservability fill:#282C34,stroke:#FF6B6B,stroke-width:2px,color:#FFFFFF
+    style AppInit fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style TwoPane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style GraphView fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style GraphCanvas fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style RightCtlPanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style SettingsUI fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style ConvoPane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style NarrativePane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style SettingsMgr fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style GraphDataMgr fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style RenderEngine fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style WebSocketSvc fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style APISvc fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style NostrAuthSvcClient fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style XRController fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+
+    style Actix fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style Handlers_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style SettingsH fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style NostrAuthH fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style GraphAPI_H fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style FilesAPI_H fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style RAGFlowH_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style SocketFlowH fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style SpeechSocketH fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style HealthH fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style Services_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style GraphSvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style FileSvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style NostrSvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style SpeechSvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style RAGFlowSvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style PerplexitySvc_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style Actors_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style GraphServiceActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style SettingsActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style MetadataActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style ClientManagerActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style GPUComputeActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style ProtectedSettingsActor fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+    style AppState_Srv fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
+
+    style GitHub fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+    style NostrRelays_Ext fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+    style OpenAI fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+    style PerplexityAI_Ext fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+    style RAGFlow_Ext fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+    style Kokoro_Ext fill:#3A3F47,stroke:#F7DF1E,color:#FFFFFF
+
+    style AgentMgr fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
+    style Physics fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
+    style MsgFlow fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
+    style PerfMon fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
+    style Neural fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
+    style Memory fill:#3A3F47,stroke:#FF6B6B,color:#FFFFFF
 ```
 
 ### Component Interaction Flow
