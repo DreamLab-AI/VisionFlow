@@ -31,6 +31,108 @@ The server will start on stdio, ready to accept MCP protocol connections.
 
 ## Architecture
 
+### System Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph ClientApp["Frontend Application"]
+        direction TB
+        AppInit[AppInitializer]
+        TwoPane[TwoPaneLayout]
+        GraphView["GraphViewport<br/>(3D Scene Container)"]
+        GraphCanvas["GraphCanvas<br/>(Three.js Renderer)"]
+        BotsPanel[BotsControlPanel]
+        ActivityLog[ActivityLogPanel]
+        
+        AppInit --> TwoPane
+        TwoPane --> GraphView
+        GraphView --> GraphCanvas
+        TwoPane --> BotsPanel
+        BotsPanel --> ActivityLog
+    end
+    
+    subgraph MCPServer["MCP Observability Server"]
+        direction TB
+        AgentMgr[Agent Manager]
+        Physics["Physics Engine<br/>(Spring-based)"]
+        MsgFlow[Message Flow Tracker]
+        PerfMon[Performance Monitor]
+        Neural[Neural Pattern Learning]
+        Memory[Memory Store]
+        
+        AgentMgr <--> Physics
+        AgentMgr <--> MsgFlow
+        MsgFlow <--> PerfMon
+        Neural <--> Memory
+        PerfMon <--> Neural
+    end
+    
+    subgraph Tools["MCP Tools"]
+        direction LR
+        AgentTools["Agent Tools<br/>(6 tools)"]
+        SwarmTools["Swarm Tools<br/>(4 tools)"]
+        MsgTools["Message Tools<br/>(6 tools)"]
+        PerfTools["Performance Tools<br/>(5 tools)"]
+        VizTools["Visualization Tools<br/>(5 tools)"]
+        NeuralTools["Neural Tools<br/>(5 tools)"]
+        MemTools["Memory Tools<br/>(7 tools)"]
+    end
+    
+    subgraph DataFlow["Data Flow"]
+        direction TB
+        BinaryStream["Binary Position Updates<br/>(28 bytes/agent)"]
+        WebSocket["WebSocket Connection"]
+        JSONRPC["JSON-RPC 2.0 Protocol"]
+    end
+    
+    MCPClient["MCP Client<br/>(Claude)"] <-->|"stdio"| JSONRPC
+    JSONRPC <--> MCPServer
+    MCPServer <--> Tools
+    MCPServer <-->|"Real-time Updates"| WebSocket
+    WebSocket <--> BinaryStream
+    BinaryStream <--> ClientApp
+    
+    GraphCanvas <-->|"3D Visualization"| VisionFlow["VisionFlow 3D<br/>(Spring-Physics Graph)"]
+    VisionFlow <--> BinaryStream
+    
+    style MCPClient fill:#e1f5fe
+    style MCPServer fill:#fff3e0
+    style ClientApp fill:#f3e5f5
+    style Tools fill:#e8f5e9
+    style DataFlow fill:#fce4ec
+```
+
+### Component Interaction Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as MCP Client
+    participant Server as MCP Server
+    participant Physics as Physics Engine
+    participant Visual as 3D Visualization
+    participant Memory as Memory Store
+    
+    Client->>Server: Initialize Swarm
+    Server->>Physics: Create Spring Model
+    Physics->>Server: Initial Positions
+    Server->>Memory: Store Configuration
+    Server->>Visual: Send Binary Updates
+    Visual-->>Client: Render 3D Graph
+    
+    Client->>Server: Send Message
+    Server->>Physics: Apply Message Forces
+    Physics->>Server: Updated Positions
+    Server->>Visual: Stream Updates (60 FPS)
+    Visual-->>Client: Animate Transitions
+    
+    Client->>Server: Query Performance
+    Server->>Memory: Retrieve Metrics
+    Memory-->>Server: Historical Data
+    Server-->>Client: Performance Report
+```
+
+### ASCII Architecture (Alternative View)
+
 ```
 ┌─────────────────────────────────────┐
 │        MCP Client (Claude)          │
