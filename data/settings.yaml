@@ -45,13 +45,13 @@ visualisation:
     enabled: true
     iterations: 200
     damping: 0.85
-    spring_strength: 0.02
-    repulsion_strength: 15.0
-    repulsion_distance: 50.0
-    attraction_strength: 0.05
-    max_velocity: 0.5
-    collision_radius: 5.0
-    bounds_size: 150.0
+    spring_strength: 0.004
+    repulsion_strength: 300.0
+    repulsion_distance: 500.0
+    attraction_strength: 0.002
+    max_velocity: 4.0
+    collision_radius: 60.0
+    bounds_size: 1000.0
     enable_bounds: true
     mass_scale: 1.5
     boundary_damping: 0.9
