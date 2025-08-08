@@ -7,9 +7,7 @@ use std::path::PathBuf;
 // use std::collections::BTreeMap; // For ordered map during serialization - Removed as unused
 
 pub mod feature_access;
-pub mod unified;
-pub mod migration;
-pub mod minimal;
+pub mod settings;
 
 // Recursive function to convert JSON Value keys to snake_case
 fn keys_to_snake_case(value: Value) -> Value {

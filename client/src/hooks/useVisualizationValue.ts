@@ -1,58 +1,58 @@
 /**
- * Hook to easily access and update visualization config values
- * Provides a simple interface similar to useState for config values
+ * Hook to easily access and update settings values
+ * Provides a simple interface similar to useState for settings values
  */
 
 import { useCallback } from 'react';
 import { useVisualizationConfig } from '../providers/VisualizationConfigProvider';
 
 /**
- * Hook to get and set a specific visualization config value
- * @param path - Dot-notation path to the config value (e.g., 'mainLayout.camera.fov')
- * @param defaultValue - Optional default value if the config value doesn't exist
+ * Hook to get and set a specific settings value
+ * @param path - Dot-notation path to the settings value (e.g., 'visualisation.rendering.backgroundColor')
+ * @param defaultValue - Optional default value if the settings value doesn't exist
  * @returns [value, setValue] tuple similar to useState
  */
 export function useVisualizationValue<T = any>(
   path: string,
   defaultValue?: T
 ): [T, (value: T) => void] {
-  const { getConfigValue, updateConfig } = useVisualizationConfig();
+  const { getSetting, setSetting } = useVisualizationConfig();
   
-  const value = getConfigValue(path) ?? defaultValue;
+  const value = getSetting<T>(path) ?? defaultValue;
   
   const setValue = useCallback((newValue: T) => {
-    updateConfig(path, newValue);
-  }, [path, updateConfig]);
+    setSetting(path, newValue);
+  }, [path, setSetting]);
   
   return [value, setValue];
 }
 
 /**
- * Hook to get multiple visualization config values at once
+ * Hook to get multiple settings values at once
  * @param paths - Array of dot-notation paths
  * @returns Object with path as key and value as value
  */
 export function useVisualizationValues<T extends Record<string, any>>(
   paths: string[]
 ): T {
-  const { getConfigValue } = useVisualizationConfig();
+  const { getSetting } = useVisualizationConfig();
   
   const values = {} as T;
   paths.forEach(path => {
-    values[path as keyof T] = getConfigValue(path);
+    values[path as keyof T] = getSetting(path);
   });
   
   return values;
 }
 
 /**
- * Hook to get a whole section of the config
- * @param section - Top-level section name (e.g., 'mainLayout', 'botsVisualization')
- * @returns The config section object
+ * Hook to get a whole section of the settings
+ * @param section - Top-level section name (e.g., 'visualisation', 'system')
+ * @returns The settings section object
  */
-export function useVisualizationSection<T = any>(section: keyof VisualizationConfig): T {
-  const { config } = useVisualizationConfig();
-  return config[section] as T;
+export function useVisualizationSection<T = any>(section: string): T {
+  const { getSetting } = useVisualizationConfig();
+  return getSetting<T>(section);
 }
 
 // Re-export the main hook for convenience

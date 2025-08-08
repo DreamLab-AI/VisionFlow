@@ -49,7 +49,7 @@ export interface PhysicsSettings {
   repulsionDistance: number;
   massScale: number;
   boundaryDamping: number;
- updateThreshold: number;
+  updateThreshold: number;
 }
 
 // Rendering settings

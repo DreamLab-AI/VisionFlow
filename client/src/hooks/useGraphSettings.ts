@@ -1,6 +1,5 @@
-import { useSettingsStore } from '../store/settingsStore';
+import { useSettingsStore, settingsStoreUtils } from '../store/settingsStore';
 import { GraphSettings } from '../features/settings/config/settings';
-import { getGraphSettings } from '../features/settings/utils/settingsMigration';
 
 /**
  * Hook to get settings for a specific graph
@@ -11,7 +10,7 @@ export function useGraphSettings(graphName: 'logseq' | 'visionflow'): GraphSetti
   const settings = useSettingsStore((state) => state.settings);
   
   // Use the migration utility to handle both new and legacy structures
-  return getGraphSettings(settings, graphName);
+  return settingsStoreUtils.getGraphSettings(settings, graphName);
 }
 
 /**

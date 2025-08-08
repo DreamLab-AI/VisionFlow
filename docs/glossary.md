@@ -6,7 +6,7 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 **Actor** - In the context of this project, refers to Actix actors used for concurrent, message-based processing in the Rust backend.
 
-**AppFullSettings** - The complete application settings structure containing all configuration options for both server and client components.
+**Settings** - The complete application settings structure containing all configuration options for both server and client components.
 
 **Audio Processor** - Server-side component that handles audio data processing, including base64 decoding and JSON response parsing from AI services.
 

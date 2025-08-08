@@ -29,8 +29,8 @@ Priority order (highest to lowest):
 
 | Configuration Source | File/Location | Rust Structure | Purpose |
 |---------------------|---------------|----------------|----------|
-| **Main Settings** | `data/settings.yaml` | `AppFullSettings` | Complete application configuration |
-| **Environment Overrides** | `.env` file | Merged into `AppFullSettings` | Secrets and deployment-specific values |
+| **Main Settings** | `data/settings.yaml` | `Settings` | Complete application configuration |
+| **Environment Overrides** | `.env` file | Merged into `Settings` | Secrets and deployment-specific values |
 | **Protected Settings** | In-memory only | `ProtectedSettings` | API keys and sensitive user data |
 | **UI Settings** | Derived from above | `UISettings` | Safe subset sent to frontend |
 | **User Settings** | `/app/user_settings/<pubkey>.yaml` | `UserSettings` | Per-user preferences |
@@ -43,23 +43,23 @@ Priority order (highest to lowest):
 |---------------------|-------------------|------------------|------|-------------|
 | **Core Configuration** ||||
 | `AGENT_CONTROL_URL` | *(runtime only)* | `app_state.agent_control_url` | `String` | MCP server URL for agent control |
-| `RUST_LOG` | `logging.level` | `AppFullSettings.logging.level` | `String` | Log level (trace/debug/info/warn/error) |
-| `DATABASE_URL` | `database.url` | `AppFullSettings.database.url` | `String` | PostgreSQL connection string |
+| `RUST_LOG` | `logging.level` | `Settings.logging.level` | `String` | Log level (trace/debug/info/warn/error) |
+| `DATABASE_URL` | `database.url` | `Settings.database.url` | `String` | PostgreSQL connection string |
 | **GPU Configuration** ||||
-| `ENABLE_GPU_PHYSICS` | `gpu.enabled` | `AppFullSettings.gpu.enabled` | `bool` | Enable CUDA physics simulation |
-| `NVIDIA_GPU_UUID` | `gpu.device_uuid` | `AppFullSettings.gpu.device_uuid` | `String` | Specific GPU device UUID |
-| `CUDA_VISIBLE_DEVICES` | `gpu.device_id` | `AppFullSettings.gpu.device_id` | `u32` | GPU device index |
+| `ENABLE_GPU_PHYSICS` | `gpu.enabled` | `Settings.gpu.enabled` | `bool` | Enable CUDA physics simulation |
+| `NVIDIA_GPU_UUID` | `gpu.device_uuid` | `Settings.gpu.device_uuid` | `String` | Specific GPU device UUID |
+| `CUDA_VISIBLE_DEVICES` | `gpu.device_id` | `Settings.gpu.device_id` | `u32` | GPU device index |
 | **Physics Simulation** ||||
-| `PHYSICS_UPDATE_RATE` | `graph.simulation.update_rate` | `AppFullSettings.graph.simulation.update_rate` | `f32` | Updates per second |
-| `PHYSICS_TIME_STEP` | `graph.simulation.time_step` | `AppFullSettings.graph.simulation.time_step` | `f32` | Simulation timestep |
-| `PHYSICS_DAMPING` | `graph.simulation.damping` | `AppFullSettings.graph.simulation.damping` | `f32` | Velocity damping factor |
+| `PHYSICS_UPDATE_RATE` | `graph.simulation.update_rate` | `Settings.graph.simulation.update_rate` | `f32` | Updates per second |
+| `PHYSICS_TIME_STEP` | `graph.simulation.time_step` | `Settings.graph.simulation.time_step` | `f32` | Simulation timestep |
+| `PHYSICS_DAMPING` | `graph.simulation.damping` | `Settings.graph.simulation.damping` | `f32` | Velocity damping factor |
 | **AI Services** ||||
-| `RAGFLOW_API_KEY` | `ragflow.api_key` | `AppFullSettings.ragflow.api_key` | `String` | RAGFlow API authentication |
-| `PERPLEXITY_API_KEY` | `perplexity.api_key` | `AppFullSettings.perplexity.api_key` | `String` | Perplexity AI API key |
-| `OPENAI_API_KEY` | `openai.api_key` | `AppFullSettings.openai.api_key` | `String` | OpenAI API key |
+| `RAGFLOW_API_KEY` | `ragflow.api_key` | `Settings.ragflow.api_key` | `String` | RAGFlow API authentication |
+| `PERPLEXITY_API_KEY` | `perplexity.api_key` | `Settings.perplexity.api_key` | `String` | Perplexity AI API key |
+| `OPENAI_API_KEY` | `openai.api_key` | `Settings.openai.api_key` | `String` | OpenAI API key |
 | **Feature Access** ||||
-| `POWER_USER_KEY_*` | `features.power_user_keys[]` | `AppFullSettings.features.power_user_keys` | `Vec<String>` | Array of power user keys |
-| `FEATURES_ENABLED` | `features.enabled_features[]` | `AppFullSettings.features.enabled_features` | `Vec<String>` | Enabled feature flags |
+| `POWER_USER_KEY_*` | `features.power_user_keys[]` | `Settings.features.power_user_keys` | `Vec<String>` | Array of power user keys |
+| `FEATURES_ENABLED` | `features.enabled_features[]` | `Settings.features.enabled_features` | `Vec<String>` | Enabled feature flags |
 
 ## Configuration Files
 
@@ -272,10 +272,10 @@ websocket.send({
 
 ## Configuration Schemas
 
-### AppFullSettings Structure
+### Settings Structure
 
 ```rust
-pub struct AppFullSettings {
+pub struct Settings {
     // Server configuration
     pub server: ServerConfig,
     
@@ -356,7 +356,7 @@ pub struct UISettings {
 ```mermaid
 graph LR
     A[Environment Variables] --> B[settings.yaml]
-    B --> C[AppFullSettings]
+    B --> C[Settings]
     C --> D[ProtectedSettings]
     C --> E[UISettings]
     E --> F[Frontend Client]
@@ -371,7 +371,7 @@ graph LR
 Configuration is validated on load:
 
 ```rust
-impl AppFullSettings {
+impl Settings {
     pub fn validate(&self) -> Result<(), ConfigError> {
         // Validate port range
         if self.server.port < 1024 || self.server.port > 65535 {
@@ -404,13 +404,13 @@ sequenceDiagram
     Config->>File: Read settings.yaml
     Config->>Env: Override with env vars
     Config->>Config: Validate
-    Config-->>Main: AppFullSettings
+    Config-->>Main: Settings
 ```
 
 ### Configuration Loading Code
 
 ```rust
-pub async fn load_configuration() -> Result<AppFullSettings, ConfigError> {
+pub async fn load_configuration() -> Result<Settings, ConfigError> {
     // Load base configuration
     let mut config = Config::new();
     

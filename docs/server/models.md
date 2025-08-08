@@ -64,7 +64,7 @@ The server defines two main structures for managing UI-related settings:
     }
     ```
 
-2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialized as camelCase JSON). It's derived from the global `AppFullSettings` for public/default views or from a specific user's `UserSettings`.
+2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialized as camelCase JSON). It's derived from the global `Settings` for public/default views or from a specific user's `UserSettings`.
 
     ```rust
     // In src/config/mod.rs
@@ -72,9 +72,9 @@ The server defines two main structures for managing UI-related settings:
     #[serde(rename_all = "camelCase")]
     pub struct UISettings {
         pub visualisation: VisualisationSettings, // Multi-graph support
-        pub system: UISystemSettings,             // Contains client-relevant parts of AppFullSettings.system
-        pub xr: XRSettings,                       // Sourced from AppFullSettings.xr
-        // Note: AuthSettings from AppFullSettings are used server-side; client gets tokens/features.
+        pub system: UISystemSettings,             // Contains client-relevant parts of Settings.system
+        pub xr: XRSettings,                       // Sourced from Settings.xr
+        // Note: AuthSettings from Settings are used server-side; client gets tokens/features.
         // AI service configurations (like API keys) are NOT part of UISettings.
         // Client interacts with AI services via API endpoints; server uses ProtectedSettings for keys.
     }
@@ -144,7 +144,7 @@ The server automatically migrates user settings when they are loaded, ensuring a
 
 ### Persistence
 -   **User-Specific Settings (`UserSettings`)**: Saved to individual YAML files (e.g., `/app/user_settings/<pubkey>.yaml`).
--   **Global/Default Settings (`AppFullSettings` from which `UISettings` can be derived)**: Saved in `settings.yaml`.
+-   **Global/Default Settings (`Settings` from which `UISettings` can be derived)**: Saved in `settings.yaml`.
 
 ## Protected Settings (`ProtectedSettings`)
 

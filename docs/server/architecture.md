@@ -40,7 +40,7 @@ The `AppState::new` constructor is responsible for setting up all services and l
 ```rust
 impl AppState {
     pub async fn new(
-        settings: AppFullSettings,
+        settings: Settings,
         github_client: Arc<GitHubClient>,
         content_api: Arc<ContentAPI>,
         perplexity_service: Option<Arc<PerplexityService>>,
@@ -52,7 +52,7 @@ impl AppState {
 ```
 
 ### Service Setup
--   **Settings Loading**: `AppFullSettings` are loaded from `settings.yaml` and environment variables.
+-   **Settings Loading**: `Settings` are loaded from `settings.yaml` and environment variables.
 -   **GitHub Client**: Initialized for repository content access.
 -   **Content API**: Initialized for local file system operations and content fetching.
 -   **Metadata Store**: Loaded or created, responsible for managing file metadata and relationships.
@@ -78,7 +78,7 @@ Services and handlers access state by sending messages to the actors via their a
 
 ```rust
 // Example access pattern using actor messages
-// async fn example_get_settings(app_state: &AppState) -> AppFullSettings {
+// async fn example_get_settings(app_state: &AppState) -> Settings {
 //     app_state.settings_addr.send(GetSettings).await.unwrap().unwrap()
 // }
 // async fn example_update_metadata(app_state: &AppState, new_metadata: MetadataStore) {

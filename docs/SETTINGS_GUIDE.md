@@ -2,11 +2,28 @@
 
 ## Overview
 
-The VisionFlow application uses a sophisticated multi-layered settings system that supports:
-- Server-side master configuration (settings.yaml)
-- Client-side defaults (defaultSettings.ts)
-- User-specific settings (via Nostr authentication)
-- Runtime settings updates via REST API and WebSocket
+The VisionFlow application uses a clean, single-source-of-truth settings system that provides:
+- **Backend Settings (Rust)**: Server-side configuration loaded from settings.yaml
+- **REST API**: Clean camelCase JSON interface for settings operations
+- **Frontend Settings (React)**: TypeScript settings store with real-time updates
+- **User Persistence**: User-specific settings via Nostr authentication
+- **GPU Integration**: Physics settings automatically propagated to GPU compute
+
+## Architecture
+
+The new settings system follows a clean data flow:
+
+```
+Backend (Rust) → REST API → Frontend (React) → User Interface
+      ↓
+   GPU Compute
+```
+
+### Key Components
+- **SettingsActor**: Manages settings state in the Rust backend
+- **Settings REST API**: Provides GET/POST endpoints with camelCase JSON
+- **settingsStore**: Zustand store for frontend state management
+- **SettingsService**: Handles API communication and validation
 
 ## Recent Improvements (2025)
 
@@ -83,7 +100,7 @@ This is the master configuration file that defines all default settings for the 
 ### 2. Client Defaults (defaultSettings.ts)
 Location: `/workspace/ext/client/src/features/settings/config/defaultSettings.ts`
 
-TypeScript configuration that mirrors the server settings with proper type safety. Uses camelCase for JavaScript/TypeScript compatibility.
+TypeScript configuration that provides client-side defaults with proper type safety. Uses camelCase for JavaScript/TypeScript compatibility and serves as a fallback during initialization.
 
 ### 3. Simulation Parameters (simulation_params.rs)
 Location: `/workspace/ext/src/models/simulation_params.rs`
@@ -97,37 +114,62 @@ Rust structures that define GPU-accelerated physics simulation parameters with t
 
 ### REST Endpoints
 
-#### Get Public Settings
-```
-GET /api/user-settings
-```
-Returns the current public settings configuration.
+The settings system provides clean REST endpoints with consistent camelCase JSON formatting.
 
-#### Update Settings
+#### Get Settings
 ```
-POST /api/user-settings
-Content-Type: application/json
+GET /api/settings
+```
+Returns the current settings configuration in camelCase format.
 
+**Response Example:**
+```json
 {
   "visualisation": {
     "nodes": {
       "baseColor": "#00e5ff",
-      "metalness": 0.85
+      "metalness": 0.85,
+      "size": 1.2
+    },
+    "physics": {
+      "enabled": true,
+      "repulsionStrength": 15.0,
+      "springStrength": 0.02
+    }
+  },
+  "system": {
+    "debug": false,
+    "performanceMonitoring": true
+  }
+}
+```
+
+#### Update Settings
+```
+POST /api/settings
+Content-Type: application/json
+```
+**Request Body:** Partial settings object to update
+```json
+{
+  "visualisation": {
+    "nodes": {
+      "baseColor": "#ff0080"
     }
   }
 }
 ```
 
-#### Get User Settings (Nostr Auth)
+#### Get User Settings (Authenticated)
 ```
-GET /api/user-settings/sync
+GET /api/settings/user
 Headers:
   X-Nostr-Pubkey: <public_key>
 ```
 
-#### Update User Settings (Nostr Auth)
+#### Update User Settings (Authenticated)
 ```
-POST /api/user-settings/sync
+POST /api/settings/user
 Headers:
   X-Nostr-Pubkey: <public_key>
 Content-Type: application/json
@@ -162,24 +204,101 @@ The IntegratedControlPanel component provides real-time settings adjustment with
 - F button: Commit changes
 - 6DOF control: Adjust slider values with physical controller
 
-## Settings Store (Zustand)
+## Frontend Settings Store
 
-The client uses Zustand for state management with the following key methods:
+The client uses Zustand for settings state management with validation and persistence:
 
 ```typescript
-const { settings, updateSettings } = useSettingsStore();
+// Get current settings
+const settings = useSettingsStore(state => state.settings);
 
-// Update settings
-updateSettings((draft) => {
-  draft.visualisation.nodes.baseColor = '#00e5ff';
+// Update settings with validation
+const { updateSettings } = useSettingsStore();
+updateSettings({
+  visualisation: {
+    nodes: {
+      baseColor: '#00e5ff'
+    }
+  }
 });
 
-// Subscribe to changes
+// Subscribe to specific changes
 useSettingsStore.subscribe(
-  'viewport.update',
-  () => console.log('Viewport updated')
+  state => state.settings.visualisation.physics,
+  (physics) => console.log('Physics updated:', physics)
 );
 ```
+
+### Settings Validation
+
+Settings are validated on both client and server:
+- **Client**: TypeScript types ensure compile-time safety
+- **Server**: Rust structs validate incoming settings data
+- **Runtime**: Settings are validated before GPU propagation
+
+## Architecture Overview
+
+### Single Source of Truth Pattern
+
+The new settings system implements a clean single-source-of-truth architecture:
+
+```mermaid
+flowchart TD
+    subgraph Backend ["Backend (Rust)"]
+        YAML[settings.yaml]
+        SettingsActor["SettingsActor"]
+        Settings["Settings Struct"]
+        GPU["GPU Compute"]
+    end
+
+    subgraph API ["REST API Layer"]
+        GET[GET /api/settings]
+        POST[POST /api/settings]
+        Validation["camelCase Conversion"]
+    end
+
+    subgraph Frontend ["Frontend (React)"]
+        Store["settingsStore (Zustand)"]
+        Components["React Components"]
+        UI["User Interface"]
+    end
+
+    YAML --> Settings
+    Settings --> SettingsActor
+    SettingsActor --> GET
+    GET --> Validation
+    Validation --> Store
+    
+    Store --> Components
+    Components --> UI
+    UI --> POST
+    POST --> Validation
+    Validation --> SettingsActor
+    SettingsActor --> Settings
+    SettingsActor --> GPU
+
+    style Backend fill:#3a3f47,stroke:#a2aaad,color:#ffffff
+    style API fill:#3a3f47,stroke:#61dafb,color:#ffffff
+    style Frontend fill:#3a3f47,stroke:#f7df1e,color:#000000
+```
+
+### Data Flow
+
+1. **Initialization**: Settings loaded from `settings.yaml` into Rust `Settings` struct
+2. **Actor Management**: `SettingsActor` manages settings state with message passing
+3. **API Conversion**: REST endpoints convert between snake_case (Rust) and camelCase (JSON)
+4. **Frontend Updates**: Settings changes propagate through Zustand store to React components
+5. **GPU Propagation**: Physics settings automatically sync to GPU compute kernels
+6. **Validation Boundaries**: Each layer validates data according to its constraints
+
+### Key Benefits
+
+- **Type Safety**: Full TypeScript and Rust type checking
+- **Performance**: Efficient message passing with actors
+- **Consistency**: Single settings struct eliminates duplication
+- **Validation**: Multiple validation layers prevent invalid states
+- **GPU Integration**: Seamless physics settings propagation
+- **User Experience**: Real-time UI updates with optimistic updates
 
 ## Best Practices
 

@@ -60,7 +60,7 @@ impl AppState {
         let physics_settings = settings.visualisation.physics.clone();
         
         info!("[AppState::new] Starting SettingsActor");
-        let settings_addr = SettingsActor::new(settings).start();
+        let settings_addr = SettingsActor::new().start();
 
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
