@@ -149,6 +149,73 @@ impl Default for RenderingSettings {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HologramSettings {
+    pub ring_count: u32,
+    pub ring_color: String,
+    pub ring_opacity: f32,
+    pub sphere_sizes: [f32; 2],
+    pub ring_rotation_speed: f32,
+    pub enable_buckminster: bool,
+    pub buckminster_size: f32,
+    pub buckminster_opacity: f32,
+    pub enable_geodesic: bool,
+    pub geodesic_size: f32,
+    pub geodesic_opacity: f32,
+    pub enable_triangle_sphere: bool,
+    pub triangle_sphere_size: f32,
+    pub triangle_sphere_opacity: f32,
+    pub global_rotation_speed: f32,
+}
+
+impl Default for HologramSettings {
+    fn default() -> Self {
+        Self {
+            ring_count: 5,
+            ring_color: "#00ffff".to_string(),
+            ring_opacity: 0.8,
+            sphere_sizes: [40.0, 80.0],
+            ring_rotation_speed: 12.0,
+            enable_buckminster: true,
+            buckminster_size: 50.0,
+            buckminster_opacity: 0.3,
+            enable_geodesic: true,
+            geodesic_size: 60.0,
+            geodesic_opacity: 0.25,
+            enable_triangle_sphere: true,
+            triangle_sphere_size: 70.0,
+            triangle_sphere_opacity: 0.4,
+            global_rotation_speed: 0.5,
+        }
+    }
+}
+
+impl HologramSettings {
+    pub fn validate(&mut self) {
+        // Ensure ring count is reasonable
+        self.ring_count = self.ring_count.min(10);
+        
+        // Clamp opacity values
+        self.ring_opacity = self.ring_opacity.clamp(0.0, 1.0);
+        self.buckminster_opacity = self.buckminster_opacity.clamp(0.0, 1.0);
+        self.geodesic_opacity = self.geodesic_opacity.clamp(0.0, 1.0);
+        self.triangle_sphere_opacity = self.triangle_sphere_opacity.clamp(0.0, 1.0);
+        
+        // Ensure sphere sizes are reasonable (10-200 range)
+        self.sphere_sizes[0] = self.sphere_sizes[0].clamp(10.0, 200.0);
+        self.sphere_sizes[1] = self.sphere_sizes[1].clamp(10.0, 200.0);
+        
+        // Ensure other sizes are reasonable
+        self.buckminster_size = self.buckminster_size.clamp(10.0, 150.0);
+        self.geodesic_size = self.geodesic_size.clamp(10.0, 150.0);
+        self.triangle_sphere_size = self.triangle_sphere_size.clamp(10.0, 150.0);
+        
+        // Clamp rotation speeds
+        self.ring_rotation_speed = self.ring_rotation_speed.clamp(0.0, 50.0);
+        self.global_rotation_speed = self.global_rotation_speed.clamp(0.0, 20.0);
+    }
+}
+
 // ============================================================================
 // SYSTEM SETTINGS - Backend configuration
 // ============================================================================
@@ -220,6 +287,9 @@ pub struct MinimalSettings {
     // Global rendering settings
     pub rendering: RenderingSettings,
     
+    // Hologram effects settings
+    pub hologram: HologramSettings,
+    
     // System configuration
     pub network: NetworkSettings,
     pub websocket: WebSocketSettings,
@@ -247,6 +317,7 @@ impl Default for MinimalSettings {
             active_graph: "logseq".to_string(),
             graphs,
             rendering: RenderingSettings::default(),
+            hologram: HologramSettings::default(),
             network: NetworkSettings::default(),
             websocket: WebSocketSettings::default(),
             debug: false,

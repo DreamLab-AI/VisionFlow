@@ -12,6 +12,7 @@ import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
 import { createEventHandlers } from './GraphManager_EventHandlers'
 import { MetadataShapes } from './MetadataShapes'
+import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 
 const logger = createLogger('GraphManager')
@@ -547,6 +548,9 @@ const GraphManager: React.FC = () => {
 
   return (
     <>
+      {/* Node shader toggle - controls animation effects */}
+      <NodeShaderToggle materialRef={materialRef} />
+      
       {/* Render nodes based on metadata shape setting */}
       {enableMetadataShape ? (
   <MetadataShapes

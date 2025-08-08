@@ -11,6 +11,7 @@ import { createLogger } from '../../../utils/logger';
 import { BotsVisualization } from '../../bots/components';
 import { HologramManager } from '../../visualisation/renderers/HologramManager';
 import { EnhancedHologramSystem } from '../../visualisation/renderers/EnhancedHologramSystem';
+import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
 
 // Ensure Three.js types are properly loaded if not globally done
 // import '../../../types/react-three-fiber.d.ts';
@@ -175,7 +176,22 @@ const GraphViewport: React.FC = () => {
           {/* Using GraphManager for all graph rendering */}
           <GraphManager />
 
-          {/* Render Enhanced Hologram System when hologram is enabled */}
+          {/* World-class hologram effects controlled by hologram toggle */}
+          <WorldClassHologram 
+            enabled={hologramEnabled} 
+            position={graphCenter}
+          />
+          
+          {/* Energy field particles for ambient eye candy when hologram is on */}
+          {hologramEnabled && (
+            <EnergyFieldParticles 
+              count={1000} 
+              bounds={graphSize * 2} 
+              color={nodeSettings?.baseColor || '#00ffff'} 
+            />
+          )}
+          
+          {/* Legacy enhanced hologram system (optional - can remove if redundant) */}
           {hologramEnabled && (
             <EnhancedHologramSystem
               position={graphCenter}

@@ -94,8 +94,8 @@ export const defaultSettings: Settings = {
       backgroundColor: "#0a0e1a",
       directionalLightIntensity: 1.5,
       enableAmbientOcclusion: false,
-      enableAntialiasing: false, // From JSON (camelCase, was true)
-      enableShadows: false, // From JSON (camelCase, was true)
+      enableAntialiasing: true, // FIXED: Enabled for crisp rendering
+      enableShadows: true, // FIXED: Enabled for depth and realism
       environmentIntensity: 0.7,
       shadowMapSize: "2048",
       shadowBias: 0.0001,
@@ -108,21 +108,21 @@ export const defaultSettings: Settings = {
     },
     animations: {
       enableMotionBlur: false,
-      enableNodeAnimations: false,
+      enableNodeAnimations: true, // Enable animated shaders
       motionBlurStrength: 0.2,
-      selectionWaveEnabled: false,
-      pulseEnabled: false,
-      pulseSpeed: 0.8,
-      pulseStrength: 0.6,
+      selectionWaveEnabled: true, // Enable wave effects
+      pulseEnabled: true, // Enable pulsing effects
+      pulseSpeed: 1.2, // Faster pulse
+      pulseStrength: 0.8, // Stronger pulse
       waveSpeed: 0.5,
     },
     bloom: { // This section is for visualisation.bloom specific settings
-      edgeBloomStrength: 2.5,
+      edgeBloomStrength: 3.5, // Stronger edge glow
       enabled: true,
       environmentBloomStrength: 3.0,
-      nodeBloomStrength: 2.0,
+      nodeBloomStrength: 3.0, // Stronger node glow
       radius: 0.85,
-      strength: 1.5,
+      strength: 2.0, // Increased bloom intensity
       threshold: 0.15,
     },
     hologram: {
