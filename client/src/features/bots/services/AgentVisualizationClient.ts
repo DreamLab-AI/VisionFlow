@@ -211,9 +211,9 @@ export class AgentVisualizationClient {
         
         // Initialize position (will be set by physics or server)
         position: new THREE.Vector3(
-          data.positions[agentData.id]?.x || Math.random() * 40 - 20,
-          data.positions[agentData.id]?.y || Math.random() * 40 - 20,
-          data.positions[agentData.id]?.z || Math.random() * 40 - 20
+          data.positions[agentData.id]?.x || Math.random() * 400 - 200,
+          data.positions[agentData.id]?.y || Math.random() * 400 - 200,
+          data.positions[agentData.id]?.z || Math.random() * 400 - 200
         ),
         velocity: new THREE.Vector3(),
         
