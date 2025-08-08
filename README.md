@@ -16,7 +16,7 @@ This project was built over several months by a non-programmer, using AI agents 
 
 ### AI in the Development Process
 
-The entire codebase, from the Rust backend with Actix to the TypeScript frontend with React and Three.js, was generated through an iterative, conversational process with AI agents. This workflow allowed for rapid prototyping, complex feature implementation, and exploration of technologies that would typically be beyond the reach of a solo, non-technical founder.
+The entire codebase, from the Rust backend with Actix to the TypeScript frontend with React and Three.js, was generated through an iterative, conversational process with AI agents. This workflow allowed for rapid prototyping, complex feature implementation, and exploration of technologies that would typically be beyond the reach of a solo, non-developer founder.
 
 ### Integrated AI Features
 
