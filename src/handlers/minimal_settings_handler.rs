@@ -123,6 +123,27 @@ pub async fn switch_graph(
     })))
 }
 
+// POST /api/settings/hologram - Update hologram settings
+pub async fn update_hologram(
+    _app_state: web::Data<AppState>,
+    hologram: web::Json<crate::config::minimal::HologramSettings>,
+) -> Result<HttpResponse> {
+    let mut hologram_settings = hologram.into_inner();
+    
+    // Validate settings
+    hologram_settings.validate();
+    
+    info!("Updated hologram settings: {:?}", hologram_settings);
+    
+    // TODO: Apply hologram settings to visualization
+    
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "status": "success",
+        "message": "Hologram settings updated",
+        "settings": hologram_settings
+    })))
+}
+
 // Configure routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -133,6 +154,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     .service(
         web::resource("/settings/physics")
             .route(web::post().to(update_physics))
+    )
+    .service(
+        web::resource("/settings/hologram")
+            .route(web::post().to(update_hologram))
     )
     .service(
         web::resource("/settings/graphs")

@@ -145,7 +145,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
       transparent: true,
       side: THREE.DoubleSide,
       depthWrite: true,
-      blending: THREE.NormalBlending, // Change to additive for more glow
+      blending: THREE.AdditiveBlending, // Enhanced glow effect // Change to additive for more glow
     });
   }
 
