@@ -135,21 +135,21 @@ open http://localhost:3001
 graph TD
     subgraph ClientApp ["Frontend"]
         direction LR
-        AppInit[AppInitializer]
-        TwoPane[TwoPaneLayout]
-        GraphView[GraphViewport (Container for 3D Scene)]
-        GraphCanvas[GraphCanvas (Three.js Canvas)]
-        RightCtlPanel[RightPaneControlPanel]
-        SettingsUI[SettingsPanelRedesignOptimized]
-        ConvoPane[ConversationPane]
-        NarrativePane[NarrativeGoldminePanel]
-        SettingsMgr[settingsStore]
-        GraphDataMgr[GraphDataManager]
-        RenderEngine[GraphCanvas & GraphManager]
-        WebSocketSvc[WebSocketService]
-        APISvc[api]
-        NostrAuthSvcClient[nostrAuthService]
-        XRController[XRController]
+        AppInit["AppInitializer"]
+        TwoPane["TwoPaneLayout"]
+        GraphView["GraphViewport <br/> 3D Scene Container"]
+        GraphCanvas["GraphCanvas <br/> Three.js Canvas"]
+        RightCtlPanel["RightPaneControlPanel"]
+        SettingsUI["SettingsPanelRedesignOptimized"]
+        ConvoPane["ConversationPane"]
+        NarrativePane["NarrativeGoldminePanel"]
+        SettingsMgr["settingsStore"]
+        GraphDataMgr["GraphDataManager"]
+        RenderEngine["GraphCanvas & GraphManager"]
+        WebSocketSvc["WebSocketService"]
+        APISvc["api"]
+        NostrAuthSvcClient["nostrAuthService"]
+        XRController["XRController"]
 
         AppInit --> TwoPane
         AppInit --> SettingsMgr
@@ -175,40 +175,40 @@ graph TD
 
     subgraph ServerApp ["Backend"]
         direction LR
-        Actix[ActixWebServer]
+        Actix["ActixWebServer"]
 
-        subgraph Handlers_Srv ["API_WebSocket_Handlers"]
+        subgraph Handlers_Srv ["API & WebSocket Handlers"]
             direction TB
-            SettingsH[SettingsHandler]
-            NostrAuthH[NostrAuthHandler]
-            GraphAPI_H[GraphAPIHandler]
-            FilesAPI_H[FilesAPIHandler]
-            RAGFlowH_Srv[RAGFlowHandler]
-            SocketFlowH[SocketFlowHandler]
-            SpeechSocketH[SpeechSocketHandler]
-            HealthH[HealthHandler]
+            SettingsH["SettingsHandler"]
+            NostrAuthH["NostrAuthHandler"]
+            GraphAPI_H["GraphAPIHandler"]
+            FilesAPI_H["FilesAPIHandler"]
+            RAGFlowH_Srv["RAGFlowHandler"]
+            SocketFlowH["SocketFlowHandler"]
+            SpeechSocketH["SpeechSocketHandler"]
+            HealthH["HealthHandler"]
         end
 
-        subgraph Services_Srv ["Core_Services"]
+        subgraph Services_Srv ["Core Services"]
             direction TB
-            GraphSvc_Srv[GraphService]
-            FileSvc_Srv[FileService]
-            NostrSvc_Srv[NostrService]
-            SpeechSvc_Srv[SpeechService]
-            RAGFlowSvc_Srv[RAGFlowService]
-            PerplexitySvc_Srv[PerplexityService]
+            GraphSvc_Srv["GraphService"]
+            FileSvc_Srv["FileService"]
+            NostrSvc_Srv["NostrService"]
+            SpeechSvc_Srv["SpeechService"]
+            RAGFlowSvc_Srv["RAGFlowService"]
+            PerplexitySvc_Srv["PerplexityService"]
         end
 
-        subgraph Actors_Srv ["Actor_System"]
+        subgraph Actors_Srv ["Actor System"]
             direction TB
-            GraphServiceActor[GraphServiceActor]
-            SettingsActor[SettingsActor]
-            MetadataActor[MetadataActor]
-            ClientManagerActor[ClientManagerActor]
-            GPUComputeActor[GPUComputeActor]
-            ProtectedSettingsActor[ProtectedSettingsActor]
+            GraphServiceActor["GraphServiceActor"]
+            SettingsActor["SettingsActor"]
+            MetadataActor["MetadataActor"]
+            ClientManagerActor["ClientManagerActor"]
+            GPUComputeActor["GPUComputeActor"]
+            ProtectedSettingsActor["ProtectedSettingsActor"]
         end
-        AppState_Srv[AppState holds Addr<...>]
+        AppState_Srv["AppState holds Addr<...>"]
 
         Actix --> Handlers_Srv
 
@@ -230,14 +230,14 @@ graph TD
         PerplexitySvc_Srv --> SettingsActor
     end
 
-    subgraph External_Srv ["External_Services"]
+    subgraph External_Srv ["External Services"]
         direction LR
-        GitHub[GitHubAPI]
-        NostrRelays_Ext[NostrRelays]
-        OpenAI[OpenAIAPI]
-        PerplexityAI_Ext[PerplexityAIAPI]
-        RAGFlow_Ext[RAGFlowAPI]
-        Kokoro_Ext[KokoroAPI]
+        GitHub["GitHub API"]
+        NostrRelays_Ext["Nostr Relays"]
+        OpenAI["OpenAI API"]
+        PerplexityAI_Ext["PerplexityAI API"]
+        RAGFlow_Ext["RAGFlow API"]
+        Kokoro_Ext["Kokoro API"]
     end
 
     WebSocketSvc <--> SocketFlowH
