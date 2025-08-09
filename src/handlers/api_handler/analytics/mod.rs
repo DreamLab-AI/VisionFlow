@@ -69,7 +69,7 @@ pub struct SetFocusRequest {
 }
 
 /// Focus region definition
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FocusRegion {
     pub center_x: f32,

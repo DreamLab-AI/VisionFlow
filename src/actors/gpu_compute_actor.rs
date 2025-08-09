@@ -14,7 +14,7 @@ use crate::models::constraints::{Constraint, AdvancedParams};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::edge_data::EdgeData;
 use crate::utils::advanced_gpu_compute::{AdvancedGPUContext, EnhancedBinaryNodeData, EnhancedEdgeData};
-use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer};
+use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4};
 use crate::types::vec3::Vec3Data;
 use crate::actors::messages::*;
 use std::path::Path;
@@ -1584,13 +1584,49 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
         // For now, just mark as initialized without the async complexity
         // The visual analytics GPU is initialized on-demand when needed
         self.visual_analytics_params = Some(VisualAnalyticsParams {
-            layer_weights: vec![1.0; 4],
-            temporal_weight: 0.8,
-            spatial_weight: 0.9,
-            topology_weight: 0.7,
+            // GPU optimization
+            total_nodes: msg.max_nodes as i32,
+            total_edges: msg.max_edges as i32,
+            active_layers: 4,
+            hierarchy_depth: 3,
+            
+            // Temporal dynamics
+            current_frame: 0,
+            time_step: 0.016,
+            temporal_decay: 0.95,
+            history_weight: 0.8,
+            
+            // Force parameters (multi-resolution)
+            force_scale: [1.0, 0.8, 0.6, 0.4],
+            damping: [0.9, 0.85, 0.8, 0.75],
+            temperature: [1.0, 0.8, 0.6, 0.4],
+            
+            // Isolation and focus
             isolation_strength: 0.5,
-            coherence_threshold: 0.6,
-            max_iterations: 100,
+            focus_gamma: 1.2,
+            primary_focus_node: -1,
+            context_alpha: 0.7,
+            
+            // Visual comprehension
+            complexity_threshold: 0.8,
+            saliency_boost: 1.5,
+            information_bandwidth: 100.0,
+            
+            // Topology analysis
+            community_algorithm: 0,
+            modularity_resolution: 1.0,
+            topology_update_interval: 10,
+            
+            // Semantic analysis
+            semantic_influence: 0.7,
+            drift_threshold: 0.5,
+            embedding_dims: 128,
+            
+            // Viewport
+            camera_position: Vec4 { x: 0.0, y: 0.0, z: 500.0, t: 0.0 },
+            viewport_bounds: Vec4 { x: -1000.0, y: -1000.0, z: 1000.0, t: 1000.0 },
+            zoom_level: 1.0,
+            time_window: 10.0,
         });
         
         info!("Visual analytics parameters initialized");

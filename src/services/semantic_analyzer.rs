@@ -28,7 +28,7 @@ pub struct SemanticFeatures {
 }
 
 /// Knowledge domain classification
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum KnowledgeDomain {
     Mathematics,
     Physics,
@@ -217,7 +217,7 @@ impl SemanticAnalyzer {
 
     /// Analyze metadata to extract semantic features
     pub fn analyze_metadata(&mut self, metadata: &Metadata) -> SemanticFeatures {
-        let id = metadata.path.clone();
+        let id = metadata.file_name.clone();
         
         // Check cache
         if self.config.enable_caching {
@@ -228,7 +228,7 @@ impl SemanticAnalyzer {
         
         // Extract features
         let topics = self.extract_topics(metadata);
-        let domains = self.classify_domains(&topics, &metadata.path);
+        let domains = self.classify_domains(&topics, &metadata.file_name);
         let temporal = self.extract_temporal_features(metadata);
         let structural = self.extract_structural_features(metadata);
         let content = self.extract_content_features(metadata);

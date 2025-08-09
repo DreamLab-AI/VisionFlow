@@ -584,23 +584,11 @@ impl AdvancedEdgeGenerator {
                 
                 if edge.bidirectional {
                     vec![
-                        Edge {
-                            source_idx,
-                            target_idx,
-                            weight: edge.weight,
-                        },
-                        Edge {
-                            source_idx: target_idx,
-                            target_idx: source_idx,
-                            weight: edge.weight,
-                        },
+                        Edge::new(source_idx, target_idx, edge.weight),
+                        Edge::new(target_idx, source_idx, edge.weight),
                     ]
                 } else {
-                    vec![Edge {
-                        source_idx,
-                        target_idx,
-                        weight: edge.weight,
-                    }]
+                    vec![Edge::new(source_idx, target_idx, edge.weight)]
                 }
             })
             .collect()
