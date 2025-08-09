@@ -3,6 +3,7 @@ pub mod app_state;
 pub mod config;
 pub mod handlers;
 pub mod models;
+pub mod physics;
 pub mod services;
 pub mod types;
 pub mod utils;
