@@ -665,7 +665,7 @@ impl SemanticConstraintGenerator {
         target_node: &Node,
         metadata_store: Option<&MetadataStore>,
     ) -> f32 {
-        let mut strength = 0.0;
+        let mut strength: f32 = 0.0;
         
         // File size relationship (larger files often contain or reference smaller ones)
         if let Some(store) = metadata_store {

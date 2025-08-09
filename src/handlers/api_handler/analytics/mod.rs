@@ -339,8 +339,8 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
         frame_time_ms: 16.67,
         gpu_utilization: 45.0,
         memory_usage_mb: 512.0,
-        active_nodes: physics_stats.as_ref().map(|s| s.node_count).unwrap_or(0),
-        active_edges: physics_stats.as_ref().map(|s| s.edge_count).unwrap_or(0),
+        active_nodes: physics_stats.as_ref().map(|s| s.num_nodes).unwrap_or(0),
+        active_edges: physics_stats.as_ref().map(|s| s.num_edges).unwrap_or(0),
         render_time_ms: 12.5,
     };
 

@@ -578,12 +578,12 @@ impl GraphServiceActor {
         }
         
         // Create alignment constraints for each depth layer
-        for (depth, node_ids) in depth_layers {
+        for (depth, node_ids) in &depth_layers {
             if node_ids.len() >= 2 {
-                let z_position = -(depth as f32) * self.advanced_params.layer_separation;
+                let z_position = -(*depth as f32) * self.advanced_params.layer_separation;
                 let constraint = Constraint {
                     kind: crate::models::constraints::ConstraintKind::AlignmentDepth,
-                    node_indices: node_ids,
+                    node_indices: node_ids.clone(),
                     params: vec![z_position],
                     weight: 0.8,
                     active: true,
@@ -679,66 +679,78 @@ impl GraphServiceActor {
         }
         
         // Use advanced GPU compute if available, otherwise fallback to legacy
-        if let Some(ref mut advanced_gpu) = self.advanced_gpu_context {
-            self.run_advanced_gpu_step(advanced_gpu, ctx);
-        } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            self.run_legacy_gpu_step(gpu_compute_addr, ctx);
+        if self.advanced_gpu_context.is_some() {
+            self.run_advanced_gpu_step(ctx);
+        } else if let Some(gpu_compute_addr) = self.gpu_compute_addr.clone() {
+            self.run_legacy_gpu_step(&gpu_compute_addr, ctx);
         } else {
             warn!("No GPU compute context available for physics simulation");
         }
     }
     
-    fn run_advanced_gpu_step(&mut self, gpu_context: &mut AdvancedGPUContext, _ctx: &mut Context<Self>) {
+    fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
         // Convert nodes to enhanced format with semantic features
         let enhanced_nodes = self.prepare_enhanced_nodes();
         
         // Update GPU with enhanced node data
-        if let Err(e) = gpu_context.update_node_data(enhanced_nodes) {
-            error!("Failed to update advanced GPU node data: {}", e);
-            return;
-        }
+        let mut positions_to_update = Vec::new();
+        let active_constraints_count;
+        let iteration_count;
         
-        // Execute GPU physics step with constraints
-        let active_constraints: Vec<Constraint> = self.constraint_set.active_constraints()
-            .into_iter().cloned().collect();
+        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+            if let Err(e) = gpu_context.update_node_data(enhanced_nodes) {
+                error!("Failed to update advanced GPU node data: {}", e);
+                return;
+            }
         
-        if let Err(e) = gpu_context.step_with_constraints(&active_constraints) {
-            error!("Advanced GPU physics step failed: {}", e);
-            return;
-        }
-        
-        // Get results and update local state
-        match gpu_context.get_legacy_node_data() {
-            Ok(node_data) => {
-                let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
-                let mut positions = Vec::new();
-                
-                for (index, data) in node_data.iter().enumerate() {
-                    if let Some(node_id) = node_ids.get(index) {
-                        positions.push((*node_id, data.clone()));
+            // Execute GPU physics step with constraints
+            let active_constraints: Vec<Constraint> = self.constraint_set.active_constraints()
+                .into_iter().cloned().collect();
+            active_constraints_count = active_constraints.len();
+            
+            if let Err(e) = gpu_context.step_with_constraints(&active_constraints) {
+                error!("Advanced GPU physics step failed: {}", e);
+                return;
+            }
+            
+            // Get results and update local state
+            match gpu_context.get_legacy_node_data() {
+                Ok(node_data) => {
+                    let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
+                    
+                    for (index, data) in node_data.iter().enumerate() {
+                        if let Some(node_id) = node_ids.get(index) {
+                            positions_to_update.push((*node_id, data.clone()));
+                        }
+                    }
+                    
+                    if !positions_to_update.is_empty() {
+                        // Broadcast to clients
+                        let binary_data = binary_protocol::encode_node_data(&positions_to_update);
+                        self.client_manager.do_send(BroadcastNodePositions { 
+                            positions: binary_data 
+                        });
                     }
                 }
-                
-                if !positions.is_empty() {
-                    // Update local positions
-                    self.update_node_positions(positions.clone());
-                    
-                    // Broadcast to clients
-                    let binary_data = binary_protocol::encode_node_data(&positions);
-                    self.client_manager.do_send(BroadcastNodePositions { 
-                        positions: binary_data 
-                    });
+                Err(e) => {
+                    error!("Failed to get advanced GPU results: {}", e);
                 }
             }
-            Err(e) => {
-                error!("Failed to get advanced GPU results: {}", e);
+            
+            iteration_count = gpu_context.iteration_count;
+            
+            // Log progress periodically
+            if iteration_count % 60 == 0 {
+                trace!("Advanced physics step completed (iteration {}, {} constraints active)", 
+                      iteration_count, active_constraints_count);
             }
+        } else {
+            return;
         }
         
-        // Log progress periodically
-        if gpu_context.iteration_count % 60 == 0 {
-            trace!("Advanced physics step completed (iteration {}, {} constraints active)", 
-                  gpu_context.iteration_count, active_constraints.len());
+        // Update local positions after GPU context is released
+        if !positions_to_update.is_empty() {
+            self.update_node_positions(positions_to_update);
         }
     }
     

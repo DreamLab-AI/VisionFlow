@@ -15,7 +15,7 @@ use std::sync::Arc;
 use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::{connect_async, WebSocketStream, MaybeTlsStream};
 use tokio::net::TcpStream;
-use tungstenite::Message as WsMessage;
+use tokio_tungstenite::tungstenite::Message as WsMessage;
 
 /// Enhanced ClaudeFlowActor with direct MCP WebSocket integration
 pub struct EnhancedClaudeFlowActor {

@@ -1,8 +1,9 @@
 //! Constraint and physics parameter models for advanced force-directed layout
 use serde::{Deserialize, Serialize};
+use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 
 /// Type of constraint to apply to the graph layout
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum ConstraintKind {
     /// Fix nodes at specific positions
@@ -222,6 +223,10 @@ pub struct ConstraintData {
     /// Padding for alignment
     pub _pad: [u8; 12],
 }
+
+// Safety: ConstraintData is repr(C) with only POD types
+unsafe impl DeviceRepr for ConstraintData {}
+unsafe impl ValidAsZeroBits for ConstraintData {}
 
 impl ConstraintData {
     /// Convert a Constraint to GPU-compatible format

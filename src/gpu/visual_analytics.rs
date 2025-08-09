@@ -208,7 +208,7 @@ impl VisualAnalyticsGPU {
     pub async fn new(max_nodes: usize, max_edges: usize, max_layers: usize) -> Result<Self, String> {
         info!("Initializing Visual Analytics GPU for {} nodes, {} edges", max_nodes, max_edges);
         
-        let device = CudaDevice::new(0)
+        let device: Arc<CudaDevice> = CudaDevice::new(0)
             .map_err(|e| format!("Failed to create CUDA device: {}", e))?
             .into();
         
