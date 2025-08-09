@@ -1,13 +1,20 @@
 # REST API Reference
 
 ## Overview
-The REST API provides endpoints for graph data management, content operations, and system status.
+
+The VisionFlow REST API provides endpoints for:
+- Claude Flow MCP agent swarm management
+- Dual graph visualization (knowledge + agents)
+- System configuration and monitoring
+- Authentication via Nostr protocol
 
 ## Base URL
+
 ```
 http://localhost:3001/api
 ```
-Default is http://localhost:3001/api when running locally via Docker with Nginx. The actual backend runs on port 3001 (or as configured in settings.yaml/env) and is proxied by Nginx. For production, it's typically https://www.visionflow.info/api (or your configured domain).
+
+When running in Docker, the backend runs on port 3001 and may be proxied through Nginx. The API is accessible from the frontend at the same origin.
 
 ## Authentication
 
@@ -92,28 +99,38 @@ DELETE /api/auth/nostr
 ```
 Matches `ValidateRequest` from `src/handlers/nostr_handler.rs`.
 
-## Graph API
+## Dual Graph API
 
-### Get Graph Data
+### Get Knowledge Graph
 ```http
 GET /api/graph/data
 ```
 
-Returns `GraphResponse` from `src/handlers/api_handler/graph/mod.rs`:
+Returns the knowledge graph built from Logseq markdown files:
 ```json
 {
   "nodes": [
-    // Array of crate::models::node::Node
+    {
+      "id": 1073741824,  // u32 with bit 30 set (knowledge flag)
+      "label": "Document Title",
+      "metadata_id": "doc-123"
+    }
   ],
   "edges": [
-    // Array of crate::models::edge::Edge
+    {
+      "source": 1073741824,
+      "target": 1073741825,
+      "weight": 0.8
+    }
   ],
   "metadata": {
-    // HashMap<String, crate::models::metadata::Metadata>
+    "doc-123": {
+      "tags": ["concept", "architecture"],
+      "created": "2024-01-01T00:00:00Z"
+    }
   }
 }
 ```
-Note: The `Node` model used in this response is defined in `src/models/node.rs` and uses a `u32` for the `id` field.
 
 ### Get Paginated Graph Data
 ```http
@@ -318,14 +335,14 @@ Matches `RagflowChatRequest` from `src/models/ragflow_chat.rs`.
 Matches `RagflowChatResponse` from `src/models/ragflow_chat.rs`.
 
 
-## Bots API
+## Claude Flow MCP API
 
-### Initialize Swarm (Hive Mind)
+### Initialize Agent Swarm
 ```http
 POST /api/bots/initialize-swarm
 ```
 
-Spawns a Claude Flow hive mind with specified configuration and task.
+Spawns a Claude Flow agent swarm via MCP (Model Context Protocol) with specified configuration and task.
 
 **Request Body:**
 ```json
@@ -365,12 +382,12 @@ Spawns a Claude Flow hive mind with specified configuration and task.
 }
 ```
 
-### Get Bots Data
+### Get Agent Telemetry
 ```http
 GET /api/bots/data
 ```
 
-Returns current swarm agent data as a graph structure.
+Returns real-time agent telemetry from Claude Flow as a graph structure. Data updates at 10Hz via MCP WebSocket.
 
 **Response:**
 ```json
@@ -409,12 +426,12 @@ Returns current swarm agent data as a graph structure.
 }
 ```
 
-### Update Bots Data
+### Stream Agent Updates (Deprecated)
 ```http
 POST /api/bots/update
 ```
 
-Updates the swarm visualization with new agent data.
+**Note**: This endpoint is deprecated. Agent updates now stream automatically via MCP WebSocket connection on port 3002.
 
 **Request Body:**
 ```json
@@ -489,23 +506,56 @@ The structured format `{"error": {"code": ..., "message": ..., "details": ...}}`
 - `500 Internal Server Error`: A generic error occurred on the server.
 - `503 Service Unavailable`: The server is temporarily unable to handle the request (e.g., during maintenance or if a dependent service is down).
 
-## MCP WebSocket Relay
+## MCP Integration
 
-The server includes an MCP (Model Control Protocol) WebSocket relay that bridges MCP connections through the LogseqXR server.
+### Backend MCP Connection
 
-### MCP WebSocket Endpoint
+The backend maintains a direct WebSocket connection to Claude Flow MCP:
 ```
-ws://localhost:3000/mcp-ws-relay
+ws://multi-agent-container:3002/mcp
 ```
 
-This endpoint provides a WebSocket relay for MCP connections, allowing Claude Flow and other MCP tools to communicate through the LogseqXR server infrastructure. The relay operates on port 3000 and handles bidirectional message passing between MCP clients and servers.
+**Important**: The frontend **never** connects directly to MCP. All MCP communication flows through the Rust backend via ClaudeFlowActor.
 
-**Key Features:**
-- Bidirectional message relay
-- Automatic connection management
-- Message routing between MCP clients and servers
-- Integration with LogseqXR authentication (when configured)
+### MCP Methods Available
 
-## Related Documentation
-- [WebSocket API](./websocket.md)
-- [Development Setup](../development/setup.md)
+| Method | Description |
+|--------|-------------|
+| `agent.spawn` | Create new AI agent |
+| `agent.list` | List active agents |
+| `agent.terminate` | Stop an agent |
+| `swarm.initialize` | Create agent swarm |
+| `telemetry.subscribe` | Stream agent metrics |
+
+## Error Handling
+
+### MCP Connection Errors
+
+When Claude Flow is unavailable:
+```json
+{
+  "success": false,
+  "error": "MCP connection failed: Connection refused",
+  "fallback": "empty"  // No mock data generated
+}
+```
+
+### Rate Limiting
+
+Agent spawn requests are limited to:
+- 10 swarms per minute
+- 50 agents total per swarm
+- 1000 tokens per agent task
+
+## Performance
+
+- **REST Latency**: < 50ms average
+- **MCP Round-trip**: < 100ms
+- **Graph Updates**: 10Hz (100ms intervals)
+- **Binary Streaming**: 60 FPS capability
+
+## See Also
+
+- [WebSocket Protocols](websocket-protocols.md) - Binary streaming protocol
+- [Binary Protocol](binary-protocol.md) - 28-byte node update format
+- [MCP Integration](../architecture/mcp-integration.md) - Claude Flow architecture
