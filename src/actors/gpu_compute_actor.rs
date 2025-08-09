@@ -690,43 +690,85 @@ impl GPUComputeActor {
         })?;
 
         if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Starting dual graph force computation (iteration {})", self.iteration_count);
+            trace!("Starting dual graph force computation (iteration {}), knowledge: {}, agent: {}", 
+                   self.iteration_count, self.num_knowledge_nodes, self.num_agent_nodes);
         }
 
-        let blocks = ((self.num_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
+        // Check if we have both graphs initialized
+        if self.knowledge_node_data.is_none() || self.agent_node_data.is_none() {
+            warn!("Dual graph data not properly initialized, falling back to legacy");
+            self.compute_mode = ComputeMode::Legacy;
+            return self.compute_forces_legacy();
+        }
+
+        let knowledge_data = self.knowledge_node_data.as_ref().unwrap();
+        let agent_data = self.agent_node_data.as_ref().unwrap();
+        let edge_data = self.edge_data.as_ref();
+
+        // Calculate blocks for the maximum number of nodes
+        let total_nodes = self.num_knowledge_nodes + self.num_agent_nodes;
+        let blocks = ((total_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
         let cfg = LaunchConfig {
             grid_dim: (blocks, 1, 1),
             block_dim: (BLOCK_SIZE, 1, 1),
             shared_mem_bytes: SHARED_MEM_SIZE,
         };
 
-        // For dual graph mode, we need separate node data for knowledge and agents
-        // This is a simplified implementation - a full dual graph kernel would need
-        // separate buffers for each graph type
-        let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
-        let edge_data = self.edge_data.as_ref();
-
-        let launch_result = if let Some(edge_data) = edge_data {
+        // Create separate edge buffers for knowledge and agent graphs
+        // For now, we'll use the same edge buffer but filter by node type
+        let launch_result = if let Some(edges) = edge_data {
             unsafe {
                 dual_kernel.clone().launch(cfg, (
-                    node_data,
-                    edge_data,
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
+                    knowledge_data,           // Knowledge graph nodes
+                    agent_data,               // Agent graph nodes
+                    edges,                    // Knowledge graph edges (same buffer for now)
+                    edges,                    // Agent graph edges (same buffer for now)
+                    self.num_knowledge_nodes as i32,
+                    self.num_agent_nodes as i32,
+                    self.num_edges as i32,    // Knowledge edges count
+                    0i32,                     // Agent edges count (0 for now)
                     self.knowledge_sim_params.spring_strength,
                     self.knowledge_sim_params.damping,
+                    self.knowledge_sim_params.repulsion,
                     self.agent_sim_params.spring_strength,
                     self.agent_sim_params.damping,
-                    self.simulation_params.repulsion,
+                    self.agent_sim_params.repulsion,
                     self.simulation_params.time_step,
+                    self.simulation_params.max_repulsion_distance,
+                    self.simulation_params.viewport_bounds,
                     self.iteration_count as i32,
+                    true,   // process_knowledge
+                    true,   // process_agents
                 ))
             }
         } else {
-            // Fallback to legacy for now
-            warn!("No edge data for dual graph mode, falling back to legacy");
-            self.compute_mode = ComputeMode::Legacy;
-            return self.compute_forces_legacy();
+            // Create dummy edge buffer if no edges
+            let dummy_edges = device.alloc_zeros::<EdgeData>(1)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate dummy edge buffer: {}", e)))?;
+            unsafe {
+                dual_kernel.clone().launch(cfg, (
+                    knowledge_data,
+                    agent_data,
+                    &dummy_edges,
+                    &dummy_edges,
+                    self.num_knowledge_nodes as i32,
+                    self.num_agent_nodes as i32,
+                    0i32,
+                    0i32,
+                    self.knowledge_sim_params.spring_strength,
+                    self.knowledge_sim_params.damping,
+                    self.knowledge_sim_params.repulsion,
+                    self.agent_sim_params.spring_strength,
+                    self.agent_sim_params.damping,
+                    self.agent_sim_params.repulsion,
+                    self.simulation_params.time_step,
+                    self.simulation_params.max_repulsion_distance,
+                    self.simulation_params.viewport_bounds,
+                    self.iteration_count as i32,
+                    true,
+                    true,
+                ))
+            }
         };
 
         self.finish_gpu_computation(launch_result)

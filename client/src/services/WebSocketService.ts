@@ -2,7 +2,7 @@ import { createLogger, createErrorMetadata } from '../utils/logger';
 import { debugState } from '../utils/debugState';
 import { useSettingsStore } from '../store/settingsStore'; // Keep alias here for now, fix later if needed
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
-import { parseBinaryNodeData, isAgentNode } from '../types/binaryProtocol';
+import { parseBinaryNodeData, isAgentNode, createBinaryNodeData } from '../types/binaryProtocol';
 
 const logger = createLogger('WebSocketService');
 
@@ -407,6 +407,37 @@ class WebSocketService {
       }
     } catch (error) {
       logger.error('Error sending binary data:', createErrorMetadata(error));
+    }
+  }
+
+  /**
+   * Send position updates for nodes that have been moved by user interaction
+   * @param updates Array of node position updates
+   */
+  public sendNodePositionUpdates(updates: Array<{nodeId: number, position: {x: number, y: number, z: number}, velocity?: {x: number, y: number, z: number}}>): void {
+    if (!this.isConnected || !this.socket) {
+      logger.warn('Cannot send position updates: WebSocket not connected');
+      return;
+    }
+
+    try {
+      // Convert updates to binary format
+      const binaryNodes = updates.map(update => ({
+        nodeId: update.nodeId,
+        position: update.position,
+        velocity: update.velocity || {x: 0, y: 0, z: 0}
+      }));
+      
+      const binaryData = createBinaryNodeData(binaryNodes);
+      
+      // Send as binary message
+      this.socket.send(binaryData);
+      
+      if (debugState.isDataDebugEnabled()) {
+        logger.debug(`Sent position updates for ${updates.length} nodes`);
+      }
+    } catch (error) {
+      logger.error('Error sending position updates:', createErrorMetadata(error));
     }
   }
 
