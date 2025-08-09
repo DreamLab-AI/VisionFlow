@@ -2,6 +2,8 @@ pub mod files;
 pub mod graph;
 pub mod visualisation;
 pub mod bots;
+pub mod analytics;
+pub mod quest3;
 
 // Re-export specific types and functions
 // Re-export specific types and functions
@@ -29,6 +31,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(graph::config)
             .configure(visualisation::config)
             .configure(bots::config)
+            .configure(analytics::config)
+            .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
             .configure(crate::handlers::settings_handler::config)
             .configure(crate::handlers::ragflow_handler::config) // Add this line

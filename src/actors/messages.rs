@@ -15,6 +15,8 @@ use crate::models::graph::GraphData as ModelsGraphData;
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
+use crate::actors::gpu_compute_actor::ComputeMode;
+use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 
 // Graph Service Actor Messages
 #[derive(Message)]
@@ -117,6 +119,36 @@ pub struct RegenerateSemanticConstraints;
 pub struct SetAdvancedGPUContext {
     pub context: crate::utils::advanced_gpu_compute::AdvancedGPUContext,
 }
+
+// Visual Analytics Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct InitializeVisualAnalytics {
+    pub max_nodes: usize,
+    pub max_edges: usize,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateVisualAnalyticsParams {
+    pub params: VisualAnalyticsParams,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct AddIsolationLayer {
+    pub layer: IsolationLayer,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<bool, String>")]
+pub struct RemoveIsolationLayer {
+    pub layer_id: i32,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct GetKernelMode;
 
 // Settings Actor Messages
 #[derive(Message)]
@@ -512,3 +544,14 @@ pub struct RetryMCPConnection;
 #[derive(Message)]
 #[rtype(result = "Result<Vec<AgentStatus>, String>")]
 pub struct GetCachedAgentStatuses;
+
+// GPU Compute Mode Control Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SetComputeMode {
+    pub mode: ComputeMode,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<crate::actors::gpu_compute_actor::PhysicsStats, String>")]
+pub struct GetPhysicsStats;

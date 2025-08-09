@@ -2,6 +2,7 @@ import { createLogger, createErrorMetadata } from '../utils/logger';
 import { debugState } from '../utils/debugState';
 import { useSettingsStore } from '../store/settingsStore'; // Keep alias here for now, fix later if needed
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
+import { parseBinaryNodeData, isAgentNode } from '../types/binaryProtocol';
 
 const logger = createLogger('WebSocketService');
 
@@ -319,20 +320,9 @@ class WebSocketService {
 
   private detectBotsData(data: ArrayBuffer): boolean {
     try {
-      const view = new DataView(data);
-      const nodeCount = data.byteLength / 28; // 28 bytes per node
-
-      // Check if any nodes have the bots flag (0x80)
-      for (let i = 0; i < nodeCount; i++) {
-        const offset = i * 28;
-        if (offset + 24 < data.byteLength) {
-          const flags = view.getUint8(offset + 24); // flags are at offset 24
-          if (flags & 0x80) {
-            return true; // Found bots data
-          }
-        }
-      }
-      return false;
+      // Use the standardized binary protocol detection
+      const allNodes = parseBinaryNodeData(data);
+      return allNodes.some(node => isAgentNode(node.nodeId));
     } catch (error) {
       logger.error('Error detecting bots data:', createErrorMetadata(error));
       return false;
