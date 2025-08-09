@@ -441,6 +441,8 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos
 };
 
 // Main Visualization Component
+// Note: This is a pure rendering component that receives positions from server physics simulation
+// via binary protocol. No client-side physics computation is performed.
 export const BotsVisualization: React.FC = () => {
   const settings = useSettingsStore(state => state.settings);
   const { botsData: contextBotsData } = useBotsData();
@@ -457,13 +459,29 @@ export const BotsVisualization: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [mcpConnected, setMcpConnected] = useState(false);
 
-  // Refs for physics simulation
+  // Refs for server-authoritative positions
   const positionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
-  const velocitiesRef = useRef<Map<string, THREE.Vector3>>(new Map());
 
-  // Binary updates for GPU physics
-  const { positions: positionBufferRef, requestUpdate } = useBotsBinaryUpdates({
+  // Binary updates from server physics
+  const { agentNodes, nodeIdMap, requestUpdate } = useBotsBinaryUpdates({
     enabled: true,
+    onPositionUpdate: (agentNodes) => {
+      // Update position map from binary data
+      agentNodes.forEach((node, index) => {
+        const position = new THREE.Vector3(node.position.x, node.position.y, node.position.z);
+        
+        // Map binary node ID to agent ID
+        // For now, we'll use the node index to match with agent array index
+        // This may need refinement based on how the server assigns node IDs
+        const agents = Array.from(botsData.agents.values());
+        if (index < agents.length) {
+          const agent = agents[index];
+          positionsRef.current.set(agent.id, position);
+        }
+      });
+      
+      logger.debug(`Updated ${agentNodes.length} agent positions from binary protocol`);
+    }
   });
 
   // Colors
@@ -484,7 +502,7 @@ export const BotsVisualization: React.FC = () => {
     const agentMap = new Map<string, BotsAgent>();
     agents.forEach((agent, index) => {
       agentMap.set(agent.id, agent);
-      // Initialize position if not exists
+      // Initialize position if not exists (fallback for when binary data hasn't arrived yet)
       if (!positionsRef.current.has(agent.id)) {
         const radius = 25;
         const angle = (index / agents.length) * Math.PI * 2;
@@ -495,7 +513,6 @@ export const BotsVisualization: React.FC = () => {
           Math.sin(angle) * radius
         );
         positionsRef.current.set(agent.id, newPosition);
-        velocitiesRef.current.set(agent.id, new THREE.Vector3());
       }
     });
 
@@ -526,74 +543,20 @@ export const BotsVisualization: React.FC = () => {
     setMcpConnected(agentMap.size > 0);
   }, [contextBotsData]);
 
-  // Simple physics simulation
-  useFrame((state, delta) => {
-    if (botsData.agents.size === 0 || !positionBufferRef) return;
-
-    const dt = Math.min(delta, 0.016);
-    const physics = {
-      damping: 0.95,
-      nodeRepulsion: 15,
-      linkDistance: 20,
-      centerGravity: 0.01
-    };
-
-    // Update velocities and positions
-    botsData.agents.forEach(node => {
-      const pos = positionsRef.current.get(node.id);
-      const vel = velocitiesRef.current.get(node.id);
-
-      if (!pos || !vel) return;
-
-      // Apply forces
-      const force = new THREE.Vector3();
-
-      // Center gravity
-      force.add(pos.clone().multiplyScalar(-physics.centerGravity));
-
-      // Node repulsion
-      botsData.agents.forEach(otherNode => {
-        if (otherNode.id === node.id) return;
-        const otherPos = positionsRef.current.get(otherNode.id);
-        if (!otherPos) return;
-
-        const diff = pos.clone().sub(otherPos);
-        const distance = diff.length();
-        if (distance > 0 && distance < physics.nodeRepulsion * 2) {
-          const repulsion = diff.normalize().multiplyScalar(
-            physics.nodeRepulsion / (distance * distance)
-          );
-          force.add(repulsion);
-        }
-      });
-
-      // Edge attraction
-      botsData.edges.forEach(edge => {
-        let otherNodeId: string | null = null;
-        if (edge.source === node.id) otherNodeId = edge.target;
-        if (edge.target === node.id) otherNodeId = edge.source;
-
-        if (otherNodeId) {
-          const otherPos = positionsRef.current.get(otherNodeId);
-          if (otherPos) {
-            const diff = otherPos.clone().sub(pos);
-            const distance = diff.length();
-            if (distance > physics.linkDistance) {
-              const attraction = diff.normalize().multiplyScalar(
-                (distance - physics.linkDistance) * 0.1
-              );
-              force.add(attraction);
-            }
-          }
-        }
-      });
-
-      // Update velocity and position
-      vel.add(force.multiplyScalar(dt));
-      vel.multiplyScalar(physics.damping);
-      pos.add(vel.clone().multiplyScalar(dt));
-    });
+  // Request server position updates periodically
+  useFrame(() => {
+    // The server handles all physics computation
+    // We just render the positions received via binary protocol
+    // No client-side physics simulation needed
   });
+
+  // Request position updates from server
+  useEffect(() => {
+    if (botsData.agents.size > 0) {
+      // Request server to compute and send updated positions
+      requestUpdate();
+    }
+  }, [botsData.agents.size, requestUpdate]);
 
   if (error) {
     return (
@@ -653,10 +616,10 @@ export const BotsVisualization: React.FC = () => {
         );
       })}
 
-      {/* Render nodes */}
+      {/* Render nodes using server-authoritative positions */}
       {Array.from(botsData.agents.values()).map((node, index) => {
         const position = positionsRef.current.get(node.id);
-        if (!position) return null;
+        if (!position) return null; // Wait for server position data
 
         const nodeColor = colors[node.type] || colors.coordinator;
 
@@ -664,7 +627,7 @@ export const BotsVisualization: React.FC = () => {
           <BotsNode
             key={node.id}
             agent={node}
-            position={position}
+            position={position} // Server-computed position via binary protocol
             index={index}
             color={nodeColor}
           />
