@@ -14,6 +14,7 @@ use crate::models::simulation_params::SimulationParams;
 use crate::models::graph::GraphData as ModelsGraphData;
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
+use crate::models::constraints::{AdvancedParams, ConstraintSet};
 
 // Graph Service Actor Messages
 #[derive(Message)]
@@ -84,6 +85,37 @@ pub struct StopSimulation;
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGraphData {
     pub graph_data: ServiceGraphData,
+}
+
+// Advanced Physics and Constraint Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateAdvancedParams {
+    pub params: AdvancedParams,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateConstraints {
+    pub constraint_data: Value,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<ConstraintSet, String>")]
+pub struct GetConstraints;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct TriggerStressMajorization;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct RegenerateSemanticConstraints;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetAdvancedGPUContext {
+    pub context: crate::utils::advanced_gpu_compute::AdvancedGPUContext,
 }
 
 // Settings Actor Messages

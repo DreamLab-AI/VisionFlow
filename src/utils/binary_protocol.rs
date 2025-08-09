@@ -1,7 +1,10 @@
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::types::vec3::Vec3Data;
+use crate::models::constraints::{Constraint, AdvancedParams};
 use bytemuck::{Pod, Zeroable};
 use log::{trace, debug};
+use serde::{Serialize, Deserialize};
+use serde_json;
 
 // Node type flag constants
 const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
@@ -393,5 +396,191 @@ mod tests {
             assert_eq!(orig_data.position, dec_data.position);
             assert_eq!(orig_data.velocity, dec_data.velocity);
         }
+    }
+}
+
+// Control frame structures for constraint and parameter updates
+
+/// Control frame types for WebSocket communication
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum ControlFrame {
+    /// Update constraints on the server
+    #[serde(rename = "constraints_update")]
+    ConstraintsUpdate {
+        version: u32,
+        constraints: Vec<Constraint>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        advanced_params: Option<AdvancedParams>,
+    },
+    
+    /// Request specific view lens configuration
+    #[serde(rename = "lens_request")]
+    LensRequest {
+        lens_type: String,
+        parameters: serde_json::Value,
+    },
+    
+    /// Server acknowledgment of control frame
+    #[serde(rename = "control_ack")]
+    ControlAck {
+        frame_type: String,
+        success: bool,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        message: Option<String>,
+    },
+    
+    /// Update advanced physics parameters
+    #[serde(rename = "physics_params")]
+    PhysicsParams {
+        advanced_params: AdvancedParams,
+    },
+    
+    /// Request constraint preset
+    #[serde(rename = "preset_request")]
+    PresetRequest {
+        preset_name: String,
+    },
+}
+
+impl ControlFrame {
+    /// Serialize control frame to JSON bytes
+    pub fn to_bytes(&self) -> Result<Vec<u8>, serde_json::Error> {
+        serde_json::to_vec(self)
+    }
+    
+    /// Deserialize control frame from JSON bytes
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, serde_json::Error> {
+        serde_json::from_slice(bytes)
+    }
+    
+    /// Create a constraints update frame
+    pub fn constraints_update(constraints: Vec<Constraint>, params: Option<AdvancedParams>) -> Self {
+        ControlFrame::ConstraintsUpdate {
+            version: 1,
+            constraints,
+            advanced_params: params,
+        }
+    }
+    
+    /// Create an acknowledgment frame
+    pub fn ack(frame_type: &str, success: bool, message: Option<String>) -> Self {
+        ControlFrame::ControlAck {
+            frame_type: frame_type.to_string(),
+            success,
+            message,
+        }
+    }
+}
+
+/// Message type indicator for multiplexed WebSocket communication
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MessageType {
+    /// Binary position data (28 bytes per node)
+    BinaryPositions = 0,
+    /// JSON control frame
+    ControlFrame = 1,
+}
+
+/// Multiplexed message wrapper for WebSocket
+pub struct MultiplexedMessage {
+    pub msg_type: MessageType,
+    pub data: Vec<u8>,
+}
+
+impl MultiplexedMessage {
+    /// Create a binary positions message
+    pub fn positions(node_data: &[(u32, BinaryNodeData)]) -> Self {
+        Self {
+            msg_type: MessageType::BinaryPositions,
+            data: encode_node_data(node_data),
+        }
+    }
+    
+    /// Create a control frame message
+    pub fn control(frame: &ControlFrame) -> Result<Self, serde_json::Error> {
+        Ok(Self {
+            msg_type: MessageType::ControlFrame,
+            data: frame.to_bytes()?,
+        })
+    }
+    
+    /// Encode message with type indicator prefix
+    pub fn encode(&self) -> Vec<u8> {
+        let mut result = Vec::with_capacity(1 + self.data.len());
+        result.push(self.msg_type as u8);
+        result.extend_from_slice(&self.data);
+        result
+    }
+    
+    /// Decode message from bytes
+    pub fn decode(data: &[u8]) -> Result<Self, String> {
+        if data.is_empty() {
+            return Err("Empty message".to_string());
+        }
+        
+        let msg_type = match data[0] {
+            0 => MessageType::BinaryPositions,
+            1 => MessageType::ControlFrame,
+            t => return Err(format!("Unknown message type: {}", t)),
+        };
+        
+        Ok(Self {
+            msg_type,
+            data: data[1..].to_vec(),
+        })
+    }
+}
+
+#[cfg(test)]
+mod control_frame_tests {
+    use super::*;
+    use crate::models::constraints::ConstraintKind;
+    
+    #[test]
+    fn test_control_frame_serialization() {
+        let constraint = Constraint {
+            kind: ConstraintKind::Separation,
+            node_indices: vec![1, 2],
+            params: vec![100.0],
+            weight: 0.8,
+            active: true,
+        };
+        
+        let frame = ControlFrame::constraints_update(vec![constraint], None);
+        let bytes = frame.to_bytes().unwrap();
+        let decoded = ControlFrame::from_bytes(&bytes).unwrap();
+        
+        match decoded {
+            ControlFrame::ConstraintsUpdate { version, constraints, .. } => {
+                assert_eq!(version, 1);
+                assert_eq!(constraints.len(), 1);
+                assert_eq!(constraints[0].kind, ConstraintKind::Separation);
+            },
+            _ => panic!("Wrong frame type"),
+        }
+    }
+    
+    #[test]
+    fn test_multiplexed_message() {
+        let nodes = vec![
+            (1u32, BinaryNodeData {
+                position: Vec3Data::new(1.0, 2.0, 3.0),
+                velocity: Vec3Data::new(0.1, 0.2, 0.3),
+                mass: 100,
+                flags: 1,
+                padding: [0, 0],
+            }),
+        ];
+        
+        let msg = MultiplexedMessage::positions(&nodes);
+        let encoded = msg.encode();
+        
+        assert_eq!(encoded[0], 0); // Binary positions type
+        assert_eq!(encoded.len(), 1 + 28); // Type byte + one node
+        
+        let decoded = MultiplexedMessage::decode(&encoded).unwrap();
+        assert_eq!(decoded.msg_type, MessageType::BinaryPositions);
+        assert_eq!(decoded.data.len(), 28);
     }
 }

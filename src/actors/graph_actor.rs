@@ -1,12 +1,61 @@
-//! Graph Service Actor to replace Arc<RwLock<GraphService>>
+//! Graph Service Actor with hybrid solver orchestration
+//!
+//! This module implements an advanced graph service actor that integrates:
+//! - Advanced GPU compute with constraint-aware physics
+//! - Semantic analysis for knowledge graph enhancement  
+//! - Multi-modal edge generation with similarity computation
+//! - Stress-majorization periodic optimization
+//! - Dynamic constraint generation and update handling
+//!
+//! ## Integration Overview
+//!
+//! The hybrid solver orchestration combines multiple advanced techniques:
+//!
+//! ### 1. Advanced GPU Physics
+//! - **Enhanced GPU Context**: Uses `AdvancedGPUContext` for constraint-aware physics
+//! - **Enhanced Node Data**: Extends `BinaryNodeData` with semantic weights and metadata
+//! - **Fallback Compatibility**: Maintains compatibility with legacy GPU compute actor
+//!
+//! ### 2. Semantic Analysis & Edge Generation
+//! - **Semantic Analyzer**: Extracts features from file metadata and content
+//! - **Multi-modal Edges**: Generates edges based on semantic, structural, and temporal similarities
+//! - **Feature Caching**: Maintains semantic feature cache for performance
+//!
+//! ### 3. Constraint Management
+//! - **Dynamic Constraints**: Auto-generates constraints based on semantic analysis
+//! - **Constraint Groups**: Organizes constraints into logical groups (boundary, clustering, etc.)
+//! - **Real-time Updates**: Handles constraint updates via WebSocket control frames
+//!
+//! ### 4. Stress-Majorization Integration
+//! - **Periodic Optimization**: Executes stress-majorization every N frames
+//! - **Global Layout**: Optimizes overall graph layout to minimize stress function
+//! - **Constraint Satisfaction**: Balances force-directed physics with constraint satisfaction
+//!
+//! ### 5. Control Flow & Performance
+//! - **Hybrid Execution**: Seamlessly switches between advanced and legacy GPU modes
+//! - **Performance Monitoring**: Tracks semantic analysis status and timing
+//! - **Error Handling**: Robust error handling with graceful fallbacks
+//!
+//! ## Usage Patterns
+//!
+//! The enhanced actor maintains backward compatibility while providing advanced features:
+//!
+//! ```rust
+//! // Traditional usage (unchanged)
+//! let actor = GraphServiceActor::new(client_manager, gpu_compute_addr);
+//!
+//! // Enhanced features
+//! actor.update_advanced_physics_params(advanced_params);
+//! actor.trigger_stress_optimization()?;
+//! let status = actor.get_semantic_analysis_status();
+//! ```
 
 use actix::prelude::*;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
-use log::{debug, info, warn};
-// use actix::fut::WrapFuture; // Unused import
+use log::{debug, info, warn, error, trace};
  
 use crate::actors::messages::*;
 use crate::utils::binary_protocol;
@@ -19,6 +68,13 @@ use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // A
 use crate::actors::gpu_compute_actor::GPUComputeActor;
 use crate::models::simulation_params::SimulationParams;
 
+// Advanced physics and AI modules
+use crate::models::constraints::{ConstraintSet, Constraint, AdvancedParams};
+use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticFeatures};
+use crate::services::edge_generation::{AdvancedEdgeGenerator, EdgeGenerationConfig};
+use crate::utils::advanced_gpu_compute::{AdvancedGPUContext, EnhancedBinaryNodeData};
+use crate::physics::stress_majorization::{StressMajorizationSolver, StressMajorizationConfig};
+
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
     node_map: HashMap<u32, Node>,
@@ -29,6 +85,22 @@ pub struct GraphServiceActor {
     next_node_id: AtomicU32,
     bots_graph_data: GraphData, // Add a new field for the bots graph
     simulation_params: SimulationParams, // Physics simulation parameters
+    
+    // Advanced hybrid solver components
+    advanced_gpu_context: Option<AdvancedGPUContext>,
+    constraint_set: ConstraintSet,
+    semantic_analyzer: SemanticAnalyzer,
+    edge_generator: AdvancedEdgeGenerator,
+    stress_solver: StressMajorizationSolver,
+    semantic_features_cache: HashMap<String, SemanticFeatures>,
+    
+    // Advanced physics parameters
+    advanced_params: AdvancedParams,
+    
+    // Control flow state
+    stress_step_counter: u32,
+    constraint_update_counter: u32,
+    last_semantic_analysis: Option<std::time::Instant>,
 }
 
 impl GraphServiceActor {
@@ -36,6 +108,15 @@ impl GraphServiceActor {
         client_manager: Addr<ClientManagerActor>,
         gpu_compute_addr: Option<Addr<GPUComputeActor>>,
     ) -> Self {
+        let advanced_params = AdvancedParams::default();
+        let semantic_analyzer = SemanticAnalyzer::new(
+            crate::services::semantic_analyzer::SemanticAnalyzerConfig::default()
+        );
+        let edge_generator = AdvancedEdgeGenerator::new(
+            EdgeGenerationConfig::default()
+        );
+        let stress_solver = StressMajorizationSolver::from_advanced_params(&advanced_params);
+        
         Self {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
             node_map: HashMap::new(),
@@ -46,6 +127,20 @@ impl GraphServiceActor {
             next_node_id: AtomicU32::new(1),
             bots_graph_data: GraphData::new(),
             simulation_params: SimulationParams::default(), // Initialize with default physics
+            
+            // Initialize advanced components
+            advanced_gpu_context: None,
+            constraint_set: ConstraintSet::default(),
+            semantic_analyzer,
+            edge_generator,
+            stress_solver,
+            semantic_features_cache: HashMap::new(),
+            advanced_params,
+            
+            // Initialize control state
+            stress_step_counter: 0,
+            constraint_update_counter: 0,
+            last_semantic_analysis: None,
         }
     }
 
@@ -114,11 +209,12 @@ impl GraphServiceActor {
     }
 
     pub fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
-        let mut new_graph_data = GraphData::new(); // Create a new GraphData instance
-        self.node_map.clear(); // Clear node_map separately
+        let mut new_graph_data = GraphData::new();
+        self.node_map.clear();
+        self.semantic_features_cache.clear();
 
-        // Build nodes from metadata
-        // Assuming metadata is MetadataStore which is HashMap<String, crate::models::metadata::Metadata>
+        // Phase 1: Build nodes with semantic analysis
+        info!("Phase 1: Building nodes with semantic analysis");
         for (filename_with_ext, file_meta_data) in &metadata {
             let node_id_val = self.next_node_id.fetch_add(1, Ordering::SeqCst);
             let metadata_id_val = filename_with_ext.trim_end_matches(".md").to_string();
@@ -128,6 +224,7 @@ impl GraphServiceActor {
             node.set_file_size(file_meta_data.file_size as u64);
             node.data.flags = 1;
 
+            // Enhanced metadata with semantic features
             node.metadata.insert("fileName".to_string(), file_meta_data.file_name.clone());
             node.metadata.insert("fileSize".to_string(), file_meta_data.file_size.to_string());
             node.metadata.insert("nodeSize".to_string(), file_meta_data.node_size.to_string());
@@ -140,15 +237,41 @@ impl GraphServiceActor {
             if let Some(last_process) = file_meta_data.last_perplexity_process {
                 node.metadata.insert("lastPerplexityProcess".to_string(), last_process.to_rfc3339());
             }
-            node.metadata.insert("metadataId".to_string(), metadata_id_val);
+            node.metadata.insert("metadataId".to_string(), metadata_id_val.clone());
+            
+            // Extract semantic features
+            let features = self.semantic_analyzer.analyze_metadata(file_meta_data);
+            self.semantic_features_cache.insert(metadata_id_val, features);
 
-            // Add to new_graph_data and self.node_map
             self.node_map.insert(node.id, node.clone());
             new_graph_data.nodes.push(node);
         }
 
-        // Build edges from topic counts
+        // Phase 2: Generate enhanced edges with multi-modal similarities  
+        info!("Phase 2: Generating enhanced edges with multi-modal similarities");
+        let enhanced_edges = self.edge_generator.generate(&self.semantic_features_cache);
+        
+        // Convert enhanced edges to basic edges and add topic-based edges
         let mut edge_map: HashMap<(u32, u32), f32> = HashMap::new();
+        
+        // Add semantic similarity edges
+        for enhanced_edge in enhanced_edges {
+            // Find node IDs from metadata IDs
+            if let (Some(source_node), Some(target_node)) = (
+                self.node_map.values().find(|n| n.metadata_id == enhanced_edge.source),
+                self.node_map.values().find(|n| n.metadata_id == enhanced_edge.target)
+            ) {
+                let edge_key = if source_node.id < target_node.id { 
+                    (source_node.id, target_node.id) 
+                } else { 
+                    (target_node.id, source_node.id) 
+                };
+                // Use semantic weight as primary, topic count as secondary
+                *edge_map.entry(edge_key).or_insert(0.0) += enhanced_edge.weight;
+            }
+        }
+        
+        // Add traditional topic-based edges (with lower weight)
         for (source_filename_ext, source_meta) in &metadata {
             let source_metadata_id = source_filename_ext.trim_end_matches(".md");
             if let Some(source_node) = self.node_map.values().find(|n| n.metadata_id == source_metadata_id) {
@@ -156,34 +279,320 @@ impl GraphServiceActor {
                     let target_metadata_id = target_filename_ext.trim_end_matches(".md");
                     if let Some(target_node) = self.node_map.values().find(|n| n.metadata_id == target_metadata_id) {
                         if source_node.id != target_node.id {
-                            let edge_key = if source_node.id < target_node.id { (source_node.id, target_node.id) } else { (target_node.id, source_node.id) };
-                            *edge_map.entry(edge_key).or_insert(0.0) += *count as f32;
+                            let edge_key = if source_node.id < target_node.id { 
+                                (source_node.id, target_node.id) 
+                            } else { 
+                                (target_node.id, source_node.id) 
+                            };
+                            // Lower weight for topic counts to not override semantic similarity
+                            *edge_map.entry(edge_key).or_insert(0.0) += (*count as f32) * 0.3;
                         }
                     }
                 }
             }
         }
 
+        // Create edges from the combined map
         for ((source_id, target_id), weight) in edge_map {
             new_graph_data.edges.push(Edge::new(source_id, target_id, weight));
         }
         
-        // Populate metadata in new_graph_data (assuming metadata is MetadataStore)
-        new_graph_data.metadata = metadata.clone(); // Clone the entire store
-
-        self.graph_data = Arc::new(new_graph_data); // Replace the old Arc with the new one
+        // Phase 3: Generate initial constraints based on semantic clustering
+        info!("Phase 3: Generating initial constraints based on semantic features");
+        self.generate_initial_semantic_constraints(&new_graph_data);
         
-        info!("Built graph from metadata: {} nodes, {} edges",
-              self.graph_data.nodes.len(), self.graph_data.edges.len());
+        // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
+        // Note: Advanced GPU context initialization will be attempted on first physics step
+        if self.advanced_gpu_context.is_none() {
+            trace!("Advanced GPU context will be initialized on first physics step");
+        }
         
-        // Send the graph data to GPU compute actor
-        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+        new_graph_data.metadata = metadata.clone();
+        self.graph_data = Arc::new(new_graph_data);
+        self.last_semantic_analysis = Some(std::time::Instant::now());
+        
+        info!("Built enhanced graph: {} nodes, {} edges, {} constraints",
+              self.graph_data.nodes.len(), self.graph_data.edges.len(), self.constraint_set.constraints.len());
+        
+        // Send data to appropriate GPU context
+        if self.advanced_gpu_context.is_some() {
+            info!("Graph data prepared for advanced GPU physics");
+        } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
             let graph_data_for_gpu = (*self.graph_data).clone();
             gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
-            info!("Sent initial graph data to GPU compute actor");
+            info!("Sent initial graph data to legacy GPU compute actor");
         }
         
         Ok(())
+    }
+    
+    /// Helper methods for the hybrid solver orchestration
+    
+    fn prepare_enhanced_nodes(&self) -> Vec<EnhancedBinaryNodeData> {
+        self.graph_data.nodes.iter().enumerate().map(|(idx, node)| {
+            let basic_data = BinaryNodeData {
+                position: node.data.position.clone(),
+                velocity: node.data.velocity.clone(),
+                mass: node.data.mass,
+                flags: node.data.flags,
+                padding: [0, 0],
+            };
+            
+            let mut enhanced = EnhancedBinaryNodeData::from(basic_data);
+            
+            // Enhance with semantic features if available
+            if let Some(features) = self.semantic_features_cache.get(&node.metadata_id) {
+                enhanced.importance_score = features.importance_score;
+                enhanced.semantic_weight = features.domains.len() as f32 / 5.0; // Normalize
+                enhanced.temporal_weight = features.temporal.modification_frequency;
+                enhanced.structural_weight = features.structural.complexity_score / 10.0; // Normalize
+                
+                // Set node type based on primary domain
+                enhanced.node_type = if !features.domains.is_empty() {
+                    match features.domains[0] {
+                        crate::services::semantic_analyzer::KnowledgeDomain::ComputerScience => 1,
+                        crate::services::semantic_analyzer::KnowledgeDomain::Mathematics => 2,
+                        crate::services::semantic_analyzer::KnowledgeDomain::DataScience => 3,
+                        crate::services::semantic_analyzer::KnowledgeDomain::WebDevelopment => 4,
+                        _ => 0,
+                    }
+                } else { 0 };
+            }
+            
+            enhanced
+        }).collect()
+    }
+    
+    fn execute_stress_majorization_step(&mut self) {
+        if self.graph_data.nodes.len() < 3 {
+            return; // Skip for very small graphs
+        }
+        
+        let mut graph_data_clone = (*self.graph_data).clone();
+        
+        match self.stress_solver.optimize(&mut graph_data_clone, &self.constraint_set) {
+            Ok(result) => {
+                if result.converged || result.final_stress < f32::INFINITY {
+                    // Apply optimized positions back to main graph
+                    let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+                    for (i, node) in graph_data_mut.nodes.iter_mut().enumerate() {
+                        if let Some(optimized_node) = graph_data_clone.nodes.get(i) {
+                            node.data.x = optimized_node.data.x;
+                            node.data.y = optimized_node.data.y;
+                            node.data.z = optimized_node.data.z;
+                        }
+                    }
+                    
+                    // Update node_map as well
+                    for node in &graph_data_mut.nodes {
+                        if let Some(node_in_map) = self.node_map.get_mut(&node.id) {
+                            node_in_map.data.x = node.data.x;
+                            node_in_map.data.y = node.data.y;
+                            node_in_map.data.z = node.data.z;
+                        }
+                    }
+                    
+                    trace!("Stress majorization step completed: {} iterations, stress = {:.6}", 
+                           result.iterations, result.final_stress);
+                }
+            }
+            Err(e) => {
+                error!("Stress majorization step failed: {}", e);
+            }
+        }
+    }
+    
+    fn update_dynamic_constraints(&mut self) {
+        // Only update if we have recent semantic analysis
+        if self.last_semantic_analysis.is_none() {
+            return;
+        }
+        
+        // Clear dynamic constraints (keep manually added ones)
+        self.constraint_set.set_group_active("semantic_dynamic", false);
+        
+        // Generate new semantic constraints
+        if let Ok(constraints) = self.generate_dynamic_semantic_constraints() {
+            for constraint in constraints {
+                self.constraint_set.add_to_group("semantic_dynamic", constraint);
+            }
+            trace!("Updated dynamic semantic constraints");
+        }
+        
+        // Re-cluster nodes based on current positions and semantic features
+        if let Ok(clustering_constraints) = self.generate_clustering_constraints() {
+            self.constraint_set.set_group_active("clustering_dynamic", false);
+            for constraint in clustering_constraints {
+                self.constraint_set.add_to_group("clustering_dynamic", constraint);
+            }
+            trace!("Updated dynamic clustering constraints");
+        }
+    }
+    
+    fn generate_initial_semantic_constraints(&mut self, graph_data: &GraphData) {
+        // Generate boundary constraints
+        let boundary = Constraint::boundary(
+            graph_data.nodes.iter().map(|n| n.id).collect(),
+            -1000.0, 1000.0,
+            -1000.0, 1000.0,
+            -1000.0, 1000.0,
+        );
+        self.constraint_set.add_to_group("boundary", boundary);
+        
+        // Generate domain-based clustering
+        let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
+        
+        for node in &graph_data.nodes {
+            if let Some(features) = self.semantic_features_cache.get(&node.metadata_id) {
+                if !features.domains.is_empty() {
+                    let domain_key = format!("{:?}", features.domains[0]);
+                    domain_clusters.entry(domain_key).or_insert_with(Vec::new).push(node.id);
+                }
+            }
+        }
+        
+        // Create clustering constraints for domains with multiple files
+        for (domain, node_ids) in domain_clusters {
+            if node_ids.len() >= 2 {
+                let cluster_constraint = Constraint::cluster(
+                    node_ids, 
+                    domain.len() as f32, // Use domain as cluster ID
+                    0.6 // Medium clustering strength
+                );
+                self.constraint_set.add_to_group("domain_clustering", cluster_constraint);
+            }
+        }
+        
+        info!("Generated {} initial constraints", self.constraint_set.constraints.len());
+    }
+    
+    fn generate_dynamic_semantic_constraints(&self) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
+        let mut constraints = Vec::new();
+        
+        // Create separation constraints for high-importance nodes
+        let high_importance_nodes: Vec<_> = self.semantic_features_cache
+            .iter()
+            .filter(|(_, features)| features.importance_score > 0.7)
+            .filter_map(|(id, _)| self.node_map.values().find(|n| n.metadata_id == *id).map(|n| n.id))
+            .collect();
+        
+        for i in 0..high_importance_nodes.len() {
+            for j in i+1..high_importance_nodes.len() {
+                let constraint = Constraint::separation(
+                    high_importance_nodes[i],
+                    high_importance_nodes[j],
+                    100.0 // Minimum separation for important nodes
+                );
+                constraints.push(constraint);
+            }
+        }
+        
+        Ok(constraints)
+    }
+    
+    fn generate_clustering_constraints(&self) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
+        let mut constraints = Vec::new();
+        
+        // Group nodes by file type
+        let mut type_clusters: HashMap<String, Vec<u32>> = HashMap::new();
+        
+        for node in &self.graph_data.nodes {
+            if let Some(features) = self.semantic_features_cache.get(&node.metadata_id) {
+                type_clusters.entry(features.content.language.clone())
+                    .or_insert_with(Vec::new)
+                    .push(node.id);
+            }
+        }
+        
+        // Create clustering constraints for each file type
+        for (file_type, node_ids) in type_clusters {
+            if node_ids.len() >= 2 {
+                let constraint = Constraint::cluster(
+                    node_ids,
+                    file_type.len() as f32, // Use type length as cluster ID
+                    0.4 // Moderate clustering strength
+                );
+                constraints.push(constraint);
+            }
+        }
+        
+        Ok(constraints)
+    }
+    
+    /// Handle control frames for constraint updates
+    pub fn handle_constraint_update(&mut self, constraint_data: serde_json::Value) -> Result<(), String> {
+        match constraint_data.get("action").and_then(|v| v.as_str()) {
+            Some("add_fixed_position") => {
+                if let (Some(node_id), Some(x), Some(y), Some(z)) = (
+                    constraint_data.get("node_id").and_then(|v| v.as_u64()).map(|v| v as u32),
+                    constraint_data.get("x").and_then(|v| v.as_f64()).map(|v| v as f32),
+                    constraint_data.get("y").and_then(|v| v.as_f64()).map(|v| v as f32),
+                    constraint_data.get("z").and_then(|v| v.as_f64()).map(|v| v as f32),
+                ) {
+                    let constraint = Constraint::fixed_position(node_id, x, y, z);
+                    self.constraint_set.add_to_group("user_fixed", constraint);
+                    info!("Added fixed position constraint for node {}", node_id);
+                }
+            }
+            Some("toggle_clustering") => {
+                if let Some(enabled) = constraint_data.get("enabled").and_then(|v| v.as_bool()) {
+                    self.constraint_set.set_group_active("domain_clustering", enabled);
+                    info!("Toggled domain clustering: {}", enabled);
+                }
+            }
+            Some("update_separation_factor") => {
+                if let Some(factor) = constraint_data.get("factor").and_then(|v| v.as_f64()).map(|v| v as f32) {
+                    self.advanced_params.separation_factor = factor;
+                    info!("Updated separation factor to {}", factor);
+                }
+            }
+            Some("enable_hierarchical") => {
+                if let Some(enabled) = constraint_data.get("enabled").and_then(|v| v.as_bool()) {
+                    self.advanced_params.hierarchical_mode = enabled;
+                    if enabled {
+                        // Add hierarchical constraints based on directory structure
+                        self.generate_hierarchical_constraints();
+                    }
+                    info!("Set hierarchical mode: {}", enabled);
+                }
+            }
+            _ => {
+                warn!("Unknown constraint update action: {:?}", constraint_data.get("action"));
+                return Err("Unknown constraint action".to_string());
+            }
+        }
+        
+        Ok(())
+    }
+    
+    fn generate_hierarchical_constraints(&mut self) {
+        // Create layer constraints based on directory depth
+        let mut depth_layers: HashMap<u32, Vec<u32>> = HashMap::new();
+        
+        for node in &self.graph_data.nodes {
+            if let Some(features) = self.semantic_features_cache.get(&node.metadata_id) {
+                depth_layers.entry(features.structural.directory_depth)
+                    .or_insert_with(Vec::new)
+                    .push(node.id);
+            }
+        }
+        
+        // Create alignment constraints for each depth layer
+        for (depth, node_ids) in depth_layers {
+            if node_ids.len() >= 2 {
+                let z_position = -(depth as f32) * self.advanced_params.layer_separation;
+                let constraint = Constraint {
+                    kind: crate::models::constraints::ConstraintKind::AlignmentDepth,
+                    node_indices: node_ids,
+                    params: vec![z_position],
+                    weight: 0.8,
+                    active: true,
+                };
+                self.constraint_set.add_to_group("hierarchical_layers", constraint);
+            }
+        }
+        
+        info!("Generated hierarchical layer constraints for {} depths", depth_layers.len());
     }
 
     pub fn update_node_positions(&mut self, positions: Vec<(u32, BinaryNodeData)>) {
@@ -228,87 +637,208 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
-        // BREADCRUMB: Simulation step running - check if GPU is available
+        // Increment counters for periodic operations
+        self.stress_step_counter += 1;
+        self.constraint_update_counter += 1;
         
-        // Use GPU compute actor if available
-        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            let node_count = self.graph_data.nodes.len();
-            
-            // Only log periodically to avoid spam
-            static mut LOG_COUNTER: u32 = 0;
-            unsafe {
-                if LOG_COUNTER % 60 == 0 {
-                    info!("GraphServiceActor: Sending {} nodes to GPU for physics simulation", node_count);
-                }
-                LOG_COUNTER += 1;
-            }
-            
-            // Send graph data to GPU
-            let graph_data_for_gpu = crate::models::graph::GraphData {
-                nodes: self.graph_data.nodes.clone(),
-                edges: self.graph_data.edges.clone(),
-                metadata: self.graph_data.metadata.clone(),
-                id_to_metadata: self.graph_data.id_to_metadata.clone(),
-            };
-            
-            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
-            
-            // Request computation
-            gpu_compute_addr.do_send(ComputeForces);
-            
-            // Request node data back
-            let gpu_addr = gpu_compute_addr.clone();
-            let client_manager = self.client_manager.clone();
-            let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
-            
-            // Get self address to send position updates back
+        // Execute periodic stress-majorization projection
+        if self.stress_step_counter >= self.advanced_params.stress_step_interval_frames {
+            self.execute_stress_majorization_step();
+            self.stress_step_counter = 0;
+        }
+        
+        // Update constraints periodically based on semantic analysis
+        if self.constraint_update_counter >= 120 { // Every 2 seconds at 60 FPS
+            self.update_dynamic_constraints();
+            self.constraint_update_counter = 0;
+        }
+        
+        // Initialize advanced GPU context if needed
+        if self.advanced_gpu_context.is_none() && !self.graph_data.nodes.is_empty() {
+            // Attempt to initialize advanced GPU context
+            let graph_data_clone = (*self.graph_data).clone();
             let self_addr = ctx.address();
+            let simulation_params = self.simulation_params.clone();
+            let advanced_params = self.advanced_params.clone();
             
-            // Spawn async task to get results and broadcast
             actix::spawn(async move {
-                // Small delay to let GPU compute
-                tokio::time::sleep(Duration::from_millis(5)).await;
-                
-                // Get the computed positions
-                match gpu_addr.send(GetNodeData).await {
-                    Ok(Ok(node_data)) => {
-                        // Convert to position updates with node IDs
-                        let mut positions = Vec::new();
-                        for (index, data) in node_data.iter().enumerate() {
-                            if let Some(node_id) = node_ids.get(index) {
-                                positions.push((*node_id, data.clone()));
-                            }
-                        }
-                        
-                        if !positions.is_empty() {
-                            // Update local node positions
-                            self_addr.do_send(UpdateNodePositions { 
-                                positions: positions.clone() 
-                            });
-                            
-                            // Encode and broadcast
-                            let binary_data = binary_protocol::encode_node_data(&positions);
-                            client_manager.do_send(BroadcastNodePositions { 
-                                positions: binary_data 
-                            });
-                        }
-                    }
-                    Ok(Err(e)) => {
-                        warn!("Failed to get GPU node data: {}", e);
+                match AdvancedGPUContext::new(
+                    graph_data_clone.nodes.len() as u32,
+                    graph_data_clone.edges.len() as u32,
+                    simulation_params,
+                    advanced_params,
+                ).await {
+                    Ok(context) => {
+                        self_addr.do_send(SetAdvancedGPUContext { context });
                     }
                     Err(e) => {
-                        warn!("Failed to communicate with GPU actor: {}", e);
+                        warn!("Failed to initialize advanced GPU context: {}", e);
                     }
                 }
             });
-        } else {
-            // No GPU available, skip this frame
-            warn!("No GPU compute actor available for physics simulation");
         }
+        
+        // Use advanced GPU compute if available, otherwise fallback to legacy
+        if let Some(ref mut advanced_gpu) = self.advanced_gpu_context {
+            self.run_advanced_gpu_step(advanced_gpu, ctx);
+        } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+            self.run_legacy_gpu_step(gpu_compute_addr, ctx);
+        } else {
+            warn!("No GPU compute context available for physics simulation");
+        }
+    }
+    
+    fn run_advanced_gpu_step(&mut self, gpu_context: &mut AdvancedGPUContext, _ctx: &mut Context<Self>) {
+        // Convert nodes to enhanced format with semantic features
+        let enhanced_nodes = self.prepare_enhanced_nodes();
+        
+        // Update GPU with enhanced node data
+        if let Err(e) = gpu_context.update_node_data(enhanced_nodes) {
+            error!("Failed to update advanced GPU node data: {}", e);
+            return;
+        }
+        
+        // Execute GPU physics step with constraints
+        let active_constraints: Vec<Constraint> = self.constraint_set.active_constraints()
+            .into_iter().cloned().collect();
+        
+        if let Err(e) = gpu_context.step_with_constraints(&active_constraints) {
+            error!("Advanced GPU physics step failed: {}", e);
+            return;
+        }
+        
+        // Get results and update local state
+        match gpu_context.get_legacy_node_data() {
+            Ok(node_data) => {
+                let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
+                let mut positions = Vec::new();
+                
+                for (index, data) in node_data.iter().enumerate() {
+                    if let Some(node_id) = node_ids.get(index) {
+                        positions.push((*node_id, data.clone()));
+                    }
+                }
+                
+                if !positions.is_empty() {
+                    // Update local positions
+                    self.update_node_positions(positions.clone());
+                    
+                    // Broadcast to clients
+                    let binary_data = binary_protocol::encode_node_data(&positions);
+                    self.client_manager.do_send(BroadcastNodePositions { 
+                        positions: binary_data 
+                    });
+                }
+            }
+            Err(e) => {
+                error!("Failed to get advanced GPU results: {}", e);
+            }
+        }
+        
+        // Log progress periodically
+        if gpu_context.iteration_count % 60 == 0 {
+            trace!("Advanced physics step completed (iteration {}, {} constraints active)", 
+                  gpu_context.iteration_count, active_constraints.len());
+        }
+    }
+    
+    fn run_legacy_gpu_step(&mut self, gpu_compute_addr: &Addr<GPUComputeActor>, ctx: &mut Context<Self>) {
+        let node_count = self.graph_data.nodes.len();
+        
+        // Only log periodically to avoid spam
+        static mut LOG_COUNTER: u32 = 0;
+        unsafe {
+            if LOG_COUNTER % 60 == 0 {
+                info!("GraphServiceActor: Fallback to legacy GPU for {} nodes", node_count);
+            }
+            LOG_COUNTER += 1;
+        }
+        
+        // Send graph data to GPU
+        let graph_data_for_gpu = crate::models::graph::GraphData {
+            nodes: self.graph_data.nodes.clone(),
+            edges: self.graph_data.edges.clone(),
+            metadata: self.graph_data.metadata.clone(),
+            id_to_metadata: self.graph_data.id_to_metadata.clone(),
+        };
+        
+        gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
+        gpu_compute_addr.do_send(ComputeForces);
+        
+        // Handle results asynchronously 
+        let gpu_addr = gpu_compute_addr.clone();
+        let client_manager = self.client_manager.clone();
+        let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
+        let self_addr = ctx.address();
+        
+        actix::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(5)).await;
+            
+            match gpu_addr.send(GetNodeData).await {
+                Ok(Ok(node_data)) => {
+                    let mut positions = Vec::new();
+                    for (index, data) in node_data.iter().enumerate() {
+                        if let Some(node_id) = node_ids.get(index) {
+                            positions.push((*node_id, data.clone()));
+                        }
+                    }
+                    
+                    if !positions.is_empty() {
+                        self_addr.do_send(UpdateNodePositions { 
+                            positions: positions.clone() 
+                        });
+                        
+                        let binary_data = binary_protocol::encode_node_data(&positions);
+                        client_manager.do_send(BroadcastNodePositions { 
+                            positions: binary_data 
+                        });
+                    }
+                }
+                Ok(Err(e)) => warn!("Failed to get legacy GPU node data: {}", e),
+                Err(e) => warn!("Failed to communicate with legacy GPU actor: {}", e),
+            }
+        });
     }
 
     // CPU physics removed - all physics now handled by GPU compute actor
     // BREADCRUMB: CPU fallback was removed as GPU is always available in our architecture
+
+    /// Update advanced physics parameters
+    pub fn update_advanced_physics_params(&mut self, params: AdvancedParams) {
+        self.advanced_params = params.clone();
+        self.stress_solver = StressMajorizationSolver::from_advanced_params(&params);
+        
+        // Update advanced GPU context if available
+        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+            gpu_context.update_advanced_params(params);
+        }
+        
+        info!("Updated advanced physics parameters via public API");
+    }
+    
+    /// Get current constraint set (read-only access)
+    pub fn get_constraint_set(&self) -> &ConstraintSet {
+        &self.constraint_set
+    }
+    
+    /// Manually trigger stress majorization optimization
+    pub fn trigger_stress_optimization(&mut self) -> Result<(), String> {
+        self.execute_stress_majorization_step();
+        info!("Manually triggered stress majorization via public API");
+        Ok(())
+    }
+    
+    /// Check if advanced GPU context is available
+    pub fn has_advanced_gpu(&self) -> bool {
+        self.advanced_gpu_context.is_some()
+    }
+    
+    /// Get semantic analysis status
+    pub fn get_semantic_analysis_status(&self) -> (usize, Option<std::time::Duration>) {
+        let feature_count = self.semantic_features_cache.len();
+        let age = self.last_semantic_analysis.map(|t| t.elapsed());
+        (feature_count, age)
+    }
 
     /// Calculate Communication Intensity between two agents based on:
     /// - Agent types and their collaboration patterns
@@ -754,5 +1284,80 @@ impl Handler<RequestPositionSnapshot> for GraphServiceActor {
             agent_nodes,
             timestamp: std::time::Instant::now(),
         })
+    }
+}
+
+// Advanced Physics and Constraint Message Handlers
+
+impl Handler<UpdateAdvancedParams> for GraphServiceActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: UpdateAdvancedParams, _ctx: &mut Self::Context) -> Self::Result {
+        self.advanced_params = msg.params.clone();
+        
+        // Update stress solver configuration
+        self.stress_solver = crate::physics::stress_majorization::StressMajorizationSolver::from_advanced_params(&msg.params);
+        
+        // Update advanced GPU context if available
+        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+            gpu_context.update_advanced_params(msg.params);
+        }
+        
+        info!("Updated advanced physics parameters");
+        Ok(())
+    }
+}
+
+impl Handler<UpdateConstraints> for GraphServiceActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        self.handle_constraint_update(msg.constraint_data)
+    }
+}
+
+impl Handler<GetConstraints> for GraphServiceActor {
+    type Result = Result<ConstraintSet, String>;
+    
+    fn handle(&mut self, _msg: GetConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(self.constraint_set.clone())
+    }
+}
+
+impl Handler<TriggerStressMajorization> for GraphServiceActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: TriggerStressMajorization, _ctx: &mut Self::Context) -> Self::Result {
+        self.execute_stress_majorization_step();
+        info!("Manually triggered stress majorization optimization");
+        Ok(())
+    }
+}
+
+impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: RegenerateSemanticConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        // Clear existing semantic constraints
+        self.constraint_set.set_group_active("semantic_dynamic", false);
+        self.constraint_set.set_group_active("domain_clustering", false);
+        self.constraint_set.set_group_active("clustering_dynamic", false);
+        
+        // Regenerate based on current graph state
+        self.generate_initial_semantic_constraints(&(*self.graph_data).clone());
+        self.update_dynamic_constraints();
+        
+        info!("Regenerated semantic constraints: {} total constraints", 
+              self.constraint_set.constraints.len());
+        Ok(())
+    }
+}
+
+impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
+    type Result = ();
+    
+    fn handle(&mut self, msg: SetAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        self.advanced_gpu_context = Some(msg.context);
+        info!("Advanced GPU context successfully initialized and set");
     }
 }

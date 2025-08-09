@@ -77,6 +77,9 @@ nalgebra = "0.32"
 # Added from the code block
 glam = "0.24"
 
+# Parallel processing
+rayon = "1.10"
+
 
 [dev-dependencies]
 tokio-test = "0.4"

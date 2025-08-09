@@ -46,6 +46,9 @@
 pub mod stress_majorization;
 pub mod semantic_constraints;
 
+#[cfg(test)]
+mod integration_tests;
+
 pub use stress_majorization::StressMajorizationSolver;
 pub use semantic_constraints::SemanticConstraintGenerator;
 
