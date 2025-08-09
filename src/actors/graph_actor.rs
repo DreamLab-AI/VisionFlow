@@ -377,18 +377,18 @@ impl GraphServiceActor {
                     let graph_data_mut = Arc::make_mut(&mut self.graph_data);
                     for (i, node) in graph_data_mut.nodes.iter_mut().enumerate() {
                         if let Some(optimized_node) = graph_data_clone.nodes.get(i) {
-                            node.data.x = optimized_node.data.x;
-                            node.data.y = optimized_node.data.y;
-                            node.data.z = optimized_node.data.z;
+                            node.data.position.x = optimized_node.data.position.x;
+                            node.data.position.y = optimized_node.data.position.y;
+                            node.data.position.z = optimized_node.data.position.z;
                         }
                     }
                     
                     // Update node_map as well
                     for node in &graph_data_mut.nodes {
                         if let Some(node_in_map) = self.node_map.get_mut(&node.id) {
-                            node_in_map.data.x = node.data.x;
-                            node_in_map.data.y = node.data.y;
-                            node_in_map.data.z = node.data.z;
+                            node_in_map.data.position.x = node.data.position.x;
+                            node_in_map.data.position.y = node.data.position.y;
+                            node_in_map.data.position.z = node.data.position.z;
                         }
                     }
                     

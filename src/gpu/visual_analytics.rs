@@ -3,14 +3,14 @@
 
 use std::sync::Arc;
 use std::collections::HashMap;
-use cudarc::driver::{CudaDevice, CudaSlice, DevicePtr, LaunchAsync};
+use cudarc::driver::{CudaDevice, CudaSlice, DevicePtr, LaunchAsync, DeviceRepr, ValidAsZeroBits};
 use cudarc::nvrtc::Ptx;
 use serde::{Deserialize, Serialize};
 use log::{info, debug, trace};
 
 /// 4D vector for temporal-spatial representation
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub struct Vec4 {
     pub x: f32,
     pub y: f32,
@@ -115,9 +115,22 @@ pub struct IsolationLayer {
     pub color_scheme: i32,
 }
 
+// Implement DeviceRepr and ValidAsZeroBits for GPU structs
+unsafe impl DeviceRepr for Vec4 {}
+unsafe impl ValidAsZeroBits for Vec4 {}
+
+unsafe impl DeviceRepr for TSNode {}
+unsafe impl ValidAsZeroBits for TSNode {}
+
+unsafe impl DeviceRepr for TSEdge {}
+unsafe impl ValidAsZeroBits for TSEdge {}
+
+unsafe impl DeviceRepr for IsolationLayer {}
+unsafe impl ValidAsZeroBits for IsolationLayer {}
+
 /// Visual analytics parameters
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualAnalyticsParams {
     // GPU optimization
     pub total_nodes: i32,
@@ -165,6 +178,7 @@ pub struct VisualAnalyticsParams {
 }
 
 /// Main visual analytics GPU context
+#[derive(Debug)]
 pub struct VisualAnalyticsGPU {
     device: Arc<CudaDevice>,
     

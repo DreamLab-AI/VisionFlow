@@ -313,9 +313,9 @@ impl StressMajorizationSolver {
         
         for node in &mut graph_data.nodes {
             // Only initialize if position is at origin (likely uninitialized)
-            if node.data.x.abs() < f32::EPSILON && 
-               node.data.y.abs() < f32::EPSILON && 
-               node.data.z.abs() < f32::EPSILON {
+            if node.data.position.x.abs() < f32::EPSILON && 
+               node.data.position.y.abs() < f32::EPSILON && 
+               node.data.position.z.abs() < f32::EPSILON {
                 
                 // Random initial position in a sphere
                 use rand::Rng;
@@ -323,9 +323,9 @@ impl StressMajorizationSolver {
                 let phi = rng.gen_range(0.0..std::f32::consts::PI);
                 let radius = rng.gen_range(50.0..200.0);
                 
-                node.data.x = radius * phi.sin() * theta.cos();
-                node.data.y = radius * phi.sin() * theta.sin();
-                node.data.z = radius * phi.cos();
+                node.data.position.x = radius * phi.sin() * theta.cos();
+                node.data.position.y = radius * phi.sin() * theta.sin();
+                node.data.position.z = radius * phi.cos();
             }
         }
         
@@ -339,9 +339,9 @@ impl StressMajorizationSolver {
         let mut positions = DMatrix::zeros(n, 3);
         
         for (i, node) in graph_data.nodes.iter().enumerate() {
-            positions[(i, 0)] = node.data.x;
-            positions[(i, 1)] = node.data.y;
-            positions[(i, 2)] = node.data.z;
+            positions[(i, 0)] = node.data.position.x;
+            positions[(i, 1)] = node.data.position.y;
+            positions[(i, 2)] = node.data.position.z;
         }
         
         positions
@@ -354,9 +354,9 @@ impl StressMajorizationSolver {
         }
         
         for (i, node) in graph_data.nodes.iter_mut().enumerate() {
-            node.data.x = positions[(i, 0)];
-            node.data.y = positions[(i, 1)];
-            node.data.z = positions[(i, 2)];
+            node.data.position.x = positions[(i, 0)];
+            node.data.position.y = positions[(i, 1)];
+            node.data.position.z = positions[(i, 2)];
         }
         
         Ok(())

@@ -1,6 +1,6 @@
 //! Advanced GPU compute module with constraint-aware physics
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync};
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits};
 use cudarc::nvrtc::Ptx;
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
@@ -59,6 +59,10 @@ impl From<EnhancedBinaryNodeData> for BinaryNodeData {
     }
 }
 
+// Implement DeviceRepr traits for GPU transfer
+unsafe impl DeviceRepr for EnhancedBinaryNodeData {}
+unsafe impl ValidAsZeroBits for EnhancedBinaryNodeData {}
+
 // Enhanced edge data with multi-modal similarities
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -91,6 +95,10 @@ impl From<EdgeData> for EnhancedEdgeData {
         }
     }
 }
+
+// Implement DeviceRepr traits for GPU transfer
+unsafe impl DeviceRepr for EnhancedEdgeData {}
+unsafe impl ValidAsZeroBits for EnhancedEdgeData {}
 
 // Advanced simulation parameters for GPU kernel
 #[repr(C)]
@@ -169,6 +177,7 @@ const MAX_CONSTRAINTS: u32 = 10_000;
 const DEBUG_THROTTLE: u32 = 60;
 
 /// Advanced GPU compute context with constraint support
+#[derive(Debug)]
 pub struct AdvancedGPUContext {
     pub device: Arc<CudaDevice>,
     pub advanced_kernel: CudaFunction,
