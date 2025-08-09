@@ -476,11 +476,12 @@ impl SemanticConstraintGenerator {
                     radius: None,   // Will be computed later if needed
                 };
                 
+                let cluster_size = cluster_nodes.len();
                 clusters.push(cluster);
                 processed_nodes.extend(cluster_nodes);
                 
                 debug!("Created cluster with {} nodes, coherence: {:.3}", 
-                      cluster_nodes.len(), coherence);
+                      cluster_size, coherence);
             }
         }
         
