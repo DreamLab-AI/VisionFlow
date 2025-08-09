@@ -223,13 +223,12 @@ WebSocket binary frames use opcode 0x2:
 
 ### Bandwidth Usage
 
-| Nodes | Message Size | Update Rate | Bandwidth |
-|-------|--------------|-------------|-----------|
-| 100 | 2.8 KB | 5 Hz | 14 KB/s |
-| 500 | 14 KB | 5 Hz | 70 KB/s |
-| 1,000 | 28 KB | 5 Hz | 140 KB/s |
-| 5,000 | 140 KB | 5 Hz | 700 KB/s |
-| 10,000 | 280 KB | 5 Hz | 1.4 MB/s |
+| Scenario | Nodes | Update Rate | Uncompressed | Compressed | Bandwidth |
+|----------|-------|-------------|--------------|------------|-----------|
+| Small Swarm | 10 agents + 100 knowledge | 10 Hz / 1 Hz | 3.1 KB | ~2 KB | 20 KB/s |
+| Medium Swarm | 50 agents + 1,000 knowledge | 10 Hz / 1 Hz | 29.4 KB | ~15 KB | 150 KB/s |
+| Large System | 100 agents + 10,000 knowledge | 10 Hz / 1 Hz | 283 KB | ~120 KB | 1.2 MB/s |
+| Enterprise | 500 agents + 100,000 knowledge | 10 Hz / 1 Hz | 2.8 MB | ~1.2 MB | 12 MB/s |
 
 ### Optimization Strategies
 
