@@ -4,7 +4,7 @@ use std::io::{Error, ErrorKind};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync};
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceSlice};
 use cudarc::nvrtc::Ptx;
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
@@ -1008,13 +1008,32 @@ impl GPUComputeActor {
         let mut ts_nodes = Vec::with_capacity(num_nodes);
         for i in 0..num_nodes {
             ts_nodes.push(TSNode {
-                id: i as u32,
-                label: format!("Node{}", i),
-                position: [0.0, 0.0, 0.0],
-                velocity: [0.0, 0.0, 0.0],
-                layer: 0,
-                cluster_id: 0,
-                importance: 1.0,
+                position: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
+                velocity: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
+                acceleration: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
+                trajectory: [Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 }; 8],
+                temporal_coherence: 1.0,
+                motion_saliency: 0.0,
+                hierarchy_level: 0,
+                parent_idx: -1,
+                children: [-1; 4],
+                lod_importance: 1.0,
+                layer_membership: [0.0; 16],
+                primary_layer: 0,
+                isolation_strength: 0.0,
+                topology: [0.0; 32],
+                betweenness_centrality: 0.0,
+                clustering_coefficient: 0.0,
+                pagerank: 0.0,
+                community_id: 0,
+                semantic_vector: [0.0; 16],
+                semantic_drift: 0.0,
+                visual_saliency: 0.0,
+                information_content: 0.0,
+                attention_weight: 0.0,
+                force_scale: 1.0,
+                damping_local: 0.1,
+                constraint_mask: 0,
             });
         }
         Ok(ts_nodes)
@@ -1028,11 +1047,20 @@ impl GPUComputeActor {
         let mut ts_edges = Vec::with_capacity(num_edges);
         for i in 0..num_edges {
             ts_edges.push(TSEdge {
-                id: i as u32,
                 source: 0,
                 target: 1,
-                weight: 1.0,
-                edge_type: 0,
+                structural_weight: 1.0,
+                semantic_weight: 1.0,
+                temporal_weight: 0.0,
+                causal_weight: 0.0,
+                weight_history: [1.0; 8],
+                formation_time: 0.0,
+                stability: 1.0,
+                bundling_strength: 0.5,
+                control_points: [Vec4 { x: 0.0, y: 0.0, z: 0.0, w: 0.0 }; 2],
+                layer_mask: 0,
+                information_flow: 0.0,
+                latency: 0.0,
             });
         }
         Ok(ts_edges)

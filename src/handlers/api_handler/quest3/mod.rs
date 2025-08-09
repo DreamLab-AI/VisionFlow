@@ -12,13 +12,10 @@
 
 use actix_web::{web, HttpResponse, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use log::{debug, error, info, warn};
-use std::collections::HashMap;
+use log::{info, warn};
 
 use crate::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
-use crate::config::AppFullSettings;
 
 /// Quest 3 optimized settings profile
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -7,7 +7,7 @@ use crate::models::node::Node;
 use crate::types::vec3::Vec3Data;
 use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams, SimulationPhase, SimulationMode};
-use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetAgentMetrics, GetCachedAgentStatuses};
+use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetCachedAgentStatuses};
 use crate::services::bots_client::BotsClient;
 // use crate::services::claude_flow::mcp_tools::McpTool;
 use serde::{Deserialize, Serialize};

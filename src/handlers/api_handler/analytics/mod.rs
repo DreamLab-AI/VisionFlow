@@ -17,15 +17,14 @@ use actix_web::{web, HttpResponse, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use log::{debug, error, info, warn};
-use std::collections::HashMap;
 
 use crate::AppState;
 use crate::actors::messages::{
-    GetSettings, UpdateSettings, UpdateVisualAnalyticsParams, 
+    GetSettings, UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats
 };
-use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer, PerformanceMetrics};
-use crate::models::constraints::{ConstraintSet, AdvancedParams};
+use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
+use crate::models::constraints::ConstraintSet;
 use crate::actors::gpu_compute_actor::PhysicsStats;
 
 /// Response for analytics parameter operations
@@ -269,7 +268,7 @@ pub async fn update_constraints(
 
 /// POST /api/analytics/focus - Set focus node/region
 pub async fn set_focus(
-    app_state: web::Data<AppState>,
+    _app_state: web::Data<AppState>,
     request: web::Json<SetFocusRequest>,
 ) -> Result<HttpResponse> {
     info!("Setting focus node/region");
@@ -354,8 +353,8 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
 }
 
 /// Helper function to create default analytics parameters
-fn create_default_analytics_params(settings: &crate::config::AppFullSettings) -> VisualAnalyticsParams {
-    use crate::gpu::visual_analytics::{VisualAnalyticsBuilder, Vec4};
+fn create_default_analytics_params(_settings: &crate::config::AppFullSettings) -> VisualAnalyticsParams {
+    use crate::gpu::visual_analytics::VisualAnalyticsBuilder;
     
     VisualAnalyticsBuilder::new()
         .with_nodes(1000)

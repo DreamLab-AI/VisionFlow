@@ -73,7 +73,7 @@ use crate::models::constraints::{ConstraintSet, Constraint, AdvancedParams};
 use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticFeatures};
 use crate::services::edge_generation::{AdvancedEdgeGenerator, EdgeGenerationConfig};
 use crate::utils::advanced_gpu_compute::{AdvancedGPUContext, EnhancedBinaryNodeData};
-use crate::physics::stress_majorization::{StressMajorizationSolver, StressMajorizationConfig};
+use crate::physics::stress_majorization::StressMajorizationSolver;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
