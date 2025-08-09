@@ -146,9 +146,9 @@ impl StressMajorizationSolver {
     /// Initialize GPU device for acceleration
     fn initialize_gpu() -> Result<Arc<CudaDevice>, Box<dyn std::error::Error>> {
         info!("Initializing GPU device for stress majorization");
-        let device = CudaDevice::new(0)?;
+        let device = Arc::new(CudaDevice::new(0)?);
         info!("Successfully initialized CUDA device for stress majorization");
-        Ok(Arc::new(device))
+        Ok(device)
     }
 
     /// Optimize graph layout using stress majorization

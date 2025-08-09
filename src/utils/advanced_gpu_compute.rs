@@ -1,6 +1,6 @@
 //! Advanced GPU compute module with constraint-aware physics
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits};
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits, DeviceSlice};
 use cudarc::nvrtc::Ptx;
 use std::io::{Error, ErrorKind};
 use std::sync::Arc;
@@ -99,6 +99,9 @@ impl From<EdgeData> for EnhancedEdgeData {
 // Implement DeviceRepr traits for GPU transfer
 unsafe impl DeviceRepr for EnhancedEdgeData {}
 unsafe impl ValidAsZeroBits for EnhancedEdgeData {}
+
+unsafe impl DeviceRepr for AdvancedSimulationParams {}
+unsafe impl ValidAsZeroBits for AdvancedSimulationParams {}
 
 // Advanced simulation parameters for GPU kernel
 #[repr(C)]
@@ -212,15 +215,11 @@ impl AdvancedGPUContext {
         let advanced_ptx_path = "src/utils/advanced_compute_forces.ptx";
         let advanced_kernel = if Path::new(advanced_ptx_path).exists() {
             info!("Loading advanced CUDA kernel from {}", advanced_ptx_path);
-            let ptx_data = std::fs::read(advanced_ptx_path)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read advanced PTX: {}", e)))?;
-            
-            let ptx = Ptx::from_bytes(&ptx_data);
+            let ptx = Ptx::from_file(advanced_ptx_path);
             device.load_ptx(ptx, "advanced_forces", &["advanced_forces_kernel"])
                 .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load advanced PTX: {}", e)))?;
             
-            Some(device.get_func("advanced_forces", "advanced_forces_kernel")
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get advanced kernel: {}", e)))?)
+            device.get_func("advanced_forces", "advanced_forces_kernel")
         } else {
             warn!("Advanced PTX not found at {}, will use legacy kernel", advanced_ptx_path);
             None
@@ -231,15 +230,11 @@ impl AdvancedGPUContext {
             let legacy_ptx_path = "src/utils/compute_forces.ptx";
             if Path::new(legacy_ptx_path).exists() {
                 info!("Loading legacy CUDA kernel as fallback");
-                let ptx_data = std::fs::read(legacy_ptx_path)
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read legacy PTX: {}", e)))?;
-                
-                let ptx = Ptx::from_bytes(&ptx_data);
+                let ptx = Ptx::from_file(legacy_ptx_path);
                 device.load_ptx(ptx, "compute_forces", &["compute_forces_kernel"])
                     .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load legacy PTX: {}", e)))?;
                 
-                Some(device.get_func("compute_forces", "compute_forces_kernel")
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get legacy kernel: {}", e)))?)
+                device.get_func("compute_forces", "compute_forces_kernel")
             } else {
                 None
             }

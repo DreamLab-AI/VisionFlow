@@ -333,7 +333,7 @@ impl SemanticAnalyzer {
         TemporalFeatures {
             created_at: None, // Would need git history
             modified_at: None, // Would need git history
-            modification_frequency: metadata.update_count as f32 / 30.0, // Rough estimate
+            modification_frequency: 1.0, // Default estimate
             co_evolution_score: 0.0, // Would need cross-file analysis
             temporal_cluster: None,
         }
@@ -341,7 +341,7 @@ impl SemanticAnalyzer {
 
     /// Extract structural features
     fn extract_structural_features(&self, metadata: &Metadata) -> StructuralFeatures {
-        let path = Path::new(&metadata.path);
+        let path = Path::new(&metadata.file_name);
         let directory_depth = path.components().count() as u32;
         let file_type = path.extension()
             .and_then(|e| e.to_str())
@@ -351,9 +351,9 @@ impl SemanticAnalyzer {
         StructuralFeatures {
             file_type,
             directory_depth,
-            dependency_count: metadata.dependencies.len() as u32,
+            dependency_count: 0, // No dependencies available in metadata
             complexity_score: (metadata.topic_counts.len() as f32).ln() + 1.0,
-            loc: Some(metadata.total_count as u32),
+            loc: Some(metadata.file_size as u32),
             module_path: path.parent()
                 .map(|p| p.to_string_lossy().split('/').map(String::from).collect())
                 .unwrap_or_default(),
@@ -367,15 +367,15 @@ impl SemanticAnalyzer {
         key_terms.truncate(20);
         
         ContentFeatures {
-            language: self.detect_language(&metadata.path),
+            language: self.detect_language(&metadata.file_name),
             key_terms,
             embeddings: None, // Would require actual content analysis
-            content_hash: format!("{:x}", md5::compute(&metadata.path)),
+            content_hash: metadata.sha1.clone(), // Use existing SHA1 instead of MD5
             documentation_score: self.calculate_documentation_score(metadata),
         }
     }
 
-    /// Detect programming/natural language from path
+    /// Detect programming/natural language from file name
     fn detect_language(&self, path: &str) -> String {
         let extension = Path::new(path)
             .extension()
@@ -414,7 +414,7 @@ impl SemanticAnalyzer {
 
     /// Calculate documentation score based on metadata
     fn calculate_documentation_score(&self, metadata: &Metadata) -> f32 {
-        let mut score = 0.0;
+        let mut score: f32 = 0.0;
         
         // Check for documentation-related terms
         let doc_terms = ["readme", "doc", "comment", "description", "example", "usage", "api"];
@@ -425,7 +425,7 @@ impl SemanticAnalyzer {
         }
         
         // Markdown files get bonus
-        if metadata.path.ends_with(".md") {
+        if metadata.file_name.ends_with(".md") {
             score += 0.3;
         }
         
