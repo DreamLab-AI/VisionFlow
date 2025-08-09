@@ -23,21 +23,15 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use log::{info, warn, error, debug, trace};
-use cudarc::driver::{CudaDevice, CudaSlice};
-use nalgebra::{DMatrix, DVector, Point3};
-use rayon::prelude::*;
+use log::{info, warn, debug, trace};
+use cudarc::driver::CudaDevice;
+use nalgebra::DMatrix;
 
 use crate::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind, ConstraintData, AdvancedParams},
+    constraints::{Constraint, ConstraintSet, ConstraintKind, AdvancedParams},
     graph::GraphData,
-    node::Node,
-    simulation_params::SimulationParams,
 };
-use crate::types::vec3::Vec3Data;
 use crate::utils::{
-    gpu_compute::GPUCompute,
-    socket_flow_messages::BinaryNodeData,
 };
 
 /// Configuration parameters for stress majorization
@@ -146,7 +140,7 @@ impl StressMajorizationSolver {
     /// Initialize GPU device for acceleration
     fn initialize_gpu() -> Result<Arc<CudaDevice>, Box<dyn std::error::Error>> {
         info!("Initializing GPU device for stress majorization");
-        let device = Arc::new(CudaDevice::new(0)?);
+        let device = CudaDevice::new(0)?;
         info!("Successfully initialized CUDA device for stress majorization");
         Ok(device)
     }

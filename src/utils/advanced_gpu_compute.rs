@@ -12,7 +12,6 @@ use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::edge_data::EdgeData;
 use crate::types::vec3::Vec3Data;
 use std::path::Path;
-use std::env;
 
 // Enhanced node data structure for advanced physics
 #[repr(C)]
@@ -469,7 +468,7 @@ impl AdvancedGPUContext {
     
     /// Switch between advanced and legacy kernels
     pub fn set_use_advanced_kernel(&mut self, use_advanced: bool) {
-        if use_advanced && self.advanced_kernel.raw != 0 {
+        if use_advanced {
             self.use_advanced_kernel = true;
             info!("Switched to advanced physics kernel");
         } else if !use_advanced && self.legacy_kernel.is_some() {

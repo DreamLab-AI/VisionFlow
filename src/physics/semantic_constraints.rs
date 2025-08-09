@@ -22,16 +22,15 @@
 //! - Fixed position constraints for important anchor nodes
 
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use log::{info, warn, error, debug, trace};
+use log::{info, debug, trace};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind, AdvancedParams},
+    constraints::{Constraint, ConstraintSet, AdvancedParams},
     graph::GraphData,
     node::Node,
-    metadata::{Metadata, MetadataStore},
+    metadata::MetadataStore,
 };
 
 /// Configuration for semantic constraint generation

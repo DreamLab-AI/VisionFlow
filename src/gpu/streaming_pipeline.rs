@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tokio::sync::{RwLock, mpsc};
 use bytes::{Bytes, BytesMut, BufMut};
 use serde::{Serialize, Deserialize};
-use log::{info, debug, trace};
+use log::info;
 
 /// Simplified render packet for bandwidth-constrained clients
 #[repr(C)]

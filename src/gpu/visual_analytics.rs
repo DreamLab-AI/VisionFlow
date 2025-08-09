@@ -2,11 +2,9 @@
 //! Designed to maximize A6000 throughput with zero-copy where possible
 
 use std::sync::Arc;
-use std::collections::HashMap;
-use cudarc::driver::{CudaDevice, CudaSlice, DevicePtr, LaunchAsync, DeviceRepr, ValidAsZeroBits};
-use cudarc::nvrtc::Ptx;
+use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr, ValidAsZeroBits};
 use serde::{Deserialize, Serialize};
-use log::{info, debug, trace};
+use log::info;
 
 /// 4D vector for temporal-spatial representation
 #[repr(C)]
