@@ -4,7 +4,6 @@ use actix_web::web;
 use log::{info, error};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
-use crate::services::agent_control_client::AgentControlActor;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;
@@ -35,7 +34,6 @@ pub struct AppState {
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
-    pub agent_control_addr: Option<Addr<AgentControlActor>>,
     pub claude_flow_addr: Option<Addr<ClaudeFlowActor>>,
 }
 
@@ -108,19 +106,7 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient");
         let bots_client = Arc::new(BotsClient::new());
 
-        // Initialize AgentControlActor if configured
-        let agent_control_addr = if let Ok(agent_control_url) = std::env::var("AGENT_CONTROL_URL") {
-            info!("[AppState::new] Starting AgentControlActor");
-            info!("[AppState::new] Agent Control URL: {}", agent_control_url);
-            
-            let actor = AgentControlActor::new(agent_control_url);
-            Some(actor.start())
-        } else {
-            info!("[AppState::new] AgentControlActor not configured (AGENT_CONTROL_URL not set)");
-            None
-        };
-
-        // Initialize ClaudeFlowActor
+        // Initialize ClaudeFlowActor for direct MCP connection
         let claude_flow_addr = {
             use crate::services::claude_flow::ClaudeFlowClientBuilder;
 
@@ -165,7 +151,6 @@ impl AppState {
             ragflow_session_id,
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
-            agent_control_addr,
             claude_flow_addr,
         })
     }

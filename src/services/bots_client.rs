@@ -295,15 +295,12 @@ impl BotsClient {
 
                 request_id += 1;
 
-                // If we haven't received any real data after 10 seconds, generate mock data for testing
+                // If we haven't received any real data after 10 seconds, log warning
                 if request_id == 3 {
                     let lock = updates_for_polling.read().await;
                     if lock.is_none() {
                         drop(lock);
-                        info!("No bots data received from orchestrator, generating mock data for testing");
-                        let mock_update = generate_mock_bots_update();
-                        let mut lock = updates_for_polling.write().await;
-                        *lock = Some(mock_update);
+                        warn!("No bots data received from orchestrator after 15 seconds");
                     }
                 }
 
@@ -325,111 +322,3 @@ impl BotsClient {
     }
 }
 
-// Generate mock bots data for testing
-fn generate_mock_bots_update() -> BotsUpdate {
-    let agents = vec![
-        Agent {
-            id: "agent-coordinator-1".to_string(),
-            name: "Coordinator Alpha".to_string(),
-            agent_type: "coordinator".to_string(),
-            status: "active".to_string(),
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            cpu_usage: 45.0,
-            health: 95.0,
-            workload: 0.7,
-            memory_usage: 30.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-        Agent {
-            id: "agent-coder-1".to_string(),
-            name: "Coder Beta".to_string(),
-            agent_type: "coder".to_string(),
-            status: "active".to_string(),
-            x: 10.0,
-            y: 5.0,
-            z: 0.0,
-            cpu_usage: 78.0,
-            health: 88.0,
-            workload: 0.9,
-            memory_usage: 65.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-        Agent {
-            id: "agent-tester-1".to_string(),
-            name: "Tester Gamma".to_string(),
-            agent_type: "tester".to_string(),
-            status: "active".to_string(),
-            x: -10.0,
-            y: 5.0,
-            z: 0.0,
-            cpu_usage: 32.0,
-            health: 92.0,
-            workload: 0.5,
-            memory_usage: 25.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-        Agent {
-            id: "agent-analyst-1".to_string(),
-            name: "Analyst Delta".to_string(),
-            agent_type: "analyst".to_string(),
-            status: "active".to_string(),
-            x: 0.0,
-            y: -10.0,
-            z: 0.0,
-            cpu_usage: 56.0,
-            health: 90.0,
-            workload: 0.6,
-            memory_usage: 45.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-        Agent {
-            id: "agent-researcher-1".to_string(),
-            name: "Researcher Epsilon".to_string(),
-            agent_type: "researcher".to_string(),
-            status: "active".to_string(),
-            x: 10.0,
-            y: -5.0,
-            z: 5.0,
-            cpu_usage: 41.0,
-            health: 94.0,
-            workload: 0.4,
-            memory_usage: 35.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-        Agent {
-            id: "agent-architect-1".to_string(),
-            name: "Architect Zeta".to_string(),
-            agent_type: "architect".to_string(),
-            status: "active".to_string(),
-            x: -10.0,
-            y: -5.0,
-            z: -5.0,
-            cpu_usage: 62.0,
-            health: 91.0,
-            workload: 0.8,
-            memory_usage: 55.0,
-            created_at: Some(chrono::Utc::now().to_rfc3339()),
-            age: Some(0),
-        },
-    ];
-
-    BotsUpdate {
-        agents,
-        metrics: BotsMetrics {
-            total_tokens: 150000,
-            active_agents: 6,
-            tasks_completed: 42,
-        },
-        timestamp: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs(),
-    }
-}

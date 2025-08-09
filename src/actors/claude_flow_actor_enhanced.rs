@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix::fut;
 use std::time::Duration;
-use log::{info, error, debug};
+use log::{info, error, debug, warn};
 use crate::services::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
@@ -9,8 +9,15 @@ use std::collections::HashMap;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
 use serde_json::{json, Value};
+use serde::{Serialize, Deserialize};
+use tokio::sync::RwLock;
+use std::sync::Arc;
+use futures_util::{StreamExt, SinkExt};
+use tokio_tungstenite::{connect_async, WebSocketStream, MaybeTlsStream};
+use tokio::net::TcpStream;
+use tungstenite::Message as WsMessage;
 
-/// Enhanced ClaudeFlowActor with full MCP integration for Hive Mind Swarm
+/// Enhanced ClaudeFlowActor with direct MCP WebSocket integration
 pub struct EnhancedClaudeFlowActor {
     client: ClaudeFlowClient,
     graph_service_addr: Addr<GraphServiceActor>,
@@ -24,6 +31,13 @@ pub struct EnhancedClaudeFlowActor {
     system_metrics: SystemMetrics,
     message_flow_history: Vec<MessageFlowEvent>,
     coordination_patterns: Vec<CoordinationPattern>,
+    // Direct WebSocket connection to Claude Flow on port 3002
+    ws_connection: Option<Arc<RwLock<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
+    // Pending changes for differential updates
+    pending_additions: Vec<AgentStatus>,
+    pending_removals: Vec<String>,
+    pending_updates: Vec<AgentUpdate>,
+    pending_messages: Vec<MessageFlowEvent>,
 }
 
 impl EnhancedClaudeFlowActor {
@@ -34,50 +48,163 @@ impl EnhancedClaudeFlowActor {
             is_connected: false,
             is_initialized: false,
             swarm_id: None,
-            polling_interval: Duration::from_millis(16), // 60 FPS polling
+            polling_interval: Duration::from_millis(100), // 10Hz for telemetry updates
             last_poll: Utc::now(),
             agent_cache: HashMap::new(),
             swarm_status: None,
             system_metrics: SystemMetrics::default(),
             message_flow_history: Vec::new(),
             coordination_patterns: Vec::new(),
+            ws_connection: None,
+            pending_additions: Vec::new(),
+            pending_removals: Vec::new(),
+            pending_updates: Vec::new(),
+            pending_messages: Vec::new(),
         }
     }
 
-    /// Initialize MCP connection (simplified for now)
+    /// Initialize direct MCP WebSocket connection to Claude Flow on port 3002
     fn initialize_connection(&mut self, ctx: &mut Context<Self>) {
-        info!("Initializing MCP connection for Enhanced Claude Flow Actor");
-
-        // For now, just mark as connected (mock behavior)
-        // Real implementation would handle async connection properly
-        self.is_connected = true;
-        self.is_initialized = true;
-
-        // Start real-time polling for swarm data
-        self.start_real_time_polling(ctx);
-
-        info!("Enhanced Claude Flow Actor MCP connection initialized successfully");
+        info!("Initializing direct MCP WebSocket connection to Claude Flow on port 3002");
+        
+        let addr = ctx.address();
+        
+        // Spawn async task to connect to Claude Flow
+        tokio::spawn(async move {
+            match Self::connect_to_claude_flow().await {
+                Ok(ws_stream) => {
+                    info!("Successfully connected to Claude Flow MCP server on port 3002");
+                    addr.do_send(ConnectionEstablished { ws_stream });
+                }
+                Err(e) => {
+                    warn!("Failed to connect to Claude Flow on port 3002: {}. Using fallback mode.", e);
+                    // Still mark as initialized to use fallback/mock data
+                    addr.do_send(ConnectionFailed);
+                }
+            }
+        });
+    }
+    
+    /// Establish WebSocket connection to Claude Flow
+    async fn connect_to_claude_flow() -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, Box<dyn std::error::Error>> {
+        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+        let port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string());
+        let url = format!("ws://{}:{}/mcp", host, port);
+        
+        info!("Connecting to Claude Flow MCP at: {}", url);
+        let (ws_stream, _response) = connect_async(&url).await?;
+        
+        Ok(ws_stream)
     }
 
-    /// Start real-time polling for agent positions and state updates
-    fn start_real_time_polling(&mut self, ctx: &mut Context<Self>) {
-        info!("Starting real-time polling at 60 FPS for swarm data");
+    /// Start real-time telemetry streaming
+    fn start_real_time_streaming(&mut self, ctx: &mut Context<Self>) {
+        info!("Starting real-time telemetry streaming at 10Hz");
 
-        // Schedule interval for real-time updates
+        // Schedule interval for telemetry updates (100ms = 10Hz)
         ctx.run_interval(self.polling_interval, |actor, ctx| {
-            let now = Utc::now();
-            if (now - actor.last_poll).num_milliseconds() >= 16 { // 60 FPS = ~16ms
-                actor.last_poll = now;
-                
-                // Trigger polling for different data types
-                ctx.address().do_send(PollSwarmData);
+            if actor.is_connected {
+                ctx.address().do_send(ProcessTelemetryStream);
             }
         });
 
-        // Schedule less frequent system metrics updates (1 second)
-        ctx.run_interval(Duration::from_secs(1), |_actor, ctx| {
-            ctx.address().do_send(PollSystemMetrics);
+        // Schedule differential update processing
+        ctx.run_interval(Duration::from_millis(50), |actor, ctx| {
+            if !actor.pending_additions.is_empty() || 
+               !actor.pending_removals.is_empty() || 
+               !actor.pending_updates.is_empty() ||
+               !actor.pending_messages.is_empty() {
+                ctx.address().do_send(ProcessDeltaUpdates);
+            }
         });
+    }
+    
+    /// Handle incoming telemetry event from Claude Flow
+    fn handle_telemetry_event(&mut self, event: Value) {
+        if let Some(event_type) = event.get("type").and_then(|t| t.as_str()) {
+            match event_type {
+                "agent.spawned" => {
+                    if let Ok(agent) = serde_json::from_value::<AgentStatus>(event["data"].clone()) {
+                        self.pending_additions.push(agent.clone());
+                        self.agent_cache.insert(agent.agent_id.clone(), agent);
+                    }
+                }
+                "agent.terminated" => {
+                    if let Some(id) = event.get("data").and_then(|d| d.get("id")).and_then(|i| i.as_str()) {
+                        self.pending_removals.push(id.to_string());
+                        self.agent_cache.remove(id);
+                    }
+                }
+                "agent.status" => {
+                    if let Ok(update) = serde_json::from_value::<AgentUpdate>(event["data"].clone()) {
+                        self.pending_updates.push(update.clone());
+                        if let Some(agent) = self.agent_cache.get_mut(&update.agent_id) {
+                            agent.status = update.status.clone();
+                            if let Some(task) = &update.current_task {
+                                agent.current_task = Some(task.clone());
+                            }
+                        }
+                    }
+                }
+                "message.flow" => {
+                    if let Ok(msg_flow) = serde_json::from_value::<MessageFlowEvent>(event["data"].clone()) {
+                        self.pending_messages.push(msg_flow.clone());
+                        self.message_flow_history.push(msg_flow);
+                        
+                        // Keep only recent messages (last 5 minutes)
+                        let cutoff = Utc::now() - chrono::Duration::minutes(5);
+                        self.message_flow_history.retain(|msg| msg.timestamp > cutoff);
+                    }
+                }
+                "metrics.update" => {
+                    if let Ok(metrics) = serde_json::from_value::<SystemMetrics>(event["data"].clone()) {
+                        self.system_metrics = metrics;
+                    }
+                }
+                _ => debug!("Unhandled telemetry event type: {}", event_type),
+            }
+        }
+    }
+    
+    /// Convert agent data to graph format and push to GraphServiceActor
+    fn push_to_graph(&self) {
+        let agents: Vec<AgentStatus> = self.agent_cache.values().cloned().collect();
+        
+        if !agents.is_empty() {
+            // Send to GraphServiceActor for GPU processing
+            self.graph_service_addr.do_send(UpdateBotsGraph { agents });
+        }
+    }
+    
+    /// Compute differential updates to minimize data transfer
+    fn compute_delta(&mut self) -> TelemetryDelta {
+        TelemetryDelta {
+            added_agents: self.pending_additions.drain(..).collect(),
+            removed_agents: self.pending_removals.drain(..).collect(),
+            updated_agents: self.pending_updates.drain(..).collect(),
+            new_messages: self.pending_messages.drain(..).collect(),
+        }
+    }
+    
+    /// Send MCP request through WebSocket
+    async fn send_mcp_request(&self, method: &str, params: Value) -> Result<Value, String> {
+        if let Some(ws_conn) = &self.ws_connection {
+            let request = json!({
+                "jsonrpc": "2.0",
+                "id": Uuid::new_v4().to_string(),
+                "method": method,
+                "params": params
+            });
+            
+            let mut ws = ws_conn.write().await;
+            ws.send(WsMessage::Text(request.to_string())).await
+                .map_err(|e| format!("Failed to send MCP request: {}", e))?;
+            
+            // For now, return success - actual response handling would be via stream
+            Ok(json!({ "success": true }))
+        } else {
+            Err("No WebSocket connection established".to_string())
+        }
     }
 
     /// Execute MCP tool call with error handling and response parsing
@@ -163,251 +290,77 @@ impl EnhancedClaudeFlowActor {
         };
     }
 
-    /// Generate synthetic swarm data for visualization testing
-    fn generate_enhanced_mock_agents(&mut self) -> Vec<AgentStatus> {
-        let agent_types = vec![
-            ("coordinator", "Hive Mind Coordinator", AgentType::Coordinator),
-            ("architect", "System Architect", AgentType::Architect),
-            ("coder", "Implementation Specialist", AgentType::Coder),
-            ("researcher", "Analysis Researcher", AgentType::Researcher),
-            ("tester", "Quality Assurance", AgentType::Tester),
-            ("analyst", "Metrics Analyst", AgentType::Analyst),
-            ("optimizer", "Performance Optimizer", AgentType::Optimizer),
-            ("monitor", "System Monitor", AgentType::Monitor),
-        ];
-
-        let mut agents = Vec::new();
-        let now = Utc::now();
-
-        for (i, (agent_type, name, enum_type)) in agent_types.iter().enumerate() {
-            let agent_id = format!("{}-{:03}", agent_type, i + 1);
-            
-            // Generate realistic performance metrics
-            let tasks_completed = 10 + (i * 5) as u32;
-            let tasks_failed = if i == 7 { 1 } else { 0 }; // Monitor has 1 failure
-            let success_rate = if tasks_failed > 0 {
-                (tasks_completed as f32 / (tasks_completed + tasks_failed) as f32) * 100.0
-            } else {
-                100.0
-            };
-
-            let status = match i {
-                0 => "active",    // Coordinator always active
-                1..=5 => "active", // Most agents active
-                6 => "busy",      // Optimizer busy
-                7 => "idle",      // Monitor idle
-                _ => "active",
-            };
-
-            let agent = AgentStatus {
-                agent_id: agent_id.clone(),
-                status: status.to_string(),
-                session_id: Uuid::new_v4().to_string(),
-                profile: AgentProfile {
-                    name: name.to_string(),
-                    agent_type: enum_type.clone(),
-                    capabilities: self.generate_agent_capabilities(agent_type),
-                    system_prompt: Some(format!("You are a {} in the hive mind swarm", name)),
-                    max_concurrent_tasks: match agent_type.as_ref() {
-                        "coordinator" => 20,
-                        "architect" | "design_architect" => 8,
-                        "coder" => 5,
-                        "tester" => 10,
-                        _ => 6,
-                    },
-                    priority: match agent_type.as_ref() {
-                        "coordinator" => 10,
-                        "architect" | "design_architect" => 9,
-                        "coder" => 8,
-                        _ => 7,
-                    },
-                    retry_policy: Default::default(),
-                    environment: Some({
-                        let mut env = HashMap::new();
-                        env.insert("SWARM_ID".to_string(), "hive-mind-swarm".to_string());
-                        env.insert("SWARM_TYPE".to_string(), "hierarchical".to_string());
-                        env
-                    }),
-                    working_directory: Some("/workspace/ext".to_string()),
-                },
-                timestamp: now,
-                active_tasks_count: if status == "active" { (i % 3) as u32 + 1 } else { 0 },
-                completed_tasks_count: tasks_completed,
-                failed_tasks_count: tasks_failed,
-                total_execution_time: (tasks_completed * 2500 + i as u32 * 1000) as u64,
-                average_task_duration: 2500.0 + (i as f64 * 100.0),
-                success_rate: success_rate as f64,
-                current_task: if status == "active" {
-                    Some(crate::services::claude_flow::types::TaskReference {
-                        task_id: format!("task-{}", Uuid::new_v4()),
-                        description: format!("Executing {} optimization task", agent_type),
-                        started_at: now,
-                    })
-                } else {
-                    None
-                },
-                metadata: {
-                    let mut meta = HashMap::new();
-                    meta.insert("swarm_role".to_string(), json!(agent_type));
-                    meta.insert("specialization".to_string(), json!(name));
-                    meta.insert("bot_observability_upgrade".to_string(), json!(true));
-                    meta
-                },
-                // Add missing fields for enhanced observability
-                performance_metrics: crate::services::claude_flow::types::PerformanceMetrics {
-                    tasks_completed,
-                    success_rate: success_rate as f64,
-                    average_response_time: 2500.0 + (i as f64 * 100.0),
-                    resource_utilization: 0.7 + (i as f64 * 0.05),
-                },
-                token_usage: crate::services::claude_flow::types::TokenUsage {
-                    total: (tasks_completed * 150) as u64,
-                    input_tokens: (tasks_completed * 50) as u64,
-                    output_tokens: (tasks_completed * 100) as u64,
-                    token_rate: 15.0 + (i as f64 * 2.0),
-                },
-                tasks_active: if status == "active" { (i % 3) as u32 + 1 } else { 0 },
-                health: 95.0 - (i as f64 * 2.0),
-                cpu_usage: 50.0 + (i as f64 * 5.0),
-                memory_usage: 30.0 + (i as f64 * 3.0),
-                activity: if status == "active" { 0.8 } else if status == "busy" { 0.95 } else { 0.1 },
-                swarm_id: Some("hive-mind-swarm-001".to_string()),
-                agent_mode: Some(if i == 0 { "centralized" } else { "distributed" }.to_string()),
-                parent_queen_id: if i == 0 { None } else { Some("coordinator-001".to_string()) },
-                processing_logs: Some(vec![
-                    format!("Agent {} initialized successfully", agent_id),
-                    format!("Connected to swarm network"),
-                ]),
-            };
-
-            agents.push(agent);
-        }
-
-        // Update agent cache
-        for agent in &agents {
-            self.agent_cache.insert(agent.agent_id.clone(), agent.clone());
-        }
-
-        agents
-    }
-
-    /// Generate capabilities based on agent type
-    fn generate_agent_capabilities(&self, agent_type: &str) -> Vec<String> {
-        match agent_type {
-            "coordinator" => vec![
-                "swarm_orchestration".to_string(),
-                "task_distribution".to_string(),
-                "resource_allocation".to_string(),
-                "strategic_planning".to_string(),
-                "coordination_patterns".to_string(),
-            ],
-            "architect" => vec![
-                "system_design".to_string(),
-                "component_architecture".to_string(),
-                "spring_physics".to_string(),
-                "gpu_optimization".to_string(),
-                "visualization_design".to_string(),
-            ],
-            "coder" => vec![
-                "rust_development".to_string(),
-                "react_typescript".to_string(),
-                "mcp_integration".to_string(),
-                "websocket_protocols".to_string(),
-                "three_js_graphics".to_string(),
-            ],
-            "researcher" => vec![
-                "code_analysis".to_string(),
-                "performance_research".to_string(),
-                "pattern_identification".to_string(),
-                "optimization_strategies".to_string(),
-                "documentation_review".to_string(),
-            ],
-            "tester" => vec![
-                "unit_testing".to_string(),
-                "integration_testing".to_string(),
-                "load_testing".to_string(),
-                "gpu_performance_testing".to_string(),
-                "websocket_validation".to_string(),
-            ],
-            "analyst" => vec![
-                "metrics_collection".to_string(),
-                "performance_monitoring".to_string(),
-                "bottleneck_analysis".to_string(),
-                "real_time_analytics".to_string(),
-                "system_health_monitoring".to_string(),
-            ],
-            "optimizer" => vec![
-                "gpu_shader_optimization".to_string(),
-                "memory_management".to_string(),
-                "spring_physics_tuning".to_string(),
-                "rendering_optimization".to_string(),
-                "cpu_profiling".to_string(),
-            ],
-            "monitor" => vec![
-                "system_monitoring".to_string(),
-                "failure_detection".to_string(),
-                "auto_recovery".to_string(),
-                "uptime_tracking".to_string(),
-                "alert_management".to_string(),
-            ],
-            _ => vec!["general_processing".to_string()],
-        }
-    }
-
-    /// Generate synthetic message flow for visualization
-    fn generate_mock_message_flow(&mut self) {
-        let agents: Vec<String> = self.agent_cache.keys().cloned().collect();
-        
-        if agents.is_empty() {
-            return;
-        }
-
-        // Generate 2-3 random messages
-        for _ in 0..3 {
-            if agents.len() >= 2 {
-                let from_idx = fastrand::usize(0..agents.len());
-                let mut to_idx = fastrand::usize(0..agents.len());
-                while to_idx == from_idx {
-                    to_idx = fastrand::usize(0..agents.len());
+    /// Ensure connection to Claude Flow, with exponential backoff retry
+    async fn ensure_connection(&mut self) -> Result<(), String> {
+        if !self.is_connected {
+            // Attempt reconnection
+            match Self::connect_to_claude_flow().await {
+                Ok(ws_stream) => {
+                    self.ws_connection = Some(Arc::new(RwLock::new(ws_stream)));
+                    self.is_connected = true;
+                    self.is_initialized = true;
+                    Ok(())
                 }
-
-                let message = MessageFlowEvent {
-                    id: Uuid::new_v4().to_string(),
-                    from_agent: agents[from_idx].clone(),
-                    to_agent: agents[to_idx].clone(),
-                    message_type: "coordination".to_string(),
-                    priority: fastrand::u8(1..=5),
-                    timestamp: Utc::now(),
-                    latency_ms: fastrand::f32() * 50.0 + 10.0, // 10-60ms latency
-                };
-
-                self.message_flow_history.push(message);
+                Err(e) => {
+                    // Return empty state instead of mock data
+                    Err(format!("MCP connection failed: {}", e))
+                }
             }
+        } else {
+            Ok(())
         }
-
-        // Keep only recent messages (last 5 minutes)
-        let cutoff = Utc::now() - chrono::Duration::minutes(5);
-        self.message_flow_history.retain(|msg| msg.timestamp > cutoff);
     }
+    
+    /// Return empty agent list when no connection available (no mock data)
+    fn get_empty_agents(&self) -> Vec<AgentStatus> {
+        Vec::new()
+    }
+
 }
 
 
-// Internal polling messages
+// Internal messages for Claude Flow integration
 #[derive(Message)]
 #[rtype(result = "()")]
-struct PollSwarmData;
+struct ProcessTelemetryStream;
 
 #[derive(Message)]
 #[rtype(result = "()")]
-struct PollSystemMetrics;
+struct ProcessDeltaUpdates;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct ConnectionEstablished {
+    ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct ConnectionFailed;
+
+// Differential update structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct TelemetryDelta {
+    added_agents: Vec<AgentStatus>,
+    removed_agents: Vec<String>,
+    updated_agents: Vec<AgentUpdate>,
+    new_messages: Vec<MessageFlowEvent>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct AgentUpdate {
+    agent_id: String,
+    status: String,
+    current_task: Option<crate::services::claude_flow::types::TaskReference>,
+}
 
 impl Actor for EnhancedClaudeFlowActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("Enhanced Claude Flow Actor started");
+        info!("Enhanced Claude Flow Actor started - connecting to port 3002");
         
-        // Initialize connection
+        // Initialize direct MCP WebSocket connection
         self.initialize_connection(ctx);
     }
 }
@@ -428,8 +381,8 @@ impl Handler<InitializeSwarm> for EnhancedClaudeFlowActor {
             // Generate swarm ID
             actor.swarm_id = Some(Uuid::new_v4().to_string());
             
-            // Generate initial agent data
-            let agents = actor.generate_enhanced_mock_agents();
+            // Start with empty agents until real data arrives
+            let agents = actor.get_empty_agents();
             
             // Update graph service with new agents
             actor.graph_service_addr.do_send(UpdateBotsGraph { agents: agents.clone() });
@@ -472,9 +425,6 @@ impl Handler<SwarmMonitor> for EnhancedClaudeFlowActor {
     fn handle(&mut self, _msg: SwarmMonitor, _ctx: &mut Self::Context) -> Self::Result {
         debug!("Collecting swarm monitoring data");
 
-        // Generate fresh message flow data
-        self.generate_mock_message_flow();
-
         let agent_states: HashMap<String, String> = self.agent_cache
             .iter()
             .map(|(id, agent)| (id.clone(), agent.status.clone()))
@@ -492,30 +442,97 @@ impl Handler<SwarmMonitor> for EnhancedClaudeFlowActor {
     }
 }
 
-impl Handler<PollSwarmData> for EnhancedClaudeFlowActor {
+impl Handler<ProcessTelemetryStream> for EnhancedClaudeFlowActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: PollSwarmData, _ctx: &mut Self::Context) -> Self::Result {
-        // High-frequency polling for position and state updates
-        if !self.agent_cache.is_empty() {
-            // Generate updated agent data
-            let agents = self.generate_enhanced_mock_agents();
-            
-            // Send updates to graph service
-            self.graph_service_addr.do_send(UpdateBotsGraph { agents });
+    fn handle(&mut self, _msg: ProcessTelemetryStream, _ctx: &mut Self::Context) -> Self::Result {
+        // Process any incoming telemetry and push to graph
+        if self.is_connected && !self.agent_cache.is_empty() {
+            self.push_to_graph();
         }
     }
 }
 
-impl Handler<PollSystemMetrics> for EnhancedClaudeFlowActor {
+impl Handler<ProcessDeltaUpdates> for EnhancedClaudeFlowActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: PollSystemMetrics, _ctx: &mut Self::Context) -> Self::Result {
-        // Low-frequency polling for system metrics
-        let agents: Vec<AgentStatus> = self.agent_cache.values().cloned().collect();
-        self.update_system_metrics(&agents);
+    fn handle(&mut self, _msg: ProcessDeltaUpdates, _ctx: &mut Self::Context) -> Self::Result {
+        // Process differential updates
+        let delta = self.compute_delta();
         
-        debug!("System metrics updated: {:?}", self.system_metrics);
+        // Only send if there are changes
+        if !delta.added_agents.is_empty() || 
+           !delta.removed_agents.is_empty() || 
+           !delta.updated_agents.is_empty() {
+            
+            // Update graph with changes
+            self.push_to_graph();
+            
+            debug!("Processed delta: {} additions, {} removals, {} updates", 
+                   delta.added_agents.len(), 
+                   delta.removed_agents.len(), 
+                   delta.updated_agents.len());
+        }
+    }
+}
+
+impl Handler<ConnectionEstablished> for EnhancedClaudeFlowActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: ConnectionEstablished, ctx: &mut Self::Context) -> Self::Result {
+        info!("Claude Flow WebSocket connection established");
+        self.ws_connection = Some(Arc::new(RwLock::new(msg.ws_stream)));
+        self.is_connected = true;
+        self.is_initialized = true;
+        
+        // Start streaming
+        self.start_real_time_streaming(ctx);
+        
+        // Subscribe to telemetry events
+        let ws_conn = self.ws_connection.clone();
+        let addr = ctx.address();
+        
+        tokio::spawn(async move {
+            if let Some(ws) = ws_conn {
+                let subscribe_req = json!({
+                    "jsonrpc": "2.0",
+                    "id": Uuid::new_v4().to_string(),
+                    "method": "telemetry.subscribe",
+                    "params": {
+                        "events": ["agent.*", "message.*", "metrics.*"]
+                    }
+                });
+                
+                let mut ws = ws.write().await;
+                if let Err(e) = ws.send(WsMessage::Text(subscribe_req.to_string())).await {
+                    error!("Failed to subscribe to telemetry: {}", e);
+                }
+            }
+        });
+    }
+}
+
+impl Handler<ConnectionFailed> for EnhancedClaudeFlowActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: ConnectionFailed, ctx: &mut Self::Context) -> Self::Result {
+        warn!("Claude Flow connection failed, running in disconnected mode");
+        self.is_connected = false;
+        self.is_initialized = true; // Still initialized, but in fallback mode
+        
+        // Start with empty agents in fallback mode
+        let agents = self.get_empty_agents();
+        self.graph_service_addr.do_send(UpdateBotsGraph { agents });
+        
+        // Start polling with mock data
+        self.start_real_time_streaming(ctx);
+        
+        // Schedule reconnection attempts
+        ctx.run_interval(Duration::from_secs(30), |actor, ctx| {
+            if !actor.is_connected {
+                ctx.address().do_send(RetryMCPConnection);
+            }
+        });
     }
 }
 

@@ -1,4 +1,3 @@
-pub mod agent_control_client;
 pub mod agent_visualization_processor;
 pub mod agent_visualization_protocol;
 pub mod bots_client;
