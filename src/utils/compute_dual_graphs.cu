@@ -80,8 +80,12 @@ extern "C" {
         int num_agent_nodes,
         int num_knowledge_edges,
         int num_agent_edges,
-        GraphPhysicsParams knowledge_params,
-        GraphPhysicsParams agent_params,
+        float knowledge_spring_k,
+        float knowledge_damping,
+        float knowledge_repel_k,
+        float agent_spring_k,
+        float agent_damping,
+        float agent_repel_k,
         float dt,
         float max_repulsion_dist,
         float viewport_bounds,
@@ -104,7 +108,9 @@ extern "C" {
         EdgeData* edges;
         int num_nodes;
         int num_edges;
-        GraphPhysicsParams params;
+        float spring_k;
+        float damping;
+        float repel_k;
         int local_idx;
         
         if (is_knowledge_node) {
@@ -112,14 +118,18 @@ extern "C" {
             edges = knowledge_edges;
             num_nodes = num_knowledge_nodes;
             num_edges = num_knowledge_edges;
-            params = knowledge_params;
+            spring_k = knowledge_spring_k;
+            damping = knowledge_damping;
+            repel_k = knowledge_repel_k;
             local_idx = idx;
         } else {
             nodes = agent_nodes;
             edges = agent_edges;
             num_nodes = num_agent_nodes;
             num_edges = num_agent_edges;
-            params = agent_params;
+            spring_k = agent_spring_k;
+            damping = agent_damping;
+            repel_k = agent_repel_k;
             local_idx = idx - num_knowledge_nodes;
         }
         
