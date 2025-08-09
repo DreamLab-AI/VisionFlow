@@ -7,7 +7,7 @@ use crate::models::node::Node;
 use crate::types::vec3::Vec3Data;
 use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams, SimulationPhase, SimulationMode};
-use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData};
+use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetAgentMetrics, GetCachedAgentStatuses};
 use crate::services::bots_client::BotsClient;
 // use crate::services::claude_flow::mcp_tools::McpTool;
 use serde::{Deserialize, Serialize};
@@ -1054,6 +1054,76 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
 }
 
 // Initialize swarm endpoint
+// Get agent telemetry from ClaudeFlowActor
+pub async fn get_agent_telemetry(
+    state: web::Data<AppState>,
+) -> impl Responder {
+    info!("Getting agent telemetry");
+    
+    if let Some(claude_flow_addr) = &state.claude_flow_addr {
+        match claude_flow_addr.send(GetCachedAgentStatuses).await {
+            Ok(Ok(agents)) => {
+                // Convert AgentStatus to BotsAgent format
+                let bot_agents: Vec<BotsAgent> = agents.into_iter().map(|agent| {
+                    BotsAgent {
+                        id: agent.agent_id.clone(),
+                        agent_type: format!("{:?}", agent.profile.agent_type),
+                        status: agent.status,
+                        name: agent.profile.name,
+                        cpu_usage: agent.cpu_usage as f32,
+                        memory_usage: agent.memory_usage as f32,
+                        health: agent.health as f32,
+                        workload: agent.activity as f32,
+                        position: Vec3::ZERO,
+                        velocity: Vec3::ZERO,
+                        force: Vec3::ZERO,
+                        connections: Vec::new(),
+                        capabilities: Some(agent.profile.capabilities),
+                        current_task: agent.current_task.map(|t| t.description),
+                        tasks_active: Some(agent.tasks_active),
+                        tasks_completed: Some(agent.completed_tasks_count),
+                        success_rate: Some(agent.success_rate as f32),
+                        tokens: Some(agent.token_usage.total),
+                        token_rate: Some(agent.token_usage.token_rate as f32),
+                        activity: Some(agent.activity as f32),
+                        swarm_id: agent.swarm_id,
+                        agent_mode: agent.agent_mode,
+                        parent_queen_id: agent.parent_queen_id,
+                        processing_logs: agent.processing_logs,
+                        created_at: Some(agent.timestamp.to_rfc3339()),
+                        age: Some(0),
+                    }
+                }).collect();
+                
+                HttpResponse::Ok().json(json!({
+                    "success": true,
+                    "agents": bot_agents,
+                    "timestamp": chrono::Utc::now().to_rfc3339()
+                }))
+            }
+            Ok(Err(e)) => {
+                error!("Failed to get agent telemetry: {}", e);
+                HttpResponse::InternalServerError().json(json!({
+                    "success": false,
+                    "error": format!("Failed to get agent telemetry: {}", e)
+                }))
+            }
+            Err(e) => {
+                error!("Actor mailbox error: {}", e);
+                HttpResponse::InternalServerError().json(json!({
+                    "success": false,
+                    "error": "Service temporarily unavailable"
+                }))
+            }
+        }
+    } else {
+        HttpResponse::ServiceUnavailable().json(json!({
+            "success": false,
+            "error": "Claude Flow service not available"
+        }))
+    }
+}
+
 pub async fn initialize_swarm(
     state: web::Data<AppState>,
     request: web::Json<InitializeSwarmRequest>,
@@ -1195,7 +1265,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     )
     .service(
         web::resource("/status")
-            .route(web::get().to(crate::handlers::agent_control_handler::get_agents))
+            .route(web::get().to(get_agent_telemetry))
     )
     .service(
         web::resource("/update")
@@ -1203,6 +1273,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     )
     .service(
         web::resource("/initialize-swarm")
-            .route(web::post().to(crate::handlers::agent_control_handler::initialize_swarm))
+            .route(web::post().to(initialize_swarm))
     );
 }
