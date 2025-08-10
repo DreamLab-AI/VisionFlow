@@ -1,13 +1,16 @@
-# Quick Start Guide
+# VisionFlow Quick Start Guide
 
-Get VisionFlow running and visualize your first AI agent swarm in minutes.
+## Overview
+
+Get VisionFlow up and running in minutes! This guide will help you set up the real-time 3D visualization platform for knowledge graphs and AI agent swarms.
 
 ## Prerequisites
 
-- Docker 20.10+ with Docker Compose
-- 8GB RAM minimum (16GB recommended)
-- NVIDIA GPU with CUDA 11.8+ (optional, for GPU features)
-- Modern web browser (Chrome, Firefox, or Edge)
+- **Docker** 20.10+ and Docker Compose 2.0+
+- **8GB RAM** minimum (16GB recommended)
+- **NVIDIA GPU** with CUDA 11.8+ (optional, for GPU acceleration)
+- **Modern web browser** with WebGL support
+- **Meta Quest 3** (optional, for XR features)
 
 ## Installation
 

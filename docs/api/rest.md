@@ -2,11 +2,7 @@
 
 ## Overview
 
-The VisionFlow REST API provides endpoints for:
-- Claude Flow MCP agent swarm management
-- Dual graph visualization (knowledge + agents)
-- System configuration and monitoring
-- Authentication via Nostr protocol
+The VisionFlow REST API provides comprehensive endpoints for graph management, AI agent orchestration, system configuration, and service integration. All endpoints follow RESTful conventions and return JSON responses.
 
 ## Base URL
 
@@ -14,452 +10,434 @@ The VisionFlow REST API provides endpoints for:
 http://localhost:3001/api
 ```
 
-When running in Docker, the backend runs on port 3001 and may be proxied through Nginx. The API is accessible from the frontend at the same origin.
-
 ## Authentication
 
-All API requests primarily use Nostr authentication.
+### Nostr Authentication
+Primary authentication using Nostr protocol (NIP-07).
 
-#### Login
 ```http
 POST /api/auth/nostr
 ```
 
-**Request Body:**
+**Request:**
 ```json
 {
-  "id": "event_id_hex_string",
-  "pubkey": "user_hex_pubkey",
-  "created_at": 1678886400, // Unix timestamp (seconds)
+  "id": "event_id_hex",
+  "pubkey": "user_pubkey_hex",
+  "created_at": 1678886400,
   "kind": 22242,
   "tags": [
-    ["relay", "wss://some.relay.com"],
-    ["challenge", "a_random_challenge_string"]
+    ["relay", "wss://relay.nostr.com"],
+    ["challenge", "random_challenge"]
   ],
-  "content": "LogseqXR Authentication",
-  "sig": "event_signature_hex_string"
+  "content": "VisionFlow Authentication",
+  "sig": "signature_hex"
 }
 ```
-Refers to `src/services/nostr_service.rs::AuthEvent`.
 
 **Response:**
 ```json
 {
   "user": {
-    "pubkey": "user_hex_pubkey",
-    "npub": "user_npub_string", // Optional
-    "isPowerUser": true // boolean
+    "pubkey": "user_pubkey",
+    "npub": "npub_encoded",
+    "isPowerUser": true
   },
-  "token": "session_token_string",
-  "expiresAt": 1234567890, // Unix timestamp (seconds)
-  "features": ["feature1", "feature2"] // List of enabled features for the user
+  "token": "session_token",
+  "expiresAt": 1234567890,
+  "features": ["graph", "agents", "xr"]
 }
 ```
-Matches `AuthResponse` from `src/handlers/nostr_handler.rs`.
 
-#### Verify Token
+## Graph Endpoints
+
+### Get Graph Data
 ```http
-POST /api/auth/nostr/verify
+GET /api/graph
 ```
 
-**Request Body:**
-```json
-{
-  "pubkey": "user_hex_pubkey",
-  "token": "session_token_string"
-}
-```
-Matches `ValidateRequest` from `src/handlers/nostr_handler.rs`.
+**Query Parameters:**
+- `includeMetadata` (boolean) - Include node/edge metadata
+- `layout` (string) - Layout algorithm: `force`, `hierarchical`, `circular`
 
-**Response Body:**
-```json
-{
-  "valid": true, // boolean
-  "user": { // Optional
-    "pubkey": "user_hex_pubkey",
-    "npub": "user_npub_string",
-    "isPowerUser": false
-  },
-  "features": ["feature1"] // List of enabled features if valid
-}
-```
-Matches `VerifyResponse` from `src/handlers/nostr_handler.rs`.
-
-#### Logout
-```http
-DELETE /api/auth/nostr
-```
-
-**Request Body:**
-```json
-{
-  "pubkey": "user_hex_pubkey",
-  "token": "session_token_string"
-}
-```
-Matches `ValidateRequest` from `src/handlers/nostr_handler.rs`.
-
-## Dual Graph API
-
-### Get Knowledge Graph
-```http
-GET /api/graph/data
-```
-
-Returns the knowledge graph built from Logseq markdown files:
+**Response:**
 ```json
 {
   "nodes": [
     {
-      "id": 1073741824,  // u32 with bit 30 set (knowledge flag)
-      "label": "Document Title",
-      "metadata_id": "doc-123"
+      "id": "node_1",
+      "label": "Knowledge Node",
+      "x": 100.0,
+      "y": 200.0,
+      "z": 50.0,
+      "type": "concept",
+      "metadata": {}
     }
   ],
   "edges": [
     {
-      "source": 1073741824,
-      "target": 1073741825,
-      "weight": 0.8
+      "id": "edge_1",
+      "source": "node_1",
+      "target": "node_2",
+      "weight": 1.0,
+      "type": "semantic"
     }
   ],
   "metadata": {
-    "doc-123": {
-      "tags": ["concept", "architecture"],
-      "created": "2024-01-01T00:00:00Z"
-    }
+    "nodeCount": 100,
+    "edgeCount": 150,
+    "lastUpdated": "2024-01-01T00:00:00Z"
   }
 }
 ```
 
-### Get Paginated Graph Data
+### Update Graph
 ```http
-GET /api/graph/data/paginated
+POST /api/graph
 ```
 
-**Query Parameters:**
-- `page`: Page number (integer, default: 1)
-- `pageSize`: Items per page (integer, default: 100, camelCase)
-- `sort`: Sort field (string, optional)
-- `filter`: Filter expression (string, optional)
-
-**Response:**
+**Request:**
 ```json
 {
   "nodes": [...],
   "edges": [...],
-  "metadata": {},
-  "totalPages": 0,
-  "currentPage": 1,
-  "total_nodes": 0,
-  "page_size": 100
+  "operation": "merge" // or "replace"
 }
-
-### Update Graph
-```http
-POST /api/graph/update
 ```
 
-This endpoint triggers a full re-fetch of files from the source (e.g., GitHub) by `FileService`, updates the `MetadataStore`, and then rebuilds the entire graph structure in `GraphService`. It does not accept client-side graph data for partial updates.
-
-### Refresh Graph
+### Get Graph Metadata
 ```http
-POST /api/graph/refresh
+GET /api/graph/metadata
 ```
-This endpoint rebuilds the graph structure in `GraphService` using the currently existing `MetadataStore` on the server. It does not re-fetch files.
-
-## Files API
-
-### Process Files
-```http
-POST /api/files/process
-```
-
-Triggers fetching and processing of Markdown files.
 
 **Response:**
 ```json
 {
-  "status": "success",
-  "processed_files": ["file1.md", "file2.md"]
+  "statistics": {
+    "totalNodes": 1000,
+    "totalEdges": 5000,
+    "connectedComponents": 3,
+    "averageDegree": 5.0
+  },
+  "lastPhysicsUpdate": "2024-01-01T00:00:00Z",
+  "gpuEnabled": true
 }
 ```
 
-### Get File Content
+## Agent/Bots Endpoints
+
+### List Agents
 ```http
-GET /api/files/get_content/{filename}
+GET /api/bots
 ```
 
-### Upload Content
-```http
-POST /api/files/upload
+**Response:**
+```json
+{
+  "agents": [
+    {
+      "id": "agent_1",
+      "name": "Coordinator Alpha",
+      "type": "coordinator",
+      "status": "active",
+      "health": {
+        "cpu": 45.2,
+        "memory": 512,
+        "uptime": 3600
+      },
+      "capabilities": ["orchestration", "planning"],
+      "currentTask": "task_123"
+    }
+  ],
+  "swarmTopology": "hierarchical",
+  "totalAgents": 15
+}
 ```
 
-The endpoint `/api/files/upload` is not defined in `src/handlers/api_handler/files/mod.rs`. This section should be removed or marked as "Not Implemented / Deprecated".
-(Marking as Not Implemented for now)
-**This endpoint is not implemented.**
+### Spawn Agent
+```http
+POST /api/bots/spawn
+```
 
-## Settings API
+**Request:**
+```json
+{
+  "type": "researcher",
+  "name": "Research Bot 1",
+  "capabilities": ["search", "analysis"],
+  "config": {
+    "maxTasks": 5,
+    "priority": "high"
+  }
+}
+```
+
+### Agent Metrics
+```http
+GET /api/bots/{agentId}/metrics
+```
+
+**Response:**
+```json
+{
+  "agentId": "agent_1",
+  "performance": {
+    "tasksCompleted": 42,
+    "successRate": 0.95,
+    "averageResponseTime": 250,
+    "tokensUsed": 15000
+  },
+  "resources": {
+    "cpuUsage": 35.5,
+    "memoryMB": 256,
+    "networkKbps": 100
+  }
+}
+```
+
+### Orchestrate Task
+```http
+POST /api/bots/orchestrate
+```
+
+**Request:**
+```json
+{
+  "task": "Analyze the codebase and generate documentation",
+  "strategy": "parallel",
+  "maxAgents": 5,
+  "priority": "high",
+  "timeout": 300
+}
+```
+
+## Settings Endpoints
 
 ### Get Settings
 ```http
 GET /api/settings
 ```
 
-Returns the current settings configuration in camelCase format as defined in `src/models/ui_settings.rs`. This endpoint does not require authentication.
-
 **Response:**
 ```json
 {
-  "visualisation": {
-    "nodes": {
-      "baseColor": "#00e5ff",
-      "metalness": 0.85,
-      "size": 1.2
-    },
-    "physics": {
-      "enabled": true,
-      "repulsionStrength": 15.0,
-      "springStrength": 0.02
-    }
+  "theme": "dark",
+  "physics": {
+    "enabled": true,
+    "gravity": -9.8,
+    "damping": 0.95,
+    "iterations": 5
   },
-  "system": {
-    "debug": false,
-    "performanceMonitoring": true
+  "visualization": {
+    "nodeSize": 10,
+    "edgeThickness": 2,
+    "showLabels": true,
+    "hologramEffect": true
+  },
+  "xr": {
+    "enabled": false,
+    "handTracking": true,
+    "passthrough": true
   }
 }
 ```
 
 ### Update Settings
 ```http
-POST /api/settings
+PUT /api/settings
 ```
 
-Updates settings with partial data. Accepts `ClientSettingsPayload` from `src/models/client_settings_payload.rs` (camelCase).
-
-**Request Body:**
+**Request:**
 ```json
 {
-  "visualisation": {
-    "nodes": {
-      "baseColor": "#ff0080"
+  "path": "physics.gravity",
+  "value": -12.0
+}
+```
+
+### Get Protected Settings
+```http
+GET /api/settings/protected
+Authorization: Bearer {token}
+```
+
+## Files Endpoints
+
+### List Files
+```http
+GET /api/files
+```
+
+**Query Parameters:**
+- `path` (string) - Directory path
+- `type` (string) - File type filter: `markdown`, `json`, `all`
+
+**Response:**
+```json
+{
+  "files": [
+    {
+      "name": "knowledge.md",
+      "path": "/data/markdown/knowledge.md",
+      "size": 1024,
+      "modified": "2024-01-01T00:00:00Z",
+      "type": "markdown"
     }
+  ],
+  "totalSize": 10240,
+  "count": 10
+}
+```
+
+### Upload File
+```http
+POST /api/files/upload
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `file` - File to upload
+- `path` - Target directory
+- `overwrite` - Boolean to overwrite existing
+
+### Download File
+```http
+GET /api/files/download?path=/data/file.md
+```
+
+## Quest 3 / XR Endpoints
+
+### Quest 3 Status
+```http
+GET /api/quest3/status
+```
+
+**Response:**
+```json
+{
+  "connected": true,
+  "device": {
+    "type": "Meta Quest 3",
+    "browser": "Wolvic",
+    "capabilities": ["handTracking", "passthrough", "spatialAnchors"]
+  },
+  "session": {
+    "active": true,
+    "mode": "immersive-ar",
+    "referenceSpace": "local-floor"
   }
 }
 ```
 
-**Response:**
-Returns the updated settings object.
-
-### Get User-Specific Settings
+### Initialize XR Session
 ```http
-GET /api/settings/user
+POST /api/quest3/init
 ```
 
-Requires authentication via `X-Nostr-Pubkey` header.
-**Response:** Returns user-specific settings. For power users, these are global settings. For regular users, these are their persisted settings.
-
-### Update User Settings
-```http
-POST /api/settings/user
-```
-
-**Headers:**
-- `X-Nostr-Pubkey`: User's public key for authentication
-
-**Request Body:** Partial settings payload (camelCase)
-**Response:** The updated user settings
-
-### Get Visualisation Settings by Category
-```http
-GET /api/visualisation/settings/{category}
-```
-
-Returns settings for a specific visualization category.
-
-**Path Parameters:**
-- `category`: The settings category to retrieve (e.g., "nodes", "edges", "physics", "rendering", "animation", "labels", "bloom", "hologram", "camera")
-
-**Response:**
-Returns the specific category settings as a JSON object.
-
-### Update API Keys
-```http
-POST /api/auth/nostr/api-keys
-```
-
-**Request Body:**
+**Request:**
 ```json
 {
-  "perplexity": "optional_api_key_string",
-  "openai": "optional_api_key_string",
-  "ragflow": "optional_api_key_string"
+  "mode": "immersive-ar",
+  "requiredFeatures": ["hand-tracking"],
+  "optionalFeatures": ["layers", "anchors"]
 }
 ```
-Matches `ApiKeysRequest` from `src/handlers/nostr_handler.rs`.
 
-**Response:**
-```json
-{
-  "pubkey": "user_hex_pubkey",
-  "npub": "user_npub_string", // Optional
-  "isPowerUser": true // boolean
-}
-```
-Returns `UserResponseDTO`.
+## Visualization Endpoints
 
-## AI Services
-
-### RAGFlow Chat
+### Get Visualization Config
 ```http
-POST /api/ragflow/chat
-```
-
-**Request Body:**
-```json
-{
-  "question": "Your question here",
-  "sessionId": "optional-previous-session-id-string",
-  "stream": false // Optional boolean
-}
-```
-Matches `RagflowChatRequest` from `src/models/ragflow_chat.rs`.
-
-**Response:**
-```json
-{
-  "answer": "The response from RAGFlow AI",
-  "sessionId": "session-id-string"
-}
-```
-Matches `RagflowChatResponse` from `src/models/ragflow_chat.rs`.
-
-
-## Claude Flow MCP API
-
-### Initialize Agent Swarm
-```http
-POST /api/bots/initialize-swarm
-```
-
-Spawns a Claude Flow agent swarm via MCP (Model Context Protocol) with specified configuration and task.
-
-**Request Body:**
-```json
-{
-  "topology": "mesh" | "hierarchical" | "ring" | "star",
-  "maxAgents": 3-20,
-  "strategy": "adaptive",
-  "enableNeural": true,
-  "agentTypes": [
-    "coordinator",
-    "researcher", 
-    "coder",
-    "analyst",
-    "tester",
-    "architect",
-    "optimizer",
-    "reviewer",
-    "documenter"
-  ],
-  "customPrompt": "Build a REST API with authentication" // Required task description
-}
+GET /api/visualisation/config
 ```
 
 **Response:**
 ```json
 {
-  "success": true,
-  "message": "Swarm initialization started"
-}
-```
-
-**Error Response:**
-```json
-{
-  "success": false,
-  "error": "Failed to initialize swarm: <error message>"
-}
-```
-
-### Get Agent Telemetry
-```http
-GET /api/bots/data
-```
-
-Returns real-time agent telemetry from Claude Flow as a graph structure. Data updates at 10Hz via MCP WebSocket.
-
-**Response:**
-```json
-{
-  "data": {
-    "nodes": [
-      {
-        "id": 1000,
-        "label": "Coordinator Alpha",
-        "metadata_id": "agent-1",
-        "data": {
-          "position": {"x": 0, "y": 0, "z": 0},
-          "velocity": {"x": 0, "y": 0, "z": 0},
-          "mass": 5,
-          "flags": 1
-        },
-        "metadata": {
-          "type": "coordinator",
-          "status": "active",
-          "health": "95.0",
-          "cpu_usage": "45.0",
-          "workload": "0.7"
-        }
-      }
-    ],
-    "edges": [
-      {
-        "id": "edge-1",
-        "source": 1000,
-        "target": 1001,
-        "weight": 1.0,
-        "edge_type": "15 msgs"
-      }
-    ]
+  "renderer": {
+    "antialias": true,
+    "pixelRatio": 2,
+    "shadowMap": true
+  },
+  "camera": {
+    "fov": 75,
+    "near": 0.1,
+    "far": 10000,
+    "position": [0, 100, 500]
+  },
+  "effects": {
+    "bloom": true,
+    "outline": true,
+    "hologram": true,
+    "particles": false
   }
 }
 ```
 
-### Stream Agent Updates (Deprecated)
+### Update Camera Position
 ```http
-POST /api/bots/update
+POST /api/visualisation/camera
 ```
 
-**Note**: This endpoint is deprecated. Agent updates now stream automatically via MCP WebSocket connection on port 3002.
-
-**Request Body:**
+**Request:**
 ```json
 {
-  "nodes": [
-    {
-      "id": "agent-1",
-      "type": "coordinator",
-      "status": "active",
-      "name": "Coordinator Alpha",
-      "cpu_usage": 45.0,
-      "health": 95.0,
-      "workload": 0.7
-    }
-  ],
-  "edges": [
-    {
-      "id": "edge-1",
-      "source": "agent-1",
-      "target": "agent-2",
-      "data_volume": 1024.0,
-      "message_count": 15
-    }
-  ]
+  "position": [100, 200, 300],
+  "target": [0, 0, 0],
+  "fov": 60
 }
 ```
 
-## System Status
+## Analytics Endpoints
+
+### System Analytics
+```http
+GET /api/analytics/system
+```
+
+**Response:**
+```json
+{
+  "performance": {
+    "fps": 60,
+    "frameTime": 16.67,
+    "drawCalls": 150
+  },
+  "gpu": {
+    "utilization": 75,
+    "memory": 2048,
+    "temperature": 65
+  },
+  "network": {
+    "websocketClients": 5,
+    "bandwidth": 1024,
+    "latency": 15
+  }
+}
+```
+
+### Graph Analytics
+```http
+GET /api/analytics/graph
+```
+
+**Response:**
+```json
+{
+  "topology": {
+    "density": 0.05,
+    "clustering": 0.7,
+    "diameter": 6,
+    "avgPathLength": 3.2
+  },
+  "centrality": {
+    "mostCentral": ["node_1", "node_2"],
+    "bridges": ["edge_5", "edge_7"],
+    "communities": 5
+  }
+}
+```
+
+## Health & Status
 
 ### Health Check
 ```http
@@ -470,92 +448,120 @@ GET /api/health
 ```json
 {
   "status": "healthy",
-  "metadata_count": 123,
-  "nodes_count": 456,
-  "edges_count": 789
+  "version": "1.0.0",
+  "uptime": 3600,
+  "services": {
+    "graph": "operational",
+    "agents": "operational",
+    "gpu": "operational",
+    "mcp": "connected"
+  }
 }
 ```
 
-### Physics Simulation Status
+### MCP Health
 ```http
-GET /api/health/physics
+GET /api/mcp/health
 ```
 
 **Response:**
 ```json
 {
-  "status": "string (e.g., 'running', 'idle', 'error')",
-  "details": "string (e.g., 'Simulation is active with X nodes' or error message)",
-  "timestamp": 1234567890 // Unix timestamp
+  "connected": true,
+  "claudeFlow": {
+    "url": "ws://localhost:3002",
+    "status": "connected",
+    "latency": 5
+  },
+  "tools": {
+    "available": 50,
+    "active": 3
+  }
 }
 ```
-Returns `PhysicsSimulationStatus` from `src/handlers/health_handler.rs`.
 
+## External Service Integrations
+
+### GitHub Integration
+```http
+GET /api/github/repos/{owner}/{repo}
+```
+
+**Response:**
+```json
+{
+  "repository": {
+    "name": "visionflow",
+    "stars": 100,
+    "forks": 20,
+    "issues": 5
+  },
+  "pullRequests": [...],
+  "commits": [...]
+}
+```
+
+### RAGFlow Query
+```http
+POST /api/ragflow/query
+```
+
+**Request:**
+```json
+{
+  "query": "What is the architecture?",
+  "context": "technical",
+  "maxResults": 5
+}
+```
+
+### Perplexity Search
+```http
+POST /api/perplexity/search
+```
+
+**Request:**
+```json
+{
+  "query": "Latest AI developments",
+  "sources": ["academic", "news"],
+  "limit": 10
+}
+```
 
 ## Error Responses
 
-Error responses are often simple JSON like `{"error": "message string"}` or `{"status": "error", "message": "message string"}`.
-The structured format `{"error": {"code": ..., "message": ..., "details": ...}}` is not consistently used across all handlers.
+All endpoints return consistent error responses:
 
-### Common HTTP Status Codes for Errors
-- `400 Bad Request`: Invalid parameters or request payload.
-- `401 Unauthorized`: Invalid or missing authentication token.
-- `403 Forbidden`: Valid token but insufficient permissions for the requested operation.
-- `404 Not Found`: The requested resource or endpoint does not exist.
-- `422 Unprocessable Entity`: The request was well-formed but could not be processed (e.g., semantic errors in Nostr event).
-- `500 Internal Server Error`: A generic error occurred on the server.
-- `503 Service Unavailable`: The server is temporarily unable to handle the request (e.g., during maintenance or if a dependent service is down).
-
-## MCP Integration
-
-### Backend MCP Connection
-
-The backend maintains a direct WebSocket connection to Claude Flow MCP:
-```
-ws://multi-agent-container:3002/mcp
-```
-
-**Important**: The frontend **never** connects directly to MCP. All MCP communication flows through the Rust backend via ClaudeFlowActor.
-
-### MCP Methods Available
-
-| Method | Description |
-|--------|-------------|
-| `agent.spawn` | Create new AI agent |
-| `agent.list` | List active agents |
-| `agent.terminate` | Stop an agent |
-| `swarm.initialize` | Create agent swarm |
-| `telemetry.subscribe` | Stream agent metrics |
-
-## Error Handling
-
-### MCP Connection Errors
-
-When Claude Flow is unavailable:
 ```json
 {
   "success": false,
-  "error": "MCP connection failed: Connection refused",
-  "fallback": "empty"  // No mock data generated
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "The request was invalid",
+    "details": {
+      "field": "name",
+      "reason": "Required field missing"
+    }
+  },
+  "timestamp": "2024-01-01T00:00:00Z"
 }
 ```
 
-### Rate Limiting
+### Common Error Codes
+- `UNAUTHORIZED` - Authentication required
+- `FORBIDDEN` - Insufficient permissions
+- `NOT_FOUND` - Resource not found
+- `INVALID_REQUEST` - Invalid request parameters
+- `RATE_LIMITED` - Too many requests
+- `INTERNAL_ERROR` - Server error
 
-Agent spawn requests are limited to:
-- 10 swarms per minute
-- 50 agents total per swarm
-- 1000 tokens per agent task
+## Rate Limiting
 
-## Performance
-
-- **REST Latency**: < 50ms average
-- **MCP Round-trip**: < 100ms
-- **Graph Updates**: 10Hz (100ms intervals)
-- **Binary Streaming**: 60 FPS capability
-
-## See Also
-
-- [WebSocket Protocols](websocket-protocols.md) - Binary streaming protocol
-- [Binary Protocol](binary-protocol.md) - 28-byte node update format
-- [MCP Integration](../architecture/mcp-integration.md) - Claude Flow architecture
+| Endpoint Category | Rate Limit | Window |
+|------------------|------------|--------|
+| Graph Operations | 100/min | 1 minute |
+| Agent Operations | 50/min | 1 minute |
+| File Operations | 10/min | 1 minute |
+| Analytics | 200/min | 1 minute |
+| Settings | 100/min | 1 minute |
