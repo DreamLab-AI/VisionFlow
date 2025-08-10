@@ -1,245 +1,445 @@
-# System Architecture Overview
+# VisionFlow System Architecture
 
-**Latest Updates:**
-- ✨ **Parallel Graphs Architecture** - Run Logseq and VisionFlow graphs simultaneously
-- 🤖 **Claude Flow MCP Integration** - AI agent visualization with backend relay
-- 🔄 **Migration Guide Available** - See [migration-guide.md](./migration-guide.md)
+## Overview
 
-## Introduction
+VisionFlow is built on a decoupled, actor-based architecture that enables real-time 3D visualization of knowledge graphs and AI agent swarms. The system combines a high-performance Rust backend with a modern React/TypeScript frontend, leveraging GPU acceleration and WebXR for immersive experiences.
 
-LogseqSpringThing is a distributed 3D knowledge graph visualization system built with a decoupled architecture. It combines a high-performance Rust backend with a React/TypeScript frontend to deliver real-time, interactive graph visualizations with XR capabilities.
-
-## Architecture Principles
-
-### 1. Decoupled Architecture
-- **Backend Independence**: The server maintains and processes graph data independently of client connections
-- **Pre-computed State**: Graph physics and layout are calculated server-side before clients connect
-- **Scalable Design**: Multiple clients can connect without duplicating computation
-
-### 2. Actor-Based Concurrency
-- **Message-Passing**: Uses Actix actors for safe concurrent state management
-- **Isolation**: Each actor manages its own state domain
-- **Async Communication**: Non-blocking message passing between components
-
-### 3. Real-time Synchronization
-- **WebSocket Protocol**: Binary protocol for efficient position updates
-- **Bidirectional Updates**: Clients can modify graph state with server-side authority
-- **Optimized Streaming**: Only significant changes are transmitted
-
-### 4. Performance Optimization
-- **GPU Acceleration**: Optional CUDA support for physics calculations
-- **Instanced Rendering**: Efficient rendering of thousands of nodes
-- **Progressive Loading**: Metadata loads immediately while data fetches in background
-
-## High-Level System Architecture
+## Core Architecture Diagram
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        Browser[Web Browser]
-        XRDevice[XR Device<br/>Quest 3]
+    subgraph "Frontend Layer"
+        subgraph "React Application"
+            UI[UI Components]
+            Store[State Management]
+            Three[Three.js Renderer]
+            XR[WebXR Manager]
+        end
+        
+        subgraph "WebSocket Clients"
+            WSFlow[Socket Flow Client]
+            WSSpeech[Speech Client]
+            WSMCP[MCP Relay Client]
+            WSBots[Bots Viz Client]
+        end
     end
     
-    subgraph "Frontend Application"
-        React[React UI]
-        R3F[React Three Fiber]
-        WebXR[WebXR API]
-        WSClient[WebSocket Client]
+    subgraph "Backend Layer"
+        subgraph "HTTP Server"
+            REST[REST API<br/>Actix-Web]
+            Static[Static Files]
+            Auth[Auth Handler]
+        end
+        
+        subgraph "WebSocket Server"
+            WSHandler[WS Handler]
+            Binary[Binary Protocol]
+            Stream[Stream Manager]
+        end
+        
+        subgraph "Actor System"
+            CFActor[Claude Flow Actor<br/>Enhanced MCP]
+            GraphActor[Graph Service Actor]
+            GPUActor[GPU Compute Actor]
+            ClientMgr[Client Manager Actor]
+            SettingsActor[Settings Actor]
+            MetaActor[Metadata Actor]
+            ProtectedActor[Protected Settings]
+        end
+        
+        subgraph "Services Layer"
+            MCPRelay[MCP Relay Manager]
+            GitHubSvc[GitHub Service]
+            NostrSvc[Nostr Service]
+            SpeechSvc[Speech Service]
+            BotsClient[Bots Client]
+            AgentViz[Agent Viz Processor]
+        end
     end
     
-    subgraph "Network Layer"
-        NGINX[NGINX Proxy]
-        WSProtocol[Binary WebSocket Protocol]
-        REST[REST API]
+    subgraph "GPU Layer"
+        CUDA[CUDA Kernels]
+        Physics[Physics Engine]
+        DualGraph[Dual Graph Processor]
+        Analytics[Visual Analytics]
     end
     
-    subgraph "Backend Application"
-        ActixWeb[Actix Web Server]
-        ActorSystem[Actor System]
-        Services[Service Layer]
-    end
-    
-    subgraph "Data Layer"
-        FileSystem[File System]
+    subgraph "External Services"
+        ClaudeFlow[Claude Flow<br/>Port 3002]
         GitHub[GitHub API]
-        AIServices[AI Services<br/>OpenAI, Perplexity, RAGFlow]
+        RAGFlow[RAGFlow Service]
+        Perplexity[Perplexity API]
+        Nostr[Nostr Network]
     end
     
-    subgraph "Compute Layer"
-        CPU[CPU Physics]
-        GPU[CUDA GPU Physics]
-    end
+    UI --> Store
+    Store --> Three
+    Three --> XR
+    UI --> WSFlow
+    UI --> WSSpeech
+    UI --> WSMCP
+    UI --> WSBots
     
-    Browser --> React
-    XRDevice --> WebXR
-    React --> R3F
-    R3F --> WebXR
-    React --> WSClient
+    WSFlow --> WSHandler
+    WSSpeech --> WSHandler
+    WSMCP --> WSHandler
+    WSBots --> WSHandler
     
-    WSClient --> NGINX
-    React --> NGINX
-    NGINX --> WSProtocol
-    NGINX --> REST
+    WSHandler --> Binary
+    Binary --> Stream
+    Stream --> ClientMgr
     
-    WSProtocol --> ActixWeb
-    REST --> ActixWeb
-    ActixWeb --> ActorSystem
-    ActixWeb --> Services
+    REST --> Auth
+    Auth --> NostrSvc
+    REST --> GraphActor
+    REST --> SettingsActor
+    REST --> BotsClient
     
-    Services --> FileSystem
-    Services --> GitHub
-    Services --> AIServices
+    ClientMgr --> GraphActor
+    GraphActor --> GPUActor
+    GPUActor --> CUDA
+    CUDA --> Physics
+    CUDA --> DualGraph
+    CUDA --> Analytics
     
-    ActorSystem --> CPU
-    ActorSystem --> GPU
+    CFActor --> MCPRelay
+    MCPRelay --> ClaudeFlow
+    GraphActor --> GitHubSvc
+    GitHubSvc --> GitHub
+    NostrSvc --> Nostr
+    
+    BotsClient --> AgentViz
+    AgentViz --> GraphActor
 ```
 
-## Core Components
+## Component Architecture
 
 ### Frontend Components
-- **React Application**: Component-based UI with TypeScript
-- **React Three Fiber**: Declarative 3D scene management
-- **WebXR Integration**: VR/AR support for Quest 3 and other devices
-- **State Management**: Zustand for application state
-- **WebSocket Service**: Real-time communication with backend
 
-### Backend Components
-- **Actix Web Server**: High-performance async HTTP/WebSocket server
-- **Actor System**: Concurrent state management with message passing
-- **Service Layer**: Business logic and external integrations
-- **GPU Compute**: Optional CUDA acceleration for physics
-- **File Service**: Local and GitHub content management
+```mermaid
+graph LR
+    subgraph "Component Hierarchy"
+        App[App.tsx]
+        App --> MainLayout[MainLayout]
+        App --> Quest3Layout[Quest3 AR Layout]
+        
+        MainLayout --> GraphCanvas[Graph Canvas]
+        MainLayout --> ControlPanel[Control Panel]
+        MainLayout --> BotsPanel[Bots Panel]
+        
+        GraphCanvas --> Viewport[3D Viewport]
+        Viewport --> Renderer[WebGL Renderer]
+        Viewport --> Camera[Camera Controller]
+        Viewport --> Effects[Post-Processing]
+        
+        ControlPanel --> Settings[Settings Panel]
+        ControlPanel --> Commands[Command Palette]
+        ControlPanel --> Voice[Voice Controls]
+        
+        BotsPanel --> AgentList[Agent List]
+        BotsPanel --> SwarmViz[Swarm Visualization]
+        BotsPanel --> Metrics[Performance Metrics]
+    end
+```
 
-### Data Flow
-1. **Initialization**: Server loads metadata and builds initial graph
-2. **Client Connection**: WebSocket handshake and initial state transfer
-3. **Real-time Updates**: Continuous position streaming via binary protocol
-4. **User Interactions**: Client updates sent to server and broadcast
-5. **Persistence**: Metadata and settings saved to disk
+### Actor Communication Flow
 
-## Technology Stack
+```mermaid
+sequenceDiagram
+    participant Client
+    participant WebSocket
+    participant ClientManager
+    participant GraphActor
+    participant GPUActor
+    participant CUDA
+    
+    Client->>WebSocket: Connect
+    WebSocket->>ClientManager: Register Client
+    ClientManager->>Client: Send Initial State
+    
+    Client->>WebSocket: Update Request
+    WebSocket->>ClientManager: Forward Message
+    ClientManager->>GraphActor: Process Update
+    GraphActor->>GPUActor: Compute Physics
+    GPUActor->>CUDA: Execute Kernel
+    CUDA-->>GPUActor: Return Results
+    GPUActor-->>GraphActor: Physics Results
+    GraphActor-->>ClientManager: Graph Update
+    ClientManager-->>Client: Binary Update Stream
+```
 
-### Frontend
-- **Language**: TypeScript 5.5+
-- **Framework**: React 18 with Concurrent Features
-- **3D Rendering**: Three.js + React Three Fiber
-- **XR Support**: WebXR API
-- **State**: Zustand
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
+## Data Flow Architecture
 
-### Backend
-- **Language**: Rust (2021 Edition)
-- **Framework**: Actix Web 4
-- **Concurrency**: Actix Actor System
-- **GPU**: CUDA (optional)
-- **Serialization**: Serde + Binary Protocol
-- **Async Runtime**: Tokio
+```mermaid
+graph TB
+    subgraph "Data Sources"
+        MD[Markdown Files]
+        JSON[JSON Metadata]
+        API[External APIs]
+        Agents[AI Agents]
+    end
+    
+    subgraph "Processing Pipeline"
+        Parser[Data Parser]
+        Semantic[Semantic Analyzer]
+        Edge[Edge Generator]
+        Layout[Layout Engine]
+    end
+    
+    subgraph "Storage"
+        GraphState[Graph State]
+        MetaCache[Metadata Cache]
+        Settings[Settings Store]
+    end
+    
+    subgraph "Distribution"
+        Binary[Binary Protocol]
+        Diff[Differential Updates]
+        Stream[Stream Manager]
+    end
+    
+    MD --> Parser
+    JSON --> Parser
+    API --> Parser
+    Agents --> Parser
+    
+    Parser --> Semantic
+    Semantic --> Edge
+    Edge --> Layout
+    Layout --> GraphState
+    
+    GraphState --> MetaCache
+    GraphState --> Binary
+    Binary --> Diff
+    Diff --> Stream
+    Stream --> Clients[Connected Clients]
+```
 
-### Infrastructure
-- **Containerization**: Docker + Docker Compose
-- **Reverse Proxy**: NGINX
-- **Development**: Hot reload with cargo-watch
+## GPU Processing Pipeline
 
-## Key Design Decisions
+```mermaid
+graph LR
+    subgraph "Input"
+        Nodes[Node Data]
+        Edges[Edge Data]
+        Params[Physics Params]
+    end
+    
+    subgraph "GPU Memory"
+        DevNodes[Device Nodes]
+        DevEdges[Device Edges]
+        DevForces[Force Buffer]
+    end
+    
+    subgraph "CUDA Kernels"
+        Force[Force Calculation]
+        Stress[Stress Majorization]
+        Integration[Velocity Integration]
+        Position[Position Update]
+    end
+    
+    subgraph "Output"
+        Updated[Updated Positions]
+        Metrics[Performance Metrics]
+    end
+    
+    Nodes --> DevNodes
+    Edges --> DevEdges
+    Params --> Force
+    
+    DevNodes --> Force
+    DevEdges --> Force
+    Force --> DevForces
+    DevForces --> Stress
+    Stress --> Integration
+    Integration --> Position
+    Position --> Updated
+    Position --> Metrics
+```
 
-### 1. Actor-Based State Management
-Instead of traditional shared memory with locks, the system uses actors for:
-- **Safety**: No data races or deadlocks
-- **Scalability**: Natural parallelism
-- **Clarity**: Clear ownership and message flow
+## MCP Integration Architecture
 
-### 2. Binary WebSocket Protocol
-Custom binary protocol for position updates provides:
-- **Efficiency**: ~10x smaller than JSON
-- **Performance**: Minimal parsing overhead
-- **Flexibility**: Extensible message types
-
-### 3. Hybrid Physics Processing
-Supports both CPU and GPU physics:
-- **Fallback**: CPU physics always available
-- **Acceleration**: GPU for large graphs
-- **Flexibility**: Runtime switching
-
-### 4. Progressive Enhancement
-System works at multiple capability levels:
-- **Basic**: 2D visualization fallback
-- **Standard**: Full 3D with interactions
-- **Enhanced**: XR support with hand tracking
-
-## System Boundaries
-
-### External Dependencies
-- **GitHub API**: For repository content
-- **OpenAI API**: Speech and chat services
-- **Perplexity API**: Advanced search
-- **RAGFlow**: Document analysis
-- **Nostr Network**: Decentralized authentication
-
-### Security Boundaries
-- **Authentication**: Nostr-based decentralized auth
-- **API Keys**: Protected settings with user isolation
-- **Network**: HTTPS/WSS in production
-- **CORS**: Configured for client access
+```mermaid
+graph TB
+    subgraph "VisionFlow Backend"
+        CFActor[Claude Flow Actor]
+        MCPRelay[MCP Relay Manager]
+        WSRelay[WebSocket Relay]
+    end
+    
+    subgraph "Claude Flow Service"
+        MCPServer[MCP Server<br/>Port 3002]
+        Tools[50+ MCP Tools]
+        Swarm[Swarm Manager]
+        Memory[Memory Service]
+    end
+    
+    subgraph "Agent Types"
+        Coord[Coordinator]
+        Research[Researcher]
+        Coder[Coder]
+        Analyst[Analyst]
+        Architect[Architect]
+        Others[15+ Types]
+    end
+    
+    CFActor <--> MCPRelay
+    MCPRelay <--> WSRelay
+    WSRelay <--> MCPServer
+    
+    MCPServer --> Tools
+    MCPServer --> Swarm
+    MCPServer --> Memory
+    
+    Swarm --> Coord
+    Swarm --> Research
+    Swarm --> Coder
+    Swarm --> Analyst
+    Swarm --> Architect
+    Swarm --> Others
+```
 
 ## Deployment Architecture
 
-### Development
+```mermaid
+graph TB
+    subgraph "Docker Containers"
+        subgraph "Main Container"
+            Nginx[NGINX<br/>Port 80/443]
+            Rust[Rust Backend<br/>Port 3001]
+            Vite[Vite Dev<br/>Port 5173]
+        end
+        
+        subgraph "Services Container"
+            Claude[Claude Flow<br/>Port 3002]
+            RAG[RAGFlow<br/>Port 80]
+        end
+    end
+    
+    subgraph "Host System"
+        GPU[NVIDIA GPU]
+        CUDA_Host[CUDA Driver]
+        Docker[Docker Engine]
+    end
+    
+    subgraph "Volumes"
+        Data[Data Volume]
+        Logs[Logs Volume]
+        Config[Config Volume]
+    end
+    
+    Internet[Internet] --> Nginx
+    Nginx --> Rust
+    Nginx --> Vite
+    Rust --> Claude
+    Rust --> RAG
+    
+    Rust --> GPU
+    GPU --> CUDA_Host
+    
+    Rust --> Data
+    Rust --> Logs
+    Rust --> Config
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Browser   │────▶│    NGINX    │────▶│  Rust Dev   │
-│  localhost  │     │   :80/:443  │     │    :8080    │
-└─────────────┘     └─────────────┘     └─────────────┘
-                            │                    │
-                            ▼                    ▼
-                    ┌─────────────┐     ┌─────────────┐
-                    │  Vite Dev   │     │    Data     │
-                    │    :5173    │     │   Volume    │
-                    └─────────────┘     └─────────────┘
+
+## Security Architecture
+
+```mermaid
+graph TB
+    subgraph "Authentication Layer"
+        Nostr[Nostr Auth]
+        NIP07[NIP-07 Extension]
+        Signer[Event Signer]
+    end
+    
+    subgraph "Authorization"
+        RBAC[Role-Based Access]
+        Features[Feature Flags]
+        Protected[Protected Settings]
+    end
+    
+    subgraph "Network Security"
+        TLS[TLS/SSL]
+        CORS[CORS Policy]
+        CSP[Content Security Policy]
+    end
+    
+    subgraph "Data Security"
+        Validation[Input Validation]
+        Sanitization[Data Sanitization]
+        Encryption[At-Rest Encryption]
+    end
+    
+    Client[Client] --> TLS
+    TLS --> Nostr
+    Nostr --> NIP07
+    NIP07 --> Signer
+    Signer --> RBAC
+    RBAC --> Features
+    Features --> Protected
+    
+    TLS --> CORS
+    CORS --> CSP
+    CSP --> Validation
+    Validation --> Sanitization
+    Sanitization --> Encryption
 ```
 
-### Production
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Internet  │────▶│  CloudFlare │────▶│    NGINX    │
-│   HTTPS     │     │     CDN     │     │  Container  │
-└─────────────┘     └─────────────┘     └─────────────┘
-                                                │
-                                                ▼
-                                        ┌─────────────┐
-                                        │ Rust Server │
-                                        │  Container  │
-                                        └─────────────┘
-```
+## Performance Optimization
 
-## Performance Characteristics
+### Caching Strategy
+- **Metadata Cache**: In-memory caching of graph metadata
+- **Settings Cache**: Client-side settings persistence
+- **GPU Buffer Cache**: Reusable CUDA memory allocations
+- **WebSocket Message Cache**: Differential update tracking
 
-### Scalability Metrics
-- **Concurrent Clients**: 100+ simultaneous connections
-- **Graph Size**: 10,000+ nodes with GPU acceleration
-- **Update Rate**: 60 FPS position streaming
-- **Latency**: <16ms for local updates
+### Scalability Features
+- **Actor Supervision**: Automatic actor restart on failure
+- **Connection Pooling**: Efficient database connections
+- **Load Balancing**: NGINX reverse proxy distribution
+- **Horizontal Scaling**: Stateless backend design
 
-### Resource Usage
-- **Memory**: ~500MB base + 100KB per node
-- **CPU**: 1-2 cores for physics simulation
-- **GPU**: Optional, 50-100x speedup for large graphs
-- **Network**: 10-50 KB/s per active client
+### Performance Metrics
+| Component | Target | Actual |
+|-----------|--------|--------|
+| REST API Latency | <100ms | 50ms |
+| WebSocket Latency | <10ms | 5ms |
+| GPU Kernel Time | <16ms | 10ms |
+| Frame Rate | 60 FPS | 60 FPS |
+| Memory Usage | <4GB | 2.5GB |
 
-## Next Steps
+## Technology Stack
 
-For detailed component documentation, see:
+### Backend Technologies
+- **Language**: Rust 1.75+
+- **Web Framework**: Actix-Web 4.4
+- **Async Runtime**: Tokio
+- **GPU**: CUDA 11.8+
+- **Serialization**: Serde, Bincode
+- **WebSocket**: Actix-WS
 
-### Core Architecture
-- [Component Architecture](./component-architecture.md)
-- [Data Flow Diagrams](./data-flow.md)
-- [Actor System Design](./actor-system.md)
-- [WebSocket Protocol](./websocket-protocol.md)
-- [XR Architecture](./xr-architecture.md)
+### Frontend Technologies
+- **Framework**: React 18
+- **Language**: TypeScript 5
+- **3D Graphics**: Three.js, React Three Fiber
+- **XR**: @react-three/xr
+- **State Management**: Zustand
+- **Build Tool**: Vite
 
-### New Features (2024)
-- **[Parallel Graphs Architecture](./parallel-graphs.md)** - Multiple simultaneous graph visualizations
-- **[MCP WebSocket Relay](./mcp-websocket-relay.md)** - Claude Flow agent data integration
-- **[ClaudeFlowActor](./claude-flow-actor.md)** - Backend MCP connection management
-- **[Bots Visualization](./bots-visualization.md)** - 3D AI agent visualization system
-- **[Migration Guide](./migration-guide.md)** - Upgrading from old architecture
+### Infrastructure
+- **Containerization**: Docker
+- **Proxy**: NGINX
+- **Process Manager**: Supervisord
+- **Logging**: Custom structured logging
+- **Monitoring**: Built-in metrics collection
+
+## Key Design Decisions
+
+1. **Actor Model**: Provides fault tolerance and concurrent state management
+2. **Binary Protocol**: Minimizes bandwidth for real-time updates
+3. **GPU Acceleration**: Enables massive graph visualization
+4. **Dual Graph**: Supports both knowledge and agent graphs simultaneously
+5. **WebXR Integration**: Future-proofs for AR/VR interfaces
+6. **MCP Protocol**: Standardized AI tool communication
+7. **Differential Updates**: Optimizes network traffic
+8. **Modular Architecture**: Allows independent component scaling

@@ -1,22 +1,71 @@
-# WebSocket Protocols and Communication
+# WebSocket Protocols
 
 ## Overview
 
-This document consolidates all WebSocket protocols used in the system, including binary position updates, JSON message formats, and real-time agent communication.
+VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the backend. The system implements multiple specialized WebSocket endpoints, each optimized for specific data types and update patterns.
+
+## WebSocket Architecture
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        Browser[Browser Client]
+        XR[XR Client]
+        API[API Client]
+    end
+    
+    subgraph "WebSocket Endpoints"
+        Flow[/ws/socket_flow<br/>Binary Graph Updates]
+        Speech[/ws/speech<br/>Voice Streaming]
+        MCP[/ws/mcp_relay<br/>MCP Protocol]
+        Bots[/ws/bots_visualization<br/>Agent Updates]
+    end
+    
+    subgraph "Backend Handlers"
+        FlowHandler[Socket Flow Handler]
+        SpeechHandler[Speech Handler]
+        MCPHandler[MCP Relay Handler]
+        BotsHandler[Bots Viz Handler]
+    end
+    
+    Browser --> Flow
+    Browser --> Speech
+    Browser --> MCP
+    Browser --> Bots
+    XR --> Flow
+    API --> MCP
+    
+    Flow --> FlowHandler
+    Speech --> SpeechHandler
+    MCP --> MCPHandler
+    Bots --> BotsHandler
+```
 
 ## WebSocket Endpoints
 
-### Main Graph Data Stream
-- **Endpoint**: `/ws` or `/wss`
+### 1. Socket Flow Stream
+- **Endpoint**: `/ws/socket_flow`
 - **Purpose**: Real-time graph position updates
 - **Protocol**: Binary (28-byte format)
 - **Update Rate**: 60 FPS
 
-### Bots/Agent Data Stream
-- **Endpoint**: Shares main WebSocket, uses node ID flags
-- **Purpose**: AI agent position and state updates
-- **Protocol**: Binary + JSON state messages
-- **Bot Identification**: Node ID & 0x80 flag
+### 2. Speech Stream
+- **Endpoint**: `/ws/speech`
+- **Purpose**: Voice interaction and audio streaming
+- **Protocol**: JSON + Binary audio data
+- **Features**: Real-time transcription, voice commands
+
+### 3. MCP Relay
+- **Endpoint**: `/ws/mcp_relay`
+- **Purpose**: Claude Flow MCP protocol relay
+- **Protocol**: JSON-RPC 2.0
+- **Features**: Tool invocation, agent orchestration
+
+### 4. Bots Visualization
+- **Endpoint**: `/ws/bots_visualization`
+- **Purpose**: Agent swarm visualization updates
+- **Protocol**: JSON with agent states and metrics
+- **Update Rate**: 10 Hz (100ms intervals)
 
 ## Binary Protocol Specification
 

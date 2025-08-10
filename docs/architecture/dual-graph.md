@@ -1,15 +1,52 @@
 # Dual Graph Architecture
 
-VisionFlow implements a sophisticated dual-graph system that enables simultaneous visualization of both knowledge structures and AI agent activity in a unified 3D space.
-
 ## Overview
 
-The dual-graph architecture separates concerns between two distinct but interconnected graph types:
+VisionFlow's dual-graph architecture enables simultaneous visualization and processing of two distinct but interconnected graph types: Knowledge Graphs and Agent Graphs. This innovative approach allows users to see both static knowledge structures and dynamic AI agent interactions in a unified 3D space with GPU-accelerated physics simulation.
 
-1. **Knowledge Graph** - Static knowledge structures from Logseq markdown files
-2. **Agent Graph** - Dynamic AI agent swarm activity and interactions
+## Core Architecture
 
-Both graphs share the same 3D visualization space but maintain separate data structures, physics simulations, and update mechanisms.
+```mermaid
+graph TB
+    subgraph "Dual Graph System"
+        subgraph "Knowledge Graph"
+            KNodes[Knowledge Nodes<br/>Bit 30 Flag]
+            KEdges[Semantic Edges]
+            KMeta[Metadata]
+            KLayout[Force-Directed Layout]
+        end
+        
+        subgraph "Agent Graph"
+            ANodes[Agent Nodes<br/>Bit 31 Flag]
+            AEdges[Communication Edges]
+            AState[Agent State]
+            ALayout[Swarm Layout]
+        end
+        
+        subgraph "Unified Processing"
+            Binary[Binary Protocol<br/>28 bytes/node]
+            GPU[CUDA Kernels]
+            Physics[Unified Physics]
+            Render[WebGL Renderer]
+        end
+    end
+    
+    KNodes --> Binary
+    ANodes --> Binary
+    Binary --> GPU
+    GPU --> Physics
+    Physics --> Render
+```
+
+## Binary Node Identification
+
+The system uses a 32-bit node ID with type flags to distinguish between graph types:
+
+```
+Bit 31: Agent Node Flag (1 = Agent, 0 = Not Agent)
+Bit 30: Knowledge Node Flag (0 = Knowledge, 1 = Special)
+Bits 0-29: Unique ID (up to 1,073,741,824 unique nodes)
+```
 
 ## Graph Types
 
