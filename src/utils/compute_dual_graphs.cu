@@ -145,7 +145,7 @@ extern "C" {
         if (iteration_count < WARMUP_ITERATIONS) {
             ramp_up_factor = 0.01f + (iteration_count / (float)WARMUP_ITERATIONS) * 0.99f;
             // Higher damping during warmup
-            params.damping = fmaxf(params.damping, 0.9f - 0.4f * (iteration_count / (float)WARMUP_ITERATIONS));
+            damping = fmaxf(damping, 0.9f - 0.4f * (iteration_count / (float)WARMUP_ITERATIONS));
         }
         
         float3 total_force = make_float3(0.0f, 0.0f, 0.0f);
@@ -193,15 +193,15 @@ extern "C" {
                     float3 direction = diff / dist;
                     
                     // Spring force with weight-based strength
-                    float spring_force = params.spring_k * edge.weight * (dist - 1.0f);
+                    float spring_force = spring_k * edge.weight * (dist - 1.0f);
                     
                     // Knowledge graph: Add clustering force for related topics
                     if (is_knowledge_node) {
-                        spring_force *= (1.0f + params.cluster_strength * edge.weight);
+                        spring_force *= (1.0f + 0.5f * edge.weight); // cluster_strength default 0.5
                     }
                     // Agent graph: Dynamic force based on communication intensity
                     else {
-                        spring_force *= (1.0f + params.communication_factor * edge.weight);
+                        spring_force *= (1.0f + 0.7f * edge.weight); // communication_factor default 0.7
                     }
                     
                     total_force += direction * spring_force;
@@ -223,7 +223,7 @@ extern "C" {
                 
                 if (dist < max_repulsion_dist && dist > MIN_DISTANCE) {
                     float3 direction = diff / dist;
-                    float repulsion = params.repel_k / (dist * dist);
+                    float repulsion = repel_k / (dist * dist);
                     
                     // Knowledge graph: Stronger repulsion for unrelated nodes
                     if (is_knowledge_node) {
@@ -258,12 +258,13 @@ extern "C" {
         
         // Update velocity with damping
         vel += total_force * dt / mass;
-        vel *= params.damping;
+        vel *= damping;
         
         // Clamp velocity
         float vel_magnitude = length(vel);
-        if (vel_magnitude > params.max_velocity) {
-            vel = (vel / vel_magnitude) * params.max_velocity;
+        const float MAX_VELOCITY = 0.02f; // Default max velocity
+        if (vel_magnitude > MAX_VELOCITY) {
+            vel = (vel / vel_magnitude) * MAX_VELOCITY;
         }
         
         // Update position

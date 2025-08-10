@@ -126,19 +126,31 @@ main() {
     check_prerequisites
     validate_compute_capability
     
-    # List of all GPU kernels to compile
-    local kernels=(
-        "compute_forces"              # Original physics kernel
-        "visual_analytics_core"       # Advanced visual analytics
-        "advanced_gpu_algorithms"     # High-performance algorithms
-        "dual_graph_unified"          # Unified dual graph processing
-        "advanced_compute_forces"     # Advanced physics computation
-        "unified_physics"             # Unified physics simulation
-        "compute_dual_graphs"         # Dual graph computation
-    )
+    # Discover kernels: use CLI args that exist, otherwise auto-detect *.cu files
+    local kernels=()
+    if [ "$#" -gt 0 ]; then
+        for name in "$@"; do
+            if [ -f "$UTILS_DIR/${name}.cu" ]; then
+                kernels+=("$name")
+            else
+                log_warn "Requested kernel '$name' not found at $UTILS_DIR/${name}.cu; skipping."
+            fi
+        done
+    fi
+    
+    if [ "${#kernels[@]}" -eq 0 ]; then
+        while IFS= read -r cu; do
+            kernels+=("$(basename "$cu" .cu)")
+        done < <(find "$UTILS_DIR" -maxdepth 1 -type f -name "*.cu" | sort)
+    fi
     
     local success_count=0
     local total_kernels=${#kernels[@]}
+    
+    if [ "$total_kernels" -eq 0 ]; then
+        log_warn "No CUDA .cu files found in $UTILS_DIR. Nothing to compile."
+        exit 0
+    fi
     
     log_info "Found $total_kernels kernels to compile"
     
