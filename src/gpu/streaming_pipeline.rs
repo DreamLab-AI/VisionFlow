@@ -5,7 +5,6 @@ use std::sync::Arc;
 use tokio::sync::{RwLock, mpsc};
 use bytes::{Bytes, BytesMut, BufMut};
 use serde::{Serialize, Deserialize};
-use log::info;
 
 /// Simplified render packet for bandwidth-constrained clients
 #[repr(C)]
@@ -83,7 +82,7 @@ pub struct StreamingPipeline {
 }
 
 struct ClientConnection {
-    id: String,
+    _id: String,
     lod: ClientLOD,
     sender: mpsc::Sender<Bytes>,
     last_frame: u32,
@@ -128,7 +127,7 @@ impl StreamingPipeline {
         
         let mut clients = self.clients.write().await;
         clients.push(ClientConnection {
-            id,
+            _id: id,
             lod,
             sender: tx,
             last_frame: 0,

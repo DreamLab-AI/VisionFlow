@@ -240,6 +240,7 @@ impl GitHubClient {
     }
 
     /// Get settings
+    #[allow(dead_code)]
     pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> { // Changed from Settings to AppFullSettings
         &self.settings
     }

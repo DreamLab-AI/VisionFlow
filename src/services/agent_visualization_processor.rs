@@ -185,16 +185,16 @@ pub struct GlowSettings {
 /// Main processor that transforms MCP data into visualization-ready format
 pub struct AgentVisualizationProcessor {
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
-    performance_history: HashMap<String, Vec<PerformanceSnapshot>>,
-    last_update: DateTime<Utc>,
+    _performance_history: HashMap<String, Vec<PerformanceSnapshot>>,
+    _last_update: DateTime<Utc>,
 }
 
 impl AgentVisualizationProcessor {
     pub fn new() -> Self {
         Self {
             token_history: HashMap::new(),
-            performance_history: HashMap::new(),
-            last_update: Utc::now(),
+            _performance_history: HashMap::new(),
+            _last_update: Utc::now(),
         }
     }
     

@@ -223,14 +223,14 @@ pub struct PhysicsConfig {
 
 /// WebSocket protocol handler
 pub struct AgentVisualizationProtocol {
-    update_interval_ms: u64,
+    _update_interval_ms: u64,
     position_buffer: Vec<PositionUpdate>,
 }
 
 impl AgentVisualizationProtocol {
     pub fn new() -> Self {
         Self {
-            update_interval_ms: 16, // ~60fps
+            _update_interval_ms: 16, // ~60fps
             position_buffer: Vec::new(),
         }
     }

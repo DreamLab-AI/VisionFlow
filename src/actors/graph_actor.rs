@@ -329,7 +329,7 @@ impl GraphServiceActor {
     /// Helper methods for the hybrid solver orchestration
     
     fn prepare_enhanced_nodes(&self) -> Vec<EnhancedBinaryNodeData> {
-        self.graph_data.nodes.iter().enumerate().map(|(idx, node)| {
+        self.graph_data.nodes.iter().enumerate().map(|(_idx, node)| {
             let basic_data = BinaryNodeData {
                 position: node.data.position.clone(),
                 velocity: node.data.velocity.clone(),

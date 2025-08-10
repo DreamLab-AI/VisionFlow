@@ -434,7 +434,7 @@ impl SemanticConstraintGenerator {
     /// Identify semantic clusters using similarity-based clustering
     fn identify_semantic_clusters(
         &self,
-        graph_data: &GraphData,
+        _graph_data: &GraphData,
         similarities: &HashMap<(u32, u32), NodeSimilarity>,
     ) -> Result<Vec<SemanticCluster>, Box<dyn std::error::Error>> {
         let mut clusters = Vec::new();

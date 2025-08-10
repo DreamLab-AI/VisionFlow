@@ -188,7 +188,8 @@ fn verify_ptx_outputs(utils_dir: &Path, kernel_files: &[String]) {
     }
     
     if !missing_ptx.is_empty() {
-        panic!("Failed to generate PTX files for: {}", missing_ptx.join(", "));
+        let missing_files: Vec<String> = missing_ptx.iter().map(|s| s.to_string()).collect();
+        panic!("Failed to generate PTX files for: {}", missing_files.join(", "));
     }
     
     println!("cargo:warning=All PTX files verified successfully");

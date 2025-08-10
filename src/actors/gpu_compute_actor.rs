@@ -86,9 +86,9 @@ pub struct GPUComputeActor {
     num_nodes: u32,  // Total for legacy compatibility
     
     // Track which graph each node belongs to
-    graph_type_map: HashMap<u32, GraphType>,
-    knowledge_node_indices: HashMap<u32, usize>,
-    agent_node_indices: HashMap<u32, usize>,
+    _graph_type_map: HashMap<u32, GraphType>,
+    __knowledge_node_indices: HashMap<u32, usize>,
+    __agent_node_indices: HashMap<u32, usize>,
     node_indices: HashMap<u32, usize>,  // Legacy combined map
     
     // Separate physics parameters for each graph type
@@ -165,9 +165,9 @@ impl GPUComputeActor {
             num_nodes: 0,
             num_edges: 0,  // CRITICAL FIX: Initialize edge count
             
-            graph_type_map: HashMap::new(),
-            knowledge_node_indices: HashMap::new(),
-            agent_node_indices: HashMap::new(),
+            _graph_type_map: HashMap::new(),
+            __knowledge_node_indices: HashMap::new(),
+            __agent_node_indices: HashMap::new(),
             node_indices: HashMap::new(),
             
             knowledge_sim_params: knowledge_params,
@@ -674,8 +674,8 @@ impl GPUComputeActor {
     }
 
     fn compute_forces_dual_graph(&mut self) -> Result<(), Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let dual_kernel = self.dual_graph_kernel.as_ref().ok_or_else(|| {
+        let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
+        let _dual_kernel = self.dual_graph_kernel.as_ref().ok_or_else(|| {
             warn!("Dual graph kernel not available, falling back to legacy");
             self.compute_mode = ComputeMode::Legacy;
             Error::new(ErrorKind::Other, "Dual graph kernel not initialized")
@@ -693,14 +693,14 @@ impl GPUComputeActor {
             return self.compute_forces_legacy();
         }
 
-        let knowledge_data = self.knowledge_node_data.as_ref().unwrap();
-        let agent_data = self.agent_node_data.as_ref().unwrap();
+        let _knowledge_data = self.knowledge_node_data.as_ref().unwrap();
+        let _agent_data = self.agent_node_data.as_ref().unwrap();
         let edge_data = self.edge_data.as_ref();
 
         // Calculate blocks for the maximum number of nodes
         let total_nodes = self.num_knowledge_nodes + self.num_agent_nodes;
         let blocks = ((total_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-        let cfg = LaunchConfig {
+        let _cfg = LaunchConfig {
             grid_dim: (blocks, 1, 1),
             block_dim: (BLOCK_SIZE, 1, 1),
             shared_mem_bytes: SHARED_MEM_SIZE,
@@ -740,7 +740,7 @@ impl GPUComputeActor {
             Ok(())
         } else {
             // Create dummy edge buffer if no edges
-            let _dummy_edges = device.alloc_zeros::<EdgeData>(1)
+            let _dummy_edges = _device.alloc_zeros::<EdgeData>(1)
                 .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate dummy edge buffer: {}", e)))?;
             // TODO: Fix CUDA kernel launch - too many parameters
             /*
@@ -795,8 +795,8 @@ impl GPUComputeActor {
             }
         } else {
             // Fall back to using the advanced kernel directly if context is not available
-            let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-            let advanced_kernel = self.advanced_kernel.as_ref().ok_or_else(|| {
+            let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
+            let _advanced_kernel = self.advanced_kernel.as_ref().ok_or_else(|| {
                 warn!("Advanced kernel not available, falling back to legacy");
                 self.compute_mode = ComputeMode::Legacy;
                 Error::new(ErrorKind::Other, "Advanced kernel not initialized")
@@ -814,8 +814,8 @@ impl GPUComputeActor {
     }
 
     fn compute_forces_with_advanced_gpu(&mut self) -> Result<(), Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let advanced_gpu_kernel = self.advanced_gpu_kernel.as_ref().ok_or_else(|| {
+        let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
+        let _advanced_gpu_kernel = self.advanced_gpu_kernel.as_ref().ok_or_else(|| {
             warn!("Advanced GPU algorithms kernel not available, falling back to legacy");
             self.kernel_mode = KernelMode::Legacy;
             Error::new(ErrorKind::Other, "Advanced GPU algorithms kernel not initialized")
@@ -837,7 +837,7 @@ impl GPUComputeActor {
 
         let launch_result = if let Some(edge_data) = edge_data {
             unsafe {
-                advanced_gpu_kernel.clone().launch(cfg, (
+                _advanced_gpu_kernel.clone().launch(cfg, (
                     node_data,
                     edge_data,
                     self.num_nodes as i32,
@@ -923,8 +923,8 @@ impl GPUComputeActor {
             }
         } else {
             // Use the visual analytics kernel directly
-            let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-            let va_kernel = self.visual_analytics_kernel.as_ref().ok_or_else(|| {
+            let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
+            let _va_kernel = self.visual_analytics_kernel.as_ref().ok_or_else(|| {
                 warn!("Visual analytics kernel not available, falling back to legacy");
                 self.kernel_mode = KernelMode::Legacy;
                 Error::new(ErrorKind::Other, "Visual analytics kernel not initialized")
@@ -1006,7 +1006,7 @@ impl GPUComputeActor {
         // Simplified conversion - just create empty nodes for now
         let num_nodes = node_data.len();
         let mut ts_nodes = Vec::with_capacity(num_nodes);
-        for i in 0..num_nodes {
+        for _i in 0..num_nodes {
             ts_nodes.push(TSNode {
                 position: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
                 velocity: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
@@ -1045,7 +1045,7 @@ impl GPUComputeActor {
         // Simplified conversion
         let num_edges = edge_data.len();
         let mut ts_edges = Vec::with_capacity(num_edges);
-        for i in 0..num_edges {
+        for _i in 0..num_edges {
             ts_edges.push(TSEdge {
                 source: 0,
                 target: 1,
@@ -1057,7 +1057,7 @@ impl GPUComputeActor {
                 formation_time: 0.0,
                 stability: 1.0,
                 bundling_strength: 0.5,
-                control_points: [Vec4 { x: 0.0, y: 0.0, z: 0.0, w: 0.0 }; 2],
+                control_points: [Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 }; 2],
                 layer_mask: 0,
                 information_flow: 0.0,
                 latency: 0.0,
@@ -1066,6 +1066,7 @@ impl GPUComputeActor {
         Ok(ts_edges)
     }
     
+    #[allow(dead_code)]
     fn convert_to_ts_nodes(&self) -> Result<Vec<TSNode>, Error> {
         let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
         let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
@@ -1111,6 +1112,7 @@ impl GPUComputeActor {
     }
 
     /// Convert legacy EdgeData to visual analytics TSEdge format
+    #[allow(dead_code)]
     fn convert_to_ts_edges(&self) -> Result<Vec<TSEdge>, Error> {
         if let Some(edge_data) = &self.edge_data {
             let device = self.device.as_ref().unwrap();
@@ -1151,6 +1153,7 @@ impl GPUComputeActor {
     }
 
     /// Copy results from visual analytics GPU back to legacy format
+    #[allow(dead_code)]
     fn copy_visual_analytics_results(&mut self, va_gpu: &VisualAnalyticsGPU) -> Result<(), Error> {
         let positions = va_gpu.get_positions()
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from visual analytics: {}", e)))?;
@@ -1559,11 +1562,13 @@ impl GPUComputeActor {
     }
 
     /// Convert legacy node data to enhanced format for advanced physics
+    #[allow(dead_code)]
     fn convert_to_enhanced_nodes(&self, nodes: &[BinaryNodeData]) -> Vec<EnhancedBinaryNodeData> {
         nodes.iter().map(|node| EnhancedBinaryNodeData::from(*node)).collect()
     }
 
     /// Convert enhanced node data back to legacy format
+    #[allow(dead_code)]
     fn convert_from_enhanced_nodes(&self, nodes: &[EnhancedBinaryNodeData]) -> Vec<BinaryNodeData> {
         nodes.iter().map(|node| BinaryNodeData::from(*node)).collect()
     }

@@ -19,15 +19,15 @@ use tokio_tungstenite::tungstenite::Message as WsMessage;
 
 /// Enhanced ClaudeFlowActor with direct MCP WebSocket integration
 pub struct EnhancedClaudeFlowActor {
-    client: ClaudeFlowClient,
+    _client: ClaudeFlowClient,
     graph_service_addr: Addr<GraphServiceActor>,
     is_connected: bool,
     is_initialized: bool,
     swarm_id: Option<String>,
     polling_interval: Duration,
-    last_poll: DateTime<Utc>,
+    _last_poll: DateTime<Utc>,
     agent_cache: HashMap<String, AgentStatus>,
-    swarm_status: Option<SwarmStatus>,
+    _swarm_status: Option<SwarmStatus>,
     system_metrics: SystemMetrics,
     message_flow_history: Vec<MessageFlowEvent>,
     coordination_patterns: Vec<CoordinationPattern>,
@@ -43,15 +43,15 @@ pub struct EnhancedClaudeFlowActor {
 impl EnhancedClaudeFlowActor {
     pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<GraphServiceActor>) -> Self {
         Self {
-            client,
+            _client: client,
             graph_service_addr,
             is_connected: false,
             is_initialized: false,
             swarm_id: None,
             polling_interval: Duration::from_millis(100), // 10Hz for telemetry updates
-            last_poll: Utc::now(),
+            _last_poll: Utc::now(),
             agent_cache: HashMap::new(),
-            swarm_status: None,
+            _swarm_status: None,
             system_metrics: SystemMetrics::default(),
             message_flow_history: Vec::new(),
             coordination_patterns: Vec::new(),
@@ -120,6 +120,7 @@ impl EnhancedClaudeFlowActor {
     }
     
     /// Handle incoming telemetry event from Claude Flow
+    #[allow(dead_code)]
     fn handle_telemetry_event(&mut self, event: Value) {
         if let Some(event_type) = event.get("type").and_then(|t| t.as_str()) {
             match event_type {
@@ -187,6 +188,7 @@ impl EnhancedClaudeFlowActor {
     }
     
     /// Send MCP request through WebSocket
+    #[allow(dead_code)]
     async fn send_mcp_request(&self, method: &str, params: Value) -> Result<Value, String> {
         if let Some(ws_conn) = &self.ws_connection {
             let request = json!({
@@ -208,6 +210,7 @@ impl EnhancedClaudeFlowActor {
     }
 
     /// Execute MCP tool call with error handling and response parsing
+    #[allow(dead_code)]
     async fn execute_mcp_tool(&self, tool_name: &str, arguments: Value) -> Result<Value, String> {
         if !self.is_initialized {
             return Err("MCP client not initialized".to_string());
@@ -229,7 +232,7 @@ impl EnhancedClaudeFlowActor {
         };
 
         // Execute request through transport
-        let mut transport = self.client.transport.lock().await;
+        let mut transport = self._client.transport.lock().await;
         match transport.send_request(request).await {
             Ok(response) => {
                 if let Some(result) = response.result {
@@ -291,6 +294,7 @@ impl EnhancedClaudeFlowActor {
     }
 
     /// Ensure connection to Claude Flow, with exponential backoff retry
+    #[allow(dead_code)]
     async fn ensure_connection(&mut self) -> Result<(), String> {
         if !self.is_connected {
             // Attempt reconnection
@@ -490,7 +494,7 @@ impl Handler<ConnectionEstablished> for EnhancedClaudeFlowActor {
         
         // Subscribe to telemetry events
         let ws_conn = self.ws_connection.clone();
-        let addr = ctx.address();
+        let _addr = ctx.address();
         
         tokio::spawn(async move {
             if let Some(ws) = ws_conn {

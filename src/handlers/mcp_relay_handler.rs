@@ -9,10 +9,12 @@ use futures_util::{SinkExt, StreamExt, stream::SplitSink};
 use log::{debug, error, info, warn};
 use std::time::Duration;
 
+#[allow(dead_code)]
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ClientText(String);
 
+#[allow(dead_code)]
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ClientBinary(Vec<u8>);
