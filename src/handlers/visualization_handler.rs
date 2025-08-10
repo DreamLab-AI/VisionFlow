@@ -1,4 +1,4 @@
-use crate::config::Settings;
+use crate::config::AppFullSettings;
 use crate::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use actix_web::{web, HttpResponse};
@@ -227,7 +227,7 @@ fn get_category_settings_value(settings: &Settings, category: &str) -> Result<Va
             .map_err(|e| format!("Failed to serialize bloom settings: {}", e))?,
         "visualisation.animations" => serde_json::to_value(&settings.visualisation.animations)
             .map_err(|e| format!("Failed to serialize animations settings: {}", e))?,
-        "visualisation.physics" => serde_json::to_value(&settings.visualisation.physics)
+        "visualisation.physics" => serde_json::to_value(&settings.visualisation.graphs.logseq.physics)
             .map_err(|e| format!("Failed to serialize physics settings: {}", e))?,
         "visualisation.hologram" => serde_json::to_value(&settings.visualisation.hologram)
             .map_err(|e| format!("Failed to serialize hologram settings: {}", e))?,

@@ -2,15 +2,15 @@ use serde_json::Value;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::config::Settings;
+use crate::config::AppFullSettings;
 use log::{error, info, warn};
 
 pub struct AudioProcessor {
-    settings: Arc<RwLock<Settings>>,
+    settings: Arc<RwLock<AppFullSettings>>,
 }
 
 impl AudioProcessor {
-    pub fn new(settings: Arc<RwLock<Settings>>) -> Self {
+    pub fn new(settings: Arc<RwLock<AppFullSettings>>) -> Self {
         Self { settings }
     }
 

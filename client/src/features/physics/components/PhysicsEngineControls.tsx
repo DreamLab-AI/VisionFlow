@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
+import { useSettingsStore } from '@/features/settings/store/settingsStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -46,19 +47,28 @@ interface IsolationLayer {
 
 export function PhysicsEngineControls() {
   const { toast } = useToast();
+  // Temporarily commented until zustand is installed
+  // const { settings, currentGraph, updatePhysics, loadSettings } = useSettingsStore();
+  const settings = null;
+  const currentGraph = 'logseq' as const;
+  const updatePhysics = async (update: any) => {};
+  const loadSettings = async () => {};
   
   // State management
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
+  
+  // Initialize force params from settings
+  const physicsSettings = null; // settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsion: 100.0,
-    attraction: 0.01,
-    spring: 0.1,
-    damping: 0.95,
-    gravity: 0.1,
-    timeStep: 0.016,
-    maxVelocity: 10.0,
-    temperature: 1.0,
+    repulsion: physicsSettings?.repulsionStrength || 100.0,
+    attraction: physicsSettings?.attractionStrength || 0.01,
+    spring: physicsSettings?.springStrength || 0.1,
+    damping: physicsSettings?.damping || 0.95,
+    gravity: physicsSettings?.gravity || 0.1,
+    timeStep: physicsSettings?.timeStep || 0.016,
+    maxVelocity: physicsSettings?.maxVelocity || 10.0,
+    temperature: physicsSettings?.temperature || 1.0,
   });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
@@ -94,6 +104,29 @@ export function PhysicsEngineControls() {
     power: 0,
   });
 
+  // Load settings on mount
+  useEffect(() => {
+    if (!settings) {
+      loadSettings();
+    }
+  }, [settings, loadSettings]);
+  
+  // Update local state when settings change
+  useEffect(() => {
+    if (physicsSettings) {
+      setForceParams({
+        repulsion: physicsSettings.repulsionStrength,
+        attraction: physicsSettings.attractionStrength,
+        spring: physicsSettings.springStrength,
+        damping: physicsSettings.damping,
+        gravity: physicsSettings.gravity,
+        timeStep: physicsSettings.timeStep,
+        maxVelocity: physicsSettings.maxVelocity,
+        temperature: physicsSettings.temperature,
+      });
+    }
+  }, [physicsSettings]);
+  
   // Fetch GPU metrics periodically
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -142,7 +175,40 @@ export function PhysicsEngineControls() {
     const newParams = { ...forceParams, [param]: value };
     setForceParams(newParams);
     
+    // Map to settings structure
+    const physicsUpdate: any = {};
+    switch (param) {
+      case 'repulsion':
+        physicsUpdate.repulsionStrength = value;
+        break;
+      case 'attraction':
+        physicsUpdate.attractionStrength = value;
+        break;
+      case 'spring':
+        physicsUpdate.springStrength = value;
+        break;
+      case 'damping':
+        physicsUpdate.damping = value;
+        break;
+      case 'gravity':
+        physicsUpdate.gravity = value;
+        break;
+      case 'timeStep':
+        physicsUpdate.timeStep = value;
+        break;
+      case 'maxVelocity':
+        physicsUpdate.maxVelocity = value;
+        break;
+      case 'temperature':
+        physicsUpdate.temperature = value;
+        break;
+    }
+    
     try {
+      // Update through settings store
+      await updatePhysics(physicsUpdate);
+      
+      // Also send to analytics endpoint for immediate GPU update
       await fetch('/api/analytics/params', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,8 +216,13 @@ export function PhysicsEngineControls() {
       });
     } catch (error) {
       console.error('Failed to update force parameters:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update physics parameters',
+        variant: 'destructive',
+      });
     }
-  }, [forceParams]);
+  }, [forceParams, updatePhysics, toast]);
 
   const handleConstraintToggle = useCallback(async (constraintId: string) => {
     const newConstraints = constraints.map(c => 
@@ -357,8 +428,8 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="repulsion"
                   min={0}
-                  max={500}
-                  step={10}
+                  max={2000}
+                  step={50}
                   value={[forceParams.repulsion]}
                   onValueChange={([v]) => handleForceParamChange('repulsion', v)}
                 />
@@ -436,6 +507,21 @@ export function PhysicsEngineControls() {
                   step={1}
                   value={[forceParams.maxVelocity]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="timeStep">Time Step</Label>
+                  <span className="text-sm text-muted-foreground">{forceParams.timeStep?.toFixed(3) || '0.150'}</span>
+                </div>
+                <Slider
+                  id="timeStep"
+                  min={0.01}
+                  max={0.5}
+                  step={0.01}
+                  value={[forceParams.timeStep || 0.15]}
+                  onValueChange={([v]) => handleForceParamChange('timeStep', v)}
                 />
               </div>
             </CardContent>

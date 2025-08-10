@@ -708,13 +708,17 @@ async fn apply_quest3_settings_to_system(
     settings.xr.passthrough_brightness = quest3_settings.xr.passthrough_brightness;
     settings.xr.passthrough_contrast = quest3_settings.xr.passthrough_contrast;
     settings.xr.movement_speed = quest3_settings.xr.movement_speed;
-    settings.xr.locomotion_method = Some(quest3_settings.xr.locomotion_method.clone());
+    settings.xr.locomotion_method = quest3_settings.xr.locomotion_method.clone();
     settings.xr.interaction_radius = quest3_settings.xr.interaction_distance;
 
-    // Map visualization settings
-    settings.visualisation.physics.bounds_size = quest3_settings.visualisation.bounds_size;
-    settings.visualisation.physics.max_velocity = quest3_settings.visualisation.max_velocity;
-    settings.visualisation.physics.enabled = quest3_settings.visualisation.physics_enabled;
+    // Map visualization settings to both graphs
+    settings.visualisation.graphs.logseq.physics.bounds_size = quest3_settings.visualisation.bounds_size;
+    settings.visualisation.graphs.logseq.physics.max_velocity = quest3_settings.visualisation.max_velocity;
+    settings.visualisation.graphs.logseq.physics.enabled = quest3_settings.visualisation.physics_enabled;
+    
+    settings.visualisation.graphs.visionflow.physics.bounds_size = quest3_settings.visualisation.bounds_size;
+    settings.visualisation.graphs.visionflow.physics.max_velocity = quest3_settings.visualisation.max_velocity;
+    settings.visualisation.graphs.visionflow.physics.enabled = quest3_settings.visualisation.physics_enabled;
 
     // Apply updated settings
     app_state

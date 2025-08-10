@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
+use crate::config::PhysicsSettings;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -145,6 +146,26 @@ impl SimulationParams {
             viewport_bounds: if self.enable_bounds { self.viewport_bounds } else { 0.0 },
             mass_scale: self.mass_scale,
             boundary_damping: self.boundary_damping,
+        }
+    }
+}
+
+// Conversion from PhysicsSettings to SimulationParams
+impl From<&PhysicsSettings> for SimulationParams {
+    fn from(physics: &PhysicsSettings) -> Self {
+        Self {
+            iterations: physics.iterations,
+            time_step: physics.time_step,
+            spring_strength: physics.spring_strength,
+            repulsion: physics.repulsion_strength,
+            max_repulsion_distance: physics.repulsion_distance,
+            mass_scale: physics.mass_scale,
+            damping: physics.damping,
+            boundary_damping: physics.boundary_damping,
+            viewport_bounds: physics.bounds_size,
+            enable_bounds: physics.enable_bounds,
+            phase: SimulationPhase::Dynamic,
+            mode: SimulationMode::Remote,
         }
     }
 }

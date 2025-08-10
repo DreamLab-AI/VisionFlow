@@ -50,6 +50,9 @@ export interface PhysicsSettings {
   massScale: number;
   boundaryDamping: number;
   updateThreshold: number;
+  timeStep: number;
+  temperature: number;
+  gravity: number;
 }
 
 // Rendering settings
@@ -325,14 +328,35 @@ export interface AuthSettings {
   required: boolean;
 }
 
-// Main settings interface
+// Whisper speech recognition settings
+export interface WhisperSettings {
+  apiUrl?: string;
+  defaultModel?: string;
+  defaultLanguage?: string;
+  timeout?: number;
+  temperature?: number;
+  returnTimestamps?: boolean;
+  vadFilter?: boolean;
+  wordTimestamps?: boolean;
+  initialPrompt?: string;
+}
+
+// Main settings interface - Single source of truth matching server AppFullSettings
 export interface Settings {
   visualisation: VisualisationSettings;
   system: SystemSettings;
   xr: XRSettings;
-  auth: AuthSettings; // Make auth required
-  ragflow?: RAGFlowSettings; // Add optional AI settings
+  auth: AuthSettings;
+  ragflow?: RAGFlowSettings;
   perplexity?: PerplexitySettings;
   openai?: OpenAISettings;
   kokoro?: KokoroSettings;
+  whisper?: WhisperSettings;
 }
+
+// Partial update types for settings mutations
+export type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
+export type SettingsUpdate = DeepPartial<Settings>;

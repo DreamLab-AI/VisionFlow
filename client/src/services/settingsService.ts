@@ -27,14 +27,14 @@ class SettingsService {
    */
   public async fetchSettings(): Promise<Settings | null> {
     try {
-      // Fetch settings from the server
-      const rawSettings = await apiService.get<Record<string, any>>('/user-settings');
+      // Use new unified settings endpoint
+      const rawSettings = await apiService.get<Record<string, any>>('/settings');
       
-      // Server sends camelCase for this endpoint, so no conversion needed here.
+      // Server now sends camelCase directly from the new endpoint
       const settings = rawSettings as Settings;
       
       if (debugState.isEnabled()) {
-        logger.info('Fetched settings from server (already camelCase):', { settings });
+        logger.info('Fetched settings from server:', { settings });
       }
       
       return settings;
@@ -48,32 +48,30 @@ class SettingsService {
    * Save settings to the server
    * @param settings The settings to save, in camelCase
    * @param authHeaders Optional authentication headers
-   * @returns The updated settings from the server, converted to camelCase
+   * @returns The updated settings from the server
    */
   public async saveSettings(
     settings: Settings,
     authHeaders: Record<string, string> = {}
   ): Promise<Settings | null> {
     try {
-      // Convert settings to snake_case for the server
-      const settingsToSend = convertCamelToSnakeCase(settings); // Convert to snake_case for the server
-      
+      // New endpoint accepts camelCase directly
       if (debugState.isEnabled()) {
-        logger.info('Saving settings to server (camelCase):', { settingsToSend });
+        logger.info('Saving settings to server:', { settings });
       }
       
       // Send settings to the server
       const rawUpdatedSettings = await apiService.post<Record<string, any>>(
-        '/user-settings/sync',
-        settingsToSend,
+        '/settings',
+        settings,
         authHeaders
       );
       
-      // Server sends camelCase for this endpoint's response, so no conversion needed here.
+      // Server returns camelCase from the new endpoint
       const updatedSettings = rawUpdatedSettings as Settings;
       
       if (debugState.isEnabled()) {
-        logger.info('Settings saved successfully (response already camelCase):', { updatedSettings });
+        logger.info('Settings saved successfully:', { updatedSettings });
       }
       
       return updatedSettings;
