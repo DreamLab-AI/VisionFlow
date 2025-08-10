@@ -532,6 +532,11 @@ class WebSocketService {
       }
     }
   }
+
+  // Alias for compatibility
+  public disconnect(): void {
+    this.close();
+  }
 }
 
 // Create and export singleton instance

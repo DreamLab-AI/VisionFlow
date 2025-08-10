@@ -15,6 +15,7 @@ import {
   Keyboard,
   User,
   Brain,
+  Cpu,
 } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SettingControlComponent } from '../SettingControlComponent';
@@ -31,6 +32,7 @@ import NostrAuthSection from '../../../auth/components/NostrAuthSection';
 import { useSelectiveSetting, useSettingSetter } from '@/hooks/useSelectiveSettingsStore';
 import { VirtualizedSettingsGroup } from '../VirtualizedSettingsGroup';
 import { performanceUtils } from '../../hooks/useSettingsPerformance';
+import { PhysicsEngineControls } from '@/features/physics/components/PhysicsEngineControls';
 
 interface SettingItem {
   key: string;
@@ -65,6 +67,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Smartphone: <Smartphone className="h-4 w-4" />,
   User: <User className="h-4 w-4" />,
   Brain: <Brain className="h-4 w-4" />,
+  Cpu: <Cpu className="h-4 w-4" />,
 };
 
 // Programmatically generate settings structure from settingsUIDefinition
@@ -118,6 +121,11 @@ function generateSettingsStructure(definition: Record<string, UICategoryDefiniti
   structure.performance = {
     label: 'Performance',
     icon: iconMap.Settings,
+    groups: [],
+  };
+  structure.physics = {
+    label: 'Physics Engine',
+    icon: iconMap.Cpu,
     groups: [],
   };
   structure.xr = {
@@ -430,6 +438,10 @@ export function SettingsPanelProgrammatic({
 
     if (tabKey === 'auth') {
       return <NostrAuthSection />;
+    }
+    
+    if (tabKey === 'physics') {
+      return <PhysicsEngineControls />;
     }
 
     const filteredGroups = filterSettings(tab.groups, debouncedSearchQuery);

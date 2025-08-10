@@ -111,7 +111,7 @@ fn get_cuda_kernels(utils_dir: &Path) -> Vec<String> {
 fn needs_recompilation(utils_dir: &Path, kernel_files: &[String]) -> bool {
     for kernel in kernel_files {
         let cu_file = utils_dir.join(format!("{}.cu", kernel));
-        let ptx_file = utils_dir.join(format!("{}.ptx", kernel));
+        let ptx_file = utils_dir.join("ptx").join(format!("{}.ptx", kernel));
         
         // If PTX file doesn't exist, we need compilation
         if !ptx_file.exists() {
@@ -174,7 +174,7 @@ fn verify_ptx_outputs(utils_dir: &Path, kernel_files: &[String]) {
     let mut missing_ptx = Vec::new();
     
     for kernel in kernel_files {
-        let ptx_file = utils_dir.join(format!("{}.ptx", kernel));
+        let ptx_file = utils_dir.join("ptx").join(format!("{}.ptx", kernel));
         if !ptx_file.exists() {
             missing_ptx.push(kernel);
         } else {

@@ -25,6 +25,7 @@ pub struct Quest3Settings {
     pub visualisation: Quest3VisualizationSettings,
     pub performance: Quest3PerformanceSettings,
     pub interaction: Quest3InteractionSettings,
+    pub gpu: Quest3GpuSettings,
 }
 
 /// Quest 3 XR-specific settings
@@ -89,6 +90,30 @@ pub struct Quest3InteractionSettings {
     pub voice_commands: bool,
     pub haptic_feedback: bool,
     pub comfort_settings: ComfortSettings,
+}
+
+/// Quest 3 GPU-specific settings
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Quest3GpuSettings {
+    pub kernel_mode: String, // "legacy" | "advanced" | "visual_analytics"
+    pub force_params: GpuForceParams,
+    pub constraints: Vec<String>,
+    pub isolation_layers: Vec<String>,
+    pub trajectories_enabled: bool,
+    pub clustering_enabled: bool,
+    pub anomaly_detection: bool,
+}
+
+/// GPU force parameters
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GpuForceParams {
+    pub repulsion: f32,
+    pub attraction: f32,
+    pub damping: f32,
+    pub temperature: f32,
+    pub max_velocity: f32,
 }
 
 /// Quest 3 comfort and accessibility settings
@@ -343,6 +368,24 @@ fn create_quest3_defaults() -> Quest3Settings {
                 snap_turning: false,
                 comfort_mode_intensity: 0.3,
             },
+        },
+        gpu: Quest3GpuSettings {
+            kernel_mode: "visual_analytics".to_string(),
+            force_params: GpuForceParams {
+                repulsion: 150.0,
+                attraction: 0.008,
+                damping: 0.96,
+                temperature: 0.8,
+                max_velocity: 15.0,
+            },
+            constraints: vec![
+                "boundary".to_string(),
+                "collision".to_string(),
+            ],
+            isolation_layers: vec!["focus".to_string()],
+            trajectories_enabled: false,  // Disabled for performance on Quest 3
+            clustering_enabled: true,
+            anomaly_detection: false,  // Disabled for performance on Quest 3
         },
     }
 }

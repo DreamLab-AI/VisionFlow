@@ -47,6 +47,65 @@ struct WaveletCoefficients {
     int active_scales;
 };
 
+// Missing structure definitions from visual_analytics_core.cu
+#define MAX_LAYERS 8
+#define TOPOLOGY_FEATURES 16
+
+struct Vec4 {
+    float x, y, z, w;
+};
+
+// Temporal-Spatial Node
+struct TSNode {
+    Vec4 position;
+    Vec4 velocity;          
+    Vec4 acceleration;
+    Vec4 trajectory[8];
+    float temporal_coherence;
+    float motion_saliency;
+    int hierarchy_level;
+    int parent_idx;
+    int children[4];
+    float lod_importance;
+    float layer_membership[MAX_LAYERS];
+    int primary_layer;
+    float isolation_strength;
+    float topology[TOPOLOGY_FEATURES];
+    float betweenness_centrality;
+    float clustering_coefficient;
+    float pagerank;
+    int community_id;
+    float semantic_vector[16];
+    float semantic_drift;
+    float visual_saliency;
+    float information_content;
+    float attention_weight;
+    float force_scale;
+    float damping_local;
+    int constraint_mask;
+};
+
+// Enhanced edge
+struct TSEdge {
+    int source, target;
+    float weight;
+    float flow_rate;
+    float temporal_stability;
+    int edge_type;
+};
+
+// Visual Analytics Parameters
+struct VisualAnalyticsParams {
+    int total_nodes;
+    int total_edges;
+    float time_window;
+    float focus_strength;
+    int focus_node;
+    float temporal_decay;
+    int active_layers;
+    float layer_weights[MAX_LAYERS];
+};
+
 // Persistent homology features
 struct TopologicalFeatures {
     float betti_numbers[MAX_HOMOLOGY_DIM];
@@ -403,7 +462,7 @@ __global__ void attention_softmax_kernel(
     int end = node_edges[node * 2 + 1];
     
     // Compute max for numerical stability
-    float max_att = -FLT_MAX;
+    float max_att = -3.402823466e+38f; // -FLT_MAX
     for (int e = start; e < end; e++) {
         max_att = fmaxf(max_att, attention_weights[e]);
     }
@@ -903,7 +962,8 @@ __global__ void advanced_analytics_orchestration_kernel(
     }
     
     // Topological importance
-    node.importance_score = topology[idx].betti_numbers[0] * 0.3f +
+    // Use visual_saliency as importance measure
+    node.visual_saliency = topology[idx].betti_numbers[0] * 0.3f +
                            topology[idx].betti_numbers[1] * 0.3f +
                            topology[idx].topological_entropy * 0.4f;
 }

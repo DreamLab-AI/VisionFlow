@@ -105,13 +105,13 @@ impl SimulationParams {
             },
             SimulationPhase::Dynamic => Self {
                 iterations: 100,
-                time_step: 0.2,
-                spring_strength: 0.02,
-                repulsion: 1000.0,
+                time_step: 0.15,  // Reduced time step for stability
+                spring_strength: 0.01,  // Reduced spring strength
+                repulsion: 800.0,  // Reduced repulsion
                 max_repulsion_distance: 1500.0,
                 mass_scale: 1.5,
-                damping: 0.75,
-                boundary_damping: 0.9,
+                damping: 0.85,  // Increased damping
+                boundary_damping: 0.95,  // Increased boundary damping
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
                 phase,
