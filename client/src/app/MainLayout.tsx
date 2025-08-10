@@ -7,6 +7,7 @@ import { BotsVisualization } from '../features/bots/components';
 import { PostProcessingEffects } from '../features/graph/components/PostProcessingEffects';
 import { SpacePilotSimpleIntegration } from '../features/visualisation/components/SpacePilotSimpleIntegration';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
+import { FloatingSettingsPanel } from '../features/settings/components/FloatingSettingsPanel';
 import { useMouseControls } from '../hooks/useMouseControls';
 import { HologramVisualisation } from '../features/visualisation/components/HologramVisualisation';
 import { useSettingsStore } from '../store/settingsStore';
@@ -107,7 +108,7 @@ const MainLayoutContent: React.FC = () => {
         {enableBloom && <PostProcessingEffects />}
       </Canvas>
 
-      {/* Integrated Control Panel */}
+      {/* Integrated Control Panel - Simplified version for VisionFlow status and SpacePilot */}
       <IntegratedControlPanel
         showStats={showStats}
         enableBloom={enableBloom}
@@ -120,6 +121,9 @@ const MainLayoutContent: React.FC = () => {
           dataSource: botsData.dataSource
         } : undefined}
       />
+
+      {/* Floating Settings Panel */}
+      <FloatingSettingsPanel />
 
       {/* SpaceMouse Status Warning */}
       <SpaceMouseStatus />

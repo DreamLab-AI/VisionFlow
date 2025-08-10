@@ -54,8 +54,8 @@ impl AppState {
         info!("[AppState::new] Starting ClientManagerActor");
         let client_manager_addr = ClientManagerActor::new().start();
 
-        // Extract physics settings before moving settings
-        let physics_settings = settings.visualisation.physics.clone();
+        // Extract physics settings from logseq graph before moving settings
+        let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
         
         info!("[AppState::new] Starting SettingsActor");
         let settings_addr = SettingsActor::new().start();

@@ -866,10 +866,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 use crate::actors::messages::GetSettingByPath;
                                 let settings_addr = app_state.settings_addr.clone();
 
-                                // Get physics settings
-                                if let Ok(Ok(_iterations_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.physics.iterations".to_string() }).await {
-                                    if let Ok(Ok(_spring_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.physics.spring_strength".to_string() }).await {
-                                        if let Ok(Ok(_repulsion_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.physics.repulsion_strength".to_string() }).await {
+                                // Get physics settings from logseq graph
+                                if let Ok(Ok(_iterations_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.iterations".to_string() }).await {
+                                    if let Ok(Ok(_spring_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.spring_strength".to_string() }).await {
+                                        if let Ok(Ok(_repulsion_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.repulsion_strength".to_string() }).await {
                                             // Send simulation step message to GraphServiceActor
                                             use crate::actors::messages::SimulationStep;
                                             if let Err(e) = app_state.graph_service_addr.send(SimulationStep).await {

@@ -64,7 +64,7 @@ pub async fn get_graph_data(state: web::Data<AppState>) -> impl Responder {
                 }));
             }
         };
-        let physics_settings = settings.visualisation.physics.clone();
+        let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
         
         // Create simulation parameters
         let params = crate::models::simulation_params::SimulationParams {
@@ -158,7 +158,7 @@ pub async fn get_paginated_graph_data(
                     }));
                 }
             };
-            let physics_settings = settings.visualisation.physics.clone();
+            let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
             
             // Create simulation parameters
             let params = crate::models::simulation_params::SimulationParams {

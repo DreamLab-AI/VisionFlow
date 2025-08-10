@@ -2,11 +2,9 @@ use serde::{Deserialize, Serialize};
 // Import the necessary structs from config
 use crate::config::{
     AppFullSettings, // Use the full server settings struct
-    ClientWebSocketSettings, // The structure expected by the client for websocket settings
     DebugSettings, 
     VisualisationSettings, 
     XRSettings,
-    // Settings as ClientFacingSettings, // No longer needed for the From impl
 };
 
 // UISettings remains the structure sent to the client
@@ -22,7 +20,7 @@ pub struct UISettings {
 #[serde(rename_all = "camelCase")]
 pub struct UISystemSettings {
     // This must use the client-expected structure
-    pub websocket: ClientWebSocketSettings, 
+    pub websocket: WebSocketClientSettings, 
     pub debug: DebugSettings,
     // Note: persist_settings from client SystemSettings is not included here,
     // as it's likely not needed for direct UI rendering based on UISettings.
@@ -47,8 +45,8 @@ impl From<&AppFullSettings> for UISettings {
         Self {
             visualisation: settings.visualisation.clone(),
             system: UISystemSettings {
-                // Map fields from ServerFullWebSocketSettings to ClientWebSocketSettings
-                websocket: ClientWebSocketSettings {
+                // Map fields from WebSocketSettings to WebSocketClientSettings
+                websocket: WebSocketClientSettings {
                     reconnect_attempts: settings.system.websocket.reconnect_attempts,
                     reconnect_delay: settings.system.websocket.reconnect_delay,
                     binary_chunk_size: settings.system.websocket.binary_chunk_size,

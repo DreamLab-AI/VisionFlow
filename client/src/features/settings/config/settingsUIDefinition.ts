@@ -121,8 +121,26 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
 });
 
 export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
-  visualisation: {
-    label: 'Visualisation',
+  // Dashboard - System overview and quick actions
+  dashboard: {
+    label: 'Dashboard',
+    icon: 'Monitor',
+    subsections: {
+      overview: {
+        label: 'System Overview',
+        settings: {
+          graphStatus: { label: 'Graph Status', type: 'buttonAction', path: 'dashboard.graphStatus', description: 'View current graph statistics', action: () => console.log('Graph Status') },
+          performance: { label: 'Performance Monitor', type: 'buttonAction', path: 'dashboard.performance', description: 'View performance metrics', action: () => console.log('Performance') },
+          quickReset: { label: 'Reset View', type: 'buttonAction', path: 'dashboard.quickReset', description: 'Reset camera to default position', action: () => console.log('Reset View') },
+          exportGraph: { label: 'Export Graph', type: 'buttonAction', path: 'dashboard.exportGraph', description: 'Export current graph data', action: () => console.log('Export') },
+          importData: { label: 'Import Data', type: 'buttonAction', path: 'dashboard.importData', description: 'Import graph data from file', action: () => console.log('Import') },
+        },
+      },
+    },
+  },
+  // Visualization - All visual settings
+  visualization: {
+    label: 'Visualization',
     icon: 'Eye',
     subsections: {
       // Graph-specific settings
@@ -186,6 +204,126 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           pulseSpeed: { label: 'Pulse Speed', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.pulseSpeed', description: 'Speed of pulse animation.' },
           pulseStrength: { label: 'Pulse Strength', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.pulseStrength', description: 'Strength of pulse animation.' },
           waveSpeed: { label: 'Wave Speed', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.waveSpeed', description: 'Speed of selection wave animation.' },
+        },
+      },
+    },
+  },
+  // Physics - Physics simulation settings
+  physics: {
+    label: 'Physics',
+    icon: 'Activity',
+    subsections: {
+      logseqPhysics: {
+        label: 'Logseq Graph Physics',
+        settings: {
+          enabled: { label: 'Enable Physics', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled', description: 'Enable physics simulation for graph layout.' },
+          attractionStrength: { label: 'Attraction Strength', type: 'slider', min: 0.001, max: 0.1, step: 0.001, path: 'visualisation.graphs.logseq.physics.attractionStrength', description: 'Force pulling connected nodes together.' },
+          boundsSize: { label: 'Bounds Size', type: 'slider', min: 10, max: 2000, step: 10, unit: 'units', path: 'visualisation.graphs.logseq.physics.boundsSize', description: 'Simulation space boundaries.' },
+          collisionRadius: { label: 'Collision Radius', type: 'slider', min: 0.5, max: 100, step: 0.5, unit: 'units', path: 'visualisation.graphs.logseq.physics.collisionRadius', description: 'Node collision detection distance.' },
+          damping: { label: 'Damping', type: 'slider', min: 0.1, max: 0.99, step: 0.01, path: 'visualisation.graphs.logseq.physics.damping', description: 'Velocity reduction factor (higher = slower settling).' },
+          enableBounds: { label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds', description: 'Confine nodes within the bounds size.' },
+          iterations: { label: 'Iterations', type: 'slider', min: 10, max: 1000, step: 10, unit: 'steps', path: 'visualisation.graphs.logseq.physics.iterations', description: 'Simulation accuracy (higher = more accurate, slower).' },
+          maxVelocity: { label: 'Max Velocity', type: 'slider', min: 0.1, max: 10.0, step: 0.1, unit: 'units/s', path: 'visualisation.graphs.logseq.physics.maxVelocity', description: 'Speed limit for node movement.' },
+          repulsionStrength: { label: 'Repulsion Strength', type: 'slider', min: 1, max: 500, step: 1, path: 'visualisation.graphs.logseq.physics.repulsionStrength', description: 'Force pushing unconnected nodes apart.' },
+          springStrength: { label: 'Spring Strength', type: 'slider', min: 0.001, max: 0.05, step: 0.001, path: 'visualisation.graphs.logseq.physics.springStrength', description: 'Edge stiffness (higher = tighter connections).' },
+        },
+      },
+      visionflowPhysics: {
+        label: 'VisionFlow Graph Physics',
+        settings: {
+          enabled: { label: 'Enable Physics', type: 'toggle', path: 'visualisation.graphs.visionflow.physics.enabled', description: 'Enable physics simulation for graph layout.' },
+          attractionStrength: { label: 'Attraction Strength', type: 'slider', min: 0.001, max: 0.1, step: 0.001, path: 'visualisation.graphs.visionflow.physics.attractionStrength', description: 'Force pulling connected nodes together.' },
+          boundsSize: { label: 'Bounds Size', type: 'slider', min: 10, max: 2000, step: 10, unit: 'units', path: 'visualisation.graphs.visionflow.physics.boundsSize', description: 'Simulation space boundaries.' },
+          collisionRadius: { label: 'Collision Radius', type: 'slider', min: 0.5, max: 100, step: 0.5, unit: 'units', path: 'visualisation.graphs.visionflow.physics.collisionRadius', description: 'Node collision detection distance.' },
+          damping: { label: 'Damping', type: 'slider', min: 0.1, max: 0.99, step: 0.01, path: 'visualisation.graphs.visionflow.physics.damping', description: 'Velocity reduction factor (higher = slower settling).' },
+          maxVelocity: { label: 'Max Velocity', type: 'slider', min: 0.1, max: 10.0, step: 0.1, unit: 'units/s', path: 'visualisation.graphs.visionflow.physics.maxVelocity', description: 'Speed limit for node movement.' },
+          repulsionStrength: { label: 'Repulsion Strength', type: 'slider', min: 1, max: 500, step: 1, path: 'visualisation.graphs.visionflow.physics.repulsionStrength', description: 'Force pushing unconnected nodes apart.' },
+        },
+      },
+    },
+  },
+  // Analytics - Data analysis and insights
+  analytics: {
+    label: 'Analytics',
+    icon: 'BarChart3',
+    subsections: {
+      metrics: {
+        label: 'Graph Metrics',
+        settings: {
+          enableMetrics: { label: 'Enable Metrics Collection', type: 'toggle', path: 'analytics.enableMetrics', description: 'Collect graph analytics data.' },
+          updateInterval: { label: 'Update Interval', type: 'slider', min: 1, max: 60, step: 1, unit: 's', path: 'analytics.updateInterval', description: 'How often to update metrics.' },
+          showDegreeDistribution: { label: 'Show Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution', description: 'Display node degree distribution chart.' },
+          showClusteringCoefficient: { label: 'Show Clustering', type: 'toggle', path: 'analytics.showClusteringCoefficient', description: 'Display clustering coefficient.' },
+          showCentrality: { label: 'Show Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality', description: 'Display betweenness and closeness centrality.' },
+        },
+      },
+    },
+  },
+  // Performance - Performance monitoring and optimization
+  performance: {
+    label: 'Performance',
+    icon: 'Activity',
+    subsections: {
+      monitoring: {
+        label: 'Performance Monitoring',
+        settings: {
+          showFPS: { label: 'Show FPS Counter', type: 'toggle', path: 'performance.showFPS', description: 'Display frames per second.' },
+          targetFPS: { label: 'Target FPS', type: 'slider', min: 30, max: 144, step: 1, unit: 'fps', path: 'performance.targetFPS', description: 'Target frame rate.' },
+          gpuMemoryLimit: { label: 'GPU Memory Limit', type: 'slider', min: 256, max: 8192, step: 256, unit: 'MB', path: 'performance.gpuMemoryLimit', description: 'Maximum GPU memory usage.' },
+          levelOfDetail: { label: 'Level of Detail', type: 'select', options: [{value: 'low', label: 'Low'}, {value: 'medium', label: 'Medium'}, {value: 'high', label: 'High'}, {value: 'ultra', label: 'Ultra'}], path: 'performance.levelOfDetail', description: 'Graphics quality preset.' },
+          enableAdaptiveQuality: { label: 'Adaptive Quality', type: 'toggle', path: 'performance.enableAdaptiveQuality', description: 'Automatically adjust quality for performance.' },
+        },
+      },
+    },
+  },
+  // Integrations - External services and data sources
+  integrations: {
+    label: 'Data & Integrations',
+    icon: 'Database',
+    subsections: {
+      dataManagement: {
+        label: 'Data Management',
+        settings: {
+          autoSave: { label: 'Auto Save', type: 'toggle', path: 'integrations.autoSave', description: 'Automatically save changes.' },
+          saveInterval: { label: 'Save Interval', type: 'slider', min: 1, max: 30, step: 1, unit: 'min', path: 'integrations.saveInterval', description: 'How often to auto-save.' },
+          cacheSize: { label: 'Cache Size', type: 'slider', min: 10, max: 500, step: 10, unit: 'MB', path: 'integrations.cacheSize', description: 'Maximum cache size.' },
+          compression: { label: 'Data Compression', type: 'toggle', path: 'integrations.compression', description: 'Enable data compression.' },
+          syncEnabled: { label: 'Enable Sync', type: 'toggle', path: 'integrations.syncEnabled', description: 'Sync data with cloud services.' },
+        },
+      },
+    },
+  },
+  // Developer - Developer tools and debugging
+  developer: {
+    label: 'Developer',
+    icon: 'Code',
+    subsections: {
+      debugging: {
+        label: 'Debugging Tools',
+        settings: {
+          consoleLogging: { label: 'Console Logging', type: 'toggle', path: 'developer.consoleLogging', description: 'Enable console debug logs.' },
+          logLevel: { label: 'Log Level', type: 'select', options: [{value: 'error', label: 'Error'}, {value: 'warn', label: 'Warning'}, {value: 'info', label: 'Info'}, {value: 'debug', label: 'Debug'}], path: 'developer.logLevel', description: 'Minimum log level to display.' },
+          showNodeIds: { label: 'Show Node IDs', type: 'toggle', path: 'developer.showNodeIds', description: 'Display node IDs in visualization.' },
+          showEdgeWeights: { label: 'Show Edge Weights', type: 'toggle', path: 'developer.showEdgeWeights', description: 'Display edge weight values.' },
+          enableProfiler: { label: 'Enable Profiler', type: 'toggle', path: 'developer.enableProfiler', description: 'Enable performance profiling.' },
+          apiDebugMode: { label: 'API Debug Mode', type: 'toggle', path: 'developer.apiDebugMode', description: 'Log all API requests and responses.' },
+        },
+      },
+    },
+  },
+  // Auth - Authentication and security
+  auth: {
+    label: 'Authentication',
+    icon: 'Shield',
+    subsections: {
+      authentication: {
+        label: 'Authentication Settings',
+        settings: {
+          requireAuth: { label: 'Require Authentication', type: 'toggle', path: 'auth.requireAuth', description: 'Require users to authenticate.' },
+          authProvider: { label: 'Auth Provider', type: 'select', options: [{value: 'local', label: 'Local'}, {value: 'oauth', label: 'OAuth'}, {value: 'saml', label: 'SAML'}], path: 'auth.authProvider', description: 'Authentication provider to use.' },
+          sessionTimeout: { label: 'Session Timeout', type: 'slider', min: 5, max: 480, step: 5, unit: 'min', path: 'auth.sessionTimeout', description: 'Session timeout duration.' },
+          rememberMe: { label: 'Enable Remember Me', type: 'toggle', path: 'auth.rememberMe', description: 'Allow users to stay logged in.' },
+          twoFactorAuth: { label: 'Two-Factor Auth', type: 'toggle', path: 'auth.twoFactorAuth', description: 'Require two-factor authentication.' },
         },
       },
     },

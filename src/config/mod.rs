@@ -1,13 +1,13 @@
 use config::{ConfigBuilder, ConfigError, Environment};
-use log::{debug, error}; // Added error log
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_yaml;
 use std::path::PathBuf;
-// use std::collections::BTreeMap; // For ordered map during serialization - Removed as unused
 
 pub mod feature_access;
-pub mod settings;
+
+// Types are already public in this module, no need to re-export
 
 // Recursive function to convert JSON Value keys to snake_case
 fn keys_to_snake_case(value: Value) -> Value {
@@ -36,45 +36,67 @@ fn keys_to_snake_case(value: Value) -> Value {
     }
 }
 
-// Recursive function to convert JSON Value keys to camelCase (if needed for comparison/debugging)
-fn _keys_to_camel_case(value: Value) -> Value {
-     match value {
-         Value::Object(map) => {
-             let new_map = map.into_iter().map(|(k, v)| {
-                 let camel_key = k.split('_').enumerate().map(|(i, part)| {
-                     if i == 0 {
-                         part.to_string()
-                     } else {
-                         part.chars().next().map_or(String::new(), |c| c.to_uppercase().collect::<String>() + &part[1..])
-                     }
-                 }).collect::<String>();
-                 (camel_key, _keys_to_camel_case(v))
-             }).collect();
-             Value::Object(new_map)
-         }
-         Value::Array(arr) => {
-             Value::Array(arr.into_iter().map(_keys_to_camel_case).collect())
-         }
-         _ => value,
-     }
- }
+// Helper function to merge two JSON values
+fn merge_json_values(base: Value, update: Value) -> Value {
+    use serde_json::map::Entry;
+    
+    match (base, update) {
+        (Value::Object(mut base_map), Value::Object(update_map)) => {
+            for (key, update_value) in update_map {
+                match base_map.entry(key) {
+                    Entry::Occupied(mut entry) => {
+                        let merged = merge_json_values(entry.get().clone(), update_value);
+                        entry.insert(merged);
+                    }
+                    Entry::Vacant(entry) => {
+                        entry.insert(update_value);
+                    }
+                }
+            }
+            Value::Object(base_map)
+        }
+        (_, update) => update, // For non-objects, update overwrites base
+    }
+}
 
+// Helper to convert camelCase to snake_case
+fn keys_to_camel_case(value: Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let new_map = map.into_iter().map(|(k, v)| {
+                let camel_key = k.split('_').enumerate().map(|(i, part)| {
+                    if i == 0 {
+                        part.to_string()
+                    } else {
+                        part.chars().next().map_or(String::new(), |c| {
+                            c.to_uppercase().collect::<String>() + &part[1..]
+                        })
+                    }
+                }).collect::<String>();
+                (camel_key, keys_to_camel_case(v))
+            }).collect();
+            Value::Object(new_map)
+        }
+        Value::Array(arr) => {
+            Value::Array(arr.into_iter().map(keys_to_camel_case).collect())
+        }
+        _ => value,
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct MovementAxes {
     pub horizontal: i32,
     pub vertical: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct NodeSettings {
     pub base_color: String,
     pub metalness: f32,
     pub opacity: f32,
     pub roughness: f32,
-    pub node_size: f32, // Changed from size_range: Vec<f32>
+    pub node_size: f32,
     pub quality: String,
     pub enable_instancing: bool,
     pub enable_hologram: bool,
@@ -82,8 +104,7 @@ pub struct NodeSettings {
     pub enable_metadata_visualisation: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct EdgeSettings {
     pub arrow_size: f32,
     pub base_width: f32,
@@ -94,8 +115,7 @@ pub struct EdgeSettings {
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct PhysicsSettings {
     pub attraction_strength: f32,
     pub bounds_size: f32,
@@ -110,10 +130,13 @@ pub struct PhysicsSettings {
     pub repulsion_distance: f32,
     pub mass_scale: f32,
     pub boundary_damping: f32,
+    pub update_threshold: f32,
+    pub time_step: f32,
+    pub temperature: f32,
+    pub gravity: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct RenderingSettings {
     pub ambient_light_intensity: f32,
     pub background_color: String,
@@ -122,10 +145,15 @@ pub struct RenderingSettings {
     pub enable_antialiasing: bool,
     pub enable_shadows: bool,
     pub environment_intensity: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shadow_map_size: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shadow_bias: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct AnimationSettings {
     pub enable_motion_blur: bool,
     pub enable_node_animations: bool,
@@ -137,8 +165,7 @@ pub struct AnimationSettings {
     pub wave_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 pub struct LabelSettings {
     pub desktop_font_size: f32,
     pub enable_labels: bool,
@@ -148,10 +175,13 @@ pub struct LabelSettings {
     pub text_resolution: u32,
     pub text_padding: f32,
     pub billboard_mode: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub show_metadata: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_label_width: Option<f32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct BloomSettings {
     pub edge_bloom_strength: f32,
     pub enabled: bool,
@@ -159,10 +189,11 @@ pub struct BloomSettings {
     pub node_bloom_strength: f32,
     pub radius: f32,
     pub strength: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub threshold: Option<f32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct HologramSettings {
     pub ring_count: u32,
     pub ring_color: String,
@@ -181,7 +212,39 @@ pub struct HologramSettings {
     pub global_rotation_speed: f32,
 }
 
-// Graph-specific settings (for multi-graph support)
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct CameraSettings {
+    pub fov: f32,
+    pub near: f32,
+    pub far: f32,
+    pub position: Position,
+    pub look_at: Position,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Position {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct SpacePilotSettings {
+    pub enabled: bool,
+    pub mode: String,
+    pub sensitivity: Sensitivity,
+    pub smoothing: f32,
+    pub deadzone: f32,
+    pub button_functions: std::collections::HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Sensitivity {
+    pub translation: f32,
+    pub rotation: f32,
+}
+
+// Graph-specific settings
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct GraphSettings {
     pub nodes: NodeSettings,
@@ -198,28 +261,30 @@ pub struct GraphsSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
 pub struct VisualisationSettings {
     // Legacy flat fields (for backward compatibility)
-    pub nodes: NodeSettings,
-    pub edges: EdgeSettings,
-    pub physics: PhysicsSettings,
-    pub labels: LabelSettings,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nodes: Option<NodeSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub edges: Option<EdgeSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub physics: Option<PhysicsSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<LabelSettings>,
     
-    // Global settings (shared across graphs)
+    // Global settings
     pub rendering: RenderingSettings,
     pub animations: AnimationSettings,
     pub bloom: BloomSettings,
     pub hologram: HologramSettings,
-    
-    // CRITICAL FIX: Multi-graph support
     pub graphs: GraphsSettings,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub camera: Option<CameraSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub space_pilot: Option<SpacePilotSettings>,
 }
 
-// --- Server-Specific Config Structs (from YAML, snake_case) ---
-
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// No rename_all needed if YAML keys are snake_case
 pub struct NetworkSettings {
     pub bind_address: String,
     pub domain: String,
@@ -241,8 +306,7 @@ pub struct NetworkSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-// No rename_all needed if YAML keys are snake_case
-pub struct ServerFullWebSocketSettings {
+pub struct WebSocketSettings {
     pub binary_chunk_size: usize,
     pub binary_update_rate: u32,
     pub min_update_rate: u32,
@@ -261,21 +325,30 @@ pub struct ServerFullWebSocketSettings {
     pub update_rate: u32,
 }
 
-impl Default for ServerFullWebSocketSettings {
-    fn default() -> Self { // Defaults from settings.yaml
+impl Default for WebSocketSettings {
+    fn default() -> Self {
         Self {
-            binary_chunk_size: 2048, binary_update_rate: 30, min_update_rate: 5,
-            max_update_rate: 60, motion_threshold: 0.05, motion_damping: 0.9,
-            binary_message_version: 1, compression_enabled: false, compression_threshold: 512,
-            heartbeat_interval: 10000, heartbeat_timeout: 600000, max_connections: 100,
-            max_message_size: 10485760, reconnect_attempts: 5, reconnect_delay: 1000,
+            binary_chunk_size: 2048,
+            binary_update_rate: 30,
+            min_update_rate: 5,
+            max_update_rate: 60,
+            motion_threshold: 0.05,
+            motion_damping: 0.9,
+            binary_message_version: 1,
+            compression_enabled: false,
+            compression_threshold: 512,
+            heartbeat_interval: 10000,
+            heartbeat_timeout: 600000,
+            max_connections: 100,
+            max_message_size: 10485760,
+            reconnect_attempts: 5,
+            reconnect_delay: 1000,
             update_rate: 60,
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// No rename_all needed if YAML keys are snake_case
 pub struct SecuritySettings {
     pub allowed_origins: Vec<String>,
     pub audit_log_path: String,
@@ -289,83 +362,68 @@ pub struct SecuritySettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct DebugSettings { // Matches TS DebugSettings + YAML fields
+pub struct DebugSettings {
     pub enabled: bool,
     pub enable_data_debug: bool,
     pub enable_websocket_debug: bool,
+    pub enable_physics_debug: bool,
+    pub enable_node_debug: bool,
+    pub enable_shader_debug: bool,
+    pub enable_matrix_debug: bool,
+    pub enable_performance_debug: bool,
     pub log_binary_headers: bool,
     pub log_full_json: bool,
-    // Added back from YAML - these might need snake_case for YAML loading if config crate doesn't handle rename_all
-    // Let's assume config crate handles it based on struct field names for YAML.
     pub log_level: String,
     pub log_format: String,
 }
 
-
-#[derive(Debug, Serialize, Deserialize, Clone)] // Only Deserialize needed for loading YAML
-// No rename_all needed if YAML keys are snake_case
-pub struct ServerSystemConfigFromFile {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SystemSettings {
     pub network: NetworkSettings,
-    pub websocket: ServerFullWebSocketSettings,
+    pub websocket: WebSocketSettings,
     pub security: SecuritySettings,
-    pub debug: DebugSettings, // Assumes YAML debug section matches DebugSettings struct fields (snake_case)
+    pub debug: DebugSettings,
     #[serde(default)]
     pub persist_settings: bool,
-}
-
-// --- Client-Facing Config Structs (for JSON, camelCase) ---
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct ClientWebSocketSettings { // What client sends/expects
-    pub reconnect_attempts: u32,
-    pub reconnect_delay: u64,
-    pub binary_chunk_size: usize,
-    pub compression_enabled: bool,
-    pub compression_threshold: usize,
-    pub update_rate: u32,
-}
-
-impl Default for ClientWebSocketSettings {
-    fn default() -> Self {
-        Self {
-            reconnect_attempts: 3, reconnect_delay: 5000, binary_chunk_size: 65536,
-            compression_enabled: true, compression_threshold: 1024, update_rate: 30,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemSettings { // Client-facing System structure
-    pub websocket: ClientWebSocketSettings,
-    pub debug: DebugSettings, // DebugSettings uses camelCase for JSON
-    #[serde(default)]
-    pub persist_settings: bool,
-    // network and security are not part of client-facing system settings
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_backend_url: Option<String>,
 }
 
 impl Default for SystemSettings {
     fn default() -> Self {
         Self {
-            websocket: ClientWebSocketSettings::default(),
+            network: NetworkSettings::default(),
+            websocket: WebSocketSettings::default(),
+            security: SecuritySettings::default(),
             debug: DebugSettings::default(),
-            persist_settings: true,
+            persist_settings: false,
+            custom_backend_url: None,
         }
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct XRSettings { // Client-facing XR structure + YAML fields
-    // Fields from YAML (snake_case in YAML, camelCase in JSON)
-    pub mode: String,
+pub struct XRSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_side_enable_xr: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_mode: Option<String>,
     pub room_scale: f32,
     pub space_type: String,
     pub quality: String,
-    #[serde(alias = "handTracking")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub render_scale: Option<f32>,
+    pub interaction_distance: f32,
+    pub locomotion_method: String,
+    pub teleport_ray_color: String,
+    pub controller_ray_color: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub controller_model: Option<String>,
+    
     pub enable_hand_tracking: bool,
     pub hand_mesh_enabled: bool,
     pub hand_mesh_color: String,
@@ -375,15 +433,17 @@ pub struct XRSettings { // Client-facing XR structure + YAML fields
     pub hand_ray_color: String,
     pub hand_ray_width: f32,
     pub gesture_smoothing: f32,
+    
     pub enable_haptics: bool,
+    pub haptic_intensity: f32,
     pub drag_threshold: f32,
     pub pinch_threshold: f32,
     pub rotation_threshold: f32,
-    #[serde(alias = "interactionDistance")]
     pub interaction_radius: f32,
     pub movement_speed: f32,
     pub dead_zone: f32,
     pub movement_axes: MovementAxes,
+    
     pub enable_light_estimation: bool,
     pub enable_plane_detection: bool,
     pub enable_scene_understanding: bool,
@@ -392,6 +452,7 @@ pub struct XRSettings { // Client-facing XR structure + YAML fields
     pub plane_detection_distance: f32,
     pub show_plane_overlay: bool,
     pub snap_to_floor: bool,
+    
     pub enable_passthrough_portal: bool,
     pub passthrough_opacity: f32,
     pub passthrough_brightness: f32,
@@ -399,178 +460,165 @@ pub struct XRSettings { // Client-facing XR structure + YAML fields
     pub portal_size: f32,
     pub portal_edge_color: String,
     pub portal_edge_width: f32,
-
-    // Fields from TS (camelCase in JSON)
-    #[serde(default)]
-    pub enabled: Option<bool>, // TS 'enabled' field
-    #[serde(default, alias = "controllerModel")]
-    pub controller_model: Option<String>,
-    #[serde(default, alias = "renderScale")]
-    pub render_scale: Option<f32>,
-    #[serde(default, alias = "locomotionMethod")]
-    pub locomotion_method: Option<String>,
-    #[serde(default, alias = "teleportRayColor")]
-    pub teleport_ray_color: Option<String>,
-    #[serde(default, alias = "displayMode")]
-    pub display_mode: Option<String>,
-    #[serde(default, alias = "controllerRayColor")]
-    pub controller_ray_color: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct AuthSettings { // Client-facing
+pub struct AuthSettings {
     pub enabled: bool,
     pub provider: String,
     pub required: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct RagFlowSettings { // Client-facing
-    #[serde(default)] pub api_key: Option<String>,
-    #[serde(default)] pub agent_id: Option<String>,
-    #[serde(default)] pub api_base_url: Option<String>,
-    #[serde(default)] pub timeout: Option<u64>,
-    #[serde(default)] pub max_retries: Option<u32>,
-    #[serde(default)] pub chat_id: Option<String>,
+pub struct RagFlowSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_base_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_retries: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chat_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct PerplexitySettings { // Client-facing
-    #[serde(default)] pub api_key: Option<String>,
-    #[serde(default)] pub model: Option<String>,
-    #[serde(default)] pub api_url: Option<String>,
-    #[serde(default)] pub max_tokens: Option<u32>,
-    #[serde(default)] pub temperature: Option<f32>,
-    #[serde(default)] pub top_p: Option<f32>,
-    #[serde(default)] pub presence_penalty: Option<f32>,
-    #[serde(default)] pub frequency_penalty: Option<f32>,
-    #[serde(default)] pub timeout: Option<u64>,
-    #[serde(default)] pub rate_limit: Option<u32>,
+pub struct PerplexitySettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_p: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub presence_penalty: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub frequency_penalty: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rate_limit: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct OpenAISettings { // Client-facing
-    #[serde(default)] pub api_key: Option<String>,
-    #[serde(default)] pub base_url: Option<String>,
-    #[serde(default)] pub timeout: Option<u64>,
-    #[serde(default)] pub rate_limit: Option<u32>,
+pub struct OpenAISettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rate_limit: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct KokoroSettings { // Client-facing
-    #[serde(default)] pub api_url: Option<String>,
-    #[serde(default)] pub default_voice: Option<String>,
-    #[serde(default)] pub default_format: Option<String>,
-    #[serde(default)] pub default_speed: Option<f32>,
-    #[serde(default)] pub timeout: Option<u64>,
-    #[serde(default)] pub stream: Option<bool>,
-    #[serde(default)] pub return_timestamps: Option<bool>,
-    #[serde(default)] pub sample_rate: Option<u32>,
+pub struct KokoroSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_voice: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_format: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_speed: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub return_timestamps: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sample_rate: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-// #[serde(rename_all = "camelCase")] // Reverted
-pub struct WhisperSettings { // Client-facing
-    #[serde(default)] pub api_url: Option<String>,
-    #[serde(default)] pub default_model: Option<String>,
-    #[serde(default)] pub default_language: Option<String>,
-    #[serde(default)] pub timeout: Option<u64>,
-    #[serde(default)] pub temperature: Option<f32>,
-    #[serde(default)] pub return_timestamps: Option<bool>,
-    #[serde(default)] pub vad_filter: Option<bool>,
-    #[serde(default)] pub word_timestamps: Option<bool>,
-    #[serde(default)] pub initial_prompt: Option<String>,
+pub struct WhisperSettings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub return_timestamps: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vad_filter: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub word_timestamps: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub initial_prompt: Option<String>,
 }
 
-// --- Client-Facing Settings Struct (for JSON deserialization) ---
+// Helper struct for physics updates
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct Settings { // Renamed to ClientFacingSettings conceptually
+pub struct PhysicsUpdate {
+    pub damping: Option<f32>,
+    pub spring_strength: Option<f32>,
+    pub repulsion_strength: Option<f32>,
+    pub iterations: Option<u32>,
+    pub enabled: Option<bool>,
+    pub bounds_size: Option<f32>,
+    pub enable_bounds: Option<bool>,
+    pub max_velocity: Option<f32>,
+    pub collision_radius: Option<f32>,
+    pub attraction_strength: Option<f32>,
+    pub repulsion_distance: Option<f32>,
+    pub mass_scale: Option<f32>,
+    pub boundary_damping: Option<f32>,
+    pub time_step: Option<f32>,
+    pub temperature: Option<f32>,
+    pub gravity: Option<f32>,
+    pub update_threshold: Option<f32>,
+}
+
+// Single unified settings struct
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct AppFullSettings {
     pub visualisation: VisualisationSettings,
-    pub system: SystemSettings, // Uses ClientWebSocketSettings internally
+    pub system: SystemSettings,
     pub xr: XRSettings,
     pub auth: AuthSettings,
-    #[serde(default)] pub ragflow: Option<RagFlowSettings>,
-    #[serde(default)] pub perplexity: Option<PerplexitySettings>,
-    #[serde(default)] pub openai: Option<OpenAISettings>,
-    #[serde(default)] pub kokoro: Option<KokoroSettings>,
-    #[serde(default)] pub whisper: Option<WhisperSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ragflow: Option<RagFlowSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub perplexity: Option<PerplexitySettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub openai: Option<OpenAISettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kokoro: Option<KokoroSettings>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub whisper: Option<WhisperSettings>,
 }
 
-// --- Full App Settings Struct (for server state, loaded from YAML) ---
-#[derive(Debug, Clone, Deserialize)] // Deserialize for YAML loading
-// No rename_all needed if YAML keys are snake_case
-pub struct AppFullSettings {
-    pub visualisation: VisualisationSettings, // Assumes YAML keys are snake_case
-    pub system: ServerSystemConfigFromFile,   // Contains ServerFullWebSocketSettings
-    pub xr: XRSettings,                       // Assumes YAML keys are snake_case
-    pub auth: AuthSettings,                   // Assumes YAML keys are snake_case
-    #[serde(default)] pub ragflow: Option<RagFlowSettings>, // Assumes YAML keys are snake_case
-    #[serde(default)] pub perplexity: Option<PerplexitySettings>,
-    #[serde(default)] pub openai: Option<OpenAISettings>,
-    #[serde(default)] pub kokoro: Option<KokoroSettings>,
-    #[serde(default)] pub whisper: Option<WhisperSettings>,
-}
-
-// Manual Serialize implementation for AppFullSettings to ensure snake_case YAML output
-impl Serialize for AppFullSettings {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        // Helper struct to serialize AppFullSettings without recursion
-        #[derive(Serialize)]
-        struct AppFullSettingsHelper<'a> {
-            visualisation: &'a VisualisationSettings,
-            system: &'a ServerSystemConfigFromFile,
-            xr: &'a XRSettings,
-            auth: &'a AuthSettings,
-            ragflow: &'a Option<RagFlowSettings>,
-            perplexity: &'a Option<PerplexitySettings>,
-            openai: &'a Option<OpenAISettings>,
-            kokoro: &'a Option<KokoroSettings>,
-            whisper: &'a Option<WhisperSettings>,
-        }
-
-        let helper = AppFullSettingsHelper {
-            visualisation: &self.visualisation,
-            system: &self.system,
-            xr: &self.xr,
-            auth: &self.auth,
-            ragflow: &self.ragflow,
-            perplexity: &self.perplexity,
-            openai: &self.openai,
-            kokoro: &self.kokoro,
-            whisper: &self.whisper,
-        };
-
-        // Convert the helper to a serde_json::Value. This avoids recursive serialization.
-        // The sub-structs might have rename_all="camelCase", so this Value will be camelCase.
-        match serde_json::to_value(&helper) {
-            Ok(camel_case_value) => {
-                // Convert the camelCase Value to snake_case Value.
-                let snake_case_value = keys_to_snake_case(camel_case_value);
-                // Serialize the snake_case Value.
-                snake_case_value.serialize(serializer)
-            }
-            Err(e) => {
-                error!("Failed to convert AppFullSettings to intermediate Value for saving: {}", e);
-                // Handle error appropriately, maybe serialize a default or error state
-                Err(serde::ser::Error::custom(format!("Serialization error: {}", e)))
-            }
+impl Default for AppFullSettings {
+    fn default() -> Self {
+        Self {
+            visualisation: VisualisationSettings::default(),
+            system: SystemSettings::default(),
+            xr: XRSettings::default(),
+            auth: AuthSettings::default(),
+            ragflow: None,
+            perplexity: None,
+            openai: None,
+            kokoro: None,
+            whisper: None,
         }
     }
 }
-// We also need Serialize for the sub-structs used by AppFullSettings
-// if they are not already deriving Serialize. They are deriving it, but
-// their rename_all attribute will cause camelCase serialization.
-// The keys_to_snake_case function handles this during AppFullSettings serialization.
-
 
 impl AppFullSettings {
     pub fn new() -> Result<Self, ConfigError> {
@@ -583,37 +631,100 @@ impl AppFullSettings {
         debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
 
         let builder = ConfigBuilder::<config::builder::DefaultState>::default()
-            .add_source(config::File::from(settings_path.clone()).required(true)) // Use path directly
+            .add_source(config::File::from(settings_path.clone()).required(true))
             .add_source(
                 Environment::default()
-                    .separator("_") // Match SYSTEM_NETWORK_PORT style
+                    .separator("_")
                     .list_separator(",")
-                // No .prefix("APP") // Allow direct environment variable override
             );
         let config = builder.build()?;
         debug!("Configuration built successfully. Deserializing AppFullSettings...");
 
-        // Deserialize using field names (should match snake_case YAML)
-        let result: Result<AppFullSettings, ConfigError> = config.clone().try_deserialize();
-        if let Err(e) = &result {
-             error!("Failed to deserialize AppFullSettings from {:?}: {}", settings_path, e);
-             // Log raw value for debugging
-             match config.try_deserialize::<Value>() { // config is still available here as the first try_deserialize consumed a clone
-                 Ok(raw_value) => error!("Raw settings structure from YAML: {:?}", raw_value),
-                 Err(val_err) => error!("Failed to deserialize into raw Value as well: {:?}", val_err),
-             }
+        let mut settings: AppFullSettings = match config.clone().try_deserialize() {
+            Ok(s) => s,
+            Err(e) => {
+                error!("Failed to deserialize AppFullSettings from {:?}: {}", settings_path, e);
+                match config.try_deserialize::<Value>() {
+                    Ok(raw_value) => error!("Raw settings structure from YAML: {:?}", raw_value),
+                    Err(val_err) => error!("Failed to deserialize into raw Value as well: {:?}", val_err),
+                }
+                return Err(e);
+            }
+        };
+        
+        // Migrate legacy flat fields to multi-graph structure if needed
+        settings.migrate_to_multi_graph();
+        
+        Ok(settings)
+    }
+    
+    /// Migrate legacy flat fields to multi-graph structure
+    fn migrate_to_multi_graph(&mut self) {
+        // Check if we have legacy flat fields but graphs are not properly populated
+        let needs_migration = self.visualisation.nodes.is_some() || 
+                             self.visualisation.edges.is_some() || 
+                             self.visualisation.physics.is_some() || 
+                             self.visualisation.labels.is_some();
+        
+        if needs_migration {
+            debug!("Migrating legacy flat settings to multi-graph structure");
+            
+            // Migrate nodes settings
+            if let Some(ref nodes) = self.visualisation.nodes {
+                if self.visualisation.graphs.logseq.nodes == NodeSettings::default() {
+                    self.visualisation.graphs.logseq.nodes = nodes.clone();
+                }
+                if self.visualisation.graphs.visionflow.nodes == NodeSettings::default() {
+                    self.visualisation.graphs.visionflow.nodes = nodes.clone();
+                }
+            }
+            
+            // Migrate edges settings
+            if let Some(ref edges) = self.visualisation.edges {
+                if self.visualisation.graphs.logseq.edges == EdgeSettings::default() {
+                    self.visualisation.graphs.logseq.edges = edges.clone();
+                }
+                if self.visualisation.graphs.visionflow.edges == EdgeSettings::default() {
+                    self.visualisation.graphs.visionflow.edges = edges.clone();
+                }
+            }
+            
+            // Migrate physics settings
+            if let Some(ref physics) = self.visualisation.physics {
+                if self.visualisation.graphs.logseq.physics == PhysicsSettings::default() {
+                    self.visualisation.graphs.logseq.physics = physics.clone();
+                }
+                if self.visualisation.graphs.visionflow.physics == PhysicsSettings::default() {
+                    self.visualisation.graphs.visionflow.physics = physics.clone();
+                }
+            }
+            
+            // Migrate labels settings
+            if let Some(ref labels) = self.visualisation.labels {
+                if self.visualisation.graphs.logseq.labels == LabelSettings::default() {
+                    self.visualisation.graphs.logseq.labels = labels.clone();
+                }
+                if self.visualisation.graphs.visionflow.labels == LabelSettings::default() {
+                    self.visualisation.graphs.visionflow.labels = labels.clone();
+                }
+            }
+            
+            // Clear legacy fields after migration
+            self.visualisation.nodes = None;
+            self.visualisation.edges = None;
+            self.visualisation.physics = None;
+            self.visualisation.labels = None;
+            
+            debug!("Migration to multi-graph structure completed");
         }
-        result
     }
 
-    // Save method for AppFullSettings, ensuring snake_case YAML output
     pub fn save(&self) -> Result<(), String> {
         let settings_path = std::env::var("SETTINGS_FILE_PATH")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("/app/settings.yaml"));
         debug!("Saving AppFullSettings to YAML file: {:?}", settings_path);
 
-        // Serialize self using the custom Serialize impl which converts keys to snake_case
         let yaml = serde_yaml::to_string(&self)
             .map_err(|e| format!("Failed to serialize AppFullSettings to YAML: {}", e))?;
 
@@ -622,8 +733,44 @@ impl AppFullSettings {
         debug!("Successfully saved AppFullSettings to {:?}", settings_path);
         Ok(())
     }
+    
+    /// Get physics settings for a specific graph
+    pub fn get_physics(&self, graph: &str) -> &PhysicsSettings {
+        match graph {
+            "logseq" => &self.visualisation.graphs.logseq.physics,
+            "visionflow" => &self.visualisation.graphs.visionflow.physics,
+            _ => &self.visualisation.graphs.logseq.physics,
+        }
+    }
+    
+    // Physics updates now handled through the general merge_update method
+    // which provides better validation and consistency
+    
+    /// Deep merge partial update into settings
+    pub fn merge_update(&mut self, update: serde_json::Value) -> Result<(), String> {
+        // Convert from camelCase to snake_case
+        let snake_update = keys_to_snake_case(update);
+        
+        // Merge the update into self
+        let current_value = serde_json::to_value(&self)
+            .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
+        
+        let merged = merge_json_values(current_value, snake_update);
+        
+        // Deserialize back to AppFullSettings
+        *self = serde_json::from_value(merged)
+            .map_err(|e| format!("Failed to deserialize merged settings: {}", e))?;
+        
+        Ok(())
+    }
+    
+    /// Convert to camelCase JSON for client
+    pub fn to_camel_case_json(&self) -> Result<Value, String> {
+        let snake_json = serde_json::to_value(&self)
+            .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+        Ok(keys_to_camel_case(snake_json))
+    }
 }
-
 
 #[cfg(test)]
 mod tests {

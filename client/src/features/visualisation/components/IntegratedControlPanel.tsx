@@ -580,7 +580,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         alignItems: 'center',
         marginBottom: '10px'
       }}>
-        <div style={{ fontWeight: 'bold' }}>Control Center</div>
+        <div style={{ fontWeight: 'bold' }}>Quick Controls</div>
         <div
           style={{
             width: '16px',
@@ -666,8 +666,27 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         </div>
       )}
 
+      {/* Note: Full settings available in the Command Palette (Cmd/Ctrl+K) */}
+      <div style={{ 
+        padding: '8px',
+        marginBottom: '10px',
+        background: 'rgba(52, 152, 219, 0.1)',
+        border: '1px solid rgba(52, 152, 219, 0.3)',
+        borderRadius: '4px',
+        fontSize: '11px',
+        color: '#3498DB',
+        textAlign: 'center',
+        cursor: 'pointer'
+      }}
+      onClick={() => {
+        // Trigger command palette for settings
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true }));
+      }}>
+        Press Cmd/Ctrl+K for Settings
+      </div>
+
       {/* SpacePilot Menu Controls */}
-      <div>
+      <div style={{ display: activeSection ? 'block' : 'none' }}>
         <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>SpacePilot Controls</div>
 
         {/* Connection status */}

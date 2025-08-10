@@ -5,7 +5,7 @@
 # VISUALIZATION SETTINGS - Multi-graph support
 # ============================================================================
 visualisation:
-  # Legacy flat fields (required for backward compatibility)
+  # Temporary legacy fields - will be migrated on load
   nodes:
     base_color: '#66d9ef'
     metalness: 0.85
@@ -17,18 +17,14 @@ visualisation:
     enable_hologram: true
     enable_metadata_shape: true
     enable_metadata_visualisation: true
-  
   edges:
     arrow_size: 0.02
     base_width: 0.5
     color: '#56b6c2'
     enable_arrows: false
     opacity: 0.25
-    width_range:
-      - 0.2
-      - 1.0
+    width_range: [0.2, 1.0]
     quality: 'medium'
-  
   labels:
     desktop_font_size: 0.5
     enable_labels: true
@@ -40,7 +36,6 @@ visualisation:
     billboard_mode: 'camera'
     show_metadata: true
     max_label_width: 5
-  
   physics:
     enabled: true
     iterations: 200
@@ -56,8 +51,11 @@ visualisation:
     mass_scale: 1.5
     boundary_damping: 0.9
     update_threshold: 0.05
-  
-  # Multi-graph support - supports 'logseq' and 'visionflow' graphs
+    time_step: 0.15
+    temperature: 1.0
+    gravity: 0.0
+    
+  # Multi-graph support - primary source of truth
   graphs:
     logseq:
       nodes:
@@ -96,17 +94,20 @@ visualisation:
         enabled: true
         iterations: 200
         damping: 0.85
-        spring_strength: 0.02
-        repulsion_strength: 15.0
-        repulsion_distance: 50.0
-        attraction_strength: 0.05
-        max_velocity: 0.5
-        collision_radius: 5.0
-        bounds_size: 150.0
+        spring_strength: 0.01
+        repulsion_strength: 800.0
+        repulsion_distance: 1500.0
+        attraction_strength: 0.001
+        max_velocity: 8.0
+        collision_radius: 120.0
+        bounds_size: 5000.0
         enable_bounds: true
         mass_scale: 1.5
-        boundary_damping: 0.9
+        boundary_damping: 0.95
         update_threshold: 0.05
+        time_step: 0.15
+        temperature: 1.0
+        gravity: 0.0
 
     visionflow:
       nodes:
@@ -148,14 +149,17 @@ visualisation:
         spring_strength: 0.5
         repulsion_strength: 150.0
         repulsion_distance: 200.0
-        attraction_strength: 0.002
-        max_velocity: 15.0
-        collision_radius: 60.0
+        attraction_strength: 0.05
+        max_velocity: 10.0
+        collision_radius: 50.0
         bounds_size: 3000.0
-        enable_bounds: false
+        enable_bounds: true
         mass_scale: 1.2
-        boundary_damping: 0.6
-        update_threshold: 0.1
+        boundary_damping: 0.9
+        update_threshold: 0.05
+        time_step: 0.2
+        temperature: 1.0
+        gravity: 0.0
 
   # Global rendering settings
   rendering:
@@ -432,3 +436,11 @@ kokoro:
 # Whisper Speech Recognition
 whisper:
   api_url: "http://whisper-webui-backend:8000"
+  default_model: "base"
+  default_language: "en"
+  timeout: 30
+  temperature: 0.0
+  return_timestamps: false
+  vad_filter: false
+  word_timestamps: false
+  initial_prompt: ""

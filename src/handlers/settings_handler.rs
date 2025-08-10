@@ -1,39 +1,27 @@
-// Simplified Settings Handler - Clean, maintainable, no redundant conversions
-// Replaces 1200+ lines with ~200 lines of clear, focused code
-
+// Unified Settings Handler - Single source of truth: AppFullSettings
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
-use crate::config::settings::{Settings, SettingsUpdate};
 use crate::config::AppFullSettings;
-use crate::models::ui_settings::UISettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, UpdateSimulationParams};
 use log::{info, warn, error, debug};
-use serde_json::json;
+use serde_json::{json, Value};
 
 /// Configure routes for settings endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::resource("/settings")
-            .route(web::get().to(get_settings))
-            .route(web::post().to(update_settings))
-    )
-    .service(
-        web::resource("/settings/physics/{graph}")
-            .route(web::post().to(update_physics))
-    )
-    .service(
-        web::resource("/user-settings")
-            .route(web::get().to(get_user_settings))
-            .route(web::post().to(update_user_settings))
+        web::scope("/api/settings")
+            .route("", web::get().to(get_settings))
+            .route("", web::post().to(update_settings))
+            .route("/reset", web::post().to(reset_settings))
+            // Physics updates should go through the main update_settings endpoint
     );
 }
 
-/// Get current settings
+/// Get current settings - returns camelCase JSON
 async fn get_settings(
-    req: HttpRequest,
+    _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    // Get settings from actor (now returns AppFullSettings)
     let app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
@@ -50,35 +38,35 @@ async fn get_settings(
         }
     };
     
-    // Check if user wants specific graph settings
-    if let Some(graph) = req.match_info().get("graph") {
-        match graph {
-            "logseq" => Ok(HttpResponse::Ok().json(&app_settings.visualisation.graphs.logseq)),
-            "visionflow" => Ok(HttpResponse::Ok().json(&app_settings.visualisation.graphs.visionflow)),
-            _ => Ok(HttpResponse::BadRequest().json(json!({
-                "error": "Invalid graph name"
-            })))
-        }
-    } else {
-        // Convert to client-facing Settings format
-        let client_settings: Settings = app_settings.into();
-        Ok(HttpResponse::Ok().json(&client_settings))
-    }
+    // Convert to camelCase JSON for client
+    let camel_case_json = app_settings.to_camel_case_json()
+        .map_err(|e| {
+            error!("Failed to convert settings: {}", e);
+            actix_web::error::ErrorInternalServerError("Serialization error")
+        })?;
+    
+    Ok(HttpResponse::Ok().json(camel_case_json))
 }
 
-/// Update settings (partial update supported)
+/// Update settings with validation - accepts camelCase JSON
 async fn update_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
-    payload: web::Json<SettingsUpdate>,
+    payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
     let update = payload.into_inner();
     
-    // Log what's being updated
     debug!("Settings update received: {:?}", update);
     
-    // Get current AppFullSettings
-    let app_settings = match state.settings_addr.send(GetSettings).await {
+    // Validate the update
+    if let Err(e) = validate_settings_update(&update) {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": format!("Invalid settings: {}", e)
+        })));
+    }
+    
+    // Get current settings
+    let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
@@ -94,32 +82,41 @@ async fn update_settings(
         }
     };
     
-    // Convert to Settings format for the merge operation
-    let mut settings: Settings = app_settings.clone().into();
+    // Merge the update
+    if let Err(e) = app_settings.merge_update(update.clone()) {
+        error!("Failed to merge settings: {}", e);
+        return Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Failed to merge settings: {}", e)
+        })));
+    }
     
-    // Check if physics is being updated
-    let physics_updated = update.graphs.as_ref()
-        .and_then(|g| g.logseq.as_ref())
-        .and_then(|l| l.physics.as_ref())
-        .is_some();
-    
-    // Merge the update into the Settings format
-    settings.merge(update);
-    
-    // Convert back to AppFullSettings
-    let updated_app_settings: AppFullSettings = settings.clone().into();
+    // Check if physics was updated
+    let physics_updated = update.get("visualisation")
+        .and_then(|v| v.get("graphs"))
+        .and_then(|g| g.as_object())
+        .map(|graphs| {
+            graphs.contains_key("logseq") || graphs.contains_key("visionflow")
+        })
+        .unwrap_or(false);
     
     // Save updated settings
-    match state.settings_addr.send(UpdateSettings { settings: updated_app_settings }).await {
+    match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
         Ok(Ok(())) => {
             info!("Settings updated successfully");
             
             // If physics was updated, propagate to GPU
             if physics_updated {
-                propagate_physics_to_gpu(&state, &settings, "logseq").await;
+                propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             }
             
-            Ok(HttpResponse::Ok().json(&settings))
+            // Return updated settings in camelCase
+            let camel_case_json = app_settings.to_camel_case_json()
+                .map_err(|e| {
+                    error!("Failed to convert settings: {}", e);
+                    actix_web::error::ErrorInternalServerError("Serialization error")
+                })?;
+            
+            Ok(HttpResponse::Ok().json(camel_case_json))
         }
         Ok(Err(e)) => {
             error!("Failed to save settings: {}", e);
@@ -136,58 +133,40 @@ async fn update_settings(
     }
 }
 
-/// Direct physics update endpoint for specific graph
-async fn update_physics(
-    req: HttpRequest,
+/// Reset settings to defaults from settings.yaml
+async fn reset_settings(
+    _req: HttpRequest,
     state: web::Data<AppState>,
-    payload: web::Json<crate::config::settings::PhysicsUpdate>,
 ) -> Result<HttpResponse, Error> {
-    let graph = req.match_info().get("graph").unwrap_or("logseq");
-    let physics_update = payload.into_inner();
-    
-    info!("Physics update for graph '{}': {:?}", graph, physics_update);
-    
-    // Get current AppFullSettings
-    let app_settings = match state.settings_addr.send(GetSettings).await {
-        Ok(Ok(s)) => s,
-        Ok(Err(e)) => {
-            error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get settings"
-            })));
-        }
+    // Load default settings from YAML
+    let default_settings = match AppFullSettings::new() {
+        Ok(settings) => settings,
         Err(e) => {
-            error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
+            error!("Failed to load default settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to load default settings"
             })));
         }
     };
     
-    // Convert to Settings format to use the update_physics method
-    let mut settings: Settings = app_settings.into();
-    
-    // Update physics for the specified graph
-    settings.update_physics(graph, physics_update);
-    
-    // Convert back to AppFullSettings
-    let updated_app_settings: AppFullSettings = settings.clone().into();
-    
-    // Save settings
-    match state.settings_addr.send(UpdateSettings { settings: updated_app_settings }).await {
+    // Save as current settings
+    match state.settings_addr.send(UpdateSettings { settings: default_settings.clone() }).await {
         Ok(Ok(())) => {
-            // Propagate to GPU
-            propagate_physics_to_gpu(&state, &settings, graph).await;
+            info!("Settings reset to defaults");
             
-            Ok(HttpResponse::Ok().json(json!({
-                "status": "success",
-                "message": format!("Physics updated for graph '{}'", graph)
-            })))
+            // Return default settings in camelCase
+            let camel_case_json = default_settings.to_camel_case_json()
+                .map_err(|e| {
+                    error!("Failed to convert settings: {}", e);
+                    actix_web::error::ErrorInternalServerError("Serialization error")
+                })?;
+            
+            Ok(HttpResponse::Ok().json(camel_case_json))
         }
         Ok(Err(e)) => {
-            error!("Failed to save physics: {}", e);
+            error!("Failed to reset settings: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save physics: {}", e)
+                "error": format!("Failed to reset settings: {}", e)
             })))
         }
         Err(e) => {
@@ -199,10 +178,222 @@ async fn update_physics(
     }
 }
 
+// Physics updates now go through the main update_settings endpoint
+// The update_settings function already handles physics changes and GPU propagation
+
+/// Validate settings update payload
+fn validate_settings_update(update: &Value) -> Result<(), String> {
+    // Validate visualisation settings
+    if let Some(vis) = update.get("visualisation") {
+        if let Some(graphs) = vis.get("graphs") {
+            // Validate graph settings
+            for (graph_name, graph_settings) in graphs.as_object().ok_or("graphs must be an object")?.iter() {
+                if graph_name != "logseq" && graph_name != "visionflow" {
+                    return Err(format!("Invalid graph name: {}", graph_name));
+                }
+                
+                // Validate physics settings
+                if let Some(physics) = graph_settings.get("physics") {
+                    validate_physics_settings(physics)?;
+                }
+                
+                // Validate node settings
+                if let Some(nodes) = graph_settings.get("nodes") {
+                    validate_node_settings(nodes)?;
+                }
+            }
+        }
+        
+        // Validate rendering settings
+        if let Some(rendering) = vis.get("rendering") {
+            validate_rendering_settings(rendering)?;
+        }
+    }
+    
+    // Validate XR settings
+    if let Some(xr) = update.get("xr") {
+        validate_xr_settings(xr)?;
+    }
+    
+    Ok(())
+}
+
+fn validate_physics_settings(physics: &Value) -> Result<(), String> {
+    // Validate all physics fields with proper ranges
+    if let Some(damping) = physics.get("damping") {
+        let val = damping.as_f64().ok_or("damping must be a number")?;
+        if !(0.0..=1.0).contains(&val) {
+            return Err("damping must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(iterations) = physics.get("iterations") {
+        let val = iterations.as_u64().ok_or("iterations must be a positive integer")?;
+        if val == 0 || val > 1000 {
+            return Err("iterations must be between 1 and 1000".to_string());
+        }
+    }
+    
+    if let Some(spring) = physics.get("springStrength") {
+        let val = spring.as_f64().ok_or("springStrength must be a number")?;
+        if !(0.0..=10.0).contains(&val) {
+            return Err("springStrength must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(repulsion) = physics.get("repulsionStrength") {
+        let val = repulsion.as_f64().ok_or("repulsionStrength must be a number")?;
+        if val < 0.0 || val > 10000.0 {
+            return Err("repulsionStrength must be between 0.0 and 10000.0".to_string());
+        }
+    }
+    
+    if let Some(attraction) = physics.get("attractionStrength") {
+        let val = attraction.as_f64().ok_or("attractionStrength must be a number")?;
+        if !(0.0..=10.0).contains(&val) {
+            return Err("attractionStrength must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(bounds) = physics.get("boundsSize") {
+        let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
+        if val < 100.0 || val > 50000.0 {
+            return Err("boundsSize must be between 100.0 and 50000.0".to_string());
+        }
+    }
+    
+    if let Some(collision) = physics.get("collisionRadius") {
+        let val = collision.as_f64().ok_or("collisionRadius must be a number")?;
+        if val < 0.0 || val > 100.0 {
+            return Err("collisionRadius must be between 0.0 and 100.0".to_string());
+        }
+    }
+    
+    if let Some(max_vel) = physics.get("maxVelocity") {
+        let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
+        if val < 0.0 || val > 1000.0 {
+            return Err("maxVelocity must be between 0.0 and 1000.0".to_string());
+        }
+    }
+    
+    if let Some(mass) = physics.get("massScale") {
+        let val = mass.as_f64().ok_or("massScale must be a number")?;
+        if val <= 0.0 || val > 10.0 {
+            return Err("massScale must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(boundary) = physics.get("boundaryDamping") {
+        let val = boundary.as_f64().ok_or("boundaryDamping must be a number")?;
+        if !(0.0..=1.0).contains(&val) {
+            return Err("boundaryDamping must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(time_step) = physics.get("timeStep") {
+        let val = time_step.as_f64().ok_or("timeStep must be a number")?;
+        if val <= 0.0 || val > 1.0 {
+            return Err("timeStep must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(temp) = physics.get("temperature") {
+        let val = temp.as_f64().ok_or("temperature must be a number")?;
+        if val < 0.0 || val > 10.0 {
+            return Err("temperature must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(gravity) = physics.get("gravity") {
+        let val = gravity.as_f64().ok_or("gravity must be a number")?;
+        if val < -10.0 || val > 10.0 {
+            return Err("gravity must be between -10.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(threshold) = physics.get("updateThreshold") {
+        let val = threshold.as_f64().ok_or("updateThreshold must be a number")?;
+        if val < 0.0 || val > 1.0 {
+            return Err("updateThreshold must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
+fn validate_node_settings(nodes: &Value) -> Result<(), String> {
+    // Validate color format
+    if let Some(color) = nodes.get("baseColor") {
+        let color_str = color.as_str().ok_or("baseColor must be a string")?;
+        if !color_str.starts_with('#') || (color_str.len() != 7 && color_str.len() != 4) {
+            return Err("baseColor must be a valid hex color (e.g., #ffffff or #fff)".to_string());
+        }
+    }
+    
+    if let Some(opacity) = nodes.get("opacity") {
+        let val = opacity.as_f64().ok_or("opacity must be a number")?;
+        if !(0.0..=1.0).contains(&val) {
+            return Err("opacity must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(metalness) = nodes.get("metalness") {
+        let val = metalness.as_f64().ok_or("metalness must be a number")?;
+        if !(0.0..=1.0).contains(&val) {
+            return Err("metalness must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(roughness) = nodes.get("roughness") {
+        let val = roughness.as_f64().ok_or("roughness must be a number")?;
+        if !(0.0..=1.0).contains(&val) {
+            return Err("roughness must be between 0.0 and 1.0".to_string());
+        }
+    }
+    
+    if let Some(node_size) = nodes.get("nodeSize") {
+        let val = node_size.as_f64().ok_or("nodeSize must be a number")?;
+        if val <= 0.0 || val > 10.0 {
+            return Err("nodeSize must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    if let Some(quality) = nodes.get("quality") {
+        let q = quality.as_str().ok_or("quality must be a string")?;
+        if !["low", "medium", "high"].contains(&q) {
+            return Err("quality must be 'low', 'medium', or 'high'".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
+fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
+    if let Some(ambient) = rendering.get("ambientLightIntensity") {
+        let val = ambient.as_f64().ok_or("ambientLightIntensity must be a number")?;
+        if val < 0.0 || val > 10.0 {
+            return Err("ambientLightIntensity must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
+fn validate_xr_settings(xr: &Value) -> Result<(), String> {
+    if let Some(room_scale) = xr.get("roomScale") {
+        let val = room_scale.as_f64().ok_or("roomScale must be a number")?;
+        if val <= 0.0 || val > 10.0 {
+            return Err("roomScale must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
 /// Propagate physics settings to GPU compute actor
 async fn propagate_physics_to_gpu(
     state: &web::Data<AppState>,
-    settings: &Settings,
+    settings: &AppFullSettings,
     graph: &str,
 ) {
     let physics = settings.get_physics(graph);
@@ -232,100 +423,3 @@ async fn propagate_physics_to_gpu(
     }
 }
 
-// ============================================================================
-// USER-SPECIFIC SETTINGS (if needed)
-// ============================================================================
-
-use crate::models::UserSettings;
-use crate::config::feature_access::FeatureAccess;
-
-/// Get user-specific settings
-async fn get_user_settings(
-    req: HttpRequest,
-    state: web::Data<AppState>,
-    feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
-    let pubkey = match req.headers().get("X-Nostr-Pubkey") {
-        Some(value) => value.to_str().unwrap_or("").to_string(),
-        None => {
-            // Return default settings for unauthenticated users
-            let app_settings: AppFullSettings = Settings::default().into();
-            let ui_settings: UISettings = (&app_settings).into();
-            return Ok(HttpResponse::Ok().json(&ui_settings));
-        }
-    };
-    
-    if !feature_access.can_sync_settings(&pubkey) {
-        return Ok(HttpResponse::Forbidden().json(json!({
-            "error": "Settings sync not enabled"
-        })));
-    }
-    
-    // Power users get global settings
-    if feature_access.is_power_user(&pubkey) {
-        return get_settings(req, state).await;
-    }
-    
-    // Regular users get their saved settings or defaults
-    let user_settings = UserSettings::load(&pubkey)
-        .unwrap_or_else(|| {
-            let app_settings: AppFullSettings = Settings::default().into();
-            let ui_settings: UISettings = (&app_settings).into();
-            UserSettings::new(&pubkey, ui_settings)
-        });
-    
-    Ok(HttpResponse::Ok().json(&user_settings.settings))
-}
-
-/// Update user-specific settings
-async fn update_user_settings(
-    req: HttpRequest,
-    state: web::Data<AppState>,
-    feature_access: web::Data<FeatureAccess>,
-    payload: web::Json<SettingsUpdate>,
-) -> Result<HttpResponse, Error> {
-    let pubkey = match req.headers().get("X-Nostr-Pubkey") {
-        Some(value) => value.to_str().unwrap_or("").to_string(),
-        None => {
-            return Ok(HttpResponse::BadRequest().json(json!({
-                "error": "Missing authentication"
-            })));
-        }
-    };
-    
-    if !feature_access.can_sync_settings(&pubkey) {
-        return Ok(HttpResponse::Forbidden().json(json!({
-            "error": "Settings sync not enabled"
-        })));
-    }
-    
-    // Power users update global settings
-    if feature_access.is_power_user(&pubkey) {
-        info!("Power user {} updating global settings", pubkey);
-        return update_settings(req, state, payload).await;
-    }
-    
-    // Regular users update their own settings
-    let mut user_settings = UserSettings::load(&pubkey)
-        .unwrap_or_else(|| {
-            let app_settings: AppFullSettings = Settings::default().into();
-            let ui_settings: UISettings = (&app_settings).into();
-            UserSettings::new(&pubkey, ui_settings)
-        });
-    
-    // For now, just replace the settings entirely (TODO: implement proper merge)
-    let _new_settings = payload.into_inner(); // TODO: use this to merge settings
-    let app_settings: AppFullSettings = Settings::default().into(); // Convert base settings
-    user_settings.settings = (&app_settings).into();
-    user_settings.last_modified = chrono::Utc::now().timestamp();
-    
-    if let Err(e) = user_settings.save() {
-        error!("Failed to save user settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": "Failed to save settings"
-        })));
-    }
-    
-    info!("User {} updated their settings", pubkey);
-    Ok(HttpResponse::Ok().json(&user_settings.settings))
-}

@@ -502,7 +502,8 @@ pub async fn update_bots_data(
             }
         };
 
-        let physics_settings = settings.visualisation.physics.clone();
+        // Use logseq graph physics settings as the base for bots
+        let physics_settings = &settings.visualisation.graphs.logseq.physics;
 
         // Create simulation parameters for bots
         let params = SimulationParams {

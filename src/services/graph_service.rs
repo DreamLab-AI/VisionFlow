@@ -81,8 +81,8 @@ impl GraphService {
         gpu_compute: Option<Arc<RwLock<GPUCompute>>>,
         client_manager_for_loop: Addr<ClientManagerActor> // Changed to Addr<ClientManagerActor>
     ) -> Self {
-        // Get physics settings
-        let physics_settings = settings.read().await.visualisation.physics.clone();
+        // Get physics settings - use logseq graph physics as default
+        let physics_settings = settings.read().await.visualisation.graphs.logseq.physics.clone();
 
         // Generate a unique ID for this GraphService instance
         let simulation_id = Alphanumeric.sample_string(&mut rand::thread_rng(), 8);

@@ -204,7 +204,7 @@ const scheduleSave = (settings: Settings, initialized: boolean) => {
   if (saveTimeoutId) {
     clearTimeout(saveTimeoutId);
   }
-  saveTimeoutId = setTimeout(() => debouncedSaveToServer(settings, initialized), 300);
+  saveTimeoutId = setTimeout(() => debouncedSaveToServer(settings, initialized), 500);
 };
 
 interface SettingsState {
