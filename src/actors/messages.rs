@@ -555,3 +555,18 @@ pub struct SetComputeMode {
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::gpu_compute_actor::PhysicsStats, String>")]
 pub struct GetPhysicsStats;
+
+// GPU Force Parameters
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateForceParams {
+    pub repulsion: f32,
+    pub attraction: f32,
+    pub damping: f32,
+    pub temperature: f32,
+    pub spring: f32,
+    pub gravity: f32,
+    pub time_step: f32,
+    pub max_velocity: f32,
+}
+

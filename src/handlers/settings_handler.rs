@@ -20,6 +20,11 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     .service(
         web::resource("/settings/physics/{graph}")
             .route(web::post().to(update_physics))
+    )
+    .service(
+        web::resource("/user-settings")
+            .route(web::get().to(get_user_settings))
+            .route(web::post().to(update_user_settings))
     );
 }
 
@@ -235,7 +240,6 @@ use crate::models::UserSettings;
 use crate::config::feature_access::FeatureAccess;
 
 /// Get user-specific settings
-#[allow(dead_code)]
 async fn get_user_settings(
     req: HttpRequest,
     state: web::Data<AppState>,
@@ -244,9 +248,10 @@ async fn get_user_settings(
     let pubkey = match req.headers().get("X-Nostr-Pubkey") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
-            return Ok(HttpResponse::BadRequest().json(json!({
-                "error": "Missing authentication"
-            })));
+            // Return default settings for unauthenticated users
+            let app_settings: AppFullSettings = Settings::default().into();
+            let ui_settings: UISettings = (&app_settings).into();
+            return Ok(HttpResponse::Ok().json(&ui_settings));
         }
     };
     
@@ -273,7 +278,6 @@ async fn get_user_settings(
 }
 
 /// Update user-specific settings
-#[allow(dead_code)]
 async fn update_user_settings(
     req: HttpRequest,
     state: web::Data<AppState>,

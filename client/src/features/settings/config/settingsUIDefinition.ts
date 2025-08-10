@@ -86,6 +86,7 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
       textOutlineWidth: { label: 'Outline Width', type: 'slider', min: 0, max: 0.02, step: 0.001, unit: 'px', path: `visualisation.graphs.${graphName}.labels.textOutlineWidth`, description: 'Thickness of text outline for readability.' },
       textResolution: { label: 'Text Resolution', type: 'slider', min: 16, max: 512, step: 16, unit: 'px', path: `visualisation.graphs.${graphName}.labels.textResolution`, description: 'Text texture resolution (higher = sharper, slower).' },
       textPadding: { label: 'Text Padding', type: 'slider', min: 0, max: 10.0, step: 0.1, unit: 'px', path: `visualisation.graphs.${graphName}.labels.textPadding`, description: 'Space around label text.' },
+      labelDistance: { label: 'Label Distance', type: 'slider', min: 0, max: 5.0, step: 0.1, unit: 'units', path: `visualisation.graphs.${graphName}.labels.labelDistance`, description: 'Distance of label from node center.' },
       billboardMode: { label: 'Billboard Mode', type: 'select', options: [{value: 'camera', label: 'Camera Facing'}, {value: 'vertical', label: 'Vertical Lock'}], path: `visualisation.graphs.${graphName}.labels.billboardMode`, description: 'How labels orient themselves.' },
     },
   },

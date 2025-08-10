@@ -21,7 +21,8 @@ use log::{debug, error, info, warn};
 use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams, 
-    GetConstraints, UpdateConstraints, GetPhysicsStats
+    GetConstraints, UpdateConstraints, GetPhysicsStats,
+    SetComputeMode
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::ConstraintSet;
@@ -364,6 +365,87 @@ fn create_default_analytics_params(_settings: &crate::config::AppFullSettings) -
         .build()
 }
 
+/// POST /api/analytics/kernel-mode - Set GPU kernel mode
+pub async fn set_kernel_mode(
+    app_state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> Result<HttpResponse> {
+    info!("Setting GPU kernel mode");
+    
+    if let Some(mode) = request.get("mode").and_then(|m| m.as_str()) {
+        // Convert string mode to ComputeMode enum
+        let compute_mode = match mode {
+            "legacy" => crate::actors::gpu_compute_actor::ComputeMode::Legacy,
+            "dual_graph" => crate::actors::gpu_compute_actor::ComputeMode::DualGraph,
+            "advanced" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
+            // Accept alternate names for compatibility
+            "standard" => crate::actors::gpu_compute_actor::ComputeMode::Legacy,
+            "visual_analytics" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
+            _ => {
+                return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Invalid mode: {}. Valid modes: legacy, dual_graph, advanced", mode)
+                })));
+            }
+        };
+        
+        if let Some(gpu_actor) = &app_state.gpu_compute_addr {
+            match gpu_actor.send(SetComputeMode {
+                mode: compute_mode,
+            }).await {
+                Ok(result) => {
+                    match result {
+                        Ok(()) => {
+                            info!("GPU kernel mode set to: {}", mode);
+                            Ok(HttpResponse::Ok().json(serde_json::json!({
+                                "success": true,
+                                "mode": mode
+                            })))
+                        }
+                        Err(e) => {
+                            error!("Failed to set kernel mode: {}", e);
+                            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                                "success": false,
+                                "error": e
+                            })))
+                        }
+                    }
+                }
+                Err(e) => {
+                    error!("Failed to send kernel mode message: {}", e);
+                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                        "success": false,
+                        "error": "Failed to communicate with GPU actor"
+                    })))
+                }
+            }
+        } else {
+            Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "success": false,
+                "error": "GPU compute not available"
+            })))
+        }
+    } else {
+        Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": "Missing 'mode' parameter"
+        })))
+    }
+}
+
+/// GET /api/analytics/gpu-metrics - Get GPU metrics
+pub async fn get_gpu_metrics(
+    _app_state: web::Data<AppState>,
+) -> Result<HttpResponse> {
+    // Mock GPU metrics for now
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "utilization": 45.0,
+        "memory": 32.0,
+        "temperature": 68.0,
+        "power": 120.0
+    })))
+}
+
 /// Configure analytics API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -374,5 +456,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/constraints", web::post().to(update_constraints))
             .route("/focus", web::post().to(set_focus))
             .route("/stats", web::get().to(get_performance_stats))
+            .route("/kernel-mode", web::post().to(set_kernel_mode))
+            .route("/gpu-metrics", web::get().to(get_gpu_metrics))
     );
 }

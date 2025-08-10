@@ -460,7 +460,7 @@ extern "C" {
         
         // 11. Store computed values for monitoring
         node.force = total_force;
-        node.stress_gradient = stress_grad;
+        // node.stress_gradient = stress_grad; // Field doesn't exist, skipping
         
         // Calculate and store stress for convergence monitoring
         float stress = 0.0f;
