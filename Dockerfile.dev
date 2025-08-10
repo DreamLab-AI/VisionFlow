@@ -87,12 +87,10 @@ RUN cargo build --features gpu && \
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml
 
-# PTX compilation - now happens during container build
-COPY scripts/compile_ptx.sh ./scripts/
-COPY src/utils/compute_forces.cu ./src/utils/
-RUN chmod +x ./scripts/compile_ptx.sh && \
-    # Get CUDA_ARCH from build arg or default to 86
-    CUDA_ARCH=${CUDA_ARCH:-86} ./scripts/compile_ptx.sh
+# Copy pre-compiled PTX files (compiled outside container for reliability)
+# These were compiled with CUDA 12.9 for SM_86 (RTX 30 series/A6000)
+RUN mkdir -p /app/kernels
+COPY kernels/*.ptx /app/kernels/
 
 # Development entrypoint script
 COPY scripts/dev-entrypoint.sh ./
