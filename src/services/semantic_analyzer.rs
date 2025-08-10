@@ -329,7 +329,7 @@ impl SemanticAnalyzer {
     }
 
     /// Extract temporal features
-    fn extract_temporal_features(&self, metadata: &Metadata) -> TemporalFeatures {
+    fn extract_temporal_features(&self, _metadata: &Metadata) -> TemporalFeatures {
         TemporalFeatures {
             created_at: None, // Would need git history
             modified_at: None, // Would need git history

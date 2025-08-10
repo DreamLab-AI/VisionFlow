@@ -235,6 +235,7 @@ use crate::models::UserSettings;
 use crate::config::feature_access::FeatureAccess;
 
 /// Get user-specific settings
+#[allow(dead_code)]
 async fn get_user_settings(
     req: HttpRequest,
     state: web::Data<AppState>,
@@ -272,6 +273,7 @@ async fn get_user_settings(
 }
 
 /// Update user-specific settings
+#[allow(dead_code)]
 async fn update_user_settings(
     req: HttpRequest,
     state: web::Data<AppState>,

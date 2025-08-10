@@ -4,7 +4,7 @@
 use std::sync::Arc;
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr, ValidAsZeroBits};
 use serde::{Deserialize, Serialize};
-use log::info;
+use log::{info, debug, trace};
 
 /// 4D vector for temporal-spatial representation
 #[repr(C)]
@@ -290,15 +290,13 @@ impl VisualAnalyticsGPU {
     }
     
     /// Execute visual analytics pipeline
-    pub fn execute(&mut self, params: &VisualAnalyticsParams, num_nodes: usize, num_edges: usize, num_layers: usize) -> Result<(), String> {
+    pub fn execute(&mut self, _params: &VisualAnalyticsParams, _num_nodes: usize, _num_edges: usize, _num_layers: usize) -> Result<(), String> {
         let start = std::time::Instant::now();
         
         // Launch kernel through FFI (would need actual FFI binding)
         // For now, this is a placeholder for the kernel launch
-        unsafe {
-            // visual_analytics_kernel<<<grid, block>>>(...)
-            // This would call the CUDA kernel we defined
-        }
+        // visual_analytics_kernel<<<grid, block>>>(...)
+        // This would call the CUDA kernel we defined
         
         self.device.synchronize()
             .map_err(|e| format!("Kernel execution failed: {}", e))?;

@@ -14,19 +14,19 @@ use crate::services::agent_visualization_protocol::{
 
 /// WebSocket actor for agent visualization streaming
 pub struct AgentVisualizationWs {
-    app_state: web::Data<AppState>,
+    _app_state: web::Data<AppState>,
     protocol: AgentVisualizationProtocol,
     last_heartbeat: Instant,
-    last_position_update: Instant,
+    _last_position_update: Instant,
 }
 
 impl AgentVisualizationWs {
     pub fn new(app_state: web::Data<AppState>) -> Self {
         Self {
-            app_state,
+            _app_state: app_state,
             protocol: AgentVisualizationProtocol::new(),
             last_heartbeat: Instant::now(),
-            last_position_update: Instant::now(),
+            _last_position_update: Instant::now(),
         }
     }
     

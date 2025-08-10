@@ -31,8 +31,6 @@ use crate::models::{
     constraints::{Constraint, ConstraintSet, ConstraintKind, AdvancedParams},
     graph::GraphData,
 };
-use crate::utils::{
-};
 
 /// Configuration parameters for stress majorization
 #[derive(Debug, Clone)]
@@ -88,7 +86,7 @@ pub struct OptimizationResult {
 /// Stress majorization solver for graph layout optimization
 pub struct StressMajorizationSolver {
     config: StressMajorizationConfig,
-    gpu_device: Option<Arc<CudaDevice>>,
+    _gpu_device: Option<Arc<CudaDevice>>,
     cached_distance_matrix: Option<DMatrix<f32>>,
     cached_weight_matrix: Option<DMatrix<f32>>,
     iteration_history: Vec<f32>,
@@ -116,7 +114,7 @@ impl StressMajorizationSolver {
 
         Self {
             config,
-            gpu_device,
+            _gpu_device: gpu_device,
             cached_distance_matrix: None,
             cached_weight_matrix: None,
             iteration_history: Vec::new(),

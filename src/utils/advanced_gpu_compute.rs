@@ -174,6 +174,7 @@ impl AdvancedSimulationParams {
 
 // Constants for GPU computation
 const BLOCK_SIZE: u32 = 256;
+#[allow(dead_code)]
 const MAX_NODES: u32 = 1_000_000;
 const MAX_CONSTRAINTS: u32 = 10_000;
 const DEBUG_THROTTLE: u32 = 60;

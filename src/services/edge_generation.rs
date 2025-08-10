@@ -487,7 +487,7 @@ impl AdvancedEdgeGenerator {
     }
 
     /// Prune redundant edges using transitive reduction
-    fn prune_redundant_edges(&self, mut edges: Vec<EnhancedEdge>) -> Vec<EnhancedEdge> {
+    fn prune_redundant_edges(&self, edges: Vec<EnhancedEdge>) -> Vec<EnhancedEdge> {
         if edges.len() <= 2 {
             return edges;
         }
