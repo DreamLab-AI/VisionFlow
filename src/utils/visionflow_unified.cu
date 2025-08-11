@@ -349,132 +349,135 @@ __device__ float3 compute_visual_analytics(
 // Main Unified Kernel
 // =============================================================================
 
-__global__ void visionflow_compute_kernel(
-    // Node data (Structure of Arrays)
-    float* pos_x, float* pos_y, float* pos_z,
-    float* vel_x, float* vel_y, float* vel_z,
-    float* node_mass,
-    float* node_importance,
-    float* node_temporal,
-    int* node_graph_id,
-    int* node_cluster,
-    
-    // Edge data (CSR format)
-    int* edge_src,
-    int* edge_dst,
-    float* edge_weight,
-    int* edge_graph_id,
-    
-    // Constraints
-    ConstraintData* constraints,
-    
-    // Parameters
-    SimParams params,
-    int num_nodes,
-    int num_edges,
-    int num_constraints
-) {
+struct GpuNodeData {
+    float* pos_x; float* pos_y; float* pos_z;
+    float* vel_x; float* vel_y; float* vel_z;
+    float* mass;
+    float* importance;
+    float* temporal;
+    int* graph_id;
+    int* cluster;
+};
+
+struct GpuEdgeData {
+    int* src;
+    int* dst;
+    float* weight;
+    int* graph_id;
+};
+
+struct GpuKernelParams {
+    GpuNodeData nodes;
+    GpuEdgeData edges;
+    ConstraintData* constraints;
+    SimParams params;
+    int num_nodes;
+    int num_edges;
+    int num_constraints;
+};
+
+__global__ void visionflow_compute_kernel(GpuKernelParams p) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= num_nodes) return;
+    if (idx >= p.num_nodes) return;
     
     // Load current position and velocity
-    float3 position = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
-    float3 velocity = make_vec3(vel_x[idx], vel_y[idx], vel_z[idx]);
+    float3 position = make_vec3(p.nodes.pos_x[idx], p.nodes.pos_y[idx], p.nodes.pos_z[idx]);
+    float3 velocity = make_vec3(p.nodes.vel_x[idx], p.nodes.vel_y[idx], p.nodes.vel_z[idx]);
     
     // Compute forces based on mode
     float3 force = make_vec3(0.0f, 0.0f, 0.0f);
     
-    switch (params.compute_mode) {
+    switch (p.params.compute_mode) {
         case 0: // Basic force-directed
             force = compute_basic_forces(
-                idx, pos_x, pos_y, pos_z,
-                edge_src, edge_dst, edge_weight,
-                num_nodes, num_edges, params
+                idx, p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z,
+                p.edges.src, p.edges.dst, p.edges.weight,
+                p.num_nodes, p.num_edges, p.params
             );
             break;
             
         case 1: // Dual graph mode
             force = compute_dual_graph_forces(
-                idx, pos_x, pos_y, pos_z, node_graph_id,
-                edge_src, edge_dst, edge_weight, edge_graph_id,
-                num_nodes, num_edges, params
+                idx, p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z, p.nodes.graph_id,
+                p.edges.src, p.edges.dst, p.edges.weight, p.edges.graph_id,
+                p.num_nodes, p.num_edges, p.params
             );
             break;
             
         case 2: // With constraints
             force = compute_basic_forces(
-                idx, pos_x, pos_y, pos_z,
-                edge_src, edge_dst, edge_weight,
-                num_nodes, num_edges, params
+                idx, p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z,
+                p.edges.src, p.edges.dst, p.edges.weight,
+                p.num_nodes, p.num_edges, p.params
             );
             force = apply_constraints(
-                idx, position, force, constraints, num_constraints,
-                pos_x, pos_y, pos_z, num_nodes, params
+                idx, position, force, p.constraints, p.num_constraints,
+                p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z, p.num_nodes, p.params
             );
             break;
             
         case 3: // Visual analytics
             force = compute_visual_analytics(
-                idx, pos_x, pos_y, pos_z,
-                node_importance, node_temporal, node_cluster,
-                edge_src, edge_dst, edge_weight,
-                num_nodes, num_edges, params
+                idx, p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z,
+                p.nodes.importance, p.nodes.temporal, p.nodes.cluster,
+                p.edges.src, p.edges.dst, p.edges.weight,
+                p.num_nodes, p.num_edges, p.params
             );
             break;
             
         default:
             // Fallback to basic
             force = compute_basic_forces(
-                idx, pos_x, pos_y, pos_z,
-                edge_src, edge_dst, edge_weight,
-                num_nodes, num_edges, params
+                idx, p.nodes.pos_x, p.nodes.pos_y, p.nodes.pos_z,
+                p.edges.src, p.edges.dst, p.edges.weight,
+                p.num_nodes, p.num_edges, p.params
             );
             break;
     }
     
     // Clamp force magnitude BEFORE any scaling
-    force = vec3_clamp(force, params.max_force);
+    force = vec3_clamp(force, p.params.max_force);
     
     // Progressive warmup for stability
-    if (params.iteration < 200) {
-        float warmup = params.iteration / 200.0f;
+    if (p.params.iteration < 200) {
+        float warmup = p.params.iteration / 200.0f;
         force = vec3_scale(force, warmup * warmup); // Quadratic warmup
         
         // Extra damping in early iterations
         float extra_damping = 0.98f - 0.13f * warmup; // From 0.98 to 0.85
-        params.damping = fmaxf(params.damping, extra_damping);
+        p.params.damping = fmaxf(p.params.damping, extra_damping);
     }
     
     // Temperature-based scaling (simulated annealing) - gentler cooling
-    float temp_scale = params.temperature / (1.0f + params.iteration * 0.0001f);
+    float temp_scale = p.params.temperature / (1.0f + p.params.iteration * 0.0001f);
     force = vec3_scale(force, temp_scale);
     
     // Update velocity with damping
-    float mass = (node_mass != nullptr && node_mass[idx] > 0.0f) ? node_mass[idx] : 1.0f;
-    velocity = vec3_add(velocity, vec3_scale(force, params.dt / mass));
-    velocity = vec3_scale(velocity, params.damping);
-    velocity = vec3_clamp(velocity, params.max_velocity);
+    float mass = (p.nodes.mass != nullptr && p.nodes.mass[idx] > 0.0f) ? p.nodes.mass[idx] : 1.0f;
+    velocity = vec3_add(velocity, vec3_scale(force, p.params.dt / mass));
+    velocity = vec3_scale(velocity, p.params.damping);
+    velocity = vec3_clamp(velocity, p.params.max_velocity);
     
     // Zero velocity in very first iterations to prevent explosion
-    if (params.iteration < 5) {
+    if (p.params.iteration < 5) {
         velocity = make_vec3(0.0f, 0.0f, 0.0f);
     }
     
     // Update position
-    position = vec3_add(position, vec3_scale(velocity, params.dt));
+    position = vec3_add(position, vec3_scale(velocity, p.params.dt));
     
     // Apply viewport bounds
-    position.x = fmaxf(-params.viewport_bounds, fminf(params.viewport_bounds, position.x));
-    position.y = fmaxf(-params.viewport_bounds, fminf(params.viewport_bounds, position.y));
-    position.z = fmaxf(-params.viewport_bounds, fminf(params.viewport_bounds, position.z));
+    position.x = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.x));
+    position.y = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.y));
+    position.z = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.z));
     
     // Write back results
-    pos_x[idx] = position.x;
-    pos_y[idx] = position.y;
-    pos_z[idx] = position.z;
-    vel_x[idx] = velocity.x;
-    vel_y[idx] = velocity.y;
-    vel_z[idx] = velocity.z;
+    p.nodes.pos_x[idx] = position.x;
+    p.nodes.pos_y[idx] = position.y;
+    p.nodes.pos_z[idx] = position.z;
+    p.nodes.vel_x[idx] = velocity.x;
+    p.nodes.vel_y[idx] = velocity.y;
+    p.nodes.vel_z[idx] = velocity.z;
 }
 
 // =============================================================================

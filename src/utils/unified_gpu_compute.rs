@@ -88,6 +88,54 @@ pub struct ConstraintData {
 unsafe impl DeviceRepr for ConstraintData {}
 unsafe impl ValidAsZeroBits for ConstraintData {}
 
+// New structs to group kernel parameters
+#[repr(C)]
+struct GpuNodeData {
+    pos_x: *mut f32, pos_y: *mut f32, pos_z: *mut f32,
+    vel_x: *mut f32, vel_y: *mut f32, vel_z: *mut f32,
+    mass: *mut f32,
+    importance: *mut f32,
+    temporal: *mut f32,
+    graph_id: *mut i32,
+    cluster: *mut i32,
+}
+unsafe impl DeviceRepr for GpuNodeData {}
+
+#[repr(C)]
+struct GpuEdgeData {
+    src: *mut i32,
+    dst: *mut i32,
+    weight: *mut f32,
+    graph_id: *mut i32,
+}
+unsafe impl DeviceRepr for GpuEdgeData {}
+
+#[repr(C)]
+struct GpuKernelParams {
+    nodes: GpuNodeData,
+    edges: GpuEdgeData,
+    constraints: *mut ConstraintData,
+    params: SimParams,
+    num_nodes: i32,
+    num_edges: i32,
+    num_constraints: i32,
+}
+unsafe impl DeviceRepr for GpuKernelParams {}
+
+use std::fmt;
+
+impl fmt::Debug for UnifiedGPUCompute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UnifiedGPUCompute")
+            .field("num_nodes", &self.num_nodes)
+            .field("num_edges", &self.num_edges)
+            .field("num_constraints", &self.num_constraints)
+            .field("compute_mode", &self.compute_mode)
+            .field("params", &self.params)
+            .finish_non_exhaustive()
+    }
+}
+
 pub struct UnifiedGPUCompute {
     device: Arc<CudaDevice>,
     compute_kernel: CudaFunction,
@@ -117,6 +165,11 @@ pub struct UnifiedGPUCompute {
     // Constraints
     constraints: Option<CudaSlice<ConstraintData>>,
     
+    // Dummy buffers for unused optional inputs
+    dummy_f32: CudaSlice<f32>,
+    dummy_i32: CudaSlice<i32>,
+    dummy_constraints: CudaSlice<ConstraintData>,
+
     // Parameters
     params: SimParams,
     num_nodes: usize,
@@ -160,15 +213,14 @@ impl UnifiedGPUCompute {
         num_nodes: usize,
         num_edges: usize,
     ) -> Result<Self, Error> {
-        // Load compute kernel
-        let compute_kernel = device
-            .load_ptx(ptx.clone(), "visionflow_compute", &["visionflow_compute_kernel"])
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load compute kernel: {}", e)))?;
+        // Load kernels from PTX module, specifying the functions to load
+        device.load_ptx(ptx, "visionflow_unified", &["visionflow_compute_kernel", "stress_majorization_kernel"])
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load PTX module: {}", e)))?;
         
-        // Try to load stress kernel (optional)
-        let stress_kernel = device
-            .load_ptx(ptx, "stress_majorization", &["stress_majorization_kernel"])
-            .ok();
+        let compute_kernel = device.get_func("visionflow_unified", "visionflow_compute_kernel")
+            .ok_or_else(|| Error::new(ErrorKind::NotFound, "visionflow_compute_kernel not found"))?;
+        
+        let stress_kernel = device.get_func("visionflow_unified", "stress_majorization_kernel");
         
         if stress_kernel.is_some() {
             info!("Stress majorization kernel loaded successfully");
@@ -196,6 +248,14 @@ impl UnifiedGPUCompute {
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         let edge_weight = device.alloc_zeros(num_edges)
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+
+        // Allocate dummy buffers
+        let dummy_f32 = device.alloc_zeros(0)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+        let dummy_i32 = device.alloc_zeros(0)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+        let dummy_constraints = device.alloc_zeros(0)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         
         Ok(Self {
             device,
@@ -217,6 +277,9 @@ impl UnifiedGPUCompute {
             edge_weight,
             edge_graph_id: None,
             constraints: None,
+            dummy_f32,
+            dummy_i32,
+            dummy_constraints,
             params: SimParams::default(),
             num_nodes,
             num_edges,
@@ -323,10 +386,10 @@ impl UnifiedGPUCompute {
         self.num_constraints = constraints.len();
         
         if self.num_constraints > 0 {
-            let gpu_constraints = self.device.alloc_zeros(self.num_constraints)
+            let mut gpu_constraints = self.device.alloc_zeros(self.num_constraints)
                 .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
             
-            self.device.htod_sync_copy_into(&constraints, &gpu_constraints)
+            self.device.htod_sync_copy_into(&constraints, &mut gpu_constraints)
                 .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
             
             self.constraints = Some(gpu_constraints);
@@ -346,10 +409,10 @@ impl UnifiedGPUCompute {
             ));
         }
         
-        let gpu_graph_ids = self.device.alloc_zeros(self.num_nodes)
+        let mut gpu_graph_ids = self.device.alloc_zeros(self.num_nodes)
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         
-        self.device.htod_sync_copy_into(&node_graph_ids, &gpu_graph_ids)
+        self.device.htod_sync_copy_into(&node_graph_ids, &mut gpu_graph_ids)
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         
         self.node_graph_id = Some(gpu_graph_ids);
@@ -372,29 +435,38 @@ impl UnifiedGPUCompute {
             shared_mem_bytes: 0,
         };
         
-        // Launch kernel with appropriate parameters based on mode
+        // Prepare kernel parameters
+        let kernel_params = GpuKernelParams {
+            nodes: GpuNodeData {
+                pos_x: self.pos_x.device_ptr_mut(),
+                pos_y: self.pos_y.device_ptr_mut(),
+                pos_z: self.pos_z.device_ptr_mut(),
+                vel_x: self.vel_x.device_ptr_mut(),
+                vel_y: self.vel_y.device_ptr_mut(),
+                vel_z: self.vel_z.device_ptr_mut(),
+                mass: self.node_mass.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                importance: self.node_importance.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                temporal: self.node_temporal.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                graph_id: self.node_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                cluster: self.node_cluster.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
+            },
+            edges: GpuEdgeData {
+                src: self.edge_src.device_ptr_mut(),
+                dst: self.edge_dst.device_ptr_mut(),
+                weight: self.edge_weight.device_ptr_mut(),
+                graph_id: self.edge_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
+            },
+            constraints: self.constraints.as_mut().map_or(self.dummy_constraints.device_ptr_mut(), |s| s.device_ptr_mut()),
+            params: self.params,
+            num_nodes: self.num_nodes as i32,
+            num_edges: self.num_edges as i32,
+            num_constraints: self.num_constraints as i32,
+        };
+
+        // Launch kernel
         unsafe {
-            self.compute_kernel.launch(
-                config,
-                (
-                    &self.pos_x, &self.pos_y, &self.pos_z,
-                    &self.vel_x, &self.vel_y, &self.vel_z,
-                    self.node_mass.as_ref().unwrap_or(&self.pos_x), // Dummy if not used
-                    self.node_importance.as_ref().unwrap_or(&self.pos_x),
-                    self.node_temporal.as_ref().unwrap_or(&self.pos_x),
-                    self.node_graph_id.as_ref().unwrap_or(&self.edge_src), // Dummy
-                    self.node_cluster.as_ref().unwrap_or(&self.edge_src),
-                    &self.edge_src,
-                    &self.edge_dst,
-                    &self.edge_weight,
-                    self.edge_graph_id.as_ref().unwrap_or(&self.edge_src),
-                    self.constraints.as_ref().unwrap_or(&self.edge_src), // Dummy
-                    self.params,
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
-                    self.num_constraints as i32,
-                ),
-            ).map_err(|e| Error::new(ErrorKind::Other, format!("Kernel launch failed: {}", e)))?;
+            self.compute_kernel.clone().launch(config, (kernel_params,))
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Kernel launch failed: {}", e)))?;
         }
         
         // Synchronize
@@ -422,7 +494,7 @@ impl UnifiedGPUCompute {
     }
     
     pub fn execute_stress_majorization(&mut self, ideal_distances: &[f32], weight_matrix: &[f32]) -> Result<(), Error> {
-        if let Some(ref stress_kernel) = self.stress_kernel {
+        if let Some(stress_kernel) = &self.stress_kernel {
             let n = self.num_nodes;
             if ideal_distances.len() != n * n || weight_matrix.len() != n * n {
                 return Err(Error::new(
@@ -453,7 +525,7 @@ impl UnifiedGPUCompute {
             };
             
             unsafe {
-                stress_kernel.launch(
+                stress_kernel.clone().launch(
                     config,
                     (
                         &self.pos_x, &self.pos_y, &self.pos_z,

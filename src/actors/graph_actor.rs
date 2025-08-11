@@ -737,7 +737,7 @@ impl GraphServiceActor {
                 }
             }
             
-            iteration_count = gpu_context.iteration_count;
+            iteration_count = gpu_context.iteration_count();
             
             // Log progress periodically
             if iteration_count % 60 == 0 {

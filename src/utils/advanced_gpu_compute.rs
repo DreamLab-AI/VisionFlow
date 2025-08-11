@@ -6,17 +6,14 @@
 
 use std::io::{Error, ErrorKind};
 use log::{warn, info, error, trace};
-use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode, SimParams};
+use crate::utils::unified_gpu_compute::{UnifiedGPUCompute};
 use crate::models::simulation_params::SimulationParams;
-use crate::models::constraints::{Constraint, ConstraintData, AdvancedParams};
+use crate::models::constraints::{Constraint, AdvancedParams};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::edge_data::EdgeData;
 use crate::types::vec3::Vec3Data;
 use std::sync::Arc;
-use std::collections::HashMap;
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, DeviceRepr, ValidAsZeroBits};
-use cudarc::nvrtc::Ptx;
-use std::path::Path;
+use cudarc::driver::{CudaDevice, DeviceRepr, ValidAsZeroBits};
 
 // DEPRECATED: EnhancedBinaryNodeData
 // This is now handled internally by the unified GPU compute system using SoA layout
@@ -293,10 +290,24 @@ impl AdvancedGPUContext {
     /// Update constraints on GPU (DEPRECATED)
     pub fn update_constraints(&mut self, constraints: &[Constraint]) -> Result<(), Error> {
         warn!("update_constraints is DEPRECATED. Use UnifiedGPUCompute directly.");
-        let gpu_constraints: Vec<ConstraintData> = constraints.iter()
+        let gpu_constraints: Vec<crate::utils::unified_gpu_compute::ConstraintData> = constraints.iter()
             .filter(|c| c.active)
             .take(MAX_CONSTRAINTS as usize)
-            .map(ConstraintData::from_constraint)
+            .map(|c| {
+                // Manually create the correct ConstraintData type
+                let mut node_idx = [-1i32; 4];
+                for (i, &idx) in c.node_indices.iter().take(4).enumerate() {
+                    node_idx[i] = idx as i32;
+                }
+
+                crate::utils::unified_gpu_compute::ConstraintData {
+                    constraint_type: c.kind as i32,
+                    strength: c.weight,
+                    param1: c.params.get(0).copied().unwrap_or(0.0),
+                    param2: c.params.get(1).copied().unwrap_or(0.0),
+                    node_mask: c.node_indices.len() as i32,
+                }
+            })
             .collect();
         
         if let Some(ref mut unified) = self.unified_compute {
@@ -368,6 +379,11 @@ impl AdvancedGPUContext {
     /// Update advanced parameters
     pub fn update_advanced_params(&mut self, params: AdvancedParams) {
         self.advanced_params = params;
+    }
+
+    /// Get the current iteration count
+    pub fn iteration_count(&self) -> u32 {
+        self.iteration_count
     }
     
     /// Switch between advanced and legacy kernels (DEPRECATED)
