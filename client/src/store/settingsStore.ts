@@ -10,105 +10,7 @@ import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
 
-/**
- * Migrates settings from the old structure (visualisation.nodes/edges/labels/physics)
- * to the new multi-graph structure (visualisation.graphs.logseq/visionflow)
- */
-function migrateToMultiGraphSettings(settings: Settings): Settings {
-  // Check if already migrated
-  if (settings.visualisation.graphs?.logseq && settings.visualisation.graphs?.visionflow) {
-    // Already migrated, just clean up legacy fields
-    const migrated = { ...settings };
-    delete migrated.visualisation.nodes;
-    delete migrated.visualisation.edges;
-    delete migrated.visualisation.labels;
-    delete migrated.visualisation.physics;
-    return migrated;
-  }
 
-  // Create migrated settings
-  const migrated = { ...settings };
-
-  // Initialize graphs structure if it doesn't exist
-  if (!migrated.visualisation.graphs) {
-    migrated.visualisation.graphs = {
-      logseq: {} as GraphSettings,
-      visionflow: {} as GraphSettings,
-    };
-  }
-
-  // Helper to get legacy value or default
-  const getLegacyOrDefault = (legacyValue: any, defaultValue: any) => {
-    return legacyValue !== undefined ? legacyValue : defaultValue;
-  };
-
-  // Migrate settings to both graphs
-  // For logseq, use the legacy settings if they exist
-  migrated.visualisation.graphs.logseq = {
-    nodes: getLegacyOrDefault(
-      settings.visualisation.nodes,
-      defaultSettings.visualisation.graphs.logseq.nodes
-    ),
-    edges: getLegacyOrDefault(
-      settings.visualisation.edges,
-      defaultSettings.visualisation.graphs.logseq.edges
-    ),
-    labels: getLegacyOrDefault(
-      settings.visualisation.labels,
-      defaultSettings.visualisation.graphs.logseq.labels
-    ),
-    physics: getLegacyOrDefault(
-      settings.visualisation.physics,
-      defaultSettings.visualisation.graphs.logseq.physics
-    ),
-  };
-
-  // For visionflow, use the default green theme
-  migrated.visualisation.graphs.visionflow = {
-    nodes: defaultSettings.visualisation.graphs.visionflow.nodes,
-    edges: defaultSettings.visualisation.graphs.visionflow.edges,
-    labels: defaultSettings.visualisation.graphs.visionflow.labels,
-    physics: defaultSettings.visualisation.graphs.visionflow.physics,
-  };
-
-  // Clean up legacy fields
-  delete migrated.visualisation.nodes;
-  delete migrated.visualisation.edges;
-  delete migrated.visualisation.labels;
-  delete migrated.visualisation.physics;
-
-  return migrated;
-}
-
-/**
- * Gets settings for a specific graph, with fallback to legacy settings
- * This is useful during the transition period
- */
-function getGraphSettings(
-  settings: Settings,
-  graphName: 'logseq' | 'visionflow'
-): GraphSettings {
-  // If new structure exists, use it
-  if (settings.visualisation.graphs?.[graphName]) {
-    return settings.visualisation.graphs[graphName];
-  }
-
-  // Fallback to legacy settings for backward compatibility
-  if (settings.visualisation.nodes || 
-      settings.visualisation.edges || 
-      settings.visualisation.labels || 
-      settings.visualisation.physics) {
-    return {
-      nodes: settings.visualisation.nodes || defaultSettings.visualisation.graphs[graphName].nodes,
-      edges: settings.visualisation.edges || defaultSettings.visualisation.graphs[graphName].edges,
-      labels: settings.visualisation.labels || defaultSettings.visualisation.graphs[graphName].labels,
-      physics: settings.visualisation.physics || defaultSettings.visualisation.graphs[graphName].physics,
-    };
-  }
-
-  // Default to the graph-specific defaults
-  return defaultSettings.visualisation.graphs[graphName];
-}
 
 const logger = createLogger('SettingsStore')
 
@@ -220,7 +122,7 @@ interface SettingsState {
   setAuthenticated: (authenticated: boolean) => void
   setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
   get: <T>(path: SettingsPath) => T
-  set: <T>(path: SettingsPath, value: T) => void // Deprecated - use updateSettings instead
+  set: <T>(path: SettingsPath, value: T) => void
   subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void;
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
@@ -260,11 +162,10 @@ export const useSettingsStore = create<SettingsState>()(
               // This ensures all nested objects are properly merged
               const mergedSettings = deepMerge(defaultSettings, currentSettings, serverSettings)
 
-              // Apply migration to multi-graph structure
-              const migratedSettings = migrateToMultiGraphSettings(mergedSettings)
+              const migratedSettings = mergedSettings
 
               if (debugState.isEnabled()) {
-                logger.info('Deep merged and migrated settings:', { migratedSettings })
+                logger.info('Deep merged settings:', { migratedSettings })
               }
 
               set({
@@ -283,8 +184,8 @@ export const useSettingsStore = create<SettingsState>()(
             // Continue with local settings if server fetch fails
           }
 
-          // Apply migration to current settings
-          const migratedSettings = migrateToMultiGraphSettings(currentSettings)
+          // Use current settings as is
+          const migratedSettings = currentSettings
 
           // Mark as initialized
           set({
@@ -293,15 +194,15 @@ export const useSettingsStore = create<SettingsState>()(
           })
 
           if (debugState.isEnabled()) {
-            logger.info('Settings initialized from local storage and migrated')
+            logger.info('Settings initialized from local storage')
           }
 
           return migratedSettings
         } catch (error) {
           logger.error('Failed to initialize settings:', createErrorMetadata(error))
 
-          // Fall back to default settings (already in the correct format)
-          const migratedDefaults = migrateToMultiGraphSettings(defaultSettings)
+          // Fall back to default settings
+          const migratedDefaults = defaultSettings
           set({
             settings: migratedDefaults,
             initialized: true
@@ -353,13 +254,7 @@ export const useSettingsStore = create<SettingsState>()(
         return current as T
       },
 
-      // Deprecated method - kept for backward compatibility
-      // Internally uses updateSettings for consistency
       set: <T>(path: SettingsPath, value: T) => {
-        if (debugState.isEnabled()) {
-          logger.warn(`Deprecated: set('${path}', value) called. Use updateSettings() instead.`);
-        }
-
         const state = get();
 
         // Use updateSettings internally which will handle viewport updates
@@ -388,13 +283,6 @@ export const useSettingsStore = create<SettingsState>()(
           current[finalPart] = value;
         });
       },
-
-      // Legacy set implementation (commented out for reference)
-      /*
-      set: <T>(path: SettingsPath, value: T) => {
-        // Implementation moved to use updateSettings
-      }
-      */
 
       subscribe: (path: SettingsPath, callback: () => void, immediate: boolean = true) => {
         set(state => {
@@ -500,10 +388,8 @@ export const useSettingsStore = create<SettingsState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state && state.settings) {
-          // Apply migration when rehydrating from storage
-          state.settings = migrateToMultiGraphSettings(state.settings);
           if (debugState.isEnabled()) {
-            logger.info('Settings migrated during rehydration');
+            logger.info('Settings rehydrated from storage');
           }
         }
       }
@@ -514,6 +400,5 @@ export const useSettingsStore = create<SettingsState>()(
 // Export for testing and direct access
 export const settingsStoreUtils = {
   debouncedSaveToServer,
-  scheduleSave,
-  getGraphSettings
+  scheduleSave
 };

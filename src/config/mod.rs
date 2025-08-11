@@ -262,15 +262,6 @@ pub struct GraphsSettings {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct VisualisationSettings {
-    // Legacy flat fields (for backward compatibility)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub nodes: Option<NodeSettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub edges: Option<EdgeSettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub physics: Option<PhysicsSettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<LabelSettings>,
     
     // Global settings
     pub rendering: RenderingSettings,
@@ -640,7 +631,7 @@ impl AppFullSettings {
         let config = builder.build()?;
         debug!("Configuration built successfully. Deserializing AppFullSettings...");
 
-        let mut settings: AppFullSettings = match config.clone().try_deserialize() {
+        let settings: AppFullSettings = match config.clone().try_deserialize() {
             Ok(s) => s,
             Err(e) => {
                 error!("Failed to deserialize AppFullSettings from {:?}: {}", settings_path, e);
@@ -652,72 +643,10 @@ impl AppFullSettings {
             }
         };
         
-        // Migrate legacy flat fields to multi-graph structure if needed
-        settings.migrate_to_multi_graph();
         
         Ok(settings)
     }
     
-    /// Migrate legacy flat fields to multi-graph structure
-    fn migrate_to_multi_graph(&mut self) {
-        // Check if we have legacy flat fields but graphs are not properly populated
-        let needs_migration = self.visualisation.nodes.is_some() || 
-                             self.visualisation.edges.is_some() || 
-                             self.visualisation.physics.is_some() || 
-                             self.visualisation.labels.is_some();
-        
-        if needs_migration {
-            debug!("Migrating legacy flat settings to multi-graph structure");
-            
-            // Migrate nodes settings
-            if let Some(ref nodes) = self.visualisation.nodes {
-                if self.visualisation.graphs.logseq.nodes == NodeSettings::default() {
-                    self.visualisation.graphs.logseq.nodes = nodes.clone();
-                }
-                if self.visualisation.graphs.visionflow.nodes == NodeSettings::default() {
-                    self.visualisation.graphs.visionflow.nodes = nodes.clone();
-                }
-            }
-            
-            // Migrate edges settings
-            if let Some(ref edges) = self.visualisation.edges {
-                if self.visualisation.graphs.logseq.edges == EdgeSettings::default() {
-                    self.visualisation.graphs.logseq.edges = edges.clone();
-                }
-                if self.visualisation.graphs.visionflow.edges == EdgeSettings::default() {
-                    self.visualisation.graphs.visionflow.edges = edges.clone();
-                }
-            }
-            
-            // Migrate physics settings
-            if let Some(ref physics) = self.visualisation.physics {
-                if self.visualisation.graphs.logseq.physics == PhysicsSettings::default() {
-                    self.visualisation.graphs.logseq.physics = physics.clone();
-                }
-                if self.visualisation.graphs.visionflow.physics == PhysicsSettings::default() {
-                    self.visualisation.graphs.visionflow.physics = physics.clone();
-                }
-            }
-            
-            // Migrate labels settings
-            if let Some(ref labels) = self.visualisation.labels {
-                if self.visualisation.graphs.logseq.labels == LabelSettings::default() {
-                    self.visualisation.graphs.logseq.labels = labels.clone();
-                }
-                if self.visualisation.graphs.visionflow.labels == LabelSettings::default() {
-                    self.visualisation.graphs.visionflow.labels = labels.clone();
-                }
-            }
-            
-            // Clear legacy fields after migration
-            self.visualisation.nodes = None;
-            self.visualisation.edges = None;
-            self.visualisation.physics = None;
-            self.visualisation.labels = None;
-            
-            debug!("Migration to multi-graph structure completed");
-        }
-    }
 
     pub fn save(&self) -> Result<(), String> {
         let settings_path = std::env::var("SETTINGS_FILE_PATH")

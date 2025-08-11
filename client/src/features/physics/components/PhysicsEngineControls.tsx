@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import { useSettingsStore } from '@/features/settings/store/settingsStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { PhysicsSettings } from '@/features/settings/config/settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -47,27 +48,43 @@ interface IsolationLayer {
 
 export function PhysicsEngineControls() {
   const { toast } = useToast();
-  // Temporarily commented until zustand is installed
-  // const { settings, currentGraph, updatePhysics, loadSettings } = useSettingsStore();
-  const settings = null;
-  const currentGraph = 'logseq' as const;
-  const updatePhysics = async (update: any) => {};
-  const loadSettings = async () => {};
+  // Use the settings store
+  const { settings, initialized, updateSettings } = useSettingsStore();
+  const [currentGraph] = useState<'logseq' | 'visionflow'>('logseq');
+  
+  // Helper function to update physics settings
+  const updatePhysics = async (physicsUpdate: Partial<PhysicsSettings>) => {
+    updateSettings((draft) => {
+      if (!draft.visualisation.graphs[currentGraph]) {
+        draft.visualisation.graphs[currentGraph] = {
+          nodes: draft.visualisation.graphs.logseq.nodes,
+          edges: draft.visualisation.graphs.logseq.edges,
+          labels: draft.visualisation.graphs.logseq.labels,
+          physics: draft.visualisation.graphs.logseq.physics,
+        };
+      }
+      Object.assign(draft.visualisation.graphs[currentGraph].physics, physicsUpdate);
+    });
+  };
+  
+  const loadSettings = async () => {
+    // Settings are automatically loaded by the store
+  };
   
   // State management
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
   // Initialize force params from settings
-  const physicsSettings = null; // settings?.visualisation?.graphs?.[currentGraph]?.physics;
+  const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsion: physicsSettings?.repulsionStrength || 100.0,
-    attraction: physicsSettings?.attractionStrength || 0.01,
-    spring: physicsSettings?.springStrength || 0.1,
-    damping: physicsSettings?.damping || 0.95,
+    repulsion: physicsSettings?.repulsionStrength || 600.0,
+    attraction: physicsSettings?.attractionStrength || 0.001,
+    spring: physicsSettings?.springStrength || 0.002,
+    damping: physicsSettings?.damping || 0.85,
     gravity: physicsSettings?.gravity || 0.1,
     timeStep: physicsSettings?.timeStep || 0.016,
-    maxVelocity: physicsSettings?.maxVelocity || 10.0,
+    maxVelocity: physicsSettings?.maxVelocity || 8.0,
     temperature: physicsSettings?.temperature || 1.0,
   });
   
@@ -104,28 +121,28 @@ export function PhysicsEngineControls() {
     power: 0,
   });
 
-  // Load settings on mount
+  // Initialize the settings store on mount
   useEffect(() => {
-    if (!settings) {
-      loadSettings();
+    if (!initialized) {
+      // The settings store automatically initializes on first use
     }
-  }, [settings, loadSettings]);
+  }, [initialized]);
   
   // Update local state when settings change
   useEffect(() => {
-    if (physicsSettings) {
+    if (physicsSettings && initialized) {
       setForceParams({
-        repulsion: physicsSettings.repulsionStrength,
-        attraction: physicsSettings.attractionStrength,
-        spring: physicsSettings.springStrength,
-        damping: physicsSettings.damping,
-        gravity: physicsSettings.gravity,
-        timeStep: physicsSettings.timeStep,
-        maxVelocity: physicsSettings.maxVelocity,
-        temperature: physicsSettings.temperature,
+        repulsion: physicsSettings.repulsionStrength || 600.0,
+        attraction: physicsSettings.attractionStrength || 0.001,
+        spring: physicsSettings.springStrength || 0.002,
+        damping: physicsSettings.damping || 0.85,
+        gravity: physicsSettings.gravity || 0.1,
+        timeStep: physicsSettings.timeStep || 0.016,
+        maxVelocity: physicsSettings.maxVelocity || 8.0,
+        temperature: physicsSettings.temperature || 1.0,
       });
     }
-  }, [physicsSettings]);
+  }, [physicsSettings, initialized]);
   
   // Fetch GPU metrics periodically
   useEffect(() => {

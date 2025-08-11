@@ -268,7 +268,66 @@ impl SpeechService {
 
                         match provider {
                             TTSProvider::OpenAI => {
-                                info!("TextToSpeech command with OpenAI provider not implemented");
+                                info!("Processing TextToSpeech command with OpenAI provider");
+                                let openai_config = {
+                                    let s = settings.read().await;
+                                    s.openai.clone()
+                                };
+
+                                if let Some(config) = openai_config {
+                                    if let Some(api_key) = config.api_key.as_ref() {
+                                        let api_url = "https://api.openai.com/v1/audio/speech";
+                                        info!("Sending TTS request to OpenAI API: {}", api_url);
+
+                                        let request_body = json!({
+                                            "model": "tts-1",
+                                            "input": text,
+                                            "voice": options.voice.clone(),
+                                            "response_format": "mp3",
+                                            "speed": options.speed
+                                        });
+
+                                        let response = match http_client
+                                            .post(api_url)
+                                            .header("Authorization", format!("Bearer {}", api_key))
+                                            .header("Content-Type", "application/json")
+                                            .body(request_body.to_string())
+                                            .send()
+                                            .await
+                                        {
+                                            Ok(response) => {
+                                                if !response.status().is_success() {
+                                                    let status = response.status();
+                                                    let error_text = response.text().await.unwrap_or_default();
+                                                    error!("OpenAI TTS API error {}: {}", status, error_text);
+                                                    continue;
+                                                }
+                                                response
+                                            }
+                                            Err(e) => {
+                                                error!("Failed to connect to OpenAI TTS API: {}", e);
+                                                continue;
+                                            }
+                                        };
+
+                                        match response.bytes().await {
+                                            Ok(bytes) => {
+                                                if let Err(e) = audio_tx.send(bytes.to_vec()) {
+                                                    error!("Failed to send OpenAI audio data: {}", e);
+                                                } else {
+                                                    debug!("Sent {} bytes of OpenAI audio data", bytes.len());
+                                                }
+                                            }
+                                            Err(e) => {
+                                                error!("Failed to get OpenAI audio bytes: {}", e);
+                                            }
+                                        }
+                                    } else {
+                                        error!("OpenAI API key not configured");
+                                    }
+                                } else {
+                                    error!("OpenAI configuration not found");
+                                }
                             },
                             TTSProvider::Kokoro => {
                                 info!("Processing TextToSpeech command with Kokoro provider");
@@ -392,7 +451,23 @@ impl SpeechService {
                             },
                             STTProvider::OpenAI => {
                                 info!("Starting OpenAI transcription with options: {:?}", options);
-                                // TODO: Implement OpenAI STT
+                                let openai_config = {
+                                    let s = settings.read().await;
+                                    s.openai.clone()
+                                };
+
+                                if let Some(config) = openai_config {
+                                    if config.api_key.is_some() {
+                                        info!("OpenAI STT initialized with API key configured");
+                                        let _ = transcription_tx.send("OpenAI STT ready".to_string());
+                                    } else {
+                                        error!("OpenAI API key not configured for STT");
+                                        let _ = transcription_tx.send("OpenAI STT API key missing".to_string());
+                                    }
+                                } else {
+                                    error!("OpenAI configuration not found for STT");
+                                    let _ = transcription_tx.send("OpenAI STT configuration missing".to_string());
+                                }
                             }
                         }
                     },
@@ -484,8 +559,69 @@ impl SpeechService {
                                 }
                             },
                             STTProvider::OpenAI => {
-                                debug!("OpenAI STT audio processing not implemented");
-                                // TODO: Implement OpenAI STT processing
+                                debug!("Processing audio chunk with OpenAI STT");
+                                let openai_config = {
+                                    let s = settings.read().await;
+                                    s.openai.clone()
+                                };
+
+                                if let Some(config) = openai_config {
+                                    if let Some(api_key) = config.api_key.as_ref() {
+                                        let api_url = "https://api.openai.com/v1/audio/transcriptions";
+
+                                        let form = reqwest::multipart::Form::new()
+                                            .part("file", reqwest::multipart::Part::bytes(audio_data)
+                                                .file_name("audio.wav")
+                                                .mime_str("audio/wav").unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/wav").unwrap()))
+                                            .text("model", "whisper-1")
+                                            .text("response_format", "json");
+
+                                        let http_client_clone = Arc::clone(&http_client);
+                                        let transcription_broadcaster = transcription_tx.clone();
+                                        let api_key_clone = api_key.clone();
+
+                                        tokio::spawn(async move {
+                                            match http_client_clone
+                                                .post(api_url)
+                                                .header("Authorization", format!("Bearer {}", api_key_clone))
+                                                .multipart(form)
+                                                .send()
+                                                .await
+                                            {
+                                                Ok(response) => {
+                                                    if response.status().is_success() {
+                                                        match response.json::<serde_json::Value>().await {
+                                                            Ok(json) => {
+                                                                if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
+                                                                    if !text.trim().is_empty() {
+                                                                        debug!("OpenAI transcription: {}", text);
+                                                                        let _ = transcription_broadcaster.send(text.to_string());
+                                                                    }
+                                                                } else {
+                                                                    error!("No text field in OpenAI response: {:?}", json);
+                                                                }
+                                                            }
+                                                            Err(e) => {
+                                                                error!("Failed to parse OpenAI response JSON: {}", e);
+                                                            }
+                                                        }
+                                                    } else {
+                                                        let status = response.status();
+                                                        let error_text = response.text().await.unwrap_or_default();
+                                                        error!("OpenAI STT API error {}: {}", status, error_text);
+                                                    }
+                                                }
+                                                Err(e) => {
+                                                    error!("Failed to connect to OpenAI STT API: {}", e);
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        error!("OpenAI API key not configured for audio processing");
+                                    }
+                                } else {
+                                    error!("OpenAI configuration not found for audio processing");
+                                }
                             }
                         }
                     }

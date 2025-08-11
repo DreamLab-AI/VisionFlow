@@ -142,20 +142,40 @@ async fn main() -> std::io::Result<()> {
     // Initialize Nostr service
     nostr_handler::init_nostr_service(&mut app_state);
 
-    // Initialize BotsClient connection
-    // DISABLED: BotsClient was trying to connect to powerdev MCP with wrong protocol
-    // info!("Connecting to bots orchestrator...");
-    // let bots_url = std::env::var("BOTS_ORCHESTRATOR_URL")
-    //     .unwrap_or_else(|_| "ws://powerdev:3000/ws".to_string());
+    // Initialize BotsClient connection with proper WebSocket protocol
+    info!("Connecting to bots orchestrator via WebSocket...");
+    let bots_url = std::env::var("BOTS_ORCHESTRATOR_URL")
+        .unwrap_or_else(|_| "ws://multi-agent-container:3002/ws".to_string());
 
-    // let bots_client = app_state.bots_client.clone();
-    // tokio::spawn(async move {
-    //     match bots_client.connect(&bots_url).await {
-    //         Ok(()) => info!("Successfully connected to bots orchestrator at {}", bots_url),
-    //         Err(e) => error!("Failed to connect to bots orchestrator: {}", e),
-    //     }
-    // });
-    info!("BotsClient connection disabled - will use mock data");
+    let bots_client = app_state.bots_client.clone();
+    tokio::spawn(async move {
+        // Retry connection with exponential backoff
+        let mut retry_count = 0;
+        let max_retries = 5;
+        
+        while retry_count < max_retries {
+            match bots_client.connect(&bots_url).await {
+                Ok(()) => {
+                    info!("Successfully connected to bots orchestrator at {}", bots_url);
+                    break;
+                }
+                Err(e) => {
+                    retry_count += 1;
+                    let delay = std::cmp::min(1000 * (1 << retry_count), 30000); // Max 30s
+                    error!("Failed to connect to bots orchestrator (attempt {}): {}. Retrying in {}ms", 
+                           retry_count, e, delay);
+                    
+                    if retry_count < max_retries {
+                        tokio::time::sleep(Duration::from_millis(delay)).await;
+                    }
+                }
+            }
+        }
+        
+        if retry_count >= max_retries {
+            error!("Failed to connect to bots orchestrator after {} attempts. Will use fallback mode.", max_retries);
+        }
+    });
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");

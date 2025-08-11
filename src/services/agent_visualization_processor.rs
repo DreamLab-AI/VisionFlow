@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::services::claude_flow::types::AgentStatus;
+use sysinfo::{System, Pid};
+use std::sync::{Arc, Mutex};
+use once_cell::sync::Lazy;
 
 /// Processed agent data optimized for GPU visualization
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -182,11 +185,19 @@ pub struct GlowSettings {
     pub error_intensity: f32,
 }
 
+/// Global system instance for monitoring
+static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+    Arc::new(Mutex::new(sys))
+});
+
 /// Main processor that transforms MCP data into visualization-ready format
 pub struct AgentVisualizationProcessor {
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
     _performance_history: HashMap<String, Vec<PerformanceSnapshot>>,
     _last_update: DateTime<Utc>,
+    process_map: HashMap<String, Pid>,
 }
 
 impl AgentVisualizationProcessor {
@@ -195,6 +206,7 @@ impl AgentVisualizationProcessor {
             token_history: HashMap::new(),
             _performance_history: HashMap::new(),
             _last_update: Utc::now(),
+            process_map: HashMap::new(),
         }
     }
     
@@ -205,8 +217,7 @@ impl AgentVisualizationProcessor {
             
             // Calculate normalized metrics
             let health = ((agent.success_rate as f32) / 100.0).clamp(0.0, 1.0);
-            let cpu_usage = 0.5; // TODO: Get from system metrics
-            let memory_usage = 0.3; // TODO: Get from system metrics
+            let (cpu_usage, memory_usage) = self.get_real_system_metrics(&agent.agent_id);
             let activity_level = if agent.active_tasks_count > 0 { 0.8 } else { 0.2 };
             
             // Determine visual properties based on agent state
@@ -336,6 +347,59 @@ impl AgentVisualizationProcessor {
     fn get_agent_token_usage(&self, agent_id: &str) -> u64 {
         // TODO: Get from actual MCP data
         1000 + (agent_id.len() as u64 * 100)
+    }
+    
+    /// Get real CPU and memory usage for an agent process
+    fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
+        let mut sys = SYSTEM.lock().unwrap();
+        sys.refresh_processes();
+        
+        // Try to find process by agent ID or name
+        if let Some(&pid) = self.process_map.get(agent_id) {
+            if let Some(process) = sys.process(pid) {
+                let cpu_usage = process.cpu_usage() / 100.0; // Convert to 0-1 range
+                let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0); // Convert to GB
+                let total_memory = sys.total_memory() as f32 / (1024.0 * 1024.0 * 1024.0); // GB
+                let memory_percentage = if total_memory > 0.0 { memory_usage / total_memory } else { 0.0 };
+                
+                return (cpu_usage.clamp(0.0, 1.0), memory_percentage.clamp(0.0, 1.0));
+            }
+        }
+        
+        // Fallback: find process by name containing agent_id
+        for (pid, process) in sys.processes() {
+            let process_name = process.name().to_lowercase();
+            let agent_id_lower = agent_id.to_lowercase();
+            
+            // Check if process name contains agent type or similar identifier
+            if process_name.contains(&agent_id_lower) || 
+               process_name.contains("claude") ||
+               process_name.contains("agent") ||
+               process_name.contains("bot") {
+                
+                // Cache the mapping for future use
+                self.process_map.insert(agent_id.to_string(), *pid);
+                
+                let cpu_usage = process.cpu_usage() / 100.0;
+                let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0);
+                let total_memory = sys.total_memory() as f32 / (1024.0 * 1024.0 * 1024.0);
+                let memory_percentage = if total_memory > 0.0 { memory_usage / total_memory } else { 0.0 };
+                
+                return (cpu_usage.clamp(0.0, 1.0), memory_percentage.clamp(0.0, 1.0));
+            }
+        }
+        
+        // Final fallback: use system-wide averages scaled down
+        let global_cpu = sys.global_cpu_info().cpu_usage() / 100.0;
+        let used_memory = sys.used_memory() as f32;
+        let total_memory = sys.total_memory() as f32;
+        let global_memory = if total_memory > 0.0 { used_memory / total_memory } else { 0.0 };
+        
+        // Scale down to represent a single agent's approximate usage
+        let agent_cpu = (global_cpu * 0.1).clamp(0.0, 1.0); // Assume 10% of system CPU per agent
+        let agent_memory = (global_memory * 0.05).clamp(0.0, 1.0); // Assume 5% of system memory per agent
+        
+        (agent_cpu, agent_memory)
     }
     
     /// Create complete visualization data packet

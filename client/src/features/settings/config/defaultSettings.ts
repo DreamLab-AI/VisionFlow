@@ -78,6 +78,9 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       massScale: 1.5,
       boundaryDamping: 0.9,
       updateThreshold: 0.05,
+      timeStep: 0.016,
+      temperature: 1.0,
+      gravity: 0.1,
     },
   };
 };

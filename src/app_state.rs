@@ -4,6 +4,7 @@ use actix_web::web;
 use log::{info, error};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
+use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;
@@ -67,9 +68,11 @@ impl AppState {
         let gpu_compute_addr = Some(GPUComputeActor::new().start());
 
         info!("[AppState::new] Starting GraphServiceActor");
+        let device = CudaDevice::new(0).unwrap();
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
-            gpu_compute_addr.clone()
+            gpu_compute_addr.clone(),
+            device
         ).start();
         
         // Send initial physics settings to both GraphServiceActor and GPUComputeActor

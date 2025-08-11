@@ -574,24 +574,62 @@ impl AdvancedEdgeGenerator {
         }
     }
 
-    /// Convert enhanced edges to basic edges for compatibility
-    pub fn to_basic_edges(&self, enhanced_edges: Vec<EnhancedEdge>) -> Vec<Edge> {
+    /// Convert enhanced edges to basic edges for compatibility with real node mapping
+    pub fn to_basic_edges(&self, enhanced_edges: Vec<EnhancedEdge>, node_id_map: &HashMap<String, u32>) -> Vec<Edge> {
         enhanced_edges.into_iter()
-            .flat_map(|edge| {
-                // Create indices mapping (would need actual node index lookup)
-                let source_idx = 0u32; // Placeholder
-                let target_idx = 1u32; // Placeholder
+            .filter_map(|edge| {
+                // Get actual node indices from the mapping
+                let source_idx = node_id_map.get(&edge.source)?;
+                let target_idx = node_id_map.get(&edge.target)?;
                 
                 if edge.bidirectional {
-                    vec![
-                        Edge::new(source_idx, target_idx, edge.weight),
-                        Edge::new(target_idx, source_idx, edge.weight),
-                    ]
+                    Some(vec![
+                        Edge::new(*source_idx, *target_idx, edge.weight),
+                        Edge::new(*target_idx, *source_idx, edge.weight),
+                    ])
                 } else {
-                    vec![Edge::new(source_idx, target_idx, edge.weight)]
+                    Some(vec![Edge::new(*source_idx, *target_idx, edge.weight)])
                 }
             })
+            .flatten()
             .collect()
+    }
+    
+    /// Create a node ID to index mapping from a list of node IDs
+    pub fn create_node_id_mapping(node_ids: &[String]) -> HashMap<String, u32> {
+        node_ids.iter()
+            .enumerate()
+            .map(|(idx, id)| (id.clone(), idx as u32))
+            .collect()
+    }
+    
+    /// Generate edges with proper node index mapping
+    pub fn generate_with_mapping(
+        &mut self,
+        features: &HashMap<String, SemanticFeatures>,
+    ) -> (Vec<Edge>, HashMap<String, u32>) {
+        // Generate enhanced edges first
+        let enhanced_edges = self.generate(features);
+        
+        // Create node mapping from all unique node IDs
+        let mut all_node_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for edge in &enhanced_edges {
+            all_node_ids.insert(edge.source.clone());
+            all_node_ids.insert(edge.target.clone());
+        }
+        
+        // Add any nodes from features that might not have edges
+        for node_id in features.keys() {
+            all_node_ids.insert(node_id.clone());
+        }
+        
+        let node_ids: Vec<String> = all_node_ids.into_iter().collect();
+        let node_id_map = Self::create_node_id_mapping(&node_ids);
+        
+        // Convert to basic edges with real mapping
+        let basic_edges = self.to_basic_edges(enhanced_edges, &node_id_map);
+        
+        (basic_edges, node_id_map)
     }
 
     /// Clear edge cache

@@ -85,16 +85,37 @@ impl EnhancedClaudeFlowActor {
         });
     }
     
-    /// Establish WebSocket connection to Claude Flow
+    /// Establish WebSocket connection to Claude Flow (WebSocket only, no TCP/stdio fallback)
     async fn connect_to_claude_flow() -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, Box<dyn std::error::Error>> {
-        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
-        let port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string());
-        let url = format!("ws://{}:{}/mcp", host, port);
+        // Try multiple possible endpoints for Claude Flow
+        let possible_endpoints = vec![
+            (std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string()), 
+             std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string()),
+             "/mcp".to_string()),
+            ("localhost".to_string(), "3002".to_string(), "/mcp".to_string()),
+            ("multi-agent-container".to_string(), "3002".to_string(), "/ws".to_string()),
+            ("claude-flow".to_string(), "3002".to_string(), "/mcp".to_string()),
+        ];
         
-        info!("Connecting to Claude Flow MCP at: {}", url);
-        let (ws_stream, _response) = connect_async(&url).await?;
+        let mut last_error = None;
         
-        Ok(ws_stream)
+        for (host, port, path) in possible_endpoints {
+            let url = format!("ws://{}:{}{}", host, port, path);
+            info!("Attempting to connect to Claude Flow at: {}", url);
+            
+            match connect_async(&url).await {
+                Ok((ws_stream, response)) => {
+                    info!("Successfully connected to Claude Flow at: {} (status: {})", url, response.status());
+                    return Ok(ws_stream);
+                }
+                Err(e) => {
+                    warn!("Failed to connect to {}: {}", url, e);
+                    last_error = Some(e);
+                }
+            }
+        }
+        
+        Err(Box::new(last_error.unwrap_or_else(|| tokio_tungstenite::tungstenite::Error::Io(std::io::Error::new(std::io::ErrorKind::ConnectionRefused, "No endpoints available")))))
     }
 
     /// Start real-time telemetry streaming
@@ -293,23 +314,39 @@ impl EnhancedClaudeFlowActor {
         };
     }
 
-    /// Ensure connection to Claude Flow, with exponential backoff retry
+    /// Ensure WebSocket connection to Claude Flow with exponential backoff retry (WebSocket only)
     #[allow(dead_code)]
     async fn ensure_connection(&mut self) -> Result<(), String> {
         if !self.is_connected {
-            // Attempt reconnection
-            match Self::connect_to_claude_flow().await {
-                Ok(ws_stream) => {
-                    self.ws_connection = Some(Arc::new(RwLock::new(ws_stream)));
-                    self.is_connected = true;
-                    self.is_initialized = true;
-                    Ok(())
-                }
-                Err(e) => {
-                    // Return empty state instead of mock data
-                    Err(format!("MCP connection failed: {}", e))
+            info!("Attempting WebSocket reconnection to Claude Flow...");
+            
+            // Exponential backoff retry logic
+            let mut retry_delay = 1000; // Start with 1 second
+            let max_delay = 30000; // Max 30 seconds
+            let max_retries = 3;
+            
+            for attempt in 1..=max_retries {
+                match Self::connect_to_claude_flow().await {
+                    Ok(ws_stream) => {
+                        info!("WebSocket reconnection successful on attempt {}", attempt);
+                        self.ws_connection = Some(Arc::new(RwLock::new(ws_stream)));
+                        self.is_connected = true;
+                        self.is_initialized = true;
+                        return Ok(());
+                    }
+                    Err(e) => {
+                        warn!("WebSocket connection attempt {} failed: {}", attempt, e);
+                        
+                        if attempt < max_retries {
+                            info!("Waiting {}ms before retry...", retry_delay);
+                            tokio::time::sleep(tokio::time::Duration::from_millis(retry_delay)).await;
+                            retry_delay = std::cmp::min(retry_delay * 2, max_delay);
+                        }
+                    }
                 }
             }
+            
+            Err(format!("WebSocket connection failed after {} attempts. No TCP/stdio fallback available.", max_retries))
         } else {
             Ok(())
         }
@@ -362,10 +399,18 @@ impl Actor for EnhancedClaudeFlowActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("Enhanced Claude Flow Actor started - connecting to port 3002");
+        info!("Enhanced Claude Flow Actor started - initializing WebSocket-only connection to Claude Flow");
         
-        // Initialize direct MCP WebSocket connection
+        // Initialize direct MCP WebSocket connection (no fallback protocols)
         self.initialize_connection(ctx);
+        
+        // Schedule periodic health checks for the WebSocket connection
+        ctx.run_interval(Duration::from_secs(30), |actor, ctx| {
+            if !actor.is_connected {
+                info!("WebSocket connection lost, attempting reconnection...");
+                ctx.address().do_send(RetryMCPConnection);
+            }
+        });
     }
 }
 
