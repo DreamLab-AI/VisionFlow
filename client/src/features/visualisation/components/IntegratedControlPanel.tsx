@@ -26,22 +26,25 @@ interface SettingField {
   options?: string[];
 }
 
-// Map SpacePilot buttons to menu sections
+// Map SpacePilot buttons to menu sections (9 sections now)
 const BUTTON_MENU_MAP = {
-  '1': { id: 'appearance', label: 'Appearance' },
-  '2': { id: 'physics', label: 'Physics' },
-  '3': { id: 'visual', label: 'Visual FX' },
-  '4': { id: 'auth', label: 'Auth' },
-  '5': { id: 'data', label: 'Data' },
-  '6': { id: 'info', label: 'Info' }
+  '1': { id: 'dashboard', label: 'Dashboard' },
+  '2': { id: 'visualization', label: 'Visualization' },
+  '3': { id: 'physics', label: 'Physics' },
+  '4': { id: 'analytics', label: 'Analytics' },
+  '5': { id: 'performance', label: 'Performance' },
+  '6': { id: 'integrations', label: 'Integrations' },
+  '7': { id: 'developer', label: 'Developer' },
+  '8': { id: 'auth', label: 'Authentication' },
+  '9': { id: 'xr', label: 'XR/AR' }
 };
 
-// Navigation button mappings
+// Navigation button mappings (using hex values to avoid conflicts)
 const NAV_BUTTONS = {
-  '7': 'up',     // Up button
-  'A': 'down',   // Down button (hex A = 10)
-  '9': 'right',  // Right button
-  '8': 'left',   // Left button
+  'A': 'up',     // Up button (hex A = 10)
+  'B': 'down',   // Down button (hex B = 11)
+  'C': 'right',  // Right button (hex C = 12)
+  'D': 'left',   // Left button (hex D = 13)
   'F': 'commit'  // F button to commit (hex F = 15)
 };
 
@@ -353,9 +356,18 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   // Get section settings based on active section
   const getSectionSettings = () => {
     switch (activeSection) {
-      case 'appearance':
+      case 'dashboard':
         return {
-          title: 'Appearance Settings',
+          title: 'Dashboard',
+          fields: [
+            { key: 'graphStatus', label: 'Show Graph Status', type: 'toggle', path: 'dashboard.showStatus' },
+            { key: 'autoRefresh', label: 'Auto Refresh', type: 'toggle', path: 'dashboard.autoRefresh' },
+            { key: 'refreshInterval', label: 'Refresh Interval (s)', type: 'slider', min: 1, max: 60, path: 'dashboard.refreshInterval' },
+          ]
+        };
+      case 'visualization':
+        return {
+          title: 'Visualization Settings',
           fields: [
             // Node Settings
             { key: 'nodeColor', label: 'Node Color', type: 'color', path: 'visualisation.graphs.logseq.nodes.baseColor' },
@@ -407,7 +419,29 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, path: 'visualisation.graphs.logseq.physics.updateThreshold' }
           ]
         };
-      case 'visual':
+      case 'analytics':
+        return {
+          title: 'Analytics Settings',
+          fields: [
+            { key: 'enableMetrics', label: 'Enable Metrics', type: 'toggle', path: 'analytics.enableMetrics' },
+            { key: 'updateInterval', label: 'Update Interval (s)', type: 'slider', min: 1, max: 60, path: 'analytics.updateInterval' },
+            { key: 'showDegreeDistribution', label: 'Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution' },
+            { key: 'showClustering', label: 'Clustering Coefficient', type: 'toggle', path: 'analytics.showClusteringCoefficient' },
+            { key: 'showCentrality', label: 'Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality' },
+          ]
+        };
+      case 'performance':
+        return {
+          title: 'Performance Settings',
+          fields: [
+            { key: 'showFPS', label: 'Show FPS', type: 'toggle', path: 'performance.showFPS' },
+            { key: 'targetFPS', label: 'Target FPS', type: 'slider', min: 30, max: 144, path: 'performance.targetFPS' },
+            { key: 'gpuMemoryLimit', label: 'GPU Memory (MB)', type: 'slider', min: 256, max: 8192, step: 256, path: 'performance.gpuMemoryLimit' },
+            { key: 'levelOfDetail', label: 'Quality Preset', type: 'select', options: ['low', 'medium', 'high', 'ultra'], path: 'performance.levelOfDetail' },
+            { key: 'adaptiveQuality', label: 'Adaptive Quality', type: 'toggle', path: 'performance.enableAdaptiveQuality' },
+          ]
+        };
+      case 'integrations':
         return {
           title: 'Visual Effects',
           fields: [
@@ -448,6 +482,18 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'ambientOcclusion', label: 'Ambient Occl', type: 'toggle', path: 'visualisation.rendering.enableAmbientOcclusion' }
           ]
         };
+      case 'developer':
+        return {
+          title: 'Developer Tools',
+          fields: [
+            { key: 'consoleLogging', label: 'Console Logging', type: 'toggle', path: 'developer.consoleLogging' },
+            { key: 'logLevel', label: 'Log Level', type: 'select', options: ['error', 'warn', 'info', 'debug'], path: 'developer.logLevel' },
+            { key: 'showNodeIds', label: 'Show Node IDs', type: 'toggle', path: 'developer.showNodeIds' },
+            { key: 'showEdgeWeights', label: 'Show Edge Weights', type: 'toggle', path: 'developer.showEdgeWeights' },
+            { key: 'enableProfiler', label: 'Enable Profiler', type: 'toggle', path: 'developer.enableProfiler' },
+            { key: 'apiDebugMode', label: 'API Debug Mode', type: 'toggle', path: 'developer.apiDebugMode' },
+          ]
+        };
       case 'auth':
         return {
           title: 'Authentication Settings',
@@ -458,9 +504,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'provider', label: 'Auth Provider', type: 'text', path: 'auth.provider' }
           ]
         };
-      case 'data':
         return {
-          title: 'Data Settings',
+          title: 'Data & Integrations',
           fields: [
             // General Data Settings
             { key: 'autoSave', label: 'Auto Save', type: 'toggle', path: 'data.autoSave' },
@@ -486,9 +531,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'spSmoothing', label: 'SP Smoothing', type: 'slider', min: 0, max: 95, path: 'system.spacepilot.smoothing' }
           ]
         };
-      case 'info':
+      case 'xr':
         return {
-          title: 'System Information',
+          title: 'XR/AR Settings',
           fields: [
             // Debug Settings
             { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enableClientDebugMode' },
@@ -580,7 +625,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         alignItems: 'center',
         marginBottom: '10px'
       }}>
-        <div style={{ fontWeight: 'bold' }}>Quick Controls</div>
+        <div style={{ fontWeight: 'bold' }}>Control Center</div>
         <div
           style={{
             width: '16px',
@@ -666,27 +711,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         </div>
       )}
 
-      {/* Note: Full settings available in the Command Palette (Cmd/Ctrl+K) */}
-      <div style={{ 
-        padding: '8px',
-        marginBottom: '10px',
-        background: 'rgba(52, 152, 219, 0.1)',
-        border: '1px solid rgba(52, 152, 219, 0.3)',
-        borderRadius: '4px',
-        fontSize: '11px',
-        color: '#3498DB',
-        textAlign: 'center',
-        cursor: 'pointer'
-      }}
-      onClick={() => {
-        // Trigger command palette for settings
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true }));
-      }}>
-        Press Cmd/Ctrl+K for Settings
-      </div>
-
       {/* SpacePilot Menu Controls */}
-      <div style={{ display: activeSection ? 'block' : 'none' }}>
+      <div>
         <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>SpacePilot Controls</div>
 
         {/* Connection status */}
@@ -732,8 +758,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           )}
         </div>
 
-        {/* Menu Buttons (1-6) - Always visible for mouse control */}
-        <div style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.7 }}>Menu Sections:</div>
+        {/* Menu Buttons (1-9) - Always visible for mouse control */}
+        <div style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.7 }}>Menu Sections (9 Total):</div>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
