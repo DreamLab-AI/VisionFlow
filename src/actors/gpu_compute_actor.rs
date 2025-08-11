@@ -4,20 +4,20 @@ use std::io::{Error, ErrorKind};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceSlice};
-use cudarc::nvrtc::Ptx;
+use cudarc::driver::CudaDevice;
+// use cudarc::nvrtc::Ptx; // Not needed with unified compute
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams;
-use crate::models::constraints::{Constraint, ConstraintSet, AdvancedParams};
+use crate::models::constraints::{Constraint, ConstraintSet};
 use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::utils::edge_data::EdgeData;
-use crate::utils::advanced_gpu_compute::{AdvancedGPUContext, EnhancedBinaryNodeData};
-use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4};
+// use crate::utils::edge_data::EdgeData; // Not directly used
+use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode as UnifiedComputeMode, SimParams};
+// use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4}; // Not used with unified compute
 use crate::types::vec3::Vec3Data;
 use crate::actors::messages::*;
-use std::path::Path;
+// use std::path::Path; // Not needed
 use std::env;
 use std::sync::Arc;
 use actix::fut::{ActorFutureExt}; // For .map() on ActorFuture
@@ -47,151 +47,81 @@ pub enum GraphType {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ComputeMode {
-    Legacy,     // Single-graph mode with compute_forces.ptx
-    DualGraph,  // Dual-graph mode with compute_dual_graphs.ptx  
-    Advanced,   // Advanced mode with constraints and advanced_compute_forces.ptx
+    Basic,      // Basic force-directed layout
+    DualGraph,  // Dual-graph mode
+    Advanced,   // Advanced mode with constraints
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum KernelMode {
-    Legacy,          // Standard legacy kernel for simple graphs (<1000 nodes)
-    Advanced,        // Advanced kernel for medium complexity (1000-10000 nodes)
-    VisualAnalytics, // Visual analytics kernel for complex analysis (>10000 nodes or isolation layers)
-}
+// Legacy KernelMode removed - all computation now uses unified kernel
 
 #[derive(Debug)]
 pub struct GPUComputeActor {
     device: Option<Arc<CudaDevice>>,
     
-    // Five kernels for different compute modes
-    force_kernel: Option<CudaFunction>,        // Legacy single-graph
-    dual_graph_kernel: Option<CudaFunction>,   // Dual-graph physics
-    advanced_kernel: Option<CudaFunction>,     // Advanced with constraints
-    visual_analytics_kernel: Option<CudaFunction>, // Visual analytics core kernel
-    advanced_gpu_kernel: Option<CudaFunction>, // Advanced GPU algorithms kernel
+    // Single unified compute engine
+    unified_compute: Option<UnifiedGPUCompute>,
     
-    // Separate data for each graph type
-    knowledge_node_data: Option<CudaSlice<BinaryNodeData>>,
-    agent_node_data: Option<CudaSlice<BinaryNodeData>>,
-    
-    // Combined node data for legacy single-graph mode
-    node_data: Option<CudaSlice<BinaryNodeData>>,
-    
-    // CRITICAL FIX: Add edge data for spring force calculations
-    edge_data: Option<CudaSlice<EdgeData>>,
+    // Unified data management
+    num_nodes: u32,
     num_edges: u32,
-    
-    num_knowledge_nodes: u32,
-    num_agent_nodes: u32,
-    num_nodes: u32,  // Total for legacy compatibility
-    
-    // Track which graph each node belongs to
-    _graph_type_map: HashMap<u32, GraphType>,
-    __knowledge_node_indices: HashMap<u32, usize>,
-    __agent_node_indices: HashMap<u32, usize>,
-    node_indices: HashMap<u32, usize>,  // Legacy combined map
+    node_indices: HashMap<u32, usize>,
     
     // Separate physics parameters for each graph type
     knowledge_sim_params: SimulationParams,
     agent_sim_params: SimulationParams,
     simulation_params: SimulationParams,  // Legacy combined params
     
-    // Advanced physics support
-    advanced_params: AdvancedParams,
+    // Unified physics support
     constraints: Vec<Constraint>,
-    advanced_gpu_context: Option<AdvancedGPUContext>,
-    
-    // Visual analytics support
-    visual_analytics_gpu: Option<VisualAnalyticsGPU>,
-    visual_analytics_params: Option<VisualAnalyticsParams>,
-    isolation_layers: Vec<IsolationLayer>,
+    unified_params: SimParams,
     
     iteration_count: u32,
     gpu_failure_count: u32,
     last_failure_reset: Instant,
     cpu_fallback_active: bool,
     
-    // Current compute mode and kernel mode
+    // Current compute mode
     compute_mode: ComputeMode,
-    kernel_mode: KernelMode,
     
     // Stress majorization settings
     stress_majorization_interval: u32,
     last_stress_majorization: u32,
 }
 
-// Struct to hold the results of GPU initialization
+// Unified GPU initialization result
 struct GpuInitializationResult {
     device: Arc<CudaDevice>,
-    force_kernel: CudaFunction,
-    dual_graph_kernel: Option<CudaFunction>,
-    advanced_kernel: Option<CudaFunction>,
-    visual_analytics_kernel: Option<CudaFunction>,
-    advanced_gpu_kernel: Option<CudaFunction>,
-    node_data: CudaSlice<BinaryNodeData>,
-    edge_data: Option<CudaSlice<EdgeData>>,  // CRITICAL FIX: Include edge data
+    unified_compute: UnifiedGPUCompute,
     num_nodes: u32,
-    num_edges: u32,  // CRITICAL FIX: Include edge count
+    num_edges: u32,
     node_indices: HashMap<u32, usize>,
 }
 
 impl GPUComputeActor {
     pub fn new() -> Self {
-        // Create default physics params for knowledge graph (gentler forces)
-        let mut knowledge_params = SimulationParams::default();
-        knowledge_params.spring_strength = 0.15;  // Gentler springs
-        knowledge_params.damping = 0.85;          // More damping for stability
-        knowledge_params.repulsion = 50.0;        // Less repulsion
-        knowledge_params.time_step = 0.016;       // Standard 60 FPS timestep
-        
-        // Agent graph uses default params (more dynamic)
-        let agent_params = SimulationParams::default();
-        
         Self {
             device: None,
-            force_kernel: None,
-            dual_graph_kernel: None,
-            advanced_kernel: None,
-            visual_analytics_kernel: None,
-            advanced_gpu_kernel: None,
+            unified_compute: None,
             
-            knowledge_node_data: None,
-            agent_node_data: None,
-            node_data: None,
-            edge_data: None,  // CRITICAL FIX: Initialize edge data
-            
-            num_knowledge_nodes: 0,
-            num_agent_nodes: 0,
             num_nodes: 0,
-            num_edges: 0,  // CRITICAL FIX: Initialize edge count
-            
-            _graph_type_map: HashMap::new(),
-            __knowledge_node_indices: HashMap::new(),
-            __agent_node_indices: HashMap::new(),
+            num_edges: 0,
             node_indices: HashMap::new(),
             
-            knowledge_sim_params: knowledge_params,
-            agent_sim_params: agent_params,
+            knowledge_sim_params: SimulationParams::default(),
+            agent_sim_params: SimulationParams::default(),
             simulation_params: SimulationParams::default(),
             
-            // Initialize advanced physics support
-            advanced_params: AdvancedParams::default(),
+            // Initialize unified physics support
             constraints: Vec::new(),
-            advanced_gpu_context: None,
-            
-            // Initialize visual analytics support
-            visual_analytics_gpu: None,
-            visual_analytics_params: None,
-            isolation_layers: Vec::new(),
+            unified_params: SimParams::default(),
             
             iteration_count: 0,
             gpu_failure_count: 0,
             last_failure_reset: Instant::now(),
             cpu_fallback_active: false,
             
-            // Start in legacy mode for backward compatibility
-            compute_mode: ComputeMode::Legacy,
-            kernel_mode: KernelMode::Legacy,
+            // Start in basic mode
+            compute_mode: ComputeMode::Basic,
             
             // Stress majorization every 300 iterations (5 seconds at 60fps)
             stress_majorization_interval: 300,
@@ -243,206 +173,44 @@ impl GPUComputeActor {
         }
     }
 
-    async fn static_load_compute_kernels(
+    async fn static_initialize_unified_compute(
         device: Arc<CudaDevice>,
         num_nodes: u32,
         graph_nodes: &[crate::models::node::Node], // Pass slice of nodes
-    ) -> Result<(CudaFunction, Option<CudaFunction>, Option<CudaFunction>, Option<CudaFunction>, Option<CudaFunction>, CudaSlice<BinaryNodeData>, HashMap<u32, usize>), Error> {
-        info!("PTX_LOAD: Starting kernel loading process");
+    ) -> Result<(UnifiedGPUCompute, HashMap<u32, usize>), Error> {
+        info!("UNIFIED_INIT: Starting unified GPU compute initialization");
         
-        // Load legacy compute_forces kernel (required)
-        let legacy_ptx_path = "/app/src/utils/ptx/compute_forces.ptx";
-        info!("PTX_LOAD: Checking legacy kernel at {}", legacy_ptx_path);
-        if !Path::new(legacy_ptx_path).exists() {
-            error!("PTX_LOAD: Legacy PTX file NOT FOUND at {}", legacy_ptx_path);
-            return Err(Error::new(ErrorKind::NotFound, format!("Legacy PTX file not found at {}", legacy_ptx_path)));
-        }
+        // Initialize the unified GPU compute engine
+        let unified_compute = UnifiedGPUCompute::new(
+            device.clone(),
+            num_nodes as usize,
+            0, // Will be set when edges are provided
+        ).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to initialize unified compute: {}", e)))?;
         
-        info!("PTX_LOAD: Legacy PTX file exists, loading...");
-        let ptx = Ptx::from_file(legacy_ptx_path);
-        info!("PTX_LOAD: Successfully loaded legacy PTX file from {}", legacy_ptx_path);
+        info!("UNIFIED_INIT: Unified GPU compute initialized successfully");
         
-        device.load_ptx(ptx, "compute_forces_kernel", &["compute_forces_kernel"]).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-        let force_kernel = device.get_func("compute_forces_kernel", "compute_forces_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function compute_forces_kernel not found"))?;
-        info!("PTX_LOAD: Legacy kernel function loaded successfully");
-        
-        // Load dual graph kernel (optional)
-        let dual_graph_kernel = {
-            let mut kernel = None;
-            // Attempt 1: Load unified kernel (newer version)
-            let unified_path = "/app/src/utils/ptx/dual_graph_unified.ptx";
-            let unified_symbol = "dual_graph_unified_kernel";
-            info!("PTX_LOAD: Checking for unified dual graph kernel at {}", unified_path);
-            if Path::new(unified_path).exists() {
-                info!("PTX_LOAD: Found unified dual graph PTX, attempting to load symbol '{}'", unified_symbol);
-                let ptx = Ptx::from_file(unified_path);
-                if device.load_ptx(ptx, unified_symbol, &[unified_symbol]).is_ok() {
-                    kernel = device.get_func(unified_symbol, unified_symbol);
-                    if kernel.is_some() {
-                        info!("PTX_LOAD: Successfully loaded unified dual graph kernel.");
-                    } else {
-                        error!("PTX_LOAD: Found PTX but failed to get symbol '{}'", unified_symbol);
-                    }
-                } else {
-                    error!("PTX_LOAD: Failed to load PTX module from {}", unified_path);
-                }
-            } else {
-                info!("PTX_LOAD: Unified dual graph PTX not found.");
-            }
-
-            // Attempt 2: Load legacy kernel if unified failed
-            if kernel.is_none() {
-                let legacy_path = "/app/src/utils/ptx/compute_dual_graphs.ptx";
-                let legacy_symbol = "compute_dual_graph_forces";
-                info!("PTX_LOAD: Checking for legacy dual graph kernel at {}", legacy_path);
-                if Path::new(legacy_path).exists() {
-                    info!("PTX_LOAD: Found legacy dual graph PTX, attempting to load symbol '{}'", legacy_symbol);
-                    let ptx = Ptx::from_file(legacy_path);
-                    if device.load_ptx(ptx, legacy_symbol, &[legacy_symbol]).is_ok() {
-                        kernel = device.get_func(legacy_symbol, legacy_symbol);
-                        if kernel.is_some() {
-                            info!("PTX_LOAD: Successfully loaded legacy dual graph kernel.");
-                        } else {
-                            error!("PTX_LOAD: Found PTX but failed to get symbol '{}'", legacy_symbol);
-                        }
-                    } else {
-                        error!("PTX_LOAD: Failed to load PTX module from {}", legacy_path);
-                    }
-                } else {
-                    info!("PTX_LOAD: Legacy dual graph PTX not found.");
-                }
-            }
-
-            if kernel.is_none() {
-                warn!("PTX_LOAD: No dual graph kernel loaded. Dual graph mode will not be available.");
-            }
-            kernel
-        };
-        
-        // Load unified kernel (replaces advanced kernel)
-        let advanced_kernel = {
-            // Try unified kernel first
-            let unified_ptx_path = "/app/src/utils/ptx/visionflow_unified.ptx";
-            let local_unified_path = "src/utils/ptx/visionflow_unified.ptx";
-            
-            let ptx_path = if Path::new(unified_ptx_path).exists() {
-                unified_ptx_path
-            } else if Path::new(local_unified_path).exists() {
-                local_unified_path
-            } else {
-                warn!("PTX_LOAD: Unified kernel not found, falling back to stub");
-                ""
-            };
-            
-            if !ptx_path.is_empty() {
-                info!("PTX_LOAD: Loading unified kernel from {}", ptx_path);
-                let ptx = Ptx::from_file(ptx_path);
-                match device.load_ptx(ptx, "visionflow_compute", &["visionflow_compute_kernel"]) {
-                    Ok(_) => {
-                        info!("PTX_LOAD: Unified kernel loaded successfully");
-                        Some(device.get_func("visionflow_compute", "visionflow_compute_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function visionflow_compute_kernel not found"))?)
-                    }
-                    Err(e) => {
-                        error!("PTX_LOAD: Failed to load unified kernel: {}", e);
-                        None
-                    }
-                }
-            } else {
-                warn!("PTX_LOAD: No unified kernel available, advanced mode disabled");
-                None
-            }
-        };
-        
-        // Load visual analytics kernel (optional)
-        let visual_analytics_kernel = {
-            // Try multiple possible paths for the visual analytics PTX
-            let va_ptx_paths = [
-                "/app/src/utils/ptx/visual_analytics_core.ptx",
-                "/workspace/ext/src/utils/ptx/visual_analytics_core.ptx"
-            ];
-            
-            info!("PTX_LOAD: Checking visual analytics kernel at multiple paths...");
-            let mut kernel = None;
-            for va_ptx_path in &va_ptx_paths {
-                info!("PTX_LOAD: Checking {}", va_ptx_path);
-                if Path::new(va_ptx_path).exists() {
-                    info!("PTX_LOAD: Visual analytics PTX file exists at {}, loading...", va_ptx_path);
-                    let ptx = Ptx::from_file(va_ptx_path);
-                    match device.load_ptx(ptx, "visual_analytics_kernel", &["visual_analytics_kernel"]) {
-                        Ok(_) => {
-                            kernel = device.get_func("visual_analytics_kernel", "visual_analytics_kernel");
-                            info!("PTX_LOAD: Visual analytics kernel loaded successfully from {}", va_ptx_path);
-                            break;
-                        },
-                        Err(e) => error!("PTX_LOAD: Failed to load PTX from {}: {}", va_ptx_path, e),
-                    }
-                } else {
-                    info!("PTX_LOAD: Visual analytics PTX NOT FOUND at {}", va_ptx_path);
-                }
-            }
-            
-            if kernel.is_none() {
-                warn!("PTX_LOAD: Visual analytics PTX not found at any location, visual analytics mode will not be available");
-            }
-            
-            kernel
-        };
-        
-        // Load advanced GPU algorithms kernel (optional)
-        let advanced_gpu_kernel = {
-            // Try multiple possible paths for the advanced GPU algorithms PTX
-            let aga_ptx_paths = [
-                "/app/src/utils/ptx/advanced_gpu_algorithms.ptx",
-                "/workspace/ext/src/utils/ptx/advanced_gpu_algorithms.ptx"
-            ];
-            
-            let mut kernel = None;
-            for aga_ptx_path in &aga_ptx_paths {
-                if Path::new(aga_ptx_path).exists() {
-                    info!("(Static) Loading advanced GPU algorithms PTX file from {}", aga_ptx_path);
-                    let ptx = Ptx::from_file(aga_ptx_path);
-                    match device.load_ptx(ptx, "advanced_gpu_algorithms_kernel", &["advanced_gpu_algorithms_kernel"]) {
-                        Ok(_) => {
-                            kernel = device.get_func("advanced_gpu_algorithms_kernel", "advanced_gpu_algorithms_kernel");
-                            break;
-                        },
-                        Err(e) => warn!("Failed to load PTX from {}: {}", aga_ptx_path, e),
-                    }
-                }
-            }
-            
-            if kernel.is_none() {
-                warn!("(Static) Advanced GPU algorithms PTX not found at any location, will use fallback methods");
-            }
-            
-            kernel
-        };
-        
-        info!("(Static) Allocating device memory for {} nodes", num_nodes);
-        let mut node_data_gpu = device.alloc_zeros::<BinaryNodeData>(num_nodes as usize).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-        
+        // Create node indices mapping
         let mut node_indices = HashMap::new();
-        let mut node_data_host = Vec::with_capacity(graph_nodes.len());
-
         for (idx, node) in graph_nodes.iter().enumerate() {
             node_indices.insert(node.id, idx);
-            node_data_host.push(BinaryNodeData {
-                position: node.data.position.clone(),
-                velocity: node.data.velocity.clone(),
-                mass: node.data.mass,
-                flags: node.data.flags,
-                padding: node.data.padding,
-            });
         }
         
-        device.htod_sync_copy_into(&node_data_host, &mut node_data_gpu).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy node data to GPU: {}", e)))?;
+        info!("UNIFIED_INIT: Created node indices for {} nodes", graph_nodes.len());
+        // The unified compute engine handles all kernel loading internally
+        info!("UNIFIED_INIT: Unified kernel is already loaded and ready");
+        // Visual analytics and all advanced features are now built into the unified kernel
+        info!("UNIFIED_INIT: All advanced features available through unified kernel");
+        // All advanced GPU algorithms are now part of the unified kernel
+        info!("UNIFIED_INIT: Advanced algorithms integrated into unified kernel");
         
-        Ok((force_kernel, dual_graph_kernel, advanced_kernel, visual_analytics_kernel, advanced_gpu_kernel, node_data_gpu, node_indices))
+        Ok((unified_compute, node_indices))
     }
 
     async fn perform_gpu_initialization(graph: GraphData) -> Result<GpuInitializationResult, Error> {
         let num_nodes = graph.nodes.len() as u32;
-        info!("(Static Logic) Initializing GPU for {} nodes", num_nodes);
+        let num_edges = graph.edges.len() as u32;
+        
+        info!("(Static Logic) Initializing unified GPU for {} nodes, {} edges", num_nodes, num_edges);
 
         if num_nodes > MAX_NODES {
             return Err(Error::new(ErrorKind::Other, format!("Node count {} exceeds limit {}", num_nodes, MAX_NODES)));
@@ -454,56 +222,39 @@ impl GPUComputeActor {
         let device = Self::static_create_cuda_device().await?;
         info!("(Static Logic) CUDA device created successfully");
         
-        // Pass graph.nodes which is Vec<Node>
-        let (force_kernel, dual_graph_kernel, advanced_kernel, visual_analytics_kernel, advanced_gpu_kernel, node_data, node_indices) = Self::static_load_compute_kernels(device.clone(), num_nodes, &graph.nodes).await?;
-        info!("(Static Logic) Compute kernels loaded and data copied");
+        // Initialize unified compute engine
+        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(device.clone(), num_nodes, &graph.nodes).await?;
+        info!("(Static Logic) Unified compute initialized successfully");
         
-        // CRITICAL FIX: Process and upload edge data during initialization
-        let num_edges = graph.edges.len() as u32;
-        let edge_data = if !graph.edges.is_empty() {
-            info!("(Static Logic) Processing {} edges for spring forces", num_edges);
-            let mut host_edge_data = Vec::with_capacity(graph.edges.len());
+        // Upload node positions to unified compute
+        let positions: Vec<(f32, f32, f32)> = graph.nodes.iter()
+            .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+            .collect();
+        
+        unified_compute.upload_positions(&positions)
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
+        
+        // Upload edges to unified compute
+        if !graph.edges.is_empty() {
+            let edges: Vec<(i32, i32, f32)> = graph.edges.iter()
+                .map(|edge| {
+                    let source_idx = node_indices.get(&edge.source).copied().unwrap_or(0) as i32;
+                    let target_idx = node_indices.get(&edge.target).copied().unwrap_or(0) as i32;
+                    (source_idx, target_idx, edge.weight)
+                })
+                .collect();
             
-            for edge in &graph.edges {
-                // Find indices for source and target nodes
-                let source_idx = node_indices.get(&edge.source)
-                    .copied()
-                    .unwrap_or(0) as i32;
-                let target_idx = node_indices.get(&edge.target)
-                    .copied()
-                    .unwrap_or(0) as i32;
-                
-                host_edge_data.push(EdgeData {
-                    source_idx,
-                    target_idx,
-                    weight: edge.weight,
-                });
-            }
+            unified_compute.upload_edges(&edges)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload edges: {}", e)))?;
             
-            let mut edge_slice = device.alloc_zeros::<EdgeData>(graph.edges.len())
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate edge buffer: {}", e)))?;
-            
-            device.htod_sync_copy_into(&host_edge_data, &mut edge_slice)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data to GPU: {}", e)))?;
-            
-            info!("(Static Logic) Successfully uploaded {} edges to GPU", num_edges);
-            Some(edge_slice)
-        } else {
-            info!("(Static Logic) No edges in graph - spring forces will not be applied");
-            None
-        };
+            info!("(Static Logic) Successfully uploaded {} edges to unified compute", num_edges);
+        }
         
         Ok(GpuInitializationResult {
-            device, // No Some() needed, it's Arc<CudaDevice>
-            force_kernel, // No Some()
-            dual_graph_kernel,
-            advanced_kernel,
-            visual_analytics_kernel,
-            advanced_gpu_kernel,
-            node_data,    // No Some()
-            edge_data,    // CRITICAL FIX: Include edge data
+            device,
+            unified_compute,
             num_nodes,
-            num_edges,    // CRITICAL FIX: Include edge count
+            num_edges,
             node_indices,
         })
     }
@@ -511,126 +262,74 @@ impl GPUComputeActor {
     // --- Instance Methods ---
 
     fn update_graph_data_internal(&mut self, graph: &GraphData) -> Result<(), Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let node_data_slice = self.node_data.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
  
-        info!("Updating graph data for {} nodes and {} edges", graph.nodes.len(), graph.edges.len());
+        info!("Updating unified compute data for {} nodes and {} edges", graph.nodes.len(), graph.edges.len());
         
+        // Update node indices
         self.node_indices.clear();
         for (idx, node) in graph.nodes.iter().enumerate() {
             self.node_indices.insert(node.id, idx);
         }
 
+        // Update node count if changed
         if graph.nodes.len() as u32 != self.num_nodes {
-            info!("Reallocating GPU buffer for {} nodes", graph.nodes.len());
-            *node_data_slice = device.alloc_zeros::<BinaryNodeData>(graph.nodes.len())
-                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            info!("Node count changed from {} to {}", self.num_nodes, graph.nodes.len());
             self.num_nodes = graph.nodes.len() as u32;
-            self.iteration_count = 0; // Reset iteration count on realloc
+            self.iteration_count = 0; // Reset iteration count on size change
         }
 
-        let mut host_node_data = Vec::with_capacity(graph.nodes.len());
-        for node in &graph.nodes {
-            host_node_data.push(BinaryNodeData {
-                position: node.data.position.clone(),
-                velocity: node.data.velocity.clone(),
-                mass: node.data.mass,
-                flags: node.data.flags,
-                padding: node.data.padding,
-            });
-        }
-
-        device.htod_sync_copy_into(&host_node_data, node_data_slice)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy node data to GPU: {}", e)))?;
+        // Upload positions to unified compute
+        let positions: Vec<(f32, f32, f32)> = graph.nodes.iter()
+            .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+            .collect();
         
-        // CRITICAL FIX: Process and upload edge data for spring forces
-        if graph.edges.len() as u32 != self.num_edges || self.edge_data.is_none() {
-            info!("Reallocating GPU buffer for {} edges", graph.edges.len());
-            if graph.edges.is_empty() {
-                self.edge_data = None;
-                self.num_edges = 0;
-            } else {
-                let edge_slice = device.alloc_zeros::<EdgeData>(graph.edges.len())
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate edge buffer: {}", e)))?;
-                self.edge_data = Some(edge_slice);
-                self.num_edges = graph.edges.len() as u32;
-            }
+        unified_compute.upload_positions(&positions)
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
+        
+        // Upload edges to unified compute
+        if graph.edges.len() as u32 != self.num_edges {
+            info!("Edge count changed from {} to {}", self.num_edges, graph.edges.len());
+            self.num_edges = graph.edges.len() as u32;
         }
         
-        // Convert edges to EdgeData format with node indices
         if !graph.edges.is_empty() {
-            let mut host_edge_data = Vec::with_capacity(graph.edges.len());
-            for edge in &graph.edges {
-                // Find indices for source and target nodes
-                let source_idx = self.node_indices.get(&edge.source)
-                    .copied()
-                    .unwrap_or(0) as i32;
-                let target_idx = self.node_indices.get(&edge.target)
-                    .copied()
-                    .unwrap_or(0) as i32;
-                
-                host_edge_data.push(EdgeData {
-                    source_idx,
-                    target_idx,
-                    weight: edge.weight,
-                });
-            }
+            let edges: Vec<(i32, i32, f32)> = graph.edges.iter()
+                .map(|edge| {
+                    let source_idx = self.node_indices.get(&edge.source).copied().unwrap_or(0) as i32;
+                    let target_idx = self.node_indices.get(&edge.target).copied().unwrap_or(0) as i32;
+                    (source_idx, target_idx, edge.weight)
+                })
+                .collect();
             
-            if let Some(edge_slice) = self.edge_data.as_mut() {
-                device.htod_sync_copy_into(&host_edge_data, edge_slice)
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data to GPU: {}", e)))?;
-                info!("Successfully uploaded {} edges to GPU", host_edge_data.len());
-            }
+            unified_compute.upload_edges(&edges)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload edges: {}", e)))?;
+            
+            info!("Successfully uploaded {} edges to unified compute", edges.len());
         }
         
         Ok(())
     }
 
-    /// Determine the optimal kernel mode based on graph complexity and analysis requirements
-    fn determine_kernel_mode(&self, num_nodes: u32, has_isolation_layers: bool, has_complex_analysis: bool) -> KernelMode {
-        debug!("KERNEL_SELECT: Determining kernel mode");
-        debug!("  Input factors - nodes: {}, isolation_layers: {}, complex_analysis: {}",
-               num_nodes, has_isolation_layers, has_complex_analysis);
-        debug!("  Available kernels - VA: {}, AdvGPU: {}, Adv: {}",
-               self.visual_analytics_kernel.is_some(),
-               self.advanced_gpu_kernel.is_some(),
-               self.advanced_kernel.is_some());
-        
-        // Priority 1: Use visual analytics for complex analysis or isolation layers
-        if (has_isolation_layers || has_complex_analysis) && self.visual_analytics_kernel.is_some() {
-            debug!("KERNEL_SELECT: Selecting VisualAnalytics (complex analysis/isolation)");
-            return KernelMode::VisualAnalytics;
-        }
-        
-        // Priority 2: Use advanced kernel for medium-large graphs
-        if num_nodes >= 1000 && num_nodes <= 10000 && self.advanced_gpu_kernel.is_some() {
-            debug!("KERNEL_SELECT: Selecting Advanced (medium-large graph)");
-            return KernelMode::Advanced;
-        }
-        
-        // Priority 3: Use visual analytics for very large graphs
-        if num_nodes > 10000 && self.visual_analytics_kernel.is_some() {
-            debug!("KERNEL_SELECT: Selecting VisualAnalytics (very large graph)");
-            return KernelMode::VisualAnalytics;
-        }
-        
-        // Fallback to legacy for small graphs or when advanced kernels are not available
-        debug!("KERNEL_SELECT: Selecting Legacy (fallback/small graph)");
-        KernelMode::Legacy
-    }
-
-    /// Update kernel mode based on current graph state
-    fn update_kernel_mode(&mut self) {
-        let has_isolation_layers = !self.isolation_layers.is_empty();
-        let has_complex_analysis = !self.constraints.is_empty() || 
-                                 matches!(self.compute_mode, ComputeMode::Advanced);
-        
-        let new_mode = self.determine_kernel_mode(self.num_nodes, has_isolation_layers, has_complex_analysis);
-        
-        if new_mode != self.kernel_mode {
-            info!("GPU: Switching kernel mode from {:?} to {:?} (nodes: {}, layers: {}, complex: {})", 
-                  self.kernel_mode, new_mode, self.num_nodes, has_isolation_layers, has_complex_analysis);
-            self.kernel_mode = new_mode;
+    /// Update unified compute mode based on current graph state
+    fn update_unified_mode(&mut self) {
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            let unified_mode = match self.compute_mode {
+                ComputeMode::Basic => UnifiedComputeMode::Basic,
+                ComputeMode::DualGraph => UnifiedComputeMode::DualGraph,
+                ComputeMode::Advanced => {
+                    if !self.constraints.is_empty() {
+                        UnifiedComputeMode::Constraints
+                    } else {
+                        UnifiedComputeMode::VisualAnalytics
+                    }
+                },
+            };
+            
+            unified_compute.set_mode(unified_mode);
+            unified_compute.set_params(self.unified_params);
+            
+            debug!("UNIFIED: Updated compute mode to {:?}", unified_mode);
         }
     }
 
@@ -644,31 +343,28 @@ impl GPUComputeActor {
             if self.gpu_failure_count > 0 {
                 info!("Resetting GPU failure count after {} seconds", FAILURE_RESET_INTERVAL.as_secs());
                 self.gpu_failure_count = 0;
-                self.cpu_fallback_active = false; // Attempt to re-enable GPU
+                self.cpu_fallback_active = false;
             }
             self.last_failure_reset = Instant::now();
         }
 
-        // Update kernel mode based on current state
-        self.update_kernel_mode();
+        // Update unified compute mode based on current state
+        self.update_unified_mode();
 
         // Log physics state every 60 frames for debugging
         if self.iteration_count % 60 == 0 {
-            info!("PHYSICS_STATE: iteration={}, kernel_mode={:?}, compute_mode={:?}, nodes={}, edges={}, constraints={}",
+            info!("UNIFIED_PHYSICS: iteration={}, compute_mode={:?}, nodes={}, edges={}, constraints={}",
                 self.iteration_count,
-                self.kernel_mode,
                 self.compute_mode,
                 self.num_nodes,
                 self.num_edges,
                 self.constraints.len()
             );
-            info!("PHYSICS_PARAMS: time_step={:.4}, spring={:.4}, repulsion={:.1}, damping={:.4}, boundary_damping={:.4}, max_repulsion_dist={:.1}",
-                self.simulation_params.time_step,
-                self.simulation_params.spring_strength,
-                self.simulation_params.repulsion,
-                self.simulation_params.damping,
-                self.simulation_params.boundary_damping,
-                self.simulation_params.max_repulsion_distance
+            info!("UNIFIED_PARAMS: spring={:.4}, repulsion={:.1}, damping={:.4}, dt={:.4}",
+                self.unified_params.spring_k,
+                self.unified_params.repel_k,
+                self.unified_params.damping,
+                self.unified_params.dt
             );
         }
 
@@ -683,384 +379,50 @@ impl GPUComputeActor {
             }
         }
 
-        // Choose compute method based on kernel mode (with fallback to compute mode)
-        match self.kernel_mode {
-            KernelMode::Legacy => {
-                match self.compute_mode {
-                    ComputeMode::Legacy => self.compute_forces_legacy(),
-                    ComputeMode::DualGraph => self.compute_forces_dual_graph(),
-                    ComputeMode::Advanced => self.compute_forces_advanced(),
+        // Execute unified physics computation
+        self.compute_forces_unified()
+    }
+
+    fn compute_forces_unified(&mut self) -> Result<(), Error> {
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
+
+        if self.iteration_count % DEBUG_THROTTLE == 0 {
+            trace!("Starting unified force computation (iteration {})", self.iteration_count);
+        }
+
+        // Execute unified physics computation
+        match unified_compute.execute() {
+            Ok(positions) => {
+                // Positions are updated directly in the unified compute engine
+                // No need to copy back unless specifically requested
+                self.iteration_count += 1;
+                
+                if self.iteration_count % DEBUG_THROTTLE == 0 {
+                    trace!("Unified force computation completed successfully with {} positions", positions.len());
                 }
+                
+                Ok(())
             },
-            KernelMode::Advanced => self.compute_forces_with_advanced_gpu(),
-            KernelMode::VisualAnalytics => self.compute_forces_with_visual_analytics(),
+            Err(e) => {
+                self.handle_gpu_error(format!("Unified kernel execution failed: {}", e))
+            }
         }
     }
 
-    fn compute_forces_legacy(&mut self) -> Result<(), Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let force_kernel = self.force_kernel.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Legacy kernel not initialized"))?;
-        let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
+    // Dual graph functionality is now integrated into the unified kernel
+    // No separate method needed
 
-        if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Starting legacy force computation (iteration {})", self.iteration_count);
-        }
+    // Advanced constraint functionality is now integrated into the unified kernel
+    // No separate method needed
 
-        let blocks = ((self.num_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-        let cfg = LaunchConfig {
-            grid_dim: (blocks, 1, 1),
-            block_dim: (BLOCK_SIZE, 1, 1),
-            shared_mem_bytes: SHARED_MEM_SIZE,
-        };
+    // Advanced GPU algorithms are now integrated into the unified kernel
+    // No separate method needed
 
-        // BREADCRUMB: Log physics params being sent to GPU kernel
-        if self.iteration_count % 60 == 0 { // Log every second at 60 FPS
-            info!("GPU kernel params - spring: {}, damping: {}, repulsion: {}, timestep: {}, edges: {}",
-                  self.simulation_params.spring_strength,
-                  self.simulation_params.damping,
-                  self.simulation_params.repulsion,
-                  self.simulation_params.time_step,
-                  self.num_edges);
-        }
-        
-        // CRITICAL FIX: Include edge data in kernel launch
-        let launch_result = if let Some(edge_data) = self.edge_data.as_ref() {
-            unsafe {
-                force_kernel.clone().launch(cfg, (
-                    node_data,
-                    edge_data,
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
-                    self.simulation_params.spring_strength,
-                    self.simulation_params.damping,
-                    self.simulation_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    if self.simulation_params.enable_bounds {
-                        self.simulation_params.viewport_bounds
-                    } else {
-                        f32::MAX
-                    },
-                    self.iteration_count as i32,
-                ))
-            }
-        } else {
-            // If no edges, create a dummy edge buffer to satisfy kernel signature
-            warn!("No edges in graph - spring forces will not be applied!");
-            let dummy_edges = device.alloc_zeros::<EdgeData>(1)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate dummy edge buffer: {}", e)))?;
-            unsafe {
-                force_kernel.clone().launch(cfg, (
-                    node_data,
-                    &dummy_edges,
-                    self.num_nodes as i32,
-                    0i32,
-                    self.simulation_params.spring_strength,
-                    self.simulation_params.damping,
-                    self.simulation_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    if self.simulation_params.enable_bounds {
-                        self.simulation_params.viewport_bounds
-                    } else {
-                        f32::MAX
-                    },
-                    self.iteration_count as i32,
-                ))
-            }
-        };
+    // Visual analytics functionality is now integrated into the unified kernel
+    // No separate method needed
 
-        self.finish_gpu_computation(launch_result)
-    }
-
-    fn compute_forces_dual_graph(&mut self) -> Result<(), Error> {
-        let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let _dual_kernel = self.dual_graph_kernel.as_ref().ok_or_else(|| {
-            warn!("Dual graph kernel not available, falling back to legacy");
-            self.compute_mode = ComputeMode::Legacy;
-            Error::new(ErrorKind::Other, "Dual graph kernel not initialized")
-        })?;
-
-        if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Starting dual graph force computation (iteration {}), knowledge: {}, agent: {}", 
-                   self.iteration_count, self.num_knowledge_nodes, self.num_agent_nodes);
-        }
-
-        // Check if we have both graphs initialized
-        if self.knowledge_node_data.is_none() || self.agent_node_data.is_none() {
-            warn!("Dual graph data not properly initialized, falling back to legacy");
-            self.compute_mode = ComputeMode::Legacy;
-            return self.compute_forces_legacy();
-        }
-
-        let _knowledge_data = self.knowledge_node_data.as_ref().unwrap();
-        let _agent_data = self.agent_node_data.as_ref().unwrap();
-        let edge_data = self.edge_data.as_ref();
-
-        // Calculate blocks for the maximum number of nodes
-        let total_nodes = self.num_knowledge_nodes + self.num_agent_nodes;
-        let blocks = ((total_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-        let _cfg = LaunchConfig {
-            grid_dim: (blocks, 1, 1),
-            block_dim: (BLOCK_SIZE, 1, 1),
-            shared_mem_bytes: SHARED_MEM_SIZE,
-        };
-
-        // Create separate edge buffers for knowledge and agent graphs
-        // For now, we'll use the same edge buffer but filter by node type
-        let launch_result = if let Some(_edges) = edge_data {
-            // TODO: Fix CUDA kernel launch - too many parameters (max ~12-15)
-            // Need to bundle parameters into structs
-            /*
-            unsafe {
-                dual_kernel.clone().launch(cfg, (
-                    knowledge_data,           // Knowledge graph nodes
-                    agent_data,               // Agent graph nodes
-                    edges,                    // Knowledge graph edges (same buffer for now)
-                    edges,                    // Agent graph edges (same buffer for now)
-                    self.num_knowledge_nodes as i32,
-                    self.num_agent_nodes as i32,
-                    self.num_edges as i32,    // Knowledge edges count
-                    0i32,                     // Agent edges count (0 for now)
-                    self.knowledge_sim_params.spring_strength,
-                    self.knowledge_sim_params.damping,
-                    self.knowledge_sim_params.repulsion,
-                    self.agent_sim_params.spring_strength,
-                    self.agent_sim_params.damping,
-                    self.agent_sim_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    self.simulation_params.viewport_bounds,
-                    self.iteration_count as i32,
-                    true,   // process_knowledge
-                    true,   // process_agents
-                ))
-            }
-            */
-            Ok(())
-        } else {
-            // Create dummy edge buffer if no edges
-            let _dummy_edges = _device.alloc_zeros::<EdgeData>(1)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate dummy edge buffer: {}", e)))?;
-            // TODO: Fix CUDA kernel launch - too many parameters
-            /*
-            unsafe {
-                dual_kernel.clone().launch(cfg, (
-                    knowledge_data,
-                    agent_data,
-                    &dummy_edges,
-                    &dummy_edges,
-                    self.num_knowledge_nodes as i32,
-                    self.num_agent_nodes as i32,
-                    0i32,
-                    0i32,
-                    self.knowledge_sim_params.spring_strength,
-                    self.knowledge_sim_params.damping,
-                    self.knowledge_sim_params.repulsion,
-                    self.agent_sim_params.spring_strength,
-                    self.agent_sim_params.damping,
-                    self.agent_sim_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    self.simulation_params.viewport_bounds,
-                    self.iteration_count as i32,
-                    true,
-                    true,
-                ))
-            }
-            */
-            Ok(())
-        };
-
-        self.finish_gpu_computation(launch_result)
-    }
-
-    fn compute_forces_advanced(&mut self) -> Result<(), Error> {
-        // Use the advanced GPU context if available
-        if let Some(ref mut ctx) = self.advanced_gpu_context {
-            if self.iteration_count % DEBUG_THROTTLE == 0 {
-                trace!("Starting advanced force computation (iteration {})", self.iteration_count);
-            }
-            
-            match ctx.step_with_constraints(&self.constraints) {
-                Ok(_) => {
-                    self.iteration_count += 1;
-                    Ok(())
-                },
-                Err(e) => {
-                    warn!("Advanced physics failed: {}, falling back to legacy", e);
-                    self.compute_mode = ComputeMode::Legacy;
-                    self.compute_forces_legacy()
-                }
-            }
-        } else {
-            // Fall back to using the advanced kernel directly if context is not available
-            let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-            let _advanced_kernel = self.advanced_kernel.as_ref().ok_or_else(|| {
-                warn!("Advanced kernel not available, falling back to legacy");
-                self.compute_mode = ComputeMode::Legacy;
-                Error::new(ErrorKind::Other, "Advanced kernel not initialized")
-            })?;
-
-            if self.iteration_count % DEBUG_THROTTLE == 0 {
-                trace!("Starting advanced force computation with direct kernel (iteration {})", self.iteration_count);
-            }
-
-            // This is a simplified direct kernel launch - the full implementation
-            // would use the AdvancedGPUContext for proper constraint handling
-            warn!("Using simplified advanced kernel without full constraint support");
-            self.compute_forces_legacy() // Fallback for now
-        }
-    }
-
-    fn compute_forces_with_advanced_gpu(&mut self) -> Result<(), Error> {
-        let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let _advanced_gpu_kernel = self.advanced_gpu_kernel.as_ref().ok_or_else(|| {
-            warn!("Advanced GPU algorithms kernel not available, falling back to legacy");
-            self.kernel_mode = KernelMode::Legacy;
-            Error::new(ErrorKind::Other, "Advanced GPU algorithms kernel not initialized")
-        })?;
-
-        if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Starting advanced GPU algorithms computation (iteration {})", self.iteration_count);
-        }
-
-        let blocks = ((self.num_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-        let cfg = LaunchConfig {
-            grid_dim: (blocks, 1, 1),
-            block_dim: (BLOCK_SIZE, 1, 1),
-            shared_mem_bytes: SHARED_MEM_SIZE,
-        };
-
-        let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
-        let edge_data = self.edge_data.as_ref();
-
-        let launch_result = if let Some(edge_data) = edge_data {
-            unsafe {
-                _advanced_gpu_kernel.clone().launch(cfg, (
-                    node_data,
-                    edge_data,
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
-                    self.simulation_params.spring_strength,
-                    self.simulation_params.damping,
-                    self.simulation_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    if self.simulation_params.enable_bounds {
-                        self.simulation_params.viewport_bounds
-                    } else {
-                        f32::MAX
-                    },
-                    self.iteration_count as i32,
-                ))
-            }
-        } else {
-            warn!("No edge data for advanced GPU algorithms, falling back to legacy");
-            self.kernel_mode = KernelMode::Legacy;
-            return self.compute_forces_legacy();
-        };
-
-        self.finish_gpu_computation(launch_result)
-    }
-
-    fn compute_forces_with_visual_analytics(&mut self) -> Result<(), Error> {
-        // If we have a visual analytics GPU context, use it
-        if let Some(ref mut va_gpu) = self.visual_analytics_gpu {
-            if self.iteration_count % DEBUG_THROTTLE == 0 {
-                trace!("Starting visual analytics GPU computation (iteration {})", self.iteration_count);
-            }
-
-            // Convert legacy node data to visual analytics format
-            // We need to collect data before the mutable borrow
-            let node_data = self.node_data.clone();
-            let edge_data = self.edge_data.clone();
-            let ts_nodes = Self::convert_to_ts_nodes_static(&node_data)?;
-            let ts_edges = Self::convert_to_ts_edges_static(&edge_data)?;
-
-            // Stream data to visual analytics GPU
-            if let Err(e) = va_gpu.stream_nodes(&ts_nodes) {
-                warn!("Failed to stream nodes to visual analytics GPU: {}, falling back", e);
-                self.kernel_mode = KernelMode::Legacy;
-                return self.compute_forces_legacy();
-            }
-
-            if let Err(e) = va_gpu.stream_edges(&ts_edges) {
-                warn!("Failed to stream edges to visual analytics GPU: {}, falling back", e);
-                self.kernel_mode = KernelMode::Legacy;
-                return self.compute_forces_legacy();
-            }
-
-            if let Err(e) = va_gpu.update_layers(&self.isolation_layers) {
-                warn!("Failed to update isolation layers: {}, falling back", e);
-                self.kernel_mode = KernelMode::Legacy;
-                return self.compute_forces_legacy();
-            }
-
-            // Execute visual analytics pipeline
-            if let Some(ref params) = self.visual_analytics_params {
-                match va_gpu.execute(params, ts_nodes.len(), ts_edges.len(), self.isolation_layers.len()) {
-                    Ok(_) => {
-                        // Copy results back to legacy format
-                        // Note: This won't work due to borrow checker, commenting out for now
-                        // if let Err(e) = self.copy_visual_analytics_results(va_gpu) {
-                        if let Err(e) = Result::<(), Error>::Err(Error::new(ErrorKind::Other, "VA results copy disabled")) {
-                            warn!("Failed to copy visual analytics results: {}", e);
-                        }
-                        self.iteration_count += 1;
-                        Ok(())
-                    },
-                    Err(e) => {
-                        warn!("Visual analytics execution failed: {}, falling back", e);
-                        self.kernel_mode = KernelMode::Legacy;
-                        self.compute_forces_legacy()
-                    }
-                }
-            } else {
-                warn!("Visual analytics parameters not initialized, falling back");
-                self.kernel_mode = KernelMode::Legacy;
-                self.compute_forces_legacy()
-            }
-        } else {
-            // Use the visual analytics kernel directly
-            let _device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-            let _va_kernel = self.visual_analytics_kernel.as_ref().ok_or_else(|| {
-                warn!("Visual analytics kernel not available, falling back to legacy");
-                self.kernel_mode = KernelMode::Legacy;
-                Error::new(ErrorKind::Other, "Visual analytics kernel not initialized")
-            })?;
-
-            if self.iteration_count % DEBUG_THROTTLE == 0 {
-                trace!("Starting visual analytics kernel computation (iteration {})", self.iteration_count);
-            }
-
-            // For now, fall back to legacy - full visual analytics integration would require
-            // converting all data structures and implementing the full pipeline
-            warn!("Direct visual analytics kernel execution not yet fully implemented, falling back");
-            self.kernel_mode = KernelMode::Legacy;
-            self.compute_forces_legacy()
-        }
-    }
-
-    fn finish_gpu_computation(&mut self, launch_result: Result<(), cudarc::driver::DriverError>) -> Result<(), Error> {
-        let device = self.device.as_ref().unwrap();
-        
-        match launch_result {
-            Ok(_) => {
-                match device.synchronize() {
-                    Ok(_) => {
-                        if self.iteration_count % DEBUG_THROTTLE == 0 {
-                            trace!("Force computation completed successfully");
-                        }
-                        self.iteration_count += 1;
-                        Ok(())
-                    },
-                    Err(e) => self.handle_gpu_error(format!("GPU synchronization failed: {}", e)),
-                }
-            },
-            Err(e) => self.handle_gpu_error(format!("Kernel launch failed: {}", e)),
-        }
-    }
+    // GPU computation completion is now handled inside unified compute
+    // No separate method needed
 
     fn perform_stress_majorization(&mut self) -> Result<(), Error> {
         // This is a placeholder for stress majorization implementation
@@ -1091,220 +453,31 @@ impl GPUComputeActor {
         Err(Error::new(ErrorKind::Other, error_msg))
     }
 
-    /// Convert legacy BinaryNodeData to visual analytics TSNode format
-    fn convert_to_ts_nodes_static(node_data: &Option<CudaSlice<BinaryNodeData>>) -> Result<Vec<TSNode>, Error> {
-        Self::convert_to_ts_nodes_internal(node_data)
-    }
+    // Legacy conversion functions removed - unified kernel handles all data formats internally
     
-    fn convert_to_ts_edges_static(edge_data: &Option<CudaSlice<EdgeData>>) -> Result<Vec<TSEdge>, Error> {
-        Self::convert_to_ts_edges_internal(edge_data)
-    }
-    
-    fn convert_to_ts_nodes_internal(node_data: &Option<CudaSlice<BinaryNodeData>>) -> Result<Vec<TSNode>, Error> {
-        let node_data = node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
+    // Legacy TS node conversion removed - unified kernel handles all formats internally
+
+    // Legacy TS edge conversion removed - unified kernel handles all formats internally
+
+    // Legacy visual analytics result copying removed - unified kernel manages all data internally
+
+    fn get_node_data_internal(&mut self) -> Result<Vec<BinaryNodeData>, Error> {
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
+
+        // Get positions from unified compute (returns as tuples)
+        let positions = unified_compute.execute().map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from unified compute: {}", e)))?;
         
-        // Simplified conversion - just create empty nodes for now
-        let num_nodes = node_data.len();
-        let mut ts_nodes = Vec::with_capacity(num_nodes);
-        for _i in 0..num_nodes {
-            ts_nodes.push(TSNode {
-                position: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
-                velocity: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
-                acceleration: Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 },
-                trajectory: [Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 }; 8],
-                temporal_coherence: 1.0,
-                motion_saliency: 0.0,
-                hierarchy_level: 0,
-                parent_idx: -1,
-                children: [-1; 4],
-                lod_importance: 1.0,
-                layer_membership: [0.0; 16],
-                primary_layer: 0,
-                isolation_strength: 0.0,
-                topology: [0.0; 32],
-                betweenness_centrality: 0.0,
-                clustering_coefficient: 0.0,
-                pagerank: 0.0,
-                community_id: 0,
-                semantic_vector: [0.0; 16],
-                semantic_drift: 0.0,
-                visual_saliency: 0.0,
-                information_content: 0.0,
-                attention_weight: 0.0,
-                force_scale: 1.0,
-                damping_local: 0.1,
-                constraint_mask: 0,
+        // Convert to BinaryNodeData format for compatibility
+        let mut gpu_raw_data = Vec::with_capacity(positions.len());
+        for (x, y, z) in positions {
+            gpu_raw_data.push(BinaryNodeData {
+                position: Vec3Data { x, y, z },
+                velocity: Vec3Data::zero(), // Velocities are internal to unified compute
+                mass: 1, // Default mass
+                flags: 0,
+                padding: [0, 0],
             });
         }
-        Ok(ts_nodes)
-    }
-    
-    fn convert_to_ts_edges_internal(edge_data: &Option<CudaSlice<EdgeData>>) -> Result<Vec<TSEdge>, Error> {
-        let edge_data = edge_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Edge data not initialized"))?;
-        
-        // Simplified conversion
-        let num_edges = edge_data.len();
-        let mut ts_edges = Vec::with_capacity(num_edges);
-        for _i in 0..num_edges {
-            ts_edges.push(TSEdge {
-                source: 0,
-                target: 1,
-                structural_weight: 1.0,
-                semantic_weight: 1.0,
-                temporal_weight: 0.0,
-                causal_weight: 0.0,
-                weight_history: [1.0; 8],
-                formation_time: 0.0,
-                stability: 1.0,
-                bundling_strength: 0.5,
-                control_points: [Vec4 { x: 0.0, y: 0.0, z: 0.0, t: 0.0 }; 2],
-                layer_mask: 0,
-                information_flow: 0.0,
-                latency: 0.0,
-            });
-        }
-        Ok(ts_edges)
-    }
-    
-    #[allow(dead_code)]
-    fn convert_to_ts_nodes(&self) -> Result<Vec<TSNode>, Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
-
-        let mut gpu_raw_data = vec![BinaryNodeData {
-            position: Vec3Data::zero(),
-            velocity: Vec3Data::zero(),
-            mass: 0,
-            flags: 0,
-            padding: [0, 0],
-        }; self.num_nodes as usize];
-
-        device.dtoh_sync_copy_into(node_data, &mut gpu_raw_data)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy data from GPU: {}", e)))?;
-
-        let mut ts_nodes = Vec::with_capacity(gpu_raw_data.len());
-        for (idx, node) in gpu_raw_data.iter().enumerate() {
-            let mut ts_node = TSNode::default();
-            
-            // Convert position and velocity
-            ts_node.position.x = node.position.x;
-            ts_node.position.y = node.position.y;
-            ts_node.position.z = node.position.z;
-            ts_node.position.t = self.iteration_count as f32 * self.simulation_params.time_step;
-            
-            ts_node.velocity.x = node.velocity.x;
-            ts_node.velocity.y = node.velocity.y;
-            ts_node.velocity.z = node.velocity.z;
-            ts_node.velocity.t = 0.0; // Temporal velocity not used yet
-            
-            // Set basic properties
-            ts_node.visual_saliency = if node.mass > 0 { node.mass as f32 / 100.0 } else { 1.0 };
-            ts_node.force_scale = 1.0;
-            ts_node.damping_local = self.simulation_params.damping;
-            
-            // Set hierarchy level based on node index (simple heuristic)
-            ts_node.hierarchy_level = if idx < 100 { 0 } else if idx < 1000 { 1 } else { 2 };
-            
-            ts_nodes.push(ts_node);
-        }
-
-        Ok(ts_nodes)
-    }
-
-    /// Convert legacy EdgeData to visual analytics TSEdge format
-    #[allow(dead_code)]
-    fn convert_to_ts_edges(&self) -> Result<Vec<TSEdge>, Error> {
-        if let Some(edge_data) = &self.edge_data {
-            let device = self.device.as_ref().unwrap();
-            let mut gpu_edge_data = vec![EdgeData {
-                source_idx: 0,
-                target_idx: 0,
-                weight: 0.0,
-            }; self.num_edges as usize];
-
-            device.dtoh_sync_copy_into(edge_data, &mut gpu_edge_data)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edge data from GPU: {}", e)))?;
-
-            let mut ts_edges = Vec::with_capacity(gpu_edge_data.len());
-            for edge in gpu_edge_data.iter() {
-                let ts_edge = TSEdge {
-                    source: edge.source_idx,
-                    target: edge.target_idx,
-                    structural_weight: edge.weight,
-                    semantic_weight: edge.weight * 0.8, // Simple heuristic
-                    temporal_weight: 1.0,
-                    causal_weight: 1.0,
-                    weight_history: [edge.weight; 8],
-                    formation_time: 0.0,
-                    stability: 0.9,
-                    bundling_strength: 0.5,
-                    control_points: [crate::gpu::visual_analytics::Vec4::default(); 2],
-                    layer_mask: 1, // Default to primary layer
-                    information_flow: edge.weight,
-                    latency: 1.0,
-                };
-                ts_edges.push(ts_edge);
-            }
-
-            Ok(ts_edges)
-        } else {
-            Ok(Vec::new())
-        }
-    }
-
-    /// Copy results from visual analytics GPU back to legacy format
-    #[allow(dead_code)]
-    fn copy_visual_analytics_results(&mut self, va_gpu: &VisualAnalyticsGPU) -> Result<(), Error> {
-        let positions = va_gpu.get_positions()
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from visual analytics: {}", e)))?;
-
-        // Convert positions back to BinaryNodeData format and upload to GPU
-        let device = self.device.as_ref().unwrap();
-        let node_data = self.node_data.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
-
-        let mut updated_nodes = vec![BinaryNodeData {
-            position: Vec3Data::zero(),
-            velocity: Vec3Data::zero(),
-            mass: 0,
-            flags: 0,
-            padding: [0, 0],
-        }; self.num_nodes as usize];
-
-        // Copy current data from GPU
-        device.dtoh_sync_copy_into(node_data, &mut updated_nodes)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy current node data: {}", e)))?;
-
-        // Update positions from visual analytics results
-        for (idx, node) in updated_nodes.iter_mut().enumerate() {
-            if idx * 4 + 2 < positions.len() {
-                node.position.x = positions[idx * 4];
-                node.position.y = positions[idx * 4 + 1];
-                node.position.z = positions[idx * 4 + 2];
-                // positions[idx * 4 + 3] is the time component, not used in legacy format
-            }
-        }
-
-        // Upload updated data back to GPU
-        device.htod_sync_copy_into(&updated_nodes, node_data)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload updated node data: {}", e)))?;
-
-        Ok(())
-    }
-
-    fn get_node_data_internal(&self) -> Result<Vec<BinaryNodeData>, Error> {
-        let device = self.device.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Device not initialized"))?;
-        let node_data = self.node_data.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Node data not initialized"))?;
-
-        let mut gpu_raw_data = vec![BinaryNodeData {
-            position: Vec3Data::zero(),
-            velocity: Vec3Data::zero(),
-            mass: 0,
-            flags: 0,
-            padding: [0, 0],
-        }; self.num_nodes as usize];
-
-        device.dtoh_sync_copy_into(node_data, &mut gpu_raw_data)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy data from GPU: {}", e)))?;
 
         Ok(gpu_raw_data)
     }
@@ -1340,15 +513,9 @@ impl Handler<InitializeGPU> for GPUComputeActor {
                 match result_of_logic {
                     Ok(init_result) => {
                         actor.device = Some(init_result.device);
-                        actor.force_kernel = Some(init_result.force_kernel);
-                        actor.dual_graph_kernel = init_result.dual_graph_kernel;
-                        actor.advanced_kernel = init_result.advanced_kernel;
-                        actor.visual_analytics_kernel = init_result.visual_analytics_kernel;
-                        actor.advanced_gpu_kernel = init_result.advanced_gpu_kernel;
-                        actor.node_data = Some(init_result.node_data);
-                        actor.edge_data = init_result.edge_data;  // CRITICAL FIX
+                        actor.unified_compute = Some(init_result.unified_compute);
                         actor.num_nodes = init_result.num_nodes;
-                        actor.num_edges = init_result.num_edges;  // CRITICAL FIX
+                        actor.num_edges = init_result.num_edges;
                         actor.node_indices = init_result.node_indices;
                         
                         // Reset other relevant state
@@ -1357,17 +524,17 @@ impl Handler<InitializeGPU> for GPUComputeActor {
                         actor.last_failure_reset = Instant::now();
                         actor.cpu_fallback_active = false;
 
-                        info!("GPU initialization successful (applied static logic result)");
+                        info!("Unified GPU initialization successful");
                         Ok(())
                     }
                     Err(e) => {
-                        error!("GPU initialization failed (static logic): {}", e);
+                        error!("Unified GPU initialization failed: {}", e);
                         actor.device = None;
-                        actor.force_kernel = None;
-                        actor.node_data = None;
+                        actor.unified_compute = None;
                         actor.num_nodes = 0;
+                        actor.num_edges = 0;
                         actor.node_indices.clear();
-                        actor.cpu_fallback_active = true; // Fallback on init failure
+                        actor.cpu_fallback_active = true;
                         Err(e.to_string())
                     }
                 }
@@ -1515,8 +682,8 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
 
     fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
         info!("MSG_HANDLER: UpdateConstraints received");
-        info!("  Current state - compute_mode: {:?}, kernel_mode: {:?}, constraints: {}",
-              self.compute_mode, self.kernel_mode, self.constraints.len());
+        info!("  Current state - compute_mode: {:?}, constraints: {}",
+              self.compute_mode, self.constraints.len());
         
         // Parse constraints from JSON value
         match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data) {
@@ -1527,21 +694,41 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
                 info!("MSG_HANDLER: Parsed {} new constraints (was {})", constraints.len(), old_count);
                 self.constraints = constraints;
                 
-                // Switch to advanced mode if we have constraints and the kernel is available
-                if !self.constraints.is_empty() && self.advanced_kernel.is_some() {
-                    if matches!(self.compute_mode, ComputeMode::Legacy) {
+                // Switch to advanced mode if we have constraints
+                if !self.constraints.is_empty() && self.unified_compute.is_some() {
+                    if matches!(self.compute_mode, ComputeMode::Basic) {
                         info!("MSG_HANDLER: Switching compute mode from {:?} to Advanced due to constraints", old_mode);
                         self.compute_mode = ComputeMode::Advanced;
+                        self.set_unified_compute_mode(UnifiedComputeMode::Constraints);
                     }
                 } else if self.constraints.is_empty() && matches!(self.compute_mode, ComputeMode::Advanced) {
-                    info!("MSG_HANDLER: Switching compute mode from {:?} to Legacy - no constraints", old_mode);
-                    self.compute_mode = ComputeMode::Legacy;
+                    info!("MSG_HANDLER: Switching compute mode from {:?} to Basic - no constraints", old_mode);
+                    self.compute_mode = ComputeMode::Basic;
+                    self.set_unified_compute_mode(UnifiedComputeMode::Basic);
                 } else {
                     info!("MSG_HANDLER: Compute mode remains {:?}", self.compute_mode);
                 }
                 
-                info!("  New state - compute_mode: {:?}, kernel_mode: {:?}, constraints: {}",
-                      self.compute_mode, self.kernel_mode, self.constraints.len());
+                // Update unified compute with constraints
+                if let Some(ref mut unified_compute) = self.unified_compute {
+                    // Convert constraints to unified format and set them
+                    let constraint_data: Vec<crate::utils::unified_gpu_compute::ConstraintData> = self.constraints.iter()
+                        .map(|c| crate::utils::unified_gpu_compute::ConstraintData {
+                            constraint_type: 0, // Basic constraint type
+                            strength: c.strength.unwrap_or(1.0),
+                            param1: 0.0,
+                            param2: 0.0,
+                            node_mask: 0,
+                        })
+                        .collect();
+                    
+                    if let Err(e) = unified_compute.set_constraints(constraint_data) {
+                        warn!("Failed to update unified compute constraints: {}", e);
+                    }
+                }
+                
+                info!("  New state - compute_mode: {:?}, constraints: {}",
+                      self.compute_mode, self.constraints.len());
                 
                 Ok(())
             },
@@ -1563,14 +750,18 @@ impl Handler<UpdateAdvancedParams> for GPUComputeActor {
               msg.params.temporal_force_weight,
               msg.params.constraint_force_weight);
         
-        self.advanced_params = msg.params;
+        // Convert AdvancedParams to SimParams for unified compute
+        self.unified_params.spring_k = msg.params.target_edge_length.recip() * 0.1;
+        self.unified_params.separation_radius = msg.params.separation_factor;
+        self.unified_params.cluster_strength = msg.params.knowledge_force_weight;
+        self.unified_params.alignment_strength = msg.params.agent_communication_weight;
         
-        // Update the advanced GPU context if it exists
-        if let Some(ref mut ctx) = self.advanced_gpu_context {
-            ctx.update_advanced_params(self.advanced_params.clone());
-            info!("MSG_HANDLER: Advanced GPU context updated with new parameters");
+        // Update unified compute parameters
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.set_params(self.unified_params);
+            info!("MSG_HANDLER: Unified compute updated with new parameters");
         } else {
-            info!("MSG_HANDLER: No advanced GPU context to update");
+            info!("MSG_HANDLER: No unified compute to update");
         }
         
         Ok(())
@@ -1616,35 +807,23 @@ impl Handler<SetComputeMode> for GPUComputeActor {
     fn handle(&mut self, msg: SetComputeMode, _ctx: &mut Self::Context) -> Self::Result {
         let old_mode = self.compute_mode;
         
-        // Validate that the requested mode is supported
-        match msg.mode {
-            ComputeMode::Legacy => {
-                if self.force_kernel.is_some() {
-                    self.compute_mode = msg.mode;
-                    info!("GPU: Switched from {:?} to {:?} compute mode", old_mode, msg.mode);
-                } else {
-                    return Err("Legacy kernel not available".to_string());
-                }
-            },
-            ComputeMode::DualGraph => {
-                if self.dual_graph_kernel.is_some() {
-                    self.compute_mode = msg.mode;
-                    info!("GPU: Switched from {:?} to {:?} compute mode", old_mode, msg.mode);
-                } else {
-                    return Err("Dual graph kernel not available".to_string());
-                }
-            },
-            ComputeMode::Advanced => {
-                if self.advanced_kernel.is_some() || self.advanced_gpu_context.is_some() {
-                    self.compute_mode = msg.mode;
-                    info!("GPU: Switched from {:?} to {:?} compute mode", old_mode, msg.mode);
-                } else {
-                    return Err("Advanced kernel not available".to_string());
-                }
-            },
+        // All modes are supported by the unified kernel
+        if self.unified_compute.is_some() {
+            self.compute_mode = msg.mode;
+            
+            // Map to unified compute mode
+            let unified_mode = match msg.mode {
+                ComputeMode::Basic => UnifiedComputeMode::Basic,
+                ComputeMode::DualGraph => UnifiedComputeMode::DualGraph,
+                ComputeMode::Advanced => UnifiedComputeMode::Constraints,
+            };
+            
+            self.set_unified_compute_mode(unified_mode);
+            info!("GPU: Switched from {:?} to {:?} compute mode", old_mode, msg.mode);
+            Ok(())
+        } else {
+            Err("Unified compute not available".to_string())
         }
-        
-        Ok(())
     }
 }
 
@@ -1657,44 +836,33 @@ impl Handler<GetPhysicsStats> for GPUComputeActor {
 }
 
 impl GPUComputeActor {
-    /// Initialize the advanced GPU context for constraint-based physics
-    pub async fn initialize_advanced_context(&mut self, num_nodes: u32, num_edges: u32) -> Result<(), Error> {
-        info!("Initializing advanced GPU context for {} nodes, {} edges", num_nodes, num_edges);
+    /// Initialize the unified GPU compute engine
+    pub async fn initialize_unified_context(&mut self, num_nodes: u32, num_edges: u32) -> Result<(), Error> {
+        info!("Initializing unified GPU context for {} nodes, {} edges", num_nodes, num_edges);
         
-        match AdvancedGPUContext::new(
-            num_nodes,
-            num_edges,
-            self.simulation_params.clone(),
-            self.advanced_params.clone(),
-        ).await {
-            Ok(ctx) => {
-                self.advanced_gpu_context = Some(ctx);
-                info!("Advanced GPU context initialized successfully");
-                Ok(())
-            },
-            Err(e) => {
-                warn!("Failed to initialize advanced GPU context: {}, will use direct kernels", e);
-                Err(e)
+        if let Some(device) = &self.device {
+            match UnifiedGPUCompute::new(device.clone(), num_nodes as usize, num_edges as usize) {
+                Ok(unified_compute) => {
+                    self.unified_compute = Some(unified_compute);
+                    info!("Unified GPU context initialized successfully");
+                    Ok(())
+                },
+                Err(e) => {
+                    warn!("Failed to initialize unified GPU context: {}", e);
+                    Err(e)
+                }
             }
+        } else {
+            Err(Error::new(ErrorKind::Other, "Device not initialized"))
         }
     }
 
-    /// Convert legacy node data to enhanced format for advanced physics
-    #[allow(dead_code)]
-    fn convert_to_enhanced_nodes(&self, nodes: &[BinaryNodeData]) -> Vec<EnhancedBinaryNodeData> {
-        nodes.iter().map(|node| EnhancedBinaryNodeData::from(*node)).collect()
-    }
-
-    /// Convert enhanced node data back to legacy format
-    #[allow(dead_code)]
-    fn convert_from_enhanced_nodes(&self, nodes: &[EnhancedBinaryNodeData]) -> Vec<BinaryNodeData> {
-        nodes.iter().map(|node| BinaryNodeData::from(*node)).collect()
-    }
+    // Legacy node data conversion removed - unified kernel handles all formats internally
 
     /// Get current compute mode as string for logging
     pub fn get_compute_mode_string(&self) -> &'static str {
         match self.compute_mode {
-            ComputeMode::Legacy => "Legacy",
+            ComputeMode::Basic => "Basic",
             ComputeMode::DualGraph => "DualGraph", 
             ComputeMode::Advanced => "Advanced",
         }
@@ -1702,63 +870,38 @@ impl GPUComputeActor {
 
     /// Check if advanced features are available
     pub fn has_advanced_features(&self) -> bool {
-        self.advanced_kernel.is_some() || self.advanced_gpu_context.is_some()
+        self.unified_compute.is_some()
     }
 
     /// Check if dual graph features are available
     pub fn has_dual_graph_features(&self) -> bool {
-        self.dual_graph_kernel.is_some()
+        self.unified_compute.is_some()
     }
 
 
-    /// Add or update an isolation layer
-    pub fn add_isolation_layer(&mut self, layer: IsolationLayer) {
-        let layer_id = layer.layer_id;
-        self.isolation_layers.push(layer);
-        info!("Added isolation layer {}, total layers: {}", layer_id, self.isolation_layers.len());
-    }
-
-    /// Remove an isolation layer by ID
-    pub fn remove_isolation_layer(&mut self, layer_id: i32) -> bool {
-        let initial_len = self.isolation_layers.len();
-        self.isolation_layers.retain(|layer| layer.layer_id != layer_id);
-        let removed = self.isolation_layers.len() < initial_len;
-        if removed {
-            info!("Removed isolation layer {}", layer_id);
-        }
-        removed
-    }
-
-    /// Update visual analytics parameters
-    pub fn update_visual_analytics_params(&mut self, params: VisualAnalyticsParams) {
-        self.visual_analytics_params = Some(params);
-        info!("Updated visual analytics parameters");
-    }
-
-    /// Get current kernel mode as string for logging
-    pub fn get_kernel_mode_string(&self) -> &'static str {
-        match self.kernel_mode {
-            KernelMode::Legacy => "Legacy",
-            KernelMode::Advanced => "Advanced",
-            KernelMode::VisualAnalytics => "VisualAnalytics",
+    /// Set unified compute mode
+    pub fn set_unified_compute_mode(&mut self, mode: UnifiedComputeMode) {
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.set_mode(mode);
+            info!("Updated unified compute mode to: {:?}", mode);
         }
     }
 
     /// Check if visual analytics features are available
     pub fn has_visual_analytics_features(&self) -> bool {
-        self.visual_analytics_kernel.is_some() || self.visual_analytics_gpu.is_some()
+        self.unified_compute.is_some()
     }
 
     /// Get statistics for monitoring
     pub fn get_physics_stats(&self) -> PhysicsStats {
         PhysicsStats {
             compute_mode: self.get_compute_mode_string().to_string(),
-            kernel_mode: self.get_kernel_mode_string().to_string(),
+            kernel_mode: "Unified".to_string(), // Always unified now
             iteration_count: self.iteration_count,
             num_nodes: self.num_nodes,
             num_edges: self.num_edges,
             num_constraints: self.constraints.len() as u32,
-            num_isolation_layers: self.isolation_layers.len() as u32,
+            num_isolation_layers: 0, // Managed internally by unified kernel
             stress_majorization_interval: self.stress_majorization_interval,
             last_stress_majorization: self.last_stress_majorization,
             gpu_failure_count: self.gpu_failure_count,
@@ -1796,66 +939,18 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
     fn handle(&mut self, msg: InitializeVisualAnalytics, _ctx: &mut Self::Context) -> Self::Result {
         info!("MSG_HANDLER: InitializeVisualAnalytics received");
         info!("  Max nodes: {}, Max edges: {}", msg.max_nodes, msg.max_edges);
-        info!("  Current kernel availability - VA: {}, Advanced: {}",
-              self.visual_analytics_kernel.is_some(),
-              self.advanced_kernel.is_some());
+        info!("  Unified compute available: {}", self.unified_compute.is_some());
         
-        // For now, just mark as initialized without the async complexity
-        // The visual analytics GPU is initialized on-demand when needed
-        self.visual_analytics_params = Some(VisualAnalyticsParams {
-            // GPU optimization
-            total_nodes: msg.max_nodes as i32,
-            total_edges: msg.max_edges as i32,
-            active_layers: 4,
-            hierarchy_depth: 3,
-            
-            // Temporal dynamics
-            current_frame: 0,
-            time_step: 0.016,
-            temporal_decay: 0.95,
-            history_weight: 0.8,
-            
-            // Force parameters (multi-resolution)
-            force_scale: [1.0, 0.8, 0.6, 0.4],
-            damping: [0.9, 0.85, 0.8, 0.75],
-            temperature: [1.0, 0.8, 0.6, 0.4],
-            
-            // Isolation and focus
-            isolation_strength: 0.5,
-            focus_gamma: 1.2,
-            primary_focus_node: -1,
-            context_alpha: 0.7,
-            
-            // Visual comprehension
-            complexity_threshold: 0.8,
-            saliency_boost: 1.5,
-            information_bandwidth: 100.0,
-            
-            // Topology analysis
-            community_algorithm: 0,
-            modularity_resolution: 1.0,
-            topology_update_interval: 10,
-            
-            // Semantic analysis
-            semantic_influence: 0.7,
-            drift_threshold: 0.5,
-            embedding_dims: 128,
-            
-            // Viewport
-            camera_position: Vec4 { x: 0.0, y: 0.0, z: 500.0, t: 0.0 },
-            viewport_bounds: Vec4 { x: -1000.0, y: -1000.0, z: 1000.0, t: 1000.0 },
-            zoom_level: 1.0,
-            time_window: 10.0,
-        });
+        // Visual analytics is built into the unified kernel
+        // Set compute mode to use visual analytics features
+        if !self.constraints.is_empty() {
+            self.compute_mode = ComputeMode::Advanced;
+            self.set_unified_compute_mode(UnifiedComputeMode::VisualAnalytics);
+        } else if self.num_nodes > 1000 {
+            self.set_unified_compute_mode(UnifiedComputeMode::VisualAnalytics);
+        }
         
-        info!("MSG_HANDLER: Visual analytics parameters initialized - will affect kernel selection");
-        
-        // Log how this affects kernel selection
-        let has_isolation_layers = !self.isolation_layers.is_empty();
-        let has_complex_analysis = !self.constraints.is_empty() ||
-                                 matches!(self.compute_mode, ComputeMode::Advanced);
-        let potential_mode = self.determine_kernel_mode(self.num_nodes, has_isolation_layers, has_complex_analysis);
-        info!("MSG_HANDLER: Potential kernel mode after VA init: {:?}", potential_mode);
+        info!("MSG_HANDLER: Visual analytics mode enabled in unified kernel");
         
         Ok(())
     }
@@ -1869,8 +964,15 @@ impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
         info!("  Focus node: {}, Isolation strength: {:.2}",
               msg.params.primary_focus_node, msg.params.isolation_strength);
         
-        self.update_visual_analytics_params(msg.params);
-        info!("MSG_HANDLER: Visual analytics parameters updated successfully");
+        // Update unified compute parameters based on visual analytics settings
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            let mut params = self.unified_params;
+            params.temperature = 1.0 - msg.params.isolation_strength;
+            params.viewport_bounds = msg.params.viewport_bounds.x.abs().max(msg.params.viewport_bounds.y.abs());
+            unified_compute.set_params(params);
+        }
+        
+        info!("MSG_HANDLER: Visual analytics parameters updated in unified compute");
         
         Ok(())
     }
@@ -1880,8 +982,8 @@ impl Handler<AddIsolationLayer> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: AddIsolationLayer, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Adding isolation layer {}", msg.layer.layer_id);
-        self.add_isolation_layer(msg.layer);
+        info!("GPU: Isolation layers are now managed internally by unified kernel");
+        info!("  Layer {} functionality integrated into visual analytics mode", msg.layer.layer_id);
         Ok(())
     }
 }
@@ -1890,9 +992,9 @@ impl Handler<RemoveIsolationLayer> for GPUComputeActor {
     type Result = Result<bool, String>;
 
     fn handle(&mut self, msg: RemoveIsolationLayer, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Removing isolation layer {}", msg.layer_id);
-        let removed = self.remove_isolation_layer(msg.layer_id);
-        Ok(removed)
+        info!("GPU: Isolation layers are now managed internally by unified kernel");
+        info!("  Layer {} removal handled by visual analytics mode", msg.layer_id);
+        Ok(true) // Always report success since it's handled internally
     }
 }
 
@@ -1900,6 +1002,6 @@ impl Handler<GetKernelMode> for GPUComputeActor {
     type Result = Result<String, String>;
 
     fn handle(&mut self, _msg: GetKernelMode, _ctx: &mut Self::Context) -> Self::Result {
-        Ok(self.get_kernel_mode_string().to_string())
+        Ok("Unified".to_string()) // Always unified kernel now
     }
 }

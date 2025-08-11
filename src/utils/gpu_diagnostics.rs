@@ -24,7 +24,7 @@ pub fn run_gpu_diagnostics() -> String {
     }
     
     // Check for PTX file
-    let ptx_paths = ["/app/src/utils/ptx/compute_forces.ptx", "./src/utils/ptx/compute_forces.ptx"];
+    let ptx_paths = ["/app/src/utils/ptx/visionflow_unified.ptx", "./src/utils/ptx/visionflow_unified.ptx"];
     report.push_str("\nPTX File Status:\n");
     let mut ptx_found = false;
     
@@ -87,8 +87,8 @@ pub fn fix_cuda_environment() -> Result<(), Error> {
     }
     
     // Check if PTX file exists; if not, try to find it or create a symlink
-    let primary_path = "/app/src/utils/ptx/compute_forces.ptx";
-    let alternative_path = "./src/utils/ptx/compute_forces.ptx";
+    let primary_path = "/app/src/utils/ptx/visionflow_unified.ptx";
+    let alternative_path = "./src/utils/ptx/visionflow_unified.ptx";
     
     if !Path::new(primary_path).exists() {
         info!("Primary PTX file not found at {}", primary_path);
