@@ -176,15 +176,16 @@ impl GPUComputeActor {
     async fn static_initialize_unified_compute(
         device: Arc<CudaDevice>,
         num_nodes: u32,
+        num_edges: u32,  // Add num_edges parameter
         graph_nodes: &[crate::models::node::Node], // Pass slice of nodes
     ) -> Result<(UnifiedGPUCompute, HashMap<u32, usize>), Error> {
-        info!("UNIFIED_INIT: Starting unified GPU compute initialization");
+        info!("UNIFIED_INIT: Starting unified GPU compute initialization for {} nodes, {} edges", num_nodes, num_edges);
         
-        // Initialize the unified GPU compute engine
+        // Initialize the unified GPU compute engine with actual edge count
         let unified_compute = UnifiedGPUCompute::new(
             device.clone(),
             num_nodes as usize,
-            0, // Will be set when edges are provided
+            num_edges as usize,  // Use actual edge count from graph
         ).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to initialize unified compute: {}", e)))?;
         
         info!("UNIFIED_INIT: Unified GPU compute initialized successfully");
@@ -222,8 +223,8 @@ impl GPUComputeActor {
         let device = Self::static_create_cuda_device().await?;
         info!("(Static Logic) CUDA device created successfully");
         
-        // Initialize unified compute engine
-        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(device.clone(), num_nodes, &graph.nodes).await?;
+        // Initialize unified compute engine with edge count
+        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(device.clone(), num_nodes, num_edges, &graph.nodes).await?;
         info!("(Static Logic) Unified compute initialized successfully");
         
         // Upload node positions to unified compute
@@ -575,8 +576,18 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
         info!("GPU: Received physics update - damping: {}, spring: {}, repulsion: {}, iterations: {}", 
               msg.params.damping, msg.params.spring_strength, 
               msg.params.repulsion, msg.params.iterations);
-        self.simulation_params = msg.params;
-        info!("GPU: Physics parameters updated successfully");
+        
+        // Update both simulation params and unified params
+        self.simulation_params = msg.params.clone();
+        self.unified_params = SimParams::from(&msg.params);
+        
+        // Update the unified compute if it's initialized
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.set_params(self.unified_params);
+            info!("GPU: Updated unified compute with new physics parameters from settings");
+        }
+        
+        info!("GPU: Physics parameters updated successfully from settings.yaml");
         Ok(())
     }
 }

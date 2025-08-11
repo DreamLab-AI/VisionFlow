@@ -170,20 +170,9 @@ impl GraphService {
         let return_service = graph_service.clone();
         let captured_client_manager = client_manager_for_loop.clone(); // Capture ClientManager for the loop
         tokio::spawn(async move {
-            let params = SimulationParams {
-                iterations: physics_settings.iterations,
-                spring_strength: physics_settings.spring_strength,
-                repulsion: physics_settings.repulsion_strength,
-                damping: physics_settings.damping,
-                max_repulsion_distance: physics_settings.repulsion_distance,
-                viewport_bounds: physics_settings.bounds_size,
-                mass_scale: physics_settings.mass_scale,
-                boundary_damping: physics_settings.boundary_damping,
-                enable_bounds: physics_settings.enable_bounds,
-                time_step: 0.016,  // ~60fps
-                phase: SimulationPhase::Dynamic,
-                mode: SimulationMode::Remote,
-            };
+            // Use the From trait to convert PhysicsSettings to SimulationParams
+            // This ensures all fields are properly set
+            let params = SimulationParams::from(&physics_settings);
             
             // Create a guard to reset the flag when the task exits
             let loop_guard = scopeguard::guard((), |_| { 
