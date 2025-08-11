@@ -80,6 +80,22 @@ RUN nvcc --version && \
     echo "CUDA compilation test passed for sm_${CUDA_ARCH}" && \
     rm -f test.cu test.o
 
+# Compile the unified PTX kernel inside the container
+RUN mkdir -p /app/src/utils/ptx && \
+    cd /app && \
+    nvcc -ptx \
+        -arch=sm_${CUDA_ARCH} \
+        -O3 \
+        --use_fast_math \
+        --restrict \
+        --ftz=true \
+        --prec-div=false \
+        --prec-sqrt=false \
+        src/utils/visionflow_unified.cu \
+        -o src/utils/ptx/visionflow_unified.ptx && \
+    echo "PTX kernel compiled successfully for sm_${CUDA_ARCH}" && \
+    ls -la src/utils/ptx/
+
 # Build Rust with GPU features
 RUN cargo build --features gpu && \
     cp target/debug/webxr /app/webxr

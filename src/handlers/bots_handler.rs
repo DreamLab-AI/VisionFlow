@@ -506,20 +506,12 @@ pub async fn update_bots_data(
         let physics_settings = &settings.visualisation.graphs.logseq.physics;
 
         // Create simulation parameters for bots
-        let params = SimulationParams {
-            iterations: physics_settings.iterations / 2, // Fewer iterations for bots
-            spring_strength: physics_settings.spring_strength * 1.5, // Stronger attraction
-            repulsion: physics_settings.repulsion_strength * 0.8, // Less repulsion
-            damping: physics_settings.damping,
-            max_repulsion_distance: physics_settings.repulsion_distance,
-            viewport_bounds: physics_settings.bounds_size,
-            mass_scale: physics_settings.mass_scale,
-            boundary_damping: physics_settings.boundary_damping,
-            enable_bounds: physics_settings.enable_bounds,
-            time_step: 0.016,
-            phase: SimulationPhase::Dynamic,
-            mode: SimulationMode::Remote,
-        };
+        // Use the From trait to ensure all fields are set
+        let mut params = SimulationParams::from(physics_settings);
+        // Adjust for bots
+        params.iterations = physics_settings.iterations / 2; // Fewer iterations for bots
+        params.spring_strength = physics_settings.spring_strength * 1.5; // Stronger attraction
+        params.repulsion = physics_settings.repulsion_strength * 0.8; // Less repulsion
 
         // Send graph data to GPU
         info!("Processing bots layout with GPU");

@@ -50,23 +50,49 @@ pub struct SimParams {
 unsafe impl DeviceRepr for SimParams {}
 unsafe impl ValidAsZeroBits for SimParams {}
 
+// Conversion from SimulationParams to SimParams
+impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
+    fn from(params: &crate::models::simulation_params::SimulationParams) -> Self {
+        Self {
+            spring_k: params.spring_strength,
+            repel_k: params.repulsion,
+            damping: params.damping,
+            dt: params.time_step,
+            max_velocity: params.max_velocity,
+            max_force: params.repulsion * 0.2, // Calculated as 20% of repulsion
+            stress_weight: 0.5,  // Default stress values
+            stress_alpha: 0.1,
+            separation_radius: params.collision_radius,
+            boundary_limit: params.viewport_bounds,
+            alignment_strength: params.attraction_strength,
+            cluster_strength: 0.2,  // Default cluster strength
+            viewport_bounds: params.viewport_bounds,
+            temperature: params.temperature,
+            iteration: 0,
+            compute_mode: 0,  // Will be set based on ComputeMode
+        }
+    }
+}
+
 impl Default for SimParams {
     fn default() -> Self {
+        // Default values should match settings.yaml physics settings
+        // These are fallback values only - actual values come from settings.yaml
         Self {
-            spring_k: 0.005,       // Very gentle springs
-            repel_k: 50.0,         // Moderate repulsion
-            damping: 0.9,          // Higher damping for stability
-            dt: 0.01,              // Smaller timestep for stability
-            max_velocity: 1.0,     // Lower max velocity
-            max_force: 2.0,        // Much lower max force
+            spring_k: 0.005,       // From settings.yaml spring_strength
+            repel_k: 50.0,         // From settings.yaml repulsion_strength
+            damping: 0.9,          // From settings.yaml damping
+            dt: 0.01,              // From settings.yaml time_step
+            max_velocity: 1.0,     // From settings.yaml max_velocity
+            max_force: 10.0,       // Calculated based on forces
             stress_weight: 0.5,
             stress_alpha: 0.1,
-            separation_radius: 2.0, // Reasonable separation
-            boundary_limit: 100.0,
-            alignment_strength: 0.1,
+            separation_radius: 0.15, // From settings.yaml collision_radius
+            boundary_limit: 200.0,   // From settings.yaml bounds_size
+            alignment_strength: 0.001, // From settings.yaml attraction_strength
             cluster_strength: 0.2,
-            viewport_bounds: 200.0, // Smaller viewport
-            temperature: 0.5,      // Lower initial temperature
+            viewport_bounds: 200.0,  // From settings.yaml bounds_size
+            temperature: 0.5,        // From settings.yaml temperature
             iteration: 0,
             compute_mode: 0,
         }
@@ -186,24 +212,34 @@ impl UnifiedGPUCompute {
     ) -> Result<Self, Error> {
         info!("Initializing Unified GPU Compute with {} nodes, {} edges", num_nodes, num_edges);
         
-        // Load the unified PTX
-        let ptx_path = "/app/src/utils/ptx/visionflow_unified.ptx";
-        if !Path::new(ptx_path).exists() {
-            // Try local path for development
-            let local_path = "src/utils/ptx/visionflow_unified.ptx";
-            if !Path::new(local_path).exists() {
-                return Err(Error::new(
-                    ErrorKind::NotFound,
-                    format!("Unified PTX not found at {} or {}", ptx_path, local_path)
-                ));
+        // Load the unified PTX - try multiple paths
+        let ptx_paths = [
+            "/workspace/ext/src/utils/ptx/visionflow_unified.ptx",  // Workspace path
+            "/app/src/utils/ptx/visionflow_unified.ptx",            // Container path
+            "src/utils/ptx/visionflow_unified.ptx",                 // Relative path
+            "./src/utils/ptx/visionflow_unified.ptx",               // Relative with ./
+        ];
+        
+        let mut ptx_path_found = None;
+        for path in &ptx_paths {
+            if Path::new(path).exists() {
+                ptx_path_found = Some(*path);
+                break;
             }
-            info!("Using local PTX path: {}", local_path);
-            let ptx = Ptx::from_file(local_path);
-            Self::create_with_ptx(device, ptx, num_nodes, num_edges)
-        } else {
-            info!("Loading PTX from: {}", ptx_path);
-            let ptx = Ptx::from_file(ptx_path);
-            Self::create_with_ptx(device, ptx, num_nodes, num_edges)
+        }
+        
+        match ptx_path_found {
+            Some(path) => {
+                info!("Loading PTX from: {}", path);
+                let ptx = Ptx::from_file(path);
+                Self::create_with_ptx(device, ptx, num_nodes, num_edges)
+            }
+            None => {
+                Err(Error::new(
+                    ErrorKind::NotFound,
+                    format!("Unified PTX not found. Tried paths: {:?}", ptx_paths)
+                ))
+            }
         }
     }
     

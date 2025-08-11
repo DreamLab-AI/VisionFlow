@@ -66,21 +66,8 @@ pub async fn get_graph_data(state: web::Data<AppState>) -> impl Responder {
         };
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
         
-        // Create simulation parameters
-        let params = crate::models::simulation_params::SimulationParams {
-            iterations: physics_settings.iterations,
-            spring_strength: physics_settings.spring_strength,
-            repulsion: physics_settings.repulsion_strength,
-            damping: physics_settings.damping,
-            max_repulsion_distance: physics_settings.repulsion_distance,
-            viewport_bounds: physics_settings.bounds_size,
-            mass_scale: physics_settings.mass_scale,
-            boundary_damping: physics_settings.boundary_damping,
-            enable_bounds: physics_settings.enable_bounds,
-            time_step: 0.016,
-            phase: crate::models::simulation_params::SimulationPhase::Dynamic,
-            mode: crate::models::simulation_params::SimulationMode::Remote,
-        };
+        // Create simulation parameters using From trait
+        let params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
         
         // Calculate graph layout using GPU
         info!("Processing graph layout with GPU before sending to client");
@@ -160,21 +147,8 @@ pub async fn get_paginated_graph_data(
             };
             let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
             
-            // Create simulation parameters
-            let params = crate::models::simulation_params::SimulationParams {
-                iterations: physics_settings.iterations,
-                spring_strength: physics_settings.spring_strength,
-                repulsion: physics_settings.repulsion_strength,
-                damping: physics_settings.damping,
-                max_repulsion_distance: physics_settings.repulsion_distance,
-                viewport_bounds: physics_settings.bounds_size,
-                mass_scale: physics_settings.mass_scale,
-                boundary_damping: physics_settings.boundary_damping,
-                enable_bounds: physics_settings.enable_bounds,
-                time_step: 0.016,
-                phase: crate::models::simulation_params::SimulationPhase::Dynamic,
-                mode: crate::models::simulation_params::SimulationMode::Remote,
-            };
+            // Create simulation parameters using From trait
+            let params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
             
             // Calculate graph layout using GPU
             info!("Processing paginated graph layout with GPU before sending to client");

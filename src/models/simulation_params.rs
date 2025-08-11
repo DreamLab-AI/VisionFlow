@@ -65,6 +65,12 @@ pub struct SimulationParams {
     pub viewport_bounds: f32,     // Range: 100-5000, Default: 1000
     pub enable_bounds: bool,      // Default: true
     
+    // Additional physics parameters
+    pub max_velocity: f32,        // Maximum velocity for nodes
+    pub attraction_strength: f32, // Attraction between connected nodes
+    pub collision_radius: f32,    // Minimum separation between nodes
+    pub temperature: f32,          // System temperature for simulated annealing
+    
     // Simulation state
     pub phase: SimulationPhase,   // Current simulation phase
     pub mode: SimulationMode,     // Computation mode
@@ -83,6 +89,10 @@ impl SimulationParams {
             boundary_damping: 0.95,     
             viewport_bounds: 200.0,     // Smaller viewport
             enable_bounds: true,
+            max_velocity: 1.0,          // From settings.yaml
+            attraction_strength: 0.001,  // From settings.yaml
+            collision_radius: 0.15,      // From settings.yaml
+            temperature: 0.5,            // From settings.yaml
             phase: SimulationPhase::Initial,
             mode: SimulationMode::Remote,
         }
@@ -101,6 +111,10 @@ impl SimulationParams {
                 boundary_damping: 0.95,
                 viewport_bounds: 8000.0,   // Much larger bounds
                 enable_bounds: true,
+                max_velocity: 1.0,
+                attraction_strength: 0.001,
+                collision_radius: 0.15,
+                temperature: 0.5,
                 phase,
                 mode: SimulationMode::Remote,
             },
@@ -115,6 +129,10 @@ impl SimulationParams {
                 boundary_damping: 0.95,  // Increased boundary damping
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
+                max_velocity: 2.0,
+                attraction_strength: 0.002,
+                collision_radius: 0.2,
+                temperature: 0.3,
                 phase,
                 mode: SimulationMode::Remote,
             },
@@ -129,6 +147,10 @@ impl SimulationParams {
                 boundary_damping: 0.95,
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
+                max_velocity: 1.5,
+                attraction_strength: 0.001,
+                collision_radius: 0.15,
+                temperature: 0.2,
                 phase,
                 mode: SimulationMode::Remote,
             },
@@ -164,6 +186,10 @@ impl From<&PhysicsSettings> for SimulationParams {
             boundary_damping: physics.boundary_damping,
             viewport_bounds: physics.bounds_size,
             enable_bounds: physics.enable_bounds,
+            max_velocity: physics.max_velocity,
+            attraction_strength: physics.attraction_strength,
+            collision_radius: physics.collision_radius,
+            temperature: physics.temperature,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }
