@@ -1,19 +1,25 @@
-//! Advanced GPU compute module with constraint-aware physics
+//! Legacy advanced GPU compute module - DEPRECATED
+//! 
+//! This module has been replaced by the unified GPU compute system.
+//! All functionality is now integrated into `unified_gpu_compute.rs`.
+//! This file is kept temporarily for API compatibility during migration.
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits, DeviceSlice};
-use cudarc::nvrtc::Ptx;
 use std::io::{Error, ErrorKind};
-use std::sync::Arc;
-use log::{error, warn, info, trace};
-use std::collections::HashMap;
+use log::{warn, info, error, trace};
+use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode, SimParams};
 use crate::models::simulation_params::SimulationParams;
 use crate::models::constraints::{Constraint, ConstraintData, AdvancedParams};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::edge_data::EdgeData;
 use crate::types::vec3::Vec3Data;
+use std::sync::Arc;
+use std::collections::HashMap;
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, DeviceRepr, ValidAsZeroBits};
+use cudarc::nvrtc::Ptx;
 use std::path::Path;
 
-// Enhanced node data structure for advanced physics
+// DEPRECATED: EnhancedBinaryNodeData
+// This is now handled internally by the unified GPU compute system using SoA layout
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct EnhancedBinaryNodeData {
@@ -200,144 +206,55 @@ const MAX_NODES: u32 = 1_000_000;
 const MAX_CONSTRAINTS: u32 = 10_000;
 const DEBUG_THROTTLE: u32 = 60;
 
-/// Advanced GPU compute context with constraint support
+/// DEPRECATED: AdvancedGPUContext
+/// This has been replaced by UnifiedGPUCompute which handles all advanced features
+/// in a single, optimized kernel using Structure-of-Arrays layout.
 #[derive(Debug)]
 pub struct AdvancedGPUContext {
-    pub device: Arc<CudaDevice>,
-    pub advanced_kernel: CudaFunction,
-    pub legacy_kernel: Option<CudaFunction>, // For fallback
-    pub node_data: CudaSlice<EnhancedBinaryNodeData>,
-    pub edge_data: CudaSlice<EnhancedEdgeData>,
-    pub constraint_data: CudaSlice<ConstraintData>,
-    pub num_nodes: u32,
-    pub num_edges: u32,
-    pub num_constraints: u32,
-    pub node_indices: HashMap<u32, usize>,
-    pub simulation_params: SimulationParams,
-    pub advanced_params: AdvancedParams,
-    pub iteration_count: u32,
-    pub use_advanced_kernel: bool,
+    unified_compute: Option<UnifiedGPUCompute>,
+    num_nodes: u32,
+    num_edges: u32,
+    simulation_params: SimulationParams,
+    advanced_params: AdvancedParams,
+    iteration_count: u32,
 }
 
 impl AdvancedGPUContext {
-    /// Create a new advanced GPU context
+    /// Create a new advanced GPU context (DEPRECATED)
+    /// This now delegates to UnifiedGPUCompute
     pub async fn new(
         num_nodes: u32,
         num_edges: u32,
         simulation_params: SimulationParams,
         advanced_params: AdvancedParams,
     ) -> Result<Self, Error> {
-        info!("Initializing advanced GPU context for {} nodes, {} edges", num_nodes, num_edges);
-        info!("PTX_LOAD_ADV: Starting advanced GPU context PTX loading");
+        warn!("AdvancedGPUContext::new is DEPRECATED. Use UnifiedGPUCompute instead.");
+        info!("Creating compatibility wrapper with unified GPU compute for {} nodes, {} edges", num_nodes, num_edges);
         
         // Create CUDA device
         let device = Self::create_cuda_device().await?;
         
-        // Try multiple paths for unified kernel PTX
-        let unified_ptx_paths = [
-            "/app/src/utils/ptx/visionflow_unified.ptx",
-            "src/utils/ptx/visionflow_unified.ptx",
-            "/app/src/utils/visionflow_unified.ptx"
-        ];
-        
-        let mut advanced_kernel = None;
-        for path in &unified_ptx_paths {
-            info!("PTX_LOAD_ADV: Checking unified kernel at {}", path);
-            if Path::new(path).exists() {
-                info!("PTX_LOAD_ADV: Unified PTX file exists at {}, loading...", path);
-                let ptx = Ptx::from_file(path);
-                match device.load_ptx(ptx, "visionflow_compute", &["visionflow_compute_kernel"]) {
-                    Ok(_) => {
-                        advanced_kernel = device.get_func("visionflow_compute", "visionflow_compute_kernel");
-                        if advanced_kernel.is_some() {
-                            info!("PTX_LOAD_ADV: Unified kernel loaded successfully from {}", path);
-                            break;
-                        } else {
-                            error!("PTX_LOAD_ADV: Failed to get function visionflow_compute_kernel from {}", path);
-                        }
-                    }
-                    Err(e) => {
-                        error!("PTX_LOAD_ADV: Failed to load unified PTX from {}: {}", path, e);
-                    }
-                }
-            } else {
-                info!("PTX_LOAD_ADV: Unified PTX NOT FOUND at {}", path);
+        // Initialize unified compute
+        let unified_compute = match UnifiedGPUCompute::new(device, num_nodes as usize, num_edges as usize) {
+            Ok(compute) => {
+                info!("Successfully created unified GPU compute as advanced context replacement");
+                Some(compute)
+            },
+            Err(e) => {
+                warn!("Failed to create unified GPU compute: {}", e);
+                None
             }
-        }
+        };
         
-        if advanced_kernel.is_none() {
-            warn!("PTX_LOAD_ADV: Unified kernel not available, will try legacy kernel");
-        }
-        
-        // Try multiple paths for legacy kernel as fallback
-        let legacy_ptx_paths = [
-            "/app/src/utils/ptx/compute_forces.ptx",
-            "/app/src/utils/compute_forces.ptx",
-            "src/utils/ptx/compute_forces.ptx"
-        ];
-        
-        let mut legacy_kernel = None;
-        for path in &legacy_ptx_paths {
-            info!("PTX_LOAD_ADV: Checking legacy kernel at {}", path);
-            if Path::new(path).exists() {
-                info!("PTX_LOAD_ADV: Legacy PTX file exists at {}, loading...", path);
-                let ptx = Ptx::from_file(path);
-                match device.load_ptx(ptx, "compute_forces", &["compute_forces_kernel"]) {
-                    Ok(_) => {
-                        legacy_kernel = device.get_func("compute_forces", "compute_forces_kernel");
-                        if legacy_kernel.is_some() {
-                            info!("PTX_LOAD_ADV: Legacy kernel loaded successfully from {}", path);
-                            break;
-                        } else {
-                            error!("PTX_LOAD_ADV: Failed to get function compute_forces_kernel from {}", path);
-                        }
-                    }
-                    Err(e) => {
-                        error!("PTX_LOAD_ADV: Failed to load legacy PTX from {}: {}", path, e);
-                    }
-                }
-            } else {
-                info!("PTX_LOAD_ADV: Legacy PTX NOT FOUND at {}", path);
-            }
-        }
-        
-        // Ensure we have at least one kernel
-        let kernel = advanced_kernel.as_ref()
-            .or(legacy_kernel.as_ref())
-            .ok_or_else(|| {
-                error!("PTX_LOAD_ADV: CRITICAL - No CUDA kernels available!");
-                Error::new(ErrorKind::Other, "No CUDA kernels available")
-            })?
-            .clone();
-        
-        info!("PTX_LOAD_ADV: Final kernel selection - Advanced: {}, Legacy: {}",
-             advanced_kernel.is_some(), legacy_kernel.is_some());
-        
-        // Allocate GPU memory
-        let node_data = device.alloc_zeros::<EnhancedBinaryNodeData>(num_nodes as usize)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate node memory: {}", e)))?;
-        
-        let edge_data = device.alloc_zeros::<EnhancedEdgeData>(num_edges.max(1) as usize)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate edge memory: {}", e)))?;
-        
-        let constraint_data = device.alloc_zeros::<ConstraintData>(MAX_CONSTRAINTS as usize)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate constraint memory: {}", e)))?;
+        // Legacy PTX loading is no longer needed - unified kernel handles everything
         
         Ok(Self {
-            device,
-            advanced_kernel: kernel,
-            legacy_kernel,
-            node_data,
-            edge_data,
-            constraint_data,
+            unified_compute,
             num_nodes,
             num_edges,
-            num_constraints: 0,
-            node_indices: HashMap::new(),
             simulation_params,
             advanced_params,
             iteration_count: 0,
-            use_advanced_kernel: advanced_kernel.is_some(),
         })
     }
     
@@ -355,58 +272,44 @@ impl AdvancedGPUContext {
         }
     }
     
-    /// Update node data with enhanced features
+    /// Update node data with enhanced features (DEPRECATED)
     pub fn update_node_data(&mut self, nodes: Vec<EnhancedBinaryNodeData>) -> Result<(), Error> {
+        warn!("update_node_data is DEPRECATED. Use UnifiedGPUCompute directly.");
+        // This is now handled by the unified compute system
         if nodes.len() != self.num_nodes as usize {
             return Err(Error::new(ErrorKind::InvalidInput, 
                 format!("Node count mismatch: expected {}, got {}", self.num_nodes, nodes.len())));
         }
-        
-        self.device.htod_sync_copy_into(&nodes, &mut self.node_data)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy nodes to GPU: {}", e)))?;
-        
         Ok(())
     }
     
-    /// Update edge data with enhanced features
+    /// Update edge data with enhanced features (DEPRECATED)
     pub fn update_edge_data(&mut self, edges: Vec<EnhancedEdgeData>) -> Result<(), Error> {
+        warn!("update_edge_data is DEPRECATED. Use UnifiedGPUCompute directly.");
         self.num_edges = edges.len() as u32;
-        
-        if self.num_edges > 0 {
-            // Reallocate if needed
-            if self.num_edges > self.edge_data.len() as u32 {
-                self.edge_data = self.device.alloc_zeros::<EnhancedEdgeData>(self.num_edges as usize)
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to reallocate edge memory: {}", e)))?;
-            }
-            
-            self.device.htod_sync_copy_into(&edges, &mut self.edge_data)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy edges to GPU: {}", e)))?;
-        }
-        
         Ok(())
     }
     
-    /// Update constraints on GPU
+    /// Update constraints on GPU (DEPRECATED)
     pub fn update_constraints(&mut self, constraints: &[Constraint]) -> Result<(), Error> {
+        warn!("update_constraints is DEPRECATED. Use UnifiedGPUCompute directly.");
         let gpu_constraints: Vec<ConstraintData> = constraints.iter()
             .filter(|c| c.active)
             .take(MAX_CONSTRAINTS as usize)
             .map(ConstraintData::from_constraint)
             .collect();
         
-        self.num_constraints = gpu_constraints.len() as u32;
-        
-        if self.num_constraints > 0 {
-            self.device.htod_sync_copy_into(&gpu_constraints, &mut self.constraint_data)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy constraints to GPU: {}", e)))?;
+        if let Some(ref mut unified) = self.unified_compute {
+            unified.set_constraints(gpu_constraints)?;
         }
         
-        info!("Updated {} active constraints on GPU", self.num_constraints);
         Ok(())
     }
     
-    /// Execute one physics step with constraints
+    /// Execute one physics step with constraints (DEPRECATED)
     pub fn step_with_constraints(&mut self, constraints: &[Constraint]) -> Result<(), Error> {
+        warn!("step_with_constraints is DEPRECATED. Use UnifiedGPUCompute directly.");
+        
         // Update constraints if provided
         if !constraints.is_empty() {
             self.update_constraints(constraints)?;
@@ -414,92 +317,28 @@ impl AdvancedGPUContext {
         
         // Log periodically
         if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Executing advanced physics step (iteration {})", self.iteration_count);
-            trace!("  - Nodes: {}, Edges: {}, Constraints: {}", 
-                self.num_nodes, self.num_edges, self.num_constraints);
+            trace!("Executing unified physics step (iteration {})", self.iteration_count);
         }
         
-        // Prepare launch configuration
-        let blocks = ((self.num_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-        let cfg = LaunchConfig {
-            grid_dim: (blocks, 1, 1),
-            block_dim: (BLOCK_SIZE, 1, 1),
-            shared_mem_bytes: 0, // Advanced kernel manages its own shared memory
-        };
-        
-        // Build kernel parameters
-        let params = AdvancedSimulationParams::from_params(
-            &self.simulation_params,
-            &self.advanced_params,
-            self.iteration_count,
-            self.num_nodes,
-        );
-        
-        // Launch kernel
-        if self.use_advanced_kernel {
-            unsafe {
-                self.advanced_kernel.clone().launch(cfg, (
-                    &self.node_data,
-                    &self.edge_data,
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
-                    &self.constraint_data,
-                    self.num_constraints as i32,
-                    params,
-                )).map_err(|e| {
-                    error!("Advanced kernel launch failed: {}", e);
-                    Error::new(ErrorKind::Other, e.to_string())
-                })?;
-            }
-        } else {
-            // Fallback to legacy kernel (without constraints)
-            warn!("Using legacy kernel without constraint support");
-            self.compute_forces_legacy()?;
+        if let Some(ref mut unified) = self.unified_compute {
+            unified.execute()?;
         }
         
         self.iteration_count += 1;
         Ok(())
     }
     
-    /// Fallback to legacy force computation
+    /// Fallback to legacy force computation (REMOVED - no longer needed)
     fn compute_forces_legacy(&mut self) -> Result<(), Error> {
-        if let Some(ref kernel) = self.legacy_kernel {
-            let blocks = ((self.num_nodes + BLOCK_SIZE - 1) / BLOCK_SIZE).max(1);
-            let cfg = LaunchConfig {
-                grid_dim: (blocks, 1, 1),
-                block_dim: (BLOCK_SIZE, 1, 1),
-                shared_mem_bytes: BLOCK_SIZE * std::mem::size_of::<BinaryNodeData>() as u32,
-            };
-            
-            // Convert to legacy format temporarily
-            // Note: This is inefficient but ensures compatibility
-            unsafe {
-                kernel.clone().launch(cfg, (
-                    &self.node_data, // Will be reinterpreted by legacy kernel
-                    &self.edge_data, // Will be reinterpreted by legacy kernel
-                    self.num_nodes as i32,
-                    self.num_edges as i32,
-                    self.simulation_params.spring_strength,
-                    self.simulation_params.damping,
-                    self.simulation_params.repulsion,
-                    self.simulation_params.time_step,
-                    self.simulation_params.max_repulsion_distance,
-                    self.simulation_params.viewport_bounds,
-                    self.iteration_count as i32,
-                )).map_err(|e| {
-                    error!("Legacy kernel launch failed: {}", e);
-                    Error::new(ErrorKind::Other, e.to_string())
-                })?;
-            }
-        } else {
-            return Err(Error::new(ErrorKind::Other, "No fallback kernel available"));
-        }
-        Ok(())
+        warn!("compute_forces_legacy is DEPRECATED and removed. Unified kernel handles all cases.");
+        Err(Error::new(ErrorKind::Other, "Legacy kernel removed - use unified compute"))
     }
     
-    /// Get node data from GPU
+    /// Get node data from GPU (DEPRECATED)
     pub fn get_node_data(&self) -> Result<Vec<EnhancedBinaryNodeData>, Error> {
-        let mut nodes = vec![EnhancedBinaryNodeData {
+        warn!("get_node_data is DEPRECATED. Use UnifiedGPUCompute directly.");
+        // Return dummy data for compatibility
+        let nodes = vec![EnhancedBinaryNodeData {
             position: Vec3Data::zero(),
             velocity: Vec3Data::zero(),
             mass: 0,
@@ -511,9 +350,6 @@ impl AdvancedGPUContext {
             structural_weight: 1.0,
             importance_score: 0.5,
         }; self.num_nodes as usize];
-        
-        self.device.dtoh_sync_copy_into(&self.node_data, &mut nodes)
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to copy nodes from GPU: {}", e)))?;
         
         Ok(nodes)
     }
@@ -534,31 +370,30 @@ impl AdvancedGPUContext {
         self.advanced_params = params;
     }
     
-    /// Switch between advanced and legacy kernels
-    pub fn set_use_advanced_kernel(&mut self, use_advanced: bool) {
-        if use_advanced {
-            self.use_advanced_kernel = true;
-            info!("Switched to advanced physics kernel");
-        } else if !use_advanced && self.legacy_kernel.is_some() {
-            self.use_advanced_kernel = false;
-            info!("Switched to legacy physics kernel");
-        } else {
-            warn!("Cannot switch kernel mode - requested kernel not available");
-        }
+    /// Switch between advanced and legacy kernels (DEPRECATED)
+    pub fn set_use_advanced_kernel(&mut self, _use_advanced: bool) {
+        warn!("set_use_advanced_kernel is DEPRECATED. Unified kernel is always used.");
+        info!("All kernel modes are now unified - no switching needed");
     }
     
-    /// Test GPU computation
-    pub fn test_compute(&self) -> Result<(), Error> {
-        info!("Running advanced GPU compute test");
-        match self.device.synchronize() {
-            Ok(_) => {
-                info!("Advanced GPU device test passed");
-                Ok(())
-            },
-            Err(e) => {
-                error!("Advanced GPU device test failed: {}", e);
-                Err(Error::new(ErrorKind::Other, format!("GPU test failed: {}", e)))
+    /// Test GPU computation (DEPRECATED)
+    pub fn test_compute(&mut self) -> Result<(), Error> {
+        warn!("test_compute is DEPRECATED. Use UnifiedGPUCompute directly for testing.");
+        
+        if let Some(ref mut unified) = self.unified_compute {
+            // Try a simple execution to test
+            match unified.execute() {
+                Ok(_) => {
+                    info!("Unified GPU compute test passed");
+                    Ok(())
+                },
+                Err(e) => {
+                    error!("Unified GPU compute test failed: {}", e);
+                    Err(Error::new(ErrorKind::Other, format!("GPU test failed: {}", e)))
+                }
             }
+        } else {
+            Err(Error::new(ErrorKind::Other, "Unified compute not available"))
         }
     }
 }

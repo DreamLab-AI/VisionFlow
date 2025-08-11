@@ -1,11 +1,11 @@
 // Unified GPU Compute Module - Clean, single-kernel implementation
 // Replaces the complex multi-kernel system with fallbacks
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig};
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits};
 use cudarc::nvrtc::Ptx;
 use std::sync::Arc;
 use std::io::{Error, ErrorKind};
-use log::{info, warn, error};
+use log::{info, warn};
 use std::path::Path;
 
 // Compute modes matching the CUDA kernel
@@ -46,6 +46,10 @@ pub struct SimParams {
     pub compute_mode: i32,
 }
 
+// Implement DeviceRepr traits for GPU transfer
+unsafe impl DeviceRepr for SimParams {}
+unsafe impl ValidAsZeroBits for SimParams {}
+
 impl Default for SimParams {
     fn default() -> Self {
         Self {
@@ -79,6 +83,10 @@ pub struct ConstraintData {
     pub param2: f32,
     pub node_mask: i32,
 }
+
+// Implement DeviceRepr traits for GPU transfer
+unsafe impl DeviceRepr for ConstraintData {}
+unsafe impl ValidAsZeroBits for ConstraintData {}
 
 pub struct UnifiedGPUCompute {
     device: Arc<CudaDevice>,
@@ -359,8 +367,8 @@ impl UnifiedGPUCompute {
         let grid_size = (self.num_nodes + block_size - 1) / block_size;
         
         let config = LaunchConfig {
-            grid: (grid_size as u32, 1, 1),
-            block: (block_size as u32, 1, 1),
+            grid_dim: (grid_size as u32, 1, 1),
+            block_dim: (block_size as u32, 1, 1),
             shared_mem_bytes: 0,
         };
         
@@ -424,9 +432,14 @@ impl UnifiedGPUCompute {
             }
             
             // Upload matrices
-            let gpu_distances = self.device.alloc_copy(ideal_distances)
+            let mut gpu_distances = self.device.alloc_zeros::<f32>(ideal_distances.len())
                 .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-            let gpu_weights = self.device.alloc_copy(weight_matrix)
+            self.device.htod_sync_copy_into(ideal_distances, &mut gpu_distances)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+                
+            let mut gpu_weights = self.device.alloc_zeros::<f32>(weight_matrix.len())
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            self.device.htod_sync_copy_into(weight_matrix, &mut gpu_weights)
                 .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
             
             // Launch stress kernel
@@ -434,8 +447,8 @@ impl UnifiedGPUCompute {
             let grid_size = (n + block_size - 1) / block_size;
             
             let config = LaunchConfig {
-                grid: (grid_size as u32, 1, 1),
-                block: (block_size as u32, 1, 1),
+                grid_dim: (grid_size as u32, 1, 1),
+                block_dim: (block_size as u32, 1, 1),
                 shared_mem_bytes: 0,
             };
             

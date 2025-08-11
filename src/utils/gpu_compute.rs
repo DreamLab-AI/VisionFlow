@@ -266,7 +266,7 @@ impl GPUCompute {
         num_nodes: u32, 
         graph: &GraphData
     ) -> Result<Arc<RwLock<Self>>, Error> {
-        let ptx_path = "/app/src/utils/ptx/compute_forces.ptx";
+        let ptx_path = "/app/src/utils/ptx/visionflow_unified.ptx";
         let ptx_path_obj = Path::new(ptx_path);
         if !ptx_path_obj.exists() {
             error!("PTX file does not exist at {} - required for GPU physics", ptx_path);
@@ -275,10 +275,10 @@ impl GPUCompute {
         let ptx = Ptx::from_file(ptx_path);
         info!("Successfully loaded PTX file");
         
-        device.load_ptx(ptx, "compute_forces_kernel", &["compute_forces_kernel"])
+        device.load_ptx(ptx, "visionflow_compute", &["visionflow_compute_kernel"])
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-        let force_kernel = device.get_func("compute_forces_kernel", "compute_forces_kernel")
-            .ok_or_else(|| Error::new(ErrorKind::Other, "Function compute_forces_kernel not found"))?;
+        let force_kernel = device.get_func("visionflow_compute", "visionflow_compute_kernel")
+            .ok_or_else(|| Error::new(ErrorKind::Other, "Function visionflow_compute_kernel not found"))?;
         
         let num_edges = graph.edges.len() as u32;
         info!("Allocating device memory for {} nodes and {} edges", num_nodes, num_edges);

@@ -6,3 +6,4 @@ pub mod gpu_compute;
 pub mod logging;
 pub mod socket_flow_constants;
 pub mod socket_flow_messages;
+pub mod unified_gpu_compute;

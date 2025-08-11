@@ -126,22 +126,19 @@ main() {
     check_prerequisites
     validate_compute_capability
     
-    # Discover kernels: use CLI args that exist, otherwise auto-detect *.cu files
-    local kernels=()
+    # Only compile the unified kernel - all legacy kernels have been removed
+    local kernels=("visionflow_unified")
+    
     if [ "$#" -gt 0 ]; then
-        for name in "$@"; do
-            if [ -f "$UTILS_DIR/${name}.cu" ]; then
-                kernels+=("$name")
-            else
-                log_warn "Requested kernel '$name' not found at $UTILS_DIR/${name}.cu; skipping."
-            fi
-        done
+        log_warn "Legacy kernel compilation no longer supported. Only visionflow_unified.cu is available."
+        log_warn "All legacy kernels have been consolidated into the unified kernel."
     fi
     
-    if [ "${#kernels[@]}" -eq 0 ]; then
-        while IFS= read -r cu; do
-            kernels+=("$(basename "$cu" .cu)")
-        done < <(find "$UTILS_DIR" -maxdepth 1 -type f -name "*.cu" | sort)
+    # Verify the unified kernel exists
+    if [ ! -f "$UTILS_DIR/visionflow_unified.cu" ]; then
+        log_error "Unified kernel not found: $UTILS_DIR/visionflow_unified.cu"
+        log_error "Please ensure the unified kernel source file exists."
+        exit 1
     fi
     
     local success_count=0

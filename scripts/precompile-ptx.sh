@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Pre-compile PTX files for Docker build
-# This script should be run before building the Docker image
+# Pre-compile UNIFIED PTX file for Docker build
+# This script now only compiles the single unified kernel
 
 set -e
 
@@ -10,57 +10,61 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 UTILS_DIR="$PROJECT_ROOT/src/utils"
 PTX_DIR="$UTILS_DIR/ptx"
 
-echo "Pre-compiling PTX files for Docker build..."
+echo "Pre-compiling UNIFIED PTX file for Docker build..."
 echo "Project root: $PROJECT_ROOT"
 
 # Create PTX directory if it doesn't exist
 mkdir -p "$PTX_DIR"
 
-# Find all CUDA kernel files
-# Now prioritizing the unified kernel
-KERNELS=($(find "$UTILS_DIR" -name "*.cu" -type f | xargs -n1 basename | sed 's/\.cu$//' | sort))
+# Only compile the unified kernel
+KERNEL="visionflow_unified"
+CU_FILE="$UTILS_DIR/${KERNEL}.cu"
+PTX_FILE="$PTX_DIR/${KERNEL}.ptx"
 
-# Move visionflow_unified to the front if it exists
-if [[ " ${KERNELS[@]} " =~ " visionflow_unified " ]]; then
-    KERNELS=("visionflow_unified" "${KERNELS[@]/visionflow_unified/}")
+echo "Compiling unified kernel: $KERNEL"
+
+if [ ! -f "$CU_FILE" ]; then
+    echo "ERROR: Unified kernel source not found: $CU_FILE"
+    exit 1
 fi
 
-echo "Found ${#KERNELS[@]} kernels to compile"
+# Check if PTX is up to date
+if [ -f "$PTX_FILE" ] && [ "$PTX_FILE" -nt "$CU_FILE" ]; then
+    SIZE=$(ls -lh "$PTX_FILE" | awk '{print $5}')
+    echo "SKIP - Already up to date ($SIZE)"
+    exit 0
+fi
 
-# Compile each kernel
-for kernel in "${KERNELS[@]}"; do
-    echo -n "Compiling $kernel... "
-    CU_FILE="$UTILS_DIR/${kernel}.cu"
-    PTX_FILE="$PTX_DIR/${kernel}.ptx"
-    
-    if [ ! -f "$CU_FILE" ]; then
-        echo "SKIP (source not found)"
-        continue
-    fi
-    
-    # Check if PTX is up to date
-    if [ -f "$PTX_FILE" ] && [ "$PTX_FILE" -nt "$CU_FILE" ]; then
-        echo "SKIP (up to date)"
-        continue
-    fi
-    
-    # Compile with optimizations for faster compilation
-    if nvcc -ptx -arch=sm_86 -O2 --use_fast_math "$CU_FILE" -o "$PTX_FILE" 2>/dev/null; then
+echo -n "Compiling $KERNEL... "
+
+# Compile with optimizations
+if nvcc -ptx -arch=sm_86 -O3 --use_fast_math --restrict --ftz=true --prec-div=false --prec-sqrt=false "$CU_FILE" -o "$PTX_FILE" 2>/dev/null; then
+    SIZE=$(ls -lh "$PTX_FILE" | awk '{print $5}')
+    echo "SUCCESS ($SIZE)"
+else
+    echo "FAILED with optimizations, trying basic compile..."
+    if nvcc -ptx -arch=sm_86 "$CU_FILE" -o "$PTX_FILE" 2>/dev/null; then
         SIZE=$(ls -lh "$PTX_FILE" | awk '{print $5}')
-        echo "OK ($SIZE)"
+        echo "SUCCESS ($SIZE)"
     else
-        echo "FAILED"
-        echo "  Error compiling $kernel, trying without optimizations..."
-        if nvcc -ptx -arch=sm_86 "$CU_FILE" -o "$PTX_FILE" 2>/dev/null; then
-            SIZE=$(ls -lh "$PTX_FILE" | awk '{print $5}')
-            echo "  OK ($SIZE)"
-        else
-            echo "  FAILED - Creating stub file"
-            echo "// Stub PTX file for $kernel" > "$PTX_FILE"
-        fi
+        echo "FAILED - Unable to compile unified kernel!"
+        exit 1
     fi
-done
+fi
 
 echo ""
-echo "PTX compilation complete. Files in $PTX_DIR:"
-ls -lh "$PTX_DIR"/*.ptx 2>/dev/null || echo "No PTX files found"
+echo "Unified PTX compilation complete:"
+echo "  File: $PTX_FILE"
+echo "  Size: $(ls -lh "$PTX_FILE" | awk '{print $5}')"
+echo ""
+echo "Legacy kernels successfully removed:"
+echo "  ✗ compute_forces.cu/ptx"
+echo "  ✗ compute_dual_graphs.cu/ptx"
+echo "  ✗ dual_graph_unified.cu/ptx"
+echo "  ✗ unified_physics.cu/ptx"
+echo "  ✗ visual_analytics_core.cu/ptx"
+echo "  ✗ advanced_compute_forces.cu/ptx"
+echo "  ✗ advanced_gpu_algorithms.cu/ptx"
+echo "  ✗ initialize_positions.cu/ptx"
+echo ""
+echo "System now uses ONLY the unified kernel!"
