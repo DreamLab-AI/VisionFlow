@@ -297,7 +297,7 @@ impl SemanticConstraintGenerator {
         metadata_store: Option<&MetadataStore>,
     ) -> NodeSimilarity {
         let mut semantic_sim = 0.0;
-        let mut structural_sim = 0.0;
+        let structural_sim; // Will be assigned later
         let mut shared_topics = Vec::new();
         let mut metadata_factors = HashMap::new();
 

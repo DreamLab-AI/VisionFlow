@@ -141,7 +141,7 @@ pub struct AdvancedSimulationParams {
 
 impl AdvancedSimulationParams {
     pub fn from_params(sim_params: &SimulationParams, adv_params: &AdvancedParams, iteration: u32, num_nodes: u32) -> Self {
-        Self {
+        let params = Self {
             spring_k: sim_params.spring_strength,
             damping: sim_params.damping,
             repel_k: sim_params.repulsion,
@@ -168,7 +168,28 @@ impl AdvancedSimulationParams {
             
             iteration: iteration as i32,
             total_nodes: num_nodes as i32,
+        };
+
+        // Log advanced parameters every 60 iterations for debugging
+        if iteration % 60 == 0 {
+            info!("ADVANCED_PARAMS: iteration={}, nodes={}", iteration, num_nodes);
+            info!("  Physics: spring={:.4}, damping={:.4}, repel={:.1}, dt={:.4}, max_repel_dist={:.1}, bounds={:.1}",
+                params.spring_k, params.damping, params.repel_k, params.dt,
+                params.max_repulsion_dist, params.viewport_bounds);
+            info!("  Force weights: semantic={:.2}, temporal={:.2}, structural={:.2}, constraint={:.2}, boundary={:.2}",
+                params.semantic_force_weight, params.temporal_force_weight,
+                params.structural_force_weight, params.constraint_force_weight,
+                params.boundary_force_weight);
+            info!("  Advanced: separation={:.2}, knowledge={:.2}, agent={:.2}, adaptive={:.1}, max_velocity={:.1}",
+                params.separation_factor, params.knowledge_force_weight,
+                params.agent_communication_weight, params.adaptive_scale,
+                params.max_velocity);
+            info!("  Layout: hierarchical={}, layer_sep={:.1}, target_edge={:.1}, collision={:.1}",
+                params.hierarchical_mode, params.layer_separation,
+                params.target_edge_length, params.collision_threshold);
         }
+
+        params
     }
 }
 
@@ -207,44 +228,90 @@ impl AdvancedGPUContext {
         advanced_params: AdvancedParams,
     ) -> Result<Self, Error> {
         info!("Initializing advanced GPU context for {} nodes, {} edges", num_nodes, num_edges);
+        info!("PTX_LOAD_ADV: Starting advanced GPU context PTX loading");
         
         // Create CUDA device
         let device = Self::create_cuda_device().await?;
         
-        // Load advanced kernel PTX
-        let advanced_ptx_path = "src/utils/advanced_compute_forces.ptx";
-        let advanced_kernel = if Path::new(advanced_ptx_path).exists() {
-            info!("Loading advanced CUDA kernel from {}", advanced_ptx_path);
-            let ptx = Ptx::from_file(advanced_ptx_path);
-            device.load_ptx(ptx, "advanced_forces", &["advanced_forces_kernel"])
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load advanced PTX: {}", e)))?;
-            
-            device.get_func("advanced_forces", "advanced_forces_kernel")
-        } else {
-            warn!("Advanced PTX not found at {}, will use legacy kernel", advanced_ptx_path);
-            None
-        };
+        // Try multiple paths for unified kernel PTX
+        let unified_ptx_paths = [
+            "/app/src/utils/ptx/visionflow_unified.ptx",
+            "src/utils/ptx/visionflow_unified.ptx",
+            "/app/src/utils/visionflow_unified.ptx"
+        ];
         
-        // Load legacy kernel as fallback
-        let legacy_kernel = {
-            let legacy_ptx_path = "src/utils/compute_forces.ptx";
-            if Path::new(legacy_ptx_path).exists() {
-                info!("Loading legacy CUDA kernel as fallback");
-                let ptx = Ptx::from_file(legacy_ptx_path);
-                device.load_ptx(ptx, "compute_forces", &["compute_forces_kernel"])
-                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load legacy PTX: {}", e)))?;
-                
-                device.get_func("compute_forces", "compute_forces_kernel")
+        let mut advanced_kernel = None;
+        for path in &unified_ptx_paths {
+            info!("PTX_LOAD_ADV: Checking unified kernel at {}", path);
+            if Path::new(path).exists() {
+                info!("PTX_LOAD_ADV: Unified PTX file exists at {}, loading...", path);
+                let ptx = Ptx::from_file(path);
+                match device.load_ptx(ptx, "visionflow_compute", &["visionflow_compute_kernel"]) {
+                    Ok(_) => {
+                        advanced_kernel = device.get_func("visionflow_compute", "visionflow_compute_kernel");
+                        if advanced_kernel.is_some() {
+                            info!("PTX_LOAD_ADV: Unified kernel loaded successfully from {}", path);
+                            break;
+                        } else {
+                            error!("PTX_LOAD_ADV: Failed to get function visionflow_compute_kernel from {}", path);
+                        }
+                    }
+                    Err(e) => {
+                        error!("PTX_LOAD_ADV: Failed to load unified PTX from {}: {}", path, e);
+                    }
+                }
             } else {
-                None
+                info!("PTX_LOAD_ADV: Unified PTX NOT FOUND at {}", path);
             }
-        };
+        }
+        
+        if advanced_kernel.is_none() {
+            warn!("PTX_LOAD_ADV: Unified kernel not available, will try legacy kernel");
+        }
+        
+        // Try multiple paths for legacy kernel as fallback
+        let legacy_ptx_paths = [
+            "/app/src/utils/ptx/compute_forces.ptx",
+            "/app/src/utils/compute_forces.ptx",
+            "src/utils/ptx/compute_forces.ptx"
+        ];
+        
+        let mut legacy_kernel = None;
+        for path in &legacy_ptx_paths {
+            info!("PTX_LOAD_ADV: Checking legacy kernel at {}", path);
+            if Path::new(path).exists() {
+                info!("PTX_LOAD_ADV: Legacy PTX file exists at {}, loading...", path);
+                let ptx = Ptx::from_file(path);
+                match device.load_ptx(ptx, "compute_forces", &["compute_forces_kernel"]) {
+                    Ok(_) => {
+                        legacy_kernel = device.get_func("compute_forces", "compute_forces_kernel");
+                        if legacy_kernel.is_some() {
+                            info!("PTX_LOAD_ADV: Legacy kernel loaded successfully from {}", path);
+                            break;
+                        } else {
+                            error!("PTX_LOAD_ADV: Failed to get function compute_forces_kernel from {}", path);
+                        }
+                    }
+                    Err(e) => {
+                        error!("PTX_LOAD_ADV: Failed to load legacy PTX from {}: {}", path, e);
+                    }
+                }
+            } else {
+                info!("PTX_LOAD_ADV: Legacy PTX NOT FOUND at {}", path);
+            }
+        }
         
         // Ensure we have at least one kernel
         let kernel = advanced_kernel.as_ref()
             .or(legacy_kernel.as_ref())
-            .ok_or_else(|| Error::new(ErrorKind::Other, "No CUDA kernels available"))?
+            .ok_or_else(|| {
+                error!("PTX_LOAD_ADV: CRITICAL - No CUDA kernels available!");
+                Error::new(ErrorKind::Other, "No CUDA kernels available")
+            })?
             .clone();
+        
+        info!("PTX_LOAD_ADV: Final kernel selection - Advanced: {}, Legacy: {}",
+             advanced_kernel.is_some(), legacy_kernel.is_some());
         
         // Allocate GPU memory
         let node_data = device.alloc_zeros::<EnhancedBinaryNodeData>(num_nodes as usize)

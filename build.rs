@@ -3,81 +3,80 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-/// Custom build script for GPU kernel compilation integration
-/// This integrates CUDA PTX compilation into the Cargo build process
-
+/// Simplified build script for unified GPU kernel compilation
 fn main() {
-    println!("cargo:rerun-if-changed=src/utils/*.cu");
-    println!("cargo:rerun-if-changed=scripts/compile_ptx.sh");
+    println!("cargo:rerun-if-changed=src/utils/visionflow_unified.cu");
+    println!("cargo:rerun-if-changed=scripts/compile_unified_ptx.sh");
     
-    // Get build configuration
     let is_debug = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string()) == "debug";
-    let target_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "86".to_string()); // Default to A6000
+    let target_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "86".to_string());
     
-    println!("cargo:warning=GPU Build Configuration:");
+    println!("cargo:warning=VisionFlow Unified GPU Build");
     println!("cargo:warning=  Profile: {}", if is_debug { "debug" } else { "release" });
     println!("cargo:warning=  CUDA Architecture: SM_{}", target_arch);
     
-    // Check if we're in a GPU-enabled build
-    let features: Vec<String> = env::var("CARGO_FEATURE_GPU")
-        .map(|_| vec!["gpu".to_string()])
-        .unwrap_or_else(|_| vec![]);
-    
-    if !features.contains(&"gpu".to_string()) && env::var("CARGO_FEATURE_GPU").is_err() {
+    // Check if GPU feature is enabled
+    if env::var("CARGO_FEATURE_GPU").is_err() {
         println!("cargo:warning=GPU support disabled. Skipping CUDA compilation.");
         return;
     }
     
-    // Verify CUDA toolkit is available
+    // Verify CUDA toolkit
     if !cuda_available() {
-        println!("cargo:warning=CUDA toolkit not found. GPU kernels will not be compiled.");
-        println!("cargo:warning=The application will fall back to CPU-only mode.");
+        println!("cargo:warning=CUDA toolkit not found. GPU acceleration will not be available.");
         return;
     }
     
-    // Get the project root directory
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR")
-        .expect("CARGO_MANIFEST_DIR not set");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let project_root = Path::new(&manifest_dir);
     
-    // Paths
-    let compile_script = project_root.join("scripts").join("compile_ptx.sh");
-    let utils_dir = project_root.join("src").join("utils");
+    // Check for the unified kernel
+    let unified_kernel = project_root.join("src").join("utils").join("visionflow_unified.cu");
+    let unified_ptx = project_root.join("src").join("utils").join("ptx").join("visionflow_unified.ptx");
     
-    // Verify the compilation script exists
-    if !compile_script.exists() {
-        panic!("PTX compilation script not found: {}", compile_script.display());
+    if !unified_kernel.exists() {
+        panic!("Unified kernel not found: {}", unified_kernel.display());
     }
     
-    // Get list of CUDA kernel files
-    let kernel_files = get_cuda_kernels(&utils_dir);
-    
-    if kernel_files.is_empty() {
-        println!("cargo:warning=No CUDA kernel files found in {}", utils_dir.display());
-        return;
-    }
-    
-    println!("cargo:warning=Found {} CUDA kernels to compile", kernel_files.len());
-    for kernel in &kernel_files {
-        println!("cargo:warning=  - {}", kernel);
-    }
-    
-    // Check if PTX files need recompilation
-    if needs_recompilation(&utils_dir, &kernel_files) {
-        println!("cargo:warning=PTX files need recompilation");
-        compile_ptx_kernels(&compile_script, is_debug, &target_arch);
+    // Check if PTX needs recompilation
+    let needs_compile = if unified_ptx.exists() {
+        let cu_modified = fs::metadata(&unified_kernel)
+            .and_then(|m| m.modified())
+            .ok();
+        let ptx_modified = fs::metadata(&unified_ptx)
+            .and_then(|m| m.modified())
+            .ok();
+        
+        match (cu_modified, ptx_modified) {
+            (Some(cu_time), Some(ptx_time)) => cu_time > ptx_time,
+            _ => true,
+        }
     } else {
-        println!("cargo:warning=PTX files are up to date");
+        true
+    };
+    
+    if needs_compile {
+        println!("cargo:warning=Compiling unified PTX...");
+        compile_unified_ptx(&project_root, is_debug, &target_arch);
+    } else {
+        println!("cargo:warning=Unified PTX is up to date");
     }
     
-    // Verify PTX files were created successfully
-    verify_ptx_outputs(&utils_dir, &kernel_files);
+    // Verify PTX exists
+    if !unified_ptx.exists() {
+        panic!("Failed to generate unified PTX file");
+    }
     
-    // Set up linking for CUDA runtime if available
+    let ptx_size = fs::metadata(&unified_ptx)
+        .map(|m| m.len())
+        .unwrap_or(0);
+    
+    println!("cargo:warning=Unified PTX ready: {} bytes", ptx_size);
+    
+    // Set up CUDA linking if available
     setup_cuda_linking();
 }
 
-/// Check if CUDA toolkit is available
 fn cuda_available() -> bool {
     Command::new("nvcc")
         .arg("--version")
@@ -86,192 +85,68 @@ fn cuda_available() -> bool {
         .unwrap_or(false)
 }
 
-/// Get list of CUDA kernel files
-fn get_cuda_kernels(utils_dir: &Path) -> Vec<String> {
-    let mut kernels = Vec::new();
+fn compile_unified_ptx(project_root: &Path, is_debug: bool, target_arch: &str) {
+    let utils_dir = project_root.join("src").join("utils");
+    let ptx_dir = utils_dir.join("ptx");
     
-    if let Ok(entries) = fs::read_dir(utils_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if let Some(extension) = path.extension() {
-                if extension == "cu" {
-                    if let Some(stem) = path.file_stem() {
-                        kernels.push(stem.to_string_lossy().to_string());
-                    }
-                }
-            }
-        }
+    // Create PTX directory
+    fs::create_dir_all(&ptx_dir).expect("Failed to create PTX directory");
+    
+    let cu_file = utils_dir.join("visionflow_unified.cu");
+    let ptx_file = ptx_dir.join("visionflow_unified.ptx");
+    
+    // Build nvcc command
+    let mut cmd = Command::new("nvcc");
+    cmd.arg("-ptx")
+        .arg("-arch").arg(format!("sm_{}", target_arch));
+    
+    if !is_debug {
+        cmd.arg("-O3")
+            .arg("--use_fast_math")
+            .arg("--restrict")
+            .arg("--ftz=true")
+            .arg("--prec-div=false")
+            .arg("--prec-sqrt=false");
+    } else {
+        cmd.arg("-O2");
     }
     
-    kernels.sort();
-    kernels
-}
-
-/// Check if PTX files need recompilation
-fn needs_recompilation(utils_dir: &Path, kernel_files: &[String]) -> bool {
-    for kernel in kernel_files {
-        let cu_file = utils_dir.join(format!("{}.cu", kernel));
-        let ptx_file = utils_dir.join("ptx").join(format!("{}.ptx", kernel));
-        
-        // If PTX file doesn't exist, we need compilation
-        if !ptx_file.exists() {
-            return true;
-        }
-        
-        // If CU file is newer than PTX file, we need recompilation
-        if let (Ok(cu_metadata), Ok(ptx_metadata)) = (cu_file.metadata(), ptx_file.metadata()) {
-            if let (Ok(cu_modified), Ok(ptx_modified)) = (cu_metadata.modified(), ptx_metadata.modified()) {
-                if cu_modified > ptx_modified {
-                    return true;
-                }
-            }
-        }
-    }
+    cmd.arg(&cu_file)
+        .arg("-o").arg(&ptx_file);
     
-    false
-}
-
-/// Compile PTX kernels using the shell script
-fn compile_ptx_kernels(script_path: &Path, is_debug: bool, target_arch: &str) {
-    println!("cargo:warning=Compiling CUDA kernels...");
+    println!("cargo:warning=Running: {:?}", cmd);
     
-    let mut cmd = Command::new("bash");
-    cmd.arg(script_path);
-    cmd.env("CUDA_ARCH", target_arch);
-    
-    if is_debug {
-        cmd.arg("--debug");
-        cmd.env("DEBUG", "1");
-    }
-    
-    // Run the compilation
-    let output = cmd.output().expect("Failed to execute PTX compilation script");
+    let output = cmd.output().expect("Failed to execute nvcc");
     
     if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        
-        eprintln!("PTX compilation failed!");
-        eprintln!("STDOUT:\n{}", stdout);
-        eprintln!("STDERR:\n{}", stderr);
-        
-        panic!("CUDA kernel compilation failed. See output above for details.");
+        eprintln!("CUDA compilation failed!");
+        eprintln!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        panic!("Failed to compile unified CUDA kernel");
     }
     
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    println!("cargo:warning=PTX compilation completed successfully");
-    
-    // Print compilation summary
-    for line in stdout.lines() {
-        if line.contains("INFO") {
-            println!("cargo:warning={}", line);
-        }
-    }
+    println!("cargo:warning=Successfully compiled unified kernel");
 }
 
-/// Verify PTX outputs were created successfully
-fn verify_ptx_outputs(utils_dir: &Path, kernel_files: &[String]) {
-    let mut missing_ptx = Vec::new();
-    
-    for kernel in kernel_files {
-        let ptx_file = utils_dir.join("ptx").join(format!("{}.ptx", kernel));
-        if !ptx_file.exists() {
-            missing_ptx.push(kernel);
-        } else {
-            // Check file size
-            if let Ok(metadata) = ptx_file.metadata() {
-                if metadata.len() == 0 {
-                    missing_ptx.push(kernel);
-                }
-            }
-        }
-    }
-    
-    if !missing_ptx.is_empty() {
-        let missing_files: Vec<String> = missing_ptx.iter().map(|s| s.to_string()).collect();
-        panic!("Failed to generate PTX files for: {}", missing_files.join(", "));
-    }
-    
-    println!("cargo:warning=All PTX files verified successfully");
-}
-
-/// Setup CUDA runtime linking
 fn setup_cuda_linking() {
-    // Try to detect CUDA installation
+    // Try to find CUDA installation
     let cuda_paths = [
-        "/usr/local/cuda/lib64",
-        "/opt/cuda/lib64",
-        "/usr/lib/x86_64-linux-gnu",
-        "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.0\\lib\\x64",
-        "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.8\\lib\\x64",
+        "/usr/local/cuda",
+        "/opt/cuda",
+        "/usr/lib/cuda",
     ];
     
     for cuda_path in &cuda_paths {
         let path = Path::new(cuda_path);
         if path.exists() {
-            println!("cargo:rustc-link-search=native={}", cuda_path);
+            let lib_path = path.join("lib64");
+            if lib_path.exists() {
+                println!("cargo:rustc-link-search=native={}", lib_path.display());
+            }
             break;
         }
     }
     
-    // Link CUDA runtime libraries
-    println!("cargo:rustc-link-lib=cuda");
-    println!("cargo:rustc-link-lib=cudart");
-    
-    // Set up environment for runtime
-    if let Ok(cuda_root) = env::var("CUDA_ROOT") {
-        println!("cargo:rustc-link-search=native={}/lib64", cuda_root);
-        println!("cargo:rustc-env=CUDA_ROOT={}", cuda_root);
-    }
-    
-    // Pass target architecture to the runtime
-    let target_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "86".to_string());
-    println!("cargo:rustc-env=CUDA_ARCH={}", target_arch);
-    
-    println!("cargo:warning=CUDA linking configuration complete");
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-    use tempfile::TempDir;
-
-    #[test]
-    fn test_get_cuda_kernels() {
-        let temp_dir = TempDir::new().unwrap();
-        let utils_dir = temp_dir.path().join("utils");
-        fs::create_dir_all(&utils_dir).unwrap();
-        
-        // Create some test .cu files
-        fs::write(utils_dir.join("test1.cu"), "// test kernel").unwrap();
-        fs::write(utils_dir.join("test2.cu"), "// another kernel").unwrap();
-        fs::write(utils_dir.join("not_cuda.txt"), "// not a cuda file").unwrap();
-        
-        let kernels = get_cuda_kernels(&utils_dir);
-        
-        assert_eq!(kernels.len(), 2);
-        assert!(kernels.contains(&"test1".to_string()));
-        assert!(kernels.contains(&"test2".to_string()));
-    }
-    
-    #[test]
-    fn test_needs_recompilation() {
-        let temp_dir = TempDir::new().unwrap();
-        let utils_dir = temp_dir.path().join("utils");
-        fs::create_dir_all(&utils_dir).unwrap();
-        
-        // Create a .cu file and corresponding .ptx file
-        fs::write(utils_dir.join("test.cu"), "// test kernel").unwrap();
-        fs::write(utils_dir.join("test.ptx"), "// compiled ptx").unwrap();
-        
-        let kernels = vec!["test".to_string()];
-        
-        // Should not need recompilation if PTX exists and is newer
-        assert!(!needs_recompilation(&utils_dir, &kernels));
-        
-        // Should need recompilation if PTX doesn't exist
-        fs::remove_file(utils_dir.join("test.ptx")).unwrap();
-        assert!(needs_recompilation(&utils_dir, &kernels));
-    }
+    // Link CUDA runtime (optional - only if using CUDA runtime API)
+    // println!("cargo:rustc-link-lib=cudart");
 }

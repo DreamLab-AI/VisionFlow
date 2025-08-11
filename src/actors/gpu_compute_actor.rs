@@ -244,46 +244,111 @@ impl GPUComputeActor {
     }
 
     async fn static_load_compute_kernels(
-        device: Arc<CudaDevice>, 
+        device: Arc<CudaDevice>,
         num_nodes: u32,
         graph_nodes: &[crate::models::node::Node], // Pass slice of nodes
     ) -> Result<(CudaFunction, Option<CudaFunction>, Option<CudaFunction>, Option<CudaFunction>, Option<CudaFunction>, CudaSlice<BinaryNodeData>, HashMap<u32, usize>), Error> {
+        info!("PTX_LOAD: Starting kernel loading process");
+        
         // Load legacy compute_forces kernel (required)
-        let legacy_ptx_path = "/app/src/utils/compute_forces.ptx";
+        let legacy_ptx_path = "/app/src/utils/ptx/compute_forces.ptx";
+        info!("PTX_LOAD: Checking legacy kernel at {}", legacy_ptx_path);
         if !Path::new(legacy_ptx_path).exists() {
+            error!("PTX_LOAD: Legacy PTX file NOT FOUND at {}", legacy_ptx_path);
             return Err(Error::new(ErrorKind::NotFound, format!("Legacy PTX file not found at {}", legacy_ptx_path)));
         }
         
+        info!("PTX_LOAD: Legacy PTX file exists, loading...");
         let ptx = Ptx::from_file(legacy_ptx_path);
-        info!("(Static) Successfully loaded legacy PTX file");
+        info!("PTX_LOAD: Successfully loaded legacy PTX file from {}", legacy_ptx_path);
         
         device.load_ptx(ptx, "compute_forces_kernel", &["compute_forces_kernel"]).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
         let force_kernel = device.get_func("compute_forces_kernel", "compute_forces_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function compute_forces_kernel not found"))?;
+        info!("PTX_LOAD: Legacy kernel function loaded successfully");
         
         // Load dual graph kernel (optional)
         let dual_graph_kernel = {
-            let dual_ptx_path = "/app/src/utils/compute_dual_graphs.ptx";
-            if Path::new(dual_ptx_path).exists() {
-                info!("(Static) Loading dual graph PTX file");
-                let ptx = Ptx::from_file(dual_ptx_path);
-                device.load_ptx(ptx, "compute_dual_graphs_kernel", &["compute_dual_graphs_kernel"]).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                Some(device.get_func("compute_dual_graphs_kernel", "compute_dual_graphs_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function compute_dual_graphs_kernel not found"))?)
+            let mut kernel = None;
+            // Attempt 1: Load unified kernel (newer version)
+            let unified_path = "/app/src/utils/ptx/dual_graph_unified.ptx";
+            let unified_symbol = "dual_graph_unified_kernel";
+            info!("PTX_LOAD: Checking for unified dual graph kernel at {}", unified_path);
+            if Path::new(unified_path).exists() {
+                info!("PTX_LOAD: Found unified dual graph PTX, attempting to load symbol '{}'", unified_symbol);
+                let ptx = Ptx::from_file(unified_path);
+                if device.load_ptx(ptx, unified_symbol, &[unified_symbol]).is_ok() {
+                    kernel = device.get_func(unified_symbol, unified_symbol);
+                    if kernel.is_some() {
+                        info!("PTX_LOAD: Successfully loaded unified dual graph kernel.");
+                    } else {
+                        error!("PTX_LOAD: Found PTX but failed to get symbol '{}'", unified_symbol);
+                    }
+                } else {
+                    error!("PTX_LOAD: Failed to load PTX module from {}", unified_path);
+                }
             } else {
-                warn!("(Static) Dual graph PTX not found, dual graph mode will not be available");
-                None
+                info!("PTX_LOAD: Unified dual graph PTX not found.");
             }
+
+            // Attempt 2: Load legacy kernel if unified failed
+            if kernel.is_none() {
+                let legacy_path = "/app/src/utils/ptx/compute_dual_graphs.ptx";
+                let legacy_symbol = "compute_dual_graph_forces";
+                info!("PTX_LOAD: Checking for legacy dual graph kernel at {}", legacy_path);
+                if Path::new(legacy_path).exists() {
+                    info!("PTX_LOAD: Found legacy dual graph PTX, attempting to load symbol '{}'", legacy_symbol);
+                    let ptx = Ptx::from_file(legacy_path);
+                    if device.load_ptx(ptx, legacy_symbol, &[legacy_symbol]).is_ok() {
+                        kernel = device.get_func(legacy_symbol, legacy_symbol);
+                        if kernel.is_some() {
+                            info!("PTX_LOAD: Successfully loaded legacy dual graph kernel.");
+                        } else {
+                            error!("PTX_LOAD: Found PTX but failed to get symbol '{}'", legacy_symbol);
+                        }
+                    } else {
+                        error!("PTX_LOAD: Failed to load PTX module from {}", legacy_path);
+                    }
+                } else {
+                    info!("PTX_LOAD: Legacy dual graph PTX not found.");
+                }
+            }
+
+            if kernel.is_none() {
+                warn!("PTX_LOAD: No dual graph kernel loaded. Dual graph mode will not be available.");
+            }
+            kernel
         };
         
-        // Load advanced kernel (optional)
+        // Load unified kernel (replaces advanced kernel)
         let advanced_kernel = {
-            let advanced_ptx_path = "/app/src/utils/advanced_compute_forces.ptx";
-            if Path::new(advanced_ptx_path).exists() {
-                info!("(Static) Loading advanced physics PTX file");
-                let ptx = Ptx::from_file(advanced_ptx_path);
-                device.load_ptx(ptx, "advanced_forces_kernel", &["advanced_forces_kernel"]).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                Some(device.get_func("advanced_forces_kernel", "advanced_forces_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function advanced_forces_kernel not found"))?)
+            // Try unified kernel first
+            let unified_ptx_path = "/app/src/utils/ptx/visionflow_unified.ptx";
+            let local_unified_path = "src/utils/ptx/visionflow_unified.ptx";
+            
+            let ptx_path = if Path::new(unified_ptx_path).exists() {
+                unified_ptx_path
+            } else if Path::new(local_unified_path).exists() {
+                local_unified_path
             } else {
-                warn!("(Static) Advanced physics PTX not found, advanced mode will not be available");
+                warn!("PTX_LOAD: Unified kernel not found, falling back to stub");
+                ""
+            };
+            
+            if !ptx_path.is_empty() {
+                info!("PTX_LOAD: Loading unified kernel from {}", ptx_path);
+                let ptx = Ptx::from_file(ptx_path);
+                match device.load_ptx(ptx, "visionflow_compute", &["visionflow_compute_kernel"]) {
+                    Ok(_) => {
+                        info!("PTX_LOAD: Unified kernel loaded successfully");
+                        Some(device.get_func("visionflow_compute", "visionflow_compute_kernel").ok_or_else(|| Error::new(ErrorKind::Other, "Function visionflow_compute_kernel not found"))?)
+                    }
+                    Err(e) => {
+                        error!("PTX_LOAD: Failed to load unified kernel: {}", e);
+                        None
+                    }
+                }
+            } else {
+                warn!("PTX_LOAD: No unified kernel available, advanced mode disabled");
                 None
             }
         };
@@ -292,29 +357,32 @@ impl GPUComputeActor {
         let visual_analytics_kernel = {
             // Try multiple possible paths for the visual analytics PTX
             let va_ptx_paths = [
-                "/app/src/utils/visual_analytics_core_manual.ptx",
-                "/workspace/ext/src/utils/visual_analytics_core_manual.ptx",
-                "/app/src/utils/visual_analytics_core.ptx",
-                "/workspace/ext/src/utils/visual_analytics_core.ptx"
+                "/app/src/utils/ptx/visual_analytics_core.ptx",
+                "/workspace/ext/src/utils/ptx/visual_analytics_core.ptx"
             ];
             
+            info!("PTX_LOAD: Checking visual analytics kernel at multiple paths...");
             let mut kernel = None;
             for va_ptx_path in &va_ptx_paths {
+                info!("PTX_LOAD: Checking {}", va_ptx_path);
                 if Path::new(va_ptx_path).exists() {
-                    info!("(Static) Loading visual analytics core PTX file from {}", va_ptx_path);
+                    info!("PTX_LOAD: Visual analytics PTX file exists at {}, loading...", va_ptx_path);
                     let ptx = Ptx::from_file(va_ptx_path);
                     match device.load_ptx(ptx, "visual_analytics_kernel", &["visual_analytics_kernel"]) {
                         Ok(_) => {
                             kernel = device.get_func("visual_analytics_kernel", "visual_analytics_kernel");
+                            info!("PTX_LOAD: Visual analytics kernel loaded successfully from {}", va_ptx_path);
                             break;
                         },
-                        Err(e) => warn!("Failed to load PTX from {}: {}", va_ptx_path, e),
+                        Err(e) => error!("PTX_LOAD: Failed to load PTX from {}: {}", va_ptx_path, e),
                     }
+                } else {
+                    info!("PTX_LOAD: Visual analytics PTX NOT FOUND at {}", va_ptx_path);
                 }
             }
             
             if kernel.is_none() {
-                warn!("(Static) Visual analytics PTX not found at any location, visual analytics mode will not be available");
+                warn!("PTX_LOAD: Visual analytics PTX not found at any location, visual analytics mode will not be available");
             }
             
             kernel
@@ -324,8 +392,8 @@ impl GPUComputeActor {
         let advanced_gpu_kernel = {
             // Try multiple possible paths for the advanced GPU algorithms PTX
             let aga_ptx_paths = [
-                "/app/src/utils/advanced_gpu_algorithms.ptx",
-                "/workspace/ext/src/utils/advanced_gpu_algorithms.ptx"
+                "/app/src/utils/ptx/advanced_gpu_algorithms.ptx",
+                "/workspace/ext/src/utils/ptx/advanced_gpu_algorithms.ptx"
             ];
             
             let mut kernel = None;
@@ -520,22 +588,34 @@ impl GPUComputeActor {
 
     /// Determine the optimal kernel mode based on graph complexity and analysis requirements
     fn determine_kernel_mode(&self, num_nodes: u32, has_isolation_layers: bool, has_complex_analysis: bool) -> KernelMode {
+        debug!("KERNEL_SELECT: Determining kernel mode");
+        debug!("  Input factors - nodes: {}, isolation_layers: {}, complex_analysis: {}",
+               num_nodes, has_isolation_layers, has_complex_analysis);
+        debug!("  Available kernels - VA: {}, AdvGPU: {}, Adv: {}",
+               self.visual_analytics_kernel.is_some(),
+               self.advanced_gpu_kernel.is_some(),
+               self.advanced_kernel.is_some());
+        
         // Priority 1: Use visual analytics for complex analysis or isolation layers
         if (has_isolation_layers || has_complex_analysis) && self.visual_analytics_kernel.is_some() {
+            debug!("KERNEL_SELECT: Selecting VisualAnalytics (complex analysis/isolation)");
             return KernelMode::VisualAnalytics;
         }
         
         // Priority 2: Use advanced kernel for medium-large graphs
         if num_nodes >= 1000 && num_nodes <= 10000 && self.advanced_gpu_kernel.is_some() {
+            debug!("KERNEL_SELECT: Selecting Advanced (medium-large graph)");
             return KernelMode::Advanced;
         }
         
         // Priority 3: Use visual analytics for very large graphs
         if num_nodes > 10000 && self.visual_analytics_kernel.is_some() {
+            debug!("KERNEL_SELECT: Selecting VisualAnalytics (very large graph)");
             return KernelMode::VisualAnalytics;
         }
         
         // Fallback to legacy for small graphs or when advanced kernels are not available
+        debug!("KERNEL_SELECT: Selecting Legacy (fallback/small graph)");
         KernelMode::Legacy
     }
 
@@ -571,6 +651,26 @@ impl GPUComputeActor {
 
         // Update kernel mode based on current state
         self.update_kernel_mode();
+
+        // Log physics state every 60 frames for debugging
+        if self.iteration_count % 60 == 0 {
+            info!("PHYSICS_STATE: iteration={}, kernel_mode={:?}, compute_mode={:?}, nodes={}, edges={}, constraints={}",
+                self.iteration_count,
+                self.kernel_mode,
+                self.compute_mode,
+                self.num_nodes,
+                self.num_edges,
+                self.constraints.len()
+            );
+            info!("PHYSICS_PARAMS: time_step={:.4}, spring={:.4}, repulsion={:.1}, damping={:.4}, boundary_damping={:.4}, max_repulsion_dist={:.1}",
+                self.simulation_params.time_step,
+                self.simulation_params.spring_strength,
+                self.simulation_params.repulsion,
+                self.simulation_params.damping,
+                self.simulation_params.boundary_damping,
+                self.simulation_params.max_repulsion_distance
+            );
+        }
 
         // Check for stress majorization trigger
         if self.iteration_count.saturating_sub(self.last_stress_majorization) >= self.stress_majorization_interval {
@@ -1414,29 +1514,39 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Updating constraints with new constraint data");
+        info!("MSG_HANDLER: UpdateConstraints received");
+        info!("  Current state - compute_mode: {:?}, kernel_mode: {:?}, constraints: {}",
+              self.compute_mode, self.kernel_mode, self.constraints.len());
         
         // Parse constraints from JSON value
         match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data) {
             Ok(constraints) => {
-                info!("GPU: Parsed {} constraints", constraints.len());
+                let old_count = self.constraints.len();
+                let old_mode = self.compute_mode;
+                
+                info!("MSG_HANDLER: Parsed {} new constraints (was {})", constraints.len(), old_count);
                 self.constraints = constraints;
                 
                 // Switch to advanced mode if we have constraints and the kernel is available
                 if !self.constraints.is_empty() && self.advanced_kernel.is_some() {
                     if matches!(self.compute_mode, ComputeMode::Legacy) {
-                        info!("GPU: Switching to advanced compute mode due to constraints");
+                        info!("MSG_HANDLER: Switching compute mode from {:?} to Advanced due to constraints", old_mode);
                         self.compute_mode = ComputeMode::Advanced;
                     }
                 } else if self.constraints.is_empty() && matches!(self.compute_mode, ComputeMode::Advanced) {
-                    info!("GPU: Switching back to legacy mode - no constraints");
+                    info!("MSG_HANDLER: Switching compute mode from {:?} to Legacy - no constraints", old_mode);
                     self.compute_mode = ComputeMode::Legacy;
+                } else {
+                    info!("MSG_HANDLER: Compute mode remains {:?}", self.compute_mode);
                 }
+                
+                info!("  New state - compute_mode: {:?}, kernel_mode: {:?}, constraints: {}",
+                      self.compute_mode, self.kernel_mode, self.constraints.len());
                 
                 Ok(())
             },
             Err(e) => {
-                error!("Failed to parse constraints: {}", e);
+                error!("MSG_HANDLER: Failed to parse constraints: {}", e);
                 Err(format!("Failed to parse constraints: {}", e))
             }
         }
@@ -1447,12 +1557,20 @@ impl Handler<UpdateAdvancedParams> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateAdvancedParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Updating advanced physics parameters");
+        info!("MSG_HANDLER: UpdateAdvancedParams received");
+        info!("  Updating params - semantic_weight: {:.2}, temporal_weight: {:.2}, constraint_weight: {:.2}",
+              msg.params.semantic_force_weight,
+              msg.params.temporal_force_weight,
+              msg.params.constraint_force_weight);
+        
         self.advanced_params = msg.params;
         
         // Update the advanced GPU context if it exists
         if let Some(ref mut ctx) = self.advanced_gpu_context {
             ctx.update_advanced_params(self.advanced_params.clone());
+            info!("MSG_HANDLER: Advanced GPU context updated with new parameters");
+        } else {
+            info!("MSG_HANDLER: No advanced GPU context to update");
         }
         
         Ok(())
@@ -1676,7 +1794,11 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: InitializeVisualAnalytics, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: InitializeVisualAnalytics received for {} nodes, {} edges", msg.max_nodes, msg.max_edges);
+        info!("MSG_HANDLER: InitializeVisualAnalytics received");
+        info!("  Max nodes: {}, Max edges: {}", msg.max_nodes, msg.max_edges);
+        info!("  Current kernel availability - VA: {}, Advanced: {}",
+              self.visual_analytics_kernel.is_some(),
+              self.advanced_kernel.is_some());
         
         // For now, just mark as initialized without the async complexity
         // The visual analytics GPU is initialized on-demand when needed
@@ -1726,7 +1848,15 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
             time_window: 10.0,
         });
         
-        info!("Visual analytics parameters initialized");
+        info!("MSG_HANDLER: Visual analytics parameters initialized - will affect kernel selection");
+        
+        // Log how this affects kernel selection
+        let has_isolation_layers = !self.isolation_layers.is_empty();
+        let has_complex_analysis = !self.constraints.is_empty() ||
+                                 matches!(self.compute_mode, ComputeMode::Advanced);
+        let potential_mode = self.determine_kernel_mode(self.num_nodes, has_isolation_layers, has_complex_analysis);
+        info!("MSG_HANDLER: Potential kernel mode after VA init: {:?}", potential_mode);
+        
         Ok(())
     }
 }
@@ -1735,8 +1865,13 @@ impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateVisualAnalyticsParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Updating visual analytics parameters");
+        info!("MSG_HANDLER: UpdateVisualAnalyticsParams received");
+        info!("  Focus node: {}, Isolation strength: {:.2}",
+              msg.params.primary_focus_node, msg.params.isolation_strength);
+        
         self.update_visual_analytics_params(msg.params);
+        info!("MSG_HANDLER: Visual analytics parameters updated successfully");
+        
         Ok(())
     }
 }

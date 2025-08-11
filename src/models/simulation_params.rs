@@ -74,14 +74,14 @@ impl SimulationParams {
     pub fn new() -> Self {
         Self {
             iterations: 200,
-            time_step: 0.2,
-            spring_strength: 0.02,
-            repulsion: 1500.0,
-            max_repulsion_distance: 2000.0,
-            mass_scale: 1.5,
-            damping: 0.85,
-            boundary_damping: 0.9,
-            viewport_bounds: 5000.0,
+            time_step: 0.01,            // Much smaller for stability
+            spring_strength: 0.005,      // Very gentle springs
+            repulsion: 50.0,            // Dramatically reduced from 1000.0
+            max_repulsion_distance: 50.0,  // Smaller cutoff radius
+            mass_scale: 1.0,
+            damping: 0.9,               // High damping for stability
+            boundary_damping: 0.95,     
+            viewport_bounds: 200.0,     // Smaller viewport
             enable_bounds: true,
             phase: SimulationPhase::Initial,
             mode: SimulationMode::Remote,
@@ -92,12 +92,12 @@ impl SimulationParams {
         match phase {
             SimulationPhase::Initial => Self {
                 iterations: 500,
-                time_step: 0.2,
-                spring_strength: 0.01,      // Much lower for better spread
-                repulsion: 2500.0,          // Much higher for separation
-                max_repulsion_distance: 3000.0, // Much larger range
-                mass_scale: 2.0,           // Higher mass influence
-                damping: 0.9,             // Slightly lower damping
+                time_step: 0.01,           // Small timestep for stability
+                spring_strength: 0.005,     // Very gentle springs
+                repulsion: 50.0,           // Much lower repulsion
+                max_repulsion_distance: 50.0, // Limited range
+                mass_scale: 1.0,           // Standard mass
+                damping: 0.95,             // Very high damping
                 boundary_damping: 0.95,
                 viewport_bounds: 8000.0,   // Much larger bounds
                 enable_bounds: true,
@@ -106,12 +106,12 @@ impl SimulationParams {
             },
             SimulationPhase::Dynamic => Self {
                 iterations: 100,
-                time_step: 0.15,  // Reduced time step for stability
+                time_step: 0.12,  // Further reduced for optimal stability
                 spring_strength: 0.01,  // Reduced spring strength
-                repulsion: 800.0,  // Reduced repulsion
+                repulsion: 600.0,  // Further reduced from 800.0
                 max_repulsion_distance: 1500.0,
                 mass_scale: 1.5,
-                damping: 0.85,  // Increased damping
+                damping: 0.9,  // Increased from 0.85
                 boundary_damping: 0.95,  // Increased boundary damping
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
@@ -120,9 +120,9 @@ impl SimulationParams {
             },
             SimulationPhase::Finalize => Self {
                 iterations: 300,
-                time_step: 0.2,
+                time_step: 0.15,           // Reduced from 0.2
                 spring_strength: 0.005,      // Minimal spring forces
-                repulsion: 800.0,           // Still good repulsion
+                repulsion: 600.0,           // Reduced from 800.0
                 max_repulsion_distance: 1200.0, // Maintain spacing
                 mass_scale: 1.2,           // Moderate mass influence
                 damping: 0.95,             // High damping for stability

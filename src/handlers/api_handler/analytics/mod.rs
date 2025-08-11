@@ -380,6 +380,8 @@ pub async fn set_kernel_mode(
             "advanced" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
             // Accept alternate names for compatibility
             "standard" => crate::actors::gpu_compute_actor::ComputeMode::Legacy,
+            // Note: "visual_analytics" maps to Advanced ComputeMode, which triggers
+            // automatic selection of KernelMode::VisualAnalytics when appropriate
             "visual_analytics" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
             _ => {
                 return Ok(HttpResponse::BadRequest().json(serde_json::json!({

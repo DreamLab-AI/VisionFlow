@@ -266,7 +266,7 @@ impl GPUCompute {
         num_nodes: u32, 
         graph: &GraphData
     ) -> Result<Arc<RwLock<Self>>, Error> {
-        let ptx_path = "/app/src/utils/compute_forces.ptx";
+        let ptx_path = "/app/src/utils/ptx/compute_forces.ptx";
         let ptx_path_obj = Path::new(ptx_path);
         if !ptx_path_obj.exists() {
             error!("PTX file does not exist at {} - required for GPU physics", ptx_path);

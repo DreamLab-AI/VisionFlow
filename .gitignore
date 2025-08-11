@@ -95,6 +95,10 @@ target/
 **/*.rs.bk
 Cargo.lock
 
+# CUDA PTX files (compiled GPU kernels)
+*.ptx
+**/*.ptx
+
 # Platform and deployment
 .vercel
 .netlify

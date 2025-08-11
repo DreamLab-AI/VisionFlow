@@ -39,20 +39,20 @@ visualisation:
   physics:
     enabled: true
     iterations: 200
-    damping: 0.85
-    spring_strength: 0.002
-    repulsion_strength: 600.0
-    repulsion_distance: 1000.0
+    damping: 0.9
+    spring_strength: 0.005
+    repulsion_strength: 50.0
+    repulsion_distance: 50.0
     attraction_strength: 0.001
-    max_velocity: 8.0
-    collision_radius: 120.0
-    bounds_size: 2000.0
+    max_velocity: 1.0
+    collision_radius: 0.15
+    bounds_size: 200.0
     enable_bounds: true
-    mass_scale: 1.5
-    boundary_damping: 0.9
+    mass_scale: 1.0
+    boundary_damping: 0.95
     update_threshold: 0.05
-    time_step: 0.15
-    temperature: 1.0
+    time_step: 0.01
+    temperature: 0.5
     gravity: 0.0
     
   # Multi-graph support - primary source of truth
@@ -93,20 +93,20 @@ visualisation:
       physics:
         enabled: true
         iterations: 200
-        damping: 0.85
-        spring_strength: 0.01
-        repulsion_strength: 800.0
-        repulsion_distance: 1500.0
+        damping: 0.9
+        spring_strength: 0.005
+        repulsion_strength: 50.0
+        repulsion_distance: 50.0
         attraction_strength: 0.001
-        max_velocity: 8.0
-        collision_radius: 120.0
-        bounds_size: 5000.0
+        max_velocity: 1.0
+        collision_radius: 0.15
+        bounds_size: 200.0
         enable_bounds: true
-        mass_scale: 1.5
+        mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.05
-        time_step: 0.15
-        temperature: 1.0
+        time_step: 0.01
+        temperature: 0.5
         gravity: 0.0
 
     visionflow:
@@ -145,20 +145,20 @@ visualisation:
       physics:
         enabled: true
         iterations: 150
-        damping: 0.85
-        spring_strength: 0.5
-        repulsion_strength: 150.0
-        repulsion_distance: 200.0
-        attraction_strength: 0.05
-        max_velocity: 10.0
-        collision_radius: 50.0
-        bounds_size: 3000.0
+        damping: 0.9
+        spring_strength: 0.005
+        repulsion_strength: 50.0
+        repulsion_distance: 50.0
+        attraction_strength: 0.001
+        max_velocity: 1.0
+        collision_radius: 0.15
+        bounds_size: 200.0
         enable_bounds: true
-        mass_scale: 1.2
-        boundary_damping: 0.9
+        mass_scale: 1.0
+        boundary_damping: 0.95
         update_threshold: 0.05
-        time_step: 0.2
-        temperature: 1.0
+        time_step: 0.01
+        temperature: 0.5
         gravity: 0.0
 
   # Global rendering settings
