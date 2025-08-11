@@ -102,12 +102,13 @@ RUN mkdir -p /app/data/markdown \
     /app/data/runtime \
     /app/user_settings \
     /app/client/dist \
-    /app/src/utils
+    /app/src/utils \
+    /app/src/utils/ptx
 
 # Copy built artifacts from builder stage
 COPY --from=builder /build/target/release/webxr /app/webxr
 COPY --from=builder /build/client/dist /app/client/dist
-COPY --from=builder /build/src/utils/compute_forces.ptx /app/src/utils/compute_forces.ptx
+COPY --from=builder /build/src/utils/ptx/*.ptx /app/src/utils/ptx/
 
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml

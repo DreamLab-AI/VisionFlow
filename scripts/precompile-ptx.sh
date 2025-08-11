@@ -17,7 +17,13 @@ echo "Project root: $PROJECT_ROOT"
 mkdir -p "$PTX_DIR"
 
 # Find all CUDA kernel files
+# Now prioritizing the unified kernel
 KERNELS=($(find "$UTILS_DIR" -name "*.cu" -type f | xargs -n1 basename | sed 's/\.cu$//' | sort))
+
+# Move visionflow_unified to the front if it exists
+if [[ " ${KERNELS[@]} " =~ " visionflow_unified " ]]; then
+    KERNELS=("visionflow_unified" "${KERNELS[@]/visionflow_unified/}")
+fi
 
 echo "Found ${#KERNELS[@]} kernels to compile"
 
