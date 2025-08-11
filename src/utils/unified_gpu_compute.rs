@@ -1,7 +1,7 @@
 // Unified GPU Compute Module - Clean, single-kernel implementation
 // Replaces the complex multi-kernel system with fallbacks
 
-use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits};
+use cudarc::driver::{CudaDevice, CudaFunction, CudaSlice, LaunchConfig, LaunchAsync, DeviceRepr, ValidAsZeroBits, DevicePtrMut};
 use cudarc::nvrtc::Ptx;
 use std::sync::Arc;
 use std::io::{Error, ErrorKind};
@@ -438,25 +438,25 @@ impl UnifiedGPUCompute {
         // Prepare kernel parameters
         let kernel_params = GpuKernelParams {
             nodes: GpuNodeData {
-                pos_x: self.pos_x.device_ptr_mut(),
-                pos_y: self.pos_y.device_ptr_mut(),
-                pos_z: self.pos_z.device_ptr_mut(),
-                vel_x: self.vel_x.device_ptr_mut(),
-                vel_y: self.vel_y.device_ptr_mut(),
-                vel_z: self.vel_z.device_ptr_mut(),
-                mass: self.node_mass.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
-                importance: self.node_importance.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
-                temporal: self.node_temporal.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()),
-                graph_id: self.node_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
-                cluster: self.node_cluster.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                pos_x: *self.pos_x.device_ptr_mut() as *mut f32,
+                pos_y: *self.pos_y.device_ptr_mut() as *mut f32,
+                pos_z: *self.pos_z.device_ptr_mut() as *mut f32,
+                vel_x: *self.vel_x.device_ptr_mut() as *mut f32,
+                vel_y: *self.vel_y.device_ptr_mut() as *mut f32,
+                vel_z: *self.vel_z.device_ptr_mut() as *mut f32,
+                mass: *self.node_mass.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut f32,
+                importance: *self.node_importance.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut f32,
+                temporal: *self.node_temporal.as_mut().map_or(self.dummy_f32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut f32,
+                graph_id: *self.node_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut i32,
+                cluster: *self.node_cluster.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut i32,
             },
             edges: GpuEdgeData {
-                src: self.edge_src.device_ptr_mut(),
-                dst: self.edge_dst.device_ptr_mut(),
-                weight: self.edge_weight.device_ptr_mut(),
-                graph_id: self.edge_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()),
+                src: *self.edge_src.device_ptr_mut() as *mut i32,
+                dst: *self.edge_dst.device_ptr_mut() as *mut i32,
+                weight: *self.edge_weight.device_ptr_mut() as *mut f32,
+                graph_id: *self.edge_graph_id.as_mut().map_or(self.dummy_i32.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut i32,
             },
-            constraints: self.constraints.as_mut().map_or(self.dummy_constraints.device_ptr_mut(), |s| s.device_ptr_mut()),
+            constraints: *self.constraints.as_mut().map_or(self.dummy_constraints.device_ptr_mut(), |s| s.device_ptr_mut()) as *mut ConstraintData,
             params: self.params,
             num_nodes: self.num_nodes as i32,
             num_edges: self.num_edges as i32,

@@ -56,6 +56,13 @@ trap cleanup SIGINT SIGTERM EXIT
 start_dev() {
     log "${YELLOW}Starting development servers...${NC}"
 
+    # Compile the unified PTX kernel first
+    log "${YELLOW}Compiling CUDA PTX kernel...${NC}"
+    if ! "$SCRIPT_DIR/compile_unified_ptx.sh"; then
+        log "${RED}Failed to compile PTX kernel. Aborting.${NC}"
+        exit 1
+    fi
+
     # Ensure logs directory exists on the host
     log "${YELLOW}Ensuring host log directory exists...${NC}"
     mkdir -p "$PROJECT_ROOT/logs"
