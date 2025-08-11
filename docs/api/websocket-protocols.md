@@ -15,9 +15,9 @@ graph TB
     end
     
     subgraph "WebSocket Endpoints"
-        Flow[/ws/socket_flow<br/>Binary Graph Updates]
+        Flow[/wss<br/>Binary Graph Updates]
         Speech[/ws/speech<br/>Voice Streaming]
-        MCP[/ws/mcp_relay<br/>MCP Protocol]
+        MCP[/ws/mcp-relay<br/>MCP Protocol]
         Bots[/ws/bots_visualization<br/>Agent Updates]
     end
     
@@ -44,19 +44,19 @@ graph TB
 ## WebSocket Endpoints
 
 ### 1. Socket Flow Stream
-- **Endpoint**: `/ws/socket_flow`
+- **Endpoint**: `/wss`
 - **Purpose**: Real-time graph position updates
-- **Protocol**: Binary (28-byte format)
-- **Update Rate**: 60 FPS
+- **Protocol**: Binary (28-byte format) + JSON control
+- **Update Rate**: 5-60 FPS (dynamic)
 
 ### 2. Speech Stream
 - **Endpoint**: `/ws/speech`
 - **Purpose**: Voice interaction and audio streaming
 - **Protocol**: JSON + Binary audio data
-- **Features**: Real-time transcription, voice commands
+- **Features**: Real-time transcription, TTS, voice commands
 
 ### 3. MCP Relay
-- **Endpoint**: `/ws/mcp_relay`
+- **Endpoint**: `/ws/mcp-relay`
 - **Purpose**: Claude Flow MCP protocol relay
 - **Protocol**: JSON-RPC 2.0
 - **Features**: Tool invocation, agent orchestration
@@ -65,7 +65,7 @@ graph TB
 - **Endpoint**: `/ws/bots_visualization`
 - **Purpose**: Agent swarm visualization updates
 - **Protocol**: JSON with agent states and metrics
-- **Update Rate**: 10 Hz (100ms intervals)
+- **Update Rate**: 16 ms intervals (~60 FPS)
 
 ## Binary Protocol Specification
 
@@ -73,7 +73,7 @@ graph TB
 
 ```
 Offset  Size  Type      Description
-0       4     uint32    Node/Agent ID (0x80 flag for bots)
+0       4     uint32    Node/Agent ID (with type flags)
 4       4     float32   Position X
 8       4     float32   Position Y
 12      4     float32   Position Z
@@ -82,30 +82,43 @@ Offset  Size  Type      Description
 24      4     float32   Velocity Z
 ```
 
+### Node Type Flags
+
+| Flag Value | Type | Description |
+|-----------|------|-------------|
+| 0x80000000 | Agent | AI agent node |
+| 0x40000000 | Knowledge | Knowledge graph node |
+| 0x00000000 | Unknown | Default/other node type |
+
 ### Binary Message Structure
 
 ```typescript
 // Client request for positions
 interface PositionRequest {
-  type: 'requestPositions' | 'requestBotsPositions';
+  type: 'requestInitialData' | 'requestPositions';
   clientId?: string;
 }
 
 // Server binary response
-// Header: [messageType(1), nodeCount(4)]
-// Body: Array of 28-byte position records
+// Raw binary data: Array of 28-byte position records
 ```
 
 ### Implementation Example
 
 ```typescript
-// Decoding binary positions
-function decodeBinaryPositions(data: ArrayBuffer): Map<number, Position> {
+// Decoding binary positions with type flags
+function decodeBinaryPositions(data: ArrayBuffer): Map<number, PositionUpdate> {
   const view = new DataView(data);
   const positions = new Map();
   
   for (let i = 0; i < data.byteLength; i += 28) {
-    const id = view.getUint32(i, true);
+    const flaggedId = view.getUint32(i, true);
+    
+    // Extract type flags
+    const isAgent = (flaggedId & 0x80000000) !== 0;
+    const isKnowledge = (flaggedId & 0x40000000) !== 0;
+    const actualId = flaggedId & 0x3FFFFFFF;
+    
     const position = {
       x: view.getFloat32(i + 4, true),
       y: view.getFloat32(i + 8, true),
@@ -117,7 +130,11 @@ function decodeBinaryPositions(data: ArrayBuffer): Map<number, Position> {
       z: view.getFloat32(i + 24, true)
     };
     
-    positions.set(id, { position, velocity });
+    positions.set(actualId, { 
+      position, 
+      velocity, 
+      type: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'unknown'
+    });
   }
   
   return positions;
@@ -137,7 +154,140 @@ interface WebSocketMessage<T = any> {
 }
 ```
 
-### Agent State Messages
+### Socket Flow Messages (/wss)
+
+#### Connection Established
+```json
+{
+  "type": "connection_established",
+  "timestamp": 1679417762000
+}
+```
+
+#### Request Initial Data
+```json
+{
+  "type": "requestInitialData"
+}
+```
+
+#### Updates Started
+```json
+{
+  "type": "updatesStarted",
+  "timestamp": 1679417763000
+}
+```
+
+#### Loading State
+```json
+{
+  "type": "loading",
+  "message": "Calculating initial layout..."
+}
+```
+
+#### Heartbeat
+```json
+{
+  "type": "ping",
+  "timestamp": 1679417764000
+}
+
+{
+  "type": "pong",
+  "timestamp": 1679417764000
+}
+```
+
+### Speech Socket Messages (/ws/speech)
+
+#### Text-to-Speech Request
+```json
+{
+  "type": "textToSpeech",
+  "payload": {
+    "text": "Hello world",
+    "voice": "neural",
+    "speed": 1.0,
+    "stream": true
+  }
+}
+```
+
+#### Speech-to-Text Control
+```json
+{
+  "type": "sttAction",
+  "payload": {
+    "action": "start",
+    "language": "en-US",
+    "model": "whisper"
+  }
+}
+```
+
+#### Provider Configuration
+```json
+{
+  "type": "setProvider",
+  "payload": {
+    "provider": "openai"
+  }
+}
+```
+
+#### Audio Data (Binary)
+- Binary WebSocket frames containing raw audio data
+- Used for streaming audio input/output
+- Format depends on configured audio codec
+
+### Agent Visualization Messages (/ws/bots_visualization)
+
+#### Initialization Message
+```json
+{
+  "type": "swarm-init",
+  "payload": {
+    "swarmId": "swarm-001",
+    "topology": "hierarchical",
+    "agents": []
+  }
+}
+```
+
+#### Agent State Update
+```json
+{
+  "type": "agent-state-update",
+  "payload": {
+    "agentId": "agent-001",
+    "status": "executing",
+    "currentTask": "Analyzing research papers",
+    "progress": 0.65,
+    "metrics": {
+      "tokensUsed": 1523,
+      "tasksCompleted": 42,
+      "successRate": 0.95
+    }
+  }
+}
+```
+
+#### Position Update (JSON alternative to binary)
+```json
+{
+  "type": "position-update",
+  "payload": {
+    "positions": [{
+      "id": 1,
+      "type": "agent",
+      "position": [100.0, 200.0, 50.0],
+      "velocity": [0.1, 0.2, 0.3]
+    }]
+  }
+}
+```
 
 #### Full Agent Update
 ```json
@@ -146,7 +296,7 @@ interface WebSocketMessage<T = any> {
   "payload": {
     "agents": [{
       "id": "agent-001",
-      "name": "Research Agent Alpha",
+      "name": "Research Agent Alpha", 
       "type": "researcher",
       "status": "active",
       "health": 0.95,
@@ -155,49 +305,54 @@ interface WebSocketMessage<T = any> {
       "metrics": {
         "tasksCompleted": 42,
         "successRate": 0.95,
-        "tokenRate": 1523.4
+        "tokenRate": 1523.4,
+        "averageResponseTime": 250
       }
     }],
     "connections": [{
       "from": "agent-001",
       "to": "agent-002",
       "strength": 0.8,
-      "messageRate": 12.5
+      "messageRate": 12.5,
+      "bandwidth": 1024
     }]
   }
 }
 ```
 
-#### Agent Status Update
+### MCP Relay Messages (/ws/mcp-relay)
+
+#### Tool Invocation
 ```json
 {
-  "type": "agent-status-update",
-  "payload": {
-    "agentId": "agent-001",
-    "status": "executing",
-    "currentTask": "Analyzing research papers",
-    "progress": 0.65
+  "jsonrpc": "2.0",
+  "id": "call-123",
+  "method": "tools/call",
+  "params": {
+    "name": "swarm_init",
+    "arguments": {
+      "topology": "hierarchical",
+      "maxAgents": 10
+    }
   }
 }
 ```
 
-### Control Messages
-
-#### Initialize Swarm Request
+#### Tool Response
 ```json
 {
-  "type": "initialize-swarm",
-  "payload": {
-    "topology": "hierarchical",
-    "maxAgents": 10,
-    "agentTypes": ["coordinator", "researcher", "coder"],
-    "enableNeural": true,
-    "customPrompt": "Build a REST API"
+  "jsonrpc": "2.0",
+  "id": "call-123",
+  "result": {
+    "content": [{
+      "type": "text",
+      "text": "Swarm initialized with 10 agents in hierarchical topology"
+    }]
   }
 }
 ```
 
-#### Command Execution
+#### Agent Command
 ```json
 {
   "type": "execute-command",
@@ -212,21 +367,7 @@ interface WebSocketMessage<T = any> {
 }
 ```
 
-### System Messages
-
-#### Heartbeat
-```json
-{
-  "type": "ping",
-  "timestamp": "2024-01-10T12:00:00Z"
-}
-
-{
-  "type": "pong",
-  "timestamp": "2024-01-10T12:00:00Z",
-  "serverTime": "2024-01-10T12:00:00.123Z"
-}
-```
+### System Messages (All Endpoints)
 
 #### Error Message
 ```json
@@ -237,29 +378,42 @@ interface WebSocketMessage<T = any> {
     "message": "Agent with ID 'agent-999' not found",
     "details": {
       "requestId": "req-123",
-      "recoverable": true
+      "recoverable": true,
+      "endpoint": "/ws/bots_visualization"
     }
+  }
+}
+```
+
+#### Connection Status
+```json
+{
+  "type": "connection-status",
+  "payload": {
+    "status": "connected",
+    "endpoint": "/wss",
+    "clientCount": 5,
+    "serverTime": "2024-01-10T12:00:00.123Z"
   }
 }
 ```
 
 ## Compression and Optimization
 
-### Compression Threshold
-- Messages > 1KB are automatically compressed
-- Uses zlib compression
-- Compression flag set in binary header
+### Compression Strategy
+- Messages > 1KB automatically use permessage-deflate
+- Binary position data typically compresses 40-60%
+- JSON messages compress 70-85%
 
 ### Batching Strategy
 ```typescript
-// Batch multiple position updates
+// Position updates batching
 const batchSize = 100; // positions per message
-const updateRate = 60; // Hz
+const updateRate = 60; // Hz for agents, 1 Hz for knowledge nodes
 
-// Results in:
-// - 100 agents: 1 message/frame
-// - 500 agents: 5 messages/frame
-// - 1000 agents: 10 messages/frame
+// Agent visualization batching  
+const agentBatchSize = 50; // agents per update
+const updateInterval = 16; // ms (~60fps)
 ```
 
 ## Connection Management
@@ -276,8 +430,9 @@ class WebSocketManager {
       throw new Error('Max reconnection attempts reached');
     }
     
-    // Exponential backoff
-    const delay = this.baseDelay * Math.pow(2, this.reconnectAttempts);
+    // Exponential backoff with jitter
+    const delay = this.baseDelay * Math.pow(2, this.reconnectAttempts) + 
+                  Math.random() * 1000;
     await sleep(delay);
     
     this.reconnectAttempts++;
@@ -290,74 +445,102 @@ class WebSocketManager {
 ```typescript
 enum ConnectionState {
   CONNECTING = 'connecting',
-  CONNECTED = 'connected',
+  CONNECTED = 'connected', 
   RECONNECTING = 'reconnecting',
   DISCONNECTED = 'disconnected',
   ERROR = 'error'
 }
 ```
 
+### Heartbeat Configuration
+```typescript
+// Per-endpoint heartbeat intervals
+const HEARTBEAT_CONFIG = {
+  '/wss': { interval: 30000, timeout: 60000 },
+  '/ws/speech': { interval: 5000, timeout: 10000 },
+  '/ws/mcp-relay': { interval: 30000, timeout: 60000 },
+  '/ws/bots_visualization': { interval: 30000, timeout: 60000 }
+};
+```
+
 ## Performance Metrics
 
 ### Bandwidth Usage
+
 | Scenario | JSON | Binary | Reduction |
 |----------|------|--------|----------|
 | 100 agents @ 60fps | 3 MB/s | 168 KB/s | 94% |
 | 500 agents @ 60fps | 15 MB/s | 840 KB/s | 94% |
 | 1000 agents @ 60fps | 30 MB/s | 1.68 MB/s | 94% |
+| Mixed (agents + knowledge) | 25 MB/s | 1.2 MB/s | 95% |
 
 ### Latency Targets
 - Position updates: < 16.67ms (60 FPS)
-- State changes: < 100ms
-- Command execution: < 500ms
+- Agent state changes: < 100ms
+- Speech processing: < 200ms
+- MCP command execution: < 500ms
 
 ## Security Considerations
 
 ### Authentication
 ```typescript
-// WebSocket with auth token
-const ws = new WebSocket('wss://api.example.com/ws', {
+// WebSocket with session-based auth
+const ws = new WebSocket('wss://api.example.com/wss', {
   headers: {
-    'Authorization': `Bearer ${authToken}`,
+    'Cookie': `session=${sessionToken}`,
     'X-Client-Version': '1.0.0'
   }
 });
+
+// Token-based auth alternative
+const wsWithToken = new WebSocket(
+  `wss://api.example.com/wss?token=${authToken}`
+);
 ```
 
 ### Message Validation
 - All JSON messages validated against schemas
-- Binary messages checked for correct size
-- Rate limiting per client connection
-- Maximum message size: 1MB (configurable)
+- Binary messages checked for correct size alignment
+- Rate limiting per client connection (see limits below)
+- Maximum message size: 100MB (configurable)
+
+### Rate Limiting
+
+| Endpoint | Message Rate | Binary Rate | Burst Allowance |
+|----------|-------------|-------------|-----------------|
+| /wss | 1000 msg/min | Unlimited* | 100 messages |
+| /ws/speech | 500 msg/min | 10 MB/min | 50 messages |
+| /ws/mcp-relay | 100 msg/min | N/A | 20 messages |
+| /ws/bots_visualization | 1000 msg/min | 1 MB/min | 100 messages |
+
+*Binary updates are rate-controlled by server-side throttling, not client limits
 
 ## Integration Examples
 
-### React Hook Usage
+### React Hook for Position Updates
 ```typescript
 function useWebSocketPositions() {
   const [positions, setPositions] = useState(new Map());
   
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket('wss://localhost:3001/wss');
+    
+    ws.onopen = () => {
+      // Request initial data
+      ws.send(JSON.stringify({ type: 'requestInitialData' }));
+    };
     
     ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
         const newPositions = decodeBinaryPositions(event.data);
-        setPositions(newPositions);
+        setPositions(prev => new Map([...prev, ...newPositions]));
+      } else {
+        const message = JSON.parse(event.data);
+        handleControlMessage(message);
       }
     };
     
-    // Request positions at 60 FPS
-    const interval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'requestPositions' }));
-      }
-    }, 16.67);
-    
-    return () => {
-      clearInterval(interval);
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
   
   return positions;
@@ -367,15 +550,61 @@ function useWebSocketPositions() {
 ### Three.js Integration
 ```typescript
 // Update 3D positions from WebSocket
-function updateAgentPositions(scene: THREE.Scene, positions: Map<number, Position>) {
+function updateSceneFromWebSocket(
+  scene: THREE.Scene, 
+  positions: Map<number, PositionUpdate>
+) {
   positions.forEach((data, id) => {
-    const mesh = scene.getObjectByName(`agent-${id}`);
+    const mesh = scene.getObjectByName(`node-${id}`);
     if (mesh) {
+      // Update position
       mesh.position.set(data.position.x, data.position.y, data.position.z);
+      
       // Store velocity for interpolation
       mesh.userData.velocity = data.velocity;
+      mesh.userData.type = data.type;
+      
+      // Apply type-specific styling
+      if (data.type === 'agent') {
+        mesh.material.color.setHex(0xff6b6b);
+      } else if (data.type === 'knowledge') {
+        mesh.material.color.setHex(0x4ecdc4);
+      }
     }
   });
+}
+```
+
+### Agent Visualization Integration
+```typescript
+function useAgentVisualization() {
+  const [agents, setAgents] = useState([]);
+  
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:3001/ws/bots_visualization');
+    
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      
+      switch (message.type) {
+        case 'bots-full-update':
+          setAgents(message.payload.agents);
+          break;
+        
+        case 'agent-state-update':
+          setAgents(prev => prev.map(agent => 
+            agent.id === message.payload.agentId
+              ? { ...agent, ...message.payload }
+              : agent
+          ));
+          break;
+      }
+    };
+    
+    return () => ws.close();
+  }, []);
+  
+  return agents;
 }
 ```
 
@@ -383,30 +612,69 @@ function updateAgentPositions(scene: THREE.Scene, positions: Map<number, Positio
 
 ### Common Issues
 
-1. **No position updates**
-   - Check WebSocket connection state
-   - Verify requestPositions messages are sent
-   - Check for bot flag (0x80) if expecting agent data
+1. **Binary Data Corruption**
+   - Check byte alignment (must be multiple of 28)
+   - Verify little-endian byte order
+   - Validate node type flags
 
-2. **High latency**
-   - Monitor network bandwidth
-   - Check compression is enabled
-   - Reduce update frequency if needed
+2. **High Memory Usage**
+   - Implement position update throttling
+   - Use object pooling for frequent updates
+   - Monitor WebSocket message queue size
 
-3. **Connection drops**
-   - Implement heartbeat/ping-pong
-   - Check proxy/firewall settings
-   - Monitor for memory leaks
+3. **Connection Instability**
+   - Implement proper heartbeat handling
+   - Use exponential backoff for reconnections
+   - Monitor network conditions
 
-### Debug Mode
+### Debug Configuration
+
 ```typescript
-// Enable WebSocket debug logging
-if (process.env.NODE_ENV === 'development') {
+// Enable comprehensive WebSocket debugging
+const DEBUG_CONFIG = {
+  logBinaryMessages: process.env.NODE_ENV === 'development',
+  logJSONMessages: true,
+  logHeartbeats: false,
+  logPerformanceMetrics: true
+};
+
+if (DEBUG_CONFIG.logBinaryMessages) {
   ws.addEventListener('message', (event) => {
-    console.log('[WS]', event.data instanceof ArrayBuffer 
-      ? `Binary: ${event.data.byteLength} bytes` 
-      : `JSON: ${event.data}`);
+    if (event.data instanceof ArrayBuffer) {
+      console.log(`[WS Binary] ${event.data.byteLength} bytes:`, 
+        Array.from(new Uint8Array(event.data, 0, 32)) // First 32 bytes
+      );
+    }
   });
+}
+```
+
+### Performance Monitoring
+
+```typescript
+class WebSocketMetrics {
+  private messageCount = 0;
+  private bytesReceived = 0;
+  private lastUpdate = Date.now();
+  
+  onMessage(event: MessageEvent) {
+    this.messageCount++;
+    this.bytesReceived += event.data instanceof ArrayBuffer 
+      ? event.data.byteLength 
+      : new Blob([event.data]).size;
+    
+    // Log metrics every 10 seconds
+    if (Date.now() - this.lastUpdate > 10000) {
+      console.log(`WebSocket Metrics: ${this.messageCount} msgs, ${this.bytesReceived} bytes`);
+      this.reset();
+    }
+  }
+  
+  private reset() {
+    this.messageCount = 0;
+    this.bytesReceived = 0;
+    this.lastUpdate = Date.now();
+  }
 }
 ```
 
@@ -414,5 +682,5 @@ if (process.env.NODE_ENV === 'development') {
 
 - [Binary Protocol Specification](./binary-protocol.md)
 - [REST API Documentation](./rest.md)
-- [Agent Control System](../server/features/claude-flow-mcp-integration.md)
-- [GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [WebSocket API Reference](./websocket.md)
+- [VisionFlow Architecture](../architecture/system-overview.md)

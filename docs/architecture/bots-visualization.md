@@ -1,10 +1,10 @@
 # Bots Visualization Architecture
 
-This document describes the architecture for visualizing AI agents (bots) in the VisionFlow 3D environment.
+This document describes the current architecture for visualizing AI agents (bots) in the VisionFlow 3D environment using the unified GPU kernel and parallel graph coordinator.
 
 ## Overview
 
-The bots visualization system displays Claude Flow agents as interactive 3D nodes with connections representing communication patterns. It runs parallel to the Logseq graph visualization using the parallel graphs architecture.
+The bots visualization system displays Claude Flow agents as interactive 3D nodes with real-time position updates via binary protocol. It runs parallel to the Logseq graph visualization using the ParallelGraphCoordinator and unified backend processing.
 
 ## Core Components
 
@@ -49,40 +49,49 @@ interface BotsCommunication {
 }
 ```
 
-### 2. Physics Simulation
+### 2. Unified Backend Physics
 
-The `BotsPhysicsWorker` runs a dedicated physics simulation:
+Physics processing happens on the backend using the unified CUDA kernel:
 
-```typescript
-class BotsPhysicsWorker {
-  private positions: Map<string, Vector3>;
-  private velocities: Map<string, Vector3>;
-  private config: BotsVisualConfig;
-  
-  updateAgents(agents: BotsAgent[]) {
-    // Add/update agents in simulation
-  }
-  
-  updateEdges(edges: BotsEdge[]) {
-    // Update connection forces
-  }
-  
-  simulateStep(deltaTime: number) {
-    // Apply forces and update positions
-  }
+```rust
+// Backend unified GPU processing
+impl GPUComputeActor {
+    fn process_agent_graph(&mut self, agents: Vec<AgentStatus>) -> Result<()> {
+        // Convert agents to Structure of Arrays format
+        let (pos_x, pos_y, pos_z) = self.convert_agents_to_soa(&agents)?;
+        
+        // Use DualGraph compute mode
+        let mut sim_params = SimParams::default();
+        sim_params.compute_mode = ComputeMode::DualGraph as i32;
+        sim_params.spring_k = 0.3;
+        sim_params.damping = 0.95;
+        sim_params.repel_k = 50.0;
+        
+        // Execute unified kernel
+        self.unified_kernel.launch(
+            &pos_x, &pos_y, &pos_z,
+            &vel_x, &vel_y, &vel_z,
+            &edge_sources, &edge_targets, &edge_weights,
+            &sim_params
+        )?;
+        
+        // Stream positions via binary protocol
+        self.stream_positions_to_clients()?;
+        Ok(())
+    }
 }
 ```
 
-**Physics Configuration:**
-```typescript
-{
-  springStrength: 0.3,      // Edge attraction
-  damping: 0.95,            // Velocity damping
-  repulsionStrength: 0.8,   // Node repulsion
-  centerForce: 0.002,       // Center attraction
-  maxVelocity: 0.5,         // Speed limit
-  linkDistance: 3.0         // Ideal edge length
-}
+**Physics Configuration (settings.yaml):**
+```yaml
+visionflow:
+  physics:
+    spring_strength: 0.3     # Edge attraction  
+    damping: 0.95           # Velocity damping
+    repulsion_strength: 0.8  # Node repulsion
+    center_force: 0.002     # Center attraction  
+    max_velocity: 0.5       # Speed limit
+    link_distance: 3.0      # Ideal edge length
 ```
 
 ### 3. Visual Representation
@@ -115,19 +124,28 @@ function renderAgent(agent: BotsAgent) {
 ### 4. Data Flow Pipeline
 
 ```
-Backend (ClaudeFlowActor)
-    ↓ Agent data
-REST API (/api/bots/agents)
-    ↓ JSON response
-Frontend (MCPWebSocketService)
-    ↓ Process communications into edges
-BotsPhysicsWorker
-    ↓ Physics simulation
+Claude Flow MCP (port 3002)
+    ↓ Direct WebSocket connection
+EnhancedClaudeFlowActor
+    ↓ Agent telemetry processing
+GraphServiceActor
+    ↓ UpdateBotsGraph message
+GPUComputeActor (Unified Kernel)
+    ↓ DualGraph mode physics
+Binary Protocol WebSocket
+    ↓ Position/velocity updates
 ParallelGraphCoordinator
-    ↓ Position updates
+    ↓ visionFlowPositions map
 3D Renderer
     ↓ Visual output
 User Interface
+
+// Separate REST API for metadata
+REST API (/api/bots/agents)
+    ↓ Agent metadata (JSON)
+Frontend UI
+    ↓ Agent status, metrics
+Agent Inspector Panels
 ```
 
 ### 5. Mock Data System
@@ -163,50 +181,101 @@ class MockBotsDataProvider {
 
 ### 1. Backend Integration
 
-The `GraphServiceActor` receives agent updates:
+The `EnhancedClaudeFlowActor` manages MCP connection and pushes to `GraphServiceActor`:
 
 ```rust
+impl EnhancedClaudeFlowActor {
+    fn apply_pending_changes(&mut self) {
+        if self.has_changes() {
+            // Apply differential updates to agent_cache
+            self.process_pending_additions();
+            self.process_pending_updates();
+            self.process_pending_removals();
+            
+            // Convert to graph format and push to GPU
+            let graph_data = self.build_graph_data();
+            self.graph_service_addr.do_send(UpdateBotsGraph {
+                agents: graph_data.agents,
+                edges: graph_data.edges,
+                communications: self.message_flow_history.clone(),
+            });
+        }
+    }
+}
+
+// GraphServiceActor processes both knowledge and agent graphs
 impl Handler<UpdateBotsGraph> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) {
-        // Store agent data
+        // Update agent data
         self.bots_agents = msg.agents;
         
-        // Notify connected clients
-        self.broadcast_bots_update();
+        // Send to unified GPU kernel with DualGraph mode
+        if let Some(gpu) = &self.gpu_compute_addr {
+            gpu.do_send(ComputeGraphLayout {
+                compute_mode: ComputeMode::DualGraph,
+                agents: Some(msg.agents),
+                knowledge_nodes: self.knowledge_nodes.clone(),
+            });
+        }
     }
 }
 ```
 
 ### 2. REST API Endpoints
 
+Current implementation provides agent metadata via REST:
+
 ```
-GET /api/bots/agents          # Get all agents
-GET /api/bots/communications  # Get recent communications
-GET /api/bots/metrics         # Get performance metrics
-POST /api/bots/spawn          # Create new agent
-DELETE /api/bots/agent/:id    # Remove agent
+GET /api/bots/agents          # Get cached agents from EnhancedClaudeFlowActor
+GET /api/bots/swarm/status    # Get swarm status and topology
+POST /api/bots/swarm/init     # Initialize new swarm
+POST /api/bots/spawn          # Spawn individual agent
+DELETE /api/bots/agent/:id    # Terminate agent
+GET /api/bots/health          # MCP connection health check
 ```
+
+**Position updates are handled separately via binary protocol WebSocket**
 
 ### 3. Frontend Services
 
-**MCPWebSocketService**: Manages agent data and polling
+**ParallelGraphCoordinator**: Central management of both graphs
 ```typescript
-class MCPWebSocketService {
-  async connect() {
-    // Start polling backend for updates
-    this.pollInterval = setInterval(() => {
-      this.fetchAgentsFromBackend();
-    }, 10000);
+class ParallelGraphCoordinator {
+  async enableVisionFlow(enabled: boolean) {
+    this.state.visionflow.enabled = enabled;
+    
+    if (enabled) {
+      // Start REST API polling for agent metadata
+      this.pollInterval = setInterval(() => {
+        this.fetchAgentsFromAPI();
+      }, 10000);
+      
+      // Position updates come automatically via binary protocol WebSocket
+    } else {
+      clearInterval(this.pollInterval);
+    }
+    
+    this.notifyListeners();
+  }
+  
+  private async fetchAgentsFromAPI() {
+    const response = await fetch('/api/bots/agents');
+    const data = await response.json();
+    
+    this.state.visionflow.agents = data.agents;
+    this.state.visionflow.lastUpdate = Date.now();
+    this.notifyListeners();
   }
 }
 ```
 
-**BotsWebSocketIntegration**: Coordinates data sources
+**Binary Protocol Integration**: Position updates handled automatically
 ```typescript
-class BotsWebSocketIntegration {
-  // Note: Despite the name, uses REST API not WebSocket
-  // MCP connections are backend-only
-}
+// WebSocket binary protocol automatically updates both graphs
+// ParallelGraphCoordinator receives position updates for both:
+// - Logseq nodes (knowledge graph)
+// - Agent nodes (visionflow graph)  
+// Frontend components use useParallelGraphs hook to access positions
 ```
 
 ## Performance Optimizations

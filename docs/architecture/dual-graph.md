@@ -1,51 +1,57 @@
-# Dual Graph Architecture
+# Parallel Graph Architecture
 
 ## Overview
 
-VisionFlow's dual-graph architecture enables simultaneous visualization and processing of two distinct but interconnected graph types: Knowledge Graphs and Agent Graphs. This innovative approach allows users to see both static knowledge structures and dynamic AI agent interactions in a unified 3D space with GPU-accelerated physics simulation.
+VisionFlow's parallel graph architecture enables simultaneous visualization and processing of two distinct graph types: Knowledge Graphs and Agent Graphs. This approach allows users to see both static knowledge structures and dynamic AI agent interactions in a unified 3D space using the unified CUDA kernel with parallel processing modes.
 
 ## Core Architecture
 
 ```mermaid
 graph TB
-    subgraph "Dual Graph System"
+    subgraph "Parallel Graph System"
         subgraph "Knowledge Graph"
-            KNodes[Knowledge Nodes<br/>Bit 30 Flag]
+            KNodes[Knowledge Nodes<br/>Logseq Data]
             KEdges[Semantic Edges]
             KMeta[Metadata]
             KLayout[Force-Directed Layout]
         end
         
         subgraph "Agent Graph"
-            ANodes[Agent Nodes<br/>Bit 31 Flag]
+            ANodes[Agent Nodes<br/>Claude Flow Agents]
             AEdges[Communication Edges]
             AState[Agent State]
             ALayout[Swarm Layout]
         end
         
         subgraph "Unified Processing"
-            Binary[Binary Protocol<br/>28 bytes/node]
-            GPU[CUDA Kernels]
-            Physics[Unified Physics]
+            Coordinator[ParallelGraphCoordinator]
+            UnifiedKernel[Unified CUDA Kernel]
+            Physics[Parallel Physics]
             Render[WebGL Renderer]
         end
     end
     
-    KNodes --> Binary
-    ANodes --> Binary
-    Binary --> GPU
-    GPU --> Physics
+    KNodes --> Coordinator
+    ANodes --> Coordinator
+    Coordinator --> UnifiedKernel
+    UnifiedKernel --> Physics
     Physics --> Render
 ```
 
-## Binary Node Identification
+## Graph Type Identification
 
-The system uses a 32-bit node ID with type flags to distinguish between graph types:
+The system maintains separate data structures and processing pipelines for each graph type:
 
-```
-Bit 31: Agent Node Flag (1 = Agent, 0 = Not Agent)
-Bit 30: Knowledge Node Flag (0 = Knowledge, 1 = Special)
-Bits 0-29: Unique ID (up to 1,073,741,824 unique nodes)
+```typescript
+type GraphType = 'logseq' | 'visionflow';
+
+// Each node knows its graph context
+interface GraphNode {
+  id: string;
+  graphType: GraphType;
+  position: Vector3;
+  // ... other properties
+}
 ```
 
 ## Graph Types
@@ -195,49 +201,57 @@ Visual differentiation:
 1. **File Watcher** detects markdown changes
 2. **Semantic Analyzer** processes content
 3. **Graph Builder** creates/updates nodes and edges
-4. **GPU Upload** transfers to physics engine
-5. **Layout Calculation** runs stress-majorization
+4. **Binary Protocol** streams position updates via WebSocket
+5. **Unified Kernel** processes with DualGraph mode
 
 ### Agent Graph Updates
 
-1. **MCP WebSocket** receives telemetry (10Hz)
-2. **ClaudeFlowActor** processes agent status
-3. **Differential Updates** compute changes
-4. **Binary Protocol** streams positions (60 FPS)
-5. **Force Simulation** maintains dynamic layout
+1. **EnhancedClaudeFlowActor** receives MCP data via direct WebSocket
+2. **REST API** provides agent data to frontend (/api/bots/agents)
+3. **ParallelGraphCoordinator** manages agent positions
+4. **Binary Protocol** streams positions via WebSocket (60 FPS)
+5. **Unified Kernel** processes with parallel physics simulation
 
 ## Performance Optimizations
 
-### Separate Buffers
+### Unified Kernel with Parallel Processing
 
 ```rust
-pub struct DualGraphBuffers {
-    // Knowledge graph buffers
-    knowledge_nodes: CudaBuffer<BinaryNodeData>,
-    knowledge_edges: CudaBuffer<EdgeData>,
-    knowledge_count: usize,
+pub struct UnifiedGPUCompute {
+    // Structure of Arrays for maximum performance
+    positions_x: CudaSlice<f32>,
+    positions_y: CudaSlice<f32>, 
+    positions_z: CudaSlice<f32>,
+    velocities_x: CudaSlice<f32>,
+    velocities_y: CudaSlice<f32>,
+    velocities_z: CudaSlice<f32>,
     
-    // Agent graph buffers
-    agent_nodes: CudaBuffer<BinaryNodeData>,
-    agent_edges: CudaBuffer<EdgeData>,
-    agent_count: usize,
+    // Edge data
+    edge_sources: CudaSlice<i32>,
+    edge_targets: CudaSlice<i32>,
+    edge_weights: CudaSlice<f32>,
     
-    // Cross-graph edges (optional)
-    cross_edges: CudaBuffer<EdgeData>,
+    // Unified kernel function
+    unified_kernel: CudaFunction,
+    
+    // Compute modes
+    compute_mode: ComputeMode, // Basic, DualGraph, Constraints, Analytics
 }
 ```
 
-### Selective Updates
+### Parallel Graph Coordination
 
-Only update the graph that changed:
-```rust
-if knowledge_changed {
-    gpu.update_knowledge_graph(&knowledge_data)?;
-}
+Coordinate updates through the parallel graph system:
+```typescript
+// Frontend coordination
+const coordinator = parallelGraphCoordinator;
+coordinator.enableLogseq(true);     // Enable knowledge graph
+coordinator.enableVisionFlow(true); // Enable agent graph
 
-if agents_changed {
-    gpu.update_agent_graph(&agent_data)?;
-}
+// Backend processes both in unified kernel
+let sim_params = SimParams::default();
+sim_params.compute_mode = ComputeMode::DualGraph as i32;
+gpu_actor.execute_unified_kernel(sim_params)?;
 ```
 
 ### Level-of-Detail (LOD)

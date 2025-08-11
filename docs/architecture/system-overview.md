@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow is built on a decoupled, actor-based architecture that enables real-time 3D visualization of knowledge graphs and AI agent swarms. The system combines a high-performance Rust backend with a modern React/TypeScript frontend, leveraging GPU acceleration and WebXR for immersive experiences.
+VisionFlow is built on a unified, actor-based architecture that enables real-time 3D visualization of parallel knowledge graphs and AI agent swarms. The system combines a high-performance Rust backend with a modern React/TypeScript frontend, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel and parallel graph coordination.
 
 ## Core Architecture Diagram
 
@@ -38,9 +38,9 @@ graph TB
         end
         
         subgraph "Actor System"
-            CFActor[Claude Flow Actor<br/>Enhanced MCP]
-            GraphActor[Graph Service Actor]
-            GPUActor[GPU Compute Actor]
+            CFActor[EnhancedClaudeFlowActor<br/>Direct WebSocket MCP]
+            GraphActor[Graph Service Actor<br/>Parallel Graphs]
+            GPUActor[GPU Compute Actor<br/>Unified Kernel]
             ClientMgr[Client Manager Actor]
             SettingsActor[Settings Actor]
             MetaActor[Metadata Actor]
@@ -58,10 +58,10 @@ graph TB
     end
     
     subgraph "GPU Layer"
-        CUDA[CUDA Kernels]
-        Physics[Physics Engine]
-        DualGraph[Dual Graph Processor]
-        Analytics[Visual Analytics]
+        UnifiedKernel[Unified CUDA Kernel<br/>visionflow_unified.cu]
+        Physics[Unified Physics Engine]
+        ParallelGraphs[Parallel Graph Processing]
+        Analytics[Visual Analytics Mode]
     end
     
     subgraph "External Services"
@@ -97,10 +97,10 @@ graph TB
     
     ClientMgr --> GraphActor
     GraphActor --> GPUActor
-    GPUActor --> CUDA
-    CUDA --> Physics
-    CUDA --> DualGraph
-    CUDA --> Analytics
+    GPUActor --> UnifiedKernel
+    UnifiedKernel --> Physics
+    UnifiedKernel --> ParallelGraphs
+    UnifiedKernel --> Analytics
     
     CFActor --> MCPRelay
     MCPRelay --> ClaudeFlow
@@ -220,22 +220,23 @@ graph TB
 ```mermaid
 graph LR
     subgraph "Input"
-        Nodes[Node Data]
+        KnowledgeNodes[Knowledge Nodes]
+        AgentNodes[Agent Nodes]
         Edges[Edge Data]
-        Params[Physics Params]
+        Params[SimParams]
     end
     
-    subgraph "GPU Memory"
-        DevNodes[Device Nodes]
-        DevEdges[Device Edges]
-        DevForces[Force Buffer]
+    subgraph "GPU Memory (SoA)"
+        PosX[Position X Array]
+        PosY[Position Y Array]
+        PosZ[Position Z Array]
+        VelArrays[Velocity Arrays]
+        EdgeArrays[Edge Arrays]
     end
     
-    subgraph "CUDA Kernels"
-        Force[Force Calculation]
-        Stress[Stress Majorization]
-        Integration[Velocity Integration]
-        Position[Position Update]
+    subgraph "Unified CUDA Kernel"
+        UnifiedCompute[visionflow_unified_kernel]
+        Modes[4 Compute Modes:<br/>Basic, DualGraph,<br/>Constraints, Analytics]
     end
     
     subgraph "Output"
@@ -243,18 +244,19 @@ graph LR
         Metrics[Performance Metrics]
     end
     
-    Nodes --> DevNodes
-    Edges --> DevEdges
-    Params --> Force
+    KnowledgeNodes --> PosX
+    AgentNodes --> PosX
+    Edges --> EdgeArrays
+    Params --> UnifiedCompute
     
-    DevNodes --> Force
-    DevEdges --> Force
-    Force --> DevForces
-    DevForces --> Stress
-    Stress --> Integration
-    Integration --> Position
-    Position --> Updated
-    Position --> Metrics
+    PosX --> UnifiedCompute
+    PosY --> UnifiedCompute
+    PosZ --> UnifiedCompute
+    VelArrays --> UnifiedCompute
+    EdgeArrays --> UnifiedCompute
+    
+    UnifiedCompute --> Updated
+    UnifiedCompute --> Metrics
 ```
 
 ## MCP Integration Architecture
@@ -404,9 +406,10 @@ graph TB
 |-----------|--------|--------|
 | REST API Latency | <100ms | 50ms |
 | WebSocket Latency | <10ms | 5ms |
-| GPU Kernel Time | <16ms | 10ms |
-| Frame Rate | 60 FPS | 60 FPS |
-| Memory Usage | <4GB | 2.5GB |
+| Unified GPU Kernel | <16ms | 8ms |
+| Parallel Graphs FPS | 60 FPS | 60 FPS |
+| Memory Usage | <4GB | 2.2GB |
+| Agent Update Rate | 10Hz | 10Hz |
 
 ## Technology Stack
 
@@ -416,7 +419,8 @@ graph TB
 - **Async Runtime**: Tokio
 - **GPU**: CUDA 11.8+
 - **Serialization**: Serde, Bincode
-- **WebSocket**: Actix-WS
+- **WebSocket**: Actix-WS, Tokio-Tungstenite
+- **MCP Integration**: Direct WebSocket Connection
 
 ### Frontend Technologies
 - **Framework**: React 18
@@ -437,9 +441,10 @@ graph TB
 
 1. **Actor Model**: Provides fault tolerance and concurrent state management
 2. **Binary Protocol**: Minimizes bandwidth for real-time updates
-3. **GPU Acceleration**: Enables massive graph visualization
-4. **Dual Graph**: Supports both knowledge and agent graphs simultaneously
+3. **Unified GPU Kernel**: Single CUDA kernel handles all physics modes
+4. **Parallel Graphs**: Independent Logseq and Agent graph processing
 5. **WebXR Integration**: Future-proofs for AR/VR interfaces
-6. **MCP Protocol**: Standardized AI tool communication
+6. **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
 7. **Differential Updates**: Optimizes network traffic
-8. **Modular Architecture**: Allows independent component scaling
+8. **Structure of Arrays**: GPU memory layout for maximum performance
+9. **Modular Architecture**: Allows independent component scaling

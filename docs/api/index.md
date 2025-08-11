@@ -10,227 +10,396 @@ VisionFlow provides a comprehensive API surface consisting of REST endpoints for
 graph LR
     subgraph "Client Applications"
         Web[Web Client]
-        XR[XR Client]
+        XR[XR Client] 
         API[API Client]
+        Mobile[Mobile Client]
     end
     
     subgraph "API Layer"
         REST[REST API<br/>:3001/api]
-        WS[WebSocket<br/>:3001/ws]
+        WS[WebSocket<br/>:3001/ws/*]
         Binary[Binary Protocol]
     end
     
-    subgraph "Endpoints"
-        Graph[/api/graph]
-        Settings[/api/settings]
-        Bots[/api/bots]
-        Files[/api/files]
-        Voice[/ws/speech]
-        Flow[/ws/socket_flow]
-        MCP[/ws/mcp_relay]
-        Viz[/ws/bots_visualization]
+    subgraph "Core Endpoints"
+        Graph[/api/graph/*]
+        Settings[/api/settings/*]
+        Bots[/api/bots/*]
+        Files[/api/files/*]
+        Analytics[/api/analytics/*]
+    end
+    
+    subgraph "WebSocket Streams"
+        Flow[/wss<br/>Graph Updates]
+        Speech[/ws/speech<br/>Voice I/O]
+        MCPRelay[/ws/mcp-relay<br/>Agent Control]
+        BotsViz[/ws/bots_visualization<br/>Swarm State]
     end
     
     Web --> REST
     Web --> WS
     XR --> WS
     API --> REST
+    Mobile --> REST
     
     REST --> Graph
-    REST --> Settings
+    REST --> Settings  
     REST --> Bots
     REST --> Files
+    REST --> Analytics
     
-    WS --> Voice
     WS --> Flow
-    WS --> MCP
-    WS --> Viz
+    WS --> Speech
+    WS --> MCPRelay
+    WS --> BotsViz
     
     Flow --> Binary
-    Viz --> Binary
+    BotsViz --> Binary
 ```
 
-## API Types
+## API Components
 
 ### [REST API](rest.md)
 HTTP-based API for CRUD operations, configuration management, and service integration.
 
-**Key Endpoints:**
-- `/api/graph` - Graph data management
-- `/api/settings` - Configuration and settings
-- `/api/bots` - AI agent management
-- `/api/files` - File operations
-- `/api/quest3` - Quest 3 specific features
-- `/api/visualisation` - Visualization controls
+**Key Features:**
+- Graph data management and analytics
+- AI agent orchestration and monitoring
+- Settings and configuration control
+- File processing and content management  
+- Quest 3 / XR integration
+- External service integrations (RAGFlow, Perplexity, GitHub)
+
+**Base URL:** `http://localhost:3001/api`
 
 ### [WebSocket API](websocket.md)
 Real-time bidirectional communication for streaming updates and interactive features.
 
-**WebSocket Endpoints:**
-- `/ws/socket_flow` - Binary graph updates
+**Primary Endpoints:**
+- `/wss` - Binary graph position updates (28-byte protocol)
 - `/ws/speech` - Voice interaction streaming
-- `/ws/mcp_relay` - MCP protocol relay
+- `/ws/mcp-relay` - MCP protocol relay for Claude Flow
 - `/ws/bots_visualization` - Agent swarm visualization
 
 ### [Binary Protocol](binary-protocol.md)
 Highly optimized binary format for efficient data transmission.
 
 **Protocol Features:**
-- 28-byte node format
-- Differential updates
-- GPU memory alignment
-- Type flags for dual-graph support
+- 28-byte fixed-size node format
+- Node type flags for agent/knowledge classification
+- GPU memory alignment optimization
+- Differential updates and compression support
+
+### [WebSocket Protocols](websocket-protocols.md)
+Comprehensive documentation of WebSocket message formats and protocols.
+
+**Message Types:**
+- JSON control messages
+- Binary position updates
+- Agent state updates  
+- Speech streaming data
+- MCP tool invocations
+
+## API Overview
+
+### REST Endpoints Summary
+
+| Category | Endpoints | Purpose |
+|----------|-----------|---------|
+| **Graph** | `/api/graph/*` | Node/edge data, layouts, analytics |
+| **Agents** | `/api/bots/*` | Swarm management, metrics, orchestration |
+| **Settings** | `/api/settings/*` | Configuration, physics, visualization |
+| **Files** | `/api/files/*` | Content processing, metadata management |
+| **Quest 3** | `/api/quest3/*` | XR session management, device status |
+| **Visualization** | `/api/visualisation/*` | 3D rendering configuration |
+| **Analytics** | `/api/analytics/*` | Performance metrics, system health |
+| **Health** | `/api/health`, `/api/mcp/health` | Service status monitoring |
+| **External** | `/api/ragflow/*`, `/api/perplexity/*` | AI service integration |
+
+### WebSocket Endpoints Summary
+
+| Endpoint | Protocol | Update Rate | Purpose |
+|----------|----------|-------------|---------|
+| `/wss` | Binary + JSON | 5-60 Hz | Graph position streaming |
+| `/ws/speech` | JSON + Binary Audio | Real-time | Voice interaction |
+| `/ws/mcp-relay` | JSON-RPC 2.0 | On-demand | Agent control via MCP |
+| `/ws/bots_visualization` | JSON | ~60 FPS | Swarm state visualization |
 
 ## Authentication
 
-### Nostr Authentication
-- NIP-07 browser extension support
-- Event signing and verification
-- Decentralized identity management
+### Nostr-Based Authentication
+VisionFlow uses decentralized authentication via the Nostr protocol (NIP-07).
 
-### API Key Authentication
-- Bearer token in Authorization header
-- Session-based authentication
-- Rate limiting per key
+**Primary Method:**
+- Browser extension integration (Alby, nos2x, etc.)
+- Event signing for identity verification  
+- Session-based authentication after initial verification
+- Feature-based access control
+
+**Supported Features:**
+- Public key identity (`npub` encoding)
+- Event signing and verification
+- Relay-based identity resolution
+- Power user detection and permissions
+
+### Session Management
+- HTTP sessions for REST API access
+- WebSocket authentication inheritance from HTTP session
+- Token-based alternative for programmatic access
+- Automatic session refresh and timeout handling
 
 ## Rate Limiting
 
-| Endpoint Type | Rate Limit | Window |
-|--------------|------------|--------|
-| REST API | 100 req/min | 1 minute |
-| WebSocket | 1000 msg/min | 1 minute |
-| Binary Stream | Unlimited | N/A |
-| File Upload | 10 req/min | 1 minute |
+| API Type | Standard Limit | Burst Limit | Window |
+|----------|----------------|-------------|--------|
+| REST API | 100 req/min | 20 requests | 1 minute |
+| WebSocket Control | 1000 msg/min | 100 messages | 1 minute |
+| Binary Stream | Server-controlled | Unlimited* | N/A |
+| File Operations | 10 req/min | 5 requests | 1 minute |
+
+*Binary updates use intelligent server-side throttling based on graph activity
 
 ## Error Handling
 
-### HTTP Status Codes
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `403` - Forbidden
-- `404` - Not Found
-- `429` - Rate Limited
-- `500` - Internal Server Error
-
-### WebSocket Close Codes
-- `1000` - Normal closure
-- `1001` - Going away
-- `1002` - Protocol error
-- `1003` - Unsupported data
-- `1008` - Policy violation
-- `1011` - Server error
-
-## Response Formats
-
-### Success Response
-```json
-{
-  "success": true,
-  "data": { ... },
-  "timestamp": "2024-01-01T00:00:00Z"
-}
-```
-
-### Error Response
+### Standard Error Response
 ```json
 {
   "success": false,
   "error": {
     "code": "ERROR_CODE",
     "message": "Human readable message",
-    "details": { ... }
+    "details": {
+      "field": "specific_field",
+      "reason": "validation_error"
+    },
+    "requestId": "req-123"
   },
   "timestamp": "2024-01-01T00:00:00Z"
 }
 ```
 
-## CORS Configuration
+### Common Error Codes
+- `UNAUTHORIZED` (401) - Authentication required
+- `FORBIDDEN` (403) - Insufficient permissions
+- `NOT_FOUND` (404) - Resource not found
+- `INVALID_REQUEST` (400) - Invalid parameters
+- `RATE_LIMITED` (429) - Too many requests
+- `INTERNAL_ERROR` (500) - Server error
+- `AGENT_NOT_FOUND` (404) - Agent does not exist
+- `SWARM_ERROR` (500) - Swarm operation failed
+- `GPU_ERROR` (500) - GPU computation error
 
-```javascript
-// Allowed origins
-Access-Control-Allow-Origin: http://localhost:3001
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization
-Access-Control-Allow-Credentials: true
-```
+## Performance Characteristics
 
-## API Versioning
+### Binary Protocol Efficiency
 
-The API uses URL-based versioning:
-- Current version: `v1`
-- Base URL: `http://localhost:3001/api/v1`
-- WebSocket: `ws://localhost:3001/ws`
+| Scenario | JSON (MB/s) | Binary (KB/s) | Reduction |
+|----------|-------------|---------------|-----------|
+| 100 agents @ 60fps | 3.0 | 168 | 94.4% |
+| 500 agents @ 60fps | 15.0 | 840 | 94.4% |
+| 1000 agents @ 60fps | 30.0 | 1680 | 94.4% |
+| Mixed graph (10k nodes) | 25.0 | 1200 | 95.2% |
 
-## Performance Considerations
+### Optimization Features
+1. **Compression**: permessage-deflate for WebSocket messages >1KB
+2. **Batching**: Multiple updates in single frames
+3. **Delta Updates**: Only changed nodes transmitted
+4. **Type Flags**: Efficient node classification
+5. **GPU Alignment**: Memory layout optimized for GPU processing
 
-### Pagination
-All list endpoints support pagination:
-- `?page=1&limit=100` - Page number and items per page
-- `?cursor=abc123` - Cursor-based pagination for large datasets
+## Integration Examples
 
-### Compression
-- HTTP responses use gzip compression
-- WebSocket messages use MessagePack for JSON
-- Binary protocol uses raw bytes (no compression needed)
-
-### Caching
-- ETags for resource versioning
-- Cache-Control headers for static resources
-- WebSocket uses differential updates
-
-## SDK Support
-
-### JavaScript/TypeScript
+### JavaScript/TypeScript Client
 ```typescript
 import { VisionFlowClient } from '@visionflow/client';
 
 const client = new VisionFlowClient({
   baseUrl: 'http://localhost:3001',
   wsUrl: 'ws://localhost:3001',
-  apiKey: 'your-api-key'
+  authentication: 'nostr'
+});
+
+// REST API usage
+const graphData = await client.graph.getData();
+const agents = await client.bots.listAgents();
+
+// WebSocket streaming
+client.websocket.onPositionUpdates(updates => {
+  updateVisualization(updates);
+});
+
+client.websocket.onAgentStateChanged(agent => {
+  updateAgentDisplay(agent);
 });
 ```
 
-### Python
+### Python Client Example
 ```python
 from visionflow import Client
 
 client = Client(
     base_url="http://localhost:3001",
-    api_key="your-api-key"
+    ws_url="ws://localhost:3001",
+    auth_method="session"
 )
+
+# Graph operations
+graph_data = client.graph.get_data()
+client.graph.update()
+
+# Agent management  
+agents = client.bots.list_agents()
+client.bots.initialize_swarm(topology="hierarchical", max_agents=10)
 ```
 
-### Rust
-```rust
-use visionflow_client::Client;
-
-let client = Client::new(
-    "http://localhost:3001",
-    "your-api-key"
-);
-```
-
-## Testing
-
-### API Testing Tools
-- Postman collection available
-- OpenAPI/Swagger specification
-- WebSocket testing with wscat
-- Binary protocol test client
-
-### Example cURL Commands
+### cURL Examples
 ```bash
-# GET graph data
-curl http://localhost:3001/api/graph
+# Health check
+curl http://localhost:3001/api/health
 
-# POST new settings
+# Get graph data
+curl http://localhost:3001/api/graph/data
+
+# Initialize agent swarm
+curl -X POST http://localhost:3001/api/bots/initialize-swarm \
+  -H "Content-Type: application/json" \
+  -d '{"topology":"hierarchical","maxAgents":5}'
+
+# Update settings
 curl -X POST http://localhost:3001/api/settings \
   -H "Content-Type: application/json" \
-  -d '{"theme": "dark"}'
-
-# WebSocket connection
-wscat -c ws://localhost:3001/ws/socket_flow
+  -d '{"path":"physics.gravity","value":-12.0}'
 ```
+
+## Development Tools
+
+### API Documentation
+- **Interactive Docs**: Available at `/docs/swagger` (when enabled)
+- **OpenAPI Spec**: Downloadable at `/docs/openapi.json`
+- **Postman Collection**: Available in `/docs/postman/`
+
+### WebSocket Testing
+```bash
+# Test WebSocket connection
+wscat -c ws://localhost:3001/wss
+
+# Send control message
+{"type":"requestInitialData"}
+
+# Monitor binary updates
+# (binary data will appear as raw bytes)
+```
+
+### Debug Configuration
+```bash
+# Server-side logging
+RUST_LOG=webxr::handlers=debug,webxr::utils::binary_protocol=trace cargo run
+
+# Client-side debugging
+localStorage.setItem('debug', 'visionflow:*,websocket:*,binary:*');
+```
+
+## Security Considerations
+
+### Data Protection
+- All inputs validated against schemas
+- SQL injection prevention measures
+- XSS prevention for user content
+- File upload restrictions and scanning
+
+### Network Security  
+- CORS properly configured for cross-origin requests
+- WebSocket connection limits prevent DoS attacks
+- Rate limiting per IP and authenticated user
+- Binary message size limits (100MB max)
+
+### Authentication Security
+- Nostr cryptographic identity verification
+- Session token rotation
+- Feature-based permission enforcement
+- Audit logging for sensitive operations
+
+## CORS Configuration
+
+```http
+Access-Control-Allow-Origin: http://localhost:3001
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Request-ID
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400
+```
+
+## API Versioning
+
+### Current Version (v1.0)
+- Base URL: `http://localhost:3001/api`
+- WebSocket: `ws://localhost:3001/ws/*`
+- Binary protocol: 28-byte format with type flags
+- Nostr-based authentication
+
+### Version Compatibility
+- **Backward compatibility** maintained within major versions
+- **Deprecation notices** provided 6 months before removal  
+- **Migration guides** available for major version changes
+- **Feature detection** available via capabilities endpoint
+
+### Future Roadmap (v2.0)
+- Enhanced binary protocol with variable-length encoding
+- WebSocket protocol versioning and negotiation
+- Extended agent capabilities and orchestration
+- Advanced analytics and monitoring features
+
+## Monitoring & Observability
+
+### Health Endpoints
+- `/api/health` - Overall system health
+- `/api/mcp/health` - MCP connection status  
+- `/api/analytics/system` - Performance metrics
+
+### Metrics Available
+- **Performance**: FPS, frame time, memory usage
+- **Network**: WebSocket client count, bandwidth, latency
+- **Agents**: Task completion rates, token usage, success rates
+- **Graph**: Node/edge counts, topology metrics, update frequencies
+
+### Alerting Integration
+- Prometheus metrics exposure (when enabled)
+- Custom webhook notifications for critical errors
+- Performance threshold monitoring
+- Automatic failover detection
+
+## Getting Started
+
+### Quick Setup
+1. **Start Server**: `cargo run` or use Docker
+2. **Test Health**: `curl http://localhost:3001/api/health`  
+3. **Open WebSocket**: Connect to `ws://localhost:3001/wss`
+4. **Initialize Graph**: `POST /api/graph/update`
+5. **Start Agent Swarm**: `POST /api/bots/initialize-swarm`
+
+### Common Workflows
+1. **Graph Visualization**: REST → WebSocket → Binary updates
+2. **Agent Management**: Initialize swarm → Monitor via WebSocket → Control via MCP
+3. **Voice Interaction**: Connect to `/ws/speech` → Stream audio → Receive transcriptions
+4. **XR Integration**: Check Quest 3 status → Initialize XR session → Stream positions
+
+### Best Practices
+1. Use WebSocket connections for real-time features
+2. Implement proper reconnection logic with exponential backoff
+3. Handle binary message validation and error recovery
+4. Cache REST API responses where appropriate
+5. Monitor rate limits and implement client-side throttling
+6. Use heartbeat/ping-pong for connection health monitoring
+
+## Support & Resources
+
+- **GitHub Repository**: [VisionFlow](https://github.com/your-org/visionflow)
+- **Issues & Bug Reports**: [GitHub Issues](https://github.com/your-org/visionflow/issues)
+- **API Documentation**: This documentation set
+- **Community**: [Discord/Slack/Forum links]
+
+For detailed technical specifications, see the individual documentation files:
+- [REST API Reference](rest.md)
+- [WebSocket API Reference](websocket.md) 
+- [Binary Protocol Specification](binary-protocol.md)
+- [WebSocket Protocols Guide](websocket-protocols.md)
