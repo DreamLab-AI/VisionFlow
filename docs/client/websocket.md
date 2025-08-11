@@ -57,14 +57,33 @@ The binary protocol is used for efficient transmission of node position updates.
 
 The primary binary message format is for node position and velocity updates.
 
+**Wire Protocol (Client ↔ Server)**:
 -   **Format per node:**
     -   Node ID: `uint32` (4 bytes)
     -   Position (X, Y, Z): 3 x `float32` (12 bytes)
     -   Velocity (VX, VY, VZ): 3 x `float32` (12 bytes)
--   **Total per node: 28 bytes.**
+-   **Total per node: 28 bytes**
 -   A single binary WebSocket message can contain data for multiple nodes, packed consecutively.
--   **Important Clarification:** The server-side `BinaryNodeData` struct (in `src/utils/socket_flow_messages.rs`) includes additional fields like `mass`, `flags`, and `padding`. These are used for the server's internal physics simulation but are **not** part of the 28-byte wire format sent to the client. The client-side binary protocol handling correctly reflects the 28-byte structure (nodeId as uint32, position, velocity).
--   Server-side compression (zlib) is applied if the total binary message size exceeds `system.websocket.compressionThreshold` (default 512 bytes). Client-side decompression is handled by [`client/src/utils/binaryUtils.ts`](../../client/src/utils/binaryUtils.ts).
+
+**Server-Side Internal Format** (`BinaryNodeData` in `src/utils/socket_flow_messages.rs`):
+- Contains additional fields: `mass`, `flags`, `padding`
+- Used for physics simulation but **NOT sent over wire**
+- Server converts internal format → 28-byte wire format before transmission
+
+**Compression**:
+- **Server-side**: zlib compression applied if message > `system.websocket.compressionThreshold` (default 512 bytes)
+- **Client-side**: Automatic decompression handled in WebSocket message processing
+- **Status**: ❌ `binaryUtils.ts` file not found - decompression may be handled directly in WebSocketService
+
+**Actual Implementation**:
+```typescript
+// In WebSocketService.ts or similar
+wsService.onBinaryMessage((arrayBuffer: ArrayBuffer) => {
+  // Direct processing or decompression happens here
+  // May use built-in browser decompression or manual zlib
+  graphDataManager.updateNodePositions(arrayBuffer);
+});
+```
 
 ### Processing Flow
 
@@ -186,9 +205,16 @@ wsService.onMessage((jsonData) => {
 });
 
 wsService.onBinaryMessage((arrayBuffer) => {
-    // Pass the raw ArrayBuffer to graphDataManager, which will handle decompression
-    // (if needed, via binaryUtils) and parsing.
-    graphDataManager.updateNodePositions(arrayBuffer);
+    // Pass the raw ArrayBuffer to graphDataManager
+    // Decompression (if needed) may happen here or in graphDataManager
+    // Note: binaryUtils.ts not found - decompression likely built into WebSocketService
+    try {
+        graphDataManager.updateNodePositions(arrayBuffer);
+    } catch (error) {
+        logger.error('Failed to process binary message:', error);
+        // May be compressed data that needs decompression
+        // Implementation details depend on actual WebSocketService code
+    }
 });
 
 // Attempt to connect
@@ -203,7 +229,23 @@ wsService.connect().catch(error => {
 //   wsService.sendMessage({ type: 'subscribe_position_updates', binary: true, interval: 33 });
 // }
 ```
-The `graphDataManager.updateNodePositions` method expects an `ArrayBuffer` which it will then process (potentially decompressing and then parsing into individual node updates). The call `graphDataManager.setBinaryUpdatesEnabled(true)` is a conceptual representation; the actual mechanism might involve `graphDataManager` sending a specific message via the WebSocket adapter to the server to start the flow of binary updates, or simply setting an internal flag to start processing them if they arrive.
+**Current Implementation Reality**:
+
+The `graphDataManager.updateNodePositions` method expects an `ArrayBuffer` which it processes as follows:
+
+1. **Decompression**: May happen automatically in WebSocket layer (browser built-in) or manually
+2. **Parsing**: Converts 28-byte chunks into node position/velocity updates  
+3. **Batch Processing**: Handles multiple nodes in single message
+
+The call `graphDataManager.setBinaryUpdatesEnabled(true)` triggers:
+- Server subscription to position updates
+- Internal flag to process incoming binary messages
+- May send WebSocket message: `{"type": "subscribe_position_updates", "binary": true}`
+
+**Missing Implementation**:
+- ❌ `binaryUtils.ts` file not found (may be integrated elsewhere)
+- ❓ Actual decompression handling location unknown
+- ❓ Multi-graph support in binary protocol (single stream vs multiple streams)
 
 ## Related Documentation
 

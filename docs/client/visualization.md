@@ -14,22 +14,34 @@ The primary goal is to transform an abstract knowledge graph, typically represen
 
 ## Mapping Data to Visual Elements
 
+**Multi-Graph Architecture**: The visualization now supports multiple independent graphs (logseq, visionflow) with separate visual themes through `settings.visualisation.graphs.*`.
+
 The effectiveness of the visualization hinges on how data attributes are mapped to visual properties.
 
 ### Node Visuals
 
 -   **Size:**
-    -   Controlled by `visualisation.nodes.nodeSize` in [`settings.ts`](../../client/src/features/settings/config/settings.ts) for a base size.
-    -   This can be modulated by data attributes (e.g., file size, connection count).
+    -   **Multi-graph**: `settings.visualisation.graphs.logseq.nodes.nodeSize` vs `settings.visualisation.graphs.visionflow.nodes.nodeSize`
+    -   **Legacy**: `visualisation.nodes.nodeSize` (automatically migrated)
+    -   Modulated by data attributes (file size, connection count)
 -   **Color:**
-    -   Default color from `visualisation.nodes.baseColor` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
-    -   Can be dynamically set based on metadata (e.g., file type, tags).
+    -   **Multi-graph**: `settings.visualisation.graphs.[graphType].nodes.baseColor`
+    -   **Default themes**: Logseq (blue `#4B5EFF`), VisionFlow (green `#10B981`)
+    -   Dynamic coloring based on metadata (file type, tags)
 -   **Shape / Form:**
-    -   Typically spheres for performance, but can be varied.
-    -   `enableMetadataShape` in `NodeSettings` (from `settings.ts`) suggests potential for metadata-driven geometry.
+    -   **Primary**: Spheres (performance optimized)
+    -   **Metadata-driven**: `enableMetadataShape` allows geometry variation
+    -   **Quality levels**: Low/medium/high affecting geometry detail
 -   **Holograms:**
     -   Enabled by `visualisation.nodes.enableHologram` and configured via `visualisation.hologram` (which is `HologramSettings`) in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
-    -   Rendered by [`HologramManager.tsx`](../../client/src/features/visualisation/renderers/HologramManager.tsx) using shaders like [`HologramMaterial.tsx`](../../client/src/features/visualisation/renderers/materials/HologramMaterial.tsx).
+    -   Rendered by [`HologramManager.tsx`](../../client/src/features/visualisation/renderers/HologramManager.tsx) using both React components and class-based implementations.
+    -   **Current Implementation** (✅ **VERIFIED**):
+      - `HologramRing`: Individual animated ring components with configurable rotation
+      - `HologramSphere`: Wireframe icosahedron spheres with rotation animation
+      - `HologramManager`: Main React component managing multiple hologram elements
+      - `HologramManagerClass`: Class-based implementation for non-React usage
+    -   **Material System**: Uses basic Three.js materials with wireframe, transparency, and bloom layer support
+    -   **Animation**: Frame-based rotation with configurable speeds per element type
 
 ### Edge Visuals
 
@@ -52,12 +64,29 @@ The effectiveness of the visualization hinges on how data attributes are mapped 
 
 ## Interactive Visualization
 
-The visualization is not static; users can interact with it:
+The visualization supports rich real-time interaction:
 
--   **Navigation:** Panning, zooming, and rotating the camera to explore the graph from different perspectives.
--   **Selection:** Clicking on nodes or edges to highlight them and display more detailed information (e.g., in a side panel).
--   **Filtering/Searching:** Dynamically showing/hiding nodes and edges based on criteria.
--   **Spatial Arrangement:** The layout of nodes in 3D space is crucial. This is typically handled by a server-side physics simulation (`GraphService` in Rust) that attempts to position connected nodes closer together and push unrelated nodes apart, revealing clusters and structures.
+-   **Navigation:** 
+    - Mouse/touch controls for panning, zooming, rotating
+    - SpacePilot 3D mouse support (`spacePilot` settings)
+    - XR/VR hand tracking and controller input
+-   **Selection & Highlighting:** 
+    - Click/tap nodes and edges for detailed information
+    - Selection effects with bloom and animation
+    - Metadata visualization overlay
+-   **Multi-Graph Interaction:**
+    - Switch between graph views (logseq ↔ visionflow)
+    - Parallel visualization of multiple graphs
+    - Independent camera controls per graph
+-   **Real-time Updates:**
+    - WebSocket binary protocol for position updates
+    - Server-side physics simulation pushes to client
+    - ~60fps smooth animation with motion damping
+-   **Spatial Arrangement:** 
+    - Server-side physics (`GraphService` in Rust)
+    - Spring-based layout algorithms
+    - Collision detection and boundary constraints
+    - Connected nodes attracted, unconnected repelled
 
 ## Metadata Visualization
 

@@ -1,5 +1,14 @@
 # Settings Panel Redesign
 
+⚠️ **CURRENT STATUS: PARTIALLY BROKEN DUE TO DUAL STORE ISSUE** ⚠️
+
+The redesigned settings panel (`SettingsPanelRedesign.tsx`) is currently experiencing issues due to a dual store architecture problem. Some components may be importing the wrong settings store, causing:
+- Settings not persisting correctly
+- UI controls not responding to changes
+- Inconsistent state between components
+
+**Fix Required**: Consolidate to single settings store before full functionality is restored.
+
 ## Overview
 
 The settings panel has been completely redesigned to address critical UX issues:
@@ -78,14 +87,43 @@ SettingsPanelRedesign
 - [`client/src/features/settings/components/panels/SettingsPanelRedesign.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesign.tsx) - Main redesigned component.
 - [`client/src/app/components/RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) - Hosts the `SettingsPanelRedesign` and other control panels.
 
+### Critical Implementation Issue
+
+**Dual Store Problem**: The settings panel may be importing from the wrong store:
+- ❌ **Wrong**: `import { useSettingsStore } from '@/features/settings/store/settingsStore'` (broken)
+- ✅ **Correct**: `import { useSettingsStore } from '@/store/settingsStore'` (functional)
+
+**Components Affected**:
+- Settings panel controls not responding to user input
+- Changes not persisting to server
+- Inconsistent state between different parts of UI
+
+**Required Fix**:
+```typescript
+// In SettingsPanelRedesign.tsx and related components
+// REPLACE:
+import { useSettingsStore } from '../../../features/settings/store/settingsStore';
+
+// WITH:
+import { useSettingsStore } from '../../../store/settingsStore';
+```
+
 ## Migration Notes
 
 The new design maintains compatibility with existing core settings logic:
-- Settings store ([`client/src/store/settingsStore.ts`](../../client/src/store/settingsStore.ts))
+- **Primary Settings Store**: [`client/src/store/settingsStore.ts`](../../client/src/store/settingsStore.ts) (✅ USE THIS ONE)
+- ❌ **Legacy Store**: [`client/src/features/settings/store/settingsStore.ts`](../../client/src/features/settings/store/settingsStore.ts) (BROKEN - DO NOT USE)
 - Setting definitions ([`client/src/features/settings/config/settingsUIDefinition.ts`](../../client/src/features/settings/config/settingsUIDefinition.ts))
 - Individual control components ([`client/src/features/settings/components/SettingControlComponent.tsx`](../../client/src/features/settings/components/SettingControlComponent.tsx))
 
-No changes needed to backend or data flow - this is purely a UI/UX improvement.
+**Current Status**: UI components partially work but may have import issues. Backend integration is functional once imports are corrected.
+
+### Restoration Steps
+
+1. **Fix Store Imports**: Update all settings components to use correct store
+2. **Test Real-time Updates**: Verify changes immediately update visualization
+3. **Verify Persistence**: Ensure settings save to server correctly
+4. **Multi-graph Support**: Test graph-specific settings work properly
 
 ## Benefits
 
