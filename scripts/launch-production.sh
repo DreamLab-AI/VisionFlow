@@ -212,24 +212,24 @@ check_ragflow_network() {
 check_ptx_status() {
     section "Checking PTX Status"
 
-    # Check if PTX file exists
-    if [ -f "$PROJECT_ROOT/src/utils/compute_forces.ptx" ]; then
-        log "${GREEN}✓ PTX file exists${NC}"
+    # Check if unified PTX file exists
+    if [ -f "$PROJECT_ROOT/src/utils/ptx/visionflow_unified.ptx" ]; then
+        log "${GREEN}✓ Unified PTX file exists${NC}"
 
         # Check if source CUDA file exists
-        if [ -f "$PROJECT_ROOT/src/utils/compute_forces.cu" ]; then
+        if [ -f "$PROJECT_ROOT/src/utils/visionflow_unified.cu" ]; then
             # Check if PTX is older than CUDA source
-            if [ "$PROJECT_ROOT/src/utils/compute_forces.ptx" -ot "$PROJECT_ROOT/src/utils/compute_forces.cu" ]; then
-                log "${YELLOW}PTX file is older than CUDA source${NC}"
+            if [ "$PROJECT_ROOT/src/utils/ptx/visionflow_unified.ptx" -ot "$PROJECT_ROOT/src/utils/visionflow_unified.cu" ]; then
+                log "${YELLOW}Unified PTX file is older than CUDA source${NC}"
                 log "${YELLOW}PTX will be compiled during Docker build${NC}"
                 # Set flag to force PTX compilation in Docker
                 export REBUILD_PTX=true
             else
-                log "${GREEN}✓ PTX file is up-to-date${NC}"
+                log "${GREEN}✓ Unified PTX file is up-to-date${NC}"
             fi
         fi
     else
-        log "${YELLOW}PTX file not found${NC}"
+        log "${YELLOW}Unified PTX file not found${NC}"
         log "${YELLOW}PTX will be compiled during Docker build${NC}"
         # Set flag to force PTX compilation in Docker
         export REBUILD_PTX=true

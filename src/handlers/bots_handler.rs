@@ -6,7 +6,7 @@ use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::models::node::Node;
 use crate::types::vec3::Vec3Data;
 use crate::models::edge::Edge;
-use crate::models::simulation_params::{SimulationParams, SimulationPhase, SimulationMode};
+use crate::models::simulation_params::{SimulationParams};
 use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetCachedAgentStatuses};
 use crate::services::bots_client::BotsClient;
 // use crate::services::claude_flow::mcp_tools::McpTool;

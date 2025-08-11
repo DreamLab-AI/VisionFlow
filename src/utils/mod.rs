@@ -1,4 +1,4 @@
-pub mod advanced_gpu_compute;
+// REMOVED: advanced_gpu_compute module - functionality moved to unified_gpu_compute
 pub mod audio_processor;
 pub mod binary_protocol;
 pub mod edge_data;

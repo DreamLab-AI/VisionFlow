@@ -117,7 +117,7 @@ pub struct RegenerateSemanticConstraints;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetAdvancedGPUContext {
-    pub context: crate::utils::advanced_gpu_compute::AdvancedGPUContext,
+    pub context: crate::utils::unified_gpu_compute::UnifiedGPUCompute,
 }
 
 // Visual Analytics Messages
