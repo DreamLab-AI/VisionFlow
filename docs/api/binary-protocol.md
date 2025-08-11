@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LogseqSpringThing binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimize bandwidth usage while maintaining precision for real-time graph visualization updates.
+The VisionFlow binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimize bandwidth usage while maintaining precision for real-time graph visualization updates.
 
 ## Protocol Architecture
 
@@ -10,8 +10,8 @@ The LogseqSpringThing binary protocol is designed for efficient transmission of 
 
 1. **Efficiency**: Minimize bytes per node update
 2. **Simplicity**: Fixed-size records for fast parsing
-3. **Separation**: Wire format differs from server storage format
-4. **Safety**: Type-safe serialization using Rust's bytemuck
+3. **Type Safety**: Support for node type identification
+4. **GPU Compatibility**: Memory layout optimized for GPU processing
 
 ### Components
 
@@ -36,7 +36,7 @@ Each node is transmitted as a fixed 28-byte structure:
 
 | Field | Type | Size | Description |
 |-------|------|------|-------------|
-| Node ID | u32 | 4 bytes | Unique node identifier |
+| Node ID | u32 | 4 bytes | Unique node identifier with type flags |
 | Position.x | f32 | 4 bytes | X coordinate |
 | Position.y | f32 | 4 bytes | Y coordinate |
 | Position.z | f32 | 4 bytes | Z coordinate |
@@ -44,17 +44,30 @@ Each node is transmitted as a fixed 28-byte structure:
 | Velocity.y | f32 | 4 bytes | Y velocity |
 | Velocity.z | f32 | 4 bytes | Z velocity |
 
+### Node Type Flags
+
+The Node ID field includes type flags in the high bits:
+
+| Flag | Value | Description |
+|------|-------|-------------|
+| Agent Node | 0x80000000 | Bit 31 indicates agent node |
+| Knowledge Node | 0x40000000 | Bit 30 indicates knowledge graph node |
+| Actual ID Mask | 0x3FFFFFFF | Bits 0-29 contain the actual node ID |
+
 ### Wire Format Structure (Rust)
 
 ```rust
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct WireNodeDataItem {
-    pub id: u32,           // 4 bytes
+    pub id: u32,           // 4 bytes (includes type flags)
     pub position: Vec3Data, // 12 bytes (3 × f32)
     pub velocity: Vec3Data, // 12 bytes (3 × f32)
     // Total: 28 bytes
 }
+
+// Compile-time assertion to ensure exact size
+static_assertions::const_assert_eq!(std::mem::size_of::<WireNodeDataItem>(), 28);
 ```
 
 ## Message Format
@@ -88,11 +101,13 @@ For example:
 ### Server to Client
 
 1. **Collect Updates**: Gather node positions and velocities
-2. **Create Wire Format**: Convert to `WireNodeDataItem` structures
-3. **Serialize**: Use bytemuck for zero-copy serialization
-4. **Transmit**: Send as binary WebSocket frame
+2. **Apply Type Flags**: Mark agent and knowledge nodes
+3. **Create Wire Format**: Convert to `WireNodeDataItem` structures
+4. **Serialize**: Use bytemuck for zero-copy serialization
+5. **Transmit**: Send as binary WebSocket frame
 
 ```rust
+// Basic encoding without type flags
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
     let mut buffer = Vec::with_capacity(
         nodes.len() * std::mem::size_of::<WireNodeDataItem>()
@@ -105,7 +120,39 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
             velocity: node.velocity,
         };
         
-        // Safe, direct memory layout conversion
+        let item_bytes = bytemuck::bytes_of(&wire_item);
+        buffer.extend_from_slice(item_bytes);
+    }
+    
+    buffer
+}
+
+// Enhanced encoding with node type flags
+pub fn encode_node_data_with_types(
+    nodes: &[(u32, BinaryNodeData)], 
+    agent_node_ids: &[u32],
+    knowledge_node_ids: &[u32]
+) -> Vec<u8> {
+    let mut buffer = Vec::with_capacity(
+        nodes.len() * std::mem::size_of::<WireNodeDataItem>()
+    );
+    
+    for (node_id, node) in nodes {
+        // Apply type flags
+        let flagged_id = if agent_node_ids.contains(node_id) {
+            set_agent_flag(*node_id)
+        } else if knowledge_node_ids.contains(node_id) {
+            set_knowledge_flag(*node_id)
+        } else {
+            *node_id
+        };
+        
+        let wire_item = WireNodeDataItem {
+            id: flagged_id,
+            position: node.position,
+            velocity: node.velocity,
+        };
+        
         let item_bytes = bytemuck::bytes_of(&wire_item);
         buffer.extend_from_slice(item_bytes);
     }
@@ -114,11 +161,45 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 }
 ```
 
-### Important Notes
+## Node Type Flag Utilities
 
-- Server-side fields (mass, flags, padding) are NOT transmitted
-- Node IDs must be u32 for protocol compatibility
-- All floating-point values use IEEE 754 single precision (f32)
+```rust
+// Flag constants
+const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31
+const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30
+const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Bits 0-29
+
+// Flag manipulation functions
+pub fn set_agent_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | AGENT_NODE_FLAG
+}
+
+pub fn set_knowledge_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | KNOWLEDGE_NODE_FLAG
+}
+
+pub fn is_agent_node(node_id: u32) -> bool {
+    (node_id & AGENT_NODE_FLAG) != 0
+}
+
+pub fn is_knowledge_node(node_id: u32) -> bool {
+    (node_id & KNOWLEDGE_NODE_FLAG) != 0
+}
+
+pub fn get_actual_node_id(node_id: u32) -> u32 {
+    node_id & NODE_ID_MASK
+}
+
+pub fn get_node_type(node_id: u32) -> NodeType {
+    if is_agent_node(node_id) {
+        NodeType::Agent
+    } else if is_knowledge_node(node_id) {
+        NodeType::Knowledge
+    } else {
+        NodeType::Unknown
+    }
+}
+```
 
 ## Decoding Process
 
@@ -127,13 +208,13 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 1. **Receive Binary**: Get binary WebSocket frame
 2. **Validate Size**: Ensure data is multiple of 28 bytes
 3. **Deserialize**: Parse fixed-size chunks
-4. **Reconstruct**: Create server-side structures with defaults
+4. **Extract Type Info**: Process node type flags
+5. **Reconstruct**: Create server-side structures with defaults
 
 ```rust
 pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     const WIRE_ITEM_SIZE: usize = std::mem::size_of::<WireNodeDataItem>();
     
-    // Validate data size
     if data.len() % WIRE_ITEM_SIZE != 0 {
         return Err(format!(
             "Data size {} is not a multiple of wire item size {}",
@@ -143,11 +224,12 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     
     let mut updates = Vec::with_capacity(data.len() / WIRE_ITEM_SIZE);
     
-    // Process fixed-size chunks
     for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
         let wire_item: WireNodeDataItem = *bytemuck::from_bytes(chunk);
         
-        // Convert to server format with defaults
+        // Extract actual node ID (strip type flags)
+        let actual_id = get_actual_node_id(wire_item.id);
+        
         let server_node_data = BinaryNodeData {
             position: wire_item.position,
             velocity: wire_item.velocity,
@@ -156,7 +238,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
             padding: [0u8, 0u8],
         };
         
-        updates.push((wire_item.id, server_node_data));
+        updates.push((actual_id, server_node_data));
     }
     
     Ok(updates)
@@ -234,8 +316,9 @@ WebSocket binary frames use opcode 0x2:
 
 1. **Delta Updates**: Only send changed nodes
 2. **Throttling**: Limit update frequency based on client capacity
-3. **Compression**: Apply gzip for large updates (>1KB)
+3. **Compression**: Apply permessage-deflate for large updates
 4. **Chunking**: Split large updates across multiple frames
+5. **Type-based Filtering**: Send only relevant node types to specific clients
 
 ## Error Handling
 
@@ -255,9 +338,12 @@ WebSocket binary frames use opcode 0x2:
    }
    ```
 
-3. **Deserialization Failure**
-   - Handled by bytemuck's type safety
-   - Panics on alignment issues (prevented by #[repr(C)])
+3. **Type Flag Conflicts**
+   ```rust
+   if is_agent_node(id) && is_knowledge_node(id) {
+       return Err("Node cannot be both agent and knowledge type");
+   }
+   ```
 
 ### Client-Side Validation
 
@@ -275,8 +361,16 @@ function decodeBinaryUpdate(buffer: ArrayBuffer): NodeUpdate[] {
     
     for (let i = 0; i < nodeCount; i++) {
         const offset = i * BYTES_PER_NODE;
+        const flaggedId = view.getUint32(offset, true);
+        
+        // Extract type information
+        const isAgent = (flaggedId & 0x80000000) !== 0;
+        const isKnowledge = (flaggedId & 0x40000000) !== 0;
+        const actualId = flaggedId & 0x3FFFFFFF;
+        
         updates.push({
-            id: view.getUint32(offset, true),
+            id: actualId,
+            type: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'unknown',
             position: {
                 x: view.getFloat32(offset + 4, true),
                 y: view.getFloat32(offset + 8, true),
@@ -305,33 +399,37 @@ fn test_wire_format_size() {
 }
 
 #[test]
-fn test_encode_decode_roundtrip() {
+fn test_node_type_flags() {
+    let node_id = 42u32;
+    
+    // Test agent flag
+    let agent_id = set_agent_flag(node_id);
+    assert!(is_agent_node(agent_id));
+    assert_eq!(get_actual_node_id(agent_id), node_id);
+    
+    // Test knowledge flag
+    let knowledge_id = set_knowledge_flag(node_id);
+    assert!(is_knowledge_node(knowledge_id));
+    assert_eq!(get_actual_node_id(knowledge_id), node_id);
+}
+
+#[test]
+fn test_encode_decode_roundtrip_with_flags() {
     let nodes = vec![
-        (1u32, BinaryNodeData {
-            position: Vec3Data::new(1.0, 2.0, 3.0),
-            velocity: Vec3Data::new(0.1, 0.2, 0.3),
-            mass: 100,
-            flags: 1,
-            padding: [0, 0],
-        }),
+        (1u32, create_test_node_data()),
+        (2u32, create_test_node_data()),
     ];
     
-    let encoded = encode_node_data(&nodes);
-    assert_eq!(encoded.len(), 28);
+    let agent_ids = vec![1u32];
+    let knowledge_ids = vec![2u32];
     
+    let encoded = encode_node_data_with_types(&nodes, &agent_ids, &knowledge_ids);
     let decoded = decode_node_data(&encoded).unwrap();
-    assert_eq!(decoded.len(), 1);
-    assert_eq!(decoded[0].0, 1);
-    assert_eq!(decoded[0].1.position.x, 1.0);
+    
+    assert_eq!(decoded.len(), 2);
+    // Verify data integrity (positions preserved, flags processed)
 }
 ```
-
-### Integration Testing
-
-1. **Round-trip Test**: Encode on server, decode on client
-2. **Performance Test**: Measure encoding/decoding time
-3. **Stress Test**: Handle maximum node counts
-4. **Error Test**: Verify handling of malformed data
 
 ## Protocol Constants
 
@@ -340,32 +438,13 @@ From `src/utils/socket_flow_constants.rs`:
 ```rust
 // Binary message constants
 pub const NODE_POSITION_SIZE: usize = 24; // 6 f32s * 4 bytes
-pub const BINARY_HEADER_SIZE: usize = 4;  // 1 f32 for header
-
-// Compression constants
+pub const BINARY_HEADER_SIZE: usize = 4;  // Optional header
 pub const COMPRESSION_THRESHOLD: usize = 1024; // 1KB
-pub const ENABLE_COMPRESSION: bool = true;
 
-// WebSocket constants
+// WebSocket constants  
 pub const MAX_MESSAGE_SIZE: usize = 100 * 1024 * 1024; // 100MB
 pub const BINARY_CHUNK_SIZE: usize = 64 * 1024; // 64KB
 ```
-
-## Future Enhancements
-
-### Planned Improvements
-
-1. **Variable-Length Encoding**: Use varint for node IDs
-2. **Differential Updates**: Send only position deltas
-3. **Batch Compression**: Group similar updates
-4. **Custom Float Precision**: Reduce to 16-bit floats where appropriate
-
-### Protocol Versioning
-
-Future versions may include:
-- Version byte at message start
-- Backwards compatibility for v1 clients
-- Feature negotiation during handshake
 
 ## Security Considerations
 
@@ -375,38 +454,21 @@ Future versions may include:
 - Use type-safe deserialization (bytemuck)
 - Limit maximum message size (100MB)
 - Rate limit binary updates
+- Validate node type flag combinations
 
 ### Memory Safety
 
 - Fixed-size allocations prevent DoS
 - No dynamic memory allocation during decode
 - Bounded update counts per message
+- GPU memory bounds checking
 
-## Debugging
+## Important Notes
 
-### Logging
-
-Enable binary protocol logging:
-```bash
-RUST_LOG=logseq_spring_thing::utils::binary_protocol=trace
-```
-
-### Sample Output
-```
-[TRACE] Encoding 3 nodes for binary transmission
-[TRACE] Encoding node 0: pos=[1.234,5.678,9.012], vel=[0.100,0.200,0.300]
-[TRACE] Encoded binary data: 84 bytes for 3 nodes
-```
-
-### Binary Data Inspection
-
-Use hex dump for debugging:
-```bash
-xxd -g 1 binary_message.bin
-```
-
-Example output:
-```
-00000000: 01 00 00 00 00 00 80 3f 00 00 00 40 00 00 40 40  .......?...@..@@
-00000010: cd cc cc 3d cd cc 4c 3e 9a 99 99 3e              ...=..L>...>
-```
+- Server-side fields (mass, flags, padding) are NOT transmitted over the wire
+- Node IDs are u32 with embedded type flags in the high bits
+- All floating-point values use IEEE 754 single precision (f32)
+- Agent nodes have flag 0x80000000 set in the transmitted node ID
+- Knowledge nodes have flag 0x40000000 set in the transmitted node ID
+- Actual node ID is extracted using mask 0x3FFFFFFF
+- The wire format is optimized for GPU memory alignment and processing

@@ -16,14 +16,14 @@ http://localhost:3001/api
 Primary authentication using Nostr protocol (NIP-07).
 
 ```http
-POST /api/auth/nostr
+POST /api/nostr/auth
 ```
 
 **Request:**
 ```json
 {
   "id": "event_id_hex",
-  "pubkey": "user_pubkey_hex",
+  "pubkey": "user_pubkey_hex", 
   "created_at": 1678886400,
   "kind": 22242,
   "tags": [
@@ -53,7 +53,7 @@ POST /api/auth/nostr
 
 ### Get Graph Data
 ```http
-GET /api/graph
+GET /api/graph/data
 ```
 
 **Query Parameters:**
@@ -65,20 +65,23 @@ GET /api/graph
 {
   "nodes": [
     {
-      "id": "node_1",
+      "id": 1,
       "label": "Knowledge Node",
       "x": 100.0,
       "y": 200.0,
       "z": 50.0,
       "type": "concept",
-      "metadata": {}
+      "metadata": {
+        "fileSize": "1024",
+        "lastModified": "2024-01-01T00:00:00Z"
+      }
     }
   ],
   "edges": [
     {
-      "id": "edge_1",
-      "source": "node_1",
-      "target": "node_2",
+      "id": 1,
+      "source": 1,
+      "target": 2,
       "weight": 1.0,
       "type": "semantic"
     }
@@ -91,36 +94,55 @@ GET /api/graph
 }
 ```
 
-### Update Graph
+### Get Paginated Graph Data
 ```http
-POST /api/graph
+GET /api/graph/data/paginated
 ```
 
-**Request:**
+**Query Parameters:**
+- `page` (number) - Page number (1-based)
+- `page_size` (number) - Items per page (default: 100)
+- `query` (string) - Search query
+- `sort` (string) - Sort field
+- `filter` (string) - Filter criteria
+
+**Response:**
 ```json
 {
   "nodes": [...],
   "edges": [...],
-  "operation": "merge" // or "replace"
+  "metadata": {...},
+  "totalPages": 10,
+  "currentPage": 1,
+  "totalItems": 1000,
+  "pageSize": 100
 }
 ```
 
-### Get Graph Metadata
+### Update Graph
 ```http
-GET /api/graph/metadata
+POST /api/graph/update
 ```
 
 **Response:**
 ```json
 {
-  "statistics": {
-    "totalNodes": 1000,
-    "totalEdges": 5000,
-    "connectedComponents": 3,
-    "averageDegree": 5.0
-  },
-  "lastPhysicsUpdate": "2024-01-01T00:00:00Z",
-  "gpuEnabled": true
+  "success": true,
+  "message": "Graph updated with 5 new files",
+  "processedFiles": ["file1.md", "file2.md"]
+}
+```
+
+### Refresh Graph
+```http
+POST /api/graph/refresh
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Graph refreshed successfully"
 }
 ```
 
@@ -128,7 +150,7 @@ GET /api/graph/metadata
 
 ### List Agents
 ```http
-GET /api/bots
+GET /api/bots/data
 ```
 
 **Response:**
@@ -136,78 +158,93 @@ GET /api/bots
 {
   "agents": [
     {
-      "id": "agent_1",
-      "name": "Coordinator Alpha",
-      "type": "coordinator",
+      "id": "agent-001",
+      "name": "Research Agent Alpha",
+      "type": "researcher",
       "status": "active",
-      "health": {
-        "cpu": 45.2,
-        "memory": 512,
-        "uptime": 3600
-      },
-      "capabilities": ["orchestration", "planning"],
-      "currentTask": "task_123"
+      "health": 0.95,
+      "workload": 0.7,
+      "capabilities": ["web_search", "document_analysis"],
+      "currentTask": "Analyzing research papers",
+      "metrics": {
+        "tasksCompleted": 42,
+        "successRate": 0.95,
+        "averageResponseTime": 250,
+        "tokensUsed": 15000
+      }
     }
   ],
   "swarmTopology": "hierarchical",
-  "totalAgents": 15
+  "totalAgents": 15,
+  "connections": [
+    {
+      "from": "agent-001",
+      "to": "agent-002",
+      "strength": 0.8,
+      "messageRate": 12.5
+    }
+  ]
 }
 ```
 
-### Spawn Agent
+### Update Agent Data
 ```http
-POST /api/bots/spawn
+POST /api/bots/data
 ```
 
 **Request:**
 ```json
 {
-  "type": "researcher",
-  "name": "Research Bot 1",
-  "capabilities": ["search", "analysis"],
-  "config": {
-    "maxTasks": 5,
-    "priority": "high"
-  }
+  "agents": [
+    {
+      "id": "agent-001",
+      "status": "idle",
+      "metrics": {
+        "tokensUsed": 15100
+      }
+    }
+  ]
 }
-```
-
-### Agent Metrics
-```http
-GET /api/bots/{agentId}/metrics
 ```
 
 **Response:**
 ```json
 {
-  "agentId": "agent_1",
-  "performance": {
-    "tasksCompleted": 42,
-    "successRate": 0.95,
-    "averageResponseTime": 250,
-    "tokensUsed": 15000
-  },
-  "resources": {
-    "cpuUsage": 35.5,
-    "memoryMB": 256,
-    "networkKbps": 100
-  }
+  "success": true,
+  "message": "Agent data updated successfully",
+  "updatedAgents": 1
 }
 ```
 
-### Orchestrate Task
+### Initialize Swarm
 ```http
-POST /api/bots/orchestrate
+POST /api/bots/initialize-swarm
 ```
 
 **Request:**
 ```json
 {
-  "task": "Analyze the codebase and generate documentation",
-  "strategy": "parallel",
-  "maxAgents": 5,
-  "priority": "high",
-  "timeout": 300
+  "topology": "hierarchical",
+  "maxAgents": 10,
+  "agentTypes": ["coordinator", "researcher", "coder"],
+  "enableNeural": true,
+  "customPrompt": "Build a REST API"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "swarmId": "swarm-001",
+  "message": "Swarm initialized successfully",
+  "agents": [
+    {
+      "id": "agent-001",
+      "type": "coordinator",
+      "status": "initializing"
+    }
+  ]
 }
 ```
 
@@ -226,25 +263,42 @@ GET /api/settings
     "enabled": true,
     "gravity": -9.8,
     "damping": 0.95,
-    "iterations": 5
+    "iterations": 5,
+    "constraints": {
+      "separation": 100.0,
+      "cohesion": 0.1
+    }
   },
   "visualization": {
     "nodeSize": 10,
     "edgeThickness": 2,
     "showLabels": true,
-    "hologramEffect": true
+    "hologramEffect": true,
+    "renderDistance": 1000
   },
   "xr": {
     "enabled": false,
     "handTracking": true,
-    "passthrough": true
+    "passthrough": true,
+    "spatialAnchors": false
+  },
+  "websocket": {
+    "minUpdateRate": 5,
+    "maxUpdateRate": 60,
+    "motionThreshold": 0.01,
+    "heartbeatInterval": 30000
+  },
+  "gpu": {
+    "enabled": true,
+    "memoryLimit": 1024,
+    "computeShaders": true
   }
 }
 ```
 
 ### Update Settings
 ```http
-PUT /api/settings
+POST /api/settings
 ```
 
 **Request:**
@@ -255,33 +309,45 @@ PUT /api/settings
 }
 ```
 
-### Get Protected Settings
-```http
-GET /api/settings/protected
-Authorization: Bearer {token}
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Setting updated successfully",
+  "updatedPath": "physics.gravity",
+  "newValue": -12.0
+}
 ```
 
-## Files Endpoints
-
-### List Files
+### Reset Settings
 ```http
-GET /api/files
+POST /api/settings/reset
 ```
-
-**Query Parameters:**
-- `path` (string) - Directory path
-- `type` (string) - File type filter: `markdown`, `json`, `all`
 
 **Response:**
 ```json
 {
-  "files": [
+  "success": true,
+  "message": "Settings reset to default values"
+}
+```
+
+## Files Endpoints
+
+### Process Files
+```http
+POST /api/files/process
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "processedFiles": [
     {
-      "name": "knowledge.md",
-      "path": "/data/markdown/knowledge.md",
+      "fileName": "knowledge.md",
       "size": 1024,
-      "modified": "2024-01-01T00:00:00Z",
-      "type": "markdown"
+      "processed": true
     }
   ],
   "totalSize": 10240,
@@ -289,20 +355,37 @@ GET /api/files
 }
 ```
 
-### Upload File
+### Get File Content
 ```http
-POST /api/files/upload
-Content-Type: multipart/form-data
+GET /api/files/get_content/{filename}
 ```
 
-**Form Data:**
-- `file` - File to upload
-- `path` - Target directory
-- `overwrite` - Boolean to overwrite existing
+**Response:** Raw file content (text/markdown)
 
-### Download File
+### Refresh Graph from Files
 ```http
-GET /api/files/download?path=/data/file.md
+POST /api/files/refresh_graph
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Graph refreshed successfully"
+}
+```
+
+### Update Graph from Files
+```http
+POST /api/files/update_graph
+```
+
+**Response:**
+```json
+{
+  "status": "success", 
+  "message": "Graph updated successfully"
+}
 ```
 
 ## Quest 3 / XR Endpoints
@@ -319,12 +402,14 @@ GET /api/quest3/status
   "device": {
     "type": "Meta Quest 3",
     "browser": "Wolvic",
-    "capabilities": ["handTracking", "passthrough", "spatialAnchors"]
+    "capabilities": ["handTracking", "passthrough", "spatialAnchors"],
+    "webxrSupported": true
   },
   "session": {
     "active": true,
     "mode": "immersive-ar",
-    "referenceSpace": "local-floor"
+    "referenceSpace": "local-floor",
+    "features": ["hand-tracking", "layers"]
   }
 }
 ```
@@ -343,9 +428,18 @@ POST /api/quest3/init
 }
 ```
 
+**Response:**
+```json
+{
+  "success": true,
+  "sessionId": "xr-session-001",
+  "supportedFeatures": ["hand-tracking", "layers"]
+}
+```
+
 ## Visualization Endpoints
 
-### Get Visualization Config
+### Get Visualization Config  
 ```http
 GET /api/visualisation/config
 ```
@@ -356,7 +450,8 @@ GET /api/visualisation/config
   "renderer": {
     "antialias": true,
     "pixelRatio": 2,
-    "shadowMap": true
+    "shadowMap": true,
+    "toneMapping": "ACESFilmic"
   },
   "camera": {
     "fov": 75,
@@ -368,7 +463,8 @@ GET /api/visualisation/config
     "bloom": true,
     "outline": true,
     "hologram": true,
-    "particles": false
+    "particles": false,
+    "postProcessing": true
   }
 }
 ```
@@ -387,6 +483,14 @@ POST /api/visualisation/camera
 }
 ```
 
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Camera position updated"
+}
+```
+
 ## Analytics Endpoints
 
 ### System Analytics
@@ -400,17 +504,20 @@ GET /api/analytics/system
   "performance": {
     "fps": 60,
     "frameTime": 16.67,
-    "drawCalls": 150
+    "drawCalls": 150,
+    "memoryUsage": 512
   },
   "gpu": {
     "utilization": 75,
     "memory": 2048,
-    "temperature": 65
+    "temperature": 65,
+    "vendor": "NVIDIA"
   },
   "network": {
     "websocketClients": 5,
     "bandwidth": 1024,
-    "latency": 15
+    "latency": 15,
+    "messagesPerSecond": 120
   }
 }
 ```
@@ -433,6 +540,11 @@ GET /api/analytics/graph
     "mostCentral": ["node_1", "node_2"],
     "bridges": ["edge_5", "edge_7"],
     "communities": 5
+  },
+  "growth": {
+    "nodesAdded": 50,
+    "edgesAdded": 125,
+    "timeframe": "24h"
   }
 }
 ```
@@ -450,11 +562,18 @@ GET /api/health
   "status": "healthy",
   "version": "1.0.0",
   "uptime": 3600,
+  "timestamp": "2024-01-01T00:00:00Z",
   "services": {
     "graph": "operational",
-    "agents": "operational",
+    "agents": "operational", 
     "gpu": "operational",
-    "mcp": "connected"
+    "mcp": "connected",
+    "websockets": "operational"
+  },
+  "metrics": {
+    "memoryUsage": "512MB",
+    "cpuUsage": "45%",
+    "activeConnections": 5
   }
 }
 ```
@@ -471,35 +590,22 @@ GET /api/mcp/health
   "claudeFlow": {
     "url": "ws://localhost:3002",
     "status": "connected",
-    "latency": 5
+    "latency": 5,
+    "lastHeartbeat": "2024-01-01T00:00:00Z"
   },
   "tools": {
     "available": 50,
-    "active": 3
+    "active": 3,
+    "categories": ["swarm", "neural", "memory"]
+  },
+  "sessions": {
+    "active": 2,
+    "total": 15
   }
 }
 ```
 
 ## External Service Integrations
-
-### GitHub Integration
-```http
-GET /api/github/repos/{owner}/{repo}
-```
-
-**Response:**
-```json
-{
-  "repository": {
-    "name": "visionflow",
-    "stars": 100,
-    "forks": 20,
-    "issues": 5
-  },
-  "pullRequests": [...],
-  "commits": [...]
-}
-```
 
 ### RAGFlow Query
 ```http
@@ -511,7 +617,28 @@ POST /api/ragflow/query
 {
   "query": "What is the architecture?",
   "context": "technical",
-  "maxResults": 5
+  "maxResults": 5,
+  "sessionId": "session-001"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "content": "VisionFlow uses a modular architecture...",
+      "score": 0.95,
+      "source": "architecture.md",
+      "metadata": {
+        "pageNumber": 1,
+        "section": "Overview"
+      }
+    }
+  ],
+  "totalResults": 12,
+  "processingTime": 250
 }
 ```
 
@@ -529,6 +656,62 @@ POST /api/perplexity/search
 }
 ```
 
+**Response:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "title": "Recent AI Breakthrough",
+      "content": "Summary of recent developments...",
+      "url": "https://example.com/article",
+      "source": "academic",
+      "date": "2024-01-01",
+      "relevance": 0.95
+    }
+  ],
+  "totalResults": 45,
+  "query": "Latest AI developments"
+}
+```
+
+### GitHub Integration
+```http
+GET /api/github/repos/{owner}/{repo}
+```
+
+**Response:**
+```json
+{
+  "repository": {
+    "name": "visionflow",
+    "fullName": "owner/visionflow",
+    "stars": 100,
+    "forks": 20,
+    "issues": 5,
+    "language": "Rust",
+    "size": 10240
+  },
+  "pullRequests": [
+    {
+      "number": 1,
+      "title": "Add new feature",
+      "state": "open",
+      "author": "developer",
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "commits": [
+    {
+      "sha": "abc123",
+      "message": "Fix bug in binary protocol",
+      "author": "developer",
+      "date": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
 ## Error Responses
 
 All endpoints return consistent error responses:
@@ -540,28 +723,183 @@ All endpoints return consistent error responses:
     "code": "INVALID_REQUEST",
     "message": "The request was invalid",
     "details": {
-      "field": "name",
-      "reason": "Required field missing"
-    }
+      "field": "agentId",
+      "reason": "Required field missing",
+      "validValues": ["agent-001", "agent-002"]
+    },
+    "requestId": "req-123"
   },
   "timestamp": "2024-01-01T00:00:00Z"
 }
 ```
 
 ### Common Error Codes
-- `UNAUTHORIZED` - Authentication required
-- `FORBIDDEN` - Insufficient permissions
-- `NOT_FOUND` - Resource not found
-- `INVALID_REQUEST` - Invalid request parameters
-- `RATE_LIMITED` - Too many requests
-- `INTERNAL_ERROR` - Server error
+
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| `UNAUTHORIZED` | Authentication required | 401 |
+| `FORBIDDEN` | Insufficient permissions | 403 |
+| `NOT_FOUND` | Resource not found | 404 |
+| `INVALID_REQUEST` | Invalid request parameters | 400 |
+| `RATE_LIMITED` | Too many requests | 429 |
+| `INTERNAL_ERROR` | Server error | 500 |
+| `SERVICE_UNAVAILABLE` | Service temporarily unavailable | 503 |
+| `AGENT_NOT_FOUND` | Specified agent does not exist | 404 |
+| `SWARM_ERROR` | Swarm operation failed | 500 |
+| `GRAPH_ERROR` | Graph operation failed | 500 |
+| `GPU_ERROR` | GPU computation error | 500 |
 
 ## Rate Limiting
 
-| Endpoint Category | Rate Limit | Window |
-|------------------|------------|--------|
-| Graph Operations | 100/min | 1 minute |
-| Agent Operations | 50/min | 1 minute |
-| File Operations | 10/min | 1 minute |
-| Analytics | 200/min | 1 minute |
-| Settings | 100/min | 1 minute |
+| Endpoint Category | Rate Limit | Window | Burst |
+|------------------|------------|--------|-------|
+| Graph Operations | 100/min | 1 minute | 20 requests |
+| Agent Operations | 50/min | 1 minute | 10 requests |
+| File Operations | 10/min | 1 minute | 5 requests |
+| Analytics | 200/min | 1 minute | 50 requests |
+| Settings | 100/min | 1 minute | 20 requests |
+| Health Checks | 600/min | 1 minute | 100 requests |
+
+### Rate Limit Headers
+
+```http
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1609459200
+X-RateLimit-Window: 60
+```
+
+## Response Formats
+
+### Success Response Template
+```json
+{
+  "success": true,
+  "data": { /* endpoint-specific data */ },
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "requestId": "req-123",
+    "processingTime": 250
+  }
+}
+```
+
+### Pagination Response Template
+```json
+{
+  "data": [ /* array of items */ ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 10,
+    "totalItems": 1000,
+    "pageSize": 100,
+    "hasNext": true,
+    "hasPrevious": false
+  }
+}
+```
+
+## Request/Response Headers
+
+### Common Request Headers
+```http
+Content-Type: application/json
+Accept: application/json
+User-Agent: VisionFlow-Client/1.0.0
+X-Request-ID: req-123
+X-Client-Version: 1.0.0
+```
+
+### Common Response Headers
+```http
+Content-Type: application/json; charset=utf-8
+X-Response-Time: 25ms
+X-Request-ID: req-123
+Cache-Control: no-cache, no-store, must-revalidate
+```
+
+## CORS Configuration
+
+```javascript
+// Allowed origins
+Access-Control-Allow-Origin: http://localhost:3001
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Request-ID
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400
+```
+
+## API Versioning
+
+The API uses URL-based versioning:
+- Current version: `v1`
+- Base URL: `http://localhost:3001/api`
+- Future versions will use: `http://localhost:3001/api/v2`
+
+### Version Compatibility
+- **Backward compatibility** maintained within major versions
+- **Deprecation notices** provided 6 months before removal
+- **Migration guides** provided for major version changes
+
+## Performance Considerations
+
+### Caching Strategy
+- ETags for resource versioning
+- Cache-Control headers for static resources
+- In-memory caching for frequently accessed data
+- Redis caching for session data
+
+### Optimization Tips
+1. Use pagination for large datasets
+2. Implement client-side caching where appropriate
+3. Use compression for large payloads
+4. Batch multiple operations when possible
+5. Use WebSocket connections for real-time updates
+
+## Security Considerations
+
+### Input Validation
+- All inputs validated against schemas
+- SQL injection prevention
+- XSS prevention measures
+- File upload restrictions
+
+### Authentication & Authorization
+- Session-based authentication via Nostr
+- Feature-based access control
+- Rate limiting per user/IP
+- Audit logging for sensitive operations
+
+## Testing & Development
+
+### Testing Endpoints
+```bash
+# Health check
+curl http://localhost:3001/api/health
+
+# Get graph data  
+curl http://localhost:3001/api/graph/data
+
+# Get agents
+curl http://localhost:3001/api/bots/data
+```
+
+### Development Tools
+- Postman collection available at `/docs/postman/`
+- OpenAPI specification at `/docs/openapi.json`
+- Interactive API documentation at `/docs/swagger`
+
+## Migration from Legacy Endpoints
+
+### Deprecated Endpoints (Remove by v2.0)
+| Legacy | New | Status |
+|--------|-----|--------|
+| `/ws` | `/wss` | Deprecated |
+| `/api/v0/graph` | `/api/graph/data` | Deprecated |
+| `/api/bots` | `/api/bots/data` | Deprecated |
+
+### Breaking Changes in v1.0
+1. Node IDs changed from u16 to u32
+2. WebSocket binary protocol updated  
+3. Authentication moved to Nostr-based system
+4. Response format standardized across endpoints

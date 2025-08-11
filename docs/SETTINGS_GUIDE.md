@@ -1,17 +1,44 @@
 # Settings System Guide
 
+## ⚠️ CRITICAL ISSUE: Dual Settings Store Problem
+
+**IMPORTANT**: The current settings implementation has a **DUAL SETTINGS STORE PROBLEM** that causes the Physics tab to not work properly:
+
+### The Problem
+1. **Duplicate Stores**: There are TWO separate settings stores:
+   - Primary store: `/ext/client/src/store/settingsStore.ts` (CORRECT)
+   - Conflicting store: `/ext/client/src/features/settings/store/settingsStore.ts` (PROBLEMATIC)
+
+2. **Import Path Confusion**: The Physics tab imports from the WRONG path:
+   ```typescript
+   // WRONG - causes physics controls to not work
+   import { useSettingsStore } from '../store/settingsStore';
+   
+   // CORRECT - should import from here
+   import { useSettingsStore } from '../../../../store/settingsStore';
+   ```
+
+3. **State Inconsistency**: Changes made in Physics tab don't propagate to the backend because they're updating the wrong store.
+
+### The Solution
+1. **Fix Import Paths**: All components should import from `/ext/client/src/store/settingsStore.ts`
+2. **Remove Duplicate Store**: Delete the conflicting store in the features directory
+3. **Unified Settings Flow**: Ensure all UI components use the same store instance
+
 ## Overview
 
-The VisionFlow application uses a clean, single-source-of-truth settings system that provides:
+The VisionFlow application SHOULD use a clean, single-source-of-truth settings system that provides:
 - **Backend Settings (Rust)**: Server-side configuration loaded from settings.yaml
 - **REST API**: Clean camelCase JSON interface for settings operations
 - **Frontend Settings (React)**: TypeScript settings store with real-time updates
 - **User Persistence**: User-specific settings via Nostr authentication
 - **GPU Integration**: Physics settings automatically propagated to GPU compute
 
+**NOTE**: Due to the dual store issue above, the current implementation is BROKEN.
+
 ## Architecture
 
-The new settings system follows a clean data flow:
+The settings system SHOULD follow this clean data flow:
 
 ```
 Backend (Rust) → REST API → Frontend (React) → User Interface
@@ -19,10 +46,17 @@ Backend (Rust) → REST API → Frontend (React) → User Interface
    GPU Compute
 ```
 
+**Current BROKEN Flow (due to dual store issue):**
+```
+Backend (Rust) → REST API → Primary Store → Some UI Components
+                          ↘ Conflicting Store → Physics Tab (BROKEN)
+```
+
 ### Key Components
 - **SettingsActor**: Manages settings state in the Rust backend
 - **Settings REST API**: Provides GET/POST endpoints with camelCase JSON
-- **settingsStore**: Zustand store for frontend state management
+- **settingsStore** (PRIMARY): `/ext/client/src/store/settingsStore.ts` - The CORRECT store
+- **settingsStore** (CONFLICTING): `/ext/client/src/features/settings/store/settingsStore.ts` - CAUSES ISSUES
 - **SettingsService**: Handles API communication and validation
 
 ## Recent Improvements (2025)
@@ -101,6 +135,26 @@ This is the master configuration file that defines all default settings for the 
 Location: `/workspace/ext/client/src/features/settings/config/defaultSettings.ts`
 
 TypeScript configuration that provides client-side defaults with proper type safety. Uses camelCase for JavaScript/TypeScript compatibility and serves as a fallback during initialization.
+
+**CRITICAL**: This file defines physics parameters that should map to the UI controls:
+
+```typescript
+// Physics parameters and their UI mapping
+physics: {
+  enabled: true,                    // Enable/Disable Physics toggle
+  repulsionStrength: 15.0,         // Repulsion Strength slider
+  repulsionDistance: 50.0,         // Repulsion Distance slider  
+  springStrength: 0.02,            // Spring Strength slider
+  collisionRadius: 5.0,            // Collision Radius slider
+  bounds: 150.0,                   // Bounds Size slider
+  viewportBounds: 5000,            // Viewport Bounds slider
+  dampingFactor: 0.95,             // Damping Factor slider
+  maxVelocity: 10.0,               // Max Velocity slider
+  minDistance: 1.0,                // Min Distance slider
+  iterations: 200,                 // Iterations slider
+  deltaTime: 0.016                 // Delta Time slider
+}
+```
 
 ### 3. Simulation Parameters (simulation_params.rs)
 Location: `/workspace/ext/src/models/simulation_params.rs`
@@ -192,11 +246,17 @@ The IntegratedControlPanel component provides real-time settings adjustment with
 
 ### Sections:
 1. **Appearance**: Node/edge colors, sizes, materials, labels
-2. **Physics**: Force simulation parameters
+2. **Physics**: Force simulation parameters (**CURRENTLY BROKEN** due to dual store issue)
 3. **Visual FX**: Bloom, hologram, animations
 4. **Auth**: Nostr authentication
 5. **Data**: WebSocket, caching, compression
 6. **Info**: Debug settings, performance monitoring
+
+### Physics Tab Issue
+The Physics tab currently doesn't work because:
+1. It imports from the WRONG settings store path
+2. Changes made in Physics controls don't reach the backend
+3. The store state gets out of sync with the primary store
 
 ### SpacePilot Integration:
 - Buttons 1-6: Quick section switching
@@ -206,9 +266,15 @@ The IntegratedControlPanel component provides real-time settings adjustment with
 
 ## Frontend Settings Store
 
-The client uses Zustand for settings state management with validation and persistence:
+**CORRECT IMPORT PATH**: Always import from `/ext/client/src/store/settingsStore.ts`:
 
 ```typescript
+// CORRECT - Use this import
+import { useSettingsStore } from '../../../store/settingsStore';
+
+// WRONG - Do NOT use this import (causes Physics tab issues)
+// import { useSettingsStore } from '../store/settingsStore';
+
 // Get current settings
 const settings = useSettingsStore(state => state.settings);
 
@@ -216,17 +282,38 @@ const settings = useSettingsStore(state => state.settings);
 const { updateSettings } = useSettingsStore();
 updateSettings({
   visualisation: {
-    nodes: {
-      baseColor: '#00e5ff'
+    physics: {
+      repulsionStrength: 20.0  // This should work when using correct store
     }
   }
 });
 
-// Subscribe to specific changes
+// Subscribe to physics changes
 useSettingsStore.subscribe(
   state => state.settings.visualisation.physics,
   (physics) => console.log('Physics updated:', physics)
 );
+```
+
+### Settings.yaml Structure
+
+The backend settings.yaml should match the physics parameters:
+
+```yaml
+visualisation:
+  physics:
+    enabled: true
+    repulsion_strength: 15.0      # Maps to repulsionStrength
+    repulsion_distance: 50.0      # Maps to repulsionDistance
+    spring_strength: 0.02         # Maps to springStrength
+    collision_radius: 5.0         # Maps to collisionRadius
+    bounds: 150.0                 # Maps to bounds
+    viewport_bounds: 5000         # Maps to viewportBounds
+    damping_factor: 0.95          # Maps to dampingFactor
+    max_velocity: 10.0            # Maps to maxVelocity
+    min_distance: 1.0             # Maps to minDistance
+    iterations: 200               # Maps to iterations
+    delta_time: 0.016             # Maps to deltaTime
 ```
 
 ### Settings Validation
@@ -302,20 +389,81 @@ flowchart TD
 
 ## Best Practices
 
-1. **Always update both server and client defaults** when changing default values
-2. **Use proper case conversion** (snake_case for server, camelCase for client)
-3. **Test physics changes** with different graph sizes (10, 100, 1000+ nodes)
-4. **Enable bloom and hologram effects** for best visual quality
-5. **Monitor performance** with debug settings when adjusting render settings
-6. **Use Nostr authentication** for persistent user-specific settings
+1. **Always use the PRIMARY settings store**: Import from `/ext/client/src/store/settingsStore.ts` ONLY
+2. **Never create duplicate stores**: One source of truth for settings state
+3. **Update both server and client defaults** when changing default values
+4. **Use proper case conversion** (snake_case for server, camelCase for client)
+5. **Test physics changes** with different graph sizes (10, 100, 1000+ nodes)
+6. **Enable bloom and hologram effects** for best visual quality
+7. **Monitor performance** with debug settings when adjusting render settings
+8. **Use Nostr authentication** for persistent user-specific settings
+9. **Check Network tab** when debugging settings issues to verify API calls
+10. **Test all control panel tabs** after making store changes
+
+## Settings Configuration Examples
+
+### Correct Physics Settings for Different Use Cases
+
+**Small Graphs (10-50 nodes)**:
+```typescript
+physics: {
+  repulsionStrength: 10.0,
+  repulsionDistance: 30.0,
+  springStrength: 0.05,
+  bounds: 100.0
+}
+```
+
+**Medium Graphs (50-200 nodes)**:
+```typescript
+physics: {
+  repulsionStrength: 15.0,  // Default
+  repulsionDistance: 50.0,  // Default
+  springStrength: 0.02,     // Default
+  bounds: 150.0             // Default
+}
+```
+
+**Large Graphs (200+ nodes)**:
+```typescript
+physics: {
+  repulsionStrength: 25.0,
+  repulsionDistance: 75.0,
+  springStrength: 0.01,
+  bounds: 300.0,
+  viewportBounds: 10000
+}
+```
 
 ## Troubleshooting
 
+### 🚨 Physics Tab Not Working (CRITICAL)
+**Root Cause**: Dual settings store problem
+
+**Symptoms**:
+- Physics controls don't respond to changes
+- Sliders move but nothing happens in the visualization
+- Settings changes don't reach the backend
+- Console shows no API calls when adjusting physics settings
+
+**Solution**:
+1. Fix import path in Physics tab component:
+   ```typescript
+   // Change from:
+   import { useSettingsStore } from '../store/settingsStore';
+   // To:
+   import { useSettingsStore } from '../../../../store/settingsStore';
+   ```
+2. Remove the conflicting store file at `/ext/client/src/features/settings/store/settingsStore.ts`
+3. Verify all components use the primary store
+
 ### Nodes Still Clustering
-- Check that physics is enabled: `visualisation.graphs.logseq.physics.enabled = true`
+- **First**: Fix the Physics tab using steps above
+- Check that physics is enabled: `visualisation.physics.enabled = true`
 - Verify repulsion settings are applied: Check network tab for settings payload
 - Clear browser cache to ensure new defaults are loaded
 - Check simulation mode is set to "Remote" for GPU acceleration
+- Try increasing repulsion strength to 20.0+ and repulsion distance to 60.0+
 
 ### Visual Effects Not Showing
 - Ensure bloom is enabled: `visualisation.bloom.enabled = true`
@@ -324,10 +472,20 @@ flowchart TD
 - Check console for shader compilation errors
 
 ### Settings Not Persisting
+- **First**: Ensure using correct settings store (see Physics tab fix above)
 - Verify Nostr authentication is connected
-- Check network requests for 200 status on /api/user-settings/sync
+- Check network requests for 200 status on /api/settings endpoints
 - Ensure feature access permissions for user
 - Check server logs for settings actor errors
+- Monitor browser dev tools Network tab for API calls when changing settings
+
+### Import Path Debugging
+- Search codebase for `from '../store/settingsStore'` or similar relative paths
+- Replace with absolute imports from `/ext/client/src/store/settingsStore.ts`
+- Grep for duplicate useSettingsStore imports:
+  ```bash
+  grep -r "useSettingsStore" /workspace/ext/client/src/
+  ```
 
 ## Performance Optimization
 

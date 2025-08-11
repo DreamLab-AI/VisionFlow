@@ -1,12 +1,12 @@
 # Parallel Graph Architecture
 
-This document describes the parallel graph architecture that enables LogseqXR to run multiple independent graph visualizations simultaneously without data conflicts.
+This document describes the parallel graph architecture that enables VisionFlow to run multiple independent graph visualizations simultaneously using the unified GPU kernel and parallel graph coordinator.
 
 ## Overview
 
-The parallel graph system allows two (or more) independent graph visualizations to coexist:
-- **Logseq Graph**: Knowledge graph data from Logseq (nodes and edges from pages/blocks)
-- **VisionFlow Graph**: AI agent visualization data from Claude Flow MCP integration
+The parallel graph system allows two graph types to coexist with independent processing:
+- **Logseq Graph**: Knowledge graph data from Logseq markdown files (binary protocol)
+- **VisionFlow Graph**: AI agent visualization data from Claude Flow MCP integration (REST API)
 
 ## Architecture Components
 
@@ -17,17 +17,29 @@ The central orchestrator managing multiple graph systems:
 ```typescript
 class ParallelGraphCoordinator {
   private state: ParallelGraphState = {
-    logseq: { enabled: boolean, data: GraphData, lastUpdate: number },
-    visionflow: { enabled: boolean, agents: BotsAgent[], edges: BotsEdge[], ... }
+    logseq: {
+      enabled: boolean,
+      data: GraphData | null,
+      lastUpdate: number
+    },
+    visionflow: {
+      enabled: boolean,
+      agents: BotsAgent[],
+      edges: BotsEdge[],
+      tokenUsage: TokenUsage | null,
+      lastUpdate: number
+    }
   };
+  private listeners: Set<(state: ParallelGraphState) => void>;
 }
 ```
 
 **Key Responsibilities:**
-- Maintains separate state for each graph type
-- Coordinates data flow between different sources
-- Manages graph enable/disable states
-- Provides unified API for position queries
+- Singleton pattern for centralized graph state management
+- Independent enable/disable for each graph type
+- Event-driven updates to React components
+- Position map management for both graph types
+- Integration with both binary protocol and REST APIs
 
 ### 2. Graph Type System
 
@@ -42,44 +54,47 @@ if (graphDataManager.getGraphType() === 'logseq') {
 }
 ```
 
-### 3. Separate Physics Workers
+### 3. Unified Backend with Parallel Processing
 
-Each graph runs its own physics simulation in a dedicated web worker:
+Both graphs are processed by the unified CUDA kernel on the backend:
 
-- **`graph.worker.ts`**: Handles Logseq graph physics
-- **`botsPhysicsWorker.ts`**: Handles VisionFlow/bots physics
+- **Backend**: Unified GPU kernel processes both graphs with DualGraph mode
+- **Frontend**: `parallelGraphCoordinator` manages separate position maps
+- **Physics**: Different physics parameters applied per graph type
+- **Updates**: Binary protocol streams positions for both graphs
 
-This separation ensures:
-- No performance interference between graphs
-- Independent physics configurations
-- Parallel computation on multi-core systems
+This architecture ensures:
+- Optimal GPU utilization with single kernel
+- Independent graph lifecycle management
+- Efficient memory coalescing with Structure of Arrays
+- Real-time updates via WebSocket binary protocol
 
 ### 4. Data Flow Architecture
 
 #### Logseq Data Flow
 ```
-WebSocketService (binary protocol)
+File System Changes (markdown files)
     ↓
-graphDataManager (type check: 'logseq')
+Backend GraphServiceActor
     ↓
-graph.worker.ts (physics simulation)
+Unified GPU Kernel (DualGraph mode)
     ↓
-parallelGraphCoordinator.getLogseqPositions()
+WebSocketService (binary protocol position updates)
+    ↓
+parallelGraphCoordinator.logseqPositions
     ↓
 3D Rendering
 ```
 
 #### VisionFlow Data Flow
 ```
-Backend ClaudeFlowActor (MCP via stdio)
+Claude Flow MCP (port 3002)
     ↓
-REST API (/api/bots/agents)
+EnhancedClaudeFlowActor (direct WebSocket)
     ↓
-MCPWebSocketService (type: 'visionflow')
+REST API (/api/bots/agents) + Binary position updates
     ↓
-botsPhysicsWorker.ts (physics simulation)
-    ↓
-parallelGraphCoordinator.getVisionFlowPositions()
+parallelGraphCoordinator.visionFlowPositions
     ↓
 3D Rendering
 ```
@@ -162,18 +177,23 @@ type GraphType = 'logseq' | 'visionflow' | 'dependency' | 'flowchart';
 
 ## Implementation Details
 
-### WebSocket Handling
+### Data Protocol Integration
 
-The system uses different WebSocket connections:
-- **Main WebSocket** (`/wss`): Logseq graph data using binary protocol
-- **MCP Updates**: VisionFlow data via backend REST API (no direct WebSocket)
+The system uses multiple data channels:
+- **Binary Protocol WebSocket** (`/wss`): Position/velocity updates for both graphs
+- **REST API** (`/api/bots/*`): Agent metadata and status from MCP
+- **Direct MCP WebSocket**: Backend-only connection to Claude Flow
+
+Note: Frontend never connects directly to MCP - all agent data flows through backend.
 
 ### Binary Protocol Integration
 
-Logseq positions use an optimized binary protocol:
-- 28 bytes per node (ID, position, velocity)
+Both graph types use the unified binary protocol:
+- 28 bytes per node (ID, position, velocity) for both Logseq and agent nodes
+- Graph type differentiation handled by parallel coordinator
 - Compression for messages > 1KB
-- Processed in web worker to avoid blocking UI
+- Single WebSocket connection handles both graph streams
+- GPU processes both graphs in unified kernel with DualGraph mode
 
 ### Memory Management
 

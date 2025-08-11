@@ -1,23 +1,24 @@
 # MCP Integration Architecture
 
-VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) to orchestrate and visualize AI agent swarms in real-time.
+VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through the EnhancedClaudeFlowActor to orchestrate and visualize AI agent swarms in real-time.
 
 ## Overview
 
 The MCP integration enables VisionFlow to:
-- Spawn and manage AI agent swarms
-- Visualize agent interactions and task flow
+- Connect directly to Claude Flow via WebSocket (backend-only)
+- Visualize agent interactions through REST API to frontend
 - Monitor agent performance and resource usage
-- Coordinate multi-agent collaboration
+- Coordinate multi-agent collaboration in parallel graphs
 
 ## Architecture
 
 ```mermaid
 graph LR
     subgraph "VisionFlow Backend"
-        CFA[ClaudeFlowActor] -->|WebSocket| MCP
-        GSA[GraphServiceActor] --> CFA
-        API[REST API] --> CFA
+        ECFA[EnhancedClaudeFlowActor] -->|Direct WebSocket| MCP
+        GSA[GraphServiceActor] --> ECFA
+        API[REST API] --> ECFA
+        PGC[ParallelGraphCoordinator] --> GSA
     end
     
     subgraph "Claude Flow Container"
@@ -27,9 +28,9 @@ graph LR
     end
     
     subgraph "Frontend"
-        UI[React UI] -->|REST| API
-        UI -->|WebSocket| GSA
-        UI -.->|No Direct Connection| MCP
+        UI[React UI] -->|REST /api/bots/*| API
+        UI -->|WebSocket Binary Protocol| GSA
+        UI -.->|No Direct MCP Access| MCP
     end
 ```
 
@@ -48,19 +49,27 @@ pub struct ClaudeFlowActor {
 }
 ```
 
-### 2. WebSocket Protocol
+### 2. Enhanced WebSocket Integration
 
-The backend connects to Claude Flow via WebSocket on port 3002:
+The EnhancedClaudeFlowActor maintains a direct WebSocket connection:
 
 ```rust
-async fn connect_to_claude_flow() -> Result<WebSocketStream> {
-    let host = env::var("CLAUDE_FLOW_HOST")
-        .unwrap_or("multi-agent-container".to_string());
-    let port = env::var("CLAUDE_FLOW_PORT")
-        .unwrap_or("3002".to_string());
-    let url = format!("ws://{}:{}/mcp", host, port);
-    
-    let (ws_stream, _) = connect_async(&url).await?;
+pub struct EnhancedClaudeFlowActor {
+    _client: ClaudeFlowClient,
+    graph_service_addr: Addr<GraphServiceActor>,
+    is_connected: bool,
+    ws_connection: Option<Arc<RwLock<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
+    agent_cache: HashMap<String, AgentStatus>,
+    message_flow_history: Vec<MessageFlowEvent>,
+    pending_additions: Vec<AgentStatus>,
+    pending_removals: Vec<String>,
+    pending_updates: Vec<AgentUpdate>,
+}
+
+// Direct WebSocket connection to Claude Flow
+async fn establish_mcp_connection() -> Result<WebSocketStream> {
+    let url = "ws://multi-agent-container:3002/mcp";
+    let (ws_stream, _) = connect_async(url).await?;
     Ok(ws_stream)
 }
 ```
@@ -167,70 +176,91 @@ let subscribe_req = json!({
 sequenceDiagram
     participant UI as Frontend
     participant API as REST API
-    participant CFA as ClaudeFlowActor
+    participant ECFA as EnhancedClaudeFlowActor
     participant MCP as MCP Server
     participant CF as Claude Flow
     
-    UI->>API: POST /api/bots/initialize-swarm
-    API->>CFA: InitializeSwarm message
-    CFA->>MCP: swarm.initialize
+    UI->>API: POST /api/bots/swarm/init
+    API->>ECFA: InitializeSwarm message
+    ECFA->>MCP: Direct WebSocket: swarm.initialize
     MCP->>CF: Create agents
     CF-->>MCP: Agent IDs
-    MCP-->>CFA: Swarm created
-    CFA->>CFA: Start telemetry stream
-    CFA-->>API: Success
-    API-->>UI: 200 OK
+    MCP-->>ECFA: Swarm created via WebSocket
+    ECFA->>ECFA: Update agent_cache
+    ECFA->>API: Push to GraphServiceActor
+    API-->>UI: 200 OK + agent data
 ```
 
-### 2. Telemetry Streaming
+### 2. Agent Data Flow
 
 ```mermaid
 sequenceDiagram
     participant MCP as MCP Server
-    participant CFA as ClaudeFlowActor
+    participant ECFA as EnhancedClaudeFlowActor
     participant GSA as GraphServiceActor
     participant GPU as GPUComputeActor
-    participant WS as WebSocket Client
+    participant UI as Frontend
+    participant WS as WebSocket Binary
     
     loop Every 100ms
-        MCP->>CFA: Telemetry event
-        CFA->>CFA: Process update
-        CFA->>GSA: UpdateBotsGraph
-        GSA->>GPU: ComputeForces
-        GPU-->>GSA: Positions
-        GSA->>WS: Binary update
+        MCP->>ECFA: Agent telemetry via WebSocket
+        ECFA->>ECFA: Update agent_cache
+        ECFA->>GSA: UpdateBotsGraph
+        GSA->>GPU: Unified kernel with DualGraph mode
+        GPU-->>GSA: Updated positions
+        GSA->>WS: Binary protocol position updates
+    end
+    
+    loop Every 10s
+        UI->>API: GET /api/bots/agents
+        API->>ECFA: Request cached agents
+        ECFA-->>API: Return agent_cache
+        API-->>UI: JSON agent data
     end
 ```
 
 ## Actor Integration
 
-### ClaudeFlowActor
+### EnhancedClaudeFlowActor
 
-Manages MCP connection and agent state:
+Manages direct MCP WebSocket connection and differential updates:
 
 ```rust
-impl ClaudeFlowActor {
-    // Handle incoming telemetry
-    fn handle_telemetry_event(&mut self, event: MCPEvent) {
-        match event.event_type {
-            "agent.spawned" => self.add_agent(event.data),
-            "agent.terminated" => self.remove_agent(event.data.id),
-            "agent.status" => self.update_agent(event.data),
-            "message.sent" => self.add_message_flow(event.data),
-            _ => {}
+impl EnhancedClaudeFlowActor {
+    // Handle incoming WebSocket messages
+    fn handle_websocket_message(&mut self, message: WsMessage) {
+        if let Ok(event) = serde_json::from_slice::<MCPEvent>(&message.into_data()) {
+            match event.event_type.as_str() {
+                "agent.spawned" => {
+                    self.pending_additions.push(event.data.into());
+                }
+                "agent.terminated" => {
+                    self.pending_removals.push(event.data.id);
+                }
+                "agent.status" => {
+                    self.pending_updates.push(event.data.into());
+                }
+                "message.flow" => {
+                    self.message_flow_history.push(event.data.into());
+                }
+                _ => {}
+            }
         }
         
-        // Push to graph service
-        self.push_to_graph();
+        // Apply differential updates
+        self.apply_pending_changes();
     }
     
-    // Convert to graph format
-    fn push_to_graph(&self) {
-        let graph_data = self.to_graph_data();
-        self.graph_service_addr.do_send(UpdateBotsGraph {
-            nodes: graph_data.nodes,
-            edges: graph_data.edges,
-        });
+    // Push changes to parallel graph system
+    fn apply_pending_changes(&mut self) {
+        if self.has_changes() {
+            let graph_data = self.build_graph_data();
+            self.graph_service_addr.do_send(UpdateBotsGraph {
+                agents: graph_data.agents,
+                edges: graph_data.edges,
+                communications: self.message_flow_history.clone(),
+            });
+        }
     }
 }
 ```

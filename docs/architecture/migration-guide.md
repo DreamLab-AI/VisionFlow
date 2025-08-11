@@ -1,116 +1,120 @@
 # Architecture Migration Guide
 
-This guide helps developers migrate from the old single-graph architecture to the new parallel graphs architecture with integrated Claude Flow MCP support.
+This guide helps developers understand the current VisionFlow architecture with unified GPU compute and parallel graphs.
 
-## Overview of Changes
+## Current Architecture (v2.0)
 
-### Old Architecture
-- Single graph visualization (Logseq only)
-- Direct WebSocket connections from frontend to MCP
-- Stdio integration documentation in root docs
-- No agent visualization support
+### Unified System Features
+- **Unified GPU Kernel**: Single CUDA kernel (`visionflow_unified.cu`) with 4 compute modes
+- **Parallel Graphs**: Independent Logseq and VisionFlow graph processing
+- **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
+- **Enhanced Performance**: Structure of Arrays memory layout, optimized binary protocol
+- **Comprehensive Agent Visualization**: Real-time agent swarm visualization
 
-### New Architecture
-- Parallel graphs (Logseq + VisionFlow)
-- MCP connections handled by backend only
-- Comprehensive architecture docs
-- Full agent visualization with physics
+### Key Components
+- **EnhancedClaudeFlowActor**: Direct WebSocket MCP connection with differential updates
+- **ParallelGraphCoordinator**: Frontend coordinator managing both graph types
+- **Unified GPU Compute**: Single kernel handling all physics modes
+- **Binary Protocol**: Efficient position/velocity streaming for both graphs
 
-## Migration Steps
+## Current Implementation Patterns
 
-### 1. Update Graph Components
+### 1. Graph Component Usage
 
-**Old Pattern:**
-```typescript
-// Direct graphDataManager usage
-import { graphDataManager } from '@/features/graph/managers/graphDataManager';
-
-const data = await graphDataManager.fetchInitialData();
-graphDataManager.updateNodePositions(binaryData);
-```
-
-**New Pattern:**
+**Recommended Pattern (Current):**
 ```typescript
 // Use parallel graphs hook
 import { useParallelGraphs } from '@/features/graph/hooks/useParallelGraphs';
 
-const { 
-  logseqPositions, 
-  visionFlowPositions,
-  enableLogseq,
-  enableVisionFlow 
-} = useParallelGraphs({
-  enableLogseq: true,
-  enableVisionFlow: true
-});
+function GraphVisualization() {
+  const { 
+    logseqPositions, 
+    visionFlowPositions,
+    enableLogseq,
+    enableVisionFlow,
+    state
+  } = useParallelGraphs({
+    enableLogseq: true,
+    enableVisionFlow: true,
+    autoConnect: true
+  });
+  
+  // Use positions from both graphs in rendering
+  return <Canvas positions={new Map([...logseqPositions, ...visionFlowPositions])} />;
+}
 ```
 
-### 2. Update WebSocket Connections
+### 2. Agent Data Integration
 
-**Old Pattern:**
+**Current Implementation:**
 ```typescript
-// Direct MCP WebSocket from frontend
-const mcpSocket = new WebSocket('ws://localhost:3000/mcp');
-mcpSocket.onmessage = (event) => {
-  // Process MCP data
-};
-```
-
-**New Pattern:**
-```typescript
-// Use REST API for agent data
+// Backend handles MCP via EnhancedClaudeFlowActor
+// Frontend uses REST API for agent metadata
 const response = await fetch('/api/bots/agents');
-const { agents } = await response.json();
+const { agents, communications } = await response.json();
 
-// Or use MCPWebSocketService
-import { mcpWebSocketService } from '@/features/bots/services/MCPWebSocketService';
-const agents = await mcpWebSocketService.getAgents();
+// Position updates come via binary protocol WebSocket
+// ParallelGraphCoordinator automatically handles both graph types
+const coordinator = parallelGraphCoordinator;
+coordinator.enableVisionFlow(true);
+
+// Positions are updated automatically via WebSocket binary protocol
+const agentPositions = coordinator.getVisionFlowPositions();
 ```
 
-### 3. Update Physics Workers
+### 3. Physics Processing
 
-**Old Pattern:**
+**Current Implementation:**
 ```typescript
-// Single physics worker
-import { graphWorkerProxy } from '@/features/graph/managers/graphWorkerProxy';
-graphWorkerProxy.updatePositions(nodes);
+// Physics is handled by unified backend kernel
+// No frontend physics workers needed
+// ParallelGraphCoordinator manages position updates from binary protocol
+
+// Configuration via settings
+const config = {
+  gpu: {
+    compute_mode: 'dual_graph', // Use DualGraph mode for parallel processing
+    unified_kernel: {
+      block_size: 256,
+      ptx_path: 'src/utils/ptx/visionflow_unified.ptx'
+    }
+  }
+};
+
+// Backend automatically processes both graphs in unified kernel
+// Frontend receives position updates via WebSocket
 ```
 
-**New Pattern:**
-```typescript
-// Graph type specific workers
-// Logseq uses graphWorkerProxy (unchanged)
-// VisionFlow uses botsPhysicsWorker
-import { botsPhysicsWorker } from '@/features/bots/workers/botsPhysicsWorker';
-botsPhysicsWorker.updateAgents(agents);
-botsPhysicsWorker.updateEdges(edges);
-```
+### 4. Backend Integration
 
-### 4. Update Backend Integration
-
-**Old Pattern:**
+**Current Implementation:**
 ```rust
-// Direct stdio integration in main code
-let client = ClaudeFlowClientBuilder::new()
-    .use_stdio()
-    .build()
-    .await?;
-```
+// EnhancedClaudeFlowActor with direct WebSocket to MCP
+let enhanced_actor = EnhancedClaudeFlowActor::new(
+    claude_flow_client,
+    graph_service_addr.clone()
+);
+let enhanced_addr = enhanced_actor.start();
 
-**New Pattern:**
-```rust
-// Use ClaudeFlowActor
-let claude_flow_actor = ClaudeFlowActor::new(graph_service_addr).await;
-ctx.spawn(claude_flow_actor);
-
-// Send messages to actor
-claude_flow_addr.send(InitializeSwarm {
-    topology: "hierarchical".to_string(),
+// Actor handles WebSocket connection automatically
+// Differential updates with pending changes
+enhanced_addr.send(InitializeSwarm {
+    topology: SwarmTopology::Hierarchical,
     max_agents: 8,
-    agent_types: vec!["coordinator", "researcher", "coder"],
+    agent_types: vec![
+        AgentType::Coordinator,
+        AgentType::Researcher,
+        AgentType::Coder
+    ],
     enable_neural: true,
-    custom_prompt: None,
 }).await?;
+
+// Unified GPU kernel processes both graphs
+let gpu_actor = GPUComputeActor::new_with_unified_kernel()?;
+let sim_params = SimParams {
+    compute_mode: ComputeMode::DualGraph as i32,
+    // ... other physics parameters
+};
 ```
 
 ### 5. Update Configuration
