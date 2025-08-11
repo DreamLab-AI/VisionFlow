@@ -1,5 +1,8 @@
 # Parallel Graphs Feature
 
+**STATUS**: Multi-graph settings structure implemented ✅  
+**ISSUE**: Some components may have dual store import conflicts ⚠️
+
 This document provides comprehensive documentation for the parallel graphs feature that enables simultaneous visualization of multiple graph data sources with independent visual configurations.
 
 ## Overview
@@ -10,11 +13,11 @@ The parallel graphs feature allows the application to visualize multiple graph d
 
 ### Multi-Graph Settings Structure
 
-The application now uses a nested settings structure to support multiple graphs:
+The application now uses a nested settings structure to support multiple graphs (✅ **IMPLEMENTED**):
 
 ```typescript
 interface VisualisationSettings {
-  // Graph-specific settings
+  // Graph-specific settings (NEW STRUCTURE)
   graphs: {
     logseq: GraphSettings;      // Blue/purple theme
     visionflow: GraphSettings;   // Green theme
@@ -26,8 +29,21 @@ interface VisualisationSettings {
   bloom: BloomSettings;
   hologram: HologramSettings;
   camera?: CameraSettings;
+  
+  // Legacy compatibility fields (DEPRECATED - being migrated away)
+  nodes?: NodeSettings;     // ⚠️ Will be removed
+  edges?: EdgeSettings;     // ⚠️ Will be removed  
+  physics?: PhysicsSettings; // ⚠️ Will be removed
+  labels?: LabelSettings;   // ⚠️ Will be removed
 }
 ```
+
+**Migration Status**:
+- ✅ Settings structure supports both old and new formats
+- ✅ Automatic migration from legacy to multi-graph structure
+- ✅ `migrateToMultiGraphSettings()` function implemented
+- ✅ `getGraphSettings()` helper for backward compatibility
+- ⚠️ Some UI components may still use legacy structure
 
 ### Key Components
 
@@ -73,32 +89,51 @@ graphRegistry.register({
 
 ### Theme Configuration
 
-Each graph has its own visual theme:
+Each graph has its own visual theme (✅ **IMPLEMENTED** in `defaultSettings.ts`):
 
 ```typescript
-// Logseq theme (Blue/Purple)
+// Logseq theme (Blue/Purple) - ACTUAL IMPLEMENTATION
 const logseqTheme = {
   nodes: {
     baseColor: '#4B5EFF',
+    nodeSize: 8,
     metalness: 0.4,
-    roughness: 0.6
+    roughness: 0.6,
+    opacity: 1,
+    quality: 'medium' as const,
+    enableInstancing: true,
+    enableHologram: true,
+    enableMetadataShape: false,
+    enableMetadataVisualisation: true
   },
   edges: {
     color: '#F59E0B',
-    glowStrength: 0.5
+    baseWidth: 2,
+    opacity: 0.8,
+    enableArrows: true,
+    glowStrength: 0.5,
+    enableFlowEffect: false,
+    flowSpeed: 1,
+    flowIntensity: 0.5,
+    // ... more edge settings
   }
 };
 
-// VisionFlow theme (Green)
+// VisionFlow theme (Green) - ACTUAL IMPLEMENTATION
 const visionflowTheme = {
   nodes: {
     baseColor: '#10B981',
+    nodeSize: 10,
     metalness: 0.3,
-    roughness: 0.7
+    roughness: 0.7,
+    opacity: 0.9,
+    // ... matches NodeSettings interface
   },
   edges: {
     color: '#34D399',
-    glowStrength: 0.6
+    baseWidth: 3,
+    glowStrength: 0.6,
+    // ... matches EdgeSettings interface
   }
 };
 ```
@@ -137,11 +172,18 @@ interface GraphSelectorProps {
 
 ### Settings Panel
 
-The settings panel provides graph-specific controls:
+The settings panel provides graph-specific controls (⚠️ **PARTIALLY IMPLEMENTED**):
 
-1. **Graph Tabs**: Switch between graph settings
-2. **Theme Presets**: Quick theme selection
-3. **Fine Controls**: Detailed customization per graph
+1. **Graph Selector**: Component exists but may have store import issues
+2. **Multi-graph Settings**: Structure supports it but UI may not be fully connected
+3. **Theme Presets**: Available in default settings but UI needs verification
+4. **Fine Controls**: Individual controls exist but need proper graph context
+
+**Implementation Status**:
+- ✅ `GraphSelector.tsx` component exists
+- ✅ Settings structure supports graph-specific namespaces
+- ⚠️ Settings panel may use wrong store import
+- ❌ Full graph switching UI may not be implemented
 
 ### Viewport Modes
 
@@ -170,20 +212,34 @@ Three viewport modes are supported:
 
 ### Loading Multiple Graphs
 
+**Current Implementation Status**: Settings support multi-graph, but graph manager integration needs verification.
+
 ```typescript
+// CONCEPTUAL - May not be fully implemented yet
 // Load Logseq graph
 await graphManager.loadGraph({
   type: GraphType.LOGSEQ,
-  source: '/api/logseq/graph',
-  settings: settings.visualisation.graphs.logseq
+  source: '/api/logseq/graph',  
+  settings: settings.visualisation.graphs.logseq  // ✅ This structure exists
 });
 
-// Load VisionFlow graph
+// Load VisionFlow graph  
 await graphManager.loadGraph({
   type: GraphType.VISIONFLOW,
   source: '/api/visionflow/graph',
-  settings: settings.visualisation.graphs.visionflow
+  settings: settings.visualisation.graphs.visionflow  // ✅ This structure exists
 });
+
+// ACTUAL CURRENT USAGE - Single graph with settings migration
+const graphSettings = getGraphSettings(settings, 'logseq'); // ✅ This works
+// Graph manager uses these migrated settings
+```
+
+**Integration Reality Check**:
+- ✅ Settings structure supports multiple graphs
+- ✅ Migration functions handle legacy→multi-graph conversion  
+- ❓ Graph manager may still expect single graph format
+- ❓ WebSocket protocol may need updates for multi-graph support
 ```
 
 ### WebSocket Updates

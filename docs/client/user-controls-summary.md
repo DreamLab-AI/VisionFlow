@@ -1,8 +1,10 @@
 # User Controls Summary - Settings Panel
 
+⚠️ **CURRENT STATUS**: Controls may not respond correctly due to dual store issue. See settings-migration.md for details.
+
 ## Intuitive Features Implemented
 
-### 1. **Smart Control Type Selection**
+### 1. **Smart Control Type Selection** (✅ IMPLEMENTED)
 The system automatically selects the most appropriate control type based on the `controlType` specified in the `UISettingDefinition` (from [`client/src/features/settings/config/settingsUIDefinition.ts`](../../client/src/features/settings/config/settingsUIDefinition.ts)) and the data type of the setting. Key control types rendered by [`SettingControlComponent.tsx`](../../client/src/features/settings/components/SettingControlComponent.tsx) include:
 
 -   **`toggle`**: For boolean values (on/off settings) -> Renders a Switch.
@@ -81,15 +83,48 @@ The system automatically selects the most appropriate control type based on the 
 ## Implementation Details
 
 The controls are implemented in [`SettingControlComponent.tsx`](../../client/src/features/settings/components/SettingControlComponent.tsx) with:
-- React hooks for state management (getting/setting values via `useSettingsStore`).
-- Logic to determine the appropriate UI control based on `UISettingDefinition`.
-- Custom debounce hook for input optimization on text/number inputs.
-- TypeScript for type safety.
-- Tailwind CSS for consistent styling.
-- Lucide React icons for visual elements (e.g., tooltips, password visibility).
+- React hooks for state management (getting/setting values via `useSettingsStore`)
+- ⚠️ **CRITICAL**: Must use correct store import: `/store/settingsStore` not `/features/settings/store/settingsStore`
+- Logic to determine appropriate UI control based on `UISettingDefinition`
+- Custom debounce hook for input optimization (300ms delay)
+- TypeScript for type safety with proper Settings interface
+- Tailwind CSS for consistent styling
+- Lucide React icons for visual elements (tooltips, password visibility)
+
+**Working Store Import**:
+```typescript
+// ✅ CORRECT
+import { useSettingsStore } from '../../../store/settingsStore';
+
+// ❌ WRONG (breaks functionality)
+import { useSettingsStore } from '../store/settingsStore';
+```
+
+**Multi-Graph Settings Support**:
+```typescript
+// Access graph-specific settings
+const logseqNodeColor = useSettingsStore(
+  state => state.settings?.visualisation?.graphs?.logseq?.nodes?.baseColor
+);
+
+// Update graph-specific settings
+setValue(newValue) {
+  updateSettings(draft => {
+    draft.visualisation.graphs.logseq.nodes.baseColor = newValue;
+  });
+}
+```
 
 All controls follow the same pattern:
-1. Receive value and onChange from parent
-2. Manage local state for debouncing if needed
-3. Validate input before calling onChange
-4. Provide appropriate visual feedback
+1. Receive value and onChange from parent (via settings store)
+2. Manage local state for debouncing if needed (300ms for text/number inputs)
+3. Validate input before calling onChange (especially for colors, numbers)
+4. Provide appropriate visual feedback (hover, focus, validation states)
+5. ✅ **Real-time updates**: Changes immediately affect visualization via viewport settings
+6. ✅ **Auto-save**: Changes are automatically persisted to server after debounce
+
+**Control Responsiveness**:
+- ✅ Sliders: Live value updates with immediate visual feedback
+- ✅ Color pickers: Real-time color changes in 3D scene  
+- ✅ Toggles: Instant enable/disable of features
+- ⚠️ **IF BROKEN**: Check store import in component files
