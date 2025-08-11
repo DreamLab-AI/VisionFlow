@@ -715,7 +715,7 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
                     let constraint_data: Vec<crate::utils::unified_gpu_compute::ConstraintData> = self.constraints.iter()
                         .map(|c| crate::utils::unified_gpu_compute::ConstraintData {
                             constraint_type: 0, // Basic constraint type
-                            strength: c.strength.unwrap_or(1.0),
+                            strength: c.weight,
                             param1: 0.0,
                             param2: 0.0,
                             node_mask: 0,

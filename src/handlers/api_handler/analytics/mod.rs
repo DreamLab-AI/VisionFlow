@@ -375,11 +375,11 @@ pub async fn set_kernel_mode(
     if let Some(mode) = request.get("mode").and_then(|m| m.as_str()) {
         // Convert string mode to ComputeMode enum
         let compute_mode = match mode {
-            "legacy" => crate::actors::gpu_compute_actor::ComputeMode::Legacy,
+            "legacy" => crate::actors::gpu_compute_actor::ComputeMode::Basic,
             "dual_graph" => crate::actors::gpu_compute_actor::ComputeMode::DualGraph,
             "advanced" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
             // Accept alternate names for compatibility
-            "standard" => crate::actors::gpu_compute_actor::ComputeMode::Legacy,
+            "standard" => crate::actors::gpu_compute_actor::ComputeMode::Basic,
             // Note: "visual_analytics" maps to Advanced ComputeMode, which triggers
             // automatic selection of KernelMode::VisualAnalytics when appropriate
             "visual_analytics" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
