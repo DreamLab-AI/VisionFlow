@@ -4,8 +4,8 @@ use std::time::Duration;
 use log::{info, warn, error, debug};
 use serde_json::{json, Value};
 
-use crate::services::claude_flow::{
-    client::ClaudeFlowClient,
+use crate::types::claude_flow::{
+    ClaudeFlowClient,
     client_builder::ClaudeFlowClientBuilder,
     error::Result as McpResult,
 };
@@ -251,7 +251,7 @@ impl Handler<CallTool> for ClaudeFlowActorTcp {
             
             return Box::pin(
                 async move {
-                    Err(crate::services::claude_flow::error::ConnectorError::NotConnected.into())
+                    Err(crate::types::claude_flow::ConnectorError::NotConnected.into())
                 }
                 .into_actor(self)
             );
@@ -264,7 +264,7 @@ impl Handler<CallTool> for ClaudeFlowActorTcp {
                 if let Some(mut client) = client {
                     client.call_tool(&msg.name, msg.arguments).await
                 } else {
-                    Err(crate::services::claude_flow::error::ConnectorError::NotConnected.into())
+                    Err(crate::types::claude_flow::ConnectorError::NotConnected.into())
                 }
             }
             .into_actor(self)
@@ -300,7 +300,7 @@ impl Handler<ListTools> for ClaudeFlowActorTcp {
             
             return Box::pin(
                 async move {
-                    Err(crate::services::claude_flow::error::ConnectorError::NotConnected.into())
+                    Err(crate::types::claude_flow::ConnectorError::NotConnected.into())
                 }
                 .into_actor(self)
             );
@@ -314,7 +314,7 @@ impl Handler<ListTools> for ClaudeFlowActorTcp {
                     let tools = client.list_tools().await?;
                     Ok(tools.into_iter().map(|t| t.name).collect())
                 } else {
-                    Err(crate::services::claude_flow::error::ConnectorError::NotConnected.into())
+                    Err(crate::types::claude_flow::ConnectorError::NotConnected.into())
                 }
             }
             .into_actor(self)

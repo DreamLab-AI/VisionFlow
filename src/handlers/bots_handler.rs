@@ -9,7 +9,6 @@ use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams};
 use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetCachedAgentStatuses};
 use crate::services::bots_client::BotsClient;
-// use crate::services::claude_flow::mcp_tools::McpTool;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
@@ -100,163 +99,9 @@ use once_cell::sync::Lazy;
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
     Lazy::new(|| Arc::new(RwLock::new(GraphData::new())));
 
-// UPDATED: Function to fetch live agent data from claude-flow hive-mind via MCP
-async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
-    if let Some(claude_flow_addr) = &state.claude_flow_addr {
-        info!("Fetching live hive-mind agent data via ClaudeFlowActor");
-        
-        use crate::actors::messages::GetCachedAgentStatuses;
-        use crate::services::claude_flow::{/*McpTool,*/ AgentType as ClaudeAgentType};
-        
-        match claude_flow_addr.send(GetCachedAgentStatuses).await {
-            Ok(Ok(agent_statuses)) => {
-                info!("Successfully fetched {} agents from ClaudeFlowActor", agent_statuses.len());
-                
-                // Convert MCP AgentStatus to BotsAgent
-                let mut bots_agents: Vec<BotsAgent> = agent_statuses.into_iter().map(|agent| {
-                    // Map claude-flow agent types to visualization types
-                    let agent_type = match agent.profile.agent_type {
-                        ClaudeAgentType::Coordinator => "coordinator",
-                        ClaudeAgentType::Researcher => "researcher",
-                        ClaudeAgentType::Coder => "coder",
-                        ClaudeAgentType::Analyst => "analyst",
-                        ClaudeAgentType::Architect => "architect",
-                        ClaudeAgentType::Tester => "tester",
-                        ClaudeAgentType::Reviewer => "reviewer",
-                        ClaudeAgentType::Optimizer => "optimizer",
-                        ClaudeAgentType::Documenter => "documenter",
-                        ClaudeAgentType::Monitor => "monitor",
-                        ClaudeAgentType::Specialist => "specialist",
-                        ClaudeAgentType::Queen => "queen"
-                    };
-                    
-                    // Extract current task from metadata or use active task count
-                    let current_task = agent.current_task.map(|t| t.description).or_else(|| {
-                        if agent.active_tasks_count > 0 {
-                            Some(format!("Processing {} active tasks", agent.active_tasks_count))
-                        } else {
-                            None
-                        }
-                    });
-                    
-                    // Calculate activity level (0-1 based on active tasks vs max)
-                    let activity = if agent.profile.max_concurrent_tasks > 0 {
-                        (agent.active_tasks_count as f32 / agent.profile.max_concurrent_tasks as f32).min(1.0)
-                    } else {
-                        0.0
-                    };
-                    
-                    // Determine swarm_id from session or metadata
-                    let _swarm_id = agent.metadata.get("swarm_id")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string())
-                        .or_else(|| Some(agent.session_id.clone()));
-                    
-                    // Determine agent mode based on capabilities
-                    let _agent_mode = if agent.profile.capabilities.contains(&"distributed".to_string()) {
-                        Some("distributed".to_string())
-                    } else if agent.profile.capabilities.contains(&"strategic".to_string()) {
-                        Some("strategic".to_string())
-                    } else {
-                        Some("centralized".to_string())
-                    };
-                    
-                    // Calculate token rate (tokens per second)
-                    let token_rate = if agent.total_execution_time > 0 {
-                        (agent.metadata.get("total_tokens")
-                            .and_then(|v| v.as_u64())
-                            .unwrap_or(0) as f32) / (agent.total_execution_time as f32 / 1000.0)
-                    } else {
-                        0.0
-                    };
-                    
-                    // Calculate CPU usage based on activity and execution time
-                    let _cpu_usage = (activity * 100.0 * 0.8 + (token_rate / 20.0).min(20.0)).min(100.0);
-                    
-                    // Calculate health based on success rate and activity
-                    let _health = agent.success_rate.min(100.0);
-                    
-                    // Calculate workload based on active tasks
-                    let workload = activity;
-                    
-                    BotsAgent {
-                        id: agent.agent_id,
-                        agent_type: agent_type.to_string(),
-                        status: agent.status,
-                        name: agent.profile.name,
-                        cpu_usage: agent.cpu_usage as f32,
-                        memory_usage: agent.memory_usage as f32,
-                        health: agent.health as f32,
-                        workload,
-                        capabilities: Some(agent.profile.capabilities),
-                        current_task: current_task,
-                        tasks_active: Some(agent.tasks_active),
-                        tasks_completed: Some(agent.performance_metrics.tasks_completed),
-                        success_rate: Some(agent.performance_metrics.success_rate as f32),
-                        tokens: Some(agent.token_usage.total),
-                        token_rate: Some(agent.token_usage.token_rate as f32),
-                        activity: Some(agent.activity as f32),
-                        swarm_id: agent.swarm_id,
-                        agent_mode: agent.agent_mode,
-                        parent_queen_id: agent.parent_queen_id,
-                        processing_logs: agent.processing_logs,
-                        created_at: Some(agent.timestamp.to_rfc3339()),
-                        age: Some(chrono::Utc::now().timestamp_millis() as u64 - agent.timestamp.timestamp_millis() as u64),
-                        // Add missing fields with default values
-                        position: Vec3::new(0.0, 0.0, 0.0),
-                        velocity: Vec3::ZERO,
-                        force: Vec3::ZERO,
-                        connections: vec![],
-                    }
-                }).collect();
-                
-                // Establish hierarchical relationships
-                // Find Queen and Coordinator agents (acting as leaders)
-                let queen_ids: Vec<String> = bots_agents.iter()
-                    .filter(|a| a.agent_type == "queen" || a.agent_type == "coordinator")
-                    .map(|a| a.id.clone())
-                    .collect();
-                
-                // If we have leaders, assign parent relationships if not already set
-                if !queen_ids.is_empty() {
-                    // Create a mapping of swarm_id to leader_id (prioritize queen, then coordinator)
-                    let swarm_leaders: std::collections::HashMap<String, String> = bots_agents.iter()
-                        .filter(|a| a.agent_type == "queen" || a.agent_type == "coordinator")
-                        .filter_map(|a| a.swarm_id.as_ref().map(|s| (s.clone(), a.id.clone())))
-                        .collect();
-                    
-                    for agent in &mut bots_agents {
-                        if agent.agent_type != "queen" && agent.agent_type != "coordinator" && agent.parent_queen_id.is_none() {
-                            // Assign to a leader based on swarm_id or round-robin
-                            if let Some(swarm_id) = &agent.swarm_id {
-                                // Try to find a leader in the same swarm
-                                agent.parent_queen_id = swarm_leaders.get(swarm_id)
-                                    .cloned()
-                                    .or_else(|| queen_ids.first().cloned());
-                            } else {
-                                // Assign to first leader if no swarm_id
-                                agent.parent_queen_id = queen_ids.first().cloned();
-                            }
-                        }
-                    }
-                }
-                
-                Ok(bots_agents)
-            }
-            Ok(Err(e)) => {
-                error!("ClaudeFlowActor returned error: {}", e);
-                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)))
-            }
-            Err(e) => {
-                error!("Failed to communicate with ClaudeFlowActor: {}", e);
-                Err(Box::new(e))
-            }
-        }
-    } else {
-        // No claude-flow connection available (legacy MCP client path removed)
-        warn!("No Claude Flow connection available (neither actor nor MCP client)");
-        Ok(vec![]) // Return empty instead of error to allow graceful fallback
-    }
+async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
+    warn!("No Claude Flow connection available (neither actor nor MCP client)");
+    Ok(vec![]) // Return empty instead of error to allow graceful fallback
 }
 
 // UPDATED: Enhanced agent to nodes conversion with hive-mind properties and Queen agent special handling
@@ -912,74 +757,13 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
 }
 
 // Initialize swarm endpoint
-// Get agent telemetry from ClaudeFlowActor
 pub async fn get_agent_telemetry(
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
-    info!("Getting agent telemetry");
-    
-    if let Some(claude_flow_addr) = &state.claude_flow_addr {
-        match claude_flow_addr.send(GetCachedAgentStatuses).await {
-            Ok(Ok(agents)) => {
-                // Convert AgentStatus to BotsAgent format
-                let bot_agents: Vec<BotsAgent> = agents.into_iter().map(|agent| {
-                    BotsAgent {
-                        id: agent.agent_id.clone(),
-                        agent_type: format!("{:?}", agent.profile.agent_type),
-                        status: agent.status,
-                        name: agent.profile.name,
-                        cpu_usage: agent.cpu_usage as f32,
-                        memory_usage: agent.memory_usage as f32,
-                        health: agent.health as f32,
-                        workload: agent.activity as f32,
-                        position: Vec3::ZERO,
-                        velocity: Vec3::ZERO,
-                        force: Vec3::ZERO,
-                        connections: Vec::new(),
-                        capabilities: Some(agent.profile.capabilities),
-                        current_task: agent.current_task.map(|t| t.description),
-                        tasks_active: Some(agent.tasks_active),
-                        tasks_completed: Some(agent.completed_tasks_count),
-                        success_rate: Some(agent.success_rate as f32),
-                        tokens: Some(agent.token_usage.total),
-                        token_rate: Some(agent.token_usage.token_rate as f32),
-                        activity: Some(agent.activity as f32),
-                        swarm_id: agent.swarm_id,
-                        agent_mode: agent.agent_mode,
-                        parent_queen_id: agent.parent_queen_id,
-                        processing_logs: agent.processing_logs,
-                        created_at: Some(agent.timestamp.to_rfc3339()),
-                        age: Some(0),
-                    }
-                }).collect();
-                
-                HttpResponse::Ok().json(json!({
-                    "success": true,
-                    "agents": bot_agents,
-                    "timestamp": chrono::Utc::now().to_rfc3339()
-                }))
-            }
-            Ok(Err(e)) => {
-                error!("Failed to get agent telemetry: {}", e);
-                HttpResponse::InternalServerError().json(json!({
-                    "success": false,
-                    "error": format!("Failed to get agent telemetry: {}", e)
-                }))
-            }
-            Err(e) => {
-                error!("Actor mailbox error: {}", e);
-                HttpResponse::InternalServerError().json(json!({
-                    "success": false,
-                    "error": "Service temporarily unavailable"
-                }))
-            }
-        }
-    } else {
-        HttpResponse::ServiceUnavailable().json(json!({
-            "success": false,
-            "error": "Claude Flow service not available"
-        }))
-    }
+    HttpResponse::ServiceUnavailable().json(json!({
+        "success": false,
+        "error": "Claude Flow service not available"
+    }))
 }
 
 pub async fn initialize_swarm(
@@ -989,51 +773,9 @@ pub async fn initialize_swarm(
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
     info!("Received swarm initialization request: {:?}", request);
 
-    // Get the Claude Flow actor
-    if let Some(claude_flow_addr) = &state.claude_flow_addr {
-        // Send initialization message to ClaudeFlowActor with timeout
-        let send_future = claude_flow_addr.send(InitializeSwarm {
-            topology: request.topology.clone(),
-            max_agents: request.max_agents,
-            strategy: request.strategy.clone(),
-            enable_neural: request.enable_neural,
-            agent_types: request.agent_types.clone(),
-            custom_prompt: request.custom_prompt.clone(),
-        });
-        
-        // Add 5 second timeout to prevent indefinite hanging
-        match tokio::time::timeout(std::time::Duration::from_secs(5), send_future).await {
-            Ok(Ok(Ok(_))) => {
-                info!("Swarm initialization request sent successfully");
-                HttpResponse::Ok().json(serde_json::json!({
-                    "success": true,
-                    "message": "Swarm initialization started"
-                }))
-            }
-            Ok(Ok(Err(e))) => {
-                error!("Failed to initialize swarm: {}", e);
-                HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": e.to_string()
-                }))
-            }
-            Ok(Err(e)) => {
-                error!("Failed to send initialization message: {}", e);
-                HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Failed to communicate with Claude Flow service"
-                }))
-            }
-            Err(_) => {
-                error!("Timeout waiting for ClaudeFlowActor response");
-                warn!("ClaudeFlowActor might be deadlocked or not processing messages");
-                HttpResponse::GatewayTimeout().json(serde_json::json!({
-                    "success": false,
-                    "error": "Claude Flow service timeout - actor may be unresponsive"
-                }))
-            }
-        }
-    } else {
+    // TODO: Connect to external Claude Flow service via TCP
+    // For now, return mock response since we've migrated to external TCP connection
+    {
         warn!("Claude Flow actor not available - using mock response");
         
         // Return a mock successful response when ClaudeFlowActor is not available

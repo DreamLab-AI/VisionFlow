@@ -1,9 +1,9 @@
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
-use log::{info, error};
+use log::{info};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor};
 use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
@@ -35,7 +35,6 @@ pub struct AppState {
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
-    pub claude_flow_addr: Option<Addr<ClaudeFlowActor>>,
     pub debug_enabled: bool,
 }
 
@@ -99,31 +98,6 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient");
         let bots_client = Arc::new(BotsClient::new());
 
-        // Initialize ClaudeFlowActor for direct MCP connection
-        let claude_flow_addr = {
-            use crate::services::claude_flow::ClaudeFlowClientBuilder;
-
-            let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
-            let port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "3002".to_string()).parse::<u16>().unwrap_or(3002);
-
-            let client_result = ClaudeFlowClientBuilder::new()
-                .host(&host)
-                .port(port)
-                .use_websocket()
-                .build()
-                .await;
-
-            match client_result {
-                Ok(client) => {
-                    info!("[AppState::new] Starting ClaudeFlowActor");
-                    Some(ClaudeFlowActor::new(client, graph_service_addr.clone()).start())
-                }
-                Err(e) => {
-                    error!("[AppState::new] Failed to build ClaudeFlowClient, ClaudeFlowActor will not start: {}", e);
-                    None
-                }
-            }
-        };
 
         info!("[AppState::new] Actor system initialization complete");
 
@@ -149,7 +123,6 @@ impl AppState {
             ragflow_session_id,
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
-            claude_flow_addr,
             debug_enabled,
         })
     }

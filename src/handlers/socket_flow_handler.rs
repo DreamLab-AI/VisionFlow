@@ -378,7 +378,7 @@ impl Actor for SocketFlowServer {
 // Update signature to work with actor system
 async fn fetch_nodes(
     app_state: Arc<AppState>,
-    settings_addr: actix::Addr<crate::actors::settings_actor::SettingsActor>
+    _settings_addr: actix::Addr<crate::actors::settings_actor::SettingsActor>
 ) -> Option<(Vec<(u32, BinaryNodeData)>, bool)> {
     // Fetch raw nodes asynchronously from GraphServiceActor
     use crate::actors::messages::GetGraphData;

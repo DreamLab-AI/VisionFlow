@@ -2,7 +2,7 @@ use actix::prelude::*;
 use actix::fut;
 use std::time::Duration;
 use log::{info, error, debug, warn};
-use crate::services::claude_flow::{ClaudeFlowClient, AgentStatus};
+use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use std::collections::HashMap;
@@ -245,21 +245,20 @@ impl EnhancedClaudeFlowActor {
             "arguments": arguments
         });
 
-        let request = crate::services::claude_flow::types::McpRequest {
+        let request = crate::types::claude_flow::McpRequest {
             jsonrpc: "2.0".to_string(),
             id: Uuid::new_v4().to_string(),
             method: "tools/call".to_string(),
-            params: Some(params),
+            params: params,
         };
 
         // Execute request through transport
-        let mut transport = self._client.transport.lock().await;
-        match transport.send_request(request).await {
+        match self._client.send_mcp_request(&request).await {
             Ok(response) => {
-                if let Some(result) = response.result {
+                if let Some(result) = response.get("result") {
                     debug!("MCP tool {} executed successfully", tool_name);
-                    Ok(result)
-                } else if let Some(error) = response.error {
+                    Ok(result.clone())
+                } else if let Some(error) = response.get("error") {
                     error!("MCP tool {} failed: {:?}", tool_name, error);
                     Err(format!("MCP tool error: {:?}", error))
                 } else {
@@ -392,7 +391,7 @@ struct TelemetryDelta {
 struct AgentUpdate {
     agent_id: String,
     status: String,
-    current_task: Option<crate::services::claude_flow::types::TaskReference>,
+    current_task: Option<crate::types::claude_flow::TaskReference>,
 }
 
 impl Actor for EnhancedClaudeFlowActor {
@@ -605,11 +604,11 @@ impl Handler<GetAgentMetrics> for EnhancedClaudeFlowActor {
             .values()
             .map(|agent| AgentMetrics {
                 agent_id: agent.agent_id.clone(),
-                performance_score: (agent.success_rate / 100.0) as f32,
+                performance_score: (agent.success_rate / 100.0),
                 tasks_completed: agent.completed_tasks_count,
-                success_rate: (agent.success_rate / 100.0) as f32,
+                success_rate: (agent.success_rate / 100.0),
                 resource_utilization: 0.7, // TODO: Calculate from real data
-                token_usage: agent.total_execution_time, // Approximate
+                token_usage: agent.token_usage.total, // Approximate
             })
             .collect();
 

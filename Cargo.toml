@@ -45,11 +45,7 @@ pollster = "0.3"
 cudarc = { version = "0.11", features = ["driver", "cuda-12040"] }
 
 # HTTP client and API
-reqwest = { version = "0.11", features = ["json", "stream"] }
-async-openai = "0.14.3"
-# Even though backoff is unmaintained (RUSTSEC-2025-0012), we'll use the latest version
-# since it's used transitively by async-openai and our code doesn't directly import it
-backoff = { version = "0.4.0", features = ["tokio"] }
+reqwest = { version = "0.11", features = ["json", "stream", "multipart"] }
 nostr-sdk = "0.26"
 
 # Utilities

@@ -342,39 +342,6 @@ impl GraphServiceActor {
         }).collect()
     }
     
-    fn prepare_node_semantic_data(&self) -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<i32>) {
-        let mut importance = Vec::new();
-        let mut semantic_weight = Vec::new();
-        let mut temporal_weight = Vec::new();
-        let mut node_types = Vec::new();
-        
-        for node in &self.graph_data.nodes {
-            if let Some(features) = self.semantic_features_cache.get(&node.metadata_id) {
-                importance.push(features.importance_score);
-                semantic_weight.push(features.domains.len() as f32 / 5.0); // Normalize
-                temporal_weight.push(features.temporal.modification_frequency);
-                
-                // Set node type based on primary domain
-                let node_type = if !features.domains.is_empty() {
-                    match features.domains[0] {
-                        crate::services::semantic_analyzer::KnowledgeDomain::ComputerScience => 1,
-                        crate::services::semantic_analyzer::KnowledgeDomain::Mathematics => 2,
-                        crate::services::semantic_analyzer::KnowledgeDomain::DataScience => 3,
-                        crate::services::semantic_analyzer::KnowledgeDomain::WebDevelopment => 4,
-                        _ => 0,
-                    }
-                } else { 0 };
-                node_types.push(node_type);
-            } else {
-                importance.push(0.5);
-                semantic_weight.push(1.0);
-                temporal_weight.push(1.0);
-                node_types.push(0);
-            }
-        }
-        
-        (importance, semantic_weight, temporal_weight, node_types)
-    }
     
     fn execute_stress_majorization_step(&mut self) {
         if self.graph_data.nodes.len() < 3 {
@@ -905,8 +872,8 @@ impl GraphServiceActor {
     /// - Performance metrics (success rates)
     fn calculate_communication_intensity(
         &self,
-        source_type: &crate::services::claude_flow::AgentType,
-        target_type: &crate::services::claude_flow::AgentType,
+        source_type: &crate::types::claude_flow::AgentType,
+        target_type: &crate::types::claude_flow::AgentType,
         source_active_tasks: u32,
         target_active_tasks: u32,
         source_success_rate: f32,
@@ -915,28 +882,28 @@ impl GraphServiceActor {
         // Base communication intensity based on agent type relationships
         let base_intensity = match (source_type, target_type) {
             // Coordinator has high communication with all agent types
-            (crate::services::claude_flow::AgentType::Coordinator, _) |
-            (_, crate::services::claude_flow::AgentType::Coordinator) => 0.9,
-            
+            (crate::types::claude_flow::AgentType::Coordinator, _) |
+            (_, crate::types::claude_flow::AgentType::Coordinator) => 0.9,
+
             // High collaboration pairs
-            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Tester) |
-            (crate::services::claude_flow::AgentType::Tester, crate::services::claude_flow::AgentType::Coder) => 0.8,
-            
-            (crate::services::claude_flow::AgentType::Researcher, crate::services::claude_flow::AgentType::Analyst) |
-            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Researcher) => 0.7,
-            
-            (crate::services::claude_flow::AgentType::Architect, crate::services::claude_flow::AgentType::Coder) |
-            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Architect) => 0.7,
-            
+            (crate::types::claude_flow::AgentType::Coder, crate::types::claude_flow::AgentType::Tester) |
+            (crate::types::claude_flow::AgentType::Tester, crate::types::claude_flow::AgentType::Coder) => 0.8,
+
+            (crate::types::claude_flow::AgentType::Researcher, crate::types::claude_flow::AgentType::Analyst) |
+            (crate::types::claude_flow::AgentType::Analyst, crate::types::claude_flow::AgentType::Researcher) => 0.7,
+
+            (crate::types::claude_flow::AgentType::Architect, crate::types::claude_flow::AgentType::Coder) |
+            (crate::types::claude_flow::AgentType::Coder, crate::types::claude_flow::AgentType::Architect) => 0.7,
+
             // Medium collaboration pairs
-            (crate::services::claude_flow::AgentType::Architect, crate::services::claude_flow::AgentType::Analyst) |
-            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Architect) => 0.6,
-            
-            (crate::services::claude_flow::AgentType::Reviewer, crate::services::claude_flow::AgentType::Coder) |
-            (crate::services::claude_flow::AgentType::Coder, crate::services::claude_flow::AgentType::Reviewer) => 0.6,
-            
-            (crate::services::claude_flow::AgentType::Optimizer, crate::services::claude_flow::AgentType::Analyst) |
-            (crate::services::claude_flow::AgentType::Analyst, crate::services::claude_flow::AgentType::Optimizer) => 0.6,
+            (crate::types::claude_flow::AgentType::Architect, crate::types::claude_flow::AgentType::Analyst) |
+            (crate::types::claude_flow::AgentType::Analyst, crate::types::claude_flow::AgentType::Architect) => 0.6,
+
+            (crate::types::claude_flow::AgentType::Reviewer, crate::types::claude_flow::AgentType::Coder) |
+            (crate::types::claude_flow::AgentType::Coder, crate::types::claude_flow::AgentType::Reviewer) => 0.6,
+
+            (crate::types::claude_flow::AgentType::Optimizer, crate::types::claude_flow::AgentType::Analyst) |
+            (crate::types::claude_flow::AgentType::Analyst, crate::types::claude_flow::AgentType::Optimizer) => 0.6,
             
             // Default moderate communication for other pairs
             _ => 0.4,
@@ -1160,12 +1127,12 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             
             // Set node properties based on agent status
             node.color = Some(match agent.profile.agent_type {
-                crate::services::claude_flow::AgentType::Coordinator => "#FF6B6B".to_string(),
-                crate::services::claude_flow::AgentType::Researcher => "#4ECDC4".to_string(),
-                crate::services::claude_flow::AgentType::Coder => "#45B7D1".to_string(),
-                crate::services::claude_flow::AgentType::Analyst => "#FFA07A".to_string(),
-                crate::services::claude_flow::AgentType::Architect => "#98D8C8".to_string(),
-                crate::services::claude_flow::AgentType::Tester => "#F7DC6F".to_string(),
+                crate::types::claude_flow::AgentType::Coordinator => "#FF6B6B".to_string(),
+                crate::types::claude_flow::AgentType::Researcher => "#4ECDC4".to_string(),
+                crate::types::claude_flow::AgentType::Coder => "#45B7D1".to_string(),
+                crate::types::claude_flow::AgentType::Analyst => "#FFA07A".to_string(),
+                crate::types::claude_flow::AgentType::Architect => "#98D8C8".to_string(),
+                crate::types::claude_flow::AgentType::Tester => "#F7DC6F".to_string(),
                 _ => "#95A5A6".to_string(),
             });
             
@@ -1195,8 +1162,8 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                         &target_agent.profile.agent_type,
                         source_agent.active_tasks_count,
                         target_agent.active_tasks_count,
-                        source_agent.success_rate as f32,
-                        target_agent.success_rate as f32,
+                        source_agent.success_rate,
+                        target_agent.success_rate,
                     );
                     
                     // Only create edges for significant communication
@@ -1238,8 +1205,8 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                     "capabilities": agent.profile.capabilities,
                     "currentTask": agent.current_task.as_ref().map(|t| t.description.clone()),
                     "tasksActive": agent.tasks_active,
-                    "tasksCompleted": agent.performance_metrics.tasks_completed,
-                    "successRate": agent.performance_metrics.success_rate,
+                    "tasksCompleted": agent.completed_tasks_count,
+                    "successRate": agent.success_rate,
                     "tokens": agent.token_usage.total,
                     "tokenRate": agent.token_usage.token_rate,
                     "activity": agent.activity,
@@ -1255,8 +1222,8 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                 "totalAgents": msg.agents.len(),
                 "activeAgents": msg.agents.iter().filter(|a| a.status == "active").count(),
                 "totalTasks": msg.agents.iter().map(|a| a.tasks_active).sum::<u32>(),
-                "completedTasks": msg.agents.iter().map(|a| a.performance_metrics.tasks_completed).sum::<u32>(),
-                "avgSuccessRate": msg.agents.iter().map(|a| a.performance_metrics.success_rate).sum::<f64>() / msg.agents.len().max(1) as f64,
+                "completedTasks": msg.agents.iter().map(|a| a.completed_tasks_count).sum::<u32>(),
+                "avgSuccessRate": msg.agents.iter().map(|a| a.success_rate).sum::<f32>() as f64 / msg.agents.len().max(1) as f64,
                 "totalTokens": msg.agents.iter().map(|a| a.token_usage.total).sum::<u64>(),
             },
             "timestamp": chrono::Utc::now().to_rfc3339(),
