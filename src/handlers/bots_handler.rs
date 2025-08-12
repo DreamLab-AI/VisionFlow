@@ -7,7 +7,7 @@ use crate::models::node::Node;
 use crate::types::vec3::Vec3Data;
 use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams};
-use crate::actors::messages::{GetSettings, InitializeSwarm, GetBotsGraphData, GetCachedAgentStatuses};
+use crate::actors::messages::{GetSettings, GetBotsGraphData};
 use crate::services::bots_client::BotsClient;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -767,7 +767,7 @@ pub async fn get_agent_telemetry(
 }
 
 pub async fn initialize_swarm(
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     request: web::Json<InitializeSwarmRequest>,
 ) -> impl Responder {
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
