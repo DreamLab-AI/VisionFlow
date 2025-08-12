@@ -127,11 +127,8 @@ impl AppState {
 
         info!("[AppState::new] Actor system initialization complete");
 
-        // Read DEBUG_ENABLED from environment variable
-        let debug_enabled = std::env::var("DEBUG_ENABLED")
-            .unwrap_or_else(|_| "false".to_string())
-            .parse::<bool>()
-            .unwrap_or(false);
+        // Read debug state from settings (can be overridden by env var)
+        let debug_enabled = crate::utils::logging::is_debug_enabled();
         
         info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
 

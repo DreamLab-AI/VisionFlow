@@ -9,10 +9,19 @@ pub fn init_logging() -> io::Result<()> {
     Ok(())
 }
 
-// Check if debug mode is enabled via environment variable
+// Check if debug mode is enabled
+// First checks environment variable (for override), then settings.yaml
 pub fn is_debug_enabled() -> bool {
-    std::env::var("DEBUG_ENABLED")
-        .unwrap_or_else(|_| "false".to_string())
-        .parse::<bool>()
-        .unwrap_or(false)
+    // Environment variable takes precedence (useful for debugging without config changes)
+    if let Ok(val) = std::env::var("DEBUG_ENABLED") {
+        return val.parse::<bool>().unwrap_or(false);
+    }
+    
+    // Otherwise check settings.yaml
+    // This is a simple check - in production you might want to cache this
+    if let Ok(settings) = crate::config::AppFullSettings::new() {
+        return settings.system.debug.enabled;
+    }
+    
+    false
 }

@@ -307,6 +307,10 @@ system:
     enable_request_validation: false
     session_timeout: 3600
 
+  # Simple debug flag for server-side debugging
+  # Log verbosity is still controlled by RUST_LOG environment variable
+  debug:
+    enabled: false
 
 # ============================================================================
 # XR SETTINGS

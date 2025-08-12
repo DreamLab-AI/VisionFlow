@@ -293,20 +293,50 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Developer - Developer tools and debugging
+  // Developer - Client-side debug tools (localStorage only)
   developer: {
     label: 'Developer',
     icon: 'Code',
     subsections: {
-      debugging: {
-        label: 'Debugging Tools',
+      general: {
+        label: 'General Debug',
         settings: {
-          consoleLogging: { label: 'Console Logging', type: 'toggle', path: 'developer.consoleLogging', description: 'Enable console debug logs.' },
-          logLevel: { label: 'Log Level', type: 'select', options: [{value: 'error', label: 'Error'}, {value: 'warn', label: 'Warning'}, {value: 'info', label: 'Info'}, {value: 'debug', label: 'Debug'}], path: 'developer.logLevel', description: 'Minimum log level to display.' },
-          showNodeIds: { label: 'Show Node IDs', type: 'toggle', path: 'developer.showNodeIds', description: 'Display node IDs in visualization.' },
-          showEdgeWeights: { label: 'Show Edge Weights', type: 'toggle', path: 'developer.showEdgeWeights', description: 'Display edge weight values.' },
-          enableProfiler: { label: 'Enable Profiler', type: 'toggle', path: 'developer.enableProfiler', description: 'Enable performance profiling.' },
-          apiDebugMode: { label: 'API Debug Mode', type: 'toggle', path: 'developer.apiDebugMode', description: 'Log all API requests and responses.' },
+          enabled: { label: 'Enable Debug Mode', type: 'toggle', path: 'debug.enabled', description: 'Master switch for client-side debug features.', localStorage: true },
+          consoleLogging: { label: 'Console Logging', type: 'toggle', path: 'debug.consoleLogging', description: 'Enable console debug logs.', localStorage: true },
+          logLevel: { label: 'Log Level', type: 'select', options: [{value: 'error', label: 'Error'}, {value: 'warn', label: 'Warning'}, {value: 'info', label: 'Info'}, {value: 'debug', label: 'Debug'}], path: 'debug.logLevel', description: 'Minimum log level to display.', localStorage: true },
+        },
+      },
+      visualization: {
+        label: 'Visualization Debug',
+        settings: {
+          showNodeIds: { label: 'Show Node IDs', type: 'toggle', path: 'debug.showNodeIds', description: 'Display node IDs in visualization.', localStorage: true },
+          showEdgeWeights: { label: 'Show Edge Weights', type: 'toggle', path: 'debug.showEdgeWeights', description: 'Display edge weight values.', localStorage: true },
+          enablePhysicsDebug: { label: 'Physics Debug', type: 'toggle', path: 'debug.enablePhysicsDebug', description: 'Show physics debug visualizations.', localStorage: true },
+          enableNodeDebug: { label: 'Node Debug', type: 'toggle', path: 'debug.enableNodeDebug', description: 'Enable debug features for nodes.', localStorage: true },
+        },
+      },
+      performance: {
+        label: 'Performance & Data',
+        settings: {
+          performanceDebug: { label: 'Performance Metrics', type: 'toggle', path: 'debug.performance', description: 'Show performance metrics overlay.', localStorage: true },
+          enableProfiler: { label: 'Enable Profiler', type: 'toggle', path: 'debug.enableProfiler', description: 'Enable performance profiling.', localStorage: true },
+          dataDebug: { label: 'Data Flow Debug', type: 'toggle', path: 'debug.data', description: 'Log detailed client data flow information.', localStorage: true },
+        },
+      },
+      network: {
+        label: 'Network Debug',
+        settings: {
+          apiDebugMode: { label: 'API Debug Mode', type: 'toggle', path: 'debug.apiDebugMode', description: 'Log all API requests and responses.', localStorage: true },
+          enableWebsocketDebug: { label: 'WebSocket Debug', type: 'toggle', path: 'debug.enableWebsocketDebug', description: 'Log WebSocket communication details.', localStorage: true },
+          logBinaryHeaders: { label: 'Log Binary Headers', type: 'toggle', path: 'debug.logBinaryHeaders', description: 'Log headers of binary messages.', localStorage: true },
+          logFullJson: { label: 'Log Full JSON', type: 'toggle', path: 'debug.logFullJson', description: 'Log complete JSON payloads.', localStorage: true },
+        },
+      },
+      advanced: {
+        label: 'Advanced Debug',
+        settings: {
+          enableShaderDebug: { label: 'Shader Debug', type: 'toggle', path: 'debug.enableShaderDebug', description: 'Enable shader debugging tools.', localStorage: true, isPowerUserOnly: true },
+          enableMatrixDebug: { label: 'Matrix Debug', type: 'toggle', path: 'debug.enableMatrixDebug', description: 'Log matrix transformations.', localStorage: true, isPowerUserOnly: true },
         },
       },
     },
@@ -350,22 +380,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           compressionThreshold: { label: 'Compression Threshold', type: 'slider', min: 128, max: 8192, step: 128, unit: 'bytes', path: 'system.websocket.compressionThreshold', description: 'Minimum message size to trigger compression.' },
         },
       },
-      debug: {
-        label: 'Development & Debugging',
-        settings: {
-          enabled: { label: 'Enable Client Debug Mode', type: 'toggle', path: 'system.debug.enabled', description: 'Enable general client-side debug logging and features.' },
-          logLevel: { label: 'Client Log Level', type: 'select', options: [{value: 'debug', label: 'Debug'}, {value: 'info', label: 'Info'}, {value: 'warn', label: 'Warn'}, {value: 'error', label: 'Error'}], path: 'system.debug.logLevel', description: 'Client console log level.', isPowerUserOnly: true },
-          enableDataDebug: { label: 'Enable Data Debug', type: 'toggle', path: 'system.debug.enableDataDebug', description: 'Log detailed client data flow information.', isAdvanced: true },
-          enableWebsocketDebug: { label: 'Enable WebSocket Debug', type: 'toggle', path: 'system.debug.enableWebsocketDebug', description: 'Log WebSocket communication details.', isAdvanced: true },
-          logBinaryHeaders: { label: 'Log Binary Headers', type: 'toggle', path: 'system.debug.logBinaryHeaders', description: 'Log headers of binary messages.', isAdvanced: true },
-          logFullJson: { label: 'Log Full JSON', type: 'toggle', path: 'system.debug.logFullJson', description: 'Log complete JSON payloads.', isAdvanced: true },
-          enablePhysicsDebug: { label: 'Enable Physics Debug', type: 'toggle', path: 'system.debug.enablePhysicsDebug', description: 'Show physics debug visualizations.', isAdvanced: true },
-          enableNodeDebug: { label: 'Enable Node Debug', type: 'toggle', path: 'system.debug.enableNodeDebug', description: 'Enable debug features for nodes.', isAdvanced: true },
-          enableShaderDebug: { label: 'Enable Shader Debug', type: 'toggle', path: 'system.debug.enableShaderDebug', description: 'Enable shader debugging tools.', isAdvanced: true, isPowerUserOnly: true },
-          enableMatrixDebug: { label: 'Enable Matrix Debug', type: 'toggle', path: 'system.debug.enableMatrixDebug', description: 'Log matrix transformations.', isAdvanced: true, isPowerUserOnly: true },
-          enablePerformanceDebug: { label: 'Enable Performance Debug', type: 'toggle', path: 'system.debug.enablePerformanceDebug', description: 'Show performance metrics.', isAdvanced: true },
-        },
-      },
+      // Debug section removed - all debug settings moved to Developer section with localStorage
     },
   },
   xr: {
