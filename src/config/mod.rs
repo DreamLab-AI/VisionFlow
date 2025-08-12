@@ -352,28 +352,15 @@ pub struct SecuritySettings {
     pub session_timeout: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct DebugSettings {
-    pub enabled: bool,
-    pub enable_data_debug: bool,
-    pub enable_websocket_debug: bool,
-    pub enable_physics_debug: bool,
-    pub enable_node_debug: bool,
-    pub enable_shader_debug: bool,
-    pub enable_matrix_debug: bool,
-    pub enable_performance_debug: bool,
-    pub log_binary_headers: bool,
-    pub log_full_json: bool,
-    pub log_level: String,
-    pub log_format: String,
-}
+// DebugSettings removed - now controlled via environment variables
+// Use webxr::utils::logging::is_debug_enabled() to check debug state
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SystemSettings {
     pub network: NetworkSettings,
     pub websocket: WebSocketSettings,
     pub security: SecuritySettings,
-    pub debug: DebugSettings,
+    // Debug settings removed - now controlled via environment variables
     #[serde(default)]
     pub persist_settings: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -386,7 +373,6 @@ impl Default for SystemSettings {
             network: NetworkSettings::default(),
             websocket: WebSocketSettings::default(),
             security: SecuritySettings::default(),
-            debug: DebugSettings::default(),
             persist_settings: false,
             custom_backend_url: None,
         }

@@ -1,7 +1,7 @@
 FROM nvidia/cuda:12.8.1-devel-ubuntu22.04 as builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=warn \
+    RUST_LOG=${RUST_LOG:-info} \
     PATH="/root/.cargo/bin:${PATH}" \
     NVIDIA_DRIVER_CAPABILITIES=all \
     CUDA_HOME=/usr/local/cuda \

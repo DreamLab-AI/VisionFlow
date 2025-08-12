@@ -36,6 +36,7 @@ pub struct AppState {
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
     pub claude_flow_addr: Option<Addr<ClaudeFlowActor>>,
+    pub debug_enabled: bool,
 }
 
 impl AppState {
@@ -126,6 +127,14 @@ impl AppState {
 
         info!("[AppState::new] Actor system initialization complete");
 
+        // Read DEBUG_ENABLED from environment variable
+        let debug_enabled = std::env::var("DEBUG_ENABLED")
+            .unwrap_or_else(|_| "false".to_string())
+            .parse::<bool>()
+            .unwrap_or(false);
+        
+        info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
+
         Ok(Self {
             graph_service_addr,
             gpu_compute_addr,
@@ -144,6 +153,7 @@ impl AppState {
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
             claude_flow_addr,
+            debug_enabled,
         })
     }
 

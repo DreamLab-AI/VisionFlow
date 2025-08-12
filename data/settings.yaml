@@ -307,20 +307,6 @@ system:
     enable_request_validation: false
     session_timeout: 3600
 
-  # Debug configuration
-  debug:
-    enabled: true
-    enable_data_debug: true
-    enable_websocket_debug: true
-    enable_physics_debug: true
-    enable_node_debug: true
-    enable_shader_debug: true
-    enable_matrix_debug: true
-    enable_performance_debug: false
-    log_binary_headers: true
-    log_full_json: true
-    log_level: debug
-    log_format: json
 
 # ============================================================================
 # XR SETTINGS

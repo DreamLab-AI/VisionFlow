@@ -14,7 +14,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-GPU-553dc306-dab3-32e2-c69b-28175a6f4da6}
       - NVIDIA_GPU_UUID=${NVIDIA_GPU_UUID:-GPU-553dc306-dab3-32e2-c69b-28175a6f4da6}
-      - RUST_LOG=${RUST_LOG:-info}
+      # RUST_LOG is now inherited from the .env file via env_file directive
       - NODE_ENV=production
       - GIT_HASH=${GIT_HASH:-production}
     volumes:
