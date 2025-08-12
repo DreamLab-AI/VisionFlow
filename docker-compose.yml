@@ -4,10 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile.production
     container_name: logseq_spring_thing_webxr
+    env_file:
+      - .env
     environment:
       - CLAUDE_FLOW_HOST=powerdev
       - CLAUDE_FLOW_PORT=3002
-      - RUST_LOG=info
+      # RUST_LOG is now inherited from the .env file via env_file directive
     depends_on:
       powerdev:
         condition: service_healthy

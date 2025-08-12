@@ -31,8 +31,8 @@ services:
       - .env
     environment:
       - NVIDIA_VISIBLE_DEVICES=0  # Use GPU 0 (RTX A6000)
-      # UUID removed - using index is more reliable
-      - RUST_LOG=warn,webxr::services::claude_flow=trace,webxr=warn,actix_web=warn
+      # RUST_LOG is now inherited from the .env file via env_file directive
+      - VITE_DEBUG=${DEBUG_ENABLED:-true} # Pass master debug switch to frontend
       - NODE_ENV=development
       - VITE_DEV_SERVER_PORT=5173 # Internal Vite port, accessed via Nginx
       - VITE_API_PORT=4000

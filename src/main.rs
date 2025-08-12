@@ -31,7 +31,7 @@ use tokio::sync::RwLock;
 use tokio::time::Duration;
 use dotenvy::dotenv;
 use log::{error, info, debug, warn};
-use webxr::utils::logging::{init_logging_with_config, LogConfig};
+use webxr::utils::logging::init_logging;
 use tokio::signal::unix::{signal, SignalKind};
 
 #[actix_web::main]
@@ -39,7 +39,10 @@ async fn main() -> std::io::Result<()> {
     // Make dotenv optional since env vars can come from Docker
     dotenv().ok();
 
-    // Load settings first to get the log level
+    // Initialize logging with env_logger (reads RUST_LOG environment variable)
+    init_logging()?;
+
+    // Load settings
     let settings = match AppFullSettings::new() {
         Ok(s) => {
             info!("AppFullSettings loaded successfully from: {}",
@@ -54,21 +57,6 @@ async fn main() -> std::io::Result<()> {
 
     // GPU compute is now handled by the GPUComputeActor
     info!("GPU compute will be initialized by GPUComputeActor when needed");
-
-
-    // Initialize logging with settings-based configuration
-    let log_config = {
-        let settings_read = settings.read().await; // Reads AppFullSettings
-        // Access log level correctly from AppFullSettings structure
-        let log_level = &settings_read.system.debug.log_level;
-
-        LogConfig::new(
-            log_level,
-            log_level, // Assuming same level for app and deps for now
-        )
-    };
-
-    init_logging_with_config(log_config)?;
 
     debug!("Successfully loaded AppFullSettings"); // Updated log message
 

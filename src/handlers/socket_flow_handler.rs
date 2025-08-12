@@ -399,16 +399,9 @@ async fn fetch_nodes(
         return None;
     }
 
-    // Get debug settings from SettingsActor
-    use crate::actors::messages::GetSettingByPath;
-    let debug_enabled = match settings_addr.send(GetSettingByPath { path: "system.debug.enabled".to_string() }).await {
-        Ok(Ok(value)) => value.as_bool().unwrap_or(false),
-        _ => false,
-    };
-    let debug_websocket = match settings_addr.send(GetSettingByPath { path: "system.debug.enable_websocket_debug".to_string() }).await {
-        Ok(Ok(value)) => value.as_bool().unwrap_or(false),
-        _ => false,
-    };
+    // Debug settings now controlled via environment variables
+    let debug_enabled = crate::utils::logging::is_debug_enabled();
+    let debug_websocket = debug_enabled; // Use same flag for websocket debug
     let detailed_debug = debug_enabled && debug_websocket;
 
     if detailed_debug {

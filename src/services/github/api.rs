@@ -27,9 +27,7 @@ impl GitHubClient {
         config: GitHubConfig,
         settings: Arc<RwLock<AppFullSettings>>, // Changed from Settings to AppFullSettings
     ) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let settings_guard = settings.read().await;
-        let debug_enabled = settings_guard.system.debug.enabled;
-        drop(settings_guard);
+        let debug_enabled = crate::utils::logging::is_debug_enabled();
 
         if debug_enabled {
             debug!("Initializing GitHub client - Owner: '{}', Repo: '{}', Base path: '{}'",
@@ -84,7 +82,7 @@ impl GitHubClient {
     /// Get the properly encoded API path
     pub(crate) async fn get_api_path(&self) -> String {
         let settings = self.settings.read().await;
-        let debug_enabled = settings.system.debug.enabled;
+        let debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
         if debug_enabled {
@@ -125,7 +123,7 @@ impl GitHubClient {
     /// Get the full path for a file
     pub(crate) async fn get_full_path(&self, path: &str) -> String {
         let settings = self.settings.read().await;
-        let debug_enabled = settings.system.debug.enabled;
+        let debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
         if debug_enabled {
@@ -186,7 +184,7 @@ impl GitHubClient {
     /// Get the base URL for contents API
     pub(crate) async fn get_contents_url(&self, path: &str) -> String {
         let settings = self.settings.read().await;
-        let debug_enabled = settings.system.debug.enabled;
+        let debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
         if debug_enabled {

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 // Import the necessary structs from config
 use crate::config::{
     AppFullSettings, // Use the full server settings struct
-    DebugSettings, 
     VisualisationSettings, 
     XRSettings,
 };
@@ -21,7 +20,7 @@ pub struct UISettings {
 pub struct UISystemSettings {
     // This must use the client-expected structure
     pub websocket: WebSocketClientSettings, 
-    pub debug: DebugSettings,
+    // Debug settings removed - now controlled via environment variables
     // Note: persist_settings from client SystemSettings is not included here,
     // as it's likely not needed for direct UI rendering based on UISettings.
     // Add it if necessary.
@@ -54,8 +53,7 @@ impl From<&AppFullSettings> for UISettings {
                     compression_threshold: settings.system.websocket.compression_threshold,
                     update_rate: settings.system.websocket.update_rate,
                 },
-                // Debug settings structure is assumed compatible
-                debug: settings.system.debug.clone(), 
+                // Debug settings removed - now controlled via environment variables
             },
             // XR settings structure is assumed compatible enough for UI purposes
             xr: settings.xr.clone(), 
@@ -79,7 +77,7 @@ impl From<&AppFullSettings> for UISettings {
 //         server_ws.update_rate = ui_ws.update_rate;
 //         // Other server_ws fields remain untouched by UISettings merge
         
-//         settings.system.debug = self.system.debug.clone();
+//         // Debug settings removed - now controlled via environment variables
 //         settings.xr = self.xr.clone();
 //         // persist_settings? auth? AI settings? - Not part of UISettings merge
 //     }
