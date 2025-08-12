@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::AppState;
 use log::{info, error, warn};
 use chrono::Utc;
-use crate::actors::messages::{GetMetadata, GetGraphData, MetricsCollect};
+use crate::actors::messages::{GetMetadata, GetGraphData};
 use sysinfo::System;
 use std::process::Command;
 use tokio::time::Duration;
@@ -97,8 +97,6 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
         }
     };
     
-    let claude_flow_status = "unavailable".to_string();
-    
     if health_status == "healthy" && !issues.is_empty() {
         health_status = "degraded".to_string();
     }
@@ -117,8 +115,7 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
             "metadata_count": metadata_count,
             "nodes_count": nodes_count,
             "edges_count": edges_count,
-            "mcp_status": mcp_status,
-            "claude_flow_status": "removed"
+            "mcp_status": mcp_status
         }
     })))
 }

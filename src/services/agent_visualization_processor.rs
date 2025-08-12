@@ -260,7 +260,7 @@ impl AgentVisualizationProcessor {
                 
                 metadata: AgentMetadata {
                     created_at: agent.timestamp,
-                    age_seconds: (Utc::now() - agent.timestamp).timestamp() as u64,
+                    age_seconds: (Utc::now() - agent.timestamp).num_seconds() as u64,
                     last_activity: agent.timestamp,
                     capabilities: agent.profile.capabilities.clone(),
                     error_count: agent.failed_tasks_count,
