@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 /// Configure routes for settings endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/settings")
+        web::scope("/settings")  // Removed redundant /api prefix - already under /api scope
             .route("", web::get().to(get_settings))
             .route("", web::post().to(update_settings))
             .route("/reset", web::post().to(reset_settings))
