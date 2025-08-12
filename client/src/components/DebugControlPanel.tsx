@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Bug, X } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { debugControl, DebugCategory } from '@/utils/console';
-import { debugState } from '@/utils/debugState';
+import { clientDebugState } from '@/utils/clientDebugState';
 import { 
   Dialog, 
   DialogContent, 
@@ -30,9 +30,9 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   // Load initial state
   useEffect(() => {
     const loadState = () => {
-      setMainDebugEnabled(debugState.isEnabled());
-      setDataDebugEnabled(debugState.isDataDebugEnabled());
-      setPerformanceDebugEnabled(debugState.isPerformanceDebugEnabled());
+      setMainDebugEnabled(clientDebugState.isEnabled());
+      setDataDebugEnabled(clientDebugState.get('dataDebug'));
+      setPerformanceDebugEnabled(clientDebugState.get('performanceDebug'));
       setEnabledCategories(new Set(debugControl.getEnabledCategories()));
     };
 
@@ -62,6 +62,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   });
 
   const handleMainToggle = useCallback((checked: boolean) => {
+    clientDebugState.setEnabled(checked);
     if (checked) {
       debugControl.enable();
     } else {
@@ -85,6 +86,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   }, []);
 
   const handleDataDebugToggle = useCallback((checked: boolean) => {
+    clientDebugState.set('dataDebug', checked);
     if (checked) {
       debugControl.enableData();
     } else {
@@ -94,6 +96,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   }, []);
 
   const handlePerformanceDebugToggle = useCallback((checked: boolean) => {
+    clientDebugState.set('performanceDebug', checked);
     if (checked) {
       debugControl.enablePerformance();
     } else {

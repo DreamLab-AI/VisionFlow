@@ -352,15 +352,27 @@ pub struct SecuritySettings {
     pub session_timeout: u32,
 }
 
-// DebugSettings removed - now controlled via environment variables
-// Use webxr::utils::logging::is_debug_enabled() to check debug state
+// Simple debug settings for server-side control
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DebugSettings {
+    #[serde(default)]
+    pub enabled: bool,
+}
+
+impl Default for DebugSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SystemSettings {
     pub network: NetworkSettings,
     pub websocket: WebSocketSettings,
     pub security: SecuritySettings,
-    // Debug settings removed - now controlled via environment variables
+    pub debug: DebugSettings,
     #[serde(default)]
     pub persist_settings: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -373,6 +385,7 @@ impl Default for SystemSettings {
             network: NetworkSettings::default(),
             websocket: WebSocketSettings::default(),
             security: SecuritySettings::default(),
+            debug: DebugSettings::default(),
             persist_settings: false,
             custom_backend_url: None,
         }

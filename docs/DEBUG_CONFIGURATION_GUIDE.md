@@ -2,16 +2,27 @@
 
 ## Overview
 
-The VisionFlow debug configuration system has been centralized to use environment variables, providing a single source of truth for all debugging settings across the backend, frontend, and Docker environments.
+The VisionFlow debug configuration system uses a hybrid approach with clean separation between client and server debugging:
 
-## Key Changes
+- **Client (Browser/Desktop)**: Uses localStorage only, controlled via UI panels
+- **Server (Rust Backend)**: Uses settings.yaml for on/off, RUST_LOG env var for verbosity
 
-### 1. Environment Variable Configuration
+## Key Architecture
 
-All debug settings are now controlled through two primary environment variables in the `.env` file:
+### 1. Client-Side Debug (localStorage)
 
-- **`DEBUG_ENABLED`**: Master switch for all debug features (true/false)
-- **`RUST_LOG`**: Controls backend logging verbosity levels
+Client debug is controlled entirely in the browser/desktop app:
+
+- **Storage**: localStorage keys (`debug.enabled`, `debug.data`, etc.)
+- **Control**: DebugControlPanel (Ctrl+Shift+D) and Settings Panel
+- **No Backend Sync**: Changes are instant and local-only
+
+### 2. Server-Side Debug (settings.yaml + env)
+
+Server debug uses a simple two-tier system:
+
+- **`settings.yaml`**: Contains `system.debug.enabled` (true/false)
+- **`RUST_LOG`**: Environment variable controls verbosity (trace/debug/info/warn/error)
 
 ### 2. Removed Legacy Configuration
 
