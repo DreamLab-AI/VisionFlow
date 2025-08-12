@@ -1,109 +1,128 @@
-# VisionFlow TODO Status - COMPLETED ✅
-*Last Updated: January 2025*
+Of course. Here is a TODO list that analyzes the current state of your debugging system and provides a clear action plan to centralize control through a `.env` file.
 
-## 🎉 ALL CRITICAL TASKS COMPLETED
+### Current State Analysis
 
-This document has been updated to reflect the completion of all priority tasks. All critical issues have been resolved and the system is fully functional.
+Your project's debugging is controlled by multiple, sometimes conflicting, sources across the frontend, backend, and Docker environments. This makes it difficult to reliably enable or disable debugging features.
 
-## Priority 1: Critical - Fix Broken Physics and Settings UI ✅ COMPLETED
-**Status: ✅ ALL TASKS COMPLETED (January 2025)**
+*   **Backend (Rust):**
+    *   **`RUST_LOG` Environment Variable:** This is set in `docker-compose.dev.yml` (`warn,webxr::...=trace`), `docker-compose.production.yml` (`info`), `docker-compose.yml` (`info`), and `.env_template` (`warn`). This is the standard way to control Rust logging, but it's inconsistent across files.
+    *   **`data/settings.yaml`:** This file has a large `system.debug` section with flags like `enabled: true`, `enable_data_debug: true`, and `log_level: debug`. The Rust application reads this file at startup.
+    *   **Conflict:** The application initializes logging based on `settings.yaml` (`src/main.rs`), but the `RUST_LOG` environment variable is also set, which can override it. This creates ambiguity about which setting takes precedence.
 
-These tasks were critical as they addressed a fundamental bug that made the physics engine and its UI controls completely non-functional.
+*   **Frontend (Vite/React):**
+    *   **`.env` Variables:** Debugging is well-managed through Vite's environment variables (`VITE_DEBUG`, `VITE_DEBUG_PRESET`, etc.), defined in `client/.env.example`.
+    *   **Implementation:** The logic in `client/src/utils/debugConfig.ts` and `console.ts` correctly reads these variables to control frontend logging. This part of the system is working well.
 
-### ✅ COMPLETED: Resolve Settings Store Conflict
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Delete the broken stub store file located at /ext/client/src/features/settings/store/settingsStore.ts.
-- ✅ **COMPLETED**: Perform a global search for from '@/features/settings/store/settingsStore' and replace all (approximately 53) incorrect import paths to point to the one correct, working store: from '@/store/settingsStore'.
-- ✅ **VERIFIED**: All components now use the correct settings store
-Reference: CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md, SETTINGS_SYSTEM_ANALYSIS.md, SETTINGS_GUIDE.md.
-### ✅ COMPLETED: Re-enable Physics Controls
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: In the file /ext/client/src/features/physics/components/PhysicsEngineControls.tsx, remove the hardcoded const settings = null; and the stub const updatePhysics = async (update: any) => {};.
-- ✅ **COMPLETED**: Connect the component to the now-correctly-imported useSettingsStore hook to read settings and call the updateSettings (or updatePhysics) function.
-- ✅ **VERIFIED**: Physics controls now functional and responsive
-Reference: CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md, SETTINGS_SYSTEM_ANALYSIS.md.
-### ✅ COMPLETED: Verify Full Physics Parameter Flow
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Confirm that changes made in the UI's physics controls are successfully sent to the backend via the POST /api/settings REST endpoint.
-- ✅ **COMPLETED**: Verify the backend correctly propagates these settings from PhysicsSettings -> SimulationParams -> SimParams and finally to the GPUComputeActor and the unified CUDA kernel.
-- ✅ **COMPLETED**: Test the physics simulation to ensure it is stable, responds to UI changes, and that the fixes for nodes collapsing and incorrect GPU initialization are working as intended.
-- ✅ **VERIFIED**: Full end-to-end data flow from UI to GPU kernel confirmed working
-Reference: PHYSICS_PARAMETERS_FIX.md, CORRECTED_SETTINGS_GPU_FLOW.md, NODE_COLLAPSE_FIX.md.
-## Priority 2: High - Fix Core Architecture and Complete Stubs ✅ COMPLETED
-**Status: ✅ ALL TASKS COMPLETED (January 2025)**
+*   **Docker Environment:**
+    *   **Inconsistency:** The `RUST_LOG` level varies between `docker-compose.dev.yml`, `docker-compose.production.yml`, and the base `docker-compose.yml`.
+    *   **Legacy Variable:** The `.env_template` defines a `DEBUG_MODE=true` variable that does not appear to be used anywhere in the provided Rust code, making it obsolete.
 
-These tasks fixed major architectural flaws and completed key features that were disabled or incomplete.
+The core problem is the lack of a single source of truth, especially for the backend, leading to confusion and unpredictable behavior.
 
-### ✅ COMPLETED: Correct Frontend MCP Architecture
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Remove all direct MCP WebSocket connection logic from the frontend, as it is architecturally incorrect.
-- ✅ **COMPLETED**: Delete the service file /client/src/features/bots/services/MCPWebSocketService.ts.
-- ✅ **COMPLETED**: Refactor BotsVisualization.tsx and related components to fetch agent metadata exclusively through the /api/bots/* REST endpoints. The frontend should not connect to MCP.
-- ✅ **VERIFIED**: Frontend now uses REST-only architecture as designed
-Reference: frontend-mcp-issue.md, mcp-integration.md.
-### ✅ COMPLETED: Correct Backend MCP/Agent Connection
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Ensure the backend's EnhancedClaudeFlowActor connects to the Claude Flow service (powerdev or multi-agent-container) exclusively via WebSocket, as specified in the corrected architecture documents. Disable and remove any fallback stdio or TCP logic.
-- ✅ **COMPLETED**: Fix and re-enable the BotsClient connection mentioned as "DISABLED" in main.rs. Ensure it uses the correct WebSocket protocol to communicate with the EnhancedClaudeFlowActor and the MCP service.
-- ✅ **COMPLETED**: Remove the mock data generation for agents and switch to using live data from the now-functional MCP connection.
-- ✅ **VERIFIED**: Backend MCP connection working via WebSocket
-Reference: mcp_connection.md, claude-flow-actor.md, CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md.
-### ✅ COMPLETED: Complete Backend Service Stubs
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: In agent_visualization_processor.rs, implement the //TODOs to fetch real CPU/memory usage from system metrics and other agent data from the MCP connection.
-- ✅ **COMPLETED**: In speech_service.rs, implement the OpenAI provider for Text-to-Speech and Speech-to-Text.
-- ✅ **COMPLETED**: In health_handler.rs, replace placeholder status checks with actual diagnostics for core services (GPU, MCP connection, Database, etc.).
-- ✅ **COMPLETED**: In edge_generation.rs, replace placeholder indices with logic to generate edges based on actual graph data relationships.
-- ✅ **VERIFIED**: All backend services now have complete implementations
-Reference: CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md.
-## Priority 3: Medium - Refactoring and Code Cleanup ✅ COMPLETED
-**Status: ✅ ALL TASKS COMPLETED (January 2025)**
+### Proposed Unified Debugging System
 
-These tasks improved code health, maintainability, and performance by removing obsolete code.
+The goal is to make the project's root `.env` file the **single source of truth** for all debugging settings.
 
-### ✅ COMPLETED: Finalize CUDA Kernel Consolidation
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Delete all legacy CUDA kernel (.cu) and compiled PTX (.ptx) files, keeping only the single unified kernel: visionflow_unified.cu and its compiled PTX.
-- ✅ **VERIFIED**: Only unified kernel remains, 89% code reduction achieved
-Reference: CUDA_CONSOLIDATION_COMPLETE.md, UNIFIED_CUDA_COMPLETION.md.
-### ✅ COMPLETED: Remove Deprecated Rust Modules
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Delete the entire deprecated advanced_gpu_compute.rs module.
-- ✅ **COMPLETED**: Refactor any remaining code that references it to use unified_gpu_compute.rs exclusively.
-- ✅ **COMPLETED**: Ensure the Array of Structures (AoS) to Structure of Arrays (SoA) data conversion is handled correctly by the unified module, permanently resolving the issue from KERNEL_PARAMETER_FIX.md.
-- ✅ **VERIFIED**: Clean module architecture with unified GPU compute only
-Reference: CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md, UNIFIED_KERNEL_MIGRATION_COMPLETE.md.
-### ✅ COMPLETED: Clean Up Legacy Settings Code
-**Completion Date: January 2025**
-- ✅ **COMPLETED**: Once the settings system is confirmed stable, remove the legacy flat-field migration code from /src/config/mod.rs and any backward-compatibility layers in the frontend's settingsStore.ts.
-- ✅ **VERIFIED**: Settings system stable with all legacy code removed
-Reference: CODEBASE_PARTIAL_REFACTORS_ANALYSIS.md.
+1.  **Backend Debug Control:**
+    *   Use a single `DEBUG_ENABLED=true|false` variable in `.env` to globally toggle all debug functionalities (e.g., performance overlays, extra API data).
+    *   Use the standard `RUST_LOG` variable in `.env` to control the verbosity of backend logs (e.g., `RUST_LOG=info`, `RUST_LOG=debug,webxr=trace`).
+    *   Remove all debug-related configuration from `data/settings.yaml`.
+
+2.  **Frontend Debug Control:**
+    *   Continue using the `VITE_...` variables.
+    *   In the Docker environment, the value of `VITE_DEBUG` will be set based on the backend's `DEBUG_ENABLED` variable for consistency between services.
+
+3.  **Docker Environment:**
+    *   All `docker-compose.*.yml` files will inherit `DEBUG_ENABLED` and `RUST_LOG` from the `.env` file, providing a single place to configure behavior for different environments.
 
 ---
 
-# 🎉 IMPLEMENTATION SUMMARY
+### TODO List: Aligning the Debugging System
 
-## ✅ ALL TASKS COMPLETED SUCCESSFULLY
+Here is your action plan to refactor the debugging system for better control.
 
-**Total Tasks**: 12 major tasks across 3 priority levels
-**Completion Rate**: 100%
-**Completion Date**: January 2025
-**System Status**: Fully functional and production-ready
+#### ✅ **Task 1: Centralize Debug Configuration in `.env`**
 
-### Key Achievements:
-1. ✅ **Settings System**: Physics controls fully functional
-2. ✅ **MCP Architecture**: Correct REST-only frontend implementation  
-3. ✅ **Backend Services**: All stub implementations completed
-4. ✅ **Code Cleanup**: Legacy CUDA kernels and deprecated modules removed
-5. ✅ **Documentation**: All docs updated to reflect current state
+-   [ ] **Modify `.env_template`:** This file will become the blueprint for all debug settings.
+    -   Remove the unused `DEBUG_MODE` variable.
+    -   Add a new `DEBUG_ENABLED` variable to act as the master switch.
+    -   Update `RUST_LOG` with a comprehensive default for development.
 
-### System Health:
-- **Build Success**: 100% (all compilation errors resolved)
-- **Test Coverage**: All critical paths verified
-- **Performance**: 60 FPS rendering, <50ms API response times
-- **Architecture**: Clean separation of concerns
-- **Code Quality**: 89% CUDA reduction, 73% Rust module reduction
+    ```diff
+    # .env_template
 
-**NEXT PHASE**: System ready for advanced features and enterprise deployment.
+    # Server Configuration
+    - RUST_LOG=warn                        # Log level (debug, info, warn, error)
+    + # RUST_LOG levels: trace, debug, info, warn, error
+    + # Example for development: RUST_LOG=debug,webxr=trace,actix_web=info
+    + RUST_LOG=info,webxr=debug
+    BIND_ADDRESS=0.0.0.0                 # Server bind address
+    - DEBUG_MODE=true                     # When true, only processes Debug Test Page.md
+    + DEBUG_ENABLED=true                  # Master switch for all debug features (backend & frontend)
+    ```
 
-See [IMPLEMENTATION_COMPLETE.md](/workspace/ext/docs/IMPLEMENTATION_COMPLETE.md) for detailed completion summary.
+-   [ ] **Remove Debug Section from `data/settings.yaml`:**
+    -   Delete the entire `debug:` block under the `system:` section in `data/settings.yaml`. The application should no longer read debug states from this file.
+
+#### ✅ **Task 2: Refactor Backend to Use Environment Variables**
+
+-   [ ] **Update Logging Initialization:** Modify the Rust code to respect the `RUST_LOG` environment variable. This is the most critical step.
+    *   **File:** `src/utils/logging.rs`
+    *   **Action:** Replace the `simplelog` setup with `env_logger` or configure `simplelog` to use `RUST_LOG`. `env_logger` is a standard choice.
+    *   **Example (`env_logger`):**
+        ```rust
+        // In src/main.rs or a logging module
+        pub fn init_logging() {
+            // This will automatically read the RUST_LOG env var
+            env_logger::init();
+            log::info!("Logging initialized via env_logger");
+        }
+        ```
+    *   **Note:** You will need to add `env_logger` to your `Cargo.toml`.
+
+-   [ ] **Read `DEBUG_ENABLED` in Rust:** Use the new master switch to control debug-only logic.
+    *   **File:** `src/main.rs` or `src/config/mod.rs`
+    *   **Action:** Read the `DEBUG_ENABLED` environment variable at startup and store it in your `AppState`. This can then be used to conditionally enable features like performance overlays or extra API response data.
+    *   **Example:**
+        ```rust
+        // In your settings/config loading logic
+        let debug_enabled = std::env::var("DEBUG_ENABLED")
+            .unwrap_or_else(|_| "false".to_string())
+            .parse::<bool>()
+            .unwrap_or(false);
+
+        // Add it to AppState to make it available throughout the application
+        ```
+
+#### ✅ **Task 3: Align Docker Environment Files**
+
+-   [ ] **Update `docker-compose.dev.yml`:**
+    -   Remove the hardcoded `RUST_LOG` value and ensure it's inherited from the `.env` file.
+    -   Pass `DEBUG_ENABLED` to the Vite frontend as `VITE_DEBUG`.
+
+    ```diff
+    # docker-compose.dev.yml
+    services:
+      webxr:
+        # ...
+        environment:
+          - NVIDIA_VISIBLE_DEVICES=0
+    -     - RUST_LOG=warn,webxr::services::claude_flow=trace,webxr=warn,actix_web=warn
+    +     # RUST_LOG is now inherited from the .env file via env_file directive
+    +     - VITE_DEBUG=${DEBUG_ENABLED:-true} # Pass master debug switch to frontend
+          - NODE_ENV=development
+          # ...
+    ```
+
+-   [ ] **Update `docker-compose.production.yml` and `docker-compose.yml`:**
+    -   Ensure these files correctly inherit `RUST_LOG` and `DEBUG_ENABLED` from the `.env` file. The `env_file: .env` directive should handle this, but remove any hardcoded `RUST_LOG` overrides to be sure.
+
+-   [ ] **Update `Dockerfile.dev` and `Dockerfile.production`:**
+    -   Change the hardcoded `ENV RUST_LOG=warn` to a default that can be overridden by Docker Compose.
+    -   **Example:** `ENV RUST_LOG=${RUST_LOG:-info}`
+
+#### ✅ **Task 4: Final Cleanup and Verification**
+
+-   [ ] **Review Code:** Search the codebase for any remaining debug flags that are not controlled by the new `.env` system and refactor them.
+-   [ ] **Update Documentation:** Update `README.md` or other developer guides to explain the new, simplified method for controlling debug settings.
+-   [ ] **Test:** Run the application in both development and production modes (`docker-compose -f ... up`) and verify that changing `DEBUG_ENABLED` and `RUST_LOG` in your `.env` file correctly controls the behavior of both the frontend and backend.
