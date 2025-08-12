@@ -17,6 +17,7 @@ import { registerOnboardingCommands } from '../features/onboarding/flows/default
 import { TooltipProvider } from '../features/design-system/components/Tooltip';
 import { useBotsWebSocketIntegration } from '../features/bots/hooks/useBotsWebSocketIntegration';
 import { DebugControlPanel } from '../components/DebugControlPanel';
+import { ConnectionWarning } from '../components/ConnectionWarning';
 const logger = createLogger('App')
 
 // Error boundary component to catch rendering errors
@@ -132,6 +133,7 @@ function App() {
                   <div>Loading application...</div>
                 )}
                 {!initialized && <AppInitializer onInitialized={handleInitialized} /> }
+                <ConnectionWarning />
                 <CommandPalette />
                 <DebugControlPanel />
               </XRCoreProvider>

@@ -3,12 +3,12 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
 use super::error::{ConnectorError, Result};
-use super::transport::{Transport, http::HttpTransport, websocket::WebSocketTransport, stdio::StdioTransport};
+use super::transport::{Transport, http::HttpTransport, websocket::WebSocketTransport};
 use super::types::*;
 use super::mcp_tools::{McpTool, ToolResponse};
 use std::collections::HashMap;
 use serde_json::{json, Value};
-use log::debug;
+use log::{debug, warn};
 
 #[derive(Clone)]
 pub struct ClaudeFlowClient {
@@ -1257,10 +1257,11 @@ impl ClaudeFlowClientBuilder {
         self
     }
 
-    pub fn use_stdio(mut self) -> Self {
-        self.transport_type = TransportType::Stdio;
-        self
-    }
+    // REMOVED: stdio transport is incorrect - should connect to multi-agent-container via WebSocket
+    // pub fn use_stdio(mut self) -> Self {
+    //     self.transport_type = TransportType::Stdio;
+    //     self
+    // }
 
     pub async fn build(self) -> Result<ClaudeFlowClient> {
         let transport: Box<dyn Transport> = match self.transport_type {
@@ -1271,7 +1272,9 @@ impl ClaudeFlowClientBuilder {
                 Box::new(HttpTransport::new(&self.host, self.port, self.auth_token)?)
             }
             TransportType::Stdio => {
-                Box::new(StdioTransport::new())
+                // Stdio transport should not be used - always use WebSocket to multi-agent-container
+                warn!("Stdio transport requested but disabled - using WebSocket to multi-agent-container instead");
+                Box::new(WebSocketTransport::new("multi-agent-container", 3002, self.auth_token))
             }
         };
 

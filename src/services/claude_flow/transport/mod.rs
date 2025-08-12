@@ -1,6 +1,8 @@
 pub mod http;
 pub mod websocket;
-pub mod stdio;
+pub mod tcp;  // NEW: Direct TCP transport for optimal performance
+// DISABLED: stdio transport incorrectly spawns subprocess instead of connecting to multi-agent-container
+// pub mod stdio;
 
 use async_trait::async_trait;
 use crate::services::claude_flow::error::Result;
@@ -14,4 +16,23 @@ pub trait Transport: Send + Sync {
     async fn send_notification(&mut self, notification: McpNotification) -> Result<()>;
     async fn receive_notification(&mut self) -> Result<Option<McpNotification>>;
     fn is_connected(&self) -> bool;
+}
+
+/// Transport type enumeration for easy selection
+#[derive(Debug, Clone)]
+pub enum TransportType {
+    Http,
+    WebSocket,
+    Tcp,  // NEW: TCP transport option
+}
+
+impl TransportType {
+    /// Determine transport type from environment or default to TCP
+    pub fn from_env() -> Self {
+        match std::env::var("MCP_TRANSPORT").as_deref() {
+            Ok("http") => TransportType::Http,
+            Ok("websocket") | Ok("ws") => TransportType::WebSocket,
+            Ok("tcp") | _ => TransportType::Tcp, // Default to TCP for performance
+        }
+    }
 }
