@@ -239,7 +239,7 @@ impl AgentVisualizationProtocol {
     pub fn create_init_message(
         swarm_id: &str,
         topology: &str,
-        agents: Vec<crate::services::claude_flow::types::AgentStatus>,
+        agents: Vec<crate::types::claude_flow::AgentStatus>,
     ) -> String {
         use crate::services::agent_visualization_processor::AgentVisualizationProcessor;
         

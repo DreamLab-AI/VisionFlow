@@ -18,7 +18,7 @@ pub struct PageInfo {
 }
 
 pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
-    let settings = app_state.settings_addr.send(GetSettings).await
+    let _settings = app_state.settings_addr.send(GetSettings).await
         .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Settings actor mailbox error: {}", e)))?
         .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     let debug_enabled = crate::utils::logging::is_debug_enabled();

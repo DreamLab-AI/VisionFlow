@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
-use crate::services::claude_flow::types::AgentStatus;
+use crate::types::claude_flow::AgentStatus;
 use sysinfo::{System, Pid};
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
@@ -260,7 +260,7 @@ impl AgentVisualizationProcessor {
                 
                 metadata: AgentMetadata {
                     created_at: agent.timestamp,
-                    age_seconds: (Utc::now() - agent.timestamp).num_seconds() as u64,
+                    age_seconds: (Utc::now() - agent.timestamp).timestamp() as u64,
                     last_activity: agent.timestamp,
                     capabilities: agent.profile.capabilities.clone(),
                     error_count: agent.failed_tasks_count,

@@ -25,10 +25,7 @@ use serde::{Serialize, Deserialize};
 // use futures_util::future::FutureExt as _; // For .into_actor() - note the `as _` to avoid name collision if FutureExt is also in scope from elsewhere
 
 // Constants for GPU computation
-const BLOCK_SIZE: u32 = 256;
 const MAX_NODES: u32 = 1_000_000;
-const NODE_SIZE: u32 = std::mem::size_of::<BinaryNodeData>() as u32;
-const SHARED_MEM_SIZE: u32 = BLOCK_SIZE * NODE_SIZE;
 const DEBUG_THROTTLE: u32 = 60;
 
 // Constants for retry mechanism

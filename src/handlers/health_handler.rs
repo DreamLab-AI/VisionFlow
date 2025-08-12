@@ -97,22 +97,7 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
         }
     };
     
-    // Check Claude Flow actor
-    let claude_flow_status = if let Some(claude_flow_addr) = &app_state.claude_flow_addr {
-        match tokio::time::timeout(
-            Duration::from_secs(3),
-            claude_flow_addr.send(MetricsCollect)
-        ).await {
-            Ok(Ok(Ok(_))) => "connected".to_string(),
-            _ => {
-                issues.push("Claude Flow not responding".to_string());
-                "disconnected".to_string()
-            }
-        }
-    } else {
-        issues.push("Claude Flow actor not available".to_string());
-        "unavailable".to_string()
-    };
+    let claude_flow_status = "unavailable".to_string();
     
     if health_status == "healthy" && !issues.is_empty() {
         health_status = "degraded".to_string();
@@ -133,7 +118,7 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
             "nodes_count": nodes_count,
             "edges_count": edges_count,
             "mcp_status": mcp_status,
-            "claude_flow_status": claude_flow_status
+            "claude_flow_status": "removed"
         }
     })))
 }
@@ -189,20 +174,8 @@ fn check_gpu_status() -> String {
     }
 }
 
-async fn check_mcp_connection(app_state: &web::Data<AppState>) -> String {
-    if let Some(claude_flow_addr) = &app_state.claude_flow_addr {
-        match tokio::time::timeout(
-            Duration::from_secs(2),
-            claude_flow_addr.send(crate::actors::messages::GetSwarmStatus)
-        ).await {
-            Ok(Ok(Ok(_))) => "connected".to_string(),
-            Ok(Ok(Err(e))) => format!("error: {}", e),
-            Ok(Err(_)) => "actor_error".to_string(),
-            Err(_) => "timeout".to_string(),
-        }
-    } else {
-        "not_configured".to_string()
-    }
+async fn check_mcp_connection(_app_state: &web::Data<AppState>) -> String {
+    "not_configured".to_string()
 }
 
 #[get("/physics")]

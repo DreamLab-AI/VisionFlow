@@ -228,7 +228,7 @@ pub struct SendToClientBinary(pub Vec<u8>);
 pub struct SendToClientText(pub String);
 
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
-use crate::services::claude_flow::AgentStatus;
+use crate::types::claude_flow::AgentStatus;
 use crate::models::graph::GraphData;
 
 #[derive(Message)]

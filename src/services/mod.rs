@@ -1,7 +1,6 @@
 pub mod agent_visualization_processor;
 pub mod agent_visualization_protocol;
 pub mod bots_client;
-pub mod claude_flow;
 pub mod edge_generation;
 pub mod file_service;
 pub mod github;
