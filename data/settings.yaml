@@ -43,12 +43,12 @@ visualisation:
       physics:
         enabled: true
         iterations: 200
-        damping: 0.9
-        spring_strength: 0.005
+        damping: 0.98
+        spring_strength: 0.001
         repulsion_strength: 50.0
         repulsion_distance: 50.0
-        attraction_strength: 0.001
-        max_velocity: 1.0
+        attraction_strength: 0.0005
+        max_velocity: 0.5
         collision_radius: 0.15
         bounds_size: 200.0
         enable_bounds: true
@@ -95,12 +95,12 @@ visualisation:
       physics:
         enabled: true
         iterations: 150
-        damping: 0.9
-        spring_strength: 0.005
+        damping: 0.98
+        spring_strength: 0.001
         repulsion_strength: 50.0
         repulsion_distance: 50.0
-        attraction_strength: 0.001
-        max_velocity: 1.0
+        attraction_strength: 0.0005
+        max_velocity: 0.5
         collision_radius: 0.15
         bounds_size: 200.0
         enable_bounds: true

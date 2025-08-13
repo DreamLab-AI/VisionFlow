@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { multiAgentInitializationPrompt } from '../../bots/components/multiAgentInitializationPrompt';
+import { MultiAgentInitializationPrompt } from '../../bots/components';
 
 interface IntegratedControlPanelProps {
   showStats: boolean;
@@ -1074,9 +1074,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         )}
       </div>
 
-      {/* multi-agent Initialization Prompt */}
+      {/* Multi-agent Initialization Prompt */}
       {showmultiAgentPrompt && (
-        <multiAgentInitializationPrompt
+        <MultiAgentInitializationPrompt
           onClose={() => setshowmultiAgentPrompt(false)}
           onInitialized={() => {
             setshowmultiAgentPrompt(false);

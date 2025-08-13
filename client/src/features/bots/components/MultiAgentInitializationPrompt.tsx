@@ -3,14 +3,14 @@ import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/logger';
 import { apiService } from '../../../services/apiService';
 
-const logger = createLogger('multiagentInitializationPrompt');
+const logger = createLogger('MultiAgentInitializationPrompt');
 
-interface multiAgentInitializationPromptProps {
+interface MultiAgentInitializationPromptProps {
   onClose: () => void;
   onInitialized: () => void;
 }
 
-export const multiAgentInitializationPrompt: React.FC<multiAgentInitializationPromptProps> = ({
+export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPromptProps> = ({
   onClose,
   onInitialized
 }) => {
