@@ -18,7 +18,7 @@ export default defineConfig({
     
     // HMR configuration for development
     hmr: {
-      port: parseInt(process.env.VITE_HMR_PORT || '5173'), // Use same port as server
+      port: 3001, // Use nginx port since we're proxying through it
       host: 'localhost',
       protocol: 'ws',
       path: '/__vite_hmr', // Match nginx config

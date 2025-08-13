@@ -29,8 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     && rm -rf /var/lib/apt/lists/*
 
-# Create Nginx log directory and verify nginx installation
-RUN mkdir -p /var/log/nginx && \
+# Create Nginx log and run directories and verify nginx installation
+RUN mkdir -p /var/log/nginx /var/run/nginx && \
+    chown -R www-data:www-data /var/run/nginx && \
     which nginx && \
     nginx -v
 
