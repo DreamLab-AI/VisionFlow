@@ -10,6 +10,7 @@ pub use crate::handlers::bots_handler::{
     get_bots_data,
     get_bots_positions,
     initialize_swarm,
+    initialize_multi_agent,
 };
 
 // Configure bots API routes

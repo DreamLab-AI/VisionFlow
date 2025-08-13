@@ -93,9 +93,9 @@ class GraphWorker {
   private velocities: Float32Array | null = null;
   private pinnedNodeIds: Set<number> = new Set(); // For user-dragged nodes
   private physicsSettings = {
-    springStrength: 0.2,
-    damping: 0.95,
-    maxVelocity: 0.02,
+    springStrength: 0.001,
+    damping: 0.98,
+    maxVelocity: 0.5,
     updateThreshold: 0.05,
   };
   
@@ -168,11 +168,15 @@ class GraphWorker {
 
   // --- NEW METHOD to receive settings from the main thread ---
   async updateSettings(settings: any): Promise<void> {
+    // Get the current graph type settings
+    const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics || 
+                         settings?.visualisation?.physics;
+    
     this.physicsSettings = {
-      springStrength: settings?.visualisation?.physics?.springStrength ?? 0.2,
-      damping: settings?.visualisation?.physics?.damping ?? 0.95,
-      maxVelocity: settings?.visualisation?.physics?.maxVelocity ?? 0.02,
-      updateThreshold: settings?.visualisation?.physics?.updateThreshold ?? 0.05
+      springStrength: graphSettings?.spring_strength ?? 0.001,
+      damping: graphSettings?.damping ?? 0.98,
+      maxVelocity: graphSettings?.max_velocity ?? 0.5,
+      updateThreshold: graphSettings?.update_threshold ?? 0.05
     };
   }
 
