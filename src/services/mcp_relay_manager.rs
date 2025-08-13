@@ -1,25 +1,25 @@
 use std::process::Command;
 use log::{info, error, warn};
 
-/// Manages the MCP WebSocket relay in the powerdev container
+/// Manages the MCP WebSocket relay in the multi-agent-container
 pub struct McpRelayManager;
 
 impl McpRelayManager {
-    /// Check if the MCP relay is running in the powerdev container
+    /// Check if the MCP relay is running in the multi-agent-container
     pub fn check_relay_status() -> bool {
-        info!("Checking MCP relay status in powerdev container...");
+        info!("Checking MCP relay status in multi-agent-container...");
         
         let output = Command::new("docker")
-            .args(&["exec", "powerdev", "pgrep", "-f", "mcp-ws-relay"])
+            .args(&["exec", "multi-agent-container", "pgrep", "-f", "mcp-server"])
             .output();
             
         match output {
             Ok(result) => {
                 let is_running = result.status.success();
                 if is_running {
-                    info!("MCP relay is running in powerdev container");
+                    info!("MCP relay is running in multi-agent-container");
                 } else {
-                    warn!("MCP relay is not running in powerdev container");
+                    warn!("MCP relay is not running in multi-agent-container");
                 }
                 is_running
             }
@@ -30,28 +30,28 @@ impl McpRelayManager {
         }
     }
     
-    /// Start the MCP relay in the powerdev container if not already running
+    /// Start the MCP relay in the multi-agent-container if not already running
     pub fn ensure_relay_running() -> Result<(), String> {
         if Self::check_relay_status() {
             info!("MCP relay already running, no action needed");
             return Ok(());
         }
         
-        info!("Starting MCP relay in powerdev container...");
+        info!("Starting MCP relay in multi-agent-container...");
         
         // Start the relay in the background
         let output = Command::new("docker")
             .args(&[
-                "exec", "-d", "powerdev",
+                "exec", "-d", "multi-agent-container",
                 "bash", "-c",
-                "cd /tmp && node mcp-ws-relay.js > /tmp/mcp-ws-relay.log 2>&1"
+                "cd /app && npm run mcp:start > /tmp/mcp-server.log 2>&1"
             ])
             .output();
             
         match output {
             Ok(result) => {
                 if result.status.success() {
-                    info!("Successfully started MCP relay in powerdev container");
+                    info!("Successfully started MCP relay in multi-agent-container");
                     
                     // Give it a moment to start
                     std::thread::sleep(std::time::Duration::from_secs(2));
@@ -77,9 +77,9 @@ impl McpRelayManager {
     pub fn get_relay_logs(lines: usize) -> Result<String, String> {
         let output = Command::new("docker")
             .args(&[
-                "exec", "powerdev",
+                "exec", "multi-agent-container",
                 "tail", "-n", &lines.to_string(),
-                "/tmp/mcp-ws-relay.log"
+                "/tmp/mcp-server.log"
             ])
             .output();
             
@@ -97,10 +97,10 @@ impl McpRelayManager {
         }
     }
     
-    /// Check if powerdev container is running
-    pub fn check_powerdev_container() -> bool {
+    /// Check if multi-agent-container is running
+    pub fn check_mcp_container() -> bool {
         let output = Command::new("docker")
-            .args(&["ps", "-q", "-f", "name=powerdev"])
+            .args(&["ps", "-q", "-f", "name=multi-agent-container"])
             .output();
             
         match output {
@@ -114,9 +114,9 @@ impl McpRelayManager {
 
 /// Ensure MCP relay is available before starting ClaudeFlowActor
 pub async fn ensure_mcp_ready() -> Result<(), String> {
-    // First check if powerdev container exists
-    if !McpRelayManager::check_powerdev_container() {
-        return Err("powerdev container is not running".to_string());
+    // First check if multi-agent-container exists
+    if !McpRelayManager::check_mcp_container() {
+        return Err("multi-agent-container is not running".to_string());
     }
     
     // Try to ensure relay is running

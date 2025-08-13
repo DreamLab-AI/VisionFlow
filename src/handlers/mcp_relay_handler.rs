@@ -44,7 +44,7 @@ impl MCPRelayActor {
     
     fn connect_to_orchestrator(&mut self, ctx: &mut <Self as Actor>::Context) {
         let orchestrator_url = std::env::var("ORCHESTRATOR_WS_URL")
-            .unwrap_or_else(|_| "ws://powerdev:3000/ws".to_string());
+            .unwrap_or_else(|_| "ws://multi-agent-container:3002/ws".to_string());
             
         info!("[MCP Relay] Connecting to orchestrator at: {}", orchestrator_url);
         let addr = ctx.address();
