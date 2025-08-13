@@ -36,27 +36,27 @@ graph TB
         GSA[GraphServiceActor] --> GCA[GPUComputeActor]
         CFA[ClaudeFlowActor] --> GSA
     end
-    
-    subgraph "GPU Compute Pipeline" 
+
+    subgraph "GPU Compute Pipeline"
         GCA --> UGC[UnifiedGPUCompute]
         UGC --> CK[CUDA Kernel]
         UGC --> FB[Fallback CPU]
         CK --> CUDA[CUDA Device]
         CK --> PTX[visionflow_unified.ptx]
     end
-    
+
     subgraph "Compute Modes"
         BASIC[Basic Layout]
         DUAL[Dual Graph]
         CONSTRAINTS[Constraint Satisfaction]
         ANALYTICS[Visual Analytics]
     end
-    
+
     UGC --> BASIC
     UGC --> DUAL
     UGC --> CONSTRAINTS
     UGC --> ANALYTICS
-    
+
     style GCA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style UGC fill:#3A3F47,stroke:#68D391,color:#FFFFFF
     style CK fill:#3A3F47,stroke:#F56565,color:#FFFFFF
@@ -76,31 +76,31 @@ pub struct UnifiedGPUCompute {
     device: Arc<CudaDevice>,
     compute_kernel: CudaFunction,
     stress_kernel: Option<CudaFunction>,
-    
+
     // Structure of Arrays layout for optimal GPU memory access
     pos_x: CudaSlice<f32>,
-    pos_y: CudaSlice<f32>, 
+    pos_y: CudaSlice<f32>,
     pos_z: CudaSlice<f32>,
     vel_x: CudaSlice<f32>,
     vel_y: CudaSlice<f32>,
     vel_z: CudaSlice<f32>,
-    
+
     // Optional advanced features
     node_mass: Option<CudaSlice<f32>>,
     node_importance: Option<CudaSlice<f32>>,
     node_temporal: Option<CudaSlice<f32>>,
     node_graph_id: Option<CudaSlice<i32>>,
     node_cluster: Option<CudaSlice<i32>>,
-    
+
     // Edge data in CSR format
     edge_src: CudaSlice<i32>,
     edge_dst: CudaSlice<i32>,
     edge_weight: CudaSlice<f32>,
     edge_graph_id: Option<CudaSlice<i32>>,
-    
+
     // Constraint system
     constraints: Option<CudaSlice<ConstraintData>>,
-    
+
     // Runtime parameters
     params: SimParams,
     num_nodes: usize,
@@ -142,22 +142,22 @@ The unified parameter structure matches the CUDA kernel layout:
 pub struct SimParams {
     // Force parameters
     pub spring_k: f32,        // Spring force strength
-    pub repel_k: f32,         // Repulsion force strength  
+    pub repel_k: f32,         // Repulsion force strength
     pub damping: f32,         // Velocity damping
     pub dt: f32,              // Time step
     pub max_velocity: f32,    // Velocity clamping
     pub max_force: f32,       // Force clamping
-    
+
     // Stress majorization
     pub stress_weight: f32,   // Stress optimisation weight
     pub stress_alpha: f32,    // Learning rate
-    
+
     // Constraint system
     pub separation_radius: f32,    // Minimum node separation
     pub boundary_limit: f32,       // Viewport boundaries
     pub alignment_strength: f32,   // Node alignment force
     pub cluster_strength: f32,     // Clustering force
-    
+
     // System parameters
     pub viewport_bounds: f32,  // Simulation bounds
     pub temperature: f32,      // Simulated annealing temperature
@@ -324,22 +324,22 @@ __global__ void visionflow_compute_kernel(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= params.num_nodes) return;
-    
+
     // Load node position
     float3 position = make_float3(
         params.nodes.pos_x[idx],
-        params.nodes.pos_y[idx], 
+        params.nodes.pos_y[idx],
         params.nodes.pos_z[idx]
     );
-    
+
     float3 velocity = make_float3(
         params.nodes.vel_x[idx],
         params.nodes.vel_y[idx],
         params.nodes.vel_z[idx]
     );
-    
+
     float3 force = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     // Mode-specific computation
     switch (params.params.compute_mode) {
         case 0: // Basic
@@ -348,14 +348,14 @@ __global__ void visionflow_compute_kernel(
         case 1: // Dual Graph
             force = compute_dual_graph_forces(idx, position, params);
             break;
-        case 2: // Constraints  
+        case 2: // Constraints
             force = compute_constraint_forces(idx, position, params);
             break;
         case 3: // Visual Analytics
             force = compute_analytics_forces(idx, position, params);
             break;
     }
-    
+
     // Apply physics integration
     integrate_physics(idx, position, velocity, force, params);
 }
@@ -369,10 +369,10 @@ __device__ float3 compute_repulsion_tiled(
     int idx, float3 position, GpuKernelParams params
 ) {
     float3 repulsion_force = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     // Shared memory for tile-based computation
     __shared__ float3 tile_positions[BLOCK_SIZE];
-    
+
     for (int tile = 0; tile < gridDim.x; tile++) {
         // Load tile into shared memory
         int tile_idx = tile * blockDim.x + threadIdx.x;
@@ -384,13 +384,13 @@ __device__ float3 compute_repulsion_tiled(
             );
         }
         __syncthreads();
-        
+
         // Compute repulsion within tile
         for (int i = 0; i < blockDim.x && tile * blockDim.x + i < params.num_nodes; i++) {
             if (tile * blockDim.x + i != idx) {
                 float3 diff = position - tile_positions[i];
                 float dist_sq = dot(diff, diff) + 0.01f;
-                
+
                 if (dist_sq < params.params.cutoff_distance_sq) {
                     float repulsion = params.params.repel_k / dist_sq;
                     repulsion_force += normalize(diff) * repulsion;
@@ -399,7 +399,7 @@ __device__ float3 compute_repulsion_tiled(
         }
         __syncthreads();
     }
-    
+
     return repulsion_force;
 }
 ```
@@ -413,17 +413,17 @@ __device__ float3 compute_dual_graph_forces(
     int idx, float3 position, GpuKernelParams params
 ) {
     int graph_id = params.nodes.graph_id[idx];
-    
+
     // Knowledge graph (graph_id = 0): stable, slow evolution
     // Agent graph (graph_id = 1): dynamic, rapid changes
-    
+
     SimParams adjusted_params = params.params;
     if (graph_id == 1) { // Agent graph
         adjusted_params.spring_k *= 2.0f;    // Stronger connections
         adjusted_params.repel_k *= 0.5f;     // Less repulsion
         adjusted_params.damping *= 0.7f;     // More responsive
     }
-    
+
     return compute_forces_with_params(idx, position, adjusted_params, params);
 }
 ```
@@ -445,7 +445,7 @@ impl GPUComputeActor {
                 None
             }
         };
-        
+
         Self {
             unified_compute: gpu_compute,
             cpu_fallback: CpuFallback::new(),
@@ -454,11 +454,11 @@ impl GPUComputeActor {
             // ... other fields
         }
     }
-    
+
     fn initialise_gpu(params: &SimulationParams) -> Result<UnifiedGPUCompute, Error> {
         const MAX_RETRIES: u32 = 3;
         const RETRY_DELAY_MS: u64 = 500;
-        
+
         for attempt in 0..MAX_RETRIES {
             match CudaDevice::new(0) {
                 Ok(device) => {
@@ -477,7 +477,7 @@ impl GPUComputeActor {
                 Err(e) => return Err(e.into()),
             }
         }
-        
+
         unreachable!()
     }
 }
@@ -488,7 +488,7 @@ impl GPUComputeActor {
 ```rust
 impl Handler<ComputeForces> for GPUComputeActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, _: ComputeForces, _: &mut Self::Context) -> Self::Result {
         if let Some(ref mut gpu_compute) = self.unified_compute {
             match gpu_compute.execute() {
@@ -516,7 +516,7 @@ impl Handler<ComputeForces> for GPUComputeActor {
 
 **Structure of Arrays (SoA)**:
 - Position: `pos_x[], pos_y[], pos_z[]` (separate arrays)
-- Velocity: `vel_x[], vel_y[], vel_z[]` (separate arrays) 
+- Velocity: `vel_x[], vel_y[], vel_z[]` (separate arrays)
 - Better cache locality and SIMD vectorization
 
 **Benefits**:
@@ -531,18 +531,18 @@ pub fn execute(&mut self) -> Result<Vec<(f32, f32, f32)>, Error> {
     // Optimal block size for most GPUs
     let block_size = 256;
     let grid_size = (self.num_nodes + block_size - 1) / block_size;
-    
+
     let config = LaunchConfig {
         grid_dim: (grid_size as u32, 1, 1),
         block_dim: (block_size as u32, 1, 1),
         shared_mem_bytes: 0,
     };
-    
+
     // Launch unified kernel
     unsafe {
         self.compute_kernel.clone().launch(config, (kernel_params,))?;
     }
-    
+
     // Synchronize and download results
     self.device.synchronise()?;
     self.download_positions()
@@ -568,16 +568,16 @@ sequenceDiagram
     participant GPU as UnifiedGPUCompute
     participant CUDA as CUDA Device
     participant PTX as PTX Kernel
-    
+
     Actor->>GPU: new(num_nodes, num_edges)
     GPU->>CUDA: Create device (attempt 1)
-    
+
     alt CUDA Available
         CUDA-->>GPU: Device created
         GPU->>PTX: Load visionflow_unified.ptx
         PTX-->>GPU: Kernel loaded
         GPU-->>Actor: GPU ready
-    else CUDA Unavailable  
+    else CUDA Unavailable
         CUDA-->>GPU: Error
         GPU->>GPU: Retry with exponential backoff
         alt Retry Successful
@@ -594,7 +594,7 @@ The system attempts to load the unified PTX kernel from multiple paths:
 
 ```rust
 let ptx_paths = [
-    "/workspace/ext/src/utils/ptx/visionflow_unified.ptx",  // Development
+    "/src/utils/ptx/visionflow_unified.ptx",  // Development
     "/app/src/utils/ptx/visionflow_unified.ptx",            // Container
     "src/utils/ptx/visionflow_unified.ptx",                 // Relative
     "./src/utils/ptx/visionflow_unified.ptx",               // Current dir
@@ -619,7 +619,7 @@ pub struct ConstraintData {
     pub constraint_type: i32,  // 0=separation, 1=alignment, 2=cluster
     pub strength: f32,         // Constraint strength [0.0, 1.0]
     pub param1: f32,          // Type-specific parameter 1
-    pub param2: f32,          // Type-specific parameter 2  
+    pub param2: f32,          // Type-specific parameter 2
     pub node_mask: i32,       // Bitmask for affected nodes
 }
 ```
@@ -671,14 +671,14 @@ __global__ void stress_majorization_kernel(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
-    
+
     // Compute stress gradient for node idx
     float3 gradient = compute_stress_gradient(
         idx, pos_x, pos_y, pos_z,
-        ideal_distances, weight_matrix, 
+        ideal_distances, weight_matrix,
         params, num_nodes
     );
-    
+
     // Apply gradient descent step
     pos_x[idx] -= gradient.x * params.stress_alpha;
     pos_y[idx] -= gradient.y * params.stress_alpha;
@@ -722,7 +722,7 @@ Error: CUDA device not found
 Recovery: Automatic CPU fallback with performance warning
 ```
 
-**2. GPU Memory Exhaustion**  
+**2. GPU Memory Exhaustion**
 ```
 Error: CUDA out of memory
 Recovery: Reduce node count or enable streaming mode
@@ -740,7 +740,7 @@ Recovery: CPU fallback, check CUDA toolkit version
 // Health check endpoint: GET /api/health/physics
 {
   "gpu_initialised": true,
-  "compute_mode": "DualGraph", 
+  "compute_mode": "DualGraph",
   "iteration_count": 45680,
   "frame_rate": 62.3,
   "node_count": 12540,
@@ -761,7 +761,7 @@ CUDA_ENABLED=true
 CUDA_DEVICE_ID=0
 GPU_BLOCK_SIZE=256
 
-# Performance tuning  
+# Performance tuning
 GPU_MAX_NODES=100000
 GPU_MEMORY_LIMIT_MB=2048
 
@@ -782,7 +782,7 @@ physics:
   time_step: 0.01            # dt
   max_velocity: 1.0          # max_velocity
   temperature: 0.5           # temperature
-  
+
 gpu:
   enabled: true
   device_id: 0
@@ -796,7 +796,7 @@ gpu:
 ### Performance Issues
 
 **Symptom**: Low frame rate despite adequate hardware
-**Diagnosis**: 
+**Diagnosis**:
 ```rust
 // Check GPU utilization
 let status = gpu_compute_actor.send(GetGPUStatus).await??;
@@ -809,7 +809,7 @@ if status.frame_rate < 30.0 {
 
 **Solutions**:
 1. Reduce `repulsion_strength` to decrease computation
-2. Increase `damping` to reach stability faster  
+2. Increase `damping` to reach stability faster
 3. Enable `ComputeMode::Basic` for maximum performance
 4. Reduce `max_nodes` if memory-limited
 
@@ -820,11 +820,11 @@ if status.frame_rate < 30.0 {
 fn check_gpu_memory(&self) -> Result<MemoryInfo, Error> {
     let free_bytes = self.device.total_memory()? - self.device.used_memory()?;
     let node_memory_req = self.num_nodes * size_of::<f32>() * 6; // pos + vel
-    
+
     if free_bytes < node_memory_req {
         return Err("Insufficient GPU memory".into());
     }
-    
+
     Ok(MemoryInfo { free_bytes, required_bytes: node_memory_req })
 }
 ```
@@ -840,7 +840,7 @@ RUST_LOG=gpu_compute=trace cargo run
 
 **Common kernel issues**:
 - Invalid memory access → Check array bounds
-- Divergent warps → Minimize branching in kernels  
+- Divergent warps → Minimize branching in kernels
 - Bank conflicts → Use proper shared memory padding
 
 ## Best Practices

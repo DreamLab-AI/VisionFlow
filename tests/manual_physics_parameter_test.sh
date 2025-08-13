@@ -16,16 +16,16 @@ NC='\033[0m' # No Color
 # Step 1: Verify settings.yaml exists and has physics section
 echo -e "\n${BLUE}Step 1: Verifying settings.yaml configuration...${NC}"
 
-if [ -f "/workspace/ext/data/settings.yaml" ]; then
+if [ -f "/data/settings.yaml" ]; then
     echo -e "${GREEN}✅ settings.yaml found${NC}"
-    
-    if grep -q "physics:" /workspace/ext/data/settings.yaml; then
+
+    if grep -q "physics:" /data/settings.yaml; then
         echo -e "${GREEN}✅ Physics section found in settings.yaml${NC}"
-        
+
         # Extract key physics parameters
         echo -e "${BLUE}Current physics settings:${NC}"
-        grep -A 20 "physics:" /workspace/ext/data/settings.yaml | head -20
-        
+        grep -A 20 "physics:" /data/settings.yaml | head -20
+
     else
         echo -e "${RED}❌ Physics section missing from settings.yaml${NC}"
         exit 1
@@ -39,7 +39,7 @@ fi
 echo -e "\n${BLUE}Step 2: Verifying GPU kernel (PTX file)...${NC}"
 
 PTX_PATHS=(
-    "/workspace/ext/src/utils/ptx/visionflow_unified.ptx"
+    "/src/utils/ptx/visionflow_unified.ptx"
     "/app/src/utils/ptx/visionflow_unified.ptx"
 )
 
@@ -56,8 +56,8 @@ done
 if [ "$PTX_FOUND" = false ]; then
     echo -e "${RED}❌ No PTX file found. GPU kernel not available.${NC}"
     echo -e "${YELLOW}Attempting to compile PTX...${NC}"
-    
-    if [ -f "/workspace/ext/scripts/compile_unified_ptx.sh" ]; then
+
+    if [ -f "/scripts/compile_unified_ptx.sh" ]; then
         cd /workspace/ext && ./scripts/compile_unified_ptx.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ PTX compilation successful${NC}"
@@ -73,19 +73,19 @@ fi
 echo -e "\n${BLUE}Step 3: Verifying source files in parameter flow...${NC}"
 
 FILES=(
-    "/workspace/ext/client/src/features/physics/components/PhysicsEngineControls.tsx:UI Controls"
-    "/workspace/ext/client/src/api/settingsApi.ts:Settings API Client"
-    "/workspace/ext/src/handlers/settings_handler.rs:REST API Handler"
-    "/workspace/ext/src/models/simulation_params.rs:Parameter Conversion"
-    "/workspace/ext/src/actors/gpu_compute_actor.rs:GPU Actor"
-    "/workspace/ext/src/utils/unified_gpu_compute.rs:GPU Compute Engine"
-    "/workspace/ext/src/utils/visionflow_unified.cu:CUDA Kernel"
+    "/client/src/features/physics/components/PhysicsEngineControls.tsx:UI Controls"
+    "/client/src/api/settingsApi.ts:Settings API Client"
+    "/src/handlers/settings_handler.rs:REST API Handler"
+    "/src/models/simulation_params.rs:Parameter Conversion"
+    "/src/actors/gpu_compute_actor.rs:GPU Actor"
+    "/src/utils/unified_gpu_compute.rs:GPU Compute Engine"
+    "/src/utils/visionflow_unified.cu:CUDA Kernel"
 )
 
 for file_info in "${FILES[@]}"; do
     file_path="${file_info%%:*}"
     file_desc="${file_info##*:}"
-    
+
     if [ -f "$file_path" ]; then
         echo -e "${GREEN}✅ $file_desc: $file_path${NC}"
     else
@@ -100,18 +100,18 @@ echo -e "${YELLOW}Simulating parameter conversion chain:${NC}"
 echo "  settings.yaml → PhysicsSettings → SimulationParams → SimParams → GPU"
 
 # Extract physics values from settings.yaml
-if [ -f "/workspace/ext/data/settings.yaml" ]; then
-    SPRING=$(grep "spring_strength:" /workspace/ext/data/settings.yaml | awk '{print $2}')
-    REPULSION=$(grep "repulsion_strength:" /workspace/ext/data/settings.yaml | awk '{print $2}')
-    DAMPING=$(grep "damping:" /workspace/ext/data/settings.yaml | awk '{print $2}')
-    TIME_STEP=$(grep "time_step:" /workspace/ext/data/settings.yaml | awk '{print $2}')
-    
+if [ -f "/data/settings.yaml" ]; then
+    SPRING=$(grep "spring_strength:" /data/settings.yaml | awk '{print $2}')
+    REPULSION=$(grep "repulsion_strength:" /data/settings.yaml | awk '{print $2}')
+    DAMPING=$(grep "damping:" /data/settings.yaml | awk '{print $2}')
+    TIME_STEP=$(grep "time_step:" /data/settings.yaml | awk '{print $2}')
+
     echo -e "${GREEN}Settings.yaml values:${NC}"
     echo "  spring_strength: $SPRING"
     echo "  repulsion_strength: $REPULSION"
     echo "  damping: $DAMPING"
     echo "  time_step: $TIME_STEP"
-    
+
     # Verify these values are reasonable
     if [ ! -z "$SPRING" ] && [ ! -z "$REPULSION" ] && [ ! -z "$DAMPING" ]; then
         echo -e "${GREEN}✅ All key physics parameters found${NC}"
@@ -123,13 +123,13 @@ fi
 # Step 5: Check API endpoint structure
 echo -e "\n${BLUE}Step 5: Checking API endpoint structure...${NC}"
 
-if grep -q "POST.*settings" /workspace/ext/src/handlers/settings_handler.rs; then
+if grep -q "POST.*settings" /src/handlers/settings_handler.rs; then
     echo -e "${GREEN}✅ POST /api/settings endpoint found${NC}"
 else
     echo -e "${RED}❌ POST /api/settings endpoint not found${NC}"
 fi
 
-if grep -q "propagate_physics_to_gpu" /workspace/ext/src/handlers/settings_handler.rs; then
+if grep -q "propagate_physics_to_gpu" /src/handlers/settings_handler.rs; then
     echo -e "${GREEN}✅ Physics propagation function found${NC}"
 else
     echo -e "${RED}❌ Physics propagation function not found${NC}"
@@ -138,13 +138,13 @@ fi
 # Step 6: Verify GPU message handler
 echo -e "\n${BLUE}Step 6: Verifying GPU message handler...${NC}"
 
-if grep -q "UpdateSimulationParams" /workspace/ext/src/actors/gpu_compute_actor.rs; then
+if grep -q "UpdateSimulationParams" /src/actors/gpu_compute_actor.rs; then
     echo -e "${GREEN}✅ UpdateSimulationParams message handler found${NC}"
 else
     echo -e "${RED}❌ UpdateSimulationParams message handler not found${NC}"
 fi
 
-if grep -q "unified_compute.set_params" /workspace/ext/src/actors/gpu_compute_actor.rs; then
+if grep -q "unified_compute.set_params" /src/actors/gpu_compute_actor.rs; then
     echo -e "${GREEN}✅ GPU parameter update call found${NC}"
 else
     echo -e "${RED}❌ GPU parameter update call not found${NC}"
@@ -153,42 +153,42 @@ fi
 # Step 7: Verify CUDA kernel parameter usage
 echo -e "\n${BLUE}Step 7: Verifying CUDA kernel parameter usage...${NC}"
 
-if [ -f "/workspace/ext/src/utils/visionflow_unified.cu" ]; then
-    CUDA_FILE="/workspace/ext/src/utils/visionflow_unified.cu"
-    
+if [ -f "/src/utils/visionflow_unified.cu" ]; then
+    CUDA_FILE="/src/utils/visionflow_unified.cu"
+
     # Check for SimParams structure
     if grep -q "struct SimParams" "$CUDA_FILE"; then
         echo -e "${GREEN}✅ SimParams structure found in CUDA kernel${NC}"
     else
         echo -e "${RED}❌ SimParams structure not found${NC}"
     fi
-    
+
     # Check for parameter usage in force calculations
     if grep -q "params.spring_k" "$CUDA_FILE"; then
         echo -e "${GREEN}✅ Spring parameter used in kernel${NC}"
     else
         echo -e "${YELLOW}⚠️  Spring parameter usage not found${NC}"
     fi
-    
+
     if grep -q "params.repel_k" "$CUDA_FILE"; then
         echo -e "${GREEN}✅ Repulsion parameter used in kernel${NC}"
     else
         echo -e "${YELLOW}⚠️  Repulsion parameter usage not found${NC}"
     fi
-    
+
     if grep -q "params.damping" "$CUDA_FILE"; then
         echo -e "${GREEN}✅ Damping parameter used in kernel${NC}"
     else
         echo -e "${YELLOW}⚠️  Damping parameter usage not found${NC}"
     fi
-    
+
     # Check for node collapse prevention
     if grep -q "MIN_DISTANCE" "$CUDA_FILE"; then
         echo -e "${GREEN}✅ Node collapse prevention (MIN_DISTANCE) found${NC}"
     else
         echo -e "${YELLOW}⚠️  Node collapse prevention not found${NC}"
     fi
-    
+
 else
     echo -e "${RED}❌ CUDA kernel file not found${NC}"
 fi
@@ -199,7 +199,7 @@ echo "=================================="
 
 echo -e "${GREEN}✅ VERIFIED COMPONENTS:${NC}"
 echo "  • UI Controls (PhysicsEngineControls.tsx)"
-echo "  • Settings API (settingsApi.ts)" 
+echo "  • Settings API (settingsApi.ts)"
 echo "  • REST Handler (settings_handler.rs)"
 echo "  • Parameter Conversion (simulation_params.rs)"
 echo "  • GPU Actor (gpu_compute_actor.rs)"

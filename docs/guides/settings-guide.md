@@ -7,7 +7,7 @@ The VisionFlow settings system is now fully functional with complete end-to-end 
 
 **Resolution Summary:**
 - Settings store duplication eliminated
-- Physics controls fully operational  
+- Physics controls fully operational
 - Complete data flow from UI → API → GPU verified
 - All 53+ import paths corrected to use unified store
 
@@ -25,7 +25,7 @@ Frontend UI → Settings Store → REST API → Actor System → GPU Compute
 ### Key Components
 
 1. **Settings Store** (`/ext/client/src/store/settingsStore.ts`) - Unified Zustand store
-2. **REST API** (`/api/settings`) - camelCase JSON interface  
+2. **REST API** (`/api/settings`) - camelCase JSON interface
 3. **Settings Actor** (`/src/actors/settings_actor.rs`) - State management
 4. **GPU Compute Actor** (`/src/actors/gpu_compute_actor.rs`) - Physics execution
 5. **Control Center UI** - Real-time settings panels
@@ -98,11 +98,11 @@ graph TD
 #### Force Parameters
 Control the physics forces between nodes:
 - **Spring Force**: Attraction between connected nodes (Hooke's law)
-- **Repulsion Force**: Prevents node overlap (Coulomb-like)  
+- **Repulsion Force**: Prevents node overlap (Coulomb-like)
 - **Attraction Force**: Global centering force
 - **Gravity**: Directional force field
 
-#### Stability Parameters  
+#### Stability Parameters
 Prevent simulation instability:
 - **Damping**: Reduces oscillations and overshooting
 - **Max Velocity**: Caps node movement speed
@@ -124,7 +124,7 @@ Control computational cost:
 
 ## Configuration Files Structure
 
-### 1. Server Configuration (`/workspace/ext/data/settings.yaml`)
+### 1. Server Configuration (`/data/settings.yaml`)
 
 Master configuration with snake_case naming:
 
@@ -170,7 +170,7 @@ visualisation:
     threshold: 0.15
 ```
 
-### 2. Client Defaults (`/workspace/ext/client/src/features/settings/config/defaultSettings.ts`)
+### 2. Client Defaults (`/client/src/features/settings/config/defaultSettings.ts`)
 
 TypeScript defaults with camelCase naming:
 
@@ -216,7 +216,7 @@ export const defaultSettings: Settings = {
       enableHologram: true
     },
     edges: {
-      baseColor: "#4fc3f7", 
+      baseColor: "#4fc3f7",
       opacity: 0.8,
       thickness: 2.0
     },
@@ -238,7 +238,7 @@ export const defaultSettings: Settings = {
 };
 ```
 
-### 3. GPU Parameters (`/workspace/ext/src/models/simulation_params.rs`)
+### 3. GPU Parameters (`/src/models/simulation_params.rs`)
 
 Rust structures for GPU acceleration:
 
@@ -246,7 +246,7 @@ Rust structures for GPU acceleration:
 #[repr(C)]
 pub struct SimParams {
     pub spring_k: f32,
-    pub repel_k: f32, 
+    pub repel_k: f32,
     pub damping: f32,
     pub dt: f32,
     pub max_velocity: f32,
@@ -290,7 +290,7 @@ Accept: application/json
 
 **Response**: Complete settings object in camelCase format
 
-#### Update Settings  
+#### Update Settings
 ```http
 POST /api/settings
 Content-Type: application/json
@@ -314,7 +314,7 @@ Content-Type: application/json
 GET /api/settings/user
 X-Nostr-Pubkey: <public_key>
 
-POST /api/settings/user  
+POST /api/settings/user
 X-Nostr-Pubkey: <public_key>
 Content-Type: application/json
 ```
@@ -355,14 +355,14 @@ The control centre provides real-time physics parameter adjustment through four 
 #### 2. Forces Tab
 - **Repulsion Slider**: Inter-node repulsion strength (1.0-200.0)
 - **Spring Slider**: Edge attraction strength (0.001-0.1)
-- **Attraction Slider**: Global centering force (0.0001-0.01)  
+- **Attraction Slider**: Global centering force (0.0001-0.01)
 - **Damping Slider**: Velocity damping (0.1-0.99)
 - **Max Velocity Slider**: Speed limiting (0.1-10.0)
 - **Temperature Slider**: Thermal energy (0.0-2.0)
 
 #### 3. Constraints Tab
 - **Collision Radius**: Minimum node separation (0.05-2.0)
-- **Bounds Size**: Layout area (50.0-1000.0)  
+- **Bounds Size**: Layout area (50.0-1000.0)
 - **Viewport Bounds**: Extended area (1000-20000)
 - **Enable Bounds Toggle**: Boundary enforcement
 - **Custom Constraints**: User-defined layout rules
@@ -381,7 +381,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 
 const PhysicsControls = () => {
   const { settings, updateSettings, loading } = useSettingsStore();
-  
+
   const handlePhysicsUpdate = useCallback(async (update: Partial<PhysicsSettings>) => {
     await updateSettings({
       visualisation: {
@@ -418,7 +418,7 @@ const PhysicsControls = () => {
 
 ### GPU Compute Engine
 
-**Unified Kernel**: `/workspace/ext/src/utils/ptx/visionflow_unified.ptx`
+**Unified Kernel**: `/src/utils/ptx/visionflow_unified.ptx`
 
 #### Algorithm Overview
 
@@ -429,7 +429,7 @@ The GPU implementation uses a hybrid approach combining:
    float3 repulsion = (repel_k / (dist * dist + 0.01f)) * normalize(delta);
    ```
 
-2. **Spring Forces** (Hooke's law):  
+2. **Spring Forces** (Hooke's law):
    ```cuda
    float3 spring = -spring_k * (dist - rest_length) * normalize(delta);
    ```
@@ -462,7 +462,7 @@ pub enum ComputeMode {
 
 ### Alternative: Stress Majorization
 
-**Implementation**: `/workspace/ext/src/physics/stress_majorization.rs`
+**Implementation**: `/src/physics/stress_majorization.rs`
 
 For high-quality static layouts:
 
@@ -476,7 +476,7 @@ position += learning_rate * gradient * step_size
 
 **Use Cases**:
 - Publication-quality layouts
-- Large graph overview generation  
+- Large graph overview generation
 - Constraint satisfaction problems
 - Hierarchical layout enforcement
 
@@ -502,7 +502,7 @@ let pinned_buffer = CudaBuffer::pinned(node_count * NODE_SIZE)?;
 ```yaml
 physics:
   spring_strength: 0.01    # Stronger springs
-  repulsion_strength: 30.0 # Moderate repulsion  
+  repulsion_strength: 30.0 # Moderate repulsion
   damping: 0.85           # Lower damping
   time_step: 0.02         # Larger timestep
   iterations: 100         # Fewer iterations
@@ -524,7 +524,7 @@ physics:
   spring_strength: 0.002   # Weaker springs
   repulsion_strength: 100.0 # Strong repulsion
   damping: 0.95           # High damping
-  time_step: 0.005        # Small timestep  
+  time_step: 0.005        # Small timestep
   iterations: 500         # More iterations
 ```
 
@@ -536,7 +536,7 @@ physics:
 const positionBuffer = new ArrayBuffer(nodeCount * 12); // 3 floats per node
 const positions = new Float32Array(positionBuffer);
 
-// Compression for large graphs  
+// Compression for large graphs
 if (nodeCount > 1000) {
   compress(positionBuffer).then(compressed => {
     websocket.send(compressed);
@@ -580,7 +580,7 @@ bloom:
   samples: 5        # Reduce for better performance
 ```
 
-#### Material Optimization  
+#### Material Optimization
 ```yaml
 nodes:
   metalness: 0.85
@@ -637,7 +637,7 @@ if (dist < MIN_DISTANCE) {
 # Reduce forces and increase damping
 physics:
   spring_strength: 0.002    # Reduce from 0.005
-  repulsion_strength: 25.0  # Reduce from 50.0  
+  repulsion_strength: 25.0  # Reduce from 50.0
   damping: 0.95            # Increase from 0.9
   max_velocity: 0.5        # Cap velocity
   time_step: 0.005         # Smaller timestep
@@ -654,7 +654,7 @@ nvidia-smi
 watch -n 1 nvidia-smi
 
 # Check CUDA compilation
-ls -la /workspace/ext/src/utils/ptx/visionflow_unified.ptx
+ls -la /src/utils/ptx/visionflow_unified.ptx
 ```
 
 **Performance Fixes**:
@@ -665,7 +665,7 @@ physics:
   time_step: 0.02         # Larger timestep
   enable_bounds: false    # Disable if not needed
 
-# Visual optimizations  
+# Visual optimizations
 bloom:
   enabled: false          # Disable for testing
   samples: 3             # Reduce samples
@@ -724,7 +724,7 @@ systemctl restart visionflow-websocket
 pub struct GPUMetrics {
     pub utilization: f32,     // 0.0-1.0
     pub memory_used: u64,     // Bytes
-    pub memory_total: u64,    // Bytes  
+    pub memory_total: u64,    // Bytes
     pub temperature: f32,     // Celsius
     pub power_draw: f32,      // Watts
     pub compute_fps: f32,     // Simulation FPS
@@ -738,7 +738,7 @@ const measureSettingsUpdate = async (update: Partial<Settings>) => {
   const startTime = performance.now();
   await updateSettings(update);
   const latency = performance.now() - startTime;
-  
+
   console.log(`Settings update latency: ${latency.toFixed(2)}ms`);
   return latency;
 };
@@ -781,7 +781,7 @@ visualisation:
     samples: 5
 ```
 
-#### Quality Mode  
+#### Quality Mode
 ```yaml
 visualisation:
   physics:
@@ -877,7 +877,7 @@ Automatic migration handles version updates:
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SettingsMigration {
     pub from_version: String,
-    pub to_version: String, 
+    pub to_version: String,
     pub migrations: Vec<MigrationStep>,
 }
 
@@ -906,7 +906,7 @@ let migration = SettingsMigration {
 - [ ] Verify GPU compute compatibility
 - [ ] Check WebSocket endpoint accessibility
 
-#### Deployment  
+#### Deployment
 - [ ] Deploy backend with new settings schema
 - [ ] Update frontend with new controls
 - [ ] Run settings migration script
@@ -915,7 +915,7 @@ let migration = SettingsMigration {
 #### Post-deployment
 - [ ] Monitor GPU performance metrics
 - [ ] Check settings persistence across restarts
-- [ ] Validate physics parameter propagation  
+- [ ] Validate physics parameter propagation
 - [ ] Test user-specific settings with Nostr auth
 
 ---
@@ -950,7 +950,7 @@ let migration = SettingsMigration {
 // Future API endpoints
 interface FutureAPIs {
   '/api/settings/profiles': ProfileManagement;
-  '/api/settings/optimise': MLOptimization;  
+  '/api/settings/optimise': MLOptimization;
   '/api/settings/compare': ParameterComparison;
   '/api/settings/export': ConfigurationExport;
   '/api/settings/templates': TemplateSystem;
@@ -964,7 +964,7 @@ interface FutureAPIs {
 The VisionFlow settings system provides a robust, scalable foundation for real-time graph visualisation with GPU acceleration. Key achievements:
 
 ✅ **Unified Architecture**: Single source of truth eliminates inconsistencies
-✅ **Real-time Updates**: Immediate propagation from UI to GPU simulation  
+✅ **Real-time Updates**: Immediate propagation from UI to GPU simulation
 ✅ **Comprehensive Controls**: Complete physics parameter management
 ✅ **Performance Optimization**: Tuned for different graph sizes and use cases
 ✅ **Type Safety**: Full TypeScript and Rust validation

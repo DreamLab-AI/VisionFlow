@@ -375,9 +375,9 @@ Recommended extensions:
 
 ### Resources
 
-- **Project Documentation**: `/workspace/ext/docs/`
-- **API Reference**: `/workspace/ext/docs/API_REFERENCE.md`
-- **Architecture Guide**: `/workspace/ext/docs/architecture/`
+- **Project Documentation**: `/docs/`
+- **API Reference**: `/docs/API_REFERENCE.md`
+- **Architecture Guide**: `/docs/architecture/`
 
 ### Common Commands Reference
 
@@ -405,7 +405,7 @@ docker compose -f docker-compose.dev.yml down
 
 If you encounter issues not covered in this guide:
 
-1. Check existing documentation in `/workspace/ext/docs/`
+1. Check existing documentation in `/docs/`
 2. Search for similar issues in project logs
 3. Ask for help in the project communication channels
 4. Create an issue with detailed reproduction steps
