@@ -90,7 +90,7 @@ The frontend service that manages agent data:
 class MCPWebSocketService {
   private agents: Map<string, BotsAgent> = new Map();
   private communications: BotsCommunication[] = [];
-  
+
   async fetchAgentsFromBackend() {
     const response = await fetch('/api/bots/agents');
     const data = await response.json();
@@ -109,7 +109,7 @@ Manages the integration between data sources:
 class BotsWebSocketIntegration {
   // MCP connections are backend-only
   // Frontend uses REST API for agent data
-  
+
   getConnectionStatus() {
     return {
       mcp: false,  // MCP handled by backend
@@ -154,8 +154,8 @@ Spawns a new agent via ClaudeFlowActor:
 }
 ```
 
-### POST /api/bots/swarm/init
-Initializes a swarm configuration:
+### POST /api/bots/multi-agent/init
+Initializes a multi-agent configuration:
 
 ```json
 {
@@ -199,7 +199,7 @@ This ensures the visualization remains functional for development and testing.
 
 ## Performance Optimizations
 
-1. **Polling Intervals**: 
+1. **Polling Intervals**:
    - Agent updates: 5 seconds
    - Health checks: 30 seconds
    - Frontend polling: 10 seconds

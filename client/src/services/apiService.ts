@@ -248,9 +248,9 @@ class ApiService {
   }
 
   /**
-   * Initialize a new swarm with the specified configuration
+   * Initialize a new multi-agent with the specified configuration
    */
-  public async initializeSwarm(config: {
+  public async initializeMultiAgent(config: {
     topology: string;
     maxAgents: number;
     strategy: string;
@@ -258,7 +258,7 @@ class ApiService {
     agentTypes: string[];
     customPrompt?: string;
   }): Promise<{ success: boolean; message?: string; error?: string }> {
-    return await this.post('/bots/initialize-swarm', config);
+    return await this.post('/bots/initialize-multi-agent', config);
   }
 }
 

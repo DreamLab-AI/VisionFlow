@@ -372,15 +372,15 @@ interface WSMessage<T = any> {
 }
 ```
 
-#### Swarm Configuration Update
+#### multi-agent Configuration Update
 
 ```json
 {
   "id": "msg-132",
-  "type": "control.swarm.configure",
+  "type": "control.multi-agent.configure",
   "timestamp": "2024-01-10T12:00:00Z",
   "payload": {
-    "swarmId": "swarm-001",
+    "multi-agentId": "multi-agent-001",
     "configuration": {
       "topology": "HIERARCHICAL",
       "coordinationStrategy": "consensus",

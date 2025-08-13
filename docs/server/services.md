@@ -8,36 +8,36 @@ The services layer provides core business logic, external integrations, and data
 
 ```mermaid
 graph TB
-    subgraph "Actor-Managed Services" 
-        GSA[GraphServiceActor] 
+    subgraph "Actor-Managed Services"
+        GSA[GraphServiceActor]
         CFA[EnhancedClaudeFlowActor]
         MA[MetadataActor]
         SA[SettingsActor]
         PSA[ProtectedSettingsActor]
         CMA[ClientManagerActor]
     end
-    
+
     subgraph "External Services (Arc-wrapped)"
         GH[GitHub Client]
-        RF[RAGFlow Service] 
+        RF[RAGFlow Service]
         SP[Speech Service]
         PX[Perplexity Service]
         NS[Nostr Service]
     end
-    
+
     subgraph "Integration Services"
         FS[File Service]
         CA[Content API]
         BC[Bots Client]
     end
-    
+
     GSA --> GH
     GSA --> MA
     CFA --> BC
     FS --> CA
     CA --> GH
     SA --> PSA
-    
+
     style GSA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style CFA fill:#3A3F47,stroke:#F56565,color:#FFFFFF
     style RF fill:#3A3F47,stroke:#68D391,color:#FFFFFF
@@ -55,7 +55,7 @@ Services implemented as Actix actors for maximum concurrency and fault tolerance
 
 **Responsibilities**:
 - Dual graph physics simulation (knowledge + agents)
-- Real-time position updates and broadcasting  
+- Real-time position updates and broadcasting
 - Graph structure management and validation
 - Integration with GPU compute for acceleration
 
@@ -72,13 +72,13 @@ impl GraphServiceActor {
         Self {
             client_manager,
             gpu_compute,
-            settings_actor, 
+            settings_actor,
             metadata_actor,
             graph_data: GraphData::default(),
             simulation_running: false,
         }
     }
-    
+
     async fn update_from_metadata(&mut self) -> Result<(), String> {
         let metadata = self.metadata_actor.send(GetMetadata).await??;
         let new_graph = Self::build_graph_from_metadata(&metadata).await?;
@@ -88,12 +88,12 @@ impl GraphServiceActor {
 }
 ```
 
-#### EnhancedClaudeFlowActor  
+#### EnhancedClaudeFlowActor
 **Location**: `src/actors/claude_flow_actor_enhanced.rs`
 
 **Responsibilities**:
 - Real-time MCP integration with Claude Flow orchestrator
-- Agent swarm management and telemetry streaming
+- Multi Agent management and telemetry streaming
 - WebSocket connection management with automatic reconnection
 - NO mock data - only real Claude Flow agent data
 
@@ -102,7 +102,7 @@ impl GraphServiceActor {
 impl EnhancedClaudeFlowActor {
     async fn connect_to_mcp(&mut self) -> Result<(), String> {
         let mcp_url = "ws://localhost:3002/ws";
-        
+
         match self.websocket_client.connect(mcp_url).await {
             Ok(stream) => {
                 info!("Connected to Claude Flow MCP on port 3002");
@@ -115,10 +115,10 @@ impl EnhancedClaudeFlowActor {
             }
         }
     }
-    
-    async fn initialize_swarm(&mut self, request: InitializeSwarm) -> Result<SwarmStatus, String> {
+
+    async fn initialize_multi-agent(&mut self, request: initializeMultiAgent) -> Result<multi-agentStatus, String> {
         let mcp_request = json!({
-            "method": "swarm.initialize",
+            "method": "multi-agent.initialize",
             "params": {
                 "topology": request.topology,
                 "max_agents": request.max_agents,
@@ -126,9 +126,9 @@ impl EnhancedClaudeFlowActor {
                 "agent_types": request.agent_types
             }
         });
-        
+
         let response = self.send_mcp_request(mcp_request).await?;
-        self.parse_swarm_response(response)
+        self.parse_multi-agent_response(response)
     }
 }
 ```
@@ -151,36 +151,36 @@ pub struct GitHubClient {
 
 impl GitHubClient {
     pub async fn new(
-        config: GitHubConfig, 
+        config: GitHubConfig,
         settings: Arc<RwLock<AppFullSettings>>
     ) -> Result<Self, GitHubError> {
         let client = reqwest::Client::builder()
             .user_agent(&config.user_agent)
             .timeout(Duration::from_secs(30))
             .build()?;
-            
+
         Ok(Self {
             client,
             config,
             rate_limiter: Arc::new(RwLock::new(RateLimiter::new())),
         })
     }
-    
+
     pub async fn fetch_repository_content(&self) -> Result<Vec<ContentItem>, GitHubError> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/contents/{}",
-            self.config.owner, self.config.repo, 
+            self.config.owner, self.config.repo,
             self.config.base_path.as_deref().unwrap_or("")
         );
-        
+
         let response = self.client.get(&url)
             .header("Authorization", format!("token {}", self.config.personal_access_token.as_ref().unwrap()))
             .send().await?;
-            
+
         if response.status() == StatusCode::FORBIDDEN {
             return Err(GitHubError::RateLimit);
         }
-        
+
         let items: Vec<ContentItem> = response.json().await?;
         Ok(items)
     }
@@ -188,7 +188,7 @@ impl GitHubClient {
 ```
 
 **Content API Integration**:
-```rust  
+```rust
 pub struct ContentAPI {
     github_client: Arc<GitHubClient>,
 }
@@ -197,10 +197,10 @@ impl ContentAPI {
     pub fn new(github_client: Arc<GitHubClient>) -> Self {
         Self { github_client }
     }
-    
+
     pub async fn fetch_markdown_files(&self) -> Result<Vec<ProcessedFile>, ContentError> {
         let github_content = self.github_client.fetch_repository_content().await?;
-        
+
         let mut processed_files = Vec::new();
         for item in github_content {
             if item.name.ends_with(".md") {
@@ -215,7 +215,7 @@ impl ContentAPI {
                 processed_files.push(processed);
             }
         }
-        
+
         Ok(processed_files)
     }
 }
@@ -238,35 +238,35 @@ impl RAGFlowService {
         let settings_read = settings.read().await;
         let ragflow_config = settings_read.ragflow.as_ref()
             .ok_or(RAGFlowError::ConfigMissing)?;
-            
+
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(60))
             .build()?;
-            
+
         Ok(Self {
             client,
             api_key: ragflow_config.api_key.clone(),
             api_base_url: ragflow_config.api_base_url.clone(),
         })
     }
-    
+
     pub async fn send_message(
         &self,
         request: RagflowChatRequest
     ) -> Result<RagflowChatResponse, RAGFlowError> {
         let url = format!("{}/api/v1/chat/completions", self.api_base_url);
-        
+
         let payload = json!({
             "conversation_id": request.session_id.unwrap_or_else(|| "default".to_string()),
             "messages": [{"content": request.question}],
             "stream": request.stream.unwrap_or(false)
         });
-        
+
         let response = self.client.post(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&payload)
             .send().await?;
-            
+
         if response.status().is_success() {
             let result: RagflowChatResponse = response.json().await?;
             Ok(result)
@@ -274,19 +274,19 @@ impl RAGFlowService {
             Err(RAGFlowError::RequestFailed(response.status()))
         }
     }
-    
+
     pub async fn stream_message(
         &self,
         request: RagflowChatRequest
     ) -> Result<impl Stream<Item = Result<String, RAGFlowError>>, RAGFlowError> {
         // Streaming implementation for real-time responses
         let url = format!("{}/api/v1/chat/stream", self.api_base_url);
-        
+
         let response = self.client.post(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&request)
             .send().await?;
-            
+
         let stream = response.bytes_stream()
             .map(|chunk| {
                 chunk.map_err(RAGFlowError::from)
@@ -295,7 +295,7 @@ impl RAGFlowService {
                             .map_err(|e| RAGFlowError::ParseError(e.to_string()))
                     })
             });
-            
+
         Ok(stream)
     }
 }
@@ -321,22 +321,22 @@ impl SpeechService {
     ) -> Self {
         let (command_tx, command_rx) = mpsc::channel(100);
         let client = reqwest::Client::new();
-        
+
         let service = Self {
             settings_addr,
             http_client: client,
             audio_broadcast_tx: audio_tx,
             command_tx,
         };
-        
+
         // Start background processing loop
         service.start_command_processor(command_rx);
         service
     }
-    
+
     pub async fn process_stt_request(&self, audio_data: Vec<u8>) -> Result<String, SpeechError> {
         let settings = self.settings_addr.send(GetSettings).await??;
-        
+
         match settings.openai.as_ref() {
             Some(openai_config) => {
                 self.process_openai_stt(audio_data, &openai_config.api_key).await
@@ -344,20 +344,20 @@ impl SpeechService {
             None => Err(SpeechError::ConfigMissing("OpenAI API key".to_string()))
         }
     }
-    
+
     async fn process_openai_stt(&self, audio_data: Vec<u8>, api_key: &str) -> Result<String, SpeechError> {
         let form = reqwest::multipart::Form::new()
             .part("file", reqwest::multipart::Part::bytes(audio_data)
                 .file_name("audio.wav")
                 .mime_str("audio/wav")?)
             .text("model", "whisper-1");
-            
+
         let response = self.http_client
             .post("https://api.openai.com/v1/audio/transcriptions")
             .header("Authorization", format!("Bearer {}", api_key))
             .multipart(form)
             .send().await?;
-            
+
         if response.status().is_success() {
             let result: serde_json::Value = response.json().await?;
             Ok(result["text"].as_str().unwrap_or("").to_string())
@@ -365,18 +365,18 @@ impl SpeechService {
             Err(SpeechError::APIError(response.status().to_string()))
         }
     }
-    
+
     pub async fn process_tts_request(&self, text: String, options: TTSOptions) -> Result<(), SpeechError> {
         let audio_data = match options.provider {
             TTSProvider::OpenAI => self.process_openai_tts(text, options).await?,
             TTSProvider::Kokoro => self.process_kokoro_tts(text, options).await?,
         };
-        
+
         // Broadcast audio to connected clients
         if let Err(e) = self.audio_broadcast_tx.send(audio_data) {
             warn!("Failed to broadcast TTS audio: {}", e);
         }
-        
+
         Ok(())
     }
 }
@@ -399,10 +399,10 @@ impl PerplexityService {
             .timeout(Duration::from_secs(30))
             .build()
             .unwrap();
-            
+
         Self { client, config }
     }
-    
+
     pub async fn query(&self, request: QueryRequest) -> Result<PerplexityResponse, PerplexityError> {
         let payload = json!({
             "model": request.model.unwrap_or_else(|| "pplx-7b-online".to_string()),
@@ -410,18 +410,18 @@ impl PerplexityService {
             "max_tokens": request.max_tokens.unwrap_or(1024),
             "temperature": request.temperature.unwrap_or(0.2)
         });
-        
+
         let response = self.client
             .post("https://api.perplexity.ai/chat/completions")
             .header("Authorization", format!("Bearer {}", self.config.api_key))
             .json(&payload)
             .send().await?;
-            
+
         if response.status().is_success() {
             let result: serde_json::Value = response.json().await?;
             let content = result["choices"][0]["message"]["content"]
                 .as_str().unwrap_or("").to_string();
-                
+
             Ok(PerplexityResponse {
                 content,
                 link: self.extract_source_link(&result),
@@ -433,7 +433,7 @@ impl PerplexityService {
 }
 ```
 
-#### Nostr Service  
+#### Nostr Service
 **Location**: `src/services/nostr_service.rs`
 
 Decentralized authentication and identity management.
@@ -451,11 +451,11 @@ impl NostrService {
             active_sessions: Arc::new(RwLock::new(HashMap::new())),
         }
     }
-    
+
     pub async fn authenticate_user(&self, pubkey: &str, signature: &str) -> Result<NostrUser, NostrError> {
         // Verify signature against pubkey
         let is_valid = self.verify_signature(pubkey, signature)?;
-        
+
         if is_valid {
             let user = NostrUser {
                 pubkey: pubkey.to_string(),
@@ -464,17 +464,17 @@ impl NostrService {
                 api_keys: None,
                 user_settings_path: None,
             };
-            
+
             // Store session
             let session_token = self.generate_session_token();
             self.store_session(session_token.clone(), pubkey.to_string()).await?;
-            
+
             Ok(user)
         } else {
             Err(NostrError::InvalidSignature)
         }
     }
-    
+
     async fn check_power_user_status(&self, pubkey: &str) -> Result<bool, NostrError> {
         // Check against configured power user list
         Ok(self.config.power_users.contains(pubkey))
@@ -498,14 +498,14 @@ impl FileService {
     pub async fn process_local_files(base_path: &str) -> Result<Vec<ProcessedFile>, FileServiceError> {
         let mut processed_files = Vec::new();
         let entries = tokio::fs::read_dir(base_path).await?;
-        
+
         let mut entries = entries;
         while let Some(entry) = entries.next_entry().await? {
             let path = entry.path();
             if path.extension().and_then(|s| s.to_str()) == Some("md") {
                 let content = tokio::fs::read_to_string(&path).await?;
                 let metadata = entry.metadata().await?;
-                
+
                 processed_files.push(ProcessedFile {
                     name: path.file_name().unwrap().to_string_lossy().to_string(),
                     content,
@@ -515,13 +515,13 @@ impl FileService {
                 });
             }
         }
-        
+
         Ok(processed_files)
     }
-    
+
     pub fn load_or_create_metadata() -> Result<MetadataStore, FileServiceError> {
         let metadata_path = "data/metadata/metadata.json";
-        
+
         if Path::new(metadata_path).exists() {
             let content = std::fs::read_to_string(metadata_path)?;
             let metadata: MetadataStore = serde_json::from_str(&content)?;
@@ -533,15 +533,15 @@ impl FileService {
             Ok(empty_metadata)
         }
     }
-    
+
     pub fn save_metadata(metadata: &MetadataStore) -> Result<(), FileServiceError> {
         let metadata_path = "data/metadata/metadata.json";
-        
+
         // Ensure directory exists
         if let Some(parent) = Path::new(metadata_path).parent() {
             std::fs::create_dir_all(parent)?;
         }
-        
+
         let json = serde_json::to_string_pretty(metadata)?;
         std::fs::write(metadata_path, json)?;
         Ok(())
@@ -552,7 +552,7 @@ impl FileService {
 #### Bots Client
 **Location**: `src/services/bots_client.rs`
 
-Handles agent swarm orchestration data.
+Handles Multi Agent orchestration data.
 
 ```rust
 pub struct BotsClient {
@@ -567,10 +567,10 @@ impl BotsClient {
             reconnect_attempts: Arc::new(AtomicU32::new(0)),
         }
     }
-    
+
     pub async fn connect(&mut self, url: &str) -> Result<(), BotsClientError> {
         info!("Connecting to bots orchestrator at: {}", url);
-        
+
         match connect_async(url).await {
             Ok((ws_stream, _)) => {
                 self.ws_client = Some(ws_stream);
@@ -585,7 +585,7 @@ impl BotsClient {
             }
         }
     }
-    
+
     pub async fn send_message(&mut self, message: serde_json::Value) -> Result<(), BotsClientError> {
         if let Some(ws) = &mut self.ws_client {
             let msg = Message::Text(message.to_string());
@@ -608,20 +608,20 @@ Services communicate with actors through message passing:
 // Example: GraphServiceActor using external services
 impl Handler<UpdateFromGitHub> for GraphServiceActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
-    
+
     fn handle(&mut self, _: UpdateFromGitHub, _: &mut Self::Context) -> Self::Result {
         let github_client = self.github_client.clone();
         let content_api = self.content_api.clone();
-        
+
         Box::pin(async move {
-            // Use external services  
+            // Use external services
             let files = content_api.fetch_markdown_files().await
                 .map_err(|e| format!("GitHub fetch failed: {}", e))?;
-                
+
             // Process files and update graph
             let metadata = Self::process_files_to_metadata(files);
             self.update_graph_from_metadata(metadata).await?;
-            
+
             Ok(())
         }.into_actor(self))
     }
@@ -638,19 +638,19 @@ Consistent error handling across all services:
 pub enum ServiceError {
     #[error("IO error: {0}")]
     IO(#[from] std::io::Error),
-    
+
     #[error("HTTP error: {0}")]
     HTTP(#[from] reqwest::Error),
-    
+
     #[error("JSON parsing error: {0}")]
     JSON(#[from] serde_json::Error),
-    
+
     #[error("Actor mailbox error: {0}")]
     ActorMailbox(#[from] MailboxError),
-    
+
     #[error("Configuration error: {0}")]
     Config(String),
-    
+
     #[error("External service error: {0}")]
     External(String),
 }
@@ -682,7 +682,7 @@ impl<T> CachedService<T> {
             cache_ttl,
         }
     }
-    
+
     pub async fn cached_request<F, R>(&self, key: String, request: F) -> Result<R, ServiceError>
     where
         F: Future<Output = Result<R, ServiceError>>,
@@ -697,16 +697,16 @@ impl<T> CachedService<T> {
                 }
             }
         }
-        
+
         // Execute request and cache result
         let result = request.await?;
         let serialized = serde_json::to_value(&result)?;
-        
+
         {
             let mut cache = self.cache.write().await;
             cache.insert(key, (Instant::now(), serialized));
         }
-        
+
         Ok(result)
     }
 }
@@ -727,7 +727,7 @@ impl<T> ServicePool<T> {
             current_index: AtomicUsize::new(0),
         }
     }
-    
+
     pub fn get_service(&self) -> Arc<T> {
         let index = self.current_index.fetch_add(1, Ordering::Relaxed) % self.services.len();
         self.services[index].clone()
@@ -786,7 +786,7 @@ impl HealthCheck for RAGFlowService {
     async fn health_check(&self) -> HealthStatus {
         match self.client.get(&format!("{}/health", self.api_base_url))
             .timeout(Duration::from_secs(5))
-            .send().await 
+            .send().await
         {
             Ok(response) if response.status().is_success() => HealthStatus::Healthy,
             Ok(_) => HealthStatus::Degraded("Non-200 response".to_string()),
@@ -798,16 +798,16 @@ impl HealthCheck for RAGFlowService {
 // Aggregate health endpoint
 pub async fn get_service_health(app_state: &AppState) -> ServiceHealthReport {
     let mut report = ServiceHealthReport::new();
-    
+
     if let Some(ragflow) = &app_state.ragflow_service {
         report.ragflow = ragflow.health_check().await;
     }
-    
+
     report.github = app_state.github_client.health_check().await;
     report.speech = app_state.speech_service.as_ref()
         .map(|s| s.health_check())
         .unwrap_or(HealthStatus::NotConfigured);
-    
+
     report
 }
 ```
@@ -828,7 +828,7 @@ where
     E: std::fmt::Debug,
 {
     let mut delay = base_delay;
-    
+
     for attempt in 0..=max_retries {
         match operation().await {
             Ok(result) => return Ok(result),
@@ -840,7 +840,7 @@ where
             }
         }
     }
-    
+
     unreachable!()
 }
 ```
@@ -882,11 +882,11 @@ impl CircuitBreaker {
                 CircuitBreakerState::HalfOpen => true,
             }
         };
-        
+
         if !can_proceed {
             return Err(CircuitBreakerError::Open);
         }
-        
+
         match operation().await {
             Ok(result) => {
                 let mut state = self.state.write().await;
@@ -899,18 +899,18 @@ impl CircuitBreaker {
                     CircuitBreakerState::Closed { failure_count } => {
                         let new_count = failure_count + 1;
                         if new_count >= self.failure_threshold {
-                            *state = CircuitBreakerState::Open { 
-                                last_failure: Instant::now() 
+                            *state = CircuitBreakerState::Open {
+                                last_failure: Instant::now()
                             };
                         } else {
-                            *state = CircuitBreakerState::Closed { 
-                                failure_count: new_count 
+                            *state = CircuitBreakerState::Closed {
+                                failure_count: new_count
                             };
                         }
                     }
                     CircuitBreakerState::HalfOpen => {
-                        *state = CircuitBreakerState::Open { 
-                            last_failure: Instant::now() 
+                        *state = CircuitBreakerState::Open {
+                            last_failure: Instant::now()
                         };
                     }
                     _ => {}
@@ -925,7 +925,7 @@ impl CircuitBreaker {
 ## Related Documentation
 
 - **[Actor System](actors.md)** - Actor-based service coordination
-- **[Request Handlers](handlers.md)** - HTTP/WebSocket API endpoints  
+- **[Request Handlers](handlers.md)** - HTTP/WebSocket API endpoints
 - **[Types & Models](types.md)** - Service data structures
 - **[Configuration](config.md)** - Service configuration management
 - **[External APIs](../api/)** - Integration specifications

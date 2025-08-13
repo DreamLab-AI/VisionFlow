@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Bots/VisionFlow system is a core feature that enables real-time visualization and control of AI agent swarms through the Model Context Protocol (MCP). It provides a spring-physics based 3D visualization of agent interactions, communication patterns, and system health.
+The Bots/VisionFlow system is a core feature that enables real-time visualization and control of AI Multi Agents through the Model Context Protocol (MCP). It provides a spring-physics based 3D visualization of agent interactions, communication patterns, and system health.
 
 ## System Components
 
@@ -13,7 +13,7 @@ The Bots/VisionFlow system is a core feature that enables real-time visualizatio
 │                     Frontend (React + Three.js)              │
 ├─────────────────────────────────────────────────────────────┤
 │  - BotsVisualization (3D agent nodes with spring physics)    │
-│  - SwarmInitializationPrompt (Hive mind spawning UI)        │
+│  - multiAgentInitializationPrompt (Hive mind spawning UI)        │
 │  - SystemHealthPanel, ActivityLogPanel, AgentDetailPanel    │
 │  - WebSocket Client (Binary position + JSON state updates)   │
 └─────────────────────────────────────────────────────────────┘
@@ -82,9 +82,9 @@ The system supports 12 specialized agent types:
 - **Monitor**: System monitoring and diagnostics
 - **Specialist**: Domain-specific expertise
 
-### 3. Swarm Topologies
+### 3. multi-agent Topologies
 
-The system supports multiple swarm organizational patterns:
+The system supports multiple multi-agent organizational patterns:
 
 - **Mesh**: Fully connected, best for collaborative tasks
 - **Hierarchical**: Tree structure with queen/coordinator at root
@@ -100,12 +100,12 @@ The system supports multiple swarm organizational patterns:
 - Real-time message flow visualization
 
 ### UI Panels
-- **SystemHealthPanel**: Overall swarm health and metrics
+- **SystemHealthPanel**: Overall multi-agent health and metrics
 - **ActivityLogPanel**: Real-time activity feed with color coding
 - **AgentDetailPanel**: Detailed view of individual agents
 
-### SwarmInitializationPrompt
-Interactive modal for spawning new swarms with configuration options:
+### multiAgentInitializationPrompt
+Interactive modal for spawning new multi-agents with configuration options:
 - Topology selection
 - Agent type selection
 - Maximum agent count (3-20)
@@ -126,13 +126,13 @@ pub struct AgentControlActor {
 Key responsibilities:
 - Maintains TCP connection to agent control system
 - Translates between agent data and graph visualization format
-- Handles swarm initialization requests
+- Handles multi-agent initialization requests
 - Provides real-time metrics
 
 ### API Endpoints
 
 - `GET /api/bots/status` - Current agent states and metrics
-- `POST /api/bots/initialize-swarm` - Spawn new agent swarm
+- `POST /api/bots/initialize-multi-agent` - Spawn new Multi Agent
 - `GET /api/bots/data` - Full graph data for visualization
 - WebSocket `/ws` - Real-time position and state updates
 
@@ -164,7 +164,7 @@ The VisionFlow graph uses a distinct gold/green color palette:
 - Physics simulation runs at 60 FPS in dedicated worker
 - Binary protocol minimizes bandwidth for position updates
 - Agent states are batched in full-update messages
-- GPU acceleration available for large swarms
+- GPU acceleration available for large multi-agents
 
 ## See Also
 

@@ -1,6 +1,6 @@
 # VisionFlow Documentation
 
-Welcome to the comprehensive documentation for VisionFlow - a real-time 3D visualization platform for knowledge graphs and AI agent swarms.
+Welcome to the comprehensive documentation for VisionFlow - a real-time 3D visualization platform for knowledge graphs and AI Multi Agents.
 
 ## 🚀 Recent Major Fixes (January 2025)
 
@@ -24,30 +24,30 @@ graph TD
     Docs --> Server[Server Docs]
     Docs --> Deploy[Deployment]
     Docs --> Dev[Development]
-    
+
     GS --> QS[Quick Start]
-    GS --> QSS[Quick Start Swarm]
-    
+    GS --> QSS[Quick Start multi-agent]
+
     Arch --> SO[System Overview]
     Arch --> DG[Dual Graph]
     Arch --> GPU[GPU Compute]
     Arch --> MCP[MCP Integration]
-    
+
     API --> REST[REST API]
     API --> WS[WebSocket]
     API --> Binary[Binary Protocol]
-    
+
     Client --> Comp[Components]
     Client --> Viz[Visualization]
     Client --> XR[XR/WebXR]
-    
+
     Server --> Actors[Actor System]
     Server --> Services[Services]
     Server --> Physics[Physics Engine]
-    
+
     Deploy --> Docker[Docker Guide]
     Deploy --> Config[Configuration]
-    
+
     Dev --> Setup[Dev Setup]
     Dev --> Test[Testing]
     Dev --> Debug[Debugging]
@@ -57,7 +57,7 @@ graph TD
 
 ### For Users
 1. **[Quick Start Guide](quick-start.md)** - Get up and running in 5 minutes
-2. **[Quick Start Swarm](quick-start-swarm.md)** - Launch your first AI agent swarm
+2. **[Quick Start multi-agent](quick-start-multi-agent.md)** - Launch your first AI Multi Agent
 3. **[System Overview](architecture/system-overview.md)** - Understand the architecture
 
 ### For Developers
@@ -80,7 +80,7 @@ graph TD
 - **[GPU Compute](architecture/gpu-compute.md)** - CUDA acceleration implementation
 - **[MCP Integration](architecture/mcp-integration.md)** - Claude Flow and Model Context Protocol
 - **[Claude Flow Actor](architecture/claude-flow-actor.md)** - Enhanced MCP actor implementation
-- **[Agent Swarm](architecture/bots-visionflow-system.md)** - AI agent orchestration system
+- **[Multi Agent](architecture/bots-visionflow-system.md)** - AI agent orchestration system
 - **[Parallel Graphs](architecture/parallel-graphs.md)** - Multi-graph processing
 
 #### API Reference (`/api`)
@@ -105,7 +105,7 @@ graph TD
 - **[Services](server/services.md)** - Business logic layer
 - **[Models](server/models.md)** - Data structures
 - **[Physics Engine](server/physics-engine.md)** - Force calculations
-- **[Agent Swarm](server/agent-swarm.md)** - Agent orchestration
+- **[Multi Agent](server/agent-multi-agent.md)** - Agent orchestration
 
 #### Deployment (`/deployment`)
 - **[Deployment Overview](deployment/index.md)** - Deployment strategies
@@ -128,7 +128,7 @@ graph TD
 
 ### Feature Documentation
 
-- **[Agent Visualization](agent-visualization-architecture.md)** - 3D agent swarm visualization
+- **[Agent Visualization](agent-visualization-architecture.md)** - 3D Multi Agent Visualisation
 - **[Bots Implementation](bots-implementation.md)** - Agent system details
 - **[Voice System](voice-system.md)** - Speech interaction capabilities
 - **[Physics Engine](physics-engine.md)** - GPU-accelerated physics
@@ -160,19 +160,19 @@ graph TB
         Three[Three.js]
         XR[WebXR]
     end
-    
+
     subgraph "Backend"
         Rust[Rust/Actix]
         Actors[Actor System]
         GPU[CUDA GPU]
     end
-    
+
     subgraph "Services"
         Claude[Claude Flow]
         MCP[MCP Tools]
         GitHub[GitHub API]
     end
-    
+
     React --> Rust
     Rust --> GPU
     Rust --> Claude

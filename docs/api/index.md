@@ -10,17 +10,17 @@ VisionFlow provides a comprehensive API surface consisting of REST endpoints for
 graph LR
     subgraph "Client Applications"
         Web[Web Client]
-        XR[XR Client] 
+        XR[XR Client]
         API[API Client]
         Mobile[Mobile Client]
     end
-    
+
     subgraph "API Layer"
         REST[REST API<br/>:3001/api]
         WS[WebSocket<br/>:3001/ws/*]
         Binary[Binary Protocol]
     end
-    
+
     subgraph "Core Endpoints"
         Graph[/api/graph/*]
         Settings[/api/settings/*]
@@ -28,31 +28,31 @@ graph LR
         Files[/api/files/*]
         Analytics[/api/analytics/*]
     end
-    
+
     subgraph "WebSocket Streams"
         Flow[/wss<br/>Graph Updates]
         Speech[/ws/speech<br/>Voice I/O]
         MCPRelay[/ws/mcp-relay<br/>Agent Control]
-        BotsViz[/ws/bots_visualization<br/>Swarm State]
+        BotsViz[/ws/bots_visualization<br/>multi-agent State]
     end
-    
+
     Web --> REST
     Web --> WS
     XR --> WS
     API --> REST
     Mobile --> REST
-    
+
     REST --> Graph
-    REST --> Settings  
+    REST --> Settings
     REST --> Bots
     REST --> Files
     REST --> Analytics
-    
+
     WS --> Flow
     WS --> Speech
     WS --> MCPRelay
     WS --> BotsViz
-    
+
     Flow --> Binary
     BotsViz --> Binary
 ```
@@ -66,7 +66,7 @@ HTTP-based API for CRUD operations, configuration management, and service integr
 - Graph data management and analytics
 - AI agent orchestration and monitoring
 - Settings and configuration control
-- File processing and content management  
+- File processing and content management
 - Quest 3 / XR integration
 - External service integrations (RAGFlow, Perplexity, GitHub)
 
@@ -79,7 +79,7 @@ Real-time bidirectional communication for streaming updates and interactive feat
 - `/wss` - Binary graph position updates (28-byte protocol)
 - `/ws/speech` - Voice interaction streaming
 - `/ws/mcp-relay` - MCP protocol relay for Claude Flow
-- `/ws/bots_visualization` - Agent swarm visualization
+- `/ws/bots_visualization` - Multi Agent Visualisation
 
 ### [Binary Protocol](binary-protocol.md)
 Highly optimized binary format for efficient data transmission.
@@ -96,7 +96,7 @@ Comprehensive documentation of WebSocket message formats and protocols.
 **Message Types:**
 - JSON control messages
 - Binary position updates
-- Agent state updates  
+- Agent state updates
 - Speech streaming data
 - MCP tool invocations
 
@@ -107,7 +107,7 @@ Comprehensive documentation of WebSocket message formats and protocols.
 | Category | Endpoints | Purpose |
 |----------|-----------|---------|
 | **Graph** | `/api/graph/*` | Node/edge data, layouts, analytics |
-| **Agents** | `/api/bots/*` | Swarm management, metrics, orchestration |
+| **Agents** | `/api/bots/*` | multi-agent management, metrics, orchestration |
 | **Settings** | `/api/settings/*` | Configuration, physics, visualization |
 | **Files** | `/api/files/*` | Content processing, metadata management |
 | **Quest 3** | `/api/quest3/*` | XR session management, device status |
@@ -123,7 +123,7 @@ Comprehensive documentation of WebSocket message formats and protocols.
 | `/wss` | Binary + JSON | 5-60 Hz | Graph position streaming |
 | `/ws/speech` | JSON + Binary Audio | Real-time | Voice interaction |
 | `/ws/mcp-relay` | JSON-RPC 2.0 | On-demand | Agent control via MCP |
-| `/ws/bots_visualization` | JSON | ~60 FPS | Swarm state visualization |
+| `/ws/bots_visualization` | JSON | ~60 FPS | multi-agent state visualization |
 
 ## Authentication
 
@@ -132,7 +132,7 @@ VisionFlow uses decentralized authentication via the Nostr protocol (NIP-07).
 
 **Primary Method:**
 - Browser extension integration (Alby, nos2x, etc.)
-- Event signing for identity verification  
+- Event signing for identity verification
 - Session-based authentication after initial verification
 - Feature-based access control
 
@@ -186,7 +186,7 @@ VisionFlow uses decentralized authentication via the Nostr protocol (NIP-07).
 - `RATE_LIMITED` (429) - Too many requests
 - `INTERNAL_ERROR` (500) - Server error
 - `AGENT_NOT_FOUND` (404) - Agent does not exist
-- `SWARM_ERROR` (500) - Swarm operation failed
+- `multi-agent_ERROR` (500) - multi-agent operation failed
 - `GPU_ERROR` (500) - GPU computation error
 
 ## Performance Characteristics
@@ -247,9 +247,9 @@ client = Client(
 graph_data = client.graph.get_data()
 client.graph.update()
 
-# Agent management  
+# Agent management
 agents = client.bots.list_agents()
-client.bots.initialize_swarm(topology="hierarchical", max_agents=10)
+client.bots.initialize_multi-agent(topology="hierarchical", max_agents=10)
 ```
 
 ### cURL Examples
@@ -260,8 +260,8 @@ curl http://localhost:3001/api/health
 # Get graph data
 curl http://localhost:3001/api/graph/data
 
-# Initialize agent swarm
-curl -X POST http://localhost:3001/api/bots/initialize-swarm \
+# Initialize Multi Agent
+curl -X POST http://localhost:3001/api/bots/initialize-multi-agent \
   -H "Content-Type: application/json" \
   -d '{"topology":"hierarchical","maxAgents":5}'
 
@@ -307,7 +307,7 @@ localStorage.setItem('debug', 'visionflow:*,websocket:*,binary:*');
 - XSS prevention for user content
 - File upload restrictions and scanning
 
-### Network Security  
+### Network Security
 - CORS properly configured for cross-origin requests
 - WebSocket connection limits prevent DoS attacks
 - Rate limiting per IP and authenticated user
@@ -339,7 +339,7 @@ Access-Control-Max-Age: 86400
 
 ### Version Compatibility
 - **Backward compatibility** maintained within major versions
-- **Deprecation notices** provided 6 months before removal  
+- **Deprecation notices** provided 6 months before removal
 - **Migration guides** available for major version changes
 - **Feature detection** available via capabilities endpoint
 
@@ -353,7 +353,7 @@ Access-Control-Max-Age: 86400
 
 ### Health Endpoints
 - `/api/health` - Overall system health
-- `/api/mcp/health` - MCP connection status  
+- `/api/mcp/health` - MCP connection status
 - `/api/analytics/system` - Performance metrics
 
 ### Metrics Available
@@ -372,14 +372,14 @@ Access-Control-Max-Age: 86400
 
 ### Quick Setup
 1. **Start Server**: `cargo run` or use Docker
-2. **Test Health**: `curl http://localhost:3001/api/health`  
+2. **Test Health**: `curl http://localhost:3001/api/health`
 3. **Open WebSocket**: Connect to `ws://localhost:3001/wss`
 4. **Initialize Graph**: `POST /api/graph/update`
-5. **Start Agent Swarm**: `POST /api/bots/initialize-swarm`
+5. **Start Multi Agent**: `POST /api/bots/initialize-multi-agent`
 
 ### Common Workflows
 1. **Graph Visualization**: REST → WebSocket → Binary updates
-2. **Agent Management**: Initialize swarm → Monitor via WebSocket → Control via MCP
+2. **Agent Management**: Initialize multi-agent → Monitor via WebSocket → Control via MCP
 3. **Voice Interaction**: Connect to `/ws/speech` → Stream audio → Receive transcriptions
 4. **XR Integration**: Check Quest 3 status → Initialize XR session → Stream positions
 
@@ -400,6 +400,6 @@ Access-Control-Max-Age: 86400
 
 For detailed technical specifications, see the individual documentation files:
 - [REST API Reference](rest.md)
-- [WebSocket API Reference](websocket.md) 
+- [WebSocket API Reference](websocket.md)
 - [Binary Protocol Specification](binary-protocol.md)
 - [WebSocket Protocols Guide](websocket-protocols.md)

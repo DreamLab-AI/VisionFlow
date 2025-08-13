@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow's physics engine provides GPU-accelerated force-directed graph layout for real-time visualization of 100,000+ nodes at 60 FPS. The engine implements a unified approach combining multiple algorithms optimized for dual graph visualization of both knowledge graphs and agent swarms.
+VisionFlow's physics engine provides GPU-accelerated force-directed graph layout for real-time visualization of 100,000+ nodes at 60 FPS. The engine implements a unified approach combining multiple algorithms optimized for dual graph visualization of both knowledge graphs and Multi Agents.
 
 ## Architecture
 
@@ -10,34 +10,34 @@ VisionFlow's physics engine provides GPU-accelerated force-directed graph layout
 graph TB
     subgraph "Input Sources"
         KG[Knowledge Graph Nodes] --> DGM[Dual Graph Manager]
-        AS[Agent Swarm Nodes] --> DGM
+        AS[Multi Agent Nodes] --> DGM
     end
-    
+
     subgraph "Physics Pipeline"
         DGM --> FD[Force-Directed Layout]
         DGM --> SM[Stress Majorization]
         DGM --> CS[Constraint Satisfaction]
         DGM --> VA[Visual Analytics]
-        
+
         FD --> UP[Unified Physics Kernel]
         SM --> UP
         CS --> UP
         VA --> UP
     end
-    
+
     subgraph "GPU Acceleration"
         UP --> CK[CUDA Kernel]
         CK --> POS[Position Buffer]
         CK --> VEL[Velocity Buffer]
         CK --> FORCE[Force Buffer]
     end
-    
+
     subgraph "Output"
         POS --> BIN[Binary Protocol]
         VEL --> BIN
         BIN --> WS[WebSocket Stream]
     end
-    
+
     style UP fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style CK fill:#3A3F47,stroke:#F56565,color:#FFFFFF
     style DGM fill:#3A3F47,stroke:#68D391,color:#FFFFFF
@@ -53,7 +53,7 @@ The unified physics kernel implements an optimized Fruchterman-Reingold algorith
 #[repr(C)]
 pub struct ForceParams {
     pub spring_k: f32,         // Spring force strength
-    pub repel_k: f32,          // Repulsion force strength  
+    pub repel_k: f32,          // Repulsion force strength
     pub damping: f32,          // Velocity damping
     pub dt: f32,               // Time step
     pub max_velocity: f32,     // Velocity clamping
@@ -94,13 +94,13 @@ pub const KNOWLEDGE_PHYSICS: ForceParams = ForceParams {
 };
 ```
 
-#### Agent Swarm Physics  
+#### Multi Agent Physics
 Dynamic, rapidly changing layout for real-time agent visualization:
 
 ```rust
 pub const AGENT_PHYSICS: ForceParams = ForceParams {
     spring_k: 0.01,         // Stronger connections
-    repel_k: 25.0,          // Moderate separation  
+    repel_k: 25.0,          // Moderate separation
     damping: 0.7,           // More responsive
     dt: 0.016,              // 60 FPS time steps
     max_velocity: 5.0,      // Faster movement
@@ -162,23 +162,23 @@ pub struct ConstraintParams {
 __global__ void visionflow_compute_kernel(GpuKernelParams params) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= params.num_nodes) return;
-    
+
     // Load current node state
     float3 position = make_float3(
         params.nodes.pos_x[idx],
-        params.nodes.pos_y[idx], 
+        params.nodes.pos_y[idx],
         params.nodes.pos_z[idx]
     );
-    
+
     float3 velocity = make_float3(
         params.nodes.vel_x[idx],
         params.nodes.vel_y[idx],
         params.nodes.vel_z[idx]
     );
-    
+
     // Compute physics based on mode
     float3 total_force = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     switch (params.params.compute_mode) {
         case 0: // Basic force-directed
             total_force = compute_basic_forces(idx, position, params);
@@ -193,7 +193,7 @@ __global__ void visionflow_compute_kernel(GpuKernelParams params) {
             total_force = compute_analytics_forces(idx, position, params);
             break;
     }
-    
+
     // Physics integration with Verlet method
     integrate_verlet_physics(idx, position, velocity, total_force, params);
 }
@@ -208,16 +208,16 @@ __device__ float3 compute_repulsion_optimized(
     int idx, float3 position, GpuKernelParams params
 ) {
     float3 repulsion = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     // Use shared memory for tile-based computation
     __shared__ float3 tile_positions[BLOCK_SIZE];
     __shared__ int tile_graph_ids[BLOCK_SIZE];
-    
+
     int my_graph_id = params.nodes.graph_id ? params.nodes.graph_id[idx] : 0;
-    
+
     for (int tile = 0; tile < gridDim.x; tile++) {
         int tile_idx = tile * blockDim.x + threadIdx.x;
-        
+
         // Collaborative loading into shared memory
         if (tile_idx < params.num_nodes) {
             tile_positions[threadIdx.x] = make_float3(
@@ -225,34 +225,34 @@ __device__ float3 compute_repulsion_optimized(
                 params.nodes.pos_y[tile_idx],
                 params.nodes.pos_z[tile_idx]
             );
-            tile_graph_ids[threadIdx.x] = params.nodes.graph_id ? 
+            tile_graph_ids[threadIdx.x] = params.nodes.graph_id ?
                 params.nodes.graph_id[tile_idx] : 0;
         }
         __syncthreads();
-        
+
         // Compute repulsion forces within tile
         for (int i = 0; i < blockDim.x; i++) {
             int other_idx = tile * blockDim.x + i;
             if (other_idx >= params.num_nodes || other_idx == idx) continue;
-            
+
             float3 diff = position - tile_positions[i];
             float dist_sq = dot(diff, diff) + 0.01f; // Avoid division by zero
-            
+
             // Apply distance cutoff for performance
             if (dist_sq > params.params.cutoff_distance_sq) continue;
-            
+
             // Different repulsion for same vs different graph types
             float repulsion_strength = params.params.repel_k;
             if (my_graph_id != tile_graph_ids[i]) {
                 repulsion_strength *= 0.5f; // Weaker cross-graph repulsion
             }
-            
+
             float force_magnitude = repulsion_strength / dist_sq;
             repulsion += normalize(diff) * force_magnitude;
         }
         __syncthreads();
     }
-    
+
     return repulsion;
 }
 ```
@@ -264,28 +264,28 @@ __device__ float3 compute_attraction_forces(
     int idx, float3 position, GpuKernelParams params
 ) {
     float3 attraction = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     // Iterate through edges using Compressed Sparse Row (CSR) format
     for (int e = edge_start_indices[idx]; e < edge_start_indices[idx + 1]; e++) {
         int neighbor_idx = params.edges.dst[e];
         float edge_weight = params.edges.weight[e];
-        
+
         float3 neighbor_pos = make_float3(
             params.nodes.pos_x[neighbor_idx],
             params.nodes.pos_y[neighbor_idx],
             params.nodes.pos_z[neighbor_idx]
         );
-        
+
         float3 diff = neighbor_pos - position;
         float distance = length(diff);
-        
+
         if (distance > 0.001f) {
             // Spring force proportional to distance and edge weight
             float spring_force = params.params.spring_k * distance * edge_weight;
             attraction += normalize(diff) * spring_force;
         }
     }
-    
+
     return attraction;
 }
 ```
@@ -303,22 +303,22 @@ __device__ void integrate_verlet_physics(
 ) {
     float dt = params.params.dt;
     float damping = params.params.damping;
-    
+
     // Verlet integration: x(t+dt) = x(t) + v(t)*dt + 0.5*a(t)*dt²
     float3 acceleration = force; // Assuming unit mass
-    
+
     float3 new_position = position + velocity * dt + acceleration * (0.5f * dt * dt);
     float3 new_velocity = (velocity + acceleration * dt) * damping;
-    
+
     // Apply velocity clamping
     float speed = length(new_velocity);
     if (speed > params.params.max_velocity) {
         new_velocity = normalize(new_velocity) * params.params.max_velocity;
     }
-    
+
     // Apply boundary constraints
     new_position = apply_boundary_constraints(new_position, params.params.viewport_bounds);
-    
+
     // Store results
     params.nodes.pos_x[idx] = new_position.x;
     params.nodes.pos_y[idx] = new_position.y;
@@ -333,7 +333,7 @@ __device__ void integrate_verlet_physics(
 
 ### Temporal Dynamics
 
-For agent swarm visualization with time-varying behavior:
+For Multi Agent Visualisation with time-varying behavior:
 
 ```rust
 pub struct TemporalParams {
@@ -352,14 +352,14 @@ __device__ float3 compute_semantic_forces(
     int idx, float3 position, GpuKernelParams params
 ) {
     float3 semantic_force = make_float3(0.0f, 0.0f, 0.0f);
-    
+
     int my_cluster = params.nodes.cluster ? params.nodes.cluster[idx] : -1;
     if (my_cluster < 0) return semantic_force;
-    
+
     // Attract to nodes in same semantic cluster
     for (int i = 0; i < params.num_nodes; i++) {
         if (i == idx) continue;
-        
+
         int other_cluster = params.nodes.cluster[i];
         if (other_cluster == my_cluster) {
             float3 other_pos = make_float3(
@@ -367,17 +367,17 @@ __device__ float3 compute_semantic_forces(
                 params.nodes.pos_y[i],
                 params.nodes.pos_z[i]
             );
-            
+
             float3 diff = other_pos - position;
             float distance = length(diff);
-            
+
             if (distance > 0.001f) {
                 float cluster_force = params.params.cluster_strength / distance;
                 semantic_force += normalize(diff) * cluster_force;
             }
         }
     }
-    
+
     return semantic_force;
 }
 ```
@@ -391,25 +391,25 @@ impl PhysicsEngine {
     fn update_adaptive_parameters(&mut self) {
         let system_energy = self.calculate_system_energy();
         let convergence_rate = self.calculate_convergence_rate();
-        
+
         // Increase damping as system stabilizes
         if convergence_rate < 0.01 {
             self.params.damping = (self.params.damping + 0.95) / 2.0;
         }
-        
+
         // Reduce time step if system becomes unstable
         if system_energy > self.energy_threshold {
             self.params.dt *= 0.9;
         }
-        
+
         // Adaptive temperature for simulated annealing
         self.params.temperature *= 0.99;
     }
-    
+
     fn calculate_system_energy(&self) -> f32 {
         // Sum of kinetic energy (velocity²) + potential energy (forces)
         self.nodes.iter().map(|node| {
-            node.velocity.length_squared() * 0.5 + 
+            node.velocity.length_squared() * 0.5 +
             node.potential_energy
         }).sum()
     }
@@ -436,7 +436,7 @@ fn get_update_priority(node: &Node, agent_data: Option<&AgentStatus>) -> UpdateP
             return UpdatePriority::Critical;
         }
     }
-    
+
     if node.degree > 20 || node.recently_modified() {
         UpdatePriority::High
     } else if node.degree > 5 {
@@ -468,18 +468,18 @@ __global__ void build_spatial_index(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= params.num_nodes) return;
-    
+
     float3 position = make_float3(
         params.nodes.pos_x[idx],
         params.nodes.pos_y[idx],
         params.nodes.pos_z[idx]
     );
-    
+
     int3 cell = compute_spatial_hash(position, SPATIAL_CELL_SIZE);
     int hash = morton_encode_3d(cell);
-    
+
     spatial_hash[idx] = hash;
-    
+
     // Use atomic operations to build cell boundaries
     atomicMin(&cell_start[hash], idx);
     atomicMax(&cell_end[hash], idx + 1);
@@ -501,16 +501,16 @@ physics:
   time_step: 0.01            # Physics integration time step
   max_velocity: 1.0          # Maximum node velocity
   temperature: 0.5           # Simulated annealing temperature
-  
+
   # Dual graph settings
   agent_physics_multiplier: 2.0   # Agent graph responsiveness
   cross_graph_interaction: 0.1    # Inter-graph force strength
-  
+
   # Constraint system
   separation_radius: 0.15     # Minimum node separation
   boundary_size: 200.0       # Simulation boundary
   cluster_strength: 0.2      # Semantic clustering force
-  
+
   # Performance tuning
   spatial_cell_size: 25.0    # Spatial index cell size
   force_cutoff_distance: 100.0  # Maximum interaction distance
@@ -562,18 +562,18 @@ impl PhysicsEngine {
         let kinetic = self.nodes.iter()
             .map(|n| n.velocity.length_squared())
             .sum::<f32>() * 0.5;
-            
+
         let potential = self.compute_total_potential_energy();
         let total = kinetic + potential;
-        
+
         let convergence = if let Some(prev) = self.previous_energy {
             (prev - total).abs() / prev.max(1.0)
         } else {
             1.0
         };
-        
+
         let oscillation = self.detect_oscillation_pattern();
-        
+
         SystemMetrics {
             kinetic_energy: kinetic,
             potential_energy: potential,
@@ -616,7 +616,7 @@ pub struct PhysicsDebugConfig {
 impl PhysicsEngine {
     pub fn auto_tune_parameters(&mut self, target_fps: f32, current_fps: f32) {
         let performance_ratio = current_fps / target_fps;
-        
+
         if performance_ratio < 0.5 {
             // Performance too low - simplify simulation
             self.params.force_cutoff_distance *= 0.8;
@@ -634,7 +634,7 @@ impl PhysicsEngine {
 ## Related Documentation
 
 - **[GPU Compute Architecture](gpu-compute.md)** - CUDA implementation details
-- **[Actor System](actors.md)** - GraphServiceActor and GPUComputeActor integration  
+- **[Actor System](actors.md)** - GraphServiceActor and GPUComputeActor integration
 - **[Binary Protocol](../api/binary-protocol.md)** - Efficient position data streaming
 - **[Dual Graph Architecture](../architecture/dual-graph.md)** - Knowledge + Agent graph coordination
 - **[Performance Optimization](../optimization/physics-tuning.md)** - Advanced tuning techniques

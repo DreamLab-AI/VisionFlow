@@ -35,7 +35,7 @@ The frontend is attempting to connect directly to MCP WebSocket endpoints, which
 ### Frontend Should Only Use:
 1. **REST API Endpoints:**
    - `GET /api/bots/data` - Get current bots/agents data
-   - `POST /api/bots/initialize-swarm` - Spawn new hive mind
+   - `POST /api/bots/initialize-multi-agent` - Spawn new hive mind
    - `POST /api/bots/update` - Update bots data (if needed)
 
 2. **WebSocket for Position Updates:**

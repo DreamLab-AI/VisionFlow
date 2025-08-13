@@ -162,7 +162,7 @@ let info = actor.send(GetConnectionInfo).await?;
 ### Agent Management
 
 #### `agent_spawn`
-Spawns a new agent in the swarm.
+Spawns a new agent in the multi-agent.
 
 **Parameters:**
 - `type: String` - Agent type (researcher, coder, analyst, etc.)
@@ -194,7 +194,7 @@ Gets performance metrics for agents.
 ### Task Orchestration
 
 #### `task_orchestrate`
-Orchestrates a complex task across the swarm.
+Orchestrates a complex task across the multi-agent.
 
 **Parameters:**
 - `task: String` - Task description
@@ -222,24 +222,24 @@ Retrieves results from completed tasks.
 **Parameters:**
 - `taskId: String` - Task ID to get results for
 
-### Swarm Management
+### multi-agent Management
 
-#### `swarm_init`
-Initializes a new swarm with specified topology.
+#### `multi-agent_init`
+Initializes a new multi-agent with specified topology.
 
 **Parameters:**
 - `topology: String` - Topology type (mesh, hierarchical, ring, star)
 - `maxAgents: u32` - Maximum number of agents
 - `strategy: String` - Distribution strategy
 
-#### `swarm_status`
-Gets current swarm status and statistics.
+#### `multi-agent_status`
+Gets current multi-agent status and statistics.
 
 **Parameters:**
 - `verbose: bool` - Include detailed information
 
-#### `swarm_monitor`
-Monitors swarm activity in real-time.
+#### `multi-agent_monitor`
+Monitors multi-agent activity in real-time.
 
 **Parameters:**
 - `duration: u32` - Monitoring duration in seconds
@@ -388,9 +388,9 @@ mod tests {
             .with_tcp()
             .build()
             .await;
-        
+
         assert!(client.is_ok());
-        
+
         let mut client = client.unwrap();
         let tools = client.list_tools().await;
         assert!(tools.is_ok());
@@ -405,25 +405,25 @@ mod tests {
 #[tokio::test]
 async fn test_agent_lifecycle() {
     let mut client = create_test_client().await;
-    
+
     // Spawn agent
     let result = client.call_tool("agent_spawn", json!({
         "type": "researcher",
         "name": "test-agent"
     })).await.unwrap();
-    
+
     let agent_id = result["agentId"].as_str().unwrap();
-    
+
     // Check agent exists
     let agents = client.call_tool("agent_list", json!({})).await.unwrap();
     assert!(agents.as_array().unwrap().iter()
         .any(|a| a["id"] == agent_id));
-    
+
     // Get metrics
     let metrics = client.call_tool("agent_metrics", json!({
         "agentId": agent_id
     })).await.unwrap();
-    
+
     assert_eq!(metrics["status"], "active");
 }
 ```

@@ -1,6 +1,6 @@
 # MCP Integration Architecture
 
-VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through the EnhancedClaudeFlowActor to orchestrate and visualize AI agent swarms in real-time.
+VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through the EnhancedClaudeFlowActor to orchestrate and visualize AI Multi Agents in real-time.
 
 ## Overview
 
@@ -20,13 +20,13 @@ graph LR
         API[REST API] --> ECFA
         PGC[ParallelGraphCoordinator] --> GSA
     end
-    
+
     subgraph "Claude Flow Container"
         MCP[MCP Server :3002] --> CF[Claude Flow]
         CF --> AGENTS[Agent Pool]
         AGENTS --> LLM[LLM APIs]
     end
-    
+
     subgraph "Frontend"
         UI[React UI] -->|REST /api/bots/* ✅| API
         UI -->|WebSocket Binary Protocol ✅| GSA
@@ -157,13 +157,13 @@ let subscribe_req = json!({
 | `agent.terminate` | Stop an agent | `agent_id` |
 | `agent.status` | Get agent status | `agent_id` |
 
-### Swarm Orchestration
+### multi-agent Orchestration
 
 | Method | Description | Parameters |
 |--------|-------------|------------|
-| `swarm.initialize` | Create agent swarm | `topology`, `agents`, `task` |
-| `swarm.status` | Get swarm status | `swarm_id` |
-| `swarm.dissolve` | Terminate swarm | `swarm_id` |
+| `multi-agent.initialize` | Create Multi Agent | `topology`, `agents`, `task` |
+| `multi-agent.status` | Get multi-agent status | `multi-agent_id` |
+| `multi-agent.dissolve` | Terminate multi-agent | `multi-agent_id` |
 
 ### Task Management
 
@@ -175,7 +175,7 @@ let subscribe_req = json!({
 
 ## Data Flow
 
-### 1. Swarm Initialization
+### 1. multi-agent Initialization
 
 ```mermaid
 sequenceDiagram
@@ -184,13 +184,13 @@ sequenceDiagram
     participant ECFA as EnhancedClaudeFlowActor
     participant MCP as MCP Server
     participant CF as Claude Flow
-    
-    UI->>API: POST /api/bots/swarm/init
-    API->>ECFA: InitializeSwarm message
-    ECFA->>MCP: Direct WebSocket: swarm.initialize
+
+    UI->>API: POST /api/bots/multi-agent/init
+    API->>ECFA: initializeMultiAgent message
+    ECFA->>MCP: Direct WebSocket: multi-agent.initialize
     MCP->>CF: Create agents
     CF-->>MCP: Agent IDs
-    MCP-->>ECFA: Swarm created via WebSocket
+    MCP-->>ECFA: multi-agent created via WebSocket
     ECFA->>ECFA: Update agent_cache
     ECFA->>API: Push to GraphServiceActor
     API-->>UI: 200 OK + agent data
@@ -206,7 +206,7 @@ sequenceDiagram
     participant GPU as GPUComputeActor
     participant UI as Frontend
     participant WS as WebSocket Binary
-    
+
     loop Every 100ms
         MCP->>ECFA: Agent telemetry via WebSocket
         ECFA->>ECFA: Update agent_cache
@@ -215,7 +215,7 @@ sequenceDiagram
         GPU-->>GSA: Updated positions
         GSA->>WS: Binary protocol position updates
     end
-    
+
     loop Every 10s
         UI->>API: GET /api/bots/agents
         API->>ECFA: Request cached agents
@@ -251,11 +251,11 @@ impl EnhancedClaudeFlowActor {
                 _ => {}
             }
         }
-        
+
         // Apply differential updates
         self.apply_pending_changes();
     }
-    
+
     // Push changes to parallel graph system
     fn apply_pending_changes(&mut self) {
         if self.has_changes() {
@@ -280,12 +280,12 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         // Update agent graph buffer
         self.agent_nodes = msg.nodes;
         self.agent_edges = msg.edges;
-        
+
         // Mark as agent nodes (set bit 31)
         for node in &mut self.agent_nodes {
             node.id |= 0x80000000;
         }
-        
+
         // Send to GPU for physics
         if let Some(gpu) = &self.gpu_compute_addr {
             gpu.do_send(UpdateAgentGraph {
@@ -376,12 +376,12 @@ fn validate_mcp_response(response: &Value) -> Result<()> {
     if !response.get("jsonrpc").is_some() {
         return Err("Invalid JSON-RPC response");
     }
-    
+
     // Check for errors
     if let Some(error) = response.get("error") {
         return Err(format!("MCP error: {:?}", error));
     }
-    
+
     Ok(())
 }
 ```

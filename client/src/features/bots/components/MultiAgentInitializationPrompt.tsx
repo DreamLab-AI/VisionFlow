@@ -3,14 +3,14 @@ import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/logger';
 import { apiService } from '../../../services/apiService';
 
-const logger = createLogger('SwarmInitializationPrompt');
+const logger = createLogger('multiagentInitializationPrompt');
 
-interface SwarmInitializationPromptProps {
+interface multiAgentInitializationPromptProps {
   onClose: () => void;
   onInitialized: () => void;
 }
 
-export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps> = ({
+export const multiAgentInitializationPrompt: React.FC<multiAgentInitializationPromptProps> = ({
   onClose,
   onInitialized
 }) => {
@@ -39,7 +39,7 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
   useEffect(() => {
     // Create a portal container at the root level
     const container = document.createElement('div');
-    container.id = 'swarm-modal-portal';
+    container.id = 'multi-agent-modal-portal';
     container.style.position = 'fixed';
     container.style.top = '0';
     container.style.left = '0';
@@ -89,10 +89,10 @@ export const SwarmInitializationPrompt: React.FC<SwarmInitializationPromptProps>
 
       logger.info('Spawning hive mind with config:', config);
 
-      // Call API to initialize swarm
-      const fullUrl = `${apiService.getBaseUrl()}/bots/initialize-swarm`;
+      // Call API to initialize multi-agent
+      const fullUrl = `${apiService.getBaseUrl()}/bots/initialize-multi-agent`;
       logger.info('Calling API endpoint:', fullUrl);
-      const response = await apiService.post('/bots/initialize-swarm', config);
+      const response = await apiService.post('/bots/initialize-multi-agent', config);
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);

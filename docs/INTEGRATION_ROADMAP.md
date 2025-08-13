@@ -23,7 +23,7 @@ This document provides a comprehensive roadmap for integrating the rich data str
 3. **Agentic-Flow System**
    - Rich agent data streams
    - MCP tool integration
-   - Swarm coordination
+   - multi-agent coordination
    - Performance metrics
 
 ### What We Need to Port
@@ -36,7 +36,7 @@ This document provides a comprehensive roadmap for integrating the rich data str
 
 2. **Control Mechanisms**
    - Agent spawning/termination
-   - Swarm initialization
+   - multi-agent initialization
    - Task assignment
    - Coordination patterns
 
@@ -85,7 +85,7 @@ This document provides a comprehensive roadmap for integrating the rich data str
   "tools": {
     "agent_spawn": { "enabled": true },
     "agent_coordinate": { "enabled": true },
-    "swarm_init": { "enabled": true },
+    "multi-agent_init": { "enabled": true },
     "memory_usage": { "enabled": true },
     "neural_train": { "enabled": true }
   }
@@ -147,7 +147,7 @@ pub struct MCPClient {
 impl MCPClient {
     pub async fn call_tool(&self, tool: &str, args: Value) -> Result<Value>
     pub async fn spawn_agent(&self, config: AgentConfig) -> Result<AgentId>
-    pub async fn coordinate_swarm(&self, pattern: CoordinationPattern) -> Result<()>
+    pub async fn coordinate_multi-agent(&self, pattern: CoordinationPattern) -> Result<()>
 }
 ```
 
@@ -181,18 +181,18 @@ export function useAgentWebSocket() {
   const [agents, setAgents] = useState<Map<string, EnhancedAgent>>();
   const [messages, setMessages] = useState<MessageFlow[]>();
   const [coordinations, setCoordinations] = useState<CoordinationInstance[]>();
-  
+
   useEffect(() => {
     const ws = new WebSocketManager({
       url: process.env.VITE_WS_URL,
       protocols: ['binary', 'json'],
       reconnect: true,
     });
-    
+
     ws.on('agent.update', handleAgentUpdate);
     ws.on('message.flow', handleMessageFlow);
     ws.on('coordination.event', handleCoordination);
-    
+
     return () => ws.close();
   }, []);
 }
@@ -228,7 +228,7 @@ interface AgentStore {
   agents: Map<string, EnhancedAgent>;
   messages: MessageFlow[];
   coordinations: CoordinationInstance[];
-  
+
   updateAgent: (id: string, update: Partial<EnhancedAgent>) => void;
   addMessage: (message: MessageFlow) => void;
   updateCoordination: (coordination: CoordinationInstance) => void;
@@ -258,7 +258,7 @@ services:
 
 **Test Scenarios:**
 1. Agent spawn and visualization
-2. Swarm initialization
+2. multi-agent initialization
 3. Message flow tracking
 4. Coordination patterns
 5. Performance under load

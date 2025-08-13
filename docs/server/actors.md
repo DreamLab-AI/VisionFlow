@@ -2,18 +2,18 @@
 
 ## Overview
 
-VisionFlow uses the Actix actor system to orchestrate AI agent swarms and dual graph visualization with real-time streaming of Claude Flow MCP telemetry and GPU-accelerated physics simulation for 100,000+ nodes at 60 FPS.
+VisionFlow uses the Actix actor system to orchestrate AI Multi Agents and dual graph visualization with real-time streaming of Claude Flow MCP telemetry and GPU-accelerated physics simulation for 100,000+ nodes at 60 FPS.
 
 ## Actor Architecture
 
-The actor system implements a message-passing design with direct MCP integration for agent swarm orchestration:
+The actor system implements a message-passing design with direct MCP integration for Multi Agent orchestration:
 
 ```mermaid
 graph TB
     subgraph "Claude Flow Integration"
         MCP[Claude Flow MCP :3002] --> CFA[EnhancedClaudeFlowActor]
     end
-    
+
     subgraph "Core Processing Actors"
         CFA --> |Agent Updates| GSA[GraphServiceActor]
         MA[MetadataActor] --> |Knowledge Graph| GSA
@@ -22,12 +22,12 @@ graph TB
         GSA --> |Binary Stream| CMA[ClientManagerActor]
         CMA --> |WebSocket| WS[Frontend Clients]
     end
-    
+
     subgraph "Configuration Management"
         SA[SettingsActor] --> GSA
         PSA[ProtectedSettingsActor] --> SA
     end
-    
+
     style CMA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style GSA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style GCA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
@@ -43,7 +43,7 @@ graph TB
 
 **Location**: `src/actors/graph_actor.rs`
 
-Central hub for dual graph management (knowledge graph + agent swarm).
+Central hub for dual graph management (knowledge graph + Multi Agent).
 
 **Responsibilities**:
 - Maintains separate buffers for knowledge nodes and agent nodes
@@ -108,10 +108,10 @@ pub struct GetNodeData; // -> Result<Vec<BinaryNodeData>, String>
 
 // Advanced physics modes
 pub struct UpdatePhysicsParams { pub graph_type: GraphType, pub params: SimulationParams }
-pub struct UpdateForceParams { 
+pub struct UpdateForceParams {
     pub repulsion: f32, pub attraction: f32, pub damping: f32,
     pub temperature: f32, pub spring: f32, pub gravity: f32,
-    pub time_step: f32, pub max_velocity: f32 
+    pub time_step: f32, pub max_velocity: f32
 }
 
 // Status and diagnostics
@@ -119,9 +119,9 @@ pub struct GetGPUStatus; // -> GPUStatus
 pub struct GetPhysicsStats; // -> Result<PhysicsStats, String>
 
 // Position synchronization
-pub struct RequestPositionSnapshot { 
+pub struct RequestPositionSnapshot {
     pub include_knowledge_graph: bool,
-    pub include_agent_graph: bool 
+    pub include_agent_graph: bool
 }
 ```
 
@@ -151,8 +151,8 @@ WebSocket client connection management and real-time broadcasting.
 **Key Messages**:
 ```rust
 // Client lifecycle
-pub struct RegisterClient { 
-    pub addr: Addr<SocketFlowServer> 
+pub struct RegisterClient {
+    pub addr: Addr<SocketFlowServer>
 } // -> Result<usize, String> (returns client_id)
 
 pub struct UnregisterClient { pub client_id: usize }
@@ -251,28 +251,28 @@ Direct integration with Claude Flow MCP for real-time agent orchestration.
 **Responsibilities**:
 - Maintains persistent WebSocket connection to Claude Flow MCP (port 3002)
 - Streams agent telemetry at 10Hz with automatic reconnection
-- Handles swarm initialization via JSON-RPC protocol
+- Handles multi-agent initialization via JSON-RPC protocol
 - NO mock data generation - only real Claude Flow agent data
 - Exponential backoff reconnection strategy on connection loss
 
 **Key Messages**:
 ```rust
-// Swarm management
-pub struct InitializeSwarm { 
+// multi-agent management
+pub struct initializeMultiAgent {
     pub topology: String, pub max_agents: u32, pub strategy: String,
     pub enable_neural: bool, pub agent_types: Vec<String>,
     pub custom_prompt: Option<String>
 }
 
 // Agent operations
-pub struct SpawnAgent { 
-    pub agent_type: String, pub name: String, 
-    pub capabilities: Vec<String>, pub swarm_id: Option<String>
+pub struct SpawnAgent {
+    pub agent_type: String, pub name: String,
+    pub capabilities: Vec<String>, pub multi-agent_id: Option<String>
 }
 
 // Real-time data
 pub struct GetAgentTelemetry; // -> Result<Vec<AgentStatus>, String>
-pub struct GetSwarmStatus; // -> Result<SwarmStatus, String>
+pub struct Getmulti-agentStatus; // -> Result<multi-agentStatus, String>
 pub struct GetAgentMetrics; // -> Result<Vec<AgentMetrics>, String>
 
 // Graph updates
@@ -280,18 +280,18 @@ pub struct UpdateBotsGraph { pub agents: Vec<AgentStatus> }
 pub struct GetBotsGraphData; // -> Result<GraphData, String>
 
 // Advanced orchestration
-pub struct TaskOrchestrate { 
+pub struct TaskOrchestrate {
     pub task_id: String, pub task_type: String,
     pub assigned_agents: Vec<String>, pub priority: u8
 }
-pub struct SwarmMonitor; // -> Result<SwarmMonitorData, String>
-pub struct TopologyOptimize { 
+pub struct multi-agentMonitor; // -> Result<multi-agentMonitorData, String>
+pub struct TopologyOptimize {
     pub current_topology: String,
     pub performance_metrics: HashMap<String, f32>
 }
 
 // Connection management
-pub struct PollSwarmData;
+pub struct Pollmulti-agentData;
 pub struct PollSystemMetrics;
 pub struct RetryMCPConnection;
 pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
@@ -301,10 +301,10 @@ pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
 ```rust
 // JSON-RPC methods called on Claude Flow MCP
 // agent.spawn - Create new agent
-// swarm.initialize - Initialize swarm topology  
+// multi-agent.initialize - Initialize multi-agent topology
 // telemetry.subscribe - Stream metrics at 100ms intervals
 // task.assign - Assign task to specific agent
-// swarm.status - Get current swarm health
+// multi-agent.status - Get current multi-agent health
 // agent.metrics - Retrieve performance data
 ```
 
@@ -319,11 +319,11 @@ sequenceDiagram
     participant CMA as ClientManagerActor
     participant GSA as GraphServiceActor
     participant GCA as GPUComputeActor
-    
+
     Client->>WS: Connect WebSocket
     WS->>CMA: RegisterClient
     CMA-->>WS: client_id
-    
+
     loop Physics Simulation (60 FPS)
         GSA->>GCA: ComputeForces
         GCA-->>GSA: Updated Positions
@@ -331,7 +331,7 @@ sequenceDiagram
         CMA->>WS: Binary position update
         WS->>Client: Real-time node positions
     end
-    
+
     Client->>WS: Disconnect
     WS->>CMA: UnregisterClient(client_id)
 ```
@@ -346,15 +346,15 @@ sequenceDiagram
     participant PSA as ProtectedSettingsActor
     participant GSA as GraphServiceActor
     participant GCA as GPUComputeActor
-    
+
     Client->>API: POST /api/user-settings
     API->>SA: SetSettingByPath("physics.spring_strength", 0.008)
-    
+
     alt Protected Setting
         SA->>PSA: Update protected setting
         PSA-->>SA: OK
     end
-    
+
     SA-->>API: Settings updated
     API->>GSA: Notify physics change
     GSA->>GCA: UpdateSimulationParams(new_params)
@@ -367,17 +367,17 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Frontend
-    participant CFA as ClaudeFlowActor  
+    participant CFA as ClaudeFlowActor
     participant MCP as Claude Flow MCP
     participant GSA as GraphServiceActor
     participant GCA as GPUComputeActor
     participant CMA as ClientManagerActor
-    
-    Frontend->>CFA: InitializeSwarm("mesh", 5, "researcher,coder")
-    CFA->>MCP: swarm.initialize(topology="mesh", agents=5)
-    MCP-->>CFA: swarm_id="abc123", agents=[...]
-    CFA-->>Frontend: Swarm initialized
-    
+
+    Frontend->>CFA: initializeMultiAgent("mesh", 5, "researcher,coder")
+    CFA->>MCP: multi-agent.initialize(topology="mesh", agents=5)
+    MCP-->>CFA: multi-agent_id="abc123", agents=[...]
+    CFA-->>Frontend: multi-agent initialized
+
     loop Agent Telemetry (10Hz)
         MCP->>CFA: Agent status updates
         CFA->>GSA: UpdateBotsGraph(agent_data)
@@ -450,7 +450,7 @@ impl Handler<ComputeForces> for GPUComputeActor {
 // Synchronous request-response
 let graph_data = graph_actor.send(GetGraphData).await??;
 
-// Fire-and-forget messaging  
+// Fire-and-forget messaging
 client_manager.do_send(BroadcastNodePositions { positions });
 
 // Error handling with fallbacks
@@ -490,12 +490,12 @@ match gpu_compute.send(ComputeForces).await? {
 ```rust
 impl Actor for GraphServiceActor {
     type Context = Context<Self>;
-    
+
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("GraphServiceActor started, beginning physics simulation");
         self.start_simulation_loop(ctx);
     }
-    
+
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         warn!("GraphServiceActor stopped - supervisor will restart");
     }
@@ -533,11 +533,11 @@ async fn test_graph_service_actor() {
     let client_manager = ClientManagerActor::new().start();
     let gpu_compute = GPUComputeActor::new(default_params()).start();
     let actor = GraphServiceActor::new(client_manager, Some(gpu_compute)).start();
-    
+
     // Test message handling
     let result = actor.send(GetGraphData).await.unwrap();
     assert!(result.is_ok());
-    
+
     // Test state updates
     let test_node = Node { id: 1, /* ... */ };
     let result = actor.send(AddNode { node: test_node }).await.unwrap();

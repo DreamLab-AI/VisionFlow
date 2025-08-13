@@ -107,7 +107,7 @@ The physics parameters can now be modified through the control center:
 
 ## Hive Mind Collective Intelligence Analysis
 
-The swarm successfully identified and resolved both issues through parallel investigation:
+The multi-agent successfully identified and resolved both issues through parallel investigation:
 - **GPU Investigator**: Found PTX path mismatch
 - **Physics Analyzer**: Identified weak force parameters
 - **Rust Fixer**: Implemented code fixes

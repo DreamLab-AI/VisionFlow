@@ -79,7 +79,7 @@ WEBSOCKET_COMPRESSION=true
 ### Agent APIs
 - `GET /api/bots/status` - Agent status
 - `GET /api/bots/data` - Full agent graph
-- `POST /api/bots/initialize-swarm` - Spawn agent swarm
+- `POST /api/bots/initialize-multi-agent` - Spawn Multi Agent
 
 ### WebSocket
 - `/ws` - Main WebSocket endpoint for real-time updates

@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow is a sophisticated real-time 3D visualization platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualizing and interacting with complex knowledge graphs and AI agent swarms.
+VisionFlow is a sophisticated real-time 3D visualization platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualizing and interacting with complex knowledge graphs and AI Multi Agents.
 
 ## System Architecture
 
@@ -14,7 +14,7 @@ graph TB
         XR[WebXR Integration]
         WSClient[WebSocket Client]
     end
-    
+
     subgraph "Backend Layer"
         subgraph "Actor System"
             CFActor[Claude Flow Actor]
@@ -24,7 +24,7 @@ graph TB
             Settings[Settings Actor]
             Metadata[Metadata Actor]
         end
-        
+
         subgraph "Services"
             MCP[MCP Relay]
             GitHub[GitHub Service]
@@ -32,19 +32,19 @@ graph TB
             Nostr[Nostr Auth]
         end
     end
-    
+
     subgraph "GPU Layer"
         CUDA[CUDA Kernels]
         Physics[Physics Engine]
         Analytics[Visual Analytics]
     end
-    
+
     subgraph "External Services"
         Claude[Claude Flow:3002]
         RAG[RAGFlow]
         Perplexity[Perplexity API]
     end
-    
+
     React --> Three
     Three --> XR
     React --> WSClient
@@ -63,7 +63,7 @@ graph TB
 ### 🤖 AI Agent Orchestration
 - **15+ Agent Types**: Coordinator, Researcher, Coder, Analyst, Architect, Optimizer, and more
 - **Claude Flow Integration**: Direct WebSocket connection via enhanced MCP protocol
-- **Swarm Topologies**: Hierarchical, mesh, ring, and star configurations
+- **multi-agent Topologies**: Hierarchical, mesh, ring, and star configurations
 - **Task Distribution**: Parallel, sequential, and adaptive execution strategies
 - **Real-time Monitoring**: Activity logs, health metrics, and performance tracking
 
@@ -163,7 +163,7 @@ open http://localhost:3001
 - [Debugging Guide](development/debugging.md) - Troubleshooting
 
 ### 📚 Features
-- [Agent Swarm](server/agent-swarm.md) - AI agent orchestration
+- [Multi Agent](server/agent-multi-agent.md) - AI agent orchestration
 - [Bots Implementation](bots-implementation.md) - Agent system details
 - [Voice System](voice-system.md) - Speech interaction
 - [Command Palette](client/command-palette.md) - Keyboard shortcuts

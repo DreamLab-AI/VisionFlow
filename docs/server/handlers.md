@@ -13,27 +13,27 @@ graph TB
         SPEECH["/ws/speech - Audio Processing"]
         MCP["/ws/mcp-relay - MCP Relay"]
     end
-    
+
     subgraph "API Endpoints"
         API["/api/* - REST API"]
         HEALTH["/api/health/* - Health Checks"]
         BOTS["/api/bots/* - Agent Management"]
         PAGES["/api/pages/* - Static Assets"]
     end
-    
+
     subgraph "Actor Backend"
         GSA[GraphServiceActor]
-        CFA[ClaudeFlowActor] 
+        CFA[ClaudeFlowActor]
         CMA[ClientManagerActor]
         SA[SettingsActor]
         MA[MetadataActor]
     end
-    
+
     WSS --> CMA
     API --> SA
     BOTS --> CFA
     HEALTH --> GSA
-    
+
     style WSS fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style API fill:#3A3F47,stroke:#68D391,color:#FFFFFF
     style BOTS fill:#3A3F47,stroke:#F56565,color:#FFFFFF
@@ -43,8 +43,8 @@ graph TB
 
 ### Socket Flow Handler
 
-**Location**: `src/handlers/socket_flow_handler.rs`  
-**Endpoint**: `/wss`  
+**Location**: `src/handlers/socket_flow_handler.rs`
+**Endpoint**: `/wss`
 **Protocol**: WebSocket with binary protocol support
 
 **Responsibilities**:
@@ -77,26 +77,26 @@ sequenceDiagram
     participant WS as SocketFlowServer
     participant CMA as ClientManagerActor
     participant GSA as GraphServiceActor
-    
+
     Client->>WS: WebSocket Connect
     WS->>CMA: RegisterClient
     CMA-->>WS: client_id
-    
+
     Client->>WS: "requestInitialData"
     loop Real-time Updates (60 FPS)
         WS->>GSA: GetGraphData
         GSA-->>WS: Node positions
         WS->>Client: Binary updates
     end
-    
+
     Client->>WS: Disconnect
     WS->>CMA: UnregisterClient
 ```
 
 ### Speech Socket Handler
 
-**Location**: `src/handlers/speech_socket_handler.rs`  
-**Endpoint**: `/ws/speech`  
+**Location**: `src/handlers/speech_socket_handler.rs`
+**Endpoint**: `/ws/speech`
 **Protocol**: WebSocket with audio streaming
 
 **Features**:
@@ -107,8 +107,8 @@ sequenceDiagram
 
 ### MCP Relay Handler
 
-**Location**: `src/handlers/mcp_relay_handler.rs`  
-**Endpoint**: `/ws/mcp-relay`  
+**Location**: `src/handlers/mcp_relay_handler.rs`
+**Endpoint**: `/ws/mcp-relay`
 **Protocol**: WebSocket proxy to MCP orchestrator
 
 **Features**:
@@ -121,13 +121,13 @@ sequenceDiagram
 
 ### API Handler (Main Router)
 
-**Location**: `src/handlers/api_handler/mod.rs`  
+**Location**: `src/handlers/api_handler/mod.rs`
 **Base Path**: `/api`
 
 **Sub-modules**:
 ```rust
 pub mod files;        // /api/files/*
-pub mod graph;        // /api/graph/*  
+pub mod graph;        // /api/graph/*
 pub mod visualisation; // /api/visualisation/*
 pub mod bots;         // /api/bots/*
 pub mod analytics;    // /api/analytics/*
@@ -147,7 +147,7 @@ web::scope("")
 
 ### Graph Handler
 
-**Location**: `src/handlers/api_handler/graph/mod.rs`  
+**Location**: `src/handlers/api_handler/graph/mod.rs`
 **Endpoints**:
 
 | Method | Path | Description | Actor Integration |
@@ -187,7 +187,7 @@ web::scope("")
 
 ### Settings Handler
 
-**Location**: `src/handlers/settings_handler.rs`  
+**Location**: `src/handlers/settings_handler.rs`
 **Base Path**: `/api/settings`
 
 **Endpoints**:
@@ -225,7 +225,7 @@ web::scope("")
 
 ### Health Handler
 
-**Location**: `src/handlers/health_handler.rs`  
+**Location**: `src/handlers/health_handler.rs`
 **Base Path**: `/api/health`
 
 **Endpoints**:
@@ -249,7 +249,7 @@ web::scope("")
 
 ### Bots Handler
 
-**Location**: `src/handlers/bots_handler.rs`  
+**Location**: `src/handlers/bots_handler.rs`
 **Base Path**: `/api/bots`
 
 **Endpoints**:
@@ -257,7 +257,7 @@ web::scope("")
 |--------|------|-------------|-------------|
 | `GET` | `/api/bots/data` | Get agent graph data | `ClaudeFlowActor::GetBotsGraphData` |
 | `POST` | `/api/bots/update` | Update agent positions | `GraphServiceActor::UpdateBotsGraph` |
-| `POST` | `/api/bots/initialize-swarm` | Initialize Claude Flow swarm | `ClaudeFlowActor::InitializeSwarm` |
+| `POST` | `/api/bots/initialize-multi-agent` | Initialize Claude Flow multi-agent | `ClaudeFlowActor::initializeMultiAgent` |
 
 **Agent Data Structure**:
 ```rust
@@ -272,7 +272,7 @@ pub struct BotsAgent {
     pub workload: f32,
     pub capabilities: Option<Vec<String>>,
     pub current_task: Option<String>,
-    pub swarm_id: Option<String>,
+    pub multi-agent_id: Option<String>,
     // Physics data (skip in JSON)
     pub position: Vec3,
     pub velocity: Vec3,
@@ -280,7 +280,7 @@ pub struct BotsAgent {
 }
 ```
 
-**Swarm Initialization**:
+**multi-agent Initialization**:
 ```json
 {
   "topology": "mesh",
@@ -294,7 +294,7 @@ pub struct BotsAgent {
 
 ### Nostr Handler
 
-**Location**: `src/handlers/nostr_handler.rs`  
+**Location**: `src/handlers/nostr_handler.rs`
 **Base Path**: `/api/auth/nostr`
 
 **Endpoints**:
@@ -317,7 +317,7 @@ pub struct BotsAgent {
 
 ### RAGFlow Handler
 
-**Location**: `src/handlers/ragflow_handler.rs`  
+**Location**: `src/handlers/ragflow_handler.rs`
 **Base Path**: `/api/ragflow`
 
 **Features**:
@@ -349,7 +349,7 @@ VisionFlow uses a custom binary protocol for efficient WebSocket communication:
 #[repr(C)]
 pub struct BinaryNodeData {
     pub position: Vec3Data,  // 12 bytes (3 × f32)
-    pub velocity: Vec3Data,  // 12 bytes (3 × f32) 
+    pub velocity: Vec3Data,  // 12 bytes (3 × f32)
     pub mass: f32,          // 4 bytes
 }
 
@@ -458,10 +458,10 @@ HttpResponse::Accepted().json(json!({
 ```rust
 // Batch multiple node updates for efficiency
 let updates: Vec<_> = nodes.into_iter()
-    .map(|(id, data)| UpdateNodePosition { 
-        node_id: id, 
+    .map(|(id, data)| UpdateNodePosition {
+        node_id: id,
         position: data.position.into(),
-        velocity: data.velocity.into() 
+        velocity: data.velocity.into()
     })
     .collect();
 
@@ -504,10 +504,10 @@ async fn test_graph_data_endpoint() {
     let req = test::TestRequest::get()
         .uri("/api/graph/data")
         .to_request();
-        
+
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), 200);
-    
+
     let body: GraphResponse = test::read_body_json(resp).await;
     assert!(!body.nodes.is_empty());
 }
@@ -519,13 +519,13 @@ async fn test_graph_data_endpoint() {
 #[actix_web::test]
 async fn test_websocket_connection() {
     let (client, mut connection) = ws_connect("/wss").await;
-    
+
     // Test ping/pong
     client.send_text(r#"{"type":"ping","timestamp":1234567890}"#).await;
-    
+
     let msg = connection.next().await.unwrap().unwrap();
     assert!(msg.is_text());
-    
+
     let pong: PongMessage = serde_json::from_str(msg.as_text().unwrap()).unwrap();
     assert_eq!(pong.timestamp, 1234567890);
 }
@@ -572,7 +572,7 @@ services:
 ## Related Documentation
 
 - **[Actor System](actors.md)** - Backend message passing architecture
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient WebSocket communication format  
+- **[Binary Protocol](../api/binary-protocol.md)** - Efficient WebSocket communication format
 - **[Services](services.md)** - Business logic and external integrations
 - **[Types & Models](types.md)** - Data structures and message definitions
 - **[WebSocket Protocols](../api/websocket.md)** - Real-time communication specifications

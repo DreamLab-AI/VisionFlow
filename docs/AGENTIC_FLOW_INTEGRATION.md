@@ -24,7 +24,7 @@ This document provides a comprehensive guide for integrating the rich data strea
         │   WebSocket Server     │ │   REST API Server   │
         ├────────────────────────┤ ├────────────────────┤
         │ - Binary position data │ │ - Agent management  │
-        │ - JSON control msgs    │ │ - Swarm init        │
+        │ - JSON control msgs    │ │ - multi-agent init        │
         │ - Real-time events     │ │ - MCP tool calls    │
         └────────────────────────┘ └────────────────────┘
                     │                         │
@@ -42,8 +42,8 @@ This document provides a comprehensive guide for integrating the rich data strea
 
 ### 1. Agent State Stream
 
-**WebSocket Endpoint**: `/api/visualization/agents/ws`  
-**Protocol**: Binary (position/velocity) + JSON (state updates)  
+**WebSocket Endpoint**: `/api/visualization/agents/ws`
+**Protocol**: Binary (position/velocity) + JSON (state updates)
 **Frequency**: 60 FPS for positions, event-based for state
 
 #### Binary Protocol Format (28 bytes per agent)
@@ -87,7 +87,7 @@ interface AgentStateUpdate {
 
 ### 2. Message Flow Stream
 
-**Event Type**: `message_event`  
+**Event Type**: `message_event`
 **Update Frequency**: Real-time as messages occur
 
 ```typescript
@@ -109,7 +109,7 @@ interface MessageFlowUpdate {
 
 ### 3. Coordination Pattern Stream
 
-**Event Type**: `coordination_event`  
+**Event Type**: `coordination_event`
 **Patterns**: Hierarchical, Mesh, Pipeline, Consensus, Barrier
 
 ```typescript
@@ -132,7 +132,7 @@ interface CoordinationUpdate {
 
 ### 4. System Metrics Stream
 
-**Event Type**: `system_metrics`  
+**Event Type**: `system_metrics`
 **Update Frequency**: Every 1 second
 
 ```typescript
@@ -221,11 +221,11 @@ interface MCPToolCall {
 }
 ```
 
-### 3. Swarm Coordination Controls
+### 3. multi-agent Coordination Controls
 
-#### Initialize Swarm
+#### Initialize multi-agent
 ```typescript
-POST /api/swarms/initialize
+POST /api/multi-agents/initialize
 {
   "topology": "hierarchical",
   "agents": [
@@ -421,7 +421,7 @@ server {
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        
+
         # WebSocket specific timeouts
         proxy_read_timeout 3600s;
         proxy_send_timeout 3600s;
@@ -482,7 +482,7 @@ JAEGER_ENDPOINT=http://jaeger:14268/api/traces
 - [ ] GPU physics simulation
 - [ ] Performance monitoring
 - [ ] Error boundary implementation
-- [ ] Progressive loading for large swarms
+- [ ] Progressive loading for large multi-agents
 
 ### Infrastructure Requirements
 
@@ -513,7 +513,7 @@ void main() {
     vec3 force = calculateSpringForce(position);
     velocity = velocity * damping + force * deltaTime;
     position = position + velocity * deltaTime;
-    
+
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 ```

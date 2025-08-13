@@ -20,7 +20,7 @@ pub struct AppState {
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
     pub client_manager_addr: Addr<ClientManagerActor>,
-    
+
     // External Service Integrations (Arc-wrapped for thread safety)
     pub github_client: Arc<GitHubClient>,
     pub content_api: Arc<ContentAPI>,
@@ -28,12 +28,12 @@ pub struct AppState {
     pub ragflow_service: Option<Arc<RAGFlowService>>,
     pub speech_service: Option<Arc<SpeechService>>,
     pub nostr_service: Option<web::Data<NostrService>>,
-    
+
     // Configuration & Access Control
     pub feature_access: web::Data<FeatureAccess>,
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
-    
+
     // Claude Flow MCP Integration
     pub claude_flow_addr: Option<Addr<EnhancedClaudeFlowActor>>,
     pub bots_client: Arc<BotsClient>,
@@ -50,7 +50,7 @@ The architecture implements a distributed actor model where each major component
 - **SettingsActor**: Application configuration management
 - **MetadataActor**: Knowledge graph metadata and file relationships
 - **ProtectedSettingsActor**: Secure API key and user data management
-- **EnhancedClaudeFlowActor**: MCP integration for agent swarm orchestration
+- **EnhancedClaudeFlowActor**: MCP integration for Multi Agent orchestration
 
 ## System Initialization
 
@@ -89,7 +89,7 @@ let app_state = AppState::new(
 ### Component Initialization Details
 
 **Actor System**:
-- **Graph Service Actor**: Manages dual graph physics simulation, handles both knowledge graph and agent swarm data
+- **Graph Service Actor**: Manages dual graph physics simulation, handles both knowledge graph and Multi Agent data
 - **GPU Compute Actor**: CUDA kernel execution with automatic CPU fallback on initialization failure
 - **Client Manager Actor**: WebSocket connection pool for real-time updates
 - **Settings Actor**: Thread-safe configuration management with hot-reload capability
@@ -105,7 +105,7 @@ let app_state = AppState::new(
 
 **Claude Flow Integration**:
 - **MCP Connection**: Direct WebSocket connection to Claude Flow orchestrator on port 3002
-- **Agent Swarm Management**: Real-time agent spawning, task distribution, and telemetry
+- **Multi Agent Management**: Real-time agent spawning, task distribution, and telemetry
 - **Binary Protocol**: Efficient agent state streaming at 10Hz
 
 ## Message Passing Architecture
@@ -153,25 +153,25 @@ graph TB
         GH[GitHub Content]
         MCP[Claude Flow MCP]
     end
-    
+
     subgraph "Actor System"
         MA[MetadataActor] --> GSA[GraphServiceActor]
         CFA[ClaudeFlowActor] --> GSA
         GSA --> GCA[GPUComputeActor]
         GCA --> CMA[ClientManagerActor]
     end
-    
+
     subgraph "Output"
         WS[WebSocket Clients]
         BIN[Binary Protocol]
     end
-    
+
     MD --> MA
     GH --> MA
     MCP --> CFA
     CMA --> WS
     CMA --> BIN
-    
+
     style GSA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style GCA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style CMA fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
@@ -185,7 +185,7 @@ graph TB
 3. Graph structure recalculated with GPU physics
 4. Position updates broadcast to clients at 60 FPS
 
-**Agent Swarm Pipeline**:
+**Multi Agent Pipeline**:
 1. Claude Flow MCP streams agent telemetry at 10Hz
 2. `EnhancedClaudeFlowActor` processes agent state changes
 3. Agent positions calculated with separate physics parameters
@@ -211,13 +211,13 @@ Actix provides built-in supervision for actor lifecycle management:
 // Actors automatically restart on failure
 impl Actor for GraphServiceActor {
     type Context = Context<Self>;
-    
+
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("GraphServiceActor started");
         // Start physics simulation loop
         self.start_simulation_loop(ctx);
     }
-    
+
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("GraphServiceActor stopped - will restart");
     }
@@ -247,7 +247,7 @@ pub struct GetGraphData;
 // All actor messages return Result<T, String> for uniform error handling
 impl Handler<GetGraphData> for GraphServiceActor {
     type Result = Result<GraphData, String>;
-    
+
     fn handle(&mut self, _: GetGraphData, _: &mut Self::Context) -> Self::Result {
         Ok(self.graph_data.clone())
     }
@@ -303,7 +303,7 @@ GET /api/health/physics
 
 ## Dual Graph System
 
-VisionFlow implements a sophisticated dual graph architecture that simultaneously handles knowledge graphs and agent swarms with independent physics parameters.
+VisionFlow implements a sophisticated dual graph architecture that simultaneously handles knowledge graphs and Multi Agents with independent physics parameters.
 
 ### Unified Processing Pipeline
 
@@ -315,7 +315,7 @@ graph TB
         MCP["🤖 Claude Flow MCP"]
         USER["👤 User Actions"]
     end
-    
+
     subgraph "Actor Processing Layer"
         MA["📊 MetadataActor"]
         CFA["🧠 ClaudeFlowActor"]
@@ -323,36 +323,36 @@ graph TB
         GCA["⚡ GPUComputeActor"]
         CMA["📡 ClientManagerActor"]
     end
-    
+
     subgraph "Dual Graph Types"
         KG["📚 Knowledge Graph<br/>60 FPS Physics"]
-        AG["🤖 Agent Swarm<br/>10 Hz Telemetry"]
+        AG["🤖 Multi Agent<br/>10 Hz Telemetry"]
     end
-    
+
     subgraph "Real-time Output"
         WS["🔗 WebSocket Clients"]
         BIN["📦 Binary Protocol"]
         JSON["📋 JSON API"]
     end
-    
+
     MD --> MA
     GH --> MA
     MCP --> CFA
     USER --> GSA
-    
+
     MA --> |"Metadata Updates"| GSA
     CFA --> |"Agent Telemetry"| GSA
     GSA --> |"Physics Data"| GCA
     GCA --> |"Computed Positions"| GSA
     GSA --> |"Graph Updates"| CMA
-    
+
     GSA --> KG
     GSA --> AG
-    
+
     CMA --> WS
     CMA --> BIN
     CMA --> JSON
-    
+
     style MA fill:#2D3748,stroke:#4FD1C7,color:#FFFFFF
     style CFA fill:#2D3748,stroke:#F56565,color:#FFFFFF
     style GSA fill:#2D3748,stroke:#63B3ED,color:#FFFFFF
@@ -394,12 +394,12 @@ The service layer has been completely reimagined around Actix actors for maximum
 
 **Core Actor Services**:
 1. **GraphServiceActor**: Dual graph physics simulation and real-time updates
-2. **GPUComputeActor**: CUDA kernel execution with unified compute pipeline  
+2. **GPUComputeActor**: CUDA kernel execution with unified compute pipeline
 3. **ClientManagerActor**: WebSocket connection management and broadcasting
 4. **MetadataActor**: File system monitoring and knowledge graph metadata
 5. **SettingsActor**: Configuration management with hot-reload capability
 6. **ProtectedSettingsActor**: Secure credential and API key management
-7. **EnhancedClaudeFlowActor**: MCP integration for agent swarm orchestration
+7. **EnhancedClaudeFlowActor**: MCP integration for Multi Agent orchestration
 
 **External Integration Services**:
 - **GitHub Service**: Repository synchronization and content fetching
@@ -410,7 +410,7 @@ The service layer has been completely reimagined around Actix actors for maximum
 
 ### Actor Message Flow - Claude Flow Integration
 
-The enhanced system provides real-time integration with Claude Flow MCP for agent swarm management:
+The enhanced system provides real-time integration with Claude Flow MCP for Multi Agent management:
 
 ```mermaid
 sequenceDiagram
@@ -421,17 +421,17 @@ sequenceDiagram
     participant CFA as "ClaudeFlowActor"
     participant MCP as "Claude Flow MCP"
     participant GCA as "GPUComputeActor"
-    
+
     Client->>WS: Connect WebSocket
     WS->>CMA: RegisterClient
     CMA-->>WS: client_id
-    
-    Client->>WS: Initialize Swarm Request
-    WS->>CFA: InitializeSwarm
-    CFA->>MCP: swarm.init(topology, agents)
-    MCP-->>CFA: swarm_id, agent_list
-    CFA-->>WS: Swarm Created
-    
+
+    Client->>WS: Initialize multi-agent Request
+    WS->>CFA: initializeMultiAgent
+    CFA->>MCP: multi-agent.init(topology, agents)
+    MCP-->>CFA: multi-agent_id, agent_list
+    CFA-->>WS: multi-agent Created
+
     loop Agent Telemetry (10Hz)
         MCP->>CFA: Agent Status Updates
         CFA->>GSA: UpdateBotsGraph
@@ -441,7 +441,7 @@ sequenceDiagram
         CMA->>WS: Binary Position Data
         WS->>Client: Real-time Agent Updates
     end
-    
+
     loop Knowledge Graph (60Hz)
         GSA->>GCA: ComputeForces(knowledge_graph)
         GCA-->>GSA: Updated Positions
@@ -449,7 +449,7 @@ sequenceDiagram
         CMA->>WS: Binary Position Data
         WS->>Client: Real-time Knowledge Updates
     end
-    
+
     style Client fill:#2D3748,stroke:#63B3ED,color:#FFFFFF
     style CFA fill:#2D3748,stroke:#F56565,color:#FFFFFF
     style GSA fill:#2D3748,stroke:#68D391,color:#FFFFFF

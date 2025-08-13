@@ -13,7 +13,7 @@ interface AgentDetailPanelProps {
   onAgentSelect?: (agentId: string) => void;
 }
 
-export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({ 
+export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
   className,
   selectedAgentId,
   onAgentSelect
@@ -73,7 +73,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) return `${hours}h ${minutes % 60}m`;
     if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
     return `${seconds}s`;
@@ -190,14 +190,14 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             )}
 
-            {/* Swarm Information */}
-            {selectedAgent.swarmId && (
+            {/* multi-agent Information */}
+            {selectedAgent.multi-agentId && (
               <div>
-                <h5 className="font-semibold text-sm mb-2">Swarm Information</h5>
+                <h5 className="font-semibold text-sm mb-2">multi-agent Information</h5>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Swarm ID:</span>
-                    <span className="font-mono text-xs">{selectedAgent.swarmId}</span>
+                    <span className="text-gray-600">multi-agent ID:</span>
+                    <span className="font-mono text-xs">{selectedAgent.multi-agentId}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Mode:</span>

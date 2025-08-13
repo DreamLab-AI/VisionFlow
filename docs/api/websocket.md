@@ -10,8 +10,8 @@ Connect to: `wss://your-domain/wss` (Primary graph streaming endpoint)
 ### Additional WebSocket Endpoints
 - `/wss` - Binary graph position updates
 - `/ws/speech` - Voice interaction streaming
-- `/ws/mcp-relay` - MCP protocol relay  
-- `/ws/bots_visualization` - Agent swarm visualization
+- `/ws/mcp-relay` - MCP protocol relay
+- `/ws/bots_visualization` - Multi Agent Visualisation
 
 ### Connection Flow
 1. Client connects to WebSocket endpoint
@@ -63,7 +63,7 @@ interface WebSocketMessage {
 **Updates Started**
 ```json
 {
-  "type": "updatesStarted", 
+  "type": "updatesStarted",
   "timestamp": 1679417763000
 }
 ```
@@ -116,7 +116,7 @@ Position updates are transmitted as binary messages using a highly optimized 28-
 
 **Field Breakdown:**
 - **Node ID**: u32 (4 bytes) - Includes type flags in high bits
-- **Position**: Vec3 (12 bytes) - X, Y, Z coordinates as f32 values  
+- **Position**: Vec3 (12 bytes) - X, Y, Z coordinates as f32 values
 - **Velocity**: Vec3 (12 bytes) - X, Y, Z velocity components as f32 values
 
 #### Node Type Flags
@@ -156,7 +156,7 @@ For a single agent node with ID=1, position=(10.0, 20.0, 30.0), velocity=(0.1, 0
 00 00 A0 41  // Y position: 20.0 (little-endian f32)
 00 00 F0 41  // Z position: 30.0 (little-endian f32)
 CD CC CC 3D  // X velocity: 0.1 (little-endian f32)
-CD CC 4C 3E  // Y velocity: 0.2 (little-endian f32) 
+CD CC 4C 3E  // Y velocity: 0.2 (little-endian f32)
 9A 99 99 3E  // Z velocity: 0.3 (little-endian f32)
 ```
 
@@ -184,7 +184,7 @@ pub const POSITION_UPDATE_RATE: u32 = 5; // Hz minimum
 
 **Settings (from settings.yaml):**
 - `min_update_rate`: Minimum updates per second when graph is stable
-- `max_update_rate`: Maximum updates per second during high activity  
+- `max_update_rate`: Maximum updates per second during high activity
 - `motion_threshold`: Sensitivity threshold for detecting node movement
 - `heartbeat_interval_ms`: Client heartbeat interval
 
@@ -196,15 +196,15 @@ function decodeBinaryUpdate(buffer: ArrayBuffer): NodeUpdate[] {
   const BYTES_PER_NODE = 28;
   const view = new DataView(buffer);
   const updates: NodeUpdate[] = [];
-  
+
   for (let i = 0; i < buffer.byteLength; i += BYTES_PER_NODE) {
     const flaggedId = view.getUint32(i, true);
-    
+
     // Extract type flags
     const isAgent = (flaggedId & 0x80000000) !== 0;
     const isKnowledge = (flaggedId & 0x40000000) !== 0;
     const actualId = flaggedId & 0x3FFFFFFF;
-    
+
     updates.push({
       id: actualId,
       type: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'unknown',
@@ -220,7 +220,7 @@ function decodeBinaryUpdate(buffer: ArrayBuffer): NodeUpdate[] {
       }
     });
   }
-  
+
   return updates;
 }
 
@@ -280,7 +280,7 @@ The server implements intelligent rate limiting:
 ```rust
 // From socket_flow_constants.rs
 pub const HEARTBEAT_INTERVAL: u64 = 30; // seconds
-pub const CLIENT_TIMEOUT: u64 = 60; // seconds  
+pub const CLIENT_TIMEOUT: u64 = 60; // seconds
 pub const MAX_MESSAGE_SIZE: usize = 100 * 1024 * 1024; // 100MB
 ```
 
@@ -308,24 +308,24 @@ The `socket_flow_handler.rs` handles errors through connection management rather
 class ConnectionMonitor {
   private lastMessage = Date.now();
   private reconnectAttempts = 0;
-  
+
   onMessage(event: MessageEvent) {
     this.lastMessage = Date.now();
     this.reconnectAttempts = 0;
   }
-  
+
   checkConnection() {
     if (Date.now() - this.lastMessage > 60000) {
       this.reconnect();
     }
   }
-  
+
   private async reconnect() {
     if (this.reconnectAttempts >= 5) return;
-    
+
     const delay = Math.pow(2, this.reconnectAttempts) * 1000;
     await sleep(delay);
-    
+
     this.reconnectAttempts++;
     this.connect();
   }
@@ -347,7 +347,7 @@ class ConnectionMonitor {
    - Verify client processing keeps up with server updates
 
 3. **Connection Drops**
-   - Implement proper heartbeat/ping-pong handling  
+   - Implement proper heartbeat/ping-pong handling
    - Check proxy/firewall WebSocket support
    - Monitor client memory usage for leaks
 
@@ -400,15 +400,15 @@ Example output:
 function useWebSocketPositions() {
   const [positions, setPositions] = useState(new Map());
   const [connectionState, setConnectionState] = useState('disconnected');
-  
+
   useEffect(() => {
     const ws = new WebSocket('wss://localhost:3001/wss');
-    
+
     ws.onopen = () => {
       setConnectionState('connected');
       ws.send(JSON.stringify({ type: 'requestInitialData' }));
     };
-    
+
     ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
         const updates = decodeBinaryUpdate(event.data);
@@ -426,22 +426,22 @@ function useWebSocketPositions() {
         }
       }
     };
-    
+
     ws.onclose = () => setConnectionState('disconnected');
-    
+
     // Heartbeat
     const heartbeat = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
       }
     }, 30000);
-    
+
     return () => {
       clearInterval(heartbeat);
       ws.close();
     };
   }, []);
-  
+
   return { positions, connectionState };
 }
 ```
@@ -456,10 +456,10 @@ function updateSceneFromWebSocket(scene: THREE.Scene, positions: Map<number, Nod
     if (mesh) {
       // Update position
       mesh.position.set(data.position.x, data.position.y, data.position.z);
-      
+
       // Store velocity for interpolation
       mesh.userData.velocity = data.velocity;
-      
+
       // Apply type-specific styling
       if (data.type === 'agent') {
         (mesh.material as THREE.MeshBasicMaterial).color.setHex(0xff6b6b);
@@ -482,7 +482,7 @@ function updateSceneFromWebSocket(scene: THREE.Scene, positions: Map<number, Nod
 
 2. **Authentication**
    - Binary updates require valid session
-   - Node modifications access-controlled  
+   - Node modifications access-controlled
    - Type flag validation prevents spoofing
 
 3. **Rate Limiting**
@@ -506,7 +506,7 @@ function updateSceneFromWebSocket(scene: THREE.Scene, positions: Map<number, Nod
 - Dynamic update rate control
 
 ### Future Enhancements (v2.0)
-- Variable-length encoding for node IDs  
+- Variable-length encoding for node IDs
 - Differential updates (position deltas only)
 - Custom float precision (16-bit where appropriate)
 - Protocol versioning negotiation

@@ -11,7 +11,7 @@ graph TD
     ENV[Environment Variables] --> YAML[YAML Config Files]
     YAML --> RUNTIME[Runtime Settings]
     RUNTIME --> APP[Application State]
-    
+
     style ENV fill:#f9f,stroke:#333,stroke-width:2px
     style YAML fill:#bbf,stroke:#333,stroke-width:2px
     style RUNTIME fill:#bfb,stroke:#333,stroke-width:2px
@@ -120,7 +120,7 @@ features:
   power_user_keys:
     - "${POWER_USER_KEY_1}"
     - "${POWER_USER_KEY_2}"
-  
+
   enabled_features:
     - graph_visualization
     - ai_chat
@@ -278,23 +278,23 @@ websocket.send({
 pub struct Settings {
     // Server configuration
     pub server: ServerConfig,
-    
+
     // Graph settings
     pub graph: GraphConfig,
-    
+
     // AI service settings
     pub ragflow: Option<RagflowConfig>,
     pub perplexity: Option<PerplexityConfig>,
-    
+
     // Authentication
     pub auth: AuthConfig,
-    
+
     // Feature flags
     pub features: FeatureConfig,
-    
+
     // GPU settings
     pub gpu: GpuConfig,
-    
+
     // User settings
     pub user_settings: UserSettings,
 }
@@ -361,7 +361,7 @@ graph LR
     C --> E[UISettings]
     E --> F[Frontend Client]
     D --> G[Backend Only]
-    
+
     style D fill:#ff9999,stroke:#333,stroke-width:2px
     style E fill:#99ff99,stroke:#333,stroke-width:2px
 ```
@@ -377,12 +377,12 @@ impl Settings {
         if self.server.port < 1024 || self.server.port > 65535 {
             return Err(ConfigError::InvalidPort);
         }
-        
+
         // Validate GPU settings
         if self.gpu.enabled && self.gpu.device_id > 7 {
             return Err(ConfigError::InvalidGpuDevice);
         }
-        
+
         Ok(())
     }
 }
@@ -398,7 +398,7 @@ sequenceDiagram
     participant Config
     participant Env
     participant File
-    
+
     Main->>Config: load_configuration()
     Config->>File: Read config.yml
     Config->>File: Read settings.yaml
@@ -413,18 +413,18 @@ sequenceDiagram
 pub async fn load_configuration() -> Result<Settings, ConfigError> {
     // Load base configuration
     let mut config = Config::new();
-    
+
     // Add YAML files
     config.merge(File::with_name("config.yml"))?;
     config.merge(File::with_name("data/settings.yaml").required(false))?;
-    
+
     // Override with environment variables
     config.merge(Environment::with_prefix("APP").separator("__"))?;
-    
+
     // Deserialize and validate
     let settings: AppFullSettings = config.try_into()?;
     settings.validate()?;
-    
+
     Ok(settings)
 }
 ```
@@ -562,7 +562,7 @@ API → SettingsActor::SetSettingByPath → Validation → Persistence → Broad
    ```bash
    # Development
    cp config.dev.yml config.yml
-   
+
    # Production
    cp config.prod.yml config.yml
    ```
@@ -603,7 +603,7 @@ API → SettingsActor::SetSettingByPath → Validation → Persistence → Broad
    ```bash
    # Check file permissions
    ls -la config.yml
-   
+
    # Validate YAML syntax
    yamllint config.yml
    ```
@@ -612,7 +612,7 @@ API → SettingsActor::SetSettingByPath → Validation → Persistence → Broad
    ```bash
    # Debug environment
    env | grep APP_
-   
+
    # Check variable expansion
    echo $DATABASE_URL
    ```
@@ -675,7 +675,7 @@ info!("Loaded config: {:?}", settings);
    ```bash
    # Verify network exists
    docker network ls | grep mcp-visionflow-net
-   
+
    # Check container connectivity
    docker exec visionflow-server ping multi-agent-container
    ```
@@ -684,7 +684,7 @@ info!("Loaded config: {:?}", settings);
    ```bash
    # Verify GPU runtime
    docker run --rm --gpus all nvidia/cuda:11.7.0-base-ubuntu20.04 nvidia-smi
-   
+
    # Check GPU UUID
    nvidia-smi --query-gpu=uuid --format=csv,noheader
    ```
@@ -723,9 +723,9 @@ features:
   enabled_features:
     - graph_visualization
     - ai_chat
-    - visionflow_swarm
+    - visionflow_multi-agent
     - gpu_physics
-  
+
   # Power user access
   power_user_keys:
     - "${POWER_USER_KEY_1}"
@@ -741,7 +741,7 @@ features:
 logseq_xr:
   visualization:
     type: "spring"
-    
+
 # New VisionFlow format
 visionflow:
   visualization:
