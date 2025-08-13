@@ -4,7 +4,7 @@ use crate::services::mcp_relay_manager::McpRelayManager;
 
 #[derive(Serialize)]
 struct McpHealthResponse {
-    powerdev_running: bool,
+    container_running: bool,
     mcp_relay_running: bool,
     last_logs: Option<String>,
     message: String,
@@ -12,27 +12,27 @@ struct McpHealthResponse {
 
 /// Health check endpoint for MCP relay
 pub async fn check_mcp_health() -> impl Responder {
-    let powerdev_running = McpRelayManager::check_powerdev_container();
-    let mcp_relay_running = if powerdev_running {
+    let container_running = McpRelayManager::check_mcp_container();
+    let mcp_relay_running = if container_running {
         McpRelayManager::check_relay_status()
     } else {
         false
     };
     
-    let last_logs = if powerdev_running {
+    let last_logs = if container_running {
         McpRelayManager::get_relay_logs(20).ok()
     } else {
         None
     };
     
-    let message = match (powerdev_running, mcp_relay_running) {
-        (false, _) => "Powerdev container is not running".to_string(),
-        (true, false) => "Powerdev is running but MCP relay is not active".to_string(),
+    let message = match (container_running, mcp_relay_running) {
+        (false, _) => "Multi-agent container is not running".to_string(),
+        (true, false) => "Container is running but MCP relay is not active".to_string(),
         (true, true) => "MCP relay is healthy and running".to_string(),
     };
     
     HttpResponse::Ok().json(McpHealthResponse {
-        powerdev_running,
+        container_running,
         mcp_relay_running,
         last_logs,
         message,
