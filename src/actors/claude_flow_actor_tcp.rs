@@ -108,7 +108,7 @@ impl ClaudeFlowActorTcp {
     
     /// Establish TCP connection to Claude Flow
     async fn connect_to_claude_flow_tcp() -> Result<(TcpStream, BufReader<TcpStream>), Box<dyn std::error::Error + Send + Sync>> {
-        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "172.18.0.10".to_string());
         let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
         
         info!("Attempting TCP connection to {}:{}", host, port);
