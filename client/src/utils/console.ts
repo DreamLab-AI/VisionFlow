@@ -3,7 +3,7 @@
  * Provides drop-in replacements for console methods with automatic gating
  */
 
-import { clientDebugState as debugState } from './clientDebugState';
+import { debugState } from './clientDebugState';
 import { createLogger } from './logger';
 
 // Default logger for console wrapper
