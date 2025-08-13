@@ -1,18 +1,149 @@
+version: '3.8'
+
 services:
-  logseq_spring_thing_webxr:
+  # Development configuration
+  webxr-dev:
+    profiles: ["dev"]
+    container_name: visionflow_container
     build:
       context: .
-      dockerfile: Dockerfile.production
-    container_name: logseq_spring_thing_webxr
+      dockerfile: Dockerfile.dev
+      args:
+        CUDA_ARCH: ${CUDA_ARCH:-86}
+    volumes:
+      - ./client:/app/client
+      - ./src:/app/src
+      - ./Cargo.toml:/app/Cargo.toml
+      - ./Cargo.lock:/app/Cargo.lock
+      - ./data/markdown:/app/data/markdown
+      - ./data/metadata:/app/data/metadata
+      - ./data/user_settings:/app/user_settings
+      - ./data/settings.yaml:/app/settings.yaml
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - ./logs/nginx:/var/log/nginx
+      - ./logs:/app/logs
+      - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro
+      - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro
+      - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro
+      - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - npm-cache:/root/.npm
+      - cargo-cache:/root/.cargo/registry
+      - cargo-git-cache:/root/.cargo/git
+      - cargo-target-cache:/app/target
     env_file:
       - .env
     environment:
-      - CLAUDE_FLOW_HOST=powerdev
-      - CLAUDE_FLOW_PORT=3002
-      # RUST_LOG is now inherited from the .env file via env_file directive
+      - NVIDIA_VISIBLE_DEVICES=0
+      - VITE_DEBUG=${DEBUG_ENABLED:-true}
+      - NODE_ENV=development
+      - VITE_DEV_SERVER_PORT=5173
+      - VITE_API_PORT=4000
+      - VITE_HMR_PORT=24678
+      - RUST_LOG_REDIRECT=true
+      - SYSTEM_NETWORK_PORT=4000
+      - CLAUDE_FLOW_HOST=multi-agent-container
+      - MCP_TCP_PORT=9500
+      - MCP_TRANSPORT=tcp
+      - MCP_RECONNECT_ATTEMPTS=3
+      - MCP_RECONNECT_DELAY=1000
+      - MCP_CONNECTION_TIMEOUT=30000
+      - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
+      - MCP_RELAY_FALLBACK_TO_MOCK=true
+      - BOTS_ORCHESTRATOR_URL=ws://multi-agent-container:3002
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [compute,utility]
+              device_ids: ['0']
+    ports:
+      - "3001:3001"  # Nginx entry point for dev
+    networks:
+      - docker_ragflow
+    restart: unless-stopped
+
+  # Production configuration
+  webxr-prod:
+    profiles: ["production", "prod"]
+    container_name: visionflow_container
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        CUDA_ARCH: ${CUDA_ARCH:-89}
+        REBUILD_PTX: ${REBUILD_PTX:-false}
+    env_file:
+      - .env
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-GPU-553dc306-dab3-32e2-c69b-28175a6f4da6}
+      - NVIDIA_GPU_UUID=${NVIDIA_GPU_UUID:-GPU-553dc306-dab3-32e2-c69b-28175a6f4da6}
+      - NODE_ENV=production
+      - GIT_HASH=${GIT_HASH:-production}
+      - CLAUDE_FLOW_HOST=multi-agent-container
+      - MCP_TCP_PORT=9500
+      - MCP_TRANSPORT=tcp
+      - MCP_RECONNECT_ATTEMPTS=3
+      - MCP_RECONNECT_DELAY=1000
+      - MCP_CONNECTION_TIMEOUT=30000
+    volumes:
+      - ./data/markdown:/app/data/markdown
+      - ./data/metadata:/app/data/metadata
+      - ./data/user_settings:/app/user_settings
+      - ./data/settings.yaml:/app/settings.yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [compute,utility]
+              device_ids: ['0']
+    ports:
+      - "4000:4000"  # API port for production
+    networks:
+      - docker_ragflow
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       powerdev:
         condition: service_healthy
+
+  # Cloudflare tunnel for production
+  cloudflared:
+    profiles: ["production", "prod"]
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    volumes:
+      - ./config.yml:/etc/cloudflared/config.yml:ro
+    depends_on:
+      - webxr-prod
+    networks:
+      - docker_ragflow
+    restart: unless-stopped
+
+  # PowerDev service (shared between profiles if needed)
+  powerdev:
+    profiles: ["production", "prod", "dev"]
+    container_name: powerdev
+    image: powerdev:latest
+    build:
+      context: ./powerdev
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - docker_ragflow
     restart: unless-stopped
@@ -20,3 +151,9 @@ services:
 networks:
   docker_ragflow:
     external: true
+
+volumes:
+  npm-cache:
+  cargo-cache:
+  cargo-git-cache:
+  cargo-target-cache:

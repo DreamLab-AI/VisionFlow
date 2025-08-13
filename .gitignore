@@ -151,3 +151,7 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# Claude Flow metrics directories
+.claude-flow/
+**/.claude-flow/

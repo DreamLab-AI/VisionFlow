@@ -10,7 +10,7 @@ The services layer provides core business logic, external integrations, and data
 graph TB
     subgraph "Actor-Managed Services"
         GSA[GraphServiceActor]
-        CFA[EnhancedClaudeFlowActor]
+        CFA[ClaudeFlowActorTcp]
         MA[MetadataActor]
         SA[SettingsActor]
         PSA[ProtectedSettingsActor]
@@ -99,13 +99,13 @@ impl GraphServiceActor {
 
 **MCP Integration**:
 ```rust
-impl EnhancedClaudeFlowActor {
+impl ClaudeFlowActorTcp {
     async fn connect_to_mcp(&mut self) -> Result<(), String> {
-        let mcp_url = "ws://localhost:3002/ws";
+        let mcp_address = "localhost:9500";
 
         match self.websocket_client.connect(mcp_url).await {
             Ok(stream) => {
-                info!("Connected to Claude Flow MCP on port 3002");
+                info!("Connected to Claude Flow MCP on port 9500 (TCP)");
                 self.start_telemetry_stream(stream).await;
                 Ok(())
             }

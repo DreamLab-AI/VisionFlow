@@ -14,7 +14,7 @@ graph LR
 
     subgraph "VisionFlow Backend"
         API --> CFA[ClaudeFlowActor]
-        CFA --> |WebSocket| MCP[MCP :3002]
+        CFA --> |TCP| MCP[MCP :9500]
         CFA --> GSA[GraphServiceActor]
         GSA --> GPU[GPUComputeActor]
     end

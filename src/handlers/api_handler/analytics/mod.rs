@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
+use once_cell::sync::Lazy;
 
 use crate::AppState;
 use crate::actors::messages::{
@@ -665,7 +666,7 @@ pub async fn run_clustering(
     // Start clustering in background
     let app_state_clone = app_state.clone();
     let task_id_clone = task_id.clone();
-    let request_clone = request.clone();
+    let request_clone = request.into_inner();
     
     tokio::spawn(async move {
         let clusters = perform_clustering(&app_state_clone, &request_clone, &task_id_clone).await;
@@ -837,6 +838,182 @@ pub async fn get_current_anomalies() -> Result<HttpResponse> {
     }))
 }
 
+/// Helper function to perform clustering analysis
+async fn perform_clustering(
+    app_state: &web::Data<AppState>,
+    request: &ClusteringRequest,
+    task_id: &str,
+) -> Result<Vec<Cluster>, String> {
+    // Get graph data for clustering
+    let graph_data = {
+        match app_state.graph_service_addr.send(GetGraphData).await {
+            Ok(Ok(data)) => data,
+            _ => return Err("Failed to get graph data".to_string()),
+        }
+    };
+    
+    // Simulate clustering based on method
+    let clusters = match request.method.as_str() {
+        "spectral" => generate_spectral_clusters(&graph_data, &request.params),
+        "kmeans" => generate_kmeans_clusters(&graph_data, &request.params),
+        "louvain" => generate_louvain_clusters(&graph_data, &request.params),
+        _ => generate_default_clusters(&graph_data, &request.params),
+    };
+    
+    // Update progress periodically
+    let mut tasks = CLUSTERING_TASKS.lock().await;
+    if let Some(task) = tasks.get_mut(task_id) {
+        task.progress = 0.5;
+    }
+    drop(tasks);
+    
+    // Simulate processing time
+    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    
+    Ok(clusters)
+}
+
+/// Generate spectral clustering
+fn generate_spectral_clusters(
+    graph_data: &crate::models::graph::GraphData,
+    params: &ClusteringParams,
+) -> Vec<Cluster> {
+    let num_clusters = params.num_clusters.unwrap_or(5);
+    generate_mock_clusters(graph_data, num_clusters, "spectral")
+}
+
+/// Generate k-means clustering
+fn generate_kmeans_clusters(
+    graph_data: &crate::models::graph::GraphData,
+    params: &ClusteringParams,
+) -> Vec<Cluster> {
+    let num_clusters = params.num_clusters.unwrap_or(8);
+    generate_mock_clusters(graph_data, num_clusters, "kmeans")
+}
+
+/// Generate Louvain clustering
+fn generate_louvain_clusters(
+    graph_data: &crate::models::graph::GraphData,
+    params: &ClusteringParams,
+) -> Vec<Cluster> {
+    let resolution = params.resolution.unwrap_or(1.0);
+    let num_clusters = (5.0 / resolution) as u32;
+    generate_mock_clusters(graph_data, num_clusters, "louvain")
+}
+
+/// Generate default clustering
+fn generate_default_clusters(
+    graph_data: &crate::models::graph::GraphData,
+    params: &ClusteringParams,
+) -> Vec<Cluster> {
+    generate_mock_clusters(graph_data, 6, "default")
+}
+
+/// Generate mock clusters for demonstration
+fn generate_mock_clusters(
+    graph_data: &crate::models::graph::GraphData,
+    num_clusters: u32,
+    method: &str,
+) -> Vec<Cluster> {
+    let nodes_per_cluster = graph_data.nodes.len() / num_clusters as usize;
+    let colors = vec!["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"];
+    let labels = vec!["Core Concepts", "Implementation", "Documentation", "Testing", "Infrastructure", "UI Components", "API Layer", "Data Models"];
+    
+    (0..num_clusters).map(|i| {
+        let start_idx = (i as usize) * nodes_per_cluster;
+        let end_idx = ((i + 1) as usize * nodes_per_cluster).min(graph_data.nodes.len());
+        let cluster_nodes: Vec<u32> = (start_idx..end_idx).map(|idx| idx as u32).collect();
+        
+        // Calculate centroid from actual node positions
+        let centroid = if !cluster_nodes.is_empty() {
+            let sum_x: f32 = cluster_nodes.iter()
+                .filter_map(|&id| graph_data.nodes.get(id as usize))
+                .map(|n| n.data.position.x)
+                .sum();
+            let sum_y: f32 = cluster_nodes.iter()
+                .filter_map(|&id| graph_data.nodes.get(id as usize))
+                .map(|n| n.data.position.y)
+                .sum();
+            let sum_z: f32 = cluster_nodes.iter()
+                .filter_map(|&id| graph_data.nodes.get(id as usize))
+                .map(|n| n.data.position.z)
+                .sum();
+            let count = cluster_nodes.len() as f32;
+            Some([sum_x / count, sum_y / count, sum_z / count])
+        } else {
+            None
+        };
+        
+        Cluster {
+            id: format!("cluster_{}", i),
+            label: labels.get(i as usize).unwrap_or(&"Cluster").to_string(),
+            node_count: cluster_nodes.len() as u32,
+            coherence: 0.75 + (i as f32 * 0.03),
+            color: colors.get(i as usize).unwrap_or(&"#888888").to_string(),
+            keywords: vec![
+                format!("{}_keyword1", method),
+                format!("{}_keyword2", method),
+            ],
+            nodes: cluster_nodes,
+            centroid,
+        }
+    }).collect()
+}
+
+/// Start anomaly detection simulation
+async fn start_anomaly_detection() {
+    tokio::spawn(async move {
+        // Simulate generating anomalies
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        
+        let mut state = ANOMALY_STATE.lock().await;
+        
+        // Generate some mock anomalies
+        state.anomalies = vec![
+            Anomaly {
+                id: Uuid::new_v4().to_string(),
+                node_id: "42".to_string(),
+                r#type: "outlier".to_string(),
+                severity: "high".to_string(),
+                score: 0.92,
+                description: "Node significantly deviates from expected pattern".to_string(),
+                timestamp: chrono::Utc::now().timestamp() as u64,
+                metadata: None,
+            },
+            Anomaly {
+                id: Uuid::new_v4().to_string(),
+                node_id: "128".to_string(),
+                r#type: "disconnected".to_string(),
+                severity: "medium".to_string(),
+                score: 0.68,
+                description: "Node has unusually low connectivity".to_string(),
+                timestamp: chrono::Utc::now().timestamp() as u64,
+                metadata: None,
+            },
+            Anomaly {
+                id: Uuid::new_v4().to_string(),
+                node_id: "256".to_string(),
+                r#type: "cluster_drift".to_string(),
+                severity: "low".to_string(),
+                score: 0.45,
+                description: "Node drifting from its semantic cluster".to_string(),
+                timestamp: chrono::Utc::now().timestamp() as u64,
+                metadata: None,
+            },
+        ];
+        
+        // Update stats
+        state.stats = AnomalyStats {
+            total: state.anomalies.len() as u32,
+            critical: state.anomalies.iter().filter(|a| a.severity == "critical").count() as u32,
+            high: state.anomalies.iter().filter(|a| a.severity == "high").count() as u32,
+            medium: state.anomalies.iter().filter(|a| a.severity == "medium").count() as u32,
+            low: state.anomalies.iter().filter(|a| a.severity == "low").count() as u32,
+            last_updated: Some(chrono::Utc::now().timestamp() as u64),
+        };
+    });
+}
+
 /// GET /api/analytics/insights - Get AI insights
 pub async fn get_ai_insights(
     app_state: web::Data<AppState>,
@@ -844,13 +1021,9 @@ pub async fn get_ai_insights(
     info!("Generating AI insights for graph analysis");
     
     // Get current graph data
-    let graph_data = if let Some(graph_addr) = app_state.graph_addr.as_ref() {
-        match graph_addr.send(GetGraphData).await {
-            Ok(Ok(data)) => Some(data),
-            _ => None,
-        }
-    } else {
-        None
+    let graph_data = match app_state.graph_service_addr.send(GetGraphData).await {
+        Ok(Ok(data)) => Some(data),
+        _ => None,
     };
     
     // Generate insights based on current clustering and anomaly state

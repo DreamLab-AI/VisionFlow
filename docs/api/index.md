@@ -1,6 +1,6 @@
 # Claude Flow MCP API Reference - Definitive Guide
 
-*Version: 2.0 | MCP Protocol: 2024-11-05 | Transport: TCP/WebSocket*
+*Version: 2.0 | MCP Protocol: 2024-11-05 | Transport: TCP Only*
 
 ## Overview
 
@@ -27,7 +27,7 @@ The Claude Flow MCP (Model Context Protocol) API provides comprehensive integrat
 
 ### ClaudeFlowClient
 
-The primary interface for all MCP operations via TCP/WebSocket transport.
+The primary interface for all MCP operations via TCP transport.
 
 ```rust
 use crate::services::claude_flow::client::ClaudeFlowClient;
@@ -81,11 +81,8 @@ impl ClaudeFlowClientBuilder {
     /// Creates builder with default configuration
     pub fn new() -> Self;
     
-    /// Configures TCP transport (port 9500)
+    /// Configures TCP transport (default port 9500)
     pub fn with_tcp(self) -> Self;
-    
-    /// Configures WebSocket transport
-    pub fn with_websocket(self) -> Self;
     
     /// Sets target host (supports DNS and IP)
     pub fn host(self, host: &str) -> Self;
@@ -125,7 +122,7 @@ let client = ClaudeFlowClientBuilder::new()
 let client = ClaudeFlowClientBuilder::new()
     .with_tcp()
     .host("claude-flow.example.com")
-    .port(9600)
+    .port(9500)
     .with_retry(5, Duration::from_secs(2))
     .with_timeout(Duration::from_secs(60))
     .with_pool(10)
@@ -140,7 +137,7 @@ let client = ClaudeFlowClientBuilder::new()
 
 ### TcpTransport
 
-Low-level TCP transport with connection management.
+The only supported transport layer - provides low-level TCP transport with connection management.
 
 ```rust
 use crate::services::claude_flow::transport::tcp::TcpTransport;
@@ -169,7 +166,7 @@ impl TcpTransport {
 ### Environment Configuration
 
 ```bash
-# TCP Transport
+# TCP Transport (ONLY supported transport)
 export CLAUDE_FLOW_HOST="multi-agent-container"
 export MCP_TCP_PORT=9500
 export MCP_RECONNECT_ATTEMPTS=3
@@ -184,7 +181,7 @@ export MCP_POOL_SIZE=5
 
 ### ClaudeFlowActorTcp
 
-Actix-based actor for managing MCP operations with supervision.
+Actix-based actor for managing TCP-based MCP operations with supervision.
 
 ```rust
 use crate::actors::claude_flow_actor_tcp::ClaudeFlowActorTcp;
@@ -911,4 +908,4 @@ export MCP_TASK_QUEUE_SIZE=1000                   # Task queue size
 **Version**: 2.0  
 **Last Updated**: January 15, 2025  
 **MCP Protocol**: 2024-11-05  
-**Supported Transports**: TCP, WebSocket
+**Supported Transports**: TCP Only

@@ -1,15 +1,19 @@
-/* Import external and local CSS first */
-@import '@radix-ui/themes/styles.css';
-@import './tokens.css';
-@import './globals.css';
+/**
+ * Main CSS Entry Point
+ * 
+ * Import order matters:
+ * 1. External libraries (Radix UI)
+ * 2. Base styles and CSS variables
+ * 3. Tailwind layers
+ */
 
-/* Then Tailwind directives */
+/* External UI Library */
+@import '@radix-ui/themes/styles.css';
+
+/* Base styles and variables - consolidated */
+@import './base.css';
+
+/* Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/*
-  Removed hardcoded !important rules.
-  Styling should be handled by theme variables and Tailwind utility classes
-  to avoid specificity conflicts that break component styles.
-*/

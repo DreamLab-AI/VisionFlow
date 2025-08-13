@@ -5,7 +5,7 @@ VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through th
 ## Overview
 
 The MCP integration enables VisionFlow to:
-- Connect directly to Claude Flow via WebSocket (backend-only)
+- Connect directly to Claude Flow via TCP (backend-only)
 - Visualize agent interactions through REST API to frontend
 - Monitor agent performance and resource usage
 - Coordinate multi-agent collaboration in parallel graphs
@@ -15,14 +15,14 @@ The MCP integration enables VisionFlow to:
 ```mermaid
 graph LR
     subgraph "VisionFlow Backend"
-        ECFA[EnhancedClaudeFlowActor] -->|Direct WebSocket| MCP
+        ECFA[ClaudeFlowActorTcp] -->|Direct TCP| MCP
         GSA[GraphServiceActor] --> ECFA
         API[REST API] --> ECFA
         PGC[ParallelGraphCoordinator] --> GSA
     end
 
     subgraph "Claude Flow Container"
-        MCP[MCP Server :3002] --> CF[Claude Flow]
+        MCP[MCP Server :9500] --> CF[Claude Flow]
         CF --> AGENTS[Agent Pool]
         AGENTS --> LLM[LLM APIs]
     end
@@ -46,24 +46,24 @@ The frontend **never** connects directly to MCP. All MCP communication flows thr
 - REST-only communication from frontend verified
 
 ```rust
-// ClaudeFlowActor handles all MCP communication
-pub struct ClaudeFlowActor {
+// ClaudeFlowActorTcp handles all MCP communication
+pub struct ClaudeFlowActorTcp {
     mcp_client: Option<MCPClient>,
-    ws_connection: Option<WebSocketStream>,
+    tcp_connection: Option<TcpStream>,
     graph_service_addr: Addr<GraphServiceActor>,
 }
 ```
 
-### 2. Enhanced WebSocket Integration
+### 2. TCP Integration
 
-The EnhancedClaudeFlowActor maintains a direct WebSocket connection:
+The ClaudeFlowActorTcp maintains a direct TCP connection:
 
 ```rust
-pub struct EnhancedClaudeFlowActor {
+pub struct ClaudeFlowActorTcp {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<GraphServiceActor>,
     is_connected: bool,
-    ws_connection: Option<Arc<RwLock<WebSocketStream<MaybeTlsStream<TcpStream>>>>>,
+    tcp_connection: Option<TcpStream>,
     agent_cache: HashMap<String, AgentStatus>,
     message_flow_history: Vec<MessageFlowEvent>,
     pending_additions: Vec<AgentStatus>,
@@ -71,11 +71,11 @@ pub struct EnhancedClaudeFlowActor {
     pending_updates: Vec<AgentUpdate>,
 }
 
-// Direct WebSocket connection to Claude Flow
-async fn establish_mcp_connection() -> Result<WebSocketStream> {
-    let url = "ws://multi-agent-container:3002/mcp";
-    let (ws_stream, _) = connect_async(url).await?;
-    Ok(ws_stream)
+// Direct TCP connection to Claude Flow
+async fn establish_mcp_connection() -> Result<TcpStream> {
+    let addr = "multi-agent-container:9500";
+    let stream = TcpStream::connect(addr).await?;
+    Ok(stream)
 }
 ```
 
@@ -305,15 +305,16 @@ MCP connection settings in environment variables:
 # Claude Flow host (Docker service name)
 CLAUDE_FLOW_HOST=multi-agent-container
 
-# MCP WebSocket port
-CLAUDE_FLOW_PORT=3002
+# MCP TCP port
+MCP_TCP_PORT=9500
 
 # Enable MCP integration
 ENABLE_MCP=true
 
-# Telemetry settings
-MCP_TELEMETRY_INTERVAL_MS=100
-MCP_RECONNECT_INTERVAL_SEC=30
+# Connection settings
+MCP_RECONNECT_ATTEMPTS=3
+MCP_RECONNECT_DELAY=1000
+MCP_CONNECTION_TIMEOUT=30000
 MCP_MAX_AGENTS=50
 ```
 
@@ -326,10 +327,9 @@ impl ClaudeFlowActor {
     async fn ensure_connection(&mut self) -> Result<()> {
         if !self.is_connected {
             match Self::connect_to_claude_flow().await {
-                Ok(ws) => {
-                    self.ws_connection = Some(ws);
+                Ok(stream) => {
+                    self.tcp_connection = Some(stream);
                     self.is_connected = true;
-                    self.subscribe_to_telemetry().await?;
                     Ok(())
                 }
                 Err(e) => {

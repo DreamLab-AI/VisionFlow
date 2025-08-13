@@ -88,7 +88,7 @@ parallelGraphCoordinator.logseqPositions
 
 #### VisionFlow Data Flow
 ```
-Claude Flow MCP (port 3002)
+Claude Flow MCP (port 9500 TCP)
     ↓
 EnhancedClaudeFlowActor (direct WebSocket)
     ↓

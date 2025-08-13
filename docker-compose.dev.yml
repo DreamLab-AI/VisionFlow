@@ -1,6 +1,6 @@
 services:
   webxr:
-    container_name: logseq_spring_thing_webxr
+    container_name: visionflow_container
     build:
       context: .
       dockerfile: Dockerfile.dev

@@ -6,20 +6,20 @@ This document outlines the correct procedure for managing the `claude-flow` mult
 
 The system is designed with a clear separation between the main application and the agent orchestration service:
 
-1.  **Application Container (`ar-ai-knowledge-graph`)**: This container runs the Rust backend and the React frontend. Its primary role is to serve the user interface and act as a *client* to the MCP. It initiates WebSocket connections to the `powerdev` container but does not host the orchestration logic itself.
+1.  **Application Container (`ar-ai-knowledge-graph`)**: This container runs the Rust backend and the React frontend. Its primary role is to serve the user interface and act as a *client* to the MCP. It initiates TCP connections to the `multi-agent-container` but does not host the orchestration logic itself.
 
-2.  **Orchestrator Container (`powerdev`)**: This container runs the `claude-flow` orchestrator as a dedicated service. It is responsible for managing the lifecycle of agents, tasks, and memory. It exposes a WebSocket server on port `3000` for clients like the main application to connect to.
+2.  **Orchestrator Container (`multi-agent-container`)**: This container runs the `claude-flow` orchestrator as a dedicated service. It is responsible for managing the lifecycle of agents, tasks, and memory. It exposes a TCP server on port `9500` for clients like the main application to connect to.
 
-This separation is crucial for scalability, stability, and maintainability. The `claude-flow` CLI tools are installed and intended to be run *inside* the `powerdev` container.
+This separation is crucial for scalability, stability, and maintainability. The `claude-flow` CLI tools are installed and intended to be run *inside* the `multi-agent-container`.
 
 ## Primary Management Method: `docker exec`
 
-To manage the `claude-flow` system, you must execute commands within the context of the `powerdev` container. The standard way to achieve this is with the `docker exec` command.
+To manage the `claude-flow` system, you must execute commands within the context of the `multi-agent-container`. The standard way to achieve this is with the `docker exec` command.
 
 The general syntax is:
 
 ```bash
-docker exec -it powerdev <command>
+docker exec -it multi-agent-container <command>
 ```
 
 Where `<command>` is the `claude-flow` CLI command you wish to run.
@@ -29,13 +29,13 @@ Where `<command>` is the `claude-flow` CLI command you wish to run.
 To list all active agents managed by the orchestrator, run the following command from your host machine's terminal:
 
 ```bash
-docker exec -it powerdev claude-flow agent list
+docker exec -it multi-agent-container claude-flow agent list
 ```
 
 This command instructs Docker to:
 1.  `exec`: Execute a command.
 2.  `-it`: Run it in interactive TTY mode, which provides a proper terminal interface.
-3.  `powerdev`: Target the container named `powerdev`.
+3.  `multi-agent-container`: Target the container named `multi-agent-container`.
 4.  `claude-flow agent list`: The command to run inside the container.
 
 ## Common Management Commands
@@ -46,7 +46,7 @@ Here are some practical examples of how to use the `claude-flow` CLI to manage t
 
 *   **List all agents:**
     ```bash
-    docker exec -it powerdev claude-flow agent list
+    docker exec -it multi-agent-container claude-flow agent list
     ```
 
 *   **Get detailed information about a specific agent:**
