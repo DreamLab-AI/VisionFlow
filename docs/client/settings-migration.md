@@ -9,7 +9,7 @@ There are currently **TWO separate settings stores** causing conflicts:
 This dual store architecture creates:
 - Import conflicts when components use the wrong store
 - Settings that don't persist correctly
-- Race conditions during initialization
+- Race conditions during initialisation
 - Broken settings panel functionality
 
 **IMMEDIATE ACTION REQUIRED**: Consolidate to single store architecture.
@@ -168,7 +168,7 @@ The migration from flat to multi-graph structure affects viewport settings in se
 
 1. **Pattern Expansion**: New wildcard patterns support graph-specific settings
 2. **Legacy Support**: Old patterns remain for backward compatibility
-3. **Performance**: Same real-time update behavior for both structures
+3. **Performance**: Same real-time update behaviour for both structures
 4. **Consistency**: Both legacy and new paths trigger immediate viewport updates
 
 **Example Usage:**
@@ -281,7 +281,7 @@ This eliminates the source of confusion and prevents future import errors.
 **Test these functions after fixes**:
 1. Settings panel opens and displays controls
 2. Sliders respond to mouse interaction  
-3. Color pickers update visualization in real-time
+3. Color pickers update visualisation in real-time
 4. Changes persist after page refresh
 5. Multi-graph switching works (logseq ↔ visionflow)
 
@@ -343,7 +343,7 @@ const value = useSettingsStore(state => {
 
 **After implementing fixes, verify**:
 - [ ] Settings panel opens without errors
-- [ ] All control types render correctly (sliders, toggles, color pickers)
+- [ ] All control types render correctly (sliders, toggles, colour pickers)
 - [ ] Real-time updates work (viewport changes immediately)
 - [ ] Settings persist to server (check Network tab)
 - [ ] Multi-graph themes work (blue logseq, green visionflow)
@@ -353,7 +353,7 @@ const value = useSettingsStore(state => {
 
 **If issues persist**:
 1. Check browser console for import errors
-2. Verify store initialization completed
+2. Verify store initialisation completed
 3. Check Network tab for failed settings API calls
 4. Test with fresh localStorage (clear browser storage)
 

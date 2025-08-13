@@ -2,7 +2,7 @@
 
 ## Overview
 
-The agent visualization system provides real-time, GPU-accelerated rendering of MCP Multi Agents with rich metadata and visual feedback. It uses a JSON initialization followed by high-frequency WebSocket position updates for optimal performance.
+The agent visualisation system provides real-time, GPU-accelerated rendering of MCP Multi Agents with rich metadata and visual feedback. It uses a JSON initialisation followed by high-frequency WebSocket position updates for optimal performance.
 
 ## Architecture Components
 
@@ -10,12 +10,12 @@ The agent visualization system provides real-time, GPU-accelerated rendering of 
 
 #### Data Flow Pipeline
 1. **MCP Data Source** → Claude Flow Actor polls agent status
-2. **Agent Visualization Processor** → Transforms raw MCP data into visualization format
+2. **Agent Visualization Processor** → Transforms raw MCP data into visualisation format
 3. **Agent Visualization Protocol** → Handles JSON/WebSocket message formatting
 4. **WebSocket Handler** → Streams data to connected clients
 
 #### Key Files:
-- `/src/services/agent_visualization_processor.rs` - Processes MCP data for visualization
+- `/src/services/agent_visualization_processor.rs` - Processes MCP data for visualisation
 - `/src/services/agent_visualization_protocol.rs` - Defines JSON/WebSocket protocol
 - `/src/handlers/bots_visualization_handler.rs` - WebSocket endpoint and handlers
 
@@ -25,7 +25,7 @@ The agent visualization system provides real-time, GPU-accelerated rendering of 
 1. **WebSocket Connection** → Receives JSON init and position updates
 2. **Agent Visualization Client** → Processes messages and maintains state
 3. **GPU Physics Solver** → Shared with knowledge graph for unified space
-4. **Three.js Renderer** → GPU-accelerated visualization with effects
+4. **Three.js Renderer** → GPU-accelerated visualisation with effects
 
 #### Key Files:
 - `/client/src/features/bots/services/AgentVisualizationClient.ts` - Client protocol handler
@@ -109,7 +109,7 @@ The agent visualization system provides real-time, GPU-accelerated rendering of 
 
 ### Agent Representation
 - **Shape by Type**: Coordinators (octahedron), Coders (cube), Architects (cone), etc.
-- **Color by Function**: Each agent type has a distinct color palette
+- **Color by Function**: Each agent type has a distinct colour palette
 - **Size by Workload**: Visual scaling based on active tasks and resource usage
 - **Glow by Activity**: Intensity indicates current activity level
 - **Health Rings**: Colored rings show agent health status
@@ -129,9 +129,9 @@ The agent visualization system provides real-time, GPU-accelerated rendering of 
 ## GPU Optimization
 
 ### Shared Physics Engine
-The visualization shares the same GPU-accelerated spring physics solver as the knowledge graph, ensuring:
+The visualisation shares the same GPU-accelerated spring physics solver as the knowledge graph, ensuring:
 - Unified coordinate space
-- Consistent physics behavior
+- Consistent physics behaviour
 - Optimal GPU utilization
 - Single source of truth for positions
 
@@ -146,19 +146,19 @@ The visualization shares the same GPU-accelerated spring physics solver as the k
 ### With Knowledge Graph
 - Shares same 3D space and origin point
 - Uses same GPU physics solver
-- Compatible visual styles (different color schemes)
+- Compatible visual styles (different colour schemes)
 - Can show relationships between agents and knowledge nodes
 
 ### With MCP
 - Real-time polling of agent status
 - Automatic multi-agent discovery
 - Token usage tracking
-- Task assignment visualization
+- Task assignment visualisation
 
 ## Performance Considerations
 
 ### Network Efficiency
-- JSON initialization: ~5-50KB (depending on agent count)
+- JSON initialisation: ~5-50KB (depending on agent count)
 - Position updates: ~50-200 bytes per agent per frame
 - State updates: Sent only on changes
 - WebSocket compression enabled
@@ -175,7 +175,7 @@ The visualization shares the same GPU-accelerated spring physics solver as the k
 2. **Historical Playback**: Record and replay multi-agent activity
 3. **3D Heatmaps**: Show activity hotspots in the multi-agent
 4. **Voice Integration**: Audio cues for agent states
-5. **AR/VR Support**: Immersive multi-agent visualization
+5. **AR/VR Support**: Immersive multi-agent visualisation
 
 ## Usage Example
 
@@ -212,7 +212,7 @@ function animate() {
 
 1. Start MCP WebSocket relay in powerdev
 2. Ensure Claude Flow is connected and has active agents
-3. Open visualization endpoint in browser
+3. Open visualisation endpoint in browser
 4. Monitor WebSocket messages in DevTools
 5. Check GPU performance metrics
 

@@ -81,7 +81,7 @@ async fn establish_mcp_connection() -> Result<WebSocketStream> {
 
 ### 3. Real-time Telemetry
 
-Agent telemetry streams at 10Hz for smooth visualization:
+Agent telemetry streams at 10Hz for smooth visualisation:
 
 ```rust
 // Telemetry subscription
@@ -161,7 +161,7 @@ let subscribe_req = json!({
 
 | Method | Description | Parameters |
 |--------|-------------|------------|
-| `multi-agent.initialize` | Create Multi Agent | `topology`, `agents`, `task` |
+| `multi-agent.initialise` | Create Multi Agent | `topology`, `agents`, `task` |
 | `multi-agent.status` | Get multi-agent status | `multi-agent_id` |
 | `multi-agent.dissolve` | Terminate multi-agent | `multi-agent_id` |
 
@@ -424,5 +424,5 @@ RUST_LOG=webxr::services::claude_flow=debug cargo run
 ## See Also
 
 - [System Overview](system-overview.md) - Overall architecture
-- [Dual Graph](dual-graph.md) - Agent graph visualization
+- [Dual Graph](dual-graph.md) - Agent graph visualisation
 - [API Reference](../api/rest.md) - REST endpoints for MCP control

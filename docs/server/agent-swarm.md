@@ -348,7 +348,7 @@ RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
 | Issue | Cause | Solution |
 |-------|-------|----------|
 | No agents spawning | MCP disconnected | Check Claude Flow container |
-| Laggy visualization | Too many agents | Reduce max agents to 20 |
+| Laggy visualisation | Too many agents | Reduce max agents to 20 |
 | Agents idle | No task assigned | Verify customPrompt is set |
 | Connection drops | Network issues | Check Docker network config |
 

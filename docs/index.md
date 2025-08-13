@@ -2,104 +2,53 @@
 
 ## Overview
 
-VisionFlow is a sophisticated real-time 3D visualization platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualizing and interacting with complex knowledge graphs and AI Multi Agents.
+VisionFlow is a sophisticated real-time 3D visualisation platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualizing and interacting with complex knowledge graphs and AI agents.
 
-## System Architecture
+## Documentation Structure
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        React[React/TypeScript UI]
-        Three[Three.js Renderer]
-        XR[WebXR Integration]
-        WSClient[WebSocket Client]
-    end
+### Getting Started
+- [Quick Start Guide](guides/quick-start.md) - Get up and running quickly
+- [System Requirements](README.md) - Hardware and software requirements
 
-    subgraph "Backend Layer"
-        subgraph "Actor System"
-            CFActor[Claude Flow Actor]
-            GraphActor[Graph Service Actor]
-            GPUActor[GPU Compute Actor]
-            ClientMgr[Client Manager]
-            Settings[Settings Actor]
-            Metadata[Metadata Actor]
-        end
+### Core Features
+- [GPU Compute System](server/gpu-compute.md) - CUDA-accelerated processing
+- [Physics Engine](server/physics-engine.md) - Force-directed layout calculations
+- [Agent Orchestration](features/agent-orchestration.md) - AI agent management
 
-        subgraph "Services"
-            MCP[MCP Relay]
-            GitHub[GitHub Service]
-            Speech[Speech Service]
-            Nostr[Nostr Auth]
-        end
-    end
+### Development
+- [Development Setup](development/setup.md) - Local development environment
+- [Debug System](development/debugging.md) - Debugging tools and techniques
+- [API Reference](api/index.md) - Complete API documentation
 
-    subgraph "GPU Layer"
-        CUDA[CUDA Kernels]
-        Physics[Physics Engine]
-        Analytics[Visual Analytics]
-    end
+### Configuration
+- [Settings Guide](guides/settings-guide.md) - User interface settings
+- [Configuration Reference](configuration/index.md) - System configuration options
 
-    subgraph "External Services"
-        Claude[Claude Flow:3002]
-        RAG[RAGFlow]
-        Perplexity[Perplexity API]
-    end
+### Deployment
+- [Docker MCP Integration](deployment/docker-mcp-integration.md) - Containerized MCP deployment
+- [Deployment Guide](deployment/index.md) - Production deployment strategies
 
-    React --> Three
-    Three --> XR
-    React --> WSClient
-    WSClient <--> ClientMgr
-    ClientMgr <--> GraphActor
-    GraphActor <--> GPUActor
-    GPUActor <--> CUDA
-    CFActor <--> MCP
-    MCP <--> Claude
-    GraphActor <--> GitHub
-    ClientMgr <--> Speech
-```
+### Architecture
+- [System Overview](architecture/system-overview.md) - High-level system design
+- [Technical Documentation](technical/) - Detailed technical specifications
 
-## Core Features
+### Client Documentation
+- [Client Architecture](client/) - Frontend architecture and components
 
-### 🤖 AI Agent Orchestration
-- **15+ Agent Types**: Coordinator, Researcher, Coder, Analyst, Architect, Optimizer, and more
-- **Claude Flow Integration**: Direct WebSocket connection via enhanced MCP protocol
-- **multi-agent Topologies**: Hierarchical, mesh, ring, and star configurations
-- **Task Distribution**: Parallel, sequential, and adaptive execution strategies
-- **Real-time Monitoring**: Activity logs, health metrics, and performance tracking
+### Server Documentation
+- [Server Components](server/) - Backend services and APIs
 
-### 🎮 GPU-Accelerated Physics
-- **CUDA Implementation**: Optimized for NVIDIA A6000 with 256-thread blocks
-- **Dual-Graph Support**: Simultaneous knowledge and agent graph processing
-- **Force-Directed Layout**: Stress majorization with semantic constraints
-- **Streaming Pipeline**: Continuous GPU processing with differential updates
-- **Visual Analytics**: Real-time performance metrics and optimization
-
-### 🥽 XR/AR Capabilities
-- **Meta Quest 3**: Automatic detection and optimization
-- **Hand Tracking**: Full finger joint recognition with interaction system
-- **WebXR API**: Complete implementation with reference space management
-- **AR Passthrough**: Mixed reality with spatial anchoring
-- **Controller Support**: Touch controllers and gamepad integration
-
-### 🔌 Real-time Communication
-- **Binary Protocol**: 28-byte node format for minimal bandwidth
-- **WebSocket Endpoints**: `/ws/socket_flow`, `/ws/speech`, `/ws/mcp_relay`, `/ws/bots_visualization`
-- **Differential Updates**: Only transmit changes for optimal performance
-- **Voice Streaming**: Real-time voice interaction with WebSocket audio
+### Additional Resources
+- [Glossary](glossary.md) - Technical terms and definitions
+- [Contributing](contributing.md) - Development guidelines and contribution process
+- [Security](security/) - Security policies and best practices
 
 ## Quick Start
 
 ### Prerequisites
-```bash
-# Required
 - Docker 20.10+ with Docker Compose
 - NVIDIA GPU with CUDA 11.8+ (for GPU features)
 - Node.js 22+ and Rust 1.75+ (for development)
-
-# Optional
-- Meta Quest 3 (for XR features)
-- SpacePilot 3D mouse (for advanced navigation)
-```
 
 ### Installation
 
@@ -118,96 +67,24 @@ docker-compose up -d
 open http://localhost:3001
 ```
 
-## Documentation Structure
+## Key Features
 
-### 📐 Architecture
-- [System Overview](architecture/system-overview.md) - Complete system design
-- [Dual Graph Architecture](architecture/dual-graph.md) - Parallel graph processing
-- [Claude Flow Actor](architecture/claude-flow-actor.md) - Enhanced MCP integration
-- [GPU Compute](architecture/gpu-compute.md) - CUDA acceleration details
-- [MCP Integration](architecture/mcp-integration.md) - Model Context Protocol
-
-### 🔌 API Reference
-- [REST API](api/rest.md) - HTTP endpoints documentation
-- [WebSocket Protocols](api/websocket-protocols.md) - Real-time protocols
-- [Binary Protocol](api/binary-protocol.md) - Efficient data format
-
-### 🖥️ Server Documentation
-- [Actor System](server/actors.md) - Actix actor implementation
-- [Handlers](server/handlers.md) - Request processing
-- [Services](server/services.md) - Business logic layer
-- [Models](server/models.md) - Data structures
-- [Physics Engine](server/physics-engine.md) - Force calculations
-
-### 🎨 Client Documentation
-- [Architecture](client/architecture.md) - Frontend design patterns
-- [Components](client/components.md) - React component library
-- [Visualization](client/visualization.md) - 3D rendering system
-- [XR Integration](client/xr.md) - WebXR implementation
-- [Settings System](client/settings-panel-redesign.md) - Dynamic configuration
-
-### ⚙️ Configuration
-- [Configuration Guide](configuration/index.md) - System settings
-- [Quick Reference](configuration/quick-reference.md) - Common configurations
-- [Settings Guide](SETTINGS_GUIDE.md) - Detailed settings documentation
-
-### 🚀 Deployment
-- [Docker Deployment](deployment/docker.md) - Container setup
-- [Docker MCP Integration](deployment/docker-mcp-integration.md) - MCP in Docker
-- [Production Guide](deployment/index.md) - Production best practices
-
-### 🛠️ Development
-- [Development Setup](development/setup.md) - Local environment
-- [Rust Development](RUST_DEVELOPMENT.md) - Backend development
-- [Testing Guide](development/testing.md) - Test strategies
-- [Debugging Guide](development/debugging.md) - Troubleshooting
-
-### 📚 Features
-- [Multi Agent](server/agent-multi-agent.md) - AI agent orchestration
-- [Bots Implementation](bots-implementation.md) - Agent system details
-- [Voice System](voice-system.md) - Speech interaction
-- [Command Palette](client/command-palette.md) - Keyboard shortcuts
-- [Onboarding](client/onboarding.md) - User onboarding
-
-### 🔧 Technical References
-- [Decoupled Graph Architecture](technical/decoupled-graph-architecture.md)
-- [MCP Tool Usage](technical/mcp_tool_usage.md)
-- [Agent Visualization](agent-visualization-architecture.md)
-- [WebSocket Protocols](WEBSOCKET_PROTOCOLS.md)
+- **AI Agent Orchestration**: 15+ specialised agent types with hierarchical, mesh, ring, and star topologies
+- **GPU-Accelerated Physics**: CUDA implementation optimized for NVIDIA hardware with dual-graph support
+- **XR/AR Capabilities**: Meta Quest 3 support with hand tracking and WebXR integration
+- **Real-time Communication**: Binary protocol with WebSocket endpoints for minimal bandwidth usage
 
 ## Technology Stack
 
 ### Backend
-- **Rust 1.75+** - Systems programming language
-- **Actix-Web 4.4** - Async web framework
-- **CUDA 11.8+** - GPU acceleration
-- **Tokio** - Async runtime
-- **Serde** - Serialization framework
+- Rust 1.75+ with Actix-Web framework
+- CUDA 11.8+ for GPU acceleration
+- WebSocket and MCP protocol support
 
 ### Frontend
-- **React 18** - UI framework
-- **TypeScript 5** - Type-safe JavaScript
-- **Three.js** - 3D graphics library
-- **React Three Fiber** - React renderer for Three.js
-- **@react-three/xr** - WebXR integration
-
-### Infrastructure
-- **Docker** - Containerization
-- **NGINX** - Reverse proxy
-- **WebSockets** - Real-time communication
-- **MCP** - Model Context Protocol
-
-## Performance Metrics
-
-| Metric | Capability |
-|--------|-----------|
-| Node Capacity | 100,000+ nodes |
-| Edge Capacity | 1,000,000+ edges |
-| Update Rate | 60 FPS sustained |
-| Network Efficiency | 28 bytes/node |
-| GPU Utilization | 80%+ efficiency |
-| Agent Types | 15+ specialized |
-| Concurrent Clients | 100+ WebSocket |
+- React 18 with TypeScript 5
+- Three.js and React Three Fiber for 3D graphics
+- WebXR integration for AR/VR support
 
 ## Contributing
 
@@ -215,10 +92,10 @@ See [Contributing Guide](contributing.md) for development workflow, code standar
 
 ## Support
 
-- **Documentation**: This documentation site
+- **Documentation**: Complete guides and API references
 - **Issues**: GitHub issue tracker
-- **Discussions**: GitHub discussions
+- **Discussions**: Community support channels
 
-## License
+---
 
-Copyright © 2024 VisionFlow. All rights reserved.
+*VisionFlow - Real-time 3D visualisation platform with AI agent orchestration*

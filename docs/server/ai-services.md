@@ -226,7 +226,7 @@ speech:
 
 ## Integration Patterns
 
-### Service Initialization
+### Service Initialisation
 
 ```rust
 // In app_state.rs
@@ -304,7 +304,7 @@ mod tests {
 ### Integration Tests
 - Mock external API responses
 - Test error scenarios
-- Verify timeout behavior
+- Verify timeout behaviour
 - Test streaming responses
 
 ## Monitoring

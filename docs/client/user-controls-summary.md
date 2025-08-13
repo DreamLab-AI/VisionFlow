@@ -13,8 +13,8 @@ The system automatically selects the most appropriate control type based on the 
 -   **`textInput`**: For string values.
 -   **`passwordInput`**: A variant of `textInput` for sensitive string fields (API keys, secrets), providing masking.
 -   **`select`**: For predefined options (enum-like strings) defined in `options` array in `UISettingDefinition` -> Renders a Select Dropdown.
--   **`colorPicker`**: For single string color values -> Renders a Color Picker with hex input.
--   **`rangeSlider`**: For `[number, number]` array values, representing a min/max range -> Renders a specialized Range Slider.
+-   **`colorPicker`**: For single string colour values -> Renders a Color Picker with hex input.
+-   **`rangeSlider`**: For `[number, number]` array values, representing a min/max range -> Renders a specialised Range Slider.
 -   **`dualColorPicker`**: For `[string, string]` array values, representing two colors (e.g., for gradients) -> Renders two Color Pickers.
 -   **`radioGroup`**: For selecting one option from a list (mutually exclusive choices) defined in `options` -> Renders a Radio Group.
 -   **`buttonAction`**: For triggering an action (e.g., reset a section, trigger a backend process) -> Renders a Button. The action is defined by `actionId` in `UISettingDefinition`.
@@ -42,7 +42,7 @@ The system automatically selects the most appropriate control type based on the 
 ### 3. **Task-Appropriate Features**
 
 #### For Visualization Settings
-- **Real-time Updates** - Changes to visualization settings update the viewport immediately
+- **Real-time Updates** - Changes to visualisation settings update the viewport immediately
 - **Slider Preference** - Numeric inputs with ranges automatically use sliders for easier adjustment
 - **Precise Control** - Step values configured appropriately (0.01 for decimals, 1 for integers)
 
@@ -86,7 +86,7 @@ The controls are implemented in [`SettingControlComponent.tsx`](../../client/src
 - React hooks for state management (getting/setting values via `useSettingsStore`)
 - ⚠️ **CRITICAL**: Must use correct store import: `/store/settingsStore` not `/features/settings/store/settingsStore`
 - Logic to determine appropriate UI control based on `UISettingDefinition`
-- Custom debounce hook for input optimization (300ms delay)
+- Custom debounce hook for input optimisation (300ms delay)
 - TypeScript for type safety with proper Settings interface
 - Tailwind CSS for consistent styling
 - Lucide React icons for visual elements (tooltips, password visibility)
@@ -120,11 +120,11 @@ All controls follow the same pattern:
 2. Manage local state for debouncing if needed (300ms for text/number inputs)
 3. Validate input before calling onChange (especially for colors, numbers)
 4. Provide appropriate visual feedback (hover, focus, validation states)
-5. ✅ **Real-time updates**: Changes immediately affect visualization via viewport settings
+5. ✅ **Real-time updates**: Changes immediately affect visualisation via viewport settings
 6. ✅ **Auto-save**: Changes are automatically persisted to server after debounce
 
 **Control Responsiveness**:
 - ✅ Sliders: Live value updates with immediate visual feedback
-- ✅ Color pickers: Real-time color changes in 3D scene  
+- ✅ Color pickers: Real-time colour changes in 3D scene  
 - ✅ Toggles: Instant enable/disable of features
 - ⚠️ **IF BROKEN**: Check store import in component files

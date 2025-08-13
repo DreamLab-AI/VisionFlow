@@ -76,13 +76,13 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 ## T
 
-**Three.js** - 3D graphics library used for rendering the knowledge graph visualization.
+**Three.js** - 3D graphics library used for rendering the knowledge graph visualisation.
 
 **Todo System** - Task tracking system used during development for managing implementation steps.
 
 ## U
 
-**UISettings** - Subset of settings specifically related to user interface preferences and visualization options.
+**UISettings** - Subset of settings specifically related to user interface preferences and visualisation options.
 
 ## V
 

@@ -292,7 +292,7 @@ Provides the tabbed interface for organizing different categories of settings (V
 Used within panels (like `SettingsPanelRedesign`) to group related settings. Supports collapsible sections.
 
 ### Setting Control Component ([`client/src/features/settings/components/SettingControlComponent.tsx`](../../client/src/features/settings/components/SettingControlComponent.tsx))
-Renders individual UI controls (sliders, toggles, inputs, color pickers, etc.) for each setting based on its definition in `settingsUIDefinition.ts`.
+Renders individual UI controls (sliders, toggles, inputs, colour pickers, etc.) for each setting based on its definition in `settingsUIDefinition.ts`.
 
 ### Auth UI Handler ([`client/src/features/auth/components/AuthUIHandler.tsx`](../../client/src/features/auth/components/AuthUIHandler.tsx))
 Manages the authentication user interface and logic, primarily for Nostr authentication, often hosting `NostrAuthSection.tsx`.
@@ -308,7 +308,7 @@ A panel dedicated to features for exploring and analyzing narrative elements wit
 
 ## Component Initialization Sequence
 
-The application initialization flow is orchestrated by [`client/src/app/main.tsx`](../../client/src/app/main.tsx) which renders [`client/src/app/AppInitializer.tsx`](../../client/src/app/AppInitializer.tsx).
+The application initialisation flow is orchestrated by [`client/src/app/main.tsx`](../../client/src/app/main.tsx) which renders [`client/src/app/AppInitializer.tsx`](../../client/src/app/AppInitializer.tsx).
 
 ```mermaid
 sequenceDiagram

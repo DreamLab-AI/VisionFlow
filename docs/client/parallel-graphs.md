@@ -3,7 +3,7 @@
 **STATUS**: Multi-graph settings structure implemented ✅  
 **ISSUE**: Some components may have dual store import conflicts ⚠️
 
-This document provides comprehensive documentation for the parallel graphs feature that enables simultaneous visualization of multiple graph data sources with independent visual configurations.
+This document provides comprehensive documentation for the parallel graphs feature that enables simultaneous visualisation of multiple graph data sources with independent visual configurations.
 
 ## Overview
 

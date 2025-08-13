@@ -17,13 +17,13 @@ The following 87 tools are available through the MCP interface:
 
 ### 🐝 multi-agent Orchestration (15 tools)
 - `multi-agent_init` - Initialize multi-agent with topology
-- `agent_spawn` - Create specialized agents
+- `agent_spawn` - Create specialised agents
 - `task_orchestrate` - Orchestrate workflows
 - `multi-agent_status` - Check multi-agent status
 - `agent_list` - List active agents
 - `agent_metrics` - Get agent performance
 - `multi-agent_monitor` - Real-time monitoring
-- `topology_optimize` - Auto-optimize topology
+- `topology_optimize` - Auto-optimise topology
 - `load_balance` - Distribute tasks
 - `coordination_sync` - Sync coordination
 - `multi-agent_scale` - Scale agent count
@@ -33,7 +33,7 @@ The following 87 tools are available through the MCP interface:
 - `multi-agent_monitor` - Real-time monitoring
 
 ### 🤖 Dynamic Agent Architecture (6 tools)
-- `daa_agent_create` - Create specialized agents with resources
+- `daa_agent_create` - Create specialised agents with resources
 - `daa_capability_match` - Match capabilities to tasks
 - `daa_resource_alloc` - Allocate resources dynamically
 - `daa_lifecycle_manage` - Manage agent lifecycle
@@ -134,7 +134,7 @@ node test-claude-flow-connection.js
 
 ## Troubleshooting
 
-If the connection hangs after initialization:
+If the connection hangs after initialisation:
 1. Check the MCP relay is running: `netstat -tulpn | grep 3000`
 2. Monitor relay logs: `tail -f /tmp/mcp-ws-relay.log`
 3. Verify WebSocket responses have matching request IDs

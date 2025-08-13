@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document details the WebSocket protocols used for real-time communication between the agent visualization frontend and the backend orchestration system. We support both binary and JSON protocols for different use cases.
+This document details the WebSocket protocols used for real-time communication between the agent visualisation frontend and the backend orchestration system. We support both binary and JSON protocols for different use cases.
 
 ## Connection Establishment
 
 ### WebSocket Endpoints
 
-1. **Primary Agent Data Stream**: `wss://[host]/api/visualization/agents/ws`
+1. **Primary Agent Data Stream**: `wss://[host]/api/visualisation/agents/ws`
 2. **Graph Data Stream**: `wss://[host]/api/graph/ws`
 3. **Control Channel**: `wss://[host]/api/control/ws`
 

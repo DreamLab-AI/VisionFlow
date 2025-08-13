@@ -19,7 +19,7 @@ The desktop client has **TWO separate debug control systems** that are not prope
 - **Location**: Settings UI Definition has TWO debug sections:
   - `developer` section with debugging tools
   - `system.debug` section with development & debugging settings
-- **Access**: Through the main settings panel in control center
+- **Access**: Through the main settings panel in control centre
 - **Storage**: Attempts to sync with backend (which no longer has debug settings)
 - **State Management**: Uses settingsStore
 - **Features**:
@@ -49,7 +49,7 @@ App Start
 
 ## Evaluation Result
 
-❌ **The debug controls in the desktop client are NOT properly controlled by the developer options panel in the control center.**
+❌ **The debug controls in the desktop client are NOT properly controlled by the developer options panel in the control centre.**
 
 ### Issues:
 
@@ -64,7 +64,7 @@ App Start
 - Remove debug sections from Settings Panel
 - Keep DebugControlPanel as the single debug control
 - Use localStorage only (no backend sync for debug)
-- Control panel becomes the developer options center
+- Control panel becomes the developer options centre
 
 ### Option 2: Unify Under Settings Panel
 - Remove standalone DebugControlPanel

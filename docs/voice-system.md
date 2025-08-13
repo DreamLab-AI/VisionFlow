@@ -219,7 +219,7 @@ services:
 - Full speech service architecture with provider switching
 
 ### 🚧 In Progress
-- Full duplex audio communication optimization
+- Full duplex audio communication optimisation
 - Voice activity detection (VAD)
 - Enhanced error recovery for streaming
 

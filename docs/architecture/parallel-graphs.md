@@ -6,7 +6,7 @@ This document describes the parallel graph architecture that enables VisionFlow 
 
 The parallel graph system allows two graph types to coexist with independent processing:
 - **Logseq Graph**: Knowledge graph data from Logseq markdown files (binary protocol)
-- **VisionFlow Graph**: AI agent visualization data from Claude Flow MCP integration (REST API)
+- **VisionFlow Graph**: AI agent visualisation data from Claude Flow MCP integration (REST API)
 
 ## Architecture Components
 

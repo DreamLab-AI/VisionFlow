@@ -4,7 +4,7 @@ This document describes the current architecture for visualizing AI agents (bots
 
 ## Overview
 
-The bots visualization system displays Claude Flow agents as interactive 3D nodes with real-time position updates via binary protocol. It runs parallel to the Logseq graph visualization using the ParallelGraphCoordinator and unified backend processing.
+The bots visualisation system displays Claude Flow agents as interactive 3D nodes with real-time position updates via binary protocol. It runs parallel to the Logseq graph visualisation using the ParallelGraphCoordinator and unified backend processing.
 
 ## Core Components
 

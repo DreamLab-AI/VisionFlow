@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow uses a modern Rust actor-based architecture powered by Actix for high-performance real-time graph visualization. The system handles GPU-accelerated physics simulation for 100,000+ nodes while maintaining 60 FPS performance through efficient message passing and parallel computation.
+VisionFlow uses a modern Rust actor-based architecture powered by Actix for high-performance real-time graph visualisation. The system handles GPU-accelerated physics simulation for 100,000+ nodes while maintaining 60 FPS performance through efficient message passing and parallel computation.
 
 ## Core Architecture
 
@@ -56,7 +56,7 @@ The architecture implements a distributed actor model where each major component
 
 ### Bootstrap Process
 
-The application follows a structured initialization sequence in `main.rs`:
+The application follows a structured initialisation sequence in `main.rs`:
 
 1. **Settings Loading**: Load `AppFullSettings` from YAML and environment variables
 2. **Logging Initialization**: Configure structured logging based on settings
@@ -90,7 +90,7 @@ let app_state = AppState::new(
 
 **Actor System**:
 - **Graph Service Actor**: Manages dual graph physics simulation, handles both knowledge graph and Multi Agent data
-- **GPU Compute Actor**: CUDA kernel execution with automatic CPU fallback on initialization failure
+- **GPU Compute Actor**: CUDA kernel execution with automatic CPU fallback on initialisation failure
 - **Client Manager Actor**: WebSocket connection pool for real-time updates
 - **Settings Actor**: Thread-safe configuration management with hot-reload capability
 - **Metadata Actor**: File system monitoring and graph metadata management
@@ -227,7 +227,7 @@ impl Actor for GraphServiceActor {
 ### Graceful Degradation
 
 **GPU Compute Fallbacks**:
-- CUDA initialization failure → CPU physics computation
+- CUDA initialisation failure → CPU physics computation
 - Kernel compilation error → Simple force-directed layout
 - GPU memory exhaustion → Reduced node count with notification
 
@@ -475,7 +475,7 @@ sequenceDiagram
 For detailed information about specific components:
 
 - **[Actor System](actors.md)** - Detailed actor implementations and message definitions
-- **[GPU Compute](gpu-compute.md)** - CUDA kernel architecture and performance optimization
+- **[GPU Compute](gpu-compute.md)** - CUDA kernel architecture and performance optimisation
 - **[Physics Engine](physics-engine.md)** - Force-directed algorithms and dual graph physics
 - **[Request Handlers](handlers.md)** - HTTP/WebSocket API endpoints and routing
 - **[Services](services.md)** - External integrations and business logic

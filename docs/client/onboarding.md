@@ -185,7 +185,7 @@ if (!isFlowCompleted('first-time-user')) {
 - Flow abandonment tracking
 - Time spent per step
 
-## Customization
+## Customisation
 
 ### Styling
 ```css

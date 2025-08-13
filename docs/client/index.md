@@ -1,6 +1,6 @@
 # Client Documentation
 
-The VisionFlow frontend is a modern React application built with TypeScript, Three.js for 3D visualization, and Material-UI for the interface.
+The VisionFlow frontend is a modern React application built with TypeScript, Three.js for 3D visualisation, and Material-UI for the interface.
 
 ## Architecture Overview
 
@@ -36,7 +36,7 @@ The VisionFlow frontend is a modern React application built with TypeScript, Thr
 
 ### 3D Rendering
 - **[Rendering System](rendering.md)** - Three.js rendering pipeline
-- **[Graph Visualization](visualization.md)** - Force-directed graph layout
+- **[Graph Visualization](visualisation.md)** - Force-directed graph layout
 - **[Parallel Graphs](parallel-graphs.md)** - Multi-graph rendering system
 
 ### Real-time Communication

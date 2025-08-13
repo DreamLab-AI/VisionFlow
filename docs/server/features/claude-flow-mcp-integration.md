@@ -72,7 +72,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 
 ### Core Agent Management
 - `multi-agent_init` - Initialize multi-agent with topology (mesh, hierarchical, ring, star)
-- `agent_spawn` - Create specialized agents with capabilities
+- `agent_spawn` - Create specialised agents with capabilities
 - `agent_list` - List active agents with status and metrics
 - `agent_metrics` - Get detailed performance metrics
 - `agent_command` - Send commands to specific agents
@@ -110,10 +110,10 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 | Researcher | Information gathering | Web search, document analysis |
 | Coder | Implementation | Code generation, refactoring |
 | Analyst | Data analysis | Pattern recognition, insights |
-| Architect | System design | Architecture planning, optimization |
+| Architect | System design | Architecture planning, optimisation |
 | Tester | Quality assurance | Test generation, validation |
 | Reviewer | Code review | Quality checks, approval workflows |
-| Optimizer | Performance tuning | Bottleneck analysis, optimization |
+| Optimizer | Performance tuning | Bottleneck analysis, optimisation |
 | Documenter | Documentation | Technical writing, API docs |
 | Monitor | System monitoring | Health checks, alerting |
 | Specialist | Domain expert | Custom capabilities |
@@ -216,7 +216,7 @@ Returns complete graph with nodes, edges, and positioning.
 ### Graceful Degradation
 When MCP is unavailable:
 1. Falls back to mock agent data
-2. Continues visualization with static data
+2. Continues visualisation with static data
 3. Logs errors without crashing
 4. Retries connection periodically
 

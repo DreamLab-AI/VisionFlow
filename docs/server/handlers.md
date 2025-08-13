@@ -257,7 +257,7 @@ web::scope("")
 |--------|------|-------------|-------------|
 | `GET` | `/api/bots/data` | Get agent graph data | `ClaudeFlowActor::GetBotsGraphData` |
 | `POST` | `/api/bots/update` | Update agent positions | `GraphServiceActor::UpdateBotsGraph` |
-| `POST` | `/api/bots/initialize-multi-agent` | Initialize Claude Flow multi-agent | `ClaudeFlowActor::initializeMultiAgent` |
+| `POST` | `/api/bots/initialise-multi-agent` | Initialize Claude Flow multi-agent | `ClaudeFlowActor::initializeMultiAgent` |
 
 **Agent Data Structure**:
 ```rust

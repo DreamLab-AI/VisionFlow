@@ -66,7 +66,7 @@ pub struct SimulationParams {
 // #[derive(Default, Clone, Copy, Debug, Pod, Zeroable)] // For bytemuck if used
 // pub struct GPUSimulationParams { /* fields matching kernel expectations */ }
 ```
-- These parameters are crucial for tuning the behavior and performance of the graph layout algorithm.
+- These parameters are crucial for tuning the behaviour and performance of the graph layout algorithm.
 - The actual parameters used by `GPUCompute` might be a subset or a transformed version of those found in `AppFullSettings.visualisation.physics`.
 
 ## Logging
@@ -197,7 +197,7 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 ## Socket Flow Constants
 
 ### Overview
-The socket flow constants module (`src/utils/socket_flow_constants.rs`) defines critical parameters for WebSocket communication and graph visualization.
+The socket flow constants module (`src/utils/socket_flow_constants.rs`) defines critical parameters for WebSocket communication and graph visualisation.
 
 ### Node and Graph Constants
 ```rust
@@ -278,7 +278,7 @@ pub struct EdgeData {
 ### GPU Compatibility
 - `#[repr(C)]` ensures C-compatible memory layout
 - Implements `DeviceRepr` for CUDA compatibility
-- Implements `ValidAsZeroBits` for safe GPU memory initialization
+- Implements `ValidAsZeroBits` for safe GPU memory initialisation
 - Used by `GPUCompute` for force calculations
 
 ## Error Handling
