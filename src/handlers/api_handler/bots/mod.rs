@@ -21,5 +21,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/data", web::post().to(bots_update))
             .route("/update", web::post().to(bots_update))
             .route("/initialize-swarm", web::post().to(initialize_swarm))
+            .route("/initialize-multi-agent", web::post().to(initialize_multi_agent))
     );
 }

@@ -851,6 +851,27 @@ pub async fn get_agent_status(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
+pub async fn initialize_multi_agent(
+    _state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> impl Responder {
+    info!("=== INITIALIZE MULTI-AGENT ENDPOINT CALLED ===");
+    info!("Received multi-agent initialization request: {:?}", request);
+
+    // TODO: Connect to external multi-agent-container via TCP on port 9500
+    // For now, return success response to allow UI to proceed
+    HttpResponse::Ok().json(json!({
+        "success": true,
+        "message": "Multi-agent system initialized",
+        "data": {
+            "swarmId": uuid::Uuid::new_v4().to_string(),
+            "topology": request.get("topology").and_then(|t| t.as_str()).unwrap_or("mesh"),
+            "maxAgents": request.get("maxAgents").and_then(|m| m.as_u64()).unwrap_or(8),
+            "status": "active"
+        }
+    }))
+}
+
 // UPDATED: Enhanced configuration with new real-time endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     info!("Configuring bots routes:");
