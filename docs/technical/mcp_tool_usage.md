@@ -10,7 +10,7 @@ These tools are actively called by the `ClaudeFlowActor` and form the core of th
 | --- | --- | --- |
 | **multi-agent Orchestration** | `multi-agent_init` | Called by the `initializeMultiAgent` message handler to configure and start a new Multi Agent. |
 | | `agent_spawn` | Called by the `SpawnClaudeAgent` and `initializeMultiAgent` handlers to create new agents. |
-| | `agent_list` | Called by `list_agents` in the client, used for polling agent statuses for visualization. |
+| | `agent_list` | Called by `list_agents` in the client, used for polling agent statuses for visualisation. |
 | **Neural & Cognitive** | `neural_train` | Called within the `initializeMultiAgent` handler when `enable_neural` is true to train coordination patterns. |
 | **Performance & Monitoring**| `health_check` | Called periodically by the `ClaudeFlowActor` to monitor the health of the MCP service. |
 

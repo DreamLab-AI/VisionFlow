@@ -45,7 +45,7 @@ Note: The actual field name in the struct is `repulsion`, not `repulsion_strengt
 
 ### Usage
 -   Configuring the physics engine for graph layout.
--   Allowing real-time adjustment of simulation behavior.
+-   Allowing real-time adjustment of simulation behaviour.
 -   Defining boundary conditions for the simulation space.
 
 ## UI Settings (`UserSettings` and `UISettings`)

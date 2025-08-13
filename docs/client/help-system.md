@@ -96,7 +96,7 @@ interface HelpTooltipProps {
 - Settings panel overview
 - Visualization options
 - Performance tuning
-- Appearance customization
+- Appearance customisation
 - Keyboard shortcuts
 
 ### XR/VR Features
@@ -115,7 +115,7 @@ interface HelpTooltipProps {
 ### Advanced Topics
 - Command palette usage
 - Data import/export
-- Performance optimization
+- Performance optimisation
 - Troubleshooting guide
 
 ## Usage Examples
@@ -260,7 +260,7 @@ interface LocalizedHelpContent extends HelpContent {
 - Suggestion collection
 - Missing topic reporting
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Lazy Loading
 - Help content loaded on demand

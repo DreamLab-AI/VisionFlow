@@ -224,7 +224,7 @@ async fn clear_all_settings_cache(
 2. **Regular Audits**: Review user permissions periodically
 3. **Feature Grouping**: Consider creating feature bundles for common use cases
 4. **Documentation**: Keep feature access documentation up-to-date
-5. **Monitoring**: Track feature usage for optimization
+5. **Monitoring**: Track feature usage for optimisation
 
 ## Future Enhancements
 

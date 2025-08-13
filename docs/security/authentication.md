@@ -362,7 +362,7 @@ Configure allowed origins in protected settings:
 
 - Store sessions in localStorage (not accessible to other domains)
 - Clear sessions on logout
-- Validate sessions on app initialization
+- Validate sessions on app initialisation
 - Handle session expiry gracefully
 
 ## API Endpoints

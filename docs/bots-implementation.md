@@ -2,12 +2,12 @@
 
 ## Overview
 
-The bots visualization has been successfully integrated into VisionFlow to display agent activity from the claude-flow MCP server. The implementation includes:
+The bots visualisation has been successfully integrated into VisionFlow to display agent activity from the claude-flow MCP server. The implementation includes:
 
 1. **Backend Integration** - Processing bots data through the GPU physics system
-2. **API Endpoints** - RESTful endpoints for bots data management and multi-agent initialization
+2. **API Endpoints** - RESTful endpoints for bots data management and multi-agent initialisation
 3. **Binary WebSocket** - Real-time position updates using the same protocol as the main graph
-4. **Frontend Visualization** - 3D force-directed graph with gold/green color scheme
+4. **Frontend Visualization** - 3D force-directed graph with gold/green colour scheme
 5. **Hive Mind Spawning** - Interactive UI to spawn and configure Claude Flow multi-agents
 
 ## Architecture
@@ -23,7 +23,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 #### 2. API Routes
 - `/api/bots/data` - GET endpoint to retrieve current bots state
 - `/api/bots/update` - POST endpoint to update bots data from MCP
-- `/api/bots/initialize-multi-agent` - POST endpoint to spawn a Claude Flow hive mind
+- `/api/bots/initialise-multi-agent` - POST endpoint to spawn a Claude Flow hive mind
 
 #### 3. WebSocket Integration (`/src/handlers/socket_flow_handler.rs`)
 - Extended to handle `requestBotsPositions` messages
@@ -33,7 +33,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 ### Frontend Components
 
 #### 1. BotsVisualizationIntegrated Component
-- Main visualization component using React Three Fiber
+- Main visualisation component using React Three Fiber
 - Retrieves agent data from backend API
 - Renders agents as spheres with size based on workload
 - Shows communication edges between agents
@@ -58,12 +58,12 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 1. **Claude Flow MCP Server** → Sends agent data to backend
 2. **Backend** → Receives data, processes through GPU physics
 3. **Binary WebSocket** → Streams position updates to frontend
-4. **Frontend** → Renders 3D visualization with real-time updates
+4. **Frontend** → Renders 3D visualisation with real-time updates
 
 ### Hive Mind Spawning
 1. **User** → Clicks "Initialize multi-agent" button in control panel
 2. **multiAgentInitializationPrompt** → Collects configuration and task
-3. **Frontend** → POSTs to `/api/bots/initialize-multi-agent`
+3. **Frontend** → POSTs to `/api/bots/initialise-multi-agent`
 4. **BotsHandler** → Forwards request to ClaudeFlowActor
 5. **ClaudeFlowActor** → Connects to Claude Flow MCP and:
    - Initializes multi-agent with selected topology

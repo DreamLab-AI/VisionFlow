@@ -4,7 +4,7 @@ This document provides a detailed overview of the 3D rendering system in the Log
 
 ## Overview
 
-The rendering system is responsible for transforming the graph data (nodes, edges, metadata) into an interactive 3D visualization. It leverages the declarative nature of React with the power of Three.js through R3F, allowing for efficient management of the 3D scene graph and performance optimizations like instancing. This document serves as the primary documentation for the technical implementation of the client-side visualization.
+The rendering system is responsible for transforming the graph data (nodes, edges, metadata) into an interactive 3D visualisation. It leverages the declarative nature of React with the power of Three.js through R3F, allowing for efficient management of the 3D scene graph and performance optimisations like instancing. This document serves as the primary documentation for the technical implementation of the client-side visualisation.
 
 ## React Three Fiber (R3F) Setup
 
@@ -18,7 +18,7 @@ This is the main entry point for the 3D scene. It wraps the Three.js `Canvas` co
 -   Initializes the WebGL renderer.
 -   Configures the camera (e.g., `PerspectiveCamera`).
 -   Sets up basic scene elements like ambient lighting.
--   Hosts other 3D components that make up the graph visualization.
+-   Hosts other 3D components that make up the graph visualisation.
 -   Manages the `dpr` (device pixel ratio) for rendering quality.
 
 **Key Properties:**
@@ -34,7 +34,7 @@ This component is central to rendering the graph's nodes and edges. It receives 
 **Responsibilities:**
 -   Manages the creation and updating of 3D objects for nodes and edges.
 -   Utilizes **instancing** for nodes and edges to draw many similar objects with a single draw call, significantly improving performance for large graphs.
--   Applies visual properties (color, size, material) based on settings and node/edge attributes.
+-   Applies visual properties (colour, size, material) based on settings and node/edge attributes.
 -   Orchestrates updates to node positions and other dynamic properties based on physics simulation data received from the server.
 
 ### `GraphViewport.tsx` (`client/src/features/graph/components/GraphViewport.tsx`)
@@ -83,10 +83,10 @@ This module defines a custom Three.js `ShaderMaterial` used to create a distinct
 **Key Features:**
 -   Utilizes GLSL shaders (vertex and fragment shaders) to achieve effects like:
     -   Animated scan lines or noise patterns.
-    -   Color tinting and transparency.
+    -   Colour tinting and transparency.
     -   Edge glow or outline effects.
 -   Integrates with R3F by being exposed as a custom material component.
 
-## Distinction from `visualization.md`
+## Distinction from `visualisation.md`
 
-While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualization.md` (when populated) will focus on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node color representing file type), and the overall user experience of interacting with the visualized knowledge graph.
+While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` (when populated) will focus on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node colour representing file type), and the overall user experience of interacting with the visualised knowledge graph.

@@ -4,7 +4,7 @@ This document describes the ClaudeFlowActor implementation that integrates the C
 
 ## Overview
 
-The `ClaudeFlowActor` is a Rust Actix actor that manages the connection to the Claude Flow MCP server. It connects to a dedicated, containerized MCP service (`powerdev`) over the network using **WebSockets**, and provides agent data to the visualization system. The previous `stdio` transport mechanism has been disabled.
+The `ClaudeFlowActor` is a Rust Actix actor that manages the connection to the Claude Flow MCP server. It connects to a dedicated, containerized MCP service (`powerdev`) over the network using **WebSockets**, and provides agent data to the visualisation system. The previous `stdio` transport mechanism has been disabled.
 
 ## Architecture
 

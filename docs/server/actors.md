@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow uses the Actix actor system to orchestrate AI Multi Agents and dual graph visualization with real-time streaming of Claude Flow MCP telemetry and GPU-accelerated physics simulation for 100,000+ nodes at 60 FPS.
+VisionFlow uses the Actix actor system to orchestrate AI Multi Agents and dual graph visualisation with real-time streaming of Claude Flow MCP telemetry and GPU-accelerated physics simulation for 100,000+ nodes at 60 FPS.
 
 ## Actor Architecture
 
@@ -85,7 +85,7 @@ pub struct RegenerateSemanticConstraints;
 
 **Location**: `src/actors/gpu_compute_actor.rs`
 
-NVIDIA CUDA-accelerated physics engine for massive graph visualization.
+NVIDIA CUDA-accelerated physics engine for massive graph visualisation.
 
 **Responsibilities**:
 - Unified CUDA kernel execution with multiple compute modes
@@ -251,7 +251,7 @@ Direct integration with Claude Flow MCP for real-time agent orchestration.
 **Responsibilities**:
 - Maintains persistent WebSocket connection to Claude Flow MCP (port 3002)
 - Streams agent telemetry at 10Hz with automatic reconnection
-- Handles multi-agent initialization via JSON-RPC protocol
+- Handles multi-agent initialisation via JSON-RPC protocol
 - NO mock data generation - only real Claude Flow agent data
 - Exponential backoff reconnection strategy on connection loss
 
@@ -547,7 +547,7 @@ async fn test_graph_service_actor() {
 
 ## Related Documentation
 
-- **[Server Architecture](architecture.md)** - Overall system design and initialization
+- **[Server Architecture](architecture.md)** - Overall system design and initialisation
 - **[GPU Compute](gpu-compute.md)** - CUDA kernel implementation details
 - **[Binary Protocol](../api/binary-protocol.md)** - Efficient WebSocket communication
 - **[MCP Integration](../architecture/mcp-integration.md)** - Claude Flow orchestrator connection

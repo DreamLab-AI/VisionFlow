@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow can be deployed using Docker Compose for a complete AI agent orchestration and visualization environment. The system consists of multiple containerized services working together.
+VisionFlow can be deployed using Docker Compose for a complete AI agent orchestration and visualisation environment. The system consists of multiple containerized services working together.
 
 ## Deployment Options
 
@@ -141,7 +141,7 @@ RUST_LOG=info,webxr=debug
 
 ### Metrics
 - Prometheus endpoints: `/metrics`
-- Grafana dashboards for visualization
+- Grafana dashboards for visualisation
 - OpenTelemetry tracing support
 
 ## Backup & Recovery

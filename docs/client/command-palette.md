@@ -81,7 +81,7 @@ const {
 ### View Commands
 - **Toggle XR Mode**: Switches to WebXR view
 - **Reset Camera**: Resets 3D camera position
-- **Center Graph**: Centers the graph visualization
+- **Center Graph**: Centers the graph visualisation
 
 ### System Commands
 - **Refresh Data**: Reloads graph data
@@ -156,12 +156,12 @@ Quick access to help topics through command palette:
 - Loading states for long-running commands
 - Error boundaries for command failures
 
-## Customization
+## Customisation
 
 ### Theming
 Command palette respects application theme:
 - Dark/light mode support
-- Custom color schemes
+- Custom colour schemes
 - Font size adjustments
 
 ### Configuration Options

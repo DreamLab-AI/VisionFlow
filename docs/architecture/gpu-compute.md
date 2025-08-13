@@ -1,6 +1,6 @@
 # Unified GPU Compute Architecture
 
-VisionFlow leverages a single unified NVIDIA CUDA kernel for high-performance physics simulation and graph layout computation, enabling real-time visualization of parallel graphs at 60 FPS with multiple compute modes.
+VisionFlow leverages a single unified NVIDIA CUDA kernel for high-performance physics simulation and graph layout computation, enabling real-time visualisation of parallel graphs at 60 FPS with multiple compute modes.
 
 ## Overview
 

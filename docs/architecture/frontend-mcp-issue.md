@@ -35,7 +35,7 @@ The frontend is attempting to connect directly to MCP WebSocket endpoints, which
 ### Frontend Should Only Use:
 1. **REST API Endpoints:**
    - `GET /api/bots/data` - Get current bots/agents data
-   - `POST /api/bots/initialize-multi-agent` - Spawn new hive mind
+   - `POST /api/bots/initialise-multi-agent` - Spawn new hive mind
    - `POST /api/bots/update` - Update bots data (if needed)
 
 2. **WebSocket for Position Updates:**
@@ -53,7 +53,7 @@ The frontend is attempting to connect directly to MCP WebSocket endpoints, which
 
 ### Remove from Frontend:
 1. `/client/src/features/bots/services/MCPWebSocketService.ts`
-2. MCP initialization in `BotsWebSocketIntegration.ts`
+2. MCP initialisation in `BotsWebSocketIntegration.ts`
 3. Direct MCP calls in `BotsVisualization.tsx`
 
 ### Update BotsVisualization to:

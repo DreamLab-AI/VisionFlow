@@ -1,10 +1,10 @@
 # MCP WebSocket Relay Architecture
 
-This document describes the architecture for relaying MCP (Model Context Protocol) data through the backend to the frontend visualization.
+This document describes the architecture for relaying MCP (Model Context Protocol) data through the backend to the frontend visualisation.
 
 ## Overview
 
-The MCP WebSocket relay architecture enables real-time visualization of Claude Flow agent activity without exposing the MCP protocol directly to the frontend. The backend acts as a relay, transforming MCP data into a format suitable for 3D visualization.
+The MCP WebSocket relay architecture enables real-time visualisation of Claude Flow agent activity without exposing the MCP protocol directly to the frontend. The backend acts as a relay, transforming MCP data into a format suitable for 3D visualisation.
 
 ## Architecture Components
 
@@ -23,7 +23,7 @@ pub struct ClaudeFlowActor {
 **Key Responsibilities:**
 - Spawns Claude Flow MCP process via stdio
 - Polls for agent updates every 5 seconds
-- Transforms MCP agent data to visualization format
+- Transforms MCP agent data to visualisation format
 - Provides mock data when MCP is unavailable
 
 ### 2. MCP Connection Types
@@ -60,7 +60,7 @@ BotsPhysicsWorker
 
 ### 4. Agent Data Transformation
 
-MCP agent data is transformed for visualization:
+MCP agent data is transformed for visualisation:
 
 ```rust
 AgentStatus {
@@ -188,7 +188,7 @@ fn create_mock_agents() -> Vec<AgentStatus> {
 }
 ```
 
-This ensures the visualization remains functional for development and testing.
+This ensures the visualisation remains functional for development and testing.
 
 ## Security Considerations
 
@@ -224,4 +224,4 @@ The system gracefully degrades when MCP is unavailable:
 2. **Binary Protocol**: Optimize agent data transmission
 3. **Event Streaming**: Stream agent events as they occur
 4. **Multi-MCP Support**: Connect to multiple Claude Flow instances
-5. **Agent Metrics Dashboard**: Detailed performance visualization
+5. **Agent Metrics Dashboard**: Detailed performance visualisation

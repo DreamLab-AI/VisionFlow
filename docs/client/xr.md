@@ -25,11 +25,11 @@ This component acts as the central orchestrator for the XR experience.
 -   Wraps the main 3D scene with the `<XR />` component from `@react-three/xr`.
 -   Manages the conditional rendering of XR-specific UI and interaction elements.
 -   Integrates other XR components like [`XRScene.tsx`](../../client/src/features/xr/components/XRScene.tsx) and [`HandInteractionSystem.tsx`](../../client/src/features/xr/systems/HandInteractionSystem.tsx).
--   Handles XR session initialization and teardown logic via [`xrInitializer.ts`](../../client/src/features/xr/managers/xrInitializer.ts) and [`xrSessionManager.ts`](../../client/src/features/xr/managers/xrSessionManager.ts).
+-   Handles XR session initialisation and teardown logic via [`xrInitializer.ts`](../../client/src/features/xr/managers/xrInitializer.ts) and [`xrSessionManager.ts`](../../client/src/features/xr/managers/xrSessionManager.ts).
 
 ### `XRScene.tsx` ([`client/src/features/xr/components/XRScene.tsx`](../../client/src/features/xr/components/XRScene.tsx))
 
-This component contains the 3D content that will be rendered in XR. It often reuses or adapts components from the main 2D desktop visualization.
+This component contains the 3D content that will be rendered in XR. It often reuses or adapts components from the main 2D desktop visualisation.
 
 **Responsibilities:**
 -   Renders the graph (nodes, edges) within the XR environment.
@@ -38,7 +38,7 @@ This component contains the 3D content that will be rendered in XR. It often reu
 
 ### `XRVisualisationConnector.tsx` ([`client/src/features/xr/components/XRVisualisationConnector.tsx`](../../client/src/features/xr/components/XRVisualisationConnector.tsx))
 
-This component acts as a bridge, connecting the core graph visualization logic (e.g., `GraphManager.tsx`) to the XR environment.
+This component acts as a bridge, connecting the core graph visualisation logic (e.g., `GraphManager.tsx`) to the XR environment.
 
 **Responsibilities:**
 -   Passes graph data and updates to components rendered within `XRScene.tsx`.

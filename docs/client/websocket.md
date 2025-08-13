@@ -142,7 +142,7 @@ stateDiagram-v2
 
 ## Configuration
 
-WebSocket behavior can be configured through settings:
+WebSocket behaviour can be configured through settings:
 
 ```typescript
 // Relevant settings are found under 'system.websocket' in
@@ -251,4 +251,4 @@ The call `graphDataManager.setBinaryUpdatesEnabled(true)` triggers:
 
 - [State Management](state.md) - State management integration
 - [Graph Data](graph.md) - Graph data structure and updates
-- [Performance](performance.md) - Performance optimization details
+- [Performance](performance.md) - Performance optimisation details

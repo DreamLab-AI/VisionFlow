@@ -4,7 +4,7 @@ This document details recent improvements to the GPU compute system to address g
 
 ## Problem: Graph Bouncing
 
-The graph visualization exhibited excessive oscillation ("bouncing") due to:
+The graph visualisation exhibited excessive oscillation ("bouncing") due to:
 1. Aggressive default physics parameters
 2. Inconsistent PTX file loading paths
 3. Missing warmup period in advanced kernels

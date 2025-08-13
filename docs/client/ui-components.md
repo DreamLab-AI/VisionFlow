@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LogseqSpringThing client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behavior across the application, with support for theming and responsive design.
+The LogseqSpringThing client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behaviour across the application, with support for theming and responsive design.
 
 ## Component Categories
 
@@ -210,7 +210,7 @@ Chat interface for AI interactions.
 Specialized panel for narrative exploration features.
 - **Features**:
   - Content discovery tools
-  - Narrative thread visualization
+  - Narrative thread visualisation
   - Interactive exploration controls
 
 ### RightPaneControlPanel ([`client/src/app/components/RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx))
@@ -224,8 +224,8 @@ Main control panel housing settings and authentication.
 
 ### Colors
 The component library uses CSS variables for theming:
-- `--primary`: Primary brand color
-- `--secondary`: Secondary brand color
+- `--primary`: Primary brand colour
+- `--secondary`: Secondary brand colour
 - `--background`: Background colors
 - `--foreground`: Text colors
 - `--muted`: Muted elements
@@ -252,7 +252,7 @@ All components support responsive design through:
 - Flexible layouts using CSS Grid and Flexbox
 - Responsive typography scaling
 - Touch-friendly interaction areas on mobile
-- Adaptive component behavior based on screen size
+- Adaptive component behaviour based on screen size
 
 ## Best Practices
 

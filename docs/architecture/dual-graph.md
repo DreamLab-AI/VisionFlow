@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow's parallel graph architecture enables simultaneous visualization and processing of two distinct graph types: Knowledge Graphs and Agent Graphs. This approach allows users to see both static knowledge structures and dynamic AI agent interactions in a unified 3D space using the unified CUDA kernel with parallel processing modes.
+VisionFlow's parallel graph architecture enables simultaneous visualisation and processing of two distinct graph types: Knowledge Graphs and Agent Graphs. This approach allows users to see both static knowledge structures and dynamic AI agent interactions in a unified 3D space using the unified CUDA kernel with parallel processing modes.
 
 ## Core Architecture
 
@@ -272,7 +272,7 @@ While graphs are separate, they can interact:
 
 ## Configuration
 
-Configure dual-graph behavior in `settings.yaml`:
+Configure dual-graph behaviour in `settings.yaml`:
 
 ```yaml
 visualisation:

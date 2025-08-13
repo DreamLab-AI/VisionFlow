@@ -111,7 +111,7 @@ graph TB
 ### User Interface Layer
 The UI layer is built with React and TypeScript.
 - [`MainLayout.tsx`](../../client/src/app/MainLayout.tsx) serves as the primary layout for desktop and standard views, dividing the screen into a main visualisation area and a control panel area.
-- [`Quest3ARLayout.tsx`](../../client/src/features/xr/layouts/Quest3ARLayout.tsx) provides specialized layout for Quest 3 AR experiences.
+- [`Quest3ARLayout.tsx`](../../client/src/features/xr/layouts/Quest3ARLayout.tsx) provides specialised layout for Quest 3 AR experiences.
 - [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesignOptimized.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesignOptimized.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
 - [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx) is responsible for the main 3D graph visualisation area.
 
@@ -216,7 +216,7 @@ flowchart TB
 - **WebSockets** - Real-time communication
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Frontend build tool
-- **Custom Shaders** - GLSL shaders for specialized rendering effects (e.g., `HologramMaterial.tsx`)
+- **Custom Shaders** - GLSL shaders for specialised rendering effects (e.g., `HologramMaterial.tsx`)
 
 ## Key Architectural Patterns
 

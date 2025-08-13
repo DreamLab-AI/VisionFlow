@@ -173,7 +173,7 @@ const DEFAULT_GRAPH_CONFIG = {
 
 2. **Settings Panel**
    - Add VisionFlow enable/disable toggle
-   - Add agent visualization settings
+   - Add agent visualisation settings
 
 3. **Performance Monitoring**
    - Update to track both graph types
@@ -184,7 +184,7 @@ const DEFAULT_GRAPH_CONFIG = {
 1. **Agent Visualization**
    - `BotsRenderer` - 3D agent rendering
    - `AgentInspector` - Agent details panel
-   - `CommunicationFlow` - Message visualization
+   - `CommunicationFlow` - Message visualisation
 
 2. **multi-agent Controls**
    - `multi-agentInitializer` - UI for multi-agent setup

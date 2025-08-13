@@ -22,7 +22,7 @@ The settings panel has been completely redesigned to address critical UX issues:
 ### 1. **Tabbed Organization**
 Settings are now organized into logical tabs:
 - **Appearance**: Visual customization (nodes, edges, labels, effects)
-- **Performance**: Quality and optimization settings
+- **Performance**: Quality and optimisation settings
 - **XR/VR**: Virtual reality configuration
 - **Advanced**: Power user features (requires authentication)
 
@@ -64,7 +64,7 @@ SettingsPanelRedesign
 ### Key Features
 
 1. **Real-time Updates**
-   - Changes immediately update the visualization
+   - Changes immediately update the visualisation
    - No need for manual save buttons
    - Visual confirmation when settings are saved
 
@@ -121,7 +121,7 @@ The new design maintains compatibility with existing core settings logic:
 ### Restoration Steps
 
 1. **Fix Store Imports**: Update all settings components to use correct store
-2. **Test Real-time Updates**: Verify changes immediately update visualization
+2. **Test Real-time Updates**: Verify changes immediately update visualisation
 3. **Verify Persistence**: Ensure settings save to server correctly
 4. **Multi-graph Support**: Test graph-specific settings work properly
 

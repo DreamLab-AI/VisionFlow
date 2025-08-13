@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LogseqXR graph architecture has been modernized to decouple graph initialization and physics processing from client connections. This document outlines the new architecture and explains the key components and their interactions.
+The LogseqXR graph architecture has been modernized to decouple graph initialisation and physics processing from client connections. This document outlines the new architecture and explains the key components and their interactions.
 
 ## Architecture Components
 
@@ -50,7 +50,7 @@ The server now maintains a continuous physics simulation:
 
 - Graph nodes find optimal positions before any client connects
 - Reduced initial loading time for clients as layout is pre-calculated
-- Physics simulation stabilizes over time, creating a more balanced visualisation
+- Physics simulation stabilises over time, creating a more balanced visualisation
 
 ### 3. Bidirectional Synchronization
 
@@ -105,7 +105,7 @@ When a client connects:
 
 - **Reduced CPU/GPU usage**: Physics calculations shared across all clients
 - **Lower bandwidth usage**: Only changed positions are transmitted
-- **Faster initialization**: Clients receive pre-computed positions
+- **Faster initialisation**: Clients receive pre-computed positions
 - **Better scalability**: Multiple clients supported with minimal additional resource usage
 
 ## Future Improvements

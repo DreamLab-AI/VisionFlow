@@ -369,7 +369,7 @@ open coverage/index.html
    fn test_graph_actor_handles_concurrent_updates() { }
    ```
 
-2. **Test Organization**: Group related tests in modules
+2. **Test Organisation**: Group related tests in modules
    ```rust
    mod graph_tests {
        #[test]

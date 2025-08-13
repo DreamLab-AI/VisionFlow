@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document consolidates the VisionFlow GPU physics migration, which transforms the real-time agent visualization system from CPU-based JavaScript physics to GPU-accelerated processing. This enables visualization of 200+ AI agents at 60 FPS with significant performance improvements.
+This document consolidates the VisionFlow GPU physics migration, which transforms the real-time agent visualisation system from CPU-based JavaScript physics to GPU-accelerated processing. This enables visualisation of 200+ AI agents at 60 FPS with significant performance improvements.
 
 ## Architecture Transformation
 
@@ -43,12 +43,12 @@ Offset  Size  Type      Description
 ### Implementation Details
 - **Endianness**: Little-endian byte order
 - **Compression**: zlib compression for messages > 1KB
-- **Update Rate**: 60 Hz for smooth visualization
+- **Update Rate**: 60 Hz for smooth visualisation
 - **Batch Processing**: Multiple agents per WebSocket frame
 
 ## Communication Intensity Formula
 
-Calculates agent interaction strength for visualization:
+Calculates agent interaction strength for visualisation:
 
 ```typescript
 function calculateIntensity(messageRate: number, dataRate: number, distance: number): number {
@@ -89,7 +89,7 @@ Features:
 2. **Binary Encoding**: Convert to GPU-friendly format
 3. **GPU Simulation**: Physics calculations on GPU
 4. **Binary Streaming**: WebSocket transmission to frontend
-5. **Frontend Rendering**: Three.js visualization
+5. **Frontend Rendering**: Three.js visualisation
 
 ### GPU Kernel Structure
 ```glsl
@@ -124,7 +124,7 @@ kernel void updateAgentPhysics(
 
 ### Frontend (React/Three.js)
 - **Binary WebSocket Client**: Receives position updates
-- **GPU Position Integration**: Updates 3D visualization
+- **GPU Position Integration**: Updates 3D visualisation
 - **Performance Monitoring**: Tracks FPS and latency
 
 ## Configuration
@@ -172,7 +172,7 @@ SPRING_STRENGTH=0.3
 ### Short-term (1-3 months)
 - WebGPU integration for true browser GPU compute
 - Enhanced compression algorithms
-- Mobile optimization
+- Mobile optimisation
 
 ### Medium-term (3-6 months)
 - Multi-GPU support
@@ -181,7 +181,7 @@ SPRING_STRENGTH=0.3
 
 ### Long-term (6-12 months)
 - Edge computing distribution
-- ML-based physics optimization
+- ML-based physics optimisation
 - Extended reality (XR) support
 
 ## Troubleshooting
@@ -206,6 +206,6 @@ SPRING_STRENGTH=0.3
 ## References
 
 - [Binary Protocol Specification](../api/binary-protocol.md)
-- [WebSocket Architecture](../websocket-architecture.md)
-- [Agent Control System](../../agent-control-system/README.md)
-- [Performance Monitoring Guide](../monitoring/performance.md)
+- [WebSocket Implementation](../api/websocket.md)
+- [Agent Orchestration](../features/agent-orchestration.md)
+- [MCP Tool Usage](../technical/mcp_tool_usage.md)

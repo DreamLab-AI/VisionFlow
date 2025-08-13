@@ -165,7 +165,7 @@ The system handles automatic conversion between:
 Users with `settings_sync` permission can store and retrieve their settings across devices:
 - Settings are stored per user (by Nostr pubkey)
 - Power users can modify global server settings
-- Cache management for performance optimization
+- Cache management for performance optimisation
 
 ## Environment Variables
 

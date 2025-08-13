@@ -2,7 +2,7 @@
 
 ## Overview
 
-The VisionFlow binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimize bandwidth usage while maintaining precision for real-time graph visualization updates.
+The VisionFlow binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimize bandwidth usage while maintaining precision for real-time graph visualisation updates.
 
 ## Protocol Architecture
 

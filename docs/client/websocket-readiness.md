@@ -89,7 +89,7 @@ public enableBinaryUpdates(force: boolean = false): void {
 
 ### Adapter Pattern for Service Integration
 
-An adapter pattern is used, typically during application initialization (e.g., in [`AppInitializer.tsx`](../../client/src/app/AppInitializer.tsx)), to provide the `GraphDataManager` with a way to interact with the `WebSocketService`.
+An adapter pattern is used, typically during application initialisation (e.g., in [`AppInitializer.tsx`](../../client/src/app/AppInitializer.tsx)), to provide the `GraphDataManager` with a way to interact with the `WebSocketService`.
 
 ```typescript
 // In client/src/app/AppInitializer.tsx (conceptual)
