@@ -15,14 +15,14 @@ graph TB
             KMeta[Metadata]
             KLayout[Force-Directed Layout]
         end
-        
+
         subgraph "Agent Graph"
             ANodes[Agent Nodes<br/>Claude Flow Agents]
             AEdges[Communication Edges]
             AState[Agent State]
-            ALayout[Swarm Layout]
+            ALayout[multi-agent Layout]
         end
-        
+
         subgraph "Unified Processing"
             Coordinator[ParallelGraphCoordinator]
             UnifiedKernel[Unified CUDA Kernel]
@@ -30,7 +30,7 @@ graph TB
             Render[WebGL Renderer]
         end
     end
-    
+
     KNodes --> Coordinator
     ANodes --> Coordinator
     Coordinator --> UnifiedKernel
@@ -143,26 +143,26 @@ graph TB
         LG[Logseq Files] --> FS[File Service]
         FS --> KP[Knowledge Processor]
     end
-    
+
     subgraph "Agent Source"
         CF[Claude Flow MCP] --> WS[WebSocket]
         WS --> CFA[ClaudeFlowActor]
     end
-    
+
     subgraph "Graph Service"
         KP --> GSA[GraphServiceActor]
         CFA --> GSA
         GSA --> KG[Knowledge Graph Buffer]
         GSA --> AG[Agent Graph Buffer]
     end
-    
+
     subgraph "GPU Compute"
         KG --> GPU[GPUComputeActor]
         AG --> GPU
         GPU --> PH[Physics Simulation]
         PH --> VP[Vertex Positions]
     end
-    
+
     subgraph "Client"
         VP --> BR[Binary Protocol]
         BR --> WC[WebSocket Client]
@@ -220,20 +220,20 @@ Visual differentiation:
 pub struct UnifiedGPUCompute {
     // Structure of Arrays for maximum performance
     positions_x: CudaSlice<f32>,
-    positions_y: CudaSlice<f32>, 
+    positions_y: CudaSlice<f32>,
     positions_z: CudaSlice<f32>,
     velocities_x: CudaSlice<f32>,
     velocities_y: CudaSlice<f32>,
     velocities_z: CudaSlice<f32>,
-    
+
     // Edge data
     edge_sources: CudaSlice<i32>,
     edge_targets: CudaSlice<i32>,
     edge_weights: CudaSlice<f32>,
-    
+
     // Unified kernel function
     unified_kernel: CudaFunction,
-    
+
     // Compute modes
     compute_mode: ComputeMode, // Basic, DualGraph, Constraints, Analytics
 }
@@ -286,7 +286,7 @@ visualisation:
       rendering:
         node_size: 1.0
         edge_opacity: 0.6
-        
+
     agents:
       enabled: true
       physics:
@@ -296,7 +296,7 @@ visualisation:
       rendering:
         node_size: 1.5
         edge_opacity: 0.8
-        
+
     cross_graph:
       enabled: false
       max_edges: 100
@@ -306,7 +306,7 @@ visualisation:
 ## Benefits
 
 1. **Performance**: Independent update cycles
-2. **Clarity**: Visual separation of concerns  
+2. **Clarity**: Visual separation of concerns
 3. **Flexibility**: Different physics per graph type
 4. **Scalability**: Parallel GPU processing
 5. **Maintainability**: Clean code separation

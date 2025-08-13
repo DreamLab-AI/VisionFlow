@@ -24,12 +24,12 @@ POWER_USER_KEY_2=secret-key-2
 
 ## Quick Configuration Tasks
 
-### Enable VisionFlow Swarm Visualization
+### Enable VisionFlow multi-agent Visualization
 ```yaml
 # In data/settings.yaml
 features:
   enabled_features:
-    - visionflow_swarm
+    - visionflow_multi-agent
     - graph_visualization
 ```
 
@@ -49,7 +49,7 @@ export ENABLE_GPU_PHYSICS=false
 ragflow:
   api_key: "${RAGFLOW_API_KEY}"
   base_url: "https://api.ragflow.com"
-  
+
 perplexity:
   api_key: "${PERPLEXITY_API_KEY}"
   model: "mixtral-8x7b-instruct"

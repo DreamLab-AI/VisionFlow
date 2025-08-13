@@ -3,7 +3,7 @@
 // UPDATED: Enhanced agent types to match claude-flow hive-mind system (15+ types including Maestro specs-driven agents)
 export interface BotsAgent {
   id: string;
-  type: 'coordinator' | 'researcher' | 'coder' | 'analyst' | 'architect' | 'tester' | 'reviewer' | 'optimizer' | 'documenter' | 'monitor' | 'specialist' | 
+  type: 'coordinator' | 'researcher' | 'coder' | 'analyst' | 'architect' | 'tester' | 'reviewer' | 'optimizer' | 'documenter' | 'monitor' | 'specialist' |
         'requirements_analyst' | 'design_architect' | 'task_planner' | 'implementation_coder' | 'quality_reviewer' | 'steering_documenter' | 'queen';
   status: 'idle' | 'busy' | 'active' | 'error' | 'initializing' | 'terminating' | 'offline';
   health: number; // 0-100
@@ -13,7 +13,7 @@ export interface BotsAgent {
   createdAt: string; // ISO 8601
   age: number; // milliseconds
   name?: string;
-  
+
   // UPDATED: Enhanced agent properties from claude-flow hive-mind
   capabilities?: string[]; // agent capabilities like 'task_management', 'code_generation', etc.
   currentTask?: string; // active task description
@@ -23,7 +23,7 @@ export interface BotsAgent {
   tokens?: number; // token usage
   tokenRate?: number; // tokens per minute
   activity?: number; // 0-1 activity level
-  
+
   // 3D positioning for force-directed graph
   position?: {
     x: number;
@@ -35,12 +35,12 @@ export interface BotsAgent {
     y: number;
     z: number;
   };
-  
-  // UPDATED: Swarm and hive-mind metadata
-  swarmId?: string;
+
+  // UPDATED: multi-agent and hive-mind metadata
+  multi-agentId?: string;
   agentMode?: 'centralized' | 'distributed' | 'strategic';
   parentQueenId?: string; // for hierarchical topologies
-  
+
   // Processing activity logs for visualization
   processingLogs?: string[]; // Recent processing activity messages
 }
@@ -93,7 +93,7 @@ export interface MCPMessage {
 export interface BotsFullUpdateMessage {
   type: 'bots-full-update';
   agents: BotsAgent[];
-  swarmMetrics: {
+  multiAgentMetrics: {
     totalAgents: number;
     activeAgents: number;
     totalTasks: number;
@@ -129,7 +129,7 @@ export interface BotsVisualConfig {
     documenter: string;
     monitor: string;
     specialist: string;
-    
+
     // UPDATED: Maestro specs-driven agent types
     requirements_analyst: string;
     design_architect: string;
@@ -137,12 +137,12 @@ export interface BotsVisualConfig {
     implementation_coder: string;
     quality_reviewer: string;
     steering_documenter: string;
-    
+
     // UPDATED: Special hive-mind types
     queen: string; // Queen agent gets distinctive color
   };
-  
-  // UPDATED: Enhanced physics configuration for swarm behavior
+
+  // UPDATED: Enhanced physics configuration for multi-agent behavior
   physics: {
     springStrength: number;
     linkDistance: number;
@@ -150,13 +150,13 @@ export interface BotsVisualConfig {
     nodeRepulsion: number;
     gravityStrength: number;
     maxVelocity: number;
-    
+
     // UPDATED: Hive-mind specific physics
     queenGravity: number; // Additional gravity toward Queen agents
-    swarmCohesion: number; // Cohesion within same swarm
+    multi-agentCohesion: number; // Cohesion within same multi-agent
     hierarchicalForce: number; // Force for hierarchical topologies
   };
-  
+
   // UPDATED: Agent size configuration based on role importance
   sizes: {
     queen: number; // Largest

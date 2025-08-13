@@ -18,11 +18,11 @@ const generateMockProcessingLogs = (agentType: string, status: string): string[]
 
   const activityTemplates = {
     coordinator: [
-      'Analyzing swarm topology and agent distribution patterns...',
+      'Analyzing multi-agent topology and agent distribution patterns...',
       'Coordinating task allocation across 7 active agents...',
       'Optimizing communication channels for minimal latency...',
       'Monitoring agent health metrics and workload balance...',
-      'Synchronizing distributed memory across swarm nodes...'
+      'Synchronizing distributed memory across multi-agent nodes...'
     ],
     researcher: [
       'Scanning knowledge base for relevant documentation...',
@@ -62,7 +62,7 @@ const generateMockProcessingLogs = (agentType: string, status: string): string[]
     queen: [
       'Orchestrating hive mind collective intelligence...',
       'Distributing tasks across specialized worker agents...',
-      'Optimizing swarm topology for maximum efficiency...',
+      'Optimizing multi-agent topology for maximum efficiency...',
       'Monitoring collective progress towards objectives...',
       'Synchronizing knowledge base across all agents...'
     ],
@@ -253,14 +253,14 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* Swarm Info */}
-      {agent.swarmId && (
+      {/* multi-agent Info */}
+      {agent.multi-agentId && (
         <div style={{
           fontSize: '9px',
           color: '#888',
           marginTop: '2px'
         }}>
-          Swarm: {agent.swarmId}
+          multi-agent: {agent.multi-agentId}
           {agent.parentQueenId && ` • Queen: ${agent.parentQueenId.slice(0, 8)}...`}
         </div>
       )}
@@ -469,7 +469,7 @@ export const BotsVisualization: React.FC = () => {
       // Update position map from binary data
       agentNodes.forEach((node, index) => {
         const position = new THREE.Vector3(node.position.x, node.position.y, node.position.z);
-        
+
         // Map binary node ID to agent ID
         // For now, we'll use the node index to match with agent array index
         // This may need refinement based on how the server assigns node IDs
@@ -479,7 +479,7 @@ export const BotsVisualization: React.FC = () => {
           positionsRef.current.set(agent.id, position);
         }
       });
-      
+
       logger.debug(`Updated ${agentNodes.length} agent positions from binary protocol`);
     }
   });

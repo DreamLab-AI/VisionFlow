@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { SwarmInitializationPrompt } from '../../bots/components/SwarmInitializationPrompt';
+import { multiAgentInitializationPrompt } from '../../bots/components/multiAgentInitializationPrompt';
 
 interface IntegratedControlPanelProps {
   showStats: boolean;
@@ -71,7 +71,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   // Nostr auth state
   const [nostrConnected, setNostrConnected] = useState(false);
   const [nostrPublicKey, setNostrPublicKey] = useState<string>('');
-  const [showSwarmPrompt, setShowSwarmPrompt] = useState(false);
+  const [showmultiAgentPrompt, setshowmultiAgentPrompt] = useState(false);
 
   // Settings store access
   const settings = useSettingsStore(state => state.settings);
@@ -655,10 +655,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           {botsData.nodeCount === 0 ? (
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
-                No active swarm
+                No active multi-agent
               </div>
               <button
-                onClick={() => setShowSwarmPrompt(true)}
+                onClick={() => setshowmultiAgentPrompt(true)}
                 style={{
                   background: '#F1C40F',
                   color: 'black',
@@ -673,7 +673,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                 onMouseEnter={(e) => e.currentTarget.style.background = '#F39C12'}
                 onMouseLeave={(e) => e.currentTarget.style.background = '#F1C40F'}
               >
-                Initialize Swarm
+                Initialize multi-agent
               </button>
             </div>
           ) : (
@@ -688,7 +688,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
               </div>
               <div style={{ marginTop: '10px', textAlign: 'center' }}>
                 <button
-                  onClick={() => setShowSwarmPrompt(true)}
+                  onClick={() => setshowmultiAgentPrompt(true)}
                   style={{
                     background: '#27AE60',
                     color: 'white',
@@ -703,7 +703,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                   onMouseEnter={(e) => e.currentTarget.style.background = '#229954'}
                   onMouseLeave={(e) => e.currentTarget.style.background = '#27AE60'}
                 >
-                  New Swarm Task
+                  New multi-agent Task
                 </button>
               </div>
             </>
@@ -1074,12 +1074,12 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         )}
       </div>
 
-      {/* Swarm Initialization Prompt */}
-      {showSwarmPrompt && (
-        <SwarmInitializationPrompt
-          onClose={() => setShowSwarmPrompt(false)}
+      {/* multi-agent Initialization Prompt */}
+      {showmultiAgentPrompt && (
+        <multiAgentInitializationPrompt
+          onClose={() => setshowmultiAgentPrompt(false)}
           onInitialized={() => {
-            setShowSwarmPrompt(false);
+            setshowmultiAgentPrompt(false);
             // The bots data will be refreshed automatically through the existing update mechanism
           }}
         />

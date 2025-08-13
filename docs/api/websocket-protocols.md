@@ -13,28 +13,28 @@ graph TB
         XR[XR Client]
         API[API Client]
     end
-    
+
     subgraph "WebSocket Endpoints"
         Flow[/wss<br/>Binary Graph Updates]
         Speech[/ws/speech<br/>Voice Streaming]
         MCP[/ws/mcp-relay<br/>MCP Protocol]
         Bots[/ws/bots_visualization<br/>Agent Updates]
     end
-    
+
     subgraph "Backend Handlers"
         FlowHandler[Socket Flow Handler]
         SpeechHandler[Speech Handler]
         MCPHandler[MCP Relay Handler]
         BotsHandler[Bots Viz Handler]
     end
-    
+
     Browser --> Flow
     Browser --> Speech
     Browser --> MCP
     Browser --> Bots
     XR --> Flow
     API --> MCP
-    
+
     Flow --> FlowHandler
     Speech --> SpeechHandler
     MCP --> MCPHandler
@@ -63,7 +63,7 @@ graph TB
 
 ### 4. Bots Visualization
 - **Endpoint**: `/ws/bots_visualization`
-- **Purpose**: Agent swarm visualization updates
+- **Purpose**: Multi Agent Visualisation updates
 - **Protocol**: JSON with agent states and metrics
 - **Update Rate**: 16 ms intervals (~60 FPS)
 
@@ -110,15 +110,15 @@ interface PositionRequest {
 function decodeBinaryPositions(data: ArrayBuffer): Map<number, PositionUpdate> {
   const view = new DataView(data);
   const positions = new Map();
-  
+
   for (let i = 0; i < data.byteLength; i += 28) {
     const flaggedId = view.getUint32(i, true);
-    
+
     // Extract type flags
     const isAgent = (flaggedId & 0x80000000) !== 0;
     const isKnowledge = (flaggedId & 0x40000000) !== 0;
     const actualId = flaggedId & 0x3FFFFFFF;
-    
+
     const position = {
       x: view.getFloat32(i + 4, true),
       y: view.getFloat32(i + 8, true),
@@ -129,14 +129,14 @@ function decodeBinaryPositions(data: ArrayBuffer): Map<number, PositionUpdate> {
       y: view.getFloat32(i + 20, true),
       z: view.getFloat32(i + 24, true)
     };
-    
-    positions.set(actualId, { 
-      position, 
-      velocity, 
+
+    positions.set(actualId, {
+      position,
+      velocity,
       type: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'unknown'
     });
   }
-  
+
   return positions;
 }
 ```
@@ -247,9 +247,9 @@ interface WebSocketMessage<T = any> {
 #### Initialization Message
 ```json
 {
-  "type": "swarm-init",
+  "type": "multi-agent-init",
   "payload": {
-    "swarmId": "swarm-001",
+    "multi-agentId": "multi-agent-001",
     "topology": "hierarchical",
     "agents": []
   }
@@ -296,7 +296,7 @@ interface WebSocketMessage<T = any> {
   "payload": {
     "agents": [{
       "id": "agent-001",
-      "name": "Research Agent Alpha", 
+      "name": "Research Agent Alpha",
       "type": "researcher",
       "status": "active",
       "health": 0.95,
@@ -329,7 +329,7 @@ interface WebSocketMessage<T = any> {
   "id": "call-123",
   "method": "tools/call",
   "params": {
-    "name": "swarm_init",
+    "name": "multi-agent_init",
     "arguments": {
       "topology": "hierarchical",
       "maxAgents": 10
@@ -346,7 +346,7 @@ interface WebSocketMessage<T = any> {
   "result": {
     "content": [{
       "type": "text",
-      "text": "Swarm initialized with 10 agents in hierarchical topology"
+      "text": "multi-agent initialized with 10 agents in hierarchical topology"
     }]
   }
 }
@@ -411,7 +411,7 @@ interface WebSocketMessage<T = any> {
 const batchSize = 100; // positions per message
 const updateRate = 60; // Hz for agents, 1 Hz for knowledge nodes
 
-// Agent visualization batching  
+// Agent visualization batching
 const agentBatchSize = 50; // agents per update
 const updateInterval = 16; // ms (~60fps)
 ```
@@ -424,17 +424,17 @@ class WebSocketManager {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private baseDelay = 1000; // ms
-  
+
   async reconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       throw new Error('Max reconnection attempts reached');
     }
-    
+
     // Exponential backoff with jitter
-    const delay = this.baseDelay * Math.pow(2, this.reconnectAttempts) + 
+    const delay = this.baseDelay * Math.pow(2, this.reconnectAttempts) +
                   Math.random() * 1000;
     await sleep(delay);
-    
+
     this.reconnectAttempts++;
     await this.connect();
   }
@@ -445,7 +445,7 @@ class WebSocketManager {
 ```typescript
 enum ConnectionState {
   CONNECTING = 'connecting',
-  CONNECTED = 'connected', 
+  CONNECTED = 'connected',
   RECONNECTING = 'reconnecting',
   DISCONNECTED = 'disconnected',
   ERROR = 'error'
@@ -521,15 +521,15 @@ const wsWithToken = new WebSocket(
 ```typescript
 function useWebSocketPositions() {
   const [positions, setPositions] = useState(new Map());
-  
+
   useEffect(() => {
     const ws = new WebSocket('wss://localhost:3001/wss');
-    
+
     ws.onopen = () => {
       // Request initial data
       ws.send(JSON.stringify({ type: 'requestInitialData' }));
     };
-    
+
     ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
         const newPositions = decodeBinaryPositions(event.data);
@@ -539,10 +539,10 @@ function useWebSocketPositions() {
         handleControlMessage(message);
       }
     };
-    
+
     return () => ws.close();
   }, []);
-  
+
   return positions;
 }
 ```
@@ -551,7 +551,7 @@ function useWebSocketPositions() {
 ```typescript
 // Update 3D positions from WebSocket
 function updateSceneFromWebSocket(
-  scene: THREE.Scene, 
+  scene: THREE.Scene,
   positions: Map<number, PositionUpdate>
 ) {
   positions.forEach((data, id) => {
@@ -559,11 +559,11 @@ function updateSceneFromWebSocket(
     if (mesh) {
       // Update position
       mesh.position.set(data.position.x, data.position.y, data.position.z);
-      
+
       // Store velocity for interpolation
       mesh.userData.velocity = data.velocity;
       mesh.userData.type = data.type;
-      
+
       // Apply type-specific styling
       if (data.type === 'agent') {
         mesh.material.color.setHex(0xff6b6b);
@@ -579,20 +579,20 @@ function updateSceneFromWebSocket(
 ```typescript
 function useAgentVisualization() {
   const [agents, setAgents] = useState([]);
-  
+
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3001/ws/bots_visualization');
-    
+
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      
+
       switch (message.type) {
         case 'bots-full-update':
           setAgents(message.payload.agents);
           break;
-        
+
         case 'agent-state-update':
-          setAgents(prev => prev.map(agent => 
+          setAgents(prev => prev.map(agent =>
             agent.id === message.payload.agentId
               ? { ...agent, ...message.payload }
               : agent
@@ -600,10 +600,10 @@ function useAgentVisualization() {
           break;
       }
     };
-    
+
     return () => ws.close();
   }, []);
-  
+
   return agents;
 }
 ```
@@ -641,7 +641,7 @@ const DEBUG_CONFIG = {
 if (DEBUG_CONFIG.logBinaryMessages) {
   ws.addEventListener('message', (event) => {
     if (event.data instanceof ArrayBuffer) {
-      console.log(`[WS Binary] ${event.data.byteLength} bytes:`, 
+      console.log(`[WS Binary] ${event.data.byteLength} bytes:`,
         Array.from(new Uint8Array(event.data, 0, 32)) // First 32 bytes
       );
     }
@@ -656,20 +656,20 @@ class WebSocketMetrics {
   private messageCount = 0;
   private bytesReceived = 0;
   private lastUpdate = Date.now();
-  
+
   onMessage(event: MessageEvent) {
     this.messageCount++;
-    this.bytesReceived += event.data instanceof ArrayBuffer 
-      ? event.data.byteLength 
+    this.bytesReceived += event.data instanceof ArrayBuffer
+      ? event.data.byteLength
       : new Blob([event.data]).size;
-    
+
     // Log metrics every 10 seconds
     if (Date.now() - this.lastUpdate > 10000) {
       console.log(`WebSocket Metrics: ${this.messageCount} msgs, ${this.bytesReceived} bytes`);
       this.reset();
     }
   }
-  
+
   private reset() {
     this.messageCount = 0;
     this.bytesReceived = 0;

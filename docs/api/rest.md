@@ -23,7 +23,7 @@ POST /api/nostr/auth
 ```json
 {
   "id": "event_id_hex",
-  "pubkey": "user_pubkey_hex", 
+  "pubkey": "user_pubkey_hex",
   "created_at": 1678886400,
   "kind": 22242,
   "tags": [
@@ -174,7 +174,7 @@ GET /api/bots/data
       }
     }
   ],
-  "swarmTopology": "hierarchical",
+  "multi-agentTopology": "hierarchical",
   "totalAgents": 15,
   "connections": [
     {
@@ -216,9 +216,9 @@ POST /api/bots/data
 }
 ```
 
-### Initialize Swarm
+### Initialize multi-agent
 ```http
-POST /api/bots/initialize-swarm
+POST /api/bots/initialize-multi-agent
 ```
 
 **Request:**
@@ -236,8 +236,8 @@ POST /api/bots/initialize-swarm
 ```json
 {
   "success": true,
-  "swarmId": "swarm-001",
-  "message": "Swarm initialized successfully",
+  "multi-agentId": "multi-agent-001",
+  "message": "multi-agent initialized successfully",
   "agents": [
     {
       "id": "agent-001",
@@ -383,7 +383,7 @@ POST /api/files/update_graph
 **Response:**
 ```json
 {
-  "status": "success", 
+  "status": "success",
   "message": "Graph updated successfully"
 }
 ```
@@ -439,7 +439,7 @@ POST /api/quest3/init
 
 ## Visualization Endpoints
 
-### Get Visualization Config  
+### Get Visualization Config
 ```http
 GET /api/visualisation/config
 ```
@@ -565,7 +565,7 @@ GET /api/health
   "timestamp": "2024-01-01T00:00:00Z",
   "services": {
     "graph": "operational",
-    "agents": "operational", 
+    "agents": "operational",
     "gpu": "operational",
     "mcp": "connected",
     "websockets": "operational"
@@ -596,7 +596,7 @@ GET /api/mcp/health
   "tools": {
     "available": 50,
     "active": 3,
-    "categories": ["swarm", "neural", "memory"]
+    "categories": ["multi-agent", "neural", "memory"]
   },
   "sessions": {
     "active": 2,
@@ -745,7 +745,7 @@ All endpoints return consistent error responses:
 | `INTERNAL_ERROR` | Server error | 500 |
 | `SERVICE_UNAVAILABLE` | Service temporarily unavailable | 503 |
 | `AGENT_NOT_FOUND` | Specified agent does not exist | 404 |
-| `SWARM_ERROR` | Swarm operation failed | 500 |
+| `multi-agent_ERROR` | multi-agent operation failed | 500 |
 | `GRAPH_ERROR` | Graph operation failed | 500 |
 | `GPU_ERROR` | GPU computation error | 500 |
 
@@ -877,7 +877,7 @@ The API uses URL-based versioning:
 # Health check
 curl http://localhost:3001/api/health
 
-# Get graph data  
+# Get graph data
 curl http://localhost:3001/api/graph/data
 
 # Get agents
@@ -900,6 +900,6 @@ curl http://localhost:3001/api/bots/data
 
 ### Breaking Changes in v1.0
 1. Node IDs changed from u16 to u32
-2. WebSocket binary protocol updated  
+2. WebSocket binary protocol updated
 3. Authentication moved to Nostr-based system
 4. Response format standardized across endpoints

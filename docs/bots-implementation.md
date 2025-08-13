@@ -5,10 +5,10 @@
 The bots visualization has been successfully integrated into VisionFlow to display agent activity from the claude-flow MCP server. The implementation includes:
 
 1. **Backend Integration** - Processing bots data through the GPU physics system
-2. **API Endpoints** - RESTful endpoints for bots data management and swarm initialization
+2. **API Endpoints** - RESTful endpoints for bots data management and multi-agent initialization
 3. **Binary WebSocket** - Real-time position updates using the same protocol as the main graph
 4. **Frontend Visualization** - 3D force-directed graph with gold/green color scheme
-5. **Hive Mind Spawning** - Interactive UI to spawn and configure Claude Flow swarms
+5. **Hive Mind Spawning** - Interactive UI to spawn and configure Claude Flow multi-agents
 
 ## Architecture
 
@@ -23,7 +23,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 #### 2. API Routes
 - `/api/bots/data` - GET endpoint to retrieve current bots state
 - `/api/bots/update` - POST endpoint to update bots data from MCP
-- `/api/bots/initialize-swarm` - POST endpoint to spawn a Claude Flow hive mind
+- `/api/bots/initialize-multi-agent` - POST endpoint to spawn a Claude Flow hive mind
 
 #### 3. WebSocket Integration (`/src/handlers/socket_flow_handler.rs`)
 - Extended to handle `requestBotsPositions` messages
@@ -43,7 +43,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 - Filters nodes by bots flag (0x80)
 - Updates positions in real-time
 
-#### 4. SwarmInitializationPrompt Component
+#### 4. multiAgentInitializationPrompt Component
 - Interactive modal dialog for spawning hive minds
 - Configurable options:
   - **Topology**: mesh, hierarchical, ring, or star
@@ -61,12 +61,12 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 4. **Frontend** → Renders 3D visualization with real-time updates
 
 ### Hive Mind Spawning
-1. **User** → Clicks "Initialize Swarm" button in control panel
-2. **SwarmInitializationPrompt** → Collects configuration and task
-3. **Frontend** → POSTs to `/api/bots/initialize-swarm`
+1. **User** → Clicks "Initialize multi-agent" button in control panel
+2. **multiAgentInitializationPrompt** → Collects configuration and task
+3. **Frontend** → POSTs to `/api/bots/initialize-multi-agent`
 4. **BotsHandler** → Forwards request to ClaudeFlowActor
 5. **ClaudeFlowActor** → Connects to Claude Flow MCP and:
-   - Initializes swarm with selected topology
+   - Initializes multi-agent with selected topology
    - Spawns requested agent types
    - Enables neural patterns if selected
    - Applies custom task prompt
@@ -86,7 +86,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
 ### Spawning a Hive Mind
 
 1. Open VisionFlow and look for the control panel
-2. Click the "Initialize Swarm" button when no agents are active
+2. Click the "Initialize multi-agent" button when no agents are active
 3. Configure your hive mind:
    - **Topology**: Choose the communication structure
      - *Mesh*: All agents can communicate (best for collaboration)
@@ -97,7 +97,7 @@ The bots visualization has been successfully integrated into VisionFlow to displ
    - **Agent Types**: Check which types of agents to spawn
    - **Neural Enhancement**: Enable for advanced AI capabilities
    - **Task**: Describe what you want the hive mind to accomplish
-4. Click "Spawn Hive Mind" to create the swarm
+4. Click "Spawn Hive Mind" to create the multi-agent
 
 ### Example Tasks
 
@@ -123,8 +123,8 @@ This will:
 ### Testing Hive Mind Spawning
 
 ```bash
-# Test the initialize-swarm endpoint
-curl -X POST http://localhost:4000/api/bots/initialize-swarm \
+# Test the initialize-multi-agent endpoint
+curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
   -H "Content-Type: application/json" \
   -d '{
     "topology": "mesh",
@@ -160,7 +160,7 @@ curl -X POST http://localhost:4000/api/bots/initialize-swarm \
 - Check Docker network connectivity
 - Try different MCP server URLs in MCPWebSocketService
 
-### Swarm Initialization Failed (404 Error)
+### multi-agent Initialization Failed (404 Error)
 **This is the most common issue after adding the new endpoint!**
 
 1. **Restart the backend server** to register the new route:
@@ -176,12 +176,12 @@ curl -X POST http://localhost:4000/api/bots/initialize-swarm \
    [INFO] Configuring bots routes:
    [INFO]   - /bots/data (GET)
    [INFO]   - /bots/update (POST)
-   [INFO]   - /bots/initialize-swarm (POST)
+   [INFO]   - /bots/initialize-multi-agent (POST)
    ```
 
 3. Verify the endpoint is accessible:
    ```bash
-   curl -X POST http://localhost:3001/api/bots/initialize-swarm \
+   curl -X POST http://localhost:3001/api/bots/initialize-multi-agent \
      -H "Content-Type: application/json" \
      -d '{"topology":"mesh","maxAgents":8,"strategy":"adaptive","enableNeural":true,"agentTypes":["coordinator"],"customPrompt":"Test"}'
    ```

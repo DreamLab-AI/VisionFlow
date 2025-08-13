@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow is built on a unified, actor-based architecture that enables real-time 3D visualization of parallel knowledge graphs and AI agent swarms. The system combines a high-performance Rust backend with a modern React/TypeScript frontend, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel and parallel graph coordination.
+VisionFlow is built on a unified, actor-based architecture that enables real-time 3D visualization of parallel knowledge graphs and AI Multi Agents. The system combines a high-performance Rust backend with a modern React/TypeScript frontend, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel and parallel graph coordination.
 
 ## Core Architecture Diagram
 
@@ -15,7 +15,7 @@ graph TB
             Three[Three.js Renderer]
             XR[WebXR Manager]
         end
-        
+
         subgraph "WebSocket Clients"
             WSFlow[Socket Flow Client]
             WSSpeech[Speech Client]
@@ -23,20 +23,20 @@ graph TB
             WSBots[Bots Viz Client]
         end
     end
-    
+
     subgraph "Backend Layer"
         subgraph "HTTP Server"
             REST[REST API<br/>Actix-Web]
             Static[Static Files]
             Auth[Auth Handler]
         end
-        
+
         subgraph "WebSocket Server"
             WSHandler[WS Handler]
             Binary[Binary Protocol]
             Stream[Stream Manager]
         end
-        
+
         subgraph "Actor System"
             CFActor[EnhancedClaudeFlowActor<br/>Direct WebSocket MCP]
             GraphActor[Graph Service Actor<br/>Parallel Graphs]
@@ -46,7 +46,7 @@ graph TB
             MetaActor[Metadata Actor]
             ProtectedActor[Protected Settings]
         end
-        
+
         subgraph "Services Layer"
             MCPRelay[MCP Relay Manager]
             GitHubSvc[GitHub Service]
@@ -56,14 +56,14 @@ graph TB
             AgentViz[Agent Viz Processor]
         end
     end
-    
+
     subgraph "GPU Layer"
         UnifiedKernel[Unified CUDA Kernel<br/>visionflow_unified.cu]
         Physics[Unified Physics Engine]
         ParallelGraphs[Parallel Graph Processing]
         Analytics[Visual Analytics Mode]
     end
-    
+
     subgraph "External Services"
         ClaudeFlow[Claude Flow<br/>Port 3002]
         GitHub[GitHub API]
@@ -71,7 +71,7 @@ graph TB
         Perplexity[Perplexity API]
         Nostr[Nostr Network]
     end
-    
+
     UI --> Store
     Store --> Three
     Three --> XR
@@ -79,35 +79,35 @@ graph TB
     UI --> WSSpeech
     UI --> WSMCP
     UI --> WSBots
-    
+
     WSFlow --> WSHandler
     WSSpeech --> WSHandler
     WSMCP --> WSHandler
     WSBots --> WSHandler
-    
+
     WSHandler --> Binary
     Binary --> Stream
     Stream --> ClientMgr
-    
+
     REST --> Auth
     Auth --> NostrSvc
     REST --> GraphActor
     REST --> SettingsActor
     REST --> BotsClient
-    
+
     ClientMgr --> GraphActor
     GraphActor --> GPUActor
     GPUActor --> UnifiedKernel
     UnifiedKernel --> Physics
     UnifiedKernel --> ParallelGraphs
     UnifiedKernel --> Analytics
-    
+
     CFActor --> MCPRelay
     MCPRelay --> ClaudeFlow
     GraphActor --> GitHubSvc
     GitHubSvc --> GitHub
     NostrSvc --> Nostr
-    
+
     BotsClient --> AgentViz
     AgentViz --> GraphActor
 ```
@@ -122,22 +122,22 @@ graph LR
         App[App.tsx]
         App --> MainLayout[MainLayout]
         App --> Quest3Layout[Quest3 AR Layout]
-        
+
         MainLayout --> GraphCanvas[Graph Canvas]
         MainLayout --> ControlPanel[Control Panel]
         MainLayout --> BotsPanel[Bots Panel]
-        
+
         GraphCanvas --> Viewport[3D Viewport]
         Viewport --> Renderer[WebGL Renderer]
         Viewport --> Camera[Camera Controller]
         Viewport --> Effects[Post-Processing]
-        
+
         ControlPanel --> Settings[Settings Panel]
         ControlPanel --> Commands[Command Palette]
         ControlPanel --> Voice[Voice Controls]
-        
+
         BotsPanel --> AgentList[Agent List]
-        BotsPanel --> SwarmViz[Swarm Visualization]
+        BotsPanel --> multi-agentViz[multi-agent Visualization]
         BotsPanel --> Metrics[Performance Metrics]
     end
 ```
@@ -152,11 +152,11 @@ sequenceDiagram
     participant GraphActor
     participant GPUActor
     participant CUDA
-    
+
     Client->>WebSocket: Connect
     WebSocket->>ClientManager: Register Client
     ClientManager->>Client: Send Initial State
-    
+
     Client->>WebSocket: Update Request
     WebSocket->>ClientManager: Forward Message
     ClientManager->>GraphActor: Process Update
@@ -178,36 +178,36 @@ graph TB
         API[External APIs]
         Agents[AI Agents]
     end
-    
+
     subgraph "Processing Pipeline"
         Parser[Data Parser]
         Semantic[Semantic Analyzer]
         Edge[Edge Generator]
         Layout[Layout Engine]
     end
-    
+
     subgraph "Storage"
         GraphState[Graph State]
         MetaCache[Metadata Cache]
         Settings[Settings Store]
     end
-    
+
     subgraph "Distribution"
         Binary[Binary Protocol]
         Diff[Differential Updates]
         Stream[Stream Manager]
     end
-    
+
     MD --> Parser
     JSON --> Parser
     API --> Parser
     Agents --> Parser
-    
+
     Parser --> Semantic
     Semantic --> Edge
     Edge --> Layout
     Layout --> GraphState
-    
+
     GraphState --> MetaCache
     GraphState --> Binary
     Binary --> Diff
@@ -225,7 +225,7 @@ graph LR
         Edges[Edge Data]
         Params[SimParams]
     end
-    
+
     subgraph "GPU Memory (SoA)"
         PosX[Position X Array]
         PosY[Position Y Array]
@@ -233,28 +233,28 @@ graph LR
         VelArrays[Velocity Arrays]
         EdgeArrays[Edge Arrays]
     end
-    
+
     subgraph "Unified CUDA Kernel"
         UnifiedCompute[visionflow_unified_kernel]
         Modes[4 Compute Modes:<br/>Basic, DualGraph,<br/>Constraints, Analytics]
     end
-    
+
     subgraph "Output"
         Updated[Updated Positions]
         Metrics[Performance Metrics]
     end
-    
+
     KnowledgeNodes --> PosX
     AgentNodes --> PosX
     Edges --> EdgeArrays
     Params --> UnifiedCompute
-    
+
     PosX --> UnifiedCompute
     PosY --> UnifiedCompute
     PosZ --> UnifiedCompute
     VelArrays --> UnifiedCompute
     EdgeArrays --> UnifiedCompute
-    
+
     UnifiedCompute --> Updated
     UnifiedCompute --> Metrics
 ```
@@ -268,14 +268,14 @@ graph TB
         MCPRelay[MCP Relay Manager]
         WSRelay[WebSocket Relay]
     end
-    
+
     subgraph "Claude Flow Service"
         MCPServer[MCP Server<br/>Port 3002]
         Tools[50+ MCP Tools]
-        Swarm[Swarm Manager]
+        multi-agent[multi-agent Manager]
         Memory[Memory Service]
     end
-    
+
     subgraph "Agent Types"
         Coord[Coordinator]
         Research[Researcher]
@@ -284,21 +284,21 @@ graph TB
         Architect[Architect]
         Others[15+ Types]
     end
-    
+
     CFActor <--> MCPRelay
     MCPRelay <--> WSRelay
     WSRelay <--> MCPServer
-    
+
     MCPServer --> Tools
-    MCPServer --> Swarm
+    MCPServer --> multi-agent
     MCPServer --> Memory
-    
-    Swarm --> Coord
-    Swarm --> Research
-    Swarm --> Coder
-    Swarm --> Analyst
-    Swarm --> Architect
-    Swarm --> Others
+
+    multi-agent --> Coord
+    multi-agent --> Research
+    multi-agent --> Coder
+    multi-agent --> Analyst
+    multi-agent --> Architect
+    multi-agent --> Others
 ```
 
 ## Deployment Architecture
@@ -311,34 +311,34 @@ graph TB
             Rust[Rust Backend<br/>Port 3001]
             Vite[Vite Dev<br/>Port 5173]
         end
-        
+
         subgraph "Services Container"
             Claude[Claude Flow<br/>Port 3002]
             RAG[RAGFlow<br/>Port 80]
         end
     end
-    
+
     subgraph "Host System"
         GPU[NVIDIA GPU]
         CUDA_Host[CUDA Driver]
         Docker[Docker Engine]
     end
-    
+
     subgraph "Volumes"
         Data[Data Volume]
         Logs[Logs Volume]
         Config[Config Volume]
     end
-    
+
     Internet[Internet] --> Nginx
     Nginx --> Rust
     Nginx --> Vite
     Rust --> Claude
     Rust --> RAG
-    
+
     Rust --> GPU
     GPU --> CUDA_Host
-    
+
     Rust --> Data
     Rust --> Logs
     Rust --> Config
@@ -353,25 +353,25 @@ graph TB
         NIP07[NIP-07 Extension]
         Signer[Event Signer]
     end
-    
+
     subgraph "Authorization"
         RBAC[Role-Based Access]
         Features[Feature Flags]
         Protected[Protected Settings]
     end
-    
+
     subgraph "Network Security"
         TLS[TLS/SSL]
         CORS[CORS Policy]
         CSP[Content Security Policy]
     end
-    
+
     subgraph "Data Security"
         Validation[Input Validation]
         Sanitization[Data Sanitization]
         Encryption[At-Rest Encryption]
     end
-    
+
     Client[Client] --> TLS
     TLS --> Nostr
     Nostr --> NIP07
@@ -379,7 +379,7 @@ graph TB
     Signer --> RBAC
     RBAC --> Features
     Features --> Protected
-    
+
     TLS --> CORS
     CORS --> CSP
     CSP --> Validation

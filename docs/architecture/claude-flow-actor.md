@@ -119,11 +119,11 @@ fn create_mock_agents() -> Vec<AgentStatus> {
 
 ## Message Handlers
 
-The actor responds to several messages to manage the agent swarm.
+The actor responds to several messages to manage the Multi Agent.
 
 - **GetActiveAgents**: Returns the current list of agents (real or mock).
-- **SpawnClaudeAgent**: Creates a new agent in the swarm.
-- **InitializeSwarm**: Initializes a complete swarm configuration.
+- **SpawnClaudeAgent**: Creates a new agent in the multi-agent.
+- **initializeMultiAgent**: Initializes a complete multi-agent configuration.
 
 ## Environment Configuration
 
@@ -173,7 +173,7 @@ The actor integrates with the main application's REST API to expose bot manageme
 
 -   `GET /api/bots/agents`
 -   `POST /api/bots/spawn`
--   `POST /api/bots/swarm/init`
+-   `POST /api/bots/multi-agent/init`
 -   `DELETE /api/bots/agent/:id`
 
 ## Performance Considerations

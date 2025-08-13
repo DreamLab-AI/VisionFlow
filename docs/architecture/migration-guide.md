@@ -9,7 +9,7 @@ This guide helps developers understand the current VisionFlow architecture with 
 - **Parallel Graphs**: Independent Logseq and VisionFlow graph processing
 - **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
 - **Enhanced Performance**: Structure of Arrays memory layout, optimized binary protocol
-- **Comprehensive Agent Visualization**: Real-time agent swarm visualization
+- **Comprehensive Agent Visualization**: Real-time Multi Agent Visualisation
 
 ### Key Components
 - **EnhancedClaudeFlowActor**: Direct WebSocket MCP connection with differential updates
@@ -27,8 +27,8 @@ This guide helps developers understand the current VisionFlow architecture with 
 import { useParallelGraphs } from '@/features/graph/hooks/useParallelGraphs';
 
 function GraphVisualization() {
-  const { 
-    logseqPositions, 
+  const {
+    logseqPositions,
     visionFlowPositions,
     enableLogseq,
     enableVisionFlow,
@@ -38,7 +38,7 @@ function GraphVisualization() {
     enableVisionFlow: true,
     autoConnect: true
   });
-  
+
   // Use positions from both graphs in rendering
   return <Canvas positions={new Map([...logseqPositions, ...visionFlowPositions])} />;
 }
@@ -98,8 +98,8 @@ let enhanced_addr = enhanced_actor.start();
 
 // Actor handles WebSocket connection automatically
 // Differential updates with pending changes
-enhanced_addr.send(InitializeSwarm {
-    topology: SwarmTopology::Hierarchical,
+enhanced_addr.send(initializeMultiAgent {
+    topology: multi-agentTopology::Hierarchical,
     max_agents: 8,
     agent_types: vec![
         AgentType::Coordinator,
@@ -160,7 +160,7 @@ const DEFAULT_GRAPH_CONFIG = {
 ### New Endpoints
 - `GET /api/bots/agents` - Get agent list
 - `POST /api/bots/spawn` - Spawn new agent
-- `POST /api/bots/swarm/init` - Initialize swarm
+- `POST /api/bots/multi-agent/init` - Initialize multi-agent
 - `DELETE /api/bots/agent/:id` - Terminate agent
 
 ## Component Updates
@@ -186,10 +186,10 @@ const DEFAULT_GRAPH_CONFIG = {
    - `AgentInspector` - Agent details panel
    - `CommunicationFlow` - Message visualization
 
-2. **Swarm Controls**
-   - `SwarmInitializer` - UI for swarm setup
+2. **multi-agent Controls**
+   - `multi-agentInitializer` - UI for multi-agent setup
    - `AgentSpawner` - UI for adding agents
-   - `TopologySelector` - Choose swarm topology
+   - `TopologySelector` - Choose multi-agent topology
 
 ## Testing Updates
 
@@ -198,12 +198,12 @@ const DEFAULT_GRAPH_CONFIG = {
 // Test parallel graphs isolation
 it('should maintain separate state for each graph type', () => {
   const { result } = renderHook(() => useParallelGraphs());
-  
+
   act(() => {
     result.current.enableLogseq(true);
     result.current.enableVisionFlow(false);
   });
-  
+
   expect(result.current.isLogseqEnabled).toBe(true);
   expect(result.current.isVisionFlowEnabled).toBe(false);
 });
@@ -215,7 +215,7 @@ it('should maintain separate state for each graph type', () => {
 it('should relay agent data from backend', async () => {
   const response = await fetch('/api/bots/agents');
   const data = await response.json();
-  
+
   expect(data.agents).toBeDefined();
   expect(data.agents.length).toBeGreaterThan(0);
 });

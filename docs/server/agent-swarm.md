@@ -1,43 +1,43 @@
-# Agent Swarm Orchestration
+# Multi Agent Orchestration
 
 ## Overview
 
-VisionFlow orchestrates AI agent swarms through direct integration with Claude Flow's Model Context Protocol (MCP). This enables spawning, coordinating, and visualizing autonomous AI agents working collaboratively on complex tasks.
+VisionFlow orchestrates AI Multi Agents through direct integration with Claude Flow's Model Context Protocol (MCP). This enables spawning, coordinating, and visualizing autonomous AI agents working collaboratively on complex tasks.
 
 ## Architecture
 
 ```mermaid
 graph LR
     subgraph "User Interface"
-        UI[Control Panel] --> |Initialize Swarm| API[REST API]
+        UI[Control Panel] --> |Initialize multi-agent| API[REST API]
     end
-    
+
     subgraph "VisionFlow Backend"
         API --> CFA[ClaudeFlowActor]
         CFA --> |WebSocket| MCP[MCP :3002]
         CFA --> GSA[GraphServiceActor]
         GSA --> GPU[GPUComputeActor]
     end
-    
+
     subgraph "Claude Flow Container"
         MCP --> CF[Claude Flow Engine]
         CF --> POOL[Agent Pool]
         POOL --> LLM[LLM APIs]
     end
-    
+
     subgraph "Visualization"
         GPU --> |Binary Stream| WS[WebSocket]
         WS --> |60 FPS| V3D[3D Visualization]
     end
 ```
 
-## Swarm Topologies
+## multi-agent Topologies
 
 ### Mesh Topology
 All agents can communicate freely. Best for collaborative problem-solving.
 
 ```rust
-SwarmTopology::Mesh {
+multi-agentTopology::Mesh {
     connectivity: 1.0,  // Full connectivity
     max_hops: 1,        // Direct communication
 }
@@ -47,7 +47,7 @@ SwarmTopology::Mesh {
 Structured command chain with coordinators and specialists.
 
 ```rust
-SwarmTopology::Hierarchical {
+multi-agentTopology::Hierarchical {
     levels: 3,
     fanout: 4,  // Each coordinator manages 4 agents
 }
@@ -57,7 +57,7 @@ SwarmTopology::Hierarchical {
 Central coordinator with peripheral specialists.
 
 ```rust
-SwarmTopology::Star {
+multi-agentTopology::Star {
     coordinator: "agent-001",
     specialists: vec!["agent-002", "agent-003", ...],
 }
@@ -67,7 +67,7 @@ SwarmTopology::Star {
 Sequential processing pipeline.
 
 ```rust
-SwarmTopology::Ring {
+multi-agentTopology::Ring {
     agents: vec!["researcher", "architect", "coder", "tester"],
     bidirectional: false,
 }
@@ -76,7 +76,7 @@ SwarmTopology::Ring {
 ## Agent Types
 
 ### Coordinator
-Orchestrates the swarm and delegates tasks.
+Orchestrates the multi-agent and delegates tasks.
 
 **Capabilities**:
 - Task decomposition
@@ -145,12 +145,12 @@ Validates implementations and quality.
 - Size: Standard
 - Icon: Checkmark
 
-## Swarm Initialization
+## multi-agent Initialization
 
 ### REST Endpoint
 
 ```http
-POST /api/bots/initialize-swarm
+POST /api/bots/initialize-multi-agent
 ```
 
 ### Request Payload
@@ -176,17 +176,17 @@ POST /api/bots/initialize-swarm
 
 ```rust
 // 1. REST handler receives request
-let swarm_config = InitializeSwarmRequest { ... };
+let multi-agent_config = initializeMultiAgentRequest { ... };
 
 // 2. Send to ClaudeFlowActor
-claude_flow_actor.send(InitializeSwarm {
-    config: swarm_config,
+claude_flow_actor.send(initializeMultiAgent {
+    config: multi-agent_config,
 }).await?;
 
 // 3. ClaudeFlowActor sends MCP request
 let mcp_request = json!({
     "jsonrpc": "2.0",
-    "method": "swarm.initialize",
+    "method": "multi-agent.initialize",
     "params": {
         "topology": config.topology,
         "agents": config.agent_types,
@@ -238,7 +238,7 @@ impl ClaudeFlowActor {
                 metrics: event.metrics,
             },
         };
-        
+
         // Send to graph service
         self.graph_service.do_send(UpdateAgentNode { node });
     }
@@ -278,7 +278,7 @@ impl ClaudeFlowActor {
                 },
             }
         });
-        
+
         self.mcp_client.send(request).await?;
     }
 }
@@ -297,7 +297,7 @@ let mut update_batch = Vec::with_capacity(BATCH_SIZE);
 let mut last_flush = Instant::now();
 
 // Batch updates until size or timeout reached
-if update_batch.len() >= BATCH_SIZE || 
+if update_batch.len() >= BATCH_SIZE ||
    last_flush.elapsed() > BATCH_TIMEOUT {
     flush_updates(update_batch);
     update_batch.clear();
@@ -312,7 +312,7 @@ Only changed agent states are transmitted:
 fn should_send_update(old: &AgentState, new: &AgentState) -> bool {
     const POSITION_THRESHOLD: f32 = 0.1;
     const STATUS_CHANGE: bool = true;
-    
+
     (new.position - old.position).length() > POSITION_THRESHOLD ||
     new.status != old.status ||
     new.active_task != old.active_task
@@ -324,7 +324,7 @@ fn should_send_update(old: &AgentState, new: &AgentState) -> bool {
 ### Health Metrics
 
 ```rust
-pub struct SwarmHealth {
+pub struct multi-agentHealth {
     pub total_agents: usize,
     pub active_agents: usize,
     pub tasks_completed: usize,
@@ -337,7 +337,7 @@ pub struct SwarmHealth {
 
 ### Debug Logging
 
-Enable detailed swarm logging:
+Enable detailed multi-agent logging:
 
 ```bash
 RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
@@ -352,7 +352,7 @@ RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
 | Agents idle | No task assigned | Verify customPrompt is set |
 | Connection drops | Network issues | Check Docker network config |
 
-## Example Swarm Tasks
+## Example multi-agent Tasks
 
 ### Simple Development Task
 ```json
@@ -386,7 +386,7 @@ RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
 ## Security Considerations
 
 1. **MCP Isolation**: MCP connection only from backend, never exposed to frontend
-2. **Rate Limiting**: Max 10 swarms per minute, 50 agents per swarm
+2. **Rate Limiting**: Max 10 multi-agents per minute, 50 agents per multi-agent
 3. **Resource Limits**: CPU and memory caps per agent
 4. **Task Validation**: Sanitize customPrompt to prevent injection
 5. **Token Limits**: Max 4000 tokens per agent response
@@ -396,4 +396,4 @@ RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
 - [ClaudeFlowActor](actors.md#claudeflowactor-primary)
 - [MCP Integration](../architecture/mcp-integration.md)
 - [Binary Protocol](../api/binary-protocol.md)
-- [Quick Start Guide](../quick-start.md#spawning-your-first-ai-agent-swarm)
+- [Quick Start Guide](../quick-start.md#spawning-your-first-ai-agent-multi-agent)

@@ -112,31 +112,31 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
     let mut buffer = Vec::with_capacity(
         nodes.len() * std::mem::size_of::<WireNodeDataItem>()
     );
-    
+
     for (node_id, node) in nodes {
         let wire_item = WireNodeDataItem {
             id: *node_id,
             position: node.position,
             velocity: node.velocity,
         };
-        
+
         let item_bytes = bytemuck::bytes_of(&wire_item);
         buffer.extend_from_slice(item_bytes);
     }
-    
+
     buffer
 }
 
 // Enhanced encoding with node type flags
 pub fn encode_node_data_with_types(
-    nodes: &[(u32, BinaryNodeData)], 
+    nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
     knowledge_node_ids: &[u32]
 ) -> Vec<u8> {
     let mut buffer = Vec::with_capacity(
         nodes.len() * std::mem::size_of::<WireNodeDataItem>()
     );
-    
+
     for (node_id, node) in nodes {
         // Apply type flags
         let flagged_id = if agent_node_ids.contains(node_id) {
@@ -146,17 +146,17 @@ pub fn encode_node_data_with_types(
         } else {
             *node_id
         };
-        
+
         let wire_item = WireNodeDataItem {
             id: flagged_id,
             position: node.position,
             velocity: node.velocity,
         };
-        
+
         let item_bytes = bytemuck::bytes_of(&wire_item);
         buffer.extend_from_slice(item_bytes);
     }
-    
+
     buffer
 }
 ```
@@ -214,22 +214,22 @@ pub fn get_node_type(node_id: u32) -> NodeType {
 ```rust
 pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     const WIRE_ITEM_SIZE: usize = std::mem::size_of::<WireNodeDataItem>();
-    
+
     if data.len() % WIRE_ITEM_SIZE != 0 {
         return Err(format!(
             "Data size {} is not a multiple of wire item size {}",
             data.len(), WIRE_ITEM_SIZE
         ));
     }
-    
+
     let mut updates = Vec::with_capacity(data.len() / WIRE_ITEM_SIZE);
-    
+
     for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
         let wire_item: WireNodeDataItem = *bytemuck::from_bytes(chunk);
-        
+
         // Extract actual node ID (strip type flags)
         let actual_id = get_actual_node_id(wire_item.id);
-        
+
         let server_node_data = BinaryNodeData {
             position: wire_item.position,
             velocity: wire_item.velocity,
@@ -237,10 +237,10 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
             flags: 0u8,      // Default, replaced from node_map
             padding: [0u8, 0u8],
         };
-        
+
         updates.push((actual_id, server_node_data));
     }
-    
+
     Ok(updates)
 }
 ```
@@ -307,8 +307,8 @@ WebSocket binary frames use opcode 0x2:
 
 | Scenario | Nodes | Update Rate | Uncompressed | Compressed | Bandwidth |
 |----------|-------|-------------|--------------|------------|-----------|
-| Small Swarm | 10 agents + 100 knowledge | 10 Hz / 1 Hz | 3.1 KB | ~2 KB | 20 KB/s |
-| Medium Swarm | 50 agents + 1,000 knowledge | 10 Hz / 1 Hz | 29.4 KB | ~15 KB | 150 KB/s |
+| Small multi-agent | 10 agents + 100 knowledge | 10 Hz / 1 Hz | 3.1 KB | ~2 KB | 20 KB/s |
+| Medium multi-agent | 50 agents + 1,000 knowledge | 10 Hz / 1 Hz | 29.4 KB | ~15 KB | 150 KB/s |
 | Large System | 100 agents + 10,000 knowledge | 10 Hz / 1 Hz | 283 KB | ~120 KB | 1.2 MB/s |
 | Enterprise | 500 agents + 100,000 knowledge | 10 Hz / 1 Hz | 2.8 MB | ~1.2 MB | 12 MB/s |
 
@@ -350,24 +350,24 @@ WebSocket binary frames use opcode 0x2:
 ```typescript
 function decodeBinaryUpdate(buffer: ArrayBuffer): NodeUpdate[] {
     const BYTES_PER_NODE = 28;
-    
+
     if (buffer.byteLength % BYTES_PER_NODE !== 0) {
         throw new Error('Invalid binary data size');
     }
-    
+
     const view = new DataView(buffer);
     const nodeCount = buffer.byteLength / BYTES_PER_NODE;
     const updates: NodeUpdate[] = [];
-    
+
     for (let i = 0; i < nodeCount; i++) {
         const offset = i * BYTES_PER_NODE;
         const flaggedId = view.getUint32(offset, true);
-        
+
         // Extract type information
         const isAgent = (flaggedId & 0x80000000) !== 0;
         const isKnowledge = (flaggedId & 0x40000000) !== 0;
         const actualId = flaggedId & 0x3FFFFFFF;
-        
+
         updates.push({
             id: actualId,
             type: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'unknown',
@@ -383,7 +383,7 @@ function decodeBinaryUpdate(buffer: ArrayBuffer): NodeUpdate[] {
             }
         });
     }
-    
+
     return updates;
 }
 ```
@@ -401,12 +401,12 @@ fn test_wire_format_size() {
 #[test]
 fn test_node_type_flags() {
     let node_id = 42u32;
-    
+
     // Test agent flag
     let agent_id = set_agent_flag(node_id);
     assert!(is_agent_node(agent_id));
     assert_eq!(get_actual_node_id(agent_id), node_id);
-    
+
     // Test knowledge flag
     let knowledge_id = set_knowledge_flag(node_id);
     assert!(is_knowledge_node(knowledge_id));
@@ -419,13 +419,13 @@ fn test_encode_decode_roundtrip_with_flags() {
         (1u32, create_test_node_data()),
         (2u32, create_test_node_data()),
     ];
-    
+
     let agent_ids = vec![1u32];
     let knowledge_ids = vec![2u32];
-    
+
     let encoded = encode_node_data_with_types(&nodes, &agent_ids, &knowledge_ids);
     let decoded = decode_node_data(&encoded).unwrap();
-    
+
     assert_eq!(decoded.len(), 2);
     // Verify data integrity (positions preserved, flags processed)
 }
@@ -441,7 +441,7 @@ pub const NODE_POSITION_SIZE: usize = 24; // 6 f32s * 4 bytes
 pub const BINARY_HEADER_SIZE: usize = 4;  // Optional header
 pub const COMPRESSION_THRESHOLD: usize = 1024; // 1KB
 
-// WebSocket constants  
+// WebSocket constants
 pub const MAX_MESSAGE_SIZE: usize = 100 * 1024 * 1024; // 100MB
 pub const BINARY_CHUNK_SIZE: usize = 64 * 1024; // 64KB
 ```

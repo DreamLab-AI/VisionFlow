@@ -30,9 +30,9 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
   const avgHealth = botsData.agents.reduce((sum, a) => sum + (a.health || 0), 0) / totalAgents;
   const avgCpuUsage = botsData.agents.reduce((sum, a) => sum + (a.cpuUsage || 0), 0) / totalAgents;
   const avgMemoryUsage = botsData.agents.reduce((sum, a) => sum + (a.memoryUsage || 0), 0) / totalAgents;
-  
-  // Get swarm metrics if available
-  const swarmMetrics = botsData.swarmMetrics;
+
+  // Get multi-agent metrics if available
+  const multiAgentMetrics = botsData.multiAgentMetrics;
 
   const getHealthColor = (value: number) => {
     if (value >= 80) return 'text-green-600';
@@ -50,7 +50,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
     <Card className={className}>
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-4">System Health</h3>
-        
+
         {/* Agent Status Summary */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="text-center">
@@ -75,7 +75,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
               <span className={getHealthColor(avgHealth)}>{avgHealth.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${avgHealth}%` }}
               />
@@ -88,7 +88,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
               <span className={getUsageColor(avgCpuUsage)}>{avgCpuUsage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${avgCpuUsage}%` }}
               />
@@ -101,7 +101,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
               <span className={getUsageColor(avgMemoryUsage)}>{avgMemoryUsage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${avgMemoryUsage}%` }}
               />
@@ -109,26 +109,26 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
           </div>
         </div>
 
-        {/* Swarm Metrics */}
-        {swarmMetrics && (
+        {/* multi-agent Metrics */}
+        {multiAgentMetrics && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <h4 className="text-sm font-semibold mb-2">Swarm Performance</h4>
+            <h4 className="text-sm font-semibold mb-2">multi-agent Performance</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-gray-600">Success Rate:</span>
-                <span className="ml-2 font-medium">{swarmMetrics.avgSuccessRate.toFixed(1)}%</span>
+                <span className="ml-2 font-medium">{multiAgentMetrics.avgSuccessRate.toFixed(1)}%</span>
               </div>
               <div>
                 <span className="text-gray-600">Active Tasks:</span>
-                <span className="ml-2 font-medium">{swarmMetrics.totalTasks}</span>
+                <span className="ml-2 font-medium">{multiAgentMetrics.totalTasks}</span>
               </div>
               <div>
                 <span className="text-gray-600">Completed:</span>
-                <span className="ml-2 font-medium">{swarmMetrics.completedTasks}</span>
+                <span className="ml-2 font-medium">{multiAgentMetrics.completedTasks}</span>
               </div>
               <div>
                 <span className="text-gray-600">Tokens Used:</span>
-                <span className="ml-2 font-medium">{swarmMetrics.totalTokens.toLocaleString()}</span>
+                <span className="ml-2 font-medium">{multiAgentMetrics.totalTokens.toLocaleString()}</span>
               </div>
             </div>
           </div>

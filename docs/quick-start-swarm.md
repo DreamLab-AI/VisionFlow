@@ -11,8 +11,8 @@
 ### 1. Open the Control Panel
 Look for the control panel in the top-left corner of the VisionFlow interface.
 
-### 2. Click "Initialize Swarm"
-When no agents are active, you'll see an "Initialize Swarm" button in the VisionFlow (MCP) section.
+### 2. Click "Initialize multi-agent"
+When no agents are active, you'll see an "Initialize multi-agent" button in the VisionFlow (MCP) section.
 
 ### 3. Configure Your Hive Mind
 
@@ -47,7 +47,7 @@ When no agents are active, you'll see an "Initialize Swarm" button in the Vision
 ### 4. Click "Spawn Hive Mind"
 The system will:
 1. Connect to Claude Flow MCP server
-2. Initialize the swarm with your configuration
+2. Initialize the multi-agent with your configuration
 3. Spawn the selected agents
 4. Apply your task to the hive mind
 5. Begin visualization of agent activity

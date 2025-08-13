@@ -59,14 +59,14 @@ impl GPUComputeActor {
     fn process_agent_graph(&mut self, agents: Vec<AgentStatus>) -> Result<()> {
         // Convert agents to Structure of Arrays format
         let (pos_x, pos_y, pos_z) = self.convert_agents_to_soa(&agents)?;
-        
+
         // Use DualGraph compute mode
         let mut sim_params = SimParams::default();
         sim_params.compute_mode = ComputeMode::DualGraph as i32;
         sim_params.spring_k = 0.3;
         sim_params.damping = 0.95;
         sim_params.repel_k = 50.0;
-        
+
         // Execute unified kernel
         self.unified_kernel.launch(
             &pos_x, &pos_y, &pos_z,
@@ -74,7 +74,7 @@ impl GPUComputeActor {
             &edge_sources, &edge_targets, &edge_weights,
             &sim_params
         )?;
-        
+
         // Stream positions via binary protocol
         self.stream_positions_to_clients()?;
         Ok(())
@@ -86,10 +86,10 @@ impl GPUComputeActor {
 ```yaml
 visionflow:
   physics:
-    spring_strength: 0.3     # Edge attraction  
+    spring_strength: 0.3     # Edge attraction
     damping: 0.95           # Velocity damping
     repulsion_strength: 0.8  # Node repulsion
-    center_force: 0.002     # Center attraction  
+    center_force: 0.002     # Center attraction
     max_velocity: 0.5       # Speed limit
     link_distance: 3.0      # Ideal edge length
 ```
@@ -102,14 +102,14 @@ Agents are rendered as 3D objects with visual indicators:
 function renderAgent(agent: BotsAgent) {
   const geometry = getAgentGeometry(agent.type);  // Shape by type
   const material = getAgentMaterial(agent.status); // Color by status
-  
+
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(getAgentPosition(agent.id));
-  
+
   // Add labels, icons, metrics display
   addAgentLabels(mesh, agent);
   addMetricsBadges(mesh, agent.metrics);
-  
+
   return mesh;
 }
 ```
@@ -170,7 +170,7 @@ class MockBotsDataProvider {
     },
     // ... more mock agents
   ];
-  
+
   generateCommunications(count: number): BotsCommunication[] {
     // Generate realistic communication patterns
   }
@@ -191,7 +191,7 @@ impl EnhancedClaudeFlowActor {
             self.process_pending_additions();
             self.process_pending_updates();
             self.process_pending_removals();
-            
+
             // Convert to graph format and push to GPU
             let graph_data = self.build_graph_data();
             self.graph_service_addr.do_send(UpdateBotsGraph {
@@ -208,7 +208,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) {
         // Update agent data
         self.bots_agents = msg.agents;
-        
+
         // Send to unified GPU kernel with DualGraph mode
         if let Some(gpu) = &self.gpu_compute_addr {
             gpu.do_send(ComputeGraphLayout {
@@ -227,8 +227,8 @@ Current implementation provides agent metadata via REST:
 
 ```
 GET /api/bots/agents          # Get cached agents from EnhancedClaudeFlowActor
-GET /api/bots/swarm/status    # Get swarm status and topology
-POST /api/bots/swarm/init     # Initialize new swarm
+GET /api/bots/multi-agent/status    # Get multi-agent status and topology
+POST /api/bots/multi-agent/init     # Initialize new multi-agent
 POST /api/bots/spawn          # Spawn individual agent
 DELETE /api/bots/agent/:id    # Terminate agent
 GET /api/bots/health          # MCP connection health check
@@ -243,25 +243,25 @@ GET /api/bots/health          # MCP connection health check
 class ParallelGraphCoordinator {
   async enableVisionFlow(enabled: boolean) {
     this.state.visionflow.enabled = enabled;
-    
+
     if (enabled) {
       // Start REST API polling for agent metadata
       this.pollInterval = setInterval(() => {
         this.fetchAgentsFromAPI();
       }, 10000);
-      
+
       // Position updates come automatically via binary protocol WebSocket
     } else {
       clearInterval(this.pollInterval);
     }
-    
+
     this.notifyListeners();
   }
-  
+
   private async fetchAgentsFromAPI() {
     const response = await fetch('/api/bots/agents');
     const data = await response.json();
-    
+
     this.state.visionflow.agents = data.agents;
     this.state.visionflow.lastUpdate = Date.now();
     this.notifyListeners();
@@ -274,7 +274,7 @@ class ParallelGraphCoordinator {
 // WebSocket binary protocol automatically updates both graphs
 // ParallelGraphCoordinator receives position updates for both:
 // - Logseq nodes (knowledge graph)
-// - Agent nodes (visionflow graph)  
+// - Agent nodes (visionflow graph)
 // Frontend components use useParallelGraphs hook to access positions
 ```
 
@@ -344,5 +344,5 @@ const PHYSICS_PRESETS = {
 3. **Communication Replay**: Replay message sequences
 4. **3D Charts**: Embed performance metrics in 3D space
 5. **VR Interaction**: Manipulate agents in VR
-6. **Swarm Patterns**: Visualize emergent swarm behaviors
+6. **multi-agent Patterns**: Visualize emergent multi-agent behaviors
 7. **Cross-Graph Links**: Connect agents to Logseq nodes

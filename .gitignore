@@ -131,7 +131,7 @@ client/visualisation/effects/custom/
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
-.swarm/
+.multi-agent/
 .hive-mind/
 memory/claude-flow-data.json
 memory/sessions/*

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Get VisionFlow up and running in minutes! This guide will help you set up the real-time 3D visualization platform for knowledge graphs and AI agent swarms.
+Get VisionFlow up and running in minutes! This guide will help you set up the real-time 3D visualization platform for knowledge graphs and AI Multi Agents.
 
 ## Prerequisites
 
@@ -52,19 +52,19 @@ Open your browser and navigate to:
 http://localhost:3001
 ```
 
-## Spawning Your First AI Agent Swarm
+## Spawning Your First AI Multi Agent
 
 ### 1. Open the Control Panel
 
 Look for the control panel in the top-left corner of the interface.
 
-### 2. Initialize a Swarm
+### 2. Initialize a multi-agent
 
-Click the **"Initialize Swarm"** button in the VisionFlow (MCP) section.
+Click the **"Initialize multi-agent"** button in the VisionFlow (MCP) section.
 
-### 3. Configure Your Swarm
+### 3. Configure Your multi-agent
 
-Fill in the swarm configuration:
+Fill in the multi-agent configuration:
 
 **Task Description** (Required):
 - What you want the agents to accomplish
@@ -94,11 +94,11 @@ Fill in the swarm configuration:
 
 Click **"Spawn Hive Mind"** to:
 1. Connect to Claude Flow
-2. Initialize agent swarm
+2. Initialize Multi Agent
 3. Begin task execution
 4. Start real-time visualization
 
-## Monitoring Your Swarm
+## Monitoring Your multi-agent
 
 ### Visualization Features
 

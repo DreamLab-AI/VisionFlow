@@ -110,7 +110,7 @@ The engine implements two complementary physics systems that work together:
 // Force calculation in GPU kernel
 fn calculate_forces(node_i: usize, positions: &SoAData) -> Vec3 {
     let mut force = Vec3::ZERO;
-    
+
     // Attraction forces (edges)
     for neighbor in neighbors[node_i] {
         let diff = positions.get_position(neighbor) - positions.get_position(node_i);
@@ -118,7 +118,7 @@ fn calculate_forces(node_i: usize, positions: &SoAData) -> Vec3 {
         let spring_force = k_spring * (distance - ideal_length) * diff.normalize();
         force += spring_force;
     }
-    
+
     // Repulsion forces (all nodes)
     for j in 0..num_nodes {
         if i != j {
@@ -128,7 +128,7 @@ fn calculate_forces(node_i: usize, positions: &SoAData) -> Vec3 {
             force += repulsion;
         }
     }
-    
+
     force
 }
 ```
@@ -144,11 +144,11 @@ fn calculate_forces(node_i: usize, positions: &SoAData) -> Vec3 {
 fn majorization_step(positions: &mut SoAData, weights: &WeightMatrix, distances: &DistanceMatrix) {
     // Compute Laplacian matrix L
     let laplacian = compute_laplacian(weights, distances);
-    
+
     // Solve: L * X_new = L * X_old + gradient
     let gradient = compute_stress_gradient(positions, weights, distances);
     let new_positions = solve_linear_system(laplacian, gradient);
-    
+
     // Update positions
     positions.update_positions(new_positions);
 }
@@ -260,15 +260,15 @@ pub struct GPUSimParams {
     pub repulsion_strength: f32,
     pub damping_coefficient: f32,
     pub time_delta: f32,
-    
+
     // Constraint parameters
     pub constraint_forces: Vec<f32>,    // Per-constraint weights
     pub penalty_coefficients: Vec<f32>, // Penalty method parameters
-    
+
     // Stress majorization parameters
     pub majorization_weight: f32,
     pub convergence_threshold: f32,
-    
+
     // Phase-specific overrides
     pub phase_modifiers: PhaseModifiers,
 }
@@ -282,7 +282,7 @@ impl SimulationParams {
     pub fn to_gpu_params(&self, phase: SimulationPhase) -> GPUSimParams {
         let base_attraction = self.force_scale * ATTRACTION_BASE;
         let base_repulsion = self.force_scale * REPULSION_BASE;
-        
+
         // Apply phase-specific modifiers
         let (attraction, repulsion, damping) = match phase {
             SimulationPhase::Initial => (
@@ -301,7 +301,7 @@ impl SimulationParams {
                 self.damping * 1.3      // High final damping
             ),
         };
-        
+
         GPUSimParams {
             attraction_strength: attraction,
             repulsion_strength: repulsion,
@@ -443,16 +443,16 @@ impl ConstraintPipeline {
     pub fn process(&self, graph: &GraphData, metadata: &MetadataStore) -> Result<AppliedConstraints> {
         // 1. Generate raw constraints
         let raw_constraints = self.generate_constraints(graph, metadata)?;
-        
+
         // 2. Filter and prioritize
         let filtered_constraints = self.filter_constraints(raw_constraints)?;
-        
+
         // 3. Validate consistency
         let validated_constraints = self.validate_constraints(filtered_constraints)?;
-        
+
         // 4. Apply to physics system
         let applied_constraints = self.apply_constraints(validated_constraints, graph)?;
-        
+
         Ok(applied_constraints)
     }
 }
@@ -471,11 +471,11 @@ __global__ void evaluate_constraints_kernel(
 ) {
     int constraint_id = blockIdx.x * blockDim.x + threadIdx.x;
     if (constraint_id >= num_constraints) return;
-    
+
     ConstraintGPU constraint = constraints[constraint_id];
     float satisfaction = 0.0f;
     float penalty = 0.0f;
-    
+
     switch (constraint.type) {
         case CLUSTERING:
             satisfaction = evaluate_clustering_constraint(positions_x, positions_y, positions_z, constraint);
@@ -488,7 +488,7 @@ __global__ void evaluate_constraints_kernel(
             break;
         // ... other constraint types
     }
-    
+
     satisfaction_scores[constraint_id] = satisfaction;
     violation_penalties[constraint_id] = constraint.weight * max(0.0f, constraint.threshold - satisfaction);
 }
@@ -593,26 +593,26 @@ pub struct MemoryMetrics {
 impl PhysicsEngine {
     pub fn adaptive_memory_management(&mut self) -> Result<()> {
         let usage = self.get_memory_usage();
-        
+
         // Tier 1: Light optimization (>60% usage)
         if usage.gpu_memory_used > 0.6 * usage.gpu_memory_total {
             self.compress_inactive_buffers()?;
             self.reduce_cache_size(0.8)?;
         }
-        
+
         // Tier 2: Aggressive optimization (>80% usage)
         if usage.gpu_memory_used > 0.8 * usage.gpu_memory_total {
             self.switch_to_streaming_mode()?;
             self.reduce_precision_to_fp16()?;
             self.paginate_large_arrays()?;
         }
-        
+
         // Tier 3: Emergency optimization (>95% usage)
         if usage.gpu_memory_used > 0.95 * usage.gpu_memory_total {
             self.fallback_to_cpu_hybrid()?;
             self.emergency_garbage_collection()?;
         }
-        
+
         Ok(())
     }
 }
@@ -637,7 +637,7 @@ impl KernelConfig {
             (8, 6) => 1024, // Ada Lovelace
             _ => 256,       // Conservative default
         };
-        
+
         KernelConfig {
             threads_per_block: optimal_threads,
             shared_memory_size: device_props.shared_memory_per_block / 2,
@@ -660,16 +660,16 @@ impl HierarchicalProcessor {
     pub fn process_large_graph(&mut self, graph: &GraphData) -> Result<()> {
         // 1. Coarsen graph into hierarchy
         let hierarchy = self.create_hierarchy(graph)?;
-        
+
         // 2. Solve coarsest level with high precision
         let coarse_solution = self.solve_coarse_level(&hierarchy.coarsest_level())?;
-        
+
         // 3. Interpolate solution down hierarchy
         for level in hierarchy.levels.iter().rev() {
             let refined_solution = self.refine_solution(&coarse_solution, level)?;
             self.apply_local_optimization(level, &refined_solution)?;
         }
-        
+
         Ok(())
     }
 }
@@ -688,7 +688,7 @@ pub struct QualityController {
 impl QualityController {
     pub fn adjust_parameters(&mut self, params: &mut SimulationParams) -> Result<()> {
         let recent_fps = self.performance_history.back().unwrap_or(&60.0);
-        
+
         if *recent_fps < self.target_fps * 0.8 {
             // Performance too low, reduce quality
             params.max_iterations = (params.max_iterations * 0.9) as usize;
@@ -702,7 +702,7 @@ impl QualityController {
             params.constraint_weight = (params.constraint_weight * 1.02).min(1.0);
             params.time_step *= 0.98;
         }
-        
+
         Ok(())
     }
 }
@@ -718,17 +718,17 @@ pub struct PhysicsMetrics {
     pub gpu_compute_time: f32,
     pub constraint_time: f32,
     pub memory_transfer_time: f32,
-    
+
     // Quality metrics
     pub layout_stress: f32,
     pub constraint_satisfaction: f32,
     pub convergence_rate: f32,
-    
+
     // Resource metrics
     pub gpu_utilization: f32,
     pub memory_bandwidth: f32,
     pub cache_hit_rate: f32,
-    
+
     // Stability metrics
     pub velocity_variance: f32,
     pub position_stability: f32,
@@ -813,16 +813,16 @@ if graph_changed {
     // Clear caches
     solver.clear_cache();
     generator.clear_cache();
-    
+
     // Regenerate semantic constraints
     let new_constraints = generator.generate_constraints(&graph_data, Some(&metadata))?;
-    
+
     // Apply incremental optimization
     solver.update_config(StressMajorizationConfig {
         max_iterations: 100, // Fewer iterations for real-time updates
         ..Default::default()
     });
-    
+
     let result = solver.optimize(&mut graph_data, &constraint_set)?;
 }
 ```
@@ -851,7 +851,7 @@ let structural_params = AdvancedParams {
 };
 
 // Agent communication-focused layout
-let agent_params = AdvancedParams::agent_swarm_optimized();
+let agent_params = AdvancedParams::agent_multi-agent_optimized();
 ```
 
 ## Troubleshooting Physics Issues
@@ -911,7 +911,7 @@ nvidia-ml-py3 # Python package for monitoring
 pub fn detect_instability(velocities: &[Vec3], threshold: f32) -> bool {
     let avg_velocity = velocities.iter().map(|v| v.length()).sum::<f32>() / velocities.len() as f32;
     let max_velocity = velocities.iter().map(|v| v.length()).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0.0);
-    
+
     avg_velocity > threshold || max_velocity > threshold * 5.0
 }
 
@@ -950,19 +950,19 @@ impl PhysicsEngine {
             soa_arrays_size: self.calculate_soa_size(),
         }
     }
-    
+
     pub fn optimize_memory(&mut self) -> Result<()> {
         // Clear GPU caches if memory pressure
         if self.gpu_memory_usage() > 0.8 {
             self.clear_gpu_caches()?;
         }
-        
+
         // Compress SoA arrays if possible
         self.compress_soa_arrays()?;
-        
+
         // Garbage collect unused constraints
         self.constraint_manager.garbage_collect();
-        
+
         Ok(())
     }
 }
@@ -984,22 +984,22 @@ pub struct PhysicsProfiler {
 impl PhysicsEngine {
     pub fn profile_step(&mut self) -> PhysicsProfiler {
         let start = Instant::now();
-        
+
         // GPU compute phase
         let gpu_start = Instant::now();
         self.run_gpu_kernels()?;
         let gpu_time = gpu_start.elapsed().as_secs_f32();
-        
+
         // Constraint evaluation
         let constraint_start = Instant::now();
         self.evaluate_constraints()?;
         let constraint_time = constraint_start.elapsed().as_secs_f32();
-        
+
         // Memory transfers
         let memory_start = Instant::now();
         self.sync_gpu_memory()?;
         let memory_time = memory_start.elapsed().as_secs_f32();
-        
+
         PhysicsProfiler {
             gpu_compute_time: gpu_time,
             constraint_eval_time: constraint_time,
@@ -1016,19 +1016,19 @@ impl PhysicsEngine {
 ```rust
 pub fn validate_simulation_params(params: &SimulationParams) -> Vec<ValidationError> {
     let mut errors = Vec::new();
-    
+
     if params.damping < 0.0 || params.damping > 1.0 {
         errors.push(ValidationError::InvalidDamping(params.damping));
     }
-    
+
     if params.time_step <= 0.0 || params.time_step > 1.0 {
         errors.push(ValidationError::InvalidTimeStep(params.time_step));
     }
-    
+
     if params.constraint_weight < 0.0 || params.constraint_weight > 10.0 {
         errors.push(ValidationError::InvalidConstraintWeight(params.constraint_weight));
     }
-    
+
     errors
 }
 ```
@@ -1038,22 +1038,22 @@ pub fn validate_simulation_params(params: &SimulationParams) -> Vec<ValidationEr
 // Physics engine health check
 pub fn health_check(&self) -> HealthStatus {
     let mut status = HealthStatus::Healthy;
-    
+
     // Check GPU status
     if !self.gpu_context.is_healthy() {
         status = HealthStatus::Degraded("GPU issues detected".to_string());
     }
-    
+
     // Check memory usage
     if self.get_memory_usage().gpu_memory_used > 0.9 * self.get_memory_usage().gpu_memory_total {
         status = HealthStatus::Critical("High GPU memory usage".to_string());
     }
-    
+
     // Check simulation stability
     if self.detect_instability() {
         status = HealthStatus::Warning("Physics instability detected".to_string());
     }
-    
+
     status
 }
 ```

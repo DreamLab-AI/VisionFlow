@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualizing AI agent swarms in real-time.
+The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualizing AI Multi Agents in real-time.
 
 ## Architecture
 
@@ -20,7 +20,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 └─────────────────────────┘
             │
             ▼
-    npx claude-flow@alpha 
+    npx claude-flow@alpha
     mcp start --stdio
 ```
 
@@ -55,7 +55,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
    ```json
    // Server announces capabilities
    → {"jsonrpc":"2.0","method":"server.initialized","params":{...}}
-   
+
    // Client initializes connection
    ← {"jsonrpc":"2.0","id":"init-1","method":"initialize","params":{...}}
    → {"jsonrpc":"2.0","id":"init-1","result":{...}}
@@ -71,7 +71,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 ## Available MCP Tools
 
 ### Core Agent Management
-- `swarm_init` - Initialize swarm with topology (mesh, hierarchical, ring, star)
+- `multi-agent_init` - Initialize multi-agent with topology (mesh, hierarchical, ring, star)
 - `agent_spawn` - Create specialized agents with capabilities
 - `agent_list` - List active agents with status and metrics
 - `agent_metrics` - Get detailed performance metrics
@@ -96,7 +96,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 - `reasoning_chain` - Execute complex reasoning chains
 
 ### Performance & Monitoring
-- `swarm_status` - Monitor overall swarm health
+- `multi-agent_status` - Monitor overall multi-agent health
 - `bottleneck_analyze` - Identify performance bottlenecks
 - `performance_report` - Generate detailed reports
 - `metrics_export` - Export metrics for external monitoring
@@ -105,7 +105,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 
 | Type | Role | Capabilities |
 |------|------|-------------|
-| Queen | Hive mind leader | Strategic coordination, swarm control |
+| Queen | Hive mind leader | Strategic coordination, multi-agent control |
 | Coordinator | Task orchestration | Resource allocation, workflow management |
 | Researcher | Information gathering | Web search, document analysis |
 | Coder | Implementation | Code generation, refactoring |
@@ -127,18 +127,18 @@ pub struct BotsAgent {
     pub agent_type: String,
     pub status: String,
     pub name: String,
-    
+
     // Performance metrics
     pub cpu_usage: f32,
     pub health: f32,
     pub workload: f32,
-    
+
     // Positioning (for visualization)
     pub position: Vec3,
     pub velocity: Vec3,
     pub force: Vec3,
     pub connections: Vec<String>,
-    
+
     // Hive-mind properties
     pub capabilities: Option<Vec<String>>,
     pub current_task: Option<String>,
@@ -148,7 +148,7 @@ pub struct BotsAgent {
     pub tokens: Option<u64>,
     pub token_rate: Option<f32>,
     pub activity: Option<f32>,
-    pub swarm_id: Option<String>,
+    pub multi-agent_id: Option<String>,
     pub agent_mode: Option<String>,
     pub parent_queen_id: Option<String>,
 }
@@ -156,9 +156,9 @@ pub struct BotsAgent {
 
 ## API Endpoints
 
-### Initialize Swarm
+### Initialize multi-agent
 ```http
-POST /api/bots/initialize-swarm
+POST /api/bots/initialize-multi-agent
 Content-Type: application/json
 
 {
@@ -185,7 +185,7 @@ GET /api/bots/data
 
 Returns complete graph with nodes, edges, and positioning.
 
-## Swarm Topologies
+## multi-agent Topologies
 
 ### Mesh
 - Fully connected network
@@ -197,7 +197,7 @@ Returns complete graph with nodes, edges, and positioning.
 - Tree structure with Queen at root
 - Clear command chain
 - Efficient for structured tasks
-- Scalable to large swarms
+- Scalable to large multi-agents
 
 ### Ring
 - Sequential processing pipeline
@@ -234,7 +234,7 @@ When MCP is unavailable:
 
 3. **Performance Issues**
    - Adjust polling interval for agent updates
-   - Limit maximum agents per swarm
+   - Limit maximum agents per multi-agent
    - Monitor process resource usage
 
 ## Configuration
@@ -269,15 +269,15 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(10);
 1. **Process Pool**: Reuse processes for better performance
 2. **Binary Protocol**: MessagePack for faster serialization
 3. **Streaming Updates**: Server-sent events for real-time data
-4. **Multi-Swarm**: Support multiple independent swarms
-5. **Persistence**: Save and restore swarm states
+4. **Multi-multi-agent**: Support multiple independent multi-agents
+5. **Persistence**: Save and restore multi-agent states
 
 ## Testing
 
 ### Manual Testing
 ```bash
-# Initialize a test swarm
-curl -X POST http://localhost:3001/api/bots/initialize-swarm \
+# Initialize a test multi-agent
+curl -X POST http://localhost:3001/api/bots/initialize-multi-agent \
   -H "Content-Type: application/json" \
   -d '{
     "topology": "mesh",
@@ -297,7 +297,7 @@ curl http://localhost:3001/api/bots/data | jq
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[actix_rt::test]
     async fn test_claude_flow_connection() {
         // Test implementation

@@ -87,7 +87,7 @@ let client_result = ClaudeFlowClientBuilder::new()
 Claude-flow exposes 70+ MCP tools including:
 
 ### Core Agent Management
-- `swarm_init` - Initialize swarm topology
+- `multi-agent_init` - Initialize multi-agent topology
 - `agent_spawn` - Create specialized agents
 - `agent_list` - List active agents
 - `agent_metrics` - Get performance metrics
@@ -108,7 +108,7 @@ Claude-flow exposes 70+ MCP tools including:
 - `neural_patterns` - Analyze cognitive patterns
 
 ### Performance & Monitoring
-- `swarm_status` - Monitor health
+- `multi-agent_status` - Monitor health
 - `bottleneck_analyze` - Identify issues
 - `performance_report` - Generate reports
 
@@ -129,11 +129,11 @@ npx claude-flow@alpha --version
 
 ## Usage Examples
 
-### Initialize a Swarm
+### Initialize a multi-agent
 
 ```rust
 // Via ClaudeFlowActor
-let params = InitializeSwarm {
+let params = initializeMultiAgent {
     topology: "hierarchical".to_string(),
     max_agents: 8,
     strategy: Some("balanced".to_string()),
@@ -180,8 +180,8 @@ Test the integration:
 # In one terminal, watch logs
 docker logs -f webxr
 
-# In another, trigger swarm initialization
-curl -X POST http://localhost:8080/api/bots/initialize-swarm \
+# In another, trigger multi-agent initialization
+curl -X POST http://localhost:8080/api/bots/initialize-multi-agent \
   -H "Content-Type: application/json" \
   -d '{
     "topology": "hierarchical",

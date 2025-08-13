@@ -50,7 +50,7 @@ export class BotsWebSocketIntegration {
         // Also emit individual updates for backward compatibility
         this.processBotsUpdate({
           agents: message.agents,
-          swarmMetrics: message.swarmMetrics,
+          multiAgentMetrics: message.multiAgentMetrics,
           timestamp: message.timestamp
         });
       }
@@ -103,7 +103,7 @@ export class BotsWebSocketIntegration {
       const { apiService } = await import('../../../services/apiService');
       const botsData = await apiService.get('/bots/data');
       logger.info('Fetched bots data:', botsData);
-      
+
       // Emit the data for components to use
       if (botsData && botsData.nodes) {
         this.emit('bots-data', botsData);

@@ -5,7 +5,7 @@ export { BotsVisualization } from './BotsVisualizationFixed';
 // export { BotsVisualizationEnhanced } from './BotsVisualizationEnhanced'; // Commented out - file doesn't exist
 export { BotsControlPanel } from './BotsControlPanel';
 export { BotsDebugInfo } from './BotsVisualizationDebugInfo';
-export { SwarmInitializationPrompt } from './SwarmInitializationPrompt';
+export { multiAgentInitializationPrompt } from './multiAgentInitializationPrompt';
 
 // UI Panels
 export { SystemHealthPanel } from './SystemHealthPanel';

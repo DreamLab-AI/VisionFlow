@@ -10,7 +10,7 @@ interface BotsData {
   dataSource: string;
   // Enhanced fields for full agent data
   agents: BotsAgent[];
-  swarmMetrics?: {
+  multiAgentMetrics?: {
     totalAgents: number;
     activeAgents: number;
     totalTasks: number;
@@ -49,10 +49,10 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       agents: update.agents,
       nodeCount: update.agents.length,
       edgeCount: 0, // Will be calculated from communication patterns
-      tokenCount: update.swarmMetrics.totalTokens,
+      tokenCount: update.multiAgentMetrics.totalTokens,
       mcpConnected: true,
       dataSource: 'live',
-      swarmMetrics: update.swarmMetrics,
+      multiAgentMetrics: update.multiAgentMetrics,
       lastUpdate: update.timestamp
     }));
   };

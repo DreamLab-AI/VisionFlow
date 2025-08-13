@@ -231,34 +231,34 @@ services:
       # Database
       - DATABASE_URL=postgresql://agent_user:agent_pass@postgres:5432/agent_db
       - DATABASE_POOL_SIZE=20
-      
+
       # Redis
       - REDIS_URL=redis://redis:6379/0
       - REDIS_POOL_SIZE=10
-      
+
       # MCP Integration
       - MCP_SERVER_URL=http://mcp-server:3001
       - MCP_API_KEY=${MCP_API_KEY}
       - MCP_TIMEOUT=30000
-      
+
       # WebSocket Configuration
       - WS_PORT=8080
       - WS_MAX_CONNECTIONS=1000
       - WS_HEARTBEAT_INTERVAL=30000
       - WS_COMPRESSION=true
-      
+
       # Performance
       - ENABLE_GPU_PHYSICS=true
       - MAX_VISIBLE_AGENTS=500
       - PHYSICS_UPDATE_RATE=60
       - POSITION_BATCH_SIZE=100
-      
+
       # Monitoring
       - PROMETHEUS_ENABLED=true
       - METRICS_PORT=9091
       - JAEGER_AGENT_HOST=jaeger
       - JAEGER_AGENT_PORT=6831
-      
+
       # Logging
       - RUST_LOG=agent_server=debug,tower_http=info
       - LOG_FORMAT=json
@@ -296,7 +296,7 @@ services:
       - MCP_PORT=3001
       - MCP_LOG_LEVEL=debug
       - CLAUDE_FLOW_CONFIG=/app/config/claude-flow.json
-      - ENABLE_SWARM_TOOLS=true
+      - ENABLE_multi-agent_TOOLS=true
       - ENABLE_MEMORY_TOOLS=true
       - ENABLE_NEURAL_TOOLS=true
     volumes:
@@ -472,7 +472,7 @@ networks:
       "patterns": ["hierarchical", "mesh", "pipeline", "consensus"],
       "maxParticipants": 100
     },
-    "swarm_init": {
+    "multi-agent_init": {
       "enabled": true,
       "maxAgents": 100,
       "topologies": ["star", "ring", "mesh", "hierarchical"]
@@ -564,7 +564,7 @@ module.exports = {
     handler: async ({ agentId, position, velocity }) => {
       // Implementation to update agent position
       const redis = require('redis').createClient(process.env.REDIS_URL);
-      
+
       await redis.hSet(`agent:${agentId}`, {
         posX: position.x,
         posY: position.y,
@@ -575,7 +575,7 @@ module.exports = {
           velZ: velocity.z
         })
       });
-      
+
       // Publish position update event
       await redis.publish('agent:position:update', JSON.stringify({
         agentId,
@@ -583,13 +583,13 @@ module.exports = {
         velocity,
         timestamp: Date.now()
       }));
-      
+
       return { success: true, agentId };
     }
   },
 
-  // Coordinate swarm formation
-  coordinate_swarm_formation: {
+  // Coordinate multi-agent formation
+  coordinate_multi-agent_formation: {
     description: 'Coordinate agents into specific formation patterns',
     inputSchema: z.object({
       pattern: z.enum(['circle', 'grid', 'sphere', 'helix', 'custom']),
@@ -610,18 +610,18 @@ module.exports = {
         spacing,
         customPattern
       );
-      
+
       // Update all agent positions
       const updates = agents.map((agentId, index) => ({
         agentId,
         position: positions[index]
       }));
-      
+
       // Batch update positions
-      await Promise.all(updates.map(update => 
+      await Promise.all(updates.map(update =>
         module.exports.update_agent_position.handler(update)
       ));
-      
+
       return {
         success: true,
         formation: pattern,
@@ -646,22 +646,22 @@ module.exports = {
     handler: async ({ agentId, metrics }) => {
       // Store metrics in time-series database
       const timestamp = Date.now();
-      
+
       // Update current metrics
       await redis.hSet(`agent:${agentId}:metrics`, {
         ...metrics,
         lastUpdate: timestamp
       });
-      
+
       // Store historical data
       await redis.zAdd(`agent:${agentId}:metrics:history`, {
         score: timestamp,
         value: JSON.stringify({ timestamp, ...metrics })
       });
-      
+
       // Calculate trends
       const trends = await calculatePerformanceTrends(agentId);
-      
+
       // Publish metrics update
       await redis.publish('agent:metrics:update', JSON.stringify({
         agentId,
@@ -669,7 +669,7 @@ module.exports = {
         trends,
         timestamp
       }));
-      
+
       return {
         success: true,
         agentId,
@@ -683,7 +683,7 @@ module.exports = {
 // Helper functions
 function calculateFormationPositions(pattern, count, center, spacing, custom) {
   const positions = [];
-  
+
   switch (pattern) {
     case 'circle':
       for (let i = 0; i < count; i++) {
@@ -695,7 +695,7 @@ function calculateFormationPositions(pattern, count, center, spacing, custom) {
         });
       }
       break;
-      
+
     case 'grid':
       const gridSize = Math.ceil(Math.sqrt(count));
       for (let i = 0; i < count; i++) {
@@ -708,7 +708,7 @@ function calculateFormationPositions(pattern, count, center, spacing, custom) {
         });
       }
       break;
-      
+
     case 'sphere':
       // Fibonacci sphere algorithm
       const phi = Math.PI * (3 - Math.sqrt(5));
@@ -723,14 +723,14 @@ function calculateFormationPositions(pattern, count, center, spacing, custom) {
         });
       }
       break;
-      
+
     case 'custom':
       if (custom && custom.positions) {
         return custom.positions;
       }
       break;
   }
-  
+
   return positions;
 }
 
@@ -742,10 +742,10 @@ async function calculatePerformanceTrends(agentId) {
     -1,
     { withScores: true }
   );
-  
+
   // Calculate trends
   const metrics = history.map(h => JSON.parse(h.value));
-  
+
   return {
     successRateTrend: calculateTrend(metrics.map(m => m.successRate)),
     responseTrend: calculateTrend(metrics.map(m => m.averageResponseTime)),
@@ -755,15 +755,15 @@ async function calculatePerformanceTrends(agentId) {
 
 function calculateTrend(values) {
   if (values.length < 2) return 'stable';
-  
+
   const recent = values.slice(-10);
   const older = values.slice(-20, -10);
-  
+
   const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
   const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
-  
+
   const change = (recentAvg - olderAvg) / olderAvg;
-  
+
   if (change > 0.1) return 'increasing';
   if (change < -0.1) return 'decreasing';
   return 'stable';
@@ -822,7 +822,7 @@ CREATE TABLE agents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     metadata JSONB DEFAULT '{}',
-    
+
     -- Indexes
     INDEX idx_agents_type (type),
     INDEX idx_agents_state (state),
@@ -840,7 +840,7 @@ CREATE TABLE agent_positions (
     velocity_y REAL DEFAULT 0,
     velocity_z REAL DEFAULT 0,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- Partitioning by month
     INDEX idx_positions_agent_timestamp (agent_id, timestamp DESC)
 ) PARTITION BY RANGE (timestamp);
@@ -858,7 +858,7 @@ CREATE TABLE agent_metrics (
     avg_response_time REAL DEFAULT 0,
     resource_utilization REAL DEFAULT 0,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_metrics_agent_timestamp (agent_id, timestamp DESC)
 );
 
@@ -874,7 +874,7 @@ CREATE TABLE messages (
     received_at TIMESTAMP WITH TIME ZONE,
     latency_ms INTEGER,
     success BOOLEAN DEFAULT TRUE,
-    
+
     INDEX idx_messages_from_to (from_agent, to_agent),
     INDEX idx_messages_timestamp (sent_at DESC)
 );
@@ -888,7 +888,7 @@ CREATE TABLE coordinations (
     started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP WITH TIME ZONE,
     metadata JSONB DEFAULT '{}',
-    
+
     INDEX idx_coordinations_status (status),
     INDEX idx_coordinations_pattern (pattern)
 );
@@ -899,7 +899,7 @@ CREATE TABLE coordination_participants (
     agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
     role VARCHAR(50) DEFAULT 'PARTICIPANT',
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
+
     PRIMARY KEY (coordination_id, agent_id)
 );
 
@@ -917,7 +917,7 @@ CREATE TRIGGER update_agents_updated_at BEFORE UPDATE ON agents
 
 -- Performance views
 CREATE MATERIALIZED VIEW agent_performance_summary AS
-SELECT 
+SELECT
     a.id,
     a.name,
     a.type,
@@ -1071,7 +1071,7 @@ echo "Deployment complete!"
    ```bash
    # Check WebSocket service logs
    docker logs agent-viz -f | grep "WebSocket"
-   
+
    # Verify port is accessible
    curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" http://localhost:8080/ws
    ```
@@ -1080,7 +1080,7 @@ echo "Deployment complete!"
    ```bash
    # Check MCP server logs
    docker logs mcp-server -f
-   
+
    # Test MCP tool directly
    docker exec mcp-server claude-flow tools test agent_spawn
    ```
@@ -1089,7 +1089,7 @@ echo "Deployment complete!"
    ```bash
    # Monitor resource usage
    docker stats
-   
+
    # Check Prometheus metrics
    curl http://localhost:9090/metrics | grep agent_
    ```

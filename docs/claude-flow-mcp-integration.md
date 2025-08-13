@@ -22,7 +22,7 @@ This document describes the integration between the Rust-based force-directed gr
 └─────────────────────────┘
             │
             ▼
-    npx claude-flow@alpha 
+    npx claude-flow@alpha
     mcp start --stdio
 ```
 
@@ -81,18 +81,18 @@ pub struct BotsAgent {
     pub agent_type: String,
     pub status: String,
     pub name: String,
-    
+
     // Performance metrics
     pub cpu_usage: f32,
     pub health: f32,
     pub workload: f32,
-    
+
     // Positioning (for visualization)
     pub position: Vec3,
     pub velocity: Vec3,
     pub force: Vec3,
     pub connections: Vec<String>,
-    
+
     // Hive-mind properties
     pub capabilities: Option<Vec<String>>,
     pub current_task: Option<String>,
@@ -102,7 +102,7 @@ pub struct BotsAgent {
     pub tokens: Option<u64>,
     pub token_rate: Option<f32>,
     pub activity: Option<f32>,
-    pub swarm_id: Option<String>,
+    pub multi-agent_id: Option<String>,
     pub agent_mode: Option<String>,
     pub parent_queen_id: Option<String>,
 }
@@ -134,10 +134,10 @@ services:
 
 ## Usage
 
-### 1. Initialize Swarm
+### 1. Initialize multi-agent
 
 ```bash
-# POST /api/bots/initialize-swarm
+# POST /api/bots/initialize-multi-agent
 {
   "topology": "hierarchical",
   "max_agents": 8,
@@ -173,7 +173,7 @@ services:
 
 🚧 **Pending**:
 - WebSocket real-time push updates
-- Full swarm topology visualization
+- Full multi-agent topology visualization
 - Neural pattern integration
 - Performance metrics dashboard
 
@@ -207,7 +207,7 @@ When MCP is unavailable, the system automatically:
 ## Next Steps
 
 1. Implement WebSocket push for real-time updates
-2. Add swarm topology visualization modes
+2. Add multi-agent topology visualization modes
 3. Integrate neural pattern performance metrics
 4. Create agent interaction visualization
-5. Add swarm health monitoring dashboard
+5. Add multi-agent health monitoring dashboard

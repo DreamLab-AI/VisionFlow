@@ -1,10 +1,10 @@
-# VisionFlow: AI Agent Swarm Visualization & Knowledge Graph Explorer
+# VisionFlow: AI Multi Agent Visualisation & Knowledge Graph Explorer
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Visualization" style="width:100%; display:block; margin:0 auto;">
 
 ![Runtime Old Screenshot](./jarvisOld.png)
 
-**Experience the future of knowledge management:** Real-time 3D visualization of AI agent swarms working alongside your Logseq knowledge graph.
+**Experience the future of knowledge management:** Real-time 3D visualization of AI Multi Agents working alongside your Logseq knowledge graph.
 
 **Inspired by the innovative work of Prof. Rob Aspin:** [https://github.com/trebornipsa](https://github.com/trebornipsa)
 
@@ -71,14 +71,14 @@ graph TD
 
 ## Key Features
 
-### 🤖 AI Agent Swarm Visualization
+### 🤖 AI Multi Agent Visualisation
 - **Real-time Hive Mind Display**: Watch AI agents collaborate in stunning 3D
 - **Claude Flow Integration**: Full MCP (Model Context Protocol) support for agent orchestration
 - **GPU-Accelerated Physics**: Smooth 60 FPS visualization of 200+ agents
-- **Interactive Control**: Spawn, configure, and command agent swarms in real-time
+- **Interactive Control**: Spawn, configure, and command Multi Agents in real-time
 
 ### 📊 Dual Graph Architecture
-- **Parallel Visualization**: View Logseq knowledge graphs and AI agent swarms simultaneously
+- **Parallel Visualization**: View Logseq knowledge graphs and AI Multi Agents simultaneously
 - **Independent Physics**: Each graph has its own optimized physics engine
 - **Binary Protocol**: 85% bandwidth reduction for massive scalability
 
@@ -105,7 +105,7 @@ docker-compose up -d
 open http://localhost:3001
 ```
 
-**[Full Quick Start Guide](docs/quick-start-swarm.md)** - Spawn your first AI swarm in 5 minutes!
+**[Full Quick Start Guide](docs/quick-start-multi-agent.md)** - Spawn your first AI multi-agent in 5 minutes!
 
 ## Documentation Hub
 
@@ -117,8 +117,8 @@ open http://localhost:3001
 
 ## What's New in VisionFlow
 
-### AI Agent Swarm Features
-- **Hive Mind Spawning**: Create coordinated AI agent swarms with different topologies (mesh, hierarchical, ring, star)
+### AI Multi Agent Features
+- **Hive Mind Spawning**: Create coordinated AI Multi Agents with different topologies (mesh, hierarchical, ring, star)
 - **Real-time Monitoring**: Track agent performance, task completion, and communication patterns
 - **MCP Tool Integration**: 70+ tools including task orchestration, memory management, and neural training
 - **Agent Types**: 12 specialized agents (Queen, Coordinator, Researcher, Coder, Analyst, etc.)
@@ -689,7 +689,7 @@ The goal is to maintain responsiveness, especially during interactions with the 
 - **Docker**: 20.10+ with Docker Compose
 - **Node.js**: 20+ (for local development)
 - **Rust**: 1.75+ (for backend development)
-- **GPU**: Optional but recommended for large agent swarms
+- **GPU**: Optional but recommended for large Multi Agents
 - **Browser**: Chrome/Firefox/Safari with WebGL support
 
 ## Performance Benchmarks
@@ -728,20 +728,20 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ```
 
 
-# VisionFlow: Real-Time AI Agent Swarm Visualization
+# VisionFlow: Real-Time AI Multi Agent Visualisation
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Visualization" style="width:100%; display:block; margin:0 auto;">
 
-**Experience the future of AI orchestration:** Watch Claude Flow agent swarms collaborate in stunning 3D while managing your knowledge graph.
+**Experience the future of AI orchestration:** Watch Claude Flow Multi Agents collaborate in stunning 3D while managing your knowledge graph.
 
 ## 🚀 What is VisionFlow?
 
-VisionFlow is a high-performance visualization platform for AI agent swarms, built with a Claude Flow-centric architecture. It provides real-time 3D visualization of AI agents working collaboratively through the Model Context Protocol (MCP), alongside your Logseq knowledge graph.
+VisionFlow is a high-performance visualization platform for AI Multi Agents, built with a Claude Flow-centric architecture. It provides real-time 3D visualization of AI agents working collaboratively through the Model Context Protocol (MCP), alongside your Logseq knowledge graph.
 
 ### Key Highlights
 
 - **🤖 Claude Flow MCP Integration**: Direct WebSocket connection to Claude Flow for real-time agent orchestration
-- **📊 Dual Graph Architecture**: Simultaneous visualization of knowledge graphs and AI agent swarms
+- **📊 Dual Graph Architecture**: Simultaneous visualization of knowledge graphs and AI Multi Agents
 - **⚡ GPU-Accelerated Physics**: 60 FPS visualization of 100,000+ nodes with CUDA acceleration
 - **🔄 Binary Protocol**: 28-byte format reduces bandwidth by 85% vs JSON
 - **🏗️ Production Ready**: Docker deployment, horizontal scaling, monitoring
@@ -763,7 +763,7 @@ docker-compose up -d
 open http://localhost:3001
 ```
 
-**[📖 Full Quick Start Guide](docs/quick-start.md)** - Spawn your first AI swarm in 5 minutes!
+**[📖 Full Quick Start Guide](docs/quick-start.md)** - Spawn your first AI multi-agent in 5 minutes!
 
 ## 🏗️ Architecture
 
@@ -796,9 +796,9 @@ graph LR
 
 ## ✨ Core Features
 
-### AI Agent Swarm Orchestration
+### AI Multi Agent Orchestration
 
-- **Swarm Topologies**: Mesh, hierarchical, star, ring configurations
+- **multi-agent Topologies**: Mesh, hierarchical, star, ring configurations
 - **Agent Types**: Coordinator, researcher, coder, architect, tester, reviewer, documenter
 - **Real-time Telemetry**: 10Hz updates from Claude Flow MCP
 - **Task Assignment**: Dynamic task distribution with dependencies
@@ -835,7 +835,7 @@ graph LR
 
 ### Server Documentation
 - **[Actor System](docs/server/actors.md)** - Actix actor architecture
-- **[Agent Swarm](docs/server/agent-swarm.md)** - Orchestration details
+- **[Multi Agent](docs/server/agent-multi-agent.md)** - Orchestration details
 - **[Physics Engine](docs/server/physics-engine.md)** - Force-directed layout
 
 ## 🛠️ Technology Stack
@@ -893,7 +893,7 @@ services:
 
 ## 🎮 Usage Examples
 
-### Spawn a Simple Swarm
+### Spawn a Simple multi-agent
 
 ```json
 {

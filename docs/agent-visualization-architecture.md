@@ -2,7 +2,7 @@
 
 ## Overview
 
-The agent visualization system provides real-time, GPU-accelerated rendering of MCP agent swarms with rich metadata and visual feedback. It uses a JSON initialization followed by high-frequency WebSocket position updates for optimal performance.
+The agent visualization system provides real-time, GPU-accelerated rendering of MCP Multi Agents with rich metadata and visual feedback. It uses a JSON initialization followed by high-frequency WebSocket position updates for optimal performance.
 
 ## Architecture Components
 
@@ -39,7 +39,7 @@ The agent visualization system provides real-time, GPU-accelerated rendering of 
 {
   "type": "init",
   "timestamp": 1234567890,
-  "swarm_id": "swarm-001",
+  "multi-agent_id": "multi-agent-001",
   "topology": "hierarchical",
   "agents": [
     {
@@ -151,7 +151,7 @@ The visualization shares the same GPU-accelerated spring physics solver as the k
 
 ### With MCP
 - Real-time polling of agent status
-- Automatic swarm discovery
+- Automatic multi-agent discovery
 - Token usage tracking
 - Task assignment visualization
 
@@ -165,17 +165,17 @@ The visualization shares the same GPU-accelerated spring physics solver as the k
 
 ### Rendering Performance
 - 60 FPS with up to 500 agents
-- GPU instancing for large swarms
+- GPU instancing for large multi-agents
 - Adaptive quality based on performance
 - Mobile-optimized fallbacks
 
 ## Future Enhancements
 
-1. **Swarm Patterns**: Visualize emergent swarm behaviors
-2. **Historical Playback**: Record and replay swarm activity
-3. **3D Heatmaps**: Show activity hotspots in the swarm
+1. **multi-agent Patterns**: Visualize emergent multi-agent behaviors
+2. **Historical Playback**: Record and replay multi-agent activity
+3. **3D Heatmaps**: Show activity hotspots in the multi-agent
 4. **Voice Integration**: Audio cues for agent states
-5. **AR/VR Support**: Immersive swarm visualization
+5. **AR/VR Support**: Immersive multi-agent visualization
 
 ## Usage Example
 
@@ -216,4 +216,4 @@ function animate() {
 4. Monitor WebSocket messages in DevTools
 5. Check GPU performance metrics
 
-The system provides a comprehensive, performant solution for visualizing complex agent swarms with rich real-time data.
+The system provides a comprehensive, performant solution for visualizing complex Multi Agents with rich real-time data.

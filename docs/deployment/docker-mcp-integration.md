@@ -170,7 +170,7 @@ module.exports = {
   mcp: {
     stdio: true,
     tools: [
-      'swarm_init',
+      'multi-agent_init',
       'agent_spawn',
       'agent_list',
       'agent_metrics',
@@ -226,7 +226,7 @@ class MCPServer extends EventEmitter {
         version: '1.0.0'
       }
     });
-    
+
     this.emit('ready', response.result);
     return response.result;
   }
@@ -265,7 +265,7 @@ class MCPServer extends EventEmitter {
     if (message.id && this.pendingRequests.has(message.id)) {
       const { resolve, reject } = this.pendingRequests.get(message.id);
       this.pendingRequests.delete(message.id);
-      
+
       if (message.error) {
         reject(new Error(message.error.message));
       } else {
@@ -285,7 +285,7 @@ module.exports = MCPServer;
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `swarm_init` | Initialize agent swarm | topology, maxAgents, strategy |
+| `multi-agent_init` | Initialize Multi Agent | topology, maxAgents, strategy |
 | `agent_spawn` | Create new agent | name, type, capabilities |
 | `agent_list` | List active agents | filter, includeMetrics |
 | `agent_metrics` | Get performance metrics | agentId, timeRange |
@@ -340,13 +340,13 @@ impl AgentControlClient {
         Ok(())
     }
 
-    pub async fn initialize_swarm(&mut self, params: InitializeSwarmParams) -> Result<SwarmInfo> {
+    pub async fn initialize_multi-agent(&mut self, params: initializeMultiAgentParams) -> Result<multi-agentInfo> {
         let request = json!({
-            "method": "initialize_swarm",
+            "method": "initialize_multi-agent",
             "params": params,
             "id": self.next_id()
         });
-        
+
         self.send_request(request).await
     }
 }
@@ -479,7 +479,7 @@ docker-compose up
 ### Horizontal Scaling
 
 ```yaml
-# docker-swarm.yml
+# docker-multi-agent.yml
 version: '3.8'
 
 services:
