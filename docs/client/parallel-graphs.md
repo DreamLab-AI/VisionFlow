@@ -7,7 +7,7 @@ This document provides comprehensive documentation for the parallel graphs featu
 
 ## Overview
 
-The parallel graphs feature allows the application to visualize multiple graph data sources simultaneously, each with its own independent visual theme and physics configuration. This enables side-by-side comparison and analysis of different knowledge graphs.
+The parallel graphs feature allows the application to visualise multiple graph data sources simultaneously, each with its own independent visual theme and physics configuration. This enables side-by-side comparison and analysis of different knowledge graphs.
 
 ## Architecture
 

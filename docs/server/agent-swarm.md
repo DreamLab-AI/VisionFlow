@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow orchestrates AI Multi Agents through direct integration with Claude Flow's Model Context Protocol (MCP). This enables spawning, coordinating, and visualizing autonomous AI agents working collaboratively on complex tasks.
+VisionFlow orchestrates AI Multi Agents through direct integration with Claude Flow's Model Context Protocol (MCP). This enables spawning, coordinating, and visualising autonomous AI agents working collaboratively on complex tasks.
 
 ## Architecture
 

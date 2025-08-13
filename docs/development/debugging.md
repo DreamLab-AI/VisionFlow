@@ -34,7 +34,7 @@ This document outlines the debug system architecture for our application, featur
 
 - **Performance**: No network overhead for debug toggles
 - **Security**: Sensitive server logs never exposed to client
-- **Scalability**: Each system optimized for its specific needs
+- **Scalability**: Each system optimised for its specific needs
 - **Maintainability**: Clear boundaries reduce complexity
 
 ## Client-Side Debug System
@@ -240,7 +240,7 @@ DEBUG_CACHE_OPERATIONS=false
 use env_logger::{Builder, Env};
 use log::{debug, info, warn, error};
 
-// Logger initialization
+// Logger initialisation
 pub fn init_logger() {
     let env = Env::default()
         .filter_or("RUST_LOG", "info")
@@ -250,7 +250,7 @@ pub fn init_logger() {
         .format_timestamp_secs()
         .init();
     
-    info!("Debug system initialized");
+    info!("Debug system initialised");
 }
 
 // Debug macros for conditional logging

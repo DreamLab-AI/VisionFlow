@@ -8,7 +8,7 @@ The `client/src/utils/` directory contains a collection of general-purpose utili
 
 ### `logger.ts`
 
-Provides a centralized logging mechanism for the client application. It allows for structured logging with different severity levels (e.g., `debug`, `info`, `warn`, `error`) and can be configured to control log output based on application settings.
+Provides a centralised logging mechanism for the client application. It allows for structured logging with different severity levels (e.g., `debug`, `info`, `warn`, `error`) and can be configured to control log output based on application settings.
 
 **Key Features:**
 -   **Level-based logging:** Filter messages based on their importance.

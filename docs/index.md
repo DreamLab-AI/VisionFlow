@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow is a sophisticated real-time 3D visualisation platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualizing and interacting with complex knowledge graphs and AI agents.
+VisionFlow is a sophisticated real-time 3D visualisation platform that combines AI agent orchestration, GPU-accelerated physics, and cutting-edge XR capabilities. Built with a decoupled actor-based architecture using Rust backend and React/TypeScript frontend, it provides a powerful environment for visualising and interacting with complex knowledge graphs and AI agents.
 
 ## Documentation Structure
 
@@ -70,7 +70,7 @@ open http://localhost:3001
 ## Key Features
 
 - **AI Agent Orchestration**: 15+ specialised agent types with hierarchical, mesh, ring, and star topologies
-- **GPU-Accelerated Physics**: CUDA implementation optimized for NVIDIA hardware with dual-graph support
+- **GPU-Accelerated Physics**: CUDA implementation optimised for NVIDIA hardware with dual-graph support
 - **XR/AR Capabilities**: Meta Quest 3 support with hand tracking and WebXR integration
 - **Real-time Communication**: Binary protocol with WebSocket endpoints for minimal bandwidth usage
 

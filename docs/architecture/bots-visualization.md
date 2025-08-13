@@ -1,6 +1,6 @@
 # Bots Visualization Architecture
 
-This document describes the current architecture for visualizing AI agents (bots) in the VisionFlow 3D environment using the unified GPU kernel and parallel graph coordinator.
+This document describes the current architecture for visualising AI agents (bots) in the VisionFlow 3D environment using the unified GPU kernel and parallel graph coordinator.
 
 ## Overview
 

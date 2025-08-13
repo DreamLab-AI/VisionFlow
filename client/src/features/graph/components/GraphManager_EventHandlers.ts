@@ -5,7 +5,7 @@ import { graphDataManager } from '../managers/graphDataManager';
 import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
 import { createLogger } from '../../../utils/logger';
-import { debugState } from '../../../utils/debugState';
+import { debugState } from '../../../utils/clientDebugState';
 import { navigateNarrativeGoldmine } from '../../../utils/iframeCommunication';
 
 const logger = createLogger('GraphManager');

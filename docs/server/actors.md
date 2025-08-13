@@ -118,7 +118,7 @@ pub struct UpdateForceParams {
 pub struct GetGPUStatus; // -> GPUStatus
 pub struct GetPhysicsStats; // -> Result<PhysicsStats, String>
 
-// Position synchronization
+// Position synchronisation
 pub struct RequestPositionSnapshot {
     pub include_knowledge_graph: bool,
     pub include_agent_graph: bool
@@ -384,7 +384,7 @@ sequenceDiagram
         GSA->>GCA: ComputeForces(agent_graph_only)
         GCA-->>GSA: Agent positions
         GSA->>CMA: BroadcastNodePositions(agent_updates)
-        CMA->>Frontend: Real-time agent visualization
+        CMA->>Frontend: Real-time agent visualisation
     end
 ```
 

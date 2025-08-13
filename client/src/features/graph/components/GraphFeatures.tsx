@@ -7,6 +7,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useThree, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { Vector3, Color, Camera } from 'three';
+import styles from './GraphFeatures.module.css';
 import { graphSynchronization, type SyncOptions } from '../services/graphSynchronization';
 import { graphComparison, type NodeMatch, type GraphDifference, type SimilarityAnalysis } from '../services/graphComparison';
 import { graphAnimations, type AnimationOptions } from '../services/graphAnimations';
@@ -360,9 +361,9 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
 
   // Feature panels
   const SynchronizationPanel = useMemo(() => (
-    <div className="innovative-feature-panel synchronization-panel">
+    <div className={styles['innovative-feature-panel']}>
       <h3>Graph Synchronization</h3>
-      <div className="feature-controls">
+      <div className={styles['feature-controls']}>
         <label>
           <input
             type="checkbox"
@@ -373,7 +374,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         </label>
         
         {featureState.synchronization.enabled && (
-          <div className="sync-options">
+          <div className={styles['sync-options']}>
             <label>
               <input
                 type="checkbox"
@@ -405,9 +406,9 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   ), [featureState.synchronization, toggleSynchronization, updateSyncOptions]);
 
   const ComparisonPanel = useMemo(() => (
-    <div className="innovative-feature-panel comparison-panel">
+    <div className={styles['innovative-feature-panel']}>
       <h3>Graph Comparison</h3>
-      <div className="feature-controls">
+      <div className={styles['feature-controls']}>
         <label>
           <input
             type="checkbox"
@@ -418,13 +419,13 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         </label>
         
         {featureState.comparison.enabled && featureState.comparison.analysis && (
-          <div className="comparison-results">
-            <div className="similarity-metrics">
+          <div className={styles['comparison-results']}>
+            <div className={styles['similarity-metrics']}>
               <p>Overall Similarity: {(featureState.comparison.analysis.overallSimilarity * 100).toFixed(1)}%</p>
               <p>Structural: {(featureState.comparison.analysis.structuralSimilarity * 100).toFixed(1)}%</p>
               <p>Semantic: {(featureState.comparison.analysis.semanticSimilarity * 100).toFixed(1)}%</p>
             </div>
-            <div className="match-count">
+            <div className={styles['match-count']}>
               <p>Node Matches: {featureState.comparison.matches.length}</p>
             </div>
           </div>
@@ -434,9 +435,9 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   ), [featureState.comparison, toggleComparison]);
 
   const AnimationPanel = useMemo(() => (
-    <div className="innovative-feature-panel animation-panel">
+    <div className={styles['innovative-feature-panel']}>
       <h3>Animation System</h3>
-      <div className="feature-controls">
+      <div className={styles['feature-controls']}>
         <label>
           <input
             type="checkbox"
@@ -447,11 +448,11 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         </label>
         
         {featureState.animations.enabled && (
-          <div className="animation-controls">
+          <div className={styles['animation-controls']}>
             <button onClick={() => animateGraphTransition(!isVisible)}>
               {isVisible ? 'Hide' : 'Show'} Graph
             </button>
-            <div className="active-animations">
+            <div className={styles['active-animations'] || 'active-animations'}>
               <p>Active Animations: {featureState.animations.nodeAnimations.size}</p>
             </div>
           </div>
@@ -461,9 +462,9 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   ), [featureState.animations, toggleAnimations, animateGraphTransition, isVisible]);
 
   const AIInsightsPanel = useMemo(() => (
-    <div className="innovative-feature-panel ai-insights-panel">
+    <div className={styles['innovative-feature-panel']}>
       <h3>AI Insights</h3>
-      <div className="feature-controls">
+      <div className={styles['feature-controls']}>
         <label>
           <input
             type="checkbox"
@@ -474,7 +475,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         </label>
         
         {featureState.aiInsights.enabled && (
-          <div className="ai-controls">
+          <div className={styles['ai-controls']}>
             <label>
               <input
                 type="checkbox"
@@ -485,20 +486,20 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
             </label>
             
             {featureState.aiInsights.optimization && (
-              <div className="optimization-results">
+              <div className={styles['optimization-results']}>
                 <p>Algorithm: {featureState.aiInsights.optimization.algorithmUsed}</p>
                 <p>Confidence: {(featureState.aiInsights.optimization.confidence * 100).toFixed(1)}%</p>
               </div>
             )}
             
             {featureState.aiInsights.recommendations.length > 0 && (
-              <div className="recommendations">
+              <div className={styles['recommendations']}>
                 <p>Recommendations: {featureState.aiInsights.recommendations.length}</p>
-                <div className="recommendation-list">
+                <div className={styles['recommendation-list']}>
                   {featureState.aiInsights.recommendations.slice(0, 3).map((rec, index) => (
-                    <div key={index} className="recommendation-item">
-                      <span className="rec-type">{rec.recommendationType}</span>
-                      <span className="rec-confidence">{(rec.confidence * 100).toFixed(0)}%</span>
+                    <div key={index} className={styles['recommendation-item']}>
+                      <span className={styles['rec-type']}>{rec.recommendationType}</span>
+                      <span className={styles['rec-confidence']}>{(rec.confidence * 100).toFixed(0)}%</span>
                     </div>
                   ))}
                 </div>
@@ -511,10 +512,10 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   ), [featureState.aiInsights, toggleAIInsights]);
 
   const InteractionPanel = useMemo(() => (
-    <div className="innovative-feature-panel interaction-panel">
+    <div className={styles['innovative-feature-panel']}>
       <h3>Advanced Interactions</h3>
-      <div className="feature-controls">
-        <div className="interaction-modes">
+      <div className={styles['feature-controls']}>
+        <div className={styles['interaction-modes']}>
           <button 
             onClick={() => startTimeTravelMode([])}
             disabled={featureState.interactionModes.timeTravel.isActive}
@@ -543,7 +544,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
           </button>
         </div>
         
-        <div className="interaction-status">
+        <div className={styles['interaction-status']}>
           {featureState.interactionModes.timeTravel.isActive && (
             <p>Time Travel: Step {featureState.interactionModes.timeTravel.currentStep} / {featureState.interactionModes.timeTravel.totalSteps}</p>
           )}
@@ -572,17 +573,17 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
           fontFamily: 'Inter, system-ui, sans-serif',
           pointerEvents: 'auto',
           userSelect: 'none',
-          maxWidth: '800px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '15px'
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(0, 255, 255, 0.3)'
         }}
       >
-        {SynchronizationPanel}
-        {ComparisonPanel}
-        {AnimationPanel}
-        {AIInsightsPanel}
-        {InteractionPanel}
+        <div className={styles['features-grid']}>
+          {SynchronizationPanel}
+          {ComparisonPanel}
+          {AnimationPanel}
+          {AIInsightsPanel}
+          {InteractionPanel}
+        </div>
       </Html>
 
       {/* Feature Status Indicator */}
@@ -599,24 +600,24 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
           pointerEvents: 'none'
         }}
       >
-        <div className="feature-status">
+        <div className={styles['feature-status']}>
           <h4>Active Features</h4>
-          <div className="status-indicators">
-            <div className={`status-item ${featureState.synchronization.enabled ? 'active' : ''}`}>
+          <div className={styles['status-indicators']}>
+            <div className={`${styles['status-item']} ${featureState.synchronization.enabled ? styles['active'] || 'active' : ''}`}>
               🔄 Sync
             </div>
-            <div className={`status-item ${featureState.comparison.enabled ? 'active' : ''}`}>
+            <div className={`${styles['status-item']} ${featureState.comparison.enabled ? styles['active'] || 'active' : ''}`}>
               🔍 Compare
             </div>
-            <div className={`status-item ${featureState.animations.enabled ? 'active' : ''}`}>
+            <div className={`${styles['status-item']} ${featureState.animations.enabled ? styles['active'] || 'active' : ''}`}>
               ✨ Animate
             </div>
-            <div className={`status-item ${featureState.aiInsights.enabled ? 'active' : ''}`}>
+            <div className={`${styles['status-item']} ${featureState.aiInsights.enabled ? styles['active'] || 'active' : ''}`}>
               🧠 AI
             </div>
-            <div className={`status-item ${Object.values(featureState.interactionModes).some(mode => 
+            <div className={`${styles['status-item']} ${Object.values(featureState.interactionModes).some(mode => 
               typeof mode === 'boolean' ? mode : mode.isActive
-            ) ? 'active' : ''}`}>
+            ) ? styles['active'] || 'active' : ''}`}>
               🎮 Interact
             </div>
           </div>

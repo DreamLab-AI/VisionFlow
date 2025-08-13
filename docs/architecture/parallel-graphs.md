@@ -35,7 +35,7 @@ class ParallelGraphCoordinator {
 ```
 
 **Key Responsibilities:**
-- Singleton pattern for centralized graph state management
+- Singleton pattern for centralised graph state management
 - Independent enable/disable for each graph type
 - Event-driven updates to React components
 - Position map management for both graph types

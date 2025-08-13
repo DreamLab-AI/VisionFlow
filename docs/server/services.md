@@ -140,7 +140,7 @@ Traditional services wrapped in Arc for thread safety.
 #### GitHub Service
 **Location**: `src/services/github/mod.rs`
 
-Provides GitHub repository integration for content synchronization.
+Provides GitHub repository integration for content synchronisation.
 
 ```rust
 pub struct GitHubClient {
@@ -700,11 +700,11 @@ impl<T> CachedService<T> {
 
         // Execute request and cache result
         let result = request.await?;
-        let serialized = serde_json::to_value(&result)?;
+        let serialised = serde_json::to_value(&result)?;
 
         {
             let mut cache = self.cache.write().await;
-            cache.insert(key, (Instant::now(), serialized));
+            cache.insert(key, (Instant::now(), serialised));
         }
 
         Ok(result)

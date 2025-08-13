@@ -1,7 +1,7 @@
 # WebSocket API Reference
 
 ## Overview
-The VisionFlow WebSocket implementation provides real-time graph updates using an optimized binary protocol alongside JSON control messages.
+The VisionFlow WebSocket implementation provides real-time graph updates using an optimised binary protocol alongside JSON control messages.
 
 ## Connection
 
@@ -103,7 +103,7 @@ interface WebSocketMessage {
 
 ### Binary Messages - Position Updates
 
-Position updates are transmitted as binary messages using a highly optimized 28-byte format per node.
+Position updates are transmitted as binary messages using a highly optimised 28-byte format per node.
 
 #### Wire Format (28 bytes per node)
 
@@ -162,7 +162,7 @@ CD CC 4C 3E  // Y velocity: 0.2 (little-endian f32)
 
 ### Position Synchronization Protocol
 
-VisionFlow implements bidirectional position synchronization:
+VisionFlow implements bidirectional position synchronisation:
 
 1. **Server Authority**: Server maintains authoritative graph state
 2. **Client Updates**: Clients can send position updates during user interactions

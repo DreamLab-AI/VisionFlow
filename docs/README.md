@@ -50,7 +50,7 @@ npm install && npm start
 | **Performance** | 60 FPS sustained |
 | **Agent Types** | 15+ specialised roles |
 | **Concurrent Users** | 100+ WebSocket clients |
-| **GPU Acceleration** | CUDA 11.8+ optimized |
+| **GPU Acceleration** | CUDA 11.8+ optimised |
 
 ## 🏗️ Architecture Overview
 

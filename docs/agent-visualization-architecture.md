@@ -167,7 +167,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 - 60 FPS with up to 500 agents
 - GPU instancing for large multi-agents
 - Adaptive quality based on performance
-- Mobile-optimized fallbacks
+- Mobile-optimised fallbacks
 
 ## Future Enhancements
 
@@ -194,7 +194,7 @@ vizClient.onPositionChange((agentId, position) => {
 });
 
 // Connect to WebSocket
-const ws = new WebSocket('ws://localhost:3000/api/visualization/agents/ws');
+const ws = new WebSocket('ws://localhost:3000/api/visualisation/agents/ws');
 ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
   vizClient.processMessage(message);
@@ -216,4 +216,4 @@ function animate() {
 4. Monitor WebSocket messages in DevTools
 5. Check GPU performance metrics
 
-The system provides a comprehensive, performant solution for visualizing complex Multi Agents with rich real-time data.
+The system provides a comprehensive, performant solution for visualising complex Multi Agents with rich real-time data.

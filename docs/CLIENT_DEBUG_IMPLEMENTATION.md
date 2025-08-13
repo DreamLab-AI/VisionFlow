@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully unified client-side debug controls to use localStorage only, with no backend synchronization.
+Successfully unified client-side debug controls to use localStorage only, with no backend synchronisation.
 
 ## Changes Made
 

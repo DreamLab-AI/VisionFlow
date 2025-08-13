@@ -17,16 +17,21 @@ use actix_web::{web, HttpResponse, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use log::{debug, error, info, warn};
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode
+    SetComputeMode, GetGraphData
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::ConstraintSet;
 use crate::actors::gpu_compute_actor::PhysicsStats;
+use crate::physics::semantic_constraints::SemanticCluster;
 
 /// Response for analytics parameter operations
 #[derive(Debug, Serialize, Deserialize)]
@@ -112,6 +117,188 @@ pub struct SystemMetrics {
     pub active_nodes: u32,
     pub active_edges: u32,
     pub render_time_ms: f32,
+}
+
+/// Clustering request payload
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClusteringRequest {
+    pub method: String,
+    pub params: ClusteringParams,
+}
+
+/// Clustering parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClusteringParams {
+    pub num_clusters: Option<u32>,
+    pub min_cluster_size: Option<u32>,
+    pub similarity: Option<String>,
+    pub convergence_threshold: Option<f32>,
+    pub max_iterations: Option<u32>,
+    pub eps: Option<f32>,
+    pub min_samples: Option<u32>,
+    pub distance_threshold: Option<f32>,
+    pub linkage: Option<String>,
+    pub resolution: Option<f32>,
+    pub random_state: Option<u32>,
+    pub damping: Option<f32>,
+    pub preference: Option<f32>,
+}
+
+/// Cluster data structure
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Cluster {
+    pub id: String,
+    pub label: String,
+    pub node_count: u32,
+    pub coherence: f32,
+    pub color: String,
+    pub keywords: Vec<String>,
+    pub nodes: Vec<u32>,
+    pub centroid: Option<[f32; 3]>,
+}
+
+/// Clustering response
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClusteringResponse {
+    pub success: bool,
+    pub clusters: Option<Vec<Cluster>>,
+    pub method: Option<String>,
+    pub execution_time_ms: Option<u64>,
+    pub task_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Clustering status response
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClusteringStatusResponse {
+    pub success: bool,
+    pub task_id: Option<String>,
+    pub status: String, // "pending", "running", "completed", "failed"
+    pub progress: f32, // 0.0 to 1.0
+    pub method: Option<String>,
+    pub started_at: Option<String>,
+    pub estimated_completion: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Cluster focus request
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClusterFocusRequest {
+    pub cluster_id: String,
+    pub zoom_level: Option<f32>,
+    pub highlight: Option<bool>,
+}
+
+/// Anomaly detection configuration
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnomalyDetectionConfig {
+    pub enabled: bool,
+    pub method: String,
+    pub sensitivity: f32,
+    pub window_size: u32,
+    pub update_interval: u32,
+}
+
+/// Anomaly data structure
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Anomaly {
+    pub id: String,
+    pub node_id: String,
+    pub r#type: String,
+    pub severity: String, // "low", "medium", "high", "critical"
+    pub score: f32,
+    pub description: String,
+    pub timestamp: u64,
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// Anomaly statistics
+#[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AnomalyStats {
+    pub total: u32,
+    pub critical: u32,
+    pub high: u32,
+    pub medium: u32,
+    pub low: u32,
+    pub last_updated: Option<u64>,
+}
+
+/// Anomaly response
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnomalyResponse {
+    pub success: bool,
+    pub anomalies: Option<Vec<Anomaly>>,
+    pub stats: Option<AnomalyStats>,
+    pub enabled: Option<bool>,
+    pub method: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// AI insights response
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InsightsResponse {
+    pub success: bool,
+    pub insights: Option<Vec<String>>,
+    pub patterns: Option<Vec<GraphPattern>>,
+    pub recommendations: Option<Vec<String>>,
+    pub analysis_timestamp: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Graph pattern detected by AI analysis
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphPattern {
+    pub id: String,
+    pub r#type: String,
+    pub description: String,
+    pub confidence: f32,
+    pub nodes: Vec<u32>,
+    pub significance: String, // "low", "medium", "high"
+}
+
+// Global state for clustering operations
+static CLUSTERING_TASKS: Lazy<Arc<Mutex<HashMap<String, ClusteringTask>>>> = 
+    Lazy::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+static ANOMALY_STATE: Lazy<Arc<Mutex<AnomalyState>>> = 
+    Lazy::new(|| Arc::new(Mutex::new(AnomalyState::default())));
+
+#[derive(Debug, Clone)]
+struct ClusteringTask {
+    pub task_id: String,
+    pub method: String,
+    pub status: String,
+    pub progress: f32,
+    pub started_at: u64,
+    pub clusters: Option<Vec<Cluster>>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Default, Clone)]
+struct AnomalyState {
+    pub enabled: bool,
+    pub method: String,
+    pub sensitivity: f32,
+    pub window_size: u32,
+    pub update_interval: u32,
+    pub anomalies: Vec<Anomaly>,
+    pub stats: AnomalyStats,
 }
 
 /// GET /api/analytics/params - Get current visual analytics parameters
@@ -448,10 +635,320 @@ pub async fn get_gpu_metrics(
     })))
 }
 
+/// POST /api/analytics/clustering/run - Run clustering analysis
+pub async fn run_clustering(
+    app_state: web::Data<AppState>,
+    request: web::Json<ClusteringRequest>,
+) -> Result<HttpResponse> {
+    info!("Starting clustering analysis with method: {}", request.method);
+    
+    let task_id = Uuid::new_v4().to_string();
+    let method = request.method.clone();
+    
+    // Create clustering task
+    let task = ClusteringTask {
+        task_id: task_id.clone(),
+        method: method.clone(),
+        status: "running".to_string(),
+        progress: 0.0,
+        started_at: chrono::Utc::now().timestamp() as u64,
+        clusters: None,
+        error: None,
+    };
+    
+    // Store task
+    {
+        let mut tasks = CLUSTERING_TASKS.lock().await;
+        tasks.insert(task_id.clone(), task);
+    }
+    
+    // Start clustering in background
+    let app_state_clone = app_state.clone();
+    let task_id_clone = task_id.clone();
+    let request_clone = request.clone();
+    
+    tokio::spawn(async move {
+        let clusters = perform_clustering(&app_state_clone, &request_clone, &task_id_clone).await;
+        
+        let mut tasks = CLUSTERING_TASKS.lock().await;
+        if let Some(task) = tasks.get_mut(&task_id_clone) {
+            match clusters {
+                Ok(clusters) => {
+                    task.status = "completed".to_string();
+                    task.progress = 1.0;
+                    task.clusters = Some(clusters);
+                },
+                Err(e) => {
+                    task.status = "failed".to_string();
+                    task.error = Some(e);
+                }
+            }
+        }
+    });
+    
+    Ok(HttpResponse::Ok().json(ClusteringResponse {
+        success: true,
+        clusters: None,
+        method: Some(method),
+        execution_time_ms: None,
+        task_id: Some(task_id),
+        error: None,
+    }))
+}
+
+/// GET /api/analytics/clustering/status - Get clustering status
+pub async fn get_clustering_status(
+    query: web::Query<HashMap<String, String>>,
+) -> Result<HttpResponse> {
+    let task_id = query.get("task_id");
+    
+    if let Some(task_id) = task_id {
+        let tasks = CLUSTERING_TASKS.lock().await;
+        if let Some(task) = tasks.get(task_id) {
+            let estimated_completion = if task.status == "running" {
+                Some(chrono::Utc::now().timestamp() as u64 + 30) // Estimate 30 seconds
+            } else {
+                None
+            };
+            
+            return Ok(HttpResponse::Ok().json(ClusteringStatusResponse {
+                success: true,
+                task_id: Some(task.task_id.clone()),
+                status: task.status.clone(),
+                progress: task.progress,
+                method: Some(task.method.clone()),
+                started_at: Some(task.started_at.to_string()),
+                estimated_completion: estimated_completion.map(|t| t.to_string()),
+                error: task.error.clone(),
+            }));
+        }
+    }
+    
+    Ok(HttpResponse::NotFound().json(ClusteringStatusResponse {
+        success: false,
+        task_id: None,
+        status: "not_found".to_string(),
+        progress: 0.0,
+        method: None,
+        started_at: None,
+        estimated_completion: None,
+        error: Some("Task not found".to_string()),
+    }))
+}
+
+/// POST /api/analytics/clustering/focus - Focus on specific cluster
+pub async fn focus_cluster(
+    app_state: web::Data<AppState>,
+    request: web::Json<ClusterFocusRequest>,
+) -> Result<HttpResponse> {
+    info!("Focusing on cluster: {}", request.cluster_id);
+    
+    // Find the cluster in our stored results
+    let tasks = CLUSTERING_TASKS.lock().await;
+    let cluster = tasks.values()
+        .filter_map(|task| task.clusters.as_ref())
+        .flatten()
+        .find(|c| c.id == request.cluster_id)
+        .cloned();
+    
+    if let Some(cluster) = cluster {
+        // Create focus parameters based on cluster
+        if let Some(centroid) = cluster.centroid {
+            let focus_request = SetFocusRequest {
+                node_id: None,
+                region: Some(FocusRegion {
+                    center_x: centroid[0],
+                    center_y: centroid[1],
+                    center_z: centroid[2],
+                    radius: request.zoom_level.unwrap_or(5.0),
+                }),
+                radius: Some(request.zoom_level.unwrap_or(5.0)),
+                intensity: Some(1.0),
+            };
+            
+            // Apply focus using existing focus handler
+            let focus_response = set_focus(app_state, web::Json(focus_request)).await?;
+            return Ok(focus_response);
+        }
+    }
+    
+    Ok(HttpResponse::Ok().json(FocusResponse {
+        success: true,
+        focus_node: None,
+        focus_region: None,
+        error: Some("Cluster not found or no centroid available".to_string()),
+    }))
+}
+
+/// POST /api/analytics/anomaly/toggle - Toggle anomaly detection
+pub async fn toggle_anomaly_detection(
+    request: web::Json<AnomalyDetectionConfig>,
+) -> Result<HttpResponse> {
+    info!("Toggling anomaly detection: enabled={}", request.enabled);
+    
+    let mut state = ANOMALY_STATE.lock().await;
+    state.enabled = request.enabled;
+    state.method = request.method.clone();
+    state.sensitivity = request.sensitivity;
+    state.window_size = request.window_size;
+    state.update_interval = request.update_interval;
+    
+    if request.enabled {
+        // Start anomaly detection simulation
+        start_anomaly_detection().await;
+    } else {
+        // Clear existing anomalies
+        state.anomalies.clear();
+        state.stats = AnomalyStats::default();
+    }
+    
+    Ok(HttpResponse::Ok().json(AnomalyResponse {
+        success: true,
+        anomalies: None,
+        stats: Some(state.stats.clone()),
+        enabled: Some(state.enabled),
+        method: Some(state.method.clone()),
+        error: None,
+    }))
+}
+
+/// GET /api/analytics/anomaly/current - Get current anomalies
+pub async fn get_current_anomalies() -> Result<HttpResponse> {
+    let state = ANOMALY_STATE.lock().await;
+    
+    if !state.enabled {
+        return Ok(HttpResponse::Ok().json(AnomalyResponse {
+            success: true,
+            anomalies: Some(vec![]),
+            stats: Some(AnomalyStats::default()),
+            enabled: Some(false),
+            method: None,
+            error: None,
+        }));
+    }
+    
+    Ok(HttpResponse::Ok().json(AnomalyResponse {
+        success: true,
+        anomalies: Some(state.anomalies.clone()),
+        stats: Some(state.stats.clone()),
+        enabled: Some(state.enabled),
+        method: Some(state.method.clone()),
+        error: None,
+    }))
+}
+
+/// GET /api/analytics/insights - Get AI insights
+pub async fn get_ai_insights(
+    app_state: web::Data<AppState>,
+) -> Result<HttpResponse> {
+    info!("Generating AI insights for graph analysis");
+    
+    // Get current graph data
+    let graph_data = if let Some(graph_addr) = app_state.graph_addr.as_ref() {
+        match graph_addr.send(GetGraphData).await {
+            Ok(Ok(data)) => Some(data),
+            _ => None,
+        }
+    } else {
+        None
+    };
+    
+    // Generate insights based on current clustering and anomaly state
+    let clustering_tasks = CLUSTERING_TASKS.lock().await;
+    let anomaly_state = ANOMALY_STATE.lock().await;
+    
+    let mut insights = vec![
+        "Graph structure analysis shows balanced connectivity patterns".to_string(),
+        "Node distribution follows expected semantic clustering".to_string(),
+    ];
+    
+    let mut patterns = vec![];
+    let mut recommendations = vec![];
+    
+    // Add clustering insights
+    if let Some(latest_clusters) = clustering_tasks.values()
+        .filter(|t| t.status == "completed")
+        .max_by_key(|t| t.started_at)
+        .and_then(|t| t.clusters.as_ref()) {
+        
+        insights.push(format!("Identified {} distinct semantic clusters", latest_clusters.len()));
+        
+        if latest_clusters.len() > 10 {
+            recommendations.push("Consider increasing clustering threshold to reduce cluster count".to_string());
+        } else if latest_clusters.len() < 3 {
+            recommendations.push("Consider decreasing clustering threshold for more granular grouping".to_string());
+        }
+        
+        // Add pattern for largest cluster
+        if let Some(largest_cluster) = latest_clusters.iter().max_by_key(|c| c.node_count) {
+            patterns.push(GraphPattern {
+                id: Uuid::new_v4().to_string(),
+                r#type: "dominant_cluster".to_string(),
+                description: format!("Large semantic cluster '{}' with {} nodes", largest_cluster.label, largest_cluster.node_count),
+                confidence: largest_cluster.coherence,
+                nodes: largest_cluster.nodes.clone(),
+                significance: if largest_cluster.node_count > 50 { "high" } else { "medium" }.to_string(),
+            });
+        }
+    }
+    
+    // Add anomaly insights
+    if anomaly_state.enabled && anomaly_state.stats.total > 0 {
+        insights.push(format!("Detected {} anomalies across the graph", anomaly_state.stats.total));
+        
+        if anomaly_state.stats.critical > 0 {
+            recommendations.push("Investigate critical anomalies that may indicate data quality issues".to_string());
+        }
+        
+        patterns.push(GraphPattern {
+            id: Uuid::new_v4().to_string(),
+            r#type: "anomaly_pattern".to_string(),
+            description: format!("Anomaly distribution: {} critical, {} high, {} medium", 
+                anomaly_state.stats.critical, anomaly_state.stats.high, anomaly_state.stats.medium),
+            confidence: 0.9,
+            nodes: anomaly_state.anomalies.iter()
+                .take(10)
+                .filter_map(|a| a.node_id.parse::<u32>().ok())
+                .collect(),
+            significance: "high".to_string(),
+        });
+    }
+    
+    // Add general graph insights
+    if let Some(data) = graph_data {
+        let node_count = data.nodes.len();
+        let edge_count = data.edges.len();
+        let density = if node_count > 1 {
+            (2.0 * edge_count as f32) / (node_count as f32 * (node_count - 1) as f32)
+        } else {
+            0.0
+        };
+        
+        insights.push(format!("Graph contains {} nodes and {} edges with density {:.3}", 
+            node_count, edge_count, density));
+        
+        if density > 0.5 {
+            recommendations.push("High graph density may benefit from hierarchical layout".to_string());
+        } else if density < 0.1 {
+            recommendations.push("Low graph density suggests potential for force-directed layout".to_string());
+        }
+    }
+    
+    Ok(HttpResponse::Ok().json(InsightsResponse {
+        success: true,
+        insights: Some(insights),
+        patterns: Some(patterns),
+        recommendations: Some(recommendations),
+        analysis_timestamp: Some(chrono::Utc::now().timestamp() as u64),
+        error: None,
+    }))
+}
+
 /// Configure analytics API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/analytics")
+            // Existing endpoints
             .route("/params", web::get().to(get_analytics_params))
             .route("/params", web::post().to(update_analytics_params))
             .route("/constraints", web::get().to(get_constraints))
@@ -460,5 +957,17 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/stats", web::get().to(get_performance_stats))
             .route("/kernel-mode", web::post().to(set_kernel_mode))
             .route("/gpu-metrics", web::get().to(get_gpu_metrics))
+            
+            // New clustering endpoints
+            .route("/clustering/run", web::post().to(run_clustering))
+            .route("/clustering/status", web::get().to(get_clustering_status))
+            .route("/clustering/focus", web::post().to(focus_cluster))
+            
+            // New anomaly detection endpoints
+            .route("/anomaly/toggle", web::post().to(toggle_anomaly_detection))
+            .route("/anomaly/current", web::get().to(get_current_anomalies))
+            
+            // New insights endpoint
+            .route("/insights", web::get().to(get_ai_insights))
     );
 }

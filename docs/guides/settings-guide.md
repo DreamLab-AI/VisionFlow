@@ -321,7 +321,7 @@ Content-Type: application/json
 
 ### WebSocket Updates
 
-Real-time settings synchronization:
+Real-time settings synchronisation:
 
 ```javascript
 // Settings change broadcast
@@ -847,10 +847,10 @@ await updateSettings({
 
 ### Machine Learning Integration
 
-Settings can be optimized using ML feedback:
+Settings can be optimised using ML feedback:
 
 ```rust
-// ML-optimized parameter suggestion
+// ML-optimised parameter suggestion
 pub struct MLOptimizer {
     pub learning_rate: f32,
     pub target_metrics: TargetMetrics,
@@ -950,7 +950,7 @@ let migration = SettingsMigration {
 // Future API endpoints
 interface FutureAPIs {
   '/api/settings/profiles': ProfileManagement;
-  '/api/settings/optimize': MLOptimization;  
+  '/api/settings/optimise': MLOptimization;  
   '/api/settings/compare': ParameterComparison;
   '/api/settings/export': ConfigurationExport;
   '/api/settings/templates': TemplateSystem;

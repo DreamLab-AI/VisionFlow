@@ -167,7 +167,7 @@ theme: "dark"
 language: "en"
 
 # Visualization preferences
-visualization:
+visualisation:
   node_size: 10
   edge_width: 2
   label_size: 12
@@ -252,13 +252,13 @@ settings_actor.send(SetSettingByPath {
 
 ### Client Settings Synchronization
 
-Client settings are synchronized via WebSocket:
+Client settings are synchronised via WebSocket:
 
 ```typescript
 // Client-side
 const settings = {
   theme: 'dark',
-  visualization: {
+  visualisation: {
     nodeSize: 12,
     showLabels: true
   }
@@ -318,7 +318,7 @@ pub struct ServerConfig {
 pub struct GraphConfig {
     pub max_nodes: usize,          // Default: 100000
     pub simulation: SimulationParams,
-    pub visualization: VisualizationConfig,
+    pub visualisation: VisualizationConfig,
 }
 
 pub struct SimulationParams {
@@ -346,7 +346,7 @@ pub struct ProtectedSettings {
 // UI settings (safe subset for frontend)
 pub struct UISettings {
     pub theme: String,
-    pub visualization: VisualizationConfig,
+    pub visualisation: VisualizationConfig,
     pub features: EnabledFeatures,
     pub user_preferences: UserPreferences,
 }
@@ -739,12 +739,12 @@ features:
 ```yaml
 # Old LogseqXR format
 logseq_xr:
-  visualization:
+  visualisation:
     type: "spring"
 
 # New VisionFlow format
 visionflow:
-  visualization:
+  visualisation:
     graphs:
       logseq:
         enabled: true

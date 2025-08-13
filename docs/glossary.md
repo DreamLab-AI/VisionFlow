@@ -32,7 +32,7 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 **GPU Compute** - CUDA-based acceleration for graph physics calculations, managed by the GPUCompute struct.
 
-**Graph Data Manager** - Client-side service responsible for managing graph state and synchronizing with the server.
+**Graph Data Manager** - Client-side service responsible for managing graph state and synchronising with the server.
 
 ## H
 

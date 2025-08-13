@@ -95,10 +95,14 @@ impl Node {
 
     pub fn set_file_size(&mut self, size: u64) {
         self.file_size = size;
-        // Calculate mass using log scale to prevent extremely large masses
-        let base_mass = ((size + 1) as f32).log10() / 4.0;
-        // Scale to 0-255 range for u8
-        self.data.mass = ((base_mass.max(0.1).min(10.0) * 25.5) as u8).max(1);
+        // Update mass based on new file size using the centralized calculation
+        self.data.mass = Self::calculate_mass(size);
+        
+        // Add the file_size to the metadata HashMap so it gets serialized to the client
+        // This is our workaround since we can't directly serialize the file_size field
+        if size > 0 {
+            self.metadata.insert("fileSize".to_string(), size.to_string());
+        }
     }
 
     pub fn with_position(mut self, x: f32, y: f32, z: f32) -> Self {
@@ -146,6 +150,54 @@ impl Node {
         self
     }
 
+    /// Create a new node with a specific ID or use a stored ID if available
+    pub fn new_with_stored_id(metadata_id: String, stored_node_id: Option<u32>) -> Self {
+        // Use stored ID if available, otherwise generate a new one
+        let id = match stored_node_id {
+            Some(stored_id) => stored_id,
+            None => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst),
+        };
+        
+        // Use similar position initialization logic as the main constructor
+        let id_hash = id as f32;
+        let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
+        let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
+        
+        Self {
+            id,
+            metadata_id: metadata_id.clone(),
+            label: metadata_id,
+            data: BinaryNodeData {
+                position: Vec3Data::new(
+                    radius * angle.cos() * 2.0,
+                    radius * angle.sin() * 2.0,
+                    (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
+                ),
+                velocity: Vec3Data::new(0.0, 0.0, 0.0),
+                mass: 0,
+                flags: 1, // Active by default
+                padding: [0, 0],
+            },
+            metadata: HashMap::new(),
+            file_size: 0,
+            node_type: None,
+            size: None,
+            color: None,
+            weight: None,
+            group: None,
+            user_data: None,
+        }
+    }
+
+    pub fn calculate_mass(file_size: u64) -> u8 {
+        // Use log scale to prevent extremely large masses
+        // Add 1 to file_size to handle empty files (log(0) is undefined)
+        let base_mass = ((file_size + 1) as f32).log10() / 4.0;
+        // Ensure minimum mass of 0.1 and maximum of 10.0
+        let mass = base_mass.max(0.1).min(10.0);
+        (mass * 255.0 / 10.0) as u8
+    }
+
     // Convenience getters/setters for position and velocity
     pub fn x(&self) -> f32 { self.data.position.x }
     pub fn y(&self) -> f32 { self.data.position.y }
@@ -160,6 +212,17 @@ impl Node {
     pub fn set_vx(&mut self, val: f32) { self.data.velocity.x = val; }
     pub fn set_vy(&mut self, val: f32) { self.data.velocity.y = val; }
     pub fn set_vz(&mut self, val: f32) { self.data.velocity.z = val; }
+
+    /// Get the node ID as a string for socket/wire protocol compatibility
+    pub fn id_as_string(&self) -> String {
+        self.id.to_string()
+    }
+
+    /// Create a Node from a string ID (for socket/wire protocol compatibility)
+    pub fn from_string_id(id_str: &str, metadata_id: String) -> Result<Self, std::num::ParseIntError> {
+        let id: u32 = id_str.parse()?;
+        Ok(Self::new_with_stored_id(metadata_id, Some(id)))
+    }
 }
 
 #[cfg(test)]

@@ -457,4 +457,4 @@ Once you have your first multi-agent system running successfully:
 
 ---
 
-**Welcome to VisionFlow!** You now have everything needed to deploy intelligent multi-agent systems and visualize their collaborative workflows in real-time 3D environments.
+**Welcome to VisionFlow!** You now have everything needed to deploy intelligent multi-agent systems and visualise their collaborative workflows in real-time 3D environments.

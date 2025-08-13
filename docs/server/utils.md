@@ -119,7 +119,7 @@ pub enum Message {
     // Loading { message: String },
 }
 ```
-- These are for signaling, heartbeating, and simple state changes.
+- These are for signalling, heartbeating, and simple state changes.
 
 ### Binary Data Transmission ([`src/utils/socket_flow_messages.rs`](../../src/utils/socket_flow_messages.rs))
 - **`BinaryNodeData`**: As defined in the Graph Types section of `docs/server/types.md`. This struct (`position`, `velocity`, `mass`, `flags`, `padding`) is used server-side for physics.
@@ -157,7 +157,7 @@ This module provides helper functions for verifying access to protected API endp
 
 ## Helper Functions
 
-Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralized in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organized into more specific utility modules if widely needed.
+Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralised in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organised into more specific utility modules if widely needed.
 - File system operations are primarily handled by [`FileService`](../../src/services/file_service.rs).
 - Specific data conversion or formatting utilities might be found within individual service or model files.
 - The plan's mention of `sanitize_filename`, `generate_slug`, etc., as not being present is accurate for a generic `utils` module; such specific helpers would be within relevant services.
@@ -165,7 +165,7 @@ Generic helper functions for tasks like string manipulation or common data trans
 ## Binary Protocol
 
 ### Overview
-The binary protocol module (`src/utils/binary_protocol.rs`) provides efficient binary serialization for real-time node position updates over WebSocket connections.
+The binary protocol module (`src/utils/binary_protocol.rs`) provides efficient binary serialisation for real-time node position updates over WebSocket connections.
 
 ### WireNodeDataItem Structure
 ```rust
@@ -190,7 +190,7 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 
 ### Key Features
 - Fixed 28-byte wire format per node for predictable parsing
-- Zero-copy serialization using `bytemuck`
+- Zero-copy serialisation using `bytemuck`
 - Compile-time size assertions for safety
 - Optimized for high-frequency position updates
 

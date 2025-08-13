@@ -13,7 +13,7 @@ The `ClaudeFlowActor` is a Rust Actix actor that manages the connection to the C
 ```rust
 pub struct ClaudeFlowActor {
     client: ClaudeFlowClient,           // MCP client
-    graph_service_addr: Addr<GraphServiceActor>,  // Graph visualization service
+    graph_service_addr: Addr<GraphServiceActor>,  // Graph visualisation service
     is_connected: bool,                 // Connection status
 }
 ```
@@ -52,7 +52,7 @@ async fn connect(&mut self) -> Result<()> {
 
 ## Data Flow
 
-### 1. Initialization Sequence
+### 1. Initialisation Sequence
 
 ```mermaid
 graph TD
@@ -123,7 +123,7 @@ The actor responds to several messages to manage the Multi Agent.
 
 - **GetActiveAgents**: Returns the current list of agents (real or mock).
 - **SpawnClaudeAgent**: Creates a new agent in the multi-agent.
-- **initializeMultiAgent**: Initializes a complete multi-agent configuration.
+- **initializeMultiAgent**: Initialises a complete multi-agent configuration.
 
 ## Environment Configuration
 

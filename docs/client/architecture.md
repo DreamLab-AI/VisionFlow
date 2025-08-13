@@ -149,7 +149,7 @@ The rendering engine is built on **React Three Fiber (`@react-three/fiber`)** an
 ### WebSocket Client
 The WebSocket client ([`client/src/services/WebSocketService.ts`](../../client/src/services/WebSocketService.ts)) provides real-time communication with the server for:
 - Live position updates using a custom binary protocol
-- Graph data synchronization
+- Graph data synchronisation
 - Control messages and event notifications (e.g., `connection_established`, `loading`)
 - Configurable reconnection attempts and compression settings
 - Binary chunk processing for large data transfers
@@ -265,7 +265,7 @@ The client communicates with the server through two primary channels:
 
 1. **REST API** - For configuration, authentication, and data operations
     - Feature-based access control through Nostr authentication
-    - Settings synchronization with server-side validation
+    - Settings synchronisation with server-side validation
     - File processing and graph data operations
     - AI service integration (RAGFlow, Perplexity)
 

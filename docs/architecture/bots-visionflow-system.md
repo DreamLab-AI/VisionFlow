@@ -84,7 +84,7 @@ The system supports 12 specialised agent types:
 
 ### 3. multi-agent Topologies
 
-The system supports multiple multi-agent organizational patterns:
+The system supports multiple multi-agent organisational patterns:
 
 - **Mesh**: Fully connected, best for collaborative tasks
 - **Hierarchical**: Tree structure with queen/coordinator at root

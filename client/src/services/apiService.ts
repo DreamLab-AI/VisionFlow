@@ -1,5 +1,5 @@
 import { createLogger, createErrorMetadata } from '../utils/logger';
-import { debugState } from '../utils/debugState';
+import { debugState } from '../utils/clientDebugState';
 import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '../types/ragflowTypes';
 
 const logger = createLogger('ApiService');

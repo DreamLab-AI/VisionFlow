@@ -2,12 +2,12 @@
 
 ## Overview
 
-VisionFlow's physics engine is a complete GPU-accelerated physics simulation system that provides real-time force-directed graph layout for visualizing knowledge graphs and multi-agent systems. The engine combines unified GPU compute, stress majorization solvers, semantic constraint generation, and a comprehensive parameter management system to achieve high-performance visualisation of 100,000+ nodes at 60 FPS.
+VisionFlow's physics engine is a complete GPU-accelerated physics simulation system that provides real-time force-directed graph layout for visualising knowledge graphs and multi-agent systems. The engine combines unified GPU compute, stress majorization solvers, semantic constraint generation, and a comprehensive parameter management system to achieve high-performance visualisation of 100,000+ nodes at 60 FPS.
 
 **Key Capabilities:**
 - **Unified GPU Compute Engine** with Structure of Arrays (SoA) memory layout
 - **Stress Majorization Solver** with CPU fallback for optimal layout quality
-- **Semantic Constraint Generator** for intelligent layout organization
+- **Semantic Constraint Generator** for intelligent layout organisation
 - **Parameter Management System** with real-time UI-to-GPU parameter flow
 - **Node Collapse Prevention** with minimum distance enforcement
 - **Multi-Graph Support** for knowledge graphs and agent visualizations
@@ -55,7 +55,7 @@ graph TB
 
 ### 1. Force-Directed Layout
 
-The unified physics kernel implements an optimized Fruchterman-Reingold algorithm with enhancements for dual graphs:
+The unified physics kernel implements an optimised Fruchterman-Reingold algorithm with enhancements for dual graphs:
 
 ```rust
 #[repr(C)]
@@ -89,7 +89,7 @@ F_total = (F_repulsion + F_attraction + F_gravity) * damping
 Independent physics parameters for knowledge versus agent nodes:
 
 #### Knowledge Graph Physics
-Stable, slowly evolving layout optimized for readability:
+Stable, slowly evolving layout optimised for readability:
 
 ```rust
 pub const KNOWLEDGE_PHYSICS: ForceParams = ForceParams {
@@ -457,7 +457,7 @@ fn get_update_priority(node: &Node, agent_data: Option<&AgentStatus>) -> UpdateP
 
 ### Spatial Indexing
 
-Accelerate neighbor searches with 3D spatial hashing:
+Accelerate neighbour searches with 3D spatial hashing:
 
 ```cuda
 __device__ int3 compute_spatial_hash(float3 position, float cell_size) {
@@ -647,7 +647,7 @@ The physics engine consists of four main components that work together to provid
 
 **Location**: `src/utils/unified_gpu_compute.rs`, `src/utils/visionflow_unified.cu`
 
-The unified compute engine consolidates 7 legacy CUDA kernels into a single optimized solution, achieving **89% code reduction** while maintaining full feature compatibility.
+The unified compute engine consolidates 7 legacy CUDA kernels into a single optimised solution, achieving **89% code reduction** while maintaining full feature compatibility.
 
 **Key Features:**
 - **Structure of Arrays (SoA) Memory Layout**: 3.5x performance improvement through optimal memory coalescing
@@ -716,7 +716,7 @@ Intelligent constraint generation system that creates layout constraints based o
 - **Separation Constraints**: Minimum distance enforcement between nodes
 - **Clustering Constraints**: Group related nodes based on semantic similarity
 - **Alignment Constraints**: Horizontal/vertical alignment for structured layouts
-- **Boundary Constraints**: Viewport containment and spatial organization
+- **Boundary Constraints**: Viewport containment and spatial organisation
 
 **Dynamic Constraint Generation:**
 ```rust

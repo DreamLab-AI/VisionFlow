@@ -84,7 +84,7 @@ SETTINGS_SYNC_ENABLED_PUBKEYS=pubkey1,pubkey2
 
 #### Settings Sync
 - **Controlled by**: `SETTINGS_SYNC_ENABLED_PUBKEYS`
-- **Provides**: Cross-device settings synchronization
+- **Provides**: Cross-device settings synchronisation
 - **Auto-granted to**: Power users
 - **Endpoints**: `/api/user-settings/sync`
 

@@ -64,7 +64,7 @@ The server defines two main structures for managing UI-related settings:
     }
     ```
 
-2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialized as camelCase JSON). It's derived from the global `Settings` for public/default views or from a specific user's `UserSettings`.
+2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialised as camelCase JSON). It's derived from the global `Settings` for public/default views or from a specific user's `UserSettings`.
 
     ```rust
     // In src/config/mod.rs
@@ -85,7 +85,7 @@ The server defines two main structures for managing UI-related settings:
         // NEW: Multi-graph support with graph-specific settings
         pub graphs: GraphsSettings,
         
-        // Global visualization settings (shared across graphs)
+        // Global visualisation settings (shared across graphs)
         pub rendering: RenderingSettings,
         pub animations: AnimationSettings,
         pub bloom: BloomSettings,

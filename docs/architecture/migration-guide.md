@@ -8,7 +8,7 @@ This guide helps developers understand the current VisionFlow architecture with 
 - **Unified GPU Kernel**: Single CUDA kernel (`visionflow_unified.cu`) with 4 compute modes
 - **Parallel Graphs**: Independent Logseq and VisionFlow graph processing
 - **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
-- **Enhanced Performance**: Structure of Arrays memory layout, optimized binary protocol
+- **Enhanced Performance**: Structure of Arrays memory layout, optimised binary protocol
 - **Comprehensive Agent Visualization**: Real-time Multi Agent Visualisation
 
 ### Key Components
