@@ -48,7 +48,7 @@ graph TB
     end
     
     subgraph "Service Layer"
-        BACKEND --> CLAUDE[Claude Flow MCP :3002]
+        BACKEND --> CLAUDE[Claude Flow MCP :9500 TCP]
         BACKEND --> GPU[GPU Compute]
         CLAUDE --> AGENTS[Agent Pool]
     end

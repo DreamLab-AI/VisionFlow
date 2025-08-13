@@ -2,68 +2,64 @@
 
 ## Overview
 
-The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualising AI Multi Agents in real-time.
+The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualising AI Multi Agents in real-time using TCP communication.
 
 ## Architecture
 
-### Direct Process Communication (Current)
+### TCP Communication (Current)
 
 ```
 ┌─────────────────────────┐
 │   Rust Backend          │
 │                         │
-│  ClaudeFlowActor        │
-│  ├─ StdioTransport      │
-│  │  └─ Spawns Process   │
+│  ClaudeFlowActorTcp     │
+│  ├─ TcpTransport        │
+│  │  └─ TCP Connection   │
 │  └─ MCP Protocol        │
 │                         │
 └─────────────────────────┘
             │
-            ▼
-    npx claude-flow@alpha
-    mcp start --stdio
+            ▼ TCP:9500
+  multi-agent-container
+  (Claude Flow MCP Server)
 ```
 
 ### Key Components
 
-#### ClaudeFlowActor (`/src/actors/claude_flow_actor.rs`)
+#### ClaudeFlowActorTcp (`/src/actors/claude_flow_actor_tcp.rs`)
 - Actor-based implementation for reliable MCP communication
-- Spawns claude-flow process directly via stdio
+- Connects to claude-flow MCP server via TCP
 - Polls for agent updates every 5 seconds
 - Gracefully falls back to mock data when MCP unavailable
 
-#### StdioTransport (`/src/services/claude_flow/transport/stdio.rs`)
-- Direct process spawning and management
-- JSON-RPC 2.0 message format over stdin/stdout
-- No network dependencies or port configuration
-- Process isolation for reliability
+#### TcpTransport (`/src/services/claude_flow/transport/tcp.rs`)
+- Direct TCP connection management
+- JSON-RPC 2.0 message format over TCP socket
+- Configurable host and port settings
+- Connection pooling for reliability
 
 ## MCP Protocol
 
 ### Initialization Flow
 
-1. **Spawn Process**:
+1. **Establish TCP Connection**:
    ```rust
-   Command::new("npx")
-       .args(&["claude-flow@alpha", "mcp", "start", "--stdio"])
-       .stdin(Stdio::piped())
-       .stdout(Stdio::piped())
-       .spawn()
+   let stream = TcpStream::connect("multi-agent-container:9500").await?;
    ```
 
 2. **Protocol Handshake**:
    ```json
-   // Server announces capabilities
-   → {"jsonrpc":"2.0","method":"server.initialized","params":{...}}
-
    // Client initializes connection
    ← {"jsonrpc":"2.0","id":"init-1","method":"initialize","params":{...}}
    → {"jsonrpc":"2.0","id":"init-1","result":{...}}
+   
+   // Server announces capabilities
+   → {"jsonrpc":"2.0","method":"server.initialized","params":{...}}
    ```
 
 3. **Tool Invocation**:
    ```json
-   // Call agent_list tool
+   // Call agent_list tool over TCP
    ← {"jsonrpc":"2.0","id":"1","method":"tools/call","params":{"name":"agent_list","arguments":{}}}
    → {"jsonrpc":"2.0","id":"1","result":{"content":[{"text":"..."}]}}
    ```
@@ -222,13 +218,13 @@ When MCP is unavailable:
 
 ### Common Issues
 
-1. **Process Spawn Failure**
-   - Ensure `claude-flow@alpha` is available: `npx claude-flow@alpha --version`
-   - Check Node.js installation
-   - Verify permissions
+1. **TCP Connection Failure**
+   - Ensure `multi-agent-container` is running: `docker ps | grep multi-agent-container`
+   - Check network connectivity: `telnet multi-agent-container 9500`
+   - Verify port 9500 is accessible
 
 2. **Communication Errors**
-   - Monitor stdout/stderr for protocol errors
+   - Monitor TCP stream for protocol errors
    - Check JSON-RPC message format
    - Verify tool names and parameters
 
@@ -241,8 +237,12 @@ When MCP is unavailable:
 
 ### Environment Variables
 ```bash
-# No longer needed for stdio transport!
-# Network configuration only required for WebSocket fallback
+# TCP configuration required
+CLAUDE_FLOW_HOST=multi-agent-container  # Default: "multi-agent-container"
+MCP_TCP_PORT=9500                       # Default: 9500
+MCP_RECONNECT_ATTEMPTS=3                # Default: 3
+MCP_RECONNECT_DELAY=1000                # Default: 1000ms
+MCP_CONNECTION_TIMEOUT=30000            # Default: 30000ms
 ```
 
 ### Polling Configuration
@@ -259,16 +259,16 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(10);
 - Binary protocol reduces bandwidth by 85%
 - Position updates use GPU-accelerated physics
 
-### Process Management
-- One claude-flow process per actor
-- Automatic restart on failure
-- Resource limits prevent runaway processes
+### Connection Management
+- TCP connection pooling
+- Automatic reconnection on failure
+- Configurable timeouts and retry logic
 
 ## Future Enhancements
 
-1. **Process Pool**: Reuse processes for better performance
+1. **Connection Pool**: Reuse TCP connections for better performance
 2. **Binary Protocol**: MessagePack for faster serialisation
-3. **Streaming Updates**: Server-sent events for real-time data
+3. **Streaming Updates**: Event-driven updates for real-time data
 4. **Multi-multi-agent**: Support multiple independent multi-agents
 5. **Persistence**: Save and restore multi-agent states
 

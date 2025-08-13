@@ -124,7 +124,7 @@ function renderAgent(agent: BotsAgent) {
 ### 4. Data Flow Pipeline
 
 ```
-Claude Flow MCP (port 3002)
+Claude Flow MCP (port 9500 TCP)
     ↓ Direct WebSocket connection
 EnhancedClaudeFlowActor
     ↓ Agent telemetry processing

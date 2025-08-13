@@ -5,56 +5,6 @@
 # VISUALIZATION SETTINGS - Multi-graph support
 # ============================================================================
 visualisation:
-  # Temporary legacy fields - will be migrated on load
-  nodes:
-    base_color: '#66d9ef'
-    metalness: 0.85
-    opacity: 0.95
-    roughness: 0.15
-    node_size: 1.2
-    quality: 'high'
-    enable_instancing: true
-    enable_hologram: true
-    enable_metadata_shape: true
-    enable_metadata_visualisation: true
-  edges:
-    arrow_size: 0.02
-    base_width: 0.5
-    color: '#56b6c2'
-    enable_arrows: false
-    opacity: 0.25
-    width_range: [0.2, 1.0]
-    quality: 'medium'
-  labels:
-    desktop_font_size: 0.5
-    enable_labels: true
-    text_color: '#f8f8f2'
-    text_outline_color: '#181c28'
-    text_outline_width: 0.005
-    text_resolution: 32
-    text_padding: 0.6
-    billboard_mode: 'camera'
-    show_metadata: true
-    max_label_width: 5
-  physics:
-    enabled: true
-    iterations: 200
-    damping: 0.9
-    spring_strength: 0.005
-    repulsion_strength: 50.0
-    repulsion_distance: 50.0
-    attraction_strength: 0.001
-    max_velocity: 1.0
-    collision_radius: 0.15
-    bounds_size: 200.0
-    enable_bounds: true
-    mass_scale: 1.0
-    boundary_damping: 0.95
-    update_threshold: 0.05
-    time_step: 0.01
-    temperature: 0.5
-    gravity: 0.0
-
   # Multi-graph support - primary source of truth
   graphs:
     logseq:

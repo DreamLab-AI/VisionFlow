@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -14,38 +13,33 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    // Use the VITE_DEV_SERVER_PORT from env (should be 5173 now)
     port: parseInt(process.env.VITE_DEV_SERVER_PORT || '5173'),
     strictPort: true,
+    
+    // HMR configuration for development
     hmr: {
-      // HMR port is internal (24678), client connects via Nginx (3001)
-      port: parseInt(process.env.VITE_HMR_PORT || '24678'),
-      // Let client infer host from window.location
+      port: parseInt(process.env.VITE_HMR_PORT || '5173'), // Use same port as server
+      host: 'localhost',
       protocol: 'ws',
-      clientPort: 3001, // Client connects to Nginx port
-      path: '/ws' // Explicitly set the path Nginx proxies
+      path: '/__vite_hmr', // Match nginx config
     },
-    // Enable file watching with polling for Docker on Windows
+    
+    // File watching for Docker environments
     watch: {
       usePolling: true,
-      interval: 1000, // Poll every second
+      interval: 1000,
     },
-    // Add proxy configuration for development
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-      '/wss': {
-        target: 'ws://localhost:3001',
-        ws: true,
-        changeOrigin: true,
-      },
-    },
+    
+    // CORS headers for development
+    cors: true,
+    
+    // Security headers to match nginx
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
+    
+    // No proxy needed - nginx handles all routing
   },
   resolve: {
     alias: {

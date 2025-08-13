@@ -40,8 +40,10 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Install Rust and cargo-watch for hot reloading
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    . $HOME/.cargo/env && \
+    cargo install cargo-watch
 
 WORKDIR /app
 
@@ -65,7 +67,7 @@ RUN npm install
 
 WORKDIR /app
 
-# Copy Nginx config
+# Copy Nginx config for development
 COPY nginx.dev.conf /etc/nginx/nginx.conf
 
 # Update dependencies

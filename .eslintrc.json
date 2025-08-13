@@ -24,6 +24,9 @@
   "ignorePatterns": [
     "dist",
     "node_modules",
-    "*.js"
+    "tailwind.config.js",
+    "postcss.config.cjs",
+    "vite.config.ts",
+    "public/audio-processor.js"
   ]
 }

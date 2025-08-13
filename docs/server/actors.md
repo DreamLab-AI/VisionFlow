@@ -11,7 +11,7 @@ The actor system implements a message-passing design with direct MCP integration
 ```mermaid
 graph TB
     subgraph "Claude Flow Integration"
-        MCP[Claude Flow MCP :3002] --> CFA[EnhancedClaudeFlowActor]
+        MCP[Claude Flow MCP :9500] --> CFA[ClaudeFlowActorTcp]
     end
 
     subgraph "Core Processing Actors"
@@ -249,7 +249,7 @@ pub struct SaveSettings; // -> Result<(), String>
 Direct integration with Claude Flow MCP for real-time agent orchestration.
 
 **Responsibilities**:
-- Maintains persistent WebSocket connection to Claude Flow MCP (port 3002)
+- Maintains persistent TCP connection to Claude Flow MCP (port 9500)
 - Streams agent telemetry at 10Hz with automatic reconnection
 - Handles multi-agent initialisation via JSON-RPC protocol
 - NO mock data generation - only real Claude Flow agent data

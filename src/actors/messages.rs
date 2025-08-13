@@ -242,7 +242,7 @@ pub struct UpdateBotsGraph {
 pub struct GetBotsGraphData;
 
 #[derive(Message)]
-#[rtype(result = "Result<(), String>")]
+#[rtype(result = "Result<String, String>")]
 pub struct InitializeSwarm {
     pub topology: String,
     pub max_agents: u32,
@@ -250,6 +250,23 @@ pub struct InitializeSwarm {
     pub enable_neural: bool,
     pub agent_types: Vec<String>,
     pub custom_prompt: Option<String>,
+}
+
+// Connection status messages
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct ConnectionFailed;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct PollAgentStatuses;
+
+// Agent update structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentUpdate {
+    pub agent_id: String,
+    pub status: String,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
 }
 
 // Enhanced MCP Tool Messages for Hive Mind Swarm

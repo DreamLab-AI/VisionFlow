@@ -46,7 +46,7 @@ Key environment variables to configure:
 ```bash
 # Core Settings
 CLAUDE_FLOW_HOST=multi-agent-container  # Host for Claude Flow MCP server
-CLAUDE_FLOW_PORT=3002                   # Port for Claude Flow service
+MCP_TCP_PORT=9500                       # Port for Claude Flow MCP TCP service
 
 # Performance Settings
 ENABLE_GPU=true                         # Enable GPU acceleration (if available)
@@ -75,7 +75,7 @@ docker-compose up -d
 
 This will start:
 - **VisionFlow Backend**: Rust/Actix server on port 3001
-- **Claude Flow MCP**: Agent orchestration service on port 3002
+- **Claude Flow MCP**: Agent orchestration service on port 9500 (TCP)
 - **Supporting Services**: RAGFlow, databases, caching layers
 
 ### 4. Verify Installation
@@ -305,7 +305,7 @@ Agents can maintain context across:
 - Fallback: `ws://127.0.0.1:3001/ws/mcp`
 
 **Solutions**:
-1. Check firewall settings for ports 3001-3002
+1. Check firewall settings for ports 3001 and 9500
 2. Verify Docker network configuration:
    ```bash
    docker network ls
@@ -389,7 +389,8 @@ Verify system health:
 curl http://localhost:3001/api/health
 
 # Claude Flow health  
-curl http://localhost:3002/health
+# Test TCP connection to MCP
+telnet localhost 9500
 
 # WebSocket connection test
 wscat -c ws://localhost:3001/ws/mcp

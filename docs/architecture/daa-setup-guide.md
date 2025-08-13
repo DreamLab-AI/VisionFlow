@@ -2,14 +2,14 @@
 
 ## Architecture Overview
 
-- **powerdev container**: Runs Claude Flow MCP with full DAA capabilities
-- **logseq container**: Connects to powerdev:3000 via WebSocket ONLY
+- **multi-agent-container**: Runs Claude Flow MCP with full DAA capabilities
+- **logseq container**: Connects to multi-agent-container:9500 via TCP ONLY
 
 ## Current Status
 
-The MCP WebSocket relay (`mcp-ws-relay.js`) is running in the powerdev container and bridges:
-- WebSocket protocol (what Rust expects) on port 3000
-- Stdio protocol (how Claude Flow MCP runs)
+The MCP TCP server is running in the multi-agent-container and provides:
+- TCP protocol (what Rust expects) on port 9500
+- Direct MCP protocol communication (how Claude Flow MCP runs)
 
 ## Available DAA Tools via MCP
 
@@ -68,7 +68,7 @@ The following 87 tools are available through the MCP interface:
 
 ## How to Use DAA Features
 
-Since we're in the logseq container, all DAA operations must go through the Rust backend which connects to powerdev:3000.
+Since we're in the logseq container, all DAA operations must go through the Rust backend which connects to multi-agent-container:9500.
 
 ### Example: Creating a Specialized Agent
 

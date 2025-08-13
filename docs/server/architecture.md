@@ -35,7 +35,7 @@ pub struct AppState {
     pub active_connections: Arc<AtomicUsize>,
 
     // Claude Flow MCP Integration
-    pub claude_flow_addr: Option<Addr<EnhancedClaudeFlowActor>>,
+    pub claude_flow_addr: Option<Addr<ClaudeFlowActorTcp>>,
     pub bots_client: Arc<BotsClient>,
 }
 ```
@@ -104,7 +104,7 @@ let app_state = AppState::new(
 - **Nostr Service**: Decentralized authentication and identity management
 
 **Claude Flow Integration**:
-- **MCP Connection**: Direct WebSocket connection to Claude Flow orchestrator on port 3002
+- **MCP Connection**: Direct TCP connection to Claude Flow orchestrator on port 9500
 - **Multi Agent Management**: Real-time agent spawning, task distribution, and telemetry
 - **Binary Protocol**: Efficient agent state streaming at 10Hz
 

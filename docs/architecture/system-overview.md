@@ -185,7 +185,7 @@ graph TB
     end
 
     subgraph "External Services"
-        ClaudeFlow[Claude Flow<br/>Port 3002]
+        ClaudeFlow[Claude Flow<br/>Port 9500 TCP]
         GitHub[GitHub API]
         RAGFlow[RAGFlow Service]
         Perplexity[Perplexity API]
@@ -443,7 +443,7 @@ graph TB
     end
 
     subgraph "Claude Flow Service"
-        MCPServer[MCP Server<br/>Port 3002]
+        MCPServer[MCP Server<br/>Port 9500 TCP]
         Tools[50+ MCP Tools]
         multi-agent[multi-agent Manager]
         Memory[Memory Service]
@@ -486,7 +486,7 @@ graph TB
         end
 
         subgraph "Services Container"
-            Claude[Claude Flow<br/>Port 3002]
+            Claude[Claude Flow<br/>Port 9500 TCP]
             RAG[RAGFlow<br/>Port 80]
         end
     end
