@@ -7,7 +7,7 @@ After comprehensive analysis of the codebase, I have verified the complete physi
 ## Flow Analysis Results
 
 ### ✅ Step 1: UI Controls → Backend API
-**File**: `/workspace/ext/client/src/features/physics/components/PhysicsEngineControls.tsx`
+**File**: `/client/src/features/physics/components/PhysicsEngineControls.tsx`
 
 The UI properly sends physics updates through two paths:
 1. **Settings Store Path**: `updatePhysics()` → `updateSettings()` → settings store
@@ -17,7 +17,7 @@ The UI properly sends physics updates through two paths:
 const handleForceParamChange = useCallback(async (param: keyof ForceParameters, value: number) => {
     // Update through settings store
     await updatePhysics(physicsUpdate);
-    
+
     // Also send to analytics endpoint for immediate GPU update
     await fetch('/api/analytics/params', {
         method: 'POST',
@@ -30,7 +30,7 @@ const handleForceParamChange = useCallback(async (param: keyof ForceParameters, 
 **Status**: ✅ VERIFIED - UI sends parameters correctly
 
 ### ✅ Step 2: API → Settings Handler
-**File**: `/workspace/ext/src/handlers/settings_handler.rs`
+**File**: `/src/handlers/settings_handler.rs`
 
 The REST endpoint handler properly:
 1. Receives camelCase JSON from frontend
@@ -58,7 +58,7 @@ if physics_updated {
 **Status**: ✅ VERIFIED - Backend API processes physics updates correctly
 
 ### ✅ Step 3: Settings → GPU Compute Actor
-**File**: `/workspace/ext/src/handlers/settings_handler.rs` (lines 393-424)
+**File**: `/src/handlers/settings_handler.rs` (lines 393-424)
 
 The `propagate_physics_to_gpu()` function:
 1. Extracts PhysicsSettings from AppFullSettings
@@ -74,9 +74,9 @@ async fn propagate_physics_to_gpu(
 ) {
     let physics = settings.get_physics(graph);
     let sim_params = physics.into();
-    
+
     let update_msg = UpdateSimulationParams { params: sim_params };
-    
+
     // Send to GPU compute actor
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         if let Err(e) = gpu_addr.send(update_msg.clone()).await {
@@ -91,7 +91,7 @@ async fn propagate_physics_to_gpu(
 **Status**: ✅ VERIFIED - Parameters properly propagated to GPU actor
 
 ### ✅ Step 4: Parameter Conversion Chain
-**File**: `/workspace/ext/src/models/simulation_params.rs`
+**File**: `/src/models/simulation_params.rs`
 
 The conversion chain is complete:
 
@@ -130,7 +130,7 @@ impl From<&SimulationParams> for SimParams {
 **Status**: ✅ VERIFIED - Conversion chain preserves all parameters
 
 ### ✅ Step 5: GPU Compute Actor Processing
-**File**: `/workspace/ext/src/actors/gpu_compute_actor.rs`
+**File**: `/src/actors/gpu_compute_actor.rs`
 
 The `UpdateSimulationParams` handler (lines 572-593):
 1. Receives SimulationParams message
@@ -143,13 +143,13 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
         // Update both simulation params and unified params
         self.simulation_params = msg.params.clone();
         self.unified_params = SimParams::from(&msg.params);
-        
+
         // Update the unified compute if it's initialized
         if let Some(ref mut unified_compute) = self.unified_compute {
             unified_compute.set_params(self.unified_params);
             info!("GPU: Updated unified compute with new physics parameters");
         }
-        
+
         Ok(())
     }
 }
@@ -158,7 +158,7 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
 **Status**: ✅ VERIFIED - GPU actor receives and processes parameters
 
 ### ✅ Step 6: GPU Compute Engine Update
-**File**: `/workspace/ext/src/utils/unified_gpu_compute.rs`
+**File**: `/src/utils/unified_gpu_compute.rs`
 
 The `set_params()` method (lines 333-336) updates internal parameters:
 ```rust
@@ -173,7 +173,7 @@ The `execute()` method (lines 460-530) uses the parameters in GPU kernel launch.
 **Status**: ✅ VERIFIED - GPU compute engine receives parameters
 
 ### ✅ Step 7: GPU Kernel Usage
-**File**: `/workspace/ext/src/utils/visionflow_unified.cu`
+**File**: `/src/utils/visionflow_unified.cu`
 
 The CUDA kernel properly uses physics parameters:
 
@@ -200,7 +200,7 @@ The CUDA kernel properly uses physics parameters:
 - ✅ Progressive warmup for stability
 - ✅ Force and velocity clamping
 
-### 2. GPU Initialization (GPU_INITIALIZATION_FIX.md) 
+### 2. GPU Initialization (GPU_INITIALIZATION_FIX.md)
 - ✅ PTX path resolution with fallbacks
 - ✅ Proper unified kernel loading
 - ✅ Parameter validation and adjustment
@@ -266,7 +266,7 @@ All parameter flow components are verified:
 8. visionflow_unified.cu
    │ visionflow_compute_kernel(GpuKernelParams p)
    ├─► Uses p.params.spring_k for spring forces
-   ├─► Uses p.params.repel_k for repulsion forces  
+   ├─► Uses p.params.repel_k for repulsion forces
    ├─► Uses p.params.damping for velocity updates
    ├─► Uses p.params.dt for time integration
    └─► Uses p.params.max_velocity for clamping

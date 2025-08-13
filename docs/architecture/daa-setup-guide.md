@@ -119,7 +119,7 @@ From the powerdev container, you can test DAA features directly:
 
 ```bash
 # In powerdev container
-cd /workspace/ext/scripts
+cd /scripts
 node test-claude-flow-connection.js
 
 # This will show all 87 available tools including DAA tools

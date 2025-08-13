@@ -25,7 +25,7 @@ The physics parameter flow from UI controls to GPU kernel has been **thoroughly 
 ## Detailed Flow Verification
 
 ### 1. UI Controls → Backend API ✅
-**File**: `/workspace/ext/client/src/features/physics/components/PhysicsEngineControls.tsx`
+**File**: `/client/src/features/physics/components/PhysicsEngineControls.tsx`
 
 The `updatePhysics` function (line 56) properly:
 - Updates settings store via `updateSettings()`
@@ -44,7 +44,7 @@ const updatePhysics = async (physicsUpdate: Partial<PhysicsSettings>) => {
 ```
 
 ### 2. Settings Handler Processing ✅
-**File**: `/workspace/ext/src/handlers/settings_handler.rs`
+**File**: `/src/handlers/settings_handler.rs`
 
 - **Route**: POST `/api/settings` (line 14) ✅
 - **Validation**: Complete parameter range validation (lines 221-322) ✅
@@ -62,9 +62,9 @@ async fn propagate_physics_to_gpu(
 ) {
     let physics = settings.get_physics(graph);
     let sim_params = physics.into();  // PhysicsSettings → SimulationParams
-    
+
     let update_msg = UpdateSimulationParams { params: sim_params };
-    
+
     // Send to GPU compute actor
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         gpu_addr.send(update_msg.clone()).await;
@@ -73,7 +73,7 @@ async fn propagate_physics_to_gpu(
 ```
 
 ### 4. Parameter Conversion Chain ✅
-**File**: `/workspace/ext/src/models/simulation_params.rs`
+**File**: `/src/models/simulation_params.rs`
 
 Complete conversion chain verified:
 - **PhysicsSettings → SimulationParams**: `From` trait (lines 176-197) ✅
@@ -82,24 +82,24 @@ Complete conversion chain verified:
 All physics parameters properly mapped and preserved.
 
 ### 5. GPU Actor Message Handling ✅
-**File**: `/workspace/ext/src/actors/gpu_compute_actor.rs`
+**File**: `/src/actors/gpu_compute_actor.rs`
 
 `UpdateSimulationParams` handler (lines 572-593):
 ```rust
 fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
     self.simulation_params = msg.params.clone();
     self.unified_params = SimParams::from(&msg.params);  // Convert for GPU
-    
+
     if let Some(ref mut unified_compute) = self.unified_compute {
         unified_compute.set_params(self.unified_params);  // Update GPU
     }
-    
+
     Ok(())
 }
 ```
 
 ### 6. GPU Compute Engine Update ✅
-**File**: `/workspace/ext/src/utils/unified_gpu_compute.rs`
+**File**: `/src/utils/unified_gpu_compute.rs`
 
 The `set_params()` method (line 333) updates GPU parameters:
 ```rust
@@ -110,11 +110,11 @@ pub fn set_params(&mut self, params: SimParams) {
 ```
 
 ### 7. CUDA Kernel Parameter Usage ✅
-**File**: `/workspace/ext/src/utils/visionflow_unified.cu`
+**File**: `/src/utils/visionflow_unified.cu`
 
 GPU kernel properly uses all physics parameters:
 - **Spring forces**: `params.spring_k` (line 153) ✅
-- **Repulsion forces**: `params.repel_k` (line 127) ✅ 
+- **Repulsion forces**: `params.repel_k` (line 127) ✅
 - **Velocity damping**: `params.damping` (line 458) ✅
 - **Time integration**: `params.dt` (lines 457, 467) ✅
 - **Velocity limiting**: `params.max_velocity` (line 459) ✅
@@ -129,7 +129,7 @@ From the CUDA kernel analysis:
 - Golden angle spiral initialization for uninitialized nodes
 
 ### GPU Initialization ✅
-- PTX file found at `/workspace/ext/src/utils/ptx/visionflow_unified.ptx`
+- PTX file found at `/src/utils/ptx/visionflow_unified.ptx`
 - Unified kernel properly loads and initializes
 - Multiple fallback paths for PTX loading
 
@@ -151,8 +151,8 @@ All values properly flow to GPU kernel.
 ### Manual Test Output
 ```bash
 ✅ settings.yaml found
-✅ Physics section found in settings.yaml  
-✅ PTX file found at: /workspace/ext/src/utils/ptx/visionflow_unified.ptx
+✅ Physics section found in settings.yaml
+✅ PTX file found at: /src/utils/ptx/visionflow_unified.ptx
 ✅ All source files verified
 ✅ Parameter conversion chain validated
 ✅ Physics propagation function found
@@ -168,7 +168,7 @@ All values properly flow to GPU kernel.
 ```
 UI Physics Controls
         ↓ (handleForceParamChange)
-    updatePhysics() 
+    updatePhysics()
         ↓
 Settings Store Update
         ↓ (settingsApi.updateSettings)
@@ -218,7 +218,7 @@ The system can handle real-time updates like:
 
 All components work correctly:
 1. UI controls send proper updates
-2. Backend validates and processes parameters  
+2. Backend validates and processes parameters
 3. Settings system propagates changes
 4. Actor messaging delivers to GPU
 5. Parameter conversion preserves all values
