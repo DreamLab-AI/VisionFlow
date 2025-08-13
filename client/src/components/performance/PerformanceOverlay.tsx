@@ -8,7 +8,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { dualGraphPerformanceMonitor, type PerformanceMetrics } from '../../utils/dualGraphPerformanceMonitor';
 import { useSettingsStore } from '../../store/settingsStore';
-import { debugState } from '../../utils/debugState';
+import { debugState } from '../../utils/clientDebugState';
 
 interface PerformanceOverlayProps {
   position?: [number, number, number];

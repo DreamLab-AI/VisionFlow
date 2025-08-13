@@ -123,8 +123,8 @@ This will:
 ### Testing Hive Mind Spawning
 
 ```bash
-# Test the initialize-multi-agent endpoint
-curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
+# Test the initialise-multi-agent endpoint
+curl -X POST http://localhost:4000/api/bots/initialise-multi-agent \
   -H "Content-Type: application/json" \
   -d '{
     "topology": "mesh",
@@ -153,14 +153,14 @@ curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
 ### Position Updates Not Working
 - Verify binary WebSocket messages in Network tab
 - Check for bots flag (0x80) in binary data
-- Ensure GPU physics system is initialized
+- Ensure GPU physics system is initialised
 
 ### MCP Connection Failed
 - Verify claude-flow container is running
 - Check Docker network connectivity
 - Try different MCP server URLs in MCPWebSocketService
 
-### multi-agent Initialization Failed (404 Error)
+### multi-agent Initialisation Failed (404 Error)
 **This is the most common issue after adding the new endpoint!**
 
 1. **Restart the backend server** to register the new route:
@@ -176,12 +176,12 @@ curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
    [INFO] Configuring bots routes:
    [INFO]   - /bots/data (GET)
    [INFO]   - /bots/update (POST)
-   [INFO]   - /bots/initialize-multi-agent (POST)
+   [INFO]   - /bots/initialise-multi-agent (POST)
    ```
 
 3. Verify the endpoint is accessible:
    ```bash
-   curl -X POST http://localhost:3001/api/bots/initialize-multi-agent \
+   curl -X POST http://localhost:3001/api/bots/initialise-multi-agent \
      -H "Content-Type: application/json" \
      -d '{"topology":"mesh","maxAgents":8,"strategy":"adaptive","enableNeural":true,"agentTypes":["coordinator"],"customPrompt":"Test"}'
    ```

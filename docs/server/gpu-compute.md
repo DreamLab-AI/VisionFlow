@@ -6,7 +6,7 @@ The GPU compute system has undergone a significant architectural transformation,
 
 The unified kernel architecture (`visionflow_unified.cu`) serves as the cornerstone of our GPU compute infrastructure, providing a streamlined approach to graph processing, visual analytics, and computational workflows. This evolution has resulted in a 89% reduction in codebase size (4,570 → 520 lines) while achieving 2-4x performance improvements for large-scale operations.
 
-VisionFlow leverages unified CUDA acceleration for real-time force-directed graph layout computations, achieving 60-120 FPS performance for 100,000+ nodes. The system uses a single optimized kernel with multiple compute modes and graceful CPU fallback for maximum compatibility.
+VisionFlow leverages unified CUDA acceleration for real-time force-directed graph layout computations, achieving 60-120 FPS performance for 100,000+ nodes. The system uses a single optimised kernel with multiple compute modes and graceful CPU fallback for maximum compatibility.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ VisionFlow leverages unified CUDA acceleration for real-time force-directed grap
 - **Memory Strategy**: Structure of Arrays (SoA) layout for optimal memory coalescing
 
 ### 4 Compute Modes
-The unified kernel supports four distinct compute modes, each optimized for specific use cases:
+The unified kernel supports four distinct compute modes, each optimised for specific use cases:
 
 1. **Basic Mode**: Fundamental graph operations and data processing
 2. **DualGraph Mode**: Advanced dual-graph processing with bidirectional relationships
@@ -69,7 +69,7 @@ graph TB
 
 **Location**: `src/utils/unified_gpu_compute.rs`
 
-The unified GPU compute system replaces the previous multi-kernel approach with a single optimized implementation.
+The unified GPU compute system replaces the previous multi-kernel approach with a single optimised implementation.
 
 ```rust
 pub struct UnifiedGPUCompute {
@@ -149,7 +149,7 @@ pub struct SimParams {
     pub max_force: f32,       // Force clamping
     
     // Stress majorization
-    pub stress_weight: f32,   // Stress optimization weight
+    pub stress_weight: f32,   // Stress optimisation weight
     pub stress_alpha: f32,    // Learning rate
     
     // Constraint system
@@ -316,7 +316,7 @@ The unified GPU compute system represents a significant advancement in our compu
 
 **Location**: `src/utils/visionflow_unified.cu`
 
-The unified kernel implements all compute modes in a single optimized function:
+The unified kernel implements all compute modes in a single optimised function:
 
 ```cuda
 __global__ void visionflow_compute_kernel(
@@ -437,11 +437,11 @@ The actor manages GPU compute lifecycle with automatic fallback:
 ```rust
 impl GPUComputeActor {
     pub fn new(params: SimulationParams) -> Self {
-        // Attempt GPU initialization
-        let gpu_compute = match Self::initialize_gpu(&params) {
+        // Attempt GPU initialisation
+        let gpu_compute = match Self::initialise_gpu(&params) {
             Ok(compute) => Some(compute),
             Err(e) => {
-                warn!("GPU initialization failed: {}, using CPU fallback", e);
+                warn!("GPU initialisation failed: {}, using CPU fallback", e);
                 None
             }
         };
@@ -455,7 +455,7 @@ impl GPUComputeActor {
         }
     }
     
-    fn initialize_gpu(params: &SimulationParams) -> Result<UnifiedGPUCompute, Error> {
+    fn initialise_gpu(params: &SimulationParams) -> Result<UnifiedGPUCompute, Error> {
         const MAX_RETRIES: u32 = 3;
         const RETRY_DELAY_MS: u64 = 500;
         
@@ -467,7 +467,7 @@ impl GPUComputeActor {
                         params.max_nodes as usize,
                         params.max_edges as usize,
                     )?;
-                    info!("GPU compute initialized successfully");
+                    info!("GPU compute initialised successfully");
                     return Ok(compute);
                 }
                 Err(e) if attempt < MAX_RETRIES - 1 => {
@@ -544,7 +544,7 @@ pub fn execute(&mut self) -> Result<Vec<(f32, f32, f32)>, Error> {
     }
     
     // Synchronize and download results
-    self.device.synchronize()?;
+    self.device.synchronise()?;
     self.download_positions()
 }
 ```
@@ -692,7 +692,7 @@ __global__ void stress_majorization_kernel(
 
 ```rust
 pub struct GPUStatus {
-    pub is_initialized: bool,
+    pub is_initialised: bool,
     pub cpu_fallback_active: bool,
     pub failure_count: u32,
     pub iteration_count: u32,
@@ -703,7 +703,7 @@ pub struct GPUStatus {
 impl GPUComputeActor {
     pub fn get_status(&self) -> GPUStatus {
         GPUStatus {
-            is_initialized: self.unified_compute.is_some(),
+            is_initialised: self.unified_compute.is_some(),
             cpu_fallback_active: self.unified_compute.is_none(),
             failure_count: self.failure_count,
             iteration_count: self.iteration_count,
@@ -739,7 +739,7 @@ Recovery: CPU fallback, check CUDA toolkit version
 ```rust
 // Health check endpoint: GET /api/health/physics
 {
-  "gpu_initialized": true,
+  "gpu_initialised": true,
   "compute_mode": "DualGraph", 
   "iteration_count": 45680,
   "frame_rate": 62.3,
@@ -801,7 +801,7 @@ gpu:
 // Check GPU utilization
 let status = gpu_compute_actor.send(GetGPUStatus).await??;
 if status.frame_rate < 30.0 {
-    // Reduce node count or optimize parameters
+    // Reduce node count or optimise parameters
     let new_params = reduce_simulation_complexity(current_params);
     gpu_compute_actor.send(UpdateSimulationParams { params: new_params }).await?;
 }

@@ -4,7 +4,7 @@ pub mod bots_client;
 pub mod edge_generation;
 pub mod file_service;
 pub mod github;
-pub mod graph_service;
+// graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
 pub mod nostr_service;
 pub mod perplexity_service;

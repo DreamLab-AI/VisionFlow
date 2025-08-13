@@ -113,7 +113,7 @@ The migration works seamlessly with viewport settings patterns defined in `viewp
 ```typescript
 // From client/src/features/settings/config/viewportSettings.ts
 export const VIEWPORT_SETTINGS_PATTERNS = [
-  // Legacy visualization settings
+  // Legacy visualisation settings
   'visualisation.nodes',
   'visualisation.edges',
   'visualisation.physics',
@@ -124,7 +124,7 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'visualisation.hologram',
   'visualisation.camera',
   
-  // NEW: Graph-specific visualization settings (post-migration)
+  // NEW: Graph-specific visualisation settings (post-migration)
   'visualisation.graphs.*.nodes',
   'visualisation.graphs.*.edges',
   'visualisation.graphs.*.physics',
@@ -188,7 +188,7 @@ The current architecture has two conflicting stores:
 - ✅ Functional Zustand implementation with persistence
 - ✅ Multi-graph migration logic implemented
 - ✅ Real-time viewport updates working
-- ✅ Server synchronization functional
+- ✅ Server synchronisation functional
 
 **Legacy Store** (`/client/src/features/settings/store/settingsStore.ts`):
 - ❌ Placeholder implementation (non-functional)

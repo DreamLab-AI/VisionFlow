@@ -6,7 +6,7 @@ This document describes the WebSocket communication system used in the client.
 
 The client uses WebSocket connections for real-time communication with the server, particularly for:
 - Binary position updates for graph nodes
-- Graph data synchronization
+- Graph data synchronisation
 - Event notifications
 - Connection status management
 

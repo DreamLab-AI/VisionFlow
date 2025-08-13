@@ -4,8 +4,7 @@ import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
 import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
 import { useSettingsStore } from '../store/settingsStore';
 import { createLogger, createErrorMetadata } from '../utils/logger';
-import Quest3DirectAR from './Quest3DirectAR';
-import Quest3ARLayout from './Quest3ARLayout';
+import Quest3AR from './Quest3AR';
 import MainLayout from './MainLayout';
 import { useQuest3Integration } from '../hooks/useQuest3Integration';
 import { CommandPalette } from '../features/command-palette/components/CommandPalette';
@@ -72,18 +71,18 @@ function App() {
   // Initialize bots WebSocket integration
   const botsConnectionStatus = useBotsWebSocketIntegration();
 
-  // Check if we should use the new Quest 3 Direct AR mode
-  const useDirectAR = () => {
+  // Check if we should use Quest 3 AR mode (unified approach)
+  const shouldUseQuest3AR = () => {
     const userAgent = navigator.userAgent.toLowerCase();
     const isQuest3Browser = userAgent.includes('quest 3') || 
                             userAgent.includes('meta quest 3') ||
                             (userAgent.includes('oculus') && userAgent.includes('quest'));
     
-    // Check for force parameter or environment variable
-    const forceDirectAR = window.location.search.includes('force=quest3') ||
-                          window.location.search.includes('directar=true');
+    // Check for force parameter
+    const forceQuest3 = window.location.search.includes('force=quest3') ||
+                        window.location.search.includes('directar=true');
     
-    return (isQuest3Browser || forceDirectAR) && initialized;
+    return (isQuest3Browser || forceQuest3 || shouldUseQuest3Layout) && initialized;
   };
 
   useEffect(() => {
@@ -122,10 +121,8 @@ function App() {
             <ApplicationModeProvider>
               <XRCoreProvider>
                 {initialized ? (
-                  useDirectAR() ? (
-                    <Quest3DirectAR />
-                  ) : shouldUseQuest3Layout ? (
-                    <Quest3ARLayout />
+                  shouldUseQuest3AR() ? (
+                    <Quest3AR />
                   ) : (
                     <MainLayout />
                   )

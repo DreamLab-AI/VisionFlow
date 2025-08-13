@@ -80,7 +80,7 @@ client/src/
 ├── app/              # Application root
 ├── components/       # Shared components
 ├── features/         # Feature modules
-│   ├── bots/        # AI agent visualization
+│   ├── bots/        # AI agent visualisation
 │   ├── graph/       # Graph rendering
 │   ├── settings/    # Settings UI
 │   └── xr/          # WebXR features

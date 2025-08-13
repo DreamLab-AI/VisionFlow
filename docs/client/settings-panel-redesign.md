@@ -15,13 +15,13 @@ The settings panel has been completely redesigned to address critical UX issues:
 - **Cluttered interface** with too many settings visible at once
 - **Non-responsive inputs** that don't update properly
 - **Overlapping content** when sections expand
-- **Poor organization** making it hard to find settings
+- **Poor organisation** making it hard to find settings
 
 ## New Design Principles
 
 ### 1. **Tabbed Organization**
 Settings are now organized into logical tabs:
-- **Appearance**: Visual customization (nodes, edges, labels, effects)
+- **Appearance**: Visual customisation (nodes, edges, labels, effects)
 - **Performance**: Quality and optimisation settings
 - **XR/VR**: Virtual reality configuration
 - **Advanced**: Power user features (requires authentication)

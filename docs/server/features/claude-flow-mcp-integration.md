@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualizing AI Multi Agents in real-time.
+The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualising AI Multi Agents in real-time.
 
 ## Architecture
 
@@ -133,7 +133,7 @@ pub struct BotsAgent {
     pub health: f32,
     pub workload: f32,
 
-    // Positioning (for visualization)
+    // Positioning (for visualisation)
     pub position: Vec3,
     pub velocity: Vec3,
     pub force: Vec3,
@@ -267,7 +267,7 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(10);
 ## Future Enhancements
 
 1. **Process Pool**: Reuse processes for better performance
-2. **Binary Protocol**: MessagePack for faster serialization
+2. **Binary Protocol**: MessagePack for faster serialisation
 3. **Streaming Updates**: Server-sent events for real-time data
 4. **Multi-multi-agent**: Support multiple independent multi-agents
 5. **Persistence**: Save and restore multi-agent states

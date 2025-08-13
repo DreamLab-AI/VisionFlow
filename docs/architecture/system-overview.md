@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow (formerly LogseqXR) is built on a unified, actor-based architecture that enables real-time 3D visualisation of parallel knowledge graphs and AI Multi Agents. The system combines a robust and scalable Rust-based backend server with a modern React/TypeScript frontend client, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel, parallel graph coordination, and bidirectional synchronization of graph state between all connected clients.
+VisionFlow (formerly LogseqXR) is built on a unified, actor-based architecture that enables real-time 3D visualisation of parallel knowledge graphs and AI Multi Agents. The system combines a robust and scalable Rust-based backend server with a modern React/TypeScript frontend client, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel, parallel graph coordination, and bidirectional synchronisation of graph state between all connected clients.
 
 ## Core Architecture Diagrams
 
@@ -283,7 +283,7 @@ graph TB
 - **Perplexity AI**: Provides AI-powered question answering and content analysis.
 - **RagFlow API**: Provides AI-powered conversational capabilities.
 - **OpenAI API**: Provides text-to-speech functionality.
-- **Nostr API**: Provides decentralized authentication and user management.
+- **Nostr API**: Provides decentralised authentication and user management.
 
 ## Component Architecture
 
@@ -612,7 +612,7 @@ graph TB
 
 ## Server Architecture
 
-The server now uses a continuous physics simulation system that pre-computes node positions independent of client connections. When clients connect, they receive the complete graph state and any ongoing updates. This architecture enables bidirectional synchronization of graph state between all connected clients.
+The server now uses a continuous physics simulation system that pre-computes node positions independent of client connections. When clients connect, they receive the complete graph state and any ongoing updates. This architecture enables bidirectional synchronisation of graph state between all connected clients.
 
 ## Key Design Decisions
 

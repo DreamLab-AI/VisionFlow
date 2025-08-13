@@ -2,7 +2,7 @@
 
 ## Overview
 
-LogseqSpringThing implements a comprehensive authentication system using Nostr (Notes and Other Stuff Transmitted by Relays) protocol for decentralized identity verification, combined with session-based authentication and role-based access control.
+LogseqSpringThing implements a comprehensive authentication system using Nostr (Notes and Other Stuff Transmitted by Relays) protocol for decentralised identity verification, combined with session-based authentication and role-based access control.
 
 ## Architecture
 
@@ -520,7 +520,7 @@ async fn test_session_validation() {
    - Ensure the extension is enabled for the site
 
 2. **"Invalid signature"**
-   - Check system time synchronization
+   - Check system time synchronisation
    - Verify the extension is signing with the correct key
 
 3. **"Session expired"**

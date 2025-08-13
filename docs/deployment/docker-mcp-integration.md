@@ -137,7 +137,7 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # Main agent visualization service
+  # Main agent visualisation service
   agent-visualizer:
     build:
       context: .
@@ -350,7 +350,7 @@ services:
           cpus: '0.5'
           memory: 1G
 
-  # Grafana for visualization and dashboards
+  # Grafana for visualisation and dashboards
   grafana:
     image: grafana/grafana:10.1.0
     container_name: agent-grafana
@@ -874,7 +874,7 @@ IMAGE_TAG=v2.0.0
     },
     "neural_train": {
       "enabled": true,
-      "models": ["decision", "pattern", "optimization", "coordination"],
+      "models": ["decision", "pattern", "optimisation", "coordination"],
       "gpuAcceleration": true,
       "maxEpochs": 1000,
       "batchSize": 32
@@ -1335,7 +1335,7 @@ rule_files:
 
 # Scrape configurations
 scrape_configs:
-  # Agent visualization service
+  # Agent visualisation service
   - job_name: 'agent-visualizer'
     static_configs:
       - targets: ['agent-visualizer:9091']
@@ -1544,7 +1544,7 @@ ALTER SYSTEM SET effective_cache_size = '1GB';
 ALTER SYSTEM SET work_mem = '4MB';
 ALTER SYSTEM SET maintenance_work_mem = '64MB';
 
--- Query optimization
+-- Query optimisation
 ALTER SYSTEM SET random_page_cost = 1.1;
 ALTER SYSTEM SET default_statistics_target = 100;
 
@@ -1560,15 +1560,15 @@ SELECT pg_reload_conf();
 
 ```redis
 # Add to redis.conf
-# Memory optimization
+# Memory optimisation
 maxmemory-policy allkeys-lru
 maxmemory-samples 10
 
-# Network optimization
+# Network optimisation
 tcp-keepalive 300
 tcp-backlog 511
 
-# Persistence optimization
+# Persistence optimisation
 save 900 1
 save 300 10
 save 60 10000

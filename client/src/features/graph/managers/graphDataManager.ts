@@ -1,5 +1,5 @@
 import { createLogger, createErrorMetadata } from '../../../utils/logger';
-import { debugState } from '../../../utils/debugState';
+import { debugState } from '../../../utils/clientDebugState';
 import { WebSocketAdapter } from '../../../services/WebSocketService';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
 import { graphWorkerProxy } from './graphWorkerProxy';

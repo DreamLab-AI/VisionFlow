@@ -117,7 +117,7 @@ Task   Test    Review
 
 **Use Cases:**
 - Large-scale projects with clear task hierarchy
-- When centralized control is required
+- When centralised control is required
 - Complex workflows with dependencies
 
 #### 2. Mesh Coordination

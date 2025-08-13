@@ -97,7 +97,7 @@ let app_state = AppState::new(
 - **Protected Settings Actor**: Secure storage for API keys and user credentials
 
 **External Services**:
-- **GitHub Integration**: Repository content fetching and synchronization
+- **GitHub Integration**: Repository content fetching and synchronisation
 - **RAGFlow Service**: AI chat capabilities with streaming responses
 - **Speech Service**: STT/TTS processing with multiple provider support
 - **Perplexity Service**: Enhanced search and query capabilities
@@ -402,7 +402,7 @@ The service layer has been completely reimagined around Actix actors for maximum
 7. **EnhancedClaudeFlowActor**: MCP integration for Multi Agent orchestration
 
 **External Integration Services**:
-- **GitHub Service**: Repository synchronization and content fetching
+- **GitHub Service**: Repository synchronisation and content fetching
 - **RAGFlow Service**: AI chat with streaming response support
 - **Speech Service**: Multi-provider STT/TTS processing
 - **Perplexity Service**: Enhanced search and research capabilities

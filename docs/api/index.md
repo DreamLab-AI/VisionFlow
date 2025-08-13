@@ -290,7 +290,7 @@ Creates and initializes new agents in the swarm.
 let result = client.call_tool("agent_spawn", json!({
     "type": "researcher",
     "name": "market-analyst",
-    "capabilities": ["data-analysis", "statistics", "visualization"],
+    "capabilities": ["data-analysis", "statistics", "visualisation"],
     "resources": {
         "cpu": "1.0",
         "memory": "1GB",
@@ -366,7 +366,7 @@ let result = client.call_tool("task_orchestrate", json!({
         "steps": [
             {"name": "data_collection", "agent_type": "researcher"},
             {"name": "data_analysis", "agent_type": "analyst"},  
-            {"name": "visualization", "agent_type": "coder"},
+            {"name": "visualisation", "agent_type": "coder"},
             {"name": "report_generation", "agent_type": "documenter"},
             {"name": "quality_review", "agent_type": "reviewer"}
         ]

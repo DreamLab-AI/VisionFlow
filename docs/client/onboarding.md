@@ -74,7 +74,7 @@ Handles automatic flow triggers based on:
     {
       id: 'welcome',
       title: 'Welcome to LogseqXR',
-      description: 'Immersive knowledge graph visualization',
+      description: 'Immersive knowledge graph visualisation',
       position: 'center'
     },
     {

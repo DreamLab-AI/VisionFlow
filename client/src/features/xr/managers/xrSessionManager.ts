@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { createLogger, createErrorMetadata } from '@/utils/logger';
-import { debugState } from '@/utils/debugState'; // Assuming debugState.ts exists in utils
+import { debugState } from '../../../utils/clientDebugState';
 // SceneManager import removed - using React Three Fiber hooks instead
 import { GestureRecognitionResult } from '@/features/xr/systems/HandInteractionSystem'; // Correct path
 import { Settings } from '@/features/settings/config/settings'; // Correct path, assuming Settings is defined here

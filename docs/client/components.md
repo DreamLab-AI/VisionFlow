@@ -4,7 +4,7 @@ This document details the client component architecture, describing the relation
 
 ## Component Overview
 
-The client is organized into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
+The client is organised into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
 
 ```mermaid
 flowchart TB
@@ -185,7 +185,7 @@ flowchart TB
 ## Core Components
 
 ### API Service ([`client/src/services/api.ts`](../../client/src/services/api.ts))
-Provides a centralized interface for communicating with the server REST API.
+Provides a centralised interface for communicating with the server REST API.
 
 **Responsibilities:**
 - Build API URLs for different endpoints.
@@ -216,7 +216,7 @@ A dedicated global `eventEmitter.ts` is **not** used in this project. Communicat
 - **WebSocket Messages**: `WebSocketService` handles messages from the server, which are then typically processed by `GraphDataManager` or other relevant services/stores to update application state. Callbacks registered with `WebSocketService` (e.g., `onMessage`, `onBinaryMessage`) act as event handlers for server-sent events.
 
 ### Logger ([`client/src/utils/logger.ts`](../../client/src/utils/logger.ts))
-Provides centralized logging with different levels.
+Provides centralised logging with different levels.
 
 **Responsibilities:**
 - Log messages with appropriate severity (debug, info, warn, error).
@@ -252,7 +252,7 @@ Edge rendering logic is primarily integrated within [`GraphManager.tsx`](../../c
 ## Network Components
 
 ### WebSocket Service ([`client/src/services/WebSocketService.ts`](../../client/src/services/WebSocketService.ts))
-Manages WebSocket connection, message serialization/deserialization (including binary protocol), and communication with the server.
+Manages WebSocket connection, message serialisation/deserialization (including binary protocol), and communication with the server.
 
 ### Graph Data Manager ([`client/src/features/graph/managers/graphDataManager.ts`](../../client/src/features/graph/managers/graphDataManager.ts))
 Manages graph data loading (initial fetch via REST, subsequent updates via WebSocket), state, and provides an interface for other components to access and interact with graph data.
@@ -286,7 +286,7 @@ Provides a safe context for WebXR hooks and components, handling browser compati
 Manages the content displayed in the right pane of the main application layout, including settings, authentication, and feature panels.
 
 ### Settings Panel Redesign ([`client/src/features/settings/components/panels/SettingsPanelRedesignOptimized.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesignOptimized.tsx))
-Provides the tabbed interface for organizing different categories of settings (Visualisation, System, AI, XR) within the right pane, utilizing [`client/src/ui/Tabs.tsx`](../../client/src/ui/Tabs.tsx).
+Provides the tabbed interface for organising different categories of settings (Visualisation, System, AI, XR) within the right pane, utilising [`client/src/ui/Tabs.tsx`](../../client/src/ui/Tabs.tsx).
 
 ### Settings Sections ([`client/src/features/settings/components/SettingsSection.tsx`](../../client/src/features/settings/components/SettingsSection.tsx))
 Used within panels (like `SettingsPanelRedesign`) to group related settings. Supports collapsible sections.
@@ -304,7 +304,7 @@ Renders Markdown content within the application, used for displaying detailed in
 Provides the UI for interacting with AI chat services (e.g., RAGFlow).
 
 ### Narrative Goldmine Panel ([`client/src/app/components/NarrativeGoldminePanel.tsx`](../../client/src/app/components/NarrativeGoldminePanel.tsx))
-A panel dedicated to features for exploring and analyzing narrative elements within the graph data.
+A panel dedicated to features for exploring and analysing narrative elements within the graph data.
 
 ## Component Initialization Sequence
 

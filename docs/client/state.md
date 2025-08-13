@@ -92,7 +92,7 @@ The file `SettingsObserver.ts` is **not used** in the current architecture. Zust
 The application persists state in several ways:
 
 1.  **Local Storage** - User preferences and UI state (managed by Zustand's `persist` middleware).
-2.  **Server Storage** - User settings synchronized to server (for authenticated users).
+2.  **Server Storage** - User settings synchronised to server (for authenticated users).
 3.  **URL Parameters** - Shareable state in URL (not extensively used for persistence, more for initial configuration).
 
 ### Persistence Flow
@@ -186,7 +186,7 @@ interface Settings {
       visionflow: GraphSettings;   // Green theme for VisionFlow data
     };
     
-    // Global visualization settings (shared across all graphs)
+    // Global visualisation settings (shared across all graphs)
     rendering: RenderingSettings;
     animations: AnimationSettings;
     bloom: BloomSettings;
@@ -215,7 +215,7 @@ interface Settings {
 
 // Graph-specific settings structure
 interface GraphSettings {
-  nodes: NodeSettings;     // Node appearance and behavior
+  nodes: NodeSettings;     // Node appearance and behaviour
   edges: EdgeSettings;     // Edge/link appearance
   labels: LabelSettings;   // Text label configuration
   physics: PhysicsSettings; // Physics simulation parameters

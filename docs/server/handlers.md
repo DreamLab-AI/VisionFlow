@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimized for high-performance message passing and concurrent request processing.
+VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimised for high-performance message passing and concurrent request processing.
 
 ## Handler Architecture
 
@@ -61,7 +61,7 @@ graph TB
 "requestInitialData" -> Binary Updates   // Start real-time updates
 "request_full_snapshot" -> Full Graph    // Complete graph state
 "update_physics_params" -> Physics Update // Live parameter changes
-"requestBotsPositions" -> Agent Updates  // Bots visualization data
+"requestBotsPositions" -> Agent Updates  // Bots visualisation data
 ```
 
 **Performance Features**:

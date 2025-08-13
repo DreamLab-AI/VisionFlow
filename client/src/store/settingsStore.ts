@@ -3,9 +3,9 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { defaultSettings } from '../features/settings/config/defaultSettings'
 import { Settings, SettingsPath, GraphSettings } from '../features/settings/config/settings'
 import { createLogger, createErrorMetadata } from '../utils/logger'
-import { debugState } from '../utils/debugState'
+import { debugState } from '../utils/clientDebugState'
 import { deepMerge } from '../utils/deepMerge';
-import { settingsService } from '../services/settingsService';
+import { apiService } from '../services/apiService';
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
@@ -83,7 +83,7 @@ const debouncedSaveToServer = async (settings: Settings, initialized: boolean) =
       logger.warn('Error getting Nostr authentication:', createErrorMetadata(error));
     }
 
-    const updatedSettings = await settingsService.saveSettings(settings, headers);
+    const updatedSettings = await apiService.post('/settings', settings, headers);
     if (updatedSettings) {
       if (debugState.isEnabled()) {
         logger.info('Settings saved to server successfully');
@@ -151,7 +151,7 @@ export const useSettingsStore = create<SettingsState>()(
           // Fetch settings from server if available
           try {
             // Use the settings service to fetch settings
-            const serverSettings = await settingsService.fetchSettings()
+            const serverSettings = await apiService.get('/settings')
 
             if (serverSettings) {
               if (debugState.isEnabled()) {

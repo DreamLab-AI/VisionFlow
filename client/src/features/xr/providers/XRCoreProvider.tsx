@@ -3,7 +3,7 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { XRSessionManager } from '../managers/xrSessionManager';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
-import { debugState } from '../../../utils/debugState';
+import { debugState } from '../../../utils/clientDebugState';
 import * as THREE from 'three';
 import { XRSettings } from '../types/xr';
 import { XRControllerEvent } from '../managers/xrSessionManager';

@@ -1,6 +1,6 @@
 # Client-Side Visualization Concepts
 
-This document outlines the higher-level concepts behind the visualisation of the knowledge graph in the LogseqXR client. It explains *what* is being visualized and *how* different visual elements represent data, distinguishing itself from `rendering.md` which details the technical "how-to" of drawing these elements.
+This document outlines the higher-level concepts behind the visualisation of the knowledge graph in the LogseqXR client. It explains *what* is being visualised and *how* different visual elements represent data, distinguishing itself from `rendering.md` which details the technical "how-to" of drawing these elements.
 
 ## Core Visualization Metaphor
 
@@ -29,7 +29,7 @@ The effectiveness of the visualisation hinges on how data attributes are mapped 
     -   **Default themes**: Logseq (blue `#4B5EFF`), VisionFlow (green `#10B981`)
     -   Dynamic coloring based on metadata (file type, tags)
 -   **Shape / Form:**
-    -   **Primary**: Spheres (performance optimized)
+    -   **Primary**: Spheres (performance optimised)
     -   **Metadata-driven**: `enableMetadataShape` allows geometry variation
     -   **Quality levels**: Low/medium/high affecting geometry detail
 -   **Holograms:**

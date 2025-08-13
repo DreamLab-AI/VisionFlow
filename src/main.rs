@@ -16,7 +16,7 @@ use webxr::{
     },
     services::{
         file_service::FileService,
-        graph_service::GraphService,
+        // graph_service::GraphService removed - now using GraphServiceActor
         github::{GitHubClient, ContentAPI, GitHubConfig},
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
@@ -194,44 +194,19 @@ async fn main() -> std::io::Result<()> {
     // Build initial graph from metadata and initialize GPU compute
     info!("Building initial graph from existing metadata for physics simulation");
 
-    match GraphService::build_graph_from_metadata(&metadata_store).await {
-        Ok(graph_data) => {
-            // Update graph data in the GraphServiceActor
-            use webxr::actors::messages::{UpdateGraphData, InitializeGPU};
-
-            // Send graph data to GraphServiceActor
-            if let Err(e) = app_state.graph_service_addr.send(UpdateGraphData {
-                graph_data: graph_data.clone(),
-            }).await {
-                error!("Failed to update graph data in actor: {}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to update graph data in actor: {}", e)));
-            }
-
-            // Convert GraphService::GraphData to models::graph::GraphData for GPU initialization
-            // Since GraphData (aliased as ModelsGraphData) derives Clone, and graph_data is already
-            // the correct type (crate::models::graph::GraphData), we can just clone it.
-            let models_graph_data = graph_data.clone();
-
-            // Initialize GPU compute through GPUComputeActor
-            if let Some(gpu_compute_addr) = &app_state.gpu_compute_addr {
-                info!("Sending InitializeGPU message to GPUComputeActor");
-                if let Err(e) = gpu_compute_addr.send(InitializeGPU {
-                    graph: models_graph_data,
-                }).await {
-                    warn!("Failed to initialize GPU compute: {}. Continuing with CPU fallback.", e);
-                } else {
-                    info!("GPU compute initialization request sent successfully");
-                }
-            } else {
-                warn!("GPUComputeActor address not available, continuing with CPU fallback");
-            }
-
-            info!("Built initial graph from metadata and updated GraphServiceActor");
-
+    // Use GraphServiceActor to build the graph from metadata
+    use webxr::actors::messages::BuildGraphFromMetadata;
+    match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+        Ok(Ok(())) => {
+            info!("Graph built successfully using GraphServiceActor - GPU initialization is handled automatically by the actor");
+        },
+        Ok(Err(e)) => {
+            error!("Failed to build graph from metadata using actor: {}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
         },
         Err(e) => {
-            error!("Failed to build initial graph: {}", e);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build initial graph: {}", e)));
+            error!("Graph service actor communication error: {}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
         }
     }
 

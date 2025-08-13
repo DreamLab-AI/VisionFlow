@@ -67,7 +67,7 @@ impl Settings {
 
 ## Feature Access and Permissions
 
-Feature access is managed by the `FeatureAccess` struct defined in [`src/config/feature_access.rs`](../../src/config/feature_access.rs). This struct is initialized from environment variables and provides fine-grained access control.
+Feature access is managed by the `FeatureAccess` struct defined in [`src/config/feature_access.rs`](../../src/config/feature_access.rs). This struct is initialised from environment variables and provides fine-grained access control.
 
 ```rust
 pub struct FeatureAccess {
@@ -127,13 +127,13 @@ Rate limiting is configured within `NetworkSettings` (e.g., `rate_limit_requests
 3.  **Default Values**: Provided by `Default` implementations for structs if not specified elsewhere.
 
 ### Validation Rules
-Settings are validated during deserialization by the `config` crate. Custom validation logic can be implemented within `Settings` or its sub-structs if needed.
+Settings are validated during deserialisation by the `config` crate. Custom validation logic can be implemented within `Settings` or its sub-structs if needed.
 
 ### Hot Reload
 The current implementation does not support hot reloading of configuration. Changes to `settings.yaml` or environment variables require a server restart to take effect.
 
 ### Saving Settings
-`Settings` implements a `save(&self) -> Result<(), String>` method to persist the current settings state back to the specified YAML file (typically `settings.yaml`). This serialization is done using `serde_yaml` and handles converting the Rust struct (usually in snake_case or as defined by `serde` attributes) to YAML format. This method is invoked when power users modify global settings that need to be persisted.
+`Settings` implements a `save(&self) -> Result<(), String>` method to persist the current settings state back to the specified YAML file (typically `settings.yaml`). This serialisation is done using `serde_yaml` and handles converting the Rust struct (usually in snake_case or as defined by `serde` attributes) to YAML format. This method is invoked when power users modify global settings that need to be persisted.
 The `Settings` struct itself derives `Serialize` and `Deserialize` from `serde` for this purpose.
 
 ## Client Settings Integration

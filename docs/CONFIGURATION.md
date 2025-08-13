@@ -170,14 +170,14 @@ let client = ClaudeFlowClientBuilder::new()
     .build()
     .await?;
 
-// Lazy initialization (connect manually)
+// Lazy initialisation (connect manually)
 let mut client = ClaudeFlowClientBuilder::new()
     .with_tcp()
     .build_lazy()
     .await;
 
 client.connect().await?;
-client.initialize().await?;
+client.initialise().await?;
 ```
 
 ### Actor Configuration

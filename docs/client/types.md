@@ -91,7 +91,7 @@ export interface VisualisationSettings {
   // NEW: Graph-specific settings namespace
   graphs: GraphsSettings;
   
-  // Global visualization settings (shared across graphs)
+  // Global visualisation settings (shared across graphs)
   rendering: RenderingSettings;
   animations: AnimationSettings;
   bloom: BloomSettings;
@@ -107,8 +107,8 @@ export interface VisualisationSettings {
 
 // Multi-graph namespace structure
 export interface GraphsSettings {
-  logseq: GraphSettings;      // Settings for Logseq graph visualization
-  visionflow: GraphSettings;   // Settings for VisionFlow graph visualization
+  logseq: GraphSettings;      // Settings for Logseq graph visualisation
+  visionflow: GraphSettings;   // Settings for VisionFlow graph visualisation
 }
 
 // Graph-specific settings container

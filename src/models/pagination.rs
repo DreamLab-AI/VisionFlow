@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::models::edge::Edge;
-use crate::utils::socket_flow_messages::SocketNode;
+use crate::models::node::Node;
 
 #[derive(Debug, Deserialize)]
 pub struct PaginationParams {
@@ -10,7 +10,7 @@ pub struct PaginationParams {
 
 #[derive(Debug, Serialize)]
 pub struct PaginatedGraphData {
-    pub nodes: Vec<SocketNode>,
+    pub nodes: Vec<Node>,
     pub edges: Vec<Edge>,
     pub total_pages: u32,
     pub current_page: u32,

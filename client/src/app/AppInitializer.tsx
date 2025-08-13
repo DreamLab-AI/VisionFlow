@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createLogger, createErrorMetadata } from '../utils/logger';
-import { debugState } from '../utils/debugState';
+import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore';
 import WebSocketService from '../services/WebSocketService';
 import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';

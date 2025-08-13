@@ -269,7 +269,7 @@ GET /api/settings
       "cohesion": 0.1
     }
   },
-  "visualization": {
+  "visualisation": {
     "nodeSize": 10,
     "edgeThickness": 2,
     "showLabels": true,

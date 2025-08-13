@@ -7,7 +7,7 @@ import { createLogger } from '../../../utils/logger';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useBotsBinaryUpdates } from '../hooks/useBotsBinaryUpdates';
 import { BotsDebugInfo } from './BotsVisualizationDebugInfo';
-import { debugState } from '../../../utils/debugState';
+import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
 
 const logger = createLogger('BotsVisualization');

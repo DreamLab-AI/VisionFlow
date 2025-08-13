@@ -55,7 +55,7 @@ graph TB
 
 ### Single Kernel Architecture
 
-The unified kernel handles all compute modes in one optimized function:
+The unified kernel handles all compute modes in one optimised function:
 
 ```cuda
 __global__ void visionflow_unified_kernel(
@@ -338,7 +338,7 @@ gpu:
     
   compute_mode: dual_graph  # legacy | dual_graph | advanced
   
-  optimization:
+  optimisation:
     use_spatial_index: true
     index_cell_size: 100.0
     use_shared_memory: true

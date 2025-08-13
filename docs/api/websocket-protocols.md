@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the backend. The system implements multiple specialised WebSocket endpoints, each optimized for specific data types and update patterns.
+VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the backend. The system implements multiple specialised WebSocket endpoints, each optimised for specific data types and update patterns.
 
 ## WebSocket Architecture
 
@@ -411,7 +411,7 @@ interface WebSocketMessage<T = any> {
 const batchSize = 100; // positions per message
 const updateRate = 60; // Hz for agents, 1 Hz for knowledge nodes
 
-// Agent visualization batching
+// Agent visualisation batching
 const agentBatchSize = 50; // agents per update
 const updateInterval = 16; // ms (~60fps)
 ```

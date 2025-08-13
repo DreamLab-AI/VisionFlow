@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { dualGraphPerformanceMonitor } from '../../../utils/dualGraphPerformanceMonitor';
 import { dualGraphOptimizer } from '../../../utils/dualGraphOptimizations';
-import { debugState } from '../../../utils/debugState';
+import { debugState } from '../../../utils/clientDebugState';
 
 interface PerformanceIntegrationProps {
   logseqNodeCount: number;

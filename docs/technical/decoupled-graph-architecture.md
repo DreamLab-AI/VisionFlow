@@ -58,7 +58,7 @@ The new architecture supports true bidirectional updates:
 
 - Server broadcasts position updates to all connected clients
 - Any client can update node positions (e.g., during user interaction)
-- All changes are synchronized across all clients in real-time
+- All changes are synchronised across all clients in real-time
 - Server maintains position authority for consistency
 
 ```mermaid

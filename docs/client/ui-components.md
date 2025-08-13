@@ -118,7 +118,7 @@ Container component for grouping related content.
 ```
 
 #### Tabs ([`client/src/features/design-system/components/Tabs.tsx`](../../client/src/features/design-system/components/Tabs.tsx))
-Tabbed interface component for organizing content.
+Tabbed interface component for organising content.
 - **Sub-components**: TabsList, TabsTrigger, TabsContent
 - **Features**: Keyboard navigation, animated transitions
 - **Usage**:
@@ -261,7 +261,7 @@ All components support responsive design through:
 3. **Performance**: Components use React.memo and proper dependency arrays
 4. **Type Safety**: Full TypeScript support with exported prop types
 5. **Composition**: Prefer composition over configuration for flexibility
-6. **Theming**: Use CSS variables for easy theme customization
+6. **Theming**: Use CSS variables for easy theme customisation
 
 ## Usage Guidelines
 

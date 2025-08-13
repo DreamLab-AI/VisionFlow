@@ -1,13 +1,8 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
-use std::collections::HashMap;
 use crate::types::vec3::Vec3Data;
-use std::sync::atomic::{AtomicU32, Ordering};
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
-
-// Static counter for generating unique numeric IDs
-static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1);  // Start from 1 (0 could be reserved)
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
@@ -63,134 +58,8 @@ fn default_timestamp() -> u64 {
     chrono::Utc::now().timestamp_millis() as u64
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct SocketNode { // Renamed from Node to SocketNode
-    // Core data
-    pub id: String,
-    pub metadata_id: String,  // Store the original filename for lookup
-    pub label: String,
-    pub data: BinaryNodeData,
-
-    // Metadata
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
-    pub metadata: HashMap<String, String>,
-    // We need to keep this attribute to maintain WebSocket protocol compatibility
-    #[serde(skip)]
-    pub file_size: u64,
-
-    // Rendering properties
-    #[serde(rename = "type")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub node_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub color: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub weight: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub group: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_data: Option<HashMap<String, String>>,
-}
-
-impl SocketNode { // Renamed from Node to SocketNode
-    pub fn new(metadata_id: String) -> Self {
-        // Generate a unique numeric ID for binary protocol compatibility
-        let id = NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst).to_string();
-        
-        Self {
-            id,
-            metadata_id: metadata_id.clone(),
-            label: metadata_id,
-            data: BinaryNodeData {
-                position: Vec3Data::zero(),
-                velocity: Vec3Data::zero(),
-                mass: 0, // default mass, will be updated based on file size
-                flags: 1, // Set to 1 by default (active state)
-                padding: [0, 0],
-            },
-            metadata: HashMap::new(),
-            // file_size is set to 0 initially, will be updated later with set_file_size
-            file_size: 0,
-            node_type: None,
-            size: None,
-            color: None,
-            weight: None,
-            group: None,
-            user_data: None,
-        }
-    }
-
-    pub fn calculate_mass(file_size: u64) -> u8 {
-        // Use log scale to prevent extremely large masses
-        // Add 1 to file_size to handle empty files (log(0) is undefined)
-        // Scale down by 10000 to keep masses in a reasonable range
-        let base_mass = ((file_size + 1) as f32).log10() / 4.0;
-        // Ensure minimum mass of 0.1 and maximum of 10.0
-        let mass = base_mass.max(0.1).min(10.0);
-        (mass * 255.0 / 10.0) as u8
-    }
-
-    pub fn set_file_size(&mut self, size: u64) {
-        self.file_size = size;
-        // Update mass based on new file size
-        self.data.mass = Self::calculate_mass(size);
-        
-        // Add the file_size to the metadata HashMap so it gets serialized to the client
-        // This is our workaround since we can't directly serialize the file_size field
-        if size > 0 {
-            self.metadata.insert("fileSize".to_string(), size.to_string());
-        }
-    }
-
-    // Convenience getters/setters for x, y, z coordinates
-    pub fn x(&self) -> f32 { self.data.position.x }
-    pub fn y(&self) -> f32 { self.data.position.y }
-    pub fn z(&self) -> f32 { self.data.position.z }
-    pub fn vx(&self) -> f32 { self.data.velocity.x }
-    pub fn vy(&self) -> f32 { self.data.velocity.y }
-    pub fn vz(&self) -> f32 { self.data.velocity.z }
-    
-    pub fn set_x(&mut self, val: f32) { self.data.position.x = val; }
-    pub fn set_y(&mut self, val: f32) { self.data.position.y = val; }
-    pub fn set_z(&mut self, val: f32) { self.data.position.z = val; }
-    pub fn set_vx(&mut self, val: f32) { self.data.velocity.x = val; }
-    pub fn set_vy(&mut self, val: f32) { self.data.velocity.y = val; }
-    pub fn set_vz(&mut self, val: f32) { self.data.velocity.z = val; }
-    
-    /// Create a new node with a specific ID or use a stored ID if available
-    pub fn new_with_id(metadata_id: String, stored_node_id: Option<String>) -> Self {
-        // Use stored ID if available, otherwise generate a new one
-        let id = match stored_node_id {
-            Some(stored_id) => stored_id,
-            None => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst).to_string(),
-        };
-        
-        Self {
-            id,
-            metadata_id: metadata_id.clone(),
-            label: metadata_id,
-            data: BinaryNodeData {
-                position: Vec3Data::zero(),
-                velocity: Vec3Data::zero(),
-                mass: 0, // default mass, will be updated based on file size
-                flags: 1, // Set to 1 by default (active state)
-                padding: [0, 0],
-            },
-            metadata: HashMap::new(),
-            // file_size is set to 0 initially, will be updated later with set_file_size
-            file_size: 0,
-            node_type: None,
-            size: None,
-            color: None,
-            weight: None,
-            group: None,
-            user_data: None,
-        }
-    }
-}
+// SocketNode has been consolidated into models::node::Node
+// All socket communication now uses the canonical Node type with conversion helpers
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
