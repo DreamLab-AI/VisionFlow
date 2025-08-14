@@ -41,23 +41,32 @@ visualisation:
         show_metadata: true
         max_label_width: 5
       physics:
+        # --- Maximally Conservative Settings for Immediate Settling ---
         enabled: true
-        iterations: 200
-        damping: 0.98
-        spring_strength: 0.001
-        repulsion_strength: 50.0
-        repulsion_distance: 50.0
-        attraction_strength: 0.0005
-        max_velocity: 0.5
-        collision_radius: 0.15
-        bounds_size: 200.0
-        enable_bounds: true
-        mass_scale: 1.0
-        boundary_damping: 0.95
-        update_threshold: 0.05
-        time_step: 0.01
-        temperature: 0.5
-        gravity: 0.0
+        
+        # Core Forces (Tuned for a close, stable cluster)
+        spring_strength: 0.02          # Increased: Pulls connected nodes together more strongly.
+        repulsion_strength: 10.0       # Drastically Reduced: Prevents the initial "explosion" of nodes.
+        attraction_strength: 0.01      # Increased: Gently pulls all nodes toward the center.
+        gravity: 0.0                   # Disabled: No directional pull is needed.
+        
+        # Stability & Settling Controls (The most important for "immediately settled")
+        damping: 0.98                  # Very High: Acts like strong friction, stopping movement quickly.
+        max_velocity: 0.5              # Very Low: Prevents nodes from ever moving too fast.
+        temperature: 0.0               # Disabled: No random energy to keep the system "hot".
+        time_step: 0.005               # Very Small: Increases simulation accuracy and prevents instability.
+        
+        # Boundary & Collision (To define the cluster's shape)
+        enable_bounds: true            # Enabled: Keeps nodes within a defined space.
+        bounds_size: 50.0              # Small: Creates a tight, invisible box for the cluster.
+        boundary_damping: 0.99         # Very High: Nodes will "stick" to the boundary instead of bouncing.
+        collision_radius: 0.5          # Increased: Ensures nodes don't overlap and are clearly distributed.
+        
+        # Advanced Parameters (Tuned for stability)
+        iterations: 150                # Reduced: Fewer calculations needed as it settles fast.
+        repulsion_distance: 20.0       # Small: Repulsion only acts on very close nodes.
+        mass_scale: 0.5                # Low: Nodes have less inertia and are easier to stop.
+        update_threshold: 0.01         # Low: Ensures even small movements are processed to reach a stable state.
 
     visionflow:
       nodes:
@@ -93,23 +102,32 @@ visualisation:
         show_metadata: true
         max_label_width: 8
       physics:
+        # --- Maximally Conservative Settings for Immediate Settling ---
         enabled: true
-        iterations: 150
-        damping: 0.98
-        spring_strength: 0.001
-        repulsion_strength: 50.0
-        repulsion_distance: 50.0
-        attraction_strength: 0.0005
-        max_velocity: 0.5
-        collision_radius: 0.15
-        bounds_size: 200.0
-        enable_bounds: true
-        mass_scale: 1.0
-        boundary_damping: 0.95
-        update_threshold: 0.05
-        time_step: 0.01
-        temperature: 0.5
-        gravity: 0.0
+        
+        # Core Forces (Tuned for a close, stable cluster)
+        spring_strength: 0.02          # Increased: Pulls connected nodes together more strongly.
+        repulsion_strength: 10.0       # Drastically Reduced: Prevents the initial "explosion" of nodes.
+        attraction_strength: 0.01      # Increased: Gently pulls all nodes toward the center.
+        gravity: 0.0                   # Disabled: No directional pull is needed.
+        
+        # Stability & Settling Controls (The most important for "immediately settled")
+        damping: 0.98                  # Very High: Acts like strong friction, stopping movement quickly.
+        max_velocity: 0.5              # Very Low: Prevents nodes from ever moving too fast.
+        temperature: 0.0               # Disabled: No random energy to keep the system "hot".
+        time_step: 0.005               # Very Small: Increases simulation accuracy and prevents instability.
+        
+        # Boundary & Collision (To define the cluster's shape)
+        enable_bounds: true            # Enabled: Keeps nodes within a defined space.
+        bounds_size: 50.0              # Small: Creates a tight, invisible box for the cluster.
+        boundary_damping: 0.99         # Very High: Nodes will "stick" to the boundary instead of bouncing.
+        collision_radius: 0.5          # Increased: Ensures nodes don't overlap and are clearly distributed.
+        
+        # Advanced Parameters (Tuned for stability)
+        iterations: 150                # Reduced: Fewer calculations needed as it settles fast.
+        repulsion_distance: 20.0       # Small: Repulsion only acts on very close nodes.
+        mass_scale: 0.5                # Low: Nodes have less inertia and are easier to stop.
+        update_threshold: 0.01         # Low: Ensures even small movements are processed to reach a stable state.
 
   # Global rendering settings
   rendering:

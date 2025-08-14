@@ -78,14 +78,14 @@ export function PhysicsEngineControls() {
   // Initialize force params from settings
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsion: physicsSettings?.repulsionStrength || 600.0,
-    attraction: physicsSettings?.attractionStrength || 0.001,
-    spring: physicsSettings?.springStrength || 0.002,
-    damping: physicsSettings?.damping || 0.85,
-    gravity: physicsSettings?.gravity || 0.1,
-    timeStep: physicsSettings?.timeStep || 0.016,
-    maxVelocity: physicsSettings?.maxVelocity || 8.0,
-    temperature: physicsSettings?.temperature || 1.0,
+    repulsion: physicsSettings?.repulsion_strength || 10.0,  // Conservative default
+    attraction: physicsSettings?.attraction_strength || 0.01, // Conservative default
+    spring: physicsSettings?.spring_strength || 0.02,        // Conservative default
+    damping: physicsSettings?.damping || 0.98,                // Conservative default
+    gravity: physicsSettings?.gravity || 0.0,                 // Conservative default
+    timeStep: physicsSettings?.time_step || 0.005,            // Conservative default
+    maxVelocity: physicsSettings?.max_velocity || 0.5,        // Conservative default
+    temperature: physicsSettings?.temperature || 0.0,         // Conservative default
   });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
@@ -132,14 +132,14 @@ export function PhysicsEngineControls() {
   useEffect(() => {
     if (physicsSettings && initialized) {
       setForceParams({
-        repulsion: physicsSettings.repulsionStrength || 600.0,
-        attraction: physicsSettings.attractionStrength || 0.001,
-        spring: physicsSettings.springStrength || 0.002,
-        damping: physicsSettings.damping || 0.85,
-        gravity: physicsSettings.gravity || 0.1,
-        timeStep: physicsSettings.timeStep || 0.016,
-        maxVelocity: physicsSettings.maxVelocity || 8.0,
-        temperature: physicsSettings.temperature || 1.0,
+        repulsion: physicsSettings.repulsion_strength || 10.0,    // Conservative default
+        attraction: physicsSettings.attraction_strength || 0.01,  // Conservative default
+        spring: physicsSettings.spring_strength || 0.02,          // Conservative default
+        damping: physicsSettings.damping || 0.98,                  // Conservative default
+        gravity: physicsSettings.gravity || 0.0,                   // Conservative default
+        timeStep: physicsSettings.time_step || 0.005,              // Conservative default
+        maxVelocity: physicsSettings.max_velocity || 0.5,          // Conservative default
+        temperature: physicsSettings.temperature || 0.0,           // Conservative default
       });
     }
   }, [physicsSettings, initialized]);
@@ -196,13 +196,13 @@ export function PhysicsEngineControls() {
     const physicsUpdate: any = {};
     switch (param) {
       case 'repulsion':
-        physicsUpdate.repulsionStrength = value;
+        physicsUpdate.repulsion_strength = value;
         break;
       case 'attraction':
-        physicsUpdate.attractionStrength = value;
+        physicsUpdate.attraction_strength = value;
         break;
       case 'spring':
-        physicsUpdate.springStrength = value;
+        physicsUpdate.spring_strength = value;
         break;
       case 'damping':
         physicsUpdate.damping = value;
@@ -211,10 +211,10 @@ export function PhysicsEngineControls() {
         physicsUpdate.gravity = value;
         break;
       case 'timeStep':
-        physicsUpdate.timeStep = value;
+        physicsUpdate.time_step = value;
         break;
       case 'maxVelocity':
-        physicsUpdate.maxVelocity = value;
+        physicsUpdate.max_velocity = value;
         break;
       case 'temperature':
         physicsUpdate.temperature = value;
@@ -445,8 +445,8 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="repulsion"
                   min={0}
-                  max={2000}
-                  step={50}
+                  max={100}  // Reduced range for conservative settings
+                  step={1}
                   value={[forceParams.repulsion]}
                   onValueChange={([v]) => handleForceParamChange('repulsion', v)}
                 />
@@ -460,7 +460,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="attraction"
                   min={0}
-                  max={0.1}
+                  max={0.05}  // Adjusted for conservative range
                   step={0.001}
                   value={[forceParams.attraction]}
                   onValueChange={([v]) => handleForceParamChange('attraction', v)}
@@ -474,7 +474,7 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="damping"
-                  min={0}
+                  min={0.8}  // Higher minimum for stability
                   max={1}
                   step={0.01}
                   value={[forceParams.damping]}
@@ -490,8 +490,8 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="temperature"
                   min={0}
-                  max={10}
-                  step={0.1}
+                  max={2}  // Reduced max for conservative settings
+                  step={0.05}
                   value={[forceParams.temperature]}
                   onValueChange={([v]) => handleForceParamChange('temperature', v)}
                 />
@@ -505,8 +505,8 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="gravity"
                   min={0}
-                  max={1}
-                  step={0.01}
+                  max={0.1}  // Reduced max for conservative settings
+                  step={0.001}
                   value={[forceParams.gravity]}
                   onValueChange={([v]) => handleForceParamChange('gravity', v)}
                 />
@@ -519,9 +519,9 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="maxVelocity"
-                  min={1}
-                  max={50}
-                  step={1}
+                  min={0.1}  // Lower minimum for stability
+                  max={5}    // Much lower max for conservative settings
+                  step={0.1}
                   value={[forceParams.maxVelocity]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
                 />
@@ -534,10 +534,10 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="timeStep"
-                  min={0.01}
-                  max={0.5}
-                  step={0.01}
-                  value={[forceParams.timeStep || 0.15]}
+                  min={0.001}  // Smaller minimum for accuracy
+                  max={0.05}   // Much smaller max for stability
+                  step={0.001}
+                  value={[forceParams.timeStep || 0.005]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}
                 />
               </div>
