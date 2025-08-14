@@ -47,6 +47,9 @@ pub struct GPUSimulationParams {
 #[derive(Default, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationParams {
+    // Master enable flag
+    pub enabled: bool,             // FIX: Added to allow disabling physics entirely
+    
     // Core iteration parameters
     pub iterations: u32,           // Range: 1-500, Default: varies by phase
     pub time_step: f32,           // Range: 0.01-1, Default: 0.2 (5fps)
@@ -80,6 +83,7 @@ pub struct SimulationParams {
 impl SimulationParams {
     pub fn new() -> Self {
         Self {
+            enabled: true,              // Physics enabled by default
             iterations: 200,
             time_step: 0.01,            // Much smaller for stability
             spring_strength: 0.005,      // Very gentle springs

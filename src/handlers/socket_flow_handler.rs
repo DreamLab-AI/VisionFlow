@@ -465,13 +465,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 }
                             }
                             Some("update_physics_params") => {
-                                info!("Client requested physics parameter update");
-                                
+                                // WARNING: This WebSocket path is DEPRECATED and should not be used!
+                                // parameters should be sent via REST API:
+                                //   POST /api/ (currently misnamed)
+                                //
+                                // WebSocket is ONLY for:
+                                //   - Binary position/velocity streaming (high frequency)
+                                //   - Real-time graph updates
+                                //
+                                // This handler remains for backwards compatibility only.
+                                info!("Client requested physics parameter update via DEPRECATED WebSocket path");
+
                                 // Parse the graph type and parameters
-                                if let (Some(graph_type_str), Some(params_obj)) = 
+                                if let (Some(graph_type_str), Some(params_obj)) =
                                     (msg.get("graph_type").and_then(|g| g.as_str()),
                                      msg.get("params").and_then(|p| p.as_object())) {
-                                    
+
                                     // Parse graph type
                                     let graph_type = match graph_type_str {
                                         "knowledge" => crate::actors::gpu_compute_actor::GraphType::Knowledge,
@@ -481,10 +490,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                             return;
                                         }
                                     };
-                                    
+
                                     // Parse physics parameters
                                     let mut params = crate::models::simulation_params::SimulationParams::default();
-                                    
+
                                     if let Some(v) = params_obj.get("spring_strength").and_then(|s| s.as_f64()) {
                                         params.spring_strength = v as f32;
                                     }
@@ -497,7 +506,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     if let Some(v) = params_obj.get("time_step").and_then(|d| d.as_f64()) {
                                         params.time_step = v as f32;
                                     }
-                                    
+
                                     // Send update to GPU compute actor
                                     if let Some(gpu_addr) = self.app_state.gpu_compute_addr.clone() {
                                         let fut = async move {
@@ -507,7 +516,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                                 params,
                                             }).await
                                         };
-                                        
+
                                         let fut = actix::fut::wrap_future::<_, Self>(fut);
                                         ctx.spawn(fut.map(move |result, _act, ctx| {
                                             match result {
@@ -530,7 +539,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                             }
                             Some("request_full_snapshot") => {
                                 info!("Client requested full position snapshot");
-                                
+
                                 // Parse which graphs to include
                                 let include_knowledge = msg.get("graphs")
                                     .and_then(|g| g.as_array())
@@ -538,7 +547,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 let include_agent = msg.get("graphs")
                                     .and_then(|g| g.as_array())
                                     .map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("agent")));
-                                
+
                                 // Request snapshot from graph actor
                                 let graph_addr = self.app_state.graph_service_addr.clone();
                                 let fut = async move {
@@ -548,24 +557,24 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                         include_agent_graph: include_agent,
                                     }).await
                                 };
-                                
+
                                 let fut = actix::fut::wrap_future::<_, Self>(fut);
                                 ctx.spawn(fut.map(move |result, _act, ctx| {
                                     match result {
                                         Ok(Ok(snapshot)) => {
                                             // Encode positions with proper type flags
                                             let mut all_nodes = Vec::new();
-                                            
+
                                             // Add knowledge nodes with flags
                                             for (id, data) in snapshot.knowledge_nodes {
                                                 all_nodes.push((binary_protocol::set_knowledge_flag(id), data));
                                             }
-                                            
+
                                             // Add agent nodes with flags
                                             for (id, data) in snapshot.agent_nodes {
                                                 all_nodes.push((binary_protocol::set_agent_flag(id), data));
                                             }
-                                            
+
                                             if !all_nodes.is_empty() {
                                                 let binary_data = binary_protocol::encode_node_data(&all_nodes);
                                                 ctx.binary(binary_data);

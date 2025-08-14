@@ -337,6 +337,12 @@ impl GPUComputeActor {
     }
 
     fn compute_forces_internal(&mut self) -> Result<(), Error> {
+        // FIX: Check if physics is disabled before computing
+        if !self.simulation_params.enabled {
+            // Physics is disabled, don't compute forces
+            return Ok(());
+        }
+        
         if self.cpu_fallback_active {
             warn!("GPU compute in CPU fallback mode, skipping GPU kernel");
             return Ok(());
@@ -577,21 +583,26 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Received physics update - damping: {}, spring: {}, repulsion: {}, iterations: {}", 
-              msg.params.damping, msg.params.spring_strength, 
-              msg.params.repulsion, msg.params.iterations);
+        // IMPORTANT: This is the PRIMARY handler for physics parameter updates!
+        // The client sends physics via REST API to /api/analytics/params which
+        // gets converted to UpdateSimulationParams and sent here.
+        
+        info!("UpdateSimulationParams: Updating physics - enabled={}, repulsion={:.2}, damping={:.2}, dt={:.3}", 
+              msg.params.enabled, msg.params.repulsion, msg.params.damping, msg.params.time_step);
         
         // Update both simulation params and unified params
         self.simulation_params = msg.params.clone();
         self.unified_params = SimParams::from(&msg.params);
         
-        // Update the unified compute if it's initialized
+        // Push to GPU immediately
         if let Some(ref mut unified_compute) = self.unified_compute {
             unified_compute.set_params(self.unified_params);
-            info!("GPU: Updated unified compute with new physics parameters from settings");
+            info!("Physics pushed to GPU: spring={:.4}, repel={:.2}, damping={:.3}, dt={:.3}, enabled={}",
+                  self.unified_params.spring_k, self.unified_params.repel_k,
+                  self.unified_params.damping, self.unified_params.dt,
+                  self.simulation_params.enabled);
         }
         
-        info!("GPU: Physics parameters updated successfully from settings.yaml");
         Ok(())
     }
 }
@@ -612,7 +623,21 @@ impl Handler<UpdatePhysicsParams> for GPUComputeActor {
         }
         
         // Also update legacy combined params for backwards compatibility
-        self.simulation_params = msg.params;
+        self.simulation_params = msg.params.clone();
+        
+        // CRITICAL FIX: Convert and push updated params to GPU
+        self.unified_params = SimParams::from(&msg.params);
+        
+        // Actually update the GPU with new parameters
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.set_params(self.unified_params);
+            info!("Pushed updated physics parameters to GPU: spring={:.4}, repel={:.1}, damping={:.4}, dt={:.4}",
+                self.unified_params.spring_k,
+                self.unified_params.repel_k,
+                self.unified_params.damping,
+                self.unified_params.dt
+            );
+        }
         
         Ok(())
     }
@@ -975,6 +1000,10 @@ impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateVisualAnalyticsParams, _ctx: &mut Self::Context) -> Self::Result {
+        // NOTE: This handler is for actual VisualAnalyticsParams only.
+        // Physics parameters now come through UpdateSimulationParams via
+        // the analytics endpoint workaround in analytics/mod.rs
+        
         info!("MSG_HANDLER: UpdateVisualAnalyticsParams received");
         info!("  Focus node: {}, Isolation strength: {:.2}",
               msg.params.primary_focus_node, msg.params.isolation_strength);
@@ -982,6 +1011,7 @@ impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
         // Update unified compute parameters based on visual analytics settings
         if let Some(ref mut unified_compute) = self.unified_compute {
             let mut params = self.unified_params;
+            // Only update the visual analytics related fields
             params.temperature = 1.0 - msg.params.isolation_strength;
             params.viewport_bounds = msg.params.viewport_bounds.x.abs().max(msg.params.viewport_bounds.y.abs());
             unified_compute.set_params(params);

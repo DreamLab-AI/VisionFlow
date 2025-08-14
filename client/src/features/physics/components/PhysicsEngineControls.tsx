@@ -225,7 +225,16 @@ export function PhysicsEngineControls() {
       // Update through settings store
       await updatePhysics(physicsUpdate);
       
-      // Also send to analytics endpoint for immediate GPU update
+      // IMPORTANT COMMUNICATION PATHWAY:
+      // Physics parameters are sent via REST API, NOT WebSocket!
+      // WebSocket is ONLY for binary position/velocity streaming.
+      // 
+      // This endpoint is MISNAMED - it's not really for analytics.
+      // The server intercepts physics params here and forwards them
+      // to UpdateSimulationParams. This is a HACK that should be fixed
+      // with a proper /api/physics/params endpoint.
+      //
+      // Data flow: UI -> REST /api/analytics/params -> UpdateSimulationParams -> GPU
       await fetch('/api/analytics/params', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
