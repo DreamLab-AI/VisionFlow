@@ -656,11 +656,9 @@ impl GraphServiceActor {
             });
         }
         
-        // Use advanced GPU compute if available, otherwise fallback to legacy
+        // Use advanced GPU compute only - legacy path removed
         if self.advanced_gpu_context.is_some() {
             self.run_advanced_gpu_step(ctx);
-        } else if let Some(gpu_compute_addr) = self.gpu_compute_addr.clone() {
-            self.run_legacy_gpu_step(&gpu_compute_addr, ctx);
         } else {
             warn!("No GPU compute context available for physics simulation");
         }
@@ -766,67 +764,8 @@ impl GraphServiceActor {
             self.update_node_positions(positions_to_update);
         }
     }
-    
-    fn run_legacy_gpu_step(&mut self, gpu_compute_addr: &Addr<GPUComputeActor>, ctx: &mut Context<Self>) {
-        let node_count = self.graph_data.nodes.len();
-        
-        // Only log periodically to avoid spam
-        static mut LOG_COUNTER: u32 = 0;
-        unsafe {
-            if LOG_COUNTER % 60 == 0 {
-                info!("GraphServiceActor: Fallback to legacy GPU for {} nodes", node_count);
-            }
-            LOG_COUNTER += 1;
-        }
-        
-        // Send graph data to GPU
-        let graph_data_for_gpu = crate::models::graph::GraphData {
-            nodes: self.graph_data.nodes.clone(),
-            edges: self.graph_data.edges.clone(),
-            metadata: self.graph_data.metadata.clone(),
-            id_to_metadata: self.graph_data.id_to_metadata.clone(),
-        };
-        
-        gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
-        gpu_compute_addr.do_send(ComputeForces);
-        
-        // Handle results asynchronously 
-        let gpu_addr = gpu_compute_addr.clone();
-        let client_manager = self.client_manager.clone();
-        let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
-        let self_addr = ctx.address();
-        
-        actix::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(5)).await;
-            
-            match gpu_addr.send(GetNodeData).await {
-                Ok(Ok(node_data)) => {
-                    let mut positions = Vec::new();
-                    for (index, data) in node_data.iter().enumerate() {
-                        if let Some(node_id) = node_ids.get(index) {
-                            positions.push((*node_id, data.clone()));
-                        }
-                    }
-                    
-                    if !positions.is_empty() {
-                        self_addr.do_send(UpdateNodePositions { 
-                            positions: positions.clone() 
-                        });
-                        
-                        let binary_data = binary_protocol::encode_node_data(&positions);
-                        client_manager.do_send(BroadcastNodePositions { 
-                            positions: binary_data 
-                        });
-                    }
-                }
-                Ok(Err(e)) => warn!("Failed to get legacy GPU node data: {}", e),
-                Err(e) => warn!("Failed to communicate with legacy GPU actor: {}", e),
-            }
-        });
-    }
-
-    // CPU physics removed - all physics now handled by GPU compute actor
-    // BREADCRUMB: CPU fallback was removed as GPU is always available in our architecture
+    // Legacy GPU step removed - only advanced GPU compute is supported
+    // All physics computation uses the unified GPU kernel
 
     /// Update advanced physics parameters
     pub fn update_advanced_physics_params(&mut self, params: AdvancedParams) {

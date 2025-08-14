@@ -1,11 +1,50 @@
-# VisionFlow 3D Graph Visualization Settings
-# Single source of truth for all application configuration
-
-# ============================================================================
-# VISUALIZATION SETTINGS - Multi-graph support
-# ============================================================================
 visualisation:
-  # Multi-graph support - primary source of truth
+  rendering:
+    ambient_light_intensity: 1.2
+    background_color: '#0a0e1a'
+    directional_light_intensity: 1.5
+    enable_ambient_occlusion: false
+    enable_antialiasing: true
+    enable_shadows: true
+    environment_intensity: 0.7
+    shadow_map_size: '2048'
+    shadow_bias: 0.0001
+    context: desktop
+  animations:
+    enable_motion_blur: false
+    enable_node_animations: true
+    motion_blur_strength: 0.2
+    selection_wave_enabled: true
+    pulse_enabled: true
+    pulse_speed: 1.2
+    pulse_strength: 0.8
+    wave_speed: 0.5
+  bloom:
+    edge_bloom_strength: 3.5
+    enabled: false
+    environment_bloom_strength: 3.0
+    node_bloom_strength: 3.0
+    radius: 0.124784134
+    strength: 0.096262045
+    threshold: 0.15
+  hologram:
+    ring_count: 5
+    ring_color: '#00ffff'
+    ring_opacity: 0.8
+    sphere_sizes:
+    - 40.0
+    - 80.0
+    ring_rotation_speed: 12.0
+    enable_buckminster: true
+    buckminster_size: 50.0
+    buckminster_opacity: 0.3
+    enable_geodesic: true
+    geodesic_size: 60.0
+    geodesic_opacity: 0.25
+    enable_triangle_sphere: true
+    triangle_sphere_size: 70.0
+    triangle_sphere_opacity: 0.4
+    global_rotation_speed: 0.5
   graphs:
     logseq:
       nodes:
@@ -14,7 +53,7 @@ visualisation:
         opacity: 0.95
         roughness: 0.15
         node_size: 1.2
-        quality: 'high'
+        quality: high
         enable_instancing: true
         enable_hologram: true
         enable_metadata_shape: true
@@ -26,9 +65,9 @@ visualisation:
         enable_arrows: false
         opacity: 0.25
         width_range:
-          - 0.2
-          - 1.0
-        quality: 'medium'
+        - 0.2
+        - 1.0
+        quality: medium
       labels:
         desktop_font_size: 0.5
         enable_labels: true
@@ -37,37 +76,27 @@ visualisation:
         text_outline_width: 0.005
         text_resolution: 32
         text_padding: 0.6
-        billboard_mode: 'camera'
+        billboard_mode: camera
         show_metadata: true
-        max_label_width: 5
+        max_label_width: 5.0
       physics:
-        # --- Stable Physics Settings for Natural Graph Layout ---
-        enabled: true
-        
-        # Core Forces (Balanced for stability)
-        spring_strength: 0.005         # Moderate: Natural spring tension for connected nodes
-        repulsion_strength: 2.0        # Low: Gentle repulsion prevents overlap without explosion
-        attraction_strength: 0.0001    # Very light: Subtle center gravity
-        gravity: 0.0001                # Minimal: Slight downward pull for natural settling
-        
-        # Stability & Settling Controls
-        damping: 0.95                  # High: Strong friction for quick settling
-        max_velocity: 2.0              # Moderate: Allows natural movement
-        temperature: 0.01              # Very low: Minimal random energy
-        time_step: 0.016               # Standard: 60fps simulation step
-        
-        # Boundary & Collision (Spacious environment)
-        enable_bounds: true            # Enabled: Soft boundaries
-        bounds_size: 500.0             # Large: Plenty of space for 170+ nodes
-        boundary_damping: 0.5          # Moderate: Soft bounce off boundaries
-        collision_radius: 2.0          # Natural: Personal space for each node
-        
-        # Advanced Parameters
-        iterations: 100                # Moderate: Good performance/quality balance
-        repulsion_distance: 50.0       # Moderate: Natural force falloff
-        mass_scale: 1.0                # Standard: Natural inertia
-        update_threshold: 0.01         # Sensitive: Detect small movements
-
+        attraction_strength: 0.8128795
+        bounds_size: 500.0
+        collision_radius: 2.0
+        damping: 0.80931425
+        enable_bounds: true
+        enabled: false
+        iterations: 100
+        max_velocity: 0.02768598
+        repulsion_strength: 0.17113253
+        spring_strength: 0.29948193
+        repulsion_distance: 50.0
+        mass_scale: 1.0
+        boundary_damping: 0.5
+        update_threshold: 0.01
+        time_step: 0.016
+        temperature: 0.01
+        gravity: 0.0001
     visionflow:
       nodes:
         base_color: '#ff8800'
@@ -75,7 +104,7 @@ visualisation:
         opacity: 0.9
         roughness: 0.3
         node_size: 1.5
-        quality: 'high'
+        quality: high
         enable_instancing: true
         enable_hologram: true
         enable_metadata_shape: true
@@ -87,9 +116,9 @@ visualisation:
         enable_arrows: true
         opacity: 0.6
         width_range:
-          - 0.15
-          - 1.5
-        quality: 'high'
+        - 0.15
+        - 1.5
+        quality: high
       labels:
         desktop_font_size: 16.0
         enable_labels: true
@@ -98,153 +127,74 @@ visualisation:
         text_outline_width: 2.5
         text_resolution: 256
         text_padding: 5.0
-        billboard_mode: 'screen'
+        billboard_mode: screen
         show_metadata: true
-        max_label_width: 8
+        max_label_width: 8.0
       physics:
-        # --- Stable Physics Settings for Natural Graph Layout ---
+        attraction_strength: 0.0001
+        bounds_size: 500.0
+        collision_radius: 2.0
+        damping: 0.95
+        enable_bounds: true
         enabled: true
-        
-        # Core Forces (Balanced for stability)
-        spring_strength: 0.005         # Moderate: Natural spring tension for connected nodes
-        repulsion_strength: 2.0        # Low: Gentle repulsion prevents overlap without explosion
-        attraction_strength: 0.0001    # Very light: Subtle center gravity
-        gravity: 0.0001                # Minimal: Slight downward pull for natural settling
-        
-        # Stability & Settling Controls
-        damping: 0.95                  # High: Strong friction for quick settling
-        max_velocity: 2.0              # Moderate: Allows natural movement
-        temperature: 0.01              # Very low: Minimal random energy
-        time_step: 0.016               # Standard: 60fps simulation step
-        
-        # Boundary & Collision (Spacious environment)
-        enable_bounds: true            # Enabled: Soft boundaries
-        bounds_size: 500.0             # Large: Plenty of space for 170+ nodes
-        boundary_damping: 0.5          # Moderate: Soft bounce off boundaries
-        collision_radius: 2.0          # Natural: Personal space for each node
-        
-        # Advanced Parameters
-        iterations: 100                # Moderate: Good performance/quality balance
-        repulsion_distance: 50.0       # Moderate: Natural force falloff
-        mass_scale: 1.0                # Standard: Natural inertia
-        update_threshold: 0.01         # Sensitive: Detect small movements
-
-  # Global rendering settings
-  rendering:
-    ambient_light_intensity: 1.2
-    background_color: '#0a0e1a'
-    directional_light_intensity: 1.5
-    enable_ambient_occlusion: false
-    enable_antialiasing: true
-    enable_shadows: true
-    environment_intensity: 0.7
-    shadow_map_size: '2048'
-    shadow_bias: 0.0001
-    context: 'desktop'
-
-  # Animation settings
-  animations:
-    enable_motion_blur: false
-    enable_node_animations: true
-    motion_blur_strength: 0.2
-    selection_wave_enabled: true
-    pulse_enabled: true
-    pulse_speed: 1.2
-    pulse_strength: 0.8
-    wave_speed: 0.5
-
-  # Bloom effect settings
-  bloom:
-    enabled: true
-    strength: 2.0
-    radius: 0.85
-    threshold: 0.15
-    node_bloom_strength: 3.0
-    edge_bloom_strength: 3.5
-    environment_bloom_strength: 3.0
-
-  # Hologram effect settings
-  hologram:
-    ring_count: 5
-    ring_color: '#00ffff'
-    ring_opacity: 0.8
-    sphere_sizes:
-      - 40
-      - 80
-    ring_rotation_speed: 12.0
-    global_rotation_speed: 0.5
-    enable_buckminster: true
-    buckminster_size: 50
-    buckminster_opacity: 0.3
-    enable_geodesic: true
-    geodesic_size: 60
-    geodesic_opacity: 0.25
-    enable_triangle_sphere: true
-    triangle_sphere_size: 70
-    triangle_sphere_opacity: 0.4
-
-  # Camera configuration
+        iterations: 100
+        max_velocity: 2.0
+        repulsion_strength: 2.0
+        spring_strength: 0.005
+        repulsion_distance: 50.0
+        mass_scale: 1.0
+        boundary_damping: 0.5
+        update_threshold: 0.01
+        time_step: 0.016
+        temperature: 0.01
+        gravity: 0.0001
   camera:
-    fov: 75
+    fov: 75.0
     near: 0.1
-    far: 2000
+    far: 2000.0
     position:
-      x: 0
-      y: 10
-      z: 50
+      x: 0.0
+      y: 10.0
+      z: 50.0
     look_at:
-      x: 0
-      y: 0
-      z: 0
-
-  # SpacePilot 3D navigation
+      x: 0.0
+      y: 0.0
+      z: 0.0
   space_pilot:
     enabled: true
-    mode: 'camera'
+    mode: camera
     sensitivity:
       translation: 1.0
       rotation: 1.0
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      1: 'resetView'
-      2: 'cycleMode'
-      3: 'fitToView'
-      4: 'topView'
-      5: 'rightView'
-      6: 'frontView'
-
-# ============================================================================
-# SYSTEM SETTINGS
-# ============================================================================
+      '3': fitToView
+      '4': topView
+      '2': cycleMode
+      '5': rightView
+      '6': frontView
+      '1': resetView
 system:
-  # General system settings
-  persist_settings: false
-  custom_backend_url: ''
-
-  # Network configuration (server-side)
   network:
     bind_address: 0.0.0.0
     domain: visionflow.info
-    port: 3001
     enable_http2: false
-    enable_tls: false
-    min_tls_version: '1.2'
-    tunnel_id: dummy
     enable_rate_limiting: false
+    enable_tls: false
+    max_request_size: 10485760
+    min_tls_version: '1.2'
+    port: 4000
     rate_limit_requests: 10000
     rate_limit_window: 600
-    max_request_size: 10485760
+    tunnel_id: dummy
     api_client_timeout: 30
     enable_metrics: false
     max_concurrent_requests: 1
     max_retries: 3
     metrics_port: 9090
     retry_delay: 5
-
-  # WebSocket configuration
   websocket:
-    update_rate: 60
     binary_chunk_size: 2048
     binary_update_rate: 30
     min_update_rate: 5
@@ -260,12 +210,11 @@ system:
     max_message_size: 10485760
     reconnect_attempts: 5
     reconnect_delay: 1000
-
-  # Security settings
+    update_rate: 60
   security:
     allowed_origins:
-      - https://www.visionflow.info
-      - https://visionflow.info
+    - https://www.visionflow.info
+    - https://visionflow.info
     audit_log_path: /app/logs/audit.log
     cookie_httponly: true
     cookie_samesite: Strict
@@ -274,15 +223,9 @@ system:
     enable_audit_logging: false
     enable_request_validation: false
     session_timeout: 3600
-
-  # Simple debug flag for server-side debugging
-  # Log verbosity is still controlled by RUST_LOG environment variable
   debug:
     enabled: false
-
-# ============================================================================
-# XR SETTINGS
-# ============================================================================
+  persist_settings: true
 xr:
   enabled: false
   client_side_enable_xr: false
@@ -296,9 +239,7 @@ xr:
   locomotion_method: teleport
   teleport_ray_color: '#ffffff'
   controller_ray_color: '#ffffff'
-  controller_model: 'default'
-
-  # Hand tracking settings
+  controller_model: default
   enable_hand_tracking: true
   hand_mesh_enabled: true
   hand_mesh_color: '#4287f5'
@@ -308,8 +249,6 @@ xr:
   hand_ray_color: '#4287f5'
   hand_ray_width: 0.003
   gesture_smoothing: 0.7
-
-  # Interaction settings
   enable_haptics: true
   haptic_intensity: 0.3
   drag_threshold: 0.08
@@ -321,8 +260,6 @@ xr:
   movement_axes:
     horizontal: 2
     vertical: 3
-
-  # Environment understanding
   enable_light_estimation: false
   enable_plane_detection: false
   enable_scene_understanding: false
@@ -331,8 +268,6 @@ xr:
   plane_detection_distance: 3.0
   show_plane_overlay: false
   snap_to_floor: false
-
-  # Passthrough settings
   enable_passthrough_portal: false
   passthrough_opacity: 0.8
   passthrough_brightness: 1.1
@@ -340,31 +275,16 @@ xr:
   portal_size: 2.5
   portal_edge_color: '#4287f5'
   portal_edge_width: 0.02
-
-# ============================================================================
-# AUTHENTICATION SETTINGS
-# ============================================================================
 auth:
   enabled: false
   provider: nostr
   required: false
-
-# ============================================================================
-# AI SERVICE INTEGRATIONS
-# ============================================================================
-
-# RAGFlow Integration
 ragflow:
-  agent_id: 'aa2e328812ef11f083dc0a0d6226f61b'
+  agent_id: aa2e328812ef11f083dc0a0d6226f61b
   timeout: 30
   max_retries: 3
-  chat_id: ''
-
-# Perplexity Integration
 perplexity:
-  api_key: ''
   model: llama-3.1-sonar-small-128k-online
-  api_url: ''
   max_tokens: 4096
   temperature: 0.5
   top_p: 0.9
@@ -372,33 +292,24 @@ perplexity:
   frequency_penalty: 0.0
   timeout: 30
   rate_limit: 100
-
-# OpenAI Integration
 openai:
-  api_key: ''
-  base_url: ''
   timeout: 30
   rate_limit: 100
-
-# Kokoro TTS Integration
 kokoro:
-  api_url: 'http://recursing_bhaskara:8880'
-  default_voice: 'af_heart'
-  default_format: 'mp3'
+  api_url: http://recursing_bhaskara:8880
+  default_voice: af_heart
+  default_format: mp3
   default_speed: 1.0
   timeout: 30
   stream: true
   return_timestamps: true
   sample_rate: 24000
-
-# Whisper Speech Recognition
 whisper:
-  api_url: "http://whisper-webui-backend:8000"
-  default_model: "base"
-  default_language: "en"
+  api_url: http://whisper-webui-backend:8000
+  default_model: base
+  default_language: en
   timeout: 30
   temperature: 0.0
   return_timestamps: false
   vad_filter: false
   word_timestamps: false
-  initial_prompt: ""

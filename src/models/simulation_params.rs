@@ -6,8 +6,7 @@ use crate::config::PhysicsSettings;
 #[serde(rename_all = "camelCase")]
 pub enum SimulationMode {
     Remote,  // GPU-accelerated remote computation (default)
-    GPU,     // Local GPU computation (deprecated)
-    Local,   // CPU-based computation (disabled)
+    Local,   // CPU-based computation (fallback only)
 }
 
 impl Default for SimulationMode {
@@ -107,6 +106,7 @@ impl SimulationParams {
     pub fn with_phase(phase: SimulationPhase) -> Self {
         match phase {
             SimulationPhase::Initial => Self {
+                enabled: true,              // Physics enabled by default
                 iterations: 500,
                 time_step: 0.01,           // Small timestep for stability
                 spring_strength: 0.005,     // Very gentle springs
@@ -126,6 +126,7 @@ impl SimulationParams {
                 mode: SimulationMode::Remote,
             },
             SimulationPhase::Dynamic => Self {
+                enabled: true,
                 iterations: 100,
                 time_step: 0.12,  // Further reduced for optimal stability
                 spring_strength: 0.01,  // Reduced spring strength
@@ -145,6 +146,7 @@ impl SimulationParams {
                 mode: SimulationMode::Remote,
             },
             SimulationPhase::Finalize => Self {
+                enabled: true,
                 iterations: 300,
                 time_step: 0.15,           // Reduced from 0.2
                 spring_strength: 0.005,      // Minimal spring forces
@@ -185,6 +187,7 @@ impl SimulationParams {
 impl From<&PhysicsSettings> for SimulationParams {
     fn from(physics: &PhysicsSettings) -> Self {
         Self {
+            enabled: physics.enabled,  // Use the enabled flag from settings
             iterations: physics.iterations,
             time_step: physics.time_step,
             spring_strength: physics.spring_strength,

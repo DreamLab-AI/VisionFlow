@@ -201,8 +201,8 @@ export const defaultSettings: Settings = {
       enableMatrixDebug: false,
       enablePerformanceDebug: false,
     },
-    persistSettings: false,
-    customBackendUrl: "",
+    persistSettings: true,
+    customBackendUrl: undefined as any,
   },
   xr: {
     enabled: false,

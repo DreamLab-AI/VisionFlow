@@ -78,13 +78,13 @@ export function PhysicsEngineControls() {
   // Initialize force params from settings
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsion: physicsSettings?.repulsion_strength || 2.0,    // Stable default
-    attraction: physicsSettings?.attraction_strength || 0.0001, // Stable default
-    spring: physicsSettings?.spring_strength || 0.005,        // Stable default
+    repulsion: physicsSettings?.repulsionStrength || 2.0,    // Stable default
+    attraction: physicsSettings?.attractionStrength || 0.0001, // Stable default
+    spring: physicsSettings?.springStrength || 0.005,        // Stable default
     damping: physicsSettings?.damping || 0.95,                // Stable default
     gravity: physicsSettings?.gravity || 0.0001,              // Stable default
-    timeStep: physicsSettings?.time_step || 0.016,            // Stable default (60fps)
-    maxVelocity: physicsSettings?.max_velocity || 2.0,        // Stable default
+    timeStep: physicsSettings?.timeStep || 0.016,            // Stable default (60fps)
+    maxVelocity: physicsSettings?.maxVelocity || 2.0,        // Stable default
     temperature: physicsSettings?.temperature || 0.01,        // Stable default
   });
   
@@ -132,13 +132,13 @@ export function PhysicsEngineControls() {
   useEffect(() => {
     if (physicsSettings && initialized) {
       setForceParams({
-        repulsion: physicsSettings.repulsion_strength || 2.0,      // Stable default
-        attraction: physicsSettings.attraction_strength || 0.0001, // Stable default
-        spring: physicsSettings.spring_strength || 0.005,          // Stable default
+        repulsion: physicsSettings.repulsionStrength || 2.0,      // Stable default
+        attraction: physicsSettings.attractionStrength || 0.0001, // Stable default
+        spring: physicsSettings.springStrength || 0.005,          // Stable default
         damping: physicsSettings.damping || 0.95,                  // Stable default
         gravity: physicsSettings.gravity || 0.0001,                // Stable default
-        timeStep: physicsSettings.time_step || 0.016,              // Stable default (60fps)
-        maxVelocity: physicsSettings.max_velocity || 2.0,          // Stable default
+        timeStep: physicsSettings.timeStep || 0.016,              // Stable default (60fps)
+        maxVelocity: physicsSettings.maxVelocity || 2.0,          // Stable default
         temperature: physicsSettings.temperature || 0.01,          // Stable default
       });
     }
@@ -196,13 +196,13 @@ export function PhysicsEngineControls() {
     const physicsUpdate: any = {};
     switch (param) {
       case 'repulsion':
-        physicsUpdate.repulsion_strength = value;
+        physicsUpdate.repulsionStrength = value;
         break;
       case 'attraction':
-        physicsUpdate.attraction_strength = value;
+        physicsUpdate.attractionStrength = value;
         break;
       case 'spring':
-        physicsUpdate.spring_strength = value;
+        physicsUpdate.springStrength = value;
         break;
       case 'damping':
         physicsUpdate.damping = value;
@@ -211,10 +211,10 @@ export function PhysicsEngineControls() {
         physicsUpdate.gravity = value;
         break;
       case 'timeStep':
-        physicsUpdate.time_step = value;
+        physicsUpdate.timeStep = value;
         break;
       case 'maxVelocity':
-        physicsUpdate.max_velocity = value;
+        physicsUpdate.maxVelocity = value;
         break;
       case 'temperature':
         physicsUpdate.temperature = value;

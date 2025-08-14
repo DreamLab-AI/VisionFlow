@@ -63,10 +63,8 @@ pub struct GPUComputeActor {
     num_edges: u32,
     node_indices: HashMap<u32, usize>,
     
-    // Separate physics parameters for each graph type
-    knowledge_sim_params: SimulationParams,
-    agent_sim_params: SimulationParams,
-    simulation_params: SimulationParams,  // Legacy combined params
+    // Physics parameters
+    simulation_params: SimulationParams,  // Main simulation parameters
     
     // Unified physics support
     constraints: Vec<Constraint>,
@@ -104,8 +102,6 @@ impl GPUComputeActor {
             num_edges: 0,
             node_indices: HashMap::new(),
             
-            knowledge_sim_params: SimulationParams::default(),
-            agent_sim_params: SimulationParams::default(),
             simulation_params: SimulationParams::default(),
             
             // Initialize unified physics support
@@ -607,41 +603,8 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
     }
 }
 
-impl Handler<UpdatePhysicsParams> for GPUComputeActor {
-    type Result = Result<(), String>;
-    
-    fn handle(&mut self, msg: UpdatePhysicsParams, _ctx: &mut Self::Context) -> Self::Result {
-        match msg.graph_type {
-            GraphType::Knowledge => {
-                self.knowledge_sim_params = msg.params.clone();
-                info!("Updated knowledge graph physics parameters");
-            }
-            GraphType::Agent => {
-                self.agent_sim_params = msg.params.clone();
-                info!("Updated agent graph physics parameters");
-            }
-        }
-        
-        // Also update legacy combined params for backwards compatibility
-        self.simulation_params = msg.params.clone();
-        
-        // CRITICAL FIX: Convert and push updated params to GPU
-        self.unified_params = SimParams::from(&msg.params);
-        
-        // Actually update the GPU with new parameters
-        if let Some(ref mut unified_compute) = self.unified_compute {
-            unified_compute.set_params(self.unified_params);
-            info!("Pushed updated physics parameters to GPU: spring={:.4}, repel={:.1}, damping={:.4}, dt={:.4}",
-                self.unified_params.spring_k,
-                self.unified_params.repel_k,
-                self.unified_params.damping,
-                self.unified_params.dt
-            );
-        }
-        
-        Ok(())
-    }
-}
+// Removed UpdatePhysicsParams handler - deprecated WebSocket physics path
+// Physics updates now come through UpdateSimulationParams via REST API
 
 impl Handler<ComputeForces> for GPUComputeActor {
     type Result = Result<(), String>;

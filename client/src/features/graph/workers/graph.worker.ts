@@ -173,10 +173,10 @@ class GraphWorker {
                          settings?.visualisation?.physics;
     
     this.physicsSettings = {
-      springStrength: graphSettings?.spring_strength ?? 0.001,
+      springStrength: graphSettings?.springStrength ?? 0.001,
       damping: graphSettings?.damping ?? 0.98,
-      maxVelocity: graphSettings?.max_velocity ?? 0.5,
-      updateThreshold: graphSettings?.update_threshold ?? 0.05
+      maxVelocity: graphSettings?.maxVelocity ?? 0.5,
+      updateThreshold: graphSettings?.updateThreshold ?? 0.05
     };
   }
 

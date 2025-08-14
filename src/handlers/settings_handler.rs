@@ -82,9 +82,17 @@ async fn update_settings(
         }
     };
     
+    // Debug: Log the update payload before merging
+    if crate::utils::logging::is_debug_enabled() {
+        debug!("Settings update payload (before merge): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+    }
+    
     // Merge the update
     if let Err(e) = app_settings.merge_update(update.clone()) {
         error!("Failed to merge settings: {}", e);
+        if crate::utils::logging::is_debug_enabled() {
+            error!("Update payload that caused error: {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
         return Ok(HttpResponse::InternalServerError().json(json!({
             "error": format!("Failed to merge settings: {}", e)
         })));
@@ -227,6 +235,7 @@ fn validate_settings_update(update: &Value) -> Result<(), String> {
 
 fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Validate all physics fields with proper ranges
+    // NOTE: Validation happens on camelCase JSON from client (before conversion)
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
         if !(0.0..=1.0).contains(&val) {
@@ -241,63 +250,73 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    if let Some(spring) = physics.get("springStrength") {
+    // Check for both camelCase (from client) and snake_case (potential future use)
+    let spring = physics.get("springStrength").or_else(|| physics.get("spring_strength"));
+    if let Some(spring) = spring {
         let val = spring.as_f64().ok_or("springStrength must be a number")?;
         if !(0.0..=10.0).contains(&val) {
             return Err("springStrength must be between 0.0 and 10.0".to_string());
         }
     }
     
-    if let Some(repulsion) = physics.get("repulsionStrength") {
+    let repulsion = physics.get("repulsionStrength").or_else(|| physics.get("repulsion_strength"));
+    if let Some(repulsion) = repulsion {
         let val = repulsion.as_f64().ok_or("repulsionStrength must be a number")?;
         if val < 0.0 || val > 10000.0 {
             return Err("repulsionStrength must be between 0.0 and 10000.0".to_string());
         }
     }
     
-    if let Some(attraction) = physics.get("attractionStrength") {
+    let attraction = physics.get("attractionStrength").or_else(|| physics.get("attraction_strength"));
+    if let Some(attraction) = attraction {
         let val = attraction.as_f64().ok_or("attractionStrength must be a number")?;
         if !(0.0..=10.0).contains(&val) {
             return Err("attractionStrength must be between 0.0 and 10.0".to_string());
         }
     }
     
-    if let Some(bounds) = physics.get("boundsSize") {
+    let bounds = physics.get("boundsSize").or_else(|| physics.get("bounds_size"));
+    if let Some(bounds) = bounds {
         let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
         if val < 100.0 || val > 50000.0 {
             return Err("boundsSize must be between 100.0 and 50000.0".to_string());
         }
     }
     
-    if let Some(collision) = physics.get("collisionRadius") {
+    let collision = physics.get("collisionRadius").or_else(|| physics.get("collision_radius"));
+    if let Some(collision) = collision {
         let val = collision.as_f64().ok_or("collisionRadius must be a number")?;
         if val < 0.0 || val > 100.0 {
             return Err("collisionRadius must be between 0.0 and 100.0".to_string());
         }
     }
     
-    if let Some(max_vel) = physics.get("maxVelocity") {
+    let max_vel = physics.get("maxVelocity").or_else(|| physics.get("max_velocity"));
+    if let Some(max_vel) = max_vel {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
         if val < 0.0 || val > 1000.0 {
             return Err("maxVelocity must be between 0.0 and 1000.0".to_string());
         }
     }
     
-    if let Some(mass) = physics.get("massScale") {
+    let mass = physics.get("massScale").or_else(|| physics.get("mass_scale"));
+    if let Some(mass) = mass {
         let val = mass.as_f64().ok_or("massScale must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("massScale must be between 0.0 and 10.0".to_string());
         }
     }
     
-    if let Some(boundary) = physics.get("boundaryDamping") {
+    let boundary = physics.get("boundaryDamping").or_else(|| physics.get("boundary_damping"));
+    if let Some(boundary) = boundary {
         let val = boundary.as_f64().ok_or("boundaryDamping must be a number")?;
         if !(0.0..=1.0).contains(&val) {
             return Err("boundaryDamping must be between 0.0 and 1.0".to_string());
         }
     }
     
-    if let Some(time_step) = physics.get("timeStep") {
+    let time_step = physics.get("timeStep").or_else(|| physics.get("time_step"));
+    if let Some(time_step) = time_step {
         let val = time_step.as_f64().ok_or("timeStep must be a number")?;
         if val <= 0.0 || val > 1.0 {
             return Err("timeStep must be between 0.0 and 1.0".to_string());
@@ -318,7 +337,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    if let Some(threshold) = physics.get("updateThreshold") {
+    let threshold = physics.get("updateThreshold").or_else(|| physics.get("update_threshold"));
+    if let Some(threshold) = threshold {
         let val = threshold.as_f64().ok_or("updateThreshold must be a number")?;
         if val < 0.0 || val > 1.0 {
             return Err("updateThreshold must be between 0.0 and 1.0".to_string());
@@ -329,8 +349,9 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
 }
 
 fn validate_node_settings(nodes: &Value) -> Result<(), String> {
-    // Validate color format
-    if let Some(color) = nodes.get("baseColor") {
+    // Validate color format - check both camelCase and snake_case
+    let color = nodes.get("baseColor").or_else(|| nodes.get("base_color"));
+    if let Some(color) = color {
         let color_str = color.as_str().ok_or("baseColor must be a string")?;
         if !color_str.starts_with('#') || (color_str.len() != 7 && color_str.len() != 4) {
             return Err("baseColor must be a valid hex color (e.g., #ffffff or #fff)".to_string());
@@ -358,7 +379,8 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
         }
     }
     
-    if let Some(node_size) = nodes.get("nodeSize") {
+    let node_size = nodes.get("nodeSize").or_else(|| nodes.get("node_size"));
+    if let Some(node_size) = node_size {
         let val = node_size.as_f64().ok_or("nodeSize must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("nodeSize must be between 0.0 and 10.0".to_string());
@@ -376,7 +398,8 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
 }
 
 fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
-    if let Some(ambient) = rendering.get("ambientLightIntensity") {
+    let ambient = rendering.get("ambientLightIntensity").or_else(|| rendering.get("ambient_light_intensity"));
+    if let Some(ambient) = ambient {
         let val = ambient.as_f64().ok_or("ambientLightIntensity must be a number")?;
         if val < 0.0 || val > 10.0 {
             return Err("ambientLightIntensity must be between 0.0 and 10.0".to_string());
@@ -387,7 +410,8 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
 }
 
 fn validate_xr_settings(xr: &Value) -> Result<(), String> {
-    if let Some(room_scale) = xr.get("roomScale") {
+    let room_scale = xr.get("roomScale").or_else(|| xr.get("room_scale"));
+    if let Some(room_scale) = room_scale {
         let val = room_scale.as_f64().ok_or("roomScale must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("roomScale must be between 0.0 and 10.0".to_string());

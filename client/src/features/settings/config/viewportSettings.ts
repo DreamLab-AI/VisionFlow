@@ -29,13 +29,13 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   // XR settings that affect viewport
   'xr.mode',
   'xr.quality',
-  'xr.render_scale',
-  'xr.enable_hand_tracking',
-  'xr.hand_mesh_enabled',
-  'xr.hand_ray_enabled',
-  'xr.enable_light_estimation',
-  'xr.enable_plane_detection',
-  'xr.enable_passthrough_portal',
+  'xr.renderScale',
+  'xr.enableHandTracking',
+  'xr.handMeshEnabled',
+  'xr.handRayEnabled',
+  'xr.enableLightEstimation',
+  'xr.enablePlaneDetection',
+  'xr.enablePassthroughPortal',
   
   // Debug visualization settings
   'system.debug.enabled',

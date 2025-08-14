@@ -465,77 +465,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 }
                             }
                             Some("update_physics_params") => {
-                                // WARNING: This WebSocket path is DEPRECATED and should not be used!
-                                // parameters should be sent via REST API:
-                                //   POST /api/ (currently misnamed)
-                                //
-                                // WebSocket is ONLY for:
-                                //   - Binary position/velocity streaming (high frequency)
-                                //   - Real-time graph updates
-                                //
-                                // This handler remains for backwards compatibility only.
-                                info!("Client requested physics parameter update via DEPRECATED WebSocket path");
-
-                                // Parse the graph type and parameters
-                                if let (Some(graph_type_str), Some(params_obj)) =
-                                    (msg.get("graph_type").and_then(|g| g.as_str()),
-                                     msg.get("params").and_then(|p| p.as_object())) {
-
-                                    // Parse graph type
-                                    let graph_type = match graph_type_str {
-                                        "knowledge" => crate::actors::gpu_compute_actor::GraphType::Knowledge,
-                                        "agent" => crate::actors::gpu_compute_actor::GraphType::Agent,
-                                        _ => {
-                                            error!("Invalid graph type: {}", graph_type_str);
-                                            return;
-                                        }
-                                    };
-
-                                    // Parse physics parameters
-                                    let mut params = crate::models::simulation_params::SimulationParams::default();
-
-                                    if let Some(v) = params_obj.get("spring_strength").and_then(|s| s.as_f64()) {
-                                        params.spring_strength = v as f32;
-                                    }
-                                    if let Some(v) = params_obj.get("damping").and_then(|d| d.as_f64()) {
-                                        params.damping = v as f32;
-                                    }
-                                    if let Some(v) = params_obj.get("repulsion").and_then(|r| r.as_f64()) {
-                                        params.repulsion = v as f32;
-                                    }
-                                    if let Some(v) = params_obj.get("time_step").and_then(|d| d.as_f64()) {
-                                        params.time_step = v as f32;
-                                    }
-
-                                    // Send update to GPU compute actor
-                                    if let Some(gpu_addr) = self.app_state.gpu_compute_addr.clone() {
-                                        let fut = async move {
-                                            use crate::actors::messages::UpdatePhysicsParams;
-                                            gpu_addr.send(UpdatePhysicsParams {
-                                                graph_type,
-                                                params,
-                                            }).await
-                                        };
-
-                                        let fut = actix::fut::wrap_future::<_, Self>(fut);
-                                        ctx.spawn(fut.map(move |result, _act, ctx| {
-                                            match result {
-                                                Ok(Ok(())) => {
-                                                    // Send confirmation to client
-                                                    ctx.text(r#"{"type":"physics_params_updated","status":"success"}"#);
-                                                    info!("Physics parameters updated successfully");
-                                                }
-                                                _ => {
-                                                    ctx.text(r#"{"type":"physics_params_updated","status":"error"}"#);
-                                                    error!("Failed to update physics parameters");
-                                                }
-                                            }
-                                        }));
-                                    } else {
-                                        ctx.text(r#"{"type":"physics_params_updated","status":"error","message":"GPU compute actor not initialized"}"#);
-                                        warn!("Cannot update physics parameters: GPU compute actor not initialized");
-                                    }
-                                }
+                                // Removed - physics updates must go through REST API
+                                warn!("Client attempted deprecated WebSocket physics update - ignoring");
+                                ctx.text(r#"{"type":"error","message":"Physics updates must use REST API: POST /api/analytics/params"}"#);
                             }
                             Some("request_full_snapshot") => {
                                 info!("Client requested full position snapshot");
