@@ -53,25 +53,26 @@ pub struct SimParams {
 unsafe impl DeviceRepr for SimParams {}
 unsafe impl ValidAsZeroBits for SimParams {}
 
-// Conversion from SimulationParams to SimParams
+// Conversion from SimulationParams to SimParams with validation
 impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
     fn from(params: &crate::models::simulation_params::SimulationParams) -> Self {
+        // FIX: Clamp all physics parameters to safe ranges to prevent instability
         Self {
-            spring_k: params.spring_strength,
-            repel_k: params.repulsion,
-            damping: params.damping,
-            dt: params.time_step,
-            max_velocity: params.max_velocity,
-            max_force: params.max_force, // Use independent max_force parameter
-            stress_weight: 0.5,  // Default stress values
+            spring_k: params.spring_strength.clamp(0.0001, 0.1),  // Prevent too weak or strong springs
+            repel_k: params.repulsion.clamp(0.1, 10.0),           // Limit repulsion to prevent explosion
+            damping: params.damping.clamp(0.8, 0.99),             // Ensure good damping for stability
+            dt: params.time_step.clamp(0.001, 0.05),              // Limit timestep for integration stability
+            max_velocity: params.max_velocity.clamp(0.5, 10.0),   // Reasonable velocity limits
+            max_force: params.max_force.clamp(1.0, 20.0),         // Prevent excessive forces
+            stress_weight: 0.5,  
             stress_alpha: 0.1,
-            separation_radius: params.collision_radius,
-            boundary_limit: params.viewport_bounds,
-            alignment_strength: params.attraction_strength,
-            cluster_strength: 0.2,  // Default cluster strength
-            boundary_damping: params.boundary_damping,
-            viewport_bounds: params.viewport_bounds,
-            temperature: params.temperature,
+            separation_radius: params.collision_radius.clamp(0.5, 5.0),  // Reasonable collision radius
+            boundary_limit: params.viewport_bounds.clamp(50.0, 1000.0),  // Sensible viewport bounds
+            alignment_strength: params.attraction_strength.clamp(0.0, 0.01),  // Light attraction only
+            cluster_strength: 0.2,  
+            boundary_damping: params.boundary_damping.clamp(0.1, 0.9),  // Soft boundary response
+            viewport_bounds: params.viewport_bounds.clamp(50.0, 1000.0),  // Match boundary_limit
+            temperature: params.temperature.clamp(0.0, 0.1),      // Minimal random energy only
             iteration: 0,
             compute_mode: 0,  // Will be set based on ComputeMode
         }
@@ -219,10 +220,10 @@ impl UnifiedGPUCompute {
 
         // Load the unified PTX - try multiple paths
         let ptx_paths = [
-            "/src/utils/ptx/visionflow_unified.ptx",  // Workspace path
-            "/app/src/utils/ptx/visionflow_unified.ptx",            // Container path
-            "src/utils/ptx/visionflow_unified.ptx",                 // Relative path
+            "src/utils/ptx/visionflow_unified.ptx",                 // Relative path (primary)
             "./src/utils/ptx/visionflow_unified.ptx",               // Relative with ./
+            "/workspace/ext/src/utils/ptx/visionflow_unified.ptx",  // Absolute workspace path
+            "/app/src/utils/ptx/visionflow_unified.ptx",            // Container path
         ];
 
         let mut ptx_path_found = None;
@@ -532,6 +533,98 @@ impl UnifiedGPUCompute {
             .collect();
 
         Ok(positions)
+    }
+
+    /// Get current positions WITHOUT executing physics step
+    /// This is critical to avoid the double-execute bug
+    pub fn get_positions(&self) -> Result<Vec<(f32, f32, f32)>, Error> {
+        // Download positions without running physics
+        let mut pos_x = vec![0.0f32; self.num_nodes];
+        let mut pos_y = vec![0.0f32; self.num_nodes];
+        let mut pos_z = vec![0.0f32; self.num_nodes];
+
+        self.device.dtoh_sync_copy_into(&self.pos_x, &mut pos_x)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+        self.device.dtoh_sync_copy_into(&self.pos_y, &mut pos_y)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+        self.device.dtoh_sync_copy_into(&self.pos_z, &mut pos_z)
+            .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+
+        // Combine into tuples
+        let positions: Vec<(f32, f32, f32)> = (0..self.num_nodes)
+            .map(|i| (pos_x[i], pos_y[i], pos_z[i]))
+            .collect();
+
+        Ok(positions)
+    }
+    
+    /// Resize buffers for dynamic graph changes
+    pub fn resize_buffers(&mut self, new_num_nodes: usize, new_num_edges: usize) -> Result<(), Error> {
+        info!("Resizing buffers from {}x{} to {}x{}", self.num_nodes, self.num_edges, new_num_nodes, new_num_edges);
+        
+        // Only resize if actually changed
+        if new_num_nodes != self.num_nodes {
+            // Allocate new node buffers
+            let new_pos_x = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            let new_pos_y = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            let new_pos_z = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            let new_vel_x = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            let new_vel_y = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            let new_vel_z = self.device.alloc_zeros(new_num_nodes)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            
+            // Copy existing data if shrinking, or all data if growing
+            let copy_count = std::cmp::min(self.num_nodes, new_num_nodes);
+            if copy_count > 0 {
+                // Get existing positions
+                let existing_positions = self.get_positions()?;
+                let mut pos_x = vec![0.0f32; new_num_nodes];
+                let mut pos_y = vec![0.0f32; new_num_nodes];
+                let mut pos_z = vec![0.0f32; new_num_nodes];
+                
+                for i in 0..copy_count {
+                    if i < existing_positions.len() {
+                        pos_x[i] = existing_positions[i].0;
+                        pos_y[i] = existing_positions[i].1;
+                        pos_z[i] = existing_positions[i].2;
+                    }
+                }
+                
+                self.device.htod_sync_copy_into(&pos_x, &mut self.pos_x)
+                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+                self.device.htod_sync_copy_into(&pos_y, &mut self.pos_y)
+                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+                self.device.htod_sync_copy_into(&pos_z, &mut self.pos_z)
+                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            }
+            
+            // Update buffers
+            self.pos_x = new_pos_x;
+            self.pos_y = new_pos_y;
+            self.pos_z = new_pos_z;
+            self.vel_x = new_vel_x;
+            self.vel_y = new_vel_y;
+            self.vel_z = new_vel_z;
+            self.num_nodes = new_num_nodes;
+        }
+        
+        if new_num_edges != self.num_edges {
+            // Allocate new edge buffers
+            self.edge_src = self.device.alloc_zeros(new_num_edges)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            self.edge_dst = self.device.alloc_zeros(new_num_edges)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            self.edge_weight = self.device.alloc_zeros(new_num_edges)
+                .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
+            self.num_edges = new_num_edges;
+        }
+        
+        Ok(())
     }
 
     pub fn execute_stress_majorization(&mut self, ideal_distances: &[f32], weight_matrix: &[f32]) -> Result<(), Error> {

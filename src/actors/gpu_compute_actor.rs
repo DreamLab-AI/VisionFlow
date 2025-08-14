@@ -270,10 +270,20 @@ impl GPUComputeActor {
             self.node_indices.insert(node.id, idx);
         }
 
-        // Update node count if changed
-        if graph.nodes.len() as u32 != self.num_nodes {
-            info!("Node count changed from {} to {}", self.num_nodes, graph.nodes.len());
-            self.num_nodes = graph.nodes.len() as u32;
+        let new_num_nodes = graph.nodes.len() as u32;
+        let new_num_edges = graph.edges.len() as u32;
+        
+        // FIX: Handle buffer resize for dynamic graph changes
+        if new_num_nodes != self.num_nodes || new_num_edges != self.num_edges {
+            info!("Graph size changed: nodes {} -> {}, edges {} -> {}", 
+                  self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
+            
+            // Resize GPU buffers to match new graph size
+            unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to resize buffers: {}", e)))?;
+            
+            self.num_nodes = new_num_nodes;
+            self.num_edges = new_num_edges;
             self.iteration_count = 0; // Reset iteration count on size change
         }
 
@@ -286,11 +296,6 @@ impl GPUComputeActor {
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
         
         // Upload edges to unified compute
-        if graph.edges.len() as u32 != self.num_edges {
-            info!("Edge count changed from {} to {}", self.num_edges, graph.edges.len());
-            self.num_edges = graph.edges.len() as u32;
-        }
-        
         if !graph.edges.is_empty() {
             let edges: Vec<(i32, i32, f32)> = graph.edges.iter()
                 .map(|edge| {
@@ -460,10 +465,12 @@ impl GPUComputeActor {
     // Legacy visual analytics result copying removed - unified kernel manages all data internally
 
     fn get_node_data_internal(&mut self) -> Result<Vec<BinaryNodeData>, Error> {
-        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
+        let unified_compute = self.unified_compute.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
 
-        // Get positions from unified compute (returns as tuples)
-        let positions = unified_compute.execute().map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from unified compute: {}", e)))?;
+        // CRITICAL FIX: Use get_positions() instead of execute() to avoid double-stepping physics
+        // This was causing the "exploding and bouncing nodes" bug by advancing physics twice per frame
+        let positions = unified_compute.get_positions()
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from unified compute: {}", e)))?;
         
         // Convert to BinaryNodeData format for compatibility
         let mut gpu_raw_data = Vec::with_capacity(positions.len());
