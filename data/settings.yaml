@@ -41,32 +41,32 @@ visualisation:
         show_metadata: true
         max_label_width: 5
       physics:
-        # --- Maximally Conservative Settings for Immediate Settling ---
+        # --- Stable Physics Settings for Natural Graph Layout ---
         enabled: true
         
-        # Core Forces (Tuned for a close, stable cluster)
-        spring_strength: 0.02          # Increased: Pulls connected nodes together more strongly.
-        repulsion_strength: 10.0       # Drastically Reduced: Prevents the initial "explosion" of nodes.
-        attraction_strength: 0.01      # Increased: Gently pulls all nodes toward the center.
-        gravity: 0.0                   # Disabled: No directional pull is needed.
+        # Core Forces (Balanced for stability)
+        spring_strength: 0.005         # Moderate: Natural spring tension for connected nodes
+        repulsion_strength: 2.0        # Low: Gentle repulsion prevents overlap without explosion
+        attraction_strength: 0.0001    # Very light: Subtle center gravity
+        gravity: 0.0001                # Minimal: Slight downward pull for natural settling
         
-        # Stability & Settling Controls (The most important for "immediately settled")
-        damping: 0.98                  # Very High: Acts like strong friction, stopping movement quickly.
-        max_velocity: 0.5              # Very Low: Prevents nodes from ever moving too fast.
-        temperature: 0.0               # Disabled: No random energy to keep the system "hot".
-        time_step: 0.005               # Very Small: Increases simulation accuracy and prevents instability.
+        # Stability & Settling Controls
+        damping: 0.95                  # High: Strong friction for quick settling
+        max_velocity: 2.0              # Moderate: Allows natural movement
+        temperature: 0.01              # Very low: Minimal random energy
+        time_step: 0.016               # Standard: 60fps simulation step
         
-        # Boundary & Collision (To define the cluster's shape)
-        enable_bounds: true            # Enabled: Keeps nodes within a defined space.
-        bounds_size: 50.0              # Small: Creates a tight, invisible box for the cluster.
-        boundary_damping: 0.99         # Very High: Nodes will "stick" to the boundary instead of bouncing.
-        collision_radius: 0.5          # Increased: Ensures nodes don't overlap and are clearly distributed.
+        # Boundary & Collision (Spacious environment)
+        enable_bounds: true            # Enabled: Soft boundaries
+        bounds_size: 500.0             # Large: Plenty of space for 170+ nodes
+        boundary_damping: 0.5          # Moderate: Soft bounce off boundaries
+        collision_radius: 2.0          # Natural: Personal space for each node
         
-        # Advanced Parameters (Tuned for stability)
-        iterations: 150                # Reduced: Fewer calculations needed as it settles fast.
-        repulsion_distance: 20.0       # Small: Repulsion only acts on very close nodes.
-        mass_scale: 0.5                # Low: Nodes have less inertia and are easier to stop.
-        update_threshold: 0.01         # Low: Ensures even small movements are processed to reach a stable state.
+        # Advanced Parameters
+        iterations: 100                # Moderate: Good performance/quality balance
+        repulsion_distance: 50.0       # Moderate: Natural force falloff
+        mass_scale: 1.0                # Standard: Natural inertia
+        update_threshold: 0.01         # Sensitive: Detect small movements
 
     visionflow:
       nodes:
@@ -102,32 +102,32 @@ visualisation:
         show_metadata: true
         max_label_width: 8
       physics:
-        # --- Maximally Conservative Settings for Immediate Settling ---
+        # --- Stable Physics Settings for Natural Graph Layout ---
         enabled: true
         
-        # Core Forces (Tuned for a close, stable cluster)
-        spring_strength: 0.02          # Increased: Pulls connected nodes together more strongly.
-        repulsion_strength: 10.0       # Drastically Reduced: Prevents the initial "explosion" of nodes.
-        attraction_strength: 0.01      # Increased: Gently pulls all nodes toward the center.
-        gravity: 0.0                   # Disabled: No directional pull is needed.
+        # Core Forces (Balanced for stability)
+        spring_strength: 0.005         # Moderate: Natural spring tension for connected nodes
+        repulsion_strength: 2.0        # Low: Gentle repulsion prevents overlap without explosion
+        attraction_strength: 0.0001    # Very light: Subtle center gravity
+        gravity: 0.0001                # Minimal: Slight downward pull for natural settling
         
-        # Stability & Settling Controls (The most important for "immediately settled")
-        damping: 0.98                  # Very High: Acts like strong friction, stopping movement quickly.
-        max_velocity: 0.5              # Very Low: Prevents nodes from ever moving too fast.
-        temperature: 0.0               # Disabled: No random energy to keep the system "hot".
-        time_step: 0.005               # Very Small: Increases simulation accuracy and prevents instability.
+        # Stability & Settling Controls
+        damping: 0.95                  # High: Strong friction for quick settling
+        max_velocity: 2.0              # Moderate: Allows natural movement
+        temperature: 0.01              # Very low: Minimal random energy
+        time_step: 0.016               # Standard: 60fps simulation step
         
-        # Boundary & Collision (To define the cluster's shape)
-        enable_bounds: true            # Enabled: Keeps nodes within a defined space.
-        bounds_size: 50.0              # Small: Creates a tight, invisible box for the cluster.
-        boundary_damping: 0.99         # Very High: Nodes will "stick" to the boundary instead of bouncing.
-        collision_radius: 0.5          # Increased: Ensures nodes don't overlap and are clearly distributed.
+        # Boundary & Collision (Spacious environment)
+        enable_bounds: true            # Enabled: Soft boundaries
+        bounds_size: 500.0             # Large: Plenty of space for 170+ nodes
+        boundary_damping: 0.5          # Moderate: Soft bounce off boundaries
+        collision_radius: 2.0          # Natural: Personal space for each node
         
-        # Advanced Parameters (Tuned for stability)
-        iterations: 150                # Reduced: Fewer calculations needed as it settles fast.
-        repulsion_distance: 20.0       # Small: Repulsion only acts on very close nodes.
-        mass_scale: 0.5                # Low: Nodes have less inertia and are easier to stop.
-        update_threshold: 0.01         # Low: Ensures even small movements are processed to reach a stable state.
+        # Advanced Parameters
+        iterations: 100                # Moderate: Good performance/quality balance
+        repulsion_distance: 50.0       # Moderate: Natural force falloff
+        mass_scale: 1.0                # Standard: Natural inertia
+        update_threshold: 0.01         # Sensitive: Detect small movements
 
   # Global rendering settings
   rendering:

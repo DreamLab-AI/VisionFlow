@@ -38,6 +38,9 @@ pub struct SimParams {
     pub boundary_limit: f32,
     pub alignment_strength: f32,
     pub cluster_strength: f32,
+    
+    // Boundary control
+    pub boundary_damping: f32,
 
     // System
     pub viewport_bounds: f32,
@@ -80,19 +83,20 @@ impl Default for SimParams {
         // These are fallback values only - actual values come from settings.yaml
         Self {
             spring_k: 0.005,       // From settings.yaml spring_strength
-            repel_k: 50.0,         // From settings.yaml repulsion_strength
-            damping: 0.9,          // From settings.yaml damping
-            dt: 0.01,              // From settings.yaml time_step
-            max_velocity: 1.0,     // From settings.yaml max_velocity
+            repel_k: 2.0,          // UPDATED: Much lower for stability
+            damping: 0.95,         // UPDATED: Higher damping for stability
+            dt: 0.016,             // UPDATED: Standard 60fps timestep
+            max_velocity: 2.0,     // UPDATED: Allow moderate movement
             max_force: 10.0,       // Calculated based on forces
             stress_weight: 0.5,
             stress_alpha: 0.1,
-            separation_radius: 0.15, // From settings.yaml collision_radius
-            boundary_limit: 200.0,   // From settings.yaml bounds_size
-            alignment_strength: 0.001, // From settings.yaml attraction_strength
+            separation_radius: 2.0,  // UPDATED: Larger collision radius
+            boundary_limit: 500.0,   // UPDATED: Much larger bounds
+            alignment_strength: 0.0001, // UPDATED: Very subtle attraction
             cluster_strength: 0.2,
-            viewport_bounds: 200.0,  // From settings.yaml bounds_size
-            temperature: 0.5,        // From settings.yaml temperature
+            boundary_damping: 0.5,   // NEW: Soft boundary damping
+            viewport_bounds: 500.0,  // UPDATED: Much larger viewport
+            temperature: 0.01,       // UPDATED: Minimal random energy
             iteration: 0,
             compute_mode: 0,
         }
