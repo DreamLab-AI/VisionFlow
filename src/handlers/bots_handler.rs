@@ -99,78 +99,96 @@ use once_cell::sync::Lazy;
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
     Lazy::new(|| Arc::new(RwLock::new(GraphData::new())));
 
-async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
-    // Check if Claude Flow actor is available
-    if let Some(claude_flow_addr) = &state.claude_flow_addr {
-        use crate::actors::messages::{GetAgentStatuses, GetSwarmStatus};
-        
-        // First get swarm status to ensure we're connected
-        match claude_flow_addr.send(GetSwarmStatus).await {
-            Ok(Ok(swarm_status)) => {
-                info!("Swarm active with {} agents", swarm_status.active_agents);
-            }
-            Ok(Err(e)) => {
-                warn!("Claude Flow not connected: {}", e);
-                return Ok(vec![]);
-            }
-            Err(e) => {
-                error!("Failed to communicate with Claude Flow actor: {}", e);
-                return Ok(vec![]);
-            }
-        }
-        
-        // Get agent statuses from Claude Flow
-        match claude_flow_addr.send(GetAgentStatuses).await {
-            Ok(Ok(agent_statuses)) => {
-                info!("Fetched {} agents from Claude Flow", agent_statuses.len());
-                
-                // Convert Claude Flow agent statuses to BotsAgent format
-                let agents: Vec<BotsAgent> = agent_statuses.into_iter().map(|status| {
-                    BotsAgent {
-                        id: status.id.clone(),
-                        agent_type: status.agent_type.unwrap_or_else(|| "agent".to_string()),
-                        status: status.status.unwrap_or_else(|| "unknown".to_string()),
-                        name: status.name.unwrap_or_else(|| status.id.clone()),
-                        cpu_usage: status.cpu_usage.unwrap_or(0.0),
-                        memory_usage: status.memory_usage.unwrap_or(0.0),
-                        health: status.health.unwrap_or(100.0),
-                        workload: status.workload.unwrap_or(0.0),
-                        position: Vec3::ZERO,
-                        velocity: Vec3::ZERO,
-                        force: Vec3::ZERO,
-                        connections: status.connections.unwrap_or_default(),
-                        capabilities: status.capabilities,
-                        current_task: status.current_task,
-                        tasks_active: status.tasks_active,
-                        tasks_completed: status.tasks_completed,
-                        success_rate: status.success_rate,
-                        tokens: status.tokens,
-                        token_rate: status.token_rate,
-                        activity: status.activity,
-                        swarm_id: status.swarm_id,
-                        agent_mode: status.agent_mode,
-                        parent_queen_id: status.parent_queen_id,
-                        processing_logs: status.processing_logs,
-                        created_at: status.created_at,
-                        age: status.age,
+async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
+    // Connect directly to Claude Flow TCP server in multi-agent-container
+    // The server runs at 172.18.0.10:9500 on the docker_ragflow network
+    use tokio::net::TcpStream;
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+    use serde_json::json;
+    use uuid::Uuid;
+    
+    let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "172.18.0.10".to_string());
+    let claude_flow_port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "9500".to_string());
+    let addr = format!("{}:{}", claude_flow_host, claude_flow_port);
+    
+    match TcpStream::connect(&addr).await {
+        Ok(mut stream) => {
+            info!("Connected to Claude Flow TCP server at {}", addr);
+            
+            // Send a request to list agents
+            let request = json!({
+                "jsonrpc": "2.0",
+                "id": Uuid::new_v4().to_string(),
+                "method": "tools/call",
+                "params": {
+                    "name": "agent_list",
+                    "arguments": {
+                        "filter": "all"
                     }
-                }).collect();
-                
-                return Ok(agents);
+                }
+            });
+            
+            let msg_str = serde_json::to_string(&request)?;
+            let msg_bytes = format!("{}\n", msg_str);
+            stream.write_all(msg_bytes.as_bytes()).await?;
+            stream.flush().await?;
+            
+            // Read the response
+            let mut reader = BufReader::new(stream);
+            let mut line = String::new();
+            reader.read_line(&mut line).await?;
+            
+            if let Ok(response) = serde_json::from_str::<serde_json::Value>(&line) {
+                if let Some(result) = response.get("result") {
+                    if let Some(agents) = result.get("agents").and_then(|a| a.as_array()) {
+                        // Convert to BotsAgent format
+                        let bots_agents: Vec<BotsAgent> = agents.iter().filter_map(|agent| {
+                            Some(BotsAgent {
+                                id: agent.get("id")?.as_str()?.to_string(),
+                                agent_type: agent.get("type").and_then(|t| t.as_str()).unwrap_or("agent").to_string(),
+                                status: agent.get("status").and_then(|s| s.as_str()).unwrap_or("unknown").to_string(),
+                                name: agent.get("name").and_then(|n| n.as_str()).unwrap_or("Agent").to_string(),
+                                cpu_usage: agent.get("cpu_usage").and_then(|c| c.as_f64()).unwrap_or(0.0) as f32,
+                                memory_usage: agent.get("memory_usage").and_then(|m| m.as_f64()).unwrap_or(0.0) as f32,
+                                health: agent.get("health").and_then(|h| h.as_f64()).unwrap_or(100.0) as f32,
+                                workload: agent.get("workload").and_then(|w| w.as_f64()).unwrap_or(0.0) as f32,
+                                position: Vec3::ZERO,
+                                velocity: Vec3::ZERO,
+                                force: Vec3::ZERO,
+                                connections: vec![],
+                                capabilities: agent.get("capabilities").and_then(|c| c.as_array()).map(|arr| {
+                                    arr.iter().filter_map(|v| v.as_str().map(String::from)).collect()
+                                }),
+                                current_task: agent.get("current_task").and_then(|t| t.as_str()).map(String::from),
+                                tasks_active: agent.get("tasks_active").and_then(|t| t.as_u64()).map(|v| v as u32),
+                                tasks_completed: agent.get("tasks_completed").and_then(|t| t.as_u64()).map(|v| v as u32),
+                                success_rate: agent.get("success_rate").and_then(|s| s.as_f64()).map(|v| v as f32),
+                                tokens: agent.get("tokens").and_then(|t| t.as_u64()),
+                                token_rate: agent.get("token_rate").and_then(|t| t.as_f64()).map(|v| v as f32),
+                                activity: agent.get("activity").and_then(|a| a.as_f64()).map(|v| v as f32),
+                                swarm_id: agent.get("swarm_id").and_then(|s| s.as_str()).map(String::from),
+                                agent_mode: agent.get("agent_mode").and_then(|m| m.as_str()).map(String::from),
+                                parent_queen_id: agent.get("parent_queen_id").and_then(|p| p.as_str()).map(String::from),
+                                processing_logs: None,
+                                created_at: agent.get("created_at").and_then(|c| c.as_str()).map(String::from),
+                                age: agent.get("age").and_then(|a| a.as_u64()),
+                            })
+                        }).collect();
+                        
+                        info!("Fetched {} agents from Claude Flow", bots_agents.len());
+                        return Ok(bots_agents);
+                    }
+                }
             }
-            Ok(Err(e)) => {
-                warn!("Failed to get agent statuses: {}", e);
-                return Ok(vec![]);
-            }
-            Err(e) => {
-                error!("Failed to send GetAgentStatuses message: {}", e);
-                return Ok(vec![]);
-            }
+            
+            warn!("Invalid response from Claude Flow");
+            Ok(vec![])
+        }
+        Err(e) => {
+            warn!("Failed to connect to Claude Flow TCP server at {}: {}", addr, e);
+            Ok(vec![])
         }
     }
-    
-    warn!("No Claude Flow actor available");
-    Ok(vec![]) // Return empty instead of error to allow graceful fallback
 }
 
 // UPDATED: Enhanced agent to nodes conversion with hive-mind properties and Queen agent special handling
@@ -842,56 +860,96 @@ pub async fn initialize_swarm(
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
     info!("Received swarm initialization request: {:?}", request);
 
-    // Check if Claude Flow actor is available
-    if let Some(claude_flow_addr) = &state.claude_flow_addr {
-        use crate::actors::messages::InitializeSwarm;
-        
-        // Initialize swarm via Claude Flow TCP actor
-        match claude_flow_addr.send(InitializeSwarm {
-            topology: request.topology.clone(),
-            max_agents: request.max_agents,
-            strategy: request.strategy.clone(),
-        }).await {
-            Ok(Ok(swarm_id)) => {
-                info!("Successfully initialized swarm: {}", swarm_id);
-                
-                // Create initial agent list based on requested types
-                let initial_agents: Vec<serde_json::Value> = request.agent_types.iter().enumerate().map(|(i, agent_type)| {
-                    json!({
-                        "id": format!("agent-{}-{}", swarm_id, i),
-                        "type": agent_type,
-                        "name": format!("{} Agent {}", agent_type, i + 1),
-                        "status": "initializing",
-                        "swarm_id": swarm_id.clone()
-                    })
-                }).collect();
-                
-                return HttpResponse::Ok().json(serde_json::json!({
-                    "success": true,
-                    "message": "Swarm initialization started via Claude Flow TCP",
-                    "swarm_id": swarm_id,
-                    "agents": initial_agents,
+    // Connect to Claude Flow TCP server running in multi-agent-container
+    // Claude Flow runs externally, not in VisionFlow docker
+    use tokio::net::TcpStream;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    
+    // Connect to external Claude Flow service
+    match TcpStream::connect("172.18.0.10:9500").await {
+        Ok(mut stream) => {
+            // Create JSON-RPC request for swarm initialization
+            let request_id = uuid::Uuid::new_v4().to_string();
+            let json_request = json!({
+                "jsonrpc": "2.0",
+                "method": "swarm_init",
+                "params": {
                     "topology": request.topology.clone(),
-                    "max_agents": request.max_agents,
-                    "strategy": request.strategy.clone(),
-                    "enable_neural": request.enable_neural,
-                    "mock_mode": false
-                }));
-            }
-            Ok(Err(e)) => {
-                error!("Failed to initialize swarm: {}", e);
-                return HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": format!("Failed to initialize swarm: {}", e)
-                }));
-            }
-            Err(e) => {
-                error!("Failed to communicate with Claude Flow actor: {}", e);
+                    "maxAgents": request.max_agents,
+                    "strategy": request.strategy.clone()
+                },
+                "id": request_id
+            });
+            
+            let request_str = json_request.to_string();
+            
+            // Send request
+            if let Err(e) = stream.write_all(request_str.as_bytes()).await {
+                error!("Failed to send swarm init request: {}", e);
                 return HttpResponse::InternalServerError().json(serde_json::json!({
                     "success": false,
                     "error": format!("Failed to communicate with Claude Flow: {}", e)
                 }));
             }
+            
+            // Read response
+            let mut buffer = vec![0u8; 4096];
+            match stream.read(&mut buffer).await {
+                Ok(n) if n > 0 => {
+                    let response_str = String::from_utf8_lossy(&buffer[..n]);
+                    if let Ok(response) = serde_json::from_str::<serde_json::Value>(&response_str) {
+                        if let Some(result) = response.get("result") {
+                            let swarm_id = result.get("swarmId")
+                                .or_else(|| result.get("swarm_id"))
+                                .and_then(|s| s.as_str())
+                                .unwrap_or("default-swarm")
+                                .to_string();
+                            
+                            info!("Successfully initialized swarm: {}", swarm_id);
+                            
+                            // Create initial agent list based on requested types
+                            let initial_agents: Vec<serde_json::Value> = request.agent_types.iter().enumerate().map(|(i, agent_type)| {
+                                json!({
+                                    "id": format!("agent-{}-{}", swarm_id, i),
+                                    "type": agent_type,
+                                    "name": format!("{} Agent {}", agent_type, i + 1),
+                                    "status": "initializing",
+                                    "swarm_id": swarm_id.clone()
+                                })
+                            }).collect();
+                            
+                            return HttpResponse::Ok().json(serde_json::json!({
+                                "success": true,
+                                "message": "Swarm initialization started via Claude Flow TCP",
+                                "swarm_id": swarm_id,
+                                "agents": initial_agents,
+                                "topology": request.topology.clone(),
+                                "max_agents": request.max_agents,
+                                "strategy": request.strategy.clone(),
+                                "enable_neural": request.enable_neural,
+                                "mock_mode": false
+                            }));
+                        }
+                    }
+                    
+                    error!("Invalid response from Claude Flow: {}", response_str);
+                    return HttpResponse::InternalServerError().json(serde_json::json!({
+                        "success": false,
+                        "error": "Invalid response from Claude Flow"
+                    }));
+                }
+                _ => {
+                    error!("Failed to read response from Claude Flow");
+                    return HttpResponse::InternalServerError().json(serde_json::json!({
+                        "success": false,
+                        "error": "Failed to read response from Claude Flow"
+                    }));
+                }
+            }
+        }
+        Err(e) => {
+            error!("Failed to connect to Claude Flow: {}", e);
+            // Fall through to mock response
         }
     }
     

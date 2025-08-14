@@ -129,7 +129,7 @@ pub struct ClusteringRequest {
 }
 
 /// Clustering parameters
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringParams {
     pub num_clusters: Option<u32>,
