@@ -7,7 +7,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 1. **Backend Integration** - Processing bots data through the GPU physics system
 2. **API Endpoints** - RESTful endpoints for bots data management and multi-agent initialisation
 3. **Binary WebSocket** - Real-time position updates using the same protocol as the main graph
-4. **Frontend Visualization** - 3D force-directed graph with gold/green colour scheme
+4. **Frontend Visualization** - 3D force-directed graph with gold/green color scheme
 5. **Hive Mind Spawning** - Interactive UI to spawn and configure Claude Flow multi-agents
 
 ## Architecture
@@ -23,7 +23,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 #### 2. API Routes
 - `/api/bots/data` - GET endpoint to retrieve current bots state
 - `/api/bots/update` - POST endpoint to update bots data from MCP
-- `/api/bots/initialise-multi-agent` - POST endpoint to spawn a Claude Flow hive mind
+- `/api/bots/initialize-multi-agent` - POST endpoint to spawn a Claude Flow hive mind
 
 #### 3. WebSocket Integration (`/src/handlers/socket_flow_handler.rs`)
 - Extended to handle `requestBotsPositions` messages
@@ -63,7 +63,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 ### Hive Mind Spawning
 1. **User** → Clicks "Initialize multi-agent" button in control panel
 2. **multiAgentInitializationPrompt** → Collects configuration and task
-3. **Frontend** → POSTs to `/api/bots/initialise-multi-agent`
+3. **Frontend** → POSTs to `/api/bots/initialize-multi-agent`
 4. **BotsHandler** → Forwards request to ClaudeFlowActor
 5. **ClaudeFlowActor** → Connects to Claude Flow MCP and:
    - Initializes multi-agent with selected topology
@@ -123,8 +123,8 @@ This will:
 ### Testing Hive Mind Spawning
 
 ```bash
-# Test the initialise-multi-agent endpoint
-curl -X POST http://localhost:4000/api/bots/initialise-multi-agent \
+# Test the initialize-multi-agent endpoint
+curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
   -H "Content-Type: application/json" \
   -d '{
     "topology": "mesh",
@@ -153,7 +153,7 @@ curl -X POST http://localhost:4000/api/bots/initialise-multi-agent \
 ### Position Updates Not Working
 - Verify binary WebSocket messages in Network tab
 - Check for bots flag (0x80) in binary data
-- Ensure GPU physics system is initialised
+- Ensure GPU physics system is initialized
 
 ### MCP Connection Failed
 - Verify claude-flow container is running
@@ -176,12 +176,12 @@ curl -X POST http://localhost:4000/api/bots/initialise-multi-agent \
    [INFO] Configuring bots routes:
    [INFO]   - /bots/data (GET)
    [INFO]   - /bots/update (POST)
-   [INFO]   - /bots/initialise-multi-agent (POST)
+   [INFO]   - /bots/initialize-multi-agent (POST)
    ```
 
 3. Verify the endpoint is accessible:
    ```bash
-   curl -X POST http://localhost:3001/api/bots/initialise-multi-agent \
+   curl -X POST http://localhost:3001/api/bots/initialize-multi-agent \
      -H "Content-Type: application/json" \
      -d '{"topology":"mesh","maxAgents":8,"strategy":"adaptive","enableNeural":true,"agentTypes":["coordinator"],"customPrompt":"Test"}'
    ```

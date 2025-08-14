@@ -55,7 +55,7 @@ graph TB
 
 ### 1. Force-Directed Layout
 
-The unified physics kernel implements an optimised Fruchterman-Reingold algorithm with enhancements for dual graphs:
+The unified physics kernel implements an optimized Fruchterman-Reingold algorithm with enhancements for dual graphs:
 
 ```rust
 #[repr(C)]
@@ -89,7 +89,7 @@ F_total = (F_repulsion + F_attraction + F_gravity) * damping
 Independent physics parameters for knowledge versus agent nodes:
 
 #### Knowledge Graph Physics
-Stable, slowly evolving layout optimised for readability:
+Stable, slowly evolving layout optimized for readability:
 
 ```rust
 pub const KNOWLEDGE_PHYSICS: ForceParams = ForceParams {
@@ -341,7 +341,7 @@ __device__ void integrate_verlet_physics(
 
 ### Temporal Dynamics
 
-For Multi Agent Visualisation with time-varying behaviour:
+For Multi Agent Visualisation with time-varying behavior:
 
 ```rust
 pub struct TemporalParams {
@@ -647,7 +647,7 @@ The physics engine consists of four main components that work together to provid
 
 **Location**: `src/utils/unified_gpu_compute.rs`, `src/utils/visionflow_unified.cu`
 
-The unified compute engine consolidates 7 legacy CUDA kernels into a single optimised solution, achieving **89% code reduction** while maintaining full feature compatibility.
+The unified compute engine consolidates 7 legacy CUDA kernels into a single optimized solution, achieving **89% code reduction** while maintaining full feature compatibility.
 
 **Key Features:**
 - **Structure of Arrays (SoA) Memory Layout**: 3.5x performance improvement through optimal memory coalescing

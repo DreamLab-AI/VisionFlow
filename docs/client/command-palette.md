@@ -161,7 +161,7 @@ Quick access to help topics through command palette:
 ### Theming
 Command palette respects application theme:
 - Dark/light mode support
-- Custom colour schemes
+- Custom color schemes
 - Font size adjustments
 
 ### Configuration Options

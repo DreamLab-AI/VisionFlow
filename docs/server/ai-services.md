@@ -304,7 +304,7 @@ mod tests {
 ### Integration Tests
 - Mock external API responses
 - Test error scenarios
-- Verify timeout behaviour
+- Verify timeout behavior
 - Test streaming responses
 
 ## Monitoring

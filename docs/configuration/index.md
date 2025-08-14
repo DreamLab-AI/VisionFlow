@@ -252,7 +252,7 @@ settings_actor.send(SetSettingByPath {
 
 ### Client Settings Synchronization
 
-Client settings are synchronised via WebSocket:
+Client settings are synchronized via WebSocket:
 
 ```typescript
 // Client-side

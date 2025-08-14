@@ -90,23 +90,30 @@ async fn update_settings(
         })));
     }
     
-    // Check if physics was updated
-    let physics_updated = update.get("visualisation")
+    // Check which graphs had physics updated
+    let updated_graphs = update.get("visualisation")
         .and_then(|v| v.get("graphs"))
         .and_then(|g| g.as_object())
         .map(|graphs| {
-            graphs.contains_key("logseq") || graphs.contains_key("visionflow")
+            let mut updated = Vec::new();
+            if graphs.contains_key("logseq") {
+                updated.push("logseq");
+            }
+            if graphs.contains_key("visionflow") {
+                updated.push("visionflow");
+            }
+            updated
         })
-        .unwrap_or(false);
+        .unwrap_or_default();
     
     // Save updated settings
     match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
         Ok(Ok(())) => {
             info!("Settings updated successfully");
             
-            // If physics was updated, propagate to GPU
-            if physics_updated {
-                propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
+            // Propagate physics updates to GPU for each updated graph
+            for graph_name in updated_graphs {
+                propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
             }
             
             // Return updated settings in camelCase

@@ -99,8 +99,77 @@ use once_cell::sync::Lazy;
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
     Lazy::new(|| Arc::new(RwLock::new(GraphData::new())));
 
-async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
-    warn!("No Claude Flow connection available (neither actor nor MCP client)");
+async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
+    // Check if Claude Flow actor is available
+    if let Some(claude_flow_addr) = &state.claude_flow_addr {
+        use crate::actors::messages::{GetAgentStatuses, GetSwarmStatus};
+        
+        // First get swarm status to ensure we're connected
+        match claude_flow_addr.send(GetSwarmStatus).await {
+            Ok(Ok(swarm_status)) => {
+                info!("Swarm active with {} agents", swarm_status.active_agents);
+            }
+            Ok(Err(e)) => {
+                warn!("Claude Flow not connected: {}", e);
+                return Ok(vec![]);
+            }
+            Err(e) => {
+                error!("Failed to communicate with Claude Flow actor: {}", e);
+                return Ok(vec![]);
+            }
+        }
+        
+        // Get agent statuses from Claude Flow
+        match claude_flow_addr.send(GetAgentStatuses).await {
+            Ok(Ok(agent_statuses)) => {
+                info!("Fetched {} agents from Claude Flow", agent_statuses.len());
+                
+                // Convert Claude Flow agent statuses to BotsAgent format
+                let agents: Vec<BotsAgent> = agent_statuses.into_iter().map(|status| {
+                    BotsAgent {
+                        id: status.id.clone(),
+                        agent_type: status.agent_type.unwrap_or_else(|| "agent".to_string()),
+                        status: status.status.unwrap_or_else(|| "unknown".to_string()),
+                        name: status.name.unwrap_or_else(|| status.id.clone()),
+                        cpu_usage: status.cpu_usage.unwrap_or(0.0),
+                        memory_usage: status.memory_usage.unwrap_or(0.0),
+                        health: status.health.unwrap_or(100.0),
+                        workload: status.workload.unwrap_or(0.0),
+                        position: Vec3::ZERO,
+                        velocity: Vec3::ZERO,
+                        force: Vec3::ZERO,
+                        connections: status.connections.unwrap_or_default(),
+                        capabilities: status.capabilities,
+                        current_task: status.current_task,
+                        tasks_active: status.tasks_active,
+                        tasks_completed: status.tasks_completed,
+                        success_rate: status.success_rate,
+                        tokens: status.tokens,
+                        token_rate: status.token_rate,
+                        activity: status.activity,
+                        swarm_id: status.swarm_id,
+                        agent_mode: status.agent_mode,
+                        parent_queen_id: status.parent_queen_id,
+                        processing_logs: status.processing_logs,
+                        created_at: status.created_at,
+                        age: status.age,
+                    }
+                }).collect();
+                
+                return Ok(agents);
+            }
+            Ok(Err(e)) => {
+                warn!("Failed to get agent statuses: {}", e);
+                return Ok(vec![]);
+            }
+            Err(e) => {
+                error!("Failed to send GetAgentStatuses message: {}", e);
+                return Ok(vec![]);
+            }
+        }
+    }
+    
+    warn!("No Claude Flow actor available");
     Ok(vec![]) // Return empty instead of error to allow graceful fallback
 }
 
@@ -767,50 +836,98 @@ pub async fn get_agent_telemetry(
 }
 
 pub async fn initialize_swarm(
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
     request: web::Json<InitializeSwarmRequest>,
 ) -> impl Responder {
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
     info!("Received swarm initialization request: {:?}", request);
 
-    // TODO: Connect to external Claude Flow service via TCP
-    // For now, return mock response since we've migrated to external TCP connection
-    {
-        warn!("Claude Flow actor not available - using mock response");
+    // Check if Claude Flow actor is available
+    if let Some(claude_flow_addr) = &state.claude_flow_addr {
+        use crate::actors::messages::InitializeSwarm;
         
-        // Return a mock successful response when ClaudeFlowActor is not available
-        // This allows the UI to work even without MCP integration
-        let mock_agents = vec![
-            json!({
-                "id": format!("agent-{}", uuid::Uuid::new_v4()),
-                "type": "coordinator",
-                "name": "Swarm Coordinator",
-                "status": "initializing"
-            }),
-            json!({
-                "id": format!("agent-{}", uuid::Uuid::new_v4()),
-                "type": "researcher",
-                "name": "Research Agent",
-                "status": "initializing"
-            }),
-            json!({
-                "id": format!("agent-{}", uuid::Uuid::new_v4()),
-                "type": "coder",
-                "name": "Code Agent",
-                "status": "initializing"
-            }),
-        ];
-        
-        HttpResponse::Ok().json(serde_json::json!({
-            "success": true,
-            "message": "Swarm initialization started (mock mode)",
-            "swarm_id": format!("swarm-{}", uuid::Uuid::new_v4()),
-            "agents": mock_agents,
-            "topology": request.topology.clone(),
-            "max_agents": request.max_agents,
-            "mock_mode": true
-        }))
+        // Initialize swarm via Claude Flow TCP actor
+        match claude_flow_addr.send(InitializeSwarm {
+            topology: request.topology.clone(),
+            max_agents: request.max_agents,
+            strategy: request.strategy.clone(),
+        }).await {
+            Ok(Ok(swarm_id)) => {
+                info!("Successfully initialized swarm: {}", swarm_id);
+                
+                // Create initial agent list based on requested types
+                let initial_agents: Vec<serde_json::Value> = request.agent_types.iter().enumerate().map(|(i, agent_type)| {
+                    json!({
+                        "id": format!("agent-{}-{}", swarm_id, i),
+                        "type": agent_type,
+                        "name": format!("{} Agent {}", agent_type, i + 1),
+                        "status": "initializing",
+                        "swarm_id": swarm_id.clone()
+                    })
+                }).collect();
+                
+                return HttpResponse::Ok().json(serde_json::json!({
+                    "success": true,
+                    "message": "Swarm initialization started via Claude Flow TCP",
+                    "swarm_id": swarm_id,
+                    "agents": initial_agents,
+                    "topology": request.topology.clone(),
+                    "max_agents": request.max_agents,
+                    "strategy": request.strategy.clone(),
+                    "enable_neural": request.enable_neural,
+                    "mock_mode": false
+                }));
+            }
+            Ok(Err(e)) => {
+                error!("Failed to initialize swarm: {}", e);
+                return HttpResponse::InternalServerError().json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Failed to initialize swarm: {}", e)
+                }));
+            }
+            Err(e) => {
+                error!("Failed to communicate with Claude Flow actor: {}", e);
+                return HttpResponse::InternalServerError().json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Failed to communicate with Claude Flow: {}", e)
+                }));
+            }
+        }
     }
+    
+    // Fallback to mock response if Claude Flow actor not available
+    warn!("Claude Flow actor not available - using mock response");
+    
+    let mock_agents = vec![
+        json!({
+            "id": format!("agent-{}", uuid::Uuid::new_v4()),
+            "type": "coordinator",
+            "name": "Swarm Coordinator",
+            "status": "initializing"
+        }),
+        json!({
+            "id": format!("agent-{}", uuid::Uuid::new_v4()),
+            "type": "researcher",
+            "name": "Research Agent",
+            "status": "initializing"
+        }),
+        json!({
+            "id": format!("agent-{}", uuid::Uuid::new_v4()),
+            "type": "coder",
+            "name": "Code Agent",
+            "status": "initializing"
+        }),
+    ];
+    
+    HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "message": "Swarm initialization started (mock mode)",
+        "swarm_id": format!("swarm-{}", uuid::Uuid::new_v4()),
+        "agents": mock_agents,
+        "topology": request.topology.clone(),
+        "max_agents": request.max_agents,
+        "mock_mode": true
+    }))
 }
 
 // UPDATED: Enhanced agent status endpoint for real-time updates

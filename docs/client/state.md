@@ -7,7 +7,7 @@ This document details the state management patterns and mechanisms used througho
 The client application manages several types of state:
 
 1.  **Application Settings** - User preferences and application configuration
-2.  **Graph Data** - Nodes, edges, and metadata for the visualisation
+2.  **Graph Data** - Nodes, edges, and metadata for the visualization
 3.  **UI State** - Control panel state, selected items, and UI configuration
 4.  **Rendering State** - Camera position, visibility settings, and rendering options
 5.  **XR State** - XR session status, controller positions, and interaction state
@@ -26,18 +26,18 @@ flowchart TB
         GraphManager[Graph Manager]
         ControlPanel[Control Panel]
         XRComponents[XR Components]
-        VisualisationComponents[Visualisation Components]
+        VisualizationComponents[Visualization Components]
     end
 
-    Settings --> VisualisationComponents
+    Settings --> VisualizationComponents
     Settings --> ControlPanel
     Settings --> XRComponents
 
     GraphData --> GraphManager
-    GraphData --> VisualisationComponents
+    GraphData --> VisualizationComponents
 
     UIState --> ControlPanel
-    RenderState --> VisualisationComponents
+    RenderState --> VisualizationComponents
     XRState --> XRComponents
 ```
 
@@ -62,7 +62,7 @@ Settings validation primarily relies on **TypeScript's static type checking** du
 
 ### Graph Data Manager ([`client/src/features/graph/managers/graphDataManager.ts`](../../client/src/features/graph/managers/graphDataManager.ts))
 
-The Graph Data Manager maintains the state of the graph visualisation data.
+The Graph Data Manager maintains the state of the graph visualization data.
 
 **Key Features:**
 - Loads and processes graph data from server
@@ -92,7 +92,7 @@ The file `SettingsObserver.ts` is **not used** in the current architecture. Zust
 The application persists state in several ways:
 
 1.  **Local Storage** - User preferences and UI state (managed by Zustand's `persist` middleware).
-2.  **Server Storage** - User settings synchronised to server (for authenticated users).
+2.  **Server Storage** - User settings synchronized to server (for authenticated users).
 3.  **URL Parameters** - Shareable state in URL (not extensively used for persistence, more for initial configuration).
 
 ### Persistence Flow
@@ -154,7 +154,7 @@ const unsubscribeSpecificSetting = useSettingsStore.subscribe(
   (newNodeSize) => {
     console.log('Node size changed:', newNodeSize);
   },
-  state => state.settings.visualisation.nodes.nodeSize // Selector for a specific value
+  state => state.settings.visualization.nodes.nodeSize // Selector for a specific value
 );
 
 // Remember to call unsubscribe functions on component unmount
@@ -179,14 +179,14 @@ The application now supports multiple graph visualizations simultaneously, with 
 // client/src/features/settings/config/settings.ts
 
 interface Settings {
-  visualisation: {
+  visualization: {
     // Graph-specific settings (NEW structure)
     graphs: {
       logseq: GraphSettings;      // Blue/purple theme for Logseq data
       visionflow: GraphSettings;   // Green theme for VisionFlow data
     };
     
-    // Global visualisation settings (shared across all graphs)
+    // Global visualization settings (shared across all graphs)
     rendering: RenderingSettings;
     animations: AnimationSettings;
     bloom: BloomSettings;
@@ -215,7 +215,7 @@ interface Settings {
 
 // Graph-specific settings structure
 interface GraphSettings {
-  nodes: NodeSettings;     // Node appearance and behaviour
+  nodes: NodeSettings;     // Node appearance and behavior
   edges: EdgeSettings;     // Edge/link appearance
   labels: LabelSettings;   // Text label configuration
   physics: PhysicsSettings; // Physics simulation parameters
@@ -228,18 +228,18 @@ The application includes automatic migration from the legacy flat structure to t
 
 **Legacy Structure (before migration):**
 ```typescript
-settings.visualisation.nodes.baseColor
-settings.visualisation.edges.color
-settings.visualisation.physics.enabled
-settings.visualisation.labels.fontSize
+settings.visualization.nodes.baseColor
+settings.visualization.edges.color
+settings.visualization.physics.enabled
+settings.visualization.labels.fontSize
 ```
 
 **New Multi-Graph Structure (after migration):**
 ```typescript
-settings.visualisation.graphs.logseq.nodes.baseColor
-settings.visualisation.graphs.visionflow.nodes.baseColor
-settings.visualisation.graphs.logseq.edges.color
-settings.visualisation.graphs.visionflow.edges.color
+settings.visualization.graphs.logseq.nodes.baseColor
+settings.visualization.graphs.visionflow.nodes.baseColor
+settings.visualization.graphs.logseq.edges.color
+settings.visualization.graphs.visionflow.edges.color
 ```
 
 The migration utility (`settingsMigration.ts`) handles:

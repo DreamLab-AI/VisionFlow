@@ -50,7 +50,7 @@ The server now maintains a continuous physics simulation:
 
 - Graph nodes find optimal positions before any client connects
 - Reduced initial loading time for clients as layout is pre-calculated
-- Physics simulation stabilises over time, creating a more balanced visualisation
+- Physics simulation stabilizes over time, creating a more balanced visualisation
 
 ### 3. Bidirectional Synchronization
 
@@ -58,7 +58,7 @@ The new architecture supports true bidirectional updates:
 
 - Server broadcasts position updates to all connected clients
 - Any client can update node positions (e.g., during user interaction)
-- All changes are synchronised across all clients in real-time
+- All changes are synchronized across all clients in real-time
 - Server maintains position authority for consistency
 
 ```mermaid

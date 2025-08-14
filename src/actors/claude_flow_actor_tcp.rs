@@ -9,11 +9,10 @@ use std::collections::HashMap;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
 use serde_json::{json, Value};
-// use serde::{Serialize, Deserialize}; // Uncomment when needed
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, oneshot};
 use std::sync::Arc;
 use tokio::net::TcpStream;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 
 /// TCP-based ClaudeFlowActor for direct MCP connection
 /// This is the ONLY Claude Flow actor - WebSocket implementation has been removed
@@ -31,10 +30,12 @@ pub struct ClaudeFlowActorTcp {
     message_flow_history: Vec<MessageFlowEvent>,
     coordination_patterns: Vec<CoordinationPattern>,
     // Direct TCP connection to Claude Flow on port 9500
-    tcp_connection: Option<Arc<RwLock<TcpStream>>>,
-    tcp_reader: Option<Arc<RwLock<BufReader<TcpStream>>>>,
+    tcp_writer: Option<Arc<RwLock<BufWriter<tokio::net::tcp::OwnedWriteHalf>>>>,
+    tcp_reader: Option<Arc<RwLock<BufReader<tokio::net::tcp::OwnedReadHalf>>>>,
     // Connection statistics
     connection_stats: ConnectionStats,
+    // Request/response correlation
+    pending_requests: Arc<RwLock<HashMap<String, oneshot::Sender<Value>>>>,
     // Pending changes for differential updates
     pending_additions: Vec<AgentStatus>,
     pending_removals: Vec<String>,
@@ -70,9 +71,10 @@ impl ClaudeFlowActorTcp {
             system_metrics: SystemMetrics::default(),
             message_flow_history: Vec::new(),
             coordination_patterns: Vec::new(),
-            tcp_connection: None,
+            tcp_writer: None,
             tcp_reader: None,
             connection_stats: ConnectionStats::default(),
+            pending_requests: Arc::new(RwLock::new(HashMap::new())),
             pending_additions: Vec::new(),
             pending_removals: Vec::new(),
             pending_updates: Vec::new(),
@@ -90,14 +92,13 @@ impl ClaudeFlowActorTcp {
         // Spawn async task to connect to Claude Flow
         tokio::spawn(async move {
             match Self::connect_to_claude_flow_tcp().await {
-                Ok((stream, reader)) => {
+                Ok((writer, reader)) => {
                     info!("Successfully connected to Claude Flow MCP server via TCP on port 9500");
-                    addr.do_send(TcpConnectionEstablished { stream, reader });
+                    addr.do_send(TcpConnectionEstablished { writer, reader });
                 }
                 Err(e) => {
                     let err_msg = format!("Failed to connect to Claude Flow on TCP port 9500: {}", e);
                     error!("{}", err_msg);
-                    // e is now dropped
                     // Retry connection after delay
                     tokio::time::sleep(Duration::from_secs(5)).await;
                     addr.do_send(ConnectionFailed);
@@ -107,8 +108,15 @@ impl ClaudeFlowActorTcp {
     }
     
     /// Establish TCP connection to Claude Flow
-    async fn connect_to_claude_flow_tcp() -> Result<(TcpStream, BufReader<TcpStream>), Box<dyn std::error::Error + Send + Sync>> {
-        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "172.18.0.10".to_string());
+    async fn connect_to_claude_flow_tcp() -> Result<(BufWriter<tokio::net::tcp::OwnedWriteHalf>, BufReader<tokio::net::tcp::OwnedReadHalf>), Box<dyn std::error::Error + Send + Sync>> {
+        // Use service name for Docker networking, fallback to localhost for development
+        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| {
+            if std::env::var("DOCKER_ENV").is_ok() {
+                "claude-flow-mcp".to_string()  // Docker service name
+            } else {
+                "localhost".to_string()  // Local development
+            }
+        });
         let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
         
         info!("Attempting TCP connection to {}:{}", host, port);
@@ -119,29 +127,28 @@ impl ClaudeFlowActorTcp {
         // Set TCP options for optimal performance
         stream.set_nodelay(true)?;
         
-        // For Tokio, we need to use split() instead of try_clone()
-        // This is a workaround - in production, consider using split() or a better pattern
-        let stream2 = TcpStream::connect(&addr).await?;
-        stream2.set_nodelay(true)?;
-        let reader = BufReader::new(stream2);
+        // Properly split the stream into read and write halves
+        let (read_half, write_half) = stream.into_split();
+        let reader = BufReader::new(read_half);
+        let writer = BufWriter::new(write_half);
         
         info!("TCP connection established to Claude Flow at {}", addr);
         
-        Ok((stream, reader))
+        Ok((writer, reader))
     }
 
     /// Send JSON-RPC message over TCP
-    async fn send_tcp_message(stream: &mut TcpStream, message: Value) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn send_tcp_message(writer: &mut BufWriter<tokio::net::tcp::OwnedWriteHalf>, message: Value) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let msg_str = serde_json::to_string(&message)?;
         let msg_bytes = format!("{}\n", msg_str); // Line-delimited JSON
-        stream.write_all(msg_bytes.as_bytes()).await?;
-        stream.flush().await?;
+        writer.write_all(msg_bytes.as_bytes()).await?;
+        writer.flush().await?;
         debug!("Sent TCP message: {}", msg_str);
         Ok(())
     }
 
     /// Read JSON-RPC message from TCP
-    async fn read_tcp_message(reader: &mut BufReader<TcpStream>) -> Result<Value, Box<dyn std::error::Error>> {
+    async fn read_tcp_message(reader: &mut BufReader<tokio::net::tcp::OwnedReadHalf>) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut line = String::new();
         reader.read_line(&mut line).await?;
         let message: Value = serde_json::from_str(&line)?;
@@ -149,40 +156,48 @@ impl ClaudeFlowActorTcp {
         Ok(message)
     }
 
-    /// Initialize MCP session over TCP
-    async fn initialize_mcp_session(&mut self) {
-        if let Some(tcp_conn) = &self.tcp_connection {
-            let mut stream = tcp_conn.write().await;
-            
-            let init_message = json!({
-                "jsonrpc": "2.0",
-                "id": Uuid::new_v4().to_string(),
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "1.0.0",
-                    "capabilities": {
-                        "roots": true,
-                        "sampling": true
-                    },
-                    "clientInfo": {
-                        "name": "visionflow",
-                        "version": "1.0.0"
-                    }
-                }
-            });
-            
-            match Self::send_tcp_message(&mut *stream, init_message).await {
-                Ok(_) => {
-                    info!("MCP initialization message sent via TCP");
-                    self.is_initialized = true;
-                    self.connection_stats.connected_at = Some(Utc::now());
-                    self.connection_stats.messages_sent += 1;
-                }
-                Err(e) => {
-                    error!("Failed to send MCP initialization: {}", e);
-                    self.is_connected = false;
+    /// Initialize MCP session over TCP with proper correlation
+    async fn initialize_mcp_session(
+        writer: Arc<RwLock<BufWriter<tokio::net::tcp::OwnedWriteHalf>>>,
+        pending_requests: Arc<RwLock<HashMap<String, oneshot::Sender<Value>>>>
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let request_id = Uuid::new_v4().to_string();
+        
+        let init_message = json!({
+            "jsonrpc": "2.0",
+            "id": request_id.clone(),
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "1.0.0",
+                "capabilities": {
+                    "roots": true,
+                    "sampling": true,
+                    "tools": true
+                },
+                "clientInfo": {
+                    "name": "visionflow",
+                    "version": "1.0.0"
                 }
             }
+        });
+        
+        // Set up response channel
+        let (tx, rx) = oneshot::channel();
+        pending_requests.write().await.insert(request_id.clone(), tx);
+        
+        // Send the message
+        let mut writer_guard = writer.write().await;
+        Self::send_tcp_message(&mut *writer_guard, init_message).await?;
+        drop(writer_guard);
+        
+        // Wait for response with timeout
+        match tokio::time::timeout(Duration::from_secs(5), rx).await {
+            Ok(Ok(response)) => {
+                info!("MCP initialization successful: {:?}", response);
+                Ok(())
+            }
+            Ok(Err(_)) => Err("Response channel closed".into()),
+            Err(_) => Err("MCP initialization timeout".into())
         }
     }
 
@@ -190,6 +205,7 @@ impl ClaudeFlowActorTcp {
     fn process_tcp_messages(&mut self, ctx: &mut Context<Self>) {
         if let Some(reader_arc) = self.tcp_reader.clone() {
             let addr = ctx.address();
+            let pending_requests = self.pending_requests.clone();
             
             tokio::spawn(async move {
                 let mut reader = reader_arc.write().await;
@@ -198,6 +214,17 @@ impl ClaudeFlowActorTcp {
                     match Self::read_tcp_message(&mut *reader).await {
                         Ok(message) => {
                             debug!("Processing TCP message: {:?}", message);
+                            
+                            // Check if this is a response to a pending request
+                            if let Some(id) = message.get("id").and_then(|v| v.as_str()) {
+                                let mut requests = pending_requests.write().await;
+                                if let Some(sender) = requests.remove(id) {
+                                    // Send response to waiting caller
+                                    let _ = sender.send(message.clone());
+                                }
+                            }
+                            
+                            // Also send to actor for processing
                             addr.do_send(ProcessTcpMessage { message });
                         }
                         Err(e) => {
@@ -213,34 +240,47 @@ impl ClaudeFlowActorTcp {
         }
     }
 
-    /// Send a tool call over TCP
-    async fn call_tcp_tool(&mut self, tool_name: &str, params: Value) -> Result<Value, String> {
-        if let Some(tcp_conn) = &self.tcp_connection {
-            let mut stream = tcp_conn.write().await;
-            
-            let request = json!({
-                "jsonrpc": "2.0",
-                "id": Uuid::new_v4().to_string(),
-                "method": "tools/call",
-                "params": {
-                    "name": tool_name,
-                    "arguments": params
-                }
-            });
-            
-            match Self::send_tcp_message(&mut *stream, request).await {
-                Ok(_) => {
-                    self.connection_stats.messages_sent += 1;
-                    self.connection_stats.last_message_at = Some(Utc::now());
-                    Ok(json!({"status": "sent"}))
-                }
-                Err(e) => {
-                    error!("Failed to call tool {}: {}", tool_name, e);
-                    Err(e.to_string())
+    /// Send a tool call over TCP with proper response correlation
+    async fn call_tcp_tool(
+        writer: Arc<RwLock<BufWriter<tokio::net::tcp::OwnedWriteHalf>>>,
+        pending_requests: Arc<RwLock<HashMap<String, oneshot::Sender<Value>>>>,
+        tool_name: &str,
+        params: Value
+    ) -> Result<Value, String> {
+        let request_id = Uuid::new_v4().to_string();
+        
+        let request = json!({
+            "jsonrpc": "2.0",
+            "id": request_id.clone(),
+            "method": "tools/call",
+            "params": {
+                "name": tool_name,
+                "arguments": params
+            }
+        });
+        
+        // Set up response channel
+        let (tx, rx) = oneshot::channel();
+        pending_requests.write().await.insert(request_id.clone(), tx);
+        
+        // Send the request
+        let mut writer_guard = writer.write().await;
+        match Self::send_tcp_message(&mut *writer_guard, request).await {
+            Ok(_) => {
+                drop(writer_guard);
+                
+                // Wait for response with timeout
+                match tokio::time::timeout(Duration::from_secs(10), rx).await {
+                    Ok(Ok(response)) => Ok(response),
+                    Ok(Err(_)) => Err("Response channel closed".to_string()),
+                    Err(_) => Err(format!("Tool call {} timeout", tool_name))
                 }
             }
-        } else {
-            Err("No TCP connection available".to_string())
+            Err(e) => {
+                error!("Failed to call tool {}: {}", tool_name, e);
+                pending_requests.write().await.remove(&request_id);
+                Err(e.to_string())
+            }
         }
     }
 }
@@ -286,39 +326,29 @@ impl Handler<InitializeSwarm> for ClaudeFlowActorTcp {
             return Box::pin(fut::ready(Err("Not connected to Claude Flow TCP server".to_string())));
         }
 
-        let tcp_conn = self.tcp_connection.clone();
-        let mut stats = self.connection_stats.clone();
+        let tcp_writer = self.tcp_writer.clone();
+        let pending_requests = self.pending_requests.clone();
         
         Box::pin(async move {
-            if let Some(conn) = tcp_conn {
-                let mut stream = conn.write().await;
-                
+            if let Some(writer) = tcp_writer {
                 let params = json!({
                     "topology": msg.topology,
                     "maxAgents": msg.max_agents,
                     "strategy": msg.strategy
                 });
                 
-                let request = json!({
-                    "jsonrpc": "2.0",
-                    "id": Uuid::new_v4().to_string(),
-                    "method": "tools/call",
-                    "params": {
-                        "name": "swarm_init",
-                        "arguments": params
-                    }
-                });
-                
-                match ClaudeFlowActorTcp::send_tcp_message(&mut *stream, request).await {
-                    Ok(_) => {
-                        stats.messages_sent += 1;
-                        let swarm_id = format!("swarm_{}", Uuid::new_v4());
-                        info!("Swarm initialization request sent via TCP: {}", swarm_id);
-                        Ok(swarm_id)
+                match ClaudeFlowActorTcp::call_tcp_tool(writer, pending_requests, "swarm_init", params).await {
+                    Ok(response) => {
+                        if let Some(swarm_id) = response.get("swarmId").and_then(|s| s.as_str()) {
+                            info!("Swarm initialized successfully: {}", swarm_id);
+                            Ok(swarm_id.to_string())
+                        } else {
+                            Ok(format!("swarm_{}", Uuid::new_v4()))
+                        }
                     }
                     Err(e) => {
                         error!("Failed to initialize swarm: {}", e);
-                        Err(e.to_string())
+                        Err(e)
                     }
                 }
             } else {
@@ -332,8 +362,8 @@ impl Handler<InitializeSwarm> for ClaudeFlowActorTcp {
 #[derive(Message)]
 #[rtype(result = "()")]
 struct TcpConnectionEstablished {
-    stream: TcpStream,
-    reader: BufReader<TcpStream>,
+    writer: BufWriter<tokio::net::tcp::OwnedWriteHalf>,
+    reader: BufReader<tokio::net::tcp::OwnedReadHalf>,
 }
 
 #[derive(Message)]
@@ -348,15 +378,26 @@ impl Handler<TcpConnectionEstablished> for ClaudeFlowActorTcp {
     fn handle(&mut self, msg: TcpConnectionEstablished, ctx: &mut Self::Context) {
         info!("TCP connection established, initializing MCP session");
         
-        self.tcp_connection = Some(Arc::new(RwLock::new(msg.stream)));
+        self.tcp_writer = Some(Arc::new(RwLock::new(msg.writer)));
         self.tcp_reader = Some(Arc::new(RwLock::new(msg.reader)));
         self.is_connected = true;
         
         // Initialize MCP session
+        let writer = self.tcp_writer.clone().unwrap();
+        let pending_requests = self.pending_requests.clone();
         let addr = ctx.address();
+        
         tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-            addr.do_send(InitializeMCPSession);
+            match Self::initialize_mcp_session(writer, pending_requests).await {
+                Ok(_) => {
+                    info!("MCP session initialized successfully");
+                    addr.do_send(MCPSessionInitialized);
+                }
+                Err(e) => {
+                    error!("Failed to initialize MCP session: {}", e);
+                    addr.do_send(ConnectionFailed);
+                }
+            }
         });
         
         // Start processing incoming messages
@@ -392,24 +433,18 @@ impl Handler<ProcessTcpMessage> for ClaudeFlowActorTcp {
 
 #[derive(Message)]
 #[rtype(result = "()")]
-struct InitializeMCPSession;
+struct MCPSessionInitialized;
 
-impl Handler<InitializeMCPSession> for ClaudeFlowActorTcp {
+impl Handler<MCPSessionInitialized> for ClaudeFlowActorTcp {
     type Result = ();
 
-    fn handle(&mut self, _: InitializeMCPSession, _ctx: &mut Self::Context) {
-        let _addr = _ctx.address();
-        tokio::spawn(async move {
-            // This will be handled in the async context
-        });
+    fn handle(&mut self, _: MCPSessionInitialized, _ctx: &mut Self::Context) {
+        info!("MCP session has been initialized");
+        self.is_initialized = true;
+        self.connection_stats.connected_at = Some(Utc::now());
         
-        // Use blocking call for now
-        let tcp_conn = self.tcp_connection.clone();
-        if tcp_conn.is_some() {
-            tokio::spawn(async move {
-                // Initialize in async context
-            });
-        }
+        // Now we can start polling for agent statuses
+        _ctx.notify(PollAgentStatuses);
     }
 }
 
@@ -420,8 +455,15 @@ impl Handler<ConnectionFailed> for ClaudeFlowActorTcp {
         warn!("TCP connection failed or lost");
         self.is_connected = false;
         self.is_initialized = false;
-        self.tcp_connection = None;
+        self.tcp_writer = None;
         self.tcp_reader = None;
+        
+        // Clear pending requests
+        let pending_requests = self.pending_requests.clone();
+        tokio::spawn(async move {
+            let mut requests = pending_requests.write().await;
+            requests.clear();
+        });
         
         // Schedule reconnection attempt
         ctx.run_later(Duration::from_secs(5), |act, ctx| {
@@ -441,7 +483,40 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
         }
         
         debug!("Polling agent statuses via TCP");
-        // Implementation would call TCP tool for status updates
+        
+        // Call the agent_list tool to get current agent statuses
+        if let Some(writer) = &self.tcp_writer {
+            let writer_clone = writer.clone();
+            let pending_requests = self.pending_requests.clone();
+            let graph_addr = self.graph_service_addr.clone();
+            
+            tokio::spawn(async move {
+                let params = json!({
+                    "filter": "active"
+                });
+                
+                match Self::call_tcp_tool(writer_clone, pending_requests, "agent_list", params).await {
+                    Ok(response) => {
+                        debug!("Received agent list: {:?}", response);
+                        
+                        // Parse and forward to graph service
+                        if let Some(agents) = response.get("agents").and_then(|a| a.as_array()) {
+                            for agent in agents {
+                                if let Ok(status) = serde_json::from_value::<AgentStatus>(agent.clone()) {
+                                    graph_addr.do_send(UpdateAgentStatus {
+                                        agent_id: status.id.clone(),
+                                        status,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to poll agent statuses: {}", e);
+                    }
+                }
+            });
+        }
     }
 }
 

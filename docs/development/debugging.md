@@ -34,7 +34,7 @@ This document outlines the debug system architecture for our application, featur
 
 - **Performance**: No network overhead for debug toggles
 - **Security**: Sensitive server logs never exposed to client
-- **Scalability**: Each system optimised for its specific needs
+- **Scalability**: Each system optimized for its specific needs
 - **Maintainability**: Clear boundaries reduce complexity
 
 ## Client-Side Debug System
@@ -250,7 +250,7 @@ pub fn init_logger() {
         .format_timestamp_secs()
         .init();
     
-    info!("Debug system initialised");
+    info!("Debug system initialized");
 }
 
 // Debug macros for conditional logging

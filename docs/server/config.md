@@ -11,7 +11,7 @@ The primary configuration struct is `Settings`, defined in [`src/config/mod.rs`]
 ```rust
 // In src/config/mod.rs
 pub struct Settings {
-    pub visualisation: VisualisationSettings,
+    pub visualization: VisualizationSettings,
     pub system: ServerSystemConfigFromFile, // Contains network, websocket, security, debug
     pub xr: XRSettings,
     pub auth: AuthSettings,
@@ -25,7 +25,7 @@ pub struct Settings {
 ```
 
 #### Main Categories in `Settings`:
--   **`visualisation: VisualisationSettings`**: Configures 3D graph rendering, physics, animations, labels, bloom, and hologram effects. Contains nested structs like `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, etc.
+-   **`visualization: VisualizationSettings`**: Configures 3D graph rendering, physics, animations, labels, bloom, and hologram effects. Contains nested structs like `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, etc.
 -   **`system: ServerSystemConfigFromFile`**: Contains core server system settings:
     -   `network: NetworkSettings` (e.g., `bind_address`, `port`, `enable_tls`)
     -   `websocket: ServerFullWebSocketSettings` (e.g., `binary_chunk_size`, `update_rate`, `compression_enabled`, `min_update_rate`, `max_update_rate`, `motion_threshold`)
@@ -67,7 +67,7 @@ impl Settings {
 
 ## Feature Access and Permissions
 
-Feature access is managed by the `FeatureAccess` struct defined in [`src/config/feature_access.rs`](../../src/config/feature_access.rs). This struct is initialised from environment variables and provides fine-grained access control.
+Feature access is managed by the `FeatureAccess` struct defined in [`src/config/feature_access.rs`](../../src/config/feature_access.rs). This struct is initialized from environment variables and provides fine-grained access control.
 
 ```rust
 pub struct FeatureAccess {
@@ -144,7 +144,7 @@ The client communicates settings updates through a comprehensive payload structu
 ```rust
 #[derive(Deserialize, Debug, Default, Clone)]
 pub struct ClientSettingsPayload {
-    pub visualisation: Option<ClientVisualisationSettings>,
+    pub visualization: Option<ClientVisualizationSettings>,
     pub system: Option<ClientSystemSettings>,
     pub xr: Option<ClientXRSettings>,
     pub auth: Option<ClientAuthSettings>,

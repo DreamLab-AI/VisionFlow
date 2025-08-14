@@ -4,7 +4,7 @@ This document details the client component architecture, describing the relation
 
 ## Component Overview
 
-The client is organised into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
+The client is organized into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
 
 ```mermaid
 flowchart TB
@@ -292,7 +292,7 @@ Provides the tabbed interface for organising different categories of settings (V
 Used within panels (like `SettingsPanelRedesign`) to group related settings. Supports collapsible sections.
 
 ### Setting Control Component ([`client/src/features/settings/components/SettingControlComponent.tsx`](../../client/src/features/settings/components/SettingControlComponent.tsx))
-Renders individual UI controls (sliders, toggles, inputs, colour pickers, etc.) for each setting based on its definition in `settingsUIDefinition.ts`.
+Renders individual UI controls (sliders, toggles, inputs, color pickers, etc.) for each setting based on its definition in `settingsUIDefinition.ts`.
 
 ### Auth UI Handler ([`client/src/features/auth/components/AuthUIHandler.tsx`](../../client/src/features/auth/components/AuthUIHandler.tsx))
 Manages the authentication user interface and logic, primarily for Nostr authentication, often hosting `NostrAuthSection.tsx`.
@@ -319,10 +319,10 @@ sequenceDiagram
     participant GraphDataManager
     participant GraphCanvas
 
-    AppInitializer->>SettingsStore: initialise()
+    AppInitializer->>SettingsStore: initialize()
     SettingsStore-->>AppInitializer: Settings loaded
 
-    AppInitializer->>NostrAuthService: initialise()
+    AppInitializer->>NostrAuthService: initialize()
     NostrAuthService-->>AppInitializer: Auth state ready
 
     AppInitializer->>WebSocketService: connect()

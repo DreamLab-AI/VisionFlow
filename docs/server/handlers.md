@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimised for high-performance message passing and concurrent request processing.
+VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimized for high-performance message passing and concurrent request processing.
 
 ## Handler Architecture
 
@@ -257,7 +257,7 @@ web::scope("")
 |--------|------|-------------|-------------|
 | `GET` | `/api/bots/data` | Get agent graph data | `ClaudeFlowActor::GetBotsGraphData` |
 | `POST` | `/api/bots/update` | Update agent positions | `GraphServiceActor::UpdateBotsGraph` |
-| `POST` | `/api/bots/initialise-multi-agent` | Initialize Claude Flow multi-agent | `ClaudeFlowActor::initializeMultiAgent` |
+| `POST` | `/api/bots/initialize-multi-agent` | Initialize Claude Flow multi-agent | `ClaudeFlowActor::initializeMultiAgent` |
 
 **Agent Data Structure**:
 ```rust

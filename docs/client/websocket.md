@@ -142,7 +142,7 @@ stateDiagram-v2
 
 ## Configuration
 
-WebSocket behaviour can be configured through settings:
+WebSocket behavior can be configured through settings:
 
 ```typescript
 // Relevant settings are found under 'system.websocket' in

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The VisionFlow binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimise bandwidth usage while maintaining precision for real-time graph visualisation updates.
+The VisionFlow binary protocol is designed for efficient transmission of node position and velocity data over WebSocket connections. It uses a compact binary format to minimize bandwidth usage while maintaining precision for real-time graph visualization updates.
 
 ## Protocol Architecture
 
@@ -11,7 +11,7 @@ The VisionFlow binary protocol is designed for efficient transmission of node po
 1. **Efficiency**: Minimize bytes per node update
 2. **Simplicity**: Fixed-size records for fast parsing
 3. **Type Safety**: Support for node type identification
-4. **GPU Compatibility**: Memory layout optimised for GPU processing
+4. **GPU Compatibility**: Memory layout optimized for GPU processing
 
 ### Components
 
@@ -103,7 +103,7 @@ For example:
 1. **Collect Updates**: Gather node positions and velocities
 2. **Apply Type Flags**: Mark agent and knowledge nodes
 3. **Create Wire Format**: Convert to `WireNodeDataItem` structures
-4. **Serialize**: Use bytemuck for zero-copy serialisation
+4. **Serialize**: Use bytemuck for zero-copy serialization
 5. **Transmit**: Send as binary WebSocket frame
 
 ```rust
@@ -471,4 +471,4 @@ pub const BINARY_CHUNK_SIZE: usize = 64 * 1024; // 64KB
 - Agent nodes have flag 0x80000000 set in the transmitted node ID
 - Knowledge nodes have flag 0x40000000 set in the transmitted node ID
 - Actual node ID is extracted using mask 0x3FFFFFFF
-- The wire format is optimised for GPU memory alignment and processing
+- The wire format is optimized for GPU memory alignment and processing

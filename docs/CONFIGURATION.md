@@ -38,7 +38,7 @@ Key variables:
 ### 2. Application Settings (`data/settings.yaml`)
 **Purpose:** Runtime application configuration and defaults
 **Precedence:** Medium - can be overridden by environment variables
-**Scope:** Application behaviour and feature configuration
+**Scope:** Application behavior and feature configuration
 
 Structure:
 ```yaml

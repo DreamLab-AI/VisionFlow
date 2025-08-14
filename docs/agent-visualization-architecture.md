@@ -109,7 +109,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 
 ### Agent Representation
 - **Shape by Type**: Coordinators (octahedron), Coders (cube), Architects (cone), etc.
-- **Color by Function**: Each agent type has a distinct colour palette
+- **Color by Function**: Each agent type has a distinct color palette
 - **Size by Workload**: Visual scaling based on active tasks and resource usage
 - **Glow by Activity**: Intensity indicates current activity level
 - **Health Rings**: Colored rings show agent health status
@@ -131,7 +131,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 ### Shared Physics Engine
 The visualisation shares the same GPU-accelerated spring physics solver as the knowledge graph, ensuring:
 - Unified coordinate space
-- Consistent physics behaviour
+- Consistent physics behavior
 - Optimal GPU utilization
 - Single source of truth for positions
 
@@ -146,7 +146,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 ### With Knowledge Graph
 - Shares same 3D space and origin point
 - Uses same GPU physics solver
-- Compatible visual styles (different colour schemes)
+- Compatible visual styles (different color schemes)
 - Can show relationships between agents and knowledge nodes
 
 ### With MCP
@@ -167,7 +167,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 - 60 FPS with up to 500 agents
 - GPU instancing for large multi-agents
 - Adaptive quality based on performance
-- Mobile-optimised fallbacks
+- Mobile-optimized fallbacks
 
 ## Future Enhancements
 

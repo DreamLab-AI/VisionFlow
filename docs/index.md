@@ -69,8 +69,8 @@ open http://localhost:3001
 
 ## Key Features
 
-- **AI Agent Orchestration**: 15+ specialised agent types with hierarchical, mesh, ring, and star topologies
-- **GPU-Accelerated Physics**: CUDA implementation optimised for NVIDIA hardware with dual-graph support
+- **AI Agent Orchestration**: 15+ specialized agent types with hierarchical, mesh, ring, and star topologies
+- **GPU-Accelerated Physics**: CUDA implementation optimized for NVIDIA hardware with dual-graph support
 - **XR/AR Capabilities**: Meta Quest 3 support with hand tracking and WebXR integration
 - **Real-time Communication**: Binary protocol with WebSocket endpoints for minimal bandwidth usage
 

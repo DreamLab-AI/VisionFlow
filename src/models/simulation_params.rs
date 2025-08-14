@@ -67,6 +67,7 @@ pub struct SimulationParams {
     
     // Additional physics parameters
     pub max_velocity: f32,        // Maximum velocity for nodes
+    pub max_force: f32,           // Maximum force magnitude to prevent instability
     pub attraction_strength: f32, // Attraction between connected nodes
     pub collision_radius: f32,    // Minimum separation between nodes
     pub temperature: f32,          // System temperature for simulated annealing
@@ -90,6 +91,7 @@ impl SimulationParams {
             viewport_bounds: 200.0,     // Smaller viewport
             enable_bounds: true,
             max_velocity: 1.0,          // From settings.yaml
+            max_force: 10.0,            // Independent max force limit
             attraction_strength: 0.001,  // From settings.yaml
             collision_radius: 0.15,      // From settings.yaml
             temperature: 0.5,            // From settings.yaml
@@ -112,6 +114,7 @@ impl SimulationParams {
                 viewport_bounds: 8000.0,   // Much larger bounds
                 enable_bounds: true,
                 max_velocity: 1.0,
+                max_force: 5.0,            // Lower force limit for initial phase
                 attraction_strength: 0.001,
                 collision_radius: 0.15,
                 temperature: 0.5,
@@ -130,6 +133,7 @@ impl SimulationParams {
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
                 max_velocity: 2.0,
+                max_force: 10.0,           // Standard force limit
                 attraction_strength: 0.002,
                 collision_radius: 0.2,
                 temperature: 0.3,
@@ -148,6 +152,7 @@ impl SimulationParams {
                 viewport_bounds: 5000.0,
                 enable_bounds: true,
                 max_velocity: 1.5,
+                max_force: 15.0,           // Higher force limit for final positioning
                 attraction_strength: 0.001,
                 collision_radius: 0.15,
                 temperature: 0.2,
@@ -187,6 +192,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             viewport_bounds: physics.bounds_size,
             enable_bounds: physics.enable_bounds,
             max_velocity: physics.max_velocity,
+            max_force: 10.0,  // Default independent max force
             attraction_strength: physics.attraction_strength,
             collision_radius: physics.collision_radius,
             temperature: physics.temperature,

@@ -68,7 +68,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 
 ### Core Agent Management
 - `multi-agent_init` - Initialize multi-agent with topology (mesh, hierarchical, ring, star)
-- `agent_spawn` - Create specialised agents with capabilities
+- `agent_spawn` - Create specialized agents with capabilities
 - `agent_list` - List active agents with status and metrics
 - `agent_metrics` - Get detailed performance metrics
 - `agent_command` - Send commands to specific agents
