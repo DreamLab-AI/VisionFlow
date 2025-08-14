@@ -59,7 +59,7 @@ ${YELLOW}Commands:${NC}
     logs        Show container logs
     shell       Open shell in container
     status      Show container status
-    build       Build containers only
+    build       Build containers (with GPU if available)
     clean       Clean all containers and volumes
 
 ${YELLOW}Options:${NC}
@@ -154,13 +154,30 @@ check_prerequisites() {
         fi
     fi
 
-    # Check GPU availability for non-CPU profiles
-    if [[ "$PROFILE" != "cpu" ]]; then
-        if ! nvidia-smi &> /dev/null; then
-            warning "NVIDIA GPU not detected. GPU features will be disabled"
+    # Check GPU availability 
+    # nvidia-smi may return non-zero exit code even when working (due to warnings)
+    # so we check if it produces output instead
+    if command -v nvidia-smi &> /dev/null; then
+        GPU_INFO=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1)
+        if [[ -n "$GPU_INFO" ]]; then
+            success "GPU detected: $GPU_INFO"
+            # Always use nvidia runtime for GPU passthrough
+            export NVIDIA_RUNTIME="nvidia"
+            
+            # Check for NVIDIA Docker runtime
+            if ! docker info 2>/dev/null | grep -q nvidia; then
+                warning "NVIDIA Docker runtime not detected in Docker info"
+                info "Ensure nvidia-container-toolkit is installed for GPU passthrough"
+            fi
         else
-            info "GPU detected: $(nvidia-smi --query-gpu=name --format=csv,noheader | head -n1)"
+            warning "NVIDIA GPU not detected on host"
+            warning "Container will be built with GPU support but may not have GPU access at runtime"
+            export NVIDIA_RUNTIME="nvidia"
         fi
+    else
+        warning "nvidia-smi not found on host"
+        warning "Container will be built with GPU support but may not have GPU access at runtime"
+        export NVIDIA_RUNTIME="nvidia"
     fi
 
     success "Prerequisites check complete"
@@ -182,12 +199,53 @@ compile_cuda() {
     fi
 }
 
+# Check and rebuild backend with GPU support if needed
+check_backend_rebuild() {
+    if [[ "$PROFILE" == "dev" ]] && [[ -n "${NVIDIA_RUNTIME:-}" ]]; then
+        log "Checking if backend needs GPU rebuild..."
+        
+        # Check if container is running
+        if docker ps -q -f name="$CONTAINER_NAME" &> /dev/null; then
+            # Check if GPU is available in container
+            if docker exec "$CONTAINER_NAME" nvidia-smi &> /dev/null; then
+                info "GPU available in container, checking backend..."
+                
+                # Check if backend was built with GPU support
+                if ! docker exec "$CONTAINER_NAME" bash -c "ldd /app/webxr 2>/dev/null | grep -q cuda"; then
+                    warning "Backend not built with GPU support, rebuilding..."
+                    
+                    # Rebuild inside container
+                    docker exec "$CONTAINER_NAME" bash -c "cd /app && cargo build --release --features gpu && cp target/release/webxr /app/webxr"
+                    
+                    if [[ $? -eq 0 ]]; then
+                        success "Backend rebuilt with GPU support"
+                        # Restart backend service
+                        docker exec "$CONTAINER_NAME" supervisorctl restart rust-backend
+                        info "Backend service restarted"
+                    else
+                        error "Failed to rebuild backend with GPU support"
+                    fi
+                else
+                    info "Backend already has GPU support"
+                fi
+            else
+                warning "GPU not available in container, may need to recreate with --runtime nvidia"
+            fi
+        fi
+    fi
+}
+
 # Docker Compose wrapper
 docker_compose() {
     local compose_args=()
 
     if [[ "$VERBOSE" == true ]]; then
         compose_args+=("--verbose")
+    fi
+
+    # Set runtime environment for GPU support
+    if [[ -n "${NVIDIA_RUNTIME:-}" ]]; then
+        export DOCKER_DEFAULT_RUNTIME="nvidia"
     fi
 
     cd "$PROJECT_ROOT"
@@ -212,15 +270,29 @@ start_environment() {
             build_args+=("--no-cache")
         fi
 
+        # Always build with GPU features
+        info "Building with GPU support enabled"
+        build_args+=("--build-arg" "FEATURES=gpu")
+
         DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
     fi
 
-    docker_compose up "${up_args[@]}"
-
+    docker_compose up "${up_args[@]}" &
+    local compose_pid=$!
+    
+    # Wait a bit for container to start
+    sleep 5
+    
+    # Check if backend needs rebuild with GPU
+    check_backend_rebuild
+    
+    # Wait for docker compose or bring to foreground if not detached
     if [[ "$DETACHED" == true ]]; then
         success "Environment started in background"
         info "View logs with: ./launch.sh logs"
         info "Stop with: ./launch.sh down"
+    else
+        wait $compose_pid
     fi
 }
 
@@ -275,6 +347,10 @@ build_only() {
     if [[ "$NO_CACHE" == true ]]; then
         build_args+=("--no-cache")
     fi
+
+    # Always build with GPU features
+    info "Building with GPU support enabled"
+    build_args+=("--build-arg" "FEATURES=gpu")
 
     DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
     success "Build complete"
