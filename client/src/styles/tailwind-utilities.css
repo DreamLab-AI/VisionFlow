@@ -1,0 +1,14 @@
+/* Custom Tailwind utilities for compatibility */
+@layer utilities {
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+  
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  
+  .bg-background\/80 {
+    background-color: hsl(var(--background) / 0.8);
+  }
+}

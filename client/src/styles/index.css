@@ -2,10 +2,16 @@
  * Main CSS Entry Point
  * 
  * Import order matters:
- * 1. External libraries (Radix UI)
- * 2. Base styles and CSS variables
- * 3. Tailwind layers
+ * 1. Tailwind base
+ * 2. External libraries (Radix UI)
+ * 3. Base styles and CSS variables
+ * 4. Tailwind components and utilities
  */
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* External UI Library */
 @import '@radix-ui/themes/styles.css';
@@ -13,7 +19,5 @@
 /* Base styles and variables - consolidated */
 @import './base.css';
 
-/* Tailwind layers */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Custom utilities for Tailwind v4 compatibility */
+@import './tailwind-utilities.css';

@@ -34,25 +34,33 @@ export interface EdgeSettings {
   gradientColors: [string, string];
 }
 
-// Physics settings
+// Physics settings (snake_case to match settings.yaml)
 export interface PhysicsSettings {
-  attractionStrength: number;
-  boundsSize: number;
-  collisionRadius: number;
-  damping: number;
-  enableBounds: boolean;
   enabled: boolean;
-  iterations: number;
-  maxVelocity: number;
-  repulsionStrength: number;
-  springStrength: number;
-  repulsionDistance: number;
-  massScale: number;
-  boundaryDamping: number;
-  updateThreshold: number;
-  timeStep: number;
-  temperature: number;
+  
+  // Core Forces
+  spring_strength: number;        // Was: springStrength
+  repulsion_strength: number;     // Was: repulsionStrength
+  attraction_strength: number;    // Was: attractionStrength
   gravity: number;
+  
+  // Stability & Settling Controls
+  damping: number;
+  max_velocity: number;           // Was: maxVelocity
+  temperature: number;
+  time_step: number;              // Was: timeStep
+  
+  // Boundary & Collision
+  enable_bounds: boolean;         // Was: enableBounds
+  bounds_size: number;            // Was: boundsSize
+  boundary_damping: number;       // Was: boundaryDamping
+  collision_radius: number;       // Was: collisionRadius
+  
+  // Advanced Parameters
+  iterations: number;
+  repulsion_distance: number;     // Was: repulsionDistance
+  mass_scale: number;             // Was: massScale
+  update_threshold: number;       // Was: updateThreshold
 }
 
 // Rendering settings
