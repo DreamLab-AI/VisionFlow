@@ -115,11 +115,8 @@ COPY data/settings.yaml /app/settings.yaml
 
 # Copy pre-compiled PTX files (compiled outside container for reliability)
 # These were compiled with CUDA 12.9 for SM_86 (RTX 30 series/A6000)
-# Copy to both locations for compatibility with different code paths
-RUN mkdir -p /app/src/utils/ptx /app/src/utils
+RUN mkdir -p /app/src/utils/ptx
 COPY src/utils/ptx/*.ptx /app/src/utils/ptx/
-# Also copy directly to /app/src/utils/ for legacy compatibility
-COPY src/utils/ptx/*.ptx /app/src/utils/
 
 # Development entrypoint script
 COPY scripts/dev-entrypoint.sh ./

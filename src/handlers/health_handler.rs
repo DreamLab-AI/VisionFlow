@@ -121,9 +121,9 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
 }
 
 fn check_disk_usage() -> f64 {
-    // Check disk usage for /workspace
+    // Check disk usage for current directory
     match Command::new("df")
-        .args(["/workspace"])
+        .args(["."])
         .output()
     {
         Ok(output) => {

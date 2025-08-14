@@ -62,13 +62,14 @@ impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
             damping: params.damping,
             dt: params.time_step,
             max_velocity: params.max_velocity,
-            max_force: params.repulsion * 0.2, // Calculated as 20% of repulsion
+            max_force: params.max_force, // Use independent max_force parameter
             stress_weight: 0.5,  // Default stress values
             stress_alpha: 0.1,
             separation_radius: params.collision_radius,
             boundary_limit: params.viewport_bounds,
             alignment_strength: params.attraction_strength,
             cluster_strength: 0.2,  // Default cluster strength
+            boundary_damping: params.boundary_damping,
             viewport_bounds: params.viewport_bounds,
             temperature: params.temperature,
             iteration: 0,

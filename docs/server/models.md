@@ -45,7 +45,7 @@ Note: The actual field name in the struct is `repulsion`, not `repulsion_strengt
 
 ### Usage
 -   Configuring the physics engine for graph layout.
--   Allowing real-time adjustment of simulation behaviour.
+-   Allowing real-time adjustment of simulation behavior.
 -   Defining boundary conditions for the simulation space.
 
 ## UI Settings (`UserSettings` and `UISettings`)
@@ -64,7 +64,7 @@ The server defines two main structures for managing UI-related settings:
     }
     ```
 
-2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialised as camelCase JSON). It's derived from the global `Settings` for public/default views or from a specific user's `UserSettings`.
+2.  **`UISettings`** (from [`src/config/mod.rs`](../../src/config/mod.rs)): This structure represents the actual set of UI configurations that are sent to the client (serialized as camelCase JSON). It's derived from the global `Settings` for public/default views or from a specific user's `UserSettings`.
 
     ```rust
     // In src/config/mod.rs

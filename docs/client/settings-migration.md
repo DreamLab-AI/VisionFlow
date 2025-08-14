@@ -168,7 +168,7 @@ The migration from flat to multi-graph structure affects viewport settings in se
 
 1. **Pattern Expansion**: New wildcard patterns support graph-specific settings
 2. **Legacy Support**: Old patterns remain for backward compatibility
-3. **Performance**: Same real-time update behaviour for both structures
+3. **Performance**: Same real-time update behavior for both structures
 4. **Consistency**: Both legacy and new paths trigger immediate viewport updates
 
 **Example Usage:**
@@ -343,7 +343,7 @@ const value = useSettingsStore(state => {
 
 **After implementing fixes, verify**:
 - [ ] Settings panel opens without errors
-- [ ] All control types render correctly (sliders, toggles, colour pickers)
+- [ ] All control types render correctly (sliders, toggles, color pickers)
 - [ ] Real-time updates work (viewport changes immediately)
 - [ ] Settings persist to server (check Network tab)
 - [ ] Multi-graph themes work (blue logseq, green visionflow)

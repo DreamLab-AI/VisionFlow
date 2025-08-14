@@ -175,6 +175,7 @@ __device__ float3 compute_dual_graph_forces(
     int num_nodes, int num_edges,
     SimParams params
 ) {
+    const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
     int my_graph = node_graph_id[idx];
@@ -207,9 +208,15 @@ __device__ float3 compute_dual_graph_forces(
             // Different spring constants for intra vs inter-graph edges
             float spring_scale = (edge_graph_id[e] == my_graph) ? 1.0f : 0.5f;
             
-            if (dist > 0.01f) {
-                float attraction = params.spring_k * spring_scale * dist * edge_weight[e];
-                total_force = vec3_add(total_force, vec3_scale(vec3_normalize(diff), attraction));
+            if (dist > MIN_DISTANCE) {
+                // Spring force with natural length (like in compute_basic_forces)
+                float natural_length = 10.0f;  // Ideal edge length
+                float displacement = dist - natural_length;
+                // Calculate spring force based on displacement, not raw distance
+                float spring_force = params.spring_k * spring_scale * displacement * edge_weight[e];
+                // Limit spring force to prevent instability
+                spring_force = fmaxf(-params.max_force * 0.5f, fminf(params.max_force * 0.5f, spring_force));
+                total_force = vec3_add(total_force, vec3_scale(vec3_normalize(diff), spring_force));
             }
         }
     }
@@ -298,6 +305,7 @@ __device__ float3 compute_visual_analytics(
     int num_nodes, int num_edges,
     SimParams params
 ) {
+    const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
     float my_importance = node_importance[idx];
@@ -336,11 +344,17 @@ __device__ float3 compute_visual_analytics(
             float3 diff = vec3_sub(other_pos, my_pos);
             float dist = vec3_length(diff);
             
-            if (dist > 0.01f) {
+            if (dist > MIN_DISTANCE) {
+                // Spring force with natural length (like in compute_basic_forces)
+                float natural_length = 10.0f;  // Ideal edge length
+                float displacement = dist - natural_length;
                 // Scale by importance sum
                 float importance_sum = my_importance + node_importance[other];
-                float attraction = params.spring_k * dist * edge_weight[e] * importance_sum;
-                total_force = vec3_add(total_force, vec3_scale(vec3_normalize(diff), attraction));
+                // Calculate spring force based on displacement, not raw distance
+                float spring_force = params.spring_k * displacement * edge_weight[e] * importance_sum;
+                // Limit spring force to prevent instability
+                spring_force = fmaxf(-params.max_force * 0.5f, fminf(params.max_force * 0.5f, spring_force));
+                total_force = vec3_add(total_force, vec3_scale(vec3_normalize(diff), spring_force));
             }
         }
     }

@@ -344,7 +344,7 @@ ws.on('physics_update', (data) => {
 
 **Location**: `/ext/client/src/features/physics/components/PhysicsEngineControls.tsx`
 
-The control centre provides real-time physics parameter adjustment through four main tabs:
+The control center provides real-time physics parameter adjustment through four main tabs:
 
 #### 1. Engine Tab
 - **GPU Status**: Monitor compute device availability
@@ -815,7 +815,7 @@ if semantic_analysis.cluster_detected {
 
 ### Constraint-Based Layout
 
-Advanced constraint system for specialised layouts:
+Advanced constraint system for specialized layouts:
 
 ```typescript
 const constraints = {
@@ -847,10 +847,10 @@ await updateSettings({
 
 ### Machine Learning Integration
 
-Settings can be optimised using ML feedback:
+Settings can be optimized using ML feedback:
 
 ```rust
-// ML-optimised parameter suggestion
+// ML-optimized parameter suggestion
 pub struct MLOptimizer {
     pub learning_rate: f32,
     pub target_metrics: TargetMetrics,
@@ -950,7 +950,7 @@ let migration = SettingsMigration {
 // Future API endpoints
 interface FutureAPIs {
   '/api/settings/profiles': ProfileManagement;
-  '/api/settings/optimise': MLOptimization;
+  '/api/settings/optimize': MLOptimization;
   '/api/settings/compare': ParameterComparison;
   '/api/settings/export': ConfigurationExport;
   '/api/settings/templates': TemplateSystem;

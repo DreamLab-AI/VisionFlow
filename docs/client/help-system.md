@@ -277,7 +277,7 @@ interface LocalizedHelpContent extends HelpContent {
 1. **Content Writing**: Clear, concise, action-oriented
 2. **Examples**: Include practical, real-world examples
 3. **Visuals**: Use screenshots and diagrams
-4. **Updates**: Keep help synchronised with features
+4. **Updates**: Keep help synchronized with features
 5. **Feedback**: Actively collect and incorporate user feedback
 
 ## Future Enhancements

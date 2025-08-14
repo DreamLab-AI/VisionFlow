@@ -66,7 +66,7 @@ pub struct SimulationParams {
 // #[derive(Default, Clone, Copy, Debug, Pod, Zeroable)] // For bytemuck if used
 // pub struct GPUSimulationParams { /* fields matching kernel expectations */ }
 ```
-- These parameters are crucial for tuning the behaviour and performance of the graph layout algorithm.
+- These parameters are crucial for tuning the behavior and performance of the graph layout algorithm.
 - The actual parameters used by `GPUCompute` might be a subset or a transformed version of those found in `AppFullSettings.visualisation.physics`.
 
 ## Logging
@@ -157,7 +157,7 @@ This module provides helper functions for verifying access to protected API endp
 
 ## Helper Functions
 
-Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralised in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organised into more specific utility modules if widely needed.
+Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralized in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organized into more specific utility modules if widely needed.
 - File system operations are primarily handled by [`FileService`](../../src/services/file_service.rs).
 - Specific data conversion or formatting utilities might be found within individual service or model files.
 - The plan's mention of `sanitize_filename`, `generate_slug`, etc., as not being present is accurate for a generic `utils` module; such specific helpers would be within relevant services.

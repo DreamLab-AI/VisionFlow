@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LogseqSpringThing client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behaviour across the application, with support for theming and responsive design.
+The LogseqSpringThing client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behavior across the application, with support for theming and responsive design.
 
 ## Component Categories
 
@@ -118,7 +118,7 @@ Container component for grouping related content.
 ```
 
 #### Tabs ([`client/src/features/design-system/components/Tabs.tsx`](../../client/src/features/design-system/components/Tabs.tsx))
-Tabbed interface component for organising content.
+Tabbed interface component for organizing content.
 - **Sub-components**: TabsList, TabsTrigger, TabsContent
 - **Features**: Keyboard navigation, animated transitions
 - **Usage**:
@@ -210,7 +210,7 @@ Chat interface for AI interactions.
 Specialized panel for narrative exploration features.
 - **Features**:
   - Content discovery tools
-  - Narrative thread visualisation
+  - Narrative thread visualization
   - Interactive exploration controls
 
 ### RightPaneControlPanel ([`client/src/app/components/RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx))
@@ -224,8 +224,8 @@ Main control panel housing settings and authentication.
 
 ### Colors
 The component library uses CSS variables for theming:
-- `--primary`: Primary brand colour
-- `--secondary`: Secondary brand colour
+- `--primary`: Primary brand color
+- `--secondary`: Secondary brand color
 - `--background`: Background colors
 - `--foreground`: Text colors
 - `--muted`: Muted elements
@@ -252,7 +252,7 @@ All components support responsive design through:
 - Flexible layouts using CSS Grid and Flexbox
 - Responsive typography scaling
 - Touch-friendly interaction areas on mobile
-- Adaptive component behaviour based on screen size
+- Adaptive component behavior based on screen size
 
 ## Best Practices
 
@@ -261,7 +261,7 @@ All components support responsive design through:
 3. **Performance**: Components use React.memo and proper dependency arrays
 4. **Type Safety**: Full TypeScript support with exported prop types
 5. **Composition**: Prefer composition over configuration for flexibility
-6. **Theming**: Use CSS variables for easy theme customisation
+6. **Theming**: Use CSS variables for easy theme customization
 
 ## Usage Guidelines
 

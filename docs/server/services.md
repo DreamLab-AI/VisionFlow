@@ -700,11 +700,11 @@ impl<T> CachedService<T> {
 
         // Execute request and cache result
         let result = request.await?;
-        let serialised = serde_json::to_value(&result)?;
+        let serialized = serde_json::to_value(&result)?;
 
         {
             let mut cache = self.cache.write().await;
-            cache.insert(key, (Instant::now(), serialised));
+            cache.insert(key, (Instant::now(), serialized));
         }
 
         Ok(result)

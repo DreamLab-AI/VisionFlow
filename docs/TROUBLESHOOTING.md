@@ -526,7 +526,7 @@ rustc --version
 
 5. **Reproduction steps:**
 - Exact commands run
-- Expected vs actual behaviour
+- Expected vs actual behavior
 - Frequency of issue
 
 ### Support Channels

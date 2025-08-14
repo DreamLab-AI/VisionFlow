@@ -95,7 +95,7 @@ The definitive source for all server-side settings structures is `src/config/mod
     -   `auth: AuthSettings`
     -   Optional AI configurations: `ragflow: Option<RAGFlowConfig>`, `perplexity: Option<PerplexityConfig>`, `openai: Option<OpenAIConfig>`, `kokoro: Option<KokoroConfig>`. (Note: `WhisperSettings` is not a direct field; Whisper STT is usually part of `OpenAIConfig` or handled within `SpeechService`).
 
--   **`UISettings`**: This is the client-facing settings structure, typically serialised as camelCase JSON. It's derived from `Settings`. It includes:
+-   **`UISettings`**: This is the client-facing settings structure, typically serialized as camelCase JSON. It's derived from `Settings`. It includes:
     -   `visualisation: VisualisationSettings` (same as server's)
     -   `system: ClientSystemSettings` (a subset/transformation of `ServerSystemConfigFromFile`, containing `ClientWebSocketSettings` and `DebugSettings` relevant to the client)
     -   `xr: XRSettings` (same as server's)

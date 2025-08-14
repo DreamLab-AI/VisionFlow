@@ -23,7 +23,7 @@ docker-compose --profile dev up
 ```
 
 ### Production Profile (`production` or `prod`)
-For production deployments with optimised builds and security.
+For production deployments with optimized builds and security.
 
 **Features:**
 - Optimised production builds

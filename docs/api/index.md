@@ -401,7 +401,7 @@ Initializes a new swarm with specified topology and configuration.
 **Parameters:**
 - `topology: String` - Topology type (mesh, hierarchical, ring, star)
 - `maxAgents: u32` - Maximum number of agents (default: 5)
-- `strategy: String` - Distribution strategy (balanced, specialised, adaptive)
+- `strategy: String` - Distribution strategy (balanced, specialized, adaptive)
 - `config: Object` - Swarm-specific configuration (optional)
 
 #### `swarm_status`
@@ -477,7 +477,7 @@ Makes predictions using trained neural models.
 Analyzes and manages cognitive patterns.
 
 **Parameters:**
-- `action: String` - Action (analyse, learn, predict, optimise)
+- `action: String` - Action (analyze, learn, predict, optimize)
 - `pattern: String` - Pattern type (all, convergent, divergent, lateral, systems)
 - `data: Object` - Pattern-specific data
 - `agent_id: String` - Target agent (optional)
@@ -496,7 +496,7 @@ Generates comprehensive performance reports with metrics.
 Identifies and analyzes performance bottlenecks.
 
 **Parameters:**
-- `component: String` - Component to analyse (optional)
+- `component: String` - Component to analyze (optional)
 - `metrics: Array` - Metrics to evaluate (optional)  
 - `threshold: f32` - Performance threshold (optional)
 

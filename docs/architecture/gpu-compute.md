@@ -55,7 +55,7 @@ graph TB
 
 ### Single Kernel Architecture
 
-The unified kernel handles all compute modes in one optimised function:
+The unified kernel handles all compute modes in one optimized function:
 
 ```cuda
 __global__ void visionflow_unified_kernel(
