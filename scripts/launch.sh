@@ -201,38 +201,9 @@ compile_cuda() {
 
 # Check and rebuild backend with GPU support if needed
 check_backend_rebuild() {
-    if [[ "$PROFILE" == "dev" ]] && [[ -n "${NVIDIA_RUNTIME:-}" ]]; then
-        log "Checking if backend needs GPU rebuild..."
-        
-        # Check if container is running
-        if docker ps -q -f name="$CONTAINER_NAME" &> /dev/null; then
-            # Check if GPU is available in container
-            if docker exec "$CONTAINER_NAME" nvidia-smi &> /dev/null; then
-                info "GPU available in container, checking backend..."
-                
-                # Check if backend was built with GPU support
-                if ! docker exec "$CONTAINER_NAME" bash -c "ldd /app/webxr 2>/dev/null | grep -q cuda"; then
-                    warning "Backend not built with GPU support, rebuilding..."
-                    
-                    # Rebuild inside container
-                    docker exec "$CONTAINER_NAME" bash -c "cd /app && cargo build --release --features gpu && cp target/release/webxr /app/webxr"
-                    
-                    if [[ $? -eq 0 ]]; then
-                        success "Backend rebuilt with GPU support"
-                        # Restart backend service
-                        docker exec "$CONTAINER_NAME" supervisorctl restart rust-backend
-                        info "Backend service restarted"
-                    else
-                        error "Failed to rebuild backend with GPU support"
-                    fi
-                else
-                    info "Backend already has GPU support"
-                fi
-            else
-                warning "GPU not available in container, may need to recreate with --runtime nvidia"
-            fi
-        fi
-    fi
+    # Skip this check - always rely on the build being correct from Dockerfile
+    # The container should be built with GPU support already
+    return 0
 }
 
 # Docker Compose wrapper
@@ -280,8 +251,8 @@ start_environment() {
     docker_compose up "${up_args[@]}" &
     local compose_pid=$!
     
-    # Wait a bit for container to start
-    sleep 5
+    # Wait for container to be fully ready
+    sleep 8
     
     # Check if backend needs rebuild with GPU
     check_backend_rebuild

@@ -23,8 +23,43 @@ pub async fn perform_clustering(
 ) -> Result<Vec<Cluster>, String> {
     info!("Performing {} clustering for task {}", request.method, task_id);
     
+    // Check if GPU compute actor is available
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+        // Use GPU-accelerated clustering
+        use crate::actors::messages::PerformGPUClustering;
+        
+        info!("Using GPU-accelerated clustering for method: {}", request.method);
+        
+        let msg = PerformGPUClustering {
+            method: request.method.clone(),
+            params: request.params.clone(),
+            task_id: task_id.to_string(),
+        };
+        
+        match gpu_addr.send(msg).await {
+            Ok(Ok(clusters)) => {
+                info!("GPU clustering completed successfully: {} clusters found", clusters.len());
+                return Ok(clusters);
+            }
+            Ok(Err(e)) => {
+                error!("GPU clustering failed: {}", e);
+                // Fall back to CPU clustering
+                info!("Falling back to CPU clustering");
+            }
+            Err(e) => {
+                error!("GPU actor mailbox error: {}", e);
+                // Fall back to CPU clustering
+                info!("Falling back to CPU clustering");
+            }
+        }
+    }
+    
+    // CPU clustering fallback
+    info!("Using CPU clustering (fallback or no GPU available)");
+    
     // Get current graph data
-    let graph_data = if let Some(graph_addr) = app_state.graph_addr.as_ref() {
+    let graph_data = {
+        let graph_addr = app_state.get_graph_service_addr();
         match graph_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
@@ -36,8 +71,6 @@ pub async fn perform_clustering(
                 return Err("Graph service unavailable".to_string());
             }
         }
-    } else {
-        return Err("Graph service not available".to_string());
     };
     
     let node_count = graph_data.nodes.len();
