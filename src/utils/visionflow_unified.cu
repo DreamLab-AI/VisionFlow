@@ -483,41 +483,68 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     // Update position
     position = vec3_add(position, vec3_scale(velocity, p.params.dt));
     
-    // Apply soft viewport bounds with damping
-    float boundary_margin = p.params.viewport_bounds * 0.9f; // Start applying force at 90% of boundary
-    float boundary_force_strength = 10.0f; // Strength of boundary repulsion
+    // FIX: Improved soft viewport bounds with progressive damping to prevent bouncing
+    float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
+    float boundary_force_strength = 2.0f; // Reduced strength for gentler response
     
-    // X boundary
+    // X boundary - Progressive damping based on distance from boundary
     if (fabsf(position.x) > boundary_margin) {
-        float overshoot = fabsf(position.x) - boundary_margin;
-        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.x);
+        float distance_ratio = (fabsf(position.x) - boundary_margin) / (p.params.viewport_bounds - boundary_margin);
+        distance_ratio = fminf(distance_ratio, 1.0f);
+        
+        // Quadratic force increase near boundary for smooth deceleration
+        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.x);
         velocity.x += boundary_force * p.params.dt;
-        velocity.x *= p.params.boundary_damping; // Apply boundary damping
         
-        // Still clamp as last resort to prevent escape
-        position.x = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.x));
+        // Progressive damping: stronger as we approach the boundary
+        float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
+        velocity.x *= progressive_damping;
+        
+        // Soft clamp with margin to prevent hard bounces
+        if (fabsf(position.x) > p.params.viewport_bounds * 0.98f) {
+            position.x = copysignf(p.params.viewport_bounds * 0.98f, position.x);
+            velocity.x *= 0.5f; // Additional velocity reduction at boundary
+        }
     }
     
-    // Y boundary
+    // Y boundary - Progressive damping based on distance from boundary
     if (fabsf(position.y) > boundary_margin) {
-        float overshoot = fabsf(position.y) - boundary_margin;
-        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.y);
-        velocity.y += boundary_force * p.params.dt;
-        velocity.y *= p.params.boundary_damping; // Apply boundary damping
+        float distance_ratio = (fabsf(position.y) - boundary_margin) / (p.params.viewport_bounds - boundary_margin);
+        distance_ratio = fminf(distance_ratio, 1.0f);
         
-        // Still clamp as last resort to prevent escape
-        position.y = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.y));
+        // Quadratic force increase near boundary for smooth deceleration
+        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.y);
+        velocity.y += boundary_force * p.params.dt;
+        
+        // Progressive damping: stronger as we approach the boundary
+        float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
+        velocity.y *= progressive_damping;
+        
+        // Soft clamp with margin to prevent hard bounces
+        if (fabsf(position.y) > p.params.viewport_bounds * 0.98f) {
+            position.y = copysignf(p.params.viewport_bounds * 0.98f, position.y);
+            velocity.y *= 0.5f; // Additional velocity reduction at boundary
+        }
     }
     
-    // Z boundary
+    // Z boundary - Progressive damping based on distance from boundary
     if (fabsf(position.z) > boundary_margin) {
-        float overshoot = fabsf(position.z) - boundary_margin;
-        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.z);
-        velocity.z += boundary_force * p.params.dt;
-        velocity.z *= p.params.boundary_damping; // Apply boundary damping
+        float distance_ratio = (fabsf(position.z) - boundary_margin) / (p.params.viewport_bounds - boundary_margin);
+        distance_ratio = fminf(distance_ratio, 1.0f);
         
-        // Still clamp as last resort to prevent escape
-        position.z = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.z));
+        // Quadratic force increase near boundary for smooth deceleration
+        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.z);
+        velocity.z += boundary_force * p.params.dt;
+        
+        // Progressive damping: stronger as we approach the boundary
+        float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
+        velocity.z *= progressive_damping;
+        
+        // Soft clamp with margin to prevent hard bounces
+        if (fabsf(position.z) > p.params.viewport_bounds * 0.98f) {
+            position.z = copysignf(p.params.viewport_bounds * 0.98f, position.z);
+            velocity.z *= 0.5f; // Additional velocity reduction at boundary
+        }
     }
     
     // Write back results
