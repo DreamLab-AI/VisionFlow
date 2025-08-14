@@ -499,14 +499,12 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
                     Ok(response) => {
                         debug!("Received agent list: {:?}", response);
                         
-                        // Parse and forward to graph service
+                        // Parse agents for monitoring
                         if let Some(agents) = response.get("agents").and_then(|a| a.as_array()) {
                             for agent in agents {
                                 if let Ok(status) = serde_json::from_value::<AgentStatus>(agent.clone()) {
-                                    graph_addr.do_send(UpdateAgentStatus {
-                                        agent_id: status.id.clone(),
-                                        status,
-                                    });
+                                    // Agent status monitoring - could be sent to monitoring service
+                                    debug!("Agent {} status: {:?}", status.agent_id, status.status);
                                 }
                             }
                         }
