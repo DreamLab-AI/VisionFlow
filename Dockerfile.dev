@@ -101,8 +101,17 @@ RUN mkdir -p /app/src/utils/ptx && \
     echo "PTX kernel compiled successfully for sm_${CUDA_ARCH}" && \
     ls -la src/utils/ptx/
 
-# Build Rust with GPU features
-RUN cargo build --features gpu && \
+# Build argument for features (gpu or empty for CPU-only)
+ARG FEATURES=gpu
+
+# Build Rust with specified features
+RUN if [ -n "$FEATURES" ]; then \
+        echo "Building with features: $FEATURES" && \
+        cargo build --features "$FEATURES"; \
+    else \
+        echo "Building CPU-only version" && \
+        cargo build; \
+    fi && \
     cp target/debug/webxr /app/webxr
 
 # Copy settings file

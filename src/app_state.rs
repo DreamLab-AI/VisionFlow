@@ -98,6 +98,34 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient");
         let bots_client = Arc::new(BotsClient::new());
 
+        // Initialize GPU with delay to ensure graph data is ready
+        if let Some(ref gpu_addr) = gpu_compute_addr {
+            let gpu_addr_clone = gpu_addr.clone();
+            let graph_addr_clone = graph_service_addr.clone();
+            
+            // Spawn a task to initialize GPU after a delay
+            tokio::spawn(async move {
+                // Wait for graph service to be ready
+                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                
+                info!("[AppState] Initializing GPU compute actor with graph data");
+                
+                // Get initial graph data
+                use crate::actors::messages::{GetGraphData, InitializeGPU};
+                match graph_addr_clone.send(GetGraphData).await {
+                    Ok(Ok(graph_data)) => {
+                        info!("[AppState] Got graph data with {} nodes, initializing GPU", graph_data.models.nodes.len());
+                        gpu_addr_clone.do_send(InitializeGPU { graph: graph_data });
+                    }
+                    Ok(Err(e)) => {
+                        error!("[AppState] Failed to get graph data for GPU init: {}", e);
+                    }
+                    Err(e) => {
+                        error!("[AppState] Failed to send GetGraphData message: {}", e);
+                    }
+                }
+            });
+        }
 
         info!("[AppState::new] Actor system initialization complete");
 
