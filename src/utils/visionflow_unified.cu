@@ -30,6 +30,9 @@ struct SimParams {
     float alignment_strength;
     float cluster_strength;
     
+    // Boundary control
+    float boundary_damping;  // Damping factor when hitting boundaries
+    
     // System
     float viewport_bounds;
     float temperature;
@@ -466,10 +469,42 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     // Update position
     position = vec3_add(position, vec3_scale(velocity, p.params.dt));
     
-    // Apply viewport bounds
-    position.x = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.x));
-    position.y = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.y));
-    position.z = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.z));
+    // Apply soft viewport bounds with damping
+    float boundary_margin = p.params.viewport_bounds * 0.9f; // Start applying force at 90% of boundary
+    float boundary_force_strength = 10.0f; // Strength of boundary repulsion
+    
+    // X boundary
+    if (fabsf(position.x) > boundary_margin) {
+        float overshoot = fabsf(position.x) - boundary_margin;
+        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.x);
+        velocity.x += boundary_force * p.params.dt;
+        velocity.x *= p.params.boundary_damping; // Apply boundary damping
+        
+        // Still clamp as last resort to prevent escape
+        position.x = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.x));
+    }
+    
+    // Y boundary
+    if (fabsf(position.y) > boundary_margin) {
+        float overshoot = fabsf(position.y) - boundary_margin;
+        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.y);
+        velocity.y += boundary_force * p.params.dt;
+        velocity.y *= p.params.boundary_damping; // Apply boundary damping
+        
+        // Still clamp as last resort to prevent escape
+        position.y = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.y));
+    }
+    
+    // Z boundary
+    if (fabsf(position.z) > boundary_margin) {
+        float overshoot = fabsf(position.z) - boundary_margin;
+        float boundary_force = -overshoot * boundary_force_strength * copysignf(1.0f, position.z);
+        velocity.z += boundary_force * p.params.dt;
+        velocity.z *= p.params.boundary_damping; // Apply boundary damping
+        
+        // Still clamp as last resort to prevent escape
+        position.z = fmaxf(-p.params.viewport_bounds, fminf(p.params.viewport_bounds, position.z));
+    }
     
     // Write back results
     p.nodes.pos_x[idx] = position.x;
