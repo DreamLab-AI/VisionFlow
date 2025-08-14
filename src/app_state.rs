@@ -105,23 +105,23 @@ impl AppState {
             
             // Spawn a task to initialize GPU after a delay
             tokio::spawn(async move {
-                // Wait for graph service to be ready
-                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                // Wait for graph service to be ready and data to be loaded
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                 
-                info!("[AppState] Initializing GPU compute actor with graph data");
+                log::info!("[AppState] Initializing GPU compute actor with graph data");
                 
                 // Get initial graph data
                 use crate::actors::messages::{GetGraphData, InitializeGPU};
                 match graph_addr_clone.send(GetGraphData).await {
                     Ok(Ok(graph_data)) => {
-                        info!("[AppState] Got graph data with {} nodes, initializing GPU", graph_data.models.nodes.len());
+                        log::info!("[AppState] Got graph data with {} nodes, initializing GPU", graph_data.nodes.len());
                         gpu_addr_clone.do_send(InitializeGPU { graph: graph_data });
                     }
                     Ok(Err(e)) => {
-                        error!("[AppState] Failed to get graph data for GPU init: {}", e);
+                        log::error!("[AppState] Failed to get graph data for GPU init: {}", e);
                     }
                     Err(e) => {
-                        error!("[AppState] Failed to send GetGraphData message: {}", e);
+                        log::error!("[AppState] Failed to send GetGraphData message: {}", e);
                     }
                 }
             });

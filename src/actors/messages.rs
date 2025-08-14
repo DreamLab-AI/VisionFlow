@@ -587,3 +587,12 @@ pub struct UpdateForceParams {
     pub max_velocity: f32,
 }
 
+// GPU Clustering Messages
+#[derive(Message, Clone)]
+#[rtype(result = "Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>")]
+pub struct PerformGPUClustering {
+    pub method: String,
+    pub params: crate::handlers::api_handler::analytics::ClusteringParams,
+    pub task_id: String,
+}
+

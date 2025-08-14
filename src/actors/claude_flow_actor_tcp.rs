@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
 use serde_json::{json, Value};
-use serde::{Serialize, Deserialize};
+// use serde::{Serialize, Deserialize}; // Uncomment when needed
 use tokio::sync::RwLock;
 use std::sync::Arc;
 use tokio::net::TcpStream;
@@ -398,7 +398,7 @@ impl Handler<InitializeMCPSession> for ClaudeFlowActorTcp {
     type Result = ();
 
     fn handle(&mut self, _: InitializeMCPSession, _ctx: &mut Self::Context) {
-        let addr = _ctx.address();
+        let _addr = _ctx.address();
         tokio::spawn(async move {
             // This will be handled in the async context
         });

@@ -104,15 +104,11 @@ RUN mkdir -p /app/src/utils/ptx && \
 # Build argument for features (gpu or empty for CPU-only)
 ARG FEATURES=gpu
 
-# Build Rust with specified features
-RUN if [ -n "$FEATURES" ]; then \
-        echo "Building with features: $FEATURES" && \
-        cargo build --features "$FEATURES"; \
-    else \
-        echo "Building CPU-only version" && \
-        cargo build; \
-    fi && \
-    cp target/debug/webxr /app/webxr
+# Build Rust with GPU features (always)
+RUN echo "Building with GPU features enabled" && \
+    cargo build --release --features gpu && \
+    cp target/release/webxr /app/webxr && \
+    echo "Binary built with GPU support"
 
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml
