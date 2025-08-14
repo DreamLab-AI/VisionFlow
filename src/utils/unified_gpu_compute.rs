@@ -67,11 +67,11 @@ impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
             stress_weight: 0.5,  
             stress_alpha: 0.1,
             separation_radius: params.collision_radius.clamp(0.5, 5.0),  // Reasonable collision radius
-            boundary_limit: params.viewport_bounds.clamp(50.0, 1000.0),  // Sensible viewport bounds
+            boundary_limit: params.viewport_bounds.clamp(50.0, 5000.0),  // Allow larger viewport bounds from settings
             alignment_strength: params.attraction_strength.clamp(0.0, 0.01),  // Light attraction only
             cluster_strength: 0.2,  
             boundary_damping: params.boundary_damping.clamp(0.1, 0.9),  // Soft boundary response
-            viewport_bounds: params.viewport_bounds.clamp(50.0, 1000.0),  // Match boundary_limit
+            viewport_bounds: params.viewport_bounds.clamp(50.0, 5000.0),  // Match boundary_limit with larger range
             temperature: params.temperature.clamp(0.0, 0.1),      // Minimal random energy only
             iteration: 0,
             compute_mode: 0,  // Will be set based on ComputeMode

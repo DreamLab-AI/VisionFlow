@@ -1,5 +1,5 @@
 use config::{ConfigBuilder, ConfigError, Environment};
-use log::{debug, error};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_yaml;
@@ -8,6 +8,49 @@ use std::path::PathBuf;
 pub mod feature_access;
 
 // Types are already public in this module, no need to re-export
+
+// Helper function to convert empty strings to null for Option<String> fields
+fn convert_empty_strings_to_null(value: Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let new_map = map.into_iter().map(|(k, v)| {
+                let new_v = match v {
+                    Value::String(s) if s.is_empty() => {
+                        // For required String fields, keep empty strings
+                        // For optional fields, convert to null
+                        // List of required string fields that should NOT be null
+                        let required_string_fields = vec![
+                            "base_color", "color", "background_color", "text_color",
+                            "text_outline_color", "billboard_mode", "quality", "mode",
+                            "context", "cookie_samesite", "audit_log_path", "bind_address",
+                            "domain", "min_tls_version", "tunnel_id", "provider",
+                            "ring_color", "hand_mesh_color", "hand_ray_color",
+                            "teleport_ray_color", "controller_ray_color", "plane_color",
+                            "portal_edge_color", "space_type", "locomotion_method"
+                        ];
+                        
+                        if required_string_fields.contains(&k.as_str()) {
+                            // Keep empty string for required fields
+                            Value::String(s)
+                        } else {
+                            // Convert to null for optional fields
+                            Value::Null
+                        }
+                    },
+                    Value::Object(_) => convert_empty_strings_to_null(v),
+                    Value::Array(_) => convert_empty_strings_to_null(v),
+                    _ => v,
+                };
+                (k, new_v)
+            }).collect();
+            Value::Object(new_map)
+        }
+        Value::Array(arr) => {
+            Value::Array(arr.into_iter().map(convert_empty_strings_to_null).collect())
+        }
+        _ => value,
+    }
+}
 
 // Recursive function to convert JSON Value keys to snake_case
 fn keys_to_snake_case(value: Value) -> Value {
@@ -617,7 +660,7 @@ impl AppFullSettings {
 
         let settings_path = std::env::var("SETTINGS_FILE_PATH")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("/app/settings.yaml"));
+            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
         debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
 
         let builder = ConfigBuilder::<config::builder::DefaultState>::default()
@@ -648,17 +691,23 @@ impl AppFullSettings {
     
 
     pub fn save(&self) -> Result<(), String> {
+        // Check if persist_settings is enabled
+        if !self.system.persist_settings {
+            debug!("Settings persistence is disabled (persist_settings: false), skipping save");
+            return Ok(());
+        }
+
         let settings_path = std::env::var("SETTINGS_FILE_PATH")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("/app/settings.yaml"));
-        debug!("Saving AppFullSettings to YAML file: {:?}", settings_path);
+            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
+        info!("Saving AppFullSettings to YAML file: {:?}", settings_path);
 
         let yaml = serde_yaml::to_string(&self)
             .map_err(|e| format!("Failed to serialize AppFullSettings to YAML: {}", e))?;
 
         std::fs::write(&settings_path, yaml)
             .map_err(|e| format!("Failed to write settings file {:?}: {}", settings_path, e))?;
-        debug!("Successfully saved AppFullSettings to {:?}", settings_path);
+        info!("Successfully saved AppFullSettings to {:?}", settings_path);
         Ok(())
     }
     
@@ -676,18 +725,41 @@ impl AppFullSettings {
     
     /// Deep merge partial update into settings
     pub fn merge_update(&mut self, update: serde_json::Value) -> Result<(), String> {
+        // Debug: Log the incoming update (only if debug is enabled)
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("merge_update: Incoming update (camelCase): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
+        
         // Convert from camelCase to snake_case
-        let snake_update = keys_to_snake_case(update);
+        let mut snake_update = keys_to_snake_case(update.clone());
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("merge_update: After snake_case conversion: {}", serde_json::to_string_pretty(&snake_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
+        
+        // Convert empty strings to null for Option<String> fields
+        snake_update = convert_empty_strings_to_null(snake_update);
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&snake_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
         
         // Merge the update into self
         let current_value = serde_json::to_value(&self)
             .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
         
         let merged = merge_json_values(current_value, snake_update);
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("merge_update: After merge: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
         
         // Deserialize back to AppFullSettings
-        *self = serde_json::from_value(merged)
-            .map_err(|e| format!("Failed to deserialize merged settings: {}", e))?;
+        *self = serde_json::from_value(merged.clone())
+            .map_err(|e| {
+                if crate::utils::logging::is_debug_enabled() {
+                    error!("merge_update: Failed to deserialize merged JSON: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
+                    error!("merge_update: Original update was: {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+                }
+                format!("Failed to deserialize merged settings: {}", e)
+            })?;
         
         Ok(())
     }

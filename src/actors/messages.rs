@@ -530,13 +530,8 @@ pub struct RequestPositionSnapshot {
     pub include_agent_graph: bool,
 }
 
-// Physics parameter update messages
-#[derive(Message, Clone)]
-#[rtype(result = "Result<(), String>")]
-pub struct UpdatePhysicsParams {
-    pub graph_type: crate::actors::gpu_compute_actor::GraphType,
-    pub params: SimulationParams,
-}
+// Removed UpdatePhysicsParams - deprecated WebSocket physics path
+// Use UpdateSimulationParams via REST API instead
 
 #[derive(Debug, Clone)]
 pub struct PositionSnapshot {

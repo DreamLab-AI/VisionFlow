@@ -150,7 +150,8 @@ __device__ float3 compute_basic_forces(
             
             if (dist > MIN_DISTANCE) {
                 // Spring force with natural length
-                float natural_length = 10.0f;  // Increased ideal edge length
+                // Adaptive natural length based on repulsion radius and node density
+                float natural_length = fminf(params.separation_radius * 5.0f, 10.0f);  // Adaptive based on collision radius
                 float displacement = dist - natural_length;
                 // Limit spring force to prevent instability
                 float spring_force = params.spring_k * displacement * edge_weight[e];
@@ -210,7 +211,8 @@ __device__ float3 compute_dual_graph_forces(
             
             if (dist > MIN_DISTANCE) {
                 // Spring force with natural length (like in compute_basic_forces)
-                float natural_length = 10.0f;  // Ideal edge length
+                // Adaptive natural length based on repulsion radius and node density
+                float natural_length = fminf(params.separation_radius * 5.0f, 10.0f);  // Adaptive based on collision radius
                 float displacement = dist - natural_length;
                 // Calculate spring force based on displacement, not raw distance
                 float spring_force = params.spring_k * spring_scale * displacement * edge_weight[e];
@@ -346,7 +348,8 @@ __device__ float3 compute_visual_analytics(
             
             if (dist > MIN_DISTANCE) {
                 // Spring force with natural length (like in compute_basic_forces)
-                float natural_length = 10.0f;  // Ideal edge length
+                // Adaptive natural length based on repulsion radius and node density
+                float natural_length = fminf(params.separation_radius * 5.0f, 10.0f);  // Adaptive based on collision radius
                 float displacement = dist - natural_length;
                 // Scale by importance sum
                 float importance_sum = my_importance + node_importance[other];

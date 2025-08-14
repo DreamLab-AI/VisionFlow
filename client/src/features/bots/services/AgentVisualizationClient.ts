@@ -99,12 +99,12 @@ interface EffectsConfig {
 }
 
 interface PhysicsConfig {
-  spring_strength: number;
-  link_distance: number;
+  springStrength: number;
+  linkDistance: number;
   damping: number;
-  node_repulsion: number;
-  gravity_strength: number;
-  max_velocity: number;
+  nodeRepulsion: number;
+  gravityStrength: number;
+  maxVelocity: number;
 }
 
 // Client-side agent representation
