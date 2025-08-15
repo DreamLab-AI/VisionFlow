@@ -19,9 +19,9 @@ import { PhysicsPresets } from './PhysicsPresets';
 type KernelMode = 'legacy' | 'advanced' | 'visual_analytics';
 
 interface ForceParameters {
-  repulsion: number;
-  attraction: number;
-  spring: number;
+  repulsionStrength: number;  // UNIFIED: Use proper camelCase names
+  attractionStrength: number;
+  springStrength: number;
   damping: number;
   gravity: number;
   timeStep: number;
@@ -75,17 +75,17 @@ export function PhysicsEngineControls() {
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
-  // Initialize force params from settings
+  // Initialize force params from settings - UNIFIED FIELD NAMES
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsion: physicsSettings?.repulsionStrength || 2.0,    // Stable default
-    attraction: physicsSettings?.attractionStrength || 0.0001, // Stable default
-    spring: physicsSettings?.springStrength || 0.005,        // Stable default
-    damping: physicsSettings?.damping || 0.95,                // Stable default
-    gravity: physicsSettings?.gravity || 0.0001,              // Stable default
-    timeStep: physicsSettings?.timeStep || 0.016,            // Stable default (60fps)
-    maxVelocity: physicsSettings?.maxVelocity || 2.0,        // Stable default
-    temperature: physicsSettings?.temperature || 0.01,        // Stable default
+    repulsionStrength: physicsSettings?.repulsionStrength || 2.0,    // Stable default
+    attractionStrength: physicsSettings?.attractionStrength || 0.001, // Stable default
+    springStrength: physicsSettings?.springStrength || 0.005,        // Stable default
+    damping: physicsSettings?.damping || 0.95,                      // Stable default
+    gravity: physicsSettings?.gravity || 0.0001,                    // Stable default
+    timeStep: physicsSettings?.timeStep || 0.016,                  // Stable default (60fps)
+    maxVelocity: physicsSettings?.maxVelocity || 2.0,              // Stable default
+    temperature: physicsSettings?.temperature || 0.01,              // Stable default
   });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
@@ -128,18 +128,18 @@ export function PhysicsEngineControls() {
     }
   }, [initialized]);
   
-  // Update local state when settings change
+  // Update local state when settings change - UNIFIED FIELD NAMES
   useEffect(() => {
     if (physicsSettings && initialized) {
       setForceParams({
-        repulsion: physicsSettings.repulsionStrength || 2.0,      // Stable default
-        attraction: physicsSettings.attractionStrength || 0.0001, // Stable default
-        spring: physicsSettings.springStrength || 0.005,          // Stable default
-        damping: physicsSettings.damping || 0.95,                  // Stable default
-        gravity: physicsSettings.gravity || 0.0001,                // Stable default
-        timeStep: physicsSettings.timeStep || 0.016,              // Stable default (60fps)
-        maxVelocity: physicsSettings.maxVelocity || 2.0,          // Stable default
-        temperature: physicsSettings.temperature || 0.01,          // Stable default
+        repulsionStrength: physicsSettings.repulsionStrength || 2.0,      // Stable default
+        attractionStrength: physicsSettings.attractionStrength || 0.001,   // Stable default
+        springStrength: physicsSettings.springStrength || 0.005,          // Stable default
+        damping: physicsSettings.damping || 0.95,                        // Stable default
+        gravity: physicsSettings.gravity || 0.0001,                      // Stable default
+        timeStep: physicsSettings.timeStep || 0.016,                    // Stable default (60fps)
+        maxVelocity: physicsSettings.maxVelocity || 2.0,                // Stable default
+        temperature: physicsSettings.temperature || 0.01,                // Stable default
       });
     }
   }, [physicsSettings, initialized]);
@@ -192,53 +192,30 @@ export function PhysicsEngineControls() {
     const newParams = { ...forceParams, [param]: value };
     setForceParams(newParams);
     
-    // Map to settings structure
-    const physicsUpdate: any = {};
-    switch (param) {
-      case 'repulsion':
-        physicsUpdate.repulsionStrength = value;
-        break;
-      case 'attraction':
-        physicsUpdate.attractionStrength = value;
-        break;
-      case 'spring':
-        physicsUpdate.springStrength = value;
-        break;
-      case 'damping':
-        physicsUpdate.damping = value;
-        break;
-      case 'gravity':
-        physicsUpdate.gravity = value;
-        break;
-      case 'timeStep':
-        physicsUpdate.timeStep = value;
-        break;
-      case 'maxVelocity':
-        physicsUpdate.maxVelocity = value;
-        break;
-      case 'temperature':
-        physicsUpdate.temperature = value;
-        break;
-    }
+    // Create physics update with unified field names (already camelCase)
+    const physicsUpdate = {
+      [param]: value
+    };
     
     try {
       // Update through settings store
       await updatePhysics(physicsUpdate);
       
-      // IMPORTANT COMMUNICATION PATHWAY:
-      // Physics parameters are sent via REST API, NOT WebSocket!
-      // WebSocket is ONLY for binary position/velocity streaming.
-      // 
-      // This endpoint is MISNAMED - it's not really for analytics.
-      // The server intercepts physics params here and forwards them
-      // to UpdateSimulationParams. This is a HACK that should be fixed
-      // with a proper /api/physics/params endpoint.
-      //
-      // Data flow: UI -> REST /api/analytics/params -> UpdateSimulationParams -> GPU
-      await fetch('/api/analytics/params', {
+      // FIXED: Use proper /api/physics/update endpoint
+      // Data flow: UI -> REST /api/physics/update -> UpdateSimulationParams -> GPU
+      const response = await fetch('/api/physics/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newParams),
+        body: JSON.stringify(physicsUpdate),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Physics update failed: ${response.statusText}`);
+      }
+      
+      toast({
+        title: 'Physics Updated',
+        description: `${param} set to ${value.toFixed(3)}`,
       });
     } catch (error) {
       console.error('Failed to update force parameters:', error);
@@ -448,31 +425,31 @@ export function PhysicsEngineControls() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="repulsion">Repulsion</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.repulsion.toFixed(1)}</span>
+                  <Label htmlFor="repulsionStrength">Repulsion Strength</Label>
+                  <span className="text-sm text-muted-foreground">{forceParams.repulsionStrength.toFixed(1)}</span>
                 </div>
                 <Slider
-                  id="repulsion"
+                  id="repulsionStrength"
                   min={0.1}
                   max={20}  // Reasonable range for stable physics
                   step={0.1}
-                  value={[forceParams.repulsion]}
-                  onValueChange={([v]) => handleForceParamChange('repulsion', v)}
+                  value={[forceParams.repulsionStrength]}
+                  onValueChange={([v]) => handleForceParamChange('repulsionStrength', v)}
                 />
               </div>
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="attraction">Attraction</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.attraction.toFixed(3)}</span>
+                  <Label htmlFor="attractionStrength">Attraction Strength</Label>
+                  <span className="text-sm text-muted-foreground">{forceParams.attractionStrength.toFixed(3)}</span>
                 </div>
                 <Slider
-                  id="attraction"
+                  id="attractionStrength"
                   min={0}
                   max={0.01}  // Subtle attraction range
                   step={0.0001}
-                  value={[forceParams.attraction]}
-                  onValueChange={([v]) => handleForceParamChange('attraction', v)}
+                  value={[forceParams.attractionStrength]}
+                  onValueChange={([v]) => handleForceParamChange('attractionStrength', v)}
                 />
               </div>
               

@@ -76,10 +76,10 @@ export const settingsApi = {
   },
   
   /**
-   * Update physics settings for a specific graph
+   * Update physics settings - uses new unified endpoint
    */
-  async updatePhysics(graph: 'logseq' | 'visionflow', physics: any): Promise<void> {
-    const response = await fetch(`${API_BASE}/physics/${graph}`, {
+  async updatePhysics(physics: any): Promise<void> {
+    const response = await fetch('/api/physics/update', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

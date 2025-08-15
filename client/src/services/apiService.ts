@@ -104,7 +104,22 @@ class ApiService {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+        // Try to get error details from response body
+        let errorDetails = '';
+        try {
+          const errorBody = await response.json();
+          errorDetails = errorBody.error || errorBody.message || '';
+          logger.error(`[API ERROR] POST ${url} failed:`, {
+            status: response.status,
+            statusText: response.statusText,
+            errorDetails,
+            requestPayload: data
+          });
+        } catch (e) {
+          // Response might not be JSON
+          errorDetails = await response.text();
+        }
+        throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Details: ${errorDetails}`);
       }
 
       const responseData = await response.json();

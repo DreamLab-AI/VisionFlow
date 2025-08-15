@@ -56,23 +56,33 @@ unsafe impl ValidAsZeroBits for SimParams {}
 // Conversion from SimulationParams to SimParams with validation
 impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
     fn from(params: &crate::models::simulation_params::SimulationParams) -> Self {
-        // FIX: Clamp all physics parameters to safe ranges to prevent instability
+        // Log the conversion to debug parameter flow
+        log::info!("Converting SimulationParams to SimParams:");
+        log::info!("  Input repulsion: {} -> repel_k: {}", 
+                   params.repulsion, params.repulsion.clamp(0.01, 100.0));
+        log::info!("  Input damping: {} -> damping: {}", 
+                   params.damping, params.damping.clamp(0.1, 0.99));
+        log::info!("  Input time_step: {} -> dt: {}", 
+                   params.time_step, params.time_step.clamp(0.001, 0.1));
+        log::info!("  Input enabled: {}", params.enabled);
+        
+        // EXPANDED RANGES: Allow wider parameter ranges for user control
         Self {
-            spring_k: params.spring_strength.clamp(0.0001, 0.1),  // Prevent too weak or strong springs
-            repel_k: params.repulsion.clamp(0.1, 10.0),           // Limit repulsion to prevent explosion
-            damping: params.damping.clamp(0.8, 0.99),             // Ensure good damping for stability
-            dt: params.time_step.clamp(0.001, 0.05),              // Limit timestep for integration stability
-            max_velocity: params.max_velocity.clamp(0.5, 10.0),   // Reasonable velocity limits
-            max_force: params.max_force.clamp(1.0, 20.0),         // Prevent excessive forces
+            spring_k: params.spring_strength.clamp(0.0001, 1.0),   // Expanded upper limit
+            repel_k: params.repulsion.clamp(0.01, 100.0),          // Much wider range for repulsion
+            damping: params.damping.clamp(0.1, 0.99),              // Wider damping range
+            dt: params.time_step.clamp(0.001, 0.1),                // Allow larger timesteps
+            max_velocity: params.max_velocity.clamp(0.1, 100.0),   // Much wider velocity range
+            max_force: params.max_force.clamp(0.1, 100.0),         // Wider force range
             stress_weight: 0.5,  
             stress_alpha: 0.1,
-            separation_radius: params.collision_radius.clamp(0.5, 5.0),  // Reasonable collision radius
-            boundary_limit: params.viewport_bounds.clamp(50.0, 5000.0),  // Allow larger viewport bounds from settings
-            alignment_strength: params.attraction_strength.clamp(0.0, 0.01),  // Light attraction only
+            separation_radius: params.collision_radius.clamp(0.1, 10.0),  // Wider collision radius
+            boundary_limit: params.viewport_bounds.clamp(50.0, 5000.0),
+            alignment_strength: params.attraction_strength.clamp(0.0, 1.0),  // Full range for attraction
             cluster_strength: 0.2,  
-            boundary_damping: params.boundary_damping.clamp(0.1, 0.9),  // Soft boundary response
-            viewport_bounds: params.viewport_bounds.clamp(50.0, 5000.0),  // Match boundary_limit with larger range
-            temperature: params.temperature.clamp(0.0, 0.1),      // Minimal random energy only
+            boundary_damping: params.boundary_damping.clamp(0.1, 0.99),
+            viewport_bounds: params.viewport_bounds.clamp(50.0, 5000.0),
+            temperature: params.temperature.clamp(0.0, 10.0),      // Allow higher temperature
             iteration: 0,
             compute_mode: 0,  // Will be set based on ComputeMode
         }
@@ -337,6 +347,11 @@ impl UnifiedGPUCompute {
     }
 
     pub fn set_params(&mut self, params: SimParams) {
+        log::info!("UnifiedGPUCompute::set_params called:");
+        log::info!("  repel_k: {}", params.repel_k);
+        log::info!("  damping: {}", params.damping);
+        log::info!("  dt: {}", params.dt);
+        log::info!("  compute_mode: {}", self.compute_mode as i32);
         self.params = params;
         self.params.compute_mode = self.compute_mode as i32;
     }

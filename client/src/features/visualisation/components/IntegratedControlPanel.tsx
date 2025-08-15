@@ -405,8 +405,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           fields: [
             { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled' },
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
-            { key: 'repulsion', label: 'Repulsion', type: 'slider', min: 0, max: 2, path: 'visualisation.graphs.logseq.physics.repulsionStrength' },
-            { key: 'attraction', label: 'Attraction', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.attractionStrength' },
+            { key: 'repulsionStrength', label: 'Repulsion Strength', type: 'slider', min: 0, max: 2, path: 'visualisation.graphs.logseq.physics.repulsionStrength' },
+            { key: 'attractionStrength', label: 'Attraction Strength', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.attractionStrength' },
             { key: 'springStrength', label: 'Spring Strength', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.springStrength' },
             { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.001, max: 0.5, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
             { key: 'iterations', label: 'Iterations', type: 'slider', min: 10, max: 500, path: 'visualisation.graphs.logseq.physics.iterations' },
@@ -536,7 +536,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           title: 'XR/AR Settings',
           fields: [
             // Debug Settings
-            { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enableClientDebugMode' },
+            { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enabled' },
             { key: 'showFPS', label: 'Show FPS', type: 'toggle', path: 'system.debug.showFPS' },
             { key: 'showMemory', label: 'Show Memory', type: 'toggle', path: 'system.debug.showMemory' },
             { key: 'perfDebug', label: 'Performance Debug', type: 'toggle', path: 'system.debug.enablePerformanceDebug' },
@@ -556,7 +556,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'customBackendURL', label: 'Custom Backend URL', type: 'text', path: 'system.customBackendUrl' },
 
             // XR Settings
-            { key: 'xrEnabled', label: 'XR Mode', type: 'toggle', path: 'xr.enableXrMode' },
+            { key: 'xrEnabled', label: 'XR Mode', type: 'toggle', path: 'xr.enabled' },
             { key: 'xrQuality', label: 'XR Quality', type: 'select', options: ['Low', 'Medium', 'High'], path: 'xr.quality' },
             { key: 'xrRenderScale', label: 'XR Render Scale', type: 'slider', min: 0.5, max: 2, path: 'xr.renderScale' },
             { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.handTracking.enabled' },

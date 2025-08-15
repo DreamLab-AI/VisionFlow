@@ -56,6 +56,33 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
+/**
+ * Normalize settings to server schema to avoid validation errors.
+ * - system.debug.logLevel: coerce 'debug'|'info'|'warn'|'error' -> 0..3 and clamp to [0,3]
+ */
+function normalizeSettingsForServer(settings: Settings) {
+  // JSON clone to avoid mutating store state
+  const normalized: any = JSON.parse(JSON.stringify(settings));
+  const sys = normalized?.system;
+  const dbg = sys?.debug;
+  if (dbg) {
+    const map: Record<string, number> = { debug: 0, info: 1, warn: 2, error: 3 };
+    const lvl = dbg.logLevel;
+    if (typeof lvl === 'string') {
+      if (map[lvl] !== undefined) {
+        dbg.logLevel = map[lvl];
+      }
+    } else if (typeof lvl === 'number') {
+      if (Number.isFinite(lvl)) {
+        if (lvl < 0) dbg.logLevel = 0;
+        if (lvl > 3) dbg.logLevel = 3;
+      } else {
+        dbg.logLevel = 1; // default to 'info'
+      }
+    }
+  }
+  return normalized;
+}
 // Shared debounced save function
 const debouncedSaveToServer = async (settings: Settings, initialized: boolean) => {
   if (!initialized || settings.system?.persistSettings === false) {
@@ -83,7 +110,20 @@ const debouncedSaveToServer = async (settings: Settings, initialized: boolean) =
       logger.warn('Error getting Nostr authentication:', createErrorMetadata(error));
     }
 
-    const updatedSettings = await apiService.post('/settings', settings, headers);
+    // Log the exact payload being sent for debugging
+    logger.info('[SETTINGS DEBUG] Sending settings payload to server:', {
+      endpoint: '/api/settings',
+      payloadKeys: Object.keys(settings),
+      sampleFields: {
+        'xr.enabled': settings.xr?.enabled,
+        'xr.enableXrMode': (settings.xr as any)?.enableXrMode,
+        'system.debug.enabled': settings.system?.debug?.enabled,
+        'system.debug.enableClientDebugMode': (settings.system?.debug as any)?.enableClientDebugMode
+      }
+    });
+
+    const payload = normalizeSettingsForServer(settings);
+    const updatedSettings = await apiService.post('/settings', payload, headers);
     if (updatedSettings) {
       if (debugState.isEnabled()) {
         logger.info('Settings saved to server successfully');
