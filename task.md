@@ -1,41 +1,95 @@
+High-Certainty Diagnosis
+The root cause of the problem is an architectural disconnect in the actor system. The real-time physics parameter updates from the control center are being sent to a dormant GPUComputeActor, while the main simulation loop, which is running inside the GraphServiceActor, is never notified of these changes.
+Consequently, the GraphServiceActor continues to use the initial physics parameters it was loaded with at startup, completely ignoring any subsequent adjustments made by the user. The "exploding" behavior is a classic symptom of an unstable physics simulation running with excessively high repulsion forces and/or an overly large time step, which are likely the default values the active simulation is stuck with.
+Detailed Analysis
+Let's trace the flow of information and execution to understand how this disconnect occurs:
+The Active Simulation Engine: The core physics simulation loop runs inside the GraphServiceActor (src/actors/graph_actor.rs).
+Its run_simulation_step method is called on a 16ms interval.
+This method calls run_advanced_gpu_step, which directly uses an embedded UnifiedGPUCompute instance (self.advanced_gpu_context) to execute the CUDA kernel.
+Crucially, it configures the physics for this kernel using its own internal state: self.simulation_params.
+The Incorrect Update Path: When you change a physics parameter in the control center, the frontend sends a request to the /api/analytics/params endpoint.
+This request is handled by update_analytics_params in src/handlers/api_handler/analytics/mod.rs.
+This handler correctly parses the incoming physics values (e.g., repulsion, damping).
+It then creates an UpdateSimulationParams message and sends it... but only to the GPUComputeActor.
+The Dormant Actor: The GPUComputeActor (src/actors/gpu_compute_actor.rs) is a separate actor designed to handle GPU computations.
+It correctly receives the UpdateSimulationParams message and updates its internal physics parameters. You would even see log messages from this actor confirming the update.
+However, the GraphServiceActor never calls the GPUComputeActor to perform the physics calculations. The GraphServiceActor performs them directly using its own UnifiedGPUCompute instance.
+Therefore, the GPUComputeActor receives all the real-time updates but sits idle, while the GraphServiceActor runs the simulation completely unaware of these new settings.
+Explaining the Symptoms:
+No Impact on Graph: Since the active simulation in GraphServiceActor never gets the new parameters, your changes have no effect.
+Exploding and Bouncing: The simulation is running with the initial parameters loaded from settings.yaml at startup. If these initial values are unstable or are being overridden by hardcoded defaults that are unstable, the physics simulation will break down. The massive forces push nodes outwards until they hit the boundary defined in the CUDA kernel (visionflow_unified.cu). The "bouncing" is caused by the boundary collision logic, which reverses a node's velocity when it hits the edge of the viewport_bounds, causing it to repeatedly slam against the walls of the simulation cube. The grouping in 8 corners is a typical artifact of this behavior in a 3D bounding box.
+The Critical Code Files
+src/handlers/api_handler/analytics/mod.rs: The update_analytics_params function sends the update message to the wrong destination.
+code
+Rust
+// src/handlers/api_handler/analytics/mod.rs
 
-ThinkingThoughts
-(experimental)
-Manual: 32768
-Expand to view model thoughts
+pub async fn update_analytics_params(
+    app_state: web::Data<AppState>,
+    params: web::Json<serde_json::Value>,
+) -> Result<HttpResponse> {
+    // ... logic to parse params ...
 
-chevron_right
-Of course. Here is a comprehensive list of all the files involved in the REST API communication flow, from the client request to the server's response, based on the provided file structure and logs.
-The primary example we can trace is the POST /api/settings call, which is failing in your logs.
-Summary of the Flow
-The communication for saving settings follows this path:
-Client UI → Zustand Store → API Service → Nginx Proxy → Rust Backend (Handler → Actor → Config Logic) → settings.yaml file
-1. Client-Side Files (Request Flow)
-These files are responsible for initiating the API call from the browser.
-client/src/features/visualisation/components/IntegratedControlPanel.tsx: The UI component where a user interacts with a setting (e.g., clicks a button or moves a slider). The onClick handler triggers the process.
-client/src/store/settingsStore.ts: The Zustand state management store. It receives the update from the UI, modifies the client-side state, and then calls a debounced function (debouncedSaveToServer) to send the changes to the backend.
-client/src/services/apiService.ts: A generic service that abstracts the actual fetch call. The post method in this file constructs and sends the HTTP POST request to /api/settings.
-client/src/features/settings/config/settings.ts: This TypeScript file defines the Settings interface, which is the data structure of the object being sent to the server as the JSON payload.
-2. Server-Side Files (Request Processing & Response Flow)
-These Rust files on the backend receive the request, process it, save the data, and send a response.
-nginx.dev.conf: In your development environment, Nginx acts as a reverse proxy. It receives the request on port 3001 and forwards any request to /api/* to the Rust backend running on port 4000.
-src/main.rs: The main entry point of the Rust application. It sets up the Actix web server and registers the API routes, including the /api scope which is configured in api_handler.
-src/handlers/api_handler/mod.rs: This module configures all the API sub-routes. It directs requests for /api/settings to the settings_handler.
-src/handlers/settings_handler.rs: This is the core handler for the /api/settings endpoint. The update_settings function receives the JSON payload from the client.
-src/app_state.rs: Defines the shared application state, including the addresses for all the actors. The settings_handler uses this to get the address of the SettingsActor.
-src/actors/settings_actor.rs: An Actix actor that manages the application's settings in memory. The settings_handler sends an UpdateSettings message to this actor.
-src/actors/messages.rs: Defines the message types (like UpdateSettings and GetSettings) that actors use to communicate with each other.
-src/config/mod.rs: This is a critical file. It defines the main AppFullSettings Rust struct that the incoming JSON is ultimately deserialized into. It contains the merge_update logic for applying partial updates and the save method for writing to the YAML file.
-data/settings.yaml: The final destination. The save() method in src/config/mod.rs serializes the AppFullSettings struct into YAML format and overwrites this file.
-3. Shared Data Models & Utilities
-These files define the data structures and logic used for converting data between the client and server.
-Client-Side Model: client/src/features/settings/config/settings.ts (Defines the Settings interface in camelCase).
-Server-Side Model: src/config/mod.rs (Defines the AppFullSettings struct and all its nested structs in snake_case).
-Data Conversion Logic:
-src/utils/caseConversion.ts (Client-side, though not explicitly used in the settings flow, it's a common pattern).
-src/config/mod.rs contains the keys_to_snake_case and keys_to_camel_case helper functions that perform the critical conversion between the client's JSON and the server's struct format.
-4. Configuration Files
-These files configure the behavior of the client and server, including ports and URLs.
-client/vite.config.ts: Configures the Vite development server, including the HMR WebSocket port.
-docker-compose.dev.yml: Defines the services, ports, and environment variables for the development environment, tying Nginx, Vite, and the Rust backend together.
-.env / .env_template: Contains environment variables, including API keys and potentially the backend URL, which are loaded by Docker Compose.
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+        // ...
+        // PROBLEM: This message is sent ONLY to the GPUComputeActor.
+        // The GraphServiceActor, which is running the simulation, is not notified.
+        match gpu_addr.send(UpdateSimulationParams { params: sim_params }).await {
+            // ...
+        }
+    }
+    // ...
+}
+src/actors/graph_actor.rs: This actor runs the simulation loop using its own internal state, which is never updated by the API handler.
+code
+Rust
+// src/actors/graph_actor.rs
+
+fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
+    // ...
+    if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+        // ...
+        // It uses its OWN simulation_params, which are never updated after startup.
+        let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
+        gpu_context.set_params(sim_params);
+
+        // It executes the physics directly, bypassing the GPUComputeActor.
+        match gpu_context.execute() {
+            // ...
+        }
+    }
+    // ...
+}
+Solution
+To fix this, you must ensure the UpdateSimulationParams message is sent to the correct actor, which is the GraphServiceActor.
+Primary Fix: Retarget the Message
+Modify the update_analytics_params handler in src/handlers/api_handler/analytics/mod.rs to send the message to app_state.graph_service_addr instead of app_state.gpu_compute_addr.
+code
+Rust
+// In src/handlers/api_handler/analytics/mod.rs
+
+// ... inside update_analytics_params function
+if params.get("repulsion").is_some() || params.get("damping").is_some() {
+    // ... (logic to build sim_params) ...
+
+    // Get the correct actor address
+    let graph_actor_addr = &app_state.graph_service_addr;
+
+    // Send as UpdateSimulationParams to the GraphServiceActor
+    use crate::actors::messages::UpdateSimulationParams;
+    match graph_actor_addr.send(UpdateSimulationParams { params: sim_params }).await {
+        Ok(Ok(())) => {
+            info!("Physics parameters forwarded successfully to GraphServiceActor");
+        }
+        Ok(Err(e)) => {
+            warn!("GraphServiceActor failed to update physics params: {}", e);
+        }
+        Err(e) => {
+            warn!("GraphServiceActor mailbox error: {}", e);
+        }
+    }
+}
+// ...
+Architectural Recommendation: Consolidate Physics Logic
+The current architecture is confusing and error-prone because it contains two separate (and competing) physics engines. The GPUComputeActor is effectively redundant.
+You should refactor the system to have a single source of truth for physics execution. The most straightforward approach is to remove the GPUComputeActor entirely and have all physics-related messages and logic handled directly by the GraphServiceActor and its embedded UnifiedGPUCompute instance. This will simplify the codebase and prevent this kind of bug from recurring.
