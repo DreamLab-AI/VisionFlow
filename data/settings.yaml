@@ -21,11 +21,11 @@ visualisation:
     wave_speed: 0.5
   bloom:
     edge_bloom_strength: 3.5
-    enabled: false
+    enabled: true
     environment_bloom_strength: 3.0
     node_bloom_strength: 3.0
     radius: 0.124784134
-    strength: 0.096262045
+    strength: 0.38861346
     threshold: 0.15
   hologram:
     ring_count: 5
@@ -80,16 +80,16 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_strength: 0.8128795
+        attraction_strength: 0.8663584
         bounds_size: 500.0
         collision_radius: 2.0
-        damping: 0.80931425
+        damping: 0.2566988
         enable_bounds: true
-        enabled: false
+        enabled: true
         iterations: 100
         max_velocity: 0.02768598
-        repulsion_strength: 0.17113253
-        spring_strength: 0.29948193
+        repulsion_strength: 0.07843574
+        spring_strength: 0.07843574
         repulsion_distance: 50.0
         mass_scale: 1.0
         boundary_damping: 0.5
@@ -169,12 +169,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '3': fitToView
       '4': topView
-      '2': cycleMode
-      '5': rightView
       '6': frontView
+      '2': cycleMode
       '1': resetView
+      '5': rightView
+      '3': fitToView
 system:
   network:
     bind_address: 0.0.0.0
@@ -276,7 +276,7 @@ xr:
   portal_edge_color: '#4287f5'
   portal_edge_width: 0.02
 auth:
-  enabled: false
+  enabled: true
   provider: nostr
   required: false
 ragflow:
