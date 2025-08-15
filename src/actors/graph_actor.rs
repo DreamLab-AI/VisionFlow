@@ -665,6 +665,13 @@ impl GraphServiceActor {
     }
     
     fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
+        debug!("=== START run_advanced_gpu_step ===");
+        debug!("Current simulation_params: repulsion={}, damping={}, time_step={}, enabled={}", 
+               self.simulation_params.repulsion,
+               self.simulation_params.damping,
+               self.simulation_params.time_step,
+               self.simulation_params.enabled);
+        
         // Prepare node positions for unified GPU compute
         let positions = self.prepare_node_positions();
         
@@ -715,9 +722,12 @@ impl GraphServiceActor {
             gpu_context.set_mode(mode);
             
             let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
+            debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {} }}", 
+                   sim_params.repel_k, sim_params.damping, sim_params.dt);
             gpu_context.set_params(sim_params);
             
             // Execute GPU physics step
+            debug!("Executing GPU physics step...");
             match gpu_context.execute() {
                 Ok(new_positions) => {
                     let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
@@ -1190,14 +1200,34 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GraphServiceActor updating physics simulation parameters");
+        info!("=== GraphServiceActor::UpdateSimulationParams RECEIVED ===");
+        info!("OLD params: repulsion={}, damping={}, time_step={}, enabled={}", 
+               self.simulation_params.repulsion,
+               self.simulation_params.damping,
+               self.simulation_params.time_step,
+               self.simulation_params.enabled);
+        info!("NEW params: repulsion={}, damping={}, time_step={}, enabled={}", 
+               msg.params.repulsion,
+               msg.params.damping,
+               msg.params.time_step,
+               msg.params.enabled);
+        
         self.simulation_params = msg.params.clone();
+        
+        // Update the advanced GPU context if available
+        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+            let sim_params = SimParams::from(&self.simulation_params);
+            info!("Updating advanced_gpu_context with new params");
+            gpu_context.set_params(sim_params);
+        }
         
         // Also update GPU compute actor if available
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            info!("Forwarding params to GPUComputeActor");
             gpu_addr.do_send(msg);
         }
         
+        info!("=== GraphServiceActor physics params update COMPLETE ===");
         Ok(())
     }
 }

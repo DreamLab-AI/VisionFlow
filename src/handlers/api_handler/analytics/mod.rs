@@ -337,91 +337,49 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
     }))
 }
 
-/// POST /api/analytics/params - Update parameters
-/// IMPORTANT: This endpoint is MISUSED by the client to update physics parameters!
-/// The client PhysicsEngineControls sends physics values (repulsion, damping, etc.) here
-/// but this endpoint expects VisualAnalyticsParams which doesn't have those fields.
-/// This is a DESIGN FLAW that needs to be fixed properly with a dedicated physics endpoint.
-/// 
-/// Current workaround: Parse the raw JSON to extract physics params and forward them.
+/// POST /api/analytics/params - Update visual analytics parameters
+/// CLEANED UP: No longer handles physics parameters - use /api/physics/update instead
 pub async fn update_analytics_params(
     app_state: web::Data<AppState>,
-    params: web::Json<serde_json::Value>, // Changed to accept raw JSON
+    params: web::Json<VisualAnalyticsParams>,
 ) -> Result<HttpResponse> {
-    info!("Updating analytics/physics parameters via mismatched endpoint");
+    info!("Updating visual analytics parameters");
+    debug!("Visual analytics params: {:?}", params);
     
-    // HACK: Extract physics parameters from the raw JSON
-    // The client sends: { repulsion, attraction, damping, temperature, maxVelocity, timeStep, enabled }
-    // We need to convert these to proper SimulationParams
-    
-    // Check if this is actually physics params from the UI
-    if params.get("repulsion").is_some() || params.get("damping").is_some() {
-        // This is physics params from the UI controls
-        info!("Detected physics parameters in analytics endpoint");
-        
-        // Create a proper physics update message
-        let mut sim_params = crate::models::simulation_params::SimulationParams::default();
-        
-        if let Some(v) = params.get("repulsion").and_then(|v| v.as_f64()) {
-            sim_params.repulsion = v as f32;
-        }
-        if let Some(v) = params.get("attraction").and_then(|v| v.as_f64()) {
-            sim_params.attraction_strength = v as f32;
-        }
-        if let Some(v) = params.get("damping").and_then(|v| v.as_f64()) {
-            sim_params.damping = v as f32;
-        }
-        if let Some(v) = params.get("temperature").and_then(|v| v.as_f64()) {
-            sim_params.temperature = v as f32;
-        }
-        if let Some(v) = params.get("maxVelocity").and_then(|v| v.as_f64()) {
-            sim_params.max_velocity = v as f32;
-        }
-        if let Some(v) = params.get("timeStep").and_then(|v| v.as_f64()) {
-            sim_params.time_step = v as f32;
-        }
-        if let Some(v) = params.get("enabled").and_then(|v| v.as_bool()) {
-            sim_params.enabled = v;
-        }
-        
-        // Send to GraphServiceActor (which is running the actual simulation)
-        let graph_actor_addr = &app_state.graph_service_addr;
-        
-        // Send as UpdateSimulationParams to the GraphServiceActor
-        use crate::actors::messages::UpdateSimulationParams;
-        match graph_actor_addr.send(UpdateSimulationParams { params: sim_params }).await {
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+        match gpu_addr.send(UpdateVisualAnalyticsParams { params: params.into_inner() }).await {
             Ok(Ok(())) => {
-                info!("Physics parameters forwarded successfully to GraphServiceActor");
+                info!("Visual analytics parameters updated successfully");
+                Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
+                    success: true,
+                    params: None,
+                    error: None,
+                }))
             }
             Ok(Err(e)) => {
-                warn!("GraphServiceActor failed to update physics params: {}", e);
+                error!("Failed to update visual analytics params: {}", e);
+                Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
+                    success: false,
+                    params: None,
+                    error: Some(format!("Failed to update parameters: {}", e)),
+                }))
             }
             Err(e) => {
-                warn!("GraphServiceActor mailbox error: {}", e);
+                error!("GPU compute actor mailbox error: {}", e);
+                Ok(HttpResponse::ServiceUnavailable().json(AnalyticsParamsResponse {
+                    success: false,
+                    params: None,
+                    error: Some("GPU compute service unavailable".to_string()),
+                }))
             }
         }
-    } else if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-        // Try to parse as VisualAnalyticsParams for backwards compatibility
-        if let Ok(visual_params) = serde_json::from_value::<VisualAnalyticsParams>(params.0.clone()) {
-            match gpu_addr.send(UpdateVisualAnalyticsParams { params: visual_params }).await {
-                Ok(Ok(())) => {
-                    debug!("Visual analytics parameters updated successfully");
-                }
-                Ok(Err(e)) => {
-                    warn!("Failed to update GPU visual analytics params: {}", e);
-                }
-                Err(e) => {
-                    warn!("GPU compute actor mailbox error: {}", e);
-                }
-            }
-        }
+    } else {
+        Ok(HttpResponse::ServiceUnavailable().json(AnalyticsParamsResponse {
+            success: false,
+            params: None,
+            error: Some("GPU compute service not available".to_string()),
+        }))
     }
-
-    Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
-        success: true,
-        params: None, // Can't return typed params since we accept raw JSON
-        error: None,
-    }))
 }
 
 /// GET /api/analytics/constraints - Get current constraints

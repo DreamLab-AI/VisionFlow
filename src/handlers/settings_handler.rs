@@ -9,11 +9,14 @@ use serde_json::{json, Value};
 /// Configure routes for settings endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/settings")  // Removed redundant /api prefix - already under /api scope
+        web::scope("/settings")
             .route("", web::get().to(get_settings))
             .route("", web::post().to(update_settings))
             .route("/reset", web::post().to(reset_settings))
-            // Physics updates should go through the main update_settings endpoint
+    )
+    .service(
+        web::scope("/physics")
+            .route("/update", web::post().to(update_physics))
     );
 }
 
@@ -60,6 +63,8 @@ async fn update_settings(
     
     // Validate the update
     if let Err(e) = validate_settings_update(&update) {
+        error!("Settings validation failed: {}", e);
+        error!("Failed update payload: {}", serde_json::to_string_pretty(&update).unwrap_or_default());
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid settings: {}", e)
         })));
@@ -193,8 +198,85 @@ async fn reset_settings(
     }
 }
 
-// Physics updates now go through the main update_settings endpoint
-// The update_settings function already handles physics changes and GPU propagation
+/// Update physics settings for a specific graph - NEW DEDICATED ENDPOINT
+async fn update_physics(
+    _req: HttpRequest,
+    state: web::Data<AppState>,
+    payload: web::Json<Value>,
+) -> Result<HttpResponse, Error> {
+    let physics_update = payload.into_inner();
+    
+    info!("Physics update request received - parameters: {}", 
+        physics_update.as_object().map(|o| o.keys().map(|k| k.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or_default());
+    debug!("Physics update payload: {}", serde_json::to_string_pretty(&physics_update).unwrap_or_default());
+    
+    // Validate physics parameters
+    if let Err(e) = validate_physics_settings(&physics_update) {
+        error!("Physics validation failed: field='{}', reason='{}'", 
+            extract_failed_field(&physics_update), e);
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": format!("Invalid physics parameters: {}", e)
+        })));
+    }
+    
+    debug!("Physics validation passed for: {:?}", 
+        physics_update.as_object().map(|o| o.keys().map(|k| k.as_str()).collect::<Vec<_>>()).unwrap_or_default());
+    
+    // Get current settings
+    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(s)) => s,
+        Ok(Err(e)) => {
+            error!("Failed to get current settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to get current settings"
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })));
+        }
+    };
+    
+    // Create a proper settings update structure for physics
+    let settings_update = create_physics_settings_update(physics_update);
+    
+    // Apply the physics update
+    if let Err(e) = app_settings.merge_update(settings_update) {
+        error!("Failed to merge physics settings: {}", e);
+        return Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Failed to merge physics settings: {}", e)
+        })));
+    }
+    
+    // Save updated settings
+    match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
+        Ok(Ok(())) => {
+            info!("Physics settings updated successfully");
+            
+            // Propagate to both graphs (logseq and visionflow)
+            propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
+            propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
+            
+            Ok(HttpResponse::Ok().json(json!({
+                "status": "Physics settings updated successfully"
+            })))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to save physics settings: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": format!("Failed to save physics settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })))
+        }
+    }
+}
 
 /// Validate settings update payload
 fn validate_settings_update(update: &Value) -> Result<(), String> {
@@ -230,12 +312,22 @@ fn validate_settings_update(update: &Value) -> Result<(), String> {
         validate_xr_settings(xr)?;
     }
     
+    // Validate system settings
+    if let Some(system) = update.get("system") {
+        validate_system_settings(system)?;
+    }
+    
     Ok(())
 }
 
 fn validate_physics_settings(physics: &Value) -> Result<(), String> {
+    // Log what fields are actually being sent
+    if let Some(obj) = physics.as_object() {
+        debug!("Physics settings fields received: {:?}", obj.keys().collect::<Vec<_>>());
+    }
+    
     // Validate all physics fields with proper ranges
-    // NOTE: Validation happens on camelCase JSON from client (before conversion)
+    // NOTE: Client sends both formats - handle all variations
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
         if !(0.0..=1.0).contains(&val) {
@@ -250,79 +342,79 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Check for both camelCase (from client) and snake_case (potential future use)
-    let spring = physics.get("springStrength").or_else(|| physics.get("spring_strength"));
-    if let Some(spring) = spring {
-        let val = spring.as_f64().ok_or("springStrength must be a number")?;
+    // UNIFIED FORMAT: Only accept "springStrength"
+    if let Some(spring) = physics.get("springStrength") {
+        let val = spring.as_f64().ok_or("spring must be a number")?;
         if !(0.0..=10.0).contains(&val) {
-            return Err("springStrength must be between 0.0 and 10.0".to_string());
+            return Err("spring must be between 0.0 and 10.0".to_string());
         }
     }
     
-    let repulsion = physics.get("repulsionStrength").or_else(|| physics.get("repulsion_strength"));
-    if let Some(repulsion) = repulsion {
-        let val = repulsion.as_f64().ok_or("repulsionStrength must be a number")?;
+    // UNIFIED FORMAT: Only accept "repulsionStrength"
+    if let Some(repulsion) = physics.get("repulsionStrength") {
+        let val = repulsion.as_f64().ok_or("repulsion must be a number")?;
         if val < 0.0 || val > 10000.0 {
-            return Err("repulsionStrength must be between 0.0 and 10000.0".to_string());
+            return Err("repulsion must be between 0.0 and 10000.0".to_string());
         }
     }
     
-    let attraction = physics.get("attractionStrength").or_else(|| physics.get("attraction_strength"));
-    if let Some(attraction) = attraction {
-        let val = attraction.as_f64().ok_or("attractionStrength must be a number")?;
+    // UNIFIED FORMAT: Only accept "attractionStrength"
+    if let Some(attraction) = physics.get("attractionStrength") {
+        let val = attraction.as_f64().ok_or("attraction must be a number")?;
         if !(0.0..=10.0).contains(&val) {
-            return Err("attractionStrength must be between 0.0 and 10.0".to_string());
+            return Err("attraction must be between 0.0 and 10.0".to_string());
         }
     }
     
-    let bounds = physics.get("boundsSize").or_else(|| physics.get("bounds_size"));
-    if let Some(bounds) = bounds {
+    // UNIFIED FORMAT: Only accept "boundsSize"
+    if let Some(bounds) = physics.get("boundsSize") {
         let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
         if val < 100.0 || val > 50000.0 {
             return Err("boundsSize must be between 100.0 and 50000.0".to_string());
         }
     }
     
-    let collision = physics.get("collisionRadius").or_else(|| physics.get("collision_radius"));
-    if let Some(collision) = collision {
+    // UNIFIED FORMAT: Only accept "collisionRadius"
+    if let Some(collision) = physics.get("collisionRadius") {
         let val = collision.as_f64().ok_or("collisionRadius must be a number")?;
         if val < 0.0 || val > 100.0 {
             return Err("collisionRadius must be between 0.0 and 100.0".to_string());
         }
     }
     
-    let max_vel = physics.get("maxVelocity").or_else(|| physics.get("max_velocity"));
-    if let Some(max_vel) = max_vel {
+    // UNIFIED FORMAT: Only accept "maxVelocity"
+    if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
         if val < 0.0 || val > 1000.0 {
             return Err("maxVelocity must be between 0.0 and 1000.0".to_string());
         }
     }
     
-    let mass = physics.get("massScale").or_else(|| physics.get("mass_scale"));
-    if let Some(mass) = mass {
+    // UNIFIED FORMAT: Only accept "massScale"
+    if let Some(mass) = physics.get("massScale") {
         let val = mass.as_f64().ok_or("massScale must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("massScale must be between 0.0 and 10.0".to_string());
         }
     }
     
-    let boundary = physics.get("boundaryDamping").or_else(|| physics.get("boundary_damping"));
-    if let Some(boundary) = boundary {
+    // UNIFIED FORMAT: Only accept "boundaryDamping"
+    if let Some(boundary) = physics.get("boundaryDamping") {
         let val = boundary.as_f64().ok_or("boundaryDamping must be a number")?;
         if !(0.0..=1.0).contains(&val) {
             return Err("boundaryDamping must be between 0.0 and 1.0".to_string());
         }
     }
     
-    let time_step = physics.get("timeStep").or_else(|| physics.get("time_step"));
-    if let Some(time_step) = time_step {
+    // UNIFIED FORMAT: Only accept "timeStep"
+    if let Some(time_step) = physics.get("timeStep") {
         let val = time_step.as_f64().ok_or("timeStep must be a number")?;
         if val <= 0.0 || val > 1.0 {
             return Err("timeStep must be between 0.0 and 1.0".to_string());
         }
     }
     
+    // Client sends "temperature" directly
     if let Some(temp) = physics.get("temperature") {
         let val = temp.as_f64().ok_or("temperature must be a number")?;
         if val < 0.0 || val > 10.0 {
@@ -330,6 +422,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
+    // Client sends "gravity" directly
     if let Some(gravity) = physics.get("gravity") {
         let val = gravity.as_f64().ok_or("gravity must be a number")?;
         if val < -10.0 || val > 10.0 {
@@ -337,8 +430,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    let threshold = physics.get("updateThreshold").or_else(|| physics.get("update_threshold"));
-    if let Some(threshold) = threshold {
+    // UNIFIED FORMAT: Only accept "updateThreshold"
+    if let Some(threshold) = physics.get("updateThreshold") {
         let val = threshold.as_f64().ok_or("updateThreshold must be a number")?;
         if val < 0.0 || val > 1.0 {
             return Err("updateThreshold must be between 0.0 and 1.0".to_string());
@@ -349,9 +442,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
 }
 
 fn validate_node_settings(nodes: &Value) -> Result<(), String> {
-    // Validate color format - check both camelCase and snake_case
-    let color = nodes.get("baseColor").or_else(|| nodes.get("base_color"));
-    if let Some(color) = color {
+    // UNIFIED FORMAT: Only accept camelCase "baseColor"
+    if let Some(color) = nodes.get("baseColor") {
         let color_str = color.as_str().ok_or("baseColor must be a string")?;
         if !color_str.starts_with('#') || (color_str.len() != 7 && color_str.len() != 4) {
             return Err("baseColor must be a valid hex color (e.g., #ffffff or #fff)".to_string());
@@ -379,8 +471,8 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
         }
     }
     
-    let node_size = nodes.get("nodeSize").or_else(|| nodes.get("node_size"));
-    if let Some(node_size) = node_size {
+    // UNIFIED FORMAT: Only accept "nodeSize"
+    if let Some(node_size) = nodes.get("nodeSize") {
         let val = node_size.as_f64().ok_or("nodeSize must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("nodeSize must be between 0.0 and 10.0".to_string());
@@ -398,8 +490,8 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
 }
 
 fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
-    let ambient = rendering.get("ambientLightIntensity").or_else(|| rendering.get("ambient_light_intensity"));
-    if let Some(ambient) = ambient {
+    // UNIFIED FORMAT: Only accept "ambientLightIntensity"
+    if let Some(ambient) = rendering.get("ambientLightIntensity") {
         let val = ambient.as_f64().ok_or("ambientLightIntensity must be a number")?;
         if val < 0.0 || val > 10.0 {
             return Err("ambientLightIntensity must be between 0.0 and 10.0".to_string());
@@ -409,12 +501,121 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_system_settings(system: &Value) -> Result<(), String> {
+    // Handle debug settings
+    if let Some(debug) = system.get("debug") {
+        if let Some(debug_obj) = debug.as_object() {
+            // All debug flags should be booleans - UNIFIED FORMAT ONLY
+            let boolean_fields = [
+                "enabled",  // NOT "enableClientDebugMode" - unified format only!
+                "showFPS", 
+                "showMemory",
+                "enablePerformanceDebug",
+                "enableTelemetry",
+                "enableDataDebug",
+                "enableWebSocketDebug",
+                "enablePhysicsDebug",
+                "enableNodeDebug",
+                "enableShaderDebug",
+                "enableMatrixDebug"
+            ];
+            
+            for field in &boolean_fields {
+                if let Some(val) = debug_obj.get(*field) {
+                    if !val.is_boolean() {
+                        return Err(format!("debug.{} must be a boolean", field));
+                    }
+                }
+            }
+            
+            // logLevel should be a number
+            if let Some(log_level) = debug_obj.get("logLevel") {
+                if let Some(val) = log_level.as_f64() {
+                    if val < 0.0 || val > 3.0 {
+                        return Err("debug.logLevel must be between 0 and 3".to_string());
+                    }
+                } else if let Some(val) = log_level.as_u64() {
+                    if val > 3 {
+                        return Err("debug.logLevel must be between 0 and 3".to_string());
+                    }
+                } else {
+                    return Err("debug.logLevel must be a number".to_string());
+                }
+            }
+        }
+    }
+    
+    // Handle persistSettingsOnServer
+    if let Some(persist) = system.get("persistSettingsOnServer") {
+        if !persist.is_boolean() {
+            return Err("system.persistSettingsOnServer must be a boolean".to_string());
+        }
+    }
+    
+    // Handle customBackendUrl
+    if let Some(url) = system.get("customBackendUrl") {
+        if !url.is_string() && !url.is_null() {
+            return Err("system.customBackendUrl must be a string or null".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
 fn validate_xr_settings(xr: &Value) -> Result<(), String> {
-    let room_scale = xr.get("roomScale").or_else(|| xr.get("room_scale"));
-    if let Some(room_scale) = room_scale {
+    // UNIFIED FORMAT: Only accept "enabled", not "enableXrMode"  
+    if let Some(enabled) = xr.get("enabled") {
+        if !enabled.is_boolean() {
+            return Err("XR enabled must be a boolean".to_string());
+        }
+    }
+    
+    // Handle quality setting
+    if let Some(quality) = xr.get("quality") {
+        if let Some(q) = quality.as_str() {
+            if !["Low", "Medium", "High", "low", "medium", "high"].contains(&q) {
+                return Err("XR quality must be Low, Medium, or High".to_string());
+            }
+        } else {
+            return Err("XR quality must be a string".to_string());
+        }
+    }
+    
+    // UNIFIED FORMAT: Only accept "renderScale"  
+    if let Some(render_scale) = xr.get("renderScale") {
+        let val = render_scale.as_f64().ok_or("renderScale must be a number")?;
+        if val < 0.5 || val > 2.0 {
+            return Err("renderScale must be between 0.5 and 2.0".to_string());
+        }
+    }
+    
+    // UNIFIED FORMAT: Only accept "roomScale"
+    if let Some(room_scale) = xr.get("roomScale") {
         let val = room_scale.as_f64().ok_or("roomScale must be a number")?;
         if val <= 0.0 || val > 10.0 {
             return Err("roomScale must be between 0.0 and 10.0".to_string());
+        }
+    }
+    
+    // Handle nested handTracking object
+    if let Some(hand_tracking) = xr.get("handTracking") {
+        if let Some(ht_obj) = hand_tracking.as_object() {
+            if let Some(enabled) = ht_obj.get("enabled") {
+                if !enabled.is_boolean() {
+                    return Err("handTracking.enabled must be a boolean".to_string());
+                }
+            }
+        }
+    }
+    
+    // Handle nested interactions object
+    if let Some(interactions) = xr.get("interactions") {
+        if let Some(int_obj) = interactions.as_object() {
+            if let Some(haptics) = int_obj.get("enableHaptics") {
+                if !haptics.is_boolean() {
+                    return Err("interactions.enableHaptics must be a boolean".to_string());
+                }
+            }
         }
     }
     
@@ -431,8 +632,8 @@ async fn propagate_physics_to_gpu(
     let sim_params = physics.into();
     
     info!(
-        "Propagating {} physics to GPU - damping: {}, spring: {}, repulsion: {}", 
-        graph, physics.damping, physics.spring_strength, physics.repulsion_strength
+        "Propagating {} physics to GPU - damping: {:.3}, spring: {:.3}, repulsion: {:.3}, timeStep: {:.3}", 
+        graph, physics.damping, physics.spring_strength, physics.repulsion_strength, physics.time_step
     );
     
     let update_msg = UpdateSimulationParams { params: sim_params };
@@ -452,5 +653,71 @@ async fn propagate_physics_to_gpu(
     } else {
         info!("Graph service physics updated successfully");
     }
+}
+
+/// Helper function to get field variants (camelCase or snake_case)
+fn get_field_variant<'a>(obj: &'a Value, variants: &[&str]) -> Option<&'a Value> {
+    for variant in variants {
+        if let Some(val) = obj.get(*variant) {
+            return Some(val);
+        }
+    }
+    None
+}
+
+/// Count the number of fields in a JSON object recursively
+fn count_fields(value: &Value) -> usize {
+    match value {
+        Value::Object(map) => {
+            map.len() + map.values().map(count_fields).sum::<usize>()
+        }
+        Value::Array(arr) => arr.iter().map(count_fields).sum(),
+        _ => 0,
+    }
+}
+
+/// Extract which graphs have physics updates
+fn extract_physics_updates(update: &Value) -> Vec<&str> {
+    update.get("visualisation")
+        .and_then(|v| v.get("graphs"))
+        .and_then(|g| g.as_object())
+        .map(|graphs| {
+            let mut updated = Vec::new();
+            if graphs.contains_key("logseq") && 
+               graphs.get("logseq").and_then(|g| g.get("physics")).is_some() {
+                updated.push("logseq");
+            }
+            if graphs.contains_key("visionflow") && 
+               graphs.get("visionflow").and_then(|g| g.get("physics")).is_some() {
+                updated.push("visionflow");
+            }
+            updated
+        })
+        .unwrap_or_default()
+}
+
+/// Extract the field name that failed validation
+fn extract_failed_field(physics: &Value) -> String {
+    if let Some(obj) = physics.as_object() {
+        obj.keys().next().unwrap_or(&"unknown".to_string()).clone()
+    } else {
+        "unknown".to_string()
+    }
+}
+
+/// Create a proper settings update structure for physics parameters
+fn create_physics_settings_update(physics_update: Value) -> Value {
+    json!({
+        "visualisation": {
+            "graphs": {
+                "logseq": {
+                    "physics": physics_update
+                },
+                "visionflow": {
+                    "physics": physics_update.clone()
+                }
+            }
+        }
+    })
 }
 
