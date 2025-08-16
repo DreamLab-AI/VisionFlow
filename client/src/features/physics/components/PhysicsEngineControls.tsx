@@ -431,7 +431,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="repulsionStrength"
                   min={0.1}
-                  max={20}  // Reasonable range for stable physics
+                  max={1000}  // Full GPU experimentation range
                   step={0.1}
                   value={[forceParams.repulsionStrength]}
                   onValueChange={([v]) => handleForceParamChange('repulsionStrength', v)}
@@ -446,8 +446,8 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="attractionStrength"
                   min={0}
-                  max={0.01}  // Subtle attraction range
-                  step={0.0001}
+                  max={10}  // Full GPU experimentation range
+                  step={0.01}
                   value={[forceParams.attractionStrength]}
                   onValueChange={([v]) => handleForceParamChange('attractionStrength', v)}
                 />
@@ -460,8 +460,8 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="damping"
-                  min={0.5}  // Allow more range for experimentation
-                  max={0.99}
+                  min={0.0}  // Full range for experimentation
+                  max={1.0}
                   step={0.01}
                   value={[forceParams.damping]}
                   onValueChange={([v]) => handleForceParamChange('damping', v)}
@@ -476,7 +476,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="temperature"
                   min={0}
-                  max={0.5}  // Low temperature for stability
+                  max={2.0}  // Match server validation range
                   step={0.01}
                   value={[forceParams.temperature]}
                   onValueChange={([v]) => handleForceParamChange('temperature', v)}
@@ -490,9 +490,9 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="gravity"
-                  min={0}
-                  max={0.01}  // Very subtle gravity
-                  step={0.0001}
+                  min={-5.0}
+                  max={5.0}  // Match server validation range
+                  step={0.01}
                   value={[forceParams.gravity]}
                   onValueChange={([v]) => handleForceParamChange('gravity', v)}
                 />
@@ -505,8 +505,8 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="maxVelocity"
-                  min={0.5}
-                  max={10}   // Allow reasonable movement speed
+                  min={0.001}
+                  max={100}   // Full GPU range for speed
                   step={0.1}
                   value={[forceParams.maxVelocity]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
@@ -520,8 +520,8 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="timeStep"
-                  min={0.005}
-                  max={0.05}   // Standard range for simulation timestep
+                  min={0.001}
+                  max={0.1}   // Match server validation range
                   step={0.001}
                   value={[forceParams.timeStep || 0.016]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}

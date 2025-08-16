@@ -99,23 +99,23 @@ function normalizeSettingsForServer(settings: Settings) {
         }
         
         // Map old parameter names to new GPU-aligned names
-        if (physics.springStrength !== undefined && physics.springK === undefined) {
+        if (physics.springStrength !== undefined) {
           physics.springK = physics.springStrength;
           delete physics.springStrength;
         }
-        if (physics.repulsionStrength !== undefined && physics.repelK === undefined) {
+        if (physics.repulsionStrength !== undefined) {
           physics.repelK = physics.repulsionStrength;
           delete physics.repulsionStrength;
         }
-        if (physics.attractionStrength !== undefined && physics.attractionK === undefined) {
+        if (physics.attractionStrength !== undefined) {
           physics.attractionK = physics.attractionStrength;
           delete physics.attractionStrength;
         }
-        if (physics.timeStep !== undefined && physics.dt === undefined) {
+        if (physics.timeStep !== undefined) {
           physics.dt = physics.timeStep;
           delete physics.timeStep;
         }
-        if (physics.repulsionDistance !== undefined && physics.maxRepulsionDist === undefined) {
+        if (physics.repulsionDistance !== undefined) {
           physics.maxRepulsionDist = physics.repulsionDistance;
           delete physics.repulsionDistance;
         }

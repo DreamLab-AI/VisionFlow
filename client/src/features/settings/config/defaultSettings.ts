@@ -74,15 +74,15 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       
       // Dynamics (GPU-aligned)
       dt: 0.016,               // was timeStep
-      maxVelocity: 8.0,
+      maxVelocity: 2.0,            // reduced for stability
       damping: 0.85,
       temperature: 1.0,
       
       // Boundary & Collision
       enableBounds: true,
-      boundsSize: 2000.0,
+      boundsSize: 50.0,            // reasonable default viewport
       boundaryDamping: 0.9,
-      collisionRadius: 120.0,
+      collisionRadius: 2.0,        // safe GPU default
       maxRepulsionDist: 1000.0, // was repulsionDistance
       
       // Advanced Parameters
@@ -96,7 +96,7 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       
       // Legacy compatibility (for backward compatibility)
       springStrength: 0.002,
-      repulsionStrength: 600.0,
+      repulsionStrength: 50.0,     // safe GPU default
       attractionStrength: 0.001,
       timeStep: 0.016,
       repulsionDistance: 1000.0,
