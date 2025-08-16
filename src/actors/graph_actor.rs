@@ -301,9 +301,9 @@ impl GraphServiceActor {
             new_graph_data.edges.push(Edge::new(source_id, target_id, weight));
         }
         
-        // Phase 3: Generate initial constraints based on semantic clustering
-        info!("Phase 3: Generating initial constraints based on semantic features");
-        self.generate_initial_semantic_constraints(&new_graph_data);
+        // Phase 3: DISABLED - Don't automatically generate constraints
+        // Constraints should only be enabled explicitly through the control center
+        info!("Phase 3: Skipping automatic constraint generation (prevents bouncing)");
         
         // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
         // Note: Advanced GPU context initialization will be attempted on first physics step
@@ -383,6 +383,13 @@ impl GraphServiceActor {
     }
     
     fn update_dynamic_constraints(&mut self) {
+        // DISABLED: Dynamic constraints cause bouncing behavior
+        // Constraints should only be enabled explicitly through the control center
+        info!("Skipping dynamic constraint updates (prevents bouncing)");
+        return;
+        
+        // Original code disabled to prevent automatic constraint generation:
+        /*
         // Only update if we have recent semantic analysis
         if self.last_semantic_analysis.is_none() {
             return;
@@ -407,17 +414,16 @@ impl GraphServiceActor {
             }
             trace!("Updated dynamic clustering constraints");
         }
+        */
     }
     
     fn generate_initial_semantic_constraints(&mut self, graph_data: &GraphData) {
-        // Generate boundary constraints
-        let boundary = Constraint::boundary(
-            graph_data.nodes.iter().map(|n| n.id).collect(),
-            -1000.0, 1000.0,
-            -1000.0, 1000.0,
-            -1000.0, 1000.0,
-        );
-        self.constraint_set.add_to_group("boundary", boundary);
+        // DISABLED: Boundary constraints cause bouncing behavior
+        // Don't automatically generate any constraints - they should only be enabled through control center
+        info!("Skipping automatic boundary constraint generation (prevents bouncing)");
+        return;  // Exit early to prevent any constraint generation
+        
+        // The code below is disabled to prevent boundary constraints from causing bouncing
         
         // Generate domain-based clustering
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
@@ -1361,9 +1367,9 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         self.constraint_set.set_group_active("domain_clustering", false);
         self.constraint_set.set_group_active("clustering_dynamic", false);
         
-        // Regenerate based on current graph state
-        self.generate_initial_semantic_constraints(&(*self.graph_data).clone());
-        self.update_dynamic_constraints();
+        // DISABLED: Don't regenerate constraints automatically
+        // Constraints should only be enabled through control center
+        info!("Skipping automatic constraint regeneration (prevents bouncing)");
         
         info!("Regenerated semantic constraints: {} total constraints", 
               self.constraint_set.constraints.len());

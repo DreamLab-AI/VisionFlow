@@ -697,37 +697,28 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
                 info!("MSG_HANDLER: Parsed {} new constraints (was {})", constraints.len(), old_count);
                 self.constraints = constraints;
                 
-                // Switch to advanced mode if we have constraints
-                if !self.constraints.is_empty() && self.unified_compute.is_some() {
-                    if matches!(self.compute_mode, ComputeMode::Basic) {
-                        info!("MSG_HANDLER: Switching compute mode from {:?} to Advanced due to constraints", old_mode);
-                        self.compute_mode = ComputeMode::Advanced;
-                        self.set_unified_compute_mode(UnifiedComputeMode::Constraints);
-                    }
-                } else if self.constraints.is_empty() && matches!(self.compute_mode, ComputeMode::Advanced) {
-                    info!("MSG_HANDLER: Switching compute mode from {:?} to Basic - no constraints", old_mode);
-                    self.compute_mode = ComputeMode::Basic;
-                    self.set_unified_compute_mode(UnifiedComputeMode::Basic);
-                } else {
-                    info!("MSG_HANDLER: Compute mode remains {:?}", self.compute_mode);
+                // DISABLED: Auto-switching to constraint mode causes bouncing
+                // Keep the mode as Basic (0) as configured in settings.yaml
+                info!("MSG_HANDLER: Keeping compute mode as {:?} (not auto-switching for constraints)", self.compute_mode);
+                
+                // Clear any constraints to prevent bouncing
+                if !self.constraints.is_empty() {
+                    warn!("MSG_HANDLER: Clearing {} constraints to prevent bouncing behavior", self.constraints.len());
+                    self.constraints.clear();
                 }
                 
-                // Update unified compute with constraints
+                // DISABLED: Don't set constraints to prevent bouncing
+                // Keep unified compute in Basic mode
                 if let Some(ref mut unified_compute) = self.unified_compute {
-                    // Convert constraints to unified format and set them
-                    let constraint_data: Vec<crate::utils::unified_gpu_compute::ConstraintData> = self.constraints.iter()
-                        .map(|c| crate::utils::unified_gpu_compute::ConstraintData {
-                            constraint_type: 0, // Basic constraint type
-                            strength: c.weight,
-                            param1: 0.0,
-                            param2: 0.0,
-                            node_mask: 0,
-                        })
-                        .collect();
+                    // Force Basic mode and clear constraints
+                    unified_compute.set_mode(crate::utils::unified_gpu_compute::ComputeMode::Basic);
                     
-                    if let Err(e) = unified_compute.set_constraints(constraint_data) {
-                        warn!("Failed to update unified compute constraints: {}", e);
+                    // Set empty constraints to clear any existing ones
+                    if let Err(e) = unified_compute.set_constraints(Vec::new()) {
+                        warn!("Failed to clear unified compute constraints: {}", e);
                     }
+                    
+                    info!("MSG_HANDLER: Forced unified compute to Basic mode with no constraints");
                 }
                 
                 info!("  New state - compute_mode: {:?}, constraints: {}",

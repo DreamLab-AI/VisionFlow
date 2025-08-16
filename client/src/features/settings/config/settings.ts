@@ -34,18 +34,18 @@ export interface EdgeSettings {
   gradientColors: [string, string];
 }
 
-// Physics settings
+// Physics settings - using camelCase for client
 export interface PhysicsSettings {
   enabled: boolean;
   
-  // Core GPU-Aligned Forces (new parameter names)
-  springK: number;           // replaces springStrength
-  repelK: number;           // replaces repulsionStrength
-  attractionK: number;      // replaces attractionStrength
+  // Core GPU Forces
+  springK: number;
+  repelK: number;
+  attractionK: number;
   gravity: number;
   
-  // Dynamics (GPU-aligned)
-  dt: number;               // replaces timeStep
+  // Dynamics
+  dt: number;
   maxVelocity: number;
   damping: number;
   temperature: number;
@@ -54,8 +54,19 @@ export interface PhysicsSettings {
   enableBounds: boolean;
   boundsSize: number;
   boundaryDamping: number;
-  collisionRadius: number;
-  maxRepulsionDist: number; // replaces repulsionDistance
+  separationRadius: number;
+  
+  // GPU-specific parameters
+  stressWeight: number;
+  stressAlpha: number;
+  boundaryLimit: number;
+  alignmentStrength: number;
+  clusterStrength: number;
+  computeMode: number;
+  minDistance: number;
+  maxRepulsionDist: number;
+  boundaryMargin: number;
+  boundaryForceStrength: number;
   
   // Advanced Parameters
   iterations: number;
@@ -64,8 +75,15 @@ export interface PhysicsSettings {
   
   // Warmup System
   warmupIterations: number;
+  warmupCurve: string;
+  zeroVelocityIterations: number;
   coolingRate: number;
   
+  // Clustering
+  clusteringAlgorithm: string;
+  clusterCount: number;
+  clusteringResolution: number;
+  clusteringIterations: number;
 }
 
 // Rendering settings
