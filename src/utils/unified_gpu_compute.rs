@@ -358,6 +358,7 @@ impl UnifiedGPUCompute {
         log::info!("  repel_k: {}", params.repel_k);
         log::info!("  damping: {}", params.damping);
         log::info!("  dt: {}", params.dt);
+        log::info!("  viewport_bounds: {} (0 = boundaries disabled)", params.viewport_bounds);
         log::info!("  compute_mode: {}", self.compute_mode as i32);
         self.params = params;
         self.params.compute_mode = self.compute_mode as i32;
