@@ -13,7 +13,7 @@ pub struct ClientMovementAxes {
 #[derive(Deserialize, Debug, Default, Clone)]
 pub struct ClientXRSettings {
     pub enabled: Option<bool>,
-    pub mode: Option<String>, // Maps to client's displayMode or server's mode
+    pub mode: Option<String>,
     pub room_scale: Option<f32>,
     pub space_type: Option<String>,
     pub quality: Option<String>,

@@ -699,7 +699,7 @@ async fn apply_quest3_settings_to_system(
     settings.xr.enabled = Some(quest3_settings.xr.enabled);
     
     // Map XR settings - using string fields directly since XRSettings uses Option<String>
-    settings.xr.display_mode = Some(quest3_settings.xr.display_mode.clone());
+    settings.xr.mode = Some(quest3_settings.xr.display_mode.clone());
     settings.xr.space_type = quest3_settings.xr.space_type.clone();
 
     settings.xr.enable_hand_tracking = quest3_settings.xr.enable_hand_tracking;

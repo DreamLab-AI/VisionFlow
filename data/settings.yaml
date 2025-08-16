@@ -83,13 +83,13 @@ visualisation:
         attraction_strength: 0.13904518
         bounds_size: 45.547935
         separation_radius: 4.2403374
-        damping: 0.95
+        damping: 0.07130522
         enable_bounds: true
         enabled: true
         iterations: 436
         max_velocity: 1.0
         repel_k: 50.0
-        spring_k: 0.005
+        spring_k: 3.4583685
         repulsion_distance: 8.676949
         mass_scale: 7.194513
         boundary_damping: 0.95
@@ -99,11 +99,10 @@ visualisation:
         gravity: 0.0001
         stress_weight: 0.1
         stress_alpha: 0.1
-        boundary_limit: 44.637776
+        boundary_limit: 44.637775
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
-        # New GPU parameters
         min_distance: 0.15
         max_repulsion_dist: 50.0
         boundary_margin: 0.85
@@ -112,7 +111,6 @@ visualisation:
         warmup_curve: quadratic
         zero_velocity_iterations: 5
         cooling_rate: 0.0001
-        # Clustering
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
@@ -174,7 +172,6 @@ visualisation:
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
-        # New GPU parameters  
         min_distance: 0.15
         max_repulsion_dist: 50.0
         boundary_margin: 0.85
@@ -183,7 +180,6 @@ visualisation:
         warmup_curve: quadratic
         zero_velocity_iterations: 5
         cooling_rate: 0.0001
-        # Clustering
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
@@ -209,12 +205,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '3': fitToView
-      '4': topView
+      '2': cycleMode
       '5': rightView
       '6': frontView
+      '3': fitToView
+      '4': topView
       '1': resetView
-      '2': cycleMode
 system:
   network:
     bind_address: 0.0.0.0
@@ -270,7 +266,6 @@ xr:
   enabled: false
   client_side_enable_xr: false
   mode: immersive-vr
-  display_mode: immersive-vr
   room_scale: 1.0
   space_type: local-floor
   quality: medium
