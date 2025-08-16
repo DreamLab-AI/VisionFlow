@@ -101,36 +101,43 @@ function normalizeSettingsForServer(settings: Settings) {
         
         // Ensure GPU parameters are properly typed
         ['springK', 'repelK', 'attractionK', 'dt', 'maxVelocity', 'damping',
-         'temperature', 'maxRepulsionDist', 'warmupIterations', 'coolingRate'].forEach(param => {
+         'temperature', 'maxRepulsionDist', 'coolingRate'].forEach(param => {
           if (physics[param] !== undefined) {
             physics[param] = Number(physics[param]);
           }
         });
 
-        // Clamp values to server-side validation ranges to fix invalid data from localStorage
+        // Ensure integer parameters are rounded
+        ['warmupIterations', 'iterations', 'zeroVelocityIterations', 'clusterCount', 'clusteringIterations'].forEach(param => {
+          if (physics[param] !== undefined) {
+            physics[param] = Math.round(Number(physics[param]));
+          }
+        });
+
+        // Clamp values to SAFE validation ranges to prevent explosion from localStorage
         if (physics.repelK !== undefined) {
-          physics.repelK = Math.max(0.1, Math.min(1000.0, physics.repelK));
+          physics.repelK = Math.max(10.0, Math.min(200.0, physics.repelK)); // Safe range
         }
         if (physics.springK !== undefined) {
-          physics.springK = Math.max(0.0001, Math.min(10.0, physics.springK));
+          physics.springK = Math.max(0.0001, Math.min(0.1, physics.springK)); // Safe range
         }
         if (physics.attractionK !== undefined) {
-          physics.attractionK = Math.max(0.0, Math.min(10.0, physics.attractionK));
+          physics.attractionK = Math.max(0.0, Math.min(0.1, physics.attractionK)); // Safe range
         }
         if (physics.damping !== undefined) {
-          physics.damping = Math.max(0.0, Math.min(1.0, physics.damping));
+          physics.damping = Math.max(0.5, Math.min(0.99, physics.damping)); // Must be high for stability
         }
         if (physics.iterations !== undefined) {
-          physics.iterations = Math.max(1, Math.min(1000, Math.round(physics.iterations)));
+          physics.iterations = Math.max(1, Math.min(100, Math.round(physics.iterations))); // Limit iterations
         }
         if (physics.maxVelocity !== undefined) {
-          physics.maxVelocity = Math.max(0.1, Math.min(100.0, physics.maxVelocity));
+          physics.maxVelocity = Math.max(0.1, Math.min(10.0, physics.maxVelocity)); // Prevent explosion
         }
         if (physics.separationRadius !== undefined) {
-          physics.separationRadius = Math.max(0.1, Math.min(10.0, physics.separationRadius));
+          physics.separationRadius = Math.max(0.1, Math.min(5.0, physics.separationRadius)); // Safe range
         }
         if (physics.dt !== undefined) {
-          physics.dt = Math.max(0.0001, Math.min(0.1, physics.dt));
+          physics.dt = Math.max(0.001, Math.min(0.02, physics.dt)); // Numerical stability
         }
       }
     }

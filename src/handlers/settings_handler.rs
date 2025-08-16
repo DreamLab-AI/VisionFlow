@@ -349,23 +349,23 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     }
     
     
-    // Validate damping
+    // Validate damping - MUST be high for stability
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
-        if !(0.0..=1.0).contains(&val) {
-            return Err("damping must be between 0.0 and 1.0".to_string());
+        if !(0.5..=0.99).contains(&val) {
+            return Err("damping must be between 0.5 and 0.99 for stability".to_string());
         }
     }
     
-    // Validate iterations
+    // Validate iterations - LIMIT FOR PERFORMANCE
     if let Some(iterations) = physics.get("iterations") {
         // Accept both integer and float values (JavaScript sends 100.0 as float)
         let val = iterations.as_f64()
             .map(|f| f.round() as u64)  // Round and cast float to u64
             .or_else(|| iterations.as_u64())  // Also accept direct integer
             .ok_or("iterations must be a positive number")?;
-        if val == 0 || val > 1000 {
-            return Err("iterations must be between 1 and 1000".to_string());
+        if val == 0 || val > 100 {  // Limit to 100 for stability
+            return Err("iterations must be between 1 and 100 for stability".to_string());
         }
     }
     
@@ -377,11 +377,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Repulsion strength validation
+    // Repulsion strength validation - SAFE RANGE
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val < 0.1 || val > 1000.0 {
-            return Err("repelK must be between 0.1 and 1000.0".to_string());
+        if val < 10.0 || val > 200.0 {
+            return Err("repelK must be between 10.0 and 200.0 for stability".to_string());
         }
     }
     
@@ -409,11 +409,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Max velocity validation
+    // Max velocity validation - PREVENT EXPLOSION
     if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
-        if val < 0.1 || val > 100.0 {  // GPU-optimized range
-            return Err("maxVelocity must be between 0.1 and 100.0".to_string());
+        if val < 0.1 || val > 10.0 {  // Safe range to prevent explosion
+            return Err("maxVelocity must be between 0.1 and 10.0 for stability".to_string());
         }
     }
     
@@ -433,11 +433,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Time step validation
+    // Time step validation - NUMERICAL STABILITY
     if let Some(time_step) = physics.get("timeStep") {
         let val = time_step.as_f64().ok_or("timeStep must be a number")?;
-        if val <= 0.0 || val > 0.1 {  // GPU-optimized range
-            return Err("timeStep must be between 0.0 and 0.1".to_string());
+        if val <= 0.0 || val > 0.02 {  // Safe range for numerical stability
+            return Err("timeStep must be between 0.001 and 0.02 for stability".to_string());
         }
     }
     
@@ -866,7 +866,7 @@ async fn propagate_physics_to_gpu(
     );
     info!(
         "  - attraction_k: {:.3} (affects clustering)",
-        physics.attraction_strength
+        physics.attraction_k
     );
     info!(
         "  - damping: {:.3} (affects settling, 1.0 = no movement)",
