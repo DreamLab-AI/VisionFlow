@@ -310,6 +310,22 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
       }
       obj[keys[keys.length - 1]] = value;
     });
+    
+    // Sync debug settings with clientDebugState
+    if (path.startsWith('system.debug.')) {
+      const debugPath = path.replace('system.debug.', '');
+      if (debugPath === 'enableDataDebug') {
+        window.debugControl?.enableDataDebug(value);
+      } else if (debugPath === 'enabled') {
+        window.debugControl?.enableDebug(value);
+      } else if (debugPath === 'enablePerformanceDebug') {
+        window.debugControl?.enablePerformanceDebug(value);
+      } else if (debugPath === 'enableWebSocketDebug') {
+        window.debugControl?.setWebSocketDebug(value);
+      } else if (debugPath === 'enablePhysicsDebug') {
+        window.debugControl?.setPhysicsDebug(value);
+      }
+    }
   };
 
   const handleCommitSettings = () => {
@@ -363,6 +379,11 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'graphStatus', label: 'Show Graph Status', type: 'toggle', path: 'dashboard.showStatus' },
             { key: 'autoRefresh', label: 'Auto Refresh', type: 'toggle', path: 'dashboard.autoRefresh' },
             { key: 'refreshInterval', label: 'Refresh Interval (s)', type: 'slider', min: 1, max: 60, path: 'dashboard.refreshInterval' },
+            { key: 'computeMode', label: 'Compute Mode', type: 'select', options: ['Basic Force-Directed', 'Dual Graph', 'Constraint-Enhanced', 'Visual Analytics'], path: 'dashboard.computeMode' },
+            { key: 'iterationCount', label: 'Iteration Count', type: 'text', path: 'dashboard.iterationCount' },
+            { key: 'convergenceIndicator', label: 'Show Convergence', type: 'toggle', path: 'dashboard.showConvergence' },
+            { key: 'activeConstraints', label: 'Active Constraints', type: 'text', path: 'dashboard.activeConstraints' },
+            { key: 'clusteringStatus', label: 'Clustering Active', type: 'toggle', path: 'dashboard.clusteringActive' }
           ]
         };
       case 'visualization':
@@ -378,6 +399,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'enableInstancing', label: 'Enable Instancing', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableInstancing' },
             { key: 'enableMetadataShape', label: 'Metadata Shape', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableMetadataShape' },
             { key: 'enableMetadataVis', label: 'Metadata Visual', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableMetadataVisualisation' },
+            { key: 'nodeImportance', label: 'Node Importance', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableImportance' },
 
             // Edge Settings
             { key: 'edgeColor', label: 'Edge Color', type: 'color', path: 'visualisation.graphs.logseq.edges.color' },
@@ -394,6 +416,12 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'labelOutlineColor', label: 'Outline Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textOutlineColor' },
             { key: 'labelOutlineWidth', label: 'Outline Width', type: 'slider', min: 0, max: 0.01, path: 'visualisation.graphs.logseq.labels.textOutlineWidth' },
 
+            // GPU Visualization Features
+            { key: 'temporalCoherence', label: 'Temporal Coherence', type: 'slider', min: 0, max: 1, path: 'visualisation.gpu.temporalCoherence' },
+            { key: 'graphDifferentiation', label: 'Graph Differentiation', type: 'toggle', path: 'visualisation.gpu.enableGraphDifferentiation' },
+            { key: 'clusterVisualization', label: 'Cluster Visualization', type: 'toggle', path: 'visualisation.gpu.enableClusterVisualization' },
+            { key: 'stressOptimization', label: 'Stress Optimization', type: 'toggle', path: 'visualisation.gpu.enableStressOptimization' },
+
             // Lighting
             { key: 'ambientLight', label: 'Ambient Light', type: 'slider', min: 0, max: 2, path: 'visualisation.rendering.ambientLightIntensity' },
             { key: 'directionalLight', label: 'Direct Light', type: 'slider', min: 0, max: 2, path: 'visualisation.rendering.directionalLightIntensity' }
@@ -405,15 +433,35 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           fields: [
             { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled' },
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
-            { key: 'repulsionStrength', label: 'Repulsion Strength', type: 'slider', min: 0, max: 2, path: 'visualisation.graphs.logseq.physics.repulsionStrength' },
-            { key: 'attractionStrength', label: 'Attraction Strength', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.attractionStrength' },
-            { key: 'springStrength', label: 'Spring Strength', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.springStrength' },
+            
+            // Core GPU-Aligned Forces
+            { key: 'springK', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.springK' },
+            { key: 'repelK', label: 'Repulsion Strength (k)', type: 'slider', min: 1, max: 1000, path: 'visualisation.graphs.logseq.physics.repelK' },
+            { key: 'attractionK', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attractionK' },
+            
+            // Dynamics
+            { key: 'dt', label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 0.1, path: 'visualisation.graphs.logseq.physics.dt' },
             { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.001, max: 0.5, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
-            { key: 'iterations', label: 'Iterations', type: 'slider', min: 10, max: 500, path: 'visualisation.graphs.logseq.physics.iterations' },
+            
+            // Boundaries and Separation
+            { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separationRadius' },
             { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds' },
             { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 50, path: 'visualisation.graphs.logseq.physics.boundsSize' },
-            { key: 'collisionRadius', label: 'Collision Radius', type: 'slider', min: 0.1, max: 5, path: 'visualisation.graphs.logseq.physics.collisionRadius' },
-            { key: 'repulsionDistance', label: 'Repulsion Dist', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.repulsionDistance' },
+            
+            // Stress Optimization
+            { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressWeight' },
+            { key: 'stressAlpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressAlpha' },
+            
+            // Constants
+            { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.minDistance' },
+            { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist' },
+            
+            // Warmup System
+            { key: 'warmupIterations', label: 'Warmup Iterations', type: 'slider', min: 0, max: 500, path: 'visualisation.graphs.logseq.physics.warmupIterations' },
+            { key: 'coolingRate', label: 'Cooling Rate', type: 'slider', min: 0.00001, max: 0.01, path: 'visualisation.graphs.logseq.physics.coolingRate' },
+            
+            // Legacy Parameters (for backward compatibility)
+            { key: 'iterations', label: 'Iterations', type: 'slider', min: 10, max: 500, path: 'visualisation.graphs.logseq.physics.iterations' },
             { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.massScale' },
             { key: 'boundaryDamping', label: 'Boundary Damp', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.boundaryDamping' },
             { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, path: 'visualisation.graphs.logseq.physics.updateThreshold' }
@@ -428,6 +476,14 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'showDegreeDistribution', label: 'Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution' },
             { key: 'showClustering', label: 'Clustering Coefficient', type: 'toggle', path: 'analytics.showClusteringCoefficient' },
             { key: 'showCentrality', label: 'Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality' },
+            
+            // GPU Clustering Controls
+            { key: 'clusteringAlgorithm', label: 'Clustering Algorithm', type: 'select', options: ['none', 'kmeans', 'spectral', 'louvain'], path: 'analytics.clustering.algorithm' },
+            { key: 'clusterCount', label: 'Cluster Count', type: 'slider', min: 2, max: 20, path: 'analytics.clustering.clusterCount' },
+            { key: 'clusterResolution', label: 'Resolution', type: 'slider', min: 0.1, max: 2, path: 'analytics.clustering.resolution' },
+            { key: 'clusterIterations', label: 'Cluster Iterations', type: 'slider', min: 10, max: 100, path: 'analytics.clustering.iterations' },
+            { key: 'exportClusters', label: 'Export Clusters', type: 'toggle', path: 'analytics.clustering.exportEnabled' },
+            { key: 'importDistances', label: 'Import Distances', type: 'toggle', path: 'analytics.clustering.importEnabled' }
           ]
         };
       case 'performance':
@@ -439,6 +495,14 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'gpuMemoryLimit', label: 'GPU Memory (MB)', type: 'slider', min: 256, max: 8192, step: 256, path: 'performance.gpuMemoryLimit' },
             { key: 'levelOfDetail', label: 'Quality Preset', type: 'select', options: ['low', 'medium', 'high', 'ultra'], path: 'performance.levelOfDetail' },
             { key: 'adaptiveQuality', label: 'Adaptive Quality', type: 'toggle', path: 'performance.enableAdaptiveQuality' },
+            
+            // GPU Warmup Controls
+            { key: 'warmupDuration', label: 'Warmup Duration (s)', type: 'slider', min: 0, max: 10, path: 'performance.warmupDuration' },
+            { key: 'convergenceThreshold', label: 'Convergence Threshold', type: 'slider', min: 0.001, max: 0.1, path: 'performance.convergenceThreshold' },
+            { key: 'adaptiveCooling', label: 'Adaptive Cooling', type: 'toggle', path: 'performance.enableAdaptiveCooling' },
+            { key: 'gpuBlockSize', label: 'GPU Block Size', type: 'select', options: ['64', '128', '256', '512'], path: 'performance.gpuBlockSize' },
+            { key: 'memoryCoalescing', label: 'Memory Coalescing', type: 'toggle', path: 'performance.enableMemoryCoalescing' },
+            { key: 'iterationLimit', label: 'Iteration Limit', type: 'slider', min: 100, max: 5000, path: 'performance.iterationLimit' }
           ]
         };
       case 'integrations':
@@ -492,6 +556,25 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'showEdgeWeights', label: 'Show Edge Weights', type: 'toggle', path: 'developer.showEdgeWeights' },
             { key: 'enableProfiler', label: 'Enable Profiler', type: 'toggle', path: 'developer.enableProfiler' },
             { key: 'apiDebugMode', label: 'API Debug Mode', type: 'toggle', path: 'developer.apiDebugMode' },
+            
+            // Debug Settings (moved from XR/AR section)
+            { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enabled' },
+            { key: 'showMemory', label: 'Show Memory', type: 'toggle', path: 'system.debug.showMemory' },
+            { key: 'perfDebug', label: 'Performance Debug', type: 'toggle', path: 'system.debug.enablePerformanceDebug' },
+            { key: 'telemetry', label: 'Telemetry', type: 'toggle', path: 'system.debug.enableTelemetry' },
+            { key: 'dataDebug', label: 'Data Debug', type: 'toggle', path: 'system.debug.enableDataDebug' },
+            { key: 'wsDebug', label: 'WebSocket Debug', type: 'toggle', path: 'system.debug.enableWebSocketDebug' },
+            { key: 'physicsDebug', label: 'Physics Debug', type: 'toggle', path: 'system.debug.enablePhysicsDebug' },
+            { key: 'nodeDebug', label: 'Node Debug', type: 'toggle', path: 'system.debug.enableNodeDebug' },
+            { key: 'shaderDebug', label: 'Shader Debug', type: 'toggle', path: 'system.debug.enableShaderDebug' },
+            { key: 'matrixDebug', label: 'Matrix Debug', type: 'toggle', path: 'system.debug.enableMatrixDebug' },
+            
+            // GPU Debug Features
+            { key: 'forceVectors', label: 'Show Force Vectors', type: 'toggle', path: 'developer.gpu.showForceVectors' },
+            { key: 'constraintVisualization', label: 'Constraint Visualization', type: 'toggle', path: 'developer.gpu.showConstraints' },
+            { key: 'boundaryForceDisplay', label: 'Boundary Forces', type: 'toggle', path: 'developer.gpu.showBoundaryForces' },
+            { key: 'convergenceGraph', label: 'Convergence Graph', type: 'toggle', path: 'developer.gpu.showConvergenceGraph' },
+            { key: 'gpuTimingStats', label: 'GPU Timing Stats', type: 'toggle', path: 'developer.gpu.showTimingStats' }
           ]
         };
       case 'auth':
@@ -535,22 +618,6 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         return {
           title: 'XR/AR Settings',
           fields: [
-            // Debug Settings
-            { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enabled' },
-            { key: 'showFPS', label: 'Show FPS', type: 'toggle', path: 'system.debug.showFPS' },
-            { key: 'showMemory', label: 'Show Memory', type: 'toggle', path: 'system.debug.showMemory' },
-            { key: 'perfDebug', label: 'Performance Debug', type: 'toggle', path: 'system.debug.enablePerformanceDebug' },
-            { key: 'logLevel', label: 'Log Level', type: 'slider', min: 0, max: 3, path: 'system.debug.logLevel' },
-            { key: 'telemetry', label: 'Telemetry', type: 'toggle', path: 'system.debug.enableTelemetry' },
-
-            // Debug Toggles
-            { key: 'dataDebug', label: 'Data Debug', type: 'toggle', path: 'system.debug.enableDataDebug' },
-            { key: 'wsDebug', label: 'WebSocket Debug', type: 'toggle', path: 'system.debug.enableWebSocketDebug' },
-            { key: 'physicsDebug', label: 'Physics Debug', type: 'toggle', path: 'system.debug.enablePhysicsDebug' },
-            { key: 'nodeDebug', label: 'Node Debug', type: 'toggle', path: 'system.debug.enableNodeDebug' },
-            { key: 'shaderDebug', label: 'Shader Debug', type: 'toggle', path: 'system.debug.enableShaderDebug' },
-            { key: 'matrixDebug', label: 'Matrix Debug', type: 'toggle', path: 'system.debug.enableMatrixDebug' },
-
             // System Settings
             { key: 'persistSettings', label: 'Persist Settings', type: 'toggle', path: 'system.persistSettingsOnServer' },
             { key: 'customBackendURL', label: 'Custom Backend URL', type: 'text', path: 'system.customBackendUrl' },
@@ -560,7 +627,13 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'xrQuality', label: 'XR Quality', type: 'select', options: ['Low', 'Medium', 'High'], path: 'xr.quality' },
             { key: 'xrRenderScale', label: 'XR Render Scale', type: 'slider', min: 0.5, max: 2, path: 'xr.renderScale' },
             { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.handTracking.enabled' },
-            { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.interactions.enableHaptics' }
+            { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.interactions.enableHaptics' },
+            
+            // XR-Optimized GPU Features
+            { key: 'xrComputeMode', label: 'XR Compute Mode', type: 'toggle', path: 'xr.gpu.enableOptimizedCompute' },
+            { key: 'xrPerformancePreset', label: 'XR Performance', type: 'select', options: ['Battery Saver', 'Balanced', 'Performance'], path: 'xr.performance.preset' },
+            { key: 'xrPhysicsScale', label: 'XR Physics Scale', type: 'slider', min: 0.1, max: 2, path: 'xr.physics.scale' },
+            { key: 'xrAdaptiveQuality', label: 'XR Adaptive Quality', type: 'toggle', path: 'xr.enableAdaptiveQuality' }
           ]
         };
       default:

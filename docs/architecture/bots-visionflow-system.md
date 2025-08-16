@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Bots/VisionFlow system is a core feature that enables real-time visualization and control of AI Multi Agents through the Model Context Protocol (MCP). It provides a spring-physics based 3D visualization of agent interactions, communication patterns, and system health.
+The Bots/VisionFlow system is a core feature that enables real-time visualisation and control of AI Multi Agents through the Model Context Protocol (MCP). It provides a spring-physics based 3D visualisation of agent interactions, communication patterns, and system health.
 
 ## System Components
 
@@ -67,7 +67,7 @@ The system maintains real-time agent state through multiple channels:
 
 ### 2. Agent Types and Capabilities
 
-The system supports 12 specialized agent types:
+The system supports 12 specialised agent types:
 
 - **Queen**: Hive mind leader with strategic coordination
 - **Coordinator**: Task orchestration and resource allocation
@@ -162,7 +162,7 @@ The VisionFlow graph uses a distinct gold/green color palette:
 ## Performance Considerations
 
 - Physics simulation runs at 60 FPS in dedicated worker
-- Binary protocol minimizes bandwidth for position updates
+- Binary protocol minimises bandwidth for position updates
 - Agent states are batched in full-update messages
 - GPU acceleration available for large multi-agents
 

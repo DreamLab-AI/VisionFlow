@@ -269,7 +269,7 @@ fn check_physics_parameters() -> String {
     // Check if physics constants are reasonable
     let gravity = 0.08; // From PhysicsConfig
     let damping = 0.92;
-    let spring_strength = 0.3;
+    let spring_k = 0.3;
     
     if gravity < 0.0 || gravity > 1.0 {
         return "Invalid gravity value".to_string();
@@ -277,11 +277,11 @@ fn check_physics_parameters() -> String {
     if damping < 0.0 || damping > 1.0 {
         return "Invalid damping value".to_string();
     }
-    if spring_strength < 0.0 || spring_strength > 1.0 {
+    if spring_k < 0.0 || spring_k > 1.0 {
         return "Invalid spring strength".to_string();
     }
     
-    format!("Physics params OK (gravity: {}, damping: {}, spring: {})", gravity, damping, spring_strength)
+    format!("Physics params OK (gravity: {}, damping: {}, spring: {})", gravity, damping, spring_k)
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

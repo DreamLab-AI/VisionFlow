@@ -158,25 +158,94 @@ pub struct EdgeSettings {
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PhysicsSettings {
     pub attraction_strength: f32,
     pub bounds_size: f32,
-    pub collision_radius: f32,
+    #[serde(alias = "collision_radius")]
+    pub separation_radius: f32,
     pub damping: f32,
     pub enable_bounds: bool,
     pub enabled: bool,
     pub iterations: u32,
     pub max_velocity: f32,
-    pub repulsion_strength: f32,
-    pub spring_strength: f32,
+    #[serde(alias = "repulsion_strength")]
+    pub repel_k: f32,
+    #[serde(alias = "spring_strength")]
+    pub spring_k: f32,
     pub repulsion_distance: f32,
     pub mass_scale: f32,
     pub boundary_damping: f32,
     pub update_threshold: f32,
-    pub time_step: f32,
+    #[serde(alias = "time_step")]
+    pub dt: f32,
     pub temperature: f32,
     pub gravity: f32,
+    // New GPU-aligned fields
+    pub stress_weight: f32,
+    pub stress_alpha: f32,
+    pub boundary_limit: f32,
+    pub alignment_strength: f32,
+    pub cluster_strength: f32,
+    pub compute_mode: i32,
+    // Additional GPU parameters from documentation
+    pub min_distance: f32,
+    pub max_repulsion_dist: f32,
+    pub boundary_margin: f32,
+    pub boundary_force_strength: f32,
+    pub warmup_iterations: u32,
+    pub warmup_curve: String,
+    pub zero_velocity_iterations: u32,
+    pub cooling_rate: f32,
+    // Clustering parameters
+    pub clustering_algorithm: String,
+    pub cluster_count: u32,
+    pub clustering_resolution: f32,
+    pub clustering_iterations: u32,
+}
+
+impl Default for PhysicsSettings {
+    fn default() -> Self {
+        Self {
+            attraction_strength: 0.0001,
+            bounds_size: 500.0,
+            separation_radius: 2.0,
+            damping: 0.95,
+            enable_bounds: true,
+            enabled: true,
+            iterations: 100,
+            max_velocity: 1.0,
+            repel_k: 50.0,
+            spring_k: 0.005,
+            repulsion_distance: 50.0,
+            mass_scale: 1.0,
+            boundary_damping: 0.95,
+            update_threshold: 0.01,
+            dt: 0.016,
+            temperature: 0.01,
+            gravity: 0.0001,
+            stress_weight: 0.1,
+            stress_alpha: 0.1,
+            boundary_limit: 490.0,
+            alignment_strength: 0.0,
+            cluster_strength: 0.0,
+            compute_mode: 0,
+            // Additional GPU parameter defaults
+            min_distance: 0.15,
+            max_repulsion_dist: 50.0,
+            boundary_margin: 0.85,
+            boundary_force_strength: 2.0,
+            warmup_iterations: 200,
+            warmup_curve: "quadratic".to_string(),
+            zero_velocity_iterations: 5,
+            cooling_rate: 0.0001,
+            // Clustering defaults
+            clustering_algorithm: "none".to_string(),
+            cluster_count: 5,
+            clustering_resolution: 1.0,
+            clustering_iterations: 30,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -596,26 +665,93 @@ pub struct WhisperSettings {
     pub initial_prompt: Option<String>,
 }
 
+// Constraint system structures
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct ConstraintData {
+    pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
+    pub strength: f32,
+    pub param1: f32,
+    pub param2: f32,
+    pub node_mask: i32,  // Bit mask for selective application
+    pub enabled: bool,
+}
+
+impl Default for ConstraintData {
+    fn default() -> Self {
+        Self {
+            constraint_type: 0,
+            strength: 1.0,
+            param1: 0.0,
+            param2: 0.0,
+            node_mask: 0,
+            enabled: false,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ConstraintSystem {
+    pub separation: ConstraintData,
+    pub boundary: ConstraintData,
+    pub alignment: ConstraintData,
+    pub cluster: ConstraintData,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ClusteringConfiguration {
+    pub algorithm: String,
+    pub num_clusters: u32,
+    pub resolution: f32,
+    pub iterations: u32,
+    pub export_assignments: bool,
+    pub auto_update: bool,
+}
+
 // Helper struct for physics updates
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
-    pub spring_strength: Option<f32>,
-    pub repulsion_strength: Option<f32>,
+    #[serde(alias = "spring_strength")]
+    pub spring_k: Option<f32>,
+    #[serde(alias = "repulsion_strength")]
+    pub repel_k: Option<f32>,
     pub iterations: Option<u32>,
     pub enabled: Option<bool>,
     pub bounds_size: Option<f32>,
     pub enable_bounds: Option<bool>,
     pub max_velocity: Option<f32>,
-    pub collision_radius: Option<f32>,
+    #[serde(alias = "collision_radius")]
+    pub separation_radius: Option<f32>,
     pub attraction_strength: Option<f32>,
     pub repulsion_distance: Option<f32>,
     pub mass_scale: Option<f32>,
     pub boundary_damping: Option<f32>,
-    pub time_step: Option<f32>,
+    #[serde(alias = "time_step")]
+    pub dt: Option<f32>,
     pub temperature: Option<f32>,
     pub gravity: Option<f32>,
     pub update_threshold: Option<f32>,
+    // New GPU-aligned fields
+    pub stress_weight: Option<f32>,
+    pub stress_alpha: Option<f32>,
+    pub boundary_limit: Option<f32>,
+    pub alignment_strength: Option<f32>,
+    pub cluster_strength: Option<f32>,
+    pub compute_mode: Option<i32>,
+    // Additional GPU parameters
+    pub min_distance: Option<f32>,
+    pub max_repulsion_dist: Option<f32>,
+    pub boundary_margin: Option<f32>,
+    pub boundary_force_strength: Option<f32>,
+    pub warmup_iterations: Option<u32>,
+    pub warmup_curve: Option<String>,
+    pub zero_velocity_iterations: Option<u32>,
+    pub cooling_rate: Option<f32>,
+    // Clustering parameters
+    pub clustering_algorithm: Option<String>,
+    pub cluster_count: Option<u32>,
+    pub clustering_resolution: Option<f32>,
+    pub clustering_iterations: Option<u32>,
 }
 
 // Single unified settings struct

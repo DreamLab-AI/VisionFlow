@@ -143,7 +143,7 @@ Content-Type: application/json
 
 {
   "files": ["file1.md", "file2.md"],
-  "action": "summarize"
+  "action": "summarise"
 }
 ```
 

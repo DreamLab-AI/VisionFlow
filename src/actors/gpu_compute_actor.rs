@@ -584,7 +584,7 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
         // gets converted to UpdateSimulationParams and sent here.
         
         info!("UpdateSimulationParams: Updating physics - enabled={}, repulsion={:.2}, damping={:.2}, dt={:.3}", 
-              msg.params.enabled, msg.params.repulsion, msg.params.damping, msg.params.time_step);
+              msg.params.enabled, msg.params.repel_k, msg.params.damping, msg.params.dt);
         
         // Update both simulation params and unified params
         self.simulation_params = msg.params.clone();

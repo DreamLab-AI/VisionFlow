@@ -23,9 +23,9 @@ The LogseqXR graph architecture has been modernized to decouple graph initialisa
 
 ### 1. Independent Graph Initialization
 
-The graph is now initialized once at server startup, regardless of client connections. Key benefits:
+The graph is now initialised once at server startup, regardless of client connections. Key benefits:
 
-- Reduced resource utilization by avoiding redundant graph creation
+- Reduced resource utilisation by avoiding redundant graph creation
 - Consistent graph state across all clients
 - Immediate graph availability for new client connections
 
@@ -75,7 +75,7 @@ sequenceDiagram
 
 ### 4. Optimized Data Transfer
 
-The system includes several optimizations:
+The system includes several optimisations:
 
 - Selective updates: Only nodes that change significantly trigger updates
 - Position deadbanding: Filters out minor position changes

@@ -1,95 +1,6157 @@
-High-Certainty Diagnosis
-The root cause of the problem is an architectural disconnect in the actor system. The real-time physics parameter updates from the control center are being sent to a dormant GPUComputeActor, while the main simulation loop, which is running inside the GraphServiceActor, is never notified of these changes.
-Consequently, the GraphServiceActor continues to use the initial physics parameters it was loaded with at startup, completely ignoring any subsequent adjustments made by the user. The "exploding" behavior is a classic symptom of an unstable physics simulation running with excessively high repulsion forces and/or an overly large time step, which are likely the default values the active simulation is stuck with.
-Detailed Analysis
-Let's trace the flow of information and execution to understand how this disconnect occurs:
-The Active Simulation Engine: The core physics simulation loop runs inside the GraphServiceActor (src/actors/graph_actor.rs).
-Its run_simulation_step method is called on a 16ms interval.
-This method calls run_advanced_gpu_step, which directly uses an embedded UnifiedGPUCompute instance (self.advanced_gpu_context) to execute the CUDA kernel.
-Crucially, it configures the physics for this kernel using its own internal state: self.simulation_params.
-The Incorrect Update Path: When you change a physics parameter in the control center, the frontend sends a request to the /api/analytics/params endpoint.
-This request is handled by update_analytics_params in src/handlers/api_handler/analytics/mod.rs.
-This handler correctly parses the incoming physics values (e.g., repulsion, damping).
-It then creates an UpdateSimulationParams message and sends it... but only to the GPUComputeActor.
-The Dormant Actor: The GPUComputeActor (src/actors/gpu_compute_actor.rs) is a separate actor designed to handle GPU computations.
-It correctly receives the UpdateSimulationParams message and updates its internal physics parameters. You would even see log messages from this actor confirming the update.
-However, the GraphServiceActor never calls the GPUComputeActor to perform the physics calculations. The GraphServiceActor performs them directly using its own UnifiedGPUCompute instance.
-Therefore, the GPUComputeActor receives all the real-time updates but sits idle, while the GraphServiceActor runs the simulation completely unaware of these new settings.
-Explaining the Symptoms:
-No Impact on Graph: Since the active simulation in GraphServiceActor never gets the new parameters, your changes have no effect.
-Exploding and Bouncing: The simulation is running with the initial parameters loaded from settings.yaml at startup. If these initial values are unstable or are being overridden by hardcoded defaults that are unstable, the physics simulation will break down. The massive forces push nodes outwards until they hit the boundary defined in the CUDA kernel (visionflow_unified.cu). The "bouncing" is caused by the boundary collision logic, which reverses a node's velocity when it hits the edge of the viewport_bounds, causing it to repeatedly slam against the walls of the simulation cube. The grouping in 8 corners is a typical artifact of this behavior in a 3D bounding box.
-The Critical Code Files
-src/handlers/api_handler/analytics/mod.rs: The update_analytics_params function sends the update message to the wrong destination.
-code
-Rust
-// src/handlers/api_handler/analytics/mod.rs
+content-script.js:104 Failed to get subsystem status for purpose {rejected: true, message: 'UNSUPPORTED_OS'}
+client:789 [vite] connecting...
+client:802  WebSocket connection to 'ws://localhost:3001/__vite_hmr?token=eZR8WEV1koV0' failed:
+createConnection @ client:802
+connect @ client:437
+connect @ client:811
+connect @ client:290
+connect @ client:383
+(anonymous) @ client:908
+client:841  [vite] failed to connect to websocket (Error: WebSocket closed without opened.).
+overrideMethod @ hook.js:608
+connect @ client:841
+await in connect
+connect @ client:290
+connect @ client:383
+(anonymous) @ client:908
+client:454  Uncaught (in promise) Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:454:22)
+(anonymous) @ client:454
+[NEW] Explain Console errors by using Copilot in Edge: click
 
-pub async fn update_analytics_params(
-    app_state: web::Data<AppState>,
-    params: web::Json<serde_json::Value>,
-) -> Result<HttpResponse> {
-    // ... logic to parse params ...
-
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-        // ...
-        // PROBLEM: This message is sent ONLY to the GPUComputeActor.
-        // The GraphServiceActor, which is running the simulation, is not notified.
-        match gpu_addr.send(UpdateSimulationParams { params: sim_params }).await {
-            // ...
-        }
-    }
-    // ...
+         to explain an error.
+        Learn more
+        Don't show again
+logger.ts:107 [08:33:40.040] [Console] Debug control available at window.debugControl
+logger.ts:107 [08:33:40.060] [BotsWebSocketIntegration] Initializing WebSocket connection for graph data
+logger.ts:107 [08:33:40.060] [BotsWebSocketIntegration] Logseq WebSocket connection status: false
+logger.ts:107 [08:33:40.067] [DebugConfig] Initializing debug system {enabled: true, categories: Array(0), replaceConsole: false, preset: undefined}
+logger.ts:107 [08:33:40.068] [ClientDebugState] Debug setting enabled set to true
+logger.ts:107 [08:33:40.068] [DebugConfig] Debug system initialized {enabled: true, categories: Array(0)}
+logger.ts:107 [08:33:40.093] [AppInitializer] Initializing services...
+logger.ts:107 [08:33:40.093] [NostrAuthService] No stored session found.
+logger.ts:107  [08:33:40.093] [ConnectionWarning] Lost connection to backend server Error Component Stack
+    at ConnectionWarning (ConnectionWarning.tsx:14:41)
+    at XRCoreProvider (XRCoreProvider.tsx:232:3)
+    at ApplicationModeProvider (ApplicationModeContext.tsx:22:43)
+    at ErrorBoundary (App.tsx:28:1)
+    at OnboardingProvider (OnboardingProvider.tsx:27:38)
+    at HelpProvider (HelpProvider.tsx:30:32)
+    at Provider (create-context.tsx:59:15)
+    at TooltipProvider (tooltip.tsx:68:5)
+    at App (App.tsx:66:23)
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+handleConnectionChange @ ConnectionWarning.tsx:26
+onConnectionStatusChange @ WebSocketService.ts:461
+(anonymous) @ ConnectionWarning.tsx:31
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [08:33:40.096] [useQuest3Integration] Starting Quest 3 detection...
+logger.ts:107 [08:33:40.096] [useBotsWebSocketIntegration] Initializing bots WebSocket integration
+logger.ts:107 [08:33:40.097] [XRCoreProvider] Complete XR resource cleanup performed
+logger.ts:107 [08:33:40.097] [AppInitializer] Initializing services...
+logger.ts:107  [08:33:40.097] [ConnectionWarning] Lost connection to backend server
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+handleConnectionChange @ ConnectionWarning.tsx:26
+onConnectionStatusChange @ WebSocketService.ts:461
+(anonymous) @ ConnectionWarning.tsx:31
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [08:33:40.097] [useQuest3Integration] Starting Quest 3 detection...
+logger.ts:107 [08:33:40.097] [useBotsWebSocketIntegration] Initializing bots WebSocket integration
+initializeAuthentication.ts:17 [initAuth] Auth state changed: {
+  "authenticated": false
 }
-src/actors/graph_actor.rs: This actor runs the simulation loop using its own internal state, which is never updated by the API handler.
-code
-Rust
-// src/actors/graph_actor.rs
-
-fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
-    // ...
-    if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-        // ...
-        // It uses its OWN simulation_params, which are never updated after startup.
-        let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
-        gpu_context.set_params(sim_params);
-
-        // It executes the physics directly, bypassing the GPUComputeActor.
-        match gpu_context.execute() {
-            // ...
-        }
-    }
-    // ...
+logger.ts:107 [08:33:40.098] [initAuth] Auth state changed: {authenticated: false, user: undefined, error: undefined}
+initializeAuthentication.ts:28 [initAuth] User not authenticated or no user data.
+logger.ts:107 [08:33:40.099] [initAuth] User cleared from settingsStore.
+logger.ts:107 [08:33:40.099] [initAuth] Auth system initialized and listener set up successfully
+initializeAuthentication.ts:17 [initAuth] Auth state changed: {
+  "authenticated": false
 }
-Solution
-To fix this, you must ensure the UpdateSimulationParams message is sent to the correct actor, which is the GraphServiceActor.
-Primary Fix: Retarget the Message
-Modify the update_analytics_params handler in src/handlers/api_handler/analytics/mod.rs to send the message to app_state.graph_service_addr instead of app_state.gpu_compute_addr.
-code
-Rust
-// In src/handlers/api_handler/analytics/mod.rs
-
-// ... inside update_analytics_params function
-if params.get("repulsion").is_some() || params.get("damping").is_some() {
-    // ... (logic to build sim_params) ...
-
-    // Get the correct actor address
-    let graph_actor_addr = &app_state.graph_service_addr;
-
-    // Send as UpdateSimulationParams to the GraphServiceActor
-    use crate::actors::messages::UpdateSimulationParams;
-    match graph_actor_addr.send(UpdateSimulationParams { params: sim_params }).await {
-        Ok(Ok(())) => {
-            info!("Physics parameters forwarded successfully to GraphServiceActor");
-        }
-        Ok(Err(e)) => {
-            warn!("GraphServiceActor failed to update physics params: {}", e);
-        }
-        Err(e) => {
-            warn!("GraphServiceActor mailbox error: {}", e);
-        }
-    }
-}
-// ...
-Architectural Recommendation: Consolidate Physics Logic
-The current architecture is confusing and error-prone because it contains two separate (and competing) physics engines. The GPUComputeActor is effectively redundant.
-You should refactor the system to have a single source of truth for physics execution. The most straightforward approach is to remove the GPUComputeActor entirely and have all physics-related messages and logic handled directly by the GraphServiceActor and its embedded UnifiedGPUCompute instance. This will simplify the codebase and prevent this kind of bug from recurring.
+logger.ts:107 [08:33:40.099] [initAuth] Auth state changed: {authenticated: false, user: undefined, error: undefined}
+initializeAuthentication.ts:28 [initAuth] User not authenticated or no user data.
+logger.ts:107 [08:33:40.099] [initAuth] User cleared from settingsStore.
+logger.ts:107 [08:33:40.099] [initAuth] Auth system initialized and listener set up successfully
+logger.ts:107 [08:33:40.101] [AppInitializer] Auth system initialized
+logger.ts:107 [08:33:40.101] [AppInitializer] Auth system initialized
+logger.ts:107 [08:33:40.101] [AppInitializer] Starting application initialization...
+logger.ts:107  [08:33:40.101] [GraphWorkerProxy] SharedArrayBuffer not available, falling back to regular message passing
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+initialize @ graphWorkerProxy.ts:95
+initApp @ AppInitializer.tsx:48
+await in initApp
+(anonymous) @ AppInitializer.tsx:106
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [08:33:40.101] [GraphWorkerProxy] Graph worker initialized successfully
+logger.ts:107 [08:33:40.102] [AppInitializer] Starting application initialization...
+logger.ts:107 [08:33:40.102] [SettingsStore] Initializing settings
+logger.ts:107 [08:33:40.102] [ApiService] [API] Making GET request to /api/settings
+logger.ts:107 [08:33:40.107] [GraphDataManager] Graph worker proxy is ready
+logger.ts:107 [08:33:40.109] [SpaceDriverService] SpaceDriver service initialized
+logger.ts:107  [08:33:40.115] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:289
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:303
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [08:33:40.121] [Quest3AutoDetector] Quest 3 Detection Results: {userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb…537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Sa...', isQuest3Hardware: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false, …}
+logger.ts:107 [08:33:40.122] [useQuest3Integration] Quest 3 detection completed - auto-start not enabled {isQuest3: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false}
+logger.ts:107  [08:33:40.122] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:289
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:303
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [08:33:40.122] [Quest3AutoDetector] Quest 3 Detection Results: {userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb…537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Sa...', isQuest3Hardware: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false, …}
+logger.ts:107 [08:33:40.122] [useQuest3Integration] Quest 3 detection completed - auto-start not enabled {isQuest3: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false}
+logger.ts:107 [08:33:40.130] [SettingsStore] Fetched settings from server: {serverSettings: {…}}
+logger.ts:107 [08:33:40.131] [SettingsStore] Deep merged settings: {migratedSettings: {…}}
+logger.ts:107 [08:33:40.131] [SettingsStore] Settings loaded from server and merged
+logger.ts:107 [08:33:40.143] [ClientDebugState] Debug setting enabled set to false
+logger.ts:107  [08:33:40.163] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:289
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:303
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+logger.ts:107 [08:33:40.186] [BotsWebSocketIntegration] Logseq WebSocket connection status: true
+logger.ts:107 [08:33:40.187] [AppInitializer] WebSocket connected but not fully established yet - waiting for readiness
+logger.ts:107 [08:33:40.187] [AppInitializer] Fetching initial graph data via REST API
+logger.ts:107 [08:33:40.188] [AppInitializer] Connection established message received, sending subscribe_position_updates
+graph.worker.ts:112 GraphWorker: Graph type set to logseq
+logger.ts:107 [08:33:40.202] [ApiService] [API] Making GET request to /api/settings
+useMouseControls.ts:14 [useMouseControls] OrbitControls enabled
+useMouseControls.ts:14 [useMouseControls] OrbitControls enabled
+graph.worker.ts:157 GraphWorker: Initialized logseq graph with 0 nodes
+logger.ts:107 [08:33:40.318] [ClientDebugState] Debug setting enabled set to false
+logger.ts:107 [08:33:40.318] [AppInitializer] WebSocket is connected and fully established - enabling binary updates
+logger.ts:107 [08:33:40.318] [AppInitializer] Sending subscribe_position_updates message to server
+logger.ts:107 [08:33:40.318] [AppInitializer] Fetching initial graph data via REST API
+graph.worker.ts:157 GraphWorker: Initialized logseq graph with 177 nodes
+graph.worker.ts:157 GraphWorker: Initialized logseq graph with 177 nodes
+logger.ts:107 [08:33:41.115] [BotsWebSocketIntegration] Requesting initial data for graph visualization
+logger.ts:107 [08:33:41.182] [ApiService] [API] Making GET request to /api/bots/data
+logger.ts:107 [08:33:41.282] [BotsWebSocketIntegration] Fetched bots data: {nodes: Array(0), edges: Array(0), metadata: {…}}
+logger.ts:107 [08:33:41.282] [useBotsWebSocketIntegration] Initial data requested
+logger.ts:107 [08:33:46.870] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:33:48.268] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:33:51.714] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:33:54.147] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:33:56.775] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:02.393] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:03.920] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:08.134] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:09.570] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.749] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.750] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.750] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.750] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.750] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:10.751] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:11.138] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:11.270] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:11.270] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:11.271] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:16.531] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:16.671] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:16.672] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:16.672] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:18.197] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:19.358] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.399] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.399] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.400] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.633] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.634] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:22.634] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:23.880] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:23.980] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:23.980] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:23.981] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:26.488] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:27.685] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:27.685] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:27.685] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:27.954] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:28.090] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:28.091] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:28.091] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:29.675] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:29.816] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:29.817] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:29.817] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:30.897] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:35.355] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.880] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.880] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.880] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.880] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.880] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:35.881] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:36.434] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:36.544] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:36.545] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:36.545] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:38.510] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:34:38.641] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:34:38.641] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:34:38.641] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107 [08:34:39.587] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:40.911] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:40.912] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:40.912] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:41.996] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:42.265] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:42.265] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:42.266] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:45.011] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:46.417] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:47.635] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:48.939] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:34:49.890] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:51.821] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:51.822] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:51.822] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.024] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.025] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.025] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.058] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.058] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.058] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.263] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.263] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.263] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.328] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.328] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:52.328] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:53.023] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:53.185] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:53.186] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:53.186] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:54.237] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:54.336] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:54.336] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:34:54.336] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:34:56.304] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:936
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+onVisualColorChange_ @ unknown
+onColorSelectionRingUpdate_ @ unknown
+updateColor @ unknown
+onPositionChange_ @ unknown
+set @ unknown
+moveTo @ unknown
+moveColorSelectionRingTo_ @ unknown
+pointerDown @ unknown
+onColorWellMouseDown_ @ unknown
+logger.ts:107  [08:34:57.339] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:936
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+onVisualColorChange_ @ unknown
+onColorSelectionRingUpdate_ @ unknown
+updateColor @ unknown
+onPositionChange_ @ unknown
+set @ unknown
+moveTo @ unknown
+moveColorSelectionRingTo_ @ unknown
+pointerDown @ unknown
+onColorWellMouseDown_ @ unknown
+logger.ts:107  [08:34:57.340] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:936
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+onVisualColorChange_ @ unknown
+onColorSelectionRingUpdate_ @ unknown
+updateColor @ unknown
+onPositionChange_ @ unknown
+set @ unknown
+moveTo @ unknown
+moveColorSelectionRingTo_ @ unknown
+pointerDown @ unknown
+onColorWellMouseDown_ @ unknown
+logger.ts:107  [08:34:57.340] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:936
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+onVisualColorChange_ @ unknown
+onColorSelectionRingUpdate_ @ unknown
+updateColor @ unknown
+onPositionChange_ @ unknown
+set @ unknown
+moveTo @ unknown
+moveColorSelectionRingTo_ @ unknown
+pointerDown @ unknown
+onColorWellMouseDown_ @ unknown
+logger.ts:107 [08:35:00.521] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:01.495] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:02.827] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.635] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.635] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.635] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.635] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.635] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.636] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:08.701] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.802] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.802] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:08.803] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:09.997] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:10.130] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:10.130] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:10.130] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:10.299] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+logger.ts:107  [08:35:10.299] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+logger.ts:107  [08:35:10.299] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+logger.ts:107 [08:35:12.395] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:13.946] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:13.946] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:13.946] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:14.201] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:35:14.566] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:35:14.567] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107  [08:35:14.567] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onChange @ IntegratedControlPanel.tsx:1011
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+handleMouseUp_ @ unknown
+logger.ts:107 [08:35:14.982] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:15.107] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:15.107] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:15.107] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:16.120] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.281] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.282] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.282] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:16.610] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.744] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.744] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:16.745] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:17.723] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:21.530] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:22.520] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107  [08:35:24.261] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:289
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:303
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+logger.ts:107 [08:35:24.818] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.001] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.002] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.003] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:26.003] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:27.207] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:27.582] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:27.582] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:27.582] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:27.623] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+logger.ts:107  [08:35:27.624] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+logger.ts:107  [08:35:27.624] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+logger.ts:107 [08:35:27.972] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:28.438] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:28.439] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:28.439] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:28.782] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:29.116] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:29.116] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:29.116] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:29.582] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:30.931] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:30.931] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:30.931] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:872
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:32.229] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:32.466] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:32.466] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:32.466] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:32.983] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:33.083] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:33.083] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:33.084] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:33.822] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.181] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.181] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.181] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:34.585] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.951] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.951] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:34.952] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:35.524] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:35.947] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:36.591] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:38.075] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+logger.ts:107 [08:35:39.065] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.187] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.188] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.189] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.189] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.189] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.189] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.189] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.461] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.461] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.462] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:40.620] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.717] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.717] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:40.717] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:41.509] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:41.607] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:41.608] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:41.608] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107 [08:35:43.342] [SettingsStore] [SETTINGS DEBUG] Sending settings payload to server: {endpoint: '/api/settings', payloadKeys: Array(13), sampleFields: {…}}
+apiService.ts:97   POST http://192.168.0.51:3001/api/settings 400 (Bad Request)
+post @ apiService.ts:97
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:45.433] [ApiService] [API ERROR] POST /api/settings failed: {status: 400, statusText: 'Bad Request', errorDetails: 'Invalid settings: boundsSize must be between 100.0 and 50000.0', requestPayload: {…}}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:112
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:45.433] [ApiService] POST request to /settings failed: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+post @ apiService.ts:133
+await in post
+debouncedSaveToServer @ settingsStore.ts:142
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+logger.ts:107  [08:35:45.433] [SettingsStore] Failed to save settings to server: {message: 'API request failed with status 400: Bad Request. D…ngs: boundsSize must be between 100.0 and 50000.0', name: 'Error', stack: 'Error: API request failed with status 400: Bad Req….168.0.51:3001/src/store/settingsStore.ts:103:29)'}
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+debouncedSaveToServer @ settingsStore.ts:151
+await in debouncedSaveToServer
+(anonymous) @ settingsStore.ts:165
+setTimeout
+scheduleSave @ settingsStore.ts:165
+updateSettings @ settingsStore.ts:431
+updateSettingByPath @ IntegratedControlPanel.tsx:304
+onClick @ IntegratedControlPanel.tsx:901
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430

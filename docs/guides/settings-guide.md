@@ -344,7 +344,7 @@ ws.on('physics_update', (data) => {
 
 **Location**: `/ext/client/src/features/physics/components/PhysicsEngineControls.tsx`
 
-The control center provides real-time physics parameter adjustment through four main tabs:
+The control centre provides real-time physics parameter adjustment through four main tabs:
 
 #### 1. Engine Tab
 - **GPU Status**: Monitor compute device availability
@@ -665,7 +665,7 @@ physics:
   time_step: 0.02         # Larger timestep
   enable_bounds: false    # Disable if not needed
 
-# Visual optimizations
+# Visual optimisations
 bloom:
   enabled: false          # Disable for testing
   samples: 3             # Reduce samples

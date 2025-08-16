@@ -1,10 +1,10 @@
 visualisation:
   rendering:
-    ambient_light_intensity: 0.5633112
+    ambient_light_intensity: 1.5544538
     background_color: '#0a0e1a'
-    directional_light_intensity: 0.54191965
-    enable_ambient_occlusion: false
-    enable_antialiasing: true
+    directional_light_intensity: 1.3690603
+    enable_ambient_occlusion: true
+    enable_antialiasing: false
     enable_shadows: true
     environment_intensity: 0.7
     shadow_map_size: '2048'
@@ -20,21 +20,21 @@ visualisation:
     pulse_strength: 0.8
     wave_speed: 0.5
   bloom:
-    edge_bloom_strength: 3.5
+    edge_bloom_strength: 0.3743524
     enabled: true
-    environment_bloom_strength: 3.0
-    node_bloom_strength: 0.3636566
-    radius: 0.124784134
-    strength: 0.13904518
-    threshold: 0.15
+    environment_bloom_strength: 0.3672219
+    node_bloom_strength: 0.30661243
+    radius: 0.29591668
+    strength: 0.3386998
+    threshold: 0.41357028
   hologram:
-    ring_count: 5
-    ring_color: '#00ffff'
-    ring_opacity: 0.8
+    ring_count: 3
+    ring_color: '#e83211'
+    ring_opacity: 0.23174196
     sphere_sizes:
     - 40.0
     - 80.0
-    ring_rotation_speed: 12.0
+    ring_rotation_speed: 24.778564
     enable_buckminster: true
     buckminster_size: 50.0
     buckminster_opacity: 0.3
@@ -48,55 +48,75 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        base_color: '#d27914'
-        metalness: 0.43139657
-        opacity: 0.4492229
-        roughness: 0.37791768
-        node_size: 1.047106
+        base_color: '#a06522'
+        metalness: 0.44209236
+        opacity: 0.5098323
+        roughness: 0.5561807
+        node_size: 0.9829313
         quality: high
         enable_instancing: true
         enable_hologram: true
         enable_metadata_shape: true
         enable_metadata_visualisation: true
       edges:
-        arrow_size: 0.2650588
-        base_width: 1.5566815
-        color: '#56b6c2'
+        arrow_size: 0.34017882
+        base_width: 1.2799816
+        color: '#143d42'
         enable_arrows: false
-        opacity: 0.5953986
+        opacity: 0.75583535
         width_range:
         - 0.2
         - 1.0
         quality: medium
       labels:
-        desktop_font_size: 0.76965016
+        desktop_font_size: 1.008701
         enable_labels: true
-        text_color: '#f8f8f2'
-        text_outline_color: '#181c28'
-        text_outline_width: 0.006025291
+        text_color: '#5d5d09'
+        text_outline_color: '#4561b5'
+        text_outline_width: 0.0026382932
         text_resolution: 32
         text_padding: 0.6
         billboard_mode: camera
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_strength: 0.3101777
-        bounds_size: 500.0
-        collision_radius: 2.0
-        damping: 0.21391566
-        enable_bounds: false
+        attraction_strength: 0.13904518
+        bounds_size: 45.547935
+        separation_radius: 4.2403374
+        damping: 0.95
+        enable_bounds: true
         enabled: true
-        iterations: 100
-        max_velocity: 0.17534839
-        repulsion_strength: 0.76296586
-        spring_strength: 0.4456576
-        repulsion_distance: 3.8766809
-        mass_scale: 1.0
-        boundary_damping: 0.5
-        update_threshold: 0.01
-        time_step: 0.016
+        iterations: 436
+        max_velocity: 1.0
+        repel_k: 50.0
+        spring_k: 0.005
+        repulsion_distance: 8.676949
+        mass_scale: 7.194513
+        boundary_damping: 0.95
+        update_threshold: 0.4385271
+        dt: 0.016
         temperature: 0.01
         gravity: 0.0001
+        stress_weight: 0.1
+        stress_alpha: 0.1
+        boundary_limit: 44.637776
+        alignment_strength: 0.0
+        cluster_strength: 0.0
+        compute_mode: 0
+        # New GPU parameters
+        min_distance: 0.15
+        max_repulsion_dist: 50.0
+        boundary_margin: 0.85
+        boundary_force_strength: 2.0
+        warmup_iterations: 200
+        warmup_curve: quadratic
+        zero_velocity_iterations: 5
+        cooling_rate: 0.0001
+        # Clustering
+        clustering_algorithm: none
+        cluster_count: 5
+        clustering_resolution: 1.0
+        clustering_iterations: 30
     visionflow:
       nodes:
         base_color: '#ff8800'
@@ -133,21 +153,41 @@ visualisation:
       physics:
         attraction_strength: 0.0001
         bounds_size: 500.0
-        collision_radius: 2.0
+        separation_radius: 2.0
         damping: 0.95
         enable_bounds: true
         enabled: true
         iterations: 100
-        max_velocity: 2.0
-        repulsion_strength: 2.0
-        spring_strength: 0.005
+        max_velocity: 1.0
+        repel_k: 50.0
+        spring_k: 0.005
         repulsion_distance: 50.0
         mass_scale: 1.0
-        boundary_damping: 0.5
+        boundary_damping: 0.95
         update_threshold: 0.01
-        time_step: 0.016
+        dt: 0.016
         temperature: 0.01
         gravity: 0.0001
+        stress_weight: 0.1
+        stress_alpha: 0.1
+        boundary_limit: 490.0
+        alignment_strength: 0.0
+        cluster_strength: 0.0
+        compute_mode: 0
+        # New GPU parameters  
+        min_distance: 0.15
+        max_repulsion_dist: 50.0
+        boundary_margin: 0.85
+        boundary_force_strength: 2.0
+        warmup_iterations: 200
+        warmup_curve: quadratic
+        zero_velocity_iterations: 5
+        cooling_rate: 0.0001
+        # Clustering
+        clustering_algorithm: none
+        cluster_count: 5
+        clustering_resolution: 1.0
+        clustering_iterations: 30
   camera:
     fov: 75.0
     near: 0.1
@@ -169,12 +209,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
+      '3': fitToView
       '4': topView
+      '5': rightView
       '6': frontView
       '1': resetView
-      '3': fitToView
       '2': cycleMode
-      '5': rightView
 system:
   network:
     bind_address: 0.0.0.0
@@ -224,7 +264,7 @@ system:
     enable_request_validation: false
     session_timeout: 3600
   debug:
-    enabled: false
+    enabled: true
   persist_settings: true
 xr:
   enabled: false
@@ -234,7 +274,7 @@ xr:
   room_scale: 1.0
   space_type: local-floor
   quality: medium
-  render_scale: 1.0
+  render_scale: 0.92248344
   interaction_distance: 1.5
   locomotion_method: teleport
   teleport_ray_color: '#ffffff'

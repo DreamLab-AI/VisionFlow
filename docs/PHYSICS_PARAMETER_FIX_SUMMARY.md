@@ -1,7 +1,7 @@
 # Physics Parameter Update Fix - Implementation Summary
 
 ## Issue Fixed
-The physics parameter updates from the control center were being sent to the dormant `GPUComputeActor` instead of the active `GraphServiceActor` that actually runs the simulation.
+The physics parameter updates from the control centre were being sent to the dormant `GPUComputeActor` instead of the active `GraphServiceActor` that actually runs the simulation.
 
 ## Root Cause
 - The `GraphServiceActor` runs the physics simulation using its embedded `UnifiedGPUCompute` instance
@@ -42,8 +42,8 @@ match graph_actor_addr.send(UpdateSimulationParams { params: sim_params }).await
 ✅ **Message Handler**: Confirmed `GraphServiceActor` has proper `UpdateSimulationParams` handler implementation
 
 ## Expected Behavior After Fix
-- Physics parameter changes in the control center will now properly update the active simulation
-- Graph behavior will respond to:
+- Physics parameter changes in the control centre will now properly update the active simulation
+- Graph behaviour will respond to:
   - Repulsion force adjustments
   - Damping changes
   - Time step modifications
@@ -57,7 +57,7 @@ match graph_actor_addr.send(UpdateSimulationParams { params: sim_params }).await
 - No changes to message types or actor interfaces
 
 ## Testing Recommendations
-1. Adjust repulsion parameter in control center - should see immediate effect on node spacing
+1. Adjust repulsion parameter in control centre - should see immediate effect on node spacing
 2. Modify damping - should affect how quickly nodes settle
 3. Change time step - should affect simulation speed/stability
 4. Test all physics controls to ensure proper responsiveness

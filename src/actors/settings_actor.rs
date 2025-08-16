@@ -24,8 +24,8 @@ impl SettingsActor {
         info!("Settings actor initialized with configuration");
         debug!("Logseq physics: damping={}, spring={}, repulsion={}", 
             settings.visualisation.graphs.logseq.physics.damping,
-            settings.visualisation.graphs.logseq.physics.spring_strength,
-            settings.visualisation.graphs.logseq.physics.repulsion_strength
+            settings.visualisation.graphs.logseq.physics.spring_k,
+            settings.visualisation.graphs.logseq.physics.repel_k
         );
         
         Self {

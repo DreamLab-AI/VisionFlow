@@ -442,8 +442,8 @@ pub async fn update_bots_data(
         let mut params = SimulationParams::from(physics_settings);
         // Adjust for bots
         params.iterations = physics_settings.iterations / 2; // Fewer iterations for bots
-        params.spring_strength = physics_settings.spring_strength * 1.5; // Stronger attraction
-        params.repulsion = physics_settings.repulsion_strength * 0.8; // Less repulsion
+        params.spring_k = physics_settings.spring_k * 1.5; // Stronger attraction
+        params.repel_k = physics_settings.repel_k * 0.8; // Less repulsion
 
         // Send graph data to GPU
         info!("Processing bots layout with GPU");

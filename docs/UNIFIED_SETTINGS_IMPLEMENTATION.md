@@ -182,7 +182,7 @@ info!("Propagating {} physics to GPU - damping: {:.3}, spring: {:.3}, repulsion:
 ### For Users:
 - Settings now persist correctly
 - Wider ranges for all physics controls
-- Consistent behavior across all UI panels
+- Consistent behaviour across all UI panels
 - Better error messages when validation fails
 
 ## Testing Checklist

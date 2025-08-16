@@ -58,33 +58,33 @@ impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
     fn from(params: &crate::models::simulation_params::SimulationParams) -> Self {
         // Log the conversion to debug parameter flow
         log::info!("Converting SimulationParams to SimParams:");
-        log::info!("  Input repulsion: {} -> repel_k: {}", 
-                   params.repulsion, params.repulsion.clamp(0.01, 100.0));
+        log::info!("  Input repel_k: {} -> repel_k: {}", 
+                   params.repel_k, params.repel_k.clamp(0.01, 100.0));
         log::info!("  Input damping: {} -> damping: {}", 
                    params.damping, params.damping.clamp(0.1, 0.99));
-        log::info!("  Input time_step: {} -> dt: {}", 
-                   params.time_step, params.time_step.clamp(0.001, 0.1));
+        log::info!("  Input dt: {} -> dt: {}", 
+                   params.dt, params.dt.clamp(0.001, 0.1));
         log::info!("  Input enabled: {}", params.enabled);
         
-        // EXPANDED RANGES: Allow wider parameter ranges for user control
+        // Pass parameters directly from settings without overriding
         Self {
-            spring_k: params.spring_strength.clamp(0.0001, 1.0),   // Expanded upper limit
-            repel_k: params.repulsion.clamp(0.01, 100.0),          // Much wider range for repulsion
-            damping: params.damping.clamp(0.1, 0.99),              // Wider damping range
-            dt: params.time_step.clamp(0.001, 0.1),                // Allow larger timesteps
-            max_velocity: params.max_velocity.clamp(0.1, 100.0),   // Much wider velocity range
-            max_force: params.max_force.clamp(0.1, 100.0),         // Wider force range
-            stress_weight: 0.5,  
-            stress_alpha: 0.1,
-            separation_radius: params.collision_radius.clamp(0.1, 10.0),  // Wider collision radius
-            boundary_limit: params.viewport_bounds.clamp(50.0, 5000.0),
-            alignment_strength: params.attraction_strength.clamp(0.0, 1.0),  // Full range for attraction
-            cluster_strength: 0.2,  
-            boundary_damping: params.boundary_damping.clamp(0.1, 0.99),
-            viewport_bounds: params.viewport_bounds.clamp(50.0, 5000.0),
-            temperature: params.temperature.clamp(0.0, 10.0),      // Allow higher temperature
+            spring_k: params.spring_k.clamp(0.0001, 1.0),
+            repel_k: params.repel_k.clamp(0.01, 200.0),            // Allow wider range
+            damping: params.damping.clamp(0.5, 0.99),              // Ensure minimum damping for stability
+            dt: params.dt.clamp(0.001, 0.1),
+            max_velocity: params.max_velocity.clamp(0.1, 10.0),    // Reasonable velocity range
+            max_force: params.max_force.clamp(0.1, 100.0),
+            stress_weight: params.stress_weight,                    // Use actual value from settings
+            stress_alpha: params.stress_alpha,                      // Use actual value from settings
+            separation_radius: params.separation_radius.clamp(0.05, 10.0),
+            boundary_limit: params.boundary_limit,                  // Use actual value from settings
+            alignment_strength: params.alignment_strength,          // Use actual value from settings
+            cluster_strength: params.cluster_strength,              // Use actual value from settings
+            boundary_damping: params.boundary_damping.clamp(0.5, 0.99),
+            viewport_bounds: params.viewport_bounds.clamp(10.0, 10000.0),
+            temperature: params.temperature.clamp(0.0, 2.0),
             iteration: 0,
-            compute_mode: 0,  // Will be set based on ComputeMode
+            compute_mode: params.compute_mode,                      // Use actual compute mode
         }
     }
 }

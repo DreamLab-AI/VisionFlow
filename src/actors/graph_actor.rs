@@ -665,12 +665,27 @@ impl GraphServiceActor {
     }
     
     fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
-        debug!("=== START run_advanced_gpu_step ===");
-        debug!("Current simulation_params: repulsion={}, damping={}, time_step={}, enabled={}", 
-               self.simulation_params.repulsion,
-               self.simulation_params.damping,
-               self.simulation_params.time_step,
-               self.simulation_params.enabled);
+        // Always log physics step execution
+        info!("[GPU STEP] === Starting physics simulation step ===");
+        info!("[GPU STEP] Current physics parameters:");
+        info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
+        info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
+        info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
+        info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
+        info!("  - attraction_k: {:.3} (clustering force)", self.simulation_params.attraction_k);
+        info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
+        info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
+        
+        if !self.simulation_params.enabled {
+            info!("[GPU STEP] Physics disabled - skipping simulation");
+            return;
+        }
+        
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("  - temperature: {:.3}", self.simulation_params.temperature);
+            debug!("  - viewport_bounds: {:.1}", self.simulation_params.viewport_bounds);
+            debug!("  - iterations: {}", self.simulation_params.iterations);
+        }
         
         // Prepare node positions for unified GPU compute
         let positions = self.prepare_node_positions();
@@ -1200,17 +1215,24 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("=== GraphServiceActor::UpdateSimulationParams RECEIVED ===");
-        info!("OLD params: repulsion={}, damping={}, time_step={}, enabled={}", 
-               self.simulation_params.repulsion,
-               self.simulation_params.damping,
-               self.simulation_params.time_step,
-               self.simulation_params.enabled);
-        info!("NEW params: repulsion={}, damping={}, time_step={}, enabled={}", 
-               msg.params.repulsion,
-               msg.params.damping,
-               msg.params.time_step,
-               msg.params.enabled);
+        info!("[GRAPH ACTOR] === UpdateSimulationParams RECEIVED ===");
+        info!("[GRAPH ACTOR] OLD physics values:");
+        info!("  - repel_k: {} (was)", self.simulation_params.repel_k);
+        info!("  - damping: {:.3} (was)", self.simulation_params.damping);
+        info!("  - dt: {:.3} (was)", self.simulation_params.dt);
+        info!("  - spring_k: {:.3} (was)", self.simulation_params.spring_k);
+        info!("  - attraction_k: {:.3} (was)", self.simulation_params.attraction_k);
+        info!("  - max_velocity: {:.3} (was)", self.simulation_params.max_velocity);
+        info!("  - enabled: {} (was)", self.simulation_params.enabled);
+        
+        info!("[GRAPH ACTOR] NEW physics values:");
+        info!("  - repel_k: {} (new)", msg.params.repel_k);
+        info!("  - damping: {:.3} (new)", msg.params.damping);
+        info!("  - dt: {:.3} (new)", msg.params.dt);
+        info!("  - spring_k: {:.3} (new)", msg.params.spring_k);
+        info!("  - attraction_k: {:.3} (new)", msg.params.attraction_k);
+        info!("  - max_velocity: {:.3} (new)", msg.params.max_velocity);
+        info!("  - enabled: {} (new)", msg.params.enabled);
         
         self.simulation_params = msg.params.clone();
         

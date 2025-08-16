@@ -272,7 +272,7 @@ While graphs are separate, they can interact:
 
 ## Configuration
 
-Configure dual-graph behavior in `settings.yaml`:
+Configure dual-graph behaviour in `settings.yaml`:
 
 ```yaml
 visualisation:

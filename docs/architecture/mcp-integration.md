@@ -1,12 +1,12 @@
 # MCP Integration Architecture
 
-VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through the EnhancedClaudeFlowActor to orchestrate and visualize AI Multi Agents in real-time.
+VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through the EnhancedClaudeFlowActor to orchestrate and visualise AI Multi Agents in real-time.
 
 ## Overview
 
 The MCP integration enables VisionFlow to:
 - Connect directly to Claude Flow via TCP (backend-only)
-- Visualize agent interactions through REST API to frontend
+- Visualise agent interactions through REST API to frontend
 - Monitor agent performance and resource usage
 - Coordinate multi-agent collaboration in parallel graphs
 

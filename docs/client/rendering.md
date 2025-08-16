@@ -4,7 +4,7 @@ This document provides a detailed overview of the 3D rendering system in the Log
 
 ## Overview
 
-The rendering system is responsible for transforming the graph data (nodes, edges, metadata) into an interactive 3D visualization. It leverages the declarative nature of React with the power of Three.js through R3F, allowing for efficient management of the 3D scene graph and performance optimizations like instancing. This document serves as the primary documentation for the technical implementation of the client-side visualization.
+The rendering system is responsible for transforming the graph data (nodes, edges, metadata) into an interactive 3D visualisation. It leverages the declarative nature of React with the power of Three.js through R3F, allowing for efficient management of the 3D scene graph and performance optimisations like instancing. This document serves as the primary documentation for the technical implementation of the client-side visualisation.
 
 ## React Three Fiber (R3F) Setup
 

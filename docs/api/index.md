@@ -477,7 +477,7 @@ Makes predictions using trained neural models.
 Analyzes and manages cognitive patterns.
 
 **Parameters:**
-- `action: String` - Action (analyze, learn, predict, optimize)
+- `action: String` - Action (analyse, learn, predict, optimise)
 - `pattern: String` - Pattern type (all, convergent, divergent, lateral, systems)
 - `data: Object` - Pattern-specific data
 - `agent_id: String` - Target agent (optional)
@@ -492,11 +492,11 @@ Generates comprehensive performance reports with metrics.
 - `timeframe: String` - Time range (1h, 24h, 7d, 30d)
 - `components: Array` - Specific components to include (optional)
 
-#### `bottleneck_analyze`  
-Identifies and analyzes performance bottlenecks.
+#### `bottleneck_analyse`  
+Identifies and analyses performance bottlenecks.
 
 **Parameters:**
-- `component: String` - Component to analyze (optional)
+- `component: String` - Component to analyse (optional)
 - `metrics: Array` - Metrics to evaluate (optional)  
 - `threshold: f32` - Performance threshold (optional)
 

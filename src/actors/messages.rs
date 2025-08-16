@@ -98,7 +98,7 @@ pub struct UpdateAdvancedParams {
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
-pub struct UpdateConstraints {
+pub struct UpdateConstraintData {
     pub constraint_data: Value,
 }
 
@@ -590,4 +590,52 @@ pub struct PerformGPUClustering {
     pub params: crate::handlers::api_handler::analytics::ClusteringParams,
     pub task_id: String,
 }
+
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct StartGPUClustering {
+    pub algorithm: String,
+    pub cluster_count: u32,
+    pub task_id: String,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<Value, String>")]
+pub struct GetClusteringStatus;
+
+#[derive(Message)]
+#[rtype(result = "Result<Value, String>")]
+pub struct GetClusteringResults;
+
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct ExportClusterAssignments {
+    pub format: String,
+}
+
+// GPU Constraint Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateConstraints {
+    pub constraint_data: Value,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ApplyConstraintsToNodes {
+    pub constraint_type: String,
+    pub node_ids: Vec<u32>,
+    pub strength: f32,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<u32, String>")]
+pub struct RemoveConstraints {
+    pub constraint_type: Option<String>,
+    pub node_ids: Option<Vec<u32>>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<Value>, String>")]
+pub struct GetActiveConstraints;
 
