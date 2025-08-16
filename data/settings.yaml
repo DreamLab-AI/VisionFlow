@@ -52,7 +52,7 @@ visualisation:
         metalness: 0.44209236
         opacity: 0.5098323
         roughness: 0.5561807
-        node_size: 0.9829313
+        node_size: 1.2267952
         quality: high
         enable_instancing: true
         enable_hologram: true
@@ -80,7 +80,7 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_k: 0.01
+        attraction_k: 0.1
         bounds_size: 1000.0
         separation_radius: 2.0
         damping: 0.85
@@ -89,7 +89,7 @@ visualisation:
         iterations: 50
         max_velocity: 5.0
         repel_k: 50.0
-        spring_k: 0.005
+        spring_k: 0.1
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -203,12 +203,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '5': rightView
       '1': resetView
-      '2': cycleMode
-      '3': fitToView
-      '4': topView
       '6': frontView
+      '3': fitToView
+      '2': cycleMode
+      '4': topView
+      '5': rightView
 system:
   network:
     bind_address: 0.0.0.0

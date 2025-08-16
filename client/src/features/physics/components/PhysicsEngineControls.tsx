@@ -75,30 +75,30 @@ export function PhysicsEngineControls() {
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
-  // Initialize force params from settings - UNIFIED FIELD NAMES
+  // Initialize force params from settings - using camelCase
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsionStrength: physicsSettings?.repulsionStrength || 2.0,    // Stable default
-    attractionStrength: physicsSettings?.attractionStrength || 0.001, // Stable default
-    springStrength: physicsSettings?.springStrength || 0.005,        // Stable default
-    damping: physicsSettings?.damping || 0.95,                      // Stable default
-    gravity: physicsSettings?.gravity || 0.0001,                    // Stable default
-    timeStep: physicsSettings?.timeStep || 0.016,                  // Stable default (60fps)
-    maxVelocity: physicsSettings?.maxVelocity || 2.0,              // Stable default
-    temperature: physicsSettings?.temperature || 0.01,              // Stable default
+    repulsionStrength: physicsSettings?.repelK || 50.0,           // GPU param: repel_k
+    attractionStrength: physicsSettings?.attractionK || 0.001,    // GPU param: attraction_k
+    springStrength: physicsSettings?.springK || 0.005,            // GPU param: spring_k
+    damping: physicsSettings?.damping || 0.95,                    // GPU param: damping
+    gravity: physicsSettings?.gravity || 0.0001,                  // GPU param: gravity
+    timeStep: physicsSettings?.dt || 0.016,                       // GPU param: dt
+    maxVelocity: physicsSettings?.maxVelocity || 2.0,            // GPU param: max_velocity
+    temperature: physicsSettings?.temperature || 0.01,            // GPU param: temperature
   });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
     { id: 'fixed', name: 'Fixed Position', enabled: false, description: 'Lock nodes in place', icon: '📌' },
-    { id: 'separation', name: 'Separation', enabled: true, description: 'Minimum distance between nodes', icon: '↔️' },
+    { id: 'separation', name: 'Separation', enabled: false, description: 'Minimum distance between nodes', icon: '↔️' },
     { id: 'alignment_h', name: 'Horizontal Alignment', enabled: false, description: 'Align nodes horizontally', icon: '═' },
     { id: 'alignment_v', name: 'Vertical Alignment', enabled: false, description: 'Align nodes vertically', icon: '║' },
-    { id: 'boundary', name: 'Boundary', enabled: true, description: 'Keep nodes within bounds', icon: '⬚' },
+    { id: 'boundary', name: 'Boundary', enabled: false, description: 'Keep nodes within bounds', icon: '⬚' },
     { id: 'cluster', name: 'Cluster', enabled: false, description: 'Group related nodes', icon: '🔶' },
     { id: 'tree', name: 'Tree Layout', enabled: false, description: 'Hierarchical tree structure', icon: '🌳' },
     { id: 'radial', name: 'Radial', enabled: false, description: 'Radial distance constraints', icon: '⭕' },
     { id: 'layer', name: 'Layer', enabled: false, description: 'Layer-based positioning', icon: '📚' },
-    { id: 'collision', name: 'Collision', enabled: true, description: 'Prevent node overlap', icon: '💥' },
+    { id: 'collision', name: 'Collision', enabled: false, description: 'Prevent node overlap', icon: '💥' },
   ]);
   
   const [isolationLayers, setIsolationLayers] = useState<IsolationLayer[]>([
@@ -128,18 +128,18 @@ export function PhysicsEngineControls() {
     }
   }, [initialized]);
   
-  // Update local state when settings change - UNIFIED FIELD NAMES
+  // Update local state when settings change - using camelCase
   useEffect(() => {
     if (physicsSettings && initialized) {
       setForceParams({
-        repulsionStrength: physicsSettings.repulsionStrength || 2.0,      // Stable default
-        attractionStrength: physicsSettings.attractionStrength || 0.001,   // Stable default
-        springStrength: physicsSettings.springStrength || 0.005,          // Stable default
-        damping: physicsSettings.damping || 0.95,                        // Stable default
-        gravity: physicsSettings.gravity || 0.0001,                      // Stable default
-        timeStep: physicsSettings.timeStep || 0.016,                    // Stable default (60fps)
-        maxVelocity: physicsSettings.maxVelocity || 2.0,                // Stable default
-        temperature: physicsSettings.temperature || 0.01,                // Stable default
+        repulsionStrength: physicsSettings.repelK || 50.0,           // GPU param: repel_k
+        attractionStrength: physicsSettings.attractionK || 0.001,    // GPU param: attraction_k
+        springStrength: physicsSettings.springK || 0.005,            // GPU param: spring_k
+        damping: physicsSettings.damping || 0.95,                    // GPU param: damping
+        gravity: physicsSettings.gravity || 0.0001,                  // GPU param: gravity
+        timeStep: physicsSettings.dt || 0.016,                       // GPU param: dt
+        maxVelocity: physicsSettings.maxVelocity || 2.0,            // GPU param: max_velocity
+        temperature: physicsSettings.temperature || 0.01,            // GPU param: temperature
       });
     }
   }, [physicsSettings, initialized]);
@@ -192,17 +192,27 @@ export function PhysicsEngineControls() {
     const newParams = { ...forceParams, [param]: value };
     setForceParams(newParams);
     
-    // Create physics update with unified field names (already camelCase)
+    // Map UI parameter names to camelCase physics settings names
+    const paramMapping: Record<string, string> = {
+      repulsionStrength: 'repelK',
+      attractionStrength: 'attractionK',
+      springStrength: 'springK',
+      damping: 'damping',
+      gravity: 'gravity',
+      timeStep: 'dt',
+      maxVelocity: 'maxVelocity',
+      temperature: 'temperature',
+    };
+    
     const physicsUpdate = {
-      [param]: value
+      [paramMapping[param] || param]: value
     };
     
     try {
       // Update through settings store
       await updatePhysics(physicsUpdate);
       
-      // FIXED: Use proper /api/physics/update endpoint
-      // Data flow: UI -> REST /api/physics/update -> UpdateSimulationParams -> GPU
+      // Send to server - server will convert camelCase to snake_case
       const response = await fetch('/api/physics/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

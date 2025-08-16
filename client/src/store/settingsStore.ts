@@ -56,139 +56,7 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
-/**
- * Normalize settings to server schema to avoid validation errors.
- * Maps old parameter names to new GPU-aligned names and ensures proper type conversions.
- * - system.debug.logLevel: coerce 'debug'|'info'|'warn'|'error' -> 0..3 and clamp to [0,3]
- * - physics.iterations: ensure it's an integer (JavaScript sends floats as 100.0)
- * - GPU parameters: map old names to new GPU-aligned names
- */
-function normalizeSettingsForServer(settings: Settings) {
-  // JSON clone to avoid mutating store state
-  const normalized: any = JSON.parse(JSON.stringify(settings));
-  
-  // Fix system.debug.logLevel
-  const sys = normalized?.system;
-  const dbg = sys?.debug;
-  if (dbg) {
-    const map: Record<string, number> = { debug: 0, info: 1, warn: 2, error: 3 };
-    const lvl = dbg.logLevel;
-    if (typeof lvl === 'string') {
-      if (map[lvl] !== undefined) {
-        dbg.logLevel = map[lvl];
-      }
-    } else if (typeof lvl === 'number') {
-      if (Number.isFinite(lvl)) {
-        if (lvl < 0) dbg.logLevel = 0;
-        if (lvl > 3) dbg.logLevel = 3;
-      } else {
-        dbg.logLevel = 1; // default to 'info'
-      }
-    }
-  }
-  
-  // Fix physics parameters for all graphs and map old names to new GPU-aligned names
-  const graphs = normalized?.visualisation?.graphs;
-  if (graphs) {
-    for (const graphName of Object.keys(graphs)) {
-      const physics = graphs[graphName]?.physics;
-      if (physics) {
-        // Ensure iterations is an integer
-        if (physics.iterations !== undefined) {
-          physics.iterations = Math.round(physics.iterations);
-        }
-        
-        
-        // Ensure GPU parameters are properly typed
-        ['springK', 'repelK', 'attractionK', 'dt', 'maxVelocity', 'damping',
-         'temperature', 'maxRepulsionDist', 'coolingRate'].forEach(param => {
-          if (physics[param] !== undefined) {
-            physics[param] = Number(physics[param]);
-          }
-        });
-
-        // Ensure integer parameters are rounded
-        ['warmupIterations', 'iterations', 'zeroVelocityIterations', 'clusterCount', 'clusteringIterations'].forEach(param => {
-          if (physics[param] !== undefined) {
-            physics[param] = Math.round(Number(physics[param]));
-          }
-        });
-
-        // Clamp values to SAFE validation ranges to prevent explosion from localStorage
-        if (physics.repelK !== undefined) {
-          physics.repelK = Math.max(10.0, Math.min(200.0, physics.repelK)); // Safe range
-        }
-        if (physics.springK !== undefined) {
-          physics.springK = Math.max(0.0001, Math.min(0.1, physics.springK)); // Safe range
-        }
-        if (physics.attractionK !== undefined) {
-          physics.attractionK = Math.max(0.0, Math.min(0.1, physics.attractionK)); // Safe range
-        }
-        if (physics.damping !== undefined) {
-          physics.damping = Math.max(0.5, Math.min(0.99, physics.damping)); // Must be high for stability
-        }
-        if (physics.iterations !== undefined) {
-          physics.iterations = Math.max(1, Math.min(100, Math.round(physics.iterations))); // Limit iterations
-        }
-        if (physics.maxVelocity !== undefined) {
-          physics.maxVelocity = Math.max(0.1, Math.min(10.0, physics.maxVelocity)); // Prevent explosion
-        }
-        if (physics.separationRadius !== undefined) {
-          physics.separationRadius = Math.max(0.1, Math.min(5.0, physics.separationRadius)); // Safe range
-        }
-        if (physics.dt !== undefined) {
-          physics.dt = Math.max(0.001, Math.min(0.02, physics.dt)); // Numerical stability
-        }
-      }
-    }
-  }
-  
-  // Fix hologram.ringCount to ensure it's an integer
-  const hologram = normalized?.visualisation?.hologram;
-  if (hologram && hologram.ringCount !== undefined) {
-    // Ensure ringCount is an integer
-    hologram.ringCount = Math.round(hologram.ringCount);
-  }
-  
-  // Ensure dashboard GPU status fields are properly typed
-  const dashboard = normalized?.dashboard;
-  if (dashboard) {
-    if (dashboard.iterationCount !== undefined) {
-      dashboard.iterationCount = Math.round(Number(dashboard.iterationCount));
-    }
-    if (dashboard.activeConstraints !== undefined) {
-      dashboard.activeConstraints = Math.round(Number(dashboard.activeConstraints));
-    }
-  }
-  
-  // Ensure analytics clustering parameters are properly typed
-  const analytics = normalized?.analytics;
-  if (analytics?.clustering) {
-    const clustering = analytics.clustering;
-    if (clustering.clusterCount !== undefined) {
-      clustering.clusterCount = Math.round(Number(clustering.clusterCount));
-    }
-    if (clustering.iterations !== undefined) {
-      clustering.iterations = Math.round(Number(clustering.iterations));
-    }
-    if (clustering.resolution !== undefined) {
-      clustering.resolution = Number(clustering.resolution);
-    }
-  }
-  
-  // Ensure performance warmup parameters are properly typed
-  const performance = normalized?.performance;
-  if (performance) {
-    if (performance.warmupDuration !== undefined) {
-      performance.warmupDuration = Number(performance.warmupDuration);
-    }
-    if (performance.convergenceThreshold !== undefined) {
-      performance.convergenceThreshold = Number(performance.convergenceThreshold);
-    }
-  }
-  
-  return normalized;
-}
+// Removed normalization function - server handles case conversion automatically
 // Shared debounced save function
 const debouncedSaveToServer = async (settings: Settings, initialized: boolean) => {
   if (!initialized || settings.system?.persistSettings === false) {
@@ -228,8 +96,8 @@ const debouncedSaveToServer = async (settings: Settings, initialized: boolean) =
       }
     });
 
-    const payload = normalizeSettingsForServer(settings);
-    const updatedSettings = await apiService.post('/settings', payload, headers);
+    // Server handles camelCase to snake_case conversion automatically
+    const updatedSettings = await apiService.post('/settings', settings, headers);
     if (updatedSettings) {
       if (debugState.isEnabled()) {
         logger.info('Settings saved to server successfully');
@@ -319,6 +187,24 @@ interface WarmupSettings {
   enableAdaptiveCooling: boolean;
 }
 
+// Clear bad physics from localStorage on startup
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const stored = localStorage.getItem('settings-storage');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Clear physics to force reload from server
+      if (parsed?.state?.settings?.visualisation?.graphs) {
+        delete parsed.state.settings.visualisation.graphs.logseq?.physics;
+        delete parsed.state.settings.visualisation.graphs.visionflow?.physics;
+        localStorage.setItem('settings-storage', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {
+    console.warn('Could not clear cached physics settings:', e);
+  }
+}
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
@@ -338,7 +224,7 @@ export const useSettingsStore = create<SettingsState>()(
           // Load settings from localStorage via zustand persist
           const currentSettings = get().settings
 
-          // Fetch settings from server if available
+          // ALWAYS fetch settings from server and use them as source of truth
           try {
             // Use the settings service to fetch settings
             const serverSettings = await apiService.get('/settings')
@@ -348,30 +234,28 @@ export const useSettingsStore = create<SettingsState>()(
                 logger.info('Fetched settings from server:', { serverSettings })
               }
 
-              // Merge server settings with defaults and current settings using deep merge
-              // This ensures all nested objects are properly merged
-              const mergedSettings = deepMerge(defaultSettings, currentSettings, serverSettings)
-
-              const migratedSettings = mergedSettings
+              // Server settings OVERRIDE everything - server is source of truth
+              // Only use defaults for missing fields, ignore localStorage for physics
+              const mergedSettings = deepMerge(defaultSettings, serverSettings)
 
               if (debugState.isEnabled()) {
-                logger.info('Deep merged settings:', { migratedSettings })
+                logger.info('Using server settings as source of truth:', { mergedSettings })
               }
 
               set({
-                settings: migratedSettings,
+                settings: mergedSettings,
                 initialized: true
               })
 
               if (debugState.isEnabled()) {
-                logger.info('Settings loaded from server and merged')
+                logger.info('Settings loaded from server (ignoring localStorage)')
               }
 
               return mergedSettings
             }
           } catch (error) {
             logger.warn('Failed to fetch settings from server:', createErrorMetadata(error))
-            // Continue with local settings if server fetch fails
+            // Continue with safe defaults if server fetch fails
           }
 
           // Use current settings as is
