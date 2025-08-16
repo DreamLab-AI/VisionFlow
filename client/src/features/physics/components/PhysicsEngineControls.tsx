@@ -430,9 +430,9 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="repulsionStrength"
-                  min={0.1}
-                  max={1000}  // Full GPU experimentation range
-                  step={0.1}
+                  min={10}
+                  max={200}  // Safe range to prevent explosion (was 1000!)
+                  step={1}
                   value={[forceParams.repulsionStrength]}
                   onValueChange={([v]) => handleForceParamChange('repulsionStrength', v)}
                 />
@@ -460,8 +460,8 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="damping"
-                  min={0.0}  // Full range for experimentation
-                  max={1.0}
+                  min={0.5}  // Minimum 0.5 for stability (was 0.0!)
+                  max={0.99}
                   step={0.01}
                   value={[forceParams.damping]}
                   onValueChange={([v]) => handleForceParamChange('damping', v)}
@@ -505,8 +505,8 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="maxVelocity"
-                  min={0.001}
-                  max={100}   // Full GPU range for speed
+                  min={0.1}
+                  max={10}   // Safe range to prevent explosion (was 100!)
                   step={0.1}
                   value={[forceParams.maxVelocity]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
@@ -521,7 +521,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="timeStep"
                   min={0.001}
-                  max={0.1}   // Match server validation range
+                  max={0.02}   // Safe range for numerical stability (was 0.1!)
                   step={0.001}
                   value={[forceParams.timeStep || 0.016]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}

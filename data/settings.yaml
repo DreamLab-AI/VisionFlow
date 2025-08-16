@@ -80,37 +80,36 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_strength: 0.13904518
-        bounds_size: 45.547935
-        separation_radius: 4.2403374
-        damping: 0.07130522
-        enable_bounds: true
+        attraction_k: 0.01
+        bounds_size: 1000.0
+        separation_radius: 2.0
+        damping: 0.85
+        enable_bounds: false
         enabled: true
-        iterations: 436
-        max_velocity: 1.0
+        iterations: 50
+        max_velocity: 5.0
         repel_k: 50.0
-        spring_k: 3.4583685
-        repulsion_distance: 8.676949
-        mass_scale: 7.194513
+        spring_k: 0.005
+        mass_scale: 1.0
         boundary_damping: 0.95
-        update_threshold: 0.4385271
+        update_threshold: 0.01
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.1
-        stress_alpha: 0.1
+        stress_weight: 0.5847028
+        stress_alpha: 0.55261546
         boundary_limit: 44.637775
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
-        min_distance: 0.15
-        max_repulsion_dist: 50.0
+        min_distance: 0.44966576
+        max_repulsion_dist: 93.99755
         boundary_margin: 0.85
         boundary_force_strength: 2.0
-        warmup_iterations: 200
+        warmup_iterations: 219
         warmup_curve: quadratic
         zero_velocity_iterations: 5
-        cooling_rate: 0.0001
+        cooling_rate: 0.0036785465
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
@@ -149,7 +148,7 @@ visualisation:
         show_metadata: true
         max_label_width: 8.0
       physics:
-        attraction_strength: 0.0001
+        attraction_k: 0.0001
         bounds_size: 500.0
         separation_radius: 2.0
         damping: 0.95
@@ -159,7 +158,6 @@ visualisation:
         max_velocity: 1.0
         repel_k: 50.0
         spring_k: 0.005
-        repulsion_distance: 50.0
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -205,12 +203,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '2': cycleMode
       '5': rightView
-      '6': frontView
+      '1': resetView
+      '2': cycleMode
       '3': fitToView
       '4': topView
-      '1': resetView
+      '6': frontView
 system:
   network:
     bind_address: 0.0.0.0

@@ -83,7 +83,6 @@ pub struct SimulationParams {
     // Force parameters
     pub spring_k: f32,            // Range: 0.1-10, Default: 0.5
     pub repel_k: f32,             // Default: 100
-    pub repulsion_distance: f32,  // Default: 500
     
     // Mass and damping
     pub mass_scale: f32,          // Default: 1.0, Affects force scaling
@@ -128,7 +127,6 @@ impl SimulationParams {
             dt: 0.01,                   // Much smaller for stability
             spring_k: 0.005,             // Very gentle springs
             repel_k: 50.0,               // Dramatically reduced from 1000.0
-            repulsion_distance: 50.0,    // Smaller cutoff radius
             mass_scale: 1.0,
             damping: 0.9,               // High damping for stability
             boundary_damping: 0.95,     
@@ -165,7 +163,6 @@ impl SimulationParams {
                 dt: 0.01,                  // Small timestep for stability
                 spring_k: 0.005,            // Very gentle springs
                 repel_k: 50.0,              // Much lower repulsion
-                repulsion_distance: 50.0,   // Limited range
                 mass_scale: 1.0,           // Standard mass
                 damping: 0.95,             // Very high damping
                 boundary_damping: 0.95,
@@ -198,7 +195,6 @@ impl SimulationParams {
                 dt: 0.12,                  // Further reduced for optimal stability
                 spring_k: 0.01,            // Reduced spring strength
                 repel_k: 600.0,            // Further reduced from 800.0
-                repulsion_distance: 1500.0,
                 mass_scale: 1.5,
                 damping: 0.9,  // Increased from 0.85
                 boundary_damping: 0.95,  // Increased boundary damping
@@ -217,7 +213,7 @@ impl SimulationParams {
                 cluster_strength: 0.0,
                 compute_mode: 0,
                 min_distance: 0.15,
-                max_repulsion_dist: 50.0,
+                max_repulsion_dist: 1500.0,
                 boundary_margin: 0.85,
                 boundary_force_strength: 2.0,
                 warmup_iterations: 200,
@@ -231,7 +227,6 @@ impl SimulationParams {
                 dt: 0.15,                  // Reduced from 0.2
                 spring_k: 0.005,            // Minimal spring forces
                 repel_k: 600.0,             // Reduced from 800.0
-                repulsion_distance: 1200.0, // Maintain spacing
                 mass_scale: 1.2,           // Moderate mass influence
                 damping: 0.95,             // High damping for stability
                 boundary_damping: 0.95,
@@ -250,7 +245,7 @@ impl SimulationParams {
                 cluster_strength: 0.0,
                 compute_mode: 0,
                 min_distance: 0.15,
-                max_repulsion_dist: 50.0,
+                max_repulsion_dist: 1200.0,
                 boundary_margin: 0.85,
                 boundary_force_strength: 2.0,
                 warmup_iterations: 200,
@@ -330,7 +325,6 @@ impl SimParams {
             dt: self.dt,
             spring_k: self.spring_k,
             repel_k: self.repel_k,
-            repulsion_distance: self.max_repulsion_dist,
             mass_scale: 1.0,  // Default mass scale
             damping: self.damping,
             boundary_damping: self.boundary_damping,
@@ -406,7 +400,7 @@ impl From<&PhysicsSettings> for SimParams {
             iteration: 0,
             compute_mode: physics.compute_mode,
             min_distance: 0.15,  // Default values for fields not in PhysicsSettings
-            max_repulsion_dist: 50.0,
+            max_repulsion_dist: physics.max_repulsion_dist,
             boundary_margin: 0.85,
             boundary_force_strength: 2.0,
             warmup_iterations: 200,
@@ -424,7 +418,6 @@ impl From<&PhysicsSettings> for SimulationParams {
             dt: physics.dt,
             spring_k: physics.spring_k,
             repel_k: physics.repel_k,
-            repulsion_distance: physics.repulsion_distance,
             mass_scale: physics.mass_scale,
             damping: physics.damping,
             boundary_damping: physics.boundary_damping,
@@ -432,7 +425,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             enable_bounds: physics.enable_bounds,
             max_velocity: physics.max_velocity,
             max_force: 10.0,  // Default independent max force
-            attraction_k: physics.attraction_strength,
+            attraction_k: physics.attraction_k,
             separation_radius: physics.separation_radius,
             temperature: physics.temperature,
             // GPU parameters from physics settings
@@ -443,7 +436,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             cluster_strength: physics.cluster_strength,
             compute_mode: physics.compute_mode,
             min_distance: 0.15,  // Default values for fields not in PhysicsSettings
-            max_repulsion_dist: 50.0,
+            max_repulsion_dist: physics.max_repulsion_dist,
             boundary_margin: 0.85,
             boundary_force_strength: 2.0,
             warmup_iterations: 200,

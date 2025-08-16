@@ -158,9 +158,9 @@ pub struct EdgeSettings {
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PhysicsSettings {
-    pub attraction_strength: f32,
+    pub attraction_k: f32,
     pub bounds_size: f32,
     pub separation_radius: f32,
     pub damping: f32,
@@ -170,7 +170,6 @@ pub struct PhysicsSettings {
     pub max_velocity: f32,
     pub repel_k: f32,
     pub spring_k: f32,
-    pub repulsion_distance: f32,
     pub mass_scale: f32,
     pub boundary_damping: f32,
     pub update_threshold: f32,
@@ -203,7 +202,7 @@ pub struct PhysicsSettings {
 impl Default for PhysicsSettings {
     fn default() -> Self {
         Self {
-            attraction_strength: 0.0001,
+            attraction_k: 0.0001,
             bounds_size: 500.0,
             separation_radius: 2.0,
             damping: 0.95,
@@ -213,7 +212,6 @@ impl Default for PhysicsSettings {
             max_velocity: 1.0,
             repel_k: 50.0,
             spring_k: 0.005,
-            repulsion_distance: 50.0,
             mass_scale: 1.0,
             boundary_damping: 0.95,
             update_threshold: 0.01,
@@ -713,8 +711,7 @@ pub struct PhysicsUpdate {
     pub enable_bounds: Option<bool>,
     pub max_velocity: Option<f32>,
     pub separation_radius: Option<f32>,
-    pub attraction_strength: Option<f32>,
-    pub repulsion_distance: Option<f32>,
+    pub attraction_k: Option<f32>,
     pub mass_scale: Option<f32>,
     pub boundary_damping: Option<f32>,
     pub dt: Option<f32>,
