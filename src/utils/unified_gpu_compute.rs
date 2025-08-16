@@ -81,7 +81,11 @@ impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
             alignment_strength: params.alignment_strength,          // Use actual value from settings
             cluster_strength: params.cluster_strength,              // Use actual value from settings
             boundary_damping: params.boundary_damping.clamp(0.5, 0.99),
-            viewport_bounds: params.viewport_bounds.clamp(10.0, 10000.0),
+            viewport_bounds: if params.viewport_bounds > 0.0 { 
+                params.viewport_bounds.clamp(10.0, 10000.0) 
+            } else { 
+                0.0  // Respect enable_bounds: false by keeping it at 0
+            },
             temperature: params.temperature.clamp(0.0, 2.0),
             iteration: 0,
             compute_mode: params.compute_mode,                      // Use actual compute mode

@@ -487,11 +487,13 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     position = vec3_add(position, vec3_scale(velocity, p.params.dt));
     
     // FIX: Improved soft viewport bounds with progressive damping to prevent bouncing
-    float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
-    float boundary_force_strength = 2.0f; // Reduced strength for gentler response
-    
-    // X boundary - Progressive damping based on distance from boundary
-    if (fabsf(position.x) > boundary_margin) {
+    // Only apply boundaries if viewport_bounds > 0 (i.e., enable_bounds: true)
+    if (p.params.viewport_bounds > 0.0f) {
+        float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
+        float boundary_force_strength = 2.0f; // Reduced strength for gentler response
+        
+        // X boundary - Progressive damping based on distance from boundary
+        if (fabsf(position.x) > boundary_margin) {
         float distance_ratio = (fabsf(position.x) - boundary_margin) / (p.params.viewport_bounds - boundary_margin);
         distance_ratio = fminf(distance_ratio, 1.0f);
         
@@ -549,6 +551,7 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
             velocity.z *= 0.5f; // Additional velocity reduction at boundary
         }
     }
+    } // End of viewport_bounds check
     
     // Write back results
     p.nodes.pos_x[idx] = position.x;
