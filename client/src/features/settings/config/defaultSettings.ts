@@ -94,12 +94,6 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       warmupIterations: 100,
       coolingRate: 0.001,
       
-      // Legacy compatibility (for backward compatibility)
-      springStrength: 0.002,
-      repulsionStrength: 50.0,     // safe GPU default
-      attractionStrength: 0.001,
-      timeStep: 0.016,
-      repulsionDistance: 1000.0,
     },
   };
 };

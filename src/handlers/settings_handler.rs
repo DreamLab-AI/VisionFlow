@@ -348,11 +348,6 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         debug!("Physics settings fields received: {:?}", obj.keys().collect::<Vec<_>>());
     }
     
-    // Helper function to get value from either old or new parameter name
-    let get_param = |old_name: &str, new_name: &str| -> Option<f64> {
-        physics.get(new_name).and_then(|v| v.as_f64())
-            .or_else(|| physics.get(old_name).and_then(|v| v.as_f64()))
-    };
     
     // Validate damping
     if let Some(damping) = physics.get("damping") {
@@ -374,24 +369,27 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Spring strength validation - accept both old (springStrength) and new (springK) names
-    if let Some(val) = get_param("springStrength", "springK") {
-        if !(0.0001..=10.0).contains(&val) {  // GPU experimentation range
-            return Err("spring parameter must be between 0.0001 and 10.0".to_string());
+    // Spring strength validation
+    if let Some(spring_k) = physics.get("springK") {
+        let val = spring_k.as_f64().ok_or("springK must be a number")?;
+        if !(0.0001..=10.0).contains(&val) {
+            return Err("springK must be between 0.0001 and 10.0".to_string());
         }
     }
     
-    // Repulsion strength validation - accept both old (repulsionStrength) and new (repelK) names
-    if let Some(val) = get_param("repulsionStrength", "repelK") {
-        if val < 0.1 || val > 1000.0 {  // GPU experimentation range
-            return Err("repulsion parameter must be between 0.1 and 1000.0".to_string());
+    // Repulsion strength validation
+    if let Some(repel_k) = physics.get("repelK") {
+        let val = repel_k.as_f64().ok_or("repelK must be a number")?;
+        if val < 0.1 || val > 1000.0 {
+            return Err("repelK must be between 0.1 and 1000.0".to_string());
         }
     }
     
-    // Attraction strength validation - accept both old (attractionStrength) and new (attractionK) names
-    if let Some(val) = get_param("attractionStrength", "attractionK") {
-        if !(0.0..=10.0).contains(&val) {  // GPU experimentation range
-            return Err("attraction parameter must be between 0.0 and 10.0".to_string());
+    // Attraction strength validation
+    if let Some(attraction_k) = physics.get("attractionK") {
+        let val = attraction_k.as_f64().ok_or("attractionK must be a number")?;
+        if !(0.0..=10.0).contains(&val) {
+            return Err("attractionK must be between 0.0 and 10.0".to_string());
         }
     }
     
@@ -403,10 +401,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
-    // Collision radius (old) / Separation radius (new) validation
-    if let Some(val) = get_param("collisionRadius", "separationRadius") {
-        if val < 0.1 || val > 10.0 {  // GPU-optimized range
-            return Err("separation/collision radius must be between 0.1 and 10.0".to_string());
+    // Separation radius validation
+    if let Some(separation_radius) = physics.get("separationRadius") {
+        let val = separation_radius.as_f64().ok_or("separationRadius must be a number")?;
+        if val < 0.1 || val > 10.0 {
+            return Err("separationRadius must be between 0.1 and 10.0".to_string());
         }
     }
     

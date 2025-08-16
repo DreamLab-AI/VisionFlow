@@ -66,12 +66,6 @@ export interface PhysicsSettings {
   warmupIterations: number;
   coolingRate: number;
   
-  // Legacy compatibility (deprecated - will be mapped in normalizeSettingsForServer)
-  springStrength?: number;
-  repulsionStrength?: number;
-  attractionStrength?: number;
-  timeStep?: number;
-  repulsionDistance?: number;
 }
 
 // Rendering settings
@@ -242,7 +236,6 @@ export interface XRSettings {
   interactionDistance?: number;
   locomotionMethod?: 'teleport' | 'continuous';
   teleportRayColor?: string;
-  displayMode?: 'inline' | 'immersive-vr' | 'immersive-ar';
   controllerRayColor?: string;
 }
 
@@ -281,11 +274,6 @@ export interface VisualisationSettings {
   // Graph-specific settings
   graphs: GraphsSettings;
   
-  // Legacy compatibility - will be deprecated
-  nodes?: NodeSettings;
-  edges?: EdgeSettings;
-  physics?: PhysicsSettings;
-  labels?: LabelSettings;
 }
 
 // System settings

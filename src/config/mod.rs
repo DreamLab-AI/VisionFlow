@@ -162,22 +162,18 @@ pub struct EdgeSettings {
 pub struct PhysicsSettings {
     pub attraction_strength: f32,
     pub bounds_size: f32,
-    #[serde(alias = "collision_radius")]
     pub separation_radius: f32,
     pub damping: f32,
     pub enable_bounds: bool,
     pub enabled: bool,
     pub iterations: u32,
     pub max_velocity: f32,
-    #[serde(alias = "repulsion_strength")]
     pub repel_k: f32,
-    #[serde(alias = "spring_strength")]
     pub spring_k: f32,
     pub repulsion_distance: f32,
     pub mass_scale: f32,
     pub boundary_damping: f32,
     pub update_threshold: f32,
-    #[serde(alias = "time_step")]
     pub dt: f32,
     pub temperature: f32,
     pub gravity: f32,
@@ -512,8 +508,6 @@ pub struct XRSettings {
     pub client_side_enable_xr: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_mode: Option<String>,
     pub room_scale: f32,
     pub space_type: String,
     pub quality: String,
@@ -711,22 +705,18 @@ pub struct ClusteringConfiguration {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
-    #[serde(alias = "spring_strength")]
     pub spring_k: Option<f32>,
-    #[serde(alias = "repulsion_strength")]
     pub repel_k: Option<f32>,
     pub iterations: Option<u32>,
     pub enabled: Option<bool>,
     pub bounds_size: Option<f32>,
     pub enable_bounds: Option<bool>,
     pub max_velocity: Option<f32>,
-    #[serde(alias = "collision_radius")]
     pub separation_radius: Option<f32>,
     pub attraction_strength: Option<f32>,
     pub repulsion_distance: Option<f32>,
     pub mass_scale: Option<f32>,
     pub boundary_damping: Option<f32>,
-    #[serde(alias = "time_step")]
     pub dt: Option<f32>,
     pub temperature: Option<f32>,
     pub gravity: Option<f32>,
