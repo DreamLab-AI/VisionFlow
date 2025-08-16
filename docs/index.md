@@ -96,6 +96,84 @@ See [Contributing Guide](contributing.md) for development workflow, code standar
 - **Issues**: GitHub issue tracker
 - **Discussions**: Community support channels
 
+Based on the provided repository files, here is a detailed explanation of the GPU force-directed graph feature set, how to interpret the client and agent visualizations, and the underlying mechanics of the agent telemetry graph.
+
+### 1. GPU Force-Directed Graph: Feature Set
+
+The system utilizes a high-performance, GPU-accelerated physics engine to render two simultaneous force-directed graphs: a primary knowledge graph (from Logseq) and a secondary agent telemetry graph. The entire physics simulation is handled by a unified CUDA kernel (`visionflow_unified.cu`) for maximum efficiency.
+
+The core feature set of the physics engine includes several tunable forces and behaviors that dictate the graph's layout and dynamics:
+
+*   **Repulsive Force (`repel_k`)**: This is a fundamental force where every node pushes every other node away, preventing clumps and ensuring labels are readable. The strength of this force is a key parameter for adjusting the overall spread of the graph.
+*   **Attractive Spring Force (`spring_k`)**: This force only applies between connected nodes (nodes with an edge). It acts like a spring, pulling connected nodes together. The interplay between repulsion and attraction is what forms the characteristic clusters and structures in the graph.
+*   **Damping**: This force acts like friction, gradually slowing down the movement of all nodes. High damping leads to a stable, static layout more quickly, while low damping results in a more dynamic, constantly shifting graph.
+*   **Velocity & Force Clamping**: To prevent the simulation from "exploding" (where nodes fly off to infinity due to extreme forces), there are built-in limits on the maximum velocity a node can achieve and the maximum force that can be applied in a single step.
+*   **Boundary Constraints**: The simulation space has defined boundaries. If a node travels beyond these bounds, a "soft" force gently pushes it back towards the center, keeping the graph contained.
+*   **Progressive Warmup**: When the graph first loads, forces are introduced gradually over the first 200 iterations. This prevents the initial, randomly-placed nodes from violently flying apart, leading to a much smoother and more stable initialization.
+*   **Node Collapse Prevention**: A hard-coded minimum distance (`MIN_DISTANCE`) is enforced between nodes. If two nodes get closer than this, a strong, localized repulsive force pushes them apart to prevent them from overlapping and collapsing into the same point.
+
+These parameters are managed through a complete pipeline, starting from UI controls in `PhysicsEngineControls.tsx`, flowing through the Rust backend via the `/api/settings` and `/api/physics/update` endpoints, and ultimately updating the `SimParams` structure used by the CUDA kernel.
+
+### 2. Client Visualization: Interpreting the Knowledge Graph Nodes
+
+The primary graph visualization renders your knowledge base (e.g., Logseq notes). Each node's appearance is not random; it's a rich visual representation of its underlying metadata, primarily defined in `MetadataShapes.tsx`.
+
+Here is how to interpret the visual properties of a node:
+
+*   **Shape**: A node's geometry is determined by its connectivity (`hyperlinkCount`).
+    *   **Sphere**: A node with few or no connections.
+    *   **Cube (Box)**: A node with some connections.
+    *   **Octahedron**: A well-connected node.
+    *   **Icosahedron**: A highly-connected, important hub node.
+
+*   **Size (Scale)**: A node's size is a function of both its content size and its connectivity.
+    *   **File Size**: Larger files result in larger nodes (on a logarithmic scale).
+    *   **Connectivity**: Nodes with more connections are rendered larger, making hubs naturally stand out.
+
+*   **Color & "Heat"**: The color is based on the node's base color setting but is modulated by its recency.
+    *   **Recency**: More recently modified files (`lastModified`) have a "heat" effect applied. They appear brighter, more saturated, and their hue is shifted slightly towards warmer colors like yellow and orange. This allows you to see recent activity in your knowledge graph at a glance.
+    *   **Node Type**: If recency data is unavailable, the color is tinted based on the node's `metadata.type` (e.g., folder, file, function).
+
+*   **Glow & AI Processing**: Nodes that have been processed by an AI service (indicated by a `perplexityLink` in their metadata) have a distinct gold-tinted emissive glow. This visually flags all AI-enriched content in your graph.
+
+*   **Pulse Animation**: The speed of the subtle hologram pulse effect is determined by the `fileSize`, adding another layer of data visualization to the node's animation.
+
+*   **Labels**: Node labels display the file or concept name, and can be configured to show additional metadata like file size or type, providing further context directly in the visualization.
+
+### 3. Agent Telemetry: Interpreting the Force Graph
+
+The application also visualizes a real-time force graph of a multi-agent AI system, driven by telemetry data from the "Claude Flow MCP" (Multi-Agent Control Plane). This visualization provides insights into the health, status, and activity of the AI agent swarm.
+
+The feature set and interpretation are as follows:
+
+*   **Data Source**: The backend connects to the Claude Flow MCP via a direct TCP connection (`claude_flow_actor_tcp.rs`). The `bots_handler.rs` processes this telemetry and streams it to the client for visualization.
+*   **Force-Directed Layout**: The agent graph uses the same GPU-accelerated physics engine as the knowledge graph. The `weight` of the edges between agents is determined by their **communication intensity**, meaning agents that communicate more frequently are pulled closer together.
+
+The visual representation of each agent node in `BotsVisualizationFixed.tsx` conveys its current state:
+
+*   **Glow Color (Health)**: The color of a node's glow is a direct indicator of its health.
+    *   **Green**: Healthy (> 80%).
+    *   **Gold/Yellow**: Warning (> 50%).
+    *   **Red**: Critical (< 50%).
+
+*   **Size (CPU Usage)**: The size of an agent node scales with its current CPU usage. Larger nodes represent agents that are performing more intensive computations.
+
+*   **Shape (Status)**: The node's geometry changes based on its operational status.
+    *   **Sphere**: The default shape for an active or busy agent.
+    *   **Box (Cube)**: An agent that is currently initializing.
+    *   **Tetrahedron (Pyramid)**: An agent that is in an error state.
+
+*   **Animation (Activity)**:
+    *   **Pulsing**: Indicates an agent is `active` or `busy`.
+    *   **Rotating**: Indicates an agent is `busy` with a task.
+
+*   **Telemetry Overlay**: When hovering over a node (or if it's particularly active), an information panel appears displaying detailed telemetry:
+    *   **Agent Name & Type**: (e.g., Coder, Tester, Analyst).
+    *   **Status**: Color-coded status badge (e.g., `active`, `busy`, `idle`).
+    *   **Health & CPU Usage**: Precise percentage values.
+    *   **Task Information**: The number of active and completed tasks, and the description of the current task.
+    *   **Processing Logs**: A stream of the agent's latest activities.
+    *   **Token Usage**: The number of tokens consumed by the agent.
 ---
 
 *VisionFlow - Real-time 3D visualisation platform with AI agent orchestration*

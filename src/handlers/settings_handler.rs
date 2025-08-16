@@ -398,8 +398,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Bounds size validation
     if let Some(bounds) = physics.get("boundsSize") {
         let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
-        if val < 10.0 || val > 10000.0 {  // GPU-optimized range
-            return Err("boundsSize must be between 10.0 and 10000.0".to_string());
+        if val < 1.0 || val > 10000.0 {  // Allow full UI range
+            return Err("boundsSize must be between 1.0 and 10000.0".to_string());
         }
     }
     
@@ -421,8 +421,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Mass scale validation
     if let Some(mass) = physics.get("massScale") {
         let val = mass.as_f64().ok_or("massScale must be a number")?;
-        if val < 0.1 || val > 5.0 {  // GPU-optimized range
-            return Err("massScale must be between 0.1 and 5.0".to_string());
+        if val < 0.1 || val > 10.0 {  // Match UI range
+            return Err("massScale must be between 0.1 and 10.0".to_string());
         }
     }
     

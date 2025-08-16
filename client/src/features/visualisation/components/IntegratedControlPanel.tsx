@@ -441,12 +441,12 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             
             // Dynamics
             { key: 'dt', label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 0.1, path: 'visualisation.graphs.logseq.physics.dt' },
-            { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.001, max: 0.5, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
+            { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.001, max: 100, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
             
             // Boundaries and Separation
             { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separationRadius' },
             { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds' },
-            { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 50, path: 'visualisation.graphs.logseq.physics.boundsSize' },
+            { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.boundsSize' },
             
             // Stress Optimization
             { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressWeight' },
@@ -461,7 +461,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'coolingRate', label: 'Cooling Rate', type: 'slider', min: 0.00001, max: 0.01, path: 'visualisation.graphs.logseq.physics.coolingRate' },
             
             // Legacy Parameters (for backward compatibility)
-            { key: 'iterations', label: 'Iterations', type: 'slider', min: 10, max: 500, path: 'visualisation.graphs.logseq.physics.iterations' },
+            { key: 'iterations', label: 'Iterations', type: 'slider', min: 1, max: 1000, path: 'visualisation.graphs.logseq.physics.iterations' },
             { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.massScale' },
             { key: 'boundaryDamping', label: 'Boundary Damp', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.boundaryDamping' },
             { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, path: 'visualisation.graphs.logseq.physics.updateThreshold' }
