@@ -10,7 +10,7 @@ VisionFlow's physics engine is a complete GPU-accelerated physics simulation sys
 - **Semantic Constraint Generator** for intelligent layout organisation
 - **Parameter Management System** with real-time UI-to-GPU parameter flow
 - **Node Collapse Prevention** with minimum distance enforcement
-- **Multi-Graph Support** for knowledge graphs and agent visualizations
+- **Multi-Graph Support** for knowledge graphs and agent visualisations
 
 ## Architecture
 

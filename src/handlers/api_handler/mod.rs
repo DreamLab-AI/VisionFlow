@@ -35,6 +35,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
             .configure(crate::handlers::settings_handler::config)
-            .configure(crate::handlers::ragflow_handler::config) // Add this line
+            .configure(crate::handlers::ragflow_handler::config)
+            .configure(crate::handlers::clustering_handler::config)
+            .configure(crate::handlers::constraints_handler::config)
     );
 }

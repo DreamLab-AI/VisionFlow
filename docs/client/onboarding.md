@@ -40,7 +40,7 @@ interface OnboardingStep {
   title: string                 // Step title
   description: string           // Step description
   target?: string              // CSS selector for highlighting
-  position?: 'top' | 'bottom' | 'left' | 'right' | 'center'
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'centre'
   action?: () => void | Promise<void>  // Optional action
   skipable?: boolean           // Can user skip this step
   nextButtonText?: string      // Custom next button text
@@ -75,7 +75,7 @@ Handles automatic flow triggers based on:
       id: 'welcome',
       title: 'Welcome to LogseqXR',
       description: 'Immersive knowledge graph visualisation',
-      position: 'center'
+      position: 'centre'
     },
     {
       id: 'graph-view',
@@ -135,7 +135,7 @@ const customFlow: OnboardingFlow = {
       id: 'intro',
       title: 'New Feature',
       description: 'Introducing our latest addition',
-      position: 'center'
+      position: 'centre'
     },
     {
       id: 'usage',

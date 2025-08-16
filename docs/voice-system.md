@@ -226,7 +226,7 @@ services:
 ### 📋 Planned
 - Multiple language support
 - Voice command processing
-- Audio visualizations
+- Audio visualisations
 - Push-to-talk and hotkey support
 - Noise gate and echo cancellation
 

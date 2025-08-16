@@ -58,11 +58,16 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
 
 /**
  * Normalize settings to server schema to avoid validation errors.
+ * Maps old parameter names to new GPU-aligned names and ensures proper type conversions.
  * - system.debug.logLevel: coerce 'debug'|'info'|'warn'|'error' -> 0..3 and clamp to [0,3]
+ * - physics.iterations: ensure it's an integer (JavaScript sends floats as 100.0)
+ * - GPU parameters: map old names to new GPU-aligned names
  */
 function normalizeSettingsForServer(settings: Settings) {
   // JSON clone to avoid mutating store state
   const normalized: any = JSON.parse(JSON.stringify(settings));
+  
+  // Fix system.debug.logLevel
   const sys = normalized?.system;
   const dbg = sys?.debug;
   if (dbg) {
@@ -81,6 +86,95 @@ function normalizeSettingsForServer(settings: Settings) {
       }
     }
   }
+  
+  // Fix physics parameters for all graphs and map old names to new GPU-aligned names
+  const graphs = normalized?.visualisation?.graphs;
+  if (graphs) {
+    for (const graphName of Object.keys(graphs)) {
+      const physics = graphs[graphName]?.physics;
+      if (physics) {
+        // Ensure iterations is an integer
+        if (physics.iterations !== undefined) {
+          physics.iterations = Math.round(physics.iterations);
+        }
+        
+        // Map old parameter names to new GPU-aligned names
+        if (physics.springStrength !== undefined && physics.springK === undefined) {
+          physics.springK = physics.springStrength;
+          delete physics.springStrength;
+        }
+        if (physics.repulsionStrength !== undefined && physics.repelK === undefined) {
+          physics.repelK = physics.repulsionStrength;
+          delete physics.repulsionStrength;
+        }
+        if (physics.attractionStrength !== undefined && physics.attractionK === undefined) {
+          physics.attractionK = physics.attractionStrength;
+          delete physics.attractionStrength;
+        }
+        if (physics.timeStep !== undefined && physics.dt === undefined) {
+          physics.dt = physics.timeStep;
+          delete physics.timeStep;
+        }
+        if (physics.repulsionDistance !== undefined && physics.maxRepulsionDist === undefined) {
+          physics.maxRepulsionDist = physics.repulsionDistance;
+          delete physics.repulsionDistance;
+        }
+        
+        // Ensure GPU parameters are properly typed
+        ['springK', 'repelK', 'attractionK', 'dt', 'maxVelocity', 'damping', 
+         'temperature', 'maxRepulsionDist', 'warmupIterations', 'coolingRate'].forEach(param => {
+          if (physics[param] !== undefined) {
+            physics[param] = Number(physics[param]);
+          }
+        });
+      }
+    }
+  }
+  
+  // Fix hologram.ringCount to ensure it's an integer
+  const hologram = normalized?.visualisation?.hologram;
+  if (hologram && hologram.ringCount !== undefined) {
+    // Ensure ringCount is an integer
+    hologram.ringCount = Math.round(hologram.ringCount);
+  }
+  
+  // Ensure dashboard GPU status fields are properly typed
+  const dashboard = normalized?.dashboard;
+  if (dashboard) {
+    if (dashboard.iterationCount !== undefined) {
+      dashboard.iterationCount = Math.round(Number(dashboard.iterationCount));
+    }
+    if (dashboard.activeConstraints !== undefined) {
+      dashboard.activeConstraints = Math.round(Number(dashboard.activeConstraints));
+    }
+  }
+  
+  // Ensure analytics clustering parameters are properly typed
+  const analytics = normalized?.analytics;
+  if (analytics?.clustering) {
+    const clustering = analytics.clustering;
+    if (clustering.clusterCount !== undefined) {
+      clustering.clusterCount = Math.round(Number(clustering.clusterCount));
+    }
+    if (clustering.iterations !== undefined) {
+      clustering.iterations = Math.round(Number(clustering.iterations));
+    }
+    if (clustering.resolution !== undefined) {
+      clustering.resolution = Number(clustering.resolution);
+    }
+  }
+  
+  // Ensure performance warmup parameters are properly typed
+  const performance = normalized?.performance;
+  if (performance) {
+    if (performance.warmupDuration !== undefined) {
+      performance.warmupDuration = Number(performance.warmupDuration);
+    }
+    if (performance.convergenceThreshold !== undefined) {
+      performance.convergenceThreshold = Number(performance.convergenceThreshold);
+    }
+  }
+  
   return normalized;
 }
 // Shared debounced save function
@@ -167,6 +261,50 @@ interface SettingsState {
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
   notifyViewportUpdate: (path: SettingsPath) => void; // For real-time viewport updates
+  
+  // GPU-specific methods
+  updateComputeMode: (mode: string) => void;
+  updateClustering: (config: ClusteringConfig) => void;
+  updateConstraints: (constraints: ConstraintConfig[]) => void;
+  updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
+  updateWarmupSettings: (settings: WarmupSettings) => void;
+}
+
+// GPU-specific interfaces for type safety
+interface GPUPhysicsParams {
+  springK: number;
+  repelK: number;
+  attractionK: number;
+  dt: number;
+  maxVelocity: number;
+  damping: number;
+  temperature: number;
+  maxRepulsionDist: number;
+  warmupIterations: number;
+  coolingRate: number;
+}
+
+interface ClusteringConfig {
+  algorithm: 'none' | 'kmeans' | 'spectral' | 'louvain';
+  clusterCount: number;
+  resolution: number;
+  iterations: number;
+  exportEnabled: boolean;
+  importEnabled: boolean;
+}
+
+interface ConstraintConfig {
+  id: string;
+  name: string;
+  enabled: boolean;
+  description?: string;
+  icon?: string;
+}
+
+interface WarmupSettings {
+  warmupDuration: number;
+  convergenceThreshold: number;
+  enableAdaptiveCooling: boolean;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -413,6 +551,63 @@ export const useSettingsStore = create<SettingsState>()(
 
         // Schedule save to server
         scheduleSave(state.settings, state.initialized);
+      },
+
+      // GPU-specific methods
+      updateComputeMode: (mode: string) => {
+        const state = get();
+        state.updateSettings((draft) => {
+          if (!draft.dashboard) {
+            draft.dashboard = {};
+          }
+          (draft.dashboard as any).computeMode = mode;
+        });
+      },
+
+      updateClustering: (config: ClusteringConfig) => {
+        const state = get();
+        state.updateSettings((draft) => {
+          if (!draft.analytics) {
+            (draft as any).analytics = {};
+          }
+          if (!(draft as any).analytics.clustering) {
+            (draft as any).analytics.clustering = {};
+          }
+          Object.assign((draft as any).analytics.clustering, config);
+        });
+      },
+
+      updateConstraints: (constraints: ConstraintConfig[]) => {
+        const state = get();
+        state.updateSettings((draft) => {
+          if (!draft.developer) {
+            (draft as any).developer = {};
+          }
+          if (!(draft as any).developer.constraints) {
+            (draft as any).developer.constraints = {};
+          }
+          (draft as any).developer.constraints.active = constraints;
+        });
+      },
+
+      updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
+        const state = get();
+        state.updateSettings((draft) => {
+          const graphSettings = draft.visualisation.graphs[graphName as keyof typeof draft.visualisation.graphs];
+          if (graphSettings && graphSettings.physics) {
+            Object.assign(graphSettings.physics, params);
+          }
+        });
+      },
+
+      updateWarmupSettings: (settings: WarmupSettings) => {
+        const state = get();
+        state.updateSettings((draft) => {
+          if (!draft.performance) {
+            (draft as any).performance = {};
+          }
+          Object.assign((draft as any).performance, settings);
+        });
       },
 
       // The subscribe and unsubscribe functions below were duplicated and are removed by this change.

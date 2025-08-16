@@ -16,7 +16,7 @@ graph TB
             Quest3ARLayout[Quest3ARLayout.tsx]
             GraphViewportUI[GraphViewport.tsx]
             RightPaneControlPanel[RightPaneControlPanel.tsx]
-            SettingsPanelRedesignOptimized[SettingsPanelRedesignOptimized.tsx]
+            SettingsPanelRedesignOptimised[SettingsPanelRedesignOptimised.tsx]
             ConversationPane[ConversationPane.tsx]
             NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
         end
@@ -50,9 +50,9 @@ graph TB
         MainLayout --> ConversationPane
         MainLayout --> NarrativeGoldminePanel
         Quest3ARLayout --> GraphViewportUI
-        RightPaneControlPanel --> SettingsPanelRedesignOptimized
+        RightPaneControlPanel --> SettingsPanelRedesignOptimised
 
-        SettingsPanelRedesignOptimized --> SettingsStore
+        SettingsPanelRedesignOptimised --> SettingsStore
         ConversationPane --> APIService
         NarrativeGoldminePanel --> APIService
 
@@ -89,7 +89,7 @@ graph TB
     style Quest3ARLayout fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style GraphViewportUI fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style RightPaneControlPanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style SettingsPanelRedesignOptimized fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style SettingsPanelRedesignOptimised fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style ConversationPane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style NarrativeGoldminePanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style SettingsStore fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
@@ -112,7 +112,7 @@ graph TB
 The UI layer is built with React and TypeScript.
 - [`MainLayout.tsx`](../../client/src/app/MainLayout.tsx) serves as the primary layout for desktop and standard views, dividing the screen into a main visualisation area and a control panel area.
 - [`Quest3ARLayout.tsx`](../../client/src/features/xr/layouts/Quest3ARLayout.tsx) provides specialized layout for Quest 3 AR experiences.
-- [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesignOptimized.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesignOptimized.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
+- [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesignOptimised.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesignOptimised.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
 - [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx) is responsible for the main 3D graph visualisation area.
 
 ### State Management

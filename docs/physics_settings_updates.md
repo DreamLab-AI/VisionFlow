@@ -15,7 +15,7 @@ physics:
   # Core Forces (Tuned for a close, stable cluster)
   spring_strength: 0.02          # Was: 0.001 - Increased to pull connected nodes together
   repulsion_strength: 10.0       # Was: 50.0 - Drastically reduced to prevent explosion
-  attraction_strength: 0.01      # Was: 0.0005 - Increased for gentle center pull
+  attraction_strength: 0.01      # Was: 0.0005 - Increased for gentle centre pull
   gravity: 0.0                   # Was: 0.0 - Disabled (no change)
   
   # Stability & Settling Controls

@@ -117,7 +117,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
           try {
             // Log receipt of binary data only if data debug is enabled
             if (debugState.isDataDebugEnabled()) {
-              logger.info(`Received binary data from WebSocket: ${data.byteLength} bytes`);
+              logger.debug(`Received binary data from WebSocket: ${data.byteLength} bytes`);
             }
 
             // Process binary position update through graph data manager

@@ -10,8 +10,8 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 
 #### Data Flow Pipeline
 1. **MCP Data Source** → Claude Flow Actor polls agent status
-2. **Agent Visualization Processor** → Transforms raw MCP data into visualisation format
-3. **Agent Visualization Protocol** → Handles JSON/WebSocket message formatting
+2. **Agent Visualisation Processor** → Transforms raw MCP data into visualisation format
+3. **Agent Visualisation Protocol** → Handles JSON/WebSocket message formatting
 4. **WebSocket Handler** → Streams data to connected clients
 
 #### Key Files:
@@ -23,7 +23,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 
 #### Rendering Pipeline
 1. **WebSocket Connection** → Receives JSON init and position updates
-2. **Agent Visualization Client** → Processes messages and maintains state
+2. **Agent Visualisation Client** → Processes messages and maintains state
 3. **GPU Physics Solver** → Shared with knowledge graph for unified space
 4. **Three.js Renderer** → GPU-accelerated visualisation with effects
 
@@ -47,7 +47,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
       "name": "Coordinator Alpha",
       "type": "coordinator",
       "status": "active",
-      "color": "#00FFFF",
+      "colour": "#00FFFF",
       "shape": "octahedron",
       "size": 1.5,
       "health": 0.95,
@@ -70,12 +70,12 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
       "target": "agent-789",
       "strength": 0.7,
       "flow_rate": 0.5,
-      "color": "#4444FF",
+      "colour": "#4444FF",
       "active": true
     }
   ],
   "visual_config": {
-    "colors": { ... },
+    "colours": { ... },
     "effects": { ... }
   },
   "physics_config": {
@@ -109,7 +109,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 
 ### Agent Representation
 - **Shape by Type**: Coordinators (octahedron), Coders (cube), Architects (cone), etc.
-- **Color by Function**: Each agent type has a distinct color palette
+- **Colour by Function**: Each agent type has a distinct colour palette
 - **Size by Workload**: Visual scaling based on active tasks and resource usage
 - **Glow by Activity**: Intensity indicates current activity level
 - **Health Rings**: Colored rings show agent health status
@@ -117,7 +117,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 ### Connection Visualization
 - **Flowing Particles**: Show data flow direction and volume
 - **Line Thickness**: Represents connection strength
-- **Color Coding**: Different colors for different communication types
+- **Colour Coding**: Different colours for different communication types
 - **Pulse Effects**: Active connections pulse with activity
 
 ### Metadata Display
@@ -131,7 +131,7 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 ### Shared Physics Engine
 The visualisation shares the same GPU-accelerated spring physics solver as the knowledge graph, ensuring:
 - Unified coordinate space
-- Consistent physics behavior
+- Consistent physics behaviour
 - Optimal GPU utilization
 - Single source of truth for positions
 
@@ -146,7 +146,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 ### With Knowledge Graph
 - Shares same 3D space and origin point
 - Uses same GPU physics solver
-- Compatible visual styles (different color schemes)
+- Compatible visual styles (different colour schemes)
 - Can show relationships between agents and knowledge nodes
 
 ### With MCP
@@ -171,7 +171,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 
 ## Future Enhancements
 
-1. **multi-agent Patterns**: Visualize emergent multi-agent behaviors
+1. **multi-agent Patterns**: Visualise emergent multi-agent behaviours
 2. **Historical Playback**: Record and replay multi-agent activity
 3. **3D Heatmaps**: Show activity hotspots in the multi-agent
 4. **Voice Integration**: Audio cues for agent states

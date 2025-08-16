@@ -79,7 +79,7 @@ interface TcpTransportConfig {
 | **Reviewer** | Code review | Quality assessment, best practice enforcement |
 | **Planner** | Strategic planning | Task breakdown, timeline estimation |
 | **Monitor** | System monitoring | Health checks, alert management |
-| **Specialist** | Domain expertise | Specialized knowledge, focused solutions |
+| **Specialist** | Domain expertise | Specialised knowledge, focused solutions |
 | **Architect** | System design | Architecture planning, design patterns |
 
 ### Agent Capabilities Matrix
@@ -162,7 +162,7 @@ Vote  Vote  Vote
 
 #### Swarm Management
 - `swarm_init` - Initialize swarm topology
-- `agent_spawn` - Create specialized agents
+- `agent_spawn` - Create specialised agents
 - `swarm_status` - Monitor swarm health
 - `swarm_monitor` - Real-time monitoring
 - `swarm_scale` - Dynamic scaling
@@ -221,7 +221,7 @@ Vote  Vote  Vote
 
 ### Backend Integration: ClaudeFlowActorTcp
 
-The backend uses a specialized TCP actor system for agent management:
+The backend uses a specialised TCP actor system for agent management:
 
 ```typescript
 class ClaudeFlowActorTcp {

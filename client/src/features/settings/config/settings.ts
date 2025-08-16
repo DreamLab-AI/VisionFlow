@@ -38,29 +38,40 @@ export interface EdgeSettings {
 export interface PhysicsSettings {
   enabled: boolean;
   
-  // Core Forces
-  springStrength: number;
-  repulsionStrength: number;
-  attractionStrength: number;
+  // Core GPU-Aligned Forces (new parameter names)
+  springK: number;           // replaces springStrength
+  repelK: number;           // replaces repulsionStrength
+  attractionK: number;      // replaces attractionStrength
   gravity: number;
   
-  // Stability & Settling Controls
-  damping: number;
+  // Dynamics (GPU-aligned)
+  dt: number;               // replaces timeStep
   maxVelocity: number;
+  damping: number;
   temperature: number;
-  timeStep: number;
   
   // Boundary & Collision
   enableBounds: boolean;
   boundsSize: number;
   boundaryDamping: number;
   collisionRadius: number;
+  maxRepulsionDist: number; // replaces repulsionDistance
   
   // Advanced Parameters
   iterations: number;
-  repulsionDistance: number;
   massScale: number;
   updateThreshold: number;
+  
+  // Warmup System
+  warmupIterations: number;
+  coolingRate: number;
+  
+  // Legacy compatibility (deprecated - will be mapped in normalizeSettingsForServer)
+  springStrength?: number;
+  repulsionStrength?: number;
+  attractionStrength?: number;
+  timeStep?: number;
+  repulsionDistance?: number;
 }
 
 // Rendering settings
@@ -349,17 +360,86 @@ export interface WhisperSettings {
   initialPrompt?: string;
 }
 
+// Dashboard GPU status settings
+export interface DashboardSettings {
+  autoRefresh: boolean;
+  refreshInterval: number;
+  computeMode: 'Basic Force-Directed' | 'Dual Graph' | 'Constraint-Enhanced' | 'Visual Analytics';
+  iterationCount: number;
+  showConvergence: boolean;
+  activeConstraints: number;
+  clusteringActive: boolean;
+}
+
+// Analytics settings with GPU clustering
+export interface AnalyticsSettings {
+  updateInterval: number;
+  showDegreeDistribution: boolean;
+  showClusteringCoefficient: boolean;
+  showCentrality: boolean;
+  clustering: {
+    algorithm: 'none' | 'kmeans' | 'spectral' | 'louvain';
+    clusterCount: number;
+    resolution: number;
+    iterations: number;
+    exportEnabled: boolean;
+    importEnabled: boolean;
+  };
+}
+
+// Performance settings with warmup controls
+export interface PerformanceSettings {
+  enableAdaptiveQuality: boolean;
+  warmupDuration: number;
+  convergenceThreshold: number;
+  enableAdaptiveCooling: boolean;
+}
+
+// Developer GPU debug settings
+export interface DeveloperSettings {
+  gpu: {
+    showForceVectors: boolean;
+    showConstraints: boolean;
+    showBoundaryForces: boolean;
+    showConvergenceGraph: boolean;
+  };
+  constraints: {
+    active: Array<{
+      id: string;
+      name: string;
+      enabled: boolean;
+      description?: string;
+      icon?: string;
+    }>;
+  };
+}
+
+// XR GPU optimization settings
+export interface XRGPUSettings {
+  enableOptimizedCompute: boolean;
+  performance: {
+    preset: 'Battery Saver' | 'Balanced' | 'Performance';
+  };
+  physics: {
+    scale: number;
+  };
+}
+
 // Main settings interface - Single source of truth matching server AppFullSettings
 export interface Settings {
   visualisation: VisualisationSettings;
   system: SystemSettings;
-  xr: XRSettings;
+  xr: XRSettings & { gpu?: XRGPUSettings };
   auth: AuthSettings;
   ragflow?: RAGFlowSettings;
   perplexity?: PerplexitySettings;
   openai?: OpenAISettings;
   kokoro?: KokoroSettings;
   whisper?: WhisperSettings;
+  dashboard?: DashboardSettings;
+  analytics?: AnalyticsSettings;
+  performance?: PerformanceSettings;
+  developer?: DeveloperSettings;
 }
 
 // Partial update types for settings mutations

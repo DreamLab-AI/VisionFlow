@@ -157,7 +157,7 @@ This module provides helper functions for verifying access to protected API endp
 
 ## Helper Functions
 
-Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralized in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organized into more specific utility modules if widely needed.
+Generic helper functions for tasks like string manipulation or common data transformations might exist but are not typically centralised in a single "kitchen sink" `utils.rs` file. They are often co-located with the modules that use them or organised into more specific utility modules if widely needed.
 - File system operations are primarily handled by [`FileService`](../../src/services/file_service.rs).
 - Specific data conversion or formatting utilities might be found within individual service or model files.
 - The plan's mention of `sanitize_filename`, `generate_slug`, etc., as not being present is accurate for a generic `utils` module; such specific helpers would be within relevant services.
@@ -204,7 +204,7 @@ The socket flow constants module (`src/utils/socket_flow_constants.rs`) defines 
 pub const NODE_SIZE: f32 = 1.0;      // Base node size in world units
 pub const EDGE_WIDTH: f32 = 0.1;     // Base edge width
 pub const MIN_DISTANCE: f32 = 0.75;  // Minimum distance between nodes
-pub const MAX_DISTANCE: f32 = 10.0;  // Maximum distance from center
+pub const MAX_DISTANCE: f32 = 10.0;  // Maximum distance from centre
 ```
 
 ### WebSocket Configuration

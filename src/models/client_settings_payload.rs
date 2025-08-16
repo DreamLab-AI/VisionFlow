@@ -107,17 +107,32 @@ pub struct ClientEdgeSettings {
 pub struct ClientPhysicsSettings {
     pub attraction_strength: Option<f32>,
     pub bounds_size: Option<f32>,
-    pub collision_radius: Option<f32>,
+    #[serde(alias = "collision_radius")]
+    pub separation_radius: Option<f32>,
     pub damping: Option<f32>,
     pub enable_bounds: Option<bool>,
     pub enabled: Option<bool>,
     pub iterations: Option<u32>,
     pub max_velocity: Option<f32>,
-    pub repulsion_strength: Option<f32>,
-    pub spring_strength: Option<f32>,
+    #[serde(alias = "repulsion_strength")]
+    pub repel_k: Option<f32>,
+    #[serde(alias = "spring_strength")]
+    pub spring_k: Option<f32>,
     pub repulsion_distance: Option<f32>,
     pub mass_scale: Option<f32>,
     pub boundary_damping: Option<f32>,
+    pub update_threshold: Option<f32>,
+    #[serde(alias = "time_step")]
+    pub dt: Option<f32>,
+    pub temperature: Option<f32>,
+    pub gravity: Option<f32>,
+    // New GPU-aligned fields
+    pub stress_weight: Option<f32>,
+    pub stress_alpha: Option<f32>,
+    pub boundary_limit: Option<f32>,
+    pub alignment_strength: Option<f32>,
+    pub cluster_strength: Option<f32>,
+    pub compute_mode: Option<i32>,
 }
 
 // --- Rendering Settings DTO ---

@@ -12,7 +12,7 @@ This document provides a comprehensive analysis of the settings data flow archit
 - **Purpose**: Central state management for all settings
 - **Convention**: camelCase
 - **Key Functions**:
-  - `initialize()`: Loads settings from server via `apiService.get('/settings')`
+  - `initialise()`: Loads settings from server via `apiService.get('/settings')`
   - `updateSettings()`: Uses Immer for immutable updates, triggers debounced server save
   - `debouncedSaveToServer()`: Saves to server via `apiService.post('/settings', settings)`
 

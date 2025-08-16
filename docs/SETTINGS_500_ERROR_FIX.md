@@ -17,11 +17,11 @@ Updated the `convert_empty_strings_to_null` function in `/workspace/ext/src/conf
 
 ## Required String Fields
 The following fields must always have a string value (even if empty):
-- Color fields: `base_color`, `color`, `background_color`, `text_color`, etc.
+- Colour fields: `base_colour`, `colour`, `background_colour`, `text_colour`, etc.
 - Quality/mode fields: `quality`, `mode`, `context`, `billboard_mode`
 - Network fields: `bind_address`, `domain`, `min_tls_version`, `tunnel_id`
 - Auth fields: `provider`
-- XR fields: Various color and configuration strings
+- XR fields: Various colour and configuration strings
 
 ## Testing
 After this fix, the settings API should:

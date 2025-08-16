@@ -1,10 +1,10 @@
 # VisionFlow
 
-A real-time 3D visualization platform for knowledge graphs and AI Multi-Agent systems, powered by CUDA-accelerated physics and modern web technologies.
+A real-time 3D visualisation platform for knowledge graphs and AI Multi-Agent systems, powered by CUDA-accelerated physics and modern web technologies.
 
 ## ✨ Key Features
 
-- **Real-time 3D Visualization** - Interactive knowledge graphs with up to 100,000+ nodes
+- **Real-time 3D Visualisation** - Interactive knowledge graphs with up to 100,000+ nodes
 - **AI Multi-Agent System** - 15+ specialized agent types with autonomous coordination  
 - **GPU Acceleration** - CUDA-powered physics engine with 80%+ efficiency
 - **WebXR Support** - Full VR/AR compatibility including Quest 3

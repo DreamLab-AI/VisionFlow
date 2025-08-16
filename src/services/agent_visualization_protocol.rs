@@ -213,11 +213,11 @@ pub struct EffectsConfig {
 /// Physics configuration for GPU solver
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsConfig {
-    pub spring_strength: f32,
+    pub spring_k: f32,
     pub link_distance: f32,
     pub damping: f32,
-    pub node_repulsion: f32,
-    pub gravity_strength: f32,
+    pub repel_k: f32,
+    pub gravity_k: f32,
     pub max_velocity: f32,
 }
 
