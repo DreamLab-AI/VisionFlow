@@ -87,7 +87,7 @@ impl From<&crate::models::simulation_params::SimulationParams> for SimParams {
             viewport_bounds: if params.enable_bounds && params.viewport_bounds > 0.0 { 
                 params.viewport_bounds.clamp(10.0, 10000.0) 
             } else { 
-                0.0  // When enable_bounds is false, set to 0 to disable boundary forces
+                2000.0  // When enable_bounds is false, use moderate soft boundaries
             },
             temperature: params.temperature.clamp(0.0, 2.0),
             iteration: 0,

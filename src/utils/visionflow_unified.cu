@@ -487,10 +487,11 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     position = vec3_add(position, vec3_scale(velocity, p.params.dt));
     
     // FIX: Improved soft viewport bounds with progressive damping to prevent bouncing
-    // Only apply boundaries if viewport_bounds > 0 (i.e., enable_bounds: true)
+    // Apply boundaries with different strengths based on enable_bounds setting
     if (p.params.viewport_bounds > 0.0f) {
         float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
-        float boundary_force_strength = 2.0f; // Reduced strength for gentler response
+        // Much weaker boundary forces when bounds are "disabled" (large viewport)
+        float boundary_force_strength = (p.params.viewport_bounds > 1500.0f) ? 0.05f : 2.0f;
         
         // X boundary - Progressive damping based on distance from boundary
         if (fabsf(position.x) > boundary_margin) {
@@ -498,8 +499,12 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         distance_ratio = fminf(distance_ratio, 1.0f);
         
         // Quadratic force increase near boundary for smooth deceleration
-        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.x);
-        velocity.x += boundary_force * p.params.dt;
+        // Add dead zone for soft boundaries to prevent oscillation
+        float dead_zone = (p.params.viewport_bounds > 1500.0f) ? 0.1f : 0.0f;
+        if (distance_ratio > dead_zone) {
+            float boundary_force = -(distance_ratio - dead_zone) * (distance_ratio - dead_zone) * boundary_force_strength * copysignf(1.0f, position.x);
+            velocity.x += boundary_force * p.params.dt;
+        }
         
         // Progressive damping: stronger as we approach the boundary
         float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
@@ -508,7 +513,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         // Soft clamp with margin to prevent hard bounces
         if (fabsf(position.x) > p.params.viewport_bounds * 0.98f) {
             position.x = copysignf(p.params.viewport_bounds * 0.98f, position.x);
-            velocity.x *= 0.5f; // Additional velocity reduction at boundary
+            // Gentler velocity reduction for soft boundaries to prevent bouncing
+            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
+            velocity.x *= velocity_damping;
         }
     }
     
@@ -518,8 +525,12 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         distance_ratio = fminf(distance_ratio, 1.0f);
         
         // Quadratic force increase near boundary for smooth deceleration
-        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.y);
-        velocity.y += boundary_force * p.params.dt;
+        // Add dead zone for soft boundaries to prevent oscillation
+        float dead_zone = (p.params.viewport_bounds > 1500.0f) ? 0.1f : 0.0f;
+        if (distance_ratio > dead_zone) {
+            float boundary_force = -(distance_ratio - dead_zone) * (distance_ratio - dead_zone) * boundary_force_strength * copysignf(1.0f, position.y);
+            velocity.y += boundary_force * p.params.dt;
+        }
         
         // Progressive damping: stronger as we approach the boundary
         float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
@@ -528,7 +539,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         // Soft clamp with margin to prevent hard bounces
         if (fabsf(position.y) > p.params.viewport_bounds * 0.98f) {
             position.y = copysignf(p.params.viewport_bounds * 0.98f, position.y);
-            velocity.y *= 0.5f; // Additional velocity reduction at boundary
+            // Gentler velocity reduction for soft boundaries to prevent bouncing
+            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
+            velocity.y *= velocity_damping;
         }
     }
     
@@ -538,8 +551,12 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         distance_ratio = fminf(distance_ratio, 1.0f);
         
         // Quadratic force increase near boundary for smooth deceleration
-        float boundary_force = -distance_ratio * distance_ratio * boundary_force_strength * copysignf(1.0f, position.z);
-        velocity.z += boundary_force * p.params.dt;
+        // Add dead zone for soft boundaries to prevent oscillation
+        float dead_zone = (p.params.viewport_bounds > 1500.0f) ? 0.1f : 0.0f;
+        if (distance_ratio > dead_zone) {
+            float boundary_force = -(distance_ratio - dead_zone) * (distance_ratio - dead_zone) * boundary_force_strength * copysignf(1.0f, position.z);
+            velocity.z += boundary_force * p.params.dt;
+        }
         
         // Progressive damping: stronger as we approach the boundary
         float progressive_damping = p.params.boundary_damping * (1.0f - 0.5f * distance_ratio);
@@ -548,7 +565,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         // Soft clamp with margin to prevent hard bounces
         if (fabsf(position.z) > p.params.viewport_bounds * 0.98f) {
             position.z = copysignf(p.params.viewport_bounds * 0.98f, position.z);
-            velocity.z *= 0.5f; // Additional velocity reduction at boundary
+            // Gentler velocity reduction for soft boundaries to prevent bouncing
+            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
+            velocity.z *= velocity_damping;
         }
     }
     } // End of viewport_bounds check

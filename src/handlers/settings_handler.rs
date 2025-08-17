@@ -380,8 +380,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Repulsion strength validation - SAFE RANGE
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val < 10.0 || val > 200.0 {
-            return Err("repelK must be between 10.0 and 200.0 for stability".to_string());
+        if val < 0.1 || val > 200.0 {
+            return Err("repelK must be between 0.1 and 200.0 for stability".to_string());
         }
     }
     
@@ -750,7 +750,7 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
                 }
             }
             
-            // logLevel should be a number
+            // logLevel can be a number or string
             if let Some(log_level) = debug_obj.get("logLevel") {
                 if let Some(val) = log_level.as_f64() {
                     if val < 0.0 || val > 3.0 {
@@ -760,8 +760,18 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
                     if val > 3 {
                         return Err("debug.logLevel must be between 0 and 3".to_string());
                     }
+                } else if let Some(val) = log_level.as_str() {
+                    // Accept string log levels from client
+                    match val {
+                        "error" | "warn" | "info" | "debug" => {
+                            // Valid string log level
+                        }
+                        _ => {
+                            return Err("debug.logLevel must be 'error', 'warn', 'info', or 'debug'".to_string());
+                        }
+                    }
                 } else {
-                    return Err("debug.logLevel must be a number".to_string());
+                    return Err("debug.logLevel must be a number or string".to_string());
                 }
             }
         }
