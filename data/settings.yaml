@@ -21,7 +21,7 @@ visualisation:
     wave_speed: 0.5
   bloom:
     edge_bloom_strength: 0.3743524
-    enabled: true
+    enabled: false
     environment_bloom_strength: 0.3672219
     node_bloom_strength: 0.30661243
     radius: 0.29591668
@@ -80,18 +80,18 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_k: 0.1
+        attraction_k: 9.305331
         bounds_size: 1000.0
         separation_radius: 2.0
-        damping: 0.85
+        damping: 0.8378363
         enable_bounds: false
         enabled: true
         iterations: 50
         max_velocity: 5.0
-        repel_k: 50.0
-        spring_k: 0.1
+        repel_k: 5.0
+        spring_k: 8.164466
         mass_scale: 1.0
-        boundary_damping: 0.95
+        boundary_damping: 0.23174196
         update_threshold: 0.01
         dt: 0.016
         temperature: 0.01
@@ -156,8 +156,8 @@ visualisation:
         enabled: true
         iterations: 100
         max_velocity: 1.0
-        repel_k: 50.0
-        spring_k: 0.005
+        repel_k: 5.0
+        spring_k: 0.5
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -203,12 +203,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '1': resetView
-      '6': frontView
-      '3': fitToView
-      '2': cycleMode
-      '4': topView
       '5': rightView
+      '3': fitToView
+      '1': resetView
+      '4': topView
+      '6': frontView
+      '2': cycleMode
 system:
   network:
     bind_address: 0.0.0.0
