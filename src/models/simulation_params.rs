@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
-use crate::config::PhysicsSettings;
+use crate::config::{PhysicsSettings, AutoBalanceConfig};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -79,6 +79,7 @@ pub struct SimulationParams {
     // Auto-balance parameters
     pub auto_balance: bool,        // Enable neural auto-balancing
     pub auto_balance_interval_ms: u32, // Interval between auto-balance checks
+    pub auto_balance_config: AutoBalanceConfig, // Configuration for auto-balance thresholds
     
     // Core iteration parameters
     pub iterations: u32,           // Range: 1-500, Default: varies by phase
@@ -129,6 +130,7 @@ impl SimulationParams {
             enabled: true,              // Physics enabled by default
             auto_balance: false,
             auto_balance_interval_ms: 500,
+            auto_balance_config: AutoBalanceConfig::default(),
             iterations: 200,
             dt: 0.01,                   // Much smaller for stability
             spring_k: 0.005,             // Very gentle springs
@@ -167,6 +169,7 @@ impl SimulationParams {
                 enabled: true,              // Physics enabled by default
                 auto_balance: false,
                 auto_balance_interval_ms: 500,
+                auto_balance_config: AutoBalanceConfig::default(),
                 iterations: 500,
                 dt: 0.01,                  // Small timestep for stability
                 spring_k: 0.005,            // Very gentle springs
@@ -201,6 +204,7 @@ impl SimulationParams {
                 enabled: true,
                 auto_balance: false,
                 auto_balance_interval_ms: 500,
+                auto_balance_config: AutoBalanceConfig::default(),
                 iterations: 100,
                 dt: 0.12,                  // Further reduced for optimal stability
                 spring_k: 0.01,            // Reduced spring strength
@@ -235,6 +239,7 @@ impl SimulationParams {
                 enabled: true,
                 auto_balance: false,
                 auto_balance_interval_ms: 500,
+                auto_balance_config: AutoBalanceConfig::default(),
                 iterations: 300,
                 dt: 0.15,                  // Reduced from 0.2
                 spring_k: 0.005,            // Minimal spring forces
@@ -335,6 +340,7 @@ impl SimParams {
             enabled: true,
             auto_balance: false,
             auto_balance_interval_ms: 500,
+            auto_balance_config: AutoBalanceConfig::default(),
             iterations: 200,  // Default iteration count
             dt: self.dt,
             spring_k: self.spring_k,
@@ -430,6 +436,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             enabled: physics.enabled,  // Use the enabled flag from settings
             auto_balance: physics.auto_balance,
             auto_balance_interval_ms: physics.auto_balance_interval_ms,
+            auto_balance_config: physics.auto_balance_config.clone(),
             iterations: physics.iterations,
             dt: physics.dt,
             spring_k: physics.spring_k,

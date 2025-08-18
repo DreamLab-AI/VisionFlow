@@ -17,6 +17,7 @@ import { TooltipProvider } from '../features/design-system/components/Tooltip';
 import { useBotsWebSocketIntegration } from '../features/bots/hooks/useBotsWebSocketIntegration';
 import { DebugControlPanel } from '../components/DebugControlPanel';
 import { ConnectionWarning } from '../components/ConnectionWarning';
+import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
 const logger = createLogger('App')
 
 // Error boundary component to catch rendering errors
@@ -70,6 +71,9 @@ function App() {
 
   // Initialize bots WebSocket integration
   const botsConnectionStatus = useBotsWebSocketIntegration();
+  
+  // Initialize auto-balance notifications polling
+  useAutoBalanceNotifications();
 
   // Check if we should use Quest 3 AR mode (unified approach)
   const shouldUseQuest3AR = () => {

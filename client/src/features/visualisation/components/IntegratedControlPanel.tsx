@@ -3,6 +3,7 @@ import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
+import { AutoBalanceIndicator } from './AutoBalanceIndicator';
 
 interface IntegratedControlPanelProps {
   showStats: boolean;
@@ -450,7 +451,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           title: 'Physics Settings',
           fields: [
             { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled' },
-            { key: 'autoBalance', label: '🧠 Neural Auto-Balance', type: 'toggle', path: 'visualisation.graphs.logseq.physics.autoBalance' },
+            { key: 'autoBalance', label: '⚖️ Adaptive Balancing', type: 'toggle', path: 'visualisation.graphs.logseq.physics.autoBalance' },
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
             
             // Core GPU-Aligned Forces
@@ -716,7 +717,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         alignItems: 'center',
         marginBottom: '10px'
       }}>
-        <div style={{ fontWeight: 'bold' }}>Control Center</div>
+        <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+          Control Center
+          <AutoBalanceIndicator />
+        </div>
         <div
           style={{
             width: '16px',

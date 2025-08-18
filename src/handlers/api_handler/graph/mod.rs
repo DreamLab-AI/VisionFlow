@@ -9,7 +9,7 @@ use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata};
+use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata, GetAutoBalanceNotifications};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -292,6 +292,40 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
+// Auto-balance notifications endpoint
+pub async fn get_auto_balance_notifications(
+    state: web::Data<AppState>,
+    query: web::Query<serde_json::Value>,
+) -> impl Responder {
+    let since_timestamp = query.get("since")
+        .and_then(|v| v.as_i64());
+    
+    let msg = GetAutoBalanceNotifications { since_timestamp };
+    
+    match state.graph_service_addr.send(msg).await {
+        Ok(Ok(notifications)) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "notifications": notifications
+            }))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to get auto-balance notifications: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Failed to retrieve notifications"
+            }))
+        }
+        Err(e) => {
+            error!("Mailbox error getting notifications: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Service unavailable"
+            }))
+        }
+    }
+}
+
 // Configure routes using snake_case
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -302,5 +336,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/update", web::post().to(update_graph))
             // Keep refresh endpoint for admin/maintenance
             .route("/refresh", web::post().to(refresh_graph))
+            // Auto-balance notifications
+            .route("/auto-balance-notifications", web::get().to(get_auto_balance_notifications))
     );
 }

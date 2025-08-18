@@ -162,12 +162,49 @@ pub struct EdgeSettings {
     pub quality: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct AutoBalanceConfig {
+    pub stability_variance_threshold: f32,
+    pub stability_frame_count: u32,
+    pub clustering_distance_threshold: f32,
+    pub bouncing_node_percentage: f32,
+    pub boundary_min_distance: f32,
+    pub boundary_max_distance: f32,
+    pub extreme_distance_threshold: f32,
+    pub explosion_distance_threshold: f32,
+    pub spreading_distance_threshold: f32,
+    pub oscillation_detection_frames: usize,
+    pub oscillation_change_threshold: f32,
+    pub min_oscillation_changes: usize,
+}
+
+impl AutoBalanceConfig {
+    pub fn default() -> Self {
+        Self {
+            stability_variance_threshold: 100.0,
+            stability_frame_count: 180,
+            clustering_distance_threshold: 20.0,
+            bouncing_node_percentage: 0.33,
+            boundary_min_distance: 90.0,
+            boundary_max_distance: 110.0,
+            extreme_distance_threshold: 1000.0,
+            explosion_distance_threshold: 10000.0,
+            spreading_distance_threshold: 500.0,
+            oscillation_detection_frames: 10,
+            oscillation_change_threshold: 5.0,
+            min_oscillation_changes: 5,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,
     #[serde(default = "default_auto_balance_interval")]
     pub auto_balance_interval_ms: u32,
+    #[serde(default)]
+    pub auto_balance_config: AutoBalanceConfig,
     pub attraction_k: f32,
     pub bounds_size: f32,
     pub separation_radius: f32,
@@ -212,6 +249,7 @@ impl Default for PhysicsSettings {
         Self {
             auto_balance: false,
             auto_balance_interval_ms: 500,
+            auto_balance_config: AutoBalanceConfig::default(),
             attraction_k: 0.0001,
             bounds_size: 500.0,
             separation_radius: 2.0,

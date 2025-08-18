@@ -358,12 +358,24 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         debug!("Physics settings fields received: {:?}", obj.keys().collect::<Vec<_>>());
     }
     
+    // Check if auto-balance is enabled - if so, be more lenient with validation
+    let auto_balance_enabled = physics.get("autoBalance")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    
     
     // Validate damping - MUST be high for stability
+    // Allow up to 0.999 for auto-balance aggressive damping
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
-        if !(0.5..=0.99).contains(&val) {
-            return Err("damping must be between 0.5 and 0.99 for stability".to_string());
+        // Round to 3 decimal places to handle floating point precision issues
+        let rounded_val = (val * 1000.0).round() / 1000.0;
+        
+        // Be more lenient with auto-balance enabled
+        let max_damping = if auto_balance_enabled { 1.0 } else { 0.999 };
+        
+        if rounded_val < 0.5 || rounded_val > max_damping {
+            return Err(format!("damping must be between 0.5 and {} for stability", max_damping));
         }
     }
     
@@ -380,6 +392,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     }
     
     // Spring strength validation
+    // Allow lower values for auto-balance fine-tuning
     if let Some(spring_k) = physics.get("springK") {
         let val = spring_k.as_f64().ok_or("springK must be a number")?;
         if !(0.0001..=10.0).contains(&val) {
@@ -388,10 +401,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     }
     
     // Repulsion strength validation - SAFE RANGE
+    // Allow lower values (down to 0.001) for auto-balance stabilization
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val < 0.1 || val > 200.0 {
-            return Err("repelK must be between 0.1 and 200.0 for stability".to_string());
+        if val < 0.001 || val > 200.0 {
+            return Err("repelK must be between 0.001 and 200.0 for stability".to_string());
         }
     }
     
@@ -420,10 +434,11 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     }
     
     // Max velocity validation - PREVENT EXPLOSION
+    // Allow lower values (down to 0.05) for auto-balance aggressive stabilization
     if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
-        if val < 0.1 || val > 10.0 {  // Safe range to prevent explosion
-            return Err("maxVelocity must be between 0.1 and 10.0 for stability".to_string());
+        if val < 0.05 || val > 10.0 {  // Safe range, allow lower for stabilization
+            return Err("maxVelocity must be between 0.05 and 10.0 for stability".to_string());
         }
     }
     
@@ -444,10 +459,12 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     }
     
     // Time step validation - NUMERICAL STABILITY
-    if let Some(time_step) = physics.get("timeStep") {
-        let val = time_step.as_f64().ok_or("timeStep must be a number")?;
+    // Check both timeStep and dt (client might send either)
+    let time_step = physics.get("timeStep").or_else(|| physics.get("dt"));
+    if let Some(time_step) = time_step {
+        let val = time_step.as_f64().ok_or("timeStep/dt must be a number")?;
         if val <= 0.0 || val > 0.02 {  // Safe range for numerical stability
-            return Err("timeStep must be between 0.001 and 0.02 for stability".to_string());
+            return Err("timeStep/dt must be between 0.001 and 0.02 for stability".to_string());
         }
     }
     
