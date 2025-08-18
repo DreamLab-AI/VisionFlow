@@ -653,23 +653,42 @@ impl GraphServiceActor {
             }
         }
         
-        // Check for extreme positions and auto-tune physics if needed
+        // Check for extreme positions, boundary nodes, and calculate metrics
         let mut extreme_count = 0;
+        let mut boundary_nodes = 0;
         let mut max_distance = 0.0f32;
+        let mut total_distance = 0.0f32;
+        let mut positions = Vec::new();
+        
         for (_, node) in self.node_map.iter() {
             let dist = node.data.position.x.abs()
                 .max(node.data.position.y.abs())
                 .max(node.data.position.z.abs());
             max_distance = max_distance.max(dist);
+            total_distance += dist;
+            positions.push(dist);
+            
             if dist > 1000.0 {
                 extreme_count += 1;
+            } else if dist > 90.0 && dist <= 110.0 {
+                // Count nodes at boundary (typical boundary is around 98-100 units)
+                boundary_nodes += 1;
             }
         }
         
-        // Auto-tune physics if enabled and nodes are exploding
+        let avg_distance = if !self.node_map.is_empty() {
+            total_distance / self.node_map.len() as f32
+        } else {
+            0.0
+        };
+        
+        // Auto-tune physics if enabled
         if self.simulation_params.auto_balance {
-            info!("[AUTO-BALANCE] Checking positions - max_distance: {:.1}, extreme_count: {}/{}", 
-                  max_distance, extreme_count, self.node_map.len());
+            if crate::utils::logging::is_debug_enabled() {
+                info!("[AUTO-BALANCE] Stats - max: {:.1}, avg: {:.1}, boundary: {}/{}, extreme: {}/{}", 
+                      max_distance, avg_distance, boundary_nodes, self.node_map.len(),
+                      extreme_count, self.node_map.len());
+            }
             
             // Track history for minima detection
             self.auto_balance_history.push(max_distance);
@@ -703,31 +722,57 @@ impl GraphServiceActor {
                         false
                     };
                     
-                    if extreme_count > self.node_map.len() / 2 {
-                        warn!("[AUTO-BALANCE] {} nodes at extreme positions (>1000 units), max distance: {:.0}", 
-                              extreme_count, max_distance);
-                        self.stable_count = 0; // Reset stability counter
+                    // Detect bouncing: many nodes at boundary OR oscillating history
+                    let is_bouncing = boundary_nodes > self.node_map.len() / 3 || 
+                                     (self.auto_balance_history.len() >= 10 && {
+                                         // Check for oscillation in recent history
+                                         let recent = &self.auto_balance_history[self.auto_balance_history.len()-10..];
+                                         let changes = recent.windows(2)
+                                             .filter(|w| (w[0] - w[1]).abs() > 5.0)
+                                             .count();
+                                         changes > 5  // More than 5 changes means oscillating
+                                     });
+                    
+                    if is_bouncing {
+                        info!("[AUTO-BALANCE] Bouncing detected! Boundary nodes: {}/{}, max distance: {:.0}", 
+                              boundary_nodes, self.node_map.len(), max_distance);
+                        self.stable_count = 0;
                         
-                        // Auto-tune: reduce repulsion and increase damping
-                        if max_distance > 10000.0 {
-                            info!("[AUTO-BALANCE] Nodes exploded to {:.0} units, adjusting parameters", max_distance);
-                            self.simulation_params.repel_k = (self.simulation_params.repel_k * 0.5).max(0.01);
-                            self.simulation_params.damping = (self.simulation_params.damping * 0.95 + 0.99 * 0.05).min(0.999);
-                            self.simulation_params.max_velocity = (self.simulation_params.max_velocity * 0.8).max(0.1);
-                            
-                            // Enable boundaries if not already
-                            if !self.simulation_params.enable_bounds {
-                                self.simulation_params.enable_bounds = true;
-                                self.simulation_params.viewport_bounds = 100.0;
-                                info!("[AUTO-BALANCE] Enabled boundaries at 100 units");
-                            }
-                            
-                            // Don't update UI immediately - wait for settling
-                            info!("[AUTO-BALANCE] Adjusted - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
-                                  self.simulation_params.repel_k, 
-                                  self.simulation_params.damping,
-                                  self.simulation_params.max_velocity);
+                        // Aggressive stabilization for bouncing
+                        self.simulation_params.repel_k = (self.simulation_params.repel_k * 0.5).max(0.001);
+                        self.simulation_params.damping = 0.99;  // Maximum damping
+                        self.simulation_params.max_velocity = 0.1;  // Very low velocity
+                        self.simulation_params.spring_k = (self.simulation_params.spring_k * 0.5).max(0.001);
+                        
+                        // Ensure boundaries are tight
+                        self.simulation_params.enable_bounds = true;
+                        self.simulation_params.viewport_bounds = 100.0;
+                        
+                        info!("[AUTO-BALANCE] Stabilization applied - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
+                              self.simulation_params.repel_k, 
+                              self.simulation_params.damping,
+                              self.simulation_params.max_velocity);
+                        
+                    } else if extreme_count > 0 || max_distance > 500.0 {
+                        // Nodes spreading too far
+                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), adjusting parameters", max_distance);
+                        self.stable_count = 0;
+                        
+                        // Scale adjustment based on how far nodes have spread
+                        let scale_factor = (100.0 / max_distance).min(0.9).max(0.3);
+                        
+                        self.simulation_params.repel_k = (self.simulation_params.repel_k * scale_factor).max(0.001);
+                        self.simulation_params.damping = (self.simulation_params.damping + (1.0 - scale_factor) * 0.05).min(0.99);
+                        self.simulation_params.max_velocity = (self.simulation_params.max_velocity * (0.5 + scale_factor * 0.5)).max(0.1);
+                        
+                        // Enable boundaries if spreading too much
+                        if max_distance > 200.0 {
+                            self.simulation_params.enable_bounds = true;
+                            self.simulation_params.viewport_bounds = 100.0;
                         }
+                        
+                        info!("[AUTO-BALANCE] Adjusted with scale {:.2} - repel_k: {:.3}, damping: {:.3}", 
+                              scale_factor, self.simulation_params.repel_k, self.simulation_params.damping);
                     } else if extreme_count == 0 && max_distance < 20.0 {
                         // Nodes might be too clustered, slightly increase repulsion
                         if self.simulation_params.repel_k < 5.0 {
@@ -1401,6 +1446,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             info!("  - attraction_k: {:.3} (was)", self.simulation_params.attraction_k);
             info!("  - max_velocity: {:.3} (was)", self.simulation_params.max_velocity);
             info!("  - enabled: {} (was)", self.simulation_params.enabled);
+            info!("  - auto_balance: {} (was)", self.simulation_params.auto_balance);
             
             info!("[GRAPH ACTOR] NEW physics values:");
             info!("  - repel_k: {} (new)", msg.params.repel_k);
@@ -1410,9 +1456,25 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             info!("  - attraction_k: {:.3} (new)", msg.params.attraction_k);
             info!("  - max_velocity: {:.3} (new)", msg.params.max_velocity);
             info!("  - enabled: {} (new)", msg.params.enabled);
+            info!("  - auto_balance: {} (new)", msg.params.auto_balance);
         }
         
+        // Check if auto-balance is being turned on for the first time
+        let auto_balance_just_enabled = !self.simulation_params.auto_balance && msg.params.auto_balance;
+        
         self.simulation_params = msg.params.clone();
+        
+        // If auto-balance was just enabled, reset tracking state for fresh start
+        if auto_balance_just_enabled {
+            info!("[AUTO-BALANCE] Auto-balance enabled - starting adaptive tuning from current values");
+            
+            // Reset history and stability counter for fresh start
+            self.auto_balance_history.clear();
+            self.stable_count = 0;
+            
+            info!("[AUTO-BALANCE] Will adaptively tune from current settings - repel_k: {:.3}, damping: {:.3}", 
+                  self.simulation_params.repel_k, self.simulation_params.damping);
+        }
         
         // Update the advanced GPU context if available
         if let Some(ref mut gpu_context) = self.advanced_gpu_context {
