@@ -136,14 +136,24 @@ async fn update_settings(
         })
         .unwrap_or_default();
     
+    // Check if auto-balance is enabled in the current settings
+    // If auto-balance is active, don't propagate physics back to avoid feedback loop
+    let auto_balance_active = app_settings.visualisation.graphs.logseq.physics.auto_balance;
+    
     // Save updated settings
     match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
         Ok(Ok(())) => {
             info!("Settings updated successfully");
             
-            // Propagate physics updates to GPU for each updated graph
-            for graph_name in updated_graphs {
-                propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
+            // Only propagate physics updates to GPU if auto-balance is NOT active
+            // This prevents feedback loops where auto-balance adjustments trigger reverse updates
+            if !auto_balance_active {
+                // Propagate physics updates to GPU for each updated graph
+                for graph_name in updated_graphs {
+                    propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
+                }
+            } else {
+                info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active");
             }
             
             // Return updated settings in camelCase
