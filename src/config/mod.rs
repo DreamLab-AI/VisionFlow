@@ -5,6 +5,10 @@ use serde_json::Value;
 use serde_yaml;
 use std::path::PathBuf;
 
+fn default_auto_balance_interval() -> u32 {
+    500
+}
+
 pub mod feature_access;
 
 // Types are already public in this module, no need to re-export
@@ -160,6 +164,10 @@ pub struct EdgeSettings {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PhysicsSettings {
+    #[serde(default)]
+    pub auto_balance: bool,
+    #[serde(default = "default_auto_balance_interval")]
+    pub auto_balance_interval_ms: u32,
     pub attraction_k: f32,
     pub bounds_size: f32,
     pub separation_radius: f32,
@@ -202,6 +210,8 @@ pub struct PhysicsSettings {
 impl Default for PhysicsSettings {
     fn default() -> Self {
         Self {
+            auto_balance: false,
+            auto_balance_interval_ms: 500,
             attraction_k: 0.0001,
             bounds_size: 500.0,
             separation_radius: 2.0,

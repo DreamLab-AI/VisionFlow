@@ -490,8 +490,13 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     // Apply boundaries with different strengths based on enable_bounds setting
     if (p.params.viewport_bounds > 0.0f) {
         float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
-        // Much weaker boundary forces when bounds are "disabled" (large viewport)
-        float boundary_force_strength = (p.params.viewport_bounds > 1500.0f) ? 0.01f : 2.0f;  // Reduced from 0.05 to 0.01
+        
+        // Check if position is extremely far (more than 10x the boundary)
+        float max_distance = fmaxf(fmaxf(fabsf(position.x), fabsf(position.y)), fabsf(position.z));
+        bool extreme_position = max_distance > (p.params.viewport_bounds * 10.0f);
+        
+        // Use strong recovery force for extreme positions, normal force otherwise
+        float boundary_force_strength = extreme_position ? 100.0f : 2.0f;
         
         // Debug output for first few nodes to understand bouncing
         if (idx < 3 && p.params.iteration % 60 == 0) {

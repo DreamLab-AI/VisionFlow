@@ -103,12 +103,49 @@ pub struct GraphServiceActor {
     constraint_update_counter: u32,
     last_semantic_analysis: Option<std::time::Instant>,
     device: Arc<CudaDevice>,
+    
+    // Auto-balance tracking
+    settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
+    auto_balance_history: Vec<f32>, // Track max distances to detect minima
+    stable_count: u32, // Count stable frames to detect settling
 }
 
 impl GraphServiceActor {
+    fn notify_settings_update(&self) {
+        // Send updated physics parameters back to settings system
+        // This will trigger UI updates
+        info!("[AUTO-BALANCE] Notifying settings system of parameter changes");
+        
+        // Send message to settings actor to update and propagate to UI
+        if let Some(settings_addr) = self.settings_addr.as_ref() {
+            let physics_update = serde_json::json!({
+                "visualisation": {
+                    "graphs": {
+                        "logseq": {
+                            "physics": {
+                                "repelK": self.simulation_params.repel_k,
+                                "damping": self.simulation_params.damping,
+                                "maxVelocity": self.simulation_params.max_velocity,
+                                "springK": self.simulation_params.spring_k,
+                                "enableBounds": self.simulation_params.enable_bounds,
+                                "boundsSize": self.simulation_params.viewport_bounds,
+                            }
+                        }
+                    }
+                }
+            });
+            
+            let update_msg = crate::actors::messages::UpdatePhysicsFromAutoBalance { 
+                physics_update 
+            };
+            settings_addr.do_send(update_msg);
+        }
+    }
+    
     pub fn new(
         client_manager: Addr<ClientManagerActor>,
         gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+        settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
         device: Arc<CudaDevice>,
     ) -> Self {
         let advanced_params = AdvancedParams::default();
@@ -145,6 +182,11 @@ impl GraphServiceActor {
             constraint_update_counter: 0,
             last_semantic_analysis: None,
             device,
+            
+            // Auto-balance tracking
+            settings_addr,
+            auto_balance_history: Vec::with_capacity(60), // Track last 60 frames (1 second at 60fps)
+            stable_count: 0,
         }
     }
 
@@ -611,17 +653,114 @@ impl GraphServiceActor {
             }
         }
         
-        // Check for extreme positions
+        // Check for extreme positions and auto-tune physics if needed
         let mut extreme_count = 0;
+        let mut max_distance = 0.0f32;
         for (_, node) in self.node_map.iter() {
-            if node.data.position.x.abs() > 1000.0 || 
-               node.data.position.y.abs() > 1000.0 || 
-               node.data.position.z.abs() > 1000.0 {
+            let dist = node.data.position.x.abs()
+                .max(node.data.position.y.abs())
+                .max(node.data.position.z.abs());
+            max_distance = max_distance.max(dist);
+            if dist > 1000.0 {
                 extreme_count += 1;
             }
         }
-        if extreme_count > 0 {
-            warn!("{} nodes at extreme positions (>1000 units from origin)", extreme_count);
+        
+        // Auto-tune physics if enabled and nodes are exploding
+        if self.simulation_params.auto_balance {
+            info!("[AUTO-BALANCE] Checking positions - max_distance: {:.1}, extreme_count: {}/{}", 
+                  max_distance, extreme_count, self.node_map.len());
+            
+            // Track history for minima detection
+            self.auto_balance_history.push(max_distance);
+            if self.auto_balance_history.len() > 60 {
+                self.auto_balance_history.remove(0);
+            }
+            
+            // Check if enough time has passed since last auto-balance
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as u64;
+            
+            static mut LAST_AUTO_BALANCE: u64 = 0;
+            let interval = self.simulation_params.auto_balance_interval_ms as u64;
+            
+            unsafe {
+                if now - LAST_AUTO_BALANCE >= interval {
+                    LAST_AUTO_BALANCE = now;
+                    
+                    // Detect if we've found a minima (stable state)
+                    let is_stable = if self.auto_balance_history.len() >= 30 {
+                        let recent_avg = self.auto_balance_history[self.auto_balance_history.len()-30..]
+                            .iter().sum::<f32>() / 30.0;
+                        let variance = self.auto_balance_history[self.auto_balance_history.len()-30..]
+                            .iter()
+                            .map(|x| (x - recent_avg).powi(2))
+                            .sum::<f32>() / 30.0;
+                        variance < 100.0 // Low variance means stable
+                    } else {
+                        false
+                    };
+                    
+                    if extreme_count > self.node_map.len() / 2 {
+                        warn!("[AUTO-BALANCE] {} nodes at extreme positions (>1000 units), max distance: {:.0}", 
+                              extreme_count, max_distance);
+                        self.stable_count = 0; // Reset stability counter
+                        
+                        // Auto-tune: reduce repulsion and increase damping
+                        if max_distance > 10000.0 {
+                            info!("[AUTO-BALANCE] Nodes exploded to {:.0} units, adjusting parameters", max_distance);
+                            self.simulation_params.repel_k = (self.simulation_params.repel_k * 0.5).max(0.01);
+                            self.simulation_params.damping = (self.simulation_params.damping * 0.95 + 0.99 * 0.05).min(0.999);
+                            self.simulation_params.max_velocity = (self.simulation_params.max_velocity * 0.8).max(0.1);
+                            
+                            // Enable boundaries if not already
+                            if !self.simulation_params.enable_bounds {
+                                self.simulation_params.enable_bounds = true;
+                                self.simulation_params.viewport_bounds = 100.0;
+                                info!("[AUTO-BALANCE] Enabled boundaries at 100 units");
+                            }
+                            
+                            // Don't update UI immediately - wait for settling
+                            info!("[AUTO-BALANCE] Adjusted - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
+                                  self.simulation_params.repel_k, 
+                                  self.simulation_params.damping,
+                                  self.simulation_params.max_velocity);
+                        }
+                    } else if extreme_count == 0 && max_distance < 20.0 {
+                        // Nodes might be too clustered, slightly increase repulsion
+                        if self.simulation_params.repel_k < 5.0 {
+                            self.simulation_params.repel_k = (self.simulation_params.repel_k * 1.2).min(5.0);
+                            self.stable_count = 0; // Reset stability counter
+                            info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, increased repel_k to {:.3}", 
+                                  max_distance, self.simulation_params.repel_k);
+                        }
+                    } else if is_stable {
+                        // We've found a stable minima
+                        self.stable_count += 1;
+                        
+                        // After being stable for 3 seconds (180 frames), update UI and save
+                        if self.stable_count == 180 {
+                            info!("[AUTO-BALANCE] Stable minima found at {:.1} units - updating UI sliders", max_distance);
+                            
+                            // Update UI sliders and potentially save to settings.yaml
+                            self.notify_settings_update();
+                            
+                            // Reset stability counter to avoid repeated updates
+                            self.stable_count = 181; // Set to a value that prevents repeated notifications
+                        } else if self.stable_count < 180 {
+                            debug!("[AUTO-BALANCE] Stability detected for {} frames (need 180 for UI update)", self.stable_count);
+                        }
+                    } else {
+                        // Not stable yet, reset counter
+                        if self.stable_count > 0 && self.stable_count < 180 {
+                            debug!("[AUTO-BALANCE] Lost stability after {} frames", self.stable_count);
+                        }
+                        self.stable_count = 0;
+                    }
+                }
+            }
         }
         
         debug!("Updated positions for {} nodes", updated_count);
@@ -634,7 +773,9 @@ impl GraphServiceActor {
         }
 
         self.simulation_running.store(true, Ordering::SeqCst);
-        info!("Starting physics simulation loop");
+        if crate::utils::logging::is_debug_enabled() {
+            info!("Starting physics simulation loop");
+        }
 
         // Start the simulation interval
         ctx.run_interval(Duration::from_millis(16), |actor, ctx| {
@@ -695,19 +836,24 @@ impl GraphServiceActor {
     }
     
     fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
-        // Always log physics step execution
-        info!("[GPU STEP] === Starting physics simulation step ===");
-        info!("[GPU STEP] Current physics parameters:");
-        info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
-        info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
-        info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
-        info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
-        info!("  - attraction_k: {:.3} (clustering force)", self.simulation_params.attraction_k);
-        info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
-        info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
+        // Only log physics step execution when debug is enabled
+        if crate::utils::logging::is_debug_enabled() {
+            info!("[GPU STEP] === Starting physics simulation step ===");
+            info!("[GPU STEP] Current physics parameters:");
+            info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
+            info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
+            info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
+            info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
+            info!("  - attraction_k: {:.3} (clustering force)", self.simulation_params.attraction_k);
+            info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
+            info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
+            info!("  - auto_balance: {} (auto-tuning enabled?)", self.simulation_params.auto_balance);
+        }
         
         if !self.simulation_params.enabled {
-            info!("[GPU STEP] Physics disabled - skipping simulation");
+            if crate::utils::logging::is_debug_enabled() {
+                info!("[GPU STEP] Physics disabled - skipping simulation");
+            }
             return;
         }
         
@@ -1245,41 +1391,49 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("[GRAPH ACTOR] === UpdateSimulationParams RECEIVED ===");
-        info!("[GRAPH ACTOR] OLD physics values:");
-        info!("  - repel_k: {} (was)", self.simulation_params.repel_k);
-        info!("  - damping: {:.3} (was)", self.simulation_params.damping);
-        info!("  - dt: {:.3} (was)", self.simulation_params.dt);
-        info!("  - spring_k: {:.3} (was)", self.simulation_params.spring_k);
-        info!("  - attraction_k: {:.3} (was)", self.simulation_params.attraction_k);
-        info!("  - max_velocity: {:.3} (was)", self.simulation_params.max_velocity);
-        info!("  - enabled: {} (was)", self.simulation_params.enabled);
-        
-        info!("[GRAPH ACTOR] NEW physics values:");
-        info!("  - repel_k: {} (new)", msg.params.repel_k);
-        info!("  - damping: {:.3} (new)", msg.params.damping);
-        info!("  - dt: {:.3} (new)", msg.params.dt);
-        info!("  - spring_k: {:.3} (new)", msg.params.spring_k);
-        info!("  - attraction_k: {:.3} (new)", msg.params.attraction_k);
-        info!("  - max_velocity: {:.3} (new)", msg.params.max_velocity);
-        info!("  - enabled: {} (new)", msg.params.enabled);
+        if crate::utils::logging::is_debug_enabled() {
+            info!("[GRAPH ACTOR] === UpdateSimulationParams RECEIVED ===");
+            info!("[GRAPH ACTOR] OLD physics values:");
+            info!("  - repel_k: {} (was)", self.simulation_params.repel_k);
+            info!("  - damping: {:.3} (was)", self.simulation_params.damping);
+            info!("  - dt: {:.3} (was)", self.simulation_params.dt);
+            info!("  - spring_k: {:.3} (was)", self.simulation_params.spring_k);
+            info!("  - attraction_k: {:.3} (was)", self.simulation_params.attraction_k);
+            info!("  - max_velocity: {:.3} (was)", self.simulation_params.max_velocity);
+            info!("  - enabled: {} (was)", self.simulation_params.enabled);
+            
+            info!("[GRAPH ACTOR] NEW physics values:");
+            info!("  - repel_k: {} (new)", msg.params.repel_k);
+            info!("  - damping: {:.3} (new)", msg.params.damping);
+            info!("  - dt: {:.3} (new)", msg.params.dt);
+            info!("  - spring_k: {:.3} (new)", msg.params.spring_k);
+            info!("  - attraction_k: {:.3} (new)", msg.params.attraction_k);
+            info!("  - max_velocity: {:.3} (new)", msg.params.max_velocity);
+            info!("  - enabled: {} (new)", msg.params.enabled);
+        }
         
         self.simulation_params = msg.params.clone();
         
         // Update the advanced GPU context if available
         if let Some(ref mut gpu_context) = self.advanced_gpu_context {
             let sim_params = SimParams::from(&self.simulation_params);
-            info!("Updating advanced_gpu_context with new params");
+            if crate::utils::logging::is_debug_enabled() {
+                info!("Updating advanced_gpu_context with new params");
+            }
             gpu_context.set_params(sim_params);
         }
         
         // Also update GPU compute actor if available
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            info!("Forwarding params to GPUComputeActor");
+            if crate::utils::logging::is_debug_enabled() {
+                info!("Forwarding params to GPUComputeActor");
+            }
             gpu_addr.do_send(msg);
         }
         
-        info!("=== GraphServiceActor physics params update COMPLETE ===");
+        if crate::utils::logging::is_debug_enabled() {
+            info!("=== GraphServiceActor physics params update COMPLETE ===");
+        }
         Ok(())
     }
 }

@@ -162,6 +162,12 @@ pub struct UpdateSettings {
 }
 
 #[derive(Message)]
+#[rtype(result = "()")]
+pub struct UpdatePhysicsFromAutoBalance {
+    pub physics_update: serde_json::Value,
+}
+
+#[derive(Message)]
 #[rtype(result = "Result<Value, String>")]
 pub struct GetSettingByPath {
     pub path: String,

@@ -80,15 +80,17 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_k: 0.01
-        bounds_size: 1000.0
+        auto_balance: false
+        auto_balance_interval_ms: 500
+        attraction_k: 0.1
+        bounds_size: 100.0
         separation_radius: 2.0
-        damping: 0.85
-        enable_bounds: false
+        damping: 0.99
+        enable_bounds: true
         enabled: true
         iterations: 50
-        max_velocity: 10.0
-        repel_k: 5.0
+        max_velocity: 0.5
+        repel_k: 0.1
         spring_k: 0.5
         mass_scale: 1.0
         boundary_damping: 0.23174196
@@ -148,6 +150,8 @@ visualisation:
         show_metadata: true
         max_label_width: 8.0
       physics:
+        auto_balance: false
+        auto_balance_interval_ms: 500
         attraction_k: 0.0001
         bounds_size: 500.0
         separation_radius: 2.0
@@ -203,12 +207,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '1': resetView
+      '2': cycleMode
       '4': topView
       '6': frontView
-      '2': cycleMode
       '5': rightView
       '3': fitToView
+      '1': resetView
 system:
   network:
     bind_address: 0.0.0.0
@@ -258,7 +262,7 @@ system:
     enable_request_validation: false
     session_timeout: 3600
   debug:
-    enabled: true
+    enabled: false
   persist_settings: true
 xr:
   enabled: false

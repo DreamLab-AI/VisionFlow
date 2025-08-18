@@ -1,6 +1,7 @@
 import { createLogger, createErrorMetadata } from '../../../utils/logger';
-import { debugState } from '../../../utils/clientDebugState';
+import { debugState, clientDebugState } from '../../../utils/clientDebugState';
 import { WebSocketAdapter } from '../../../services/WebSocketService';
+import { useSettingsStore } from '../../../store/settingsStore';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
 import { graphWorkerProxy } from './graphWorkerProxy';
 import type { GraphData, Node, Edge } from './graphWorkerProxy';
@@ -407,8 +408,13 @@ class GraphDataManager {
       // Delegate to worker proxy for processing
       await graphWorkerProxy.processBinaryData(positionData);
       
-      // Log node positions if physics debug is enabled
-      if (debugState.get('enablePhysicsDebug') || debugState.get('enableNodeDebug')) {
+      // Log node positions only if debug mode is enabled in settings
+      const settings = useSettingsStore.getState().settings;
+      const debugEnabled = settings?.system?.debug?.enabled;
+      const physicsDebugEnabled = (settings?.system?.debug as any)?.enablePhysicsDebug;
+      const nodeDebugEnabled = (settings?.system?.debug as any)?.enableNodeDebug;
+      
+      if (debugEnabled && (physicsDebugEnabled || nodeDebugEnabled)) {
         const view = new DataView(positionData);
         const nodeCount = Math.min(3, positionData.byteLength / BINARY_NODE_SIZE);
         for (let i = 0; i < nodeCount; i++) {
