@@ -75,6 +75,7 @@ use crate::services::edge_generation::{AdvancedEdgeGenerator, EdgeGenerationConf
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode, SimParams};
 use crate::physics::stress_majorization::StressMajorizationSolver;
 use cudarc::driver::CudaDevice;
+use std::sync::Mutex;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
@@ -108,9 +109,79 @@ pub struct GraphServiceActor {
     settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
     auto_balance_history: Vec<f32>, // Track max distances to detect minima
     stable_count: u32, // Count stable frames to detect settling
+    auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
+    kinetic_energy_history: Vec<f32>, // Track kinetic energy for stability detection
+    
+    // Smooth parameter transitions
+    target_params: SimulationParams, // Target physics parameters
+    param_transition_rate: f32, // How fast to transition (0.0 - 1.0)
+}
+
+// Auto-balance notification structure
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AutoBalanceNotification {
+    pub message: String,
+    pub timestamp: i64,
+    pub severity: String, // "info", "warning", "success"
 }
 
 impl GraphServiceActor {
+    fn smooth_transition_params(&mut self) {
+        // Smoothly transition current params to target params
+        let rate = self.param_transition_rate;
+        
+        // Use exponential smoothing for each parameter
+        self.simulation_params.repel_k = self.simulation_params.repel_k * (1.0 - rate) + self.target_params.repel_k * rate;
+        self.simulation_params.damping = self.simulation_params.damping * (1.0 - rate) + self.target_params.damping * rate;
+        self.simulation_params.max_velocity = self.simulation_params.max_velocity * (1.0 - rate) + self.target_params.max_velocity * rate;
+        self.simulation_params.spring_k = self.simulation_params.spring_k * (1.0 - rate) + self.target_params.spring_k * rate;
+        self.simulation_params.viewport_bounds = self.simulation_params.viewport_bounds * (1.0 - rate) + self.target_params.viewport_bounds * rate;
+        
+        // For boolean values, switch immediately when more than halfway
+        if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32).abs() > 0 {
+            self.simulation_params.enable_bounds = self.target_params.enable_bounds;
+        }
+    }
+    
+    fn set_target_params(&mut self, new_params: SimulationParams) {
+        self.target_params = new_params;
+        // Optionally increase transition rate for urgent changes
+        if (self.target_params.damping - self.simulation_params.damping).abs() > 0.3 {
+            self.param_transition_rate = 0.2; // Faster transition for large changes
+        } else {
+            self.param_transition_rate = 0.1; // Normal transition rate
+        }
+    }
+    
+    fn send_auto_balance_notification(&self, message: &str) {
+        info!("[AUTO-BALANCE NOTIFICATION] {}", message);
+        
+        // Determine severity based on message content
+        let severity = if message.contains("disabled") || message.contains("failed") {
+            "warning"
+        } else if message.contains("stable") || message.contains("found") {
+            "success"
+        } else {
+            "info"
+        }.to_string();
+        
+        // Store notification for REST API retrieval
+        let notification = AutoBalanceNotification {
+            message: message.to_string(),
+            timestamp: chrono::Utc::now().timestamp_millis(),
+            severity,
+        };
+        
+        if let Ok(mut notifications) = self.auto_balance_notifications.lock() {
+            notifications.push(notification);
+            // Keep only last 50 notifications
+            if notifications.len() > 50 {
+                let drain_count = notifications.len() - 50;
+                notifications.drain(0..drain_count);
+            }
+        }
+    }
+    
     fn notify_settings_update(&self) {
         // Send updated physics parameters back to settings system
         // This will trigger UI updates
@@ -187,6 +258,12 @@ impl GraphServiceActor {
             settings_addr,
             auto_balance_history: Vec::with_capacity(60), // Track last 60 frames (1 second at 60fps)
             stable_count: 0,
+            auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
+            kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
+            
+            // Smooth parameter transitions
+            target_params: SimulationParams::default(),
+            param_transition_rate: 0.1, // 10% per frame for smooth transitions
         }
     }
 
@@ -653,12 +730,14 @@ impl GraphServiceActor {
             }
         }
         
-        // Check for extreme positions, boundary nodes, and calculate metrics
+        // Check for extreme positions, boundary nodes, and calculate metrics including kinetic energy
+        let config = &self.simulation_params.auto_balance_config;
         let mut extreme_count = 0;
         let mut boundary_nodes = 0;
         let mut max_distance = 0.0f32;
         let mut total_distance = 0.0f32;
         let mut positions = Vec::new();
+        let mut total_kinetic_energy = 0.0f32;
         
         for (_, node) in self.node_map.iter() {
             let dist = node.data.position.x.abs()
@@ -668,9 +747,16 @@ impl GraphServiceActor {
             total_distance += dist;
             positions.push(dist);
             
-            if dist > 1000.0 {
+            // Calculate kinetic energy: KE = 0.5 * mass * velocity^2
+            // Assuming unit mass for simplicity (mass = 1)
+            let velocity_squared = node.data.velocity.x * node.data.velocity.x + 
+                                  node.data.velocity.y * node.data.velocity.y + 
+                                  node.data.velocity.z * node.data.velocity.z;
+            total_kinetic_energy += 0.5 * velocity_squared;
+            
+            if dist > config.extreme_distance_threshold {
                 extreme_count += 1;
-            } else if dist > 90.0 && dist <= 110.0 {
+            } else if dist > config.boundary_min_distance && dist <= config.boundary_max_distance {
                 // Count nodes at boundary (typical boundary is around 98-100 units)
                 boundary_nodes += 1;
             }
@@ -684,9 +770,16 @@ impl GraphServiceActor {
         
         // Auto-tune physics if enabled
         if self.simulation_params.auto_balance {
+            // Normalize kinetic energy by number of nodes
+            let avg_kinetic_energy = if !self.node_map.is_empty() {
+                total_kinetic_energy / self.node_map.len() as f32
+            } else {
+                0.0
+            };
+            
             if crate::utils::logging::is_debug_enabled() {
-                info!("[AUTO-BALANCE] Stats - max: {:.1}, avg: {:.1}, boundary: {}/{}, extreme: {}/{}", 
-                      max_distance, avg_distance, boundary_nodes, self.node_map.len(),
+                info!("[AUTO-BALANCE] Stats - max: {:.1}, avg: {:.1}, KE: {:.3}, boundary: {}/{}, extreme: {}/{}", 
+                      max_distance, avg_distance, avg_kinetic_energy, boundary_nodes, self.node_map.len(),
                       extreme_count, self.node_map.len());
             }
             
@@ -694,6 +787,12 @@ impl GraphServiceActor {
             self.auto_balance_history.push(max_distance);
             if self.auto_balance_history.len() > 60 {
                 self.auto_balance_history.remove(0);
+            }
+            
+            // Track kinetic energy history
+            self.kinetic_energy_history.push(avg_kinetic_energy);
+            if self.kinetic_energy_history.len() > 60 {
+                self.kinetic_energy_history.remove(0);
             }
             
             // Check if enough time has passed since last auto-balance
@@ -709,28 +808,45 @@ impl GraphServiceActor {
                 if now - LAST_AUTO_BALANCE >= interval {
                     LAST_AUTO_BALANCE = now;
                     
-                    // Detect if we've found a minima (stable state)
-                    let is_stable = if self.auto_balance_history.len() >= 30 {
+                    // Detect if we've found a minima (stable state) using both position and kinetic energy
+                    let config = &self.simulation_params.auto_balance_config;
+                    let is_stable = if self.auto_balance_history.len() >= 30 && self.kinetic_energy_history.len() >= 30 {
+                        // Check position variance
                         let recent_avg = self.auto_balance_history[self.auto_balance_history.len()-30..]
                             .iter().sum::<f32>() / 30.0;
-                        let variance = self.auto_balance_history[self.auto_balance_history.len()-30..]
+                        let position_variance = self.auto_balance_history[self.auto_balance_history.len()-30..]
                             .iter()
                             .map(|x| (x - recent_avg).powi(2))
                             .sum::<f32>() / 30.0;
-                        variance < 100.0 // Low variance means stable
+                        
+                        // Check kinetic energy (should be low for stable state)
+                        let recent_ke = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
+                            .iter().sum::<f32>() / 30.0;
+                        let ke_variance = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
+                            .iter()
+                            .map(|x| (x - recent_ke).powi(2))
+                            .sum::<f32>() / 30.0;
+                        
+                        // System is stable if both position variance is low AND kinetic energy is low
+                        // Use hardcoded thresholds for now, can be moved to config later
+                        let ke_threshold = 0.01; // Low kinetic energy threshold  
+                        let ke_variance_threshold = 0.001; // Very low KE variance threshold
+                        position_variance < config.stability_variance_threshold && 
+                        recent_ke < ke_threshold && 
+                        ke_variance < ke_variance_threshold
                     } else {
                         false
                     };
                     
                     // Detect bouncing: many nodes at boundary OR oscillating history
-                    let is_bouncing = boundary_nodes > self.node_map.len() / 3 || 
-                                     (self.auto_balance_history.len() >= 10 && {
+                    let is_bouncing = boundary_nodes as f32 > (self.node_map.len() as f32 * config.bouncing_node_percentage) || 
+                                     (self.auto_balance_history.len() >= config.oscillation_detection_frames && {
                                          // Check for oscillation in recent history
-                                         let recent = &self.auto_balance_history[self.auto_balance_history.len()-10..];
+                                         let recent = &self.auto_balance_history[self.auto_balance_history.len()-config.oscillation_detection_frames..];
                                          let changes = recent.windows(2)
-                                             .filter(|w| (w[0] - w[1]).abs() > 5.0)
+                                             .filter(|w| (w[0] - w[1]).abs() > config.oscillation_change_threshold)
                                              .count();
-                                         changes > 5  // More than 5 changes means oscillating
+                                         changes > config.min_oscillation_changes  // Too many changes means oscillating
                                      });
                     
                     if is_bouncing {
@@ -738,22 +854,26 @@ impl GraphServiceActor {
                               boundary_nodes, self.node_map.len(), max_distance);
                         self.stable_count = 0;
                         
-                        // Aggressive stabilization for bouncing
-                        self.simulation_params.repel_k = (self.simulation_params.repel_k * 0.5).max(0.001);
-                        self.simulation_params.damping = 0.99;  // Maximum damping
-                        self.simulation_params.max_velocity = 0.1;  // Very low velocity
-                        self.simulation_params.spring_k = (self.simulation_params.spring_k * 0.5).max(0.001);
+                        // Set target parameters for smooth transition
+                        let mut new_target = self.target_params.clone();
+                        new_target.repel_k = (self.simulation_params.repel_k * 0.5).max(0.001);
+                        new_target.damping = 0.99;  // Maximum damping
+                        new_target.max_velocity = 0.1;  // Very low velocity
+                        new_target.spring_k = (self.simulation_params.spring_k * 0.5).max(0.001);
+                        new_target.enable_bounds = true;
+                        new_target.viewport_bounds = 100.0;
                         
-                        // Ensure boundaries are tight
-                        self.simulation_params.enable_bounds = true;
-                        self.simulation_params.viewport_bounds = 100.0;
+                        self.set_target_params(new_target);
                         
                         info!("[AUTO-BALANCE] Stabilization applied - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
                               self.simulation_params.repel_k, 
                               self.simulation_params.damping,
                               self.simulation_params.max_velocity);
                         
-                    } else if extreme_count > 0 || max_distance > 500.0 {
+                        // Send notification to client
+                        self.send_auto_balance_notification("Adaptive Balancing: Stabilizing bouncing nodes");
+                        
+                    } else if extreme_count > 0 || max_distance > config.spreading_distance_threshold {
                         // Nodes spreading too far
                         info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), adjusting parameters", max_distance);
                         self.stable_count = 0;
@@ -761,33 +881,48 @@ impl GraphServiceActor {
                         // Scale adjustment based on how far nodes have spread
                         let scale_factor = (100.0 / max_distance).min(0.9).max(0.3);
                         
-                        self.simulation_params.repel_k = (self.simulation_params.repel_k * scale_factor).max(0.001);
-                        self.simulation_params.damping = (self.simulation_params.damping + (1.0 - scale_factor) * 0.05).min(0.99);
-                        self.simulation_params.max_velocity = (self.simulation_params.max_velocity * (0.5 + scale_factor * 0.5)).max(0.1);
+                        let mut new_target = self.target_params.clone();
+                        new_target.repel_k = (self.simulation_params.repel_k * scale_factor).max(0.001);
+                        new_target.damping = (self.simulation_params.damping + (1.0 - scale_factor) * 0.05).min(0.99);
+                        new_target.max_velocity = (self.simulation_params.max_velocity * (0.5 + scale_factor * 0.5)).max(0.1);
                         
                         // Enable boundaries if spreading too much
                         if max_distance > 200.0 {
-                            self.simulation_params.enable_bounds = true;
-                            self.simulation_params.viewport_bounds = 100.0;
+                            new_target.enable_bounds = true;
+                            new_target.viewport_bounds = 100.0;
                         }
+                        
+                        self.set_target_params(new_target);
                         
                         info!("[AUTO-BALANCE] Adjusted with scale {:.2} - repel_k: {:.3}, damping: {:.3}", 
                               scale_factor, self.simulation_params.repel_k, self.simulation_params.damping);
-                    } else if extreme_count == 0 && max_distance < 20.0 {
+                        
+                        // Send notification to client
+                        self.send_auto_balance_notification("Adaptive Balancing: Adjusting forces to contain spreading");
+                    } else if extreme_count == 0 && max_distance < config.clustering_distance_threshold {
                         // Nodes might be too clustered, slightly increase repulsion
                         if self.simulation_params.repel_k < 5.0 {
-                            self.simulation_params.repel_k = (self.simulation_params.repel_k * 1.2).min(5.0);
+                            let mut new_target = self.target_params.clone();
+                            new_target.repel_k = (self.simulation_params.repel_k * 1.2).min(5.0);
+                            self.set_target_params(new_target);
+                            
                             self.stable_count = 0; // Reset stability counter
                             info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, increased repel_k to {:.3}", 
                                   max_distance, self.simulation_params.repel_k);
+                            
+                            // Send notification to client
+                            self.send_auto_balance_notification("Adaptive Balancing: Expanding clustered nodes");
                         }
                     } else if is_stable {
                         // We've found a stable minima
                         self.stable_count += 1;
                         
-                        // After being stable for 3 seconds (180 frames), update UI and save
-                        if self.stable_count == 180 {
+                        // After being stable for configured frames, update UI and save
+                        if self.stable_count == config.stability_frame_count {
                             info!("[AUTO-BALANCE] Stable minima found at {:.1} units - updating UI sliders", max_distance);
+                            
+                            // Send success notification to client
+                            self.send_auto_balance_notification("Adaptive Balancing: Stable configuration found!");
                             
                             // Update UI sliders and potentially save to settings.yaml
                             self.notify_settings_update();
@@ -833,6 +968,11 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
+        // Apply smooth parameter transitions if auto-balance is enabled
+        if self.simulation_params.auto_balance {
+            self.smooth_transition_params();
+        }
+        
         // Increment counters for periodic operations
         self.stress_step_counter += 1;
         self.constraint_update_counter += 1;
@@ -1268,6 +1408,27 @@ impl Handler<SimulationStep> for GraphServiceActor {
         // Just run one simulation step
         self.run_simulation_step(ctx);
         Ok(())
+    }
+}
+
+impl Handler<GetAutoBalanceNotifications> for GraphServiceActor {
+    type Result = Result<Vec<AutoBalanceNotification>, String>;
+
+    fn handle(&mut self, msg: GetAutoBalanceNotifications, _ctx: &mut Self::Context) -> Self::Result {
+        if let Ok(notifications) = self.auto_balance_notifications.lock() {
+            let filtered_notifications = if let Some(since) = msg.since_timestamp {
+                notifications.iter()
+                    .filter(|n| n.timestamp > since)
+                    .cloned()
+                    .collect()
+            } else {
+                notifications.clone()
+            };
+            
+            Ok(filtered_notifications)
+        } else {
+            Err("Failed to access notifications".to_string())
+        }
     }
 }
 

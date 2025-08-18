@@ -645,3 +645,10 @@ pub struct RemoveConstraints {
 #[rtype(result = "Result<Vec<Value>, String>")]
 pub struct GetActiveConstraints;
 
+// Auto-balance messages
+#[derive(Message)]
+#[rtype(result = "Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>")]
+pub struct GetAutoBalanceNotifications {
+    pub since_timestamp: Option<i64>, // Only get notifications after this timestamp
+}
+

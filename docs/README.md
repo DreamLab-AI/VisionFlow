@@ -34,10 +34,17 @@ VisionFlow is a high-performance, GPU-accelerated platform for real-time visuali
 - [Environment Setup](deployment/environment.md) - Server configuration
 - [Monitoring](deployment/monitoring.md) - Health checks, metrics
 
+### 🎯 Features
+- [Adaptive Balancing](features/adaptive-balancing.md) - Intelligent physics auto-tuning
+- [Multi-Agent Visualisation](features/multi-agent.md) - AI agent orchestration
+- [WebXR Support](features/webxr.md) - VR/AR immersive experiences
+- [Voice Interaction](features/voice.md) - Natural language interface
+
 ## Key Features
 
 - **🧠 Dual-Graph System**: Parallel processing of knowledge graphs and AI agent networks
 - **⚡ GPU Acceleration**: CUDA-powered physics simulation with real-time performance
+- **⚖️ Adaptive Balancing**: Intelligent auto-tuning of physics parameters for stable visualisation
 - **🤖 AI Agent Orchestration**: Claude Flow MCP integration for multi-agent systems
 - **🌐 WebXR Support**: Immersive VR/AR visualisation with Quest 3 integration
 - **📊 Real-time Streaming**: Binary WebSocket protocol with 85% bandwidth reduction
@@ -95,29 +102,82 @@ For detailed setup instructions, see the [Installation Guide](getting-started/in
 
 ```mermaid
 graph TB
-    subgraph "Frontend"
+    subgraph "Frontend Layer"
         A[React UI] --> B[Three.js Renderer]
         A --> C[WebXR Handler]
         A --> D[Command Palette]
+        A --> E[Control Centre]
+        E --> F[Adaptive Balancing UI]
     end
     
-    subgraph "Backend"
-        E[Actix Web Server] --> F[Actor System]
-        F --> G[GPU Compute Actor]
-        F --> H[Graph Service Actor]
-        F --> I[Claude Flow Actor]
+    subgraph "Backend Layer"
+        G[Actix Web Server] --> H[Actor System]
+        H --> I[GPU Compute Actor]
+        H --> J[Graph Service Actor]
+        H --> K[Claude Flow Actor]
+        J --> L[Auto-Balance Engine]
     end
     
-    subgraph "External"
-        J[Claude Flow MCP]
-        K[Logseq/GitHub]
+    subgraph "GPU Layer"
+        I --> M[CUDA Physics Engine]
+        M --> N[Force Calculations]
+        M --> O[Constraint Solver]
+        L --> M
     end
     
-    A <-->|WebSocket| E
-    I <-->|TCP| J
-    H <-->|API| K
-    G -->|CUDA| L[GPU Physics]
+    subgraph "External Services"
+        P[Claude Flow MCP]
+        Q[Logseq/GitHub]
+    end
+    
+    A <-->|WebSocket Binary| G
+    K <-->|TCP| P
+    J <-->|REST API| Q
+    L -->|REST Polling| F
+    
+    style F fill:#f9f,stroke:#333,stroke-width:2px
+    style L fill:#f9f,stroke:#333,stroke-width:2px
 ```
+
+## Adaptive Balancing System
+
+The Adaptive Balancing feature provides intelligent, real-time auto-tuning of physics parameters to maintain stable graph visualisation:
+
+```mermaid
+sequenceDiagram
+    participant UI as Control Centre
+    participant API as REST API
+    participant GA as Graph Actor
+    participant GPU as GPU Physics
+    
+    UI->>API: Enable Adaptive Balancing
+    API->>GA: Update Settings
+    
+    loop Every Frame
+        GPU->>GA: Position Updates
+        GA->>GA: Calculate Metrics
+        Note over GA: • Position Variance<br/>• Kinetic Energy<br/>• Boundary Detection
+        
+        alt Instability Detected
+            GA->>GA: Adjust Target Parameters
+            GA->>GA: Smooth Transition (10-20%)
+            GA->>API: Store Notification
+        end
+    end
+    
+    loop Every 2 seconds
+        UI->>API: Poll Notifications
+        API-->>UI: New Notifications
+        UI->>UI: Display Toast
+        UI->>UI: Show Active Indicator
+    end
+```
+
+### Key Features:
+- **Multi-Metric Stability Detection**: Combines position variance, kinetic energy, and boundary analysis
+- **Smooth Parameter Transitions**: Gradual adjustments prevent sudden destabilisation
+- **Real-time Feedback**: Toast notifications and animated indicators
+- **Configurable Thresholds**: All parameters adjustable via `settings.yaml`
 
 ## Documentation Structure
 
@@ -128,10 +188,20 @@ graph TB
 | **[API Reference](api/index.md)** | REST, WebSocket, MCP, binary protocols |
 | **[Client Guide](client/index.md)** | Frontend architecture, components, features |
 | **[Server Guide](server/index.md)** | Backend architecture, services, actors |
+| **[Features](features/index.md)** | Detailed feature documentation |
 | **[Deployment](deployment/index.md)** | Production setup, Docker, monitoring |
 | **[Development](development/index.md)** | Setup, testing, debugging, contributing |
-| **[Features](features/index.md)** | Detailed feature documentation |
-| **[Reference](reference/index.md)** | Quick reference, troubleshooting, glossary |
+| **[Reference](reference/index.md)** | Configuration reference, troubleshooting |
+
+## Recent Updates
+
+### Version 2.0.0 - Adaptive Balancing
+- ⚖️ Intelligent physics auto-tuning system
+- 📊 Kinetic energy monitoring for stability detection
+- 🔔 Real-time toast notifications for parameter adjustments
+- ✨ Animated indicators for active tuning
+- 🎛️ Smooth parameter transitions with configurable damping
+- 📈 Multi-metric stability analysis
 
 ## Community & Support
 

@@ -82,6 +82,21 @@ visualisation:
       physics:
         auto_balance: false
         auto_balance_interval_ms: 500
+        auto_balance_config:
+          stability_variance_threshold: 100.0
+          stability_frame_count: 180
+          clustering_distance_threshold: 20.0
+          bouncing_node_percentage: 0.33
+          boundary_min_distance: 90.0
+          boundary_max_distance: 110.0
+          extreme_distance_threshold: 1000.0
+          explosion_distance_threshold: 10000.0
+          spreading_distance_threshold: 500.0
+          oscillation_detection_frames: 10
+          oscillation_change_threshold: 5.0
+          min_oscillation_changes: 5
+          kinetic_energy_threshold: 0.01
+          kinetic_energy_variance_threshold: 0.001
         attraction_k: 0.1
         bounds_size: 100.0
         separation_radius: 2.0
@@ -152,6 +167,19 @@ visualisation:
       physics:
         auto_balance: false
         auto_balance_interval_ms: 500
+        auto_balance_config:
+          stability_variance_threshold: 100.0
+          stability_frame_count: 180
+          clustering_distance_threshold: 20.0
+          bouncing_node_percentage: 0.33
+          boundary_min_distance: 90.0
+          boundary_max_distance: 110.0
+          extreme_distance_threshold: 1000.0
+          explosion_distance_threshold: 10000.0
+          spreading_distance_threshold: 500.0
+          oscillation_detection_frames: 10
+          oscillation_change_threshold: 5.0
+          min_oscillation_changes: 5
         attraction_k: 0.0001
         bounds_size: 500.0
         separation_radius: 2.0
