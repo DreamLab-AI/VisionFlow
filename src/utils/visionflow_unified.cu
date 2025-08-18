@@ -491,7 +491,15 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     if (p.params.viewport_bounds > 0.0f) {
         float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
         // Much weaker boundary forces when bounds are "disabled" (large viewport)
-        float boundary_force_strength = (p.params.viewport_bounds > 1500.0f) ? 0.05f : 2.0f;
+        float boundary_force_strength = (p.params.viewport_bounds > 1500.0f) ? 0.01f : 2.0f;  // Reduced from 0.05 to 0.01
+        
+        // Debug output for first few nodes to understand bouncing
+        if (idx < 3 && p.params.iteration % 60 == 0) {
+            printf("Node %d: pos=(%.2f,%.2f,%.2f) vel=(%.2f,%.2f,%.2f) bounds=%.0f strength=%.3f\n", 
+                   idx, position.x, position.y, position.z,
+                   velocity.x, velocity.y, velocity.z, 
+                   p.params.viewport_bounds, boundary_force_strength);
+        }
         
         // X boundary - Progressive damping based on distance from boundary
         if (fabsf(position.x) > boundary_margin) {

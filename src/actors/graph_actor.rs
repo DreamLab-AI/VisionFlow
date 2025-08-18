@@ -600,6 +600,30 @@ impl GraphServiceActor {
             }
         }
         
+        // Sample first few nodes to check positions
+        if updated_count > 0 {
+            let sample_size = std::cmp::min(3, updated_count);
+            for i in 0..sample_size {
+                if let Some(node) = self.node_map.get(&(i as u32)) {
+                    info!("Node {} position: ({:.2}, {:.2}, {:.2})", 
+                        i, node.data.position.x, node.data.position.y, node.data.position.z);
+                }
+            }
+        }
+        
+        // Check for extreme positions
+        let mut extreme_count = 0;
+        for (_, node) in self.node_map.iter() {
+            if node.data.position.x.abs() > 1000.0 || 
+               node.data.position.y.abs() > 1000.0 || 
+               node.data.position.z.abs() > 1000.0 {
+                extreme_count += 1;
+            }
+        }
+        if extreme_count > 0 {
+            warn!("{} nodes at extreme positions (>1000 units from origin)", extreme_count);
+        }
+        
         debug!("Updated positions for {} nodes", updated_count);
     }
 

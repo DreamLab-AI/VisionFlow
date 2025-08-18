@@ -87,6 +87,12 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     for (const key of keys) {
       value = value?.[key];
     }
+    
+    // Debug physics values
+    if (path.includes('physics')) {
+      console.log(`[Settings Debug] Path: ${path}, Value: ${value}, Full settings:`, settings);
+    }
+    
     return value;
   };
 
@@ -435,26 +441,26 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
             
             // Core GPU-Aligned Forces
-            { key: 'springK', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.springK' },
-            { key: 'repelK', label: 'Repulsion Strength (k)', type: 'slider', min: 1, max: 1000, path: 'visualisation.graphs.logseq.physics.repelK' },
-            { key: 'attractionK', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attractionK' },
+            { key: 'spring_k', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.spring_k' },
+            { key: 'repel_k', label: 'Repulsion Strength (k)', type: 'slider', min: 0.1, max: 200, path: 'visualisation.graphs.logseq.physics.repel_k' },
+            { key: 'attraction_k', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attraction_k' },
             
             // Dynamics
             { key: 'dt', label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 0.1, path: 'visualisation.graphs.logseq.physics.dt' },
-            { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.001, max: 100, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
+            { key: 'max_velocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.max_velocity' },
             
             // Boundaries and Separation
-            { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separationRadius' },
-            { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds' },
-            { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.boundsSize' },
+            { key: 'separation_radius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separation_radius' },
+            { key: 'enable_bounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enable_bounds' },
+            { key: 'bounds_size', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.bounds_size' },
             
             // Stress Optimization
-            { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressWeight' },
-            { key: 'stressAlpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressAlpha' },
+            { key: 'stress_weight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stress_weight' },
+            { key: 'stress_alpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stress_alpha' },
             
             // Constants
-            { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.minDistance' },
-            { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist' },
+            { key: 'min_distance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.min_distance' },
+            { key: 'max_repulsion_dist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.max_repulsion_dist' },
             
             // Warmup System
             { key: 'warmupIterations', label: 'Warmup Iterations', type: 'slider', min: 0, max: 500, path: 'visualisation.graphs.logseq.physics.warmupIterations' },
