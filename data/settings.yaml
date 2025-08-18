@@ -52,18 +52,18 @@ visualisation:
         metalness: 0.44209236
         opacity: 0.5098323
         roughness: 0.5561807
-        node_size: 1.2267952
+        node_size: 1.8685422
         quality: high
-        enable_instancing: true
+        enable_instancing: false
         enable_hologram: true
-        enable_metadata_shape: true
-        enable_metadata_visualisation: true
+        enable_metadata_shape: false
+        enable_metadata_visualisation: false
       edges:
         arrow_size: 0.34017882
-        base_width: 1.2799816
-        color: '#143d42'
+        base_width: 1.9043301
+        color: '#e8edee'
         enable_arrows: false
-        opacity: 0.75583535
+        opacity: 0.9519247
         width_range:
         - 0.2
         - 1.0
@@ -80,16 +80,16 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        attraction_k: 9.305331
+        attraction_k: 0.01
         bounds_size: 1000.0
         separation_radius: 2.0
-        damping: 0.8378363
+        damping: 0.85
         enable_bounds: false
         enabled: true
         iterations: 50
-        max_velocity: 5.0
+        max_velocity: 10.0
         repel_k: 5.0
-        spring_k: 8.164466
+        spring_k: 0.5
         mass_scale: 1.0
         boundary_damping: 0.23174196
         update_threshold: 0.01
@@ -152,7 +152,7 @@ visualisation:
         bounds_size: 500.0
         separation_radius: 2.0
         damping: 0.95
-        enable_bounds: true
+        enable_bounds: false
         enabled: true
         iterations: 100
         max_velocity: 1.0
@@ -203,12 +203,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '5': rightView
-      '3': fitToView
       '1': resetView
       '4': topView
       '6': frontView
       '2': cycleMode
+      '5': rightView
+      '3': fitToView
 system:
   network:
     bind_address: 0.0.0.0

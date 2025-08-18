@@ -407,6 +407,19 @@ class GraphDataManager {
       // Delegate to worker proxy for processing
       await graphWorkerProxy.processBinaryData(positionData);
       
+      // Log node positions if physics debug is enabled
+      if (debugState.get('enablePhysicsDebug') || debugState.get('enableNodeDebug')) {
+        const view = new DataView(positionData);
+        const nodeCount = Math.min(3, positionData.byteLength / BINARY_NODE_SIZE);
+        for (let i = 0; i < nodeCount; i++) {
+          const offset = i * BINARY_NODE_SIZE;
+          const x = view.getFloat32(offset + 4, true);
+          const y = view.getFloat32(offset + 8, true);
+          const z = view.getFloat32(offset + 12, true);
+          logger.info(`[Physics Debug] Node ${i}: position(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`);
+        }
+      }
+      
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Processed binary data through worker`);
       }

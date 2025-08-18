@@ -835,11 +835,18 @@ impl AppFullSettings {
     }
     
     /// Get physics settings for a specific graph
+    /// - "logseq": Knowledge graph (primary) - for visualizing knowledge/data relationships
+    /// - "visionflow": Agent graph (secondary) - for visualizing AI agents and their interactions
+    /// - "bots": Alias for visionflow/agent graph
+    /// Default: logseq (knowledge graph)
     pub fn get_physics(&self, graph: &str) -> &PhysicsSettings {
         match graph {
-            "logseq" => &self.visualisation.graphs.logseq.physics,
-            "visionflow" => &self.visualisation.graphs.visionflow.physics,
-            _ => &self.visualisation.graphs.logseq.physics,
+            "logseq" | "knowledge" => &self.visualisation.graphs.logseq.physics,
+            "visionflow" | "agent" | "bots" => &self.visualisation.graphs.visionflow.physics,
+            _ => {
+                log::debug!("Unknown graph type '{}', defaulting to logseq (knowledge graph)", graph);
+                &self.visualisation.graphs.logseq.physics
+            }
         }
     }
     
