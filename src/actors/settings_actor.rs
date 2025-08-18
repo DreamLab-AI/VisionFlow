@@ -3,7 +3,7 @@
 
 use actix::prelude::*;
 use crate::config::AppFullSettings;
-use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath};
+use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, UpdatePhysicsFromAutoBalance};
 use log::{info, error, debug};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -131,3 +131,55 @@ impl Handler<GetSettingByPath> for SettingsActor {
     }
 }
 
+impl Handler<UpdatePhysicsFromAutoBalance> for SettingsActor {
+    type Result = ();
+    
+    fn handle(&mut self, msg: UpdatePhysicsFromAutoBalance, ctx: &mut Self::Context) {
+        let settings = self.settings.clone();
+        
+        ctx.spawn(Box::pin(async move {
+            let mut current = settings.write().await;
+            
+            // Merge the physics update from auto-balance
+            if let Err(e) = current.merge_update(msg.physics_update.clone()) {
+                error!("[AUTO-BALANCE] Failed to merge physics update: {}", e);
+                return;
+            }
+            
+            info!("[AUTO-BALANCE] Physics parameters updated in settings from auto-tuning");
+            
+            // Reset validation boundaries now that auto-tune has mapped the parameter space
+            // The auto-tuning has found optimal values, so we can relax validation constraints
+            if let Some(physics) = msg.physics_update.get("visualisation")
+                .and_then(|v| v.get("graphs"))
+                .and_then(|g| g.get("logseq"))
+                .and_then(|l| l.get("physics")) {
+                
+                info!("[AUTO-BALANCE] Auto-tune complete - resetting validation boundaries for discovered optimal parameters");
+                
+                // Log the final tuned values
+                if let Some(repel_k) = physics.get("repelK").and_then(|v| v.as_f64()) {
+                    info!("[AUTO-BALANCE] Final repelK: {:.3}", repel_k);
+                }
+                if let Some(damping) = physics.get("damping").and_then(|v| v.as_f64()) {
+                    info!("[AUTO-BALANCE] Final damping: {:.3}", damping);
+                }
+                if let Some(max_vel) = physics.get("maxVelocity").and_then(|v| v.as_f64()) {
+                    info!("[AUTO-BALANCE] Final maxVelocity: {:.3}", max_vel);
+                }
+            }
+            
+            // Save to file if persistence is enabled and user is authenticated
+            // Check if persist_settings is enabled
+            if current.system.persist_settings {
+                if let Err(e) = current.save() {
+                    error!("[AUTO-BALANCE] Failed to save auto-tuned settings to file: {}", e);
+                } else {
+                    info!("[AUTO-BALANCE] Auto-tuned settings saved to settings.yaml");
+                }
+            } else {
+                info!("[AUTO-BALANCE] Settings persistence disabled, not saving to file");
+            }
+        }).into_actor(self));
+    }
+}

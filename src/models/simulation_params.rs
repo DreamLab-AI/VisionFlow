@@ -76,6 +76,10 @@ pub struct SimulationParams {
     // Master enable flag
     pub enabled: bool,             // FIX: Added to allow disabling physics entirely
     
+    // Auto-balance parameters
+    pub auto_balance: bool,        // Enable neural auto-balancing
+    pub auto_balance_interval_ms: u32, // Interval between auto-balance checks
+    
     // Core iteration parameters
     pub iterations: u32,           // Range: 1-500, Default: varies by phase
     pub dt: f32,                  // Range: 0.01-1, Default: 0.2 (5fps)
@@ -123,6 +127,8 @@ impl SimulationParams {
     pub fn new() -> Self {
         Self {
             enabled: true,              // Physics enabled by default
+            auto_balance: false,
+            auto_balance_interval_ms: 500,
             iterations: 200,
             dt: 0.01,                   // Much smaller for stability
             spring_k: 0.005,             // Very gentle springs
@@ -159,6 +165,8 @@ impl SimulationParams {
         match phase {
             SimulationPhase::Initial => Self {
                 enabled: true,              // Physics enabled by default
+                auto_balance: false,
+                auto_balance_interval_ms: 500,
                 iterations: 500,
                 dt: 0.01,                  // Small timestep for stability
                 spring_k: 0.005,            // Very gentle springs
@@ -191,6 +199,8 @@ impl SimulationParams {
             },
             SimulationPhase::Dynamic => Self {
                 enabled: true,
+                auto_balance: false,
+                auto_balance_interval_ms: 500,
                 iterations: 100,
                 dt: 0.12,                  // Further reduced for optimal stability
                 spring_k: 0.01,            // Reduced spring strength
@@ -223,6 +233,8 @@ impl SimulationParams {
             },
             SimulationPhase::Finalize => Self {
                 enabled: true,
+                auto_balance: false,
+                auto_balance_interval_ms: 500,
                 iterations: 300,
                 dt: 0.15,                  // Reduced from 0.2
                 spring_k: 0.005,            // Minimal spring forces
@@ -321,6 +333,8 @@ impl SimParams {
     pub fn to_simulation_params(&self) -> SimulationParams {
         SimulationParams {
             enabled: true,
+            auto_balance: false,
+            auto_balance_interval_ms: 500,
             iterations: 200,  // Default iteration count
             dt: self.dt,
             spring_k: self.spring_k,
@@ -414,6 +428,8 @@ impl From<&PhysicsSettings> for SimulationParams {
     fn from(physics: &PhysicsSettings) -> Self {
         Self {
             enabled: physics.enabled,  // Use the enabled flag from settings
+            auto_balance: physics.auto_balance,
+            auto_balance_interval_ms: physics.auto_balance_interval_ms,
             iterations: physics.iterations,
             dt: physics.dt,
             spring_k: physics.spring_k,

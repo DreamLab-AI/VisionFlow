@@ -570,6 +570,22 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
     
+    // Auto-balance validation
+    if let Some(auto_balance) = physics.get("autoBalance") {
+        if !auto_balance.is_boolean() {
+            return Err("autoBalance must be a boolean".to_string());
+        }
+    }
+    
+    if let Some(auto_balance_interval) = physics.get("autoBalanceIntervalMs") {
+        let val = auto_balance_interval.as_u64()
+            .or_else(|| auto_balance_interval.as_f64().map(|f| f.round() as u64))
+            .ok_or("autoBalanceIntervalMs must be a positive integer")?;
+        if val < 100 || val > 5000 {
+            return Err("autoBalanceIntervalMs must be between 100 and 5000 ms".to_string());
+        }
+    }
+    
     // Clustering parameters validation
     if let Some(clustering_algorithm) = physics.get("clusteringAlgorithm") {
         let val = clustering_algorithm.as_str().ok_or("clusteringAlgorithm must be a string")?;

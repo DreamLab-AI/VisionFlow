@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
+import { clientDebugState } from '../../../utils/clientDebugState';
 
 interface IntegratedControlPanelProps {
   showStats: boolean;
@@ -90,7 +91,15 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     
     // Debug physics values
     if (path.includes('physics')) {
-      console.log(`[Settings Debug] Path: ${path}, Value: ${value}, Full settings:`, settings);
+      console.log(`[Settings Debug] Path: ${path}, Value: ${value}`);
+      console.log('[Settings Debug] Full path breakdown:', {
+        path,
+        keys,
+        visualisation: settings?.visualisation,
+        graphs: settings?.visualisation?.graphs,
+        logseq: settings?.visualisation?.graphs?.logseq,
+        physics: settings?.visualisation?.graphs?.logseq?.physics
+      });
     }
     
     return value;
@@ -320,16 +329,19 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     // Sync debug settings with clientDebugState
     if (path.startsWith('system.debug.')) {
       const debugPath = path.replace('system.debug.', '');
+      // Use clientDebugState directly instead of window.debugControl
       if (debugPath === 'enableDataDebug') {
-        window.debugControl?.enableDataDebug(value);
+        clientDebugState.set('dataDebug', value);
       } else if (debugPath === 'enabled') {
-        window.debugControl?.enableDebug(value);
+        clientDebugState.setEnabled(value);
       } else if (debugPath === 'enablePerformanceDebug') {
-        window.debugControl?.enablePerformanceDebug(value);
+        clientDebugState.set('performanceDebug', value);
       } else if (debugPath === 'enableWebSocketDebug') {
-        window.debugControl?.setWebSocketDebug(value);
+        clientDebugState.set('enableWebSocketDebug', value);
       } else if (debugPath === 'enablePhysicsDebug') {
-        window.debugControl?.setPhysicsDebug(value);
+        clientDebugState.set('enablePhysicsDebug', value);
+      } else if (debugPath === 'enableNodeDebug') {
+        clientDebugState.set('enableNodeDebug', value);
       }
     }
   };
@@ -438,29 +450,30 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           title: 'Physics Settings',
           fields: [
             { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled' },
+            { key: 'autoBalance', label: '🧠 Neural Auto-Balance', type: 'toggle', path: 'visualisation.graphs.logseq.physics.autoBalance' },
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
             
             // Core GPU-Aligned Forces
-            { key: 'spring_k', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.spring_k' },
-            { key: 'repel_k', label: 'Repulsion Strength (k)', type: 'slider', min: 0.1, max: 200, path: 'visualisation.graphs.logseq.physics.repel_k' },
-            { key: 'attraction_k', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attraction_k' },
+            { key: 'springK', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.springK' },
+            { key: 'repelK', label: 'Repulsion Strength (k)', type: 'slider', min: 0.1, max: 200, path: 'visualisation.graphs.logseq.physics.repelK' },
+            { key: 'attractionK', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attractionK' },
             
             // Dynamics
             { key: 'dt', label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 0.1, path: 'visualisation.graphs.logseq.physics.dt' },
-            { key: 'max_velocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.max_velocity' },
+            { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
             
             // Boundaries and Separation
-            { key: 'separation_radius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separation_radius' },
-            { key: 'enable_bounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enable_bounds' },
-            { key: 'bounds_size', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.bounds_size' },
+            { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separationRadius' },
+            { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds' },
+            { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.boundsSize' },
             
             // Stress Optimization
-            { key: 'stress_weight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stress_weight' },
-            { key: 'stress_alpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stress_alpha' },
+            { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressWeight' },
+            { key: 'stressAlpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressAlpha' },
             
             // Constants
-            { key: 'min_distance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.min_distance' },
-            { key: 'max_repulsion_dist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.max_repulsion_dist' },
+            { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.minDistance' },
+            { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist' },
             
             // Warmup System
             { key: 'warmupIterations', label: 'Warmup Iterations', type: 'slider', min: 0, max: 500, path: 'visualisation.graphs.logseq.physics.warmupIterations' },
@@ -638,7 +651,6 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             // XR-Optimized GPU Features
             { key: 'xrComputeMode', label: 'XR Compute Mode', type: 'toggle', path: 'xr.gpu.enableOptimizedCompute' },
             { key: 'xrPerformancePreset', label: 'XR Performance', type: 'select', options: ['Battery Saver', 'Balanced', 'Performance'], path: 'xr.performance.preset' },
-            { key: 'xrPhysicsScale', label: 'XR Physics Scale', type: 'slider', min: 0.1, max: 2, path: 'xr.physics.scale' },
             { key: 'xrAdaptiveQuality', label: 'XR Adaptive Quality', type: 'toggle', path: 'xr.enableAdaptiveQuality' }
           ]
         };

@@ -72,6 +72,7 @@ impl AppState {
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),
+            Some(settings_addr.clone()),
             device
         ).start();
         
