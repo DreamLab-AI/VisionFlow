@@ -854,24 +854,45 @@ impl GraphServiceActor {
                               boundary_nodes, self.node_map.len(), max_distance);
                         self.stable_count = 0;
                         
-                        // Set target parameters for smooth transition
-                        let mut new_target = self.target_params.clone();
-                        new_target.repel_k = (self.simulation_params.repel_k * 0.5).max(0.001);
-                        new_target.damping = 0.99;  // Maximum damping
-                        new_target.max_velocity = 0.1;  // Very low velocity
-                        new_target.spring_k = (self.simulation_params.spring_k * 0.5).max(0.001);
-                        new_target.enable_bounds = true;
-                        new_target.viewport_bounds = 100.0;
+                        // Check for complete deadlock (all nodes stuck with no movement)
+                        let is_deadlocked = boundary_nodes == self.node_map.len() && avg_kinetic_energy < 0.0001;
                         
-                        self.set_target_params(new_target);
+                        if is_deadlocked {
+                            // Recovery mode: Gradually restore forces to allow movement
+                            info!("[AUTO-BALANCE] DEADLOCK DETECTED! All nodes stuck. Initiating recovery...");
+                            
+                            let mut new_target = self.target_params.clone();
+                            // Use moderate values that allow movement but prevent explosion
+                            new_target.repel_k = 1.0;  // Restore some repulsion
+                            new_target.damping = 0.85;  // Reduce damping to allow movement
+                            new_target.max_velocity = 1.0;  // Allow reasonable velocity
+                            new_target.spring_k = 0.5;
+                            new_target.enable_bounds = true;
+                            new_target.viewport_bounds = 100.0;
+                            
+                            // Use faster transition for deadlock recovery
+                            self.param_transition_rate = 0.3;  // 30% per frame for urgent recovery
+                            
+                            self.set_target_params(new_target);
+                            self.send_auto_balance_notification("Adaptive Balancing: Recovering from deadlock");
+                        } else {
+                            // Normal bouncing stabilization - use gentler reduction
+                            let mut new_target = self.target_params.clone();
+                            new_target.repel_k = (self.simulation_params.repel_k * 0.8).max(0.1);  // Less extreme reduction
+                            new_target.damping = (self.simulation_params.damping * 1.05).min(0.95);  // Gradual damping increase
+                            new_target.max_velocity = (self.simulation_params.max_velocity * 0.8).max(0.5);  // Keep some velocity
+                            new_target.spring_k = (self.simulation_params.spring_k * 0.9).max(0.1);
+                            new_target.enable_bounds = true;
+                            new_target.viewport_bounds = 100.0;
+                            
+                            self.set_target_params(new_target);
+                            self.send_auto_balance_notification("Adaptive Balancing: Stabilizing bouncing nodes");
+                        }
                         
-                        info!("[AUTO-BALANCE] Stabilization applied - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
-                              self.simulation_params.repel_k, 
-                              self.simulation_params.damping,
-                              self.simulation_params.max_velocity);
-                        
-                        // Send notification to client
-                        self.send_auto_balance_notification("Adaptive Balancing: Stabilizing bouncing nodes");
+                        info!("[AUTO-BALANCE] Applied parameters - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
+                              self.target_params.repel_k, 
+                              self.target_params.damping,
+                              self.target_params.max_velocity);
                         
                     } else if extreme_count > 0 || max_distance > config.spreading_distance_threshold {
                         // Nodes spreading too far

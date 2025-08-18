@@ -80,7 +80,7 @@ visualisation:
         show_metadata: true
         max_label_width: 5.0
       physics:
-        auto_balance: false
+        auto_balance: true
         auto_balance_interval_ms: 500
         auto_balance_config:
           stability_variance_threshold: 100.0
@@ -95,13 +95,11 @@ visualisation:
           oscillation_detection_frames: 10
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
-          kinetic_energy_threshold: 0.01
-          kinetic_energy_variance_threshold: 0.001
         attraction_k: 0.1
         bounds_size: 100.0
         separation_radius: 2.0
         damping: 0.99
-        enable_bounds: true
+        enable_bounds: false
         enabled: true
         iterations: 50
         max_velocity: 0.5
@@ -235,12 +233,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
+      '6': frontView
+      '1': resetView
       '2': cycleMode
       '4': topView
-      '6': frontView
       '5': rightView
       '3': fitToView
-      '1': resetView
 system:
   network:
     bind_address: 0.0.0.0
