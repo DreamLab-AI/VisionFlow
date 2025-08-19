@@ -13,16 +13,14 @@ use log::{info, debug, warn, error};
 use uuid::Uuid;
 
 use crate::AppState;
-use crate::actors::{MultiMcpVisualizationActor, GraphServiceActor};
-use crate::services::agent_visualization_protocol::{
-    MultiMcpVisualizationMessage, McpServerType
-};
+use crate::actors::GraphServiceActor;
+use crate::services::agent_visualization_protocol::McpServerType;
 
 /// WebSocket actor for multi-MCP agent visualization
 pub struct MultiMcpVisualizationWs {
     app_state: web::Data<AppState>,
     client_id: String,
-    visualization_actor_addr: Option<Addr<MultiMcpVisualizationActor>>,
+    // visualization_actor_addr: Option<Addr<MultiMcpVisualizationActor>>, // Removed - not implemented
     last_heartbeat: Instant,
     last_discovery_request: Instant,
     subscription_filters: SubscriptionFilters,
@@ -87,7 +85,7 @@ impl MultiMcpVisualizationWs {
         Self {
             app_state,
             client_id,
-            visualization_actor_addr: None,
+            // visualization_actor_addr: None, // Removed - not implemented
             last_heartbeat: Instant::now(),
             last_discovery_request: Instant::now(),
             subscription_filters: SubscriptionFilters::default(),
@@ -104,11 +102,9 @@ impl MultiMcpVisualizationWs {
             PerformanceMode::OnDemand => return, // No automatic updates
         };
 
-        ctx.run_interval(interval, |act, ctx| {
-            if let Some(addr) = &act.visualization_actor_addr {
-                // Request current agent data
-                ctx.address().do_send(RequestAgentUpdate);
-            }
+        ctx.run_interval(interval, |_act, ctx| {
+            // Request current agent data
+            ctx.address().do_send(RequestAgentUpdate);
         });
     }
 
@@ -127,10 +123,8 @@ impl MultiMcpVisualizationWs {
 
     /// Send discovery data to client
     fn send_discovery_data(&self, ctx: &mut ws::WebsocketContext<Self>) {
-        if let Some(addr) = &self.visualization_actor_addr {
-            // Request discovery data
-            ctx.address().do_send(RequestDiscoveryData);
-        }
+        // Request discovery data
+        ctx.address().do_send(RequestDiscoveryData);
     }
 
     /// Handle client configuration update
@@ -240,23 +234,23 @@ impl Actor for MultiMcpVisualizationWs {
         // Send initial discovery data
         self.send_discovery_data(ctx);
         
-        // Register with visualization actor
-        if let Some(addr) = &self.visualization_actor_addr {
-            addr.do_send(crate::actors::multi_mcp_visualization_actor::RegisterWebSocketClient {
-                client_id: self.client_id.clone(),
-            });
-        }
+        // Register with visualization actor - removed (not implemented)
+        // if let Some(addr) = &self.visualization_actor_addr {
+        //     addr.do_send(crate::actors::multi_mcp_visualization_actor::RegisterWebSocketClient {
+        //         client_id: self.client_id.clone(),
+        //     });
+        // }
     }
 
     fn stopped(&mut self, _: &mut Self::Context) {
         info!("Multi-MCP WebSocket client {} disconnected", self.client_id);
         
-        // Unregister from visualization actor
-        if let Some(addr) = &self.visualization_actor_addr {
-            addr.do_send(crate::actors::multi_mcp_visualization_actor::UnregisterWebSocketClient {
-                client_id: self.client_id.clone(),
-            });
-        }
+        // Unregister from visualization actor - removed (not implemented)
+        // if let Some(addr) = &self.visualization_actor_addr {
+        //     addr.do_send(crate::actors::multi_mcp_visualization_actor::UnregisterWebSocketClient {
+        //         client_id: self.client_id.clone(),
+        //     });
+        // }
     }
 }
 
@@ -293,11 +287,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                             ctx.address().do_send(RequestPerformanceUpdate);
                         }
                         "request_topology" => {
-                            if let Some(swarm_id_value) = request.data.and_then(|d| d.get("swarm_id")) {
-                                if let Some(swarm_id) = swarm_id_value.as_str() {
-                                    ctx.address().do_send(RequestTopologyUpdate { 
-                                        swarm_id: swarm_id.to_string() 
-                                    });
+                            if let Some(data) = request.data {
+                                if let Some(swarm_id_value) = data.get("swarm_id") {
+                                    if let Some(swarm_id) = swarm_id_value.as_str() {
+                                        ctx.address().do_send(RequestTopologyUpdate { 
+                                            swarm_id: swarm_id.to_string() 
+                                        });
+                                    }
                                 }
                             }
                         }

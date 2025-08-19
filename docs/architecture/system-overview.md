@@ -25,7 +25,7 @@ graph TD
 
         DataManager["GraphDataManager.ts"] <--> RenderingEngine
         DataManager <--> WebSocketClient["WebSocketService.ts"]
-        DataManager <--> APIService["api.ts"]
+        DataManager <--> APIService["services/apiService.ts"]
 
         NostrAuthClient["nostrAuthService.ts"] <--> APIService
         NostrAuthClient <--> UIMain
@@ -158,7 +158,7 @@ graph TB
         end
 
         subgraph "Actor System"
-            CFActor[EnhancedClaudeFlowActor<br/>Direct WebSocket MCP]
+            CFActor[ClaudeFlowActorTcp<br/>Direct TCP MCP Port 9500]
             GraphActor[Graph Service Actor<br/>Parallel Graphs]
             GPUActor[GPU Compute Actor<br/>Unified Kernel]
             ClientMgr[Client Manager Actor]
@@ -247,7 +247,7 @@ graph TB
     -   [`GraphDataManager.ts`](../../client/src/features/graph/managers/graphDataManager.ts): Manages graph data, updates, and interaction with WebSocketService.
 -   **Communication**:
     -   [`WebSocketService.ts`](../../client/src/services/WebSocketService.ts): Handles real-time communication with the backend via WebSockets.
-    -   [`api.ts`](../../client/src/services/api.ts): Handles REST API calls to the backend.
+    -   [`apiService.ts`](../../client/src/services/apiService.ts): Handles REST API calls to the backend.
 -   **Authentication ([`nostrAuthService.ts`](../../client/src/services/nostrAuthService.ts))**: Manages Nostr-based client-side authentication logic. (Often referred to as NostrAuthClient in diagrams).
 -   **XR Module ([`XRController.tsx`](../../client/src/features/xr/components/XRController.tsx) and other components in `client/src/features/xr/`)**: Manages WebXR integration for VR/AR experiences.
 
@@ -444,8 +444,9 @@ graph TB
 
     subgraph "Claude Flow Service"
         MCPServer[MCP Server<br/>Port 9500 TCP]
-        Tools[50+ MCP Tools]
-        multi-agent[multi-agent Manager]
+        Tools[54+ MCP Tools]
+        SwarmMgr[Swarm Manager]
+        Neural[Neural Networks]
         Memory[Memory Service]
     end
 
@@ -463,15 +464,16 @@ graph TB
     WSRelay <--> MCPServer
 
     MCPServer --> Tools
-    MCPServer --> multi-agent
+    MCPServer --> SwarmMgr
+    MCPServer --> Neural
     MCPServer --> Memory
 
-    multi-agent --> Coord
-    multi-agent --> Research
-    multi-agent --> Coder
-    multi-agent --> Analyst
-    multi-agent --> Architect
-    multi-agent --> Others
+    SwarmMgr --> Coord
+    SwarmMgr --> Research
+    SwarmMgr --> Coder
+    SwarmMgr --> Analyst
+    SwarmMgr --> Architect
+    SwarmMgr --> Others
 ```
 
 ## Deployment Architecture
@@ -621,7 +623,7 @@ The server now uses a continuous physics simulation system that pre-computes nod
 3. **Unified GPU Kernel**: Single CUDA kernel handles all physics modes
 4. **Parallel Graphs**: Independent Logseq and Agent graph processing
 5. **WebXR Integration**: Future-proofs for AR/VR interfaces
-6. **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
+6. **Direct MCP Integration**: Backend-only TCP connection to Claude Flow on port 9500
 7. **Differential Updates**: Optimizes network traffic
 8. **Structure of Arrays**: GPU memory layout for maximum performance
 9. **Modular Architecture**: Allows independent component scaling

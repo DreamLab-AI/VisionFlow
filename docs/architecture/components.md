@@ -251,22 +251,23 @@ pub struct RefreshMetadata; // -> Result<(), String>
 - **Latency**: 5ms
 - **Memory Usage**: 10-100 MB
 
-#### EnhancedClaudeFlowActor
+#### ClaudeFlowActorTcp
 
-**Location**: `src/actors/claude_flow_actor_enhanced.rs`  
-**Purpose**: Direct integration with Claude Flow MCP for real-time agent orchestration
+**Location**: `src/actors/claude_flow_actor_tcp.rs`  
+**Purpose**: Direct TCP integration with Claude Flow MCP for real-time agent orchestration
 
 **Responsibilities**:
-- Maintains persistent TCP connection to Claude Flow MCP (port 9500)
+- Maintains persistent TCP connection to Claude Flow MCP (port 9500)  
 - Streams agent telemetry at 10Hz with automatic reconnection
-- Handles Multi Agent initialisation via JSON-RPC protocol
+- Handles Swarm initialization via JSON-RPC 2.0 protocol over TCP
 - NO mock data generation - only real Claude Flow agent data
 - Exponential backoff reconnection strategy on connection loss
+- Implements comprehensive MCP tool integration
 
 **Key Message Handlers**:
 ```rust
-// Multi Agent management
-pub struct InitializeMultiAgent {
+// Swarm management
+pub struct InitializeSwarm {
     pub topology: String, pub max_agents: u32, pub strategy: String,
     pub enable_neural: bool, pub agent_types: Vec<String>,
     pub custom_prompt: Option<String>
@@ -275,13 +276,13 @@ pub struct InitializeMultiAgent {
 // Agent operations
 pub struct SpawnAgent {
     pub agent_type: String, pub name: String,
-    pub capabilities: Vec<String>, pub multi_agent_id: Option<String>
+    pub capabilities: Vec<String>, pub swarm_id: Option<String>
 }
 
 // Real-time data
-pub struct GetAgentTelemetry; // -> Result<Vec<AgentStatus>, String>
-pub struct GetMultiAgentStatus; // -> Result<MultiAgentStatus, String>
+pub struct GetSwarmStatus; // -> Result<SwarmStatus, String>
 pub struct GetAgentMetrics; // -> Result<Vec<AgentMetrics>, String>
+pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
 
 // Graph updates
 pub struct UpdateBotsGraph { pub agents: Vec<AgentStatus> }
@@ -292,28 +293,57 @@ pub struct TaskOrchestrate {
     pub task_id: String, pub task_type: String,
     pub assigned_agents: Vec<String>, pub priority: u8
 }
-pub struct MultiAgentMonitor; // -> Result<MultiAgentMonitorData, String>
+pub struct SwarmMonitor; // -> Result<SwarmMonitorData, String>
 pub struct TopologyOptimize {
     pub current_topology: String,
     pub performance_metrics: HashMap<String, f32>
 }
 
+// Load balancing and scaling
+pub struct LoadBalance {
+    pub agent_workloads: HashMap<String, f32>,
+    pub target_efficiency: f32
+}
+pub struct SwarmScale {
+    pub target_agent_count: u32,
+    pub scaling_strategy: String
+}
+
+// Neural network features
+pub struct GetNeuralStatus; // -> Result<NeuralStatus, String>
+pub struct NeuralTrain {
+    pub pattern_data: Vec<f32>,
+    pub training_config: HashMap<String, Value>
+}
+
+// Memory and analysis
+pub struct MemoryPersist { pub namespace: String, pub key: String, pub data: Value }
+pub struct GetPerformanceReport; // -> Result<PerformanceReport, String>
+pub struct BottleneckAnalyze; // -> Result<Vec<Bottleneck>, String>
+
 // Connection management
-pub struct PollMultiAgentData;
+pub struct PollSwarmData;
 pub struct PollSystemMetrics;
+pub struct PollAgentStatuses;
 pub struct RetryMCPConnection;
-pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
+pub struct ConnectionFailed;
 ```
 
 **MCP Integration Methods**:
 ```rust
-// JSON-RPC methods called on Claude Flow MCP
-// agent.spawn - Create new agent
-// multi_agent.initialize - Initialize Multi Agent topology
-// telemetry.subscribe - Stream metrics at 100ms intervals
-// task.assign - Assign task to specific agent
-// multi_agent.status - Get current Multi Agent health
-// agent.metrics - Retrieve performance data
+// TCP connection to Claude Flow MCP server (port 9500)
+// Implements JSON-RPC 2.0 protocol over TCP
+// Key MCP tool methods (54+ tools available):
+// - swarm_init - Initialize swarm topology
+// - agent_spawn - Create new agents with capabilities
+// - task_orchestrate - Orchestrate complex workflows
+// - swarm_status - Get real-time swarm health
+// - agent_metrics - Performance and utilization data
+// - neural_status - Neural network status
+// - neural_train - Train neural patterns
+// - memory_usage - Memory management and persistence
+// - benchmark_run - Performance benchmarks
+// - features_detect - Runtime feature detection
 ```
 
 **Performance Characteristics**:

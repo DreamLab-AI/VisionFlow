@@ -52,7 +52,7 @@ flowchart TB
 
 ### Zustand Settings Store
 
-The primary application state is managed through a sophisticated Zustand store located at `client/src/store/settingsStore.ts`.
+The primary application state is managed through a single, authoritative Zustand store located at `client/src/store/settingsStore.ts`. This is the **sole source of truth** for all application settings, resolving any previous dual store issues.
 
 #### Key Features
 - **Persistent Storage**: Automatic synchronisation with localStorage and server
@@ -60,6 +60,40 @@ The primary application state is managed through a sophisticated Zustand store l
 - **Reactive Subscriptions**: Components subscribe to specific state slices
 - **Type Safety**: Full TypeScript integration with strict type checking
 - **Validation**: Comprehensive validation and normalisation for server sync
+
+#### Multi-Graph Settings Structure
+The settings follow a hierarchical structure supporting multiple visualization contexts:
+
+```typescript
+interface Settings {
+  // Core visualization settings with multi-graph support
+  visualisation: {
+    // Global shared settings
+    rendering: RenderingSettings;
+    animations: AnimationSettings;
+    bloom: BloomSettings;
+    hologram: HologramSettings;
+    
+    // Graph-specific settings
+    graphs: {
+      logseq: GraphSettings;    // Logseq graph visualization
+      visionflow: GraphSettings; // VisionFlow bots visualization  
+    };
+  };
+  
+  // System configuration
+  system: SystemSettings;
+  
+  // XR/AR settings
+  xr: XRSettings;
+  
+  // Authentication & AI services
+  auth: AuthSettings;
+  ragflow?: RAGFlowSettings;
+  perplexity?: PerplexitySettings;
+  // ... other service settings
+}
+```
 
 #### Implementation Pattern
 ```typescript
@@ -87,7 +121,7 @@ const useSettingsStore = create<SettingsStore>()(
         })
       ),
       
-      // Path-based setting updates
+      // Path-based setting updates (e.g., "visualisation.graphs.logseq.nodes.baseColor")
       set: (path, value) => set(
         produce((draft) => {
           setNestedValue(draft.settings, path, value);

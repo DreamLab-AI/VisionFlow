@@ -9,7 +9,7 @@ VisionFlow provides a comprehensive set of features for visualising and interact
 #### [⚖️ Adaptive Balancing](adaptive-balancing.md)
 Intelligent auto-tuning system that automatically adjusts physics parameters to maintain stable graph visualisation. Features multi-metric stability detection, smooth parameter transitions, and real-time feedback.
 
-#### [🌐 WebXR Support](webxr.md)
+#### [🌐 WebXR Support](../client/xr-integration.md)
 Immersive VR/AR visualisation capabilities with Quest 3 integration, enabling spatial interaction with knowledge graphs in three-dimensional space.
 
 #### [🎨 Visual Effects](visual-effects.md)
@@ -17,10 +17,10 @@ Advanced rendering features including bloom effects, holographic nodes, edge flo
 
 ### 🤖 AI Integration
 
-#### [Multi-Agent Visualisation](multi-agent.md)
+#### [Multi-Agent Visualisation](agent-orchestration.md)
 Real-time visualisation of AI agent networks with Claude Flow MCP integration, showing agent relationships, token usage, and task execution flow.
 
-#### [🔊 Voice Interaction](voice.md)
+#### [🔊 Voice Interaction](../voice-system.md)
 Natural language interface for graph manipulation, supporting voice commands for navigation, search, and modification operations.
 
 ### 📊 Analytics & Performance

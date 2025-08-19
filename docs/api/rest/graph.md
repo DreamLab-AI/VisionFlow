@@ -220,19 +220,29 @@ ws.binaryType = 'arraybuffer';
 
 ### Binary Message Format
 
-Each node update is 26 bytes:
+Each node update is **28 bytes** using the `WireNodeDataItem` structure:
 
 ```
 Offset | Size | Type    | Description
 -------|------|---------|-------------
-0      | 2    | uint16  | Node ID
-2      | 4    | float32 | Position X
-6      | 4    | float32 | Position Y
-10     | 4    | float32 | Position Z
-14     | 4    | float32 | Velocity X
-18     | 4    | float32 | Velocity Y
-22     | 4    | float32 | Velocity Z
+0      | 4    | u32     | Node ID (with type flags in high bits)
+4      | 4    | f32     | Position X
+8      | 4    | f32     | Position Y
+12     | 4    | f32     | Position Z
+16     | 4    | f32     | Velocity X
+20     | 4    | f32     | Velocity Y
+24     | 4    | f32     | Velocity Z
 ```
+
+#### Node Type Flags
+
+The Node ID field includes type flags in the high bits:
+
+| Flag | Value | Description |
+|------|-------|--------------|
+| Agent Node | 0x80000000 | Bit 31 indicates agent node |
+| Knowledge Node | 0x40000000 | Bit 30 indicates knowledge graph node |
+| Actual ID Mask | 0x3FFFFFFF | Bits 0-29 contain the actual node ID |
 
 ### Message Types
 

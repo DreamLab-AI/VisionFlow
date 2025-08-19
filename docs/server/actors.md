@@ -242,38 +242,39 @@ pub struct MergeSettings { pub new_settings: ProtectedSettings }
 pub struct SaveSettings; // -> Result<(), String>
 ```
 
-### EnhancedClaudeFlowActor
+### ClaudeFlowActorTcp
 
-**Location**: `src/actors/claude_flow_actor_enhanced.rs`
+**Location**: `src/actors/claude_flow_actor_tcp.rs`
 
-Direct integration with Claude Flow MCP for real-time agent orchestration.
+Direct TCP integration with Claude Flow MCP for real-time agent orchestration.
 
 **Responsibilities**:
 - Maintains persistent TCP connection to Claude Flow MCP (port 9500)
 - Streams agent telemetry at 10Hz with automatic reconnection
 - Handles multi-agent initialisation via JSON-RPC protocol
+- TCP-only connection to Claude Flow MCP service on port 9500
 - NO mock data generation - only real Claude Flow agent data
 - Exponential backoff reconnection strategy on connection loss
 
 **Key Messages**:
 ```rust
-// multi-agent management
-pub struct initializeMultiAgent {
+// Swarm management
+pub struct InitializeSwarm {
     pub topology: String, pub max_agents: u32, pub strategy: String,
     pub enable_neural: bool, pub agent_types: Vec<String>,
     pub custom_prompt: Option<String>
 }
 
-// Agent operations
+// Agent operations  
 pub struct SpawnAgent {
     pub agent_type: String, pub name: String,
-    pub capabilities: Vec<String>, pub multi-agent_id: Option<String>
+    pub capabilities: Vec<String>, pub swarm_id: Option<String>
 }
 
 // Real-time data
-pub struct GetAgentTelemetry; // -> Result<Vec<AgentStatus>, String>
-pub struct Getmulti-agentStatus; // -> Result<multi-agentStatus, String>
+pub struct GetSwarmStatus; // -> Result<SwarmStatus, String>
 pub struct GetAgentMetrics; // -> Result<Vec<AgentMetrics>, String>
+pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
 
 // Graph updates
 pub struct UpdateBotsGraph { pub agents: Vec<AgentStatus> }
@@ -284,28 +285,86 @@ pub struct TaskOrchestrate {
     pub task_id: String, pub task_type: String,
     pub assigned_agents: Vec<String>, pub priority: u8
 }
-pub struct multi-agentMonitor; // -> Result<multi-agentMonitorData, String>
+pub struct SwarmMonitor; // -> Result<SwarmMonitorData, String>
 pub struct TopologyOptimize {
     pub current_topology: String,
     pub performance_metrics: HashMap<String, f32>
 }
 
+// Load balancing and scaling
+pub struct LoadBalance {
+    pub agent_workloads: HashMap<String, f32>,
+    pub target_efficiency: f32
+}
+pub struct CoordinationSync {
+    pub coordination_pattern: String,
+    pub participants: Vec<String>
+}
+pub struct SwarmScale {
+    pub target_agent_count: u32,
+    pub scaling_strategy: String
+}
+pub struct SwarmDestroy {
+    pub swarm_id: String,
+    pub graceful_shutdown: bool
+}
+
+// Neural network features
+pub struct GetNeuralStatus; // -> Result<NeuralStatus, String>
+pub struct NeuralTrain {
+    pub pattern_data: Vec<f32>,
+    pub training_config: HashMap<String, Value>
+}
+pub struct NeuralPredict {
+    pub input_data: Vec<f32>,
+    pub model_id: String
+}
+
+// Memory and persistence
+pub struct MemoryPersist {
+    pub namespace: String,
+    pub key: String, 
+    pub data: Value
+}
+pub struct MemorySearch {
+    pub namespace: String,
+    pub pattern: String,
+    pub limit: Option<u32>
+}
+pub struct StateSnapshot {
+    pub snapshot_id: String,
+    pub include_agent_states: bool
+}
+
+// Analysis and monitoring
+pub struct GetPerformanceReport {
+    pub time_range: (DateTime<Utc>, DateTime<Utc>),
+    pub agent_filter: Option<Vec<String>>
+}
+pub struct BottleneckAnalyze; // -> Result<Vec<Bottleneck>, String>
+pub struct MetricsCollect; // -> Result<SystemMetrics, String>
+
 // Connection management
-pub struct Pollmulti-agentData;
+pub struct PollSwarmData;
 pub struct PollSystemMetrics;
+pub struct PollAgentStatuses;
 pub struct RetryMCPConnection;
-pub struct GetCachedAgentStatuses; // -> Result<Vec<AgentStatus>, String>
+pub struct ConnectionFailed;
 ```
 
 **MCP Integration Methods**:
 ```rust
-// JSON-RPC methods called on Claude Flow MCP
-// agent.spawn - Create new agent
-// multi-agent.initialize - Initialize multi-agent topology
-// telemetry.subscribe - Stream metrics at 100ms intervals
-// task.assign - Assign task to specific agent
-// multi-agent.status - Get current multi-agent health
-// agent.metrics - Retrieve performance data
+// TCP connection to Claude Flow MCP server (port 9500)
+// Implements JSON-RPC 2.0 protocol over TCP
+// Key MCP tool methods:
+// - swarm_init - Initialize swarm topology
+// - agent_spawn - Create new agents
+// - task_orchestrate - Orchestrate tasks
+// - swarm_status - Get swarm health
+// - agent_metrics - Performance data
+// - neural_status - Neural network status
+// - memory_usage - Memory management
+// - benchmark_run - Performance benchmarks
 ```
 
 ## Message Flow Patterns

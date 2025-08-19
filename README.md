@@ -32,9 +32,10 @@ A high-performance, GPU-accelerated platform for real-time visualisation of AI m
 
 ### Frontend
 - **React** with TypeScript
-- **Three.js** for 3D rendering
-- **Zustand** for state management
+- **Three.js** for 3D rendering  
+- **Zustand** for centralized state management (single authoritative store)
 - **WebXR** for AR/VR capabilities
+- **Binary WebSocket Protocol** for real-time position streaming
 
 ### Infrastructure
 - **Docker** for containerisation
@@ -171,13 +172,14 @@ The system uses a **dual-protocol architecture** for optimal performance:
 #### REST API (JSON over HTTP)
 - **Endpoint**: `/api/*`
 - **Purpose**: Control plane operations & data fetching
+- **Service**: Centralized through `services/apiService.ts`
 - **Handles**:
   - Logseq graph data from GitHub (`/api/graph/data`)
   - GitHub file synchronisation (`/api/pages/*`)
-  - Settings management (`/api/settings`)
+  - Settings management (`/api/settings`) with automatic camelCase ↔ snake_case conversion
   - Analytics operations (`/api/analytics/*`)
   - Authentication (`/api/auth/*`)
-  - AI agent management (`/api/bots/*`)
+  - AI agent management (`/api/agents/*`, `/api/bots/*`)
   - RAGFlow chat (`/api/ragflow/*`)
   - Perplexity queries (`/api/perplexity/*`)
   - Health checks (`/api/health`)
@@ -196,12 +198,12 @@ The system uses a **dual-protocol architecture** for optimal performance:
 
 The backend uses an actor-based architecture for concurrent state management:
 
-- **GraphServiceActor**: Manages dual graph data (Logseq + AI agents) and physics simulation
-- **SettingsActor**: Handles configuration and preferences
-- **ClaudeFlowActor**: TCP-based MCP integration (port 9500) for AI agents
-- **GPUComputeActor**: Manages CUDA kernels for dual graph physics
-- **ClientManagerActor**: WebSocket connection management
-- **MetadataActor**: Manages Logseq metadata and graph structure
+- **GraphServiceActor**: Central hub for dual graph management (knowledge + AI agents), coordinates GPU physics simulation
+- **SettingsActor**: Handles configuration with automatic case conversion (camelCase ↔ snake_case)
+- **ClaudeFlowActor**: TCP-based MCP integration (port 9500) for AI agent coordination
+- **GPUComputeActor**: Manages CUDA kernels for dual graph physics engine
+- **ClientManagerActor**: WebSocket connection management and binary protocol streaming
+- **MetadataActor**: Manages Logseq metadata and graph structure from GitHub
 
 ## 🚀 Advanced Features
 

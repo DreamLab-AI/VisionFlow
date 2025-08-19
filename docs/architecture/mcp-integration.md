@@ -187,10 +187,10 @@ sequenceDiagram
 
     UI->>API: POST /api/bots/multi-agent/init
     API->>ECFA: initializeMultiAgent message
-    ECFA->>MCP: Direct WebSocket: multi-agent.initialize
+    ECFA->>MCP: Direct TCP: swarm_init JSON-RPC
     MCP->>CF: Create agents
     CF-->>MCP: Agent IDs
-    MCP-->>ECFA: multi-agent created via WebSocket
+    MCP-->>ECFA: swarm created via TCP response
     ECFA->>ECFA: Update agent_cache
     ECFA->>API: Push to GraphServiceActor
     API-->>UI: 200 OK + agent data
@@ -208,7 +208,7 @@ sequenceDiagram
     participant WS as WebSocket Binary
 
     loop Every 100ms
-        MCP->>ECFA: Agent telemetry via WebSocket
+        MCP->>ECFA: Agent telemetry via TCP polling
         ECFA->>ECFA: Update agent_cache
         ECFA->>GSA: UpdateBotsGraph
         GSA->>GPU: Unified kernel with DualGraph mode
@@ -226,14 +226,14 @@ sequenceDiagram
 
 ## Actor Integration
 
-### EnhancedClaudeFlowActor
+### ClaudeFlowActorTcp
 
-Manages direct MCP WebSocket connection and differential updates:
+Manages direct MCP TCP connection and differential updates:
 
 ```rust
-impl EnhancedClaudeFlowActor {
-    // Handle incoming WebSocket messages
-    fn handle_websocket_message(&mut self, message: WsMessage) {
+impl ClaudeFlowActorTcp {
+    // Handle incoming TCP messages
+    fn handle_tcp_message(&mut self, message: Value) {
         if let Ok(event) = serde_json::from_slice::<MCPEvent>(&message.into_data()) {
             match event.event_type.as_str() {
                 "agent.spawned" => {
@@ -302,10 +302,10 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
 MCP connection settings in environment variables:
 
 ```bash
-# Claude Flow host (Docker service name)
-CLAUDE_FLOW_HOST=multi-agent-container
+# Claude Flow host (Docker service name - VERIFIED IN CODE)
+CLAUDE_FLOW_HOST=claude-flow-mcp
 
-# MCP TCP port
+# MCP TCP port (VERIFIED IN CODE)
 MCP_TCP_PORT=9500
 
 # Enable MCP integration
@@ -326,9 +326,10 @@ MCP_MAX_AGENTS=50
 impl ClaudeFlowActor {
     async fn ensure_connection(&mut self) -> Result<()> {
         if !self.is_connected {
-            match Self::connect_to_claude_flow().await {
-                Ok(stream) => {
-                    self.tcp_connection = Some(stream);
+            match Self::connect_to_claude_flow_tcp().await {
+                Ok((writer, reader)) => {
+                    self.tcp_writer = Some(Arc::new(RwLock::new(writer)));
+                    self.tcp_reader = Some(Arc::new(RwLock::new(reader)));
                     self.is_connected = true;
                     Ok(())
                 }

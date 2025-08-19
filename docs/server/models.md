@@ -41,7 +41,7 @@ pub enum SimulationMode {
     Local,   // CPU-based computation (disabled)
 }
 ```
-Note: The actual field name in the struct is `repulsion`, not `repulsion_strength`. The `collision_radius` and `max_velocity` fields shown in the original documentation do not exist in the actual implementation.
+The struct uses `repulsion` as the field name for repulsive force strength.
 
 ### Usage
 -   Configuring the physics engine for graph layout.
@@ -92,7 +92,7 @@ The server defines two main structures for managing UI-related settings:
         pub hologram: HologramSettings,
         pub camera: Option<CameraSettings>,
         
-        // DEPRECATED: Legacy flat structure (for backward compatibility)
+        // Legacy compatibility maintained for existing installations
         pub nodes: Option<NodeSettings>,
         pub edges: Option<EdgeSettings>,
         pub physics: Option<PhysicsSettings>,

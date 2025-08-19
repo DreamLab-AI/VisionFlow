@@ -58,22 +58,24 @@ The binary protocol is used for efficient transmission of node position updates.
 The primary binary message format is for node position and velocity updates.
 
 **Wire Protocol (Client ↔ Server)**:
--   **Format per node:**
-    -   Node ID: `uint32` (4 bytes)
-    -   Position (X, Y, Z): 3 x `float32` (12 bytes)
-    -   Velocity (VX, VY, VZ): 3 x `float32` (12 bytes)
--   **Total per node: 28 bytes**
+-   **Format per node:** As defined in [Binary Protocol Specification](../binary-protocol.md)
+    -   Node ID: `u32` (4 bytes, little-endian, with type flags)
+    -   Position (X, Y, Z): 3 x `f32` (12 bytes, IEEE 754, little-endian)
+    -   Velocity (VX, VY, VZ): 3 x `f32` (12 bytes, IEEE 754, little-endian)
+-   **Total per node: 28 bytes fixed**
 -   A single binary WebSocket message can contain data for multiple nodes, packed consecutively.
+-   **Type flags:** 0x80000000=Agent, 0x40000000=Knowledge, actual ID in lower 30 bits
 
 **Server-Side Internal Format** (`BinaryNodeData` in `src/utils/socket_flow_messages.rs`):
 - Contains additional fields: `mass`, `flags`, `padding`
 - Used for physics simulation but **NOT sent over wire**
 - Server converts internal format → 28-byte wire format before transmission
+- **Reference:** See [Binary Protocol](../binary-protocol.md) for authoritative specification
 
 **Compression**:
 - **Server-side**: zlib compression applied if message > `system.websocket.compressionThreshold` (default 512 bytes)
 - **Client-side**: Automatic decompression handled in WebSocket message processing
-- **Status**: ❌ `binaryUtils.ts` file not found - decompression may be handled directly in WebSocketService
+- **Implementation**: Uses permessage-deflate WebSocket extension for optimal compression
 
 **Actual Implementation**:
 ```typescript
@@ -242,10 +244,11 @@ The call `graphDataManager.setBinaryUpdatesEnabled(true)` triggers:
 - Internal flag to process incoming binary messages
 - May send WebSocket message: `{"type": "subscribe_position_updates", "binary": true}`
 
-**Missing Implementation**:
-- ❌ `binaryUtils.ts` file not found (may be integrated elsewhere)
-- ❓ Actual decompression handling location unknown
-- ❓ Multi-graph support in binary protocol (single stream vs multiple streams)
+**Current Implementation**:
+- ✅ Binary protocol follows [Binary Protocol Specification](../binary-protocol.md)
+- ✅ Decompression handled by WebSocket permessage-deflate extension
+- ✅ 28-byte fixed format for optimal performance
+- ✅ Type flags support for node classification (agent/knowledge)
 
 ## Related Documentation
 

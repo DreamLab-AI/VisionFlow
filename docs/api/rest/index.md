@@ -66,7 +66,7 @@ VisionFlow uses Nostr-based authentication (NIP-07 protocol):
 
 ### Authenticate
 ```http
-POST /api/nostr/auth
+POST /api/auth/nostr
 ```
 
 **Request:**

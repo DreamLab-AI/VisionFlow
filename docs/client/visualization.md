@@ -12,20 +12,28 @@ The primary goal is to transform an abstract knowledge graph, typically represen
 -   **Edges as Relationships:** Links and connections between these entities (e.g., hyperlinks, block references, tags) are represented as **edges** connecting the corresponding nodes.
     -   The visual properties of edges (thickness, color, style) can signify the type or strength of the relationship.
 
-## Mapping Data to Visual Elements
+## Multi-Graph Architecture
 
-**Multi-Graph Architecture**: The visualization now supports multiple independent graphs (logseq, visionflow) with separate visual themes through `settings.visualization.graphs.*`.
+**Dual-Graph System**: The visualisation now supports multiple independent graphs (logseq, visionflow) with separate visual themes and physics parameters through `settings.visualisation.graphs.*`.
+
+### Current Implementation
+- **Logseq Graph**: Knowledge graph from Logseq data with blue theme (`#4B5EFF`)
+- **VisionFlow Graph**: Agent telemetry and processing data with green theme (`#10B981`)
+- **Simultaneous Rendering**: Both graphs rendered in the same 3D space with independent physics
+- **Coordinated Interaction**: Unified camera controls and selection system across both graphs
+
+## Mapping Data to Visual Elements
 
 The effectiveness of the visualization hinges on how data attributes are mapped to visual properties.
 
 ### Node Visuals
 
 -   **Size:**
-    -   **Multi-graph**: `settings.visualization.graphs.logseq.nodes.nodeSize` vs `settings.visualization.graphs.visionflow.nodes.nodeSize`
-    -   **Legacy**: `visualization.nodes.nodeSize` (automatically migrated)
+    -   **Multi-graph**: `settings.visualisation.graphs.logseq.nodes.nodeSize` vs `settings.visualisation.graphs.visionflow.nodes.nodeSize`
+    -   **Legacy**: `visualisation.nodes.nodeSize` (automatically migrated)
     -   Modulated by data attributes (file size, connection count)
 -   **Color:**
-    -   **Multi-graph**: `settings.visualization.graphs.[graphType].nodes.baseColor`
+    -   **Multi-graph**: `settings.visualisation.graphs.[graphType].nodes.baseColor`
     -   **Default themes**: Logseq (blue `#4B5EFF`), VisionFlow (green `#10B981`)
     -   Dynamic coloring based on metadata (file type, tags)
 -   **Shape / Form:**
@@ -33,7 +41,7 @@ The effectiveness of the visualization hinges on how data attributes are mapped 
     -   **Metadata-driven**: `enableMetadataShape` allows geometry variation
     -   **Quality levels**: Low/medium/high affecting geometry detail
 -   **Holograms:**
-    -   Enabled by `visualization.nodes.enableHologram` and configured via `visualization.hologram` (which is `HologramSettings`) in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
+    -   Enabled by `visualisation.nodes.enableHologram` and configured via `visualisation.hologram` (which is `HologramSettings`) in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
     -   Rendered by [`HologramManager.tsx`](../../client/src/features/visualization/renderers/HologramManager.tsx) using both React components and class-based implementations.
     -   **Current Implementation** (✅ **VERIFIED**):
       - `HologramRing`: Individual animated ring components with configurable rotation
@@ -46,19 +54,19 @@ The effectiveness of the visualization hinges on how data attributes are mapped 
 ### Edge Visuals
 
 -   **Thickness/Width:**
-    -   Controlled by settings like `visualization.edges.baseWidth` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
+    -   Controlled by settings like `visualisation.edges.baseWidth` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
     -   Can represent link strength.
 -   **Color:**
-    -   Default from `visualization.edges.color` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
-    -   Can indicate link type or use gradients (e.g., `visualization.edges.useGradient`, `visualization.edges.gradientColors`).
+    -   Default from `visualisation.edges.color` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
+    -   Can indicate link type or use gradients (e.g., `visualisation.edges.useGradient`, `visualisation.edges.gradientColors`).
 -   **Style:**
-    -   Arrows for directionality (e.g., `visualization.edges.enableArrows`).
-    -   Flow effects for activity (e.g., `visualization.edges.enableFlowEffect`).
-    -   All relevant settings are within `visualization.edges` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
+    -   Arrows for directionality (e.g., `visualisation.edges.enableArrows`).
+    -   Flow effects for activity (e.g., `visualisation.edges.enableFlowEffect`).
+    -   All relevant settings are within `visualisation.edges` in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
 
 ### Text Labels
 
--   Appearance controlled by `visualization.labels` (which is `LabelSettings`) in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
+-   Appearance controlled by `visualisation.labels` (which is `LabelSettings`) in [`settings.ts`](../../client/src/features/settings/config/settings.ts).
 -   Node labels typically display titles or filenames.
 -   Edge labels can show relationship types.
 
@@ -90,7 +98,7 @@ The visualization supports rich real-time interaction:
 
 ## Metadata Visualization
 
-### `MetadataVisualizer.tsx` ([`client/src/features/visualization/components/MetadataVisualizer.tsx`](../../client/src/features/visualization/components/MetadataVisualizer.tsx))
+### `MetadataVisualizer.tsx` ([`client/src/features/visualisation/components/MetadataVisualizer.tsx`](../../client/src/features/visualisation/components/MetadataVisualizer.tsx))
 
 This component is responsible for displaying additional information or visual cues based on the metadata associated with nodes.
 
@@ -109,7 +117,8 @@ This component is responsible for displaying additional information or visual cu
 -   **[`rendering.md`](./rendering.md):** Focuses on the *technical implementation*.
     -   How are spheres, lines, and text *drawn* using React Three Fiber and Three.js?
     -   What specific components (`GraphCanvas`, `GraphManager`, `TextRenderer`) are involved?
-    -   What techniques (instancing, shaders like `HologramMaterial.tsx`) are used for performance and visual effects?
+    -   What techniques (instanced rendering, shaders like `HologramMaterial.tsx`) are used for performance and visual effects?
     -   The *mechanics* of putting pixels on the screen.
+    -   How does `GraphDataManager` coordinate data flow from WebSocket to rendering components?
 
 In essence, `visualization.md` is about the "language" of the visual representation, while `rendering.md` is about the "grammar and tools" used to speak that language.

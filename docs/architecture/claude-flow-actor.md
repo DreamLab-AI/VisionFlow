@@ -20,22 +20,22 @@ pub struct ClaudeFlowActor {
 
 ### Transport Mechanism
 
-The actor exclusively uses **WebSocket transport** to connect to the `powerdev` container. The `StdioTransport` has been disabled.
+The actor exclusively uses **TCP transport** to connect to the Claude Flow MCP server on port 9500. WebSocket and stdio transports have been removed.
 
 ```rust
 // src/actors/claude_flow_actor.rs
-let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "powerdev".to_string());
-let port = std::env::var("CLAUDE_FLOW_PORT")
-    // ...
-    .unwrap_or(3000);
+let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| {
+    if std::env::var("DOCKER_ENV").is_ok() {
+        "claude-flow-mcp".to_string()  // Docker service name
+    } else {
+        "localhost".to_string()  // Local development
+    }
+});
+let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
-let mut client = ClaudeFlowClientBuilder::new()
-    .host(&host)
-    .port(port)
-    .use_websocket()  // <-- Explicitly uses WebSocket
-    .build()
-    .await
-    .expect("Failed to build ClaudeFlowClient");
+// Direct TCP connection to Claude Flow MCP
+let stream = TcpStream::connect(&format!("{}:{}", host, port)).await?;
+stream.set_nodelay(true)?;  // TCP optimization
 ```
 
 ### Disabled Stdio Transport
@@ -43,10 +43,13 @@ let mut client = ClaudeFlowClientBuilder::new()
 The `StdioTransport` implementation in `src/services/claude_flow/transport/stdio.rs` is no longer used. Its `connect` function now returns an error to prevent its use.
 
 ```rust
-// src/services/claude_flow/transport/stdio.rs
-async fn connect(&mut self) -> Result<()> {
-    warn!("StdioTransport::connect() called, but this transport is disabled...");
-    Err(ConnectorError::Connection("StdioTransport is disabled.".to_string()))
+// TCP-only implementation - WebSocket and stdio transports removed
+// ClaudeFlowActorTcp handles direct TCP connection with JSON-RPC over TCP
+async fn connect_to_claude_flow_tcp() -> Result<(BufWriter<OwnedWriteHalf>, BufReader<OwnedReadHalf>), Box<dyn std::error::Error + Send + Sync>> {
+    let stream = TcpStream::connect(&addr).await?;
+    stream.set_nodelay(true)?;
+    let (read_half, write_half) = stream.into_split();
+    Ok((BufWriter::new(write_half), BufReader::new(read_half)))
 }
 ```
 
@@ -62,7 +65,7 @@ graph TD
     end
 
     subgraph "Docker Network"
-        C -->|WebSocket: ws://powerdev:3000/ws| D[powerdev Container]
+        C -->|TCP: claude-flow-mcp:9500| D[Claude Flow MCP Container]
     end
 
     subgraph "MCP Service"
@@ -131,10 +134,10 @@ The actor's connection settings are configured via environment variables.
 
 ```bash
 # Hostname of the container running Claude Flow MCP
-CLAUDE_FLOW_HOST=powerdev    # Default: "powerdev"
+CLAUDE_FLOW_HOST=claude-flow-mcp    # Default: "claude-flow-mcp" (Docker), "localhost" (dev)
 
-# Port for the WebSocket connection
-CLAUDE_FLOW_PORT=3000       # Default: 3000
+# Port for the TCP MCP connection
+MCP_TCP_PORT=9500                   # Default: 9500
 ```
 
 ## Health Monitoring
@@ -178,7 +181,7 @@ The actor integrates with the main application's REST API to expose bot manageme
 
 ## Performance Considerations
 
-1.  **Network Communication**: All communication is over WebSockets, managed by the `tungstenite` library.
+1.  **Network Communication**: All communication is over TCP using JSON-RPC protocol with line-delimited messages.
 2.  **Polling Intervals**: Agent polling (5s) and health checks (30s) are asynchronous and non-blocking.
 3.  **Resource Usage**: As a client, the actor's resource footprint is minimal. The `powerdev` container manages the resource-intensive MCP process.
 

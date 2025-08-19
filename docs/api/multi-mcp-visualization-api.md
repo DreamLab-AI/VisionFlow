@@ -2,11 +2,16 @@
 
 Complete API documentation for the Multi-MCP Agent Visualization System.
 
+**Current Version:** 1.0  
+**Last Updated:** 2025-01-19  
+**WebSocket Endpoint:** `/ws/bots_visualization`  
+**Binary Protocol:** Uses 28-byte position updates as defined in [Binary Protocol Specification](../binary-protocol.md)
+
 ## 🌐 WebSocket API
 
 ### Connection
 
-**Endpoint:** `ws://localhost:8080/api/multi-mcp/ws`
+**Endpoint:** `ws://localhost:3001/ws/bots_visualization`
 
 **Protocol:** WebSocket with JSON message exchange
 
@@ -330,6 +335,8 @@ Complete API documentation for the Multi-MCP Agent Visualization System.
 ### Get MCP Server Status
 **GET** `/api/multi-mcp/status`
 
+**Note:** This REST endpoint provides status information for MCP servers. For real-time updates, use the WebSocket endpoint `/ws/bots_visualization`.
+
 **Response:**
 ```json
 {
@@ -358,6 +365,8 @@ Complete API documentation for the Multi-MCP Agent Visualization System.
 
 ### Refresh MCP Discovery
 **POST** `/api/multi-mcp/refresh`
+
+**Note:** Triggers a discovery refresh across all connected MCP servers. Results are broadcast via WebSocket to connected clients.
 
 **Response:**
 ```json

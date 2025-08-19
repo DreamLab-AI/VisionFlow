@@ -23,7 +23,7 @@ export interface Node {
   metadata?: Record<string, any>; // Arbitrary metadata (e.g., file type, size, custom tags)
 }
 ```
-Note: The `data: BinaryNodeData` field mentioned in previous docs, which mirrored the server-side `BinaryNodeData` (with mass, flags etc.), is not directly part of the primary client-side `Node` interface. The client-side `Node` directly holds `position`. The separate `BinaryNodeData` type below is specifically for WebSocket communication.
+The client-side `Node` interface holds position data directly. The separate `BinaryNodeData` type below is specifically for WebSocket communication.
 
 ```typescript
 // From client/src/types/binaryProtocol.ts
@@ -98,7 +98,7 @@ export interface VisualisationSettings {
   hologram: HologramSettings;
   camera?: CameraSettings;
   
-  // DEPRECATED: Legacy flat structure (for backward compatibility)
+  // Legacy compatibility maintained for existing installations
   nodes?: NodeSettings;
   edges?: EdgeSettings;
   physics?: PhysicsSettings;

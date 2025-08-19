@@ -46,7 +46,7 @@ graph LR
     subgraph "Frontend Client"
         UI[React UI] -->|REST /api/bots/* ✅| API
         UI -->|WebSocket Binary Protocol ✅| GSA
-        UI -.->|❌ NO DIRECT MCP ACCESS ✅| MCP
+        UI -.->|No Direct MCP Access| MCP
     end
 
     subgraph "Network Layer"
@@ -746,7 +746,7 @@ impl ClaudeFlowActorTcp {
                 }
                 Err(e) => {
                     let delay = BASE_DELAY_MS * 2_u64.pow(attempt);
-                    warn!("❌ MCP connection attempt {} failed: {}, retrying in {}ms", 
+                    warn!("MCP connection attempt {} failed: {}, retrying in {}ms", 
                           attempt + 1, e, delay);
                     
                     if attempt < MAX_RETRIES - 1 {

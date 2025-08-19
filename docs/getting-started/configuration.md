@@ -32,6 +32,8 @@ HOST_IP=0.0.0.0                      # Bind address (0.0.0.0 for all interfaces)
 CLAUDE_FLOW_HOST=multi-agent-container # Claude Flow MCP hostname
 MCP_TCP_PORT=9500                     # Claude Flow MCP TCP port
 MCP_TRANSPORT=tcp                     # Transport protocol: tcp, websocket
+MCP_ENABLE_TCP=true                   # Enable TCP server
+MCP_ENABLE_UNIX=false                 # Enable Unix socket
 ```
 
 #### Security and Authentication
