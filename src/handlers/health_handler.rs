@@ -23,7 +23,7 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
     let mut sys = System::new_all();
     sys.refresh_all();
     
-    let cpu_usage = sys.global_cpu_info().cpu_usage();
+    let cpu_usage = sys.global_cpu_usage();
     let memory_usage = sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0;
     let disk_usage = check_disk_usage();
     

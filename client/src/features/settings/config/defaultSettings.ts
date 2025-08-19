@@ -67,15 +67,15 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       enabled: true,
       
       // Core GPU-Aligned Forces (new parameter names)
-      springK: 0.005,           // was springStrength - safe default
-      repelK: 50.0,            // was repulsionStrength - safe GPU default (reduced from 784!)
+      springK: 0.1,            // was springStrength - increased for better balance
+      repelK: 2.0,             // was repulsionStrength - reduced to prevent explosion
       attractionK: 0.01,       // was attractionStrength
       gravity: 0.0001,
       
       // Dynamics (GPU-aligned)
-      dt: 0.016,               // was timeStep - stable value (was 0.070!)
-      maxVelocity: 5.0,        // reduced for stability (was 94.48!)
-      damping: 0.85,           // high damping for stability (was 0.107!)
+      dt: 0.016,               // was timeStep - stable value
+      maxVelocity: 5.0,        // reduced for stability
+      damping: 0.85,           // high damping for stability
       temperature: 0.01,
       
       // Boundary & Collision

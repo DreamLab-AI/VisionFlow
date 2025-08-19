@@ -51,7 +51,7 @@ impl MCPRelayActor {
         self.self_addr = Some(addr.clone());
         
         actix::spawn(async move {
-            match connect_async(&orchestrator_url).await {
+            match connect_async(orchestrator_url.as_str()).await {
                 Ok((ws_stream, _)) => {
                     info!("[MCP Relay] Connected to orchestrator");
                     let (tx, mut rx) = ws_stream.split();

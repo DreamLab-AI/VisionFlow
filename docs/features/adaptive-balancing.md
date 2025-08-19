@@ -38,7 +38,42 @@ The system uses multiple metrics to assess graph stability:
 - **Boundary Analysis**: Counts nodes at boundary positions to detect bouncing
 - **Oscillation Detection**: Identifies repetitive movement patterns
 
-### 2. Parameter Adjustment Strategies
+### 2. Boundary Detection System
+
+**CRITICAL FIX**: The system now uses **percentage-based boundary detection** relative to `viewport_bounds` instead of hardcoded values:
+
+```rust
+// OLD (Broken): Hardcoded boundaries
+if dist > 90.0 && dist <= 110.0 {
+    boundary_nodes += 1;  // Failed when viewport_bounds = 1000 and nodes at 980!
+}
+
+// NEW (Fixed): Percentage-based boundaries
+let boundary_min_threshold = viewport_bounds * (config.boundary_min_distance / 100.0); // 90%
+let boundary_max_threshold = viewport_bounds * (config.boundary_max_distance / 100.0); // 100%
+if dist >= boundary_min_threshold && dist <= boundary_max_threshold {
+    boundary_nodes += 1;  // Now correctly detects nodes at 980 when viewport_bounds = 1000
+}
+```
+
+**Example scenarios**:
+- `viewport_bounds = 1000`: boundary range = 900-1000 (now detects nodes at 980!)
+- `viewport_bounds = 500`: boundary range = 450-500
+- `viewport_bounds = 2000`: boundary range = 1800-2000
+
+### 3. Parameter Clamping System
+
+All physics parameters are now **clamped to safe ranges** to prevent extreme values:
+
+```rust
+// Prevent extreme parameter values that cause instability
+new_target.repel_k = ((value).max(0.01)).min(100.0);     // 0.01 to 100.0
+new_target.damping = ((value).max(0.01)).min(0.99);      // 0.01 to 0.99
+new_target.max_velocity = ((value).max(0.1)).min(50.0);  // 0.1 to 50.0
+new_target.spring_k = ((value).max(0.001)).min(10.0);    // 0.001 to 10.0
+```
+
+### 4. Parameter Adjustment Strategies
 
 #### Bouncing Nodes
 When nodes bounce at boundaries:
@@ -92,10 +127,10 @@ physics:
     kinetic_energy_threshold: 0.01
     kinetic_energy_variance_threshold: 0.001
     
-    # Boundary detection
+    # Boundary detection (UPDATED: Now percentage-based)
     bouncing_node_percentage: 0.33
-    boundary_min_distance: 90.0
-    boundary_max_distance: 110.0
+    boundary_min_distance: 90.0   # 90% of viewport_bounds
+    boundary_max_distance: 100.0  # 100% of viewport_bounds (changed from 110.0)
     
     # Distance thresholds
     clustering_distance_threshold: 20.0
@@ -242,6 +277,32 @@ const useAutoBalanceNotifications = () => {
   }, []);
 };
 ```
+
+## Fixed Issues
+
+### Issue 1: Boundary Detection Mismatch (RESOLVED)
+
+**Problem**: The system used hardcoded boundary values (90-110) but nodes were at 980 with `viewport_bounds=1000`, causing the auto-balance to report "boundary: 0/177" when ALL nodes were actually stuck at boundaries.
+
+**Solution**: Implemented percentage-based boundary detection:
+- `boundary_min_distance: 90.0` now means 90% of `viewport_bounds`
+- `boundary_max_distance: 100.0` now means 100% of `viewport_bounds`
+- Changed settings.yaml from 110.0 to 100.0 for the max threshold
+
+### Issue 2: Extreme Parameter Values (RESOLVED)
+
+**Problem**: Parameters could reach extreme values (repel_k=99.99994, damping≈0) causing system instability.
+
+**Solution**: Added parameter clamping throughout the auto-balance system:
+- All parameter adjustments now include `.max(min_value).min(max_value)` calls
+- Prevents physics from entering unstable states
+- Maintains reasonable parameter ranges even under extreme conditions
+
+### Issue 3: Configuration Inconsistencies (RESOLVED)
+
+**Problem**: Both logseq and visionflow graphs had different auto-balance configurations.
+
+**Solution**: Updated both graph configurations in settings.yaml to use consistent percentage-based boundary detection.
 
 ## Troubleshooting
 

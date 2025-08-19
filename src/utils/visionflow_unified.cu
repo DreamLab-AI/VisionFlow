@@ -36,6 +36,7 @@ struct SimParams {
     // System
     float viewport_bounds;
     float temperature;
+    float max_repulsion_dist;  // Maximum distance for repulsion forces
     int iteration;
     int compute_mode;  // 0=basic, 1=dual, 2=constraints, 3=analytics
 };
@@ -101,7 +102,8 @@ __device__ float3 compute_basic_forces(
     SimParams params
 ) {
     const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
-    const float MAX_REPULSION_DIST = 50.0f;  // Cutoff for repulsion
+    // Use max_repulsion_dist from params, with a reasonable default
+    const float MAX_REPULSION_DIST = fmaxf(params.max_repulsion_dist, 100.0f);
     
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
@@ -130,9 +132,14 @@ __device__ float3 compute_basic_forces(
             float push_force = params.repel_k * (MIN_DISTANCE - dist + 1.0f) / (MIN_DISTANCE * MIN_DISTANCE);
             total_force = vec3_add(total_force, vec3_scale(push_dir, push_force));
         } else if (dist < MAX_REPULSION_DIST) {
-            // Normal repulsion with safer distance calculation
+            // Smooth distance-based decay for repulsion
             float dist_sq = fmaxf(dist * dist, MIN_DISTANCE * MIN_DISTANCE);
-            float repulsion = params.repel_k / dist_sq;
+            
+            // Add smooth decay: force decreases as we approach MAX_REPULSION_DIST
+            float decay_factor = 1.0f - (dist / MAX_REPULSION_DIST);
+            decay_factor = decay_factor * decay_factor; // Quadratic decay for smoother falloff
+            
+            float repulsion = params.repel_k * decay_factor / dist_sq;
             total_force = vec3_add(total_force, vec3_scale(vec3_normalize(diff), repulsion));
         }
     }

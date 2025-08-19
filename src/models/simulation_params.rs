@@ -62,7 +62,7 @@ pub struct SimParams {
     
     // Additional GPU fields
     pub min_distance: f32,
-    pub max_repulsion_dist: f32,
+    pub max_repulsion_dist: f32,  // Maximum distance for repulsion forces
     pub boundary_margin: f32,
     pub boundary_force_strength: f32,
     pub warmup_iterations: u32,

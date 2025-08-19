@@ -10,6 +10,7 @@ pub mod nostr_handler;
 pub mod bots_handler;
 pub mod mcp_relay_handler;
 pub mod bots_visualization_handler;
+pub mod multi_mcp_websocket_handler;
 pub mod mcp_health_handler;
 pub mod clustering_handler;
 pub mod constraints_handler;

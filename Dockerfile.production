@@ -27,14 +27,14 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Install Rust (latest stable)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 
 # Create app directory
 WORKDIR /build
 
-# Copy Rust files for server build
-COPY Cargo.toml Cargo.lock ./
+# Copy Rust files
+COPY Cargo.toml ./
 COPY src ./src
 
 # Copy client files for frontend build
@@ -48,7 +48,8 @@ RUN NODE_ENV=development npm install && \
 
 # Build Rust server (release mode with GPU features)
 WORKDIR /build
-RUN cargo build --release --features gpu
+# Simple fix: disable portable SIMD to avoid nightly features in encoding_rs
+RUN CARGO_ENCODED_RUSTFLAGS="-C target-cpu=native" cargo build --release --features gpu
 
 # Handle PTX compilation
 # Ensure the script and the .cu file are in expected locations relative to WORKDIR /build
