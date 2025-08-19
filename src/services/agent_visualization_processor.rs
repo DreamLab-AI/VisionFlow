@@ -352,7 +352,7 @@ impl AgentVisualizationProcessor {
     /// Get real CPU and memory usage for an agent process
     fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
         let mut sys = SYSTEM.lock().unwrap();
-        sys.refresh_processes();
+        sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
         
         // Try to find process by agent ID or name
         if let Some(&pid) = self.process_map.get(agent_id) {
@@ -368,7 +368,7 @@ impl AgentVisualizationProcessor {
         
         // Fallback: find process by name containing agent_id
         for (pid, process) in sys.processes() {
-            let process_name = process.name().to_lowercase();
+            let process_name = process.name().to_string_lossy().to_lowercase();
             let agent_id_lower = agent_id.to_lowercase();
             
             // Check if process name contains agent type or similar identifier
@@ -390,7 +390,7 @@ impl AgentVisualizationProcessor {
         }
         
         // Final fallback: use system-wide averages scaled down
-        let global_cpu = sys.global_cpu_info().cpu_usage() / 100.0;
+        let global_cpu = sys.global_cpu_usage() / 100.0;
         let used_memory = sys.used_memory() as f32;
         let total_memory = sys.total_memory() as f32;
         let global_memory = if total_memory > 0.0 { used_memory / total_memory } else { 0.0 };

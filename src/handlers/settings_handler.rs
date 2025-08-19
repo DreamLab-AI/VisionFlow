@@ -109,11 +109,64 @@ async fn update_settings(
         debug!("Settings update payload (before merge): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
     }
     
-    // Merge the update
-    if let Err(e) = app_settings.merge_update(update.clone()) {
+    // Check if auto_balance is being updated in either graph
+    // If so, apply it to both graphs for consistency
+    let mut modified_update = update.clone();
+    let auto_balance_update = update.get("visualisation")
+        .and_then(|v| v.get("graphs"))
+        .and_then(|g| {
+            // Check if logseq graph has auto_balance update
+            if let Some(logseq) = g.get("logseq") {
+                if let Some(physics) = logseq.get("physics") {
+                    if let Some(auto_balance) = physics.get("autoBalance") {
+                        return Some(auto_balance.clone());
+                    }
+                }
+            }
+            // Check if visionflow graph has auto_balance update
+            if let Some(visionflow) = g.get("visionflow") {
+                if let Some(physics) = visionflow.get("physics") {
+                    if let Some(auto_balance) = physics.get("autoBalance") {
+                        return Some(auto_balance.clone());
+                    }
+                }
+            }
+            None
+        });
+    
+    // If auto_balance is being updated, apply to both graphs
+    if let Some(ref auto_balance_value) = auto_balance_update {
+        info!("Synchronizing auto_balance setting across both graphs: {}", auto_balance_value);
+        
+        // Ensure the update structure exists for both graphs
+        let vis_obj = modified_update.as_object_mut()
+            .and_then(|o| o.entry("visualisation").or_insert_with(|| json!({})).as_object_mut())
+            .and_then(|v| v.entry("graphs").or_insert_with(|| json!({})).as_object_mut());
+        
+        if let Some(graphs) = vis_obj {
+            // Update logseq graph
+            let logseq_physics = graphs
+                .entry("logseq").or_insert_with(|| json!({})).as_object_mut()
+                .and_then(|l| l.entry("physics").or_insert_with(|| json!({})).as_object_mut());
+            if let Some(physics) = logseq_physics {
+                physics.insert("autoBalance".to_string(), auto_balance_value.clone());
+            }
+            
+            // Update visionflow graph
+            let visionflow_physics = graphs
+                .entry("visionflow").or_insert_with(|| json!({})).as_object_mut()
+                .and_then(|v| v.entry("physics").or_insert_with(|| json!({})).as_object_mut());
+            if let Some(physics) = visionflow_physics {
+                physics.insert("autoBalance".to_string(), auto_balance_value.clone());
+            }
+        }
+    }
+    
+    // Merge the (possibly modified) update
+    if let Err(e) = app_settings.merge_update(modified_update.clone()) {
         error!("Failed to merge settings: {}", e);
         if crate::utils::logging::is_debug_enabled() {
-            error!("Update payload that caused error: {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+            error!("Update payload that caused error: {}", serde_json::to_string_pretty(&modified_update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
         return Ok(HttpResponse::InternalServerError().json(json!({
             "error": format!("Failed to merge settings: {}", e)
@@ -121,39 +174,54 @@ async fn update_settings(
     }
     
     // Check which graphs had physics updated
-    let updated_graphs = update.get("visualisation")
-        .and_then(|v| v.get("graphs"))
-        .and_then(|g| g.as_object())
-        .map(|graphs| {
-            let mut updated = Vec::new();
-            if graphs.contains_key("logseq") {
-                updated.push("logseq");
-            }
-            if graphs.contains_key("visionflow") {
-                updated.push("visionflow");
-            }
-            updated
-        })
-        .unwrap_or_default();
+    // If auto_balance was synchronized, both graphs are considered updated
+    let updated_graphs = if auto_balance_update.is_some() {
+        vec!["logseq", "visionflow"]
+    } else {
+        modified_update.get("visualisation")
+            .and_then(|v| v.get("graphs"))
+            .and_then(|g| g.as_object())
+            .map(|graphs| {
+                let mut updated = Vec::new();
+                if graphs.contains_key("logseq") {
+                    updated.push("logseq");
+                }
+                if graphs.contains_key("visionflow") {
+                    updated.push("visionflow");
+                }
+                updated
+            })
+            .unwrap_or_default()
+    };
     
     // Check if auto-balance is enabled in the current settings
     // If auto-balance is active, don't propagate physics back to avoid feedback loop
-    let auto_balance_active = app_settings.visualisation.graphs.logseq.physics.auto_balance;
+    let auto_balance_active = app_settings.visualisation.graphs.logseq.physics.auto_balance 
+        || app_settings.visualisation.graphs.visionflow.physics.auto_balance;
     
     // Save updated settings
     match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
         Ok(Ok(())) => {
             info!("Settings updated successfully");
             
-            // Only propagate physics updates to GPU if auto-balance is NOT active
-            // This prevents feedback loops where auto-balance adjustments trigger reverse updates
-            if !auto_balance_active {
+            // Check if this update is changing the auto_balance setting itself
+            // If so, we MUST propagate it regardless of current auto_balance state
+            let is_auto_balance_change = auto_balance_update.is_some();
+            
+            // Propagate physics updates to GPU
+            // - Always propagate if auto_balance setting is being changed
+            // - Skip only if auto_balance is already active AND this isn't an auto_balance change
+            //   (to prevent feedback loops from auto-tuning adjustments)
+            if is_auto_balance_change || !auto_balance_active {
                 // Propagate physics updates to GPU for each updated graph
                 for graph_name in updated_graphs {
                     propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
                 }
+                if is_auto_balance_change {
+                    info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU");
+                }
             } else {
-                info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active");
+                info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active and not changing");
             }
             
             // Return updated settings in camelCase
@@ -374,8 +442,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         // Be more lenient with auto-balance enabled
         let max_damping = if auto_balance_enabled { 1.0 } else { 0.999 };
         
-        if rounded_val < 0.5 || rounded_val > max_damping {
-            return Err(format!("damping must be between 0.5 and {} for stability", max_damping));
+        if rounded_val < 0.0 || rounded_val > 1.0 {
+            return Err("damping must be between 0.0 and 1.0".to_string());
         }
     }
     
@@ -386,8 +454,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
             .map(|f| f.round() as u64)  // Round and cast float to u64
             .or_else(|| iterations.as_u64())  // Also accept direct integer
             .ok_or("iterations must be a positive number")?;
-        if val == 0 || val > 100 {  // Limit to 100 for stability
-            return Err("iterations must be between 1 and 100 for stability".to_string());
+        if val == 0 || val > 1000 {  // Allow more iterations
+            return Err("iterations must be between 1 and 1000".to_string());
         }
     }
     
@@ -404,8 +472,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Allow lower values (down to 0.001) for auto-balance stabilization
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val < 0.001 || val > 200.0 {
-            return Err("repelK must be between 0.001 and 200.0 for stability".to_string());
+        if val < 0.0001 || val > 10000.0 {
+            return Err("repelK must be between 0.0001 and 10000.0".to_string());
         }
     }
     
@@ -420,16 +488,16 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Bounds size validation
     if let Some(bounds) = physics.get("boundsSize") {
         let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
-        if val < 1.0 || val > 10000.0 {  // Allow full UI range
-            return Err("boundsSize must be between 1.0 and 10000.0".to_string());
+        if val < 1.0 || val > 100000.0 {  // Very generous range
+            return Err("boundsSize must be between 1.0 and 100000.0".to_string());
         }
     }
     
     // Separation radius validation
     if let Some(separation_radius) = physics.get("separationRadius") {
         let val = separation_radius.as_f64().ok_or("separationRadius must be a number")?;
-        if val < 0.1 || val > 10.0 {
-            return Err("separationRadius must be between 0.1 and 10.0".to_string());
+        if val < 0.01 || val > 100.0 {
+            return Err("separationRadius must be between 0.01 and 100.0".to_string());
         }
     }
     
@@ -437,16 +505,16 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Allow lower values (down to 0.05) for auto-balance aggressive stabilization
     if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
-        if val < 0.05 || val > 10.0 {  // Safe range, allow lower for stabilization
-            return Err("maxVelocity must be between 0.05 and 10.0 for stability".to_string());
+        if val < 0.001 || val > 1000.0 {  // Very generous range
+            return Err("maxVelocity must be between 0.001 and 1000.0".to_string());
         }
     }
     
     // Mass scale validation
     if let Some(mass) = physics.get("massScale") {
         let val = mass.as_f64().ok_or("massScale must be a number")?;
-        if val < 0.1 || val > 10.0 {  // Match UI range
-            return Err("massScale must be between 0.1 and 10.0".to_string());
+        if val < 0.01 || val > 100.0 {  // Generous range
+            return Err("massScale must be between 0.01 and 100.0".to_string());
         }
     }
     
@@ -463,32 +531,32 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     let time_step = physics.get("timeStep").or_else(|| physics.get("dt"));
     if let Some(time_step) = time_step {
         let val = time_step.as_f64().ok_or("timeStep/dt must be a number")?;
-        if val <= 0.0 || val > 0.02 {  // Safe range for numerical stability
-            return Err("timeStep/dt must be between 0.001 and 0.02 for stability".to_string());
+        if val <= 0.0 || val > 1.0 {  // Generous range
+            return Err("timeStep/dt must be between 0.001 and 1.0".to_string());
         }
     }
     
     // Temperature validation
     if let Some(temp) = physics.get("temperature") {
         let val = temp.as_f64().ok_or("temperature must be a number")?;
-        if val < 0.0 || val > 2.0 {  // GPU-optimized range
-            return Err("temperature must be between 0.0 and 2.0".to_string());
+        if val < 0.0 || val > 100.0 {  // Generous range
+            return Err("temperature must be between 0.0 and 100.0".to_string());
         }
     }
     
     // Gravity validation
     if let Some(gravity) = physics.get("gravity") {
         let val = gravity.as_f64().ok_or("gravity must be a number")?;
-        if val < -5.0 || val > 5.0 {  // GPU-optimized range
-            return Err("gravity must be between -5.0 and 5.0".to_string());
+        if val < -100.0 || val > 100.0 {  // Generous range
+            return Err("gravity must be between -100.0 and 100.0".to_string());
         }
     }
     
     // Update threshold validation
     if let Some(threshold) = physics.get("updateThreshold") {
         let val = threshold.as_f64().ok_or("updateThreshold must be a number")?;
-        if val < 0.0 || val > 1.0 {
-            return Err("updateThreshold must be between 0.0 and 1.0".to_string());
+        if val < 0.0 || val > 10.0 {
+            return Err("updateThreshold must be between 0.0 and 10.0".to_string());
         }
     }
     
@@ -539,29 +607,29 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
     // Additional GPU parameters validation
     if let Some(min_distance) = physics.get("minDistance") {
         let val = min_distance.as_f64().ok_or("minDistance must be a number")?;
-        if val < 0.05 || val > 1.0 {
-            return Err("minDistance must be between 0.05 and 1.0".to_string());
+        if val < 0.001 || val > 10.0 {
+            return Err("minDistance must be between 0.001 and 10.0".to_string());
         }
     }
     
     if let Some(max_repulsion_dist) = physics.get("maxRepulsionDist") {
         let val = max_repulsion_dist.as_f64().ok_or("maxRepulsionDist must be a number")?;
-        if val < 10.0 || val > 200.0 {
-            return Err("maxRepulsionDist must be between 10.0 and 200.0".to_string());
+        if val < 1.0 || val > 10000.0 {
+            return Err("maxRepulsionDist must be between 1.0 and 10000.0".to_string());
         }
     }
     
     if let Some(boundary_margin) = physics.get("boundaryMargin") {
         let val = boundary_margin.as_f64().ok_or("boundaryMargin must be a number")?;
-        if val < 0.7 || val > 0.95 {
-            return Err("boundaryMargin must be between 0.7 and 0.95".to_string());
+        if val < 0.0 || val > 1.0 {
+            return Err("boundaryMargin must be between 0.0 and 1.0".to_string());
         }
     }
     
     if let Some(boundary_force_strength) = physics.get("boundaryForceStrength") {
         let val = boundary_force_strength.as_f64().ok_or("boundaryForceStrength must be a number")?;
-        if val < 0.5 || val > 5.0 {
-            return Err("boundaryForceStrength must be between 0.5 and 5.0".to_string());
+        if val < 0.0 || val > 100.0 {
+            return Err("boundaryForceStrength must be between 0.0 and 100.0".to_string());
         }
     }
     
@@ -569,8 +637,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let val = warmup_iterations.as_u64()
             .or_else(|| warmup_iterations.as_f64().map(|f| f.round() as u64))
             .ok_or("warmupIterations must be an integer")?;
-        if val > 500 {
-            return Err("warmupIterations must be between 0 and 500".to_string());
+        if val > 10000 {
+            return Err("warmupIterations must be between 0 and 10000".to_string());
         }
     }
     
@@ -585,15 +653,15 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let val = zero_velocity_iterations.as_u64()
             .or_else(|| zero_velocity_iterations.as_f64().map(|f| f.round() as u64))
             .ok_or("zeroVelocityIterations must be an integer")?;
-        if val > 20 {
-            return Err("zeroVelocityIterations must be between 0 and 20".to_string());
+        if val > 1000 {
+            return Err("zeroVelocityIterations must be between 0 and 1000".to_string());
         }
     }
     
     if let Some(cooling_rate) = physics.get("coolingRate") {
         let val = cooling_rate.as_f64().ok_or("coolingRate must be a number")?;
-        if val < 0.00001 || val > 0.01 {
-            return Err("coolingRate must be between 0.00001 and 0.01".to_string());
+        if val < 0.0 || val > 1.0 {
+            return Err("coolingRate must be between 0.0 and 1.0".to_string());
         }
     }
     
@@ -608,8 +676,8 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let val = auto_balance_interval.as_u64()
             .or_else(|| auto_balance_interval.as_f64().map(|f| f.round() as u64))
             .ok_or("autoBalanceIntervalMs must be a positive integer")?;
-        if val < 100 || val > 5000 {
-            return Err("autoBalanceIntervalMs must be between 100 and 5000 ms".to_string());
+        if val < 10 || val > 60000 {
+            return Err("autoBalanceIntervalMs must be between 10 and 60000 ms".to_string());
         }
     }
     
@@ -625,15 +693,15 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let val = cluster_count.as_u64()
             .or_else(|| cluster_count.as_f64().map(|f| f.round() as u64))
             .ok_or("clusterCount must be an integer")?;
-        if val < 2 || val > 20 {
-            return Err("clusterCount must be between 2 and 20".to_string());
+        if val < 1 || val > 1000 {
+            return Err("clusterCount must be between 1 and 1000".to_string());
         }
     }
     
     if let Some(clustering_resolution) = physics.get("clusteringResolution") {
         let val = clustering_resolution.as_f64().ok_or("clusteringResolution must be a number")?;
-        if val < 0.1 || val > 2.0 {
-            return Err("clusteringResolution must be between 0.1 and 2.0".to_string());
+        if val < 0.001 || val > 100.0 {
+            return Err("clusteringResolution must be between 0.001 and 100.0".to_string());
         }
     }
     
@@ -641,16 +709,16 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let val = clustering_iterations.as_u64()
             .or_else(|| clustering_iterations.as_f64().map(|f| f.round() as u64))
             .ok_or("clusteringIterations must be an integer")?;
-        if val < 10 || val > 100 {
-            return Err("clusteringIterations must be between 10 and 100".to_string());
+        if val < 1 || val > 10000 {
+            return Err("clusteringIterations must be between 1 and 10000".to_string());
         }
     }
     
     // Boundary limit validation (should be ~98% of boundsSize)
     if let Some(boundary_limit) = physics.get("boundaryLimit") {
         let val = boundary_limit.as_f64().ok_or("boundaryLimit must be a number")?;
-        if val < 1.0 || val > 9800.0 {  // Allow up to 98% of max boundsSize
-            return Err("boundaryLimit must be between 1.0 and 9800.0".to_string());
+        if val < 0.1 || val > 100000.0 {  // Very generous range
+            return Err("boundaryLimit must be between 0.1 and 100000.0".to_string());
         }
         
         // If boundsSize is also present, validate the relationship
@@ -698,8 +766,8 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
     // UNIFIED FORMAT: Only accept "nodeSize"
     if let Some(node_size) = nodes.get("nodeSize") {
         let val = node_size.as_f64().ok_or("nodeSize must be a number")?;
-        if val <= 0.0 || val > 10.0 {
-            return Err("nodeSize must be between 0.0 and 10.0".to_string());
+        if val <= 0.0 || val > 1000.0 {
+            return Err("nodeSize must be between 0.0 and 1000.0".to_string());
         }
     }
     
@@ -717,8 +785,8 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
     // UNIFIED FORMAT: Only accept "ambientLightIntensity"
     if let Some(ambient) = rendering.get("ambientLightIntensity") {
         let val = ambient.as_f64().ok_or("ambientLightIntensity must be a number")?;
-        if val < 0.0 || val > 10.0 {
-            return Err("ambientLightIntensity must be between 0.0 and 10.0".to_string());
+        if val < 0.0 || val > 100.0 {
+            return Err("ambientLightIntensity must be between 0.0 and 100.0".to_string());
         }
     }
     
@@ -758,8 +826,8 @@ fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
     // Validate ringRotationSpeed
     if let Some(speed) = hologram.get("ringRotationSpeed") {
         let val = speed.as_f64().ok_or("ringRotationSpeed must be a number")?;
-        if val < 0.0 || val > 50.0 {
-            return Err("ringRotationSpeed must be between 0.0 and 50.0".to_string());
+        if val < 0.0 || val > 1000.0 {
+            return Err("ringRotationSpeed must be between 0.0 and 1000.0".to_string());
         }
     }
     
@@ -859,16 +927,16 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
     // UNIFIED FORMAT: Only accept "renderScale"  
     if let Some(render_scale) = xr.get("renderScale") {
         let val = render_scale.as_f64().ok_or("renderScale must be a number")?;
-        if val < 0.5 || val > 2.0 {
-            return Err("renderScale must be between 0.5 and 2.0".to_string());
+        if val < 0.1 || val > 10.0 {
+            return Err("renderScale must be between 0.1 and 10.0".to_string());
         }
     }
     
     // UNIFIED FORMAT: Only accept "roomScale"
     if let Some(room_scale) = xr.get("roomScale") {
         let val = room_scale.as_f64().ok_or("roomScale must be a number")?;
-        if val <= 0.0 || val > 10.0 {
-            return Err("roomScale must be between 0.0 and 10.0".to_string());
+        if val <= 0.0 || val > 100.0 {
+            return Err("roomScale must be between 0.0 and 100.0".to_string());
         }
     }
     
@@ -1517,8 +1585,8 @@ fn validate_constraints(constraints: &Value) -> Result<(), String> {
             if let Some(data) = constraint_data.as_object() {
                 if let Some(strength) = data.get("strength") {
                     let val = strength.as_f64().ok_or("strength must be a number")?;
-                    if val < 0.0 || val > 10.0 {
-                        return Err("strength must be between 0.0 and 10.0".to_string());
+                    if val < 0.0 || val > 100.0 {
+                        return Err("strength must be between 0.0 and 100.0".to_string());
                     }
                 }
                 

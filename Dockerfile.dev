@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.1-devel-ubuntu22.04
 
 # Build argument for CUDA architecture
 ARG CUDA_ARCH=86
@@ -43,8 +43,8 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Install Rust and cargo-watch for hot reloading
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+# Install Rust (latest stable) and cargo-watch for hot reloading
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && \
     . $HOME/.cargo/env && \
     cargo install cargo-watch
 
@@ -57,8 +57,8 @@ RUN mkdir -p /app/data/markdown \
     /app/user_settings \
     /app/client
 
-# Copy Rust files first
-COPY Cargo.toml Cargo.lock ./
+# Copy Rust files
+COPY Cargo.toml ./
 COPY src ./src
 
 # Copy client directory with all frontend files
@@ -73,8 +73,8 @@ WORKDIR /app
 # Copy Nginx config for development
 COPY nginx.dev.conf /etc/nginx/nginx.conf
 
-# Update dependencies
-RUN cargo update
+# Build dependencies first (caching layer)
+RUN cargo fetch
 
 # Verify CUDA installation and architecture support
 RUN nvcc --version && \
@@ -105,6 +105,9 @@ RUN mkdir -p /app/src/utils/ptx && \
 ARG FEATURES=gpu
 
 # Build Rust with GPU features (always)
+# Disable SIMD features that require nightly Rust
+ENV CARGO_CFG_PORTABLE_SIMD=0 \
+    RUSTFLAGS="-C target-cpu=x86-64"
 RUN echo "Building with GPU features enabled" && \
     cargo build --release --features gpu && \
     cp target/release/webxr /app/webxr && \

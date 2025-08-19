@@ -7,13 +7,13 @@ authors = ["Your Name <your.email@example.com>"]
 
 [dependencies]
 # Web framework and WebSocket
-actix-web = { version = "=4.5.1", features = ["compress-gzip", "compress-zstd", "macros"] }
-actix-cors = "=0.7.0"
-actix-files = "=0.6.5"
-actix = "=0.13.1"
-actix-web-actors = "=4.3.0"
-tungstenite = "0.22"
-tokio-tungstenite = { version = "0.22" }
+actix-web = { version = "4.9", features = ["compress-gzip", "compress-zstd", "macros"] }
+actix-cors = "0.7"
+actix-files = "0.6"
+actix = "0.13"
+actix-web-actors = "4.3"
+tungstenite = "0.24"
+tokio-tungstenite = { version = "0.24" }
 
 # Async runtime
 tokio = { version = "1.43", features = ["full"] }
@@ -21,10 +21,10 @@ tokio-util = { version = "0.7", features = ["codec"] }
 tokio-stream = "0.1"
 futures = "0.3"
 futures-util = "0.3"
-async-trait = "0.1.86"
+async-trait = "0.1"
 
 # For TCP buffered I/O
-bytes = "1.5"
+bytes = "1.8"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -32,7 +32,7 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 
 # Configuration
-config = { version = "0.13", features = ["toml"] }
+config = { version = "0.14", features = ["toml"] }
 dotenvy = "0.15"
 toml = "0.8"
 
@@ -41,17 +41,17 @@ log = "0.4"
 env_logger = "0.11"
 
 # Error handling
-thiserror = "1.0"
+thiserror = "2.0"
 anyhow = "1.0"
 
 # GPU/Compute
 bytemuck = { version = "1.21", features = ["derive"] }
-pollster = "0.3"
-cudarc = { version = "0.11", features = ["driver", "cuda-12040"] }
+pollster = "0.4"
+cudarc = { version = "0.12", features = ["driver", "cuda-12040"] }
 
 # HTTP client and API
-reqwest = { version = "0.11", features = ["json", "stream", "multipart"] }
-nostr-sdk = "0.26"
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
+nostr-sdk = "0.36"
 
 # Utilities
 uuid = { version = "1.12", features = ["v4", "serde"] }
@@ -59,24 +59,24 @@ chrono = { version = "0.4", features = ["serde"] }
 static_assertions = "1.1"
 base64 = "0.22"
 rand = "0.8"
-fastrand = "2.0"
+fastrand = "2.3"
 regex = "1.11"
 lazy_static = "1.5"
-once_cell = "1.19"
-sha1 = "0.10.6"
+once_cell = "1.20"
+sha1 = "0.10"
 scopeguard = "1.2"
-url = "2.5.0"
+url = "2.5"
 flate2 = "1.0"
 byteorder = "1.5"
 urlencoding = "2.1"
-dashmap = "5.5"
+dashmap = "6.1"
 
 # Math/Linear Algebra (needed for GPU compute)
-nalgebra = "0.32"
+nalgebra = "0.33"
 
 # Added from the code block
-glam = "0.24"
-sysinfo = "0.30"
+glam = "0.29"
+sysinfo = "0.32"
 
 # Parallel processing
 rayon = "1.10"
@@ -84,11 +84,11 @@ rayon = "1.10"
 
 [dev-dependencies]
 tokio-test = "0.4"
-mockall = "0.11"
+mockall = "0.13"
 pretty_assertions = "1.4"
 
 [build-dependencies]
-tempfile = "3.8"
+tempfile = "3.14"
 
 [features]
 default = ["gpu"]
@@ -106,7 +106,7 @@ strip = true
 opt-level = 1
 
 [package.metadata.rust-version]
-min = "1.70.0"
+min = "1.75.0"
 
 [[bin]]
 name = "test-tcp"

@@ -221,10 +221,361 @@ pub struct PhysicsConfig {
     pub max_velocity: f32,
 }
 
-/// WebSocket protocol handler
+/// Multi-MCP Agent Discovery and Monitoring System
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpServerInfo {
+    pub server_id: String,
+    pub server_type: McpServerType,
+    pub host: String,
+    pub port: u16,
+    pub is_connected: bool,
+    pub last_heartbeat: i64,
+    pub supported_tools: Vec<String>,
+    pub agent_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum McpServerType {
+    ClaudeFlow,
+    RuvSwarm,
+    Daa,
+    Custom(String),
+}
+
+/// Enhanced agent data with MCP server context
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiMcpAgentStatus {
+    pub agent_id: String,
+    pub swarm_id: String,
+    pub server_source: McpServerType,
+    pub name: String,
+    pub agent_type: String,
+    pub status: String,
+    pub capabilities: Vec<String>,
+    pub metadata: AgentExtendedMetadata,
+    pub performance: AgentPerformanceData,
+    pub neural_info: Option<NeuralAgentData>,
+    pub created_at: i64,
+    pub last_active: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentExtendedMetadata {
+    pub session_id: Option<String>,
+    pub parent_id: Option<String>,
+    pub topology_position: Option<TopologyPosition>,
+    pub coordination_role: Option<String>,
+    pub task_queue_size: u32,
+    pub error_count: u32,
+    pub warning_count: u32,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopologyPosition {
+    pub layer: u32,
+    pub index_in_layer: u32,
+    pub connections: Vec<String>, // Connected agent IDs
+    pub is_coordinator: bool,
+    pub coordination_level: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentPerformanceData {
+    pub cpu_usage: f32,
+    pub memory_usage: f32,
+    pub health_score: f32,
+    pub activity_level: f32,
+    pub tasks_active: u32,
+    pub tasks_completed: u32,
+    pub tasks_failed: u32,
+    pub success_rate: f32,
+    pub token_usage: u64,
+    pub token_rate: f32,
+    pub response_time_ms: f32,
+    pub throughput: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NeuralAgentData {
+    pub model_type: String,
+    pub model_size: String,
+    pub training_status: String,
+    pub cognitive_pattern: String,
+    pub learning_rate: f32,
+    pub adaptation_score: f32,
+    pub memory_capacity: u64,
+    pub knowledge_domains: Vec<String>,
+}
+
+/// Swarm topology visualization data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmTopologyData {
+    pub topology_type: String,
+    pub total_agents: u32,
+    pub coordination_layers: u32,
+    pub efficiency_score: f32,
+    pub load_distribution: Vec<LayerLoad>,
+    pub critical_paths: Vec<CriticalPath>,
+    pub bottlenecks: Vec<Bottleneck>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LayerLoad {
+    pub layer_id: u32,
+    pub agent_count: u32,
+    pub average_load: f32,
+    pub max_capacity: u32,
+    pub utilization: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CriticalPath {
+    pub path_id: String,
+    pub agent_sequence: Vec<String>,
+    pub total_latency_ms: f32,
+    pub bottleneck_agent: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bottleneck {
+    pub agent_id: String,
+    pub bottleneck_type: String,
+    pub severity: f32,
+    pub impact_agents: Vec<String>,
+    pub suggested_action: String,
+}
+
+/// Enhanced message types for multi-MCP coordination
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum MultiMcpVisualizationMessage {
+    /// Full discovery of all MCP servers and agents
+    #[serde(rename = "discovery")]
+    Discovery(DiscoveryMessage),
+    
+    /// Agent status updates from multiple servers
+    #[serde(rename = "multi_agent_update")]
+    MultiAgentUpdate(MultiAgentUpdateMessage),
+    
+    /// Topology changes and coordination updates
+    #[serde(rename = "topology_update")]
+    TopologyUpdate(TopologyUpdateMessage),
+    
+    /// Neural agent learning and adaptation updates
+    #[serde(rename = "neural_update")]
+    NeuralUpdate(NeuralUpdateMessage),
+    
+    /// Performance and bottleneck analysis
+    #[serde(rename = "performance_analysis")]
+    PerformanceAnalysis(PerformanceAnalysisMessage),
+    
+    /// Real-time coordination events
+    #[serde(rename = "coordination_event")]
+    CoordinationEvent(CoordinationEventMessage),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiscoveryMessage {
+    pub timestamp: i64,
+    pub servers: Vec<McpServerInfo>,
+    pub total_agents: u32,
+    pub swarms: Vec<SwarmInfo>,
+    pub global_topology: GlobalTopology,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmInfo {
+    pub swarm_id: String,
+    pub server_source: McpServerType,
+    pub topology: String,
+    pub agent_count: u32,
+    pub health_score: f32,
+    pub coordination_efficiency: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalTopology {
+    pub inter_swarm_connections: Vec<InterSwarmConnection>,
+    pub coordination_hierarchy: Vec<CoordinationLevel>,
+    pub data_flow_patterns: Vec<DataFlowPattern>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterSwarmConnection {
+    pub source_swarm: String,
+    pub target_swarm: String,
+    pub connection_strength: f32,
+    pub message_rate: f32,
+    pub coordination_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoordinationLevel {
+    pub level: u32,
+    pub coordinator_agents: Vec<String>,
+    pub managed_agents: Vec<String>,
+    pub coordination_load: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataFlowPattern {
+    pub pattern_id: String,
+    pub source_agents: Vec<String>,
+    pub target_agents: Vec<String>,
+    pub flow_rate: f32,
+    pub data_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiAgentUpdateMessage {
+    pub timestamp: i64,
+    pub agents: Vec<MultiMcpAgentStatus>,
+    pub differential_updates: Vec<AgentDifferentialUpdate>,
+    pub removed_agents: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentDifferentialUpdate {
+    pub agent_id: String,
+    pub field_updates: std::collections::HashMap<String, serde_json::Value>,
+    pub performance_delta: Option<PerformanceDelta>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformanceDelta {
+    pub cpu_change: f32,
+    pub memory_change: f32,
+    pub task_completion_rate: f32,
+    pub error_rate_change: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopologyUpdateMessage {
+    pub timestamp: i64,
+    pub swarm_id: String,
+    pub topology_changes: Vec<TopologyChange>,
+    pub new_connections: Vec<AgentConnection>,
+    pub removed_connections: Vec<String>,
+    pub coordination_updates: Vec<CoordinationUpdate>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopologyChange {
+    pub change_type: String,
+    pub affected_agents: Vec<String>,
+    pub new_structure: Option<serde_json::Value>,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentConnection {
+    pub connection_id: String,
+    pub source_agent: String,
+    pub target_agent: String,
+    pub connection_type: String,
+    pub strength: f32,
+    pub bidirectional: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoordinationUpdate {
+    pub coordinator_id: String,
+    pub managed_agents: Vec<String>,
+    pub coordination_load: f32,
+    pub efficiency_score: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NeuralUpdateMessage {
+    pub timestamp: i64,
+    pub neural_agents: Vec<NeuralAgentUpdate>,
+    pub learning_events: Vec<LearningEvent>,
+    pub adaptation_metrics: Vec<AdaptationMetric>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NeuralAgentUpdate {
+    pub agent_id: String,
+    pub neural_data: NeuralAgentData,
+    pub learning_progress: f32,
+    pub recent_adaptations: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningEvent {
+    pub event_id: String,
+    pub agent_id: String,
+    pub event_type: String,
+    pub learning_data: serde_json::Value,
+    pub performance_impact: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdaptationMetric {
+    pub metric_name: String,
+    pub current_value: f32,
+    pub target_value: f32,
+    pub progress: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformanceAnalysisMessage {
+    pub timestamp: i64,
+    pub global_metrics: GlobalPerformanceMetrics,
+    pub bottlenecks: Vec<Bottleneck>,
+    pub optimization_suggestions: Vec<OptimizationSuggestion>,
+    pub trend_analysis: Vec<TrendAnalysis>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalPerformanceMetrics {
+    pub total_throughput: f32,
+    pub average_latency: f32,
+    pub system_efficiency: f32,
+    pub resource_utilization: f32,
+    pub error_rate: f32,
+    pub coordination_overhead: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OptimizationSuggestion {
+    pub suggestion_id: String,
+    pub target_component: String,
+    pub optimization_type: String,
+    pub expected_improvement: f32,
+    pub implementation_complexity: String,
+    pub risk_level: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrendAnalysis {
+    pub metric_name: String,
+    pub trend_direction: String,
+    pub rate_of_change: f32,
+    pub confidence: f32,
+    pub prediction_horizon_minutes: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoordinationEventMessage {
+    pub timestamp: i64,
+    pub event_type: String,
+    pub source_agent: String,
+    pub target_agents: Vec<String>,
+    pub event_data: serde_json::Value,
+    pub coordination_impact: f32,
+}
+
+/// WebSocket protocol handler with multi-MCP support
 pub struct AgentVisualizationProtocol {
     _update_interval_ms: u64,
     position_buffer: Vec<PositionUpdate>,
+    mcp_servers: std::collections::HashMap<String, McpServerInfo>,
+    agent_cache: std::collections::HashMap<String, MultiMcpAgentStatus>,
+    topology_cache: std::collections::HashMap<String, SwarmTopologyData>,
+    last_discovery: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 impl AgentVisualizationProtocol {
@@ -232,10 +583,182 @@ impl AgentVisualizationProtocol {
         Self {
             _update_interval_ms: 16, // ~60fps
             position_buffer: Vec::new(),
+            mcp_servers: std::collections::HashMap::new(),
+            agent_cache: std::collections::HashMap::new(),
+            topology_cache: std::collections::HashMap::new(),
+            last_discovery: None,
         }
     }
     
-    /// Create initial JSON message for new client
+    /// Register an MCP server for agent discovery
+    pub fn register_mcp_server(&mut self, server_info: McpServerInfo) {
+        log::info!("Registering MCP server: {} ({}:{})", server_info.server_id, server_info.host, server_info.port);
+        self.mcp_servers.insert(server_info.server_id.clone(), server_info);
+    }
+    
+    /// Update agent data from MCP server
+    pub fn update_agents_from_server(&mut self, server_type: McpServerType, agents: Vec<MultiMcpAgentStatus>) {
+        for agent in agents {
+            self.agent_cache.insert(agent.agent_id.clone(), agent);
+        }
+        log::debug!("Updated {} agents from {:?} server", self.agent_cache.len(), server_type);
+    }
+    
+    /// Create discovery message with all MCP servers and agents
+    pub fn create_discovery_message(&mut self) -> String {
+        let timestamp = chrono::Utc::now();
+        self.last_discovery = Some(timestamp);
+        
+        let servers: Vec<McpServerInfo> = self.mcp_servers.values().cloned().collect();
+        let total_agents = self.agent_cache.len() as u32;
+        
+        // Group agents by swarm
+        let mut swarms: std::collections::HashMap<String, Vec<&MultiMcpAgentStatus>> = std::collections::HashMap::new();
+        for agent in self.agent_cache.values() {
+            swarms.entry(agent.swarm_id.clone()).or_insert_with(Vec::new).push(agent);
+        }
+        
+        let swarm_infos: Vec<SwarmInfo> = swarms.into_iter().map(|(swarm_id, agents)| {
+            let total_health: f32 = agents.iter().map(|a| a.performance.health_score).sum();
+            let avg_health = if !agents.is_empty() { total_health / agents.len() as f32 } else { 0.0 };
+            
+            SwarmInfo {
+                swarm_id,
+                server_source: agents.first().map(|a| a.server_source.clone()).unwrap_or(McpServerType::Custom("unknown".to_string())),
+                topology: "hierarchical".to_string(), // TODO: Get from actual topology
+                agent_count: agents.len() as u32,
+                health_score: avg_health,
+                coordination_efficiency: 0.85, // TODO: Calculate from actual metrics
+            }
+        }).collect();
+        
+        let global_topology = GlobalTopology {
+            inter_swarm_connections: vec![], // TODO: Discover inter-swarm connections
+            coordination_hierarchy: vec![], // TODO: Build coordination hierarchy
+            data_flow_patterns: vec![], // TODO: Analyze data flow patterns
+        };
+        
+        let discovery = DiscoveryMessage {
+            timestamp: timestamp.timestamp_millis(),
+            servers,
+            total_agents,
+            swarms: swarm_infos,
+            global_topology,
+        };
+        
+        let message = MultiMcpVisualizationMessage::Discovery(discovery);
+        serde_json::to_string(&message).unwrap_or_default()
+    }
+    
+    /// Create differential agent update message
+    pub fn create_agent_update_message(&self, updated_agents: Vec<MultiMcpAgentStatus>) -> String {
+        let differential_updates: Vec<AgentDifferentialUpdate> = updated_agents.iter().map(|agent| {
+            let mut field_updates = std::collections::HashMap::new();
+            field_updates.insert("status".to_string(), serde_json::json!(agent.status));
+            field_updates.insert("last_active".to_string(), serde_json::json!(agent.last_active));
+            
+            let performance_delta = PerformanceDelta {
+                cpu_change: 0.0, // TODO: Calculate actual deltas
+                memory_change: 0.0,
+                task_completion_rate: agent.performance.success_rate,
+                error_rate_change: 0.0,
+            };
+            
+            AgentDifferentialUpdate {
+                agent_id: agent.agent_id.clone(),
+                field_updates,
+                performance_delta: Some(performance_delta),
+            }
+        }).collect();
+        
+        let update_msg = MultiAgentUpdateMessage {
+            timestamp: chrono::Utc::now().timestamp_millis(),
+            agents: updated_agents,
+            differential_updates,
+            removed_agents: vec![], // TODO: Track removed agents
+        };
+        
+        let message = MultiMcpVisualizationMessage::MultiAgentUpdate(update_msg);
+        serde_json::to_string(&message).unwrap_or_default()
+    }
+    
+    /// Create topology update message
+    pub fn create_topology_update(&self, swarm_id: String, topology_data: SwarmTopologyData) -> String {
+        self.topology_cache.clone().insert(swarm_id.clone(), topology_data.clone());
+        
+        let topology_update = TopologyUpdateMessage {
+            timestamp: chrono::Utc::now().timestamp_millis(),
+            swarm_id,
+            topology_changes: vec![], // TODO: Track actual topology changes
+            new_connections: vec![], // TODO: Track new connections
+            removed_connections: vec![], // TODO: Track removed connections
+            coordination_updates: vec![], // TODO: Track coordination updates
+        };
+        
+        let message = MultiMcpVisualizationMessage::TopologyUpdate(topology_update);
+        serde_json::to_string(&message).unwrap_or_default()
+    }
+    
+    /// Create performance analysis message
+    pub fn create_performance_analysis(&self) -> String {
+        let agents: Vec<&MultiMcpAgentStatus> = self.agent_cache.values().collect();
+        
+        let total_throughput: f32 = agents.iter().map(|a| a.performance.throughput).sum();
+        let avg_latency: f32 = if !agents.is_empty() {
+            agents.iter().map(|a| a.performance.response_time_ms).sum::<f32>() / agents.len() as f32
+        } else { 0.0 };
+        
+        let global_metrics = GlobalPerformanceMetrics {
+            total_throughput,
+            average_latency: avg_latency,
+            system_efficiency: 0.85, // TODO: Calculate from actual metrics
+            resource_utilization: agents.iter().map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0).sum::<f32>() / agents.len().max(1) as f32,
+            error_rate: agents.iter().map(|a| a.performance.tasks_failed as f32 / (a.performance.tasks_completed + a.performance.tasks_failed).max(1) as f32).sum::<f32>() / agents.len().max(1) as f32,
+            coordination_overhead: 0.15, // TODO: Calculate from coordination metrics
+        };
+        
+        // Identify bottlenecks
+        let bottlenecks: Vec<Bottleneck> = agents.iter().filter_map(|agent| {
+            if agent.performance.cpu_usage > 0.9 || agent.performance.memory_usage > 0.9 {
+                Some(Bottleneck {
+                    agent_id: agent.agent_id.clone(),
+                    bottleneck_type: if agent.performance.cpu_usage > 0.9 { "cpu" } else { "memory" }.to_string(),
+                    severity: (agent.performance.cpu_usage + agent.performance.memory_usage) / 2.0,
+                    impact_agents: vec![], // TODO: Calculate impact on other agents
+                    suggested_action: "Scale resources or redistribute workload".to_string(),
+                })
+            } else {
+                None
+            }
+        }).collect();
+        
+        let performance_analysis = PerformanceAnalysisMessage {
+            timestamp: chrono::Utc::now().timestamp_millis(),
+            global_metrics,
+            bottlenecks,
+            optimization_suggestions: vec![], // TODO: Generate optimization suggestions
+            trend_analysis: vec![], // TODO: Analyze performance trends
+        };
+        
+        let message = MultiMcpVisualizationMessage::PerformanceAnalysis(performance_analysis);
+        serde_json::to_string(&message).unwrap_or_default()
+    }
+    
+    /// Get current agent count by server type
+    pub fn get_agent_count_by_server(&self, server_type: &McpServerType) -> u32 {
+        self.agent_cache.values()
+            .filter(|agent| std::mem::discriminant(&agent.server_source) == std::mem::discriminant(server_type))
+            .count() as u32
+    }
+    
+    /// Check if discovery is needed (every 30 seconds)
+    pub fn needs_discovery(&self) -> bool {
+        self.last_discovery.map_or(true, |last| {
+            chrono::Utc::now().signed_duration_since(last).num_seconds() > 30
+        })
+    }
+    
+    /// Create initial JSON message for new client (legacy compatibility)
     pub fn create_init_message(
         swarm_id: &str,
         topology: &str,
@@ -345,7 +868,7 @@ impl AgentVisualizationProtocol {
         Some(serde_json::to_string(&message).unwrap_or_default())
     }
     
-    /// Create state update message
+    /// Create state update message (legacy compatibility)
     pub fn create_state_update(updates: Vec<AgentStateUpdate>) -> String {
         let msg = StateUpdateMessage {
             timestamp: chrono::Utc::now().timestamp_millis(),

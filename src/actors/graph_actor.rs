@@ -153,6 +153,7 @@ impl GraphServiceActor {
         }
     }
     
+    
     fn send_auto_balance_notification(&self, message: &str) {
         info!("[AUTO-BALANCE NOTIFICATION] {}", message);
         
@@ -754,10 +755,15 @@ impl GraphServiceActor {
                                   node.data.velocity.z * node.data.velocity.z;
             total_kinetic_energy += 0.5 * velocity_squared;
             
+            // FIXED: Percentage-based boundary detection relative to viewport_bounds
+            let viewport_bounds = self.simulation_params.viewport_bounds;
+            let boundary_min_threshold = viewport_bounds * (config.boundary_min_distance / 100.0); // 90% of bounds
+            let boundary_max_threshold = viewport_bounds * (config.boundary_max_distance / 100.0); // 100% of bounds
+            
             if dist > config.extreme_distance_threshold {
                 extreme_count += 1;
-            } else if dist > config.boundary_min_distance && dist <= config.boundary_max_distance {
-                // Count nodes at boundary (typical boundary is around 98-100 units)
+            } else if dist >= boundary_min_threshold && dist <= boundary_max_threshold {
+                // Count nodes at boundary using percentage of viewport_bounds
                 boundary_nodes += 1;
             }
         }
@@ -855,7 +861,10 @@ impl GraphServiceActor {
                         self.stable_count = 0;
                         
                         // Check for complete deadlock (all nodes stuck with no movement)
-                        let is_deadlocked = boundary_nodes == self.node_map.len() && avg_kinetic_energy < 0.0001;
+                        let is_deadlocked = boundary_nodes == self.node_map.len() && avg_kinetic_energy < 0.001;
+                        
+                        info!("[DEADLOCK-CHECK] Boundary nodes: {}/{}, Kinetic energy: {:.6}, Deadlocked: {}", 
+                              boundary_nodes, self.node_map.len(), avg_kinetic_energy, is_deadlocked);
                         
                         if is_deadlocked {
                             // Recovery mode: Gradually restore forces to allow movement
@@ -867,11 +876,11 @@ impl GraphServiceActor {
                             new_target.damping = 0.85;  // Reduce damping to allow movement
                             new_target.max_velocity = 1.0;  // Allow reasonable velocity
                             new_target.spring_k = 0.5;
-                            new_target.enable_bounds = true;
-                            new_target.viewport_bounds = 100.0;
+                            // Keep existing boundary settings from simulation_params
+                            // Don't override enable_bounds or viewport_bounds
                             
                             // Use faster transition for deadlock recovery
-                            self.param_transition_rate = 0.3;  // 30% per frame for urgent recovery
+                            self.param_transition_rate = 0.3;  // 30% per frame for recovery
                             
                             self.set_target_params(new_target);
                             self.send_auto_balance_notification("Adaptive Balancing: Recovering from deadlock");
@@ -882,8 +891,8 @@ impl GraphServiceActor {
                             new_target.damping = (self.simulation_params.damping * 1.05).min(0.95);  // Gradual damping increase
                             new_target.max_velocity = (self.simulation_params.max_velocity * 0.8).max(0.5);  // Keep some velocity
                             new_target.spring_k = (self.simulation_params.spring_k * 0.9).max(0.1);
-                            new_target.enable_bounds = true;
-                            new_target.viewport_bounds = 100.0;
+                            // Keep existing boundary settings from simulation_params
+                            // Don't override enable_bounds or viewport_bounds
                             
                             self.set_target_params(new_target);
                             self.send_auto_balance_notification("Adaptive Balancing: Stabilizing bouncing nodes");
@@ -895,45 +904,55 @@ impl GraphServiceActor {
                               self.target_params.max_velocity);
                         
                     } else if extreme_count > 0 || max_distance > config.spreading_distance_threshold {
-                        // Nodes spreading too far
-                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), adjusting parameters", max_distance);
+                        // Nodes spreading too far - INCREASE ATTRACTION, not reduce repulsion
+                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), increasing attractive forces", max_distance);
                         self.stable_count = 0;
                         
-                        // Scale adjustment based on how far nodes have spread
-                        let scale_factor = (100.0 / max_distance).min(0.9).max(0.3);
+                        // Calculate how much to increase attraction based on spread
+                        let spread_ratio = (max_distance / config.spreading_distance_threshold).min(3.0);
+                        let attraction_boost = 1.0 + (spread_ratio - 1.0) * 0.2; // Up to 40% increase
                         
                         let mut new_target = self.target_params.clone();
-                        new_target.repel_k = (self.simulation_params.repel_k * scale_factor).max(0.001);
-                        new_target.damping = (self.simulation_params.damping + (1.0 - scale_factor) * 0.05).min(0.99);
-                        new_target.max_velocity = (self.simulation_params.max_velocity * (0.5 + scale_factor * 0.5)).max(0.1);
+                        // CORRECT: Increase attractive forces to pull nodes together
+                        new_target.spring_k = (self.simulation_params.spring_k * attraction_boost).min(0.1);
+                        new_target.attraction_k = (self.simulation_params.attraction_k * attraction_boost).min(0.5);
+                        // Slightly reduce max velocity to allow settling
+                        new_target.max_velocity = (self.simulation_params.max_velocity * 0.9).max(1.0);
+                        // Keep repulsion stable or slightly increase to maintain structure
+                        new_target.repel_k = (self.simulation_params.repel_k * 1.05).min(100.0);
                         
-                        // Enable boundaries if spreading too much
-                        if max_distance > 200.0 {
-                            new_target.enable_bounds = true;
-                            new_target.viewport_bounds = 100.0;
-                        }
+                        // DO NOT force enable boundaries - respect user settings
+                        // Boundaries should only be enabled if explicitly set in config
+                        // Keep existing enable_bounds setting from simulation_params
+                        
+                        info!("[AUTO-BALANCE] Increased attraction - spring_k: {:.3}, attraction_k: {:.3}, repel_k: {:.3}", 
+                              new_target.spring_k, new_target.attraction_k, new_target.repel_k);
                         
                         self.set_target_params(new_target);
                         
-                        info!("[AUTO-BALANCE] Adjusted with scale {:.2} - repel_k: {:.3}, damping: {:.3}", 
-                              scale_factor, self.simulation_params.repel_k, self.simulation_params.damping);
+                        // Send notification to client
+                        self.send_auto_balance_notification("Adaptive Balancing: Increasing attraction to contain spreading");
+                    } else if extreme_count == 0 && max_distance < config.clustering_distance_threshold {
+                        // Nodes too clustered - increase repulsion AND reduce attraction
+                        info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, adjusting forces", max_distance);
+                        
+                        let mut new_target = self.target_params.clone();
+                        // Increase repulsion to push nodes apart
+                        new_target.repel_k = (self.simulation_params.repel_k * 1.3).min(100.0);
+                        // ALSO reduce attraction to allow expansion
+                        new_target.spring_k = (self.simulation_params.spring_k * 0.8).max(0.001);
+                        new_target.attraction_k = (self.simulation_params.attraction_k * 0.8).max(0.01);
+                        // Allow higher velocity for expansion
+                        new_target.max_velocity = (self.simulation_params.max_velocity * 1.1).min(10.0);
+                        
+                        info!("[AUTO-BALANCE] Adjusted clustering - repel_k: {:.3}, spring_k: {:.3}, attraction_k: {:.3}", 
+                              new_target.repel_k, new_target.spring_k, new_target.attraction_k);
+                        
+                        self.set_target_params(new_target);
+                        self.stable_count = 0; // Reset stability counter
                         
                         // Send notification to client
-                        self.send_auto_balance_notification("Adaptive Balancing: Adjusting forces to contain spreading");
-                    } else if extreme_count == 0 && max_distance < config.clustering_distance_threshold {
-                        // Nodes might be too clustered, slightly increase repulsion
-                        if self.simulation_params.repel_k < 5.0 {
-                            let mut new_target = self.target_params.clone();
-                            new_target.repel_k = (self.simulation_params.repel_k * 1.2).min(5.0);
-                            self.set_target_params(new_target);
-                            
-                            self.stable_count = 0; // Reset stability counter
-                            info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, increased repel_k to {:.3}", 
-                                  max_distance, self.simulation_params.repel_k);
-                            
-                            // Send notification to client
-                            self.send_auto_balance_notification("Adaptive Balancing: Expanding clustered nodes");
-                        }
+                        self.send_auto_balance_notification("Adaptive Balancing: Expanding clustered nodes");
                     } else if is_stable {
                         // We've found a stable minima
                         self.stable_count += 1;

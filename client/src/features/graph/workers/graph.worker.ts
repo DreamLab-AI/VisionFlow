@@ -189,6 +189,13 @@ class GraphWorker {
       console.log(`GraphWorker: Skipping binary data processing for ${this.graphType} graph`);
       return new Float32Array(0);
     }
+
+    // CRITICAL FIX: Receiving binary data from server means server physics are active
+    if (!this.useServerPhysics) {
+      this.useServerPhysics = true;
+      console.log('GraphWorker: Auto-enabled server physics mode due to binary position updates');
+    }
+
     // ... (decompression logic remains the same)
     if (isZlibCompressed(data)) {
       data = await decompressZlib(data);
@@ -203,13 +210,12 @@ class GraphWorker {
       if (stringNodeId) {
         const nodeIndex = this.graphData.nodes.findIndex(n => n.id === stringNodeId);
         if (nodeIndex !== -1 && !this.pinnedNodeIds.has(update.nodeId)) {
-          // --- THIS IS THE KEY CHANGE ---
-          // --- UPDATE TARGET, NOT CURRENT ---
+          // --- UPDATE TARGET POSITIONS FOR SERVER PHYSICS ---
           const i3 = nodeIndex * 3;
           this.targetPositions![i3] = update.position.x;
           this.targetPositions![i3 + 1] = update.position.y;
           this.targetPositions![i3 + 2] = update.position.z;
-          // We don't touch currentPositions or velocities here. The `tick` method will handle that.
+          // The tick method will smoothly interpolate to these positions
         }
       }
 
@@ -339,22 +345,50 @@ class GraphWorker {
 
     // When using server physics, only interpolate between current and target positions
     if (this.useServerPhysics) {
-      // Simple exponential smoothing for server positions
-      const lerpFactor = 1.0 - Math.exp(-5.0 * dt); // Smooth interpolation
+      // Optimized exponential smoothing for server positions - prevents bouncing
+      const lerpFactor = 1.0 - Math.exp(-8.0 * dt); // Faster, smoother interpolation
       
       for (let i = 0; i < this.graphData.nodes.length; i++) {
         const i3 = i * 3;
         
-        // Interpolate towards server positions
-        this.currentPositions[i3] += (this.targetPositions[i3] - this.currentPositions[i3]) * lerpFactor;
-        this.currentPositions[i3 + 1] += (this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1]) * lerpFactor;
-        this.currentPositions[i3 + 2] += (this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2]) * lerpFactor;
+        // Check if this node is pinned (user is dragging it)
+        const nodeId = this.nodeIdMap.get(this.graphData.nodes[i].id);
+        if (nodeId !== undefined && this.pinnedNodeIds.has(nodeId)) {
+          // Skip interpolation for pinned nodes - they maintain their user-set position
+          continue;
+        }
+        
+        // Calculate distance to target to detect if we're close enough
+        const dx = this.targetPositions[i3] - this.currentPositions[i3];
+        const dy = this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1];
+        const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
+        const distanceSq = dx * dx + dy * dy + dz * dz;
+        
+        // If very close to target, snap to prevent micro-oscillations
+        const snapThreshold = 0.1; // Increased threshold for better stability
+        if (distanceSq < snapThreshold * snapThreshold) {
+          this.currentPositions[i3] = this.targetPositions[i3];
+          this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+          this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+          // Clear any residual velocity
+          if (this.velocities) {
+            this.velocities[i3] = 0;
+            this.velocities[i3 + 1] = 0;
+            this.velocities[i3 + 2] = 0;
+          }
+        } else {
+          // Smooth interpolation towards server positions
+          this.currentPositions[i3] += dx * lerpFactor;
+          this.currentPositions[i3 + 1] += dy * lerpFactor;
+          this.currentPositions[i3 + 2] += dz * lerpFactor;
+        }
       }
       
       return this.currentPositions;
     }
 
-    // Legacy: Local physics simulation (disabled when using server physics)
+    // Local physics simulation - ONLY runs when server physics are disabled
+    // This ensures no spring physics interference when server is authoritative
     const { springStrength, damping, maxVelocity, updateThreshold } = this.physicsSettings;
 
     for (let i = 0; i < this.graphData.nodes.length; i++) {
@@ -389,6 +423,17 @@ class GraphWorker {
       this.velocities[i3] *= damping;
       this.velocities[i3 + 1] *= damping;
       this.velocities[i3 + 2] *= damping;
+
+      // Clamp velocity to prevent physics explosions
+      const currentVelSq = this.velocities[i3] * this.velocities[i3] + 
+                          this.velocities[i3 + 1] * this.velocities[i3 + 1] + 
+                          this.velocities[i3 + 2] * this.velocities[i3 + 2];
+      if (currentVelSq > maxVelocity * maxVelocity) {
+        const scale = maxVelocity / Math.sqrt(currentVelSq);
+        this.velocities[i3] *= scale;
+        this.velocities[i3 + 1] *= scale;
+        this.velocities[i3 + 2] *= scale;
+      }
 
       // Update position with velocity (use clamped dt)
       this.currentPositions[i3] += this.velocities[i3] * dt;

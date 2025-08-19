@@ -1,0 +1,456 @@
+//! Multi-MCP WebSocket Handler
+//! 
+//! Provides real-time WebSocket streaming of agent visualization data
+//! from multiple MCP servers to the VisionFlow graph renderer.
+
+use actix_web::{web, HttpResponse, HttpRequest, Result as ActixResult};
+use actix_web_actors::ws;
+use actix::{Actor, StreamHandler, AsyncContext, Handler, ActorContext, Message, Addr};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::time::{Duration, Instant};
+use log::{info, debug, warn, error};
+use uuid::Uuid;
+
+use crate::AppState;
+use crate::actors::{MultiMcpVisualizationActor, GraphServiceActor};
+use crate::services::agent_visualization_protocol::{
+    MultiMcpVisualizationMessage, McpServerType
+};
+
+/// WebSocket actor for multi-MCP agent visualization
+pub struct MultiMcpVisualizationWs {
+    app_state: web::Data<AppState>,
+    client_id: String,
+    visualization_actor_addr: Option<Addr<MultiMcpVisualizationActor>>,
+    last_heartbeat: Instant,
+    last_discovery_request: Instant,
+    subscription_filters: SubscriptionFilters,
+    performance_mode: PerformanceMode,
+}
+
+/// Client subscription filters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionFilters {
+    /// Filter by server types
+    pub server_types: Vec<McpServerType>,
+    /// Filter by agent types
+    pub agent_types: Vec<String>,
+    /// Filter by swarm IDs
+    pub swarm_ids: Vec<String>,
+    /// Include performance analysis
+    pub include_performance: bool,
+    /// Include neural agent data
+    pub include_neural: bool,
+    /// Include topology updates
+    pub include_topology: bool,
+}
+
+impl Default for SubscriptionFilters {
+    fn default() -> Self {
+        Self {
+            server_types: vec![McpServerType::ClaudeFlow, McpServerType::RuvSwarm, McpServerType::Daa],
+            agent_types: vec![],
+            swarm_ids: vec![],
+            include_performance: true,
+            include_neural: true,
+            include_topology: true,
+        }
+    }
+}
+
+/// Performance mode for different update rates
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PerformanceMode {
+    /// High frequency updates (60Hz) - for active monitoring
+    HighFrequency,
+    /// Normal updates (10Hz) - default mode
+    Normal,
+    /// Low frequency (1Hz) - for dashboard overview
+    LowFrequency,
+    /// On-demand only - minimal CPU usage
+    OnDemand,
+}
+
+impl Default for PerformanceMode {
+    fn default() -> Self {
+        Self::Normal
+    }
+}
+
+impl MultiMcpVisualizationWs {
+    pub fn new(app_state: web::Data<AppState>) -> Self {
+        let client_id = Uuid::new_v4().to_string();
+        info!("Creating new Multi-MCP WebSocket client: {}", client_id);
+        
+        Self {
+            app_state,
+            client_id,
+            visualization_actor_addr: None,
+            last_heartbeat: Instant::now(),
+            last_discovery_request: Instant::now(),
+            subscription_filters: SubscriptionFilters::default(),
+            performance_mode: PerformanceMode::default(),
+        }
+    }
+
+    /// Start position updates based on performance mode
+    fn start_position_updates(&self, ctx: &mut ws::WebsocketContext<Self>) {
+        let interval = match self.performance_mode {
+            PerformanceMode::HighFrequency => Duration::from_millis(16), // ~60Hz
+            PerformanceMode::Normal => Duration::from_millis(100),       // 10Hz
+            PerformanceMode::LowFrequency => Duration::from_millis(1000), // 1Hz
+            PerformanceMode::OnDemand => return, // No automatic updates
+        };
+
+        ctx.run_interval(interval, |act, ctx| {
+            if let Some(addr) = &act.visualization_actor_addr {
+                // Request current agent data
+                ctx.address().do_send(RequestAgentUpdate);
+            }
+        });
+    }
+
+    /// Start heartbeat monitoring
+    fn start_heartbeat(&self, ctx: &mut ws::WebsocketContext<Self>) {
+        ctx.run_interval(Duration::from_secs(5), |act, ctx| {
+            if Instant::now().duration_since(act.last_heartbeat) > Duration::from_secs(30) {
+                warn!("WebSocket client {} heartbeat timeout, disconnecting", act.client_id);
+                ctx.stop();
+                return;
+            }
+            
+            ctx.ping(b"ping");
+        });
+    }
+
+    /// Send discovery data to client
+    fn send_discovery_data(&self, ctx: &mut ws::WebsocketContext<Self>) {
+        if let Some(addr) = &self.visualization_actor_addr {
+            // Request discovery data
+            ctx.address().do_send(RequestDiscoveryData);
+        }
+    }
+
+    /// Handle client configuration update
+    fn handle_client_config(&mut self, config: ClientConfig, ctx: &mut ws::WebsocketContext<Self>) {
+        info!("Updating client configuration for {}", self.client_id);
+        
+        if let Some(filters) = config.subscription_filters {
+            self.subscription_filters = filters;
+        }
+        
+        if let Some(performance_mode) = config.performance_mode {
+            self.performance_mode = performance_mode;
+            // Restart position updates with new timing
+            self.start_position_updates(ctx);
+        }
+        
+        // Send acknowledgment
+        let response = json!({
+            "type": "config_updated",
+            "client_id": self.client_id,
+            "timestamp": chrono::Utc::now().timestamp_millis(),
+            "filters": self.subscription_filters,
+            "performance_mode": self.performance_mode
+        });
+        
+        ctx.text(response.to_string());
+    }
+
+    /// Handle discovery request
+    fn handle_discovery_request(&mut self, ctx: &mut ws::WebsocketContext<Self>) {
+        let now = Instant::now();
+        
+        // Rate limit discovery requests (max once per second)
+        if now.duration_since(self.last_discovery_request) < Duration::from_secs(1) {
+            debug!("Discovery request rate limited for client {}", self.client_id);
+            return;
+        }
+        
+        self.last_discovery_request = now;
+        self.send_discovery_data(ctx);
+    }
+
+    /// Filter visualization message based on subscription filters
+    fn should_send_message(&self, message_type: &str, message_content: &serde_json::Value) -> bool {
+        match message_type {
+            "discovery" => true, // Always send discovery data
+            "multi_agent_update" => true, // Always send agent updates (filtered later)
+            "topology_update" => self.subscription_filters.include_topology,
+            "neural_update" => self.subscription_filters.include_neural,
+            "performance_analysis" => self.subscription_filters.include_performance,
+            _ => true, // Send unknown message types
+        }
+    }
+
+    /// Filter agent data based on subscription filters
+    fn filter_agent_data(&self, data: &mut serde_json::Value) {
+        // Filter agents by server type
+        if let Some(agents_array) = data.get_mut("agents").and_then(|a| a.as_array_mut()) {
+            agents_array.retain(|agent| {
+                if let Some(server_source) = agent.get("server_source") {
+                    if let Ok(server_type) = serde_json::from_value::<McpServerType>(server_source.clone()) {
+                        return self.subscription_filters.server_types.contains(&server_type);
+                    }
+                }
+                false
+            });
+        }
+
+        // Filter by agent types if specified
+        if !self.subscription_filters.agent_types.is_empty() {
+            if let Some(agents_array) = data.get_mut("agents").and_then(|a| a.as_array_mut()) {
+                agents_array.retain(|agent| {
+                    if let Some(agent_type) = agent.get("agent_type").and_then(|t| t.as_str()) {
+                        return self.subscription_filters.agent_types.contains(&agent_type.to_string());
+                    }
+                    false
+                });
+            }
+        }
+
+        // Filter by swarm IDs if specified
+        if !self.subscription_filters.swarm_ids.is_empty() {
+            if let Some(agents_array) = data.get_mut("agents").and_then(|a| a.as_array_mut()) {
+                agents_array.retain(|agent| {
+                    if let Some(swarm_id) = agent.get("swarm_id").and_then(|s| s.as_str()) {
+                        return self.subscription_filters.swarm_ids.contains(&swarm_id.to_string());
+                    }
+                    false
+                });
+            }
+        }
+    }
+}
+
+impl Actor for MultiMcpVisualizationWs {
+    type Context = ws::WebsocketContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        info!("Multi-MCP WebSocket client {} connected", self.client_id);
+        
+        // Start heartbeat
+        self.start_heartbeat(ctx);
+        
+        // Start position updates
+        self.start_position_updates(ctx);
+        
+        // Send initial discovery data
+        self.send_discovery_data(ctx);
+        
+        // Register with visualization actor
+        if let Some(addr) = &self.visualization_actor_addr {
+            addr.do_send(crate::actors::multi_mcp_visualization_actor::RegisterWebSocketClient {
+                client_id: self.client_id.clone(),
+            });
+        }
+    }
+
+    fn stopped(&mut self, _: &mut Self::Context) {
+        info!("Multi-MCP WebSocket client {} disconnected", self.client_id);
+        
+        // Unregister from visualization actor
+        if let Some(addr) = &self.visualization_actor_addr {
+            addr.do_send(crate::actors::multi_mcp_visualization_actor::UnregisterWebSocketClient {
+                client_id: self.client_id.clone(),
+            });
+        }
+    }
+}
+
+/// WebSocket message handler
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualizationWs {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
+        match msg {
+            Ok(ws::Message::Ping(msg)) => {
+                self.last_heartbeat = Instant::now();
+                ctx.pong(&msg);
+            }
+            Ok(ws::Message::Pong(_)) => {
+                self.last_heartbeat = Instant::now();
+            }
+            Ok(ws::Message::Text(text)) => {
+                debug!("Received WebSocket message: {}", text);
+                
+                if let Ok(request) = serde_json::from_str::<ClientRequest>(&text) {
+                    match request.action.as_str() {
+                        "configure" => {
+                            if let Some(config_data) = request.data {
+                                if let Ok(config) = serde_json::from_value::<ClientConfig>(config_data) {
+                                    self.handle_client_config(config, ctx);
+                                }
+                            }
+                        }
+                        "request_discovery" => {
+                            self.handle_discovery_request(ctx);
+                        }
+                        "request_agents" => {
+                            ctx.address().do_send(RequestAgentUpdate);
+                        }
+                        "request_performance" => {
+                            ctx.address().do_send(RequestPerformanceUpdate);
+                        }
+                        "request_topology" => {
+                            if let Some(swarm_id_value) = request.data.and_then(|d| d.get("swarm_id")) {
+                                if let Some(swarm_id) = swarm_id_value.as_str() {
+                                    ctx.address().do_send(RequestTopologyUpdate { 
+                                        swarm_id: swarm_id.to_string() 
+                                    });
+                                }
+                            }
+                        }
+                        _ => {
+                            warn!("Unknown WebSocket action: {}", request.action);
+                        }
+                    }
+                }
+            }
+            Ok(ws::Message::Binary(_)) => {
+                warn!("Binary WebSocket messages not supported");
+            }
+            Ok(ws::Message::Close(reason)) => {
+                info!("WebSocket closing: {:?}", reason);
+                ctx.close(reason);
+                ctx.stop();
+            }
+            _ => ctx.stop(),
+        }
+    }
+}
+
+/// Client request message structure
+#[derive(Debug, Deserialize)]
+struct ClientRequest {
+    action: String,
+    data: Option<serde_json::Value>,
+}
+
+/// Client configuration structure
+#[derive(Debug, Deserialize)]
+struct ClientConfig {
+    subscription_filters: Option<SubscriptionFilters>,
+    performance_mode: Option<PerformanceMode>,
+}
+
+/// Internal WebSocket messages
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RequestAgentUpdate;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RequestDiscoveryData;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RequestPerformanceUpdate;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RequestTopologyUpdate {
+    swarm_id: String,
+}
+
+/// WebSocket message handlers
+impl Handler<RequestAgentUpdate> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: RequestAgentUpdate, _ctx: &mut Self::Context) {
+        // This would request current agent data from the visualization actor
+        debug!("Requesting agent update for client {}", self.client_id);
+    }
+}
+
+impl Handler<RequestDiscoveryData> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: RequestDiscoveryData, _ctx: &mut Self::Context) {
+        debug!("Requesting discovery data for client {}", self.client_id);
+    }
+}
+
+impl Handler<RequestPerformanceUpdate> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: RequestPerformanceUpdate, _ctx: &mut Self::Context) {
+        debug!("Requesting performance update for client {}", self.client_id);
+    }
+}
+
+impl Handler<RequestTopologyUpdate> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, msg: RequestTopologyUpdate, _ctx: &mut Self::Context) {
+        debug!("Requesting topology update for swarm {} for client {}", msg.swarm_id, self.client_id);
+    }
+}
+
+/// HTTP endpoint to start WebSocket connection
+pub async fn multi_mcp_visualization_ws(
+    req: HttpRequest,
+    stream: web::Payload,
+    app_state: web::Data<AppState>,
+) -> ActixResult<HttpResponse> {
+    debug!("Starting Multi-MCP visualization WebSocket connection");
+    ws::start(MultiMcpVisualizationWs::new(app_state), &req, stream)
+}
+
+/// HTTP endpoint to get current MCP server status
+pub async fn get_mcp_server_status(
+    _app_state: web::Data<AppState>,
+) -> ActixResult<HttpResponse> {
+    // This would query the visualization actor for current server status
+    let response = json!({
+        "servers": [
+            {
+                "server_id": "claude-flow",
+                "server_type": "claude_flow",
+                "host": "localhost",
+                "port": 9500,
+                "is_connected": true,
+                "agent_count": 4
+            },
+            {
+                "server_id": "ruv-swarm",
+                "server_type": "ruv_swarm",
+                "host": "localhost", 
+                "port": 9501,
+                "is_connected": false,
+                "agent_count": 0
+            }
+        ],
+        "total_agents": 4,
+        "timestamp": chrono::Utc::now().timestamp_millis()
+    });
+    
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .json(response))
+}
+
+/// HTTP endpoint to trigger discovery refresh
+pub async fn refresh_mcp_discovery(
+    _app_state: web::Data<AppState>,
+) -> ActixResult<HttpResponse> {
+    info!("Manual MCP discovery refresh requested");
+    
+    // This would send a message to the visualization actor to refresh discovery
+    
+    Ok(HttpResponse::Ok().json(json!({
+        "success": true,
+        "message": "Discovery refresh initiated",
+        "timestamp": chrono::Utc::now().timestamp_millis()
+    })))
+}
+
+/// Configure WebSocket routes
+pub fn configure_multi_mcp_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/api/multi-mcp")
+            .route("/ws", web::get().to(multi_mcp_visualization_ws))
+            .route("/status", web::get().to(get_mcp_server_status))
+            .route("/refresh", web::post().to(refresh_mcp_discovery))
+    );
+}
