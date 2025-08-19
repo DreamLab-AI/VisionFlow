@@ -7,15 +7,17 @@ VisionFlow is a high-performance, GPU-accelerated platform for real-time visuali
 ## Quick Navigation
 
 ### 🚀 Get Started
+- [Getting Started Guide](getting-started.md) - Complete setup and first launch
 - [Installation & Setup](getting-started/installation.md) - Docker, development setup
 - [Quick Start Guide](getting-started/quickstart.md) - First graph in 5 minutes
 - [Configuration](getting-started/configuration.md) - Environment variables, settings
 
 ### 🏗️ Architecture
-- [System Overview](architecture/system-overview.md) - High-level design
-- [Component Architecture](architecture/components.md) - Actor system, services
+- [System Overview](architecture/system-overview.md) - High-level design and dual graph system
+- [Component Architecture](architecture/components.md) - Complete actor system, services, and client components
 - [Data Flow](architecture/data-flow.md) - Binary protocol, WebSocket streams
 - [GPU Computing](architecture/gpu-compute.md) - CUDA physics engine
+- [MCP Integration](architecture/mcp-integration.md) - Claude Flow agent coordination
 
 ### 📡 API Documentation
 - [REST API](api/rest/index.md) - HTTP endpoints reference
@@ -36,9 +38,8 @@ VisionFlow is a high-performance, GPU-accelerated platform for real-time visuali
 
 ### 🎯 Features
 - [Adaptive Balancing](features/adaptive-balancing.md) - Intelligent physics auto-tuning
-- [Multi-Agent Visualisation](features/multi-agent.md) - AI agent orchestration
-- [WebXR Support](features/webxr.md) - VR/AR immersive experiences
-- [Voice Interaction](features/voice.md) - Natural language interface
+- [Agent Orchestration](features/agent-orchestration.md) - AI agent coordination and visualization
+- [XR Integration](client/xr-integration.md) - VR/AR immersive experiences
 
 ## Key Features
 
@@ -183,15 +184,14 @@ sequenceDiagram
 
 | Section | Description |
 |---------|-------------|
-| **[Getting Started](getting-started/index.md)** | Installation, configuration, quickstart guides |
-| **[Architecture](architecture/index.md)** | System design, components, data flow |
+| **[Getting Started](getting-started.md)** | Installation, configuration, quickstart guides |
+| **[Architecture](architecture/index.md)** | System design, components, data flow, MCP integration |
 | **[API Reference](api/index.md)** | REST, WebSocket, MCP, binary protocols |
-| **[Client Guide](client/index.md)** | Frontend architecture, components, features |
+| **[Client Guide](client/index.md)** | Frontend architecture, components, XR integration |
 | **[Server Guide](server/index.md)** | Backend architecture, services, actors |
-| **[Features](features/index.md)** | Detailed feature documentation |
+| **[Features](features/index.md)** | Adaptive balancing, agent orchestration |
 | **[Deployment](deployment/index.md)** | Production setup, Docker, monitoring |
 | **[Development](development/index.md)** | Setup, testing, debugging, contributing |
-| **[Reference](reference/index.md)** | Configuration reference, troubleshooting |
 
 ## Recent Updates
 

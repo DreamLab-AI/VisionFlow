@@ -44,15 +44,20 @@ sequenceDiagram
 
 ### Primary WebSocket Endpoint
 ```
-ws://localhost:3001/ws
-wss://your-domain.com/ws (Production)
+ws://localhost:8080/wss
+wss://your-domain.com/wss (Production)
 ```
 
-### Specialised Endpoints
-- `/ws/graph` - Graph-specific updates
-- `/ws/physics` - Physics simulation data
-- `/ws/voice` - Voice command processing
-- `/ws/mcp` - MCP integration relay
+**Note**: The primary endpoint changed from `/ws` to `/wss` in the current implementation.
+
+### Specialized Endpoints
+
+**Based on actual server implementation (src/main.rs):**
+
+- `/wss` - Primary graph position updates (binary protocol)
+- `/ws/speech` - Voice interaction and audio streaming  
+- `/ws/mcp-relay` - MCP protocol relay and agent orchestration
+- `/api/visualization/agents/ws` - Multi-agent system visualization
 
 ## Connection Establishment
 

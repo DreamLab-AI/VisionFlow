@@ -9,7 +9,7 @@ The client is organized into a modular component architecture with clear separat
 ```mermaid
 flowchart TB
     subgraph CoreServices [Core Services & Stores]
-        APIService[api.ts]
+        APIService[services/apiService.ts]
         SettingsStore["settingsStore.ts"]
         NostrAuthSvc[nostrAuthService.ts]
         Logger[logger.ts]
@@ -22,14 +22,14 @@ flowchart TB
     end
 
     subgraph MainUILayout [Main UI Layout & Panels]
-        TwoPaneLayout[TwoPaneLayout.tsx]
+        MainLayout[MainLayout.tsx]
         RightPaneCtrlPanel[RightPaneControlPanel.tsx]
         ConversationPane[ConversationPane.tsx]
         NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
     end
 
     subgraph SettingsUI [Settings UI Components]
-        SettingsPanelRedesignOptimized[SettingsPanelRedesignOptimized.tsx]
+        SettingsPanelRedesign[SettingsPanelRedesign.tsx]
         TabsUI["Tabs.tsx"]
         SettingsSection[SettingsSection.tsx]
         SettingControlComp[SettingControlComponent.tsx]
@@ -77,20 +77,20 @@ flowchart TB
     AppInitializer --> NostrAuthSvc
     AppInitializer --> WebSocketSvc
     AppInitializer --> GraphDataMgr
-    AppInitializer --> TwoPaneLayout
+    AppInitializer --> MainLayout
     AppInitializer --> AuthUIHandler
     AppInitializer --> XRController
 
     %% UI Structure
-    TwoPaneLayout --> GraphViewport
-    TwoPaneLayout --> RightPaneCtrlPanel
-    TwoPaneLayout --> ConversationPane
-    TwoPaneLayout --> NarrativeGoldminePanel
+    MainLayout --> GraphViewport
+    MainLayout --> RightPaneCtrlPanel
+    RightPaneCtrlPanel --> ConversationPane
+    RightPaneCtrlPanel --> NarrativeGoldminePanel
 
     RightPaneCtrlPanel --> NostrAuthSection
-    RightPaneCtrlPanel --> SettingsPanelRedesignOptimized
+    RightPaneCtrlPanel --> SettingsPanelRedesign
 
-    SettingsPanelRedesignOptimized --> TabsUI
+    SettingsPanelRedesign --> TabsUI
     TabsUI --> SettingsSection
     SettingsSection --> SettingControlComp
 
@@ -184,7 +184,7 @@ flowchart TB
 
 ## Core Components
 
-### API Service ([`client/src/services/api.ts`](../../client/src/services/api.ts))
+### API Service ([`client/src/services/apiService.ts`](../../client/src/services/apiService.ts))
 Provides a centralised interface for communicating with the server REST API.
 
 **Responsibilities:**

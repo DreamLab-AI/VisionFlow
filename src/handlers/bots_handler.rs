@@ -108,7 +108,7 @@ async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>, Box
     use uuid::Uuid;
     
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "172.18.0.10".to_string());
-    let claude_flow_port = std::env::var("CLAUDE_FLOW_PORT").unwrap_or_else(|_| "9500".to_string());
+    let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
     let addr = format!("{}:{}", claude_flow_host, claude_flow_port);
     
     match TcpStream::connect(&addr).await {

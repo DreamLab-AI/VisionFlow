@@ -1,6 +1,8 @@
 # WebXR Integration
 
-This document details the WebXR integration within the LogseqXR client, enabling immersive virtual and augmented reality experiences. It covers the setup, key components, interaction handling, and how settings affect XR mode.
+This document provides an overview of VisionFlow's WebXR integration, enabling immersive virtual and augmented reality experiences. For comprehensive technical details, architecture, and implementation guides, please refer to [xr-integration.md](./xr-integration.md).
+
+VisionFlow's XR system supports Quest 3, Vision Pro, and other WebXR-compatible devices with advanced hand tracking, spatial interaction, and optimized graph visualization in 3D space.
 
 ## Overview
 

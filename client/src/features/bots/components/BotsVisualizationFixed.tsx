@@ -12,6 +12,26 @@ import { useBotsData } from '../contexts/BotsDataContext';
 
 const logger = createLogger('BotsVisualization');
 
+// CSS animations for enhanced visualizations
+const pulseKeyframes = `
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+// Inject CSS if it hasn't been added already
+if (typeof document !== 'undefined' && !document.querySelector('#bots-visualization-styles')) {
+  const style = document.createElement('style');
+  style.id = 'bots-visualization-styles';
+  style.textContent = pulseKeyframes;
+  document.head.appendChild(style);
+}
+
 // Generate mock processing logs for visualization
 const generateMockProcessingLogs = (agentType: string, status: string): string[] => {
   const logs: string[] = [];
@@ -211,7 +231,61 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
             CPU: {agent.cpuUsage.toFixed(0)}%
           </div>
         )}
+
+        {agent.memoryUsage && agent.memoryUsage > 0 && (
+          <div style={{
+            padding: '3px 8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            backgroundColor: 'rgba(155, 89, 182, 0.8)',
+            color: 'white'
+          }}>
+            MEM: {agent.memoryUsage.toFixed(0)}%
+          </div>
+        )}
+
+        {agent.successRate !== undefined && (
+          <div style={{
+            padding: '3px 8px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            backgroundColor: agent.successRate > 0.8 ? '#27AE60' :
+                            agent.successRate > 0.6 ? '#F39C12' : '#E74C3C',
+            color: 'white'
+          }}>
+            Success: {(agent.successRate * 100).toFixed(0)}%
+          </div>
+        )}
       </div>
+
+      {/* Token Usage Row */}
+      {(agent.tokens || agent.tokenRate) && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
+          {agent.tokens && (
+            <div style={{
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontSize: '10px',
+              backgroundColor: 'rgba(230, 126, 34, 0.8)',
+              color: 'white'
+            }}>
+              Tokens: {agent.tokens.toLocaleString()}
+            </div>
+          )}
+          {agent.tokenRate && (
+            <div style={{
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontSize: '10px',
+              backgroundColor: 'rgba(231, 76, 60, 0.8)',
+              color: 'white',
+              animation: agent.tokenRate > 10 ? 'pulse 1.5s ease-in-out infinite' : 'none'
+            }}>
+              Rate: {agent.tokenRate.toFixed(1)}/min
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Task Info */}
       {(agent.tasksActive > 0 || agent.tasksCompleted > 0) && (
@@ -249,6 +323,55 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
                 • {log.text}
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* Agent Capabilities */}
+      {agent.capabilities && agent.capabilities.length > 0 && (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '3px',
+          marginTop: '4px'
+        }}>
+          {agent.capabilities.slice(0, 4).map(cap => (
+            <span
+              key={cap}
+              style={{
+                fontSize: '9px',
+                padding: '1px 4px',
+                borderRadius: '3px',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                color: '#0056b3',
+                border: '1px solid rgba(0, 123, 255, 0.2)'
+              }}
+            >
+              {cap.replace(/_/g, ' ')}
+            </span>
+          ))}
+          {agent.capabilities.length > 4 && (
+            <span style={{ fontSize: '9px', color: '#999' }}>
+              +{agent.capabilities.length - 4} more
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Agent Mode and Age Info */}
+      {(agent.agentMode || agent.age) && (
+        <div style={{
+          fontSize: '9px',
+          color: '#666',
+          marginTop: '2px',
+          display: 'flex',
+          gap: '8px'
+        }}>
+          {agent.agentMode && (
+            <span>Mode: {agent.agentMode}</span>
+          )}
+          {agent.age && (
+            <span>Age: {Math.floor(agent.age / 1000 / 60)}m</span>
           )}
         </div>
       )}
@@ -314,16 +437,30 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     // Update group position (this moves everything including labels)
     groupRef.current.position.copy(position);
 
-    // Pulse animation for active agents
+    // Enhanced pulse animation based on token rate and status
     if (agent.status === 'active' || agent.status === 'busy') {
-      const pulse = Math.sin(state.clock.elapsedTime * 2 + index) * 0.1 + 1;
+      // Base pulse speed influenced by token rate
+      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1;
+      const pulseSpeed = 2 * tokenMultiplier;
+      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.1 + 1;
+      
       meshRef.current.scale.setScalar(pulse);
-      glowRef.current.scale.setScalar(pulse * 1.5);
+      
+      // Glow intensity based on token rate
+      const glowIntensity = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 1;
+      glowRef.current.scale.setScalar(pulse * 1.5 * glowIntensity);
     }
 
-    // Rotation for busy agents
+    // Enhanced rotation for busy agents (faster with higher token rate)
     if (agent.status === 'busy') {
-      meshRef.current.rotation.y += 0.01;
+      const rotationSpeed = agent.tokenRate ? 0.01 * (1 + agent.tokenRate / 50) : 0.01;
+      meshRef.current.rotation.y += rotationSpeed;
+    }
+
+    // Special high-activity animation for high token rate agents
+    if (agent.tokenRate && agent.tokenRate > 30) {
+      const vibration = Math.sin(state.clock.elapsedTime * 20) * 0.02;
+      meshRef.current.position.y += vibration;
     }
   });
 
@@ -400,15 +537,24 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   );
 };
 
-// Edge Component
+// Enhanced Edge Component with data flow visualization
 interface BotsEdgeProps {
   edge: BotsEdge;
   sourcePos: THREE.Vector3;
   targetPos: THREE.Vector3;
   color: string;
+  sourceAgent?: BotsAgent;
+  targetAgent?: BotsAgent;
 }
 
-const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos, color }) => {
+const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({ 
+  edge, 
+  sourcePos, 
+  targetPos, 
+  color, 
+  sourceAgent, 
+  targetAgent 
+}) => {
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
@@ -422,21 +568,62 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({ edge, sourcePos, targetPos
     return () => clearInterval(interval);
   }, [edge.lastMessageTime]);
 
-  const lineWidth = isActive ? 2 : 1;
-  const opacity = isActive ? 0.8 : 0.3;
+  // Calculate communication bandwidth based on connected agents' token rates
+  const sourceTokenRate = sourceAgent?.tokenRate || 0;
+  const targetTokenRate = targetAgent?.tokenRate || 0;
+  const avgTokenRate = (sourceTokenRate + targetTokenRate) / 2;
+  
+  // Enhanced visual properties based on data flow
+  const baseWidth = Math.max(1, edge.dataVolume / 1000); // Base width from data volume
+  const tokenWidth = avgTokenRate > 0 ? Math.min(avgTokenRate / 10, 3) : 0; // Additional width from token rate
+  const lineWidth = isActive ? Math.max(2, baseWidth + tokenWidth) : Math.max(1, baseWidth);
+  
+  // Opacity and color intensity based on activity
+  const baseOpacity = isActive ? 0.8 : 0.3;
+  const tokenOpacity = avgTokenRate > 10 ? Math.min(avgTokenRate / 50, 0.4) : 0;
+  const opacity = Math.min(baseOpacity + tokenOpacity, 1);
+  
+  // Color variation based on communication intensity
+  const edgeColor = isActive ? 
+    (avgTokenRate > 20 ? '#E67E22' : // Orange for high token flow
+     avgTokenRate > 10 ? '#3498DB' : // Blue for medium token flow  
+     '#2980B9') : // Dark blue for low activity
+    color;
+
+  // Animation properties for high-bandwidth connections
+  const shouldAnimate = isActive && avgTokenRate > 15;
+  const dashOffset = shouldAnimate ? -Date.now() * 0.001 : 0;
 
   return (
-    <DreiLine
-      points={[sourcePos, targetPos]}
-      color={isActive ? '#2980B9' : color}
-      lineWidth={lineWidth}
-      opacity={opacity}
-      transparent
-      dashed={!isActive}
-      dashScale={5}
-      dashSize={1}
-      dashOffset={0}
-    />
+    <>
+      {/* Main connection line */}
+      <DreiLine
+        points={[sourcePos, targetPos]}
+        color={edgeColor}
+        lineWidth={lineWidth}
+        opacity={opacity}
+        transparent
+        dashed={!isActive || shouldAnimate}
+        dashScale={shouldAnimate ? 10 : 5}
+        dashSize={shouldAnimate ? 2 : 1}
+        dashOffset={dashOffset}
+      />
+      
+      {/* High-bandwidth indicator - additional glowing line */}
+      {avgTokenRate > 25 && isActive && (
+        <DreiLine
+          points={[sourcePos, targetPos]}
+          color="#F39C12"
+          lineWidth={lineWidth * 0.5}
+          opacity={0.4}
+          transparent
+          dashed={true}
+          dashScale={15}
+          dashSize={3}
+          dashOffset={-dashOffset * 1.5}
+        />
+      )}
+    </>
   );
 };
 
@@ -605,6 +792,10 @@ export const BotsVisualization: React.FC = () => {
 
         if (!sourcePos || !targetPos) return null;
 
+        // Get source and target agents for enhanced edge visualization
+        const sourceAgent = botsData.agents.get(edge.source);
+        const targetAgent = botsData.agents.get(edge.target);
+
         return (
           <BotsEdgeComponent
             key={edge.id}
@@ -612,6 +803,8 @@ export const BotsVisualization: React.FC = () => {
             sourcePos={sourcePos}
             targetPos={targetPos}
             color={colors.edge}
+            sourceAgent={sourceAgent}
+            targetAgent={targetAgent}
           />
         );
       })}

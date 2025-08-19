@@ -74,7 +74,7 @@ impl BotsClient {
         let url = url::Url::parse(bots_url)?;
         info!("Parsed URL: {:?}", url);
 
-        match connect_async(url.clone()).await {
+        match connect_async(url.as_str()).await {
             Ok((ws_stream, response)) => {
                 info!("Successfully connected to bots orchestrator at {}", bots_url);
                 info!("WebSocket response status: {:?}", response.status());

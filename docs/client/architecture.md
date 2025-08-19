@@ -13,10 +13,10 @@ graph TB
 
         subgraph UILayer [User Interface Layer]
             MainLayout[MainLayout.tsx]
-            Quest3ARLayout[Quest3ARLayout.tsx]
+            Quest3AR[Quest3AR.tsx]
             GraphViewportUI[GraphViewport.tsx]
             RightPaneControlPanel[RightPaneControlPanel.tsx]
-            SettingsPanelRedesignOptimised[SettingsPanelRedesignOptimised.tsx]
+            SettingsPanelRedesign[SettingsPanelRedesign.tsx]
             ConversationPane[ConversationPane.tsx]
             NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
         end
@@ -28,7 +28,7 @@ graph TB
 
         subgraph APILayer [API Layer]
             NostrAuthService[nostrAuthService.ts]
-            APIService[api.ts]
+            APIService[apiService.ts]
         end
 
         Rendering["Rendering Engine"]
@@ -36,7 +36,7 @@ graph TB
         XRModule["XR Module"]
 
         AppInitializer --> MainLayout
-        AppInitializer --> Quest3ARLayout
+        AppInitializer --> Quest3AR
         AppInitializer --> SettingsStore
         AppInitializer --> GraphDataManager
         AppInitializer --> NostrAuthService
@@ -49,10 +49,10 @@ graph TB
         MainLayout --> RightPaneControlPanel
         MainLayout --> ConversationPane
         MainLayout --> NarrativeGoldminePanel
-        Quest3ARLayout --> GraphViewportUI
-        RightPaneControlPanel --> SettingsPanelRedesignOptimised
+        Quest3AR --> GraphViewportUI
+        RightPaneControlPanel --> SettingsPanelRedesign
 
-        SettingsPanelRedesignOptimised --> SettingsStore
+        SettingsPanelRedesign --> SettingsStore
         ConversationPane --> APIService
         NarrativeGoldminePanel --> APIService
 
@@ -86,10 +86,10 @@ graph TB
     style APILayer fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style AppInitializer fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style MainLayout fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style Quest3ARLayout fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style Quest3AR fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style GraphViewportUI fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style RightPaneControlPanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style SettingsPanelRedesignOptimised fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
+    style SettingsPanelRedesign fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style ConversationPane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style NarrativeGoldminePanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
     style SettingsStore fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
@@ -111,8 +111,8 @@ graph TB
 ### User Interface Layer
 The UI layer is built with React and TypeScript.
 - [`MainLayout.tsx`](../../client/src/app/MainLayout.tsx) serves as the primary layout for desktop and standard views, dividing the screen into a main visualisation area and a control panel area.
-- [`Quest3ARLayout.tsx`](../../client/src/features/xr/layouts/Quest3ARLayout.tsx) provides specialized layout for Quest 3 AR experiences.
-- [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesignOptimised.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesignOptimised.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
+- [`Quest3AR.tsx`](../../client/src/app/Quest3AR.tsx) provides specialized layout for Quest 3 AR experiences.
+- [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesign.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesign.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
 - [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx) is responsible for the main 3D graph visualisation area.
 
 ### State Management
@@ -125,7 +125,6 @@ State management is handled through a combination of **Zustand** stores and **Re
 
 #### React Contexts
 - `ApplicationModeContext` ([`client/src/contexts/ApplicationModeContext.tsx`](../../client/src/contexts/ApplicationModeContext.tsx)) - Manages application mode (desktop/mobile/XR) and layout settings
-- `WindowSizeContext` ([`client/src/contexts/WindowSizeContext.tsx`](../../client/src/contexts/WindowSizeContext.tsx)) - Provides responsive window size information to components
 - Control panel contexts for localized UI state management
 
 State changes are propagated through Zustand's subscription mechanism and React's context system, allowing components to react efficiently to specific state slices.
@@ -133,7 +132,7 @@ State changes are propagated through Zustand's subscription mechanism and React'
 ### API Layer
 The API layer handles communication with the server through REST endpoints and manages authentication:
 - Authentication and authorization: [`nostrAuthService.ts`](../../client/src/services/nostrAuthService.ts) handles Nostr-based authentication.
-- General API communication: [`api.ts`](../../client/src/services/api.ts) provides functions for interacting with other REST endpoints (graph data, files, settings).
+- General API communication: [`apiService.ts`](../../client/src/services/apiService.ts) provides functions for interacting with other REST endpoints (graph data, files, settings).
 
 ### Rendering Engine
 The rendering engine is built on **React Three Fiber (`@react-three/fiber`)** and **Three.js**, providing high-performance visualisation of graph data. Key components include:
@@ -224,7 +223,7 @@ flowchart TB
 2. **Hybrid State Management** - Combining Zustand for global state and React Context for localized state
 3. **Composition over Inheritance** - Building complex behaviors by combining simpler components and hooks
 4. **Service Layer** - Abstracting API calls and WebSocket communication into dedicated service modules:
-    - [`api.ts`](../../client/src/services/api.ts) - RESTful API communication
+    - [`apiService.ts`](../../client/src/services/apiService.ts) - RESTful API communication
     - [`WebSocketService.ts`](../../client/src/services/WebSocketService.ts) - Real-time data streaming
     - [`nostrAuthService.ts`](../../client/src/services/nostrAuthService.ts) - Authentication services
     - [`platformManager.ts`](../../client/src/services/platformManager.ts) - Platform detection and capabilities

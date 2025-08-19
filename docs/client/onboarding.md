@@ -65,31 +65,41 @@ Handles automatic flow triggers based on:
 
 ## Default Flows
 
-### First-Time User Flow
+### Welcome Tour Flow
 ```typescript
 {
-  id: 'first-time-user',
-  name: 'Welcome to LogseqXR',
+  id: 'welcome',
+  name: 'Welcome Tour',
+  description: 'Get started with the application',
   steps: [
     {
       id: 'welcome',
-      title: 'Welcome to LogseqXR',
-      description: 'Immersive knowledge graph visualisation',
-      position: 'centre'
+      title: 'Welcome to LogSeq Spring Thing!',
+      description: 'This interactive tour will help you get familiar with the main features of the application. You can skip this tour at any time or restart it later from the help menu.',
+      position: 'center'
     },
     {
       id: 'graph-view',
       title: 'Graph Visualization',
-      description: 'Your knowledge graph in 3D',
-      target: '.graph-viewport',
+      description: 'This is your main workspace where you can visualize and interact with your knowledge graph. Use your mouse to pan, zoom, and select nodes.',
+      target: 'canvas',
       position: 'right'
     },
     {
-      id: 'controls',
-      title: 'Control Panel',
-      description: 'Customize your experience',
-      target: '.right-pane-control-panel',
+      id: 'settings-panel',
+      title: 'Settings Panel',
+      description: 'Customize your visualization with various settings. You can adjust colors, node sizes, and many other visual properties.',
+      target: '.setting-control',
       position: 'left'
+    },
+    {
+      id: 'command-palette',
+      title: 'Command Palette',
+      description: 'Press Ctrl+K (or Cmd+K on Mac) to open the command palette. It provides quick access to all available commands and features.',
+      position: 'center',
+      action: () => {
+        // Demonstrates command palette functionality
+      }
     }
   ]
 }

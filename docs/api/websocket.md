@@ -516,4 +516,10 @@ function updateSceneFromWebSocket(scene: THREE.Scene, positions: Map<number, Nod
 - Fallback to JSON for unsupported clients
 - Graceful degradation of features
 
-For detailed information on the binary protocol implementation, see [Binary Protocol Documentation](./binary-protocol.md).
+For detailed information on the binary protocol implementation, see [Binary Protocol Documentation](../binary-protocol.md).
+
+## Cross-References
+
+- [Binary Protocol Specification](../binary-protocol.md) - Authoritative format definition
+- [Client WebSocket Integration](../client/websocket.md) - Client-side implementation
+- [WebSocket Protocols Overview](../api/websocket-protocols.md) - Multi-endpoint protocol guide

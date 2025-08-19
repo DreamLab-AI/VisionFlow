@@ -29,13 +29,15 @@ This is the main entry point for the 3D scene. It wraps the Three.js `Canvas` co
 
 ### `GraphManager.tsx` (`client/src/features/graph/components/GraphManager.tsx`)
 
-This component is central to rendering the graph's nodes and edges. It receives processed graph data and efficiently renders it in the 3D scene.
+This component is central to rendering the graph's nodes and edges. It receives processed graph data from the `GraphDataManager` and efficiently renders it in the 3D scene using React Three Fiber.
 
 **Responsibilities:**
--   Manages the creation and updating of 3D objects for nodes and edges.
--   Utilizes **instancing** for nodes and edges to draw many similar objects with a single draw call, significantly improving performance for large graphs.
--   Applies visual properties (color, size, material) based on settings and node/edge attributes.
--   Orchestrates updates to node positions and other dynamic properties based on physics simulation data received from the server.
+-   Manages the creation and updating of 3D objects for nodes and edges
+-   Utilizes **instanced rendering** for nodes and edges to draw many similar objects with a single draw call, significantly improving performance for large graphs
+-   Applies visual properties (color, size, material) based on settings and node/edge attributes
+-   Orchestrates updates to node positions and other dynamic properties based on physics simulation data received from the server via binary protocol
+-   Supports dual-graph rendering for both Logseq and VisionFlow graph types simultaneously
+-   Integrates with post-processing effects and visual enhancements
 
 ### `GraphViewport.tsx` (`client/src/features/graph/components/GraphViewport.tsx`)
 
@@ -65,7 +67,7 @@ Edges are rendered as lines or thin cylinders connecting nodes.
 
 ## Text Rendering
 
-### `TextRenderer.tsx` (`client/src/features/visualization/renderers/TextRenderer.tsx`)
+### `TextRenderer.tsx` (`client/src/features/visualisation/renderers/TextRenderer.tsx`)
 
 This component is responsible for rendering text labels (e.g., node names, metadata) in the 3D scene.
 
@@ -76,7 +78,7 @@ This component is responsible for rendering text labels (e.g., node names, metad
 
 ## Custom Shaders
 
-### `HologramMaterial.tsx` (`client/src/features/visualization/renderers/materials/HologramMaterial.tsx`)
+### `HologramMaterial.tsx` (`client/src/features/visualisation/renderers/materials/HologramMaterial.tsx`)
 
 This module defines a custom Three.js `ShaderMaterial` used to create a distinctive holographic visual effect for certain nodes or elements.
 
@@ -87,6 +89,28 @@ This module defines a custom Three.js `ShaderMaterial` used to create a distinct
     -   Edge glow or outline effects.
 -   Integrates with R3F by being exposed as a custom material component.
 
-## Distinction from `visualization.md`
+## Graph Data Management
 
-While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualization.md` (when populated) will focus on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node color representing file type), and the overall user experience of interacting with the visualized knowledge graph.
+### `GraphDataManager` (`client/src/features/graph/managers/graphDataManager.ts`)
+
+The GraphDataManager serves as the central hub for managing graph data flow between the WebSocket service and the 3D rendering components.
+
+**Key Features:**
+- **Binary Protocol Integration**: Processes incoming binary position updates via the 28-byte format
+- **Dual Graph Support**: Manages separate data streams for Logseq and VisionFlow graphs
+- **Real-time Updates**: Handles 60fps position synchronization from server-side physics
+- **Event Broadcasting**: Notifies rendering components of data changes
+- **Memory Management**: Efficiently manages large graph datasets with cleanup utilities
+
+### `GraphWorkerProxy` (`client/src/features/graph/managers/graphWorkerProxy.ts`)
+
+Handles heavy graph processing operations in Web Workers to maintain 60fps UI performance.
+
+**Responsibilities:**
+- **Background Processing**: Offloads complex calculations from main thread
+- **Data Transformation**: Converts server data to render-ready format
+- **Performance Optimization**: Prevents UI blocking during large graph updates
+
+## Distinction from `visualisation.md`
+
+While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` focuses on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node color representing file type), and the overall user experience of interacting with the visualized knowledge graph.

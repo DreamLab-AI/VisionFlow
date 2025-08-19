@@ -18,7 +18,7 @@ graph TB
         Flow[/wss<br/>Binary Graph Updates]
         Speech[/ws/speech<br/>Voice Streaming]
         MCP[/ws/mcp-relay<br/>MCP Protocol]
-        Bots[/ws/bots_visualization<br/>Agent Updates]
+        Bots[/api/visualization/agents/ws<br/>Agent Updates]
     end
 
     subgraph "Backend Handlers"
@@ -44,10 +44,11 @@ graph TB
 ## WebSocket Endpoints
 
 ### 1. Socket Flow Stream
-- **Endpoint**: `/wss`
+- **Endpoint**: `/wss` (Production: `wss://your-domain.com/wss`)
 - **Purpose**: Real-time graph position updates
 - **Protocol**: Binary (28-byte format) + JSON control
 - **Update Rate**: 5-60 FPS (dynamic)
+- **Binary Format**: Defined in [Binary Protocol](../binary-protocol.md)
 
 ### 2. Speech Stream
 - **Endpoint**: `/ws/speech`
@@ -61,25 +62,30 @@ graph TB
 - **Protocol**: JSON-RPC 2.0
 - **Features**: Tool invocation, agent orchestration
 
-### 4. Bots Visualization
-- **Endpoint**: `/ws/bots_visualization`
-- **Purpose**: Multi Agent Visualisation updates
-- **Protocol**: JSON with agent states and metrics
+### 4. Agent Visualization
+- **Endpoint**: `/api/visualization/agents/ws`
+- **Purpose**: Multi-Agent system visualization and monitoring
+- **Protocol**: JSON with agent states, metrics, and position updates
 - **Update Rate**: 16 ms intervals (~60 FPS)
+- **Features**: Agent status tracking, performance metrics, swarm coordination
 
 ## Binary Protocol Specification
 
 ### Position Update Format (28 bytes)
 
+**Reference:** This format is defined authoritatively in [Binary Protocol Specification](../binary-protocol.md).
+
 ```
 Offset  Size  Type      Description
-0       4     uint32    Node/Agent ID (with type flags)
-4       4     float32   Position X
-8       4     float32   Position Y
-12      4     float32   Position Z
-16      4     float32   Velocity X
-20      4     float32   Velocity Y
-24      4     float32   Velocity Z
+0       4     u32       Node/Agent ID (with type flags)
+4       4     f32       Position X (IEEE 754)
+8       4     f32       Position Y (IEEE 754)
+12      4     f32       Position Z (IEEE 754)
+16      4     f32       Velocity X
+20      4     f32       Velocity Y
+24      4     f32       Velocity Z
+
+All values are little-endian format.
 ```
 
 ### Node Type Flags
@@ -89,6 +95,8 @@ Offset  Size  Type      Description
 | 0x80000000 | Agent | AI agent node |
 | 0x40000000 | Knowledge | Knowledge graph node |
 | 0x00000000 | Unknown | Default/other node type |
+
+**Note:** Node ID uses lower 30 bits (0x3FFFFFFF) for actual ID.
 
 ### Binary Message Structure
 
@@ -171,6 +179,14 @@ interface WebSocketMessage<T = any> {
 }
 ```
 
+#### Request Full Snapshot
+```json
+{
+  "type": "request_full_snapshot",
+  "graphs": ["knowledge", "agent"]
+}
+```
+
 #### Updates Started
 ```json
 {
@@ -179,11 +195,27 @@ interface WebSocketMessage<T = any> {
 }
 ```
 
-#### Loading State
+#### Enable Randomization (Legacy)
 ```json
 {
-  "type": "loading",
-  "message": "Calculating initial layout..."
+  "type": "enableRandomization",
+  "enabled": true
+}
+```
+**Note**: Server-side randomization is deprecated. Client-side randomization is now preferred.
+
+#### Request Bots Positions
+```json
+{
+  "type": "requestBotsPositions"
+}
+```
+
+#### Bots Updates Started
+```json
+{
+  "type": "botsUpdatesStarted",
+  "timestamp": 1679417763000
 }
 ```
 
