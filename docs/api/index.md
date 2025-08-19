@@ -129,7 +129,7 @@ ws.onmessage = (event) => {
 ### 📊 Graph Management
 - [REST Endpoints](rest/graph.md) - CRUD operations for graph data
 - [WebSocket Streaming](websocket/index.md) - Real-time position updates
-- [Binary Protocol](binary-protocol.md) - Efficient position encoding
+- [Binary Protocol](../binary-protocol.md) - Efficient position encoding specification
 
 ### 🤖 Agent Orchestration
 - [Agent Control](rest/bots.md) - Manage AI agents
@@ -299,7 +299,5 @@ Deprecation notices are provided 6 months before removal.
 
 - [REST API Reference](rest/index.md)
 - [WebSocket Protocols](websocket/index.md)
-- [Binary Protocol Spec](binary-protocol.md)
+- [Binary Protocol Spec](../binary-protocol.md)
 - [MCP Integration](mcp/index.md)
-- [Error Codes](reference/error-codes.md)
-- [Migration Guide](reference/migration.md)

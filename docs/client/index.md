@@ -82,8 +82,8 @@ npm run lint
 ### Environment Configuration
 ```typescript
 // Essential environment variables
-VITE_BACKEND_URL=http://localhost:8080
-VITE_WEBSOCKET_URL=ws://localhost:8080/ws
+VITE_BACKEND_URL=http://localhost:3001
+VITE_WEBSOCKET_URL=ws://localhost:3001/wss
 VITE_XR_ENABLED=true
 VITE_DEBUG_MODE=false
 ```
