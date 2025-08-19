@@ -712,7 +712,7 @@ class WebSocketMetrics {
 
 ## References
 
-- [Binary Protocol Specification](./binary-protocol.md)
-- [REST API Documentation](./rest.md)
-- [WebSocket API Reference](./websocket.md)
+- [Binary Protocol Specification](../binary-protocol.md)
+- [REST API Documentation](rest/index.md)
+- [WebSocket API Reference](websocket/index.md)
 - [VisionFlow Architecture](../architecture/system-overview.md)
