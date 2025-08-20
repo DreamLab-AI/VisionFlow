@@ -178,6 +178,21 @@ pub struct AutoBalanceConfig {
     pub oscillation_detection_frames: usize,
     pub oscillation_change_threshold: f32,
     pub min_oscillation_changes: usize,
+    
+    // New CUDA kernel parameter tuning thresholds
+    pub grid_cell_size_min: f32,
+    pub grid_cell_size_max: f32,
+    pub repulsion_cutoff_min: f32,
+    pub repulsion_cutoff_max: f32,
+    pub repulsion_softening_min: f32,
+    pub repulsion_softening_max: f32,
+    pub center_gravity_min: f32,
+    pub center_gravity_max: f32,
+    
+    // Spatial hashing effectiveness thresholds
+    pub spatial_hash_efficiency_threshold: f32,
+    pub cluster_density_threshold: f32,
+    pub numerical_instability_threshold: f32,
 }
 
 impl AutoBalanceConfig {
@@ -195,11 +210,27 @@ impl AutoBalanceConfig {
             oscillation_detection_frames: 10,
             oscillation_change_threshold: 5.0,
             min_oscillation_changes: 5,
+            
+            // New CUDA kernel parameter defaults for tuning ranges
+            grid_cell_size_min: 1.0,
+            grid_cell_size_max: 50.0,
+            repulsion_cutoff_min: 5.0,
+            repulsion_cutoff_max: 200.0,
+            repulsion_softening_min: 1e-6,
+            repulsion_softening_max: 1.0,
+            center_gravity_min: 0.0,
+            center_gravity_max: 0.1,
+            
+            // Spatial hashing and numerical stability thresholds
+            spatial_hash_efficiency_threshold: 0.3, // Below 30% efficiency triggers grid_cell_size adjustment
+            cluster_density_threshold: 50.0, // Nodes per unit area that indicates clustering
+            numerical_instability_threshold: 1e-3, // Threshold for detecting numerical issues
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,
@@ -245,6 +276,11 @@ pub struct PhysicsSettings {
     pub cluster_count: u32,
     pub clustering_resolution: f32,
     pub clustering_iterations: u32,
+    // New CUDA kernel parameters
+    pub repulsion_softening_epsilon: f32,
+    pub center_gravity_k: f32,
+    pub grid_cell_size: f32,
+    pub rest_length: f32,
 }
 
 impl Default for PhysicsSettings {
@@ -290,6 +326,11 @@ impl Default for PhysicsSettings {
             cluster_count: 5,
             clustering_resolution: 1.0,
             clustering_iterations: 30,
+            // New CUDA kernel parameter defaults
+            repulsion_softening_epsilon: 0.1,
+            center_gravity_k: 0.0001,
+            grid_cell_size: 10.0,
+            rest_length: 1.0,
         }
     }
 }
@@ -753,6 +794,7 @@ pub struct ClusteringConfiguration {
 
 // Helper struct for physics updates
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
     pub spring_k: Option<f32>,
@@ -792,6 +834,11 @@ pub struct PhysicsUpdate {
     pub cluster_count: Option<u32>,
     pub clustering_resolution: Option<f32>,
     pub clustering_iterations: Option<u32>,
+    // New CUDA kernel parameters
+    pub repulsion_softening_epsilon: Option<f32>,
+    pub center_gravity_k: Option<f32>,
+    pub grid_cell_size: Option<f32>,
+    pub rest_length: Option<f32>,
 }
 
 // Single unified settings struct

@@ -85,20 +85,18 @@ RUN nvcc --version && \
     echo "CUDA compilation test passed for sm_${CUDA_ARCH}" && \
     rm -f test.cu test.o
 
-# Compile the unified PTX kernel inside the container
+# Compile the rewritten unified PTX kernel with C++17 support
 RUN mkdir -p /app/src/utils/ptx && \
     cd /app && \
     nvcc -ptx \
         -arch=sm_${CUDA_ARCH} \
         -O3 \
-        --use_fast_math \
+        --std=c++17 \
+        -Xcompiler "-Wno-float-conversion" \
         --restrict \
-        --ftz=true \
-        --prec-div=false \
-        --prec-sqrt=false \
         src/utils/visionflow_unified.cu \
-        -o src/utils/ptx/visionflow_unified.ptx && \
-    echo "PTX kernel compiled successfully for sm_${CUDA_ARCH}" && \
+        -o src/utils/ptx/visionflow_unified_rewrite.ptx && \
+    echo "Rewritten PTX kernel compiled successfully for sm_${CUDA_ARCH}" && \
     ls -la src/utils/ptx/
 
 # Build argument for features (gpu or empty for CPU-only)

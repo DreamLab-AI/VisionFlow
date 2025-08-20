@@ -96,10 +96,10 @@ visualisation:
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
         attraction_k: 8.378364
-        bounds_size: 5000.0
+        bounds_size: 0.0
         separation_radius: 2.0
         damping: 0.92
-        enable_bounds: true
+        enable_bounds: false
         enabled: true
         iterations: 50
         max_velocity: 3.0
@@ -114,18 +114,22 @@ visualisation:
         gravity: 0.0001
         stress_weight: 0.5847028
         stress_alpha: 0.55261546
-        boundary_limit: 44.637775
+        boundary_limit: 0.0
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
-        min_distance: 0.44966576
-        max_repulsion_dist: 50.0
+        min_distance: 1.0  # Was 0.44966576, too small
+        max_repulsion_dist: 50.0  # Keep as is
+        repulsion_softening_epsilon: 0.0001  # Prevents division by zero in force calculations
+        center_gravity_k: 0.0  # Gravity toward center (0 = disabled)
+        grid_cell_size: 50.0  # Spatial grid resolution for neighbor searches
+        rest_length: 50.0  # Natural spring rest length
         boundary_margin: 0.85
-        boundary_force_strength: 2.0
-        warmup_iterations: 219
+        boundary_force_strength: 0.0
+        warmup_iterations: 100  # Was 219, reduce for faster startup
         warmup_curve: quadratic
         zero_velocity_iterations: 5
-        cooling_rate: 0.0036785465
+        cooling_rate: 0.001  # Was 0.0036785465, simplify
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
@@ -180,10 +184,10 @@ visualisation:
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
         attraction_k: 0.0001
-        bounds_size: 5000.0
+        bounds_size: 0.0
         separation_radius: 2.0
         damping: 0.95
-        enable_bounds: true
+        enable_bounds: false
         enabled: true
         iterations: 100
         max_velocity: 1.0
@@ -198,18 +202,22 @@ visualisation:
         gravity: 0.0001
         stress_weight: 0.1
         stress_alpha: 0.1
-        boundary_limit: 490.0
+        boundary_limit: 0.0
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
-        min_distance: 0.15
-        max_repulsion_dist: 50.0
+        min_distance: 1.0  # Was 0.15, too small
+        max_repulsion_dist: 50.0  # Keep as is
+        repulsion_softening_epsilon: 0.0001  # Prevents division by zero in force calculations
+        center_gravity_k: 0.0  # Gravity toward center (0 = disabled)
+        grid_cell_size: 50.0  # Spatial grid resolution for neighbor searches
+        rest_length: 50.0  # Natural spring rest length
         boundary_margin: 0.85
-        boundary_force_strength: 2.0
-        warmup_iterations: 200
+        boundary_force_strength: 0.0
+        warmup_iterations: 100  # Was 200, reduce for faster startup
         warmup_curve: quadratic
         zero_velocity_iterations: 5
-        cooling_rate: 0.0001
+        cooling_rate: 0.001  # Was 0.0001, simplify
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0

@@ -44,10 +44,25 @@ export interface GraphUpdateMessage {
 
 // Physics settings per graph type
 export interface GraphPhysicsConfig {
-  springStrength: number;
-  damping: number;
-  maxVelocity: number;
-  updateThreshold: number;
+  // Core physics parameters (updated ranges)
+  spring_k: number; // 0.01-2.0
+  repel_k: number; // 0.01-10.0
+  max_velocity: number; // 0.1-50.0
+  damping: number; // 0.5-0.99
+  
+  // New CUDA kernel parameters
+  rest_length: number; // default: 50.0
+  repulsion_cutoff: number; // default: 50.0
+  repulsion_softening_epsilon: number; // default: 0.0001
+  center_gravity_k: number; // default: 0.0
+  grid_cell_size: number; // default: 50.0
+  warmup_iterations: number; // default: 100
+  cooling_rate: number; // default: 0.001
+  feature_flags: number; // default: 7
+  
+  // Legacy parameters (maintained for compatibility)
+  springStrength?: number;
+  updateThreshold?: number;
   nodeRepulsion?: number;
   linkDistance?: number;
   gravityStrength?: number;
@@ -76,9 +91,24 @@ export interface GraphTypeConfig {
 export const DEFAULT_GRAPH_CONFIG: GraphTypeConfig = {
   logseq: {
     physics: {
-      springStrength: 0.2,
+      // Core physics parameters
+      spring_k: 0.2,
+      repel_k: 1.0,
+      max_velocity: 5.0,
       damping: 0.95,
-      maxVelocity: 0.02,
+      
+      // New CUDA kernel parameters
+      rest_length: 50.0,
+      repulsion_cutoff: 50.0,
+      repulsion_softening_epsilon: 0.0001,
+      center_gravity_k: 0.0,
+      grid_cell_size: 50.0,
+      warmup_iterations: 100,
+      cooling_rate: 0.001,
+      feature_flags: 7,
+      
+      // Legacy parameters (for compatibility)
+      springStrength: 0.2,
       updateThreshold: 0.05,
       nodeRepulsion: 10,
       linkDistance: 30
@@ -91,9 +121,24 @@ export const DEFAULT_GRAPH_CONFIG: GraphTypeConfig = {
   },
   visionflow: {
     physics: {
-      springStrength: 0.3,
+      // Core physics parameters
+      spring_k: 0.3,
+      repel_k: 2.0,
+      max_velocity: 10.0,
       damping: 0.95,
-      maxVelocity: 0.5,
+      
+      // New CUDA kernel parameters
+      rest_length: 50.0,
+      repulsion_cutoff: 50.0,
+      repulsion_softening_epsilon: 0.0001,
+      center_gravity_k: 0.1,
+      grid_cell_size: 50.0,
+      warmup_iterations: 100,
+      cooling_rate: 0.001,
+      feature_flags: 7,
+      
+      // Legacy parameters (for compatibility)
+      springStrength: 0.3,
       updateThreshold: 0.1,
       nodeRepulsion: 15,
       linkDistance: 20,

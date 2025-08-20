@@ -67,6 +67,7 @@ use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
 use crate::actors::gpu_compute_actor::GPUComputeActor;
 use crate::models::simulation_params::SimulationParams;
+use crate::config::AutoBalanceConfig;
 
 // Advanced physics and AI modules
 use crate::models::constraints::{ConstraintSet, Constraint, AdvancedParams};
@@ -137,6 +138,12 @@ impl GraphServiceActor {
         self.simulation_params.spring_k = self.simulation_params.spring_k * (1.0 - rate) + self.target_params.spring_k * rate;
         self.simulation_params.viewport_bounds = self.simulation_params.viewport_bounds * (1.0 - rate) + self.target_params.viewport_bounds * rate;
         
+        // New CUDA kernel parameters - smooth transitions
+        self.simulation_params.max_repulsion_dist = self.simulation_params.max_repulsion_dist * (1.0 - rate) + self.target_params.max_repulsion_dist * rate;
+        self.simulation_params.boundary_force_strength = self.simulation_params.boundary_force_strength * (1.0 - rate) + self.target_params.boundary_force_strength * rate;
+        self.simulation_params.cooling_rate = self.simulation_params.cooling_rate * (1.0 - rate) + self.target_params.cooling_rate * rate;
+        self.simulation_params.attraction_k = self.simulation_params.attraction_k * (1.0 - rate) + self.target_params.attraction_k * rate;
+        
         // For boolean values, switch immediately when more than halfway
         if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32).abs() > 0 {
             self.simulation_params.enable_bounds = self.target_params.enable_bounds;
@@ -146,7 +153,11 @@ impl GraphServiceActor {
     fn set_target_params(&mut self, new_params: SimulationParams) {
         self.target_params = new_params;
         // Optionally increase transition rate for urgent changes
-        if (self.target_params.damping - self.simulation_params.damping).abs() > 0.3 {
+        let damping_change = (self.target_params.damping - self.simulation_params.damping).abs();
+        let repulsion_cutoff_change = (self.target_params.max_repulsion_dist - self.simulation_params.max_repulsion_dist).abs();
+        let grid_cell_change = (self.target_params.boundary_force_strength - self.simulation_params.boundary_force_strength).abs();
+        
+        if damping_change > 0.3 || repulsion_cutoff_change > 20.0 || grid_cell_change > 0.5 {
             self.param_transition_rate = 0.2; // Faster transition for large changes
         } else {
             self.param_transition_rate = 0.1; // Normal transition rate
@@ -701,6 +712,74 @@ impl GraphServiceActor {
         info!("Generated hierarchical layer constraints for {} depths", depth_layers.len());
     }
 
+    /// Helper method to detect spatial hashing effectiveness issues
+    fn detect_spatial_hashing_issues(&self, positions: &[(f32, f32, f32)], config: &AutoBalanceConfig) -> (bool, f32) {
+        if positions.len() < 2 {
+            return (false, 1.0);
+        }
+        
+        let current_grid_cell_size = self.simulation_params.max_repulsion_dist; // Used as grid_cell_size proxy
+        let mut clustering_detected = false;
+        let mut efficiency_score = 1.0;
+        
+        // Calculate average inter-node distance to assess grid efficiency
+        let mut total_distance = 0.0f32;
+        let mut distance_count = 0;
+        
+        for i in 0..positions.len() {
+            for j in i+1..std::cmp::min(i+10, positions.len()) { // Sample to avoid O(n²) complexity
+                let pos1 = positions[i];
+                let pos2 = positions[j];
+                let dist = ((pos1.0 - pos2.0).powi(2) + (pos1.1 - pos2.1).powi(2) + (pos1.2 - pos2.2).powi(2)).sqrt();
+                total_distance += dist;
+                distance_count += 1;
+            }
+        }
+        
+        let avg_distance = if distance_count > 0 { total_distance / distance_count as f32 } else { 1.0 };
+        
+        // If average distance is much smaller than grid cell size, we have clustering issues
+        if avg_distance < current_grid_cell_size * 0.5 {
+            clustering_detected = true;
+            efficiency_score = avg_distance / current_grid_cell_size;
+        }
+        
+        // Check for excessive clustering (too many nodes in small areas)
+        let cluster_density = positions.len() as f32 / (avg_distance * avg_distance);
+        if cluster_density > config.cluster_density_threshold {
+            clustering_detected = true;
+            efficiency_score = efficiency_score.min(0.3);
+        }
+        
+        (clustering_detected, efficiency_score)
+    }
+    
+    /// Helper method to detect numerical instability
+    fn detect_numerical_instability(&self, positions: &[(f32, f32, f32)], config: &AutoBalanceConfig) -> bool {
+        // Check for NaN or infinite positions
+        for &(x, y, z) in positions {
+            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+                return true;
+            }
+        }
+        
+        // Check for excessive velocities in kinetic energy history
+        if let Some(&recent_ke) = self.kinetic_energy_history.last() {
+            if recent_ke > config.numerical_instability_threshold {
+                // Check if kinetic energy is growing exponentially
+                if self.kinetic_energy_history.len() >= 5 {
+                    let last_5: Vec<f32> = self.kinetic_energy_history.iter().rev().take(5).cloned().collect();
+                    let is_growing = last_5.windows(2).all(|w| w[0] > w[1] * 1.5);
+                    if is_growing {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        false
+    }
+
     pub fn update_node_positions(&mut self, positions: Vec<(u32, BinaryNodeData)>) {
         let mut updated_count = 0;
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
@@ -814,8 +893,17 @@ impl GraphServiceActor {
                 if now - LAST_AUTO_BALANCE >= interval {
                     LAST_AUTO_BALANCE = now;
                     
-                    // Detect if we've found a minima (stable state) using both position and kinetic energy
+                    // Prepare position data for advanced analysis
+                    let position_data: Vec<(f32, f32, f32)> = self.node_map.values()
+                        .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+                        .collect();
+                    
+                    // Detect spatial hashing issues
                     let config = &self.simulation_params.auto_balance_config;
+                    let (has_spatial_issues, efficiency_score) = self.detect_spatial_hashing_issues(&position_data, config);
+                    let has_numerical_instability = self.detect_numerical_instability(&position_data, config);
+                    
+                    // Detect if we've found a minima (stable state) using both position and kinetic energy
                     let is_stable = if self.auto_balance_history.len() >= 30 && self.kinetic_energy_history.len() >= 30 {
                         // Check position variance
                         let recent_avg = self.auto_balance_history[self.auto_balance_history.len()-30..]
@@ -904,18 +992,25 @@ impl GraphServiceActor {
                               self.target_params.max_velocity);
                         
                     } else if extreme_count > 0 || max_distance > config.spreading_distance_threshold {
-                        // Nodes spreading too far - INCREASE ATTRACTION, not reduce repulsion
-                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), increasing attractive forces", max_distance);
+                        // Nodes spreading too far - INCREASE ATTRACTION and CENTER GRAVITY
+                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), increasing attractive and centering forces", max_distance);
                         self.stable_count = 0;
                         
                         // Calculate how much to increase attraction based on spread
                         let spread_ratio = (max_distance / config.spreading_distance_threshold).min(3.0);
                         let attraction_boost = 1.0 + (spread_ratio - 1.0) * 0.2; // Up to 40% increase
+                        let gravity_boost = 1.0 + (spread_ratio - 1.0) * 0.5; // Up to 100% increase for gravity
                         
                         let mut new_target = self.target_params.clone();
                         // CORRECT: Increase attractive forces to pull nodes together
                         new_target.spring_k = (self.simulation_params.spring_k * attraction_boost).min(0.1);
                         new_target.attraction_k = (self.simulation_params.attraction_k * attraction_boost).min(0.5);
+                        
+                        // NEW: Adjust center gravity through cooling_rate proxy (center_gravity_k equivalent)
+                        new_target.cooling_rate = (self.simulation_params.cooling_rate * gravity_boost)
+                            .max(config.center_gravity_min)
+                            .min(config.center_gravity_max);
+                        
                         // Slightly reduce max velocity to allow settling
                         new_target.max_velocity = (self.simulation_params.max_velocity * 0.9).max(1.0);
                         // Keep repulsion stable or slightly increase to maintain structure
@@ -925,13 +1020,13 @@ impl GraphServiceActor {
                         // Boundaries should only be enabled if explicitly set in config
                         // Keep existing enable_bounds setting from simulation_params
                         
-                        info!("[AUTO-BALANCE] Increased attraction - spring_k: {:.3}, attraction_k: {:.3}, repel_k: {:.3}", 
-                              new_target.spring_k, new_target.attraction_k, new_target.repel_k);
+                        info!("[AUTO-BALANCE] Increased containment - spring_k: {:.3}, attraction_k: {:.3}, center_gravity: {:.6}, repel_k: {:.3}", 
+                              new_target.spring_k, new_target.attraction_k, new_target.cooling_rate, new_target.repel_k);
                         
                         self.set_target_params(new_target);
                         
                         // Send notification to client
-                        self.send_auto_balance_notification("Adaptive Balancing: Increasing attraction to contain spreading");
+                        self.send_auto_balance_notification("Adaptive Balancing: Increasing containment forces to prevent spreading");
                     } else if extreme_count == 0 && max_distance < config.clustering_distance_threshold {
                         // Nodes too clustered - increase repulsion AND reduce attraction
                         info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, adjusting forces", max_distance);
@@ -953,6 +1048,71 @@ impl GraphServiceActor {
                         
                         // Send notification to client
                         self.send_auto_balance_notification("Adaptive Balancing: Expanding clustered nodes");
+                    } else if has_numerical_instability {
+                        // Critical: Numerical instability detected - emergency parameter adjustment
+                        info!("[AUTO-BALANCE] NUMERICAL INSTABILITY detected - emergency parameter adjustment");
+                        self.stable_count = 0;
+                        
+                        let mut new_target = self.target_params.clone();
+                        
+                        // Increase repulsion softening to prevent division by zero
+                        new_target.cooling_rate = (self.simulation_params.cooling_rate * 10.0).min(config.repulsion_softening_max);
+                        
+                        // Reduce time step and forces for numerical stability
+                        new_target.dt = (self.simulation_params.dt * 0.5).max(0.001);
+                        new_target.max_force = (self.simulation_params.max_force * 0.8).max(1.0);
+                        new_target.max_velocity = (self.simulation_params.max_velocity * 0.7).max(0.1);
+                        
+                        // Increase damping for stability
+                        new_target.damping = (self.simulation_params.damping * 1.2).min(0.99);
+                        
+                        self.param_transition_rate = 0.3; // Fast emergency transition
+                        self.set_target_params(new_target);
+                        self.send_auto_balance_notification("Adaptive Balancing: Emergency - Fixing numerical instability");
+                        
+                    } else if has_spatial_issues && efficiency_score < config.spatial_hash_efficiency_threshold {
+                        // Spatial hashing is inefficient - adjust grid parameters
+                        info!("[AUTO-BALANCE] Spatial hashing inefficiency detected (score: {:.2})", efficiency_score);
+                        self.stable_count = 0;
+                        
+                        let mut new_target = self.target_params.clone();
+                        
+                        // Adjust grid cell size based on average inter-node distance
+                        let avg_distance = if !position_data.is_empty() {
+                            let mut total_dist = 0.0f32;
+                            let mut count = 0;
+                            for i in 0..std::cmp::min(position_data.len(), 20) {
+                                for j in i+1..std::cmp::min(i+5, position_data.len()) {
+                                    let pos1 = position_data[i];
+                                    let pos2 = position_data[j];
+                                    let dist = ((pos1.0 - pos2.0).powi(2) + (pos1.1 - pos2.1).powi(2) + (pos1.2 - pos2.2).powi(2)).sqrt();
+                                    total_dist += dist;
+                                    count += 1;
+                                }
+                            }
+                            if count > 0 { total_dist / count as f32 } else { 10.0 }
+                        } else { 10.0 };
+                        
+                        // Set grid cell size to approximately 2x average distance for optimal spatial hashing
+                        let optimal_grid_cell_size = (avg_distance * 2.0)
+                            .max(config.grid_cell_size_min)
+                            .min(config.grid_cell_size_max);
+                        
+                        // Update repulsion cutoff to match grid efficiency
+                        new_target.max_repulsion_dist = optimal_grid_cell_size * 1.5; // Slightly larger than grid cell
+                        
+                        // Adjust repulsion softening based on clustering
+                        if efficiency_score < 0.2 {
+                            // Severe clustering - increase softening
+                            new_target.cooling_rate = (self.simulation_params.cooling_rate * 2.0).min(config.repulsion_softening_max);
+                        }
+                        
+                        info!("[AUTO-BALANCE] Adjusted spatial parameters - grid_cell_proxy: {:.1}, repulsion_cutoff: {:.1}", 
+                              optimal_grid_cell_size, new_target.max_repulsion_dist);
+                        
+                        self.set_target_params(new_target);
+                        self.send_auto_balance_notification("Adaptive Balancing: Optimizing spatial hashing efficiency");
+                        
                     } else if is_stable {
                         // We've found a stable minima
                         self.stable_count += 1;

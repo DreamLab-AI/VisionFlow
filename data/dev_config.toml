@@ -9,6 +9,15 @@ spring_length_multiplier = 5.0
 spring_length_max = 10.0
 spring_force_clamp_factor = 0.5
 
+# New CUDA kernel parameters
+rest_length = 50.0                      # Natural spring rest length
+repulsion_cutoff = 50.0                 # Maximum distance for repulsion calculations  
+repulsion_softening_epsilon = 0.0001   # Prevents division by zero in force calculations
+center_gravity_k = 0.0                 # Gravity toward center (0 = disabled)
+grid_cell_size = 50.0                  # Spatial grid resolution for neighbor searches
+warmup_iterations = 100                # Number of warmup simulation steps
+cooling_rate = 0.001                   # Rate of cooling during warmup
+
 # Boundary behavior  
 boundary_extreme_multiplier = 2.0        # Nodes beyond viewport * this are extreme
 boundary_extreme_force_multiplier = 10.0 # Force multiplier for extreme positions
@@ -28,7 +37,7 @@ cluster_repulsion_scale = 0.5
 importance_scale_factor = 1.0
 
 # Distance thresholds
-repulsion_distance_squared_min = 100.0
+repulsion_distance_squared_min = 2500.0  # Updated to 50^2 for consistency with repulsion_cutoff
 stress_majorization_epsilon = 0.001
 
 [cuda]
