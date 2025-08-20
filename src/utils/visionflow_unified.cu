@@ -531,11 +531,11 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.x *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.x) > p.params.viewport_bounds * 0.98f) {
-            position.x = copysignf(p.params.viewport_bounds * 0.98f, position.x);
-            // Gentler velocity reduction for soft boundaries to prevent bouncing
-            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
-            velocity.x *= velocity_damping;
+        if (fabsf(position.x) > p.params.viewport_bounds * 0.99f) {
+            // Hard stop at 99% to leave room for boundary forces
+            position.x = copysignf(p.params.viewport_bounds * 0.99f, position.x);
+            // Reverse velocity to bounce back
+            velocity.x *= -0.5f;
         }
     }
     
@@ -557,11 +557,11 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.y *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.y) > p.params.viewport_bounds * 0.98f) {
-            position.y = copysignf(p.params.viewport_bounds * 0.98f, position.y);
-            // Gentler velocity reduction for soft boundaries to prevent bouncing
-            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
-            velocity.y *= velocity_damping;
+        if (fabsf(position.y) > p.params.viewport_bounds * 0.99f) {
+            // Hard stop at 99% to leave room for boundary forces
+            position.y = copysignf(p.params.viewport_bounds * 0.99f, position.y);
+            // Reverse velocity to bounce back
+            velocity.y *= -0.5f;
         }
     }
     
@@ -583,11 +583,11 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.z *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.z) > p.params.viewport_bounds * 0.98f) {
-            position.z = copysignf(p.params.viewport_bounds * 0.98f, position.z);
-            // Gentler velocity reduction for soft boundaries to prevent bouncing
-            float velocity_damping = (p.params.viewport_bounds > 1500.0f) ? 0.9f : 0.5f;
-            velocity.z *= velocity_damping;
+        if (fabsf(position.z) > p.params.viewport_bounds * 0.99f) {
+            // Hard stop at 99% to leave room for boundary forces
+            position.z = copysignf(p.params.viewport_bounds * 0.99f, position.z);
+            // Reverse velocity to bounce back
+            velocity.z *= -0.5f;
         }
     }
     } // End of viewport_bounds check

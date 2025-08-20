@@ -59,19 +59,25 @@ impl Node {
         // BREADCRUMB: Use node ID to generate deterministic but spread out initial positions
         // This prevents all nodes from starting at the origin which causes clustering
         let id_hash = id as f32;
-        let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
-        let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
+        
+        // Use golden ratio for even distribution in 3D space
+        let golden_ratio = 1.618033988749895;
+        let theta = 2.0 * std::f32::consts::PI * ((id_hash * golden_ratio) % 1.0);
+        let phi = ((2.0 * id_hash / 177.0) - 1.0).acos(); // Assuming ~177 nodes, adjust as needed
+        
+        // Spread nodes in a sphere with radius 500-1500 (well within 5000 boundary)
+        let radius = 500.0 + (id_hash % 1000.0);
         
         Self {
             id,
             metadata_id: metadata_id.clone(),
             label: String::new(), // Initialize as empty string, will be set from metadata later
             data: BinaryNodeData {
-                // Use spherical coordinates for initial position
+                // Use spherical coordinates for better 3D distribution
                 position: Vec3Data::new(
-                    radius * angle.cos() * 2.0,
-                    radius * angle.sin() * 2.0,
-                    (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
+                    radius * phi.sin() * theta.cos(),
+                    radius * phi.sin() * theta.sin(),
+                    radius * phi.cos(),
                 ),
                 velocity: Vec3Data::new(
                     0.0,  // Start with zero velocity

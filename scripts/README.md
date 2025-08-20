@@ -36,7 +36,7 @@ The unified launcher for all environments. Replaces all legacy launch scripts.
 
 ### GPU/CUDA Scripts
 
-- **`compile_unified_ptx.sh`** - Compiles the unified CUDA kernel to PTX
+- CUDA kernels are now compiled automatically by `build.rs` during cargo build (no separate script needed)
 
 ## Removed Legacy Scripts
 

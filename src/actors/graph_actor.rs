@@ -871,16 +871,16 @@ impl GraphServiceActor {
                             info!("[AUTO-BALANCE] DEADLOCK DETECTED! All nodes stuck. Initiating recovery...");
                             
                             let mut new_target = self.target_params.clone();
-                            // Use moderate values that allow movement but prevent explosion
-                            new_target.repel_k = 1.0;  // Restore some repulsion
-                            new_target.damping = 0.85;  // Reduce damping to allow movement
-                            new_target.max_velocity = 1.0;  // Allow reasonable velocity
-                            new_target.spring_k = 0.5;
+                            // Use stronger values to break out of boundary stuck state
+                            new_target.repel_k = 2.5;  // Strong repulsion to push nodes apart
+                            new_target.damping = 0.7;  // Lower damping for more movement
+                            new_target.max_velocity = 10.0;  // Higher velocity to escape boundaries
+                            new_target.spring_k = 1.0;  // Strong springs to pull connected nodes
                             // Keep existing boundary settings from simulation_params
                             // Don't override enable_bounds or viewport_bounds
                             
                             // Use faster transition for deadlock recovery
-                            self.param_transition_rate = 0.3;  // 30% per frame for recovery
+                            self.param_transition_rate = 0.5;  // 50% per frame for faster recovery
                             
                             self.set_target_params(new_target);
                             self.send_auto_balance_notification("Adaptive Balancing: Recovering from deadlock");
