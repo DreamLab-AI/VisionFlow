@@ -186,16 +186,8 @@ check_prerequisites() {
 # Compile CUDA kernels
 compile_cuda() {
     if [[ "$PROFILE" != "cpu" ]] && nvidia-smi &> /dev/null; then
-        log "Compiling CUDA kernels..."
-        if [[ -f "$SCRIPT_DIR/compile_unified_ptx.sh" ]]; then
-            if "$SCRIPT_DIR/compile_unified_ptx.sh"; then
-                success "CUDA kernels compiled"
-            else
-                warning "CUDA compilation failed, continuing without GPU acceleration"
-            fi
-        else
-            info "CUDA compilation script not found, will compile in container"
-        fi
+        log "CUDA kernels are compiled automatically by build.rs during cargo build"
+        # No need for separate compilation step
     fi
 }
 
