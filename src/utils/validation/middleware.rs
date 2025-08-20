@@ -1,0 +1,517 @@
+use actix_web::{
+    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    Error, HttpMessage, HttpResponse,
+};
+use futures_util::future::LocalBoxFuture;
+use std::rc::Rc;
+use std::collections::HashMap;
+use log::{warn, debug, info};
+use crate::utils::validation::sanitization::{Sanitizer, CSPUtils};
+use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, extract_client_id_from_service_request, create_rate_limit_response};
+use crate::utils::validation::{ValidationError, MAX_REQUEST_SIZE};
+use actix_web::web::Bytes;
+
+/// Request size validation middleware
+pub struct RequestSizeLimit {
+    max_size: usize,
+}
+
+impl RequestSizeLimit {
+    pub fn new(max_size: usize) -> Self {
+        Self { max_size }
+    }
+}
+
+impl Default for RequestSizeLimit {
+    fn default() -> Self {
+        Self::new(MAX_REQUEST_SIZE)
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for RequestSizeLimit
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = RequestSizeLimitMiddleware<S>;
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(RequestSizeLimitMiddleware {
+            service,
+            max_size: self.max_size,
+        }))
+    }
+}
+
+pub struct RequestSizeLimitMiddleware<S> {
+    service: S,
+    max_size: usize,
+}
+
+impl<S, B> Service<ServiceRequest> for RequestSizeLimitMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let max_size = self.max_size;
+
+        // Check Content-Length header
+        if let Some(content_length) = req.headers().get("content-length") {
+            if let Ok(length_str) = content_length.to_str() {
+                if let Ok(length) = length_str.parse::<usize>() {
+                    if length > max_size {
+                        warn!("Request rejected: Content-Length {} exceeds limit {}", length, max_size);
+                        
+                        let response = HttpResponse::PayloadTooLarge()
+                            .json(serde_json::json!({
+                                "error": "request_too_large",
+                                "message": format!("Request size {} bytes exceeds limit of {} bytes", length, max_size),
+                                "max_size": max_size
+                            }));
+                        
+                        return Box::pin(async move {
+                            Ok(req.into_response(response))
+                        });
+                    }
+                }
+            }
+        }
+
+        let fut = self.service.call(req);
+        Box::pin(async move {
+            let res = fut.await?;
+            Ok(res)
+        })
+    }
+}
+
+/// Security headers middleware
+pub struct SecurityHeaders;
+
+impl<S, B> Transform<S, ServiceRequest> for SecurityHeaders
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = SecurityHeadersMiddleware<S>;
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(SecurityHeadersMiddleware { service }))
+    }
+}
+
+pub struct SecurityHeadersMiddleware<S> {
+    service: S,
+}
+
+impl<S, B> Service<ServiceRequest> for SecurityHeadersMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let fut = self.service.call(req);
+        
+        Box::pin(async move {
+            let mut res = fut.await?;
+            
+            // Add security headers to response
+            let headers = CSPUtils::security_headers();
+            for (name, value) in headers {
+                res.headers_mut().insert(
+                    actix_web::http::header::HeaderName::from_static(name.to_lowercase().as_str()),
+                    actix_web::http::header::HeaderValue::from_static(value),
+                );
+            }
+            
+            // Add CSP header
+            res.headers_mut().insert(
+                actix_web::http::header::CONTENT_SECURITY_POLICY,
+                actix_web::http::header::HeaderValue::from_str(&CSPUtils::generate_csp_header())
+                    .unwrap_or_else(|_| actix_web::http::header::HeaderValue::from_static("default-src 'self'")),
+            );
+            
+            Ok(res)
+        })
+    }
+}
+
+/// Rate limiting middleware
+pub struct RateLimit {
+    limiter: Rc<RateLimiter>,
+    config: RateLimitConfig,
+}
+
+impl RateLimit {
+    pub fn new(config: RateLimitConfig) -> Self {
+        let limiter = RateLimiter::new(config.clone());
+        Self {
+            limiter: Rc::new(limiter),
+            config,
+        }
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for RateLimit
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = RateLimitMiddleware<S>;
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(RateLimitMiddleware {
+            service,
+            limiter: self.limiter.clone(),
+        }))
+    }
+}
+
+pub struct RateLimitMiddleware<S> {
+    service: S,
+    limiter: Rc<RateLimiter>,
+}
+
+impl<S, B> Service<ServiceRequest> for RateLimitMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let client_id = extract_client_id_from_service_request(&req);
+        let limiter = self.limiter.clone();
+        
+        if !limiter.is_allowed(&client_id) {
+            let response = create_rate_limit_response(&client_id, &limiter)
+                .unwrap_or_else(|_| HttpResponse::TooManyRequests().finish());
+            
+            return Box::pin(async move {
+                Ok(req.into_response(response))
+            });
+        }
+
+        let fut = self.service.call(req);
+        Box::pin(async move {
+            let mut res = fut.await?;
+            
+            // Add rate limit headers to response
+            let remaining = limiter.remaining_tokens(&client_id);
+            let reset_time = limiter.reset_time(&client_id);
+            
+            res.headers_mut().insert(
+                actix_web::http::header::HeaderName::from_static("x-ratelimit-remaining"),
+                actix_web::http::header::HeaderValue::from_str(&remaining.to_string()).unwrap(),
+            );
+            
+            res.headers_mut().insert(
+                actix_web::http::header::HeaderName::from_static("x-ratelimit-reset"),
+                actix_web::http::header::HeaderValue::from_str(&reset_time.as_secs().to_string()).unwrap(),
+            );
+            
+            Ok(res)
+        })
+    }
+}
+
+/// Input sanitization middleware for JSON payloads
+pub struct InputSanitizer;
+
+impl<S, B> Transform<S, ServiceRequest> for InputSanitizer
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = InputSanitizerMiddleware<S>;
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(InputSanitizerMiddleware { service }))
+    }
+}
+
+pub struct InputSanitizerMiddleware<S> {
+    service: S,
+}
+
+impl<S, B> Service<ServiceRequest> for InputSanitizerMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, mut req: ServiceRequest) -> Self::Future {
+        // Only process JSON payloads
+        let is_json = req.headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.contains("application/json"))
+            .unwrap_or(false);
+
+        if !is_json {
+            let fut = self.service.call(req);
+            return Box::pin(async move {
+                fut.await
+            });
+        }
+
+        Box::pin(async move {
+            // Extract the payload
+            let payload = req.extract::<Bytes>().await;
+            
+            match payload {
+                Ok(bytes) => {
+                    // Try to parse as JSON
+                    match serde_json::from_slice::<serde_json::Value>(&bytes) {
+                        Ok(mut json_value) => {
+                            // Sanitize the JSON
+                            match Sanitizer::sanitize_json(&mut json_value) {
+                                Ok(()) => {
+                                    // Re-serialize the sanitized JSON
+                                    match serde_json::to_vec(&json_value) {
+                                        Ok(sanitized_bytes) => {
+                                            // Create new payload with sanitized data
+                                            let (mut payload, _) = actix_web::dev::Payload::create(true);
+                                            payload.unread_data(sanitized_bytes.into());
+                                            
+                                            // Update request with sanitized payload
+                                            req.set_payload(payload);
+                                            
+                                            debug!("Request payload sanitized successfully");
+                                        }
+                                        Err(e) => {
+                                            warn!("Failed to re-serialize sanitized JSON: {}", e);
+                                            let response = HttpResponse::BadRequest()
+                                                .json(ValidationError::new(
+                                                    "payload",
+                                                    "Failed to process request payload",
+                                                    "SERIALIZATION_ERROR"
+                                                ));
+                                            return Ok(req.into_response(response));
+                                        }
+                                    }
+                                }
+                                Err(validation_error) => {
+                                    warn!("Input sanitization failed: {}", validation_error);
+                                    return Ok(req.into_response(validation_error.to_http_response()));
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            debug!("Request payload is not valid JSON ({}), skipping sanitization", e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to extract request payload: {}", e);
+                }
+            }
+
+            // Continue with the request
+            self.service.call(req).await
+        })
+    }
+}
+
+/// Validation middleware factory
+pub struct ValidationMiddlewareFactory;
+
+impl ValidationMiddlewareFactory {
+    /// Create middleware stack for API endpoints
+    pub fn create_api_middleware() -> impl Transform<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+        Error = actix_web::Error,
+        InitError = (),
+        Transform = impl Service<
+            actix_web::dev::ServiceRequest,
+            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+            Error = actix_web::Error,
+            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
+        >,
+    > {
+        actix_web::middleware::from_fn(|req, srv| {
+            Box::pin(async move {
+                // Apply request size limit
+                let size_limit = RequestSizeLimit::default();
+                let req = size_limit.new_transform(srv.clone())
+                    .await
+                    .unwrap()
+                    .call(req)
+                    .await?;
+
+                // Apply security headers
+                let security = SecurityHeaders;
+                let req = security.new_transform(srv.clone())
+                    .await
+                    .unwrap()
+                    .call(req)
+                    .await?;
+
+                // Apply input sanitization
+                let sanitizer = InputSanitizer;
+                let req = sanitizer.new_transform(srv.clone())
+                    .await
+                    .unwrap()
+                    .call(req)
+                    .await?;
+
+                Ok(req)
+            })
+        })
+    }
+
+    /// Create middleware for settings endpoints (with stricter rate limits)
+    pub fn create_settings_middleware() -> impl Transform<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+        Error = actix_web::Error,
+        InitError = (),
+        Transform = impl Service<
+            actix_web::dev::ServiceRequest,
+            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+            Error = actix_web::Error,
+            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
+        >,
+    > {
+        use crate::utils::validation::rate_limit::EndpointRateLimits;
+        
+        RateLimit::new(EndpointRateLimits::settings_update())
+    }
+
+    /// Create middleware for RAGFlow endpoints
+    pub fn create_ragflow_middleware() -> impl Transform<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+        Error = actix_web::Error,
+        InitError = (),
+        Transform = impl Service<
+            actix_web::dev::ServiceRequest,
+            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
+            Error = actix_web::Error,
+            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
+        >,
+    > {
+        use crate::utils::validation::rate_limit::EndpointRateLimits;
+        
+        RateLimit::new(EndpointRateLimits::ragflow_chat())
+    }
+}
+
+/// Logging middleware for validation events
+pub struct ValidationLogging;
+
+impl<S, B> Transform<S, ServiceRequest> for ValidationLogging
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = ValidationLoggingMiddleware<S>;
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(ValidationLoggingMiddleware { service }))
+    }
+}
+
+pub struct ValidationLoggingMiddleware<S> {
+    service: S,
+}
+
+impl<S, B> Service<ServiceRequest> for ValidationLoggingMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let method = req.method().clone();
+        let uri = req.uri().clone();
+        let client_id = extract_client_id_from_service_request(&req);
+        
+        debug!("Validation middleware processing request: {} {} from {}", method, uri, client_id);
+        
+        let fut = self.service.call(req);
+        
+        Box::pin(async move {
+            let start_time = std::time::Instant::now();
+            let res = fut.await;
+            let duration = start_time.elapsed();
+            
+            match &res {
+                Ok(response) => {
+                    let status = response.status();
+                    if status.is_client_error() || status.is_server_error() {
+                        warn!("Request failed: {} {} -> {} ({}ms) from {}", 
+                              method, uri, status, duration.as_millis(), client_id);
+                    } else {
+                        info!("Request processed: {} {} -> {} ({}ms) from {}", 
+                              method, uri, status, duration.as_millis(), client_id);
+                    }
+                }
+                Err(error) => {
+                    warn!("Request error: {} {} -> error: {} ({}ms) from {}", 
+                          method, uri, error, duration.as_millis(), client_id);
+                }
+            }
+            
+            res
+        })
+    }
+}

@@ -13,6 +13,24 @@ use tokio::sync::{RwLock, oneshot};
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
+use crate::utils::network::{
+    NetworkResilienceManager, ServiceResilienceConfig, CircuitBreaker, ConnectionPool,
+    HealthCheckManager, ServiceEndpoint, retry_tcp_connection, RetryError, RetryableError,
+    TimeoutConfig, TimeoutGuard, CircuitBreakerError, HealthStatus
+};
+
+/// Make Box<dyn Error> retryable for network operations
+impl RetryableError for Box<dyn std::error::Error + Send + Sync> {
+    fn is_retryable(&self) -> bool {
+        // Check if the underlying error is retryable
+        if let Some(io_error) = self.downcast_ref::<std::io::Error>() {
+            io_error.is_retryable()
+        } else {
+            // Default to retryable for network operations
+            true
+        }
+    }
+}
 
 /// TCP-based ClaudeFlowActor for direct MCP connection
 /// This is the ONLY Claude Flow actor - WebSocket implementation has been removed
@@ -42,6 +60,10 @@ pub struct ClaudeFlowActorTcp {
     pending_updates: Vec<AgentUpdate>,
     pending_messages: Vec<MessageFlowEvent>,
     swarm_topology: Option<String>,
+    // Network resilience components
+    resilience_manager: Arc<NetworkResilienceManager>,
+    circuit_breaker: Option<Arc<CircuitBreaker>>,
+    timeout_config: TimeoutConfig,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -80,27 +102,36 @@ impl ClaudeFlowActorTcp {
             pending_updates: Vec::new(),
             pending_messages: Vec::new(),
             swarm_topology: None,
+            resilience_manager: Arc::new(NetworkResilienceManager::new()),
+            circuit_breaker: None,
+            timeout_config: TimeoutConfig::tcp_connection(),
         }
     }
 
-    /// Initialize direct TCP connection to Claude Flow on port 9500
+    /// Initialize direct TCP connection to Claude Flow on port 9500 with resilience patterns
     fn initialize_connection(&mut self, ctx: &mut Context<Self>) {
-        info!("Initializing direct TCP connection to Claude Flow on port 9500");
+        info!("Initializing resilient TCP connection to Claude Flow on port 9500");
         
         let addr = ctx.address();
+        let resilience_manager = self.resilience_manager.clone();
+        let timeout_config = self.timeout_config.clone();
         
-        // Spawn async task to connect to Claude Flow
+        // Spawn async task to connect to Claude Flow with resilience
         tokio::spawn(async move {
-            match Self::connect_to_claude_flow_tcp().await {
+            // Use resilient connection with retry logic
+            let connection_operation = || async {
+                Self::connect_to_claude_flow_tcp().await
+                    .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())) as Box<dyn std::error::Error + Send + Sync>)
+            };
+            
+            match retry_tcp_connection(connection_operation).await {
                 Ok((writer, reader)) => {
-                    info!("Successfully connected to Claude Flow MCP server via TCP on port 9500");
+                    info!("Successfully connected to Claude Flow MCP server via TCP on port 9500 with resilience");
                     addr.do_send(TcpConnectionEstablished { writer, reader });
                 }
                 Err(e) => {
-                    let err_msg = format!("Failed to connect to Claude Flow on TCP port 9500: {}", e);
+                    let err_msg = format!("Failed to connect to Claude Flow on TCP port 9500 after retries: {:?}", e);
                     error!("{}", err_msg);
-                    // Retry connection after delay
-                    tokio::time::sleep(Duration::from_secs(5)).await;
                     addr.do_send(ConnectionFailed);
                 }
             }
@@ -383,7 +414,14 @@ impl Handler<TcpConnectionEstablished> for ClaudeFlowActorTcp {
         self.is_connected = true;
         
         // Initialize MCP session
-        let writer = self.tcp_writer.clone().unwrap();
+        let writer = match self.tcp_writer.clone() {
+            Some(writer) => writer,
+            None => {
+                error!("TCP writer not available for MCP session initialization");
+                addr.do_send(ConnectionFailed);
+                return;
+            }
+        };
         let pending_requests = self.pending_requests.clone();
         let addr = ctx.address();
         

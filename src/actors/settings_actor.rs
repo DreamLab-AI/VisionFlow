@@ -13,13 +13,13 @@ pub struct SettingsActor {
 }
 
 impl SettingsActor {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, String> {
         // Load settings from file or use defaults
         let settings = AppFullSettings::new()
-            .unwrap_or_else(|e| {
+            .map_err(|e| {
                 error!("Failed to load settings from file: {}", e);
-                panic!("Failed to create AppFullSettings: {}", e)
-            });
+                format!("Failed to create AppFullSettings: {}", e)
+            })?;
         
         info!("Settings actor initialized with configuration");
         debug!("Logseq physics: damping={}, spring={}, repulsion={}", 
@@ -28,9 +28,9 @@ impl SettingsActor {
             settings.visualisation.graphs.logseq.physics.repel_k
         );
         
-        Self {
+        Ok(Self {
             settings: Arc::new(RwLock::new(settings)),
-        }
+        })
     }
     
     pub async fn get_settings(&self) -> AppFullSettings {

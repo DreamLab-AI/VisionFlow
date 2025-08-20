@@ -1,6 +1,7 @@
 pub mod actors;
 pub mod app_state;
 pub mod config;
+pub mod errors;
 pub mod gpu;
 pub mod handlers;
 pub mod models;

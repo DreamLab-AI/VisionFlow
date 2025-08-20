@@ -201,7 +201,9 @@ impl StreamingPipeline {
             .collect();
         
         // Sort by importance and take top N
-        nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        nodes.sort_by(|a, b| {
+            b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+        });
         nodes.truncate(max_nodes);
         
         // If client has position, apply distance culling
@@ -385,7 +387,29 @@ impl DeltaCompressor {
             // Send delta frame
             packet.put_u8(0xFE);  // Delta marker
             
-            let prev = self.previous_frame.as_ref().unwrap();
+            let prev = match self.previous_frame.as_ref() {
+                Some(frame) => frame,
+                None => {
+                    log::warn!("Delta frame requested but no previous frame available, falling back to full frame");
+                    // Fall back to full frame instead of panicking
+                    packet.clear();
+                    packet.put_u8(0xFF);  // Full frame marker
+                    packet.put_u32_le(nodes.len() as u32);
+                    
+                    for node in &nodes {
+                        packet.put_f32_le(node.x);
+                        packet.put_f32_le(node.y);
+                        packet.put_f32_le(node.z);
+                        packet.put_u8(node.color_index);
+                        packet.put_u8(node.size);
+                        packet.put_u8(node.importance);
+                        packet.put_u8(node.flags);
+                    }
+                    
+                    self.previous_frame = Some(nodes);
+                    return Ok(packet.freeze());
+                }
+            };
             let mut deltas = Vec::new();
             
             for (i, (curr, prev)) in nodes.iter().zip(prev.iter()).enumerate() {
