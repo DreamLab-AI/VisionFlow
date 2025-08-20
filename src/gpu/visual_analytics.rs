@@ -1101,12 +1101,17 @@ impl VisualAnalyticsGPU {
             current_frame: self.current_frame,
             total_memory_allocated: memory_usage.as_ref().map(|stats| stats.total_allocated).unwrap_or(0),
             active_allocations: memory_usage.as_ref().map(|stats| stats.allocation_count).unwrap_or(0),
-            gpu_memory_usage_mb: memory_stats.as_ref().map(|stats| stats.current_allocated as f32 / 1_048_576.0).unwrap_or(0.0),
+            gpu_memory_usage_mb: memory_stats.as_ref().map(|stats| stats.0 as f32 / 1_048_576.0).unwrap_or(0.0),
             max_nodes: self.max_nodes,
             max_edges: self.max_edges,
             max_layers: self.max_layers,
             kernel_execution_count: self.kernel_times.len(),
-            last_validation_time: self.last_validation_time,
+            last_validation_time: self.last_validation_time.map(|t| {
+                let system_now = std::time::SystemTime::now();
+                let instant_now = std::time::Instant::now();
+                let system_time = system_now - (instant_now - t);
+                chrono::DateTime::<chrono::Utc>::from(system_time).to_rfc3339()
+            }),
         }
     }
 
@@ -1130,7 +1135,7 @@ impl VisualAnalyticsGPU {
             should_use_cpu_fallback: should_fallback,
             memory_usage_percentage: memory_usage.as_ref().map(|stats| stats.usage_percentage()).unwrap_or(0.0),
             active_allocations: memory_usage.as_ref().map(|stats| stats.allocation_count).unwrap_or(0),
-            current_memory_mb: memory_stats.as_ref().map(|stats| stats.current_allocated as f32 / 1_048_576.0).unwrap_or(0.0),
+            current_memory_mb: memory_stats.as_ref().map(|stats| stats.0 as f32 / 1_048_576.0).unwrap_or(0.0),
             max_memory_mb: memory_stats.as_ref().map(|_| 8192.0).unwrap_or(0.0), // 8GB default
             frames_processed: self.current_frame,
             average_kernel_time_ms: if !self.kernel_times.is_empty() {
@@ -1155,7 +1160,7 @@ pub struct PerformanceMetrics {
     pub max_edges: usize,
     pub max_layers: usize,
     pub kernel_execution_count: usize,
-    pub last_validation_time: Option<Instant>,
+    pub last_validation_time: Option<String>,
 }
 
 /// Health levels for system monitoring

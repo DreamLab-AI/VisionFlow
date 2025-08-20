@@ -42,7 +42,7 @@ pub async fn check_mcp_health() -> impl Responder {
 
 /// Start the MCP relay if not running
 pub async fn start_mcp_relay() -> impl Responder {
-    match McpRelayManager::ensure_relay_running() {
+    match McpRelayManager::ensure_relay_running().await {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({
             "success": true,
             "message": "MCP relay started successfully"

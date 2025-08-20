@@ -178,6 +178,10 @@ impl DetailedValidationError {
             "Verify you're accessing the correct resource".to_string(),
         ])
     }
+    
+    pub fn to_http_response(&self) -> HttpResponse {
+        self.error_response()
+    }
 }
 
 impl std::fmt::Display for DetailedValidationError {

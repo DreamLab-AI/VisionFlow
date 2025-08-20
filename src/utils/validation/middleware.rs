@@ -1,6 +1,7 @@
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpMessage, HttpResponse,
+    Error, HttpResponse,
+    body::{MessageBody, BoxBody},
 };
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
@@ -31,9 +32,9 @@ impl<S, B> Transform<S, ServiceRequest> for RequestSizeLimit
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = RequestSizeLimitMiddleware<S>;
@@ -56,9 +57,9 @@ impl<S, B> Service<ServiceRequest> for RequestSizeLimitMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -82,7 +83,7 @@ where
                             }));
                         
                         return Box::pin(async move {
-                            Ok(req.into_response(response))
+                            Ok(req.into_response(response).map_into_boxed_body())
                         });
                     }
                 }
@@ -92,7 +93,7 @@ where
         let fut = self.service.call(req);
         Box::pin(async move {
             let res = fut.await?;
-            Ok(res)
+            Ok(res.map_into_boxed_body())
         })
     }
 }
@@ -146,7 +147,7 @@ where
                     Ok(name) => name,
                     Err(_) => continue,
                 };
-                if let Ok(header_value) = actix_web::http::header::HeaderValue::from_static(value) {
+                if let Ok(header_value) = actix_web::http::header::HeaderValue::from_str(value) {
                     res.headers_mut().insert(header_name, header_value);
                 }
             }
@@ -183,9 +184,9 @@ impl<S, B> Transform<S, ServiceRequest> for RateLimit
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = RateLimitMiddleware<S>;
@@ -208,9 +209,9 @@ impl<S, B> Service<ServiceRequest> for RateLimitMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -225,7 +226,7 @@ where
                 .unwrap_or_else(|_| HttpResponse::TooManyRequests().finish());
             
             return Box::pin(async move {
-                Ok(req.into_response(response))
+                Ok(req.into_response(response).map_into_boxed_body())
             });
         }
 
@@ -247,7 +248,7 @@ where
                 actix_web::http::header::HeaderValue::from_str(&reset_time.as_secs().to_string()).unwrap(),
             );
             
-            Ok(res)
+            Ok(res.map_into_boxed_body())
         })
     }
 }
@@ -257,11 +258,11 @@ pub struct InputSanitizer;
 
 impl<S, B> Transform<S, ServiceRequest> for InputSanitizer
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + Clone + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = InputSanitizerMiddleware<S>;
@@ -278,11 +279,11 @@ pub struct InputSanitizerMiddleware<S> {
 
 impl<S, B> Service<ServiceRequest> for InputSanitizerMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + Clone + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -299,10 +300,11 @@ where
         if !is_json {
             let fut = self.service.call(req);
             return Box::pin(async move {
-                fut.await
+                fut.await.map(|res| res.map_into_boxed_body())
             });
         }
 
+        let service = self.service.clone();
         Box::pin(async move {
             // Extract the payload
             let payload = req.extract::<Bytes>().await;
@@ -319,11 +321,8 @@ where
                                     match serde_json::to_vec(&json_value) {
                                         Ok(sanitized_bytes) => {
                                             // Create new payload with sanitized data
-                                            let (mut payload, _) = actix_web::dev::Payload::create(true);
-                                            payload.unread_data(sanitized_bytes.into());
-                                            
-                                            // Update request with sanitized payload
-                                            req.set_payload(payload);
+                                            let new_payload = actix_web::dev::Payload::from(sanitized_bytes);
+                                            req.set_payload(new_payload.into());
                                             
                                             debug!("Request payload sanitized successfully");
                                         }
@@ -356,7 +355,7 @@ where
             }
 
             // Continue with the request
-            self.service.call(req).await
+            service.call(req).await.map(|res| res.map_into_boxed_body())
         })
     }
 }

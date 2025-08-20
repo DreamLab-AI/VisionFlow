@@ -61,9 +61,11 @@ impl McpRelayManager {
 
     /// Check if the MCP relay is running in the multi-agent-container with resilience
     pub async fn check_relay_status(&self) -> Result<bool, McpRelayError> {
-        let operation = || async {
-            Self::check_relay_status_internal().await
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+        let operation = || {
+            Box::pin(async {
+                Self::check_relay_status_internal().await
+                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+            })
         };
 
         match self.circuit_breaker.execute(operation()).await {
@@ -101,8 +103,8 @@ impl McpRelayManager {
     }
     
     /// Start the MCP relay in the multi-agent-container if not already running
-    pub fn ensure_relay_running() -> Result<(), String> {
-        if Self::check_relay_status() {
+    pub async fn ensure_relay_running() -> Result<(), String> {
+        if Self::check_relay_status_internal().await.unwrap_or(false) {
             info!("MCP relay already running, no action needed");
             return Ok(());
         }
@@ -126,8 +128,8 @@ impl McpRelayManager {
                     // Give it a moment to start
                     std::thread::sleep(std::time::Duration::from_secs(2));
                     
-                    // Verify it's running
-                    if Self::check_relay_status() {
+                    // Verify it's running (asynchronous check)
+                    if Self::check_relay_status_internal().await.unwrap_or(false) {
                         Ok(())
                     } else {
                         Err("MCP relay started but not running".to_string())
@@ -190,7 +192,7 @@ pub async fn ensure_mcp_ready() -> Result<(), String> {
     }
     
     // Try to ensure relay is running
-    McpRelayManager::ensure_relay_running()?;
+    McpRelayManager::ensure_relay_running().await?;
     
     // Additional wait for relay to be fully ready
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;

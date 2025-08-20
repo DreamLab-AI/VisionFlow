@@ -134,9 +134,13 @@ impl SupervisorActor {
     }
 
     fn restart_actor(&mut self, actor_name: &str, ctx: &mut Context<Self>) {
+        let delay = if let Some(state) = self.supervised_actors.get(actor_name) {
+            self.calculate_restart_delay(state)
+        } else {
+            return;
+        };
+        
         if let Some(state) = self.supervised_actors.get_mut(actor_name) {
-            let delay = self.calculate_restart_delay(state);
-            
             state.restart_count += 1;
             state.last_restart = Some(Instant::now());
             state.current_delay = delay;
@@ -212,17 +216,55 @@ impl Handler<ActorFailed> for SupervisorActor {
 
         if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
             state.is_running = false;
-
-            match &state.actor_info.strategy {
+            let strategy = state.actor_info.strategy.clone();
+            
+            // Extract immutable data needed for should_restart check
+            let should_restart = match &strategy {
+                SupervisionStrategy::Restart | SupervisionStrategy::RestartWithBackoff { .. } => {
+                    // Make a copy of the state data needed for the check
+                    let restart_count = state.restart_count;
+                    let max_restart_count = state.actor_info.max_restart_count;
+                    let restart_window = state.actor_info.restart_window;
+                    let last_restart = state.last_restart;
+                    
+                    // Release the mutable borrow by dropping the reference
+                    drop(state);
+                    
+                    // Now we can call the method that needs immutable access
+                    // But we need to recreate the check logic here since we can't call the method
+                    if restart_count >= max_restart_count {
+                        if let Some(last_restart_time) = last_restart {
+                            if last_restart_time.elapsed() < restart_window {
+                                warn!("Actor '{}' has exceeded max restart count ({}) within window ({:?})", 
+                                      &msg.actor_name, max_restart_count, restart_window);
+                                false
+                            } else {
+                                true
+                            }
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                }
+                _ => false,
+            };
+            
+            // Get the state again since we dropped it above
+            let state = self.supervised_actors.get_mut(&msg.actor_name).expect("State should still exist");
+            
+            // Now handle the strategy without borrowing issues
+            match strategy {
                 SupervisionStrategy::Restart => {
-                    if self.should_restart(&msg.actor_name, state) {
+                    if should_restart {
                         self.restart_actor(&msg.actor_name, ctx);
                     } else {
                         error!("Actor '{}' will not be restarted (too many failures)", msg.actor_name);
                     }
                 }
                 SupervisionStrategy::RestartWithBackoff { .. } => {
-                    if self.should_restart(&msg.actor_name, state) {
+                    if should_restart {
                         self.restart_actor(&msg.actor_name, ctx);
                     } else {
                         error!("Actor '{}' will not be restarted (too many failures)", msg.actor_name);
@@ -234,7 +276,9 @@ impl Handler<ActorFailed> for SupervisorActor {
                 }
                 SupervisionStrategy::Stop => {
                     info!("Actor '{}' stopped permanently due to supervision strategy", msg.actor_name);
-                    state.is_running = false;
+                    if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
+                        state.is_running = false;
+                    }
                 }
             }
         } else {

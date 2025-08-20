@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse, HttpRequest, Result};
 use serde_json::Value;
-use crate::utils::validation::{ValidationContext, ValidationResult, ValidationError};
+use crate::utils::validation::{ValidationContext, ValidationResult};
 use crate::utils::validation::schemas::{ApiSchemas, ValidationSchema};
 use crate::utils::validation::sanitization::Sanitizer;
 use crate::utils::validation::errors::DetailedValidationError;
@@ -156,11 +156,11 @@ impl ValidationService {
     /// Validate graph consistency across logseq and visionflow
     fn validate_graph_consistency(&self, graphs: &Value) -> ValidationResult<()> {
         let graphs_obj = graphs.as_object()
-            .ok_or_else(|| ValidationError::new("visualisation.graphs", "Must be an object", "INVALID_TYPE"))?;
+            .ok_or_else(|| DetailedValidationError::new("visualisation.graphs", "Must be an object", "INVALID_TYPE"))?;
 
         // Check for required graphs
         if !graphs_obj.contains_key("logseq") && !graphs_obj.contains_key("visionflow") {
-            return Err(ValidationError::new(
+            return Err(DetailedValidationError::new(
                 "visualisation.graphs",
                 "At least one graph (logseq or visionflow) must be specified",
                 "MISSING_GRAPHS"

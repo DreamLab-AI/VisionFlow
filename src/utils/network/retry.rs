@@ -1,6 +1,5 @@
 use std::time::Duration;
 use std::future::Future;
-use std::pin::Pin;
 use log::{debug, warn, error};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -135,6 +134,27 @@ where
 {
     fn is_retryable(&self) -> bool {
         self.as_ref().is_retryable()
+    }
+}
+
+impl<E> RetryableError for std::sync::Arc<E>
+where
+    E: RetryableError,
+{
+    fn is_retryable(&self) -> bool {
+        self.as_ref().is_retryable()
+    }
+}
+
+// Specific implementation for Arc<std::io::Error> removed to avoid conflicts
+// The generic impl<E> RetryableError for Arc<E> covers this case
+
+// Implementation for Arc<dyn std::error::Error + Send + Sync>
+impl RetryableError for std::sync::Arc<dyn std::error::Error + Send + Sync> {
+    fn is_retryable(&self) -> bool {
+        // For generic errors, we can only make conservative assumptions
+        // In practice, this would check for specific error types
+        true // Default to retryable for network resilience
     }
 }
 

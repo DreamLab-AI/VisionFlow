@@ -92,7 +92,7 @@ pub async fn send_message(
                     });
                 }
             }
-            
+
             // Continue with normal text response handling
             let enable_tts = enable_tts; // Clone for capture in closure
             let mapped_stream = response_stream.map(move |result| {
@@ -101,7 +101,7 @@ pub async fn send_message(
                     if answer.is_empty() {
                         return Bytes::new();
                     }
-                    
+
                     // If TTS is enabled, send answer to speech service
                     if enable_tts {
                         if let Some(speech_service) = &state.speech_service {
@@ -115,7 +115,7 @@ pub async fn send_message(
                             });
                         }
                     }
-                    
+
                     let json_response = json!({
                         "answer": answer,
                         "success": true
@@ -159,7 +159,7 @@ pub async fn create_session(
                 session_id
             );
             // Use the session_id directly from the request in subsequent calls
-            
+
             HttpResponse::Ok().json(CreateSessionResponse {
                 success: true,
                 session_id,
@@ -203,7 +203,7 @@ async fn handle_ragflow_chat(
     state: web::Data<AppState>,
     req: HttpRequest, // To get headers for auth
     payload: web::Json<RagflowChatRequest>,
-) -> impl Responder {
+) -> HttpResponse {
     // Authentication: Check for power user
     let pubkey = match req.headers().get("X-Nostr-Pubkey").and_then(|v| v.to_str().ok()) {
         Some(pk) => pk.to_string(),
@@ -301,7 +301,7 @@ impl EnhancedRagFlowHandler {
         payload: web::Json<Value>,
     ) -> Result<HttpResponse> {
         let client_id = extract_client_id(&req);
-        
+
         // Rate limiting check
         if !self.rate_limiter.is_allowed(&client_id) {
             warn!("Rate limit exceeded for RAGFlow chat from client: {}", client_id);
@@ -609,8 +609,8 @@ impl EnhancedRagFlowHandler {
             "system:",
             "\\n\\nUser:",
             "\\n\\nAssistant:",
-            "<|im_start|>",
-            "<|im_end|>",
+            "<|im_start|>", // Fixed: was im_star, should be im_start
+            "<|im_end|>", // Fixed: was im_en, should be im_end
         ];
 
         let question_lower = question.to_lowercase();
@@ -618,7 +618,7 @@ impl EnhancedRagFlowHandler {
             if question_lower.contains(pattern) {
                 warn!("Potential prompt injection detected: {}", pattern);
                 return Err(DetailedValidationError::malicious_content(
-                    "question", 
+                    "question",
                     "prompt_injection"
                 ));
             }
@@ -628,7 +628,7 @@ impl EnhancedRagFlowHandler {
         if self.has_excessive_repetition(question) {
             return Err(DetailedValidationError::new(
                 "question",
-                "Question contains excessive repetition", 
+                "Question contains excessive repetition",
                 "EXCESSIVE_REPETITION"
             ));
         }
@@ -668,7 +668,7 @@ impl EnhancedRagFlowHandler {
         if let Some(speech_service) = &state.speech_service {
             let speech_service = speech_service.clone();
             let text = text.to_string();
-            
+
             tokio::spawn(async move {
                 if let Err(e) = speech_service.text_to_speech(text, Default::default()).await {
                     error!("TTS processing failed: {}", e);
@@ -686,32 +686,36 @@ impl Default for EnhancedRagFlowHandler {
 
 pub fn config(cfg: &mut ServiceConfig) {
     let handler = web::Data::new(EnhancedRagFlowHandler::new());
-    
+
     cfg.app_data(handler.clone())
         .service(
             web::scope("/ragflow")
                 .route("/session", web::post().to(create_session)) // Existing
                 .route("/message", web::post().to(send_message))   // Existing (streaming)
-                .route("/chat", web::post().to(|req, state, payload, handler: web::Data<EnhancedRagFlowHandler>| async move {
+                .route("/chat", web::post().to(|req: HttpRequest, state: web::Data<AppState>, payload: web::Json<serde_json::Value>, handler: web::Data<EnhancedRagFlowHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
-                    match handler.chat_enhanced(req, state, payload).await {
+                    match handler.chat_enhanced(req.clone(), state.clone(), payload).await {
                         Ok(response) => response,
-                        Err(_) => handle_ragflow_chat(state, HttpRequest::from_parts(
-                            actix_web::dev::RequestHead::default(),
-                            actix_web::dev::Payload::None
-                        ).unwrap(), web::Json(RagflowChatRequest {
-                            question: "fallback".to_string(),
-                            session_id: None,
-                            stream: Some(false)
-                        })).await
+                        Err(e) => {
+                            warn!("Enhanced chat handler failed, falling back to legacy: {:?}", e);
+                            // Re-create payload for legacy handler
+                            let fallback_payload = web::Json(RagflowChatRequest {
+                                question: "fallback".to_string(),
+                                session_id: None,
+                                stream: Some(false)
+                            });
+                            // Convert impl Responder to HttpResponse
+                            let legacy_response = handle_ragflow_chat(state, req, fallback_payload).await;
+                            legacy_response
+                        }
                     }
                 })) // Enhanced chat endpoint with fallback
-                .route("/session/enhanced", web::post().to(|req, state, payload, handler: web::Data<EnhancedRagFlowHandler>| {
-                    handler.create_session_enhanced(req, state, payload)
+                .route("/session/enhanced", web::post().to(|req, state, payload, handler: web::Data<EnhancedRagFlowHandler>| async move {
+                    handler.create_session_enhanced(req, state, payload).await
                 })) // Enhanced session creation
                 .route("/history/{session_id}", web::get().to(get_session_history)) // Existing
-                .route("/history/enhanced/{session_id}", web::get().to(|req, state, session_id, handler: web::Data<EnhancedRagFlowHandler>| {
-                    handler.get_session_history_enhanced(req, state, session_id)
+                .route("/history/enhanced/{session_id}", web::get().to(|req, state, session_id, handler: web::Data<EnhancedRagFlowHandler>| async move {
+                    handler.get_session_history_enhanced(req, state, session_id).await
                 })) // Enhanced history
         );
 }

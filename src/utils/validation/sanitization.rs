@@ -1,4 +1,5 @@
 use super::{ValidationResult, ValidationError, MAX_STRING_LENGTH};
+use super::errors::DetailedValidationError;
 use serde_json::Value;
 use std::collections::HashMap;
 use regex::Regex;
@@ -22,7 +23,7 @@ impl Sanitizer {
                 for (key, val) in obj.iter_mut() {
                     // Sanitize both keys and values
                     if Self::is_suspicious_key(key) {
-                        return Err(ValidationError::malicious_content(key));
+                        return Err(ValidationError::malicious_content(key).into());
                     }
                     Self::sanitize_json(val)?;
                 }
@@ -36,12 +37,12 @@ impl Sanitizer {
     pub fn sanitize_string(input: &str) -> ValidationResult<String> {
         // Check length first
         if input.len() > MAX_STRING_LENGTH {
-            return Err(ValidationError::too_long("string", MAX_STRING_LENGTH));
+            return Err(ValidationError::too_long("string", MAX_STRING_LENGTH).into());
         }
 
         // Check for null bytes
         if input.contains('\0') {
-            return Err(ValidationError::malicious_content("string"));
+            return Err(ValidationError::malicious_content("string").into());
         }
 
         let mut sanitized = input.to_string();
@@ -70,10 +71,10 @@ impl Sanitizer {
         
         for pattern in &dangerous_patterns {
             let regex = Regex::new(&format!("(?i){}", pattern))
-                .map_err(|_| ValidationError::new("string", "Invalid sanitization regex", "REGEX_ERROR"))?;
+                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid sanitization regex", "REGEX_ERROR")))?;
             
             if regex.is_match(&result) {
-                return Err(ValidationError::malicious_content("string"));
+                return Err(ValidationError::malicious_content("string").into());
             }
         }
 
@@ -102,10 +103,10 @@ impl Sanitizer {
 
         for pattern in &sql_patterns {
             let regex = Regex::new(pattern)
-                .map_err(|_| ValidationError::new("string", "Invalid SQL regex", "REGEX_ERROR"))?;
+                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid SQL regex", "REGEX_ERROR")))?;
             
             if regex.is_match(input) {
-                return Err(ValidationError::malicious_content("string"));
+                return Err(ValidationError::malicious_content("string").into());
             }
         }
 
@@ -125,10 +126,10 @@ impl Sanitizer {
 
         for pattern in &traversal_patterns {
             let regex = Regex::new(&format!("(?i){}", pattern))
-                .map_err(|_| ValidationError::new("string", "Invalid path regex", "REGEX_ERROR"))?;
+                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid path regex", "REGEX_ERROR")))?;
             
             if regex.is_match(input) {
-                return Err(ValidationError::malicious_content("string"));
+                return Err(ValidationError::malicious_content("string").into());
             }
         }
 
@@ -145,7 +146,7 @@ impl Sanitizer {
                 ' ' | '\t' | '\n' | '\r' => result.push(ch),
                 // Block other control characters except basic printable ASCII and common Unicode
                 c if c.is_control() && !matches!(c, '\u{0009}' | '\u{000A}' | '\u{000D}') => {
-                    return Err(ValidationError::malicious_content("string"));
+                    return Err(ValidationError::malicious_content("string").into());
                 }
                 // Allow printable characters
                 c => result.push(c),
@@ -172,18 +173,18 @@ impl Sanitizer {
     /// Sanitize filename for safe file operations
     pub fn sanitize_filename(filename: &str) -> ValidationResult<String> {
         if filename.is_empty() {
-            return Err(ValidationError::new("filename", "Filename cannot be empty", "EMPTY_FILENAME"));
+            return Err(ValidationError::new("filename", "Filename cannot be empty", "EMPTY_FILENAME").into());
         }
 
         if filename.len() > 255 {
-            return Err(ValidationError::too_long("filename", 255));
+            return Err(ValidationError::too_long("filename", 255).into());
         }
 
         // Remove dangerous characters
         let dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'];
         
         if filename.chars().any(|c| dangerous_chars.contains(&c)) {
-            return Err(ValidationError::malicious_content("filename"));
+            return Err(ValidationError::malicious_content("filename").into());
         }
 
         // Check for reserved names on Windows
@@ -195,12 +196,12 @@ impl Sanitizer {
 
         let name_upper = filename.to_uppercase();
         if reserved_names.iter().any(|&name| name_upper == name || name_upper.starts_with(&format!("{}.", name))) {
-            return Err(ValidationError::malicious_content("filename"));
+            return Err(ValidationError::malicious_content("filename").into());
         }
 
         // Don't allow files starting with dot on Unix systems (hidden files)
         if filename.starts_with('.') {
-            return Err(ValidationError::malicious_content("filename"));
+            return Err(ValidationError::malicious_content("filename").into());
         }
 
         Ok(filename.to_string())
@@ -212,34 +213,34 @@ impl Sanitizer {
         
         // Additional email-specific checks
         if sanitized.len() > 254 { // RFC 5321 limit
-            return Err(ValidationError::too_long("email", 254));
+            return Err(ValidationError::too_long("email", 254).into());
         }
 
         // Check for multiple @ symbols
         if sanitized.matches('@').count() != 1 {
-            return Err(ValidationError::invalid_format("email"));
+            return Err(ValidationError::invalid_format("email").into());
         }
 
         let parts: Vec<&str> = sanitized.split('@').collect();
         if parts.len() != 2 {
-            return Err(ValidationError::invalid_format("email"));
+            return Err(ValidationError::invalid_format("email").into());
         }
 
         let (local, domain) = (parts[0], parts[1]);
 
         // Validate local part
         if local.is_empty() || local.len() > 64 {
-            return Err(ValidationError::invalid_format("email"));
+            return Err(ValidationError::invalid_format("email").into());
         }
 
         // Validate domain part
         if domain.is_empty() || domain.len() > 255 {
-            return Err(ValidationError::invalid_format("email"));
+            return Err(ValidationError::invalid_format("email").into());
         }
 
         // Check for consecutive dots
         if sanitized.contains("..") {
-            return Err(ValidationError::invalid_format("email"));
+            return Err(ValidationError::invalid_format("email").into());
         }
 
         Ok(sanitized)
@@ -251,12 +252,12 @@ impl Sanitizer {
 
         // Check URL length
         if sanitized.len() > 2048 {
-            return Err(ValidationError::too_long("url", 2048));
+            return Err(ValidationError::too_long("url", 2048).into());
         }
 
         // Parse URL to validate structure
         let parsed_url = url::Url::parse(&sanitized)
-            .map_err(|_| ValidationError::invalid_format("url"))?;
+            .map_err(|_| DetailedValidationError::from(ValidationError::invalid_format("url")))?;
 
         // Only allow safe schemes
         let allowed_schemes = ["http", "https", "ftp", "ftps"];
@@ -265,7 +266,7 @@ impl Sanitizer {
                 "url",
                 "Only http, https, ftp, and ftps URLs are allowed",
                 "INVALID_SCHEME"
-            ));
+            ).into());
         }
 
         // Block private/local network addresses
@@ -275,7 +276,7 @@ impl Sanitizer {
                     "url",
                     "Private IP addresses and localhost are not allowed",
                     "PRIVATE_URL"
-                ));
+                ).into());
             }
         }
 
