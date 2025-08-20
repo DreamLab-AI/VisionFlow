@@ -97,7 +97,7 @@ impl Sanitizer {
             r"(?i)--",
             r"/\*.*?\*/",
             r"(?i)\b(or|and)\s+\d+\s*=\s*\d+",
-            r"(?i)\b(or|and)\s+['\"].*['\"]",
+            r#"(?i)\b(or|and)\s+['"].*['"]"#,
         ];
 
         for pattern in &sql_patterns {

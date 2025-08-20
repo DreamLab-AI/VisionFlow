@@ -188,6 +188,22 @@ impl std::fmt::Display for DetailedValidationError {
 
 impl std::error::Error for DetailedValidationError {}
 
+impl From<crate::utils::validation::ValidationError> for DetailedValidationError {
+    fn from(err: crate::utils::validation::ValidationError) -> Self {
+        Self {
+            error_type: "validation_error".to_string(),
+            field_path: err.field,
+            message: err.message,
+            error_code: err.error_code,
+            context: err.details.map(|details| {
+                details.into_iter().map(|(k, v)| (k, serde_json::Value::String(v))).collect()
+            }),
+            suggestions: None,
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        }
+    }
+}
+
 impl ResponseError for DetailedValidationError {
     fn status_code(&self) -> actix_web::http::StatusCode {
         match self.error_code.as_str() {

@@ -1,11 +1,11 @@
 use actix_web::{web, HttpResponse, HttpRequest, Result};
 use serde_json::Value;
-use crate::utils::validation::{ValidationContext, ValidationResult};
+use crate::utils::validation::{ValidationContext, ValidationResult, ValidationError};
 use crate::utils::validation::schemas::{ApiSchemas, ValidationSchema};
 use crate::utils::validation::sanitization::Sanitizer;
-use crate::utils::validation::errors::{DetailedValidationError, ValidationErrorCollection};
-use crate::utils::validation::rate_limit::{RateLimiter, extract_client_id};
-use log::{info, warn, error, debug};
+use crate::utils::validation::errors::DetailedValidationError;
+use crate::utils::validation::rate_limit::extract_client_id;
+use log::{info, warn, debug};
 
 /// Comprehensive validation service for all API endpoints
 pub struct ValidationService {
@@ -33,12 +33,10 @@ impl ValidationService {
         let mut sanitized_payload = payload.clone();
         
         // Sanitize first
-        Sanitizer::sanitize_json(&mut sanitized_payload)
-            .map_err(|e| DetailedValidationError::malicious_content("payload", &e.message))?;
+        Sanitizer::sanitize_json(&mut sanitized_payload)?;
         
         // Validate against schema
-        self.settings_schema.validate(&sanitized_payload, &mut ctx)
-            .map_err(|e| DetailedValidationError::new(&e.field, &e.message, &e.error_code))?;
+        self.settings_schema.validate(&sanitized_payload, &mut ctx)?;
         
         // Additional custom validation for settings
         self.validate_settings_custom(&sanitized_payload)?;
@@ -52,12 +50,10 @@ impl ValidationService {
         let mut sanitized_payload = payload.clone();
         
         // Sanitize first
-        Sanitizer::sanitize_json(&mut sanitized_payload)
-            .map_err(|e| DetailedValidationError::malicious_content("payload", &e.message))?;
+        Sanitizer::sanitize_json(&mut sanitized_payload)?;
         
         // Validate against schema
-        self.physics_schema.validate(&sanitized_payload, &mut ctx)
-            .map_err(|e| DetailedValidationError::new(&e.field, &e.message, &e.error_code))?;
+        self.physics_schema.validate(&sanitized_payload, &mut ctx)?;
         
         // Additional physics validation
         self.validate_physics_custom(&sanitized_payload)?;
@@ -71,12 +67,10 @@ impl ValidationService {
         let mut sanitized_payload = payload.clone();
         
         // Sanitize first (especially important for chat messages)
-        Sanitizer::sanitize_json(&mut sanitized_payload)
-            .map_err(|e| DetailedValidationError::malicious_content("payload", &e.message))?;
+        Sanitizer::sanitize_json(&mut sanitized_payload)?;
         
         // Validate against schema
-        self.ragflow_schema.validate(&sanitized_payload, &mut ctx)
-            .map_err(|e| DetailedValidationError::new(&e.field, &e.message, &e.error_code))?;
+        self.ragflow_schema.validate(&sanitized_payload, &mut ctx)?;
         
         Ok(sanitized_payload)
     }
@@ -87,12 +81,10 @@ impl ValidationService {
         let mut sanitized_payload = payload.clone();
         
         // Sanitize first
-        Sanitizer::sanitize_json(&mut sanitized_payload)
-            .map_err(|e| DetailedValidationError::malicious_content("payload", &e.message))?;
+        Sanitizer::sanitize_json(&mut sanitized_payload)?;
         
         // Validate against schema
-        self.bots_schema.validate(&sanitized_payload, &mut ctx)
-            .map_err(|e| DetailedValidationError::new(&e.field, &e.message, &e.error_code))?;
+        self.bots_schema.validate(&sanitized_payload, &mut ctx)?;
         
         Ok(sanitized_payload)
     }
@@ -103,12 +95,10 @@ impl ValidationService {
         let mut sanitized_payload = payload.clone();
         
         // Sanitize first
-        Sanitizer::sanitize_json(&mut sanitized_payload)
-            .map_err(|e| DetailedValidationError::malicious_content("payload", &e.message))?;
+        Sanitizer::sanitize_json(&mut sanitized_payload)?;
         
         // Validate against schema
-        self.swarm_schema.validate(&sanitized_payload, &mut ctx)
-            .map_err(|e| DetailedValidationError::new(&e.field, &e.message, &e.error_code))?;
+        self.swarm_schema.validate(&sanitized_payload, &mut ctx)?;
         
         Ok(sanitized_payload)
     }
@@ -166,11 +156,11 @@ impl ValidationService {
     /// Validate graph consistency across logseq and visionflow
     fn validate_graph_consistency(&self, graphs: &Value) -> ValidationResult<()> {
         let graphs_obj = graphs.as_object()
-            .ok_or_else(|| DetailedValidationError::new("visualisation.graphs", "Must be an object", "INVALID_TYPE"))?;
+            .ok_or_else(|| ValidationError::new("visualisation.graphs", "Must be an object", "INVALID_TYPE"))?;
 
         // Check for required graphs
         if !graphs_obj.contains_key("logseq") && !graphs_obj.contains_key("visionflow") {
-            return Err(DetailedValidationError::new(
+            return Err(ValidationError::new(
                 "visualisation.graphs",
                 "At least one graph (logseq or visionflow) must be specified",
                 "MISSING_GRAPHS"
@@ -249,7 +239,7 @@ pub async fn validate_payload(
     info!("Validation test request from client: {}", client_id);
 
     // Get validation type from query parameters
-    let validation_type = req.match_info().query("type").unwrap_or("settings");
+    let validation_type = req.match_info().get("type").unwrap_or("settings");
 
     let result = match validation_type {
         "settings" => validation_service.validate_settings_update(&payload),

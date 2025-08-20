@@ -17,7 +17,14 @@ Error: TCP connection failed: Connection refused (os error 111)
 
 **Solutions:**
 
-1. **Verify TCP server is running:**
+1. **Check for deadlock recovery issues:**
+```bash
+# If graph appears frozen with nodes at boundary
+docker logs visionflow-container | grep "deadlock"
+# Expected: "Deadlock detected: 177 nodes at boundary"
+```
+
+2. **Verify TCP server is running:**
 ```bash
 docker exec multi-agent-container /app/status-mcp-tcp.sh
 ```
@@ -48,6 +55,30 @@ Error: TCP connection timeout after 30s
 **Causes:**
 - Network latency
 - Server overloaded
+- Deadlock in graph physics engine
+
+#### Problem: Graph Visualization Frozen
+```
+Issue: All nodes stuck at boundary position (980 units)
+```
+
+**Symptoms:**
+- All 177 nodes positioned at viewport edge
+- No movement despite physics enabled
+- Zero kinetic energy in system
+
+**Automatic Recovery:**
+The system includes automatic deadlock recovery with:
+- Enhanced detection (kinetic energy threshold: 0.001)
+- Aggressive recovery parameters (8x stronger repulsion)
+- Symmetry breaking via random perturbation
+- Expanded viewport boundaries (1500 units)
+
+**Manual Recovery:**
+```bash
+# Force physics parameter reset
+curl -X POST http://localhost:4000/api/graph/physics/reset
+```
 - Incorrect host configuration
 
 **Solutions:**

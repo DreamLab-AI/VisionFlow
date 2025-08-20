@@ -5,20 +5,18 @@
 
 use actix_web::{web, HttpResponse, HttpRequest, Result as ActixResult};
 use actix_web_actors::ws;
-use actix::{Actor, StreamHandler, AsyncContext, Handler, ActorContext, Message, Addr};
+use actix::{Actor, StreamHandler, AsyncContext, Handler, Message};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::{Duration, Instant};
-use log::{info, debug, warn, error};
+use log::{info, debug, warn};
 use uuid::Uuid;
 
 use crate::AppState;
-use crate::actors::GraphServiceActor;
 use crate::services::agent_visualization_protocol::McpServerType;
 use crate::utils::network::{
-    retry_websocket_operation, TimeoutConfig, TimeoutGuard, CircuitBreaker, 
-    CircuitBreakerConfig, RetryableError, HealthCheckManager, ServiceEndpoint,
-    HealthCheckConfig
+    TimeoutConfig, CircuitBreaker, 
+    HealthCheckManager
 };
 
 /// WebSocket actor for multi-MCP agent visualization
@@ -131,7 +129,7 @@ impl MultiMcpVisualizationWs {
         ctx.run_interval(Duration::from_secs(5), |act, ctx| {
             if Instant::now().duration_since(act.last_heartbeat) > Duration::from_secs(30) {
                 warn!("WebSocket client {} heartbeat timeout, disconnecting", act.client_id);
-                ctx.stop();
+                ctx.close(None);
                 return;
             }
             
@@ -356,9 +354,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
             Ok(ws::Message::Close(reason)) => {
                 info!("WebSocket closing: {:?}", reason);
                 ctx.close(reason);
-                ctx.stop();
             }
-            _ => ctx.stop(),
+            _ => ctx.close(None),
         }
     }
 }

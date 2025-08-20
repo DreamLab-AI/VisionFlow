@@ -14,9 +14,9 @@ use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use crate::utils::network::{
-    NetworkResilienceManager, ServiceResilienceConfig, CircuitBreaker, ConnectionPool,
-    HealthCheckManager, ServiceEndpoint, retry_tcp_connection, RetryError, RetryableError,
-    TimeoutConfig, TimeoutGuard, CircuitBreakerError, HealthStatus
+    NetworkResilienceManager, CircuitBreaker,
+    retry_tcp_connection, RetryableError,
+    TimeoutConfig
 };
 
 /// Make Box<dyn Error> retryable for network operations
@@ -121,7 +121,7 @@ impl ClaudeFlowActorTcp {
             // Use resilient connection with retry logic
             let connection_operation = || async {
                 Self::connect_to_claude_flow_tcp().await
-                    .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())) as Box<dyn std::error::Error + Send + Sync>)
+                    .map_err(|e| std::sync::Arc::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
             };
             
             match retry_tcp_connection(connection_operation).await {
@@ -418,7 +418,7 @@ impl Handler<TcpConnectionEstablished> for ClaudeFlowActorTcp {
             Some(writer) => writer,
             None => {
                 error!("TCP writer not available for MCP session initialization");
-                addr.do_send(ConnectionFailed);
+                ctx.address().do_send(ConnectionFailed);
                 return;
             }
         };

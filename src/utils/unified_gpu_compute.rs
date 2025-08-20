@@ -703,4 +703,30 @@ impl UnifiedGPUCompute {
             Ok(())
         }
     }
+
+    /// Test GPU functionality - used by diagnostics
+    pub fn test_gpu() -> Result<(), Error> {
+        info!("Testing GPU functionality...");
+        
+        // Try to create a CUDA device
+        let device = CudaDevice::new(0)
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to create CUDA device: {}", e)))?;
+        
+        info!("CUDA device created successfully");
+        
+        // Try to allocate a small test buffer
+        let test_buffer = device.alloc_zeros::<f32>(100)
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to allocate GPU memory: {}", e)))?;
+        
+        info!("GPU memory allocation test successful");
+        
+        // Test synchronization
+        device.synchronize()
+            .map_err(|e| Error::new(ErrorKind::Other, format!("GPU synchronization failed: {}", e)))?;
+        
+        info!("GPU synchronization test successful");
+        
+        drop(test_buffer); // Clean up
+        Ok(())
+    }
 }

@@ -60,7 +60,7 @@ impl AppState {
         
         info!("[AppState::new] Starting SettingsActor");
         let settings_actor = SettingsActor::new().map_err(|e| {
-            error!("Failed to create SettingsActor: {}", e);
+            log::error!("Failed to create SettingsActor: {}", e);
             e
         })?;
         let settings_addr = settings_actor.start();
@@ -73,7 +73,7 @@ impl AppState {
 
         info!("[AppState::new] Starting GraphServiceActor");
         let device = CudaDevice::new(0).map_err(|e| {
-            error!("Failed to create CUDA device: {}", e);
+            log::error!("Failed to create CUDA device: {}", e);
             format!("CUDA initialization failed: {}", e)
         })?;
         let graph_service_addr = GraphServiceActor::new(

@@ -12,13 +12,12 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use chrono::{DateTime, Utc};
-use serde_json::{json, Value};
 use log::{info, warn, error, debug};
 
 use crate::services::agent_visualization_protocol::{
-    McpServerInfo, McpServerType, MultiMcpAgentStatus, AgentExtendedMetadata,
-    TopologyPosition, AgentPerformanceData, NeuralAgentData, SwarmTopologyData,
-    LayerLoad, CriticalPath, Bottleneck, GlobalPerformanceMetrics
+    McpServerInfo, McpServerType, MultiMcpAgentStatus,
+    SwarmTopologyData,
+    GlobalPerformanceMetrics
 };
 
 /// Configuration for MCP server discovery

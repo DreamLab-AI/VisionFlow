@@ -14,7 +14,8 @@ struct McpHealthResponse {
 pub async fn check_mcp_health() -> impl Responder {
     let container_running = McpRelayManager::check_mcp_container();
     let mcp_relay_running = if container_running {
-        McpRelayManager::check_relay_status()
+        let manager = McpRelayManager::new();
+        manager.check_relay_status().await.unwrap_or(false)
     } else {
         false
     };
