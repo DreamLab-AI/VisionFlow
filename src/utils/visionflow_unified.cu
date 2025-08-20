@@ -110,6 +110,46 @@ __global__ void build_grid_kernel(
     cell_keys[idx] = grid_z * grid_dims.y * grid_dims.x + grid_y * grid_dims.x + grid_x;
 }
 
+__global__ void compute_cell_bounds_kernel(
+    const int* __restrict__ sorted_cell_keys,
+    int* __restrict__ cell_start,
+    int* __restrict__ cell_end,
+    const int num_nodes,
+    const int num_grid_cells)
+{
+    // Each thread checks if the cell key for its corresponding node
+    // is different from the previous one, indicating a boundary.
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    // The key for the current sorted node
+    int current_key = sorted_cell_keys[idx];
+
+    // The key for the previous sorted node (handle boundary case at index 0)
+    int prev_key = (idx == 0) ? -1 : sorted_cell_keys[idx - 1];
+
+    // If the key has changed, we've found the end of the previous cell
+    // and the start of the current cell.
+    if (current_key != prev_key) {
+        // Mark the start of the current cell.
+        if (current_key >= 0 && current_key < num_grid_cells) {
+            cell_start[current_key] = idx;
+        }
+        // Mark the end of the previous cell.
+        if (prev_key >= 0 && prev_key < num_grid_cells) {
+            cell_end[prev_key] = idx;
+        }
+    }
+
+    // The very last node marks the end of its cell.
+    if (idx == num_nodes - 1) {
+        if (current_key >= 0 && current_key < num_grid_cells) {
+            cell_end[current_key] = num_nodes;
+        }
+    }
+}
+
+
 // =============================================================================
 // Force Pass Kernel
 // =============================================================================
