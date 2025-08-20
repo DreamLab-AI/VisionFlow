@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSpacePilot } from '../hooks/useSpacePilot';
 import { Button } from '../../design-system/components/Button';
-import { Loader2 } from 'lucide-react';
+import Loader2 from 'lucide-react/dist/esm/icons/loader2';
 
 interface SpacePilotConnectButtonProps {
   className?: string;

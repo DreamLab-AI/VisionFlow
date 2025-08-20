@@ -230,7 +230,6 @@ impl AutoBalanceConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,

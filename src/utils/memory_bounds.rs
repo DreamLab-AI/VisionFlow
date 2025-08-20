@@ -107,6 +107,7 @@ pub enum MemoryBoundsError {
 }
 
 /// Memory bounds registry for tracking all GPU allocations
+#[derive(Debug)]
 pub struct MemoryBoundsRegistry {
     bounds: HashMap<String, MemoryBounds>,
     total_allocated: usize,

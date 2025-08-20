@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/features/design-system/components/Button';
 import { Input } from '@/features/design-system/components/Input';
-import { Send } from 'lucide-react';
+import Send from 'lucide-react/dist/esm/icons/send';
 import { apiService } from '@/services/apiService';
 import { useSettingsStore } from '@/store/settingsStore'; // For auth check
 import { nostrAuth } from '@/services/nostrAuthService'; // For getting token

@@ -28,8 +28,8 @@ const MainLayoutContent: React.FC = () => {
   const orbitControlsRef = useRef<any>(null);
   const [hasVoiceSupport, setHasVoiceSupport] = useState(true);
 
-  const ambientIntensity = useSelectiveSetting('visualisation.rendering.ambientLightIntensity') ?? 0.6;
-  const directionalIntensity = useSelectiveSetting('visualisation.rendering.directionalLightIntensity') ?? 0.8;
+  const ambientIntensity = (useSelectiveSetting('visualisation.rendering.ambientLightIntensity') as number) ?? 0.6;
+  const directionalIntensity = (useSelectiveSetting('visualisation.rendering.directionalLightIntensity') as number) ?? 0.8;
 
   const handleOrbitControlsToggle = (enabled: boolean) => {
     setOrbitControlsEnabled(enabled);

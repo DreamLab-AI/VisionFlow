@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback, memo } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import { ChevronDown, Check } from 'lucide-react';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevrondown';
+import Check from 'lucide-react/dist/esm/icons/check';
 import { SettingControlComponent } from './SettingControlComponent';
 import { useSettingsStore } from '@/store/settingsStore';
 import { cn } from '@/utils/classNameUtils';

@@ -4,9 +4,8 @@ use std::time::{Duration, Instant, SystemTime};
 use tokio::sync::{RwLock, Mutex};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use log::{debug, warn, error, info};
+use log::{debug, warn, info};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Health check status for a service
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

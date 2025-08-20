@@ -175,3 +175,6 @@ export function createDataMetadata(data: Record<string, any>): Record<string, an
     timestamp: new Date().toISOString(),
   };
 }
+
+// Default logger instance for backward compatibility
+export const logger = createLogger('app');

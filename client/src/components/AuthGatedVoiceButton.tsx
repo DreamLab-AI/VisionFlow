@@ -2,7 +2,7 @@ import React from 'react';
 import { VoiceButton, VoiceButtonProps } from './VoiceButton';
 import { useSettingsStore } from '../store/settingsStore';
 import { nostrAuth } from '../services/nostrAuthService';
-import { Lock } from 'lucide-react';
+import Lock from 'lucide-react/dist/esm/icons/lock';
 
 export interface AuthGatedVoiceButtonProps extends VoiceButtonProps {
   onAuthRequired?: () => void;

@@ -47,8 +47,7 @@ pub use graceful_degradation::{
 };
 
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use log::{info, warn, error};
+use log::info;
 use serde::{Deserialize, Serialize};
 
 /// Comprehensive network resilience manager that coordinates all resilience patterns

@@ -1,6 +1,12 @@
 // client/src/app/components/RightPaneControlPanel.tsx
 import React, { useState } from 'react';
-import { ChevronDown, Terminal, Code, Bug, Database, Cpu, Network } from 'lucide-react';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import Terminal from 'lucide-react/dist/esm/icons/terminal';
+import Code from 'lucide-react/dist/esm/icons/code';
+import Bug from 'lucide-react/dist/esm/icons/bug';
+import Database from 'lucide-react/dist/esm/icons/database';
+import Cpu from 'lucide-react/dist/esm/icons/cpu';
+import Network from 'lucide-react/dist/esm/icons/network';
 import { SettingsPanelRedesign } from '../../features/settings/components/panels/SettingsPanelRedesign';
 import ConversationPane from './ConversationPane';
 import NarrativeGoldminePanel from './NarrativeGoldminePanel';

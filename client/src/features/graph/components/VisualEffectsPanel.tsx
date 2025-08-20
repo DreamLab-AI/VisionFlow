@@ -4,7 +4,12 @@ import { createLogger } from '../../../utils/logger';
 import { Switch } from '../../design-system/components/Switch';
 import { Slider } from '../../design-system/components/Slider';
 import { Button } from '../../design-system/components/Button';
-import { ChevronDown, ChevronUp, Sparkles, Activity, Zap, Eye } from 'lucide-react';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevrondown';
+import ChevronUp from 'lucide-react/dist/esm/icons/chevronup';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import Eye from 'lucide-react/dist/esm/icons/eye';
 
 const logger = createLogger('VisualEffectsPanel');
 

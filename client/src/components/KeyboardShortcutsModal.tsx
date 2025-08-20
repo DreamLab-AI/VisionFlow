@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { X, Keyboard } from 'lucide-react';
+import X from 'lucide-react/dist/esm/icons/x';
+import Keyboard from 'lucide-react/dist/esm/icons/keyboard';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { useKeyboardShortcutsList, formatShortcut } from '@/hooks/useKeyboardShortcuts';

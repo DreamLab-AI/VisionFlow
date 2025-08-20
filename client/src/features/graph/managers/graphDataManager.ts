@@ -578,6 +578,23 @@ class GraphDataManager {
     return node;
   }
 
+  // Subscribe to graph data updates (for backward compatibility)
+  public subscribeToUpdates(listener: GraphDataChangeListener): () => void {
+    return this.onGraphDataChange(listener);
+  }
+
+  // Get visible nodes (for Quest3AR compatibility)
+  public getVisibleNodes(): Node[] {
+    // Return a promise-like structure that can be used synchronously
+    let nodes: Node[] = [];
+    graphWorkerProxy.getGraphData().then(data => {
+      nodes = data.nodes;
+    }).catch(error => {
+      logger.error('Error getting visible nodes:', createErrorMetadata(error));
+    });
+    return nodes;
+  }
+
   // Clean up resources
   public dispose(): void {
     if (this.retryTimeout) {
