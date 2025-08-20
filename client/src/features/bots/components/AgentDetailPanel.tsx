@@ -86,7 +86,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
           <h3 className="text-lg font-semibold">Agent Details</h3>
           <Select
             value={selectedAgent?.id || ''}
-            onChange={handleAgentChange}
+            onValueChange={handleAgentChange}
             className="w-48"
           >
             <option value="">Select Agent</option>

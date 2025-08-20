@@ -1,7 +1,10 @@
 import React, { useState } from 'react'; // Added React import
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/features/design-system/components/Collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import { ChevronDown, ChevronUp, Minimize, Maximize } from 'lucide-react';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevrondown';
+import ChevronUp from 'lucide-react/dist/esm/icons/chevronup';
+import Minimize from 'lucide-react/dist/esm/icons/minimize';
+import Maximize from 'lucide-react/dist/esm/icons/maximize';
 import { Button } from '@/features/design-system/components/Button';
 // Removed import for SettingsSectionProps from types
 // Removed import for SettingsSubsection

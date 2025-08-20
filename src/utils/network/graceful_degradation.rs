@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use log::{debug, warn, error, info};
+use log::{debug, warn, info};
 use serde::{Deserialize, Serialize};
 
-use super::{HealthStatus, ServiceHealthInfo, CircuitBreakerState};
+use super::{HealthStatus, ServiceHealthInfo};
 
 /// Degradation level for services
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

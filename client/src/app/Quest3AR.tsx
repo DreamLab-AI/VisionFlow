@@ -3,7 +3,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { AuthGatedVoiceButton } from '../components/AuthGatedVoiceButton';
 import { AuthGatedVoiceIndicator } from '../components/AuthGatedVoiceIndicator';
 import GraphViewport from '../features/graph/components/GraphViewport';
-import { createLogger } from '../utils/logger';
+import { createLogger, createErrorMetadata } from '../utils/logger';
 import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
 import { useSettingsStore } from '../store/settingsStore';
@@ -30,9 +30,9 @@ const ARGraphRenderer: React.FC = () => {
       // Convert graph data manager format to our binary node format
       const nodes = graphDataManager.getVisibleNodes();
       const nodeArray: BinaryNodeData[] = nodes.map(node => ({
-        nodeId: node.id,
+        nodeId: parseInt(node.id, 10) || 0,
         position: node.position,
-        velocity: node.velocity || { x: 0, y: 0, z: 0 },
+        velocity: (node as any).velocity || { x: 0, y: 0, z: 0 },
         flags: 0 // Default flags
       }));
       setNodeData(nodeArray);
@@ -49,7 +49,7 @@ const ARGraphRenderer: React.FC = () => {
         const parsedNodes = parseBinaryNodeData(data);
         setNodeData(parsedNodes);
       } catch (error) {
-        logger.error('Error parsing binary node data in AR renderer:', error);
+        logger.error('Error parsing binary node data in AR renderer:', createErrorMetadata(error));
       }
     });
 
@@ -75,7 +75,7 @@ const ARGraphRenderer: React.FC = () => {
       );
       
       // Apply AR-optimized LOD settings
-      const maxDistance = settings?.xr?.arRenderDistance || 100;
+      const maxDistance = 100; // Default AR render distance
       const scale = distance > maxDistance ? 0.3 : distance > 50 ? 0.6 : 1.0;
       
       mesh.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, y, z).scale(new THREE.Vector3(scale, scale, scale)));
@@ -155,7 +155,7 @@ const Quest3AR: React.FC = () => {
         
         // Use the centralized XR session management
         if (!isSessionActive) {
-          await startSession('immersive-ar');
+          await startSession();
         }
         
         // Ensure WebSocket connection through centralized service
@@ -177,11 +177,11 @@ const Quest3AR: React.FC = () => {
 
   // Set XR mode when AR session is active
   useEffect(() => {
-    if (isSessionActive && sessionType === 'immersive-ar') {
+    if (isSessionActive) {
       setMode('xr');
       logger.info('Quest 3 AR Layout activated - entering XR mode');
     }
-  }, [isSessionActive, sessionType, setMode]);
+  }, [isSessionActive, setMode]);
   
   // Monitor WebSocket connection through centralized service
   useEffect(() => {
@@ -244,7 +244,7 @@ const Quest3AR: React.FC = () => {
   }
 
   // If in XR session, use minimal AR view with Three.js Canvas
-  if (isSessionActive && sessionType === 'immersive-ar') {
+  if (isSessionActive) {
     return (
       <div style={{
         width: '100vw',
@@ -367,19 +367,16 @@ const Quest3AR: React.FC = () => {
       padding: 0
     }}>
       {/* Full-screen graph viewport for fallback */}
-      <GraphViewport 
-        style={{
-          width: '100vw',
-          height: '100vh',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: 1
-        }}
-        levelOfDetail={true}
-        maxRenderDistance={100}
-        updateRate={updateRate}
-      />
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 1
+      }}>
+        <GraphViewport />
+      </div>
 
       {/* AR readiness overlay */}
       <div style={{
@@ -398,7 +395,7 @@ const Quest3AR: React.FC = () => {
         <div style={{ fontSize: '16px', marginBottom: '8px' }}>🥽 AR Ready</div>
         {isQuest3.current ? (
           <button
-            onClick={() => startSession('immersive-ar').catch(logger.error)}
+            onClick={() => startSession().catch(logger.error)}
             style={{
               backgroundColor: '#3B82F6',
               color: 'white',

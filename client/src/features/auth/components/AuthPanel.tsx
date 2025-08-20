@@ -5,7 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/features/design-system/components/Label';
 import { Button } from '@/features/design-system/components/Button';
 import { Input } from '@/features/design-system/components/Input';
-import { Shield, Key, LogIn, LogOut, User } from 'lucide-react';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import Key from 'lucide-react/dist/esm/icons/key';
+import LogIn from 'lucide-react/dist/esm/icons/log-in';
+import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import User from 'lucide-react/dist/esm/icons/user';
 import { useToast } from '@/features/design-system/components/Toast';
 import { Badge } from '@/features/design-system/components/Badge';
 

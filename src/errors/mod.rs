@@ -4,7 +4,6 @@
 //! all panic! and unwrap() calls with proper error propagation.
 
 use std::fmt;
-use actix::prelude::*;
 
 /// Top-level error type for the VisionFlow system
 #[derive(Debug, Clone)]

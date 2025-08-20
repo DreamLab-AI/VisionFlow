@@ -16,7 +16,6 @@ use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode as UnifiedComputeMode, SimParams};
 // use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4}; // Not used with unified compute
 use crate::types::vec3::Vec3Data;
-use crate::config::dev_config;
 use crate::actors::messages::*;
 // use std::path::Path; // Not needed
 use std::env;

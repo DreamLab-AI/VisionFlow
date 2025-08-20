@@ -6,7 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/features/design-system/components/Label';
 import { ColorPicker } from '@/features/design-system/components/ColorPicker';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/features/design-system/components/Tabs';
-import { Eye, Palette, Settings2, Sparkles, Type } from 'lucide-react';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import Palette from 'lucide-react/dist/esm/icons/palette';
+import Settings2 from 'lucide-react/dist/esm/icons/settings2';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Type from 'lucide-react/dist/esm/icons/type';
 import { useToast } from '@/features/design-system/components/Toast';
 import { useSettingsStore } from '../store/settingsStore';
 

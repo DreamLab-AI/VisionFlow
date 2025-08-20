@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Terminal as CommandIcon, Search } from 'lucide-react';
+import TerminalasCommandIcon from 'lucide-react/dist/esm/icons/terminalascommandicon';
+import Search from 'lucide-react/dist/esm/icons/search';
 import { cn } from '../../../utils/classNameUtils';
 import { SearchInput } from '../../design-system/components';
 import { useCommandPalette } from '../hooks/useCommandPalette';

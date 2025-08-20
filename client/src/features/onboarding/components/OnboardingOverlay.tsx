@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react';
+import X from 'lucide-react/dist/esm/icons/x';
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevronleft';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevronright';
+import SkipForward from 'lucide-react/dist/esm/icons/skipforward';
 import { Button } from '../../design-system/components';
 import { cn } from '../../../utils/classNameUtils';
 import { OnboardingStep } from '../types';

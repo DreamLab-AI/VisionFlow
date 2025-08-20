@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { createLogger } from '../utils/logger';
 import WebSocketService from '../services/WebSocketService';
 import { useSettingsStore } from '../store/settingsStore';
-import { AlertCircle, WifiOff, RefreshCw } from 'lucide-react';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import WifiOff from 'lucide-react/dist/esm/icons/wifi-off';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 const logger = createLogger('ConnectionWarning');
 
