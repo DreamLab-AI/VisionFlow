@@ -14,3 +14,7 @@ pub mod multi_mcp_websocket_handler;
 pub mod mcp_health_handler;
 pub mod clustering_handler;
 pub mod constraints_handler;
+pub mod validation_handler;
+pub mod enhanced_settings_handler;
+pub mod enhanced_ragflow_handler;
+pub mod enhanced_bots_handler;

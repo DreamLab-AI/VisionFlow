@@ -59,7 +59,11 @@ impl AppState {
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
         
         info!("[AppState::new] Starting SettingsActor");
-        let settings_addr = SettingsActor::new().start();
+        let settings_actor = SettingsActor::new().map_err(|e| {
+            error!("Failed to create SettingsActor: {}", e);
+            e
+        })?;
+        let settings_addr = settings_actor.start();
 
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
@@ -68,7 +72,10 @@ impl AppState {
         let gpu_compute_addr = Some(GPUComputeActor::new().start());
 
         info!("[AppState::new] Starting GraphServiceActor");
-        let device = CudaDevice::new(0).unwrap();
+        let device = CudaDevice::new(0).map_err(|e| {
+            error!("Failed to create CUDA device: {}", e);
+            format!("CUDA initialization failed: {}", e)
+        })?;
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),

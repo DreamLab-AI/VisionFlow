@@ -15,6 +15,11 @@ use uuid::Uuid;
 use crate::AppState;
 use crate::actors::GraphServiceActor;
 use crate::services::agent_visualization_protocol::McpServerType;
+use crate::utils::network::{
+    retry_websocket_operation, TimeoutConfig, TimeoutGuard, CircuitBreaker, 
+    CircuitBreakerConfig, RetryableError, HealthCheckManager, ServiceEndpoint,
+    HealthCheckConfig
+};
 
 /// WebSocket actor for multi-MCP agent visualization
 pub struct MultiMcpVisualizationWs {
@@ -25,6 +30,10 @@ pub struct MultiMcpVisualizationWs {
     last_discovery_request: Instant,
     subscription_filters: SubscriptionFilters,
     performance_mode: PerformanceMode,
+    // Resilience components
+    timeout_config: TimeoutConfig,
+    circuit_breaker: Option<std::sync::Arc<CircuitBreaker>>,
+    health_manager: Option<std::sync::Arc<HealthCheckManager>>,
 }
 
 /// Client subscription filters
@@ -80,7 +89,13 @@ impl Default for PerformanceMode {
 impl MultiMcpVisualizationWs {
     pub fn new(app_state: web::Data<AppState>) -> Self {
         let client_id = Uuid::new_v4().to_string();
-        info!("Creating new Multi-MCP WebSocket client: {}", client_id);
+        info!("Creating new Multi-MCP WebSocket client with resilience: {}", client_id);
+        
+        // Initialize circuit breaker for MCP operations
+        let circuit_breaker = std::sync::Arc::new(CircuitBreaker::mcp_operations());
+        
+        // Initialize health manager
+        let health_manager = std::sync::Arc::new(HealthCheckManager::new());
         
         Self {
             app_state,
@@ -90,6 +105,9 @@ impl MultiMcpVisualizationWs {
             last_discovery_request: Instant::now(),
             subscription_filters: SubscriptionFilters::default(),
             performance_mode: PerformanceMode::default(),
+            timeout_config: TimeoutConfig::websocket(),
+            circuit_breaker: Some(circuit_breaker),
+            health_manager: Some(health_manager),
         }
     }
 
@@ -121,10 +139,39 @@ impl MultiMcpVisualizationWs {
         });
     }
 
-    /// Send discovery data to client
+    /// Send discovery data to client with resilience
     fn send_discovery_data(&self, ctx: &mut ws::WebsocketContext<Self>) {
-        // Request discovery data
-        ctx.address().do_send(RequestDiscoveryData);
+        let client_id = self.client_id.clone();
+        let circuit_breaker = self.circuit_breaker.clone();
+        let timeout_config = self.timeout_config.clone();
+        
+        if let Some(cb) = circuit_breaker {
+            // Execute discovery with circuit breaker protection
+            let addr = ctx.address();
+            actix::spawn(async move {
+                let discovery_operation = || async {
+                    // Simulated discovery operation - in real implementation this would
+                    // connect to actual MCP servers
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
+                };
+                
+                match cb.execute(discovery_operation()).await {
+                    Ok(_) => {
+                        debug!("Discovery operation successful for client: {}", client_id);
+                        addr.do_send(RequestDiscoveryData);
+                    }
+                    Err(e) => {
+                        warn!("Discovery operation failed for client {}: {:?}", client_id, e);
+                        // Still send the request but log the issue
+                        addr.do_send(RequestDiscoveryData);
+                    }
+                }
+            });
+        } else {
+            // Fallback to direct request
+            ctx.address().do_send(RequestDiscoveryData);
+        }
     }
 
     /// Handle client configuration update

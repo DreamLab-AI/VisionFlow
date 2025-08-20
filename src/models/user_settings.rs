@@ -41,7 +41,13 @@ impl UserSettings {
     pub fn load(pubkey: &str) -> Option<Self> {
         // First check the cache
         {
-            let cache = USER_SETTINGS_CACHE.read().unwrap();
+            let cache = match USER_SETTINGS_CACHE.read() {
+                Ok(cache) => cache,
+                Err(e) => {
+                    error!("Failed to read user settings cache: {}", e);
+                    return None;
+                }
+            };
             if let Some(cached) = cache.get(pubkey) {
                 // Check if cache is still valid
                 if cached.timestamp.elapsed() < CACHE_EXPIRATION {
@@ -62,7 +68,14 @@ impl UserSettings {
                         // Add to cache
                         let settings_clone = settings.clone();
                         {
-                            let mut cache = USER_SETTINGS_CACHE.write().unwrap();
+                            let mut cache = match USER_SETTINGS_CACHE.write() {
+                                Ok(cache) => cache,
+                                Err(e) => {
+                                    error!("Failed to write to user settings cache: {}", e);
+                                    // Continue without caching
+                                    return Some(settings);
+                                }
+                            };
                             cache.insert(pubkey.to_string(), CachedUserSettings {
                                 settings: settings_clone,
                                 timestamp: Instant::now(),
@@ -89,7 +102,14 @@ impl UserSettings {
         
         // Update cache first (this is fast and ensures immediate availability)
         {
-            let mut cache = USER_SETTINGS_CACHE.write().unwrap();
+            let mut cache = match USER_SETTINGS_CACHE.write() {
+                Ok(cache) => cache,
+                Err(e) => {
+                    warn!("Failed to write to user settings cache during save: {}", e);
+                    // Continue with save operation even if caching fails
+                    return self.save_to_disk();
+                }
+            };
             cache.insert(self.pubkey.clone(), CachedUserSettings {
                 settings: self.clone(),
                 timestamp: Instant::now(),
@@ -126,6 +146,31 @@ impl UserSettings {
         // Return success immediately since we've updated the cache
         Ok(())
     }
+    
+    fn save_to_disk(&self) -> Result<(), String> {
+        let path = Self::get_settings_path(&self.pubkey);
+        
+        // Ensure directory exists
+        if let Some(parent) = path.parent() {
+            if let Err(e) = std::fs::create_dir_all(parent) {
+                return Err(format!("Failed to create settings directory: {}", e));
+            }
+        }
+        
+        // Serialize and save settings
+        match serde_yaml::to_string(self) {
+            Ok(content) => {
+                match std::fs::write(&path, content) {
+                    Ok(_) => {
+                        debug!("Saved settings to disk for user {}", self.pubkey);
+                        Ok(())
+                    }
+                    Err(e) => Err(format!("Failed to write settings file: {}", e))
+                }
+            }
+            Err(e) => Err(format!("Failed to serialize settings: {}", e))
+        }
+    }
 
     fn get_settings_path(pubkey: &str) -> PathBuf {
         PathBuf::from("/app/user_settings").join(format!("{}.yaml", pubkey))
@@ -133,7 +178,13 @@ impl UserSettings {
     
     // Clear the cache entry for a specific user
     pub fn clear_cache(pubkey: &str) {
-        let mut cache = USER_SETTINGS_CACHE.write().unwrap();
+        let mut cache = match USER_SETTINGS_CACHE.write() {
+            Ok(cache) => cache,
+            Err(e) => {
+                error!("Failed to write to cache for clearing user {}: {}", pubkey, e);
+                return;
+            }
+        };
         if cache.remove(pubkey).is_some() {
             debug!("Cleared cache for user {}", pubkey);
         }
@@ -141,7 +192,13 @@ impl UserSettings {
     
     // Clear all cached settings
     pub fn clear_all_cache() {
-        let mut cache = USER_SETTINGS_CACHE.write().unwrap();
+        let mut cache = match USER_SETTINGS_CACHE.write() {
+            Ok(cache) => cache,
+            Err(e) => {
+                error!("Failed to write to cache for clearing all settings: {}", e);
+                return;
+            }
+        };
         let count = cache.len();
         cache.clear();
         debug!("Cleared all cached settings ({} entries)", count);

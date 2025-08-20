@@ -7,6 +7,7 @@ pub mod client_manager_actor;
 pub mod gpu_compute_actor;
 pub mod protected_settings_actor;
 pub mod claude_flow_actor_tcp;
+pub mod supervisor;
 // pub mod multi_mcp_visualization_actor; // Removed - file not implemented
 pub mod messages;
 
@@ -18,5 +19,6 @@ pub use gpu_compute_actor::GPUComputeActor;
 pub use protected_settings_actor::ProtectedSettingsActor;
 // Export the TCP actor as the ONLY ClaudeFlowActor
 pub use claude_flow_actor_tcp::ClaudeFlowActorTcp as ClaudeFlowActor;
+pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActor as SupervisedActorTrait};
 // pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor; // Removed - not implemented
 pub use messages::*;

@@ -110,7 +110,9 @@ mod tests {
             Err(GitHubConfigError::MissingEnvVar(var)) => {
                 assert_eq!(var, "GITHUB_TOKEN");
             }
-            _ => panic!("Expected MissingEnvVar error"),
+            other => {
+                panic!("Expected MissingEnvVar error, got: {:?}", other);
+            }
         }
     }
 
@@ -125,7 +127,9 @@ mod tests {
             Err(GitHubConfigError::ValidationError(msg)) => {
                 assert!(msg.contains("token cannot be empty"));
             }
-            _ => panic!("Expected ValidationError"),
+            other => {
+                panic!("Expected ValidationError, got: {:?}", other);
+            }
         }
     }
 

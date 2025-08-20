@@ -1,12 +1,82 @@
 use std::process::Command;
 use log::{info, error, warn};
+use std::sync::Arc;
+use crate::utils::network::{
+    CircuitBreaker, CircuitBreakerConfig, retry_network_operation, RetryableError,
+    HealthCheckManager, ServiceEndpoint, HealthCheckConfig, TimeoutConfig, TimeoutGuard
+};
 
-/// Manages the MCP WebSocket relay in the multi-agent-container
-pub struct McpRelayManager;
+/// Manages the MCP WebSocket relay in the multi-agent-container with resilience patterns
+pub struct McpRelayManager {
+    circuit_breaker: Arc<CircuitBreaker>,
+    health_manager: Arc<HealthCheckManager>,
+    timeout_config: TimeoutConfig,
+}
+
+/// Custom error type for MCP relay operations
+#[derive(Debug, thiserror::Error)]
+pub enum McpRelayError {
+    #[error("Docker command failed: {0}")]
+    DockerCommandFailed(String),
+    #[error("Container not found: {0}")]
+    ContainerNotFound(String),
+    #[error("Service health check failed")]
+    HealthCheckFailed,
+    #[error("Operation timeout")]
+    Timeout,
+}
+
+impl RetryableError for McpRelayError {
+    fn is_retryable(&self) -> bool {
+        match self {
+            McpRelayError::DockerCommandFailed(_) => true,
+            McpRelayError::ContainerNotFound(_) => false, // Don't retry if container doesn't exist
+            McpRelayError::HealthCheckFailed => true,
+            McpRelayError::Timeout => true,
+        }
+    }
+}
 
 impl McpRelayManager {
-    /// Check if the MCP relay is running in the multi-agent-container
-    pub fn check_relay_status() -> bool {
+    /// Create a new MCP relay manager with resilience patterns
+    pub fn new() -> Self {
+        let circuit_breaker = Arc::new(CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 3,
+            failure_rate_threshold: 0.5,
+            time_window: std::time::Duration::from_secs(60),
+            recovery_timeout: std::time::Duration::from_secs(30),
+            success_threshold: 2,
+            half_open_max_requests: 3,
+            minimum_request_threshold: 5,
+        }));
+        
+        let health_manager = Arc::new(HealthCheckManager::new());
+        
+        Self {
+            circuit_breaker,
+            health_manager,
+            timeout_config: TimeoutConfig::default(),
+        }
+    }
+
+    /// Check if the MCP relay is running in the multi-agent-container with resilience
+    pub async fn check_relay_status(&self) -> Result<bool, McpRelayError> {
+        let operation = || async {
+            Self::check_relay_status_internal().await
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+        };
+
+        match self.circuit_breaker.execute(operation()).await {
+            Ok(result) => Ok(result),
+            Err(e) => {
+                error!("Circuit breaker failed for MCP relay status check: {:?}", e);
+                Err(McpRelayError::HealthCheckFailed)
+            }
+        }
+    }
+
+    /// Internal method for checking relay status
+    async fn check_relay_status_internal() -> Result<bool, McpRelayError> {
         info!("Checking MCP relay status in multi-agent-container...");
         
         let output = Command::new("docker")
