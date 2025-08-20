@@ -16,6 +16,7 @@ use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode as UnifiedComputeMode, SimParams};
 // use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4}; // Not used with unified compute
 use crate::types::vec3::Vec3Data;
+use crate::config::dev_config;
 use crate::actors::messages::*;
 // use std::path::Path; // Not needed
 use std::env;
@@ -24,9 +25,10 @@ use actix::fut::{ActorFutureExt}; // For .map() on ActorFuture
 use serde::{Serialize, Deserialize};
 use futures_util::future::FutureExt as _; // For .into_actor() - note the `as _` to avoid name collision if FutureExt is also in scope from elsewhere
 
-// Constants for GPU computation
-const MAX_NODES: u32 = 1_000_000;
-const DEBUG_THROTTLE: u32 = 60;
+// Constants for GPU computation - now from dev config
+// These are still here as const for performance but initialized from config
+const MAX_NODES: u32 = 1_000_000;  // Will use dev_config::cuda().max_nodes in init
+const DEBUG_THROTTLE: u32 = 60;    // Will use dev_config::cuda().debug_output_throttle in init
 
 // Constants for retry mechanism
 // const MAX_GPU_INIT_RETRIES: u32 = 3; // Unused
@@ -221,8 +223,35 @@ impl GPUComputeActor {
         info!("(Static Logic) Unified compute initialized successfully");
         
         // Upload node positions to unified compute
+        // Use existing positions from graph (which should be from server state)
         let positions: Vec<(f32, f32, f32)> = graph.nodes.iter()
-            .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+            .map(|node| {
+                let pos = &node.data.position;
+                // Check if position is at boundary (likely stuck)
+                let is_at_boundary = pos.x.abs() > 4900.0 || pos.y.abs() > 4900.0 || pos.z.abs() > 4900.0;
+                
+                if is_at_boundary {
+                    // Only reset if stuck at boundary
+                    warn!("Node {} stuck at boundary ({}, {}, {}), resetting position", 
+                          node.id, pos.x, pos.y, pos.z);
+                    
+                    // Generate a reasonable position
+                    let id_hash = node.id as f32;
+                    let golden_ratio = 1.618033988749895;
+                    let theta = 2.0 * std::f32::consts::PI * ((id_hash * golden_ratio) % 1.0);
+                    let phi = ((2.0 * id_hash / graph.nodes.len() as f32) - 1.0).acos();
+                    let radius = 200.0 + (id_hash % 600.0);
+                    
+                    (
+                        radius * phi.sin() * theta.cos(),
+                        radius * phi.sin() * theta.sin(),
+                        radius * phi.cos(),
+                    )
+                } else {
+                    // Keep existing position from server
+                    (pos.x, pos.y, pos.z)
+                }
+            })
             .collect();
         
         unified_compute.upload_positions(&positions)
@@ -284,6 +313,7 @@ impl GPUComputeActor {
         }
 
         // Upload positions to unified compute
+        // Use existing positions (should be from server state)
         let positions: Vec<(f32, f32, f32)> = graph.nodes.iter()
             .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
             .collect();

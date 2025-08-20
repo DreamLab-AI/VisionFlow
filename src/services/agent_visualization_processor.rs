@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::types::claude_flow::AgentStatus;
+use crate::config::dev_config;
 use sysinfo::{System, Pid};
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
@@ -276,17 +277,18 @@ impl AgentVisualizationProcessor {
     
     /// Get visual properties based on agent type and state
     fn get_visual_properties(&self, agent_type: &str, status: &str, health: f32) -> (String, ShapeType, AnimationState) {
+        let colors = &dev_config::rendering().agent_colors;
         let color = match agent_type {
-            "coordinator" => "#00FFFF",
-            "coder" => "#00FF00",
-            "architect" => "#FFA500",
-            "analyst" => "#9370DB",
-            "tester" => "#FF6347",
-            "researcher" => "#FFD700",
-            "reviewer" => "#4169E1",
-            "optimizer" => "#7FFFD4",
-            "documenter" => "#FF69B4",
-            _ => "#CCCCCC",
+            "coordinator" => &colors.coordinator,
+            "coder" => &colors.coder,
+            "architect" => &colors.architect,
+            "analyst" => &colors.analyst,
+            "tester" => &colors.tester,
+            "researcher" => &colors.researcher,
+            "reviewer" => &colors.reviewer,
+            "optimizer" => &colors.optimizer,
+            "documenter" => &colors.documenter,
+            _ => &colors.default,
         }.to_string();
         
         let shape = match agent_type {

@@ -126,151 +126,33 @@ pub struct SimulationParams {
 
 impl SimulationParams {
     pub fn new() -> Self {
-        Self {
-            enabled: true,              // Physics enabled by default
-            auto_balance: false,
-            auto_balance_interval_ms: 500,
-            auto_balance_config: AutoBalanceConfig::default(),
-            iterations: 200,
-            dt: 0.01,                   // Much smaller for stability
-            spring_k: 0.005,             // Very gentle springs
-            repel_k: 50.0,               // Dramatically reduced from 1000.0
-            mass_scale: 1.0,
-            damping: 0.9,               // High damping for stability
-            boundary_damping: 0.95,     
-            viewport_bounds: 200.0,     // Smaller viewport
-            enable_bounds: true,
-            max_velocity: 1.0,          // From settings.yaml
-            max_force: 10.0,            // Independent max force limit
-            attraction_k: 0.001,         // From settings.yaml
-            separation_radius: 0.15,     // From settings.yaml
-            temperature: 0.5,            // From settings.yaml
-            // GPU parameters with defaults
-            stress_weight: 0.1,
-            stress_alpha: 0.1,
-            boundary_limit: 196.0,      // 98% of viewport_bounds
-            alignment_strength: 0.0,
-            cluster_strength: 0.0,
-            compute_mode: 0,
-            min_distance: 0.15,
-            max_repulsion_dist: 50.0,
-            boundary_margin: 0.85,
-            boundary_force_strength: 2.0,
-            warmup_iterations: 200,
-            cooling_rate: 0.0001,
-            phase: SimulationPhase::Initial,
-            mode: SimulationMode::Remote,
-        }
+        // Use default PhysicsSettings as base
+        let default_physics = PhysicsSettings::default();
+        Self::from(&default_physics)
     }
 
     pub fn with_phase(phase: SimulationPhase) -> Self {
+        let mut params = Self::new();
+        params.phase = phase;
+        
+        // Phase-specific adjustments are minimal - most values come from settings
+        // Only adjust critical parameters that need to vary by phase
         match phase {
-            SimulationPhase::Initial => Self {
-                enabled: true,              // Physics enabled by default
-                auto_balance: false,
-                auto_balance_interval_ms: 500,
-                auto_balance_config: AutoBalanceConfig::default(),
-                iterations: 500,
-                dt: 0.01,                  // Small timestep for stability
-                spring_k: 0.005,            // Very gentle springs
-                repel_k: 50.0,              // Much lower repulsion
-                mass_scale: 1.0,           // Standard mass
-                damping: 0.95,             // Very high damping
-                boundary_damping: 0.95,
-                viewport_bounds: 8000.0,   // Much larger bounds
-                enable_bounds: true,
-                max_velocity: 1.0,
-                max_force: 5.0,            // Lower force limit for initial phase
-                attraction_k: 0.001,
-                separation_radius: 0.15,
-                temperature: 0.5,
-                // GPU parameters
-                stress_weight: 0.1,
-                stress_alpha: 0.1,
-                boundary_limit: 7840.0,    // 98% of viewport_bounds
-                alignment_strength: 0.0,
-                cluster_strength: 0.0,
-                compute_mode: 0,
-                min_distance: 0.15,
-                max_repulsion_dist: 50.0,
-                boundary_margin: 0.85,
-                boundary_force_strength: 2.0,
-                warmup_iterations: 200,
-                cooling_rate: 0.0001,
-                phase,
-                mode: SimulationMode::Remote,
+            SimulationPhase::Initial => {
+                // Initial phase may need more iterations for settling
+                params.iterations = params.iterations.max(500);
+                params.warmup_iterations = params.warmup_iterations.max(300);
             },
-            SimulationPhase::Dynamic => Self {
-                enabled: true,
-                auto_balance: false,
-                auto_balance_interval_ms: 500,
-                auto_balance_config: AutoBalanceConfig::default(),
-                iterations: 100,
-                dt: 0.12,                  // Further reduced for optimal stability
-                spring_k: 0.01,            // Reduced spring strength
-                repel_k: 600.0,            // Further reduced from 800.0
-                mass_scale: 1.5,
-                damping: 0.9,  // Increased from 0.85
-                boundary_damping: 0.95,  // Increased boundary damping
-                viewport_bounds: 5000.0,
-                enable_bounds: true,
-                max_velocity: 2.0,
-                max_force: 10.0,           // Standard force limit
-                attraction_k: 0.002,
-                separation_radius: 0.2,
-                temperature: 0.3,
-                // GPU parameters
-                stress_weight: 0.1,
-                stress_alpha: 0.1,
-                boundary_limit: 4900.0,    // 98% of viewport_bounds
-                alignment_strength: 0.0,
-                cluster_strength: 0.0,
-                compute_mode: 0,
-                min_distance: 0.15,
-                max_repulsion_dist: 1500.0,
-                boundary_margin: 0.85,
-                boundary_force_strength: 2.0,
-                warmup_iterations: 200,
-                cooling_rate: 0.0001,
-                phase,
-                mode: SimulationMode::Remote,
+            SimulationPhase::Dynamic => {
+                // Dynamic phase uses default settings
             },
-            SimulationPhase::Finalize => Self {
-                enabled: true,
-                auto_balance: false,
-                auto_balance_interval_ms: 500,
-                auto_balance_config: AutoBalanceConfig::default(),
-                iterations: 300,
-                dt: 0.15,                  // Reduced from 0.2
-                spring_k: 0.005,            // Minimal spring forces
-                repel_k: 600.0,             // Reduced from 800.0
-                mass_scale: 1.2,           // Moderate mass influence
-                damping: 0.95,             // High damping for stability
-                boundary_damping: 0.95,
-                viewport_bounds: 5000.0,
-                enable_bounds: true,
-                max_velocity: 1.5,
-                max_force: 15.0,           // Higher force limit for final positioning
-                attraction_k: 0.001,
-                separation_radius: 0.15,
-                temperature: 0.2,
-                // GPU parameters
-                stress_weight: 0.1,
-                stress_alpha: 0.1,
-                boundary_limit: 4900.0,    // 98% of viewport_bounds
-                alignment_strength: 0.0,
-                cluster_strength: 0.0,
-                compute_mode: 0,
-                min_distance: 0.15,
-                max_repulsion_dist: 1200.0,
-                boundary_margin: 0.85,
-                boundary_force_strength: 2.0,
-                warmup_iterations: 200,
-                cooling_rate: 0.0001,
-                phase,
-                mode: SimulationMode::Remote,
+            SimulationPhase::Finalize => {
+                // Finalize phase may need more iterations to stabilize
+                params.iterations = params.iterations.max(300);
             },
         }
+        
+        params
     }
 
     // Convert to GPU-compatible parameters (new GPU-aligned format)
@@ -307,31 +189,9 @@ impl SimulationParams {
 // Implementation for SimParams (GPU-aligned struct)
 impl SimParams {
     pub fn new() -> Self {
-        Self {
-            spring_k: 0.005,
-            repel_k: 50.0,
-            damping: 0.9,
-            dt: 0.01,
-            max_velocity: 1.0,
-            max_force: 10.0,
-            stress_weight: 0.1,
-            stress_alpha: 0.1,
-            separation_radius: 0.15,
-            boundary_limit: 196.0,  // 98% of viewport_bounds
-            alignment_strength: 0.0,
-            cluster_strength: 0.0,
-            boundary_damping: 0.95,
-            viewport_bounds: 200.0,
-            temperature: 0.5,
-            iteration: 0,
-            compute_mode: 0,
-            min_distance: 0.15,
-            max_repulsion_dist: 50.0,
-            boundary_margin: 0.85,
-            boundary_force_strength: 2.0,
-            warmup_iterations: 200,
-            cooling_rate: 0.0001,
-        }
+        // Create from default SimulationParams which uses PhysicsSettings
+        let params = SimulationParams::new();
+        params.to_sim_params()
     }
 
     // Convert from SimParams back to SimulationParams
@@ -407,7 +267,7 @@ impl From<&PhysicsSettings> for SimParams {
             damping: physics.damping,
             dt: physics.dt,
             max_velocity: physics.max_velocity,
-            max_force: 10.0,  // Default max force
+            max_force: physics.max_force,
             stress_weight: physics.stress_weight,
             stress_alpha: physics.stress_alpha,
             separation_radius: physics.separation_radius,
@@ -419,12 +279,12 @@ impl From<&PhysicsSettings> for SimParams {
             temperature: physics.temperature,
             iteration: 0,
             compute_mode: physics.compute_mode,
-            min_distance: 0.15,  // Default values for fields not in PhysicsSettings
+            min_distance: physics.min_distance,
             max_repulsion_dist: physics.max_repulsion_dist,
-            boundary_margin: 0.85,
-            boundary_force_strength: 2.0,
-            warmup_iterations: 200,
-            cooling_rate: 0.0001,
+            boundary_margin: physics.boundary_margin,
+            boundary_force_strength: physics.boundary_force_strength,
+            warmup_iterations: physics.warmup_iterations,
+            cooling_rate: physics.cooling_rate,
         }
     }
 }
@@ -433,7 +293,7 @@ impl From<&PhysicsSettings> for SimParams {
 impl From<&PhysicsSettings> for SimulationParams {
     fn from(physics: &PhysicsSettings) -> Self {
         Self {
-            enabled: physics.enabled,  // Use the enabled flag from settings
+            enabled: physics.enabled,
             auto_balance: physics.auto_balance,
             auto_balance_interval_ms: physics.auto_balance_interval_ms,
             auto_balance_config: physics.auto_balance_config.clone(),
@@ -447,7 +307,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             viewport_bounds: physics.bounds_size,
             enable_bounds: physics.enable_bounds,
             max_velocity: physics.max_velocity,
-            max_force: 10.0,  // Default independent max force
+            max_force: physics.max_force,  // Use from settings
             attraction_k: physics.attraction_k,
             separation_radius: physics.separation_radius,
             temperature: physics.temperature,
@@ -458,12 +318,12 @@ impl From<&PhysicsSettings> for SimulationParams {
             alignment_strength: physics.alignment_strength,
             cluster_strength: physics.cluster_strength,
             compute_mode: physics.compute_mode,
-            min_distance: 0.15,  // Default values for fields not in PhysicsSettings
+            min_distance: physics.min_distance,
             max_repulsion_dist: physics.max_repulsion_dist,
-            boundary_margin: 0.85,
-            boundary_force_strength: 2.0,
-            warmup_iterations: 200,
-            cooling_rate: 0.0001,
+            boundary_margin: physics.boundary_margin,
+            boundary_force_strength: physics.boundary_force_strength,
+            warmup_iterations: physics.warmup_iterations,
+            cooling_rate: physics.cooling_rate,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }

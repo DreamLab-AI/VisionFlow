@@ -103,6 +103,7 @@ visualisation:
         enabled: true
         iterations: 50
         max_velocity: 3.0
+        max_force: 100.0
         repel_k: 1.2
         spring_k: 0.15
         mass_scale: 1.0
@@ -186,6 +187,7 @@ visualisation:
         enabled: true
         iterations: 100
         max_velocity: 1.0
+        max_force: 100.0
         repel_k: 5.0
         spring_k: 0.5
         mass_scale: 1.0

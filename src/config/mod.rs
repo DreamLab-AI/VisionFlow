@@ -5,6 +5,8 @@ use serde_json::Value;
 use serde_yaml;
 use std::path::PathBuf;
 
+pub mod dev_config;
+
 fn default_auto_balance_interval() -> u32 {
     500
 }
@@ -213,6 +215,7 @@ pub struct PhysicsSettings {
     pub enabled: bool,
     pub iterations: u32,
     pub max_velocity: f32,
+    pub max_force: f32,
     pub repel_k: f32,
     pub spring_k: f32,
     pub mass_scale: f32,
@@ -258,6 +261,7 @@ impl Default for PhysicsSettings {
             enabled: true,
             iterations: 100,
             max_velocity: 1.0,
+            max_force: 100.0,
             repel_k: 50.0,
             spring_k: 0.005,
             mass_scale: 1.0,
@@ -758,6 +762,7 @@ pub struct PhysicsUpdate {
     pub bounds_size: Option<f32>,
     pub enable_bounds: Option<bool>,
     pub max_velocity: Option<f32>,
+    pub max_force: Option<f32>,
     pub separation_radius: Option<f32>,
     pub attraction_k: Option<f32>,
     pub mass_scale: Option<f32>,

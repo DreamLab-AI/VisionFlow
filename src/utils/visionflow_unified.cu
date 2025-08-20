@@ -12,7 +12,7 @@ extern "C" {
 // =============================================================================
 
 struct SimParams {
-    // Force parameters
+    // Force parameters - must match exact order in Rust SimParams
     float spring_k;
     float repel_k;
     float damping;
@@ -31,14 +31,21 @@ struct SimParams {
     float cluster_strength;
     
     // Boundary control
-    float boundary_damping;  // Damping factor when hitting boundaries
+    float boundary_damping;
     
     // System
     float viewport_bounds;
     float temperature;
-    float max_repulsion_dist;  // Maximum distance for repulsion forces
     int iteration;
     int compute_mode;  // 0=basic, 1=dual, 2=constraints, 3=analytics
+    
+    // Additional GPU fields - must match Rust order
+    float min_distance;
+    float max_repulsion_dist;
+    float boundary_margin;
+    float boundary_force_strength;
+    unsigned int warmup_iterations;
+    float cooling_rate;
 };
 
 struct ConstraintData {
@@ -101,9 +108,9 @@ __device__ float3 compute_basic_forces(
     int num_nodes, int num_edges,
     SimParams params
 ) {
-    const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
-    // Use max_repulsion_dist from params, with a reasonable default
-    const float MAX_REPULSION_DIST = fmaxf(params.max_repulsion_dist, 100.0f);
+    // Use min_distance and max_repulsion_dist from params with safety checks
+    const float MIN_DISTANCE = fmaxf(params.min_distance, 0.01f);  // Ensure non-zero
+    const float MAX_REPULSION_DIST = fmaxf(params.max_repulsion_dist, 1.0f);  // Ensure reasonable min
     
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
@@ -183,7 +190,7 @@ __device__ float3 compute_dual_graph_forces(
     int num_nodes, int num_edges,
     SimParams params
 ) {
-    const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
+    const float MIN_DISTANCE = fmaxf(params.min_distance, 0.01f);  // Ensure non-zero to prevent division by zero
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
     int my_graph = node_graph_id[idx];
@@ -314,7 +321,7 @@ __device__ float3 compute_visual_analytics(
     int num_nodes, int num_edges,
     SimParams params
 ) {
-    const float MIN_DISTANCE = 0.15f;  // Minimum separation between nodes
+    const float MIN_DISTANCE = fmaxf(params.min_distance, 0.01f);  // Ensure non-zero to prevent division by zero
     float3 my_pos = make_vec3(pos_x[idx], pos_y[idx], pos_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
     float my_importance = node_importance[idx];
@@ -462,6 +469,13 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
             break;
     }
     
+    // Debug: Track force explosion for first 3 nodes
+    if (idx < 3 && (p.params.iteration < 10 || p.params.iteration % 60 == 0)) {
+        float force_mag = vec3_length(force);
+        printf("DEBUG[%d] iter=%d: raw_force=(%.2f,%.2f,%.2f) mag=%.2f max=%.2f\n", 
+               idx, p.params.iteration, force.x, force.y, force.z, force_mag, p.params.max_force);
+    }
+    
     // Clamp force magnitude BEFORE any scaling
     force = vec3_clamp(force, p.params.max_force);
     
@@ -496,21 +510,23 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     // FIX: Improved soft viewport bounds with progressive damping to prevent bouncing
     // Apply boundaries with different strengths based on enable_bounds setting
     if (p.params.viewport_bounds > 0.0f) {
-        float boundary_margin = p.params.viewport_bounds * 0.85f; // Start applying force at 85% of boundary
+        float boundary_margin = p.params.viewport_bounds * p.params.boundary_margin; // Use boundary_margin from params
         
         // Check if position is extremely far (more than 10x the boundary)
         float max_distance = fmaxf(fmaxf(fabsf(position.x), fabsf(position.y)), fabsf(position.z));
         bool extreme_position = max_distance > (p.params.viewport_bounds * 10.0f);
         
-        // Use strong recovery force for extreme positions, normal force otherwise
-        float boundary_force_strength = extreme_position ? 100.0f : 2.0f;
+        // Use boundary_force_strength from params, scale up for extreme positions
+        float boundary_force_strength = extreme_position ? 
+            (p.params.boundary_force_strength * 10.0f) : p.params.boundary_force_strength;
         
-        // Debug output for first few nodes to understand bouncing
+        // Enhanced debug output to track explosion
         if (idx < 3 && p.params.iteration % 60 == 0) {
-            printf("Node %d: pos=(%.2f,%.2f,%.2f) vel=(%.2f,%.2f,%.2f) bounds=%.0f strength=%.3f\n", 
+            printf("Node %d: pos=(%.2f,%.2f,%.2f) vel=(%.2f,%.2f,%.2f) force=(%.2f,%.2f,%.2f) bounds=%.0f iter=%d\n", 
                    idx, position.x, position.y, position.z,
-                   velocity.x, velocity.y, velocity.z, 
-                   p.params.viewport_bounds, boundary_force_strength);
+                   velocity.x, velocity.y, velocity.z,
+                   force.x, force.y, force.z,
+                   p.params.viewport_bounds, p.params.iteration);
         }
         
         // X boundary - Progressive damping based on distance from boundary
@@ -531,9 +547,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.x *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.x) > p.params.viewport_bounds * 0.99f) {
+        if (fabsf(position.x) > p.params.boundary_limit) {
             // Hard stop at 99% to leave room for boundary forces
-            position.x = copysignf(p.params.viewport_bounds * 0.99f, position.x);
+            position.x = copysignf(p.params.boundary_limit, position.x);
             // Reverse velocity to bounce back
             velocity.x *= -0.5f;
         }
@@ -557,9 +573,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.y *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.y) > p.params.viewport_bounds * 0.99f) {
+        if (fabsf(position.y) > p.params.boundary_limit) {
             // Hard stop at 99% to leave room for boundary forces
-            position.y = copysignf(p.params.viewport_bounds * 0.99f, position.y);
+            position.y = copysignf(p.params.boundary_limit, position.y);
             // Reverse velocity to bounce back
             velocity.y *= -0.5f;
         }
@@ -583,9 +599,9 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         velocity.z *= progressive_damping;
         
         // Soft clamp with margin to prevent hard bounces
-        if (fabsf(position.z) > p.params.viewport_bounds * 0.99f) {
+        if (fabsf(position.z) > p.params.boundary_limit) {
             // Hard stop at 99% to leave room for boundary forces
-            position.z = copysignf(p.params.viewport_bounds * 0.99f, position.z);
+            position.z = copysignf(p.params.boundary_limit, position.z);
             // Reverse velocity to bounce back
             velocity.z *= -0.5f;
         }
