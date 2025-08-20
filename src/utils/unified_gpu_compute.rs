@@ -538,6 +538,49 @@ impl UnifiedGPUCompute {
         self.device.synchronize()
             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
 
+        // Debug logging for first few iterations to catch explosion
+        if self.params.iteration <= 10 || self.params.iteration % 100 == 0 {
+            // Copy back first 3 nodes for debugging
+            let debug_nodes = 3.min(self.num_nodes);
+            let mut debug_pos_x = vec![0.0f32; debug_nodes];
+            let mut debug_pos_y = vec![0.0f32; debug_nodes];
+            let mut debug_pos_z = vec![0.0f32; debug_nodes];
+            let mut debug_vel_x = vec![0.0f32; debug_nodes];
+            let mut debug_vel_y = vec![0.0f32; debug_nodes];
+            let mut debug_vel_z = vec![0.0f32; debug_nodes];
+            
+            self.device.dtoh_sync_copy_into(&self.pos_x.slice(0..debug_nodes), &mut debug_pos_x)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug pos_x: {}", e)))?;
+            self.device.dtoh_sync_copy_into(&self.pos_y.slice(0..debug_nodes), &mut debug_pos_y)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug pos_y: {}", e)))?;
+            self.device.dtoh_sync_copy_into(&self.pos_z.slice(0..debug_nodes), &mut debug_pos_z)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug pos_z: {}", e)))?;
+            self.device.dtoh_sync_copy_into(&self.vel_x.slice(0..debug_nodes), &mut debug_vel_x)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug vel_x: {}", e)))?;
+            self.device.dtoh_sync_copy_into(&self.vel_y.slice(0..debug_nodes), &mut debug_vel_y)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug vel_y: {}", e)))?;
+            self.device.dtoh_sync_copy_into(&self.vel_z.slice(0..debug_nodes), &mut debug_vel_z)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to read debug vel_z: {}", e)))?;
+            
+            for i in 0..debug_pos_x.len() {
+                let pos_mag = (debug_pos_x[i].powi(2) + debug_pos_y[i].powi(2) + debug_pos_z[i].powi(2)).sqrt();
+                let vel_mag = (debug_vel_x[i].powi(2) + debug_vel_y[i].powi(2) + debug_vel_z[i].powi(2)).sqrt();
+                
+                log::info!("[GPU PHYSICS] iter={} node={}: pos=({:.2},{:.2},{:.2}) vel=({:.2},{:.2},{:.2}) |pos|={:.2} |vel|={:.2}",
+                    self.params.iteration, i,
+                    debug_pos_x[i], debug_pos_y[i], debug_pos_z[i],
+                    debug_vel_x[i], debug_vel_y[i], debug_vel_z[i],
+                    pos_mag, vel_mag
+                );
+                
+                // Warn if positions are exploding
+                if pos_mag > self.params.viewport_bounds * 2.0 {
+                    log::warn!("[GPU EXPLOSION] Node {} position magnitude {} exceeds 2x boundary {}!",
+                        i, pos_mag, self.params.viewport_bounds);
+                }
+            }
+        }
+
         // Download positions
         let mut pos_x = vec![0.0f32; self.num_nodes];
         let mut pos_y = vec![0.0f32; self.num_nodes];

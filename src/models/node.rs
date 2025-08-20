@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::types::vec3::Vec3Data;
+use crate::config::dev_config;
 
 // Static counter for generating unique numeric IDs
 static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1);  // Start from 1 (0 could be reserved)
@@ -59,14 +60,14 @@ impl Node {
         // BREADCRUMB: Use node ID to generate deterministic but spread out initial positions
         // This prevents all nodes from starting at the origin which causes clustering
         let id_hash = id as f32;
+        let physics = dev_config::physics();
         
         // Use golden ratio for even distribution in 3D space
-        let golden_ratio = 1.618033988749895;
-        let theta = 2.0 * std::f32::consts::PI * ((id_hash * golden_ratio) % 1.0);
-        let phi = ((2.0 * id_hash / 177.0) - 1.0).acos(); // Assuming ~177 nodes, adjust as needed
+        let theta = 2.0 * std::f32::consts::PI * ((id_hash * physics.golden_ratio) % 1.0);
+        let phi = ((2.0 * id_hash / 200.0) - 1.0).acos(); // Reasonable estimate for node count
         
-        // Spread nodes in a sphere with radius 500-1500 (well within 5000 boundary)
-        let radius = 500.0 + (id_hash % 1000.0);
+        // Spread nodes using configured radius range
+        let radius = physics.initial_radius_min + (id_hash % physics.initial_radius_range);
         
         Self {
             id,
