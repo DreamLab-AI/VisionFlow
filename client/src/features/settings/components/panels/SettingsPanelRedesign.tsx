@@ -269,7 +269,8 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
                         {Object.values(section.settings || {}).map(setting => (
                           <SettingControlComponent
                             key={setting.path}
-                            setting={setting}
+                            path={setting.path}
+                            settingDef={setting}
                             value={getSettingValue(settings, setting.path)}
                             onChange={(value) => {
                               updateSettings((draft) => {

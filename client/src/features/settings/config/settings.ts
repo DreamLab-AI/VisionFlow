@@ -55,6 +55,15 @@ export interface PhysicsSettings {
   boundsSize: number;
   boundaryDamping: number;
   separationRadius: number;
+  collisionRadius?: number; // For compatibility
+  
+  // New CUDA kernel parameters
+  restLength: number;
+  repulsionCutoff: number;
+  repulsionSofteningEpsilon: number;
+  centerGravityK: number;
+  gridCellSize: number;
+  featureFlags: number;
   
   // GPU-specific parameters
   stressWeight: number;
@@ -75,15 +84,15 @@ export interface PhysicsSettings {
   
   // Warmup System
   warmupIterations: number;
-  warmupCurve: string;
-  zeroVelocityIterations: number;
+  warmupCurve?: string; // Optional for compatibility
+  zeroVelocityIterations?: number; // Optional for compatibility  
   coolingRate: number;
   
   // Clustering
-  clusteringAlgorithm: string;
-  clusterCount: number;
-  clusteringResolution: number;
-  clusteringIterations: number;
+  clusteringAlgorithm?: string; // Optional for compatibility
+  clusterCount?: number; // Optional for compatibility
+  clusteringResolution?: number; // Optional for compatibility
+  clusteringIterations?: number; // Optional for compatibility
 }
 
 // Rendering settings

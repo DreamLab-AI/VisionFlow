@@ -147,7 +147,11 @@ interface SettingsState {
   updateClustering: (config: ClusteringConfig) => void;
   updateConstraints: (constraints: ConstraintConfig[]) => void;
   updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
+  updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void; // Alias for updateGPUPhysics
   updateWarmupSettings: (settings: WarmupSettings) => void;
+  
+  // WebSocket integration for real-time physics updates
+  notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
 }
 
 // GPU-specific interfaces for type safety
@@ -155,13 +159,35 @@ interface GPUPhysicsParams {
   springK: number;
   repelK: number;
   attractionK: number;
+  gravity: number;
   dt: number;
   maxVelocity: number;
   damping: number;
   temperature: number;
   maxRepulsionDist: number;
+  
+  // New CUDA kernel parameters
+  restLength: number;
+  repulsionCutoff: number;
+  repulsionSofteningEpsilon: number;
+  centerGravityK: number;
+  gridCellSize: number;
+  featureFlags: number;
+  
+  // Warmup parameters
   warmupIterations: number;
   coolingRate: number;
+  
+  // Additional boundary and collision parameters
+  enableBounds?: boolean;
+  boundsSize?: number;
+  boundaryDamping?: number;
+  collisionRadius?: number;
+  
+  // Advanced parameters
+  iterations?: number;
+  massScale?: number;
+  updateThreshold?: number;
 }
 
 interface ClusteringConfig {
@@ -185,6 +211,8 @@ interface WarmupSettings {
   warmupDuration: number;
   convergenceThreshold: number;
   enableAdaptiveCooling: boolean;
+  warmupIterations?: number; // Optional for direct warmup iteration control
+  coolingRate?: number; // Optional for direct cooling rate control
 }
 
 // Clear bad physics from localStorage on startup
@@ -488,12 +516,67 @@ export const useSettingsStore = create<SettingsState>()(
 
       updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         const state = get();
+        
+        // Validate parameter ranges for new CUDA parameters
+        const validatedParams = { ...params };
+        
+        // Validate new CUDA parameters
+        if (validatedParams.restLength !== undefined) {
+          validatedParams.restLength = Math.max(0.1, Math.min(10.0, validatedParams.restLength));
+        }
+        if (validatedParams.repulsionCutoff !== undefined) {
+          validatedParams.repulsionCutoff = Math.max(1.0, Math.min(1000.0, validatedParams.repulsionCutoff));
+        }
+        if (validatedParams.repulsionSofteningEpsilon !== undefined) {
+          validatedParams.repulsionSofteningEpsilon = Math.max(0.001, Math.min(1.0, validatedParams.repulsionSofteningEpsilon));
+        }
+        if (validatedParams.centerGravityK !== undefined) {
+          validatedParams.centerGravityK = Math.max(-1.0, Math.min(1.0, validatedParams.centerGravityK));
+        }
+        if (validatedParams.gridCellSize !== undefined) {
+          validatedParams.gridCellSize = Math.max(1.0, Math.min(100.0, validatedParams.gridCellSize));
+        }
+        if (validatedParams.featureFlags !== undefined) {
+          validatedParams.featureFlags = Math.max(0, Math.min(255, Math.floor(validatedParams.featureFlags)));
+        }
+        
+        // Validate existing parameters with updated ranges
+        if (validatedParams.springK !== undefined) {
+          validatedParams.springK = Math.max(0.001, Math.min(10.0, validatedParams.springK));
+        }
+        if (validatedParams.repelK !== undefined) {
+          validatedParams.repelK = Math.max(0.001, Math.min(100.0, validatedParams.repelK));
+        }
+        if (validatedParams.attractionK !== undefined) {
+          validatedParams.attractionK = Math.max(0.0, Math.min(1.0, validatedParams.attractionK));
+        }
+        if (validatedParams.gravity !== undefined) {
+          validatedParams.gravity = Math.max(-1.0, Math.min(1.0, validatedParams.gravity));
+        }
+        if (validatedParams.warmupIterations !== undefined) {
+          validatedParams.warmupIterations = Math.max(0, Math.min(1000, Math.floor(validatedParams.warmupIterations)));
+        }
+        if (validatedParams.coolingRate !== undefined) {
+          validatedParams.coolingRate = Math.max(0.0001, Math.min(1.0, validatedParams.coolingRate));
+        }
+        
         state.updateSettings((draft) => {
           const graphSettings = draft.visualisation.graphs[graphName as keyof typeof draft.visualisation.graphs];
           if (graphSettings && graphSettings.physics) {
-            Object.assign(graphSettings.physics, params);
+            Object.assign(graphSettings.physics, validatedParams);
+            
+            if (debugState.isEnabled()) {
+              logger.info('GPU Physics parameters updated:', {
+                graphName,
+                updatedParams: validatedParams,
+                newPhysicsState: graphSettings.physics
+              });
+            }
           }
         });
+        
+        // Trigger WebSocket notification for real-time updates
+        state.notifyPhysicsUpdate(graphName, validatedParams);
       },
 
       updateWarmupSettings: (settings: WarmupSettings) => {
@@ -504,6 +587,52 @@ export const useSettingsStore = create<SettingsState>()(
           }
           Object.assign((draft as any).performance, settings);
         });
+      },
+
+      // Alias method for updateGPUPhysics for backward compatibility
+      updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
+        const state = get();
+        state.updateGPUPhysics(graphName, params);
+      },
+
+      // WebSocket notification for physics updates
+      notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => {
+        if (typeof window !== 'undefined') {
+          try {
+            // Try to get WebSocket service from window
+            const wsService = (window as any).webSocketService;
+            if (wsService && wsService.isConnected && wsService.isConnected()) {
+              const message = {
+                type: 'physics_parameter_update',
+                timestamp: Date.now(),
+                graph: graphName,
+                parameters: params
+              };
+              
+              wsService.send(message);
+              
+              if (debugState.isEnabled()) {
+                logger.info('Physics update sent via WebSocket:', {
+                  graphName,
+                  parameters: params,
+                  messageType: 'physics_parameter_update'
+                });
+              }
+            } else {
+              if (debugState.isEnabled()) {
+                logger.info('WebSocket not connected, physics update queued for next connection');
+              }
+            }
+          } catch (error) {
+            logger.warn('Failed to notify physics update via WebSocket:', createErrorMetadata(error));
+          }
+          
+          // Also dispatch a custom event for other components to listen to
+          const event = new CustomEvent('physicsParametersUpdated', {
+            detail: { graphName, params }
+          });
+          window.dispatchEvent(event);
+        }
       },
 
       // The subscribe and unsubscribe functions below were duplicated and are removed by this change.

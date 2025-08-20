@@ -37,7 +37,7 @@ export interface BotsAgent {
   };
 
   // UPDATED: multi-agent and hive-mind metadata
-  multi-agentId?: string;
+  multiAgentId?: string;
   agentMode?: 'centralized' | 'distributed' | 'strategic';
   parentQueenId?: string; // for hierarchical topologies
 
@@ -153,7 +153,7 @@ export interface BotsVisualConfig {
 
     // UPDATED: Hive-mind specific physics
     queenGravity: number; // Additional gravity toward Queen agents
-    multi-agentCohesion: number; // Cohesion within same multi-agent
+    multiAgentCohesion: number; // Cohesion within same multi-agent
     hierarchicalForce: number; // Force for hierarchical topologies
   };
 

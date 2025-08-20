@@ -465,7 +465,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 }
                             }
                             Some("update_physics_params") => {
-                                // Removed - physics updates must go through REST API
                                 warn!("Client attempted deprecated WebSocket physics update - ignoring");
                                 ctx.text(r#"{"type":"error","message":"Physics updates must use REST API: POST /api/analytics/params"}"#);
                             }

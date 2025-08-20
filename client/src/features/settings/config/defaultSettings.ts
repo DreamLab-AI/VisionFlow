@@ -78,10 +78,19 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       damping: 0.85,           // high damping for stability
       temperature: 0.01,
       
+      // New CUDA kernel parameters
+      restLength: 50,          // Default rest length for springs
+      repulsionCutoff: 50.0,   // Cutoff distance for repulsion calculations
+      repulsionSofteningEpsilon: 0.0001, // Softening parameter to prevent singularities
+      centerGravityK: 0,       // Center gravity constant
+      gridCellSize: 50,        // Spatial grid cell size for optimization
+      featureFlags: 0,         // Feature flags for CUDA kernel options
+      
       // Boundary & Collision
       enableBounds: false,
       boundsSize: 1000.0,      // reasonable default viewport
       boundaryDamping: 0.95,
+      separationRadius: 2.0,   // Minimum separation distance
       collisionRadius: 2.0,    // safe GPU default
       maxRepulsionDist: 1000.0, // was repulsionDistance
       
@@ -90,10 +99,28 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       massScale: 1.0,
       updateThreshold: 0.01,
       
+      // GPU-specific parameters for compatibility
+      stressWeight: 1.0,
+      stressAlpha: 0.1,
+      boundaryLimit: 1000.0,
+      alignmentStrength: 0.1,
+      clusterStrength: 0.1,
+      computeMode: 1,
+      minDistance: 1.0,
+      boundaryMargin: 10.0,
+      boundaryForceStrength: 1.0,
+      
       // Warmup System
       warmupIterations: 100,
       coolingRate: 0.001,
+      warmupCurve: 'exponential',
+      zeroVelocityIterations: 10,
       
+      // Clustering parameters for compatibility
+      clusteringAlgorithm: 'none',
+      clusterCount: 5,
+      clusteringResolution: 1.0,
+      clusteringIterations: 50,
     },
   };
 };

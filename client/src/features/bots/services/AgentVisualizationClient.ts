@@ -6,7 +6,7 @@ const logger = createLogger('AgentVisualizationClient');
 // Message types matching server protocol
 interface InitializeMessage {
   timestamp: number;
-  multi-agent_id: string;
+  multiAgentId: string;
   topology: string;
   agents: AgentInit[];
   connections: ConnectionInit[];

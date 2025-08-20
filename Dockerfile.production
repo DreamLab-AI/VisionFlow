@@ -51,29 +51,18 @@ WORKDIR /build
 # Simple fix: disable portable SIMD to avoid nightly features in encoding_rs
 RUN CARGO_ENCODED_RUSTFLAGS="-C target-cpu=native" cargo build --release --features gpu
 
-# Handle PTX compilation
-# Ensure the script and the .cu file are in expected locations relative to WORKDIR /build
-COPY scripts/compile_unified_ptx.sh ./scripts/compile_unified_ptx.sh
-# The unified kernel is now available at ./src/utils/visionflow_unified.cu
-# Legacy kernels have been consolidated into the single unified kernel
-
-# First try to copy existing unified PTX file from the build context (host)
-# This allows using a pre-compiled PTX if available and REBUILD_PTX is false.
-COPY src/utils/ptx/visionflow_unified.ptx /build/src/utils/ptx/visionflow_unified.ptx
-
-ARG REBUILD_PTX=false
+# Handle PTX compilation for the rewritten kernel
 ARG CUDA_ARCH=89
-RUN chmod +x ./scripts/compile_unified_ptx.sh && \
-    if [ "$REBUILD_PTX" = "true" ] || [ ! -f "/build/src/utils/ptx/visionflow_unified.ptx" ]; then \
-        echo "Compiling unified PTX file for sm_${CUDA_ARCH}..." && \
-        # Pass CUDA_ARCH as an environment variable to the script
-        CUDA_ARCH=${CUDA_ARCH} ./scripts/compile_unified_ptx.sh && \
-        echo "Unified PTX compilation successful"; \
-    else \
-        echo "Using existing unified PTX file: /build/src/utils/ptx/visionflow_unified.ptx"; \
-    fi
-# Ensure the unified PTX file is in the correct final location for the COPY to runtime stage
-# The compile_unified_ptx.sh script writes to "src/utils/ptx/visionflow_unified.ptx" relative to its execution dir.
+RUN mkdir -p /build/src/utils/ptx && \
+    nvcc -ptx \
+        -arch=sm_${CUDA_ARCH} \
+        -O3 \
+        --std=c++17 \
+        -Xcompiler "-Wno-float-conversion" \
+        --restrict \
+        src/utils/visionflow_unified.cu \
+        -o /build/src/utils/ptx/visionflow_unified_rewrite.ptx && \
+    echo "Rewritten PTX kernel compiled successfully for sm_${CUDA_ARCH}"
 
 # Second stage: runtime image
 FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04
@@ -107,7 +96,7 @@ RUN mkdir -p /app/data/markdown \
 # Copy built artifacts from builder stage
 COPY --from=builder /build/target/release/webxr /app/webxr
 COPY --from=builder /build/client/dist /app/client/dist
-COPY --from=builder /build/src/utils/ptx/*.ptx /app/src/utils/ptx/
+COPY --from=builder /build/src/utils/ptx/visionflow_unified_rewrite.ptx /app/src/utils/ptx/
 
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml

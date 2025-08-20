@@ -29,44 +29,55 @@ impl Default for SimulationPhase {
     }
 }
 
-// GPU-compatible simulation parameters - exactly matches CUDA kernel SimParams
+// GPU-compatible simulation parameters, matching the new CUDA kernel design.
 #[repr(C)]
-#[derive(Default, Clone, Copy, Pod, Zeroable, Debug)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct SimParams {
-    // Force parameters
-    pub spring_k: f32,
-    pub repel_k: f32,
-    pub damping: f32,
+    // Integration and Damping
     pub dt: f32,
-    pub max_velocity: f32,
-    pub max_force: f32,
-    
-    // Stress majorization
-    pub stress_weight: f32,
-    pub stress_alpha: f32,
-    
-    // Constraints
-    pub separation_radius: f32,
-    pub boundary_limit: f32,
-    pub alignment_strength: f32,
-    pub cluster_strength: f32,
-    
-    // Boundary control
-    pub boundary_damping: f32,
-    
-    // System
-    pub viewport_bounds: f32,
-    pub temperature: f32,
-    pub iteration: i32,
-    pub compute_mode: i32,  // 0=basic, 1=dual, 2=constraints, 3=analytics
-    
-    // Additional GPU fields
-    pub min_distance: f32,
-    pub max_repulsion_dist: f32,  // Maximum distance for repulsion forces
-    pub boundary_margin: f32,
-    pub boundary_force_strength: f32,
+    pub damping: f32,
     pub warmup_iterations: u32,
     pub cooling_rate: f32,
+
+    // Spring Forces
+    pub spring_k: f32,
+    pub rest_length: f32,
+
+    // Repulsion Forces
+    pub repel_k: f32,
+    pub repulsion_cutoff: f32,
+    pub repulsion_softening_epsilon: f32,
+
+    // Global Forces & Clamping
+    pub center_gravity_k: f32,
+    pub max_force: f32,
+    pub max_velocity: f32,
+
+    // Spatial Grid
+    pub grid_cell_size: f32,
+
+    // System State
+    pub feature_flags: u32,
+    pub seed: u32,
+    pub iteration: i32,
+    
+    // Additional fields for compatibility
+    pub separation_radius: f32,
+    pub cluster_strength: f32,
+    pub alignment_strength: f32,
+    pub temperature: f32,
+    pub viewport_bounds: f32,
+}
+
+/// Bitmask for enabling/disabling features in the CUDA kernel.
+pub struct FeatureFlags;
+impl FeatureFlags {
+    pub const ENABLE_REPULSION: u32 = 1 << 0;
+    pub const ENABLE_SPRINGS: u32 = 1 << 1;
+    pub const ENABLE_CENTERING: u32 = 1 << 2;
+    pub const ENABLE_TEMPORAL_COHERENCE: u32 = 1 << 3;
+    pub const ENABLE_CONSTRAINTS: u32 = 1 << 4;
+    pub const ENABLE_STRESS_MAJORIZATION: u32 = 1 << 5;
 }
 
 
@@ -155,38 +166,55 @@ impl SimulationParams {
         params
     }
 
-    // Convert to GPU-compatible parameters (new GPU-aligned format)
+    // Convert to GPU-compatible parameters
     pub fn to_sim_params(&self) -> SimParams {
+        // This conversion maps the high-level host settings to the low-level GPU struct.
+        let mut feature_flags = 0;
+        if self.repel_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_REPULSION;
+        }
+        if self.spring_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_SPRINGS;
+        }
+        if self.attraction_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_CENTERING;
+        }
+        // Add other feature flags based on settings as needed.
+
         SimParams {
-            spring_k: self.spring_k,
-            repel_k: self.repel_k,
-            damping: self.damping,
             dt: self.dt,
-            max_velocity: self.max_velocity,
-            max_force: self.max_force,
-            stress_weight: self.stress_weight,
-            stress_alpha: self.stress_alpha,
-            separation_radius: self.separation_radius,
-            boundary_limit: if self.enable_bounds { self.boundary_limit } else { 0.0 },
-            alignment_strength: self.alignment_strength,
-            cluster_strength: self.cluster_strength,
-            boundary_damping: self.boundary_damping,
-            viewport_bounds: if self.enable_bounds { self.viewport_bounds } else { 0.0 },
-            temperature: self.temperature,
-            iteration: 0,  // Will be set by the simulation loop
-            compute_mode: self.compute_mode,
-            min_distance: self.min_distance,
-            max_repulsion_dist: self.max_repulsion_dist,
-            boundary_margin: self.boundary_margin,
-            boundary_force_strength: self.boundary_force_strength,
+            damping: self.damping,
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
+            spring_k: self.spring_k,
+            rest_length: self.separation_radius * 2.0, // Default derivation - will be overridden by direct conversion
+            repel_k: self.repel_k,
+            repulsion_cutoff: self.max_repulsion_dist,
+            repulsion_softening_epsilon: 1e-4, // Default - will be overridden by direct conversion
+            center_gravity_k: self.attraction_k, // Use attraction_k as center gravity
+            max_force: self.max_force,
+            max_velocity: self.max_velocity,
+            grid_cell_size: self.max_repulsion_dist, // Default - will be overridden by direct conversion
+            feature_flags,
+            seed: 1337,
+            iteration: 0, // Set by the simulation loop
+            separation_radius: self.separation_radius,
+            cluster_strength: self.cluster_strength,
+            alignment_strength: self.alignment_strength,
+            temperature: self.temperature,
+            viewport_bounds: self.viewport_bounds,
         }
     }
 
 }
 
 // Implementation for SimParams (GPU-aligned struct)
+impl Default for SimParams {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SimParams {
     pub fn new() -> Self {
         // Create from default SimulationParams which uses PhysicsSettings
@@ -194,53 +222,47 @@ impl SimParams {
         params.to_sim_params()
     }
 
-    // Convert from SimParams back to SimulationParams
-    pub fn to_simulation_params(&self) -> SimulationParams {
-        SimulationParams {
-            enabled: true,
-            auto_balance: false,
-            auto_balance_interval_ms: 500,
-            auto_balance_config: AutoBalanceConfig::default(),
-            iterations: 200,  // Default iteration count
-            dt: self.dt,
-            spring_k: self.spring_k,
-            repel_k: self.repel_k,
-            mass_scale: 1.0,  // Default mass scale
-            damping: self.damping,
-            boundary_damping: self.boundary_damping,
-            viewport_bounds: self.viewport_bounds,
-            enable_bounds: self.boundary_limit > 0.0,
-            max_velocity: self.max_velocity,
-            max_force: self.max_force,
-            attraction_k: self.spring_k,         // Use spring_k as attraction
-            separation_radius: self.separation_radius,
-            temperature: self.temperature,
-            // GPU parameters
-            stress_weight: self.stress_weight,
-            stress_alpha: self.stress_alpha,
-            boundary_limit: self.boundary_limit,
-            alignment_strength: self.alignment_strength,
-            cluster_strength: self.cluster_strength,
-            compute_mode: self.compute_mode,
-            min_distance: self.min_distance,
-            max_repulsion_dist: self.max_repulsion_dist,
-            boundary_margin: self.boundary_margin,
-            boundary_force_strength: self.boundary_force_strength,
-            warmup_iterations: self.warmup_iterations,
-            cooling_rate: self.cooling_rate,
-            phase: SimulationPhase::Dynamic,
-            mode: SimulationMode::Remote,
-        }
-    }
-
     // Update iteration count (called from simulation loop)
     pub fn set_iteration(&mut self, iteration: i32) {
         self.iteration = iteration;
     }
 
-    // Update compute mode
-    pub fn set_compute_mode(&mut self, mode: i32) {
-        self.compute_mode = mode;
+    // Convert back to SimulationParams (for the From implementation)
+    pub fn to_simulation_params(&self) -> SimulationParams {
+        SimulationParams {
+            enabled: true,
+            auto_balance: false,
+            auto_balance_interval_ms: 100,
+            auto_balance_config: AutoBalanceConfig::default(),
+            iterations: 100,
+            dt: self.dt,
+            spring_k: self.spring_k,
+            repel_k: self.repel_k,
+            mass_scale: 1.0,
+            damping: self.damping,
+            boundary_damping: 0.9,
+            viewport_bounds: self.viewport_bounds,
+            enable_bounds: true,
+            max_velocity: self.max_velocity,
+            max_force: self.max_force,
+            attraction_k: self.center_gravity_k,
+            separation_radius: self.separation_radius,
+            temperature: self.temperature,
+            stress_weight: 1.0,
+            stress_alpha: 0.1,
+            boundary_limit: 1000.0,
+            alignment_strength: self.alignment_strength,
+            cluster_strength: self.cluster_strength,
+            compute_mode: 0,
+            min_distance: 1.0,
+            max_repulsion_dist: self.repulsion_cutoff,
+            boundary_margin: 50.0,
+            boundary_force_strength: 1.0,
+            warmup_iterations: self.warmup_iterations,
+            cooling_rate: self.cooling_rate,
+            phase: SimulationPhase::Dynamic,
+            mode: SimulationMode::Remote,
+        }
     }
 }
 
@@ -258,33 +280,42 @@ impl From<&SimParams> for SimulationParams {
     }
 }
 
-// Conversion from PhysicsSettings to SimParams
+// Direct conversion from PhysicsSettings to SimParams for the new CUDA kernel
 impl From<&PhysicsSettings> for SimParams {
     fn from(physics: &PhysicsSettings) -> Self {
-        Self {
-            spring_k: physics.spring_k,
-            repel_k: physics.repel_k,
-            damping: physics.damping,
+        let mut feature_flags = 0;
+        if physics.repel_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_REPULSION;
+        }
+        if physics.spring_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_SPRINGS;
+        }
+        if physics.attraction_k > 0.0 || physics.center_gravity_k > 0.0 {
+            feature_flags |= FeatureFlags::ENABLE_CENTERING;
+        }
+
+        SimParams {
             dt: physics.dt,
-            max_velocity: physics.max_velocity,
-            max_force: physics.max_force,
-            stress_weight: physics.stress_weight,
-            stress_alpha: physics.stress_alpha,
-            separation_radius: physics.separation_radius,
-            boundary_limit: if physics.enable_bounds { physics.boundary_limit } else { 0.0 },
-            alignment_strength: physics.alignment_strength,
-            cluster_strength: physics.cluster_strength,
-            boundary_damping: physics.boundary_damping,
-            viewport_bounds: physics.bounds_size,
-            temperature: physics.temperature,
-            iteration: 0,
-            compute_mode: physics.compute_mode,
-            min_distance: physics.min_distance,
-            max_repulsion_dist: physics.max_repulsion_dist,
-            boundary_margin: physics.boundary_margin,
-            boundary_force_strength: physics.boundary_force_strength,
+            damping: physics.damping,
             warmup_iterations: physics.warmup_iterations,
             cooling_rate: physics.cooling_rate,
+            spring_k: physics.spring_k,
+            rest_length: physics.rest_length,
+            repel_k: physics.repel_k,
+            repulsion_cutoff: physics.max_repulsion_dist,
+            repulsion_softening_epsilon: physics.repulsion_softening_epsilon,
+            center_gravity_k: physics.center_gravity_k,
+            max_force: physics.max_force,
+            max_velocity: physics.max_velocity,
+            grid_cell_size: physics.grid_cell_size,
+            feature_flags,
+            seed: 1337,
+            iteration: 0, // Set by the simulation loop
+            separation_radius: physics.separation_radius,
+            cluster_strength: physics.cluster_strength,
+            alignment_strength: physics.alignment_strength,
+            temperature: physics.temperature,
+            viewport_bounds: physics.bounds_size,
         }
     }
 }
