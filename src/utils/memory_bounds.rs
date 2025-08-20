@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use log::{debug, warn, error};
+use log::{debug, error};
 
 /// Memory bounds descriptor for tracking allocations
 #[derive(Debug, Clone)]

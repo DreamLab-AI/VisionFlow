@@ -133,7 +133,7 @@ impl NetworkResilienceManager {
         operation: F,
     ) -> Result<T, ResilienceError<E>>
     where
-        F: Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<T, E>> + Send>> + Send,
+        F: Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<T, E>> + Send>> + Send + Clone + 'static,
         E: RetryableError + std::fmt::Debug + Clone + Send + Sync + 'static,
         T: Send,
     {
@@ -143,17 +143,22 @@ impl NetworkResilienceManager {
             .await;
 
         // Execute with circuit breaker and retry
-        let retry_operation = move || {
+        let retry_operation = {
             let circuit_breaker = circuit_breaker.clone();
-            Box::pin(async move {
-                circuit_breaker.execute(operation()).await
-                    .map_err(|e| match e {
-                        CircuitBreakerError::CircuitOpen => 
-                            Box::new(std::io::Error::new(std::io::ErrorKind::ConnectionRefused, "Circuit breaker open")) as Box<dyn std::error::Error + Send + Sync>,
-                        CircuitBreakerError::OperationFailed(original_error) => 
-                            Box::new(std::io::Error::new(std::io::ErrorKind::Other, format!("Operation failed: {:?}", original_error))) as Box<dyn std::error::Error + Send + Sync>,
-                    })
-            })
+            let operation = operation.clone();
+            move || {
+                let circuit_breaker = circuit_breaker.clone();
+                let operation = operation.clone();
+                Box::pin(async move {
+                    circuit_breaker.execute(operation()).await
+                        .map_err(|e| match e {
+                            CircuitBreakerError::CircuitOpen => 
+                                std::sync::Arc::new(std::io::Error::new(std::io::ErrorKind::ConnectionRefused, "Circuit breaker open")) as std::sync::Arc<dyn std::error::Error + Send + Sync>,
+                            CircuitBreakerError::OperationFailed(original_error) => 
+                                std::sync::Arc::new(std::io::Error::new(std::io::ErrorKind::Other, format!("Operation failed: {:?}", original_error))) as std::sync::Arc<dyn std::error::Error + Send + Sync>,
+                        })
+                })
+            }
         };
 
         match retry_with_backoff(self.default_retry_config.clone(), retry_operation).await {

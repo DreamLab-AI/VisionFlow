@@ -461,8 +461,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                         Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings reset service temporarily unavailable"}))
                     }
                 }))
-                .route("/validation/stats", web::get().to(|req, handler: web::Data<EnhancedSettingsHandler>| {
-                    handler.get_validation_stats(req)
+                .route("/validation/stats", web::get().to(|req, handler: web::Data<EnhancedSettingsHandler>| async move {
+                    handler.get_validation_stats(req).await
                 }))
         )
         .service(

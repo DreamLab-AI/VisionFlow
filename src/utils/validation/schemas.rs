@@ -1,4 +1,5 @@
-use super::{ValidationResult, ValidationError, ValidationContext, ValidationUtils, Validator};
+use super::{ValidationResult, ValidationContext, ValidationUtils};
+use super::errors::DetailedValidationError;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -33,12 +34,12 @@ impl ValidationSchema {
 
     pub fn validate(&self, value: &Value, ctx: &mut ValidationContext) -> ValidationResult<()> {
         let obj = value.as_object()
-            .ok_or_else(|| ValidationError::new(&ctx.get_path(), "Expected object", "INVALID_TYPE"))?;
+            .ok_or_else(|| DetailedValidationError::new(&ctx.get_path(), "Expected object", "INVALID_TYPE"))?;
 
         // Check required fields
         for field_name in &self.required_fields {
             if !obj.contains_key(field_name) {
-                return Err(ValidationError::required_field(field_name));
+                return Err(DetailedValidationError::missing_required_field(field_name));
             }
         }
 
@@ -49,7 +50,7 @@ impl ValidationSchema {
                 validator.validate(field_value, ctx)?;
                 ctx.exit_field();
             } else if !self.allow_unknown_fields() {
-                return Err(ValidationError::new(
+                return Err(DetailedValidationError::new(
                     field_name,
                     "Unknown field",
                     "UNKNOWN_FIELD"
@@ -233,7 +234,7 @@ impl ValidationRule {
         };
 
         if !matches {
-            return Err(ValidationError::new(
+            return Err(DetailedValidationError::new(
                 &ctx.get_path(),
                 &format!("Expected {}, got {}", expected_type, self.get_value_type(value)),
                 "TYPE_MISMATCH"
@@ -247,7 +248,7 @@ impl ValidationRule {
         let length = match value {
             Value::String(s) => s.len(),
             Value::Array(a) => a.len(),
-            _ => return Err(ValidationError::new(
+            _ => return Err(DetailedValidationError::new(
                 &ctx.get_path(),
                 "Length validation only applies to strings and arrays",
                 "INVALID_TYPE"
@@ -255,7 +256,7 @@ impl ValidationRule {
         };
 
         if length < min {
-            return Err(ValidationError::new(
+            return Err(DetailedValidationError::new(
                 &ctx.get_path(),
                 &format!("Minimum length is {}, got {}", min, length),
                 "TOO_SHORT"
@@ -269,7 +270,7 @@ impl ValidationRule {
         let length = match value {
             Value::String(s) => s.len(),
             Value::Array(a) => a.len(),
-            _ => return Err(ValidationError::new(
+            _ => return Err(DetailedValidationError::new(
                 &ctx.get_path(),
                 "Length validation only applies to strings and arrays",
                 "INVALID_TYPE"
@@ -277,7 +278,7 @@ impl ValidationRule {
         };
 
         if length > max {
-            return Err(ValidationError::new(
+            return Err(DetailedValidationError::new(
                 &ctx.get_path(),
                 &format!("Maximum length is {}, got {}", max, length),
                 "TOO_LONG"
@@ -289,14 +290,14 @@ impl ValidationRule {
 
     fn validate_min_value(&self, value: &Value, min: f64, ctx: &ValidationContext) -> ValidationResult<()> {
         let number = value.as_f64()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Value validation only applies to numbers",
                 "INVALID_TYPE"
             ))?;
 
         if number < min {
-            return Err(ValidationError::out_of_range(&ctx.get_path(), min, f64::INFINITY));
+            return Err(DetailedValidationError::out_of_range(&ctx.get_path(), number, min, f64::INFINITY));
         }
 
         Ok(())
@@ -304,14 +305,14 @@ impl ValidationRule {
 
     fn validate_max_value(&self, value: &Value, max: f64, ctx: &ValidationContext) -> ValidationResult<()> {
         let number = value.as_f64()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Value validation only applies to numbers",
                 "INVALID_TYPE"
             ))?;
 
         if number > max {
-            return Err(ValidationError::out_of_range(&ctx.get_path(), f64::NEG_INFINITY, max));
+            return Err(DetailedValidationError::out_of_range(&ctx.get_path(), number, f64::NEG_INFINITY, max));
         }
 
         Ok(())
@@ -319,21 +320,21 @@ impl ValidationRule {
 
     fn validate_pattern(&self, value: &Value, pattern: &str, ctx: &ValidationContext) -> ValidationResult<()> {
         let string = value.as_str()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Pattern validation only applies to strings",
                 "INVALID_TYPE"
             ))?;
 
         let regex = regex::Regex::new(pattern)
-            .map_err(|_| ValidationError::new(
+            .map_err(|_| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Invalid regex pattern",
                 "INVALID_PATTERN"
             ))?;
 
         if !regex.is_match(string) {
-            return Err(ValidationError::invalid_pattern(&ctx.get_path(), pattern));
+            return Err(DetailedValidationError::pattern_mismatch(&ctx.get_path(), pattern, string));
         }
 
         Ok(())
@@ -341,7 +342,7 @@ impl ValidationRule {
 
     fn validate_email(&self, value: &Value, ctx: &ValidationContext) -> ValidationResult<()> {
         let string = value.as_str()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Email validation only applies to strings",
                 "INVALID_TYPE"
@@ -352,7 +353,7 @@ impl ValidationRule {
 
     fn validate_url(&self, value: &Value, ctx: &ValidationContext) -> ValidationResult<()> {
         let string = value.as_str()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "URL validation only applies to strings",
                 "INVALID_TYPE"
@@ -363,7 +364,7 @@ impl ValidationRule {
 
     fn validate_hex_color(&self, value: &Value, ctx: &ValidationContext) -> ValidationResult<()> {
         let string = value.as_str()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "Hex color validation only applies to strings",
                 "INVALID_TYPE"
@@ -374,7 +375,7 @@ impl ValidationRule {
 
     fn validate_uuid(&self, value: &Value, ctx: &ValidationContext) -> ValidationResult<()> {
         let string = value.as_str()
-            .ok_or_else(|| ValidationError::new(
+            .ok_or_else(|| DetailedValidationError::new(
                 &ctx.get_path(),
                 "UUID validation only applies to strings",
                 "INVALID_TYPE"

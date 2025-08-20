@@ -485,10 +485,12 @@ impl ClientConnection {
         
         match &self.lod {
             ClientLOD::Mobile { update_rate, .. } => {
-                frame_delta >= (120 / update_rate.max(1))
+                let threshold = 120 / update_rate.max(&1);
+                frame_delta >= threshold
             },
             ClientLOD::DesktopVR { update_rate, .. } => {
-                frame_delta >= (120 / update_rate.max(1))
+                let threshold = 120 / update_rate.max(&1);
+                frame_delta >= threshold
             },
             ClientLOD::Workstation { .. } => true,
         }

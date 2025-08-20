@@ -380,7 +380,7 @@ fn convert_bots_edges(edges: Vec<BotsEdge>, node_map: &HashMap<String, u32>) -> 
 pub async fn update_bots_data(
     state: web::Data<AppState>,
     bots_data: web::Json<BotsDataRequest>,
-) -> impl Responder {
+) -> HttpResponse {
     info!("Received bots data update with {} agents and {} communications",
         bots_data.nodes.len(),
         bots_data.edges.len()
@@ -498,7 +498,7 @@ pub async fn update_bots_data(
 }
 
 // UPDATED: Get current bots data prioritizing claude-flow hive-mind system
-pub async fn get_bots_data(state: web::Data<AppState>) -> impl Responder {
+pub async fn get_bots_data(state: web::Data<AppState>) -> HttpResponse {
     debug!("get_bots_data endpoint called - fetching from hive-mind system");
 
     // UPDATED: First try to get live data from claude-flow hive-mind
@@ -850,7 +850,7 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
 // Initialize swarm endpoint
 pub async fn get_agent_telemetry(
     _state: web::Data<AppState>,
-) -> impl Responder {
+) -> HttpResponse {
     HttpResponse::ServiceUnavailable().json(json!({
         "success": false,
         "error": "Claude Flow service not available"
@@ -860,7 +860,7 @@ pub async fn get_agent_telemetry(
 pub async fn initialize_swarm(
     state: web::Data<AppState>,
     request: web::Json<InitializeSwarmRequest>,
-) -> impl Responder {
+) -> HttpResponse {
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
     info!("Received swarm initialization request: {:?}", request);
 
@@ -1577,52 +1577,66 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.app_data(handler.clone())
         .service(
             web::resource("/data")
-                .route(web::get().to(|req, state, handler: web::Data<EnhancedBotsHandler>| async move {
+                .route(web::get().to(|req: HttpRequest, state: web::Data<AppState>, handler: web::Data<EnhancedBotsHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
-                    match handler.get_bots_data_enhanced(req, state).await {
+                    let response: HttpResponse = match handler.get_bots_data_enhanced(req, state.clone()).await {
                         Ok(response) => response,
-                        Err(_) => get_bots_data(state).await
-                    }
+                        Err(_) => {
+                            get_bots_data(state).await
+                        }
+                    };
+                    response
                 }))
         )
         .service(
             web::resource("/status")
-                .route(web::get().to(|req, state, handler: web::Data<EnhancedBotsHandler>| async move {
+                .route(web::get().to(|req: HttpRequest, state: web::Data<AppState>, handler: web::Data<EnhancedBotsHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
-                    match handler.get_agent_telemetry_enhanced(req, state).await {
+                    let response: HttpResponse = match handler.get_agent_telemetry_enhanced(req, state.clone()).await {
                         Ok(response) => response,
-                        Err(_) => get_agent_telemetry(state).await
-                    }
+                        Err(_) => {
+                            get_agent_telemetry(state).await
+                        }
+                    };
+                    response
                 }))
         )
         .service(
             web::resource("/update")
-                .route(web::post().to(|req, state, payload, handler: web::Data<EnhancedBotsHandler>| async move {
+                .route(web::post().to(|req: HttpRequest, state: web::Data<AppState>, payload: web::Json<serde_json::Value>, handler: web::Data<EnhancedBotsHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
-                    match handler.update_bots_data_enhanced(req, state, payload).await {
+                    let response: HttpResponse = match handler.update_bots_data_enhanced(req, state.clone(), payload).await {
                         Ok(response) => response,
-                        Err(_) => update_bots_data(state, web::Json(BotsDataRequest {
-                            nodes: vec![],
-                            edges: vec![]
-                        })).await
-                    }
+                        Err(_) => {
+                            let fallback_payload = web::Json(BotsDataRequest {
+                                nodes: vec![], // Default empty nodes
+                                edges: vec![], // Default empty edges
+                            });
+                            update_bots_data(state, fallback_payload).await
+                        }
+                    };
+                    response
                 }))
         )
         .service(
             web::resource("/initialize-swarm")
-                .route(web::post().to(|req, state, payload, handler: web::Data<EnhancedBotsHandler>| async move {
+                .route(web::post().to(|req: HttpRequest, state: web::Data<AppState>, payload: web::Json<serde_json::Value>, handler: web::Data<EnhancedBotsHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
-                    match handler.initialize_swarm_enhanced(req, state, payload).await {
+                    let response: HttpResponse = match handler.initialize_swarm_enhanced(req, state.clone(), payload).await {
                         Ok(response) => response,
-                        Err(_) => initialize_swarm(state, web::Json(InitializeSwarmRequest {
-                            topology: "mesh".to_string(),
-                            max_agents: 5,
-                            strategy: "balanced".to_string(),
-                            enable_neural: false,
-                            agent_types: vec![],
-                            custom_prompt: None
-                        })).await
-                    }
+                        Err(_) => {
+                            let fallback_payload = web::Json(InitializeSwarmRequest {
+                                topology: "mesh".to_string(),
+                                max_agents: 5,
+                                strategy: "balanced".to_string(),
+                                enable_neural: false,
+                                agent_types: vec![],
+                                custom_prompt: None
+                            });
+                            initialize_swarm(state, fallback_payload).await
+                        }
+                    };
+                    response
                 }))
         );
 }

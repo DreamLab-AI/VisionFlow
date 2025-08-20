@@ -18,13 +18,13 @@ pub enum VisionFlowError {
     /// Network and communication errors
     Network(NetworkError),
     /// File system and I/O errors
-    IO(std::io::Error),
+    IO(std::sync::Arc<std::io::Error>),
     /// Serialization/Deserialization errors
     Serialization(String),
     /// Generic error with context
     Generic { 
         message: String,
-        source: Option<Box<dyn std::error::Error + Send + Sync + 'static>>
+        source: Option<std::sync::Arc<dyn std::error::Error + Send + Sync + 'static>>
     },
 }
 
@@ -197,7 +197,7 @@ impl std::error::Error for NetworkError {}
 
 impl From<std::io::Error> for VisionFlowError {
     fn from(e: std::io::Error) -> Self {
-        VisionFlowError::IO(e)
+        VisionFlowError::IO(std::sync::Arc::new(e))
     }
 }
 
@@ -249,7 +249,7 @@ where
     {
         self.map_err(|e| VisionFlowError::Generic {
             message: f(),
-            source: Some(Box::new(e)),
+            source: Some(std::sync::Arc::new(e)),
         })
     }
     
