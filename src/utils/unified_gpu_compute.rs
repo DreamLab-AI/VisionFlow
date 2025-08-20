@@ -162,7 +162,7 @@ impl UnifiedGPUCompute {
         num_edges: usize,
     ) -> Result<Self, Error> {
         let module_name = "visionflow_unified_rewrite";
-        let kernel_names = &["force_pass_kernel", "integrate_pass_kernel", "stress_majorization_kernel"];
+        let kernel_names = &["force_pass_kernel", "integrate_pass_kernel"];
         device.load_ptx(ptx, module_name, kernel_names)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to load PTX module: {:?}", e)))?;
 
@@ -170,7 +170,7 @@ impl UnifiedGPUCompute {
             .ok_or_else(|| Error::new(ErrorKind::NotFound, "force_pass_kernel not found"))?;
         let integrate_kernel = device.get_func(module_name, "integrate_pass_kernel")
             .ok_or_else(|| Error::new(ErrorKind::NotFound, "integrate_pass_kernel not found"))?;
-        let stress_kernel = device.get_func(module_name, "stress_majorization_kernel");
+        let stress_kernel = None; // Stress majorization not implemented in new kernel
 
         // Initialize memory bounds registry (1GB limit)
         let mut bounds_registry = MemoryBoundsRegistry::new(1024 * 1024 * 1024);
