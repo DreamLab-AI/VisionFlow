@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import HelpCircle from 'lucide-react/dist/esm/icons/helpcircle';
+import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
 import X from 'lucide-react/dist/esm/icons/x';
 import { cn } from '../../../utils/classNameUtils';
 import { Button } from '../../design-system/components/Button';

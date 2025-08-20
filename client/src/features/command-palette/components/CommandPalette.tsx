@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import TerminalasCommandIcon from 'lucide-react/dist/esm/icons/terminalascommandicon';
+import Terminal from 'lucide-react/dist/esm/icons/terminal';
 import Search from 'lucide-react/dist/esm/icons/search';
 import { cn } from '../../../utils/classNameUtils';
 import { SearchInput } from '../../design-system/components';
@@ -236,7 +236,7 @@ export function CommandPalette() {
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <CommandIcon className="h-3 w-3" aria-hidden="true" />
+            <Terminal className="h-3 w-3" aria-hidden="true" />
             <span id="command-palette-title" className="sr-only">Command Palette</span>
             <span aria-hidden="true">Command Palette</span>
           </div>

@@ -95,6 +95,19 @@ visualisation:
           oscillation_detection_frames: 10
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
+          # CUDA kernel parameter tuning thresholds
+          grid_cell_size_min: 1.0
+          grid_cell_size_max: 50.0
+          repulsion_cutoff_min: 5.0
+          repulsion_cutoff_max: 200.0
+          repulsion_softening_min: 0.000001
+          repulsion_softening_max: 1.0
+          center_gravity_min: 0.0
+          center_gravity_max: 0.1
+          # Spatial hashing and numerical stability
+          spatial_hash_efficiency_threshold: 0.3
+          cluster_density_threshold: 50.0
+          numerical_instability_threshold: 0.001
         attraction_k: 8.378364
         bounds_size: 0.0
         separation_radius: 2.0
@@ -183,6 +196,19 @@ visualisation:
           oscillation_detection_frames: 10
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
+          # CUDA kernel parameter tuning thresholds
+          grid_cell_size_min: 1.0
+          grid_cell_size_max: 50.0
+          repulsion_cutoff_min: 5.0
+          repulsion_cutoff_max: 200.0
+          repulsion_softening_min: 0.000001
+          repulsion_softening_max: 1.0
+          center_gravity_min: 0.0
+          center_gravity_max: 0.1
+          # Spatial hashing and numerical stability
+          spatial_hash_efficiency_threshold: 0.3
+          cluster_density_threshold: 50.0
+          numerical_instability_threshold: 0.001
         attraction_k: 0.0001
         bounds_size: 0.0
         separation_radius: 2.0
