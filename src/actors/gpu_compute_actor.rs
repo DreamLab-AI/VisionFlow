@@ -9,11 +9,11 @@ use cudarc::driver::CudaDevice;
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
 use crate::models::graph::GraphData;
-use crate::models::simulation_params::SimulationParams;
+use crate::models::simulation_params::{SimulationParams, FeatureFlags};
 use crate::models::constraints::{Constraint, ConstraintSet};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 // use crate::utils::edge_data::EdgeData; // Not directly used
-use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode as UnifiedComputeMode, SimParams};
+use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
 // use crate::gpu::visual_analytics::{VisualAnalyticsGPU, VisualAnalyticsParams, TSNode, TSEdge, IsolationLayer, Vec4}; // Not used with unified compute
 use crate::types::vec3::Vec3Data;
 use crate::actors::messages::*;
@@ -256,20 +256,32 @@ impl GPUComputeActor {
         unified_compute.upload_positions(&positions)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
         
-        // Upload edges to unified compute
+        // Upload edges in CSR format
         if !graph.edges.is_empty() {
-            let edges: Vec<(i32, i32, f32)> = graph.edges.iter()
-                .map(|edge| {
-                    let source_idx = node_indices.get(&edge.source).copied().unwrap_or(0) as i32;
-                    let target_idx = node_indices.get(&edge.target).copied().unwrap_or(0) as i32;
-                    (source_idx, target_idx, edge.weight)
-                })
-                .collect();
+            let mut adj = vec![vec![]; num_nodes as usize];
+            for edge in &graph.edges {
+                if let (Some(&src_idx), Some(&dst_idx)) = (node_indices.get(&edge.source), node_indices.get(&edge.target)) {
+                    adj[src_idx].push((dst_idx as i32, edge.weight));
+                    adj[dst_idx].push((src_idx as i32, edge.weight)); // Assuming undirected graph
+                }
+            }
+    
+            let mut row_offsets = Vec::with_capacity(num_nodes as usize + 1);
+            let mut col_indices = Vec::new();
+            let mut weights = Vec::new();
+            row_offsets.push(0);
+            for i in 0..num_nodes as usize {
+                for (neighbor, weight) in &adj[i] {
+                    col_indices.push(*neighbor);
+                    weights.push(*weight);
+                }
+                row_offsets.push(col_indices.len() as i32);
+            }
+    
+            unified_compute.upload_edges_csr(&row_offsets, &col_indices, &weights)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload CSR edges: {}", e)))?;
             
-            unified_compute.upload_edges(&edges)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload edges: {}", e)))?;
-            
-            info!("(Static Logic) Successfully uploaded {} edges to unified compute", num_edges);
+            info!("(Static Logic) Successfully uploaded {} CSR edges to unified compute", col_indices.len());
         }
         
         Ok(GpuInitializationResult {
@@ -320,20 +332,32 @@ impl GPUComputeActor {
         unified_compute.upload_positions(&positions)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
         
-        // Upload edges to unified compute
+        // Upload edges in CSR format
         if !graph.edges.is_empty() {
-            let edges: Vec<(i32, i32, f32)> = graph.edges.iter()
-                .map(|edge| {
-                    let source_idx = self.node_indices.get(&edge.source).copied().unwrap_or(0) as i32;
-                    let target_idx = self.node_indices.get(&edge.target).copied().unwrap_or(0) as i32;
-                    (source_idx, target_idx, edge.weight)
-                })
-                .collect();
+            let mut adj = vec![vec![]; new_num_nodes as usize];
+            for edge in &graph.edges {
+                if let (Some(&src_idx), Some(&dst_idx)) = (self.node_indices.get(&edge.source), self.node_indices.get(&edge.target)) {
+                    adj[src_idx].push((dst_idx as i32, edge.weight));
+                    adj[dst_idx].push((src_idx as i32, edge.weight));
+                }
+            }
+    
+            let mut row_offsets = Vec::with_capacity(new_num_nodes as usize + 1);
+            let mut col_indices = Vec::new();
+            let mut weights = Vec::new();
+            row_offsets.push(0);
+            for i in 0..new_num_nodes as usize {
+                for (neighbor, weight) in &adj[i] {
+                    col_indices.push(*neighbor);
+                    weights.push(*weight);
+                }
+                row_offsets.push(col_indices.len() as i32);
+            }
+    
+            unified_compute.upload_edges_csr(&row_offsets, &col_indices, &weights)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload CSR edges: {}", e)))?;
             
-            unified_compute.upload_edges(&edges)
-                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload edges: {}", e)))?;
-            
-            info!("Successfully uploaded {} edges to unified compute", edges.len());
+            info!("Successfully uploaded {} CSR edges to unified compute", col_indices.len());
         }
         
         Ok(())
@@ -362,9 +386,7 @@ impl GPUComputeActor {
     }
 
     fn compute_forces_internal(&mut self) -> Result<(), Error> {
-        // FIX: Check if physics is disabled before computing
         if !self.simulation_params.enabled {
-            // Physics is disabled, don't compute forces
             return Ok(());
         }
         
@@ -382,59 +404,15 @@ impl GPUComputeActor {
             self.last_failure_reset = Instant::now();
         }
 
-        // Update unified compute mode based on current state
-        self.update_unified_mode();
-
-        // Log physics state every 60 frames for debugging
-        if self.iteration_count % 60 == 0 {
-            info!("UNIFIED_PHYSICS: iteration={}, compute_mode={:?}, nodes={}, edges={}, constraints={}",
-                self.iteration_count,
-                self.compute_mode,
-                self.num_nodes,
-                self.num_edges,
-                self.constraints.len()
-            );
-            info!("UNIFIED_PARAMS: spring={:.4}, repulsion={:.1}, damping={:.4}, dt={:.4}",
-                self.unified_params.spring_k,
-                self.unified_params.repel_k,
-                self.unified_params.damping,
-                self.unified_params.dt
-            );
-        }
-
-        // Check for stress majorization trigger
-        if self.iteration_count.saturating_sub(self.last_stress_majorization) >= self.stress_majorization_interval {
-            if !self.constraints.is_empty() {
-                info!("Triggering periodic stress majorization at iteration {}", self.iteration_count);
-                if let Err(e) = self.perform_stress_majorization() {
-                    warn!("Stress majorization failed: {}", e);
-                }
-                self.last_stress_majorization = self.iteration_count;
-            }
-        }
-
-        // Execute unified physics computation
-        self.compute_forces_unified()
-    }
-
-    fn compute_forces_unified(&mut self) -> Result<(), Error> {
         let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
 
-        if self.iteration_count % DEBUG_THROTTLE == 0 {
-            trace!("Starting unified force computation (iteration {})", self.iteration_count);
-        }
-
-        // Execute unified physics computation
-        match unified_compute.execute() {
-            Ok(positions) => {
-                // Positions are updated directly in the unified compute engine
-                // No need to copy back unless specifically requested
+        // The new unified_params struct is now the single source of truth.
+        // We can update feature flags based on actor state if needed.
+        // For now, we assume the params passed from the client are sufficient.
+        
+        match unified_compute.execute(self.unified_params) {
+            Ok(()) => {
                 self.iteration_count += 1;
-                
-                if self.iteration_count % DEBUG_THROTTLE == 0 {
-                    trace!("Unified force computation completed successfully with {} positions", positions.len());
-                }
-                
                 Ok(())
             },
             Err(e) => {
@@ -497,23 +475,21 @@ impl GPUComputeActor {
 
     fn get_node_data_internal(&mut self) -> Result<Vec<BinaryNodeData>, Error> {
         let unified_compute = self.unified_compute.as_ref().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
-
-        // CRITICAL FIX: Use get_positions() instead of execute() to avoid double-stepping physics
-        // This was causing the "exploding and bouncing nodes" bug by advancing physics twice per frame
-        let positions = unified_compute.get_positions()
-            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get positions from unified compute: {}", e)))?;
         
-        // Convert to BinaryNodeData format for compatibility
-        let mut gpu_raw_data = Vec::with_capacity(positions.len());
-        for (x, y, z) in positions {
-            gpu_raw_data.push(BinaryNodeData {
-                position: Vec3Data { x, y, z },
-                velocity: Vec3Data::zero(), // Velocities are internal to unified compute
-                mass: 1, // Default mass
-                flags: 0,
-                padding: [0, 0],
-            });
-        }
+        let mut pos_x = vec![0.0; self.num_nodes as usize];
+        let mut pos_y = vec![0.0; self.num_nodes as usize];
+        let mut pos_z = vec![0.0; self.num_nodes as usize];
+
+        unified_compute.download_positions(&mut pos_x, &mut pos_y, &mut pos_z)
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to download positions: {}", e)))?;
+
+        let gpu_raw_data = (0..self.num_nodes as usize).map(|i| BinaryNodeData {
+            position: Vec3Data { x: pos_x[i], y: pos_y[i], z: pos_z[i] },
+            velocity: Vec3Data::zero(), // Velocities are internal to the GPU simulation
+            mass: 1,
+            flags: 0,
+            padding: [0, 0],
+        }).collect();
 
         Ok(gpu_raw_data)
     }
