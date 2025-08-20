@@ -2,8 +2,8 @@ use std::process::Command;
 use log::{info, error, warn};
 use std::sync::Arc;
 use crate::utils::network::{
-    CircuitBreaker, CircuitBreakerConfig, retry_network_operation, RetryableError,
-    HealthCheckManager, ServiceEndpoint, HealthCheckConfig, TimeoutConfig, TimeoutGuard
+    CircuitBreaker, CircuitBreakerConfig, RetryableError,
+    HealthCheckManager, TimeoutConfig
 };
 
 /// Manages the MCP WebSocket relay in the multi-agent-container with resilience patterns
@@ -91,11 +91,11 @@ impl McpRelayManager {
                 } else {
                     warn!("MCP relay is not running in multi-agent-container");
                 }
-                is_running
+                Ok(is_running)
             }
             Err(e) => {
                 error!("Failed to check MCP relay status: {}", e);
-                false
+                Ok(false)
             }
         }
     }

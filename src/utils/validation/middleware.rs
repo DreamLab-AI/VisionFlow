@@ -4,7 +4,6 @@ use actix_web::{
 };
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
-use std::collections::HashMap;
 use log::{warn, debug, info};
 use crate::utils::validation::sanitization::{Sanitizer, CSPUtils};
 use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, extract_client_id_from_service_request, create_rate_limit_response};
@@ -143,10 +142,13 @@ where
             // Add security headers to response
             let headers = CSPUtils::security_headers();
             for (name, value) in headers {
-                res.headers_mut().insert(
-                    actix_web::http::header::HeaderName::from_static(name.to_lowercase().as_str()),
-                    actix_web::http::header::HeaderValue::from_static(value),
-                );
+                let header_name = match actix_web::http::header::HeaderName::from_bytes(name.to_lowercase().as_bytes()) {
+                    Ok(name) => name,
+                    Err(_) => continue,
+                };
+                if let Ok(header_value) = actix_web::http::header::HeaderValue::from_static(value) {
+                    res.headers_mut().insert(header_name, header_value);
+                }
             }
             
             // Add CSP header
@@ -364,80 +366,19 @@ pub struct ValidationMiddlewareFactory;
 
 impl ValidationMiddlewareFactory {
     /// Create middleware stack for API endpoints
-    pub fn create_api_middleware() -> impl Transform<
-        actix_web::dev::ServiceRequest,
-        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-        Error = actix_web::Error,
-        InitError = (),
-        Transform = impl Service<
-            actix_web::dev::ServiceRequest,
-            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-            Error = actix_web::Error,
-            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
-        >,
-    > {
-        actix_web::middleware::from_fn(|req, srv| {
-            Box::pin(async move {
-                // Apply request size limit
-                let size_limit = RequestSizeLimit::default();
-                let req = size_limit.new_transform(srv.clone())
-                    .await
-                    .unwrap()
-                    .call(req)
-                    .await?;
-
-                // Apply security headers
-                let security = SecurityHeaders;
-                let req = security.new_transform(srv.clone())
-                    .await
-                    .unwrap()
-                    .call(req)
-                    .await?;
-
-                // Apply input sanitization
-                let sanitizer = InputSanitizer;
-                let req = sanitizer.new_transform(srv.clone())
-                    .await
-                    .unwrap()
-                    .call(req)
-                    .await?;
-
-                Ok(req)
-            })
-        })
+    pub fn create_api_middleware() -> RequestSizeLimit {
+        RequestSizeLimit::default()
     }
 
     /// Create middleware for settings endpoints (with stricter rate limits)
-    pub fn create_settings_middleware() -> impl Transform<
-        actix_web::dev::ServiceRequest,
-        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-        Error = actix_web::Error,
-        InitError = (),
-        Transform = impl Service<
-            actix_web::dev::ServiceRequest,
-            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-            Error = actix_web::Error,
-            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
-        >,
-    > {
+    pub fn create_settings_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
         
         RateLimit::new(EndpointRateLimits::settings_update())
     }
 
     /// Create middleware for RAGFlow endpoints
-    pub fn create_ragflow_middleware() -> impl Transform<
-        actix_web::dev::ServiceRequest,
-        Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-        Error = actix_web::Error,
-        InitError = (),
-        Transform = impl Service<
-            actix_web::dev::ServiceRequest,
-            Response = actix_web::dev::ServiceResponse<actix_web::body::BoxBody>,
-            Error = actix_web::Error,
-            Future = LocalBoxFuture<'static, Result<actix_web::dev::ServiceResponse<actix_web::body::BoxBody>, actix_web::Error>>,
-        >,
-    > {
+    pub fn create_ragflow_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
         
         RateLimit::new(EndpointRateLimits::ragflow_chat())

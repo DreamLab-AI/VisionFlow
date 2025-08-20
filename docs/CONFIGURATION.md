@@ -38,6 +38,11 @@ Key variables:
 
 **Best Practice:** Never commit `.env` to version control. Use `.env_template` as reference.
 
+**GPU Safety Configuration:**
+- `GPU_MEMORY_LIMIT` - Maximum GPU memory (default: 8GB)
+- `CPU_FALLBACK_THRESHOLD` - Failed GPU operations before CPU fallback (default: 3)
+- `KERNEL_TIMEOUT` - GPU kernel timeout in seconds (default: 5)
+
 ### 2. Application Settings (`data/settings.yaml`)
 **Purpose:** Runtime application configuration and defaults
 **Precedence:** Medium - can be overridden by environment variables

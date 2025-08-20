@@ -1,281 +1,173 @@
 # VisionFlow Documentation
 
-## Executive Summary
+Welcome to the official documentation for VisionFlow, a high-performance, GPU-accelerated platform for real-time 3D visualisation of AI multi-agent systems and knowledge graphs.
 
-Welcome to VisionFlow, a **production-ready, enterprise-grade graph visualization and AI agent orchestration platform** that represents the pinnacle of modern software engineering excellence. This comprehensive system delivers exceptional performance, reliability, and security through systematic implementation of industry-leading patterns and practices.
+This documentation provides a comprehensive guide for users, developers, and operators. Whether you are getting started, developing new features, or deploying to production, you will find the necessary information here.
 
-**🎯 PRODUCTION STATUS: 100% COMPLETE ✅**
+## Documentation Structure
 
-VisionFlow combines cutting-edge real-time 3D rendering with Claude Flow's Model Context Protocol (MCP) integration, built with production-hardened Rust and TypeScript architectures that deliver uncompromising performance and reliability.
+Our documentation is organised into several key areas to help you find information quickly.
 
-## 🏆 Production Achievement Highlights
+```mermaid
+graph TD
+    A[VisionFlow Docs] --> B[Getting Started];
+    A --> C[Guides];
+    A --> D[Concepts];
+    A --> E[Reference];
+    A --> F[Development];
 
-### Core System Capabilities
+    subgraph B[01. Getting Started]
+        B1[Installation]
+        B2[Quickstart]
+    end
 
-- **🛡️ Zero-Panic Architecture**: Comprehensive fault tolerance with actor supervision
-- **⚡ High-Performance Computing**: 60 FPS @ 100K+ nodes with GPU acceleration
-- **🔄 Network Resilience**: Enterprise-grade failure mitigation and recovery
-- **🔒 Zero-Trust Security**: Multi-tier validation with comprehensive security measures
-- **📊 Production Monitoring**: Complete observability with health checks and metrics
-- **🚀 Container Ready**: Production-ready deployment with auto-scaling support
+    subgraph C[02. Guides]
+        C1[Agent Orchestration]
+        C2[Settings & Tuning]
+        C3[Deployment]
+        C4[Troubleshooting]
+    end
 
-### Performance Validation Results
+    subgraph D[03. Concepts]
+        D1[System Architecture]
+        D2[Actor Model]
+        D3[GPU Acceleration]
+        D4[Dual-Graph System]
+    end
 
-| Metric | Achievement | Industry Standard | Status |
-|--------|-------------|-------------------|---------|
-| **Frame Rate** | 60 FPS @ 100K nodes | 30 FPS @ 10K nodes | ✅ **3.3x Better** |
-| **System Uptime** | 99.9% | 99.5% | ✅ **Exceeds** |
-| **API Response** | <50ms P95 | <200ms P95 | ✅ **4x Faster** |
-| **Recovery Time** | <100ms | <5s | ✅ **50x Faster** |
-| **Security Score** | 99.1% | 85% | ✅ **16% Higher** |
+    subgraph E[04. Reference]
+        E1[API Reference]
+        E2[Binary Protocol]
+        E3[Configuration]
+        E4[Glossary]
+    end
 
-## 🌟 Production-Grade Features
-
-### Core Platform Capabilities
-- **Real-time Graph Visualization** - Interactive 3D graphs with production-hardened GPU physics
-- **AI Agent Orchestration** - Network-resilient integration with Claude Flow MCP
-- **Dual Graph Architecture** - Simultaneous knowledge and agent graph processing with failover
-- **Ultra-High Performance** - 60 FPS sustained rendering of 100,000+ nodes
-- **WebXR Support** - Enterprise VR/AR experiences for spatial knowledge exploration
-- **Binary Protocol** - Ultra-efficient WebSocket communication with <16ms latency
-
-### Production Infrastructure
-- **Actor Supervision System** - Zero-panic architecture with comprehensive fault tolerance
-- **GPU Safety Implementation** - Memory-safe GPU computing with automatic CPU fallback
-- **Network Resilience Layer** - Circuit breakers, retry logic, and graceful degradation
-- **Comprehensive Validation** - Multi-tier input validation with security scanning
-- **Production Monitoring** - Real-time health checks, metrics, and observability
-- **Enterprise Security** - Zero-trust architecture with audit-ready compliance
-
-## 🚀 Quick Start for Production
-
-### Prerequisites
-- **Docker & Docker Compose**: Container orchestration
-- **NVIDIA GPU** (optional): For optimal performance
-- **8GB+ RAM**: Minimum system requirements
-- **Modern Browser**: WebGL 2.0 and WebXR support
-
-### Production Deployment
-```bash
-# Clone and deploy
-git clone https://github.com/yourusername/visionflow
-cd visionflow
-
-# Production deployment with monitoring
-docker-compose -f docker-compose.prod.yml up -d
-
-# Verify production health
-curl http://localhost:3001/api/health/comprehensive
+    subgraph F[05. Development]
+        F1[Contributing]
+        F2[Environment Setup]
+        F3[Testing & Debugging]
+    end
 ```
 
-### Verify Production Status
-```bash
-# Check all systems
-./scripts/health-check.sh
+## Quick Links
 
-# Monitor performance
-./scripts/production-monitoring.sh
+*   **New to VisionFlow?** Start with the **[Getting Started](./01-getting-started/README.md)** guide.
+*   **Want to perform a specific task?** Check our **[How-to Guides](./02-guides/README.md)**.
+*   **Need to understand the architecture?** Read the **[Concepts](./03-concepts/README.md)** documentation.
+*   **Looking for technical details?** Dive into the **[Reference](./04-reference/README.md)** section.
+*   **Want to contribute?** See the **[Development](./05-development/README.md)** guides.
 
-# View system metrics
-docker logs visionflow-server --follow
-```
+## Navigation by Role
 
-## 📊 Production Readiness Assessment
+### For Users & Analysts
+- **Installation**: [01-getting-started/installation.md](./01-getting-started/installation.md)
+- **First Visualisation**: [01-getting-started/quickstart.md](./01-getting-started/quickstart.md)
+- **Tuning and Settings**: [02-guides/settings-and-tuning.md](./02-guides/settings-and-tuning.md)
 
-VisionFlow has achieved **98.2% overall production readiness** across all critical dimensions:
+### For DevOps & System Administrators
+- **Deployment with Docker**: [02-guides/deployment-with-docker.md](./02-guides/deployment-with-docker.md)
+- **Configuration Reference**: [04-reference/configuration.md](./04-reference/configuration.md)
+- **Troubleshooting**: [02-guides/troubleshooting.md](./02-guides/troubleshooting.md)
 
-### System Assessment Results
+### For Developers & Contributors
+- **System Architecture**: [03-concepts/system-architecture.md](./03-concepts/system-architecture.md)
+- **API Reference**: [04-reference/api.md](./04-reference/api.md)
+- **Development Workflow**: [02-guides/development-workflow.md](./02-guides/development-workflow.md)
+- **Contributing Guide**: [05-development/contributing.md](./05-development/contributing.md)
 
-```
-┌─────────────────────┬───────┬──────────┬───────────┐
-│ Component           │ Score │ Status   │ Notes     │
-├─────────────────────┼───────┼──────────┼───────────┤
-│ Actor System        │ 98.5% │ ✅ Ready │ Zero panic│
-│ GPU Compute         │ 97.8% │ ✅ Ready │ Safe+Fast │
-│ Network Resilience  │ 99.1% │ ✅ Ready │ Bulletproof│
-│ Validation System   │ 99.3% │ ✅ Ready │ Secure    │
-│ API Layer          │ 96.7% │ ✅ Ready │ Validated │
-│ Configuration      │ 98.9% │ ✅ Ready │ Hot reload│
-│ Security           │ 99.1% │ ✅ Ready │ Zero trust│
-│ Deployment         │ 99.3% │ ✅ Ready │ Container │
-└─────────────────────┴───────┴──────────┴───────────┘
+## Documentation Sections
 
-OVERALL PRODUCTION READINESS: 98.2% ✅
-```
+### 📚 [01. Getting Started](./01-getting-started/README.md)
+Learn how to install VisionFlow and create your first visualisation. Perfect for new users who want to get up and running quickly.
 
-## 📖 Production Documentation Structure
+- Installation guide with prerequisites
+- Quick start tutorial
+- First visualisation walkthrough
 
-### 🚀 Getting Started
-- [Getting Started Guide](getting-started.md) - Complete setup and first launch
-- [Installation & Setup](getting-started/installation.md) - Docker, development setup
-- [Quick Start Guide](getting-started/quickstart.md) - First graph in 5 minutes
-- [Configuration](getting-started/configuration.md) - Environment variables, settings
+### 🔧 [02. Guides](./02-guides/README.md)
+Practical how-to guides for accomplishing specific tasks with VisionFlow.
 
-### 🏗️ Production Architecture
+- Agent orchestration and multi-agent configuration
+- Settings and performance tuning
+- Docker deployment and scaling
+- Troubleshooting common issues
+- Development workflow best practices
 
-- **[System Overview](architecture/system-overview.md)** - Production-grade architecture with resilience patterns
-- **[Dual Graph](architecture/dual-graph.md)** - Knowledge + Agent graph with fault tolerance
-- **[MCP Integration](architecture/mcp-integration.md)** - Network-resilient Claude Flow integration
-- **[Binary Protocol](architecture/binary-protocol.md)** - High-performance WebSocket communication
-- **[Data Flow](architecture/data-flow.md)** - Production data pipelines with error handling
+### 🧠 [03. Concepts](./03-concepts/README.md)
+Understand the core concepts and architecture behind VisionFlow.
 
-### 🛡️ Production Server Components
+- System architecture and design principles
+- Actor model for concurrent processing
+- GPU acceleration and CUDA integration
+- Dual-graph system for knowledge and agents
 
-- **[Actor System](server/actors.md)** - Zero-panic actor supervision with fault tolerance
-- **[GPU Compute](server/gpu-compute.md)** - Safety-hardened CUDA with automatic fallback
-- **[Physics Engine](server/physics-engine.md)** - Production physics simulation with monitoring
-- **[WebSocket Handler](server/websocket.md)** - Resilient real-time communication layer
+### 📖 [04. Reference](./04-reference/README.md)
+Complete technical reference documentation.
 
-### 📡 Production API Documentation
-- **[REST API](api/rest/index.md)** - Production HTTP endpoints with comprehensive validation
-- **[WebSocket API](api/websocket/index.md)** - Real-time protocols with resilience patterns
-- **[MCP Integration](api/mcp/index.md)** - Claude Flow agent control with network safety
-- **[Binary Protocol](api/binary-protocol.md)** - Ultra-optimized position streaming format
+- REST and WebSocket API specifications
+- Binary protocol format
+- Configuration options and schemas
+- Glossary of terms
 
-### 🔧 Production Configuration
+### 🛠️ [05. Development](./05-development/README.md)
+Everything you need to contribute to VisionFlow development.
 
-- **[Settings System](configuration/index.md)** - Production configuration with validation and hot-reload
-- **[Environment Variables](configuration/env-vars.md)** - Secure environment-specific configurations
-- **[Feature Flags](configuration/feature-flags.md)** - Dynamic feature toggling with rollback
-- **[GPU Configuration](configuration/gpu.md)** - Production GPU setup with safety monitoring
+- Contributing guidelines
+- Development environment setup
+- Testing strategies
+- Debugging techniques
 
-### 🚀 Production Deployment
+## Key Features Documentation
 
-- **[Docker Setup](deployment/docker.md)** - Production container orchestration with health checks
-- **[Production Guide](deployment/production.md)** - Enterprise deployment with auto-scaling
-- **[Monitoring](deployment/monitoring.md)** - Comprehensive observability and alerting
-- **[Troubleshooting](deployment/troubleshooting.md)** - Production issue resolution guides
+### 🤖 AI Agent Visualisation
+- [Agent Orchestration Guide](./02-guides/agent-orchestration.md) - Configure and manage AI agent swarms
+- [MCP Integration](./02-guides/agent-orchestration.md#mcp-integration) - Claude Flow Model Context Protocol setup
 
-### 🔒 Security & Compliance
+### 📊 Knowledge Graph Integration
+- [Dual-Graph System](./03-concepts/dual-graph-system.md) - Understanding parallel visualisation
+- [Graph Configuration](./04-reference/configuration.md#graph-settings) - Customising graph behaviour
 
-- **[Security Implementation](security/index.md)** - Zero-trust security architecture
-- **[Validation System](security/validation.md)** - Multi-tier input validation and sanitization
-- **[Audit & Compliance](security/audit.md)** - Enterprise audit trails and compliance
-- **[Threat Model](security/threat-model.md)** - Security risk assessment and mitigation
+### 🚀 Performance & Optimisation
+- [GPU Acceleration](./03-concepts/gpu-acceleration.md) - CUDA-powered physics engine
+- [Performance Tuning](./02-guides/settings-and-tuning.md#performance-optimisation) - Optimising for your hardware
 
-### 💻 Development
-- **[Development Setup](development/setup.md)** - Local environment
-- **[Testing Guide](development/testing.md)** - Unit, integration tests
-- **[Debugging](development/debugging.md)** - Tools and techniques
-- **[Contributing](development/contributing.md)** - Code standards, workflow
+### 🔌 Integration & APIs
+- [API Reference](./04-reference/api.md) - Complete API documentation
+- [Binary Protocol](./04-reference/binary-protocol.md) - High-performance streaming protocol
 
-### 🎯 Advanced Features
-- **[Adaptive Balancing](features/adaptive-balancing.md)** - Intelligent physics auto-tuning
-- **[Agent Orchestration](features/agent-orchestration.md)** - AI agent coordination and visualization
-- **[XR Integration](client/xr-integration.md)** - VR/AR immersive experiences
+## Production Deployment
 
-## 📋 Production Implementation Summary
+For production deployments, follow our comprehensive deployment guide:
 
-### 🎯 [PRODUCTION IMPLEMENTATION COMPLETE](PRODUCTION_IMPLEMENTATION_COMPLETE.md)
-**Comprehensive executive summary of all production achievements, safety implementations, and deployment readiness.**
+1. [Docker Deployment](./02-guides/deployment-with-docker.md) - Container-based deployment
+2. [Configuration Reference](./04-reference/configuration.md) - Production configuration
+3. [Troubleshooting](./02-guides/troubleshooting.md) - Common issues and solutions
 
-## 🎯 Quick Navigation by Role
+## Community & Support
 
-### For Production Operators
-- **[Production Deployment](deployment/production.md)** - Enterprise deployment with monitoring
-- **[Health Monitoring](deployment/monitoring.md)** - Production observability and alerting
-- **[Configuration Management](configuration/index.md)** - Production configuration with validation
-- **[Security Operations](security/index.md)** - Zero-trust security implementation
-- **[Troubleshooting](deployment/troubleshooting.md)** - Production issue resolution
+- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/visionflow/issues)
+- **Discord**: [Join our community](https://discord.gg/visionflow)
+- **Contributing**: [How to contribute](./05-development/contributing.md)
 
-### For DevOps Engineers  
-- **[Actor System](server/actors.md)** - Zero-panic supervision architecture
-- **[Network Resilience](architecture/mcp-integration.md)** - Circuit breakers and failover
-- **[GPU Safety](server/gpu-compute.md)** - Production GPU computing with fallback
-- **[API Validation](api/index.md)** - Comprehensive validation and security
-- **[Container Orchestration](deployment/docker.md)** - Production containerization
+## Documentation Standards
 
-### For Security Engineers
-- **[Security Architecture](security/index.md)** - Zero-trust security implementation
-- **[Validation System](api/index.md#validation)** - Multi-tier input validation
-- **[Threat Mitigation](security/threat-model.md)** - Security risk assessment
-- **[Audit Systems](security/audit.md)** - Enterprise compliance and auditing
-- **[Network Security](architecture/mcp-integration.md#security)** - Network resilience patterns
+This documentation follows the [Diátaxis framework](https://diataxis.fr/), organising content into:
 
-### For Platform Engineers
-- **[System Architecture](architecture/system-overview.md)** - Production system design
-- **[Performance Engineering](server/gpu-compute.md)** - High-performance computing
-- **[Scalability Patterns](deployment/production.md)** - Auto-scaling and load balancing
-- **[Observability](deployment/monitoring.md)** - Comprehensive monitoring and metrics
-- **[Capacity Planning](research/performance.md)** - Performance analysis and optimization
+- **Tutorials** (Getting Started) - Learning-oriented guides
+- **How-to Guides** (Guides) - Task-oriented instructions
+- **Explanations** (Concepts) - Understanding-oriented discussion
+- **Reference** - Information-oriented technical descriptions
 
-### For Application Developers
-- **[API Reference](api/index.md)** - Production-ready API with validation
-- **[WebSocket Protocols](api/websocket.md)** - Real-time communication patterns
-- **[Development Setup](development/setup.md)** - Local development environment
-- **[SDK Integration](api/index.md#sdk)** - Official client libraries and examples
-- **[Contributing Guide](development/contributing.md)** - Development contribution guidelines
+## Version Information
 
-## 🎖️ Production Certification
+- **Documentation Version**: 2.0.0
+- **VisionFlow Version**: 1.0.0
+- **Last Updated**: January 2025
 
-VisionFlow has achieved **Production Certification** with comprehensive validation across all critical systems:
+## License
 
-### Certification Details
-- **Overall Score**: 98.2% Production Readiness
-- **Security Score**: 99.1% (Zero-trust architecture)
-- **Reliability Score**: 98.7% (Fault-tolerant design)
-- **Performance Score**: 96.2% (High-performance computing)
-- **Deployment Score**: 99.3% (Container-ready with monitoring)
-
-### Compliance Status
-- ✅ **ISO 27001 Ready**: Security management implementation
-- ✅ **SOC 2 Type II Ready**: Controls and procedures documented
-- ✅ **GDPR Compliant**: Data protection and privacy measures
-- ✅ **Industry Standards**: Cloud-native and security best practices
-
-## 🤝 Production Support
-
-### Enterprise Support
-- **24/7 Production Support**: Critical issue response < 1 hour
-- **Performance Consulting**: Optimization and scaling guidance  
-- **Security Assessment**: Regular security audits and updates
-- **Custom Integration**: Enterprise integration support
-
-### Community Support
-- **Documentation**: Comprehensive production-ready documentation
-- **GitHub Issues**: Community support and bug reporting
-- **Contributing Guide**: [Development contribution guidelines](development/contributing.md)
-- **Security Reports**: Responsible disclosure process
-
-## 🔄 Continuous Improvement
-
-VisionFlow maintains production excellence through:
-- **Automated Testing**: 95%+ test coverage with regression prevention
-- **Performance Monitoring**: Continuous performance validation
-- **Security Scanning**: Automated vulnerability detection and remediation
-- **Dependency Management**: Automated security updates and compatibility testing
-
-## Technology Stack
-
-| Component | Technology | Production Features |
-|-----------|------------|-------------------|
-| **Backend** | Rust, Actix-Web, Tokio | Actor supervision, zero-panic |
-| **GPU Compute** | CUDA, PTX kernels | Safety-hardened, CPU fallback |
-| **Frontend** | React 18, TypeScript, Three.js | Validated inputs, error boundaries |
-| **XR/AR** | WebXR, React-XR, Quest 3 | Enterprise VR/AR support |
-| **Protocols** | WebSocket, Binary streaming, REST | Network resilience patterns |
-| **AI Integration** | Claude Flow MCP, TCP sockets | Circuit breakers, health checks |
-| **Infrastructure** | Docker, NGINX, Supervisord | Production orchestration |
-| **Security** | Zero-trust, Multi-tier validation | Comprehensive security implementation |
-
-## 📄 Legal and Compliance
-
-- **License**: MIT License - See [LICENSE](../LICENSE) for details
-- **Privacy Policy**: GDPR-compliant data handling procedures
-- **Security Policy**: Responsible disclosure and incident response
-- **Terms of Service**: Enterprise-grade service level agreements
+VisionFlow is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
 
 ---
 
-## 📞 Production Contact Information
-
-- **Production Issues**: [production-support@visionflow.dev](mailto:production-support@visionflow.dev)
-- **Security Reports**: [security@visionflow.dev](mailto:security@visionflow.dev)
-- **Enterprise Sales**: [enterprise@visionflow.dev](mailto:enterprise@visionflow.dev)
-- **General Inquiries**: [hello@visionflow.dev](mailto:hello@visionflow.dev)
-
----
-
-*Document Version: 2.0*  
-*Last Updated: December 2024*  
-*Status: Production Ready ✅*
+**Need help?** Start with our [Getting Started](./01-getting-started/README.md) guide or check the [Troubleshooting](./02-guides/troubleshooting.md) section.

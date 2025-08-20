@@ -32,7 +32,6 @@ use crate::actors::messages::{
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::ConstraintSet;
 use crate::actors::gpu_compute_actor::PhysicsStats;
-use crate::physics::semantic_constraints::SemanticCluster;
 
 /// Response for analytics parameter operations
 #[derive(Debug, Serialize, Deserialize)]

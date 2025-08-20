@@ -93,6 +93,29 @@ impl std::fmt::Display for ValidationError {
 
 impl std::error::Error for ValidationError {}
 
+impl actix_web::ResponseError for ValidationError {
+    fn status_code(&self) -> actix_web::http::StatusCode {
+        match self.error_code.as_str() {
+            "REQUIRED_FIELD" | "INVALID_FORMAT" | "TOO_LONG" | "TOO_SHORT" | "OUT_OF_RANGE" => {
+                actix_web::http::StatusCode::BAD_REQUEST
+            }
+            "UNAUTHORIZED" => actix_web::http::StatusCode::UNAUTHORIZED,
+            "FORBIDDEN" => actix_web::http::StatusCode::FORBIDDEN,
+            _ => actix_web::http::StatusCode::BAD_REQUEST,
+        }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.status_code()).json(serde_json::json!({
+            "error": "validation_error",
+            "field": self.field,
+            "message": self.message,
+            "error_code": self.error_code,
+            "details": self.details
+        }))
+    }
+}
+
 /// Validation context for tracking nesting and state
 #[derive(Debug, Clone)]
 pub struct ValidationContext {
@@ -174,7 +197,7 @@ impl ValidationUtils {
     }
 
     /// Validate required field
-    pub fn validate_required<T>(value: &Option<T>, field: &str) -> ValidationResult<&T> {
+    pub fn validate_required<'a, T>(value: &'a Option<T>, field: &str) -> ValidationResult<&'a T> {
         match value {
             Some(v) => Ok(v),
             None => Err(ValidationError::required_field(field))

@@ -1,4 +1,4 @@
-use crate::utils::gpu_compute::GPUCompute;
+use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 use log::{info, warn, error};
 use std::env;
 use std::path::Path;
@@ -58,7 +58,7 @@ pub fn run_gpu_diagnostics() -> String {
     
     // Check GPU device creation
     report.push_str("\nCUDA Device Detection:\n");
-    match GPUCompute::test_gpu() {
+    match UnifiedGPUCompute::test_gpu() {
         Ok(_) => {
             report.push_str("  ✅ CUDA device successfully detected and tested\n");
             info!("GPU Diagnostic: CUDA device detected and tested successfully");

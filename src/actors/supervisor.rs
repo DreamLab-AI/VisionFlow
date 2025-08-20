@@ -7,7 +7,9 @@ use actix::prelude::*;
 use log::{error, info, warn, debug};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use crate::errors::{VisionFlowError, ActorError};
+use crate::errors::VisionFlowError;
+#[cfg(test)]
+use crate::errors::ActorError;
 
 /// Supervision strategy for handling actor failures
 #[derive(Debug, Clone)]
@@ -28,7 +30,7 @@ pub enum SupervisionStrategy {
 
 /// Information about a supervised actor
 #[derive(Debug, Clone)]
-pub struct SupervisedActor {
+pub struct SupervisedActorInfo {
     pub name: String,
     pub strategy: SupervisionStrategy,
     pub max_restart_count: u32,
@@ -38,7 +40,7 @@ pub struct SupervisedActor {
 /// Internal state tracking for supervised actors
 #[derive(Debug)]
 struct ActorState {
-    actor_info: SupervisedActor,
+    actor_info: SupervisedActorInfo,
     restart_count: u32,
     last_restart: Option<Instant>,
     current_delay: Duration,
@@ -69,7 +71,7 @@ pub struct ActorStarted {
 }
 
 #[derive(Message)]
-#[rtype(result = "SupervisionStatus")]
+#[rtype(result = "Result<SupervisionStatus, VisionFlowError>")]
 pub struct GetSupervisionStatus;
 
 /// Status information about supervised actors
@@ -176,7 +178,7 @@ impl Handler<RegisterActor> for SupervisorActor {
     type Result = Result<(), VisionFlowError>;
 
     fn handle(&mut self, msg: RegisterActor, _ctx: &mut Self::Context) -> Self::Result {
-        let actor_info = SupervisedActor {
+        let actor_info = SupervisedActorInfo {
             name: msg.actor_name.clone(),
             strategy: msg.strategy.clone(),
             max_restart_count: msg.max_restart_count,
@@ -253,7 +255,7 @@ impl Handler<ActorStarted> for SupervisorActor {
 }
 
 impl Handler<GetSupervisionStatus> for SupervisorActor {
-    type Result = SupervisionStatus;
+    type Result = Result<SupervisionStatus, VisionFlowError>;
 
     fn handle(&mut self, _msg: GetSupervisionStatus, _ctx: &mut Self::Context) -> Self::Result {
         let total_actors = self.supervised_actors.len();
@@ -270,12 +272,12 @@ impl Handler<GetSupervisionStatus> for SupervisorActor {
             }
         }).collect();
 
-        SupervisionStatus {
+        Ok(SupervisionStatus {
             total_actors,
             running_actors,
             failed_actors,
             actors,
-        }
+        })
     }
 }
 
@@ -308,7 +310,7 @@ impl Handler<RestartAttempt> for SupervisorActor {
 }
 
 /// Helper trait for actors to integrate with supervision
-pub trait SupervisedActor: Actor {
+pub trait SupervisedActorTrait: Actor {
     fn actor_name() -> &'static str;
     
     fn supervision_strategy() -> SupervisionStrategy {

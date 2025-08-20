@@ -19,6 +19,6 @@ pub use gpu_compute_actor::GPUComputeActor;
 pub use protected_settings_actor::ProtectedSettingsActor;
 // Export the TCP actor as the ONLY ClaudeFlowActor
 pub use claude_flow_actor_tcp::ClaudeFlowActorTcp as ClaudeFlowActor;
-pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActor as SupervisedActorTrait};
+pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
 // pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor; // Removed - not implemented
 pub use messages::*;

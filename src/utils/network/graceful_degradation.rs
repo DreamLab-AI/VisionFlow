@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::{HealthStatus, ServiceHealthInfo, CircuitBreakerState};
 
 /// Degradation level for services
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DegradationLevel {
     /// Service is operating normally
     Normal,
@@ -158,7 +158,7 @@ impl GracefulDegradationManager {
         operation: impl std::future::Future<Output = Result<T, String>>,
     ) -> Result<T, String>
     where
-        T: serde::Serialize + serde::de::DeserializeOwned + Clone,
+        T: serde::Serialize + serde::de::DeserializeOwned + Clone + Default,
     {
         let degradation_level = self.get_degradation_level(service_name).await;
         
