@@ -34,6 +34,10 @@ interface ForceParameters {
   timeStep: number;
   maxVelocity: number;
   temperature: number;
+  // Boundary behavior parameters
+  boundaryExtremeMultiplier: number;
+  boundaryExtremeForceMultiplier: number;
+  boundaryVelocityDamping: number;
 }
 
 interface ConstraintType {
@@ -93,6 +97,10 @@ export function PhysicsEngineControls() {
     timeStep: physicsSettings?.dt || 0.016,                       // GPU param: dt
     maxVelocity: physicsSettings?.maxVelocity || 2.0,            // GPU param: max_velocity
     temperature: physicsSettings?.temperature || 0.01,            // GPU param: temperature
+    // Boundary behavior parameters
+    boundaryExtremeMultiplier: physicsSettings?.boundaryExtremeMultiplier || 2.0,          // GPU param: boundary_extreme_multiplier
+    boundaryExtremeForceMultiplier: physicsSettings?.boundaryExtremeForceMultiplier || 5.0, // GPU param: boundary_extreme_force_multiplier
+    boundaryVelocityDamping: physicsSettings?.boundaryVelocityDamping || 0.8,              // GPU param: boundary_velocity_damping
   });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
@@ -147,6 +155,10 @@ export function PhysicsEngineControls() {
         timeStep: physicsSettings.dt || 0.016,                       // GPU param: dt
         maxVelocity: physicsSettings.maxVelocity || 2.0,            // GPU param: max_velocity
         temperature: physicsSettings.temperature || 0.01,            // GPU param: temperature
+        // Boundary behavior parameters
+        boundaryExtremeMultiplier: physicsSettings.boundaryExtremeMultiplier || 2.0,          // GPU param: boundary_extreme_multiplier
+        boundaryExtremeForceMultiplier: physicsSettings.boundaryExtremeForceMultiplier || 5.0, // GPU param: boundary_extreme_force_multiplier
+        boundaryVelocityDamping: physicsSettings.boundaryVelocityDamping || 0.8,              // GPU param: boundary_velocity_damping
       });
     }
   }, [physicsSettings, initialized]);
@@ -209,6 +221,10 @@ export function PhysicsEngineControls() {
       timeStep: 'dt',
       maxVelocity: 'maxVelocity',
       temperature: 'temperature',
+      // Boundary behavior parameters - these map directly
+      boundaryExtremeMultiplier: 'boundaryExtremeMultiplier',
+      boundaryExtremeForceMultiplier: 'boundaryExtremeForceMultiplier',
+      boundaryVelocityDamping: 'boundaryVelocityDamping',
     };
     
     const physicsUpdate = {
@@ -542,6 +558,101 @@ export function PhysicsEngineControls() {
                   step={0.001}
                   value={[forceParams.timeStep || 0.016]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Boundary Behavior Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Boundary Behavior
+              </CardTitle>
+              <CardDescription>
+                Advanced boundary force control for CUDA physics
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Label htmlFor="boundaryExtremeMultiplier" className="flex items-center gap-1">
+                          Extreme Multiplier
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </Label>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Controls how aggressively boundary forces are applied (1.0-5.0)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span className="text-sm text-muted-foreground">{forceParams.boundaryExtremeMultiplier.toFixed(1)}</span>
+                </div>
+                <Slider
+                  id="boundaryExtremeMultiplier"
+                  min={1.0}
+                  max={5.0}
+                  step={0.1}
+                  value={[forceParams.boundaryExtremeMultiplier]}
+                  onValueChange={([v]) => handleForceParamChange('boundaryExtremeMultiplier', v)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Label htmlFor="boundaryExtremeForceMultiplier" className="flex items-center gap-1">
+                          Force Strength
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </Label>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Controls the intensity of extreme boundary forces (1.0-20.0)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span className="text-sm text-muted-foreground">{forceParams.boundaryExtremeForceMultiplier.toFixed(1)}</span>
+                </div>
+                <Slider
+                  id="boundaryExtremeForceMultiplier"
+                  min={1.0}
+                  max={20.0}
+                  step={0.5}
+                  value={[forceParams.boundaryExtremeForceMultiplier]}
+                  onValueChange={([v]) => handleForceParamChange('boundaryExtremeForceMultiplier', v)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Label htmlFor="boundaryVelocityDamping" className="flex items-center gap-1">
+                          Velocity Damping
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </Label>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Reduces velocity near boundaries to prevent edge oscillation (0.0-1.0)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span className="text-sm text-muted-foreground">{forceParams.boundaryVelocityDamping.toFixed(2)}</span>
+                </div>
+                <Slider
+                  id="boundaryVelocityDamping"
+                  min={0.0}
+                  max={1.0}
+                  step={0.01}
+                  value={[forceParams.boundaryVelocityDamping]}
+                  onValueChange={([v]) => handleForceParamChange('boundaryVelocityDamping', v)}
                 />
               </div>
             </CardContent>

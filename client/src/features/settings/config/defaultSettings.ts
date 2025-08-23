@@ -110,6 +110,14 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       boundaryMargin: 10.0,
       boundaryForceStrength: 1.0,
       
+      // Missing CUDA parameters with sensible defaults
+      boundaryExtremeMultiplier: 2.0,        // range: 1.0-5.0, moderate extreme forces
+      boundaryExtremeForceMultiplier: 5.0,   // range: 1.0-20.0, moderate force intensity
+      boundaryVelocityDamping: 0.5,          // range: 0.0-1.0, moderate damping
+      maxForce: 100.0,                       // range: 1-1000, reasonable force cap
+      seed: 42,                              // deterministic default seed
+      iteration: 0,                          // initial iteration count
+      
       // Warmup System
       warmupIterations: 100,
       coolingRate: 0.001,
