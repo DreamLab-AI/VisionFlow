@@ -98,6 +98,17 @@ visualisation:
           # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
+        # CUDA kernel parameters from dev_config.toml
+        rest_length: 50.0
+        repulsion_cutoff: 50.0
+        repulsion_softening_epsilon: 0.0001
+        center_gravity_k: 0.0
+        grid_cell_size: 50.0
+        warmup_iterations: 100
+        cooling_rate: 0.001
+        boundary_extreme_multiplier: 2.0
+        boundary_extreme_force_multiplier: 10.0
+        boundary_velocity_damping: 0.5
           repulsion_cutoff_min: 5.0
           repulsion_cutoff_max: 200.0
           repulsion_softening_min: 0.000001
@@ -199,6 +210,17 @@ visualisation:
           # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
+        # CUDA kernel parameters from dev_config.toml
+        rest_length: 50.0
+        repulsion_cutoff: 50.0
+        repulsion_softening_epsilon: 0.0001
+        center_gravity_k: 0.0
+        grid_cell_size: 50.0
+        warmup_iterations: 100
+        cooling_rate: 0.001
+        boundary_extreme_multiplier: 2.0
+        boundary_extreme_force_multiplier: 10.0
+        boundary_velocity_damping: 0.5
           repulsion_cutoff_min: 5.0
           repulsion_cutoff_max: 200.0
           repulsion_softening_min: 0.000001

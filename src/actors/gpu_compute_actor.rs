@@ -9,7 +9,7 @@ use cudarc::driver::CudaDevice;
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
 use crate::models::graph::GraphData;
-use crate::models::simulation_params::{SimulationParams, FeatureFlags};
+use crate::models::simulation_params::{SimulationParams};
 use crate::models::constraints::{Constraint, ConstraintSet};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 // use crate::utils::edge_data::EdgeData; // Not directly used
@@ -22,12 +22,11 @@ use std::env;
 use std::sync::Arc;
 use actix::fut::{ActorFutureExt}; // For .map() on ActorFuture
 use serde::{Serialize, Deserialize};
-use futures_util::future::FutureExt as _; // For .into_actor() - note the `as _` to avoid name collision if FutureExt is also in scope from elsewhere
+// use futures_util::future::FutureExt as _; // Unused // For .into_actor() - note the `as _` to avoid name collision if FutureExt is also in scope from elsewhere
 
 // Constants for GPU computation - now from dev config
 // These are still here as const for performance but initialized from config
 const MAX_NODES: u32 = 1_000_000;  // Will use dev_config::cuda().max_nodes in init
-const DEBUG_THROTTLE: u32 = 60;    // Will use dev_config::cuda().debug_output_throttle in init
 
 // Constants for retry mechanism
 // const MAX_GPU_INIT_RETRIES: u32 = 3; // Unused
@@ -52,12 +51,11 @@ pub enum ComputeMode {
 
 // Legacy KernelMode removed - all computation now uses unified kernel
 
-#[derive(Debug)]
 pub struct GPUComputeActor {
     device: Option<Arc<CudaDevice>>,
     
     // Single unified compute engine
-    unified_compute: Option<UnifiedGPUCompute>,
+    pub unified_compute: Option<UnifiedGPUCompute>,
     
     // Unified data management
     num_nodes: u32,
@@ -77,7 +75,7 @@ pub struct GPUComputeActor {
     cpu_fallback_active: bool,
     
     // Current compute mode
-    compute_mode: ComputeMode,
+    pub compute_mode: ComputeMode,
     
     // Stress majorization settings
     stress_majorization_interval: u32,
@@ -168,18 +166,18 @@ impl GPUComputeActor {
     }
 
     async fn static_initialize_unified_compute(
-        device: Arc<CudaDevice>,
         num_nodes: u32,
         num_edges: u32,  // Add num_edges parameter
         graph_nodes: &[crate::models::node::Node], // Pass slice of nodes
     ) -> Result<(UnifiedGPUCompute, HashMap<u32, usize>), Error> {
         info!("UNIFIED_INIT: Starting unified GPU compute initialization for {} nodes, {} edges", num_nodes, num_edges);
         
+        let ptx_content = "";
         // Initialize the unified GPU compute engine with actual edge count
         let unified_compute = UnifiedGPUCompute::new(
-            device.clone(),
             num_nodes as usize,
             num_edges as usize,  // Use actual edge count from graph
+            ptx_content
         ).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to initialize unified compute: {}", e)))?;
         
         info!("UNIFIED_INIT: Unified GPU compute initialized successfully");
@@ -218,7 +216,7 @@ impl GPUComputeActor {
         info!("(Static Logic) CUDA device created successfully");
         
         // Initialize unified compute engine with edge count
-        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(device.clone(), num_nodes, num_edges, &graph.nodes).await?;
+        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(num_nodes, num_edges, &graph.nodes).await?;
         info!("(Static Logic) Unified compute initialized successfully");
         
         // Upload node positions to unified compute
@@ -253,7 +251,12 @@ impl GPUComputeActor {
             })
             .collect();
         
-        unified_compute.upload_positions(&positions)
+        // Convert positions to three separate arrays
+        let x_coords: Vec<f32> = positions.iter().map(|p| p.0).collect();
+        let y_coords: Vec<f32> = positions.iter().map(|p| p.1).collect();
+        let z_coords: Vec<f32> = positions.iter().map(|p| p.2).collect();
+        
+        unified_compute.upload_positions(&x_coords, &y_coords, &z_coords)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
         
         // Upload edges in CSR format
@@ -325,11 +328,11 @@ impl GPUComputeActor {
 
         // Upload positions to unified compute
         // Use existing positions (should be from server state)
-        let positions: Vec<(f32, f32, f32)> = graph.nodes.iter()
-            .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
-            .collect();
+        let positions_x: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.x).collect();
+        let positions_y: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.y).collect();
+        let positions_z: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.z).collect();
         
-        unified_compute.upload_positions(&positions)
+        unified_compute.upload_positions(&positions_x, &positions_y, &positions_z)
             .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
         
         // Upload edges in CSR format
@@ -363,27 +366,6 @@ impl GPUComputeActor {
         Ok(())
     }
 
-    /// Update unified compute mode based on current graph state
-    fn update_unified_mode(&mut self) {
-        if let Some(ref mut unified_compute) = self.unified_compute {
-            let unified_mode = match self.compute_mode {
-                ComputeMode::Basic => UnifiedComputeMode::Basic,
-                ComputeMode::DualGraph => UnifiedComputeMode::DualGraph,
-                ComputeMode::Advanced => {
-                    if !self.constraints.is_empty() {
-                        UnifiedComputeMode::Constraints
-                    } else {
-                        UnifiedComputeMode::VisualAnalytics
-                    }
-                },
-            };
-            
-            unified_compute.set_mode(unified_mode);
-            unified_compute.set_params(self.unified_params);
-            
-            debug!("UNIFIED: Updated compute mode to {:?}", unified_mode);
-        }
-    }
 
     fn compute_forces_internal(&mut self) -> Result<(), Error> {
         if !self.simulation_params.enabled {
@@ -410,7 +392,8 @@ impl GPUComputeActor {
         // We can update feature flags based on actor state if needed.
         // For now, we assume the params passed from the client are sufficient.
         
-        match unified_compute.execute(self.unified_params) {
+        let mut sim_params = self.unified_params;
+        match unified_compute.execute(sim_params) {
             Ok(()) => {
                 self.iteration_count += 1;
                 Ok(())
@@ -800,31 +783,6 @@ impl Handler<TriggerStressMajorization> for GPUComputeActor {
 }
 
 
-impl Handler<SetComputeMode> for GPUComputeActor {
-    type Result = Result<(), String>;
-
-    fn handle(&mut self, msg: SetComputeMode, _ctx: &mut Self::Context) -> Self::Result {
-        let old_mode = self.compute_mode;
-        
-        // All modes are supported by the unified kernel
-        if self.unified_compute.is_some() {
-            self.compute_mode = msg.mode;
-            
-            // Map to unified compute mode
-            let unified_mode = match msg.mode {
-                ComputeMode::Basic => UnifiedComputeMode::Basic,
-                ComputeMode::DualGraph => UnifiedComputeMode::DualGraph,
-                ComputeMode::Advanced => UnifiedComputeMode::Constraints,
-            };
-            
-            self.set_unified_compute_mode(unified_mode);
-            info!("GPU: Switched from {:?} to {:?} compute mode", old_mode, msg.mode);
-            Ok(())
-        } else {
-            Err("Unified compute not available".to_string())
-        }
-    }
-}
 
 impl Handler<GetPhysicsStats> for GPUComputeActor {
     type Result = Result<PhysicsStats, String>;
@@ -835,26 +793,6 @@ impl Handler<GetPhysicsStats> for GPUComputeActor {
 }
 
 impl GPUComputeActor {
-    /// Initialize the unified GPU compute engine
-    pub async fn initialize_unified_context(&mut self, num_nodes: u32, num_edges: u32) -> Result<(), Error> {
-        info!("Initializing unified GPU context for {} nodes, {} edges", num_nodes, num_edges);
-        
-        if let Some(device) = &self.device {
-            match UnifiedGPUCompute::new(device.clone(), num_nodes as usize, num_edges as usize) {
-                Ok(unified_compute) => {
-                    self.unified_compute = Some(unified_compute);
-                    info!("Unified GPU context initialized successfully");
-                    Ok(())
-                },
-                Err(e) => {
-                    warn!("Failed to initialize unified GPU context: {}", e);
-                    Err(e)
-                }
-            }
-        } else {
-            Err(Error::new(ErrorKind::Other, "Device not initialized"))
-        }
-    }
 
     // Legacy node data conversion removed - unified kernel handles all formats internally
 
@@ -879,10 +817,15 @@ impl GPUComputeActor {
 
 
     /// Set unified compute mode
-    pub fn set_unified_compute_mode(&mut self, mode: UnifiedComputeMode) {
+    fn set_unified_compute_mode(&mut self, mode: ComputeMode) {
         if let Some(ref mut unified_compute) = self.unified_compute {
-            unified_compute.set_mode(mode);
-            info!("Updated unified compute mode to: {:?}", mode);
+            // Set compute mode - types need conversion
+            let unified_mode = match mode {
+                ComputeMode::Basic => crate::utils::unified_gpu_compute::ComputeMode::Basic,
+                ComputeMode::DualGraph => crate::utils::unified_gpu_compute::ComputeMode::Basic, // DualGraph uses Basic mode for now
+                ComputeMode::Advanced => crate::utils::unified_gpu_compute::ComputeMode::Constraints,
+            };
+            unified_compute.set_mode(unified_mode);
         }
     }
 
@@ -944,9 +887,9 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
         // Set compute mode to use visual analytics features
         if !self.constraints.is_empty() {
             self.compute_mode = ComputeMode::Advanced;
-            self.set_unified_compute_mode(UnifiedComputeMode::VisualAnalytics);
+            // Set mode for visual analytics
         } else if self.num_nodes > 1000 {
-            self.set_unified_compute_mode(UnifiedComputeMode::VisualAnalytics);
+            // Set mode for visual analytics
         }
         
         info!("MSG_HANDLER: Visual analytics mode enabled in unified kernel");
@@ -955,32 +898,6 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
     }
 }
 
-impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
-    type Result = Result<(), String>;
-
-    fn handle(&mut self, msg: UpdateVisualAnalyticsParams, _ctx: &mut Self::Context) -> Self::Result {
-        // NOTE: This handler is for actual VisualAnalyticsParams only.
-        // Physics parameters now come through UpdateSimulationParams via
-        // the analytics endpoint workaround in analytics/mod.rs
-        
-        info!("MSG_HANDLER: UpdateVisualAnalyticsParams received");
-        info!("  Focus node: {}, Isolation strength: {:.2}",
-              msg.params.primary_focus_node, msg.params.isolation_strength);
-        
-        // Update unified compute parameters based on visual analytics settings
-        if let Some(ref mut unified_compute) = self.unified_compute {
-            let mut params = self.unified_params;
-            // Only update the visual analytics related fields
-            params.temperature = 1.0 - msg.params.isolation_strength;
-            params.viewport_bounds = msg.params.viewport_bounds.x.abs().max(msg.params.viewport_bounds.y.abs());
-            unified_compute.set_params(params);
-        }
-        
-        info!("MSG_HANDLER: Visual analytics parameters updated in unified compute");
-        
-        Ok(())
-    }
-}
 
 impl Handler<AddIsolationLayer> for GPUComputeActor {
     type Result = Result<(), String>;

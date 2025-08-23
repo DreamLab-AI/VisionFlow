@@ -546,6 +546,20 @@ pub struct VisualAnalyticsParams {
     pub damping: [f32; 4],
     pub temperature: [f32; 4],
     
+    // CUDA kernel parameters from dev_config.toml
+    pub rest_length: f32,
+    pub repulsion_cutoff: f32,
+    pub repulsion_softening_epsilon: f32,
+    pub center_gravity_k: f32,
+    pub grid_cell_size: f32,
+    pub warmup_iterations: i32,
+    pub cooling_rate: f32,
+    
+    // Boundary behaviour parameters
+    pub boundary_extreme_multiplier: f32,
+    pub boundary_extreme_force_multiplier: f32,
+    pub boundary_velocity_damping: f32,
+    
     // Isolation and focus
     pub isolation_strength: f32,
     pub focus_gamma: f32,
@@ -601,6 +615,68 @@ impl VisualAnalyticsParams {
             });
         }
 
+        // Validate CUDA kernel parameters
+        if !self.rest_length.is_finite() || self.rest_length <= 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid rest_length: {}", self.rest_length),
+            });
+        }
+        
+        if !self.repulsion_cutoff.is_finite() || self.repulsion_cutoff <= 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid repulsion_cutoff: {}", self.repulsion_cutoff),
+            });
+        }
+        
+        if !self.repulsion_softening_epsilon.is_finite() || self.repulsion_softening_epsilon < 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid repulsion_softening_epsilon: {}", self.repulsion_softening_epsilon),
+            });
+        }
+        
+        if !self.center_gravity_k.is_finite() || self.center_gravity_k < 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid center_gravity_k: {}", self.center_gravity_k),
+            });
+        }
+        
+        if !self.grid_cell_size.is_finite() || self.grid_cell_size <= 0.0 || self.grid_cell_size > 1000.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid grid_cell_size: {}", self.grid_cell_size),
+            });
+        }
+        
+        if self.warmup_iterations < 0 || self.warmup_iterations > 10000 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid warmup_iterations: {}", self.warmup_iterations),
+            });
+        }
+        
+        if !self.cooling_rate.is_finite() || self.cooling_rate < 0.0 || self.cooling_rate > 1.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid cooling_rate: {}", self.cooling_rate),
+            });
+        }
+        
+        // Validate boundary parameters
+        if !self.boundary_extreme_multiplier.is_finite() || self.boundary_extreme_multiplier <= 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid boundary_extreme_multiplier: {}", self.boundary_extreme_multiplier),
+            });
+        }
+        
+        if !self.boundary_extreme_force_multiplier.is_finite() || self.boundary_extreme_force_multiplier <= 0.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid boundary_extreme_force_multiplier: {}", self.boundary_extreme_force_multiplier),
+            });
+        }
+        
+        if !self.boundary_velocity_damping.is_finite() || self.boundary_velocity_damping < 0.0 || self.boundary_velocity_damping > 1.0 {
+            return Err(GPUSafetyError::InvalidKernelParams {
+                reason: format!("Invalid boundary_velocity_damping: {}", self.boundary_velocity_damping),
+            });
+        }
+        
         // Validate temporal parameters
         if !self.time_step.is_finite() || self.time_step <= 0.0 || self.time_step > 1.0 {
             return Err(GPUSafetyError::InvalidKernelParams {
@@ -1273,6 +1349,17 @@ impl VisualAnalyticsBuilder {
                 force_scale: [1.0, 0.5, 0.25, 0.125],
                 damping: [0.9, 0.85, 0.8, 0.75],
                 temperature: [1.0; 4],
+                // CUDA kernel parameters with defaults from dev_config.toml
+                rest_length: 50.0,
+                repulsion_cutoff: 50.0,
+                repulsion_softening_epsilon: 0.0001,
+                center_gravity_k: 0.0,
+                grid_cell_size: 50.0,
+                warmup_iterations: 100,
+                cooling_rate: 0.001,
+                boundary_extreme_multiplier: 2.0,
+                boundary_extreme_force_multiplier: 10.0,
+                boundary_velocity_damping: 0.5,
                 isolation_strength: 1.0,
                 focus_gamma: 2.2,
                 primary_focus_node: -1,

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
 use crate::config::{PhysicsSettings, AutoBalanceConfig};
+use cust_core::DeviceCopy;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -31,7 +32,7 @@ impl Default for SimulationPhase {
 
 // GPU-compatible simulation parameters, matching the new CUDA kernel design.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Pod, Zeroable)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable, DeviceCopy)]
 pub struct SimParams {
     // Integration and Damping
     pub dt: f32,
@@ -134,6 +135,7 @@ pub struct SimulationParams {
     pub phase: SimulationPhase,   // Current simulation phase
     pub mode: SimulationMode,     // Computation mode
 }
+
 
 impl SimulationParams {
     pub fn new() -> Self {

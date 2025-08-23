@@ -79,8 +79,7 @@ impl AppState {
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),
-            Some(settings_addr.clone()),
-            device
+            Some(settings_addr.clone())
         ).start();
         
         // Send initial physics settings to both GraphServiceActor and GPUComputeActor

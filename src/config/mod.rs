@@ -261,25 +261,30 @@ pub struct PhysicsSettings {
     pub alignment_strength: f32,
     pub cluster_strength: f32,
     pub compute_mode: i32,
+    
+    // CUDA kernel parameters from dev_config.toml
+    pub rest_length: f32,
+    pub repulsion_cutoff: f32,
+    pub repulsion_softening_epsilon: f32,
+    pub center_gravity_k: f32,
+    pub grid_cell_size: f32,
+    pub warmup_iterations: u32,
+    pub cooling_rate: f32,
+    pub boundary_extreme_multiplier: f32,
+    pub boundary_extreme_force_multiplier: f32,
+    pub boundary_velocity_damping: f32,
     // Additional GPU parameters from documentation
     pub min_distance: f32,
     pub max_repulsion_dist: f32,
     pub boundary_margin: f32,
     pub boundary_force_strength: f32,
-    pub warmup_iterations: u32,
     pub warmup_curve: String,
     pub zero_velocity_iterations: u32,
-    pub cooling_rate: f32,
     // Clustering parameters
     pub clustering_algorithm: String,
     pub cluster_count: u32,
     pub clustering_resolution: f32,
     pub clustering_iterations: u32,
-    // New CUDA kernel parameters
-    pub repulsion_softening_epsilon: f32,
-    pub center_gravity_k: f32,
-    pub grid_cell_size: f32,
-    pub rest_length: f32,
 }
 
 impl Default for PhysicsSettings {
@@ -311,25 +316,29 @@ impl Default for PhysicsSettings {
             alignment_strength: 0.0,
             cluster_strength: 0.0,
             compute_mode: 0,
+            // CUDA kernel parameter defaults from dev_config.toml
+            rest_length: 50.0,
+            repulsion_cutoff: 50.0,
+            repulsion_softening_epsilon: 0.0001,
+            center_gravity_k: 0.0,
+            grid_cell_size: 50.0,
+            warmup_iterations: 100,
+            cooling_rate: 0.001,
+            boundary_extreme_multiplier: 2.0,
+            boundary_extreme_force_multiplier: 10.0,
+            boundary_velocity_damping: 0.5,
             // Additional GPU parameter defaults
             min_distance: 0.15,
             max_repulsion_dist: 50.0,
             boundary_margin: 0.85,
             boundary_force_strength: 2.0,
-            warmup_iterations: 200,
             warmup_curve: "quadratic".to_string(),
             zero_velocity_iterations: 5,
-            cooling_rate: 0.0001,
             // Clustering defaults
             clustering_algorithm: "none".to_string(),
             cluster_count: 5,
             clustering_resolution: 1.0,
             clustering_iterations: 30,
-            // New CUDA kernel parameter defaults
-            repulsion_softening_epsilon: 0.1,
-            center_gravity_k: 0.0001,
-            grid_cell_size: 10.0,
-            rest_length: 1.0,
         }
     }
 }

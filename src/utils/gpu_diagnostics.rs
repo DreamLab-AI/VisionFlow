@@ -1,4 +1,4 @@
-use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
+// use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 use log::{info, warn, error};
 use std::env;
 use std::path::Path;
@@ -58,19 +58,21 @@ pub fn run_gpu_diagnostics() -> String {
     
     // Check GPU device creation
     report.push_str("\nCUDA Device Detection:\n");
-    match UnifiedGPUCompute::test_gpu() {
-        Ok(_) => {
-            report.push_str("  ✅ CUDA device successfully detected and tested\n");
-            info!("GPU Diagnostic: CUDA device detected and tested successfully");
-        },
-        Err(e) => {
-            report.push_str(&format!("  ❌ CUDA device test failed: {}\n", e));
-            error!("GPU Diagnostic: CUDA device test failed: {}", e);
-            
-            // This is likely why GPU physics isn't working
-            report.push_str("  ⚠️ GPU PHYSICS WILL NOT WORK: Could not create CUDA device\n");
-        }
-    }
+    // GPU testing temporarily disabled - would require cust crate
+    // match UnifiedGPUCompute::test_gpu() {
+    //     Ok(_) => {
+    //         report.push_str("  ✅ CUDA device successfully detected and tested\n");
+    //         info!("GPU Diagnostic: CUDA device detected and tested successfully");
+    //     },
+    //     Err(e) => {
+    //         report.push_str(&format!("  ❌ CUDA device test failed: {}\n", e));
+    //         error!("GPU Diagnostic: CUDA device test failed: {}", e);
+    //         
+    //         // This is likely why GPU physics isn't working
+    //         report.push_str("  ⚠️ GPU PHYSICS WILL NOT WORK: Could not create CUDA device\n");
+    //     }
+    // }
+    report.push_str("  ⚠️ GPU testing temporarily disabled - cust crate not available\n");
     
     report.push_str("=============================\n");
     info!("GPU diagnostic report complete");

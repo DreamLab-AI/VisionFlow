@@ -67,7 +67,7 @@ impl Sanitizer {
             r"on\w+\s*=",  // Event handlers like onclick=
         ];
 
-        let mut result = input.to_string();
+        let result = input.to_string();
         
         for pattern in &dangerous_patterns {
             let regex = Regex::new(&format!("(?i){}", pattern))
