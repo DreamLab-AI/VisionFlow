@@ -300,4 +300,46 @@ __global__ void integrate_pass_kernel(
     vel_out_z[idx] = vel.z;
 }
 
+// =============================================================================
+// Thrust Wrapper Functions for Sorting and Scanning
+// =============================================================================
+
+// Wrapper for thrust sort_by_key operation
+void thrust_sort_key_value(
+    void* d_keys_in,
+    void* d_keys_out,
+    void* d_values_in, 
+    void* d_values_out,
+    int num_items,
+    cudaStream_t stream
+) {
+    // Copy input to output first
+    cudaMemcpyAsync(d_keys_out, d_keys_in, 
+                    num_items * sizeof(int), 
+                    cudaMemcpyDeviceToDevice, stream);
+    cudaMemcpyAsync(d_values_out, d_values_in,
+                    num_items * sizeof(int),
+                    cudaMemcpyDeviceToDevice, stream);
+    
+    // Sort in-place on output buffers
+    thrust::device_ptr<int> keys(static_cast<int*>(d_keys_out));
+    thrust::device_ptr<int> vals(static_cast<int*>(d_values_out));
+    thrust::sort_by_key(thrust::cuda::par.on(stream),
+                       keys, keys + num_items, vals);
+}
+
+// Wrapper for thrust exclusive_scan operation  
+void thrust_exclusive_scan(
+    void* d_in,
+    void* d_out,
+    int num_items,
+    cudaStream_t stream
+) {
+    thrust::device_ptr<int> in_ptr(static_cast<int*>(d_in));
+    thrust::device_ptr<int> out_ptr(static_cast<int*>(d_out));
+    thrust::exclusive_scan(thrust::cuda::par.on(stream),
+                          in_ptr, in_ptr + num_items, 
+                          out_ptr, 0); // 0 = initial value
+}
+
 } // extern "C"

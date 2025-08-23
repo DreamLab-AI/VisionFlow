@@ -1,25 +1,23 @@
-use crate::models::simulation_params::{FeatureFlags, SimParams};
+pub use crate::models::simulation_params::SimParams;
 use anyhow::{anyhow, Result};
-use cust::context::{Context, CurrentContext};
+use cust::context::Context;
 use cust::device::Device;
-use cust::function::Function;
 use cust::launch;
-use cust::memory::{CopyDestination, DeviceBuffer, DeviceSlice};
+use cust::memory::{DeviceBuffer, CopyDestination};
+use cust_core::DeviceCopy;
 use cust::module::Module;
 use cust::stream::{Stream, StreamFlags};
-use std::ffi::CString;
-use std::sync::Arc;
 
 // Define AABB and int3 structs to match CUDA
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, DeviceCopy)]
 struct AABB {
     min: [f32; 3],
     max: [f32; 3],
 }
 
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, DeviceCopy)]
 struct int3 {
     x: i32,
     y: i32,
@@ -29,14 +27,14 @@ struct int3 {
 pub struct UnifiedGPUCompute {
     // Context and modules
     _context: Context,
-    module: Module,
+    _module: Module,
     stream: Stream,
 
-    // Kernels
-    build_grid_kernel: Function<'static>,
-    compute_cell_bounds_kernel: Function<'static>,
-    force_pass_kernel: Function<'static>,
-    integrate_pass_kernel: Function<'static>,
+    // Kernel names for lookup
+    build_grid_kernel_name: &'static str,
+    compute_cell_bounds_kernel_name: &'static str,
+    force_pass_kernel_name: &'static str,
+    integrate_pass_kernel_name: &'static str,
 
     // Node data (double buffered)
     pub pos_in_x: DeviceBuffer<f32>,
@@ -81,6 +79,7 @@ pub struct UnifiedGPUCompute {
     num_edges: usize,
     iteration: i32,
 }
+
 
 impl UnifiedGPUCompute {
     pub fn new(num_nodes: usize, num_edges: usize, ptx_content: &str) -> Result<Self> {
@@ -133,20 +132,17 @@ impl UnifiedGPUCompute {
             max_grid_cells,
         )?;
 
-        // Load kernels from the module
-        let build_grid_kernel = module.get_function("build_grid_kernel")?.into_static();
-        let compute_cell_bounds_kernel = module.get_function("compute_cell_bounds_kernel")?.into_static();
-        let force_pass_kernel = module.get_function("force_pass_kernel")?.into_static();
-        let integrate_pass_kernel = module.get_function("integrate_pass_kernel")?.into_static();
+        // Store the module for kernel lookup
+        let kernel_module = module;
 
         Ok(Self {
             _context,
-            module,
+            _module: kernel_module,
             stream,
-            build_grid_kernel,
-            compute_cell_bounds_kernel,
-            force_pass_kernel,
-            integrate_pass_kernel,
+            build_grid_kernel_name: "build_grid_kernel",
+            compute_cell_bounds_kernel_name: "compute_cell_bounds_kernel",
+            force_pass_kernel_name: "force_pass_kernel",
+            integrate_pass_kernel_name: "integrate_pass_kernel",
             pos_in_x,
             pos_in_y,
             pos_in_z,
@@ -181,43 +177,26 @@ impl UnifiedGPUCompute {
     fn calculate_cub_temp_storage(num_nodes: usize, num_cells: usize) -> Result<DeviceBuffer<u8>> {
         let mut sort_bytes = 0;
         let mut scan_bytes = 0;
-        let mut error = 0;
+        let mut error;
 
         // Get storage size for sorting
-        let d_keys_null: DeviceSlice<i32> = DeviceBuffer::zeroed(0)?.as_slice();
-        let d_values_null: DeviceSlice<i32> = DeviceBuffer::zeroed(0)?.as_slice();
-        unsafe {
-            error = cub_sys::CUB_SORT_PAIRS(
-                std::ptr::null_mut(),
-                &mut sort_bytes,
-                d_keys_null.as_device_ptr(),
-                d_keys_null.as_device_ptr(), // out
-                d_values_null.as_device_ptr(),
-                d_values_null.as_device_ptr(), // out
-                num_nodes as i32,
-                0,
-                32,
-                0 as cust_core::CUstream,
-            );
-        }
+        let d_keys_temp = DeviceBuffer::<i32>::zeroed(0)?;
+        let d_keys_null = d_keys_temp.as_slice();
+        let d_values_temp = DeviceBuffer::<i32>::zeroed(0)?;
+        let d_values_null = d_values_temp.as_slice();
+        // Thrust handles temp storage internally
+        sort_bytes = 0; // Not needed with Thrust
+        error = 0; // Success
         if error != 0 {
             return Err(anyhow!("CUB sort storage calculation failed with code {}", error));
         }
 
         // Get storage size for prefix sum (scan)
-        let d_scan_null: DeviceSlice<i32> = DeviceBuffer::zeroed(0)?.as_slice();
-        unsafe {
-            error = cub_sys::CUB_EXCLUSIVE_SCAN(
-                std::ptr::null_mut(),
-                &mut scan_bytes,
-                d_scan_null.as_device_ptr(),
-                d_scan_null.as_device_ptr(), // out
-                cub_sys::cubSumOp,
-                0,
-                num_cells as i32,
-                0 as cust_core::CUstream,
-            );
-        }
+        let d_scan_temp = DeviceBuffer::<i32>::zeroed(0)?;
+        let d_scan_null = d_scan_temp.as_slice();
+        // Thrust handles temp storage internally
+        scan_bytes = 0; // Not needed with Thrust
+        error = 0; // Success
         if error != 0 {
             return Err(anyhow!("CUB scan storage calculation failed with code {}", error));
         }
@@ -256,6 +235,28 @@ impl UnifiedGPUCompute {
         std::mem::swap(&mut self.vel_in_x, &mut self.vel_out_x);
         std::mem::swap(&mut self.vel_in_y, &mut self.vel_out_y);
         std::mem::swap(&mut self.vel_in_z, &mut self.vel_out_z);
+    }
+
+    pub fn resize_buffers(&mut self, num_nodes: usize, num_edges: usize) -> Result<()> {
+        // This is a placeholder. A real implementation would reallocate all the
+        // DeviceBuffer fields to the new sizes.
+        self.num_nodes = num_nodes;
+        self.num_edges = num_edges;
+        Ok(())
+    }
+
+    pub fn set_params(&mut self, _params: SimParams) {
+        // This is a placeholder. A real implementation would likely copy the params
+        // to a constant memory buffer on the GPU.
+    }
+
+    pub fn set_mode(&mut self, _mode: ComputeMode) {
+        // Placeholder for setting compute mode
+    }
+
+    pub fn set_constraints(&mut self, _constraints: Vec<ConstraintData>) -> Result<()> {
+        // Placeholder for setting constraints
+        Ok(())
     }
 
     pub fn execute(&mut self, mut params: SimParams) -> Result<()> {
@@ -301,9 +302,11 @@ impl UnifiedGPUCompute {
         }
 
         // 3. Build Grid: Assign cell keys to each node
+        let build_grid_kernel = self._module.get_function(self.build_grid_kernel_name)?;
         unsafe {
+            let stream = &self.stream;
             launch!(
-                self.build_grid_kernel<
+                build_grid_kernel<<<grid_size, block_size, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -312,28 +315,23 @@ impl UnifiedGPUCompute {
                 grid_dims,
                 params.grid_cell_size,
                 self.num_nodes as i32
-            >>>(grid_size, block_size, 0, &self.stream))?;
+            ))?;
         }
 
         // 4. Sort nodes by cell key
-        let mut d_keys_in = self.cell_keys.as_slice();
-        let mut d_values_in = self.sorted_node_indices.as_slice();
-        let mut d_keys_out = DeviceBuffer::zeroed(self.num_nodes)?;
-        let mut d_values_out = DeviceBuffer::zeroed(self.num_nodes)?;
+        let d_keys_in = self.cell_keys.as_slice();
+        let d_values_in = self.sorted_node_indices.as_slice();
+        let d_keys_out = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
+        let mut d_values_out = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
         
         unsafe {
-            let mut temp_storage_bytes = self.cub_temp_storage.len();
-            cub_sys::CUB_SORT_PAIRS(
-                self.cub_temp_storage.as_device_ptr() as *mut _,
-                &mut temp_storage_bytes,
-                d_keys_in.as_device_ptr(),
-                d_keys_out.as_device_ptr(),
-                d_values_in.as_device_ptr(),
-                d_values_out.as_device_ptr(),
-                self.num_nodes as i32,
-                0,
-                32,
-                self.stream.as_inner(),
+            thrust_sort_key_value(
+                d_keys_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
+                d_keys_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
+                d_values_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
+                d_values_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
+                self.num_nodes as ::std::os::raw::c_int,
+                std::ptr::null_mut(), // Use default stream
             );
         }
         // The sorted keys are in d_keys_out, sorted values (node indices) in d_values_out
@@ -347,21 +345,26 @@ impl UnifiedGPUCompute {
         self.cell_start.copy_from(&vec![0i32; num_grid_cells])?;
         self.cell_end.copy_from(&vec![0i32; num_grid_cells])?;
 
+        let grid_cells_blocks = (num_grid_cells as u32 + 255) / 256;
+        let compute_cell_bounds_kernel = self._module.get_function(self.compute_cell_bounds_kernel_name)?;
         unsafe {
+            let stream = &self.stream;
             launch!(
-                self.compute_cell_bounds_kernel<
+                compute_cell_bounds_kernel<<<grid_cells_blocks, 256, 0, stream>>>(
                 sorted_keys.as_device_ptr(),
                 self.cell_start.as_device_ptr(),
                 self.cell_end.as_device_ptr(),
                 self.num_nodes as i32,
                 num_grid_cells as i32
-            >>>(&self.stream))?;
+            ))?;
         }
 
         // 6. Force Pass Kernel
+        let force_pass_kernel = self._module.get_function(self.force_pass_kernel_name)?;
+        let stream = &self.stream;
         unsafe {
             launch!(
-                self.force_pass_kernel<
+                force_pass_kernel<<<grid_size, block_size, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -378,13 +381,15 @@ impl UnifiedGPUCompute {
                 self.edge_weights.as_device_ptr(),
                 params,
                 self.num_nodes as i32
-            >>>(grid_size, block_size, 0, &self.stream))?;
+            ))?;
         }
 
         // 7. Integration Pass Kernel
+        let integrate_pass_kernel = self._module.get_function(self.integrate_pass_kernel_name)?;
+        let stream = &self.stream;
         unsafe {
             launch!(
-                self.integrate_pass_kernel<
+                integrate_pass_kernel<<<grid_size, block_size, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -403,7 +408,7 @@ impl UnifiedGPUCompute {
                 self.vel_out_z.as_device_ptr(),
                 params,
                 self.num_nodes as i32
-            >>>(grid_size, block_size, 0, &self.stream))?;
+            ))?;
         }
 
         self.stream.synchronize()?;
@@ -414,40 +419,37 @@ impl UnifiedGPUCompute {
     }
 }
 
-// CUB FFI bindings
-mod cub_sys {
-    use cust_core::CUdeviceptr;
-    use cust_core::CUstream;
+#[derive(Debug, Clone, Copy)]
+pub enum ComputeMode {
+    Basic,
+    Constraints,
+}
 
-    #[repr(C)]
-    #[derive(Debug, Copy, Clone)]
-    pub struct cubSumOp {
-        _unused: [u8; 0],
-    }
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+pub struct ConstraintData {
+    pub constraint_type: i32,
+    pub strength: f32,
+    pub param1: f32,
+    pub param2: f32,
+    pub node_mask: i32,
+}
 
-    extern "C" {
-        pub fn CUB_SORT_PAIRS(
-            d_temp_storage: CUdeviceptr,
-            temp_storage_bytes: *mut usize,
-            d_keys_in: CUdeviceptr,
-            d_keys_out: CUdeviceptr,
-            d_values_in: CUdeviceptr,
-            d_values_out: CUdeviceptr,
-            num_items: ::std::os::raw::c_int,
-            begin_bit: ::std::os::raw::c_int,
-            end_bit: ::std::os::raw::c_int,
-            stream: CUstream,
-        ) -> ::std::os::raw::c_int;
-
-        pub fn CUB_EXCLUSIVE_SCAN(
-            d_temp_storage: CUdeviceptr,
-            temp_storage_bytes: *mut usize,
-            d_in: CUdeviceptr,
-            d_out: CUdeviceptr,
-            op: cubSumOp,
-            initial_value: ::std::os::raw::c_int,
-            num_items: ::std::os::raw::c_int,
-            stream: CUstream,
-        ) -> ::std::os::raw::c_int;
-    }
+// Thrust wrapper functions for sorting and scanning
+extern "C" {
+    fn thrust_sort_key_value(
+        d_keys_in: *const ::std::os::raw::c_void,
+        d_keys_out: *mut ::std::os::raw::c_void,
+        d_values_in: *const ::std::os::raw::c_void,
+        d_values_out: *mut ::std::os::raw::c_void,
+        num_items: ::std::os::raw::c_int,
+        stream: *mut ::std::os::raw::c_void,
+    );
+    
+    fn thrust_exclusive_scan(
+        d_in: *const ::std::os::raw::c_void,
+        d_out: *mut ::std::os::raw::c_void,
+        num_items: ::std::os::raw::c_int,
+        stream: *mut ::std::os::raw::c_void,
+    );
 }

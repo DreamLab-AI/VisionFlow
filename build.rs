@@ -73,6 +73,9 @@ fn main() {
     
     println!("cargo:warning=Unified PTX ready: {} bytes", ptx_size);
     
+    // Compile CUDA file to object file for Thrust wrappers
+    compile_unified_object(&project_root, is_debug, &target_arch);
+    
     // Set up CUDA linking if available
     setup_cuda_linking();
 }
@@ -128,6 +131,79 @@ fn compile_unified_ptx(project_root: &Path, is_debug: bool, target_arch: &str) {
     println!("cargo:warning=Successfully compiled unified kernel");
 }
 
+fn compile_unified_object(project_root: &Path, is_debug: bool, target_arch: &str) {
+    let utils_dir = project_root.join("src").join("utils");
+    let cu_file = utils_dir.join("visionflow_unified.cu");
+    
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
+    let out_path = Path::new(&out_dir);
+    let obj_file = out_path.join("visionflow_unified.o");
+    let dlink_file = out_path.join("visionflow_unified_dlink.o");
+    let lib_file = out_path.join("libvisionflow_unified.a");
+    
+    // Build nvcc command to compile to object file
+    let mut cmd = Command::new("nvcc");
+    cmd.arg("-c")  // Compile to object file
+        .arg("-dc")  // Device code compilation
+        .arg("--std=c++17")
+        .arg("-arch").arg(format!("sm_{}", target_arch))
+        .arg("-Xcompiler").arg("-fPIC");  // Position independent code
+    
+    if !is_debug {
+        cmd.arg("-O3")
+            .arg("--use_fast_math");
+    } else {
+        cmd.arg("-O2");
+    }
+    
+    cmd.arg(&cu_file)
+        .arg("-o").arg(&obj_file);
+    
+    println!("cargo:warning=Compiling CUDA object file: {:?}", cmd);
+    
+    let output = cmd.output().expect("Failed to execute nvcc");
+    
+    if !output.status.success() {
+        eprintln!("CUDA object compilation failed!");
+        eprintln!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        panic!("Failed to compile CUDA object file");
+    }
+    
+    // Device link step for relocatable device code
+    let mut dlink_cmd = Command::new("nvcc");
+    dlink_cmd.arg("-dlink")
+        .arg("-arch").arg(format!("sm_{}", target_arch))
+        .arg(&obj_file)
+        .arg("-o").arg(&dlink_file);
+    
+    println!("cargo:warning=Device linking: {:?}", dlink_cmd);
+    
+    let dlink_output = dlink_cmd.output().expect("Failed to execute device link");
+    
+    if !dlink_output.status.success() {
+        eprintln!("Device linking failed!");
+        eprintln!("stdout: {}", String::from_utf8_lossy(&dlink_output.stdout));
+        eprintln!("stderr: {}", String::from_utf8_lossy(&dlink_output.stderr));
+        panic!("Failed to device link CUDA object");
+    }
+    
+    // Create a static library from both object files
+    let ar_cmd = Command::new("ar")
+        .arg("rcs")
+        .arg(&lib_file)
+        .arg(&obj_file)
+        .arg(&dlink_file)
+        .output()
+        .expect("Failed to create static library");
+    
+    if !ar_cmd.status.success() {
+        panic!("Failed to create static library from CUDA objects");
+    }
+    
+    println!("cargo:warning=Successfully compiled and device-linked CUDA objects");
+}
+
 fn setup_cuda_linking() {
     // Try to find CUDA installation
     let cuda_paths = [
@@ -147,6 +223,13 @@ fn setup_cuda_linking() {
         }
     }
     
-    // Link CUDA runtime (optional - only if using CUDA runtime API)
-    // println!("cargo:rustc-link-lib=cudart");
+    // Link CUDA runtime and required libraries for Thrust
+    println!("cargo:rustc-link-lib=cudart");
+    println!("cargo:rustc-link-lib=cudadevrt");  // Device runtime for relocatable device code
+    println!("cargo:rustc-link-lib=stdc++");
+    
+    // Link the compiled CUDA object file
+    let out_dir = env::var("OUT_DIR").unwrap();
+    println!("cargo:rustc-link-search=native={}", out_dir);
+    println!("cargo:rustc-link-lib=static=visionflow_unified");
 }

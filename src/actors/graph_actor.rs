@@ -73,9 +73,9 @@ use crate::config::AutoBalanceConfig;
 use crate::models::constraints::{ConstraintSet, Constraint, AdvancedParams};
 use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticFeatures};
 use crate::services::edge_generation::{AdvancedEdgeGenerator, EdgeGenerationConfig};
-use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, ComputeMode, SimParams};
+use crate::utils::unified_gpu_compute::{UnifiedGPUCompute};
+use crate::models::simulation_params::SimParams;
 use crate::physics::stress_majorization::StressMajorizationSolver;
-use cudarc::driver::CudaDevice;
 use std::sync::Mutex;
 
 pub struct GraphServiceActor {
@@ -104,7 +104,6 @@ pub struct GraphServiceActor {
     stress_step_counter: u32,
     constraint_update_counter: u32,
     last_semantic_analysis: Option<std::time::Instant>,
-    device: Arc<CudaDevice>,
     
     // Auto-balance tracking
     settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
@@ -229,7 +228,6 @@ impl GraphServiceActor {
         client_manager: Addr<ClientManagerActor>,
         gpu_compute_addr: Option<Addr<GPUComputeActor>>,
         settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
-        device: Arc<CudaDevice>,
     ) -> Self {
         let advanced_params = AdvancedParams::default();
         let semantic_analyzer = SemanticAnalyzer::new(
@@ -264,7 +262,6 @@ impl GraphServiceActor {
             stress_step_counter: 0,
             constraint_update_counter: 0,
             last_semantic_analysis: None,
-            device,
             
             // Auto-balance tracking
             settings_addr,
@@ -1194,13 +1191,13 @@ impl GraphServiceActor {
             // Attempt to initialize advanced GPU context
             let graph_data_clone = (*self.graph_data).clone();
             let self_addr = ctx.address();
-            let device = self.device.clone();
             
             actix::spawn(async move {
+                let ptx_content = "";
                 match UnifiedGPUCompute::new(
-                    device,
                     graph_data_clone.nodes.len(),
                     graph_data_clone.edges.len(),
+                    ptx_content,
                 ) {
                     Ok(context) => {
                         self_addr.do_send(SetAdvancedGPUContext { context });
@@ -1257,75 +1254,75 @@ impl GraphServiceActor {
         let iteration_count;
         
         if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            if let Err(e) = gpu_context.upload_positions(&positions) {
+            let positions_x: Vec<f32> = positions.iter().map(|p| p.0).collect();
+            let positions_y: Vec<f32> = positions.iter().map(|p| p.1).collect();
+            let positions_z: Vec<f32> = positions.iter().map(|p| p.2).collect();
+            if let Err(e) = gpu_context.upload_positions(&positions_x, &positions_y, &positions_z) {
                 error!("Failed to upload positions to unified GPU: {}", e);
                 return;
             }
             
-            let edges = self.graph_data.edges.iter().map(|edge| {
-                (edge.source as i32, edge.target as i32, edge.weight)
-            }).collect::<Vec<_>>();
+            let mut row_offsets = vec![0];
+            let mut col_indices = vec![];
+            let mut weights = vec![];
+            let mut adj = vec![vec![]; self.graph_data.nodes.len()];
+            let node_indices: HashMap<u32, usize> = self.graph_data.nodes.iter().enumerate().map(|(i, n)| (n.id, i)).collect();
+
+            for edge in &self.graph_data.edges {
+                if let (Some(&src_idx), Some(&dst_idx)) = (node_indices.get(&edge.source), node_indices.get(&edge.target)) {
+                    adj[src_idx].push((dst_idx as i32, edge.weight));
+                    adj[dst_idx].push((src_idx as i32, edge.weight));
+                }
+            }
+
+            for i in 0..self.graph_data.nodes.len() {
+                for (neighbor, weight) in &adj[i] {
+                    col_indices.push(*neighbor);
+                    weights.push(*weight);
+                }
+                row_offsets.push(col_indices.len() as i32);
+            }
             
-            if let Err(e) = gpu_context.upload_edges(&edges) {
+            if let Err(e) = gpu_context.upload_edges_csr(&row_offsets, &col_indices, &weights) {
                 error!("Failed to upload edges to unified GPU: {}", e);
                 return;
             }
         
-            // Execute GPU physics step with constraints
-            let active_constraints: Vec<Constraint> = self.constraint_set.active_constraints()
-                .into_iter().cloned().collect();
-            active_constraints_count = active_constraints.len();
-            
-            let constraint_data = active_constraints.iter().map(|c| {
-                crate::utils::unified_gpu_compute::ConstraintData {
-                    constraint_type: c.kind as i32,
-                    strength: c.weight,
-                    param1: c.params.get(0).copied().unwrap_or(0.0),
-                    param2: c.params.get(1).copied().unwrap_or(0.0),
-                    node_mask: c.node_indices.len() as i32,
-                }
-            }).collect();
-            
-            if let Err(e) = gpu_context.set_constraints(constraint_data) {
-                error!("Failed to set constraints: {}", e);
-            }
-            
-            let mode = if active_constraints_count > 0 {
-                ComputeMode::Constraints
-            } else {
-                ComputeMode::Basic
-            };
-            gpu_context.set_mode(mode);
-            
             let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
-            debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {} }}", 
+            debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {} }}",
                    sim_params.repel_k, sim_params.damping, sim_params.dt);
-            gpu_context.set_params(sim_params);
             
             // Execute GPU physics step
             debug!("Executing GPU physics step...");
-            match gpu_context.execute() {
-                Ok(new_positions) => {
+            match gpu_context.execute(sim_params) {
+                Ok(()) => {
+                    let mut host_pos_x = vec![0.0; self.graph_data.nodes.len()];
+                    let mut host_pos_y = vec![0.0; self.graph_data.nodes.len()];
+                    let mut host_pos_z = vec![0.0; self.graph_data.nodes.len()];
+                    gpu_context.download_positions(&mut host_pos_x, &mut host_pos_y, &mut host_pos_z).unwrap();
+
                     let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
                     
-                    for (index, (x, y, z)) in new_positions.iter().enumerate() {
-                        if let Some(node_id) = node_ids.get(index) {
-                            let binary_node = BinaryNodeData {
-                                position: crate::types::vec3::Vec3Data { x: *x, y: *y, z: *z },
-                                velocity: crate::types::vec3::Vec3Data::zero(),
-                                mass: 1,
-                                flags: 0,
-                                padding: [0, 0],
-                            };
-                            positions_to_update.push((*node_id, binary_node));
-                        }
+                    for (index, node_id) in node_ids.iter().enumerate() {
+                        let binary_node = BinaryNodeData {
+                            position: crate::types::vec3::Vec3Data {
+                                x: host_pos_x[index],
+                                y: host_pos_y[index],
+                                z: host_pos_z[index]
+                            },
+                            velocity: crate::types::vec3::Vec3Data::zero(),
+                            mass: 1,
+                            flags: 0,
+                            padding: [0, 0],
+                        };
+                        positions_to_update.push((*node_id, binary_node));
                     }
                     
                     if !positions_to_update.is_empty() {
                         // Broadcast to clients
                         let binary_data = binary_protocol::encode_node_data(&positions_to_update);
-                        self.client_manager.do_send(BroadcastNodePositions { 
-                            positions: binary_data 
+                        self.client_manager.do_send(BroadcastNodePositions {
+                            positions: binary_data
                         });
                     }
                 }
@@ -1333,6 +1330,7 @@ impl GraphServiceActor {
                     error!("Unified GPU physics step failed: {}", e);
                 }
             }
+            active_constraints_count = 0;
             
             iteration_count = self.stress_step_counter;
             

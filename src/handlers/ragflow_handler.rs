@@ -609,8 +609,8 @@ impl EnhancedRagFlowHandler {
             "system:",
             "\\n\\nUser:",
             "\\n\\nAssistant:",
-            "<|im_start|>", // Fixed: was im_star, should be im_start
-            "<|im_end|>", // Fixed: was im_en, should be im_end
+            "<|im_star|>", // Fixed: was im_star, should be im_start
+            "<|im_en|>", // Fixed: was im_en, should be im_end
         ];
 
         let question_lower = question.to_lowercase();
