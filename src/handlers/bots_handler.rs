@@ -411,7 +411,7 @@ pub async fn update_bots_data(
 
     // Process with GPU physics if available
     if let Some(gpu_compute_addr) = &state.gpu_compute_addr {
-        use crate::actors::messages::{UpdateGPUGraphData, UpdateSimulationParams, ComputeForces, GetNodeData};
+        use crate::actors::messages::{InitializeGPU, UpdateGPUGraphData, UpdateSimulationParams, ComputeForces, GetNodeData};
 
         let bots_graph = BOTS_GRAPH.read().await;
 
@@ -449,6 +449,33 @@ pub async fn update_bots_data(
         params.spring_k = physics_settings.spring_k * 1.5; // Stronger attraction
         params.repel_k = physics_settings.repel_k * 0.8; // Less repulsion
 
+        // Initialize GPU for bots graph first with retry logic
+        info!("Initializing GPU for bots graph processing");
+        let mut gpu_initialized = false;
+        for attempt in 1..=3 {
+            match gpu_compute_addr.send(InitializeGPU {
+                graph: bots_graph.clone(),
+            }).await {
+                Ok(_) => {
+                    info!("GPU initialized successfully for bots on attempt {}", attempt);
+                    gpu_initialized = true;
+                    // Give GPU time to fully initialize
+                    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                    break;
+                },
+                Err(e) => {
+                    warn!("Failed to initialize GPU for bots (attempt {}): {}", attempt, e);
+                    if attempt < 3 {
+                        tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                    }
+                }
+            }
+        }
+        
+        if !gpu_initialized {
+            error!("Failed to initialize GPU after 3 attempts");
+        }
+        
         // Send graph data to GPU
         info!("Processing bots layout with GPU");
         if let Err(e) = gpu_compute_addr.send(UpdateGPUGraphData {

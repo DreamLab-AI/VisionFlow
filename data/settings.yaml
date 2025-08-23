@@ -119,11 +119,11 @@ visualisation:
         boundary_extreme_multiplier: 2.0
         boundary_extreme_force_multiplier: 10.0
         boundary_velocity_damping: 0.5
-        attraction_k: 8.378364
-        bounds_size: 0.0
+        attraction_k: 0.5
+        bounds_size: 500.0
         separation_radius: 2.0
         damping: 0.92
-        enable_bounds: false
+        enable_bounds: true
         enabled: true
         iterations: 50
         max_velocity: 3.0
@@ -131,21 +131,21 @@ visualisation:
         repel_k: 1.2
         spring_k: 0.15
         mass_scale: 1.0
-        boundary_damping: 0.23174196
+        boundary_damping: 0.9
         update_threshold: 0.01
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
         stress_weight: 0.5847028
         stress_alpha: 0.55261546
-        boundary_limit: 0.0
+        boundary_limit: 490.0
         alignment_strength: 0.0
         cluster_strength: 0.0
         compute_mode: 0
         min_distance: 1.0  # Was 0.44966576, too small
         max_repulsion_dist: 50.0  # Keep as is
-        boundary_margin: 0.85
-        boundary_force_strength: 0.0
+        boundary_margin: 50.0
+        boundary_force_strength: 1.0
         warmup_curve: quadratic
         zero_velocity_iterations: 5
         clustering_algorithm: none
@@ -250,8 +250,8 @@ visualisation:
         compute_mode: 0
         min_distance: 1.0  # Was 0.15, too small
         max_repulsion_dist: 50.0  # Keep as is
-        boundary_margin: 0.85
-        boundary_force_strength: 0.0
+        boundary_margin: 50.0
+        boundary_force_strength: 1.0
         warmup_curve: quadratic
         zero_velocity_iterations: 5
         clustering_algorithm: none

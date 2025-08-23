@@ -33,6 +33,12 @@ struct SimParams {
     unsigned int feature_flags;
     unsigned int seed;
     int iteration;
+    // Additional fields for compatibility
+    float separation_radius;
+    float cluster_strength;
+    float alignment_strength;
+    float temperature;
+    float viewport_bounds;
 };
 
 struct FeatureFlags {
@@ -210,7 +216,15 @@ __global__ void force_pass_kernel(
                             if (dist_sq < params.repulsion_cutoff * params.repulsion_cutoff && dist_sq > 1e-6f) {
                                 float dist = sqrtf(dist_sq);
                                 float repulsion = params.repel_k / (dist_sq + params.repulsion_softening_epsilon);
-                                total_force = vec3_add(total_force, vec3_scale(diff, repulsion / dist));
+                                
+                                // Prevent repulsion force overflow when nodes are too close
+                                float max_repulsion = params.max_force * 0.5f;
+                                repulsion = fminf(repulsion, max_repulsion);
+                                
+                                // Safety check for NaN/Inf
+                                if (isfinite(repulsion) && isfinite(dist) && dist > 0.0f) {
+                                    total_force = vec3_add(total_force, vec3_scale(diff, repulsion / dist));
+                                }
                             }
                         }
                     }
@@ -291,6 +305,37 @@ __global__ void integrate_pass_kernel(
     vel = vec3_scale(vel, effective_damping);
     vel = vec3_clamp(vel, params.max_velocity);
     pos = vec3_add(pos, vec3_scale(vel, params.dt));
+
+    // Apply boundary constraints
+    float boundary_limit = params.viewport_bounds;
+    if (boundary_limit > 0.0f) {
+        // Soft boundary with repulsion force
+        float boundary_margin = boundary_limit * 0.9f;
+        
+        // Check X boundary
+        if (fabsf(pos.x) > boundary_margin) {
+            float boundary_force = (fabsf(pos.x) - boundary_margin) / (boundary_limit - boundary_margin);
+            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            pos.x = pos.x > 0 ? fminf(pos.x, boundary_limit) : fmaxf(pos.x, -boundary_limit);
+            vel.x *= (1.0f - boundary_force * 0.5f); // Dampen velocity near boundary
+        }
+        
+        // Check Y boundary
+        if (fabsf(pos.y) > boundary_margin) {
+            float boundary_force = (fabsf(pos.y) - boundary_margin) / (boundary_limit - boundary_margin);
+            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            pos.y = pos.y > 0 ? fminf(pos.y, boundary_limit) : fmaxf(pos.y, -boundary_limit);
+            vel.y *= (1.0f - boundary_force * 0.5f);
+        }
+        
+        // Check Z boundary
+        if (fabsf(pos.z) > boundary_margin) {
+            float boundary_force = (fabsf(pos.z) - boundary_margin) / (boundary_limit - boundary_margin);
+            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            pos.z = pos.z > 0 ? fminf(pos.z, boundary_limit) : fmaxf(pos.z, -boundary_limit);
+            vel.z *= (1.0f - boundary_force * 0.5f);
+        }
+    }
 
     pos_out_x[idx] = pos.x;
     pos_out_y[idx] = pos.y;

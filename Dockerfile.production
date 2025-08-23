@@ -96,7 +96,7 @@ RUN mkdir -p /app/data/markdown \
 # Copy built artifacts from builder stage
 COPY --from=builder /build/target/release/webxr /app/webxr
 COPY --from=builder /build/client/dist /app/client/dist
-COPY --from=builder /build/src/utils/ptx/visionflow_unified_rewrite.ptx /app/src/utils/ptx/
+# PTX is built in-situ during compilation, no need to copy
 
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml

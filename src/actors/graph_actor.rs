@@ -476,6 +476,12 @@ impl GraphServiceActor {
             return; // Skip for very small graphs
         }
         
+        // Skip stress majorization if GPU compute is not available
+        if self.advanced_gpu_context.is_none() && self.gpu_compute_addr.is_none() {
+            trace!("Skipping stress majorization - no GPU context available");
+            return;
+        }
+        
         let mut graph_data_clone = (*self.graph_data).clone();
         
         match self.stress_solver.optimize(&mut graph_data_clone, &self.constraint_set) {
@@ -485,15 +491,28 @@ impl GraphServiceActor {
                     let graph_data_mut = Arc::make_mut(&mut self.graph_data);
                     for (i, node) in graph_data_mut.nodes.iter_mut().enumerate() {
                         if let Some(optimized_node) = graph_data_clone.nodes.get(i) {
-                            node.data.position.x = optimized_node.data.position.x;
-                            node.data.position.y = optimized_node.data.position.y;
-                            node.data.position.z = optimized_node.data.position.z;
+                            // Validate positions before applying
+                            let new_x = optimized_node.data.position.x;
+                            let new_y = optimized_node.data.position.y;
+                            let new_z = optimized_node.data.position.z;
+                            
+                            if new_x.is_finite() && new_y.is_finite() && new_z.is_finite() {
+                                // Apply boundary constraints
+                                let boundary_limit = 500.0;
+                                node.data.position.x = new_x.clamp(-boundary_limit, boundary_limit);
+                                node.data.position.y = new_y.clamp(-boundary_limit, boundary_limit);
+                                node.data.position.z = new_z.clamp(-boundary_limit, boundary_limit);
+                            } else {
+                                warn!("Skipping invalid position from stress majorization for node {}: ({}, {}, {})", 
+                                      node.id, new_x, new_y, new_z);
+                            }
                         }
                     }
                     
-                    // Update node_map as well
+                    // Update node_map as well with validated positions
                     for node in &graph_data_mut.nodes {
                         if let Some(node_in_map) = self.node_map.get_mut(&node.id) {
+                            // Use the already validated and clamped positions
                             node_in_map.data.position.x = node.data.position.x;
                             node_in_map.data.position.y = node.data.position.y;
                             node_in_map.data.position.z = node.data.position.z;
@@ -1193,13 +1212,23 @@ impl GraphServiceActor {
             let self_addr = ctx.address();
             
             actix::spawn(async move {
-                let ptx_content = "";
+                // Load the actual PTX file content
+                let ptx_path = std::path::Path::new("src/utils/ptx/visionflow_unified.ptx");
+                let ptx_content = match std::fs::read_to_string(ptx_path) {
+                    Ok(content) => content,
+                    Err(e) => {
+                        error!("Failed to load PTX file: {}", e);
+                        return;
+                    }
+                };
+                
                 match UnifiedGPUCompute::new(
                     graph_data_clone.nodes.len(),
                     graph_data_clone.edges.len(),
-                    ptx_content,
+                    &ptx_content,
                 ) {
                     Ok(context) => {
+                        info!("Successfully initialized advanced GPU context");
                         self_addr.do_send(SetAdvancedGPUContext { context });
                     }
                     Err(e) => {

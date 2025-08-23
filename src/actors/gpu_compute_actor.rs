@@ -209,11 +209,17 @@ impl GPUComputeActor {
             return Err(Error::new(ErrorKind::Other, format!("Node count {} exceeds limit {}", num_nodes, MAX_NODES)));
         }
 
+        // Add delay to ensure CUDA runtime is ready
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        
         Self::static_test_gpu_capabilities().await?;
         info!("(Static Logic) GPU capabilities check passed");
 
         let device = Self::static_create_cuda_device().await?;
         info!("(Static Logic) CUDA device created successfully");
+        
+        // Small delay after device creation to ensure it's ready
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         
         // Initialize unified compute engine with edge count
         let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(num_nodes, num_edges, &graph.nodes).await?;
@@ -373,8 +379,13 @@ impl GPUComputeActor {
         }
         
         if self.cpu_fallback_active {
-            warn!("GPU compute in CPU fallback mode, skipping GPU kernel");
-            return Ok(());
+            warn!("GPU not available, attempting reinitialization");
+            self.cpu_fallback_active = false;
+            // Try to reinitialize GPU
+            if self.unified_compute.is_none() {
+                error!("GPU compute not initialized - cannot compute forces");
+                return Err(Error::new(ErrorKind::Other, "GPU not available"));
+            }
         }
 
         if self.last_failure_reset.elapsed() > FAILURE_RESET_INTERVAL {
