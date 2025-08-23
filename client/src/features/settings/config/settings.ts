@@ -82,6 +82,20 @@ export interface PhysicsSettings {
   massScale: number;
   updateThreshold: number;
   
+  // Missing CUDA parameters
+  /** Extreme boundary force multiplier (1.0-5.0) - Controls how aggressively boundary forces are applied */
+  boundaryExtremeMultiplier: number;
+  /** Extreme boundary force strength multiplier (1.0-20.0) - Controls the intensity of extreme boundary forces */
+  boundaryExtremeForceMultiplier: number;
+  /** Boundary velocity damping factor (0.0-1.0) - Reduces velocity near boundaries */
+  boundaryVelocityDamping: number;
+  /** Maximum force magnitude (1-1000) - Caps the total force applied to prevent instability */
+  maxForce: number;
+  /** Random seed for initialization - Ensures reproducible layouts */
+  seed: number;
+  /** Current iteration count - Tracks simulation progress */
+  iteration: number;
+  
   // Warmup System
   warmupIterations: number;
   warmupCurve?: string; // Optional for compatibility

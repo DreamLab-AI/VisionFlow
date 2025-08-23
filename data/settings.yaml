@@ -98,6 +98,16 @@ visualisation:
           # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
+          repulsion_cutoff_min: 5.0
+          repulsion_cutoff_max: 200.0
+          repulsion_softening_min: 0.000001
+          repulsion_softening_max: 1.0
+          center_gravity_min: 0.0
+          center_gravity_max: 0.1
+          # Spatial hashing and numerical stability
+          spatial_hash_efficiency_threshold: 0.3
+          cluster_density_threshold: 50.0
+          numerical_instability_threshold: 0.001
         # CUDA kernel parameters from dev_config.toml
         rest_length: 50.0
         repulsion_cutoff: 50.0
@@ -109,16 +119,6 @@ visualisation:
         boundary_extreme_multiplier: 2.0
         boundary_extreme_force_multiplier: 10.0
         boundary_velocity_damping: 0.5
-          repulsion_cutoff_min: 5.0
-          repulsion_cutoff_max: 200.0
-          repulsion_softening_min: 0.000001
-          repulsion_softening_max: 1.0
-          center_gravity_min: 0.0
-          center_gravity_max: 0.1
-          # Spatial hashing and numerical stability
-          spatial_hash_efficiency_threshold: 0.3
-          cluster_density_threshold: 50.0
-          numerical_instability_threshold: 0.001
         attraction_k: 8.378364
         bounds_size: 0.0
         separation_radius: 2.0
@@ -144,16 +144,10 @@ visualisation:
         compute_mode: 0
         min_distance: 1.0  # Was 0.44966576, too small
         max_repulsion_dist: 50.0  # Keep as is
-        repulsion_softening_epsilon: 0.0001  # Prevents division by zero in force calculations
-        center_gravity_k: 0.0  # Gravity toward center (0 = disabled)
-        grid_cell_size: 50.0  # Spatial grid resolution for neighbor searches
-        rest_length: 50.0  # Natural spring rest length
         boundary_margin: 0.85
         boundary_force_strength: 0.0
-        warmup_iterations: 100  # Was 219, reduce for faster startup
         warmup_curve: quadratic
         zero_velocity_iterations: 5
-        cooling_rate: 0.001  # Was 0.0036785465, simplify
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
@@ -210,6 +204,16 @@ visualisation:
           # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
+          repulsion_cutoff_min: 5.0
+          repulsion_cutoff_max: 200.0
+          repulsion_softening_min: 0.000001
+          repulsion_softening_max: 1.0
+          center_gravity_min: 0.0
+          center_gravity_max: 0.1
+          # Spatial hashing and numerical stability
+          spatial_hash_efficiency_threshold: 0.3
+          cluster_density_threshold: 50.0
+          numerical_instability_threshold: 0.001
         # CUDA kernel parameters from dev_config.toml
         rest_length: 50.0
         repulsion_cutoff: 50.0
@@ -221,16 +225,6 @@ visualisation:
         boundary_extreme_multiplier: 2.0
         boundary_extreme_force_multiplier: 10.0
         boundary_velocity_damping: 0.5
-          repulsion_cutoff_min: 5.0
-          repulsion_cutoff_max: 200.0
-          repulsion_softening_min: 0.000001
-          repulsion_softening_max: 1.0
-          center_gravity_min: 0.0
-          center_gravity_max: 0.1
-          # Spatial hashing and numerical stability
-          spatial_hash_efficiency_threshold: 0.3
-          cluster_density_threshold: 50.0
-          numerical_instability_threshold: 0.001
         attraction_k: 0.0001
         bounds_size: 0.0
         separation_radius: 2.0
@@ -256,16 +250,10 @@ visualisation:
         compute_mode: 0
         min_distance: 1.0  # Was 0.15, too small
         max_repulsion_dist: 50.0  # Keep as is
-        repulsion_softening_epsilon: 0.0001  # Prevents division by zero in force calculations
-        center_gravity_k: 0.0  # Gravity toward center (0 = disabled)
-        grid_cell_size: 50.0  # Spatial grid resolution for neighbor searches
-        rest_length: 50.0  # Natural spring rest length
         boundary_margin: 0.85
         boundary_force_strength: 0.0
-        warmup_iterations: 100  # Was 200, reduce for faster startup
         warmup_curve: quadratic
         zero_velocity_iterations: 5
-        cooling_rate: 0.001  # Was 0.0001, simplify
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0

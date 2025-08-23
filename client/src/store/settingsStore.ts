@@ -188,6 +188,20 @@ interface GPUPhysicsParams {
   iterations?: number;
   massScale?: number;
   updateThreshold?: number;
+  
+  // Missing CUDA parameters
+  /** Extreme boundary force multiplier (1.0-5.0) */
+  boundaryExtremeMultiplier?: number;
+  /** Extreme boundary force strength multiplier (1.0-20.0) */
+  boundaryExtremeForceMultiplier?: number;
+  /** Boundary velocity damping factor (0.0-1.0) */
+  boundaryVelocityDamping?: number;
+  /** Maximum force magnitude (1-1000) */
+  maxForce?: number;
+  /** Random seed for initialization */
+  seed?: number;
+  /** Current iteration count */
+  iteration?: number;
 }
 
 interface ClusteringConfig {

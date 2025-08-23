@@ -60,6 +60,14 @@ export interface GraphPhysicsConfig {
   cooling_rate: number; // default: 0.001
   feature_flags: number; // default: 7
   
+  // Missing CUDA parameters
+  boundary_extreme_multiplier: number; // 1.0-5.0, default: 2.0
+  boundary_extreme_force_multiplier: number; // 1.0-20.0, default: 5.0
+  boundary_velocity_damping: number; // 0.0-1.0, default: 0.5
+  max_force: number; // 1-1000, default: 100
+  seed: number; // default: 42
+  iteration: number; // current iteration count, default: 0
+  
   // Legacy parameters (maintained for compatibility)
   springStrength?: number;
   updateThreshold?: number;
@@ -107,6 +115,14 @@ export const DEFAULT_GRAPH_CONFIG: GraphTypeConfig = {
       cooling_rate: 0.001,
       feature_flags: 7,
       
+      // Missing CUDA parameters
+      boundary_extreme_multiplier: 2.0,
+      boundary_extreme_force_multiplier: 5.0,
+      boundary_velocity_damping: 0.5,
+      max_force: 100,
+      seed: 42,
+      iteration: 0,
+      
       // Legacy parameters (for compatibility)
       springStrength: 0.2,
       updateThreshold: 0.05,
@@ -136,6 +152,14 @@ export const DEFAULT_GRAPH_CONFIG: GraphTypeConfig = {
       warmup_iterations: 100,
       cooling_rate: 0.001,
       feature_flags: 7,
+      
+      // Missing CUDA parameters
+      boundary_extreme_multiplier: 2.5,
+      boundary_extreme_force_multiplier: 6.0,
+      boundary_velocity_damping: 0.6,
+      max_force: 120,
+      seed: 42,
+      iteration: 0,
       
       // Legacy parameters (for compatibility)
       springStrength: 0.3,
