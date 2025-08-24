@@ -1322,11 +1322,7 @@ impl GraphServiceActor {
             return;
         }
         
-        if crate::utils::logging::is_debug_enabled() {
-            debug!("  - temperature: {:.3}", self.simulation_params.temperature);
-            debug!("  - viewport_bounds: {:.1}", self.simulation_params.viewport_bounds);
-            debug!("  - iterations: {}", self.simulation_params.iterations);
-        }
+        // Physics parameters loaded
         
         // Prepare node positions for unified GPU compute
         let positions = self.prepare_node_positions();
@@ -1341,7 +1337,7 @@ impl GraphServiceActor {
             let positions_y: Vec<f32> = positions.iter().map(|p| p.1).collect();
             let positions_z: Vec<f32> = positions.iter().map(|p| p.2).collect();
             
-            debug!("Uploading positions to GPU: {} nodes", positions_x.len());
+            // Upload positions to GPU
             if let Err(e) = gpu_context.upload_positions(&positions_x, &positions_y, &positions_z) {
                 error!("Failed to upload positions to unified GPU: {}", e);
                 return;
@@ -1368,7 +1364,7 @@ impl GraphServiceActor {
                 row_offsets.push(col_indices.len() as i32);
             }
             
-            debug!("Uploading edges to GPU: {} row_offsets, {} edges (col_indices)", row_offsets.len(), col_indices.len());
+            // Upload edges to GPU
             if let Err(e) = gpu_context.upload_edges_csr(&row_offsets, &col_indices, &weights) {
                 error!("Failed to upload edges to unified GPU: {}", e);
                 error!("  row_offsets.len() = {}, col_indices.len() = {}, weights.len() = {}", 
@@ -1377,14 +1373,9 @@ impl GraphServiceActor {
             }
         
             let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
-            if crate::utils::logging::is_debug_enabled() {
-                debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {}, center_gravity_k: {}, feature_flags: 0x{:04X} }}",
-                       sim_params.repel_k, sim_params.damping, sim_params.dt, 
-                       sim_params.center_gravity_k, sim_params.feature_flags);
-            }
+            // Set GPU parameters
             
             // Execute GPU physics step
-            debug!("Executing GPU physics step...");
             match gpu_context.execute(sim_params) {
                 Ok(()) => {
                     let mut host_pos_x = vec![0.0; self.graph_data.nodes.len()];
