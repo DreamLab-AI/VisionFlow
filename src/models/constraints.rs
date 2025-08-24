@@ -157,7 +157,7 @@ impl Default for AdvancedParams {
             temporal_force_weight: 0.3,
             structural_force_weight: 0.5,
             constraint_force_weight: 0.8,
-            stress_step_interval_frames: 30,
+            stress_step_interval_frames: u32::MAX, // Disabled - was causing position explosions
             separation_factor: 1.5,
             boundary_force_weight: 0.7,
             knowledge_force_weight: 0.4,
