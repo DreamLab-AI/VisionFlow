@@ -1,10 +1,10 @@
 visualisation:
   rendering:
-    ambient_light_intensity: 1.5544538
+    ambient_light_intensity: 1.2
     background_color: '#0a0e1a'
-    directional_light_intensity: 1.3690603
-    enable_ambient_occlusion: true
-    enable_antialiasing: false
+    directional_light_intensity: 1.5
+    enable_ambient_occlusion: false
+    enable_antialiasing: true
     enable_shadows: true
     environment_intensity: 0.7
     shadow_map_size: '2048'
@@ -20,21 +20,21 @@ visualisation:
     pulse_strength: 0.8
     wave_speed: 0.5
   bloom:
-    edge_bloom_strength: 0.3743524
+    edge_bloom_strength: 3.5
     enabled: false
-    environment_bloom_strength: 0.3672219
-    node_bloom_strength: 0.30661243
-    radius: 0.29591668
-    strength: 0.3386998
-    threshold: 0.41357028
+    environment_bloom_strength: 3.0
+    node_bloom_strength: 3.0
+    radius: 0.85
+    strength: 2.0
+    threshold: 0.15
   hologram:
-    ring_count: 3
-    ring_color: '#e83211'
-    ring_opacity: 0.23174196
+    ring_count: 5
+    ring_color: '#00ffff'
+    ring_opacity: 0.8
     sphere_sizes:
     - 40.0
     - 80.0
-    ring_rotation_speed: 24.778564
+    ring_rotation_speed: 12.0
     enable_buckminster: true
     buckminster_size: 50.0
     buckminster_opacity: 0.3
@@ -48,32 +48,32 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        base_color: '#a06522'
-        metalness: 0.44209236
-        opacity: 0.5098323
-        roughness: 0.5561807
-        node_size: 1.8685422
+        base_color: '#00e5ff'
+        metalness: 0.85
+        opacity: 0.95
+        roughness: 0.15
+        node_size: 1.2
         quality: high
-        enable_instancing: false
+        enable_instancing: true
         enable_hologram: true
-        enable_metadata_shape: false
-        enable_metadata_visualisation: false
+        enable_metadata_shape: true
+        enable_metadata_visualisation: true
       edges:
-        arrow_size: 0.34017882
-        base_width: 1.9043301
-        color: '#e8edee'
+        arrow_size: 0.02
+        base_width: 0.5
+        color: '#4fc3f7'
         enable_arrows: false
-        opacity: 0.9519247
+        opacity: 0.45
         width_range:
-        - 0.2
-        - 1.0
-        quality: medium
+        - 0.3
+        - 1.5
+        quality: high
       labels:
-        desktop_font_size: 1.008701
+        desktop_font_size: 0.5
         enable_labels: true
-        text_color: '#5d5d09'
-        text_outline_color: '#4561b5'
-        text_outline_width: 0.0026382932
+        text_color: '#ffffff'
+        text_outline_color: '#0a0e1a'
+        text_outline_width: 0.005
         text_resolution: 32
         text_padding: 0.6
         billboard_mode: camera
@@ -95,7 +95,6 @@ visualisation:
           oscillation_detection_frames: 10
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
-          # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
           repulsion_cutoff_min: 5.0
@@ -104,11 +103,32 @@ visualisation:
           repulsion_softening_max: 1.0
           center_gravity_min: 0.0
           center_gravity_max: 0.1
-          # Spatial hashing and numerical stability
           spatial_hash_efficiency_threshold: 0.3
           cluster_density_threshold: 50.0
           numerical_instability_threshold: 0.001
-        # CUDA kernel parameters from dev_config.toml
+        attraction_k: 0.01
+        bounds_size: 1000.0
+        separation_radius: 2.0
+        damping: 0.85
+        enable_bounds: false
+        enabled: true
+        iterations: 50
+        max_velocity: 5.0
+        max_force: 100.0
+        repel_k: 28.607826
+        spring_k: 4.5635886
+        mass_scale: 1.0
+        boundary_damping: 0.95
+        update_threshold: 0.01
+        dt: 0.016
+        temperature: 0.01
+        gravity: 0.0001
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
+        boundary_limit: 1000.0
+        alignment_strength: 0.1
+        cluster_strength: 0.1
+        compute_mode: 1
         rest_length: 50.0
         repulsion_cutoff: 50.0
         repulsion_softening_epsilon: 0.0001
@@ -117,74 +137,51 @@ visualisation:
         warmup_iterations: 100
         cooling_rate: 0.001
         boundary_extreme_multiplier: 2.0
-        boundary_extreme_force_multiplier: 10.0
+        boundary_extreme_force_multiplier: 5.0
         boundary_velocity_damping: 0.5
-        attraction_k: 0.5
-        bounds_size: 10000.0
-        separation_radius: 2.0
-        damping: 0.92
-        enable_bounds: false
-        enabled: true
-        iterations: 50
-        max_velocity: 3.0
-        max_force: 100.0
-        repel_k: 1.2
-        spring_k: 0.15
-        mass_scale: 1.0
-        boundary_damping: 0.9
-        update_threshold: 0.01
-        dt: 0.016
-        temperature: 0.01
-        gravity: 0.0001
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
-        boundary_limit: 490.0
-        alignment_strength: 0.0
-        cluster_strength: 0.0
-        compute_mode: 0
-        min_distance: 1.0  # Was 0.44966576, too small
-        max_repulsion_dist: 50.0  # Keep as is
-        boundary_margin: 50.0
+        min_distance: 1.0
+        max_repulsion_dist: 1000.0
+        boundary_margin: 10.0
         boundary_force_strength: 1.0
-        warmup_curve: quadratic
-        zero_velocity_iterations: 5
+        warmup_curve: exponential
+        zero_velocity_iterations: 10
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
-        clustering_iterations: 30
+        clustering_iterations: 50
     visionflow:
       nodes:
-        base_color: '#ff8800'
-        metalness: 0.7
-        opacity: 0.9
-        roughness: 0.3
-        node_size: 1.5
+        base_color: '#40ff00'
+        metalness: 0.85
+        opacity: 0.95
+        roughness: 0.15
+        node_size: 1.2
         quality: high
         enable_instancing: true
         enable_hologram: true
         enable_metadata_shape: true
         enable_metadata_visualisation: true
       edges:
-        arrow_size: 0.7
-        base_width: 0.15
-        color: '#ffaa00'
-        enable_arrows: true
-        opacity: 0.6
+        arrow_size: 0.02
+        base_width: 0.5
+        color: '#76ff03'
+        enable_arrows: false
+        opacity: 0.45
         width_range:
-        - 0.15
+        - 0.3
         - 1.5
         quality: high
       labels:
-        desktop_font_size: 16.0
+        desktop_font_size: 0.5
         enable_labels: true
-        text_color: '#ffaa00'
-        text_outline_color: '#000000'
-        text_outline_width: 2.5
-        text_resolution: 256
-        text_padding: 5.0
-        billboard_mode: screen
+        text_color: '#f0fff0'
+        text_outline_color: '#0a1a0a'
+        text_outline_width: 0.005
+        text_resolution: 32
+        text_padding: 0.6
+        billboard_mode: camera
         show_metadata: true
-        max_label_width: 8.0
+        max_label_width: 5.0
       physics:
         auto_balance: false
         auto_balance_interval_ms: 500
@@ -201,7 +198,6 @@ visualisation:
           oscillation_detection_frames: 10
           oscillation_change_threshold: 5.0
           min_oscillation_changes: 5
-          # CUDA kernel parameter tuning thresholds
           grid_cell_size_min: 1.0
           grid_cell_size_max: 50.0
           repulsion_cutoff_min: 5.0
@@ -210,32 +206,20 @@ visualisation:
           repulsion_softening_max: 1.0
           center_gravity_min: 0.0
           center_gravity_max: 0.1
-          # Spatial hashing and numerical stability
           spatial_hash_efficiency_threshold: 0.3
           cluster_density_threshold: 50.0
           numerical_instability_threshold: 0.001
-        # CUDA kernel parameters from dev_config.toml
-        rest_length: 50.0
-        repulsion_cutoff: 50.0
-        repulsion_softening_epsilon: 0.0001
-        center_gravity_k: 0.0
-        grid_cell_size: 50.0
-        warmup_iterations: 100
-        cooling_rate: 0.001
-        boundary_extreme_multiplier: 2.0
-        boundary_extreme_force_multiplier: 10.0
-        boundary_velocity_damping: 0.5
-        attraction_k: 0.0001
-        bounds_size: 10000.0
+        attraction_k: 0.01
+        bounds_size: 1000.0
         separation_radius: 2.0
-        damping: 0.95
+        damping: 0.85
         enable_bounds: false
         enabled: true
-        iterations: 100
-        max_velocity: 1.0
+        iterations: 50
+        max_velocity: 5.0
         max_force: 100.0
-        repel_k: 5.0
-        spring_k: 0.5
+        repel_k: 2.0
+        spring_k: 0.1
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -244,20 +228,30 @@ visualisation:
         gravity: 0.0001
         stress_weight: 0.0001
         stress_alpha: 0.0001
-        boundary_limit: 0.0
-        alignment_strength: 0.0
-        cluster_strength: 0.0
-        compute_mode: 0
-        min_distance: 1.0  # Was 0.15, too small
-        max_repulsion_dist: 50.0  # Keep as is
-        boundary_margin: 50.0
+        boundary_limit: 1000.0
+        alignment_strength: 0.1
+        cluster_strength: 0.1
+        compute_mode: 1
+        rest_length: 50.0
+        repulsion_cutoff: 50.0
+        repulsion_softening_epsilon: 0.0001
+        center_gravity_k: 0.0
+        grid_cell_size: 50.0
+        warmup_iterations: 100
+        cooling_rate: 0.001
+        boundary_extreme_multiplier: 2.0
+        boundary_extreme_force_multiplier: 5.0
+        boundary_velocity_damping: 0.5
+        min_distance: 1.0
+        max_repulsion_dist: 1000.0
+        boundary_margin: 10.0
         boundary_force_strength: 1.0
-        warmup_curve: quadratic
-        zero_velocity_iterations: 5
+        warmup_curve: exponential
+        zero_velocity_iterations: 10
         clustering_algorithm: none
         cluster_count: 5
         clustering_resolution: 1.0
-        clustering_iterations: 30
+        clustering_iterations: 50
   camera:
     fov: 75.0
     near: 0.1
@@ -279,12 +273,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
+      '5': rightView
+      '4': topView
+      '6': frontView
       '3': fitToView
       '2': cycleMode
       '1': resetView
-      '4': topView
-      '6': frontView
-      '5': rightView
 system:
   network:
     bind_address: 0.0.0.0
@@ -343,7 +337,7 @@ xr:
   room_scale: 1.0
   space_type: local-floor
   quality: medium
-  render_scale: 0.92248344
+  render_scale: 1.0
   interaction_distance: 1.5
   locomotion_method: teleport
   teleport_ray_color: '#ffffff'
@@ -385,9 +379,9 @@ xr:
   portal_edge_color: '#4287f5'
   portal_edge_width: 0.02
 auth:
-  enabled: true
+  enabled: false
   provider: nostr
-  required: true
+  required: false
 ragflow:
   agent_id: aa2e328812ef11f083dc0a0d6226f61b
   timeout: 30
@@ -405,7 +399,7 @@ openai:
   timeout: 30
   rate_limit: 100
 kokoro:
-  api_url: http://recursing_bhaskara:8880
+  api_url: http://pedantic_morse:8880
   default_voice: af_heart
   default_format: mp3
   default_speed: 1.0
@@ -414,11 +408,11 @@ kokoro:
   return_timestamps: true
   sample_rate: 24000
 whisper:
-  api_url: http://whisper-webui-backend:8000
+  api_url: http://localhost:8080
   default_model: base
   default_language: en
   timeout: 30
   temperature: 0.0
   return_timestamps: false
-  vad_filter: false
+  vad_filter: true
   word_timestamps: false

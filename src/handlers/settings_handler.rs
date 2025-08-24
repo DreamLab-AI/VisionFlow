@@ -182,11 +182,11 @@ impl EnhancedSettingsHandler {
                 let is_auto_balance_change = auto_balance_update.is_some();
                 
                 if is_auto_balance_change || !auto_balance_active {
-                    for graph_name in updated_graphs {
-                        propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
-                    }
+                    // Only use logseq (knowledge graph) physics for now
+                    // TODO: Add graph type selection when agent graph is implemented
+                    propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
                     if is_auto_balance_change {
-                        info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU");
+                        info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU (logseq only)");
                     }
                 } else {
                     info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active and not changing");
@@ -410,17 +410,17 @@ impl EnhancedSettingsHandler {
         if has_physics_update {
             info!("Propagating physics updates to GPU actors");
             
-            // Propagate to both graph types
-            for graph_name in &["logseq", "visionflow"] {
-                let physics = settings.get_physics(graph_name);
-                let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
-                
-                if let Some(gpu_addr) = &state.gpu_compute_addr {
-                    if let Err(e) = gpu_addr.send(UpdateSimulationParams { params: sim_params }).await {
-                        error!("Failed to update GPU simulation params for {}: {}", graph_name, e);
-                    } else {
-                        debug!("GPU simulation params updated for {}", graph_name);
-                    }
+            // Only use logseq (knowledge graph) physics for now
+            // TODO: Add graph type selection when agent graph is implemented
+            let graph_name = "logseq";
+            let physics = settings.get_physics(graph_name);
+            let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
+            
+            if let Some(gpu_addr) = &state.gpu_compute_addr {
+                if let Err(e) = gpu_addr.send(UpdateSimulationParams { params: sim_params }).await {
+                    error!("Failed to update GPU simulation params for {}: {}", graph_name, e);
+                } else {
+                    info!("GPU simulation params updated for {} (knowledge graph)", graph_name);
                 }
             }
         }
@@ -664,12 +664,11 @@ async fn update_settings(
             // - Skip only if auto_balance is already active AND this isn't an auto_balance change
             //   (to prevent feedback loops from auto-tuning adjustments)
             if is_auto_balance_change || !auto_balance_active {
-                // Propagate physics updates to GPU for each updated graph
-                for graph_name in updated_graphs {
-                    propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
-                }
+                // Only use logseq (knowledge graph) physics for now
+                // TODO: Add graph type selection when agent graph is implemented
+                propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
                 if is_auto_balance_change {
-                    info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU");
+                    info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU (logseq only)");
                 }
             } else {
                 info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active and not changing");

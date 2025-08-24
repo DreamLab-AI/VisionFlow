@@ -239,6 +239,26 @@ impl GraphServiceActor {
         );
         let stress_solver = StressMajorizationSolver::from_advanced_params(&advanced_params);
         
+        // Initialize with logseq (knowledge graph) physics from settings
+        // This will be updated when settings are loaded, but provides better defaults
+        let simulation_params = {
+            // Try to get settings from the global config
+            if let Ok(settings_yaml) = std::fs::read_to_string("/app/settings.yaml")
+                .or_else(|_| std::fs::read_to_string("data/settings.yaml")) {
+                if let Ok(settings) = serde_yaml::from_str::<crate::config::AppFullSettings>(&settings_yaml) {
+                    // Use logseq physics as the default for knowledge graph
+                    let physics = settings.get_physics("logseq");
+                    SimulationParams::from(physics)
+                } else {
+                    warn!("Failed to parse settings.yaml, using defaults");
+                    SimulationParams::default()
+                }
+            } else {
+                info!("Settings file not found at startup, using defaults (will be updated when settings load)");
+                SimulationParams::default()
+            }
+        };
+        
         Self {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
             node_map: HashMap::new(),
@@ -248,7 +268,7 @@ impl GraphServiceActor {
             shutdown_complete: Arc::new(AtomicBool::new(false)),
             next_node_id: AtomicU32::new(1),
             bots_graph_data: GraphData::new(),
-            simulation_params: SimulationParams::default(), // Initialize with default physics
+            simulation_params, // Use logseq physics from settings
             
             // Initialize advanced components
             advanced_gpu_context: None,
