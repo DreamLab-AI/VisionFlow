@@ -25,7 +25,7 @@ visualisation:
     environment_bloom_strength: 3.0
     node_bloom_strength: 3.0
     radius: 0.85
-    strength: 2.0
+    strength: 0.39574397
     threshold: 0.15
   hologram:
     ring_count: 5
@@ -48,16 +48,16 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        base_color: '#00e5ff'
+        base_color: '#ac1690'
         metalness: 0.85
         opacity: 0.95
         roughness: 0.15
-        node_size: 1.2
+        node_size: 0.5529608
         quality: high
         enable_instancing: true
         enable_hologram: true
-        enable_metadata_shape: true
-        enable_metadata_visualisation: true
+        enable_metadata_shape: false
+        enable_metadata_visualisation: false
       edges:
         arrow_size: 0.02
         base_width: 0.5
@@ -71,7 +71,7 @@ visualisation:
       labels:
         desktop_font_size: 0.5
         enable_labels: true
-        text_color: '#ffffff'
+        text_color: '#e6b400'
         text_outline_color: '#0a0e1a'
         text_outline_width: 0.005
         text_resolution: 32
@@ -106,7 +106,7 @@ visualisation:
           spatial_hash_efficiency_threshold: 0.3
           cluster_density_threshold: 50.0
           numerical_instability_threshold: 0.001
-        attraction_k: 0.2852209
+        attraction_k: 0.01
         bounds_size: 1000.0
         separation_radius: 2.0
         damping: 0.85
@@ -115,8 +115,8 @@ visualisation:
         iterations: 50
         max_velocity: 5.0
         max_force: 100.0
-        repel_k: 75.645744
-        spring_k: 0.28531802
+        repel_k: 91.32504
+        spring_k: 0.1
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -273,12 +273,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '1': resetView
-      '6': frontView
-      '3': fitToView
-      '2': cycleMode
-      '5': rightView
       '4': topView
+      '3': fitToView
+      '1': resetView
+      '5': rightView
+      '2': cycleMode
+      '6': frontView
 system:
   network:
     bind_address: 0.0.0.0
