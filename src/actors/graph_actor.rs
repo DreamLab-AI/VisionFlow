@@ -91,6 +91,7 @@ pub struct GraphServiceActor {
     
     // Advanced hybrid solver components
     advanced_gpu_context: Option<UnifiedGPUCompute>,
+    gpu_init_in_progress: bool, // Flag to prevent multiple initialization attempts
     constraint_set: ConstraintSet,
     semantic_analyzer: SemanticAnalyzer,
     edge_generator: AdvancedEdgeGenerator,
@@ -251,6 +252,7 @@ impl GraphServiceActor {
             
             // Initialize advanced components
             advanced_gpu_context: None,
+            gpu_init_in_progress: false,
             constraint_set: ConstraintSet::default(),
             semantic_analyzer,
             edge_generator,
@@ -451,6 +453,10 @@ impl GraphServiceActor {
             info!("Graph data prepared for advanced GPU physics");
         } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
             let graph_data_for_gpu = (*self.graph_data).clone();
+            // First initialize GPU
+            gpu_compute_addr.do_send(InitializeGPU { graph: graph_data_for_gpu.clone() });
+            info!("Sent GPU initialization request to GPU compute actor");
+            // Then update the graph data
             gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
             info!("Sent initial graph data to legacy GPU compute actor");
         }
@@ -1206,25 +1212,47 @@ impl GraphServiceActor {
         }
         
         // Initialize advanced GPU context if needed
-        if self.advanced_gpu_context.is_none() && !self.graph_data.nodes.is_empty() {
+        if self.advanced_gpu_context.is_none() && !self.gpu_init_in_progress && !self.graph_data.nodes.is_empty() {
+            // Mark initialization as in progress
+            self.gpu_init_in_progress = true;
+            
             // Attempt to initialize advanced GPU context
             let graph_data_clone = (*self.graph_data).clone();
             let self_addr = ctx.address();
             
             actix::spawn(async move {
                 // Load the actual PTX file content
-                let ptx_path = std::path::Path::new("src/utils/ptx/visionflow_unified.ptx");
-                let ptx_content = match std::fs::read_to_string(ptx_path) {
-                    Ok(content) => content,
-                    Err(e) => {
-                        error!("Failed to load PTX file: {}", e);
-                        return;
-                    }
-                };
+                // Try multiple possible locations for the PTX file
+                let ptx_paths = [
+                    "/app/src/utils/ptx/visionflow_unified.ptx",
+                    "src/utils/ptx/visionflow_unified.ptx",
+                    "/workspace/ext/src/utils/ptx/visionflow_unified.ptx",
+                ];
                 
+                let mut ptx_content = String::new();
+                let mut found = false;
+                
+                for path in &ptx_paths {
+                    if let Ok(content) = std::fs::read_to_string(path) {
+                        info!("Successfully loaded PTX file from: {}", path);
+                        ptx_content = content;
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if !found {
+                    error!("Failed to load PTX file from any of the expected locations: {:?}", ptx_paths);
+                    return;
+                }
+                
+                // For CSR format, each undirected edge becomes 2 directed edges
+                let num_directed_edges = graph_data_clone.edges.len() * 2;
+                info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)", 
+                      graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
                 match UnifiedGPUCompute::new(
                     graph_data_clone.nodes.len(),
-                    graph_data_clone.edges.len(),
+                    num_directed_edges,
                     &ptx_content,
                 ) {
                     Ok(context) => {
@@ -1233,6 +1261,8 @@ impl GraphServiceActor {
                     }
                     Err(e) => {
                         warn!("Failed to initialize advanced GPU context: {}", e);
+                        // Reset the flag on failure so we can retry later
+                        self_addr.do_send(ResetGPUInitFlag);
                     }
                 }
             });
@@ -1286,6 +1316,8 @@ impl GraphServiceActor {
             let positions_x: Vec<f32> = positions.iter().map(|p| p.0).collect();
             let positions_y: Vec<f32> = positions.iter().map(|p| p.1).collect();
             let positions_z: Vec<f32> = positions.iter().map(|p| p.2).collect();
+            
+            debug!("Uploading positions to GPU: {} nodes", positions_x.len());
             if let Err(e) = gpu_context.upload_positions(&positions_x, &positions_y, &positions_z) {
                 error!("Failed to upload positions to unified GPU: {}", e);
                 return;
@@ -1312,8 +1344,11 @@ impl GraphServiceActor {
                 row_offsets.push(col_indices.len() as i32);
             }
             
+            debug!("Uploading edges to GPU: {} row_offsets, {} edges (col_indices)", row_offsets.len(), col_indices.len());
             if let Err(e) = gpu_context.upload_edges_csr(&row_offsets, &col_indices, &weights) {
                 error!("Failed to upload edges to unified GPU: {}", e);
+                error!("  row_offsets.len() = {}, col_indices.len() = {}, weights.len() = {}", 
+                       row_offsets.len(), col_indices.len(), weights.len());
                 return;
             }
         
@@ -2010,6 +2045,16 @@ impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
     
     fn handle(&mut self, msg: SetAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         self.advanced_gpu_context = Some(msg.context);
+        self.gpu_init_in_progress = false; // Reset the flag
         info!("Advanced GPU context successfully initialized and set");
+    }
+}
+
+impl Handler<ResetGPUInitFlag> for GraphServiceActor {
+    type Result = ();
+    
+    fn handle(&mut self, _msg: ResetGPUInitFlag, _ctx: &mut Self::Context) -> Self::Result {
+        self.gpu_init_in_progress = false;
+        debug!("GPU initialization flag reset");
     }
 }

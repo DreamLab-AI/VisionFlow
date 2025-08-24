@@ -77,7 +77,13 @@ pub struct UnifiedGPUCompute {
     // State
     num_nodes: usize,
     num_edges: usize,
+    allocated_nodes: usize,  // Track allocated buffer size
+    allocated_edges: usize,  // Track allocated buffer size
+    max_grid_cells: usize,   // Track allocated grid cell buffer size
     iteration: i32,
+    
+    // Reusable host buffer for zeroing grid cells
+    zero_buffer: Vec<i32>,
 }
 
 
@@ -170,7 +176,11 @@ impl UnifiedGPUCompute {
             cub_temp_storage,
             num_nodes,
             num_edges,
+            allocated_nodes: num_nodes,
+            allocated_edges: num_edges,
+            max_grid_cells,
             iteration: 0,
+            zero_buffer: vec![0i32; max_grid_cells], // Pre-allocate for reuse
         })
     }
 
@@ -207,6 +217,14 @@ impl UnifiedGPUCompute {
     }
 
     pub fn upload_positions(&mut self, x: &[f32], y: &[f32], z: &[f32]) -> Result<()> {
+        // Check sizes match
+        if x.len() != self.num_nodes || y.len() != self.num_nodes || z.len() != self.num_nodes {
+            return Err(anyhow!(
+                "Position array size mismatch: expected {} nodes, got x:{}, y:{}, z:{}",
+                self.num_nodes, x.len(), y.len(), z.len()
+            ));
+        }
+        
         self.pos_in_x.copy_from(x)?;
         self.pos_in_y.copy_from(y)?;
         self.pos_in_z.copy_from(z)?;
@@ -214,6 +232,30 @@ impl UnifiedGPUCompute {
     }
 
     pub fn upload_edges_csr(&mut self, row_offsets: &[i32], col_indices: &[i32], weights: &[f32]) -> Result<()> {
+        // Check row_offsets size
+        if row_offsets.len() != self.num_nodes + 1 {
+            return Err(anyhow!(
+                "Row offsets size mismatch: expected {} (num_nodes + 1), got {}",
+                self.num_nodes + 1, row_offsets.len()
+            ));
+        }
+        
+        // Check that edge data arrays have same length
+        if col_indices.len() != weights.len() {
+            return Err(anyhow!(
+                "Edge arrays size mismatch: col_indices has {}, weights has {}",
+                col_indices.len(), weights.len()
+            ));
+        }
+        
+        // Check that we don't exceed allocated edge buffer size
+        if col_indices.len() > self.allocated_edges {
+            return Err(anyhow!(
+                "Too many edges: trying to upload {}, but only {} allocated",
+                col_indices.len(), self.allocated_edges
+            ));
+        }
+        
         self.edge_row_offsets.copy_from(row_offsets)?;
         self.edge_col_indices.copy_from(col_indices)?;
         self.edge_weights.copy_from(weights)?;
@@ -237,13 +279,12 @@ impl UnifiedGPUCompute {
         std::mem::swap(&mut self.vel_in_z, &mut self.vel_out_z);
     }
 
-    pub fn resize_buffers(&mut self, num_nodes: usize, num_edges: usize) -> Result<()> {
-        // This is a placeholder. A real implementation would reallocate all the
-        // DeviceBuffer fields to the new sizes.
-        self.num_nodes = num_nodes;
-        self.num_edges = num_edges;
-        Ok(())
-    }
+    // NOTE: resize_buffers is intentionally not implemented as it would require
+    // reallocating all DeviceBuffers which is complex and error-prone.
+    // Instead, create a new UnifiedGPUCompute instance when size requirements change.
+    // pub fn resize_buffers(&mut self, num_nodes: usize, num_edges: usize) -> Result<()> {
+    //     unimplemented!("Use a new UnifiedGPUCompute instance for different sizes")
+    // }
 
     pub fn set_params(&mut self, _params: SimParams) {
         // This is a placeholder. A real implementation would likely copy the params
@@ -265,17 +306,19 @@ impl UnifiedGPUCompute {
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
 
         // 1. Calculate AABB (on CPU for now, can be moved to GPU later)
-        let mut host_pos_x = vec![0.0; self.num_nodes];
+        // Use allocated_nodes for buffer sizes to ensure they match GPU buffers
+        let mut host_pos_x = vec![0.0; self.allocated_nodes];
         self.pos_in_x.copy_to(&mut host_pos_x)?;
-        let mut host_pos_y = vec![0.0; self.num_nodes];
+        let mut host_pos_y = vec![0.0; self.allocated_nodes];
         self.pos_in_y.copy_to(&mut host_pos_y)?;
-        let mut host_pos_z = vec![0.0; self.num_nodes];
+        let mut host_pos_z = vec![0.0; self.allocated_nodes];
         self.pos_in_z.copy_to(&mut host_pos_z)?;
 
         let mut aabb = AABB {
             min: [f32::MAX; 3],
             max: [f32::MIN; 3],
         };
+        // Only iterate over actual nodes, not allocated buffer size
         for i in 0..self.num_nodes {
             aabb.min[0] = aabb.min[0].min(host_pos_x[i]);
             aabb.min[1] = aabb.min[1].min(host_pos_y[i]);
@@ -297,8 +340,9 @@ impl UnifiedGPUCompute {
         };
         let num_grid_cells = (grid_dims.x * grid_dims.y * grid_dims.z) as usize;
 
-        if num_grid_cells > self.cell_start.len() {
-            return Err(anyhow!("Grid size exceeds allocated buffer. Re-allocate with larger max_grid_cells."));
+        if num_grid_cells > self.max_grid_cells {
+            return Err(anyhow!("Grid size {} exceeds allocated buffer {}. Re-allocate with larger max_grid_cells.", 
+                       num_grid_cells, self.max_grid_cells));
         }
 
         // 3. Build Grid: Assign cell keys to each node
@@ -321,17 +365,20 @@ impl UnifiedGPUCompute {
         // 4. Sort nodes by cell key
         let d_keys_in = self.cell_keys.as_slice();
         let d_values_in = self.sorted_node_indices.as_slice();
-        let d_keys_out = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
-        let mut d_values_out = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
+        // Use allocated_nodes to match buffer sizes
+        let d_keys_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
+        let mut d_values_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
         
         unsafe {
+            // Get the raw CUDA stream handle to ensure Thrust uses the same stream as kernels
+            let stream_ptr = self.stream.as_inner() as *mut ::std::os::raw::c_void;
             thrust_sort_key_value(
                 d_keys_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
                 d_keys_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
                 d_values_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
                 d_values_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
                 self.num_nodes as ::std::os::raw::c_int,
-                std::ptr::null_mut(), // Use default stream
+                stream_ptr, // Use our custom stream, not default
             );
         }
         // The sorted keys are in d_keys_out, sorted values (node indices) in d_values_out
@@ -340,10 +387,14 @@ impl UnifiedGPUCompute {
         std::mem::swap(&mut self.sorted_node_indices, &mut d_values_out);
 
         // 5. Find cell start/end indices using our new kernel
-        // First, we need to zero out the cell_start and cell_end buffers as the kernel
-        // only writes the boundaries. A `memset` would be more efficient.
-        self.cell_start.copy_from(&vec![0i32; num_grid_cells])?;
-        self.cell_end.copy_from(&vec![0i32; num_grid_cells])?;
+        // Zero out the full allocated buffers to ensure all cells are initialized
+        // Use pre-allocated zero buffer to avoid allocation every frame
+        if num_grid_cells <= self.max_grid_cells {
+            self.cell_start.copy_from(&self.zero_buffer)?;
+            self.cell_end.copy_from(&self.zero_buffer)?;
+        } else {
+            return Err(anyhow!("Grid cells {} exceeds max {}", num_grid_cells, self.max_grid_cells));
+        }
 
         let grid_cells_blocks = (num_grid_cells as u32 + 255) / 256;
         let compute_cell_bounds_kernel = self._module.get_function(self.compute_cell_bounds_kernel_name)?;
