@@ -58,7 +58,7 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        info!("Processing enhanced settings update from client: {} (size: {} bytes)", client_id, payload_size);
+        // Processing settings update
 
         // Comprehensive validation
         let validated_payload = match self.validation_service.validate_settings_update(&payload) {
@@ -69,12 +69,12 @@ impl EnhancedSettingsHandler {
             }
         };
 
-        debug!("Settings validation passed for client: {}", client_id);
+        // Settings validation passed
 
         // Continue with existing update logic using validated payload
         let update = validated_payload;
         
-        debug!("Settings update received: {:?}", update);
+        // Settings update received
         
         // Get current settings
         let mut app_settings = match state.settings_addr.send(GetSettings).await {
@@ -117,7 +117,7 @@ impl EnhancedSettingsHandler {
         
         // If auto_balance is being updated, apply to both graphs
         if let Some(ref auto_balance_value) = auto_balance_update {
-            info!("Synchronizing auto_balance setting across both graphs: {}", auto_balance_value);
+            // Synchronizing auto_balance setting across both graphs
             
             let vis_obj = modified_update.as_object_mut()
                 .and_then(|o| o.entry("visualisation").or_insert_with(|| json!({})).as_object_mut())
@@ -177,7 +177,7 @@ impl EnhancedSettingsHandler {
         // Save updated settings
         match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
             Ok(Ok(())) => {
-                info!("Settings updated successfully for client: {}", client_id);
+                // Settings updated successfully
                 
                 let is_auto_balance_change = auto_balance_update.is_some();
                 
@@ -186,10 +186,10 @@ impl EnhancedSettingsHandler {
                     // TODO: Add graph type selection when agent graph is implemented
                     propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
                     if is_auto_balance_change {
-                        info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU (logseq only)");
+                        // Propagating auto_balance setting change to GPU
                     }
                 } else {
-                    info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active and not changing");
+                    // Skipping physics propagation - auto-balance is active
                 }
                 
                 let camel_case_json = app_settings.to_camel_case_json()
@@ -243,7 +243,7 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        debug!("Processing get settings request from client: {}", client_id);
+        // Processing get settings request
 
         let app_settings = match state.settings_addr.send(GetSettings).await {
             Ok(Ok(settings)) => settings,
@@ -303,7 +303,7 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        info!("Processing settings reset request from client: {}", client_id);
+        // Processing settings reset request
 
         // Load default settings
         let default_settings = match AppFullSettings::new() {

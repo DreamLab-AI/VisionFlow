@@ -106,7 +106,7 @@ visualisation:
           spatial_hash_efficiency_threshold: 0.3
           cluster_density_threshold: 50.0
           numerical_instability_threshold: 0.001
-        attraction_k: 0.01
+        attraction_k: 0.2852209
         bounds_size: 1000.0
         separation_radius: 2.0
         damping: 0.85
@@ -115,8 +115,8 @@ visualisation:
         iterations: 50
         max_velocity: 5.0
         max_force: 100.0
-        repel_k: 28.607826
-        spring_k: 4.5635886
+        repel_k: 75.645744
+        spring_k: 0.28531802
         mass_scale: 1.0
         boundary_damping: 0.95
         update_threshold: 0.01
@@ -273,12 +273,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '5': rightView
-      '4': topView
+      '1': resetView
       '6': frontView
       '3': fitToView
       '2': cycleMode
-      '1': resetView
+      '5': rightView
+      '4': topView
 system:
   network:
     bind_address: 0.0.0.0

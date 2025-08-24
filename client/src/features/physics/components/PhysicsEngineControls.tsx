@@ -173,7 +173,7 @@ export function PhysicsEngineControls() {
           setGpuMetrics(data);
         }
       } catch (error) {
-        console.error('Failed to fetch GPU metrics:', error);
+        // Failed to fetch GPU metrics
       }
     };
 
@@ -251,7 +251,7 @@ export function PhysicsEngineControls() {
         description: `${param} set to ${value.toFixed(3)}`,
       });
     } catch (error) {
-      console.error('Failed to update force parameters:', error);
+      // Failed to update force parameters
       toast({
         title: 'Error',
         description: 'Failed to update physics parameters',
@@ -275,7 +275,7 @@ export function PhysicsEngineControls() {
         }),
       });
     } catch (error) {
-      console.error('Failed to update constraints:', error);
+      // Failed to update constraints
     }
   }, [constraints]);
 
@@ -294,12 +294,12 @@ export function PhysicsEngineControls() {
         }),
       });
     } catch (error) {
-      console.error('Failed to update isolation layers:', error);
+      // Failed to update isolation layers
     }
   }, [isolationLayers]);
 
   const handleSaveConstraint = useCallback((constraint: any) => {
-    console.log('Saving constraint:', constraint);
+    // Saving constraint
     // TODO: Implement constraint saving
   }, []);
 

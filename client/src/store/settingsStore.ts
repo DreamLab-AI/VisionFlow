@@ -243,7 +243,7 @@ if (typeof window !== 'undefined' && window.localStorage) {
       }
     }
   } catch (e) {
-    console.warn('Could not clear cached physics settings:', e);
+    // Could not clear cached physics settings
   }
 }
 
