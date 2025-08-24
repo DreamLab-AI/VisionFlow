@@ -1751,6 +1751,19 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             // Create a node for each agent
             let mut node = Node::new_with_id(agent.agent_id.clone(), Some(node_id));
             
+            // Override position to be near origin like regular nodes
+            // Use the index (i) instead of the high node_id for position calculation
+            let physics = crate::config::dev_config::physics();
+            let theta = 2.0 * std::f32::consts::PI * ((i as f32 * physics.golden_ratio) % 1.0);
+            let phi = ((2.0 * i as f32 / 20.0) - 1.0).acos(); // Reasonable estimate for agent count
+            let radius = physics.initial_radius_min + ((i as f32) % physics.initial_radius_range);
+            
+            node.data.position = crate::types::vec3::Vec3Data::new(
+                radius * phi.sin() * theta.cos(),
+                radius * phi.sin() * theta.sin(),
+                radius * phi.cos(),
+            );
+            
             // Set node properties based on agent status
             node.color = Some(match agent.profile.agent_type {
                 crate::types::claude_flow::AgentType::Coordinator => "#FF6B6B".to_string(),
