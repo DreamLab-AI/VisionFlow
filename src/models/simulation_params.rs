@@ -116,6 +116,7 @@ pub struct SimulationParams {
     pub attraction_k: f32,        // Attraction between connected nodes
     pub separation_radius: f32,   // Minimum separation between nodes
     pub temperature: f32,          // System temperature for simulated annealing
+    pub center_gravity_k: f32,    // Center gravity force constant
     
     // GPU-specific parameters
     pub stress_weight: f32,
@@ -178,7 +179,8 @@ impl SimulationParams {
         if self.spring_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_SPRINGS;
         }
-        if self.attraction_k > 0.0 {
+        // Enable centering if center_gravity_k is set
+        if self.center_gravity_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_CENTERING;
         }
         // Add other feature flags based on settings as needed.
@@ -193,7 +195,7 @@ impl SimulationParams {
             repel_k: self.repel_k,
             repulsion_cutoff: self.max_repulsion_dist,
             repulsion_softening_epsilon: 1e-4, // Default - will be overridden by direct conversion
-            center_gravity_k: self.attraction_k, // Use attraction_k as center gravity
+            center_gravity_k: self.center_gravity_k, // Use the actual center_gravity_k field
             max_force: self.max_force,
             max_velocity: self.max_velocity,
             grid_cell_size: self.max_repulsion_dist, // Default - will be overridden by direct conversion
@@ -247,8 +249,9 @@ impl SimParams {
             enable_bounds: true,
             max_velocity: self.max_velocity,
             max_force: self.max_force,
-            attraction_k: self.center_gravity_k,
+            attraction_k: 0.0, // Attraction between connected nodes (separate from center_gravity)
             separation_radius: self.separation_radius,
+            center_gravity_k: self.center_gravity_k, // Preserve center gravity
             temperature: self.temperature,
             stress_weight: 1.0,
             stress_alpha: 0.1,
@@ -292,7 +295,7 @@ impl From<&PhysicsSettings> for SimParams {
         if physics.spring_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_SPRINGS;
         }
-        if physics.attraction_k > 0.0 || physics.center_gravity_k > 0.0 {
+        if physics.center_gravity_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_CENTERING;
         }
 
@@ -344,6 +347,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             attraction_k: physics.attraction_k,
             separation_radius: physics.separation_radius,
             temperature: physics.temperature,
+            center_gravity_k: physics.center_gravity_k,
             // GPU parameters from physics settings
             stress_weight: physics.stress_weight,
             stress_alpha: physics.stress_alpha,
