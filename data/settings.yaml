@@ -120,7 +120,7 @@ visualisation:
         boundary_extreme_force_multiplier: 10.0
         boundary_velocity_damping: 0.5
         attraction_k: 0.5
-        bounds_size: 0.0
+        bounds_size: 10000.0
         separation_radius: 2.0
         damping: 0.92
         enable_bounds: false
@@ -136,8 +136,8 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0
-        stress_alpha: 0.0
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
         boundary_limit: 490.0
         alignment_strength: 0.0
         cluster_strength: 0.0
@@ -226,7 +226,7 @@ visualisation:
         boundary_extreme_force_multiplier: 10.0
         boundary_velocity_damping: 0.5
         attraction_k: 0.0001
-        bounds_size: 0.0
+        bounds_size: 10000.0
         separation_radius: 2.0
         damping: 0.95
         enable_bounds: false
@@ -242,8 +242,8 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0
-        stress_alpha: 0.0
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
         boundary_limit: 0.0
         alignment_strength: 0.0
         cluster_strength: 0.0

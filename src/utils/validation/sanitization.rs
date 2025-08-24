@@ -57,20 +57,26 @@ impl Sanitizer {
         Ok(sanitized)
     }
 
-    /// Remove script tags and javascript: URLs
+    /// Remove actual XSS attempts, not legitimate content
     fn remove_script_tags(input: &str) -> ValidationResult<String> {
-        let dangerous_patterns = [
-            r"<script[^>]*>.*?</script>",
-            r"javascript:",
-            r"vbscript:",
-            r"data:text/html",
-            r"on\w+\s*=",  // Event handlers like onclick=
+        // Only block actual XSS attempts with HTML context
+        let xss_patterns = [
+            // Actual script tags with content
+            r"(?i)<script[^>]*>.*?</script>",
+            // javascript: protocol in href/src context (with quotes)
+            r#"(?i)(href|src)\s*=\s*["']?\s*javascript:"#,
+            // vbscript: protocol
+            r#"(?i)(href|src)\s*=\s*["']?\s*vbscript:"#,
+            // data URIs with HTML content
+            r"(?i)data:text/html[,;]",
+            // Event handlers in HTML attributes (with quotes)
+            r#"(?i)\s(on\w+)\s*=\s*["'][^"']*["']"#,
         ];
 
         let result = input.to_string();
         
-        for pattern in &dangerous_patterns {
-            let regex = Regex::new(&format!("(?i){}", pattern))
+        for pattern in &xss_patterns {
+            let regex = Regex::new(pattern)
                 .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid sanitization regex", "REGEX_ERROR")))?;
             
             if regex.is_match(&result) {
@@ -91,17 +97,20 @@ impl Sanitizer {
             .replace('\'', "&#x27;")
     }
 
-    /// Remove SQL injection patterns
+    /// Remove SQL injection patterns - only block actual SQL injection attempts
     fn remove_sql_injection_patterns(input: &str) -> ValidationResult<String> {
-        let sql_patterns = [
-            r"(?i)\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b",
-            r"(?i)--",
-            r"/\*.*?\*/",
-            r"(?i)\b(or|and)\s+\d+\s*=\s*\d+",
-            r#"(?i)\b(or|and)\s+['"].*['"]"#,
+        // Only check for actual SQL injection patterns, not common words
+        // Look for SQL syntax combinations, not individual keywords
+        let sql_injection_patterns = [
+            // Actual SQL injection with multiple keywords together
+            r"(?i)(union\s+select|select\s+.*\s+from\s+|insert\s+into\s+|delete\s+from\s+|drop\s+table\s+|update\s+.*\s+set\s+)",
+            // SQL comments that are commonly used in injection
+            r"(?i)(;\s*--|\*/\s*;)",
+            // Classic OR 1=1 style injections with actual SQL context
+            r"(?i)('\s+or\s+\d+\s*=\s*\d+|'\s+and\s+\d+\s*=\s*\d+)",
         ];
 
-        for pattern in &sql_patterns {
+        for pattern in &sql_injection_patterns {
             let regex = Regex::new(pattern)
                 .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid SQL regex", "REGEX_ERROR")))?;
             
@@ -158,16 +167,30 @@ impl Sanitizer {
 
     /// Check if a JSON key is suspicious
     fn is_suspicious_key(key: &str) -> bool {
-        let suspicious_keys = [
+        // Only check for actual dangerous prototype pollution patterns
+        // Don't flag legitimate words that happen to contain "function" or "script"
+        let dangerous_exact_keys = [
             "__proto__",
             "constructor", 
             "prototype",
-            "eval",
-            "function",
-            "script",
         ];
-
-        key.to_lowercase().contains("__") || suspicious_keys.iter().any(|&k| key.to_lowercase().contains(k))
+        
+        // Check for exact matches of dangerous keys
+        if dangerous_exact_keys.iter().any(|&k| key == k) {
+            return true;
+        }
+        
+        // Check for obvious code injection attempts (standalone eval/script tags)
+        if key == "eval" || key == "<script>" || key.starts_with("<script") {
+            return true;
+        }
+        
+        // Allow double underscores only for actual proto pollution attempts
+        if key == "__proto__" || key == "__defineGetter__" || key == "__defineSetter__" {
+            return true;
+        }
+        
+        false
     }
 
     /// Sanitize filename for safe file operations

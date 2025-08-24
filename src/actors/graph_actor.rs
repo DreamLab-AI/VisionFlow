@@ -1288,7 +1288,8 @@ impl GraphServiceActor {
             info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
             info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
             info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
-            info!("  - attraction_k: {:.3} (clustering force)", self.simulation_params.attraction_k);
+            info!("  - attraction_k: {:.3} (unused - for future clustering)", self.simulation_params.attraction_k);
+            info!("  - center_gravity_k: {:.3} (center pull force)", self.simulation_params.center_gravity_k);
             info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
             info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
             info!("  - auto_balance: {} (auto-tuning enabled?)", self.simulation_params.auto_balance);
@@ -1356,8 +1357,11 @@ impl GraphServiceActor {
             }
         
             let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
-            debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {} }}",
-                   sim_params.repel_k, sim_params.damping, sim_params.dt);
+            if crate::utils::logging::is_debug_enabled() {
+                debug!("Setting GPU params: SimParams {{ repel_k: {}, damping: {}, dt: {}, center_gravity_k: {}, feature_flags: 0x{:04X} }}",
+                       sim_params.repel_k, sim_params.damping, sim_params.dt, 
+                       sim_params.center_gravity_k, sim_params.feature_flags);
+            }
             
             // Execute GPU physics step
             debug!("Executing GPU physics step...");

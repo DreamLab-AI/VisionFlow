@@ -100,8 +100,8 @@ const createDefaultGraphSettings = (colorTheme: 'blue' | 'green'): GraphSettings
       updateThreshold: 0.01,
       
       // GPU-specific parameters for compatibility
-      stressWeight: 0.0, // Disabled - was causing position explosions
-      stressAlpha: 0.0, // Disabled - was causing position explosions
+      stressWeight: 0.0001, // Minimal value - stress majorization disabled
+      stressAlpha: 0.0001, // Minimal value - stress majorization disabled
       boundaryLimit: 1000.0,
       alignmentStrength: 0.1,
       clusterStrength: 0.1,
