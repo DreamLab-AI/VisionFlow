@@ -79,18 +79,22 @@ const hologramFragmentShader = `
       glitch = step(0.99, sin(glitchTime * 1.0 + vWorldPosition.y * 12.0)) * 0.1;
     }
 
-    // Combine effects
-    vec3 emission = emissiveColor * (rim * glowStrength + scanline + glitch);
+    // Combine effects - glowStrength acts as bloom multiplier
+    float totalGlow = rim + scanline + glitch;
+    vec3 emission = emissiveColor * totalGlow * glowStrength;
     color += emission;
 
     // Alpha with rim fade
     float alpha = mix(opacity, 1.0, rim * 0.5);
     alpha *= (1.0 - glitch * 0.5); // Flicker during glitch
 
-    // Distance fade for depth
+    // Distance fade for depth - adjusted for better visibility
     float distance = length(cameraPosition - vWorldPosition);
-    float distanceFade = 1.0 - smoothstep(50.0, 200.0, distance);
+    float distanceFade = 1.0 - smoothstep(100.0, 500.0, distance); // Increased range
     alpha *= distanceFade;
+    
+    // Ensure minimum alpha to prevent complete transparency
+    alpha = max(alpha, 0.1);
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -144,8 +148,9 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
       fragmentShader: hologramFragmentShader,
       transparent: true,
       side: THREE.DoubleSide,
-      depthWrite: true,
-      blending: THREE.AdditiveBlending, // Enhanced glow effect // Change to additive for more glow
+      depthWrite: false, // Disable depth write for transparent objects
+      depthTest: true,
+      blending: THREE.NormalBlending, // Use normal blending to prevent scene vanishing
     });
   }
 

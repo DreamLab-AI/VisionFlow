@@ -2,6 +2,9 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EdgeSettings } from '../../settings/config/settings';
+import { useSettingsStore } from '../../../store/settingsStore';
+import { registerEdgeObject, unregisterEdgeObject } from '../../visualisation/hooks/bloomRegistry';
+import { useBloomStrength } from '../contexts/BloomContext';
 
 interface FlowingEdgesProps {
   points: number[];
@@ -72,8 +75,11 @@ const flowFragmentShader = `
 `;
 
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, edgeData }) => {
+  const { edgeBloomStrength } = useBloomStrength();
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
+  const globalSettings = useSettingsStore(state => state.settings);
+  // Remove redundant edgeBloom - we're getting it from context now
   
   // Create single geometry for all edges
   const geometry = useMemo(() => {
@@ -90,22 +96,39 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, ed
   const material = useMemo(() => {
     const color = new THREE.Color(settings.color || '#56b6c2');
     
+    // Apply bloom strength to brightness
+    const bloomAdjustedColor = color.clone().multiplyScalar(edgeBloomStrength);
+    
     const mat = new THREE.LineBasicMaterial({
-      color: color,
+      color: bloomAdjustedColor,
       transparent: true,
-      opacity: settings.opacity || 0.6, // Increased for better visibility
+      opacity: Math.min(1.0, (settings.opacity || 0.6)), // Keep opacity stable
       linewidth: settings.baseWidth || 2, // Increased line width
-      depthWrite: true, // Enable depth writing for proper sorting
+      depthWrite: false, // Disable depth write for transparent edges
+      depthTest: true,
       alphaTest: 0.01, // Prevent z-fighting on nearly transparent areas
+      toneMapped: false, // Keep lines bright for bloom threshold
     });
     
     return mat;
-  }, [settings.color, settings.opacity, settings.baseWidth]);
+  }, [settings.color, settings.opacity, settings.baseWidth, edgeBloomStrength]);
   
   // Update material reference
   useEffect(() => {
     materialRef.current = material;
   }, [material]);
+
+  // Render this on the "edge bloom" layer for selective bloom pass and register
+  useEffect(() => {
+    const obj = lineRef.current as any;
+    if (obj) {
+      obj.layers.enable(1); // Use layer 1 for all bloom objects to avoid SelectiveBloom issues
+      registerEdgeObject(obj);
+    }
+    return () => {
+      if (obj) unregisterEdgeObject(obj);
+    };
+  }, []);
   
   // Animate flow effect by modifying opacity
   useFrame((state) => {

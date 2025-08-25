@@ -14,6 +14,8 @@ import { createEventHandlers } from './GraphManager_EventHandlers'
 import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
+import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
+import { useBloomStrength } from '../contexts/BloomContext'
 
 const logger = createLogger('GraphManager')
 
@@ -112,6 +114,7 @@ const getTypeImportance = (nodeType?: string): number => {
 }
 
 const GraphManager: React.FC = () => {
+  const { nodeBloomStrength, edgeBloomStrength } = useBloomStrength()
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const materialRef = useRef<HologramNodeMaterial | null>(null)
   const particleSystemRef = useRef<THREE.Points>(null)
@@ -172,18 +175,47 @@ const GraphManager: React.FC = () => {
         emissiveColor: '#00ffff', // Cyan emissive
         opacity: settings?.visualisation?.graphs?.logseq?.nodes?.opacity ?? settings?.visualisation?.nodes?.opacity ?? 0.8,
         enableHologram: true, // Force enable to test
-        glowStrength: 3.0, // Maximum glow
+        glowStrength: 2.0 * (nodeBloomStrength || 1), // Multiply by bloom strength with fallback
         pulseSpeed: 1.0,
         hologramStrength: 0.8, // Strong hologram effect
-        rimPower: 3.0, // Strong rim lighting
+        rimPower: 2.0, // Moderate rim lighting
       })
+
+      // Keep nodes bright for postprocessing bloom
+      ;(materialRef.current as any).toneMapped = false
 
       // Enable instance color support
       materialRef.current.defines = { ...materialRef.current.defines, USE_INSTANCING_COLOR: '' }
       materialRef.current.needsUpdate = true
     }
   }, [])
-
+  
+  // Put instanced nodes on the "node bloom" layer (2) and register for selective bloom
+  useEffect(() => {
+    const obj = meshRef.current as any;
+    if (obj) {
+      obj.layers.enable(1); // Use layer 1 for all bloom objects
+      registerNodeObject(obj);
+    }
+    return () => {
+      if (obj) unregisterNodeObject(obj);
+    };
+  }, [])
+  
+  // Update material settings for bloom strength changes
+  useEffect(() => {
+    if (materialRef.current) {
+      // Update glow strength based on bloom slider
+      const strength = nodeBloomStrength || 1;
+      materialRef.current.updateHologramParams({
+        glowStrength: strength * 2.0 // Scale the glow based on slider
+      });
+      // Also update the emissive intensity directly
+      materialRef.current.uniforms.glowStrength.value = strength * 2.0;
+      materialRef.current.needsUpdate = true;
+    }
+  }, [nodeBloomStrength]);
+  
   // Update material settings for Logseq graph
   useEffect(() => {
     if (materialRef.current && settings?.visualisation) {

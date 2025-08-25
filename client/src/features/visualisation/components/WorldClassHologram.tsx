@@ -3,6 +3,8 @@ import React, { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
+import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
+import { useBloomStrength } from '../../graph/contexts/BloomContext';
 
 // Quantum field shader with advanced visuals
 const quantumFieldShader = {
@@ -124,16 +126,12 @@ const HolographicRing: React.FC<{
     <group>
       <mesh ref={meshRef}>
         <torusGeometry args={[radius, thickness, 8, 64]} />
-        <meshPhysicalMaterial
+        <meshBasicMaterial
           color={color}
-          emissive={color}
-          emissiveIntensity={0.5}
+          wireframe
           transparent
-          opacity={0.3}
-          roughness={0}
-          metalness={1}
-          clearcoat={1}
-          clearcoatRoughness={0}
+          opacity={0.6}
+          depthWrite={false}
         />
       </mesh>
       <points ref={particlesRef} geometry={particles}>
@@ -150,24 +148,22 @@ const HolographicRing: React.FC<{
   );
 };
 
-// Main world-class hologram system
+// Main world-class hologram system - memoized to prevent unnecessary re-renders
 export const WorldClassHologram: React.FC<{
   enabled?: boolean;
   position?: [number, number, number];
-}> = ({ enabled = true, position = [0, 0, 0] }) => {
+}> = React.memo(({ enabled = true, position = [0, 0, 0] }) => {
   const settings = useSettingsStore(state => state.settings);
+  const { envBloomStrength } = useBloomStrength();
   const sphereRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const groupRef = useRef<THREE.Group>(null);
   
   const hologramSettings = settings?.visualisation?.hologram;
   const isEnabled = enabled && (settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram || 
                                settings?.visualisation?.nodes?.enableHologram);
   
-  // Debug logging
-  console.log('WorldClassHologram - enabled prop:', enabled);
-  console.log('WorldClassHologram - settings enableHologram:', settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram);
-  console.log('WorldClassHologram - isEnabled:', isEnabled);
-  console.log('WorldClassHologram - hologramSettings:', hologramSettings);
+  // Removed debug logging to reduce console noise
   
   const uniforms = useMemo(() => ({
     time: { value: 0 },
@@ -187,26 +183,33 @@ export const WorldClassHologram: React.FC<{
   });
   
   if (!isEnabled) {
-    console.log('WorldClassHologram - NOT RENDERING (disabled)');
     return null;
   }
-  
-  console.log('WorldClassHologram - RENDERING at position:', position);
+
+  // Ensure hologram content renders on env bloom layer (1) and register for selective bloom
+  React.useEffect(() => {
+    const obj = groupRef.current as any;
+    if (obj) {
+      obj.layers.enable(1);
+      registerEnvObject(obj);
+    }
+    return () => {
+      if (obj) unregisterEnvObject(obj);
+    };
+  }, []);
   
   return (
-    <group position={position}>
+    <group ref={groupRef} position={position}>
       {/* Quantum field sphere - using settings */}
       <mesh ref={sphereRef}>
         <icosahedronGeometry args={[hologramSettings?.sphereSizes?.[0] || 40, 4]} />
-        <shaderMaterial
-          ref={materialRef}
-          uniforms={uniforms}
-          vertexShader={quantumFieldShader.vertexShader}
-          fragmentShader={quantumFieldShader.fragmentShader}
+        <meshBasicMaterial
+          color={hologramSettings?.ringColor || '#00ffff'}
+          wireframe
           transparent
-          blending={THREE.AdditiveBlending}
+          opacity={hologramSettings?.ringOpacity || 0.4}
           depthWrite={false}
-          side={THREE.DoubleSide}
+          toneMapped={false}
         />
       </mesh>
       
@@ -228,12 +231,14 @@ export const WorldClassHologram: React.FC<{
           <meshPhysicalMaterial
             color="#00ffff"
             emissive="#00ffff"
-            emissiveIntensity={0.3}
+            emissiveIntensity={0.3 * envBloomStrength}
             transparent
             opacity={hologramSettings.buckminsterOpacity || 0.3}
             wireframe
             roughness={0}
             metalness={1}
+            depthWrite={false}
+            toneMapped={false}
           />
         </mesh>
       )}
@@ -245,25 +250,27 @@ export const WorldClassHologram: React.FC<{
           <meshPhysicalMaterial
             color="#ff00ff"
             emissive="#ff00ff"
-            emissiveIntensity={0.2}
+            emissiveIntensity={0.2 * envBloomStrength}
             transparent
             opacity={hologramSettings.geodesicOpacity || 0.25}
             wireframe
             roughness={0}
             metalness={1}
+            depthWrite={false}
+            toneMapped={false}
           />
         </mesh>
       )}
     </group>
   );
-};
+});
 
-// Energy field particles
+// Energy field particles - memoized to prevent unnecessary re-renders
 export const EnergyFieldParticles: React.FC<{
   count?: number;
   bounds?: number;
   color?: string;
-}> = ({ count = 1000, bounds = 200, color = '#00ffff' }) => {
+}> = React.memo(({ count = 1000, bounds = 200, color = '#00ffff' }) => {
   const pointsRef = useRef<THREE.Points>(null);
   
   const [positions, colors] = useMemo(() => {
@@ -284,6 +291,17 @@ export const EnergyFieldParticles: React.FC<{
     
     return [pos, col];
   }, [count, bounds, color]);
+
+  React.useEffect(() => {
+    const obj = pointsRef.current as any;
+    if (obj) {
+      obj.layers.enable(1);
+      registerEnvObject(obj);
+    }
+    return () => {
+      if (obj) unregisterEnvObject(obj);
+    };
+  }, []);
   
   useFrame((state) => {
     if (pointsRef.current) {
@@ -330,6 +348,6 @@ export const EnergyFieldParticles: React.FC<{
       />
     </points>
   );
-};
+});
 
 export default WorldClassHologram;
