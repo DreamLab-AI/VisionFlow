@@ -848,16 +848,7 @@ impl GraphServiceActor {
             }
         }
         
-        // Sample first few nodes to check positions
-        if updated_count > 0 {
-            let sample_size = std::cmp::min(3, updated_count);
-            for i in 0..sample_size {
-                if let Some(node) = self.node_map.get(&(i as u32)) {
-                    info!("Node {} position: ({:.2}, {:.2}, {:.2})", 
-                        i, node.data.position.x, node.data.position.y, node.data.position.z);
-                }
-            }
-        }
+        // Position sampling disabled to reduce log volume
         
         // Check for extreme positions, boundary nodes, and calculate metrics including kinetic energy
         let config = &self.simulation_params.auto_balance_config;
