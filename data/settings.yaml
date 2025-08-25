@@ -25,7 +25,7 @@ visualisation:
     environment_bloom_strength: 3.0
     node_bloom_strength: 3.0
     radius: 0.85
-    strength: 0.39574397
+    strength: 2.0
     threshold: 0.15
   hologram:
     ring_count: 5
@@ -48,11 +48,11 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        base_color: '#ac1690'
+        base_color: '#00e5ff'
         metalness: 0.85
         opacity: 0.95
         roughness: 0.15
-        node_size: 0.5529608
+        node_size: 1.2
         quality: high
         enable_instancing: true
         enable_hologram: true
@@ -71,7 +71,7 @@ visualisation:
       labels:
         desktop_font_size: 0.5
         enable_labels: true
-        text_color: '#e6b400'
+        text_color: '#ffffff'
         text_outline_color: '#0a0e1a'
         text_outline_width: 0.005
         text_resolution: 32
@@ -115,7 +115,7 @@ visualisation:
         iterations: 50
         max_velocity: 5.0
         max_force: 100.0
-        repel_k: 91.32504
+        repel_k: 2.0
         spring_k: 0.1
         mass_scale: 1.0
         boundary_damping: 0.95
@@ -273,11 +273,11 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '4': topView
-      '3': fitToView
-      '1': resetView
       '5': rightView
+      '1': resetView
+      '4': topView
       '2': cycleMode
+      '3': fitToView
       '6': frontView
 system:
   network:

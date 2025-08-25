@@ -1,13 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stats } from '@react-three/drei';
-import GraphManager from '../features/graph/components/GraphManager';
-import { BotsVisualization } from '../features/bots/components';
-// import { DualVisualizationControls } from '../features/graph/components/DualVisualizationControls'; // Removed - both graphs now at origin
-import { PostProcessingEffects } from '../features/graph/components/PostProcessingEffects';
-import { SpacePilotSimpleIntegration } from '../features/visualisation/components/SpacePilotSimpleIntegration';
+import GraphViewport from '../features/graph/components/GraphViewport';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
-import { useMouseControls } from '../hooks/useMouseControls';
 import { HologramVisualisation } from '../features/visualisation/components/HologramVisualisation';
 import { useSettingsStore } from '../store/settingsStore';
 import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';
@@ -24,22 +17,7 @@ const MainLayoutContent: React.FC = () => {
   const { botsData } = useBotsData();
   const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
   const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
-  const [orbitControlsEnabled, setOrbitControlsEnabled] = useState(true);
-  const orbitControlsRef = useRef<any>(null);
   const [hasVoiceSupport, setHasVoiceSupport] = useState(true);
-
-  const ambientIntensity = (useSelectiveSetting('visualisation.rendering.ambientLightIntensity') as number) ?? 0.6;
-  const directionalIntensity = (useSelectiveSetting('visualisation.rendering.directionalLightIntensity') as number) ?? 0.8;
-
-  const handleOrbitControlsToggle = (enabled: boolean) => {
-    setOrbitControlsEnabled(enabled);
-    if (orbitControlsRef.current) {
-      orbitControlsRef.current.enabled = enabled;
-    }
-  };
-
-  // Ensure mouse controls work when SpaceMouse is unavailable
-  useMouseControls(orbitControlsRef);
 
   useEffect(() => {
     const support = AudioInputService.getBrowserSupport();
@@ -56,62 +34,13 @@ const MainLayoutContent: React.FC = () => {
       height: '100vh',
       backgroundColor: '#000022'
     }}>
-      <Canvas
-        camera={{
-          position: [0, 20, 60], // Adjusted camera position for better view of unified graphs
-          fov: 75,
-          near: 0.1,
-          far: 2000
-        }}
-        style={{ width: '100%', height: '100%' }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance'
-        }}
-      >
-        {/* Scene lighting */}
-        <color attach="background" args={[0, 0, 0.05]} />
-        <ambientLight intensity={ambientIntensity} />
-        <directionalLight intensity={directionalIntensity} position={[1, 1, 1]} />
-
-        {/* Logseq Graph Visualization - positioned at origin */}
-        <group position={[0, 0, 0]}>
-          <GraphManager />
-        </group>
-
-        {/* VisionFlow Bots Visualization - also positioned at origin for unified view */}
-        <group position={[0, 0, 0]}>
-          <BotsVisualization />
-        </group>
-
-        {/* Camera Controls */}
-        <OrbitControls
-          ref={orbitControlsRef}
-          enabled={orbitControlsEnabled}
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          zoomSpeed={0.8}
-          panSpeed={0.8}
-          rotateSpeed={0.8}
-        />
-
-        {/* SpacePilot 6DOF Controller */}
-        <SpacePilotSimpleIntegration />
-
-        {/* Performance stats */}
-        {showStats && <Stats />}
-
-        {/* Post-processing effects */}
-        {enableBloom && <PostProcessingEffects />}
-      </Canvas>
+      <GraphViewport />
 
       {/* Integrated Control Panel - Simplified version for VisionFlow status and SpacePilot */}
       <IntegratedControlPanel
         showStats={showStats}
         enableBloom={enableBloom}
-        onOrbitControlsToggle={handleOrbitControlsToggle}
+        onOrbitControlsToggle={() => {}}
         botsData={botsData ? {
           nodeCount: botsData.nodeCount,
           edgeCount: botsData.edgeCount,
