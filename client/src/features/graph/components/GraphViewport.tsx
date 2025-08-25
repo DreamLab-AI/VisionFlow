@@ -144,7 +144,7 @@ const GraphViewport: React.FC = () => {
           far: far,
           position: cameraPosition as [number, number, number],
         }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance', logarithmicDepthBuffer: true }}
         dpr={[1, 2]} // Pixel ratio for sharpness
         shadows // Enable shadows
       >

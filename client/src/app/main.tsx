@@ -1,3 +1,7 @@
+import { extend } from '@react-three/fiber';
+import { GeodesicPolyhedronGeometry } from '../utils/three-geometries';
+
+extend({ GeodesicPolyhedronGeometry });
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

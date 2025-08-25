@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, extend } from '@react-three/fiber';
+import { GeodesicPolyhedronGeometry } from '@/utils/three-geometries';
 import { useSettingsStore } from '@/store/settingsStore';
+extend({ GeodesicPolyhedronGeometry });
 
 // Plasma field effect shader
 const plasmaShader = {
