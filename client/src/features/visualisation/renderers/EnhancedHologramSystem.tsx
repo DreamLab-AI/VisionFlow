@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { useFrame, extend } from '@react-three/fiber';
 import { GeodesicPolyhedronGeometry } from '@/utils/three-geometries';
 import { useSettingsStore } from '@/store/settingsStore';
+import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
 extend({ GeodesicPolyhedronGeometry });
 
 // Plasma field effect shader
@@ -76,15 +77,13 @@ export const QuantumField: React.FC<{
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[size, 64, 64]} />
-      <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
-        vertexShader={plasmaShader.vertexShader}
-        fragmentShader={plasmaShader.fragmentShader}
+      <meshBasicMaterial
+        color={color}
+        wireframe
         transparent
+        opacity={opacity}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
-        side={THREE.DoubleSide}
       />
     </mesh>
   );
@@ -149,10 +148,12 @@ export const EnergyRing: React.FC<{
         <ringGeometry args={[innerRadius, outerRadius, 64]} />
         <meshBasicMaterial
           color={color}
+          wireframe
           transparent
           opacity={opacity}
           side={THREE.DoubleSide}
           blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </mesh>
       <points ref={particlesRef}>
@@ -175,6 +176,7 @@ export const EnergyRing: React.FC<{
           transparent
           opacity={opacity * 0.6}
           blending={THREE.AdditiveBlending}
+          depthWrite={false}
           vertexColors
         />
       </points>
@@ -212,6 +214,7 @@ export const GeodesicDome: React.FC<{
         transparent
         opacity={opacity}
         wireframe
+        depthWrite={false}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -242,6 +245,7 @@ export const BuckminsterSphere: React.FC<{
         opacity={opacity}
         wireframe
         blending={THREE.AdditiveBlending}
+        depthWrite={false}
       />
     </mesh>
   );
@@ -294,6 +298,7 @@ export const DataFlowVisualization: React.FC<{
               transparent
               opacity={0}
               blending={THREE.AdditiveBlending}
+              depthWrite={false}
             />
           </line>
         );
@@ -311,10 +316,15 @@ export const EnhancedHologramSystem: React.FC<{
   const groupRef = useRef<THREE.Group>(null);
   
   useEffect(() => {
-    if (groupRef.current) {
-      groupRef.current.layers.set(0);
-      groupRef.current.layers.enable(1); // Enable bloom layer
+    const obj = groupRef.current;
+    if (obj) {
+      obj.layers.set(0);
+      obj.layers.enable(1); // Enable bloom layer
+      registerEnvObject(obj);
     }
+    return () => {
+      if (obj) unregisterEnvObject(obj);
+    };
   }, []);
   
   const {
@@ -391,6 +401,7 @@ export const EnhancedHologramSystem: React.FC<{
             transparent
             opacity={triangleSphereOpacity}
             wireframe
+            depthWrite={false}
             side={THREE.DoubleSide}
           />
         </mesh>

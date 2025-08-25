@@ -63,6 +63,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
   // Check if node animations are enabled (controls shader type)
   const enableNodeAnimations = settings?.visualisation?.animations?.enableNodeAnimations || false;
   const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+  const nodeBloom = settings?.visualisation?.bloom?.nodeBloomStrength ?? 1;
   
   useEffect(() => {
     if (!materialRef.current) return;
@@ -75,7 +76,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
         scanlineSpeed: 2.0,
         scanlineCount: 30.0,
         hologramStrength: 0.8,
-        glowStrength: 2.0,
+        glowStrength: 2.0 * nodeBloom,
         rimPower: 3.0,
       });
       
@@ -92,7 +93,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
         scanlineSpeed: 0,
         scanlineCount: 0,
         hologramStrength: 0,
-        glowStrength: 1.0, // Keep some glow for visibility
+        glowStrength: 1.0 * nodeBloom, // Scaled by node bloom slider
         rimPower: 2.0, // Keep rim lighting
       });
       

@@ -1,15 +1,15 @@
-import React, { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import * as THREE from 'three';
+import { BloomProvider } from '../contexts/BloomContext';
 import { graphDataManager } from '../managers/graphDataManager';
 import GraphManager from './GraphManager';
-import { VisualEnhancementToggle } from './VisualEnhancementToggle';
-import CameraController from '../../visualisation/components/CameraController'; // Adjusted path
+import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
 import { BotsVisualization } from '../../bots/components';
-import { HologramManager } from '../../visualisation/renderers/HologramManager';
 import { EnhancedHologramSystem } from '../../visualisation/renderers/EnhancedHologramSystem';
 import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
 
@@ -24,6 +24,9 @@ const GraphViewport: React.FC = () => {
   const [graphCenter, setGraphCenter] = useState<[number, number, number]>([0, 0, 0]);
   const [graphSize, setGraphSize] = useState(50); // Default size
   const [isNodeDragging, setIsNodeDragging] = useState(false); // <--- Add this state
+  const [ambientRef, setAmbientRef] = useState<THREE.AmbientLight | null>(null);
+  const [dirRef, setDirRef] = useState<THREE.DirectionalLight | null>(null);
+  const [pointRef, setPointRef] = useState<THREE.PointLight | null>(null);
 
   // Settings for camera and visuals
   const settings = useSettingsStore(state => state.settings);
@@ -66,6 +69,11 @@ const GraphViewport: React.FC = () => {
   const bloomStrength = bloomSettingsStore?.strength ?? 1.5;
   const bloomThreshold = bloomSettingsStore?.threshold ?? 0.2;
   const bloomRadius = bloomSettingsStore?.radius ?? 0.9;
+
+  // Independent bloom channels from settings (env/hologram, nodes, edges)
+  const envBloom = bloomSettingsStore?.environmentBloomStrength ?? 1;
+  const nodeBloom = bloomSettingsStore?.nodeBloomStrength ?? 1;
+  const edgeBloom = bloomSettingsStore?.edgeBloomStrength ?? 1;
 
 
   useEffect(() => {
@@ -124,6 +132,18 @@ const GraphViewport: React.FC = () => {
     initializeGraph();
   }, []);
 
+  useEffect(() => {
+    // Enable lights only for default layer and layer 1
+    // SelectiveBloom has issues with layer 2
+    [ambientRef, dirRef, pointRef].forEach((l) => {
+      if (l) {
+        l.layers.enable(0); // Default layer
+        l.layers.enable(1); // Bloom layer 1
+        // Don't enable layer 2 for lights to avoid SelectiveBloom issues
+      }
+    });
+  }, [ambientRef, dirRef, pointRef]);
+
   if (isLoading) {
     return <div style={{ padding: '2rem', color: '#ccc', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading graph data...</div>;
   }
@@ -144,20 +164,30 @@ const GraphViewport: React.FC = () => {
           far: far,
           position: cameraPosition as [number, number, number],
         }}
-        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance', logarithmicDepthBuffer: true }}
+        gl={{ 
+          antialias: true, 
+          alpha: true, // Enable alpha for proper transparency
+          powerPreference: 'high-performance', 
+          logarithmicDepthBuffer: false,
+          toneMapping: THREE.ACESFilmicToneMapping, // Better tone mapping for bloom
+          preserveDrawingBuffer: true,
+          outputColorSpace: THREE.SRGBColorSpace // Ensure proper color space
+        }}
         dpr={[1, 2]} // Pixel ratio for sharpness
         shadows // Enable shadows
       >
         <color attach="background" args={[backgroundColor]} />
         <CameraController center={graphCenter} size={graphSize} />
 
-        <ambientLight intensity={renderingSettings?.ambientLightIntensity ?? 0.6} />
+        <ambientLight ref={setAmbientRef} intensity={renderingSettings?.ambientLightIntensity ?? 0.6} />
         <directionalLight
+          ref={setDirRef}
           position={[10, 10, 5]} // Using hardcoded default as not in settings
           intensity={renderingSettings?.directionalLightIntensity ?? 1}
           castShadow
         />
         <pointLight
+          ref={setPointRef}
           position={[-10, -10, -5]} // Using hardcoded default as not in settings
           intensity={0.5} // Using hardcoded default as not in settings
         />
@@ -172,52 +202,61 @@ const GraphViewport: React.FC = () => {
           enabled={!isNodeDragging} // <--- Control OrbitControls here
         />
 
-        <Suspense fallback={null}>
-          {/* Using GraphManager for all graph rendering */}
-          <GraphManager />
+          <BloomProvider 
+            envBloomStrength={envBloom}
+            nodeBloomStrength={nodeBloom}
+            edgeBloomStrength={edgeBloom}
+          >
+            <Suspense fallback={null}>
+              {/* Using GraphManager for all graph rendering */}
+              <GraphManager />
 
-          {/* World-class hologram effects controlled by hologram toggle */}
-          <WorldClassHologram 
-            enabled={hologramEnabled} 
-            position={graphCenter}
-          />
-          
-          {/* Energy field particles for ambient eye candy when hologram is on */}
-          {hologramEnabled && (
-            <EnergyFieldParticles 
-              count={1000} 
-              bounds={graphSize * 2} 
-              color={nodeSettings?.baseColor || '#00ffff'} 
-            />
+            {/* World-class hologram effects controlled by hologram toggle */}
+            {hologramEnabled && (
+              <>
+                <WorldClassHologram
+                  enabled={hologramEnabled}
+                  position={graphCenter}
+                />
+                <EnergyFieldParticles
+                  count={1000}
+                  bounds={graphSize * 2}
+                  color={nodeSettings?.baseColor || '#00ffff'}
+                />
+                <EnhancedHologramSystem
+                  position={graphCenter}
+                  scale={graphSize > 0 ? graphSize / 100 : 1}
+                />
+              </>
+            )}
+
+              {/* VisionFlow visualization re-enabled in same origin space */}
+              <BotsVisualization />
+            </Suspense>
+          </BloomProvider>
+
+          {/* Removed showAxesHelper and showStats as they are not in DebugSettings type from settings.ts */}
+          {/* {debugSettings?.showAxesHelper && <axesHelper args={[graphSize > 0 ? graphSize / 10 : 2]} />} */}
+          {/* {debugSettings?.showStats && <Stats />} */}
+          {debugSettings?.enabled && <Stats />} {/* Show Stats if general debug is enabled, as a fallback */}
+
+          {enableBloom && (
+            <EffectComposer
+              multisampling={0} // Disable multisampling to avoid conflicts
+              autoClear={false} // Prevent clearing issues
+              enabled={true}
+            >
+              {/* Standard Bloom effect - base intensity only, elements control their own contribution */}
+              <Bloom
+                intensity={bloomStrength} // Base bloom intensity from settings
+                luminanceThreshold={bloomThreshold}
+                luminanceSmoothing={bloomRadius}
+                mipmapBlur
+                levels={6} // Reduce levels for performance
+                kernelSize={3} // Smaller kernel for sharper bloom
+              />
+            </EffectComposer>
           )}
-          
-          {/* Legacy enhanced hologram system (optional - can remove if redundant) */}
-          {hologramEnabled && (
-            <EnhancedHologramSystem
-              position={graphCenter}
-              scale={graphSize > 0 ? graphSize / 100 : 1}
-            />
-          )}
-
-          {/* VisionFlow visualization re-enabled in same origin space */}
-          <BotsVisualization />
-        </Suspense>
-
-        {/* Removed showAxesHelper and showStats as they are not in DebugSettings type from settings.ts */}
-        {/* {debugSettings?.showAxesHelper && <axesHelper args={[graphSize > 0 ? graphSize / 10 : 2]} />} */}
-        {/* {debugSettings?.showStats && <Stats />} */}
-        {debugSettings?.enabled && <Stats />} {/* Show Stats if general debug is enabled, as a fallback */}
-
-
-        {enableBloom && (
-          <EffectComposer>
-            <Bloom
-              intensity={bloomStrength} // Mapped from BloomSettings.strength
-              luminanceThreshold={bloomThreshold} // Mapped from BloomSettings.threshold
-              luminanceSmoothing={bloomRadius} // Mapped from BloomSettings.radius (best guess)
-            />
-          </EffectComposer>
-        )}
       </Canvas>
     </div>
   );

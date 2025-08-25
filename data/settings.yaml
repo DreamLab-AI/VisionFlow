@@ -20,13 +20,13 @@ visualisation:
     pulse_strength: 0.8
     wave_speed: 0.5
   bloom:
-    edge_bloom_strength: 3.5
-    enabled: false
-    environment_bloom_strength: 3.0
-    node_bloom_strength: 3.0
+    edge_bloom_strength: 0.9127068
+    enabled: true
+    environment_bloom_strength: 0.96262044
+    node_bloom_strength: 0.053478915
     radius: 0.85
-    strength: 2.0
-    threshold: 0.15
+    strength: 0.95548993
+    threshold: 0.028522087
   hologram:
     ring_count: 5
     ring_color: '#00ffff'
@@ -52,12 +52,12 @@ visualisation:
         metalness: 0.85
         opacity: 0.95
         roughness: 0.15
-        node_size: 1.2
+        node_size: 0.53370845
         quality: high
         enable_instancing: true
         enable_hologram: true
         enable_metadata_shape: false
-        enable_metadata_visualisation: false
+        enable_metadata_visualisation: true
       edges:
         arrow_size: 0.02
         base_width: 0.5
@@ -115,7 +115,7 @@ visualisation:
         iterations: 50
         max_velocity: 5.0
         max_force: 100.0
-        repel_k: 2.0
+        repel_k: 155.46765
         spring_k: 0.1
         mass_scale: 1.0
         boundary_damping: 0.95
@@ -273,12 +273,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '5': rightView
       '1': resetView
-      '4': topView
+      '5': rightView
       '2': cycleMode
-      '3': fitToView
       '6': frontView
+      '4': topView
+      '3': fitToView
 system:
   network:
     bind_address: 0.0.0.0
