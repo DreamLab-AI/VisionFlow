@@ -9,6 +9,7 @@ import { apiService } from '../services/apiService';
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
+import { normalizeBloomGlowSettings, transformBloomToGlow } from '../utils/caseConversion';
 
 
 
@@ -56,8 +57,7 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
-// Removed normalization function - server handles case conversion automatically
-// Shared debounced save function
+// Shared debounced save function with bloom/glow field transformation
 const debouncedSaveToServer = async (settings: Settings, initialized: boolean) => {
   if (!initialized || settings.system?.persistSettings === false) {
     return;
@@ -84,20 +84,26 @@ const debouncedSaveToServer = async (settings: Settings, initialized: boolean) =
       logger.warn('Error getting Nostr authentication:', createErrorMetadata(error));
     }
 
+    // Transform bloom fields to glow fields for server compatibility
+    const serverSettings = transformBloomToGlow(settings);
+
     // Log the exact payload being sent for debugging
     logger.info('[SETTINGS DEBUG] Sending settings payload to server:', {
       endpoint: '/api/settings',
-      payloadKeys: Object.keys(settings),
+      payloadKeys: Object.keys(serverSettings),
       sampleFields: {
-        'xr.enabled': settings.xr?.enabled,
-        'xr.enableXrMode': (settings.xr as any)?.enableXrMode,
-        'system.debug.enabled': settings.system?.debug?.enabled,
-        'system.debug.enableClientDebugMode': (settings.system?.debug as any)?.enableClientDebugMode
+        'xr.enabled': serverSettings.xr?.enabled,
+        'xr.enableXrMode': (serverSettings.xr as any)?.enableXrMode,
+        'system.debug.enabled': serverSettings.system?.debug?.enabled,
+        'system.debug.enableClientDebugMode': (serverSettings.system?.debug as any)?.enableClientDebugMode,
+        'visualisation.glow.enabled': serverSettings.visualisation?.glow?.enabled,
+        'visualisation.bloom.enabled': serverSettings.visualisation?.bloom?.enabled
       }
     });
 
     // Server handles camelCase to snake_case conversion automatically
-    const updatedSettings = await apiService.post('/settings', settings, headers);
+    // Send transformed settings (bloom -> glow) to server
+    const updatedSettings = await apiService.post('/settings', serverSettings, headers);
     if (updatedSettings) {
       if (debugState.isEnabled()) {
         logger.info('Settings saved to server successfully');
@@ -269,19 +275,26 @@ export const useSettingsStore = create<SettingsState>()(
           // ALWAYS fetch settings from server and use them as source of truth
           try {
             // Use the settings service to fetch settings
-            const serverSettings = await apiService.get('/settings')
+            const rawServerSettings = await apiService.get('/settings')
 
-            if (serverSettings) {
+            if (rawServerSettings) {
               if (debugState.isEnabled()) {
-                logger.info('Fetched settings from server:', { serverSettings })
+                logger.info('Fetched settings from server:', { rawServerSettings })
               }
+
+              // Transform server glow settings to client bloom settings for compatibility
+              const clientCompatibleSettings = normalizeBloomGlowSettings(rawServerSettings, 'toClient');
 
               // Server settings OVERRIDE everything - server is source of truth
               // Only use defaults for missing fields, ignore localStorage for physics
-              const mergedSettings = deepMerge(defaultSettings, serverSettings)
+              const mergedSettings = deepMerge(defaultSettings, clientCompatibleSettings)
 
               if (debugState.isEnabled()) {
-                logger.info('Using server settings as source of truth:', { mergedSettings })
+                logger.info('Using server settings as source of truth with bloom/glow normalization:', { 
+                  mergedSettings,
+                  hasBloom: !!mergedSettings.visualisation?.bloom,
+                  hasGlow: !!mergedSettings.visualisation?.glow
+                })
               }
 
               set({
@@ -290,7 +303,7 @@ export const useSettingsStore = create<SettingsState>()(
               })
 
               if (debugState.isEnabled()) {
-                logger.info('Settings loaded from server (ignoring localStorage)')
+                logger.info('Settings loaded from server with bloom/glow field normalization')
               }
 
               return mergedSettings

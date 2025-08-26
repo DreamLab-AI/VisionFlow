@@ -541,14 +541,21 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         return {
           title: 'Visual Effects',
           fields: [
-            // Bloom Settings
-            { key: 'bloom', label: 'Bloom', type: 'toggle', path: 'visualisation.bloom.enabled' },
-            { key: 'bloomStrength', label: 'Bloom Strength', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.strength' },
-            { key: 'bloomRadius', label: 'Bloom Radius', type: 'slider', min: 0, max: 1, path: 'visualisation.bloom.radius' },
-            { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'slider', min: 0, max: 1, path: 'visualisation.bloom.threshold' },
-            { key: 'nodeBloomStrength', label: 'Node Bloom', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.nodeBloomStrength' },
-            { key: 'edgeBloomStrength', label: 'Edge Bloom', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.edgeBloomStrength' },
-            { key: 'envBloomStrength', label: 'Env Bloom', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.environmentBloomStrength' },
+            // Glow Settings (Server-preferred)
+            { key: 'glow', label: 'Glow Effects', type: 'toggle', path: 'visualisation.glow.enabled' },
+            { key: 'glowIntensity', label: 'Glow Intensity', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.intensity' },
+            { key: 'glowRadius', label: 'Glow Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius' },
+            { key: 'glowThreshold', label: 'Glow Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold' },
+            { key: 'nodeGlowStrength', label: 'Node Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.nodeGlowStrength' },
+            { key: 'edgeGlowStrength', label: 'Edge Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.edgeGlowStrength' },
+            { key: 'envGlowStrength', label: 'Env Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.environmentGlowStrength' },
+            
+            // Bloom Settings (Legacy - for backward compatibility)
+            { key: 'bloom', label: 'Bloom (Legacy)', type: 'toggle', path: 'visualisation.bloom.enabled' },
+            { key: 'bloomStrength', label: 'Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.strength' },
+            { key: 'nodeBloomStrength', label: 'Node Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.nodeBloomStrength' },
+            { key: 'edgeBloomStrength', label: 'Edge Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.edgeBloomStrength' },
+            { key: 'envBloomStrength', label: 'Env Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.environmentBloomStrength' },
 
             // Hologram Settings
             { key: 'hologram', label: 'Hologram', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableHologram' },

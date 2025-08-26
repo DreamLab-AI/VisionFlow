@@ -12,7 +12,7 @@ import Settings2 from 'lucide-react/dist/esm/icons/settings2';
 import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import Type from 'lucide-react/dist/esm/icons/type';
 import { useToast } from '@/features/design-system/components/Toast';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSettingsStore } from '../../../store/settingsStore';
 
 // Validation bounds for settings
 const BOUNDS = {
@@ -38,26 +38,35 @@ const BOUNDS = {
     directionalLightIntensity: { min: 0, max: 5, step: 0.1 },
     environmentIntensity: { min: 0, max: 2, step: 0.1 },
   },
-  bloom: {
-    strength: { min: 0, max: 5, step: 0.1 },
+  glow: {
+    intensity: { min: 0, max: 5, step: 0.1 },
     radius: { min: 0, max: 2, step: 0.05 },
     threshold: { min: 0, max: 1, step: 0.05 },
-    nodeBloomStrength: { min: 0, max: 10, step: 0.1 },
-    edgeBloomStrength: { min: 0, max: 10, step: 0.1 },
+    diffuseStrength: { min: 0, max: 5, step: 0.1 },
+    atmosphericDensity: { min: 0, max: 2, step: 0.1 },
+    volumetricIntensity: { min: 0, max: 3, step: 0.1 },
+    opacity: { min: 0, max: 1, step: 0.05 },
+    pulseSpeed: { min: 0, max: 5, step: 0.1 },
+    flowSpeed: { min: 0, max: 5, step: 0.1 },
+    nodeGlowStrength: { min: 0, max: 10, step: 0.1 },
+    edgeGlowStrength: { min: 0, max: 10, step: 0.1 },
+    environmentGlowStrength: { min: 0, max: 10, step: 0.1 },
   },
+  hologram: {
+    ringCount: { min: 0, max: 20, step: 1 },
+  }
 };
 
 export function VisualizationSettings() {
   const { toast } = useToast();
-  // Temporarily hardcoded until zustand is installed
-  const settings = null;
+  const {
+    settings,
+    loading,
+    updateSettings,
+    loadSettings
+  } = useSettingsStore();
+  
   const currentGraph = 'logseq' as const;
-  const loading = false;
-  const updateNodes = async (update: any) => {};
-  const updateEdges = async (update: any) => {};
-  const updateLabels = async (update: any) => {};
-  const updateSettings = async (update: any) => {};
-  const loadSettings = async () => {};
 
   // Load settings on mount
   useEffect(() => {
@@ -79,7 +88,15 @@ export function VisualizationSettings() {
 
   const handleNodeUpdate = useCallback(async (key: string, value: any) => {
     try {
-      await updateNodes({ [key]: value });
+      await updateSettings({
+        visualisation: {
+          graphs: {
+            [currentGraph]: {
+              nodes: { [key]: value }
+            }
+          }
+        }
+      });
       toast({
         title: 'Node Settings Updated',
         description: `Updated ${key} to ${value}`,
@@ -91,11 +108,19 @@ export function VisualizationSettings() {
         variant: 'destructive',
       });
     }
-  }, [updateNodes, toast]);
+  }, [updateSettings, currentGraph, toast]);
 
   const handleEdgeUpdate = useCallback(async (key: string, value: any) => {
     try {
-      await updateEdges({ [key]: value });
+      await updateSettings({
+        visualisation: {
+          graphs: {
+            [currentGraph]: {
+              edges: { [key]: value }
+            }
+          }
+        }
+      });
       toast({
         title: 'Edge Settings Updated',
         description: `Updated ${key} to ${value}`,
@@ -107,11 +132,19 @@ export function VisualizationSettings() {
         variant: 'destructive',
       });
     }
-  }, [updateEdges, toast]);
+  }, [updateSettings, currentGraph, toast]);
 
   const handleLabelUpdate = useCallback(async (key: string, value: any) => {
     try {
-      await updateLabels({ [key]: value });
+      await updateSettings({
+        visualisation: {
+          graphs: {
+            [currentGraph]: {
+              labels: { [key]: value }
+            }
+          }
+        }
+      });
       toast({
         title: 'Label Settings Updated',
         description: `Updated ${key} to ${value}`,
@@ -123,7 +156,7 @@ export function VisualizationSettings() {
         variant: 'destructive',
       });
     }
-  }, [updateLabels, toast]);
+  }, [updateSettings, currentGraph, toast]);
 
   const handleGlobalUpdate = useCallback(async (section: string, key: string, value: any) => {
     try {
@@ -563,85 +596,222 @@ export function VisualizationSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
-                Bloom Effects
+                Atmospheric Glow Effects
               </CardTitle>
               <CardDescription>
-                Configure bloom and glow effects
+                Configure diffuse atmospheric glow and volumetric effects
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="bloom-enabled">Enable Bloom</Label>
+                <Label htmlFor="glow-enabled">Enable Glow</Label>
                 <Switch
-                  id="bloom-enabled"
-                  checked={globalSettings.bloom.enabled}
-                  onCheckedChange={(v) => handleGlobalUpdate('bloom', 'enabled', v)}
+                  id="glow-enabled"
+                  checked={globalSettings.glow.enabled}
+                  onCheckedChange={(v) => handleGlobalUpdate('glow', 'enabled', v)}
                 />
               </div>
 
-              {globalSettings.bloom.enabled && (
+              {globalSettings.glow.enabled && (
                 <>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="bloom-strength">Strength</Label>
-                      <span className="text-sm text-muted-foreground">{globalSettings.bloom.strength}</span>
+                      <Label htmlFor="glow-intensity">Intensity</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.intensity}</span>
                     </div>
                     <Slider
-                      id="bloom-strength"
-                      min={BOUNDS.bloom.strength.min}
-                      max={BOUNDS.bloom.strength.max}
-                      step={BOUNDS.bloom.strength.step}
-                      value={[globalSettings.bloom.strength]}
-                      onValueChange={([v]) => handleGlobalUpdate('bloom', 'strength', v)}
+                      id="glow-intensity"
+                      min={BOUNDS.glow.intensity.min}
+                      max={BOUNDS.glow.intensity.max}
+                      step={BOUNDS.glow.intensity.step}
+                      value={[globalSettings.glow.intensity]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'intensity', v)}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="bloom-radius">Radius</Label>
-                      <span className="text-sm text-muted-foreground">{globalSettings.bloom.radius}</span>
+                      <Label htmlFor="glow-radius">Radius</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.radius}</span>
                     </div>
                     <Slider
-                      id="bloom-radius"
-                      min={BOUNDS.bloom.radius.min}
-                      max={BOUNDS.bloom.radius.max}
-                      step={BOUNDS.bloom.radius.step}
-                      value={[globalSettings.bloom.radius]}
-                      onValueChange={([v]) => handleGlobalUpdate('bloom', 'radius', v)}
+                      id="glow-radius"
+                      min={BOUNDS.glow.radius.min}
+                      max={BOUNDS.glow.radius.max}
+                      step={BOUNDS.glow.radius.step}
+                      value={[globalSettings.glow.radius]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'radius', v)}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="node-bloom">Node Bloom Strength</Label>
-                      <span className="text-sm text-muted-foreground">{globalSettings.bloom.nodeBloomStrength}</span>
+                      <Label htmlFor="diffuse-strength">Diffuse Strength</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.diffuseStrength}</span>
                     </div>
                     <Slider
-                      id="node-bloom"
-                      min={BOUNDS.bloom.nodeBloomStrength.min}
-                      max={BOUNDS.bloom.nodeBloomStrength.max}
-                      step={BOUNDS.bloom.nodeBloomStrength.step}
-                      value={[globalSettings.bloom.nodeBloomStrength]}
-                      onValueChange={([v]) => handleGlobalUpdate('bloom', 'nodeBloomStrength', v)}
+                      id="diffuse-strength"
+                      min={BOUNDS.glow.diffuseStrength.min}
+                      max={BOUNDS.glow.diffuseStrength.max}
+                      step={BOUNDS.glow.diffuseStrength.step}
+                      value={[globalSettings.glow.diffuseStrength]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'diffuseStrength', v)}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="edge-bloom">Edge Bloom Strength</Label>
-                      <span className="text-sm text-muted-foreground">{globalSettings.bloom.edgeBloomStrength}</span>
+                      <Label htmlFor="atmospheric-density">Atmospheric Density</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.atmosphericDensity}</span>
                     </div>
                     <Slider
-                      id="edge-bloom"
-                      min={BOUNDS.bloom.edgeBloomStrength.min}
-                      max={BOUNDS.bloom.edgeBloomStrength.max}
-                      step={BOUNDS.bloom.edgeBloomStrength.step}
-                      value={[globalSettings.bloom.edgeBloomStrength]}
-                      onValueChange={([v]) => handleGlobalUpdate('bloom', 'edgeBloomStrength', v)}
+                      id="atmospheric-density"
+                      min={BOUNDS.glow.atmosphericDensity.min}
+                      max={BOUNDS.glow.atmosphericDensity.max}
+                      step={BOUNDS.glow.atmosphericDensity.step}
+                      value={[globalSettings.glow.atmosphericDensity]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'atmosphericDensity', v)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="volumetric-intensity">Volumetric Intensity</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.volumetricIntensity}</span>
+                    </div>
+                    <Slider
+                      id="volumetric-intensity"
+                      min={BOUNDS.glow.volumetricIntensity.min}
+                      max={BOUNDS.glow.volumetricIntensity.max}
+                      step={BOUNDS.glow.volumetricIntensity.step}
+                      value={[globalSettings.glow.volumetricIntensity]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'volumetricIntensity', v)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="base-color">Base Color</Label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        id="base-color"
+                        value={globalSettings.glow.baseColor}
+                        onChange={(e) => handleGlobalUpdate('glow', 'baseColor', e.target.value)}
+                        className="h-10 w-20"
+                      />
+                      <input
+                        type="text"
+                        value={globalSettings.glow.baseColor}
+                        onChange={(e) => handleGlobalUpdate('glow', 'baseColor', e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emission-color">Emission Color</Label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        id="emission-color"
+                        value={globalSettings.glow.emissionColor}
+                        onChange={(e) => handleGlobalUpdate('glow', 'emissionColor', e.target.value)}
+                        className="h-10 w-20"
+                      />
+                      <input
+                        type="text"
+                        value={globalSettings.glow.emissionColor}
+                        onChange={(e) => handleGlobalUpdate('glow', 'emissionColor', e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="node-glow">Node Glow Strength</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.nodeGlowStrength}</span>
+                    </div>
+                    <Slider
+                      id="node-glow"
+                      min={BOUNDS.glow.nodeGlowStrength.min}
+                      max={BOUNDS.glow.nodeGlowStrength.max}
+                      step={BOUNDS.glow.nodeGlowStrength.step}
+                      value={[globalSettings.glow.nodeGlowStrength]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'nodeGlowStrength', v)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="edge-glow">Edge Glow Strength</Label>
+                      <span className="text-sm text-muted-foreground">{globalSettings.glow.edgeGlowStrength}</span>
+                    </div>
+                    <Slider
+                      id="edge-glow"
+                      min={BOUNDS.glow.edgeGlowStrength.min}
+                      max={BOUNDS.glow.edgeGlowStrength.max}
+                      step={BOUNDS.glow.edgeGlowStrength.step}
+                      value={[globalSettings.glow.edgeGlowStrength]}
+                      onValueChange={([v]) => handleGlobalUpdate('glow', 'edgeGlowStrength', v)}
                     />
                   </div>
                 </>
               )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Hologram Effects
+              </CardTitle>
+              <CardDescription>
+                Configure hologram properties
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="ring-count">Ring Count</Label>
+                  <span className="text-sm text-muted-foreground">{globalSettings.hologram.ringCount}</span>
+                </div>
+                <Slider
+                  id="ring-count"
+                  min={BOUNDS.hologram.ringCount.min}
+                  max={BOUNDS.hologram.ringCount.max}
+                  step={BOUNDS.hologram.ringCount.step}
+                  value={[globalSettings.hologram.ringCount]}
+                  onValueChange={([v]) => handleGlobalUpdate('hologram', 'ringCount', Math.round(v))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Hologram Effects
+              </CardTitle>
+              <CardDescription>
+                Configure hologram properties
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="ring-count">Ring Count</Label>
+                  <span className="text-sm text-muted-foreground">{globalSettings.hologram.ringCount}</span>
+                </div>
+                <Slider
+                  id="ring-count"
+                  min={BOUNDS.hologram.ringCount.min}
+                  max={BOUNDS.hologram.ringCount.max}
+                  step={BOUNDS.hologram.ringCount.step}
+                  value={[globalSettings.hologram.ringCount]}
+                  onValueChange={([v]) => handleGlobalUpdate('hologram', 'ringCount', Math.round(v))}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -62,7 +62,7 @@ The system now processes issues in the following priority order:
 
 3. **Traditional Issues** (Bouncing, Spreading, Clustering)
    - Enhanced with new parameter adjustments
-   - Improved containment using center gravity
+   - Improved containment using centre gravity
 
 ## Configuration
 
@@ -152,7 +152,7 @@ fn smooth_transition_params(&mut self) {
 
 1. **Improved Stability**: Better numerical stability through proactive detection
 2. **Enhanced Performance**: Optimal spatial hashing parameters for better GPU utilization
-3. **Automatic Containment**: Smart center gravity adjustments prevent spreading
+3. **Automatic Containment**: Smart centre gravity adjustments prevent spreading
 4. **Reduced Manual Tuning**: System handles complex parameter interactions automatically
 
 ## Future Enhancements

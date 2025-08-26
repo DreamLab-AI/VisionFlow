@@ -431,6 +431,7 @@ impl ApiSchemas {
             .add_optional_field("visualisation", FieldValidator::object())
             .add_optional_field("xr", FieldValidator::object())
             .add_optional_field("system", FieldValidator::object())
+            .add_optional_field("rendering", FieldValidator::object())
     }
 
     /// Physics parameters schema
@@ -507,5 +508,29 @@ impl ApiSchemas {
             .add_optional_field("roomScale", FieldValidator::number().min_value(0.1).max_value(100.0))
             .add_optional_field("handTracking", FieldValidator::object())
             .add_optional_field("interactions", FieldValidator::object())
+    }
+
+    /// Rendering settings schema including bloom/glow effects
+    pub fn rendering_settings() -> ValidationSchema {
+        ValidationSchema::new()
+            .add_optional_field("ambientLightIntensity", FieldValidator::number().min_value(0.0).max_value(100.0))
+            // Support both 'bloom' and 'glow' field names for compatibility
+            .add_optional_field("bloom", Self::bloom_glow_effects())
+            .add_optional_field("glow", Self::bloom_glow_effects())
+    }
+
+    /// Bloom/glow effects sub-schema
+    fn bloom_glow_effects() -> FieldValidator {
+        FieldValidator::object()
+    }
+
+    /// Complete rendering schema with bloom/glow field mapping support
+    pub fn complete_rendering_schema() -> ValidationSchema {
+        ValidationSchema::new()
+            .add_optional_field("ambientLightIntensity", FieldValidator::number().min_value(0.0).max_value(100.0))
+            .add_optional_field("bloom", FieldValidator::object())
+            .add_optional_field("glow", FieldValidator::object())
+            .add_optional_field("postProcessing", FieldValidator::object())
+            .add_optional_field("effects", FieldValidator::object())
     }
 }

@@ -1,6 +1,7 @@
 // Settings API Client - Unified interface for all settings operations
 import { Settings, SettingsUpdate } from '../features/settings/config/settings';
 import { logger } from '../utils/logger';
+import { normalizeBloomGlowSettings, transformBloomToGlow } from '../utils/caseConversion';
 
 const API_BASE = '/api/settings';
 
@@ -16,19 +17,24 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to fetch settings: ${response.statusText}`);
     }
     
-    return response.json();
+    const rawSettings = await response.json();
+    // Normalize server glow settings to client bloom settings for compatibility
+    return normalizeBloomGlowSettings(rawSettings, 'toClient');
   },
   
   /**
    * Update settings with a partial update
    */
   async updateSettings(update: SettingsUpdate): Promise<Settings> {
+    // Transform bloom fields to glow fields for server compatibility
+    const serverUpdate = transformBloomToGlow(update);
+    
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(update),
+      body: JSON.stringify(serverUpdate),
     });
     
     if (!response.ok) {
@@ -36,19 +42,24 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to update settings: ${response.statusText}`);
     }
     
-    return response.json();
+    const rawResponse = await response.json();
+    // Normalize server response back to client format
+    return normalizeBloomGlowSettings(rawResponse, 'toClient');
   },
   
   /**
    * Save full settings object
    */
   async saveSettings(settings: Settings): Promise<Settings> {
+    // Transform bloom fields to glow fields for server compatibility
+    const serverSettings = transformBloomToGlow(settings);
+    
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(settings),
+      body: JSON.stringify(serverSettings),
     });
     
     if (!response.ok) {
@@ -56,7 +67,9 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to save settings: ${response.statusText}`);
     }
     
-    return response.json();
+    const rawResponse = await response.json();
+    // Normalize server response back to client format
+    return normalizeBloomGlowSettings(rawResponse, 'toClient');
   },
   
   /**
@@ -72,7 +85,9 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to reset settings: ${response.statusText}`);
     }
     
-    return response.json();
+    const rawResponse = await response.json();
+    // Normalize server response back to client format
+    return normalizeBloomGlowSettings(rawResponse, 'toClient');
   },
   
   /**

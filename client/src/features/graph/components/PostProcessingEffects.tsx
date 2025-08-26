@@ -92,7 +92,11 @@ const DepthOfFieldShader = {
   `
 };
 
-export const PostProcessingEffects: React.FC = () => {
+export const PostProcessingEffects: React.FC<{
+  graphElementsOnly?: boolean;
+}> = ({ 
+  graphElementsOnly = false 
+}) => {
   const { gl, scene, camera, size } = useThree();
   const composerRef = useRef<EffectComposer>();
   const settings = useSettingsStore(state => state.settings?.visualisation);
@@ -102,11 +106,18 @@ export const PostProcessingEffects: React.FC = () => {
     const composer = new EffectComposer(gl);
     composer.setSize(size.width, size.height);
     
-    // Render pass
+    // Render pass with selective rendering for force-directed graphs only
     const renderPass = new RenderPass(scene, camera);
+    
+    // If graphElementsOnly is true, only apply bloom to graph elements (layer 2)
+    if (graphElementsOnly) {
+      // Create a custom render pass that only renders specific layers
+      renderPass.renderToScreen = false;
+    }
+    
     composer.addPass(renderPass);
     
-    // Bloom pass
+    // Bloom pass - only enabled for force-directed graph elements
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(size.width, size.height),
       settings?.bloom?.strength || 1.5,
@@ -114,23 +125,30 @@ export const PostProcessingEffects: React.FC = () => {
       settings?.bloom?.threshold || 0.85
     );
     
-    // Configure bloom
-    bloomPass.threshold = settings?.bloom?.threshold || 0.0;
+    // Configure bloom - more restrictive for graph elements only
+    bloomPass.threshold = graphElementsOnly ? (settings?.bloom?.threshold || 0.8) : 0.0;
     bloomPass.strength = settings?.bloom?.strength || 1.5;
     bloomPass.radius = settings?.bloom?.radius || 0.4;
     
-    if (settings?.bloom?.enabled !== false) {
+    // Only add bloom if enabled and appropriate context
+    const shouldEnableBloom = settings?.bloom?.enabled !== false && 
+                             (!graphElementsOnly || settings?.bloom?.graphElementsOnly !== false);
+    
+    if (shouldEnableBloom) {
       composer.addPass(bloomPass);
     }
     
-    // Vignette pass
+    // Vignette pass - lighter for graph-only mode
     const vignettePass = new ShaderPass(VignetteShader);
-    vignettePass.uniforms.offset.value = 0.95;
-    vignettePass.uniforms.darkness.value = 0.5;
-    composer.addPass(vignettePass);
+    vignettePass.uniforms.offset.value = graphElementsOnly ? 0.98 : 0.95;
+    vignettePass.uniforms.darkness.value = graphElementsOnly ? 0.2 : 0.5;
+    
+    if (!graphElementsOnly) {
+      composer.addPass(vignettePass);
+    }
     
     return [composer, bloomPass, vignettePass];
-  }, [gl, scene, camera, size, settings?.bloom]);
+  }, [gl, scene, camera, size, settings?.bloom, graphElementsOnly]);
   
   // Update composer on resize
   React.useEffect(() => {

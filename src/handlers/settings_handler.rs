@@ -512,8 +512,9 @@ async fn get_settings(
     // Convert to camelCase JSON for client
     let camel_case_json = app_settings.to_camel_case_json()
         .map_err(|e| {
-            error!("Failed to convert settings: {}", e);
-            actix_web::error::ErrorInternalServerError("Serialization error")
+            error!("Failed to convert settings to camelCase JSON: {}", e);
+            error!("This usually indicates a case conversion or serialization issue");
+            actix_web::error::ErrorInternalServerError("Settings serialization error - check server logs")
         })?;
     
     Ok(HttpResponse::Ok().json(camel_case_json))
@@ -1237,6 +1238,61 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
         let val = ambient.as_f64().ok_or("ambientLightIntensity must be a number")?;
         if val < 0.0 || val > 100.0 {
             return Err("ambientLightIntensity must be between 0.0 and 100.0".to_string());
+        }
+    }
+    
+    // BLOOM/GLOW FIELD MAPPING: Accept both 'bloom' and 'glow' field names
+    // Frontend sends 'bloom', backend stores as 'glow' - both should be valid
+    let bloom_glow_field = rendering.get("bloom").or_else(|| rendering.get("glow"));
+    if let Some(bloom_glow) = bloom_glow_field {
+        validate_bloom_glow_settings(bloom_glow)?;
+    }
+    
+    Ok(())
+}
+
+/// Validate bloom/glow effect settings
+fn validate_bloom_glow_settings(bloom_glow: &Value) -> Result<(), String> {
+    // Validate enabled flag
+    if let Some(enabled) = bloom_glow.get("enabled") {
+        if !enabled.is_boolean() {
+            return Err("bloom/glow enabled must be a boolean".to_string());
+        }
+    }
+    
+    // Validate intensity/strength fields
+    for field_name in ["intensity", "strength"] {
+        if let Some(intensity) = bloom_glow.get(field_name) {
+            let val = intensity.as_f64().ok_or(format!("bloom/glow {} must be a number", field_name))?;
+            if val < 0.0 || val > 10.0 {
+                return Err(format!("bloom/glow {} must be between 0.0 and 10.0", field_name));
+            }
+        }
+    }
+    
+    // Validate radius field
+    if let Some(radius) = bloom_glow.get("radius") {
+        let val = radius.as_f64().ok_or("bloom/glow radius must be a number")?;
+        if val < 0.0 || val > 5.0 {
+            return Err("bloom/glow radius must be between 0.0 and 5.0".to_string());
+        }
+    }
+    
+    // Validate threshold field
+    if let Some(threshold) = bloom_glow.get("threshold") {
+        let val = threshold.as_f64().ok_or("bloom/glow threshold must be a number")?;
+        if val < 0.0 || val > 2.0 {
+            return Err("bloom/glow threshold must be between 0.0 and 2.0".to_string());
+        }
+    }
+    
+    // Validate specific bloom strength fields
+    for field_name in ["edgeBloomStrength", "environmentBloomStrength", "nodeBloomStrength"] {
+        if let Some(strength) = bloom_glow.get(field_name) {
+            let val = strength.as_f64().ok_or(format!("bloom/glow {} must be a number", field_name))?;
+            if val < 0.0 || val > 1.0 {
+                return Err(format!("bloom/glow {} must be between 0.0 and 1.0", field_name));
+            }
         }
     }
     

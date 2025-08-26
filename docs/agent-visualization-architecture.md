@@ -167,7 +167,7 @@ The visualisation shares the same GPU-accelerated spring physics solver as the k
 - 60 FPS with up to 500 agents
 - GPU instancing for large multi-agents
 - Adaptive quality based on performance
-- Mobile-optimized fallbacks
+- Mobile-optimised fallbacks
 
 ## Future Enhancements
 

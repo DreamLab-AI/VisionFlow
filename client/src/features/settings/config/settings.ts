@@ -149,24 +149,74 @@ export interface LabelSettings {
   maxLabelWidth?: number; // Maximum width for label text
 }
 
-// Bloom settings
+// Bloom settings - Backward compatibility interface (client-side only)
+// Note: Server internally uses GlowSettings, but client may reference bloom for compatibility
 export interface BloomSettings {
-  edgeBloomStrength: number;
+  // Core bloom properties (mapped to glow)
   enabled: boolean;
-  environmentBloomStrength: number;
-  nodeBloomStrength: number;
+  strength: number; // maps to glow.intensity
   radius: number;
-  strength: number;
   threshold: number;
+  
+  // Color and appearance  
+  baseColor?: string;
+  emissionColor?: string;
+  opacity?: number;
+  
+  // Animation properties
+  pulseSpeed?: number;
+  flowSpeed?: number;
+  
+  // Selective bloom for different elements (client-side naming)
+  nodeBloomStrength: number; // maps to glow.nodeGlowStrength
+  edgeBloomStrength: number; // maps to glow.edgeGlowStrength
+  environmentBloomStrength: number; // maps to glow.environmentGlowStrength
+  
+  // Atmospheric diffusion properties
+  diffuseStrength?: number;
+  atmosphericDensity?: number;
+  volumetricIntensity?: number;
 }
 
-// Hologram settings
+// Glow settings - Unified visual effects with diffuse atmospheric rendering
+// This is the server-preferred interface, but client supports both
+export interface GlowSettings {
+  // Core glow properties
+  enabled: boolean;
+  intensity: number;
+  radius: number;
+  threshold: number;
+  
+  // Atmospheric diffusion properties
+  diffuseStrength: number;
+  atmosphericDensity: number;
+  volumetricIntensity: number;
+  
+  // Color and appearance
+  baseColor: string;
+  emissionColor: string;
+  opacity: number;
+  
+  // Animation properties
+  pulseSpeed: number;
+  flowSpeed: number;
+  
+  // Selective glow for different elements
+  nodeGlowStrength: number;
+  edgeGlowStrength: number;
+  environmentGlowStrength: number;
+}
+
+// Hologram settings - Enhanced with atmospheric effects
 export interface HologramSettings {
+  // Core hologram structure
   ringCount: number;
   ringColor: string;
   ringOpacity: number;
   sphereSizes: [number, number];
-  ringRotationSpeed: number;
+  globalRotationSpeed: number;
+  
+  // Geometric elements
   enableBuckminster: boolean;
   buckminsterSize: number;
   buckminsterOpacity: number;
@@ -176,7 +226,19 @@ export interface HologramSettings {
   enableTriangleSphere: boolean;
   triangleSphereSize: number;
   triangleSphereOpacity: number;
-  globalRotationSpeed: number;
+  
+  // Enhanced atmospheric effects
+  enableQuantumField: boolean;
+  quantumFieldIntensity: number;
+  enablePlasmaEffects: boolean;
+  plasmaIntensity: number;
+  enableEnergyFlow: boolean;
+  energyFlowSpeed: number;
+  
+  // Ring animation
+  ringRotationSpeed: number;
+  enableRingParticles: boolean;
+  particleDensity: number;
 }
 
 // WebSocket settings
@@ -307,7 +369,7 @@ export interface VisualisationSettings {
   // Global visualisation settings (shared across graphs)
   rendering: RenderingSettings;
   animations: AnimationSettings;
-  bloom: BloomSettings;
+  glow: GlowSettings;
   hologram: HologramSettings;
   spacePilot?: SpacePilotConfig;
   camera?: CameraSettings;
@@ -315,6 +377,9 @@ export interface VisualisationSettings {
   // Graph-specific settings
   graphs: GraphsSettings;
   
+  // Bloom settings for backward compatibility (client-side)
+  // Note: Server uses glow internally, but client may have bloom references
+  bloom?: BloomSettings;
 }
 
 // System settings
