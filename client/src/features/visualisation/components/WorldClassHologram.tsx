@@ -156,16 +156,17 @@ export const WorldClassHologram: React.FC<{
   position?: [number, number, number];
   useDiffuseEffects?: boolean;
 }> = React.memo(({ enabled = true, position = [0, 0, 0], useDiffuseEffects = true }) => {
-  const settings = useSettingsStore(state => state.settings);
   const settings = useSettingsStore((state) => state.settings);
-  const envBloomStrength = settings?.visualisation?.bloom?.environment_bloom_strength ?? 0.5;
+  // Handle both snake_case and camelCase field names
+  const envBloomStrength = (settings?.visualisation?.bloom as any)?.environment_bloom_strength ?? 
+                           settings?.visualisation?.bloom?.environmentBloomStrength ?? 0.5;
   const sphereRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const groupRef = useRef<THREE.Group>(null);
   
   const hologramSettings = settings?.visualisation?.hologram;
   const isEnabled = enabled && (settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram || 
-                               settings?.visualisation?.nodes?.enableHologram);
+                               (settings?.visualisation?.graphs?.logseq?.nodes as any)?.enable_hologram || false);
   
   // Removed debug logging to reduce console noise
   
@@ -204,7 +205,7 @@ export const WorldClassHologram: React.FC<{
   
   // Wrap with diffuse effects if enabled
   const hologramContent = (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={new THREE.Vector3(...position)}>
       {/* Use new HologramManager with diffuse effects */}
       <HologramManager 
         position={[0, 0, 0]}
