@@ -110,6 +110,11 @@ impl ValidationService {
             if let Some(graphs) = vis.get("graphs") {
                 self.validate_graph_consistency(graphs)?;
             }
+            
+            // Validate rendering settings including bloom/glow field mapping
+            if let Some(rendering) = vis.get("rendering") {
+                self.validate_rendering_settings_custom(rendering)?;
+            }
         }
         
         // Validate XR settings compatibility
@@ -219,6 +224,117 @@ impl ValidationService {
             }
         }
 
+        Ok(())
+    }
+
+    /// Validate rendering settings with bloom/glow field mapping support
+    fn validate_rendering_settings_custom(&self, rendering: &Value) -> ValidationResult<()> {
+        // Handle bloom/glow field mapping - frontend sends 'bloom', backend uses 'glow'
+        let bloom_glow_field = rendering.get("bloom").or_else(|| rendering.get("glow"));
+        if let Some(bloom_glow) = bloom_glow_field {
+            self.validate_bloom_glow_effects(bloom_glow)?;
+        }
+        
+        Ok(())
+    }
+
+    /// Validate bloom/glow effect settings
+    fn validate_bloom_glow_effects(&self, bloom_glow: &Value) -> ValidationResult<()> {
+        // Validate enabled flag
+        if let Some(enabled) = bloom_glow.get("enabled") {
+            if !enabled.is_boolean() {
+                return Err(DetailedValidationError::new(
+                    "rendering.bloom.enabled",
+                    "Bloom/glow enabled must be a boolean",
+                    "INVALID_TYPE"
+                ));
+            }
+        }
+        
+        // Validate intensity/strength with generous range for effects
+        for field_name in ["intensity", "strength"] {
+            if let Some(intensity) = bloom_glow.get(field_name) {
+                if let Some(val) = intensity.as_f64() {
+                    if val < 0.0 || val > 10.0 {
+                        return Err(DetailedValidationError::out_of_range(
+                            &format!("rendering.bloom.{}", field_name),
+                            val,
+                            0.0,
+                            10.0
+                        ));
+                    }
+                } else {
+                    return Err(DetailedValidationError::new(
+                        &format!("rendering.bloom.{}", field_name),
+                        "Must be a number",
+                        "INVALID_TYPE"
+                    ));
+                }
+            }
+        }
+        
+        // Validate radius field
+        if let Some(radius) = bloom_glow.get("radius") {
+            if let Some(val) = radius.as_f64() {
+                if val < 0.0 || val > 5.0 {
+                    return Err(DetailedValidationError::out_of_range(
+                        "rendering.bloom.radius",
+                        val,
+                        0.0,
+                        5.0
+                    ));
+                }
+            } else {
+                return Err(DetailedValidationError::new(
+                    "rendering.bloom.radius",
+                    "Must be a number",
+                    "INVALID_TYPE"
+                ));
+            }
+        }
+        
+        // Validate threshold field
+        if let Some(threshold) = bloom_glow.get("threshold") {
+            if let Some(val) = threshold.as_f64() {
+                if val < 0.0 || val > 2.0 {
+                    return Err(DetailedValidationError::out_of_range(
+                        "rendering.bloom.threshold",
+                        val,
+                        0.0,
+                        2.0
+                    ));
+                }
+            } else {
+                return Err(DetailedValidationError::new(
+                    "rendering.bloom.threshold",
+                    "Must be a number",
+                    "INVALID_TYPE"
+                ));
+            }
+        }
+        
+        // Validate specific bloom strength fields (0.0 to 1.0 range)
+        for field_name in ["edgeBloomStrength", "environmentBloomStrength", "nodeBloomStrength"] {
+            if let Some(strength) = bloom_glow.get(field_name) {
+                if let Some(val) = strength.as_f64() {
+                    if val < 0.0 || val > 1.0 {
+                        return Err(DetailedValidationError::out_of_range(
+                            &format!("rendering.bloom.{}", field_name),
+                            val,
+                            0.0,
+                            1.0
+                        ));
+                    }
+                } else {
+                    return Err(DetailedValidationError::new(
+                        &format!("rendering.bloom.{}", field_name),
+                        "Must be a number",
+                        "INVALID_TYPE"
+                    ));
+                }
+            }
+        }
+        
         Ok(())
     }
 }

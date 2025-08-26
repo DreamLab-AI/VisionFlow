@@ -35,7 +35,7 @@ let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
 // Direct TCP connection to Claude Flow MCP
 let stream = TcpStream::connect(&format!("{}:{}", host, port)).await?;
-stream.set_nodelay(true)?;  // TCP optimization
+stream.set_nodelay(true)?;  // TCP optimisation
 ```
 
 ### Disabled Stdio Transport

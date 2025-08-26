@@ -1,9 +1,9 @@
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { BloomProvider } from '../contexts/BloomContext';
+import { AtmosphericGlow } from '../../visualisation/effects/AtmosphericGlow';
 import { graphDataManager } from '../managers/graphDataManager';
 import GraphManager from './GraphManager';
 import CameraController from '../../visualisation/components/CameraController';
@@ -17,6 +17,25 @@ import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/co
 // import '../../../types/react-three-fiber.d.ts';
 
 const logger = createLogger('GraphViewport');
+
+const AtmosphericGlowWrapper = () => {
+  const { camera, size } = useThree();
+  const glowSettings = useSettingsStore(state => state.settings.visualisation.glow);
+
+  return (
+    <AtmosphericGlow
+      glowColor={glowSettings.baseColor}
+      intensity={glowSettings.intensity}
+      radius={glowSettings.radius}
+      threshold={glowSettings.threshold}
+      diffuseStrength={glowSettings.diffuseStrength}
+      atmosphericDensity={glowSettings.atmosphericDensity}
+      volumetricIntensity={glowSettings.volumetricIntensity}
+      camera={camera}
+      resolution={size}
+    />
+  );
+};
 
 const GraphViewport: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +67,7 @@ const GraphViewport: React.FC = () => {
 
   const cameraSettings = settings.visualisation.camera;
   const renderingSettings = settings.visualisation.rendering;
-  const bloomSettingsStore = settings.visualisation.bloom;
+  const glowSettings = settings.visualisation.glow;
   const debugSettings = settings.system.debug;
   const nodeSettings = settings.visualisation.graphs?.logseq?.nodes || settings.visualisation.nodes;
   const hologramEnabled = nodeSettings?.enableHologram || false;
@@ -64,16 +83,7 @@ const GraphViewport: React.FC = () => {
       : [0, 10, 50] // Default camera position
   ), [cameraSettings?.position]);
 
-  const enableBloom = bloomSettingsStore?.enabled ?? true;
-  // Using properties from BloomSettings in settings.ts
-  const bloomStrength = bloomSettingsStore?.strength ?? 1.5;
-  const bloomThreshold = bloomSettingsStore?.threshold ?? 0.2;
-  const bloomRadius = bloomSettingsStore?.radius ?? 0.9;
-
-  // Independent bloom channels from settings (env/hologram, nodes, edges)
-  const envBloom = bloomSettingsStore?.environmentBloomStrength ?? 1;
-  const nodeBloom = bloomSettingsStore?.nodeBloomStrength ?? 1;
-  const edgeBloom = bloomSettingsStore?.edgeBloomStrength ?? 1;
+  const enableGlow = glowSettings?.enabled ?? true;
 
 
   useEffect(() => {
@@ -202,11 +212,6 @@ const GraphViewport: React.FC = () => {
           enabled={!isNodeDragging} // <--- Control OrbitControls here
         />
 
-          <BloomProvider 
-            envBloomStrength={envBloom}
-            nodeBloomStrength={nodeBloom}
-            edgeBloomStrength={edgeBloom}
-          >
             <Suspense fallback={null}>
               {/* Using GraphManager for all graph rendering */}
               <GraphManager />
@@ -233,28 +238,19 @@ const GraphViewport: React.FC = () => {
               {/* VisionFlow visualization re-enabled in same origin space */}
               <BotsVisualization />
             </Suspense>
-          </BloomProvider>
 
           {/* Removed showAxesHelper and showStats as they are not in DebugSettings type from settings.ts */}
           {/* {debugSettings?.showAxesHelper && <axesHelper args={[graphSize > 0 ? graphSize / 10 : 2]} />} */}
           {/* {debugSettings?.showStats && <Stats />} */}
           {debugSettings?.enabled && <Stats />} {/* Show Stats if general debug is enabled, as a fallback */}
 
-          {enableBloom && (
+          {enableGlow && (
             <EffectComposer
-              multisampling={0} // Disable multisampling to avoid conflicts
-              autoClear={false} // Prevent clearing issues
+              multisampling={0}
+              autoClear={false}
               enabled={true}
             >
-              {/* Standard Bloom effect - base intensity only, elements control their own contribution */}
-              <Bloom
-                intensity={bloomStrength} // Base bloom intensity from settings
-                luminanceThreshold={bloomThreshold}
-                luminanceSmoothing={bloomRadius}
-                mipmapBlur
-                levels={6} // Reduce levels for performance
-                kernelSize={3} // Smaller kernel for sharper bloom
-              />
+              <AtmosphericGlowWrapper />
             </EffectComposer>
           )}
       </Canvas>

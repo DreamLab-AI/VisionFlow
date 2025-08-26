@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { EdgeSettings } from '../../settings/config/settings';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { registerEdgeObject, unregisterEdgeObject } from '../../visualisation/hooks/bloomRegistry';
-import { useBloomStrength } from '../contexts/BloomContext';
+// import { useBloomStrength } from '../contexts/BloomContext'; // Removed - bloom managed via settings
 
 interface FlowingEdgesProps {
   points: number[];
@@ -75,7 +75,8 @@ const flowFragmentShader = `
 `;
 
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, edgeData }) => {
-  const { edgeBloomStrength } = useBloomStrength();
+  const settings = useSettingsStore((state) => state.settings);
+  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
   const globalSettings = useSettingsStore(state => state.settings);

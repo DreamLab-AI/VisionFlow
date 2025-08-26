@@ -993,7 +993,7 @@ async fn test_retry_with_exponential_backoff() {
 
 ### 3. Testing Strategy
 - Regularly test failure scenarios
-- Validate graceful degradation behaviors
+- Validate graceful degradation behaviours
 - Performance test under various network conditions
 
 ### 4. Capacity Planning

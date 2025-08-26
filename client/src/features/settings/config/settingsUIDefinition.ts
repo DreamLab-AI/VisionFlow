@@ -169,14 +169,30 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           context: { label: 'Rendering Context', type: 'select', options: [{value: 'desktop', label: 'Desktop'}, {value: 'ar', label: 'AR'}], path: 'visualisation.rendering.context', description: 'Current rendering context.' },
         },
       },
-      bloom: {
-        label: 'Glow Effects',
+      glow: {
+        label: 'Glow & Atmospheric Effects',
         settings: {
-          enabled: { label: 'Enable Bloom', type: 'toggle', path: 'visualisation.bloom.enabled', description: 'Enable post-processing glow effects.' },
+          enabled: { label: 'Enable Glow', type: 'toggle', path: 'visualisation.glow.enabled', description: 'Enable post-processing glow effects.' },
+          intensity: { label: 'Overall Intensity', type: 'slider', min: 0, max: 5.0, step: 0.1, path: 'visualisation.glow.intensity', description: 'Global glow intensity multiplier.' },
+          nodeGlowStrength: { label: 'Node Glow Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.nodeGlowStrength', description: 'Glow strength for nodes.' },
+          edgeGlowStrength: { label: 'Edge Glow Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.edgeGlowStrength', description: 'Glow strength for edges.' },
+          environmentGlowStrength: { label: 'Environment Glow Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.environmentGlowStrength', description: 'Glow strength from environment.' },
+          radius: { label: 'Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius', description: 'Radius of the glow effect.' },
+          threshold: { label: 'Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold', description: 'Luminance threshold for glow.' },
+          // Atmospheric effects
+          diffuseStrength: { label: 'Diffuse Strength', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.glow.diffuseStrength', description: 'Strength of atmospheric diffusion.' },
+          atmosphericDensity: { label: 'Atmospheric Density', type: 'slider', min: 0, max: 2, step: 0.1, path: 'visualisation.glow.atmosphericDensity', description: 'Density of atmospheric effects.' },
+          volumetricIntensity: { label: 'Volumetric Intensity', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.glow.volumetricIntensity', description: 'Intensity of volumetric lighting.' },
+        },
+      },
+      bloom: {
+        label: 'Bloom Effects (Legacy)',
+        settings: {
+          enabled: { label: 'Enable Bloom', type: 'toggle', path: 'visualisation.bloom.enabled', description: 'Enable post-processing bloom effects (legacy - use Glow instead).' },
           strength: { label: 'Overall Strength', type: 'slider', min: 0, max: 5.0, step: 0.1, path: 'visualisation.bloom.strength', description: 'Global bloom intensity multiplier.' },
-          edgeBloomStrength: { label: 'Edge Bloom Strength', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.edgeBloomStrength', description: 'Bloom strength for edges.' },
-          environmentBloomStrength: { label: 'Environment Bloom Strength', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.environmentBloomStrength', description: 'Bloom strength from environment.' },
-          nodeBloomStrength: { label: 'Node Bloom Strength', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.nodeBloomStrength', description: 'Bloom strength for nodes.' },
+          nodeBloomStrength: { label: 'Node Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.nodeBloomStrength', description: 'Bloom strength for nodes.' },
+          edgeBloomStrength: { label: 'Edge Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.edgeBloomStrength', description: 'Bloom strength for edges.' },
+          environmentBloomStrength: { label: 'Environment Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.environmentBloomStrength', description: 'Bloom strength from environment.' },
           radius: { label: 'Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.bloom.radius', description: 'Radius of the bloom effect.' },
           threshold: { label: 'Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.threshold', description: 'Luminance threshold for bloom.' },
         },

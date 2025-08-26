@@ -162,21 +162,68 @@ export const defaultSettings: Settings = {
       pulseStrength: 0.8, // Optimized pulse strength
       waveSpeed: 0.5,
     },
-    bloom: {
-      edgeBloomStrength: 3.5, // Edge connection glow
+    glow: {
+      // Core glow properties
       enabled: true,
-      environmentBloomStrength: 3.0,
-      nodeBloomStrength: 3.0, // Node glow intensity
+      intensity: 2.0, // was strength
       radius: 0.85,
-      strength: 2.0, // Overall bloom strength
       threshold: 0.15,
+      
+      // Atmospheric diffusion properties for volumetric effects
+      diffuseStrength: 1.5,
+      atmosphericDensity: 0.8,
+      volumetricIntensity: 1.2,
+      
+      // Color and appearance
+      baseColor: "#00ffff",
+      emissionColor: "#ffffff",
+      opacity: 0.9,
+      
+      // Animation properties
+      pulseSpeed: 1.0,
+      flowSpeed: 0.8,
+      
+      // Selective glow for different elements
+      nodeGlowStrength: 3.0, // was nodeBloomStrength
+      edgeGlowStrength: 3.5, // was edgeBloomStrength
+      environmentGlowStrength: 3.0, // was environmentBloomStrength
+    },
+    // Bloom settings for client backward compatibility
+    // These settings mirror glow settings using client-expected field names
+    bloom: {
+      enabled: true,
+      strength: 2.0, // maps to glow.intensity
+      radius: 0.85,
+      threshold: 0.15,
+      
+      // Color and appearance
+      baseColor: "#00ffff",
+      emissionColor: "#ffffff",
+      opacity: 0.9,
+      
+      // Animation properties
+      pulseSpeed: 1.0,
+      flowSpeed: 0.8,
+      
+      // Atmospheric diffusion properties
+      diffuseStrength: 1.5,
+      atmosphericDensity: 0.8,
+      volumetricIntensity: 1.2,
+      
+      // Selective bloom for different elements (client naming)
+      nodeBloomStrength: 3.0, // maps to glow.nodeGlowStrength
+      edgeBloomStrength: 3.5, // maps to glow.edgeGlowStrength
+      environmentBloomStrength: 3.0, // maps to glow.environmentGlowStrength
     },
     hologram: {
+      // Core hologram structure
       ringCount: 5,
       ringColor: "#00ffff",
       ringOpacity: 0.8,
       sphereSizes: [40, 80],
-      ringRotationSpeed: 12.0,
+      globalRotationSpeed: 0.5,
+      
+      // Geometric elements
       enableBuckminster: true,
       buckminsterSize: 50,
       buckminsterOpacity: 0.3,
@@ -186,7 +233,19 @@ export const defaultSettings: Settings = {
       enableTriangleSphere: true,
       triangleSphereSize: 70,
       triangleSphereOpacity: 0.4,
-      globalRotationSpeed: 0.5,
+      
+      // Enhanced atmospheric effects
+      enableQuantumField: true,
+      quantumFieldIntensity: 1.2,
+      enablePlasmaEffects: true,
+      plasmaIntensity: 0.8,
+      enableEnergyFlow: true,
+      energyFlowSpeed: 2.0,
+      
+      // Ring animation
+      ringRotationSpeed: 12.0,
+      enableRingParticles: true,
+      particleDensity: 0.6,
     },
     camera: {
       fov: 75,

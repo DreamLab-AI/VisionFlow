@@ -4,10 +4,15 @@ import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
 import { createLogger } from '@/utils/logger';
 import { HologramMaterial } from './materials/HologramMaterial';
+import { 
+  DiffuseWireframeMaterial, 
+  DiffuseHologramRingMaterial, 
+  DiffuseMoteMaterial 
+} from '@/rendering/DiffuseWireframeMaterial';
 
 const logger = createLogger('HologramManager');
 
-// Component for an individual hologram ring
+// Component for an individual hologram ring with diffuse effects
 export const HologramRing: React.FC<{
   size?: number;
   color?: string | THREE.Color | number;
@@ -15,16 +20,37 @@ export const HologramRing: React.FC<{
   rotationAxis?: readonly [number, number, number];
   rotationSpeed?: number;
   segments?: number;
+  useDiffuseEffects?: boolean;
 }> = ({
   size = 1,
   color = '#00ffff',
   opacity = 0.7,
   rotationAxis = [0, 1, 0],
   rotationSpeed = 0.5,
-  segments = 64
+  segments = 64,
+  useDiffuseEffects = true
 }) => {
-  // Use state for rotation instead of imperatively updating refs
+  const materialRef = useRef<DiffuseHologramRingMaterial | THREE.MeshBasicMaterial>();
   const [rotation, setRotation] = useState<[number, number, number]>([0, 0, 0]);
+
+  // Create material with diffuse effects
+  const material = React.useMemo(() => {
+    if (useDiffuseEffects) {
+      return new DiffuseHologramRingMaterial({
+        color: color,
+        opacity: opacity,
+        rotationSpeed: rotationSpeed,
+        glowIntensity: 0.9
+      });
+    } else {
+      return new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        wireframe: true
+      });
+    }
+  }, [color, opacity, rotationSpeed, useDiffuseEffects]);
 
   // Animate ring rotation
   useFrame((_, delta) => {
@@ -35,17 +61,30 @@ export const HologramRing: React.FC<{
         prev[2] + delta * rotationSpeed * rotationAxis[2]
       ]);
     }
+
+    // Update material time for animation
+    if (useDiffuseEffects && material instanceof DiffuseHologramRingMaterial) {
+      material.updateTime(performance.now() * 0.001);
+    }
   });
+
+  // Clean up material
+  useEffect(() => {
+    materialRef.current = material;
+    return () => {
+      material?.dispose();
+    };
+  }, [material]);
 
   return (
     <mesh rotation={rotation}>
       <ringGeometry args={[size * 0.8, size, segments]} />
-      <meshBasicMaterial color={color} transparent={true} opacity={opacity} wireframe={true} />
+      <primitive object={material} attach="material" />
     </mesh>
   );
 };
 
-// Component for a hologram sphere
+// Component for a hologram sphere with diffuse effects
 export const HologramSphere: React.FC<{
   size?: number;
   color?: string | THREE.Color | number;
@@ -53,34 +92,64 @@ export const HologramSphere: React.FC<{
   detail?: number;
   wireframe?: boolean;
   rotationSpeed?: number;
+  useDiffuseEffects?: boolean;
 }> = ({
   size = 1,
   color = '#00ffff',
   opacity = 0.5,
   detail = 1,
-  wireframe = true, // Always true for wireframe effect
-  rotationSpeed = 0.2
+  wireframe = true,
+  rotationSpeed = 0.2,
+  useDiffuseEffects = true
 }) => {
-  // Use state for rotation instead of imperatively updating refs
+  const materialRef = useRef<DiffuseWireframeMaterial | THREE.MeshBasicMaterial>();
   const [rotationY, setRotationY] = useState(0);
+
+  // Create material with diffuse effects
+  const material = React.useMemo(() => {
+    if (useDiffuseEffects) {
+      return new DiffuseWireframeMaterial({
+        color: color,
+        opacity: opacity,
+        glowIntensity: 0.7,
+        diffuseRadius: 1.5,
+        animated: true
+      });
+    } else {
+      return new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        wireframe: true,
+        toneMapped: false
+      });
+    }
+  }, [color, opacity, useDiffuseEffects]);
 
   // Animate sphere rotation
   useFrame((_, delta) => {
     if (rotationSpeed > 0) {
       setRotationY(prev => prev + delta * rotationSpeed);
     }
+
+    // Update material time for animation
+    if (useDiffuseEffects && material instanceof DiffuseWireframeMaterial) {
+      material.updateTime(performance.now() * 0.001);
+    }
   });
+
+  // Clean up material
+  useEffect(() => {
+    materialRef.current = material;
+    return () => {
+      material?.dispose();
+    };
+  }, [material]);
 
   return (
     <mesh rotation={[0, rotationY, 0]}>
       <icosahedronGeometry args={[size, detail]} />
-      <meshBasicMaterial
-        color={color}
-        transparent={true}
-        opacity={opacity}
-        wireframe={true}
-        toneMapped={false}
-      />
+      <primitive object={material} attach="material" />
     </mesh>
   );
 };
@@ -89,39 +158,37 @@ export const HologramSphere: React.FC<{
 export const HologramManager: React.FC<{
   position?: readonly [number, number, number];
   isXRMode?: boolean;
+  useDiffuseEffects?: boolean;
 }> = ({
   position = [0, 0, 0],
-  isXRMode = false
+  isXRMode = false,
+  useDiffuseEffects = true
 }) => {
   const settings = useSettingsStore(state => state.settings?.visualisation?.hologram);
   const groupRef = useRef<THREE.Group>(null);
 
   // Parse sphere sizes from settings
   const sphereSizes: number[] = React.useMemo(() => {
-    const sizesSetting: unknown = settings?.sphereSizes; // Start with unknown
+    const sizesSetting: unknown = settings?.sphereSizes;
 
     if (typeof sizesSetting === 'string') {
-      // Explicitly cast after check
       const strSetting = sizesSetting as string;
       return strSetting.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
     } else if (Array.isArray(sizesSetting)) {
-      // Filter for numbers within the array
-      const arrSetting = sizesSetting as unknown[]; // Cast to unknown array first
+      const arrSetting = sizesSetting as unknown[];
       return arrSetting.filter((n): n is number => typeof n === 'number' && !isNaN(n));
     }
-    // Default value if setting is missing or invalid
     return [40, 80];
   }, [settings?.sphereSizes]);
 
-  // Set layers for bloom effect
+  // Setup group for diffuse effects (no bloom layers needed)
   useEffect(() => {
     const group = groupRef.current;
-    if (group) {
-      // Use type assertion to get around TypeScript issues
-      (group as any).layers.set(0); // Default layer
-      (group as any).layers.enable(1); // Bloom layer
+    if (group && !useDiffuseEffects) {
+      // Only set bloom layers if NOT using diffuse effects (fallback)
+      (group as any).layers.set(0);
+      (group as any).layers.enable(1);
 
-      // Apply to all children
       (group as any).traverse((child: any) => {
         if (child.layers) {
           child.layers.set(0);
@@ -129,7 +196,7 @@ export const HologramManager: React.FC<{
         }
       });
     }
-  }, []);
+  }, [useDiffuseEffects]);
 
   const quality = isXRMode ? 'high' : 'medium';
   const color: string | number = settings?.ringColor || '#00ffff'; // Use ringColor instead of color
@@ -144,11 +211,11 @@ export const HologramManager: React.FC<{
 
   return (
     <group ref={groupRef} position={position as any}>
-      {/* Render rings based on settings */}
+      {/* Render rings with diffuse effects */}
       {finalSphereSizes.map((size, index) => (
         <HologramRing
           key={`ring-${index}`}
-          size={size / 100} // Convert to meters
+          size={size / 100}
           color={color}
           opacity={opacity}
           rotationAxis={[
@@ -158,17 +225,19 @@ export const HologramManager: React.FC<{
           ]}
           rotationSpeed={rotationSpeed * (0.8 + index * 0.2)}
           segments={quality === 'high' ? 64 : 32}
+          useDiffuseEffects={useDiffuseEffects}
         />
       ))}
 
-      {/* Render triangle sphere if enabled */}
+      {/* Render triangle sphere with diffuse effects if enabled */}
       {enableTriangleSphere && (
         <HologramSphere
-          size={triangleSphereSize / 100} // Convert to meters
+          size={triangleSphereSize / 100}
           color={color}
           opacity={triangleSphereOpacity}
           detail={quality === 'high' ? 2 : 1}
           wireframe={true}
+          useDiffuseEffects={useDiffuseEffects}
         />
       )}
     </group>
@@ -180,17 +249,19 @@ export const Hologram: React.FC<{
   position?: readonly [number, number, number];
   color?: string | THREE.Color | number;
   size?: number;
+  useDiffuseEffects?: boolean;
   children?: React.ReactNode;
 }> = ({
   position = [0, 0, 0],
   color = '#00ffff',
   size = 1,
+  useDiffuseEffects = true,
   children
 }) => {
   return (
     <group position={position as any} scale={size}>
       {children}
-      <HologramManager />
+      <HologramManager useDiffuseEffects={useDiffuseEffects} />
     </group>
   );
 };
@@ -204,15 +275,19 @@ export class HologramManagerClass {
   private sphereInstances: any[] = []; // THREE.Mesh[]
   private isXRMode: boolean = false;
   private settings: any;
+  private useDiffuseEffects: boolean = true;
 
-  constructor(scene: any, settings: any) {
+  constructor(scene: any, settings: any, useDiffuseEffects = true) {
     this.scene = scene;
     this.settings = settings;
     this.group = new THREE.Group();
+    this.useDiffuseEffects = useDiffuseEffects;
 
-    // Enable bloom layer
-    this.group.layers.set(0);
-    this.group.layers.enable(1);
+    // Enable bloom layer only if not using diffuse effects (fallback)
+    if (!this.useDiffuseEffects) {
+      this.group.layers.set(0);
+      this.group.layers.enable(1);
+    }
 
     this.createHolograms();
     this.scene.add(this.group);
@@ -251,27 +326,38 @@ export class HologramManagerClass {
       ? hologramSettings.sphereSizes
       : [40, 80];
 
-    // Create ring instances using type assertions for THREE classes
+    // Create ring instances with diffuse effects
     sphereSizes.forEach((size, index) => {
-      // Use any type to bypass TypeScript checks
       const geometry = new (THREE as any).RingGeometry(size * 0.8 / 100, size / 100, segments);
-      const material = new (THREE as any).MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: opacity,
-        side: (THREE as any).DoubleSide,
-        depthWrite: false
-      });
+      
+      let material: any;
+      if (this.useDiffuseEffects) {
+        material = new DiffuseHologramRingMaterial({
+          color: color,
+          opacity: opacity,
+          glowIntensity: 0.9
+        });
+      } else {
+        material = new (THREE as any).MeshBasicMaterial({
+          color: color,
+          transparent: true,
+          opacity: opacity,
+          side: (THREE as any).DoubleSide,
+          depthWrite: false
+        });
+      }
 
       const ring = new (THREE as any).Mesh(geometry, material);
 
-      // Set random rotation
+      // Set rotation based on index
       ring.rotation.x = Math.PI / 3 * index;
       ring.rotation.y = Math.PI / 6 * index;
 
-      // Enable bloom layer
-      ring.layers.set(0);
-      ring.layers.enable(1);
+      // Enable bloom layer only if not using diffuse effects
+      if (!this.useDiffuseEffects) {
+        ring.layers.set(0);
+        ring.layers.enable(1);
+      }
 
       this.ringInstances.push(ring);
       group.add(ring);
@@ -283,22 +369,35 @@ export class HologramManagerClass {
       const sphereOpacity = hologramSettings.triangleSphereOpacity || 0.3;
       const detail = quality === 'high' ? 2 : 1;
 
-      // Use any type to bypass TypeScript checks
       const geometry = new (THREE as any).IcosahedronGeometry(size / 100, detail);
-      const material = new (THREE as any).MeshBasicMaterial({
-        color: color,
-        wireframe: true,
-        transparent: true,
-        opacity: sphereOpacity,
-        side: (THREE as any).DoubleSide,
-        depthWrite: false
-      });
+      
+      let material: any;
+      if (this.useDiffuseEffects) {
+        material = new DiffuseWireframeMaterial({
+          color: color,
+          opacity: sphereOpacity,
+          glowIntensity: 0.7,
+          diffuseRadius: 1.5,
+          animated: true
+        });
+      } else {
+        material = new (THREE as any).MeshBasicMaterial({
+          color: color,
+          wireframe: true,
+          transparent: true,
+          opacity: sphereOpacity,
+          side: (THREE as any).DoubleSide,
+          depthWrite: false
+        });
+      }
 
       const sphere = new (THREE as any).Mesh(geometry, material);
 
-      // Enable bloom layer
-      sphere.layers.set(0);
-      sphere.layers.enable(1);
+      // Enable bloom layer only if not using diffuse effects
+      if (!this.useDiffuseEffects) {
+        sphere.layers.set(0);
+        sphere.layers.enable(1);
+      }
 
       this.sphereInstances.push(sphere);
       group.add(sphere);
@@ -311,19 +410,28 @@ export class HologramManagerClass {
   }
 
   update(deltaTime: number) {
-    // Get rotation speed from settings
+    const currentTime = performance.now() * 0.001;
     const rotationSpeed = this.settings?.visualisation?.hologram?.ringRotationSpeed || 0.5;
 
-    // Update ring rotations
+    // Update ring rotations and materials
     this.ringInstances.forEach((ring: any, index: number) => {
-      // Each ring rotates at a different speed
       const speed = rotationSpeed * (1.0 + index * 0.2);
       ring.rotation.y += deltaTime * speed;
+
+      // Update diffuse material time if using diffuse effects
+      if (this.useDiffuseEffects && ring.material instanceof DiffuseHologramRingMaterial) {
+        ring.material.updateTime(currentTime);
+      }
     });
 
-    // Update sphere rotations
+    // Update sphere rotations and materials
     this.sphereInstances.forEach((sphere: any) => {
       sphere.rotation.y += deltaTime * rotationSpeed * 0.5;
+
+      // Update diffuse material time if using diffuse effects
+      if (this.useDiffuseEffects && sphere.material instanceof DiffuseWireframeMaterial) {
+        sphere.material.updateTime(currentTime);
+      }
     });
   }
 

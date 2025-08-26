@@ -15,7 +15,7 @@ import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
-import { useBloomStrength } from '../contexts/BloomContext'
+// import { useBloomStrength } from '../contexts/BloomContext' // Removed - bloom managed via settings
 
 const logger = createLogger('GraphManager')
 
@@ -114,7 +114,9 @@ const getTypeImportance = (nodeType?: string): number => {
 }
 
 const GraphManager: React.FC = () => {
-  const { nodeBloomStrength, edgeBloomStrength } = useBloomStrength()
+  const settings = useSettingsStore((state) => state.settings);
+  const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? 0.5;
+  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? 0.5;
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const materialRef = useRef<HologramNodeMaterial | null>(null)
   const particleSystemRef = useRef<THREE.Points>(null)

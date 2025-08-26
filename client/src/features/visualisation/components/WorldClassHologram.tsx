@@ -1,10 +1,12 @@
-// World-class hologram ambient effects for eye candy
+// World-class hologram ambient effects with diffuse rendering
 import React, { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
-import { useBloomStrength } from '../../graph/contexts/BloomContext';
+// import { useBloomStrength } from '../../graph/contexts/BloomContext'; // Removed - bloom managed via settings
+import { DiffuseEffectsIntegration } from '@/rendering/DiffuseEffectsIntegration';
+import { HologramManager } from '../renderers/HologramManager';
 
 // Quantum field shader with advanced visuals
 const quantumFieldShader = {
@@ -152,9 +154,11 @@ const HolographicRing: React.FC<{
 export const WorldClassHologram: React.FC<{
   enabled?: boolean;
   position?: [number, number, number];
-}> = React.memo(({ enabled = true, position = [0, 0, 0] }) => {
+  useDiffuseEffects?: boolean;
+}> = React.memo(({ enabled = true, position = [0, 0, 0], useDiffuseEffects = true }) => {
   const settings = useSettingsStore(state => state.settings);
-  const { envBloomStrength } = useBloomStrength();
+  const settings = useSettingsStore((state) => state.settings);
+  const envBloomStrength = settings?.visualisation?.bloom?.environment_bloom_strength ?? 0.5;
   const sphereRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -198,20 +202,30 @@ export const WorldClassHologram: React.FC<{
     };
   }, []);
   
-  return (
+  // Wrap with diffuse effects if enabled
+  const hologramContent = (
     <group ref={groupRef} position={position}>
-      {/* Quantum field sphere - using settings */}
-      <mesh ref={sphereRef}>
-        <icosahedronGeometry args={[hologramSettings?.sphereSizes?.[0] || 40, 4]} />
-        <meshBasicMaterial
-          color={hologramSettings?.ringColor || '#00ffff'}
-          wireframe
-          transparent
-          opacity={hologramSettings?.ringOpacity || 0.4}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </mesh>
+      {/* Use new HologramManager with diffuse effects */}
+      <HologramManager 
+        position={[0, 0, 0]}
+        isXRMode={false}
+        useDiffuseEffects={useDiffuseEffects}
+      />
+      
+      {/* Quantum field sphere - fallback for custom settings */}
+      {!useDiffuseEffects && (
+        <mesh ref={sphereRef}>
+          <icosahedronGeometry args={[hologramSettings?.sphereSizes?.[0] || 40, 4]} />
+          <meshBasicMaterial
+            color={hologramSettings?.ringColor || '#00ffff'}
+            wireframe
+            transparent
+            opacity={hologramSettings?.ringOpacity || 0.4}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+      )}
       
       {/* Multiple holographic rings */}
       {hologramSettings?.ringCount && Array.from({ length: hologramSettings.ringCount }, (_, i) => (
@@ -262,6 +276,18 @@ export const WorldClassHologram: React.FC<{
         </mesh>
       )}
     </group>
+  );
+
+  // Wrap with diffuse effects integration
+  return useDiffuseEffects ? (
+    <DiffuseEffectsIntegration
+      enableDiffuseEffects={true}
+      enableBloomForGraphs={false}
+    >
+      {hologramContent}
+    </DiffuseEffectsIntegration>
+  ) : (
+    hologramContent
   );
 });
 

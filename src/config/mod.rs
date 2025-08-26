@@ -11,6 +11,14 @@ fn default_auto_balance_interval() -> u32 {
     500
 }
 
+fn default_glow_color() -> String {
+    "#00ffff".to_string()
+}
+
+fn default_glow_opacity() -> f32 {
+    0.8
+}
+
 pub mod feature_access;
 
 // Types are already public in this module, no need to re-export
@@ -58,22 +66,30 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
     }
 }
 
-// Recursive function to convert JSON Value keys to snake_case
+// Recursive function to convert JSON Value keys from camelCase to snake_case
 fn keys_to_snake_case(value: Value) -> Value {
     match value {
         Value::Object(map) => {
             let new_map = map.into_iter().map(|(k, v)| {
-                let snake_key = k.chars().fold(String::new(), |mut acc, c| {
-                    if c.is_ascii_uppercase() {
-                        if !acc.is_empty() {
-                            acc.push('_');
+                // Handle bloom→glow field mapping
+                let snake_key = if k == "bloom" {
+                    // Map 'bloom' field to 'glow' for internal storage
+                    "glow".to_string()
+                } else {
+                    // Regular camelCase to snake_case conversion
+                    k.chars().fold(String::new(), |mut acc, c| {
+                        if c.is_ascii_uppercase() {
+                            // Add underscore before uppercase letters, but not at the start
+                            if !acc.is_empty() {
+                                acc.push('_');
+                            }
+                            acc.push(c.to_ascii_lowercase());
+                        } else {
+                            acc.push(c);
                         }
-                        acc.push(c.to_ascii_lowercase());
-                    } else {
-                        acc.push(c);
-                    }
-                    acc
-                });
+                        acc
+                    })
+                };
                 (snake_key, keys_to_snake_case(v))
             }).collect();
             Value::Object(new_map)
@@ -108,20 +124,35 @@ fn merge_json_values(base: Value, update: Value) -> Value {
     }
 }
 
-// Helper to convert camelCase to snake_case
+// Helper to convert snake_case to camelCase
+// Special handling for glow→bloom field mapping for client responses
 fn keys_to_camel_case(value: Value) -> Value {
     match value {
         Value::Object(map) => {
             let new_map = map.into_iter().map(|(k, v)| {
-                let camel_key = k.split('_').enumerate().map(|(i, part)| {
-                    if i == 0 {
-                        part.to_string()
-                    } else {
-                        part.chars().next().map_or(String::new(), |c| {
-                            c.to_uppercase().collect::<String>() + &part[1..]
-                        })
-                    }
-                }).collect::<String>();
+                // Handle glow→bloom field mapping for client responses
+                let camel_key = if k == "glow" {
+                    // Map 'glow' field to 'bloom' for client JSON responses
+                    "bloom".to_string()
+                } else {
+                    // Regular snake_case to camelCase conversion
+                    k.split('_').enumerate().map(|(i, part)| {
+                        if i == 0 {
+                            part.to_string()
+                        } else {
+                            // Handle empty parts and properly capitalize
+                            if part.is_empty() {
+                                String::new()
+                            } else {
+                                let mut chars = part.chars();
+                                match chars.next() {
+                                    None => String::new(),
+                                    Some(first) => first.to_uppercase().chain(chars).collect(),
+                                }
+                            }
+                        }
+                    }).collect::<String>()
+                };
                 (camel_key, keys_to_camel_case(v))
             }).collect();
             Value::Object(new_map)
@@ -389,15 +420,34 @@ pub struct LabelSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct BloomSettings {
-    pub edge_bloom_strength: f32,
+pub struct GlowSettings {
     pub enabled: bool,
-    pub environment_bloom_strength: f32,
-    pub node_bloom_strength: f32,
+    #[serde(rename = "strength", alias = "intensity")]
+    pub intensity: f32,
     pub radius: f32,
-    pub strength: f32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub threshold: Option<f32>,
+    pub threshold: f32,
+    #[serde(rename = "environment_bloom_strength", alias = "diffuse_strength", default)]
+    pub diffuse_strength: f32,
+    #[serde(rename = "node_bloom_strength", alias = "atmospheric_density", default)]
+    pub atmospheric_density: f32,
+    #[serde(rename = "edge_bloom_strength", alias = "volumetric_intensity", default)]
+    pub volumetric_intensity: f32,
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color")]
+    pub base_color: String,
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color")]
+    pub emission_color: String,
+    #[serde(default = "default_glow_opacity")]
+    pub opacity: f32,
+    #[serde(default)]
+    pub pulse_speed: f32,
+    #[serde(default)]
+    pub flow_speed: f32,
+    #[serde(rename = "node_bloom_strength", alias = "node_glow_strength", default)]
+    pub node_glow_strength: f32,
+    #[serde(rename = "edge_bloom_strength", alias = "edge_glow_strength", default)]
+    pub edge_glow_strength: f32,
+    #[serde(rename = "environment_bloom_strength", alias = "environment_glow_strength", default)]
+    pub environment_glow_strength: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -473,7 +523,8 @@ pub struct VisualisationSettings {
     // Global settings
     pub rendering: RenderingSettings,
     pub animations: AnimationSettings,
-    pub bloom: BloomSettings,
+    #[serde(rename = "bloom", alias = "glow")]
+    pub glow: GlowSettings,
     pub hologram: HologramSettings,
     pub graphs: GraphsSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -894,6 +945,21 @@ impl AppFullSettings {
             .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
         debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
 
+        // Try direct YAML deserialization first (respects serde attributes properly)
+        if let Ok(yaml_content) = std::fs::read_to_string(&settings_path) {
+            debug!("Attempting direct YAML deserialization...");
+            match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
+                Ok(settings) => {
+                    info!("Successfully loaded settings using direct YAML deserialization");
+                    return Ok(settings);
+                }
+                Err(yaml_err) => {
+                    debug!("Direct YAML deserialization failed: {}, trying config crate fallback", yaml_err);
+                }
+            }
+        }
+
+        // Fallback to config crate approach (for environment variable support)
         let builder = ConfigBuilder::<config::builder::DefaultState>::default()
             .add_source(config::File::from(settings_path.clone()).required(true))
             .add_source(
@@ -1012,5 +1078,114 @@ impl AppFullSettings {
 
 #[cfg(test)]
 mod tests {
-    // mod feature_access_test;
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_snake_to_camel_conversion() {
+        let test_cases = vec![
+            ("simple_case", "simpleCase"),
+            ("auto_balance", "autoBalance"),
+            ("auto_balance_interval_ms", "autoBalanceIntervalMs"),
+            ("enable_bounds", "enableBounds"),
+            ("spring_k", "springK"),
+            ("repel_k", "repelK"),
+            ("max_velocity", "maxVelocity"),
+            ("boundary_damping", "boundaryDamping"),
+            ("update_threshold", "updateThreshold"),
+        ];
+
+        for (snake, expected_camel) in test_cases {
+            let input = json!({
+                snake: "test_value"
+            });
+            let result = keys_to_camel_case(input);
+            assert!(result.as_object().unwrap().contains_key(expected_camel));
+            assert_eq!(result[expected_camel], "test_value");
+        }
+    }
+
+    #[test]
+    fn test_camel_to_snake_conversion() {
+        let test_cases = vec![
+            ("simpleCase", "simple_case"),
+            ("autoBalance", "auto_balance"),
+            ("autoBalanceIntervalMs", "auto_balance_interval_ms"),
+            ("enableBounds", "enable_bounds"),
+            ("springK", "spring_k"),
+            ("repelK", "repel_k"),
+            ("maxVelocity", "max_velocity"),
+            ("boundaryDamping", "boundary_damping"),
+            ("updateThreshold", "update_threshold"),
+        ];
+
+        for (camel, expected_snake) in test_cases {
+            let input = json!({
+                camel: "test_value"
+            });
+            let result = keys_to_snake_case(input);
+            assert!(result.as_object().unwrap().contains_key(expected_snake));
+            assert_eq!(result[expected_snake], "test_value");
+        }
+    }
+
+    #[test]
+    fn test_round_trip_conversion() {
+        let original = json!({
+            "autoBalance": true,
+            "springK": 0.1,
+            "repelK": 2.0,
+            "maxVelocity": 5.0,
+            "autoBalanceIntervalMs": 500,
+            "enableBounds": false,
+            "boundaryDamping": 0.95
+        });
+
+        // Convert to snake_case
+        let snake_case = keys_to_snake_case(original.clone());
+        
+        // Convert back to camelCase
+        let back_to_camel = keys_to_camel_case(snake_case);
+
+        // Should be identical to original
+        assert_eq!(original, back_to_camel);
+    }
+
+    #[test]
+    fn test_nested_object_conversion() {
+        let input = json!({
+            "visualisation": {
+                "graphs": {
+                    "logseq": {
+                        "physics": {
+                            "autoBalance": true,
+                            "springK": 0.1,
+                            "repelK": 2.0
+                        }
+                    }
+                }
+            }
+        });
+
+        let snake_case = keys_to_snake_case(input.clone());
+        let expected_snake = json!({
+            "visualisation": {
+                "graphs": {
+                    "logseq": {
+                        "physics": {
+                            "auto_balance": true,
+                            "spring_k": 0.1,
+                            "repel_k": 2.0
+                        }
+                    }
+                }
+            }
+        });
+
+        assert_eq!(snake_case, expected_snake);
+
+        // Test round trip
+        let back_to_camel = keys_to_camel_case(snake_case);
+        assert_eq!(input, back_to_camel);
+    }
 }

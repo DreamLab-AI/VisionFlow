@@ -12,6 +12,7 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'visualisation.animations',
   'visualisation.labels',
   'visualisation.bloom',
+  'visualisation.glow', // Server-preferred glow settings
   'visualisation.hologram',
   'visualisation.camera',
   
@@ -23,6 +24,7 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'visualisation.graphs.*.animations',
   'visualisation.graphs.*.labels',
   'visualisation.graphs.*.bloom',
+  'visualisation.graphs.*.glow', // Server-preferred glow settings
   'visualisation.graphs.*.hologram',
   'visualisation.graphs.*.camera',
   
