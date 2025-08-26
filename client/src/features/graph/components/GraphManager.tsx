@@ -115,8 +115,9 @@ const getTypeImportance = (nodeType?: string): number => {
 
 const GraphManager: React.FC = () => {
   const settings = useSettingsStore((state) => state.settings);
-  const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? 0.5;
-  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? 0.5;
+  // Handle both camelCase and snake_case field names from REST API
+  const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
+  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? settings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const materialRef = useRef<HologramNodeMaterial | null>(null)
   const particleSystemRef = useRef<THREE.Points>(null)
@@ -132,7 +133,7 @@ const GraphManager: React.FC = () => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
-  const settings = useSettingsStore(state => state.settings)
+  // Remove duplicate settings declaration - already declared above
   const [forceUpdate, setForceUpdate] = useState(0)
 
   // Animation state

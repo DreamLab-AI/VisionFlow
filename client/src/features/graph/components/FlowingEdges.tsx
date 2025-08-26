@@ -74,12 +74,13 @@ const flowFragmentShader = `
   }
 `;
 
-export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, edgeData }) => {
-  const settings = useSettingsStore((state) => state.settings);
-  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? 0.5;
+export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
+  const globalSettings = useSettingsStore((state) => state.settings);
+  // Handle both snake_case and camelCase field names
+  const edgeBloomStrength = (globalSettings?.visualisation?.bloom as any)?.edge_bloom_strength ?? 
+                           globalSettings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
-  const globalSettings = useSettingsStore(state => state.settings);
   // Remove redundant edgeBloom - we're getting it from context now
   
   // Create single geometry for all edges
@@ -95,7 +96,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, ed
   
   // Create simple line material
   const material = useMemo(() => {
-    const color = new THREE.Color(settings.color || '#56b6c2');
+    const color = new THREE.Color(propSettings.color || '#56b6c2');
     
     // Apply bloom strength to brightness
     const bloomAdjustedColor = color.clone().multiplyScalar(edgeBloomStrength);
@@ -103,8 +104,8 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, ed
     const mat = new THREE.LineBasicMaterial({
       color: bloomAdjustedColor,
       transparent: true,
-      opacity: Math.min(1.0, (settings.opacity || 0.6)), // Keep opacity stable
-      linewidth: settings.baseWidth || 2, // Increased line width
+      opacity: Math.min(1.0, (propSettings.opacity || 0.6)), // Keep opacity stable
+      linewidth: propSettings.baseWidth || 2, // Increased line width
       depthWrite: false, // Disable depth write for transparent edges
       depthTest: true,
       alphaTest: 0.01, // Prevent z-fighting on nearly transparent areas
@@ -112,7 +113,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, ed
     });
     
     return mat;
-  }, [settings.color, settings.opacity, settings.baseWidth, edgeBloomStrength]);
+  }, [propSettings.color, propSettings.opacity, propSettings.baseWidth, edgeBloomStrength]);
   
   // Update material reference
   useEffect(() => {
@@ -133,9 +134,9 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings, ed
   
   // Animate flow effect by modifying opacity
   useFrame((state) => {
-    if (materialRef.current && settings.enableFlowEffect) {
-      const flowIntensity = Math.sin(state.clock.elapsedTime * (settings.flowSpeed || 1.0)) * 0.3 + 0.7;
-      materialRef.current.opacity = (settings.opacity || 0.25) * flowIntensity;
+    if (materialRef.current && (propSettings as any).enableFlowEffect) {
+      const flowIntensity = Math.sin(state.clock.elapsedTime * ((propSettings as any).flowSpeed || 1.0)) * 0.3 + 0.7;
+      materialRef.current.opacity = (propSettings.opacity || 0.25) * flowIntensity;
     }
   });
   
