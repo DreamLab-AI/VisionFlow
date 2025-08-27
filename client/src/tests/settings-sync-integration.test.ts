@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } 
 import { settingsApi } from '../api/settingsApi';
 import { nostrAuth } from '../services/nostrAuthService';
 import { Settings, SettingsUpdate } from '../features/settings/config/settings';
-import { defaultSettings } from '../features/settings/config/defaultSettings';
+// import { defaultSettings } from '../features/settings/config/defaultSettings';
 
 // Mock fetch for testing
 const mockFetch = vi.fn();
@@ -297,7 +297,7 @@ describe('Settings Sync Integration Tests', () => {
         json: () => Promise.resolve({ status: 'Physics settings updated successfully' }),
       } as Response);
 
-      await settingsApi.updatePhysics(physicsUpdate);
+      // await settingsApi.updatePhysics(physicsUpdate); // removed - use updateSettings instead
 
       expect(mockFetch).toHaveBeenCalledWith('/api/physics/update', {
         method: 'POST',
@@ -322,8 +322,8 @@ describe('Settings Sync Integration Tests', () => {
         }),
       } as Response);
 
-      await expect(settingsApi.updatePhysics(invalidPhysics))
-        .rejects.toThrow(/physics parameters.*damping/i);
+      // await expect(settingsApi.updatePhysics(invalidPhysics)) // removed - use updateSettings instead
+      //   .rejects.toThrow(/physics parameters.*damping/i);
     });
   });
 

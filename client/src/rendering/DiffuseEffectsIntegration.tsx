@@ -68,23 +68,16 @@ export const DiffuseEffectsIntegration: React.FC<DiffuseEffectsIntegrationProps>
   
   return (
     <>
-      {/* Custom diffuse effects for background elements (rings, wireframes, motes) */}
-      {enableDiffuseEffects && (
-        <CustomEffectsRenderer
-          config={diffuseConfig}
-          backgroundElementsOnly={true}
-        >
-          {children}
-        </CustomEffectsRenderer>
-      )}
+      {/* Custom diffuse effects temporarily disabled - needs rewrite to use @react-three/postprocessing */}
+      {/* The current implementation blocks rendering */}
       
       {/* Selective bloom effects for force-directed graphs only */}
       {enableBloomForGraphs && (
         <PostProcessingEffects graphElementsOnly={true} />
       )}
       
-      {/* Render children without effects wrapper if diffuse effects are disabled */}
-      {!enableDiffuseEffects && children}
+      {/* Always render children */}
+      {children}
     </>
   );
 };

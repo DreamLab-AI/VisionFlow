@@ -245,6 +245,16 @@ const GraphManager: React.FC = () => {
     if (meshRef.current && graphData.nodes.length > 0) {
       const mesh = meshRef.current
       mesh.count = graphData.nodes.length
+      
+      // Debug logging based on settings
+      const debugSettings = settings?.system?.debug;
+      if (debugSettings?.enableNodeDebug && debugState.isEnabled()) {
+        logger.info('Initializing instanced mesh', {
+          nodeCount: graphData.nodes.length,
+          meshCount: mesh.count,
+          hasPositions: !!nodePositionsRef.current
+        });
+      }
 
       // Set up instance colors
       const colors = new Float32Array(graphData.nodes.length * 3)
@@ -273,6 +283,20 @@ const GraphManager: React.FC = () => {
   // Animation loop with physics updates
   useFrame(async (state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
+    
+    // Debug: Log first frame and periodic updates
+    const debugSettings = settings?.system?.debug;
+    if (debugSettings?.enablePhysicsDebug && debugState.isEnabled()) {
+      const frameCount = Math.floor(state.clock.elapsedTime * 60);
+      if (frameCount === 1 || frameCount % 300 === 0) { // Log first frame and every 5 seconds
+        logger.debug('Physics frame update', {
+          time: state.clock.elapsedTime,
+          delta,
+          nodeCount: graphData.nodes.length,
+          hasPositions: !!nodePositionsRef.current
+        });
+      }
+    }
 
     // Update material time
     if (materialRef.current) {
@@ -397,7 +421,11 @@ const GraphManager: React.FC = () => {
   useEffect(() => {
     const handleGraphUpdate = (data: GraphData) => {
       if (debugState.isEnabled()) {
-        logger.info('Graph data updated', { nodeCount: data.nodes.length, edgeCount: data.edges.length })
+        logger.info('Graph data updated', { 
+          nodeCount: data.nodes.length, 
+          edgeCount: data.edges.length,
+          firstNode: data.nodes[0]
+        })
       }
 
       // Ensure nodes have valid positions

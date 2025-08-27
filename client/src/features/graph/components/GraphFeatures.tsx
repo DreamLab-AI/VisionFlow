@@ -71,6 +71,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   const { scene } = useThree();
   const settings = useSettingsStore(state => state.settings);
   
+  const [panelVisible, setPanelVisible] = useState(true);
   const [featureState, setFeatureState] = useState<FeatureState>({
     synchronization: {
       enabled: false,
@@ -321,12 +322,12 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   }, []);
 
   const animateGraphTransition = useCallback(async (show: boolean) => {
-    if (!isVisible && show) {
+    if (!panelVisible && show) {
       await graphAnimations.animateGraphTransition(graphId, true);
-    } else if (isVisible && !show) {
+    } else if (panelVisible && !show) {
       await graphAnimations.animateGraphTransition(graphId, false);
     }
-  }, [graphId, isVisible]);
+  }, [graphId, panelVisible]);
 
   const startTimeTravelMode = useCallback((graphStates: GraphData[]) => {
     advancedInteractionModes.activateTimeTravelMode(graphStates, {
@@ -449,8 +450,8 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         
         {featureState.animations.enabled && (
           <div className={styles['animation-controls']}>
-            <button onClick={() => animateGraphTransition(!isVisible)}>
-              {isVisible ? 'Hide' : 'Show'} Graph
+            <button onClick={() => animateGraphTransition(!panelVisible)}>
+              {panelVisible ? 'Hide' : 'Show'} Graph
             </button>
             <div className={styles['active-animations'] || 'active-animations'}>
               <p>Active Animations: {featureState.animations.nodeAnimations.size}</p>
@@ -459,7 +460,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         )}
       </div>
     </div>
-  ), [featureState.animations, toggleAnimations, animateGraphTransition, isVisible]);
+  ), [featureState.animations, toggleAnimations, animateGraphTransition, panelVisible]);
 
   const AIInsightsPanel = useMemo(() => (
     <div className={styles['innovative-feature-panel']}>
@@ -562,29 +563,65 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   return (
     <>
       {/* Feature Control Panels */}
-      <Html
-        position={[0, 25, 0]}
-        center
-        style={{
-          background: 'rgba(0, 0, 0, 0.9)',
-          borderRadius: '12px',
-          padding: '20px',
-          color: 'white',
-          fontFamily: 'Inter, system-ui, sans-serif',
-          pointerEvents: 'auto',
-          userSelect: 'none',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(0, 255, 255, 0.3)'
-        }}
-      >
-        <div className={styles['features-grid']}>
-          {SynchronizationPanel}
-          {ComparisonPanel}
-          {AnimationPanel}
-          {AIInsightsPanel}
-          {InteractionPanel}
-        </div>
-      </Html>
+      {panelVisible && (
+        <Html
+          position={[0, 25, 0]}
+          center
+          style={{
+            background: 'rgba(0, 0, 0, 0.9)',
+            borderRadius: '12px',
+            padding: '20px',
+            color: 'white',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            pointerEvents: 'auto',
+            userSelect: 'none',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0, 255, 255, 0.3)',
+            position: 'relative'
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setPanelVisible(false)}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '4px',
+              color: 'white',
+              fontSize: '16px',
+              width: '24px',
+              height: '24px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 0, 0, 0.3)';
+              e.currentTarget.style.borderColor = 'rgba(255, 0, 0, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            }}
+            title="Close Feature Panel"
+          >
+            ×
+          </button>
+          <div className={styles['features-grid']}>
+            {SynchronizationPanel}
+            {ComparisonPanel}
+            {AnimationPanel}
+            {AIInsightsPanel}
+            {InteractionPanel}
+          </div>
+        </Html>
+      )}
 
       {/* Feature Status Indicator */}
       <Html
@@ -624,136 +661,44 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
         </div>
       </Html>
 
-      <style jsx>{`
-        .innovative-feature-panel {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          padding: 15px;
-          margin-bottom: 10px;
-        }
-
-        .innovative-feature-panel h3 {
-          margin: 0 0 10px 0;
-          font-size: 14px;
-          font-weight: 600;
-          color: #00ffff;
-        }
-
-        .feature-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .feature-controls label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          cursor: pointer;
-        }
-
-        .feature-controls input[type="checkbox"] {
-          margin: 0;
-        }
-
-        .feature-controls button {
-          padding: 6px 12px;
-          background: rgba(0, 255, 255, 0.2);
-          border: 1px solid rgba(0, 255, 255, 0.5);
-          border-radius: 4px;
-          color: white;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .feature-controls button:hover:not(:disabled) {
-          background: rgba(0, 255, 255, 0.3);
-          border-color: rgba(0, 255, 255, 0.8);
-        }
-
-        .feature-controls button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .sync-options, .comparison-results, .animation-controls, .ai-controls, .interaction-modes {
-          margin-top: 8px;
-          padding-left: 16px;
-          border-left: 2px solid rgba(0, 255, 255, 0.3);
-        }
-
-        .similarity-metrics, .match-count, .optimization-results, .recommendations {
-          margin: 5px 0;
-          font-size: 11px;
-        }
-
-        .recommendation-list {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          margin-top: 5px;
-        }
-
-        .recommendation-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 4px 8px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 4px;
-        }
-
-        .rec-type {
-          font-size: 10px;
-          text-transform: capitalize;
-        }
-
-        .rec-confidence {
-          font-size: 10px;
-          color: #00ff88;
-          font-weight: 600;
-        }
-
-        .interaction-status {
-          margin-top: 10px;
-          padding-top: 8px;
-          border-top: 1px solid rgba(255, 255, 255, 0.2);
-          font-size: 11px;
-        }
-
-        .feature-status {
-          text-align: center;
-        }
-
-        .feature-status h4 {
-          margin: 0 0 8px 0;
-          font-size: 12px;
-          color: #00ffff;
-        }
-
-        .status-indicators {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .status-item {
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 11px;
-          background: rgba(255, 255, 255, 0.1);
-          opacity: 0.5;
-          transition: all 0.2s;
-        }
-
-        .status-item.active {
-          opacity: 1;
-          background: rgba(0, 255, 255, 0.2);
-          color: #00ffff;
-        }
-      `}</style>
+      {/* Show button when panel is hidden */}
+      {!panelVisible && (
+        <Html
+          position={[0, 25, 0]}
+          center
+          style={{
+            pointerEvents: 'auto'
+          }}
+        >
+          <button
+            onClick={() => setPanelVisible(true)}
+            style={{
+              background: 'rgba(0, 255, 255, 0.2)',
+              border: '1px solid rgba(0, 255, 255, 0.5)',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '14px',
+              padding: '8px 16px',
+              cursor: 'pointer',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 255, 255, 0.3)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 255, 255, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.5)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            title="Show Feature Panel"
+          >
+            🚀 Show Features
+          </button>
+        </Html>
+      )}
     </>
   );
 };

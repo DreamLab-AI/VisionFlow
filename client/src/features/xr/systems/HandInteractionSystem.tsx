@@ -110,8 +110,8 @@ export const HandInteractionSystem: React.FC<HandInteractionSystemProps> = ({
   const { scene, gl, camera } = useThree();
   const { isPresenting, session, controllers, player } = useSafeXR();
   const platform = usePlatform();
-  const settings = useSettingsStore(state => state.settings.xr);
-  const handTrackingEnabled = settings.handTracking && enabled;
+  const settings = useSettingsStore(state => state.settings?.xr);
+  const handTrackingEnabled = settings?.handTracking && enabled;
   
   // State for hands and interaction
   const [handsVisible, setHandsVisible] = useState(false);
@@ -269,7 +269,7 @@ export const HandInteractionSystem: React.FC<HandInteractionSystemProps> = ({
       ];
       geometry.setFromPoints(points);
       const material = new LineBasicMaterial({ 
-        color: settings.controllerRayColor || 0x00ff00,
+        color: settings?.controllerRayColor || 0x00ff00,
         opacity: 0.7, 
         transparent: true 
       });
@@ -284,7 +284,7 @@ export const HandInteractionSystem: React.FC<HandInteractionSystemProps> = ({
       ];
       geometry.setFromPoints(points);
       const material = new LineBasicMaterial({ 
-        color: settings.controllerRayColor || 0x00ff00,
+        color: settings?.controllerRayColor || 0x00ff00,
         opacity: 0.7, 
         transparent: true 
       });
@@ -338,7 +338,7 @@ export const HandInteractionSystem: React.FC<HandInteractionSystemProps> = ({
       
       logger.info('Hand tracking system disposed');
     };
-  }, [handTrackingEnabled, scene, interactionDistance, settings.controllerRayColor, createHandVisualization]);
+  }, [handTrackingEnabled, scene, interactionDistance, settings?.controllerRayColor, createHandVisualization]);
   
   // Update controller references when WebXR session changes
   useEffect(() => {

@@ -1,15 +1,12 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { defaultSettings } from '../features/settings/config/defaultSettings'
-import { Settings, SettingsPath, GraphSettings } from '../features/settings/config/settings'
+import { Settings, SettingsPath } from '../features/settings/config/settings'
 import { createLogger, createErrorMetadata } from '../utils/logger'
 import { debugState } from '../utils/clientDebugState'
-import { deepMerge } from '../utils/deepMerge';
-import { apiService } from '../services/apiService';
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
-import { normalizeBloomGlowSettings, transformBloomToGlow } from '../utils/caseConversion';
+import { settingsApi } from '../api/settingsApi';
 
 
 
@@ -57,67 +54,16 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
-// Shared debounced save function with bloom/glow field transformation
+
+// Debounced save to server
 const debouncedSaveToServer = async (settings: Settings, initialized: boolean) => {
-  if (!initialized || settings.system?.persistSettings === false) {
-    return;
-  }
-
+  if (!initialized) return;
+  
   try {
-    const headers: Record<string, string> = {};
-
-    // Add authentication headers if available
-    try {
-      const { nostrAuth } = await import('../services/nostrAuthService');
-      if (nostrAuth.isAuthenticated()) {
-        const user = nostrAuth.getCurrentUser();
-        const token = nostrAuth.getSessionToken();
-        if (user && token) {
-          headers['X-Nostr-Pubkey'] = user.pubkey;
-          headers['Authorization'] = `Bearer ${token}`;
-          if (debugState.isEnabled()) {
-            logger.info('Using Nostr authentication for settings sync');
-          }
-        }
-      }
-    } catch (error) {
-      logger.warn('Error getting Nostr authentication:', createErrorMetadata(error));
-    }
-
-    // Transform bloom fields to glow fields for server compatibility
-    const serverSettings = transformBloomToGlow(settings);
-
-    // Log the exact payload being sent for debugging
-    logger.info('[SETTINGS DEBUG] Sending settings payload to server:', {
-      endpoint: '/api/settings',
-      payloadKeys: Object.keys(serverSettings),
-      sampleFields: {
-        'xr.enabled': serverSettings.xr?.enabled,
-        'xr.enableXrMode': (serverSettings.xr as any)?.enableXrMode,
-        'system.debug.enabled': serverSettings.system?.debug?.enabled,
-        'system.debug.enableClientDebugMode': (serverSettings.system?.debug as any)?.enableClientDebugMode,
-        'visualisation.glow.enabled': serverSettings.visualisation?.glow?.enabled,
-        'visualisation.bloom.enabled': serverSettings.visualisation?.bloom?.enabled
-      }
-    });
-
-    // Server handles camelCase to snake_case conversion automatically
-    // Send transformed settings (bloom -> glow) to server
-    const updatedSettings = await apiService.post('/settings', serverSettings, headers);
-    if (updatedSettings) {
-      if (debugState.isEnabled()) {
-        logger.info('Settings saved to server successfully');
-      }
-      toast({ title: "Settings Saved", description: "Your settings have been synced with the server." });
-    }
+    await settingsApi.updateSettings(settings);
+    logger.debug('Settings saved to server');
   } catch (error) {
-    const errorMeta = createErrorMetadata(error);
-    logger.error('Failed to save settings to server:', errorMeta);
-    toast({
-      variant: "destructive",
-      title: "Save Failed",
-      description: `Could not save settings to server. ${errorMeta.message || 'Check console.'}`
-    });
+    logger.error('Failed to save settings to server:', error);
   }
 };
 
@@ -152,8 +98,7 @@ interface SettingsState {
   updateComputeMode: (mode: string) => void;
   updateClustering: (config: ClusteringConfig) => void;
   updateConstraints: (constraints: ConstraintConfig[]) => void;
-  updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
-  updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void; // Alias for updateGPUPhysics
+  updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
   updateWarmupSettings: (settings: WarmupSettings) => void;
   
   // WebSocket integration for real-time physics updates
@@ -256,7 +201,7 @@ if (typeof window !== 'undefined' && window.localStorage) {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      settings: defaultSettings,
+      settings: {} as Settings,
       initialized: false,
       authenticated: false,
       user: null,
@@ -269,75 +214,42 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info('Initializing settings')
           }
 
-          // Load settings from localStorage via zustand persist
-          const currentSettings = get().settings
-
-          // ALWAYS fetch settings from server and use them as source of truth
           try {
-            // Use the settings service to fetch settings
-            const rawServerSettings = await apiService.get('/settings')
+            // Fetch settings from server as single source of truth
+            const serverSettings = await settingsApi.fetchSettings();
 
-            if (rawServerSettings) {
-              if (debugState.isEnabled()) {
-                logger.info('Fetched settings from server:', { rawServerSettings })
-              }
-
-              // Transform server glow settings to client bloom settings for compatibility
-              const clientCompatibleSettings = normalizeBloomGlowSettings(rawServerSettings, 'toClient');
-
-              // Server settings OVERRIDE everything - server is source of truth
-              // Only use defaults for missing fields, ignore localStorage for physics
-              const mergedSettings = deepMerge(defaultSettings, clientCompatibleSettings)
-
-              if (debugState.isEnabled()) {
-                logger.info('Using server settings as source of truth with bloom/glow normalization:', { 
-                  mergedSettings,
-                  hasBloom: !!mergedSettings.visualisation?.bloom,
-                  hasGlow: !!mergedSettings.visualisation?.glow
-                })
-              }
-
-              set({
-                settings: mergedSettings,
-                initialized: true
-              })
-
-              if (debugState.isEnabled()) {
-                logger.info('Settings loaded from server with bloom/glow field normalization')
-              }
-
-              return mergedSettings
+            if (debugState.isEnabled()) {
+              logger.info('Fetched settings from server:', { serverSettings })
             }
+
+            set({
+              settings: serverSettings,
+              initialized: true
+            })
+
+            if (debugState.isEnabled()) {
+              logger.info('Settings loaded from server successfully')
+            }
+
+            return serverSettings
           } catch (error) {
-            logger.warn('Failed to fetch settings from server:', createErrorMetadata(error))
-            // Continue with safe defaults if server fetch fails
+            logger.error('Failed to fetch settings from server:', createErrorMetadata(error))
+            
+            set({
+              initialized: false
+            })
+            
+            // Keep the error state - don't fall back to defaults
+            throw error
           }
-
-          // Use current settings as is
-          const migratedSettings = currentSettings
-
-          // Mark as initialized
-          set({
-            settings: migratedSettings,
-            initialized: true
-          })
-
-          if (debugState.isEnabled()) {
-            logger.info('Settings initialized from local storage')
-          }
-
-          return migratedSettings
         } catch (error) {
           logger.error('Failed to initialize settings:', createErrorMetadata(error))
-
-          // Fall back to default settings
-          const migratedDefaults = defaultSettings
+          
           set({
-            settings: migratedDefaults,
-            initialized: true
+            initialized: false
           })
-
-          return migratedDefaults
+          
+          throw error
         }
       },
 
@@ -457,7 +369,7 @@ export const useSettingsStore = create<SettingsState>()(
         // Get the old settings for comparison
         const oldSettings = get().settings;
         
-        // Apply the update
+        // Apply the update with safeguard for frozen objects
         set((state) => produce(state, (draft) => {
           updater(draft.settings);
         }));
@@ -541,7 +453,7 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      updateGPUPhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
+      updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         const state = get();
         
         // Validate parameter ranges for new CUDA parameters
@@ -593,7 +505,7 @@ export const useSettingsStore = create<SettingsState>()(
             Object.assign(graphSettings.physics, validatedParams);
             
             if (debugState.isEnabled()) {
-              logger.info('GPU Physics parameters updated:', {
+              logger.info('Physics parameters updated:', {
                 graphName,
                 updatedParams: validatedParams,
                 newPhysicsState: graphSettings.physics
@@ -614,12 +526,6 @@ export const useSettingsStore = create<SettingsState>()(
           }
           Object.assign((draft as any).performance, settings);
         });
-      },
-
-      // Alias method for updateGPUPhysics for backward compatibility
-      updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
-        const state = get();
-        state.updateGPUPhysics(graphName, params);
       },
 
       // WebSocket notification for physics updates

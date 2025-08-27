@@ -18,9 +18,8 @@ export default defineConfig({
     
     // HMR configuration for development
     hmr: {
-      port: 3001, // Use nginx port since we're proxying through it
-      host: 'localhost',
-      protocol: 'ws',
+      // Let Vite automatically use the browser's location host
+      // This fixes WebSocket connections when accessing via IP address
       path: '/__vite_hmr', // Match nginx config
     },
     

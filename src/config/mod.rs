@@ -66,40 +66,6 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
     }
 }
 
-// Recursive function to convert JSON Value keys from camelCase to snake_case
-fn keys_to_snake_case(value: Value) -> Value {
-    match value {
-        Value::Object(map) => {
-            let new_map = map.into_iter().map(|(k, v)| {
-                // Handle bloom→glow field mapping
-                let snake_key = if k == "bloom" {
-                    // Map 'bloom' field to 'glow' for internal storage
-                    "glow".to_string()
-                } else {
-                    // Regular camelCase to snake_case conversion
-                    k.chars().fold(String::new(), |mut acc, c| {
-                        if c.is_ascii_uppercase() {
-                            // Add underscore before uppercase letters, but not at the start
-                            if !acc.is_empty() {
-                                acc.push('_');
-                            }
-                            acc.push(c.to_ascii_lowercase());
-                        } else {
-                            acc.push(c);
-                        }
-                        acc
-                    })
-                };
-                (snake_key, keys_to_snake_case(v))
-            }).collect();
-            Value::Object(new_map)
-        }
-        Value::Array(arr) => {
-            Value::Array(arr.into_iter().map(keys_to_snake_case).collect())
-        }
-        _ => value,
-    }
-}
 
 // Helper function to merge two JSON values
 fn merge_json_values(base: Value, update: Value) -> Value {
@@ -124,45 +90,6 @@ fn merge_json_values(base: Value, update: Value) -> Value {
     }
 }
 
-// Helper to convert snake_case to camelCase
-// Special handling for glow→bloom field mapping for client responses
-fn keys_to_camel_case(value: Value) -> Value {
-    match value {
-        Value::Object(map) => {
-            let new_map = map.into_iter().map(|(k, v)| {
-                // Handle glow→bloom field mapping for client responses
-                let camel_key = if k == "glow" {
-                    // Map 'glow' field to 'bloom' for client JSON responses
-                    "bloom".to_string()
-                } else {
-                    // Regular snake_case to camelCase conversion
-                    k.split('_').enumerate().map(|(i, part)| {
-                        if i == 0 {
-                            part.to_string()
-                        } else {
-                            // Handle empty parts and properly capitalize
-                            if part.is_empty() {
-                                String::new()
-                            } else {
-                                let mut chars = part.chars();
-                                match chars.next() {
-                                    None => String::new(),
-                                    Some(first) => first.to_uppercase().chain(chars).collect(),
-                                }
-                            }
-                        }
-                    }).collect::<String>()
-                };
-                (camel_key, keys_to_camel_case(v))
-            }).collect();
-            Value::Object(new_map)
-        }
-        Value::Array(arr) => {
-            Value::Array(arr.into_iter().map(keys_to_camel_case).collect())
-        }
-        _ => value,
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct MovementAxes {
@@ -422,15 +349,14 @@ pub struct LabelSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct GlowSettings {
     pub enabled: bool,
-    #[serde(rename = "strength", alias = "intensity")]
     pub intensity: f32,
     pub radius: f32,
     pub threshold: f32,
-    #[serde(rename = "environment_bloom_strength", alias = "diffuse_strength", default)]
+    #[serde(default)]
     pub diffuse_strength: f32,
-    #[serde(rename = "node_bloom_strength", alias = "atmospheric_density", default)]
+    #[serde(default)]
     pub atmospheric_density: f32,
-    #[serde(rename = "edge_bloom_strength", alias = "volumetric_intensity", default)]
+    #[serde(default)]
     pub volumetric_intensity: f32,
     #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color")]
     pub base_color: String,
@@ -442,11 +368,11 @@ pub struct GlowSettings {
     pub pulse_speed: f32,
     #[serde(default)]
     pub flow_speed: f32,
-    #[serde(rename = "node_bloom_strength", alias = "node_glow_strength", default)]
+    #[serde(default)]
     pub node_glow_strength: f32,
-    #[serde(rename = "edge_bloom_strength", alias = "edge_glow_strength", default)]
+    #[serde(default)]
     pub edge_glow_strength: f32,
-    #[serde(rename = "environment_bloom_strength", alias = "environment_glow_strength", default)]
+    #[serde(default)]
     pub environment_glow_strength: f32,
 }
 
@@ -523,7 +449,6 @@ pub struct VisualisationSettings {
     // Global settings
     pub rendering: RenderingSettings,
     pub animations: AnimationSettings,
-    #[serde(rename = "bloom", alias = "glow")]
     pub glow: GlowSettings,
     pub hologram: HologramSettings,
     pub graphs: GraphsSettings,
@@ -1034,23 +959,17 @@ impl AppFullSettings {
             debug!("merge_update: Incoming update (camelCase): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
         
-        // Convert from camelCase to snake_case
-        let mut snake_update = keys_to_snake_case(update.clone());
-        if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After snake_case conversion: {}", serde_json::to_string_pretty(&snake_update).unwrap_or_else(|_| "Could not serialize".to_string()));
-        }
-        
         // Convert empty strings to null for Option<String> fields
-        snake_update = convert_empty_strings_to_null(snake_update);
+        let processed_update = convert_empty_strings_to_null(update.clone());
         if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&snake_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&processed_update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
         
         // Merge the update into self
         let current_value = serde_json::to_value(&self)
             .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
         
-        let merged = merge_json_values(current_value, snake_update);
+        let merged = merge_json_values(current_value, processed_update);
         if crate::utils::logging::is_debug_enabled() {
             debug!("merge_update: After merge: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
@@ -1068,124 +987,5 @@ impl AppFullSettings {
         Ok(())
     }
     
-    /// Convert to camelCase JSON for client
-    pub fn to_camel_case_json(&self) -> Result<Value, String> {
-        let snake_json = serde_json::to_value(&self)
-            .map_err(|e| format!("Failed to serialize settings: {}", e))?;
-        Ok(keys_to_camel_case(snake_json))
-    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-
-    #[test]
-    fn test_snake_to_camel_conversion() {
-        let test_cases = vec![
-            ("simple_case", "simpleCase"),
-            ("auto_balance", "autoBalance"),
-            ("auto_balance_interval_ms", "autoBalanceIntervalMs"),
-            ("enable_bounds", "enableBounds"),
-            ("spring_k", "springK"),
-            ("repel_k", "repelK"),
-            ("max_velocity", "maxVelocity"),
-            ("boundary_damping", "boundaryDamping"),
-            ("update_threshold", "updateThreshold"),
-        ];
-
-        for (snake, expected_camel) in test_cases {
-            let input = json!({
-                snake: "test_value"
-            });
-            let result = keys_to_camel_case(input);
-            assert!(result.as_object().unwrap().contains_key(expected_camel));
-            assert_eq!(result[expected_camel], "test_value");
-        }
-    }
-
-    #[test]
-    fn test_camel_to_snake_conversion() {
-        let test_cases = vec![
-            ("simpleCase", "simple_case"),
-            ("autoBalance", "auto_balance"),
-            ("autoBalanceIntervalMs", "auto_balance_interval_ms"),
-            ("enableBounds", "enable_bounds"),
-            ("springK", "spring_k"),
-            ("repelK", "repel_k"),
-            ("maxVelocity", "max_velocity"),
-            ("boundaryDamping", "boundary_damping"),
-            ("updateThreshold", "update_threshold"),
-        ];
-
-        for (camel, expected_snake) in test_cases {
-            let input = json!({
-                camel: "test_value"
-            });
-            let result = keys_to_snake_case(input);
-            assert!(result.as_object().unwrap().contains_key(expected_snake));
-            assert_eq!(result[expected_snake], "test_value");
-        }
-    }
-
-    #[test]
-    fn test_round_trip_conversion() {
-        let original = json!({
-            "autoBalance": true,
-            "springK": 0.1,
-            "repelK": 2.0,
-            "maxVelocity": 5.0,
-            "autoBalanceIntervalMs": 500,
-            "enableBounds": false,
-            "boundaryDamping": 0.95
-        });
-
-        // Convert to snake_case
-        let snake_case = keys_to_snake_case(original.clone());
-        
-        // Convert back to camelCase
-        let back_to_camel = keys_to_camel_case(snake_case);
-
-        // Should be identical to original
-        assert_eq!(original, back_to_camel);
-    }
-
-    #[test]
-    fn test_nested_object_conversion() {
-        let input = json!({
-            "visualisation": {
-                "graphs": {
-                    "logseq": {
-                        "physics": {
-                            "autoBalance": true,
-                            "springK": 0.1,
-                            "repelK": 2.0
-                        }
-                    }
-                }
-            }
-        });
-
-        let snake_case = keys_to_snake_case(input.clone());
-        let expected_snake = json!({
-            "visualisation": {
-                "graphs": {
-                    "logseq": {
-                        "physics": {
-                            "auto_balance": true,
-                            "spring_k": 0.1,
-                            "repel_k": 2.0
-                        }
-                    }
-                }
-            }
-        });
-
-        assert_eq!(snake_case, expected_snake);
-
-        // Test round trip
-        let back_to_camel = keys_to_camel_case(snake_case);
-        assert_eq!(input, back_to_camel);
-    }
-}

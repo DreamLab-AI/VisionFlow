@@ -5,11 +5,11 @@ import * as THREE from 'three';
 
 // Components
 import GraphManager from './GraphManager';
-import GraphFeatures from './GraphFeatures';
+// GraphFeatures removed - now integrated into IntegratedControlPanel
 import { PostProcessingEffects } from './PostProcessingEffects';
 import XRController from '../../xr/components/XRController';
 import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
-import { BotsVisualization } from '../../bots/components/BotsVisualization';
+import { BotsVisualization } from '../../bots/components';
 // import { DualVisualizationControls } from './DualVisualizationControls'; // Removed - both graphs now at origin
 
 // SpacePilot Integration
@@ -151,20 +151,8 @@ const GraphCanvas = () => {
                     <BotsVisualization />
                 </group>
 
-                {/* World-Class Innovative Graph Features */}
-                {isInitialized && cameraRef.current && (
-                    <GraphFeatures
-                        graphId="main-graph"
-                        graphData={graphData}
-                        isVisible={true}
-                        camera={cameraRef.current}
-                        onFeatureUpdate={(feature, data) => {
-                            if (debugState.isEnabled()) {
-                                logger.debug(`Feature update: ${feature}`, data);
-                            }
-                        }}
-                    />
-                )}
+                {/* Graph features now integrated into IntegratedControlPanel */}
+                {/* GraphFeatures component removed and functionality moved to control panel tabs */}
 
                 {/* Camera Controls with SpacePilot Integration */}
                 <OrbitControls

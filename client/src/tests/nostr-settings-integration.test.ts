@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vite
 import { settingsApi } from '../api/settingsApi';
 import { nostrAuth, type AuthState, type SimpleNostrUser } from '../services/nostrAuthService';
 import { Settings, SettingsUpdate } from '../features/settings/config/settings';
-import { defaultSettings } from '../features/settings/config/defaultSettings';
+// import { defaultSettings } from '../features/settings/config/defaultSettings';
 
 // Mock fetch for API calls
 const mockFetch = vi.fn();

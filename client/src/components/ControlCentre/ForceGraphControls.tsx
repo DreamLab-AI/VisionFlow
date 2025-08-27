@@ -11,7 +11,7 @@ import { Activity, GitBranch, Zap, Type, Palette } from 'lucide-react';
 
 export const ForceGraphControls: React.FC = () => {
   const { toast } = useToast();
-  const { settings, updateSettings, updateGPUPhysics } = useSettingsStore();
+  const { settings, updateSettings, updatePhysics } = useSettingsStore();
   const [activeGraph, setActiveGraph] = useState<'logseq' | 'visionflow'>('logseq');
 
   // Get current graph settings
@@ -83,18 +83,18 @@ export const ForceGraphControls: React.FC = () => {
 
   const handleSpringStrengthChange = useCallback((strength: number[]) => {
     const value = strength[0];
-    updateGPUPhysics(activeGraph, { springK: value });
-  }, [updateGPUPhysics, activeGraph]);
+    updatePhysics(activeGraph, { springK: value });
+  }, [updatePhysics, activeGraph]);
 
   const handleRepulsionStrengthChange = useCallback((strength: number[]) => {
     const value = strength[0];
-    updateGPUPhysics(activeGraph, { repelK: value });
-  }, [updateGPUPhysics, activeGraph]);
+    updatePhysics(activeGraph, { repelK: value });
+  }, [updatePhysics, activeGraph]);
 
   const handleDampingChange = useCallback((damping: number[]) => {
     const value = damping[0];
-    updateGPUPhysics(activeGraph, { damping: value });
-  }, [updateGPUPhysics, activeGraph]);
+    updatePhysics(activeGraph, { damping: value });
+  }, [updatePhysics, activeGraph]);
 
   // Label control handlers
   const handleLabelsEnabledChange = useCallback((enabled: boolean) => {
@@ -112,26 +112,23 @@ export const ForceGraphControls: React.FC = () => {
     });
   }, [updateSettings, activeGraph]);
 
-  const handleResetPhysics = useCallback(() => {
-    // Reset physics to sensible defaults for the current graph
-    const defaultPhysics = {
-      springK: activeGraph === 'logseq' ? 0.05 : 0.08,
-      repelK: activeGraph === 'logseq' ? 2.0 : 1.5,
-      damping: 0.9,
-      attractionK: 0.1,
-      maxVelocity: 5.0,
-      dt: 0.02,
-      temperature: 1.0,
-      iterations: 100
-    };
-
-    updateGPUPhysics(activeGraph, defaultPhysics);
-    
-    toast({
-      title: 'Physics Reset',
-      description: `${activeGraph} graph physics reset to defaults`,
-    });
-  }, [activeGraph, updateGPUPhysics, toast]);
+  const handleResetPhysics = useCallback(async () => {
+    try {
+      const { resetSettings } = useSettingsStore.getState();
+      await resetSettings();
+      
+      toast({
+        title: 'Physics Reset',
+        description: `${activeGraph} graph physics reset to server defaults`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Reset Failed',
+        description: 'Failed to reset physics settings',
+        variant: 'destructive',
+      });
+    }
+  }, [activeGraph, toast]);
 
   return (
     <div className="space-y-4">

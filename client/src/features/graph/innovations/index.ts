@@ -5,15 +5,29 @@
  * dual graph visualization system.
  */
 
-// Core Services
-export { graphSynchronization, GraphSynchronization } from '../services/graphSynchronization';
-export { graphComparison, GraphComparison } from '../services/graphComparison';
-export { graphAnimations, GraphAnimations } from '../services/graphAnimations';
-export { aiInsights, AIInsights } from '../services/aiInsights';
-export { advancedInteractionModes, AdvancedInteractionModes } from '../services/advancedInteractionModes';
+// Core Services - Import and re-export
+import { graphSynchronization, GraphSynchronization } from '../services/graphSynchronization';
+import { graphComparison, GraphComparison } from '../services/graphComparison';
+import { graphAnimations, GraphAnimations } from '../services/graphAnimations';
+import { aiInsights, AIInsights } from '../services/aiInsights';
+import { advancedInteractionModes, AdvancedInteractionModes } from '../services/advancedInteractionModes';
+
+export { 
+  graphSynchronization, 
+  GraphSynchronization,
+  graphComparison,
+  GraphComparison,
+  graphAnimations,
+  GraphAnimations,
+  aiInsights,
+  AIInsights,
+  advancedInteractionModes,
+  AdvancedInteractionModes
+};
 
 // Main Integration Component
-export { default as GraphFeatures } from '../components/GraphFeatures';
+import GraphFeatures from '../components/GraphFeatures';
+export { GraphFeatures };
 
 // Type Exports for Synchronization
 export type {

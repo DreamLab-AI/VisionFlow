@@ -185,18 +185,6 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           volumetricIntensity: { label: 'Volumetric Intensity', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.glow.volumetricIntensity', description: 'Intensity of volumetric lighting.' },
         },
       },
-      bloom: {
-        label: 'Bloom Effects (Legacy)',
-        settings: {
-          enabled: { label: 'Enable Bloom', type: 'toggle', path: 'visualisation.bloom.enabled', description: 'Enable post-processing bloom effects (legacy - use Glow instead).' },
-          strength: { label: 'Overall Strength', type: 'slider', min: 0, max: 5.0, step: 0.1, path: 'visualisation.bloom.strength', description: 'Global bloom intensity multiplier.' },
-          nodeBloomStrength: { label: 'Node Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.nodeBloomStrength', description: 'Bloom strength for nodes.' },
-          edgeBloomStrength: { label: 'Edge Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.edgeBloomStrength', description: 'Bloom strength for edges.' },
-          environmentBloomStrength: { label: 'Environment Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.environmentBloomStrength', description: 'Bloom strength from environment.' },
-          radius: { label: 'Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.bloom.radius', description: 'Radius of the bloom effect.' },
-          threshold: { label: 'Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.threshold', description: 'Luminance threshold for bloom.' },
-        },
-      },
       hologram: {
         label: 'Holographic Overlays',
         settings: {

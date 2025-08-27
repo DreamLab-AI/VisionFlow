@@ -1,7 +1,6 @@
 // Settings API Client - Unified interface for all settings operations
 import { Settings, SettingsUpdate } from '../features/settings/config/settings';
 import { logger } from '../utils/logger';
-import { normalizeBloomGlowSettings, transformBloomToGlow } from '../utils/caseConversion';
 
 const API_BASE = '/api/settings';
 
@@ -17,24 +16,20 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to fetch settings: ${response.statusText}`);
     }
     
-    const rawSettings = await response.json();
-    // Normalize server glow settings to client bloom settings for compatibility
-    return normalizeBloomGlowSettings(rawSettings, 'toClient');
+    const settings = await response.json();
+    return settings;
   },
   
   /**
    * Update settings with a partial update
    */
   async updateSettings(update: SettingsUpdate): Promise<Settings> {
-    // Transform bloom fields to glow fields for server compatibility
-    const serverUpdate = transformBloomToGlow(update);
-    
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(serverUpdate),
+      body: JSON.stringify(update),
     });
     
     if (!response.ok) {
@@ -42,24 +37,20 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to update settings: ${response.statusText}`);
     }
     
-    const rawResponse = await response.json();
-    // Normalize server response back to client format
-    return normalizeBloomGlowSettings(rawResponse, 'toClient');
+    const updatedSettings = await response.json();
+    return updatedSettings;
   },
   
   /**
    * Save full settings object
    */
   async saveSettings(settings: Settings): Promise<Settings> {
-    // Transform bloom fields to glow fields for server compatibility
-    const serverSettings = transformBloomToGlow(settings);
-    
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(serverSettings),
+      body: JSON.stringify(settings),
     });
     
     if (!response.ok) {
@@ -67,9 +58,8 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to save settings: ${response.statusText}`);
     }
     
-    const rawResponse = await response.json();
-    // Normalize server response back to client format
-    return normalizeBloomGlowSettings(rawResponse, 'toClient');
+    const savedSettings = await response.json();
+    return savedSettings;
   },
   
   /**
@@ -85,28 +75,10 @@ export const settingsApi = {
       throw new Error(error.error || `Failed to reset settings: ${response.statusText}`);
     }
     
-    const rawResponse = await response.json();
-    // Normalize server response back to client format
-    return normalizeBloomGlowSettings(rawResponse, 'toClient');
+    const settings = await response.json();
+    return settings;
   },
   
-  /**
-   * Update physics settings - uses new unified endpoint
-   */
-  async updatePhysics(physics: any): Promise<void> {
-    const response = await fetch('/api/physics/update', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(physics),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to update physics' }));
-      throw new Error(error.error || `Failed to update physics: ${response.statusText}`);
-    }
-  },
   
   /**
    * Export settings to JSON string
