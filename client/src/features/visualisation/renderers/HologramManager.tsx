@@ -10,6 +10,8 @@ import {
   DiffuseMoteMaterial 
 } from '@/rendering/DiffuseWireframeMaterial';
 import { BloomHologramMaterial, BloomStandardMaterial } from '../shaders/BloomHologramMaterial';
+import { EtherealDiffuseCloudMaterial } from '../shaders/EtherealDiffuseCloudMaterial';
+import { WireframeWithExtendedGlow } from '../components/WireframeWithExtendedGlow';
 
 const logger = createLogger('HologramManager');
 
@@ -34,16 +36,18 @@ export const HologramRing: React.FC<{
   const materialRef = useRef<DiffuseHologramRingMaterial | THREE.MeshBasicMaterial>();
   const [rotation, setRotation] = useState<[number, number, number]>([0, 0, 0]);
 
-  // Create material with bloom effect
+  // Create material with ethereal diffuse cloud effect
   const material = React.useMemo(() => {
     if (useDiffuseEffects) {
-      // Use our new bloom shader for heavy blur effect
-      return new BloomHologramMaterial({
+      // Use our new ethereal diffuse cloud shader for maximum blur
+      return new EtherealDiffuseCloudMaterial({
         color: color,
         opacity: opacity,
-        glowRadius: 1.5,
-        glowIntensity: 2.0,
-        blurAmount: 4.0
+        cloudScale: 10.0,     // Much larger expansion to extend beyond geometry
+        blurSpread: 50.0,     // Extreme blur for maximum diffusion
+        cloudDensity: 0.6,    // More visible cloud
+        glowIntensity: 4.0,   // Very strong glow
+        diffuseRadius: 8.0    // Very wide diffuse area
       });
     } else {
       // Fallback to standard emissive material
@@ -68,7 +72,9 @@ export const HologramRing: React.FC<{
     }
 
     // Update material time for animation
-    if (material instanceof BloomHologramMaterial) {
+    if (material instanceof EtherealDiffuseCloudMaterial) {
+      material.updateTime(state.clock.elapsedTime);
+    } else if (material instanceof BloomHologramMaterial) {
       material.updateTime(state.clock.elapsedTime);
     }
   });
@@ -81,6 +87,22 @@ export const HologramRing: React.FC<{
     };
   }, [material]);
 
+  // Use layered approach for extended glow when diffuse effects enabled
+  if (useDiffuseEffects) {
+    return (
+      <WireframeWithExtendedGlow
+        geometry="torus"
+        geometryArgs={[size, 0.5, 8, 16]}
+        rotation={rotation}
+        color={color}
+        opacity={opacity}
+        rotationSpeed={rotationSpeed}
+        rotationAxis={rotationAxis}
+      />
+    );
+  }
+  
+  // Fallback to simple mesh
   return (
     <mesh rotation={rotation}>
       <torusGeometry args={[size, 0.5, 8, 16]} />
@@ -110,17 +132,30 @@ export const HologramSphere: React.FC<{
   const materialRef = useRef<DiffuseWireframeMaterial | THREE.MeshBasicMaterial>();
   const [rotationY, setRotationY] = useState(0);
 
-  // Create material - use basic material for now, shader needs debugging
+  // Create material with ethereal effect for sphere
   const material = React.useMemo(() => {
-    // Always use basic material until we fix the shader
-    return new THREE.MeshBasicMaterial({
-      color: color,
-      transparent: true,
-      opacity: opacity,
-      wireframe: true,
-      toneMapped: false
-    });
-  }, [color, opacity]);
+    if (useDiffuseEffects && wireframe) {
+      // Use ethereal cloud shader for wireframe sphere
+      return new EtherealDiffuseCloudMaterial({
+        color: color,
+        opacity: opacity,
+        cloudScale: 8.0,      // Large expansion for sphere too
+        blurSpread: 40.0,     // Heavy blur for sphere
+        cloudDensity: 0.5,    // More visible
+        glowIntensity: 3.0,   // Strong glow
+        diffuseRadius: 7.0    // Very wide diffuse area
+      });
+    } else {
+      // Fallback to basic material
+      return new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        wireframe: wireframe,
+        toneMapped: false
+      });
+    }
+  }, [color, opacity, wireframe, useDiffuseEffects]);
 
   // Animate sphere rotation
   useFrame((_, delta) => {
@@ -129,8 +164,12 @@ export const HologramSphere: React.FC<{
     }
 
     // Update material time for animation
-    if (useDiffuseEffects && material instanceof DiffuseWireframeMaterial) {
-      material.updateTime(performance.now() * 0.001);
+    if (useDiffuseEffects) {
+      if (material instanceof EtherealDiffuseCloudMaterial) {
+        material.updateTime(performance.now() * 0.001);
+      } else if (material instanceof DiffuseWireframeMaterial) {
+        material.updateTime(performance.now() * 0.001);
+      }
     }
   });
 
@@ -142,6 +181,22 @@ export const HologramSphere: React.FC<{
     };
   }, [material]);
 
+  // Use layered approach for extended glow when diffuse effects enabled
+  if (useDiffuseEffects) {
+    return (
+      <WireframeWithExtendedGlow
+        geometry="icosahedron"
+        geometryArgs={[size, detail]}
+        rotation={[0, rotationY, 0]}
+        color={color}
+        opacity={opacity}
+        rotationSpeed={rotationSpeed}
+        rotationAxis={[0, 1, 0]}
+      />
+    );
+  }
+  
+  // Fallback to simple mesh
   return (
     <mesh rotation={[0, rotationY, 0]}>
       <icosahedronGeometry args={[size, detail]} />
