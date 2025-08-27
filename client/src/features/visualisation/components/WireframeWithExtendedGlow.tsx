@@ -30,10 +30,11 @@ export const WireframeWithExtendedGlow: React.FC<WireframeWithExtendedGlowProps>
   useEffect(() => {
     const group = groupRef.current;
     if (group) {
-      // Enable bloom on layer 1 for the entire group
+      // Enable both base layer and hologram/glow layer
       group.traverse((child: any) => {
         if (child.layers) {
-          child.layers.enable(1); // Enable bloom layer
+          child.layers.set(0); // Base layer for rendering
+          child.layers.enable(2); // Also enable hologram/glow layer for bloom
         }
       });
       

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import GraphManager from './GraphManager';
 // Post-processing effects
 import { PostProcessingEffects } from './PostProcessingEffects';
+import { SelectiveBloomPostProcessing } from './SelectiveBloomPostProcessing';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
 // SpacePilot Integration
@@ -33,7 +34,9 @@ const GraphCanvas: React.FC = () => {
     const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
     const xrEnabled = settings?.xr?.enabled !== false;
     const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
+    const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
     const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram !== false;
+    const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
     
     // Graph data state
     const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
@@ -160,8 +163,8 @@ const GraphCanvas: React.FC = () => {
                 {/* {xrEnabled && <XRController />} */}
                 {/* {xrEnabled && <XRVisualisationConnector />} */}
                 
-                {/* Post-processing effects */}
-                {enableBloom && <PostProcessingEffects />}
+                {/* Post-processing effects - always use standard bloom */}
+                {(enableBloom || enableGlow) && <PostProcessingEffects />}
                 
                 {/* Performance stats */}
                 {showStats && <Stats />}

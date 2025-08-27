@@ -103,8 +103,17 @@ export const HologramRing: React.FC<{
   }
   
   // Fallback to simple mesh
+  const ringMeshRef = useRef<THREE.Mesh>(null);
+  
+  useEffect(() => {
+    if (ringMeshRef.current) {
+      ringMeshRef.current.layers.set(0);  // Base layer
+      ringMeshRef.current.layers.enable(2); // Hologram bloom layer
+    }
+  }, []);
+  
   return (
-    <mesh rotation={rotation}>
+    <mesh ref={ringMeshRef} rotation={rotation}>
       <torusGeometry args={[size, 0.5, 8, 16]} />
       <primitive object={material} attach="material" />
     </mesh>
@@ -197,8 +206,17 @@ export const HologramSphere: React.FC<{
   }
   
   // Fallback to simple mesh
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.layers.set(0);  // Base layer
+      meshRef.current.layers.enable(2); // Hologram bloom layer
+    }
+  }, []);
+  
   return (
-    <mesh rotation={[0, rotationY, 0]}>
+    <mesh ref={meshRef} rotation={[0, rotationY, 0]}>
       <icosahedronGeometry args={[size, detail]} />
       <primitive object={material} attach="material" />
     </mesh>
@@ -232,22 +250,22 @@ export const HologramManager: React.FC<{
     return [40, 80];
   }, [settings?.sphereSizes]);
 
-  // Setup group for diffuse effects (no bloom layers needed)
+  // Setup group layers for proper rendering and bloom
   useEffect(() => {
     const group = groupRef.current;
-    if (group && !useDiffuseEffects) {
-      // Only set bloom layers if NOT using diffuse effects (fallback)
-      (group as any).layers.set(0);
-      (group as any).layers.enable(1);
+    if (group) {
+      // Set both base layer and hologram bloom layer
+      (group as any).layers.set(0);  // Base layer for rendering
+      (group as any).layers.enable(2); // Layer 2 for hologram/glow bloom
 
       (group as any).traverse((child: any) => {
         if (child.layers) {
-          child.layers.set(0);
-          child.layers.enable(1);
+          child.layers.set(0);  // Base layer for rendering
+          child.layers.enable(2); // Layer 2 for hologram/glow bloom
         }
       });
     }
-  }, [useDiffuseEffects]);
+  }, []);
 
   const quality = isXRMode ? 'high' : 'medium';
   const color: string | number = settings?.ringColor || '#00ffff'; // Use ringColor instead of color
@@ -257,9 +275,9 @@ export const HologramManager: React.FC<{
   const triangleSphereSize = settings?.triangleSphereSize || 60;
   const triangleSphereOpacity = settings?.triangleSphereOpacity || 0.3;
   
-  // Ensure we have at least some spheres to render - making them 4x smaller
-  const defaultSizes = [10, 20]; // Was [40, 80], now 4x smaller
-  const finalSphereSizes = sphereSizes.length > 0 ? sphereSizes.map(s => s / 4) : defaultSizes;
+  // Ensure we have at least some spheres to render - ring sizes only
+  const defaultSizes = [20, 40]; // Ring sizes (smaller)
+  const finalSphereSizes = sphereSizes.length > 0 ? sphereSizes : defaultSizes;
 
   return (
     <group ref={groupRef} position={position as any}>
@@ -267,7 +285,7 @@ export const HologramManager: React.FC<{
       {finalSphereSizes.map((size, index) => (
         <HologramRing
           key={`ring-${index}`}
-          size={size}  // Don't divide by 100 - use actual size
+          size={size}  // 2x larger already applied above
           color={color}
           opacity={opacity}
           rotationAxis={[
@@ -284,7 +302,7 @@ export const HologramManager: React.FC<{
       {/* Render triangle sphere with diffuse material */}
       {enableTriangleSphere && (
         <HologramSphere
-          size={triangleSphereSize}  // Don't divide by 100 - use actual size
+          size={triangleSphereSize}  // Keep original sphere size
           color={color}
           opacity={triangleSphereOpacity}
           detail={quality === 'high' ? 2 : 1}

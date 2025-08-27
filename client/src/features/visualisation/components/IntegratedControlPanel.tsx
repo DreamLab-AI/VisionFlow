@@ -71,13 +71,14 @@ const BUTTON_MENU_MAP = {
   '5': { id: 'performance', label: 'Performance', icon: Gauge, description: 'Performance optimization' },
   '6': { id: 'integrations', label: 'Visual Effects', icon: Palette, description: 'Visual effects and glow' },
   '7': { id: 'developer', label: 'Developer', icon: Code, description: 'Development tools' },
-  '8': { id: 'auth', label: 'Authentication', icon: Lock, description: 'User authentication' },
-  '9': { id: 'xr', label: 'XR/AR', icon: Glasses, description: 'Extended reality settings' },
+  '8': { id: 'xr', label: 'XR/AR', icon: Glasses, description: 'Extended reality settings' },
+  // Second row - graph features and auth
   'A': { id: 'graph-analysis', label: 'Analysis', icon: Network, description: 'Advanced graph analysis' },
   'B': { id: 'graph-visualisation', label: 'Visualisation', icon: Palette, description: 'Graph visualization features' },
   'C': { id: 'graph-optimisation', label: 'Optimisation', icon: Wrench, description: 'Graph optimization tools' },
   'D': { id: 'graph-interaction', label: 'Interaction', icon: Hand, description: 'Interactive graph features' },
-  'E': { id: 'graph-export', label: 'Export', icon: Download, description: 'Export and sharing options' }
+  'E': { id: 'graph-export', label: 'Export', icon: Download, description: 'Export and sharing options' },
+  'F': { id: 'auth', label: 'Auth/Nostr', icon: Lock, description: 'Authentication & Nostr' }
 };
 
 // Navigation button mappings (using hex values to avoid conflicts)
@@ -576,21 +577,17 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         return {
           title: 'Visual Effects',
           fields: [
-            // Glow Settings (Server-preferred)
-            { key: 'glow', label: 'Glow Effects', type: 'toggle', path: 'visualisation.glow.enabled' },
+            // Glow Settings (Hologram/Environment - Layer 2)
+            { key: 'glow', label: 'Hologram Glow', type: 'toggle', path: 'visualisation.glow.enabled' },
             { key: 'glowIntensity', label: 'Glow Intensity', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.intensity' },
             { key: 'glowRadius', label: 'Glow Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius' },
             { key: 'glowThreshold', label: 'Glow Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold' },
-            { key: 'nodeGlowStrength', label: 'Node Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.nodeGlowStrength' },
-            { key: 'edgeGlowStrength', label: 'Edge Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.edgeGlowStrength' },
-            { key: 'envGlowStrength', label: 'Env Glow', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.environmentGlowStrength' },
             
-            // Bloom Settings (Legacy - for backward compatibility)
-            { key: 'bloom', label: 'Bloom (Legacy)', type: 'toggle', path: 'visualisation.bloom.enabled' },
+            // Bloom Settings (Nodes/Edges - Layer 1)
+            { key: 'bloom', label: 'Graph Bloom', type: 'toggle', path: 'visualisation.bloom.enabled' },
             { key: 'bloomStrength', label: 'Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.strength' },
-            { key: 'nodeBloomStrength', label: 'Node Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.nodeBloomStrength' },
-            { key: 'edgeBloomStrength', label: 'Edge Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.edgeBloomStrength' },
-            { key: 'envBloomStrength', label: 'Env Bloom', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.environmentBloomStrength' },
+            { key: 'bloomRadius', label: 'Bloom Radius', type: 'slider', min: 0, max: 1, step: 0.05, path: 'visualisation.bloom.radius' },
+            { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.bloom.threshold' },
 
             // Hologram Settings
             { key: 'hologram', label: 'Hologram', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableHologram' },
@@ -1069,10 +1066,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             padding: '2px',
             marginBottom: '16px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
+            gridTemplateColumns: 'repeat(8, 1fr)',  // 8 buttons in first row
             height: '80px'
           }}>
-            {Object.entries(BUTTON_MENU_MAP).slice(0, 7).map(([btnNum, menu]) => {
+            {Object.entries(BUTTON_MENU_MAP).slice(0, 8).map(([btnNum, menu]) => {  // First 8 buttons (1-8)
               const IconComponent = menu.icon;
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
               return (
@@ -1116,10 +1113,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             padding: '2px',
             marginBottom: '16px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: 'repeat(6, 1fr)',  // 6 buttons in second row including Auth
             height: '70px'
           }}>
-            {Object.entries(BUTTON_MENU_MAP).slice(9).map(([btnNum, menu]) => {
+            {Object.entries(BUTTON_MENU_MAP).slice(8).map(([btnNum, menu]) => {  // Remaining buttons (A-F)
               const IconComponent = menu.icon;
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
               return (
