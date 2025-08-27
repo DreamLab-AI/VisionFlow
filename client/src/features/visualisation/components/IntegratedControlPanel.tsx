@@ -4,6 +4,29 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
+// Import design system components
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../design-system/components/Tabs';
+import { Tooltip, TooltipProvider } from '../../design-system/components/Tooltip';
+
+// Import icons from Lucide React
+import {
+  BarChart3,
+  Eye,
+  Zap,
+  TrendingUp,
+  Gauge,
+  Puzzle,
+  Code,
+  Lock,
+  Glasses,
+  Network,
+  Palette,
+  Wrench,
+  Hand,
+  Download,
+  GitCompare,
+  Users
+} from 'lucide-react';
 
 // Import new GraphFeatures tab components
 import { GraphAnalysisTab } from './tabs/GraphAnalysisTab';
@@ -41,20 +64,20 @@ interface SettingField {
 
 // Map SpacePilot buttons to menu sections (14 sections now with GraphFeatures integration)
 const BUTTON_MENU_MAP = {
-  '1': { id: 'dashboard', label: 'Dashboard' },
-  '2': { id: 'visualization', label: 'Visualization' },
-  '3': { id: 'physics', label: 'Physics' },
-  '4': { id: 'analytics', label: 'Analytics' },
-  '5': { id: 'performance', label: 'Performance' },
-  '6': { id: 'integrations', label: 'Integrations' },
-  '7': { id: 'developer', label: 'Developer' },
-  '8': { id: 'auth', label: 'Authentication' },
-  '9': { id: 'xr', label: 'XR/AR' },
-  'A': { id: 'graph-analysis', label: 'Graph Analysis' },
-  'B': { id: 'graph-visualisation', label: 'Graph Visualisation' },
-  'C': { id: 'graph-optimisation', label: 'Graph Optimisation' },
-  'D': { id: 'graph-interaction', label: 'Graph Interaction' },
-  'E': { id: 'graph-export', label: 'Graph Export' }
+  '1': { id: 'dashboard', label: 'Dashboard', icon: BarChart3, description: 'System overview and status' },
+  '2': { id: 'visualization', label: 'Visualization', icon: Eye, description: 'Visual rendering settings' },
+  '3': { id: 'physics', label: 'Physics', icon: Zap, description: 'Physics simulation controls' },
+  '4': { id: 'analytics', label: 'Analytics', icon: TrendingUp, description: 'Graph analysis metrics' },
+  '5': { id: 'performance', label: 'Performance', icon: Gauge, description: 'Performance optimization' },
+  '6': { id: 'integrations', label: 'Visual Effects', icon: Palette, description: 'Visual effects and glow' },
+  '7': { id: 'developer', label: 'Developer', icon: Code, description: 'Development tools' },
+  '8': { id: 'auth', label: 'Authentication', icon: Lock, description: 'User authentication' },
+  '9': { id: 'xr', label: 'XR/AR', icon: Glasses, description: 'Extended reality settings' },
+  'A': { id: 'graph-analysis', label: 'Analysis', icon: Network, description: 'Advanced graph analysis' },
+  'B': { id: 'graph-visualisation', label: 'Visualisation', icon: Palette, description: 'Graph visualization features' },
+  'C': { id: 'graph-optimisation', label: 'Optimisation', icon: Wrench, description: 'Graph optimization tools' },
+  'D': { id: 'graph-interaction', label: 'Interaction', icon: Hand, description: 'Interactive graph features' },
+  'E': { id: 'graph-export', label: 'Export', icon: Download, description: 'Export and sharing options' }
 };
 
 // Navigation button mappings (using hex values to avoid conflicts)
@@ -410,9 +433,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     console.log('Nostr disconnected');
   };
 
-  // Get section settings based on active section
-  const getSectionSettings = () => {
-    switch (activeSection) {
+  // Get section settings based on active section or provided section
+  const getSectionSettings = (sectionId?: string) => {
+    const targetSection = sectionId || activeSection;
+    switch (targetSection) {
       case 'dashboard':
         return {
           title: 'Dashboard',
@@ -788,557 +812,732 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
 
   // Expanded state
   return (
-    <div style={{
-      position: 'absolute',
-      top: 10,
-      left: 10,
-      color: 'white',
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      backgroundColor: 'rgba(0,0,0,0.85)',
-      padding: '10px',
-      borderRadius: '5px',
-      border: '1px solid rgba(255,255,255,0.3)',
-      minWidth: '320px',
-      maxWidth: '400px',
-      maxHeight: '80vh',
-      overflowY: 'auto'
-    }}>
-      {/* Header with fold button */}
+    <TooltipProvider>
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '10px'
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        color: 'white',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        fontSize: '12px',
+        backgroundColor: 'rgba(0,0,0,0.92)',
+        padding: '16px',
+        borderRadius: '8px',
+        border: '1px solid rgba(255,255,255,0.2)',
+        minWidth: '380px',
+        maxWidth: '480px',
+        maxHeight: '85vh',
+        overflowY: 'hidden',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
       }}>
-        <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-          Control Center
-          <AutoBalanceIndicator />
-        </div>
-        <div
-          style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#2ECC71',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            boxShadow: '0 0 5px rgba(46, 204, 113, 0.5)'
-          }}
-          onClick={() => setIsExpanded(false)}
-          title="Fold panel"
-        />
-      </div>
-
-      {/* System info */}
-      <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-        <div>Stats: {showStats ? 'ON' : 'OFF'}</div>
-        <div>Bloom: {enableBloom ? 'ON' : 'OFF'}</div>
-      </div>
-
-      {/* VisionFlow Status */}
-      {botsData && (
-        <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#F1C40F' }}>
-            ⚡ VisionFlow ({botsData.dataSource.toUpperCase()})
+        {/* Header with fold button */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
+          <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+            <div style={{ 
+              width: '8px', 
+              height: '8px', 
+              backgroundColor: '#10B981', 
+              borderRadius: '50%',
+              boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)'
+            }} />
+            Control Center
+            <AutoBalanceIndicator />
           </div>
-          {botsData.nodeCount === 0 ? (
-            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>
-                No active multi-agent
-              </div>
-              <button
-                onClick={() => setshowmultiAgentPrompt(true)}
-                style={{
-                  background: '#F1C40F',
-                  color: 'black',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '8px 16px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#F39C12'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#F1C40F'}
-              >
-                Initialize multi-agent
-              </button>
+          <button
+            style={{
+              width: '24px',
+              height: '24px',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={() => setIsExpanded(false)}
+            title="Fold panel"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* System info */}
+        <div style={{ 
+          marginBottom: '16px', 
+          paddingBottom: '12px', 
+          borderBottom: '1px solid rgba(255,255,255,0.15)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '11px',
+          opacity: 0.8
+        }}>
+          <div>Stats: {showStats ? '✓ ON' : '✗ OFF'}</div>
+          <div>Bloom: {enableBloom ? '✓ ON' : '✗ OFF'}</div>
+        </div>
+
+        {/* VisionFlow Status */}
+        {botsData && (
+          <div style={{ 
+            marginBottom: '16px', 
+            paddingBottom: '12px', 
+            borderBottom: '1px solid rgba(255,255,255,0.15)' 
+          }}>
+            <div style={{ 
+              fontWeight: 600, 
+              marginBottom: '12px', 
+              color: '#FBBF24',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px'
+            }}>
+              <Zap size={14} />
+              VisionFlow ({botsData.dataSource.toUpperCase()})
             </div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: '3px 15px', fontSize: '11px' }}>
-                <span style={{ opacity: 0.7 }}>Agents:</span>
-                <span style={{ color: '#F1C40F' }}>{botsData.nodeCount}</span>
-                <span style={{ opacity: 0.7 }}>Links:</span>
-                <span style={{ color: '#F1C40F' }}>{botsData.edgeCount}</span>
-                <span style={{ opacity: 0.7 }}>Tokens:</span>
-                <span style={{ color: '#F39C12' }}>{botsData.tokenCount.toLocaleString()}</span>
-              </div>
-              <div style={{ marginTop: '10px', textAlign: 'center' }}>
+            {botsData.nodeCount === 0 ? (
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '12px' }}>
+                  No active multi-agent
+                </div>
                 <button
                   onClick={() => setshowmultiAgentPrompt(true)}
                   style={{
-                    background: '#27AE60',
+                    background: 'linear-gradient(135deg, #FBBF24, #F59E0B)',
+                    color: 'black',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px 16px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 8px rgba(251, 191, 36, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(251, 191, 36, 0.3)';
+                  }}
+                >
+                  Initialize multi-agent
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '8px', 
+                  fontSize: '11px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                    <div style={{ opacity: 0.7 }}>Agents</div>
+                    <div style={{ color: '#FBBF24', fontWeight: 600 }}>{botsData.nodeCount}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                    <div style={{ opacity: 0.7 }}>Links</div>
+                    <div style={{ color: '#FBBF24', fontWeight: 600 }}>{botsData.edgeCount}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                    <div style={{ opacity: 0.7 }}>Tokens</div>
+                    <div style={{ color: '#F59E0B', fontWeight: 600, fontSize: '10px' }}>{botsData.tokenCount.toLocaleString()}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    onClick={() => setshowmultiAgentPrompt(true)}
+                    style={{
+                      background: 'linear-gradient(135deg, #10B981, #059669)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+                    }}
+                  >
+                    New multi-agent Task
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* SpacePilot Status */}
+        <div style={{ 
+          marginBottom: '16px', 
+          paddingBottom: '12px', 
+          borderBottom: '1px solid rgba(255,255,255,0.15)' 
+        }}>
+          <div style={{ 
+            fontWeight: 600, 
+            marginBottom: '8px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <Puzzle size={14} />
+            SpacePilot
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+            {!webHidAvailable ? (
+              <span style={{ color: '#EF4444' }}>WebHID not available</span>
+            ) : spacePilotConnected ? (
+              <>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10B981',
+                  boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)'
+                }}></div>
+                <span style={{ color: '#10B981', fontWeight: 500 }}>Connected</span>
+              </>
+            ) : (
+              <>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#EF4444',
+                  boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)'
+                }}></div>
+                <button
+                  onClick={handleConnectClick}
+                  style={{
+                    background: 'linear-gradient(135deg, #3B82F6, #2563EB)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    padding: '6px 12px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    fontWeight: 500,
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#229954'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#27AE60'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
                 >
-                  New multi-agent Task
+                  Connect
                 </button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* SpacePilot Menu Controls */}
-      <div>
-        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>SpacePilot Controls</div>
-
-        {/* Connection status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <span style={{ fontSize: '11px' }}>Status:</span>
-          {!webHidAvailable ? (
-            <span style={{ fontSize: '11px', color: '#E74C3C' }}>WebHID not available</span>
-          ) : spacePilotConnected ? (
-            <>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#2ECC71',
-                display: 'inline-block'
-              }}></span>
-              <span style={{ fontSize: '11px', color: '#2ECC71' }}>Connected</span>
-            </>
-          ) : (
-            <>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#E74C3C',
-                display: 'inline-block'
-              }}></span>
-              <button
-                onClick={handleConnectClick}
-                style={{
-                  background: '#3498DB',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  cursor: 'pointer'
-                }}
-              >
-                Connect
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Menu Buttons (1-9, A-E) - Always visible for mouse control */}
-        <div style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.7 }}>Menu Sections (14 Total):</div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '4px',
-          marginBottom: '12px'
-        }}>
-          {Object.entries(BUTTON_MENU_MAP).map(([btnNum, menu]) => {
-            const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
-            const isActive = activeSection === menu.id;
-            return (
-              <div
-                key={btnNum}
-                style={{
-                  padding: '6px 8px',
-                  borderRadius: '3px',
-                  border: `1px solid ${isActive ? '#F1C40F' : (isPressed ? '#2ECC71' : '#555')}`,
-                  background: isActive ? 'rgba(241, 196, 15, 0.2)' : (isPressed ? 'rgba(46, 204, 113, 0.1)' : 'rgba(255, 255, 255, 0.05)'),
-                  fontSize: '11px',
-                  color: isActive ? '#F1C40F' : (isPressed ? '#2ECC71' : '#888'),
-                  transition: 'all 0.1s',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-                onClick={() => {
-                  setActiveSection(menu.id);
-                  setSelectedFieldIndex(0); // Reset to first item when changing sections
-                }}
-              >
-                {btnNum}. {menu.label}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* GraphFeatures Tab Sections */}
-        {activeSection && [
-          'graph-analysis',
-          'graph-visualisation', 
-          'graph-optimisation',
-          'graph-interaction',
-          'graph-export'
-        ].includes(activeSection) && (
-          <div
-            style={{
-              marginTop: '12px',
-              padding: '8px',
-              border: '1px solid rgba(0, 255, 255, 0.3)',
-              borderRadius: '4px',
-              background: 'rgba(0, 255, 255, 0.05)',
-              maxHeight: '500px',
-              overflowY: 'auto',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(0, 255, 255, 0.3) rgba(255,255,255,0.1)',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              fontSize: '12px'
-            }}
-          >
-            {activeSection === 'graph-analysis' && (
-              <GraphAnalysisTab 
-                graphId="current" 
-                graphData={graphData}
-                otherGraphData={otherGraphData}
-              />
-            )}
-            {activeSection === 'graph-visualisation' && (
-              <GraphVisualisationTab 
-                graphId="current"
-                onFeatureUpdate={onGraphFeatureUpdate}
-              />
-            )}
-            {activeSection === 'graph-optimisation' && (
-              <GraphOptimisationTab 
-                graphId="current"
-                onFeatureUpdate={onGraphFeatureUpdate}
-              />
-            )}
-            {activeSection === 'graph-interaction' && (
-              <GraphInteractionTab 
-                graphId="current"
-                onFeatureUpdate={onGraphFeatureUpdate}
-              />
-            )}
-            {activeSection === 'graph-export' && (
-              <GraphExportTab 
-                graphId="current"
-                graphData={graphData}
-                onExport={(format, options) => {
-                  onGraphFeatureUpdate?.('export', { format, options });
-                }}
-              />
+              </>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Active Section Settings - Always visible for mouse control */}
-        {activeSection && sectionSettings && ![
-          'graph-analysis',
-          'graph-visualisation', 
-          'graph-optimisation',
-          'graph-interaction',
-          'graph-export'
-        ].includes(activeSection) && (
-          <div
-            ref={scrollContainerRef}
-            style={{
-            marginTop: '12px',
-            padding: '8px',
-            border: '1px solid rgba(241, 196, 15, 0.3)',
-            borderRadius: '4px',
-            background: 'rgba(241, 196, 15, 0.05)',
-            maxHeight: '400px',
-            overflowY: 'auto',
-            // Custom scrollbar styling
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(241, 196, 15, 0.3) rgba(255,255,255,0.1)'
+        {/* Tabbed Interface */}
+        <Tabs 
+          value={activeSection || 'dashboard'} 
+          onValueChange={(value) => {
+            setActiveSection(value);
+            setSelectedFieldIndex(0);
+          }}
+          style={{ width: '100%' }}
+        >
+          <TabsList style={{ 
+            width: '100%', 
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '6px',
+            padding: '2px',
+            marginBottom: '16px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            height: '80px'
           }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#F1C40F' }}>
-              {sectionSettings.title}
-            </div>
-            <div style={{ fontSize: '11px' }}>
-              {sectionSettings.fields.map((field, index) => {
-                const currentValue = getValueFromPath(field.path);
-                const isSelected = selectedFieldIndex === index;
-
-                return (
-                  <div
-                    key={field.key}
-                    data-field-index={index}
+            {Object.entries(BUTTON_MENU_MAP).slice(0, 7).map(([btnNum, menu]) => {
+              const IconComponent = menu.icon;
+              const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
+              return (
+                <Tooltip key={menu.id} content={menu.description}>
+                  <TabsTrigger 
+                    value={menu.id}
                     style={{
-                      padding: '6px',
-                      marginBottom: '4px',
-                      background: isSelected ? 'rgba(241, 196, 15, 0.1)' : 'transparent',
-                      border: isSelected ? '1px solid rgba(241, 196, 15, 0.3)' : '1px solid transparent',
-                      borderRadius: '3px',
-                      transition: 'all 0.1s',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => setSelectedFieldIndex(index)}
-                  >
-                    <div style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      marginBottom: '2px'
-                    }}>
-                      <span>{field.label}</span>
-                      {isSelected && (
-                        <span style={{ fontSize: '9px', color: '#F1C40F' }}>◀ ▶</span>
-                      )}
-                    </div>
-
-                    {/* Value display based on type */}
-                    <div style={{
-                      opacity: 0.8,
+                      gap: '4px',
+                      padding: '8px 4px',
                       fontSize: '10px',
+                      fontWeight: 500,
+                      color: 'rgba(255,255,255,0.7)',
+                      border: isPressed ? '1px solid #10B981' : 'none',
+                      backgroundColor: isPressed ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      height: '100%'
+                    }}
+                  >
+                    {IconComponent && <IconComponent size={16} />}
+                    <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
+                      <div style={{ opacity: 0.6, fontSize: '9px' }}>{btnNum}</div>
+                      <div>{menu.label}</div>
+                    </div>
+                  </TabsTrigger>
+                </Tooltip>
+              );
+            })}
+          </TabsList>
+
+          {/* Second row of tabs for graph features */}
+          <TabsList style={{ 
+            width: '100%', 
+            backgroundColor: 'rgba(0,255,255,0.08)',
+            border: '1px solid rgba(0,255,255,0.15)',
+            borderRadius: '6px',
+            padding: '2px',
+            marginBottom: '16px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            height: '70px'
+          }}>
+            {Object.entries(BUTTON_MENU_MAP).slice(9).map(([btnNum, menu]) => {
+              const IconComponent = menu.icon;
+              const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
+              return (
+                <Tooltip key={menu.id} content={menu.description}>
+                  <TabsTrigger 
+                    value={menu.id}
+                    style={{
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      {field.type === 'slider' && (
-                        <>
-                          <div style={{
-                            flex: 1,
-                            height: '4px',
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: '2px',
-                            position: 'relative',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const percentage = x / rect.width;
-                            const newValue = field.min + (field.max - field.min) * percentage;
-                            updateSettingByPath(field.path, newValue);
-                          }}>
-                            <div style={{
-                              position: 'absolute',
-                              left: 0,
-                              top: 0,
-                              height: '100%',
-                              width: `${((currentValue - field.min) / (field.max - field.min)) * 100}%`,
-                              background: isSelected ? '#F1C40F' : '#888',
-                              borderRadius: '2px',
-                              transition: 'width 0.1s',
-                              pointerEvents: 'none'
-                            }} />
-                          </div>
-                          <span style={{ minWidth: '40px', textAlign: 'right' }}>
-                            {typeof currentValue === 'number' ? currentValue.toFixed(1) : '0.0'}
-                          </span>
-                        </>
-                      )}
+                      gap: '4px',
+                      padding: '6px 4px',
+                      fontSize: '9px',
+                      fontWeight: 500,
+                      color: 'rgba(255,255,255,0.7)',
+                      border: isPressed ? '1px solid #06B6D4' : 'none',
+                      backgroundColor: isPressed ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      height: '100%'
+                    }}
+                  >
+                    {IconComponent && <IconComponent size={14} />}
+                    <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
+                      <div style={{ opacity: 0.6, fontSize: '8px' }}>{btnNum}</div>
+                      <div>{menu.label.replace('Graph ', '')}</div>
+                    </div>
+                  </TabsTrigger>
+                </Tooltip>
+              );
+            })}
+          </TabsList>
 
-                      {field.type === 'toggle' && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          cursor: 'pointer'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateSettingByPath(field.path, !currentValue);
-                        }}>
-                          <div style={{
-                            width: '30px',
-                            height: '16px',
-                            borderRadius: '8px',
-                            background: currentValue ? '#2ECC71' : '#555',
-                            position: 'relative',
-                            transition: 'background 0.2s'
-                          }}>
-                            <div style={{
-                              position: 'absolute',
-                              top: '2px',
-                              left: currentValue ? '16px' : '2px',
-                              width: '12px',
-                              height: '12px',
-                              borderRadius: '50%',
-                              background: 'white',
-                              transition: 'left 0.2s'
-                            }} />
-                          </div>
-                          <span>{currentValue ? 'ON' : 'OFF'}</span>
-                        </div>
-                      )}
+          {/* Tab Content Areas */}
+          {Object.entries(BUTTON_MENU_MAP).map(([btnNum, menu]) => (
+            <TabsContent key={menu.id} value={menu.id} style={{ marginTop: '0' }}>
+              <div style={{
+                maxHeight: '400px',
+                overflowY: 'auto',
+                padding: '12px',
+                backgroundColor: 'rgba(255,255,255,0.02)',
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}>
+                {/* Graph Feature Tabs */}
+                {menu.id === 'graph-analysis' && (
+                  <GraphAnalysisTab 
+                    graphId="current" 
+                    graphData={graphData}
+                    otherGraphData={otherGraphData}
+                  />
+                )}
+                {menu.id === 'graph-visualisation' && (
+                  <GraphVisualisationTab 
+                    graphId="current"
+                    onFeatureUpdate={onGraphFeatureUpdate}
+                  />
+                )}
+                {menu.id === 'graph-optimisation' && (
+                  <GraphOptimisationTab 
+                    graphId="current"
+                    onFeatureUpdate={onGraphFeatureUpdate}
+                  />
+                )}
+                {menu.id === 'graph-interaction' && (
+                  <GraphInteractionTab 
+                    graphId="current"
+                    onFeatureUpdate={onGraphFeatureUpdate}
+                  />
+                )}
+                {menu.id === 'graph-export' && (
+                  <GraphExportTab 
+                    graphId="current"
+                    graphData={graphData}
+                    onExport={(format, options) => {
+                      onGraphFeatureUpdate?.('export', { format, options });
+                    }}
+                  />
+                )}
 
-                      {field.type === 'color' && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <input
-                            type="color"
-                            value={currentValue || '#888888'}
-                            onChange={(e) => {
-                              updateSettingByPath(field.path, e.target.value);
-                            }}
-                            style={{
-                              width: '20px',
-                              height: '20px',
-                              border: 'none',
-                              borderRadius: '3px',
-                              cursor: 'pointer'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <span>{currentValue || '#888888'}</span>
-                        </div>
-                      )}
+                {/* Regular Setting Sections */}
+                {![
+                  'graph-analysis',
+                  'graph-visualisation', 
+                  'graph-optimisation',
+                  'graph-interaction',
+                  'graph-export'
+                ].includes(menu.id) && (() => {
+                  // Use the existing comprehensive getSectionSettings function with menu.id parameter
+                  const sectionSettings = getSectionSettings(menu.id);
+                  if (!sectionSettings) return null;
+                  
+                  return (
+                    <div ref={scrollContainerRef}>
+                      <div style={{ fontWeight: 600, marginBottom: '16px', color: '#FBBF24', fontSize: '13px' }}>
+                        {sectionSettings.title}
+                      </div>
+                      <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {sectionSettings.fields.map((field, index) => {
+                          const currentValue = getValueFromPath(field.path);
+                          const isSelected = selectedFieldIndex === index;
 
-                      {field.type === 'nostr-button' && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
-                          <div style={{
-                            padding: '4px 8px',
-                            borderRadius: '3px',
-                            background: nostrConnected ? '#2ECC71' : '#3498DB',
-                            border: `1px solid ${nostrConnected ? '#27AE60' : '#2980B9'}`,
-                            fontSize: '9px',
-                            color: 'white',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (nostrConnected) {
-                              handleNostrLogout();
-                            } else {
-                              handleNostrLogin();
-                            }
-                          }}>
-                            {nostrConnected ? 'LOGOUT' : 'LOGIN'}
-                          </div>
-                          {nostrConnected && (
-                            <span style={{ fontSize: '9px', opacity: 0.7 }}>
-                              {nostrPublicKey.slice(0, 8)}...
-                            </span>
-                          )}
-                        </div>
-                      )}
+                          return (
+                            <div
+                              key={field.key}
+                              data-field-index={index}
+                              style={{
+                                padding: '10px',
+                                backgroundColor: isSelected ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255,255,255,0.03)',
+                                border: isSelected ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => setSelectedFieldIndex(index)}
+                            >
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '8px'
+                              }}>
+                                <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{field.label}</span>
+                                {isSelected && spacePilotConnected && (
+                                  <span style={{ fontSize: '9px', color: '#FBBF24', opacity: 0.8 }}>◀ ▶</span>
+                                )}
+                              </div>
 
-                      {field.type === 'text' && (
-                        <div style={{
-                          flex: 1,
-                          padding: '3px 6px',
-                          background: 'rgba(255,255,255,0.1)',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '3px',
-                          fontSize: '10px',
-                          color: '#CCC',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {currentValue || 'Not set'}
-                        </div>
-                      )}
+                              {/* Value display based on type */}
+                              <div style={{
+                                fontSize: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                              }}>
+                                {field.type === 'slider' && (
+                                  <>
+                                    <div style={{
+                                      flex: 1,
+                                      height: '6px',
+                                      background: 'rgba(255,255,255,0.1)',
+                                      borderRadius: '3px',
+                                      position: 'relative',
+                                      cursor: 'pointer'
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const x = e.clientX - rect.left;
+                                      const percentage = x / rect.width;
+                                      const newValue = field.min + (field.max - field.min) * percentage;
+                                      updateSettingByPath(field.path, newValue);
+                                    }}>
+                                      <div style={{
+                                        position: 'absolute',
+                                        left: 0,
+                                        top: 0,
+                                        height: '100%',
+                                        width: `${((currentValue - field.min) / (field.max - field.min)) * 100}%`,
+                                        background: 'linear-gradient(90deg, #FBBF24, #F59E0B)',
+                                        borderRadius: '3px',
+                                        transition: 'width 0.2s ease',
+                                        pointerEvents: 'none'
+                                      }} />
+                                    </div>
+                                    <span style={{ 
+                                      minWidth: '45px', 
+                                      textAlign: 'right',
+                                      fontFamily: 'monospace',
+                                      color: 'rgba(255,255,255,0.8)',
+                                      fontSize: '10px'
+                                    }}>
+                                      {typeof currentValue === 'number' ? currentValue.toFixed(2) : '0.00'}
+                                    </span>
+                                  </>
+                                )}
 
-                      {field.type === 'select' && (
+                                {field.type === 'toggle' && (
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateSettingByPath(field.path, !currentValue);
+                                  }}>
+                                    <div style={{
+                                      width: '36px',
+                                      height: '20px',
+                                      borderRadius: '10px',
+                                      background: currentValue ? 'linear-gradient(135deg, #10B981, #059669)' : 'rgba(255,255,255,0.2)',
+                                      position: 'relative',
+                                      transition: 'background 0.2s ease',
+                                      boxShadow: currentValue ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none'
+                                    }}>
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: currentValue ? '18px' : '2px',
+                                        width: '16px',
+                                        height: '16px',
+                                        borderRadius: '50%',
+                                        background: 'white',
+                                        transition: 'left 0.2s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                      }} />
+                                    </div>
+                                    <span style={{ 
+                                      color: currentValue ? '#10B981' : 'rgba(255,255,255,0.6)',
+                                      fontWeight: 500,
+                                      fontSize: '10px'
+                                    }}>
+                                      {currentValue ? 'ON' : 'OFF'}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {field.type === 'color' && (
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                  }}>
+                                    <input
+                                      type="color"
+                                      value={currentValue || '#888888'}
+                                      onChange={(e) => {
+                                        updateSettingByPath(field.path, e.target.value);
+                                      }}
+                                      style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        backgroundColor: 'transparent'
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <span style={{ 
+                                      fontFamily: 'monospace', 
+                                      fontSize: '9px',
+                                      color: 'rgba(255,255,255,0.8)'
+                                    }}>
+                                      {currentValue || '#888888'}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {field.type === 'nostr-button' && (
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                  }}>
+                                    <button
+                                      style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '4px',
+                                        background: nostrConnected ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #3B82F6, #2563EB)',
+                                        border: 'none',
+                                        fontSize: '9px',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: nostrConnected ? '0 0 8px rgba(16, 185, 129, 0.3)' : '0 0 8px rgba(59, 130, 246, 0.3)'
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (nostrConnected) {
+                                          handleNostrLogout();
+                                        } else {
+                                          handleNostrLogin();
+                                        }
+                                      }}
+                                    >
+                                      {nostrConnected ? 'LOGOUT' : 'LOGIN'}
+                                    </button>
+                                    {nostrConnected && (
+                                      <span style={{ fontSize: '9px', opacity: 0.7, fontFamily: 'monospace' }}>
+                                        {nostrPublicKey.slice(0, 8)}...
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {field.type === 'text' && (
+                                  <div style={{
+                                    flex: 1,
+                                    padding: '6px 10px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    color: 'rgba(255,255,255,0.8)',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    fontFamily: 'monospace'
+                                  }}>
+                                    {currentValue || 'Not set'}
+                                  </div>
+                                )}
+
+                                {field.type === 'select' && (
+                                  <select
+                                    value={currentValue || field.options?.[0] || ''}
+                                    onChange={(e) => {
+                                      updateSettingByPath(field.path, e.target.value);
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      padding: '6px 10px',
+                                      background: 'rgba(255,255,255,0.05)',
+                                      border: '1px solid rgba(255,255,255,0.15)',
+                                      borderRadius: '4px',
+                                      fontSize: '10px',
+                                      color: 'rgba(255,255,255,0.9)',
+                                      cursor: 'pointer',
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {field.options?.map(option => (
+                                      <option key={option} value={option} style={{ background: '#1F2937', color: 'white' }}>
+                                        {option}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Navigation hints */}
+                      {spacePilotConnected && (
                         <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
+                          marginTop: '12px',
+                          paddingTop: '12px',
+                          borderTop: '1px solid rgba(255,255,255,0.1)',
+                          fontSize: '9px',
+                          opacity: 0.6,
+                          textAlign: 'center',
+                          color: 'rgba(255,255,255,0.6)'
                         }}>
-                          <select
-                            value={currentValue || field.options?.[0] || ''}
-                            onChange={(e) => {
-                              updateSettingByPath(field.path, e.target.value);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              padding: '3px 8px',
-                              background: isSelected ? 'rgba(241, 196, 15, 0.2)' : 'rgba(255,255,255,0.1)',
-                              border: `1px solid ${isSelected ? 'rgba(241, 196, 15, 0.3)' : 'rgba(255,255,255,0.2)'}`,
-                              borderRadius: '3px',
-                              fontSize: '10px',
-                              color: isSelected ? '#F1C40F' : '#CCC',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {field.options?.map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
+                          ↑↓ Navigate • ←→ Adjust • F Commit
                         </div>
                       )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })()}
+              </div>
+            </TabsContent>
+          ))}
 
-            {/* Navigation hints */}
+          {/* SpacePilot Debug Panel */}
+          {spacePilotConnected && (
             <div style={{
-              marginTop: '8px',
-              paddingTop: '8px',
-              borderTop: '1px solid rgba(255,255,255,0.2)',
-              fontSize: '9px',
-              opacity: 0.6
+              marginTop: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(255,255,255,0.02)',
+              borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.1)'
             }}>
-              {spacePilotConnected ? '7/A: Navigate ↑↓ | 8/9: Adjust ←→ | F: Commit' : 'Click to select and adjust controls'}
+              <div style={{ 
+                fontSize: '11px', 
+                fontWeight: 600, 
+                marginBottom: '8px', 
+                color: 'rgba(255,255,255,0.8)' 
+              }}>
+                SpacePilot Debug
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+                fontSize: '9px',
+                fontFamily: 'monospace',
+                color: 'rgba(255,255,255,0.6)'
+              }}>
+                <div>X: {spacePilotRawInput.translation.x.toFixed(2)}</div>
+                <div>Y: {spacePilotRawInput.translation.y.toFixed(2)}</div>
+                <div>Z: {spacePilotRawInput.translation.z.toFixed(2)}</div>
+                <div>RX: {spacePilotRawInput.rotation.rx.toFixed(2)}</div>
+                <div>RY: {spacePilotRawInput.rotation.ry.toFixed(2)}</div>
+                <div>RZ: {spacePilotRawInput.rotation.rz.toFixed(2)}</div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </Tabs>
 
-        {/* Raw input values (debug) - Only show when SpacePilot is connected */}
-        {spacePilotConnected && (
-          <div style={{
-            marginTop: '8px',
-            paddingTop: '8px',
-            borderTop: '1px solid rgba(255,255,255,0.2)',
-            fontSize: '10px',
-            fontFamily: 'monospace',
-            opacity: 0.5
-          }}>
-            <div style={{ marginBottom: '4px' }}>Raw Input:</div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '5px',
-              fontSize: '9px'
-            }}>
-              <div>X: {spacePilotRawInput.translation.x}</div>
-              <div>Y: {spacePilotRawInput.translation.y}</div>
-              <div>Z: {spacePilotRawInput.translation.z}</div>
-              <div>RX: {spacePilotRawInput.rotation.rx}</div>
-              <div>RY: {spacePilotRawInput.rotation.ry}</div>
-              <div>RZ: {spacePilotRawInput.rotation.rz}</div>
-            </div>
-          </div>
+        {/* Multi-agent Initialization Prompt */}
+        {showmultiAgentPrompt && (
+          <MultiAgentInitializationPrompt
+            onClose={() => setshowmultiAgentPrompt(false)}
+            onInitialized={() => {
+              setshowmultiAgentPrompt(false);
+              // The bots data will be refreshed automatically through the existing update mechanism
+            }}
+          />
         )}
       </div>
-
-      {/* Multi-agent Initialization Prompt */}
-      {showmultiAgentPrompt && (
-        <MultiAgentInitializationPrompt
-          onClose={() => setshowmultiAgentPrompt(false)}
-          onInitialized={() => {
-            setshowmultiAgentPrompt(false);
-            // The bots data will be refreshed automatically through the existing update mechanism
-          }}
-        />
-      )}
-    </div>
+    </TooltipProvider>
   );
 };

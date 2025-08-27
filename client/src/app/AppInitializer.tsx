@@ -6,6 +6,7 @@ import WebSocketService from '../services/WebSocketService';
 import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { initializeAuth } from '../features/auth/initializeAuthentication';
+import { innovationManager } from '../features/graph/innovations/index';
 
 // Load and initialize all services
 const loadServices = async (): Promise<void> => {
@@ -20,6 +21,38 @@ const loadServices = async (): Promise<void> => {
     if (debugState.isEnabled()) {
       logger.info('Auth system initialized');
     }
+
+    // Initialize innovation manager with timeout to prevent blocking
+    try {
+      console.log('[AppInitializer] Starting Innovation Manager initialization...');
+      const initPromise = innovationManager.initialize({
+        enableSync: true,
+        enableComparison: true,
+        enableAnimations: true,
+        enableAI: true,
+        enableAdvancedInteractions: true,
+        performanceMode: 'balanced'
+      });
+      
+      // Add timeout to prevent indefinite blocking
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Innovation Manager initialization timeout')), 5000)
+      );
+      
+      await Promise.race([initPromise, timeoutPromise]);
+
+      console.log('[AppInitializer] Innovation Manager initialized successfully');
+      if (debugState.isEnabled()) {
+        logger.info('Innovation Manager initialized successfully');
+        const status = innovationManager.getStatus();
+        logger.debug('Innovation Manager status:', status);
+      }
+    } catch (innovationError) {
+      console.error('[AppInitializer] Innovation Manager initialization failed:', innovationError);
+      logger.error('Error initializing Innovation Manager:', createErrorMetadata(innovationError));
+      // Don't throw - innovation features are non-critical for basic functionality
+    }
+
   } catch (error) {
     logger.error('Error initializing services:', createErrorMetadata(error));
   }
@@ -78,15 +111,30 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
 
           // Fetch initial graph data AFTER settings and BEFORE signaling completion
           try {
+            console.log('[AppInitializer] Fetching initial graph data via REST API');
             logger.info('Fetching initial graph data via REST API');
-            await graphDataManager.fetchInitialData();
+            const graphData = await graphDataManager.fetchInitialData();
+            console.log(`[AppInitializer] Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
             if (debugState.isDataDebugEnabled()) {
               logger.debug('Initial graph data fetched successfully');
             }
           } catch (fetchError) {
+            console.error('[AppInitializer] Failed to fetch initial graph data:', fetchError);
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            // Initialize with empty data as fallback
-            await graphDataManager.setGraphData({ nodes: [], edges: [] });
+            // Initialize with sample data as fallback to ensure something renders
+            const fallbackData = {
+              nodes: [
+                { id: 'init1', label: 'Initialization Node 1', position: { x: -10, y: 0, z: 0 } },
+                { id: 'init2', label: 'Initialization Node 2', position: { x: 10, y: 0, z: 0 } },
+                { id: 'init3', label: 'Initialization Node 3', position: { x: 0, y: 10, z: 0 } }
+              ],
+              edges: [
+                { id: 'init_edge1', source: 'init1', target: 'init2' },
+                { id: 'init_edge2', source: 'init2', target: 'init3' }
+              ]
+            };
+            console.log('[AppInitializer] Using fallback sample data');
+            await graphDataManager.setGraphData(fallbackData);
           }
 
           if (debugState.isEnabled()) {

@@ -21,12 +21,9 @@ visualisation:
     wave_speed: 0.5
   glow:
     enabled: true
-    intensity: 0.95548993
-    radius: 0.85
-    threshold: 0.028522087
-    node_glow_strength: 0.053478915
-    edge_glow_strength: 0.9127068
-    environment_glow_strength: 0.96262044
+    intensity: 0.8082192
+    radius: 0.94520545
+    threshold: 0.22191781
     diffuse_strength: 1.5
     atmospheric_density: 0.8
     volumetric_intensity: 1.2
@@ -35,6 +32,9 @@ visualisation:
     opacity: 0.95
     pulse_speed: 1.2
     flow_speed: 0.5
+    node_glow_strength: 0.053478915
+    edge_glow_strength: 0.9127068
+    environment_glow_strength: 0.96262044
   hologram:
     ring_count: 5
     ring_color: '#00ffff'
@@ -121,9 +121,6 @@ visualisation:
         enable_bounds: false
         enabled: true
         iterations: 50
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
-        compute_mode: 1
         max_velocity: 5.0
         max_force: 100.0
         repel_k: 155.46765
@@ -134,9 +131,12 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
         boundary_limit: 1000.0
         alignment_strength: 0.1
         cluster_strength: 0.1
+        compute_mode: 1
         rest_length: 50.0
         repulsion_cutoff: 50.0
         repulsion_softening_epsilon: 0.0001
@@ -224,9 +224,6 @@ visualisation:
         enable_bounds: false
         enabled: true
         iterations: 50
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
-        compute_mode: 1
         max_velocity: 5.0
         max_force: 100.0
         repel_k: 2.0
@@ -237,9 +234,12 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
         boundary_limit: 1000.0
         alignment_strength: 0.1
         cluster_strength: 0.1
+        compute_mode: 1
         rest_length: 50.0
         repulsion_cutoff: 50.0
         repulsion_softening_epsilon: 0.0001
@@ -281,12 +281,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
+      '4': topView
+      '2': cycleMode
+      '3': fitToView
+      '6': frontView
       '1': resetView
       '5': rightView
-      '2': cycleMode
-      '6': frontView
-      '4': topView
-      '3': fitToView
 system:
   network:
     bind_address: 0.0.0.0
