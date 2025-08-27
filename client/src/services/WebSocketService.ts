@@ -44,9 +44,9 @@ class WebSocketService {
     this.updateFromSettings();
 
     // Subscribe to store changes and manually check customBackendUrl
-    let previousCustomBackendUrl = useSettingsStore.getState().settings.system.customBackendUrl;
+    let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
     useSettingsStore.subscribe((state) => {
-      const newCustomBackendUrl = state.settings.system.customBackendUrl;
+      const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
       if (newCustomBackendUrl !== previousCustomBackendUrl) {
         if (debugState.isEnabled()) {
           logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
@@ -67,16 +67,17 @@ class WebSocketService {
   }
 
   private updateFromSettings(): void {
-    const settings = useSettingsStore.getState().settings;
+    const state = useSettingsStore.getState();
+    const settings = state.settings;
     let newUrl = this.determineWebSocketUrl(); // Default to relative path
 
-    if (settings.system?.websocket) {
+    if (settings?.system?.websocket) {
       this.reconnectInterval = settings.system.websocket.reconnectDelay || 2000;
       this.maxReconnectAttempts = settings.system.websocket.reconnectAttempts || 10;
     }
 
     // Only use custom backend URL if it's not the problematic hardcoded IP
-    if (settings.system?.customBackendUrl && 
+    if (settings?.system?.customBackendUrl && 
         settings.system.customBackendUrl.trim() !== '' &&
         !settings.system.customBackendUrl.includes('192.168.0.51')) {
       const customUrl = settings.system.customBackendUrl.trim();
@@ -88,7 +89,7 @@ class WebSocketService {
       }
     } else {
       if (debugState.isEnabled()) {
-        if (settings.system?.customBackendUrl?.includes('192.168.0.51')) {
+        if (settings?.system?.customBackendUrl?.includes('192.168.0.51')) {
           logger.warn('Ignoring problematic hardcoded IP address 192.168.0.51, using default URL instead');
         }
         logger.info(`Using default WebSocket URL: ${newUrl}`);

@@ -9,6 +9,7 @@ import GraphManager from './GraphManager';
 import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
+import { debugState } from '../../../utils/clientDebugState';
 import { BotsVisualization } from '../../bots/components';
 import { EnhancedHologramSystem } from '../../visualisation/renderers/EnhancedHologramSystem';
 import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
@@ -20,17 +21,30 @@ const logger = createLogger('GraphViewport');
 
 const AtmosphericGlowWrapper = () => {
   const { camera, size } = useThree();
-  const glowSettings = useSettingsStore(state => state.settings.visualisation.glow);
+  const glowSettings = useSettingsStore(state => state.settings?.visualisation?.glow);
+  
+  // Use default values if glow settings are not available
+  const defaultGlow = {
+    baseColor: "#00ffff",
+    intensity: 2.0,
+    radius: 0.85,
+    threshold: 0.15,
+    diffuseStrength: 1.5,
+    atmosphericDensity: 0.8,
+    volumetricIntensity: 1.2
+  };
+  
+  const settings = glowSettings || defaultGlow;
 
   return (
     <AtmosphericGlow
-      glowColor={glowSettings.baseColor}
-      intensity={glowSettings.intensity}
-      radius={glowSettings.radius}
-      threshold={glowSettings.threshold}
-      diffuseStrength={glowSettings.diffuseStrength}
-      atmosphericDensity={glowSettings.atmosphericDensity}
-      volumetricIntensity={glowSettings.volumetricIntensity}
+      glowColor={settings.baseColor}
+      intensity={settings.intensity}
+      radius={settings.radius}
+      threshold={settings.threshold}
+      diffuseStrength={settings.diffuseStrength}
+      atmosphericDensity={settings.atmosphericDensity}
+      volumetricIntensity={settings.volumetricIntensity}
       camera={camera}
       resolution={size}
     />
@@ -49,6 +63,7 @@ const GraphViewport: React.FC = () => {
 
   // Settings for camera and visuals
   const settings = useSettingsStore(state => state.settings);
+  const initialized = useSettingsStore(state => state.initialized);
   const [viewportRefresh, setViewportRefresh] = useState(0);
 
   // Subscribe to viewport updates for real-time changes
@@ -65,11 +80,11 @@ const GraphViewport: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  const cameraSettings = settings.visualisation.camera;
-  const renderingSettings = settings.visualisation.rendering;
-  const glowSettings = settings.visualisation.glow;
-  const debugSettings = settings.system.debug;
-  const nodeSettings = settings.visualisation.graphs?.logseq?.nodes || settings.visualisation.nodes;
+  const cameraSettings = settings?.visualisation?.camera;
+  const renderingSettings = settings?.visualisation?.rendering;
+  const glowSettings = settings?.visualisation?.glow;
+  const debugSettings = settings?.system?.debug;
+  const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
   const hologramEnabled = nodeSettings?.enableHologram || false;
 
   const fov = cameraSettings?.fov ?? 75;
@@ -174,6 +189,17 @@ const GraphViewport: React.FC = () => {
           far: far,
           position: cameraPosition as [number, number, number],
         }}
+        onCreated={({ gl, camera, scene }) => {
+          if (debugState.isEnabled()) {
+            logger.info('Canvas created', {
+              cameraPosition: camera.position.toArray(),
+              cameraFov: camera.fov,
+              sceneChildren: scene.children.length,
+            });
+          }
+          // Force a render
+          gl.render(scene, camera);
+        }}
         gl={{ 
           antialias: true, 
           alpha: true, // Enable alpha for proper transparency
@@ -188,18 +214,27 @@ const GraphViewport: React.FC = () => {
       >
         <color attach="background" args={[backgroundColor]} />
         <CameraController center={graphCenter} size={graphSize} />
+        
 
         <ambientLight ref={setAmbientRef} intensity={renderingSettings?.ambientLightIntensity ?? 0.6} />
         <directionalLight
           ref={setDirRef}
-          position={[10, 10, 5]} // Using hardcoded default as not in settings
+          position={[
+            renderingSettings?.directionalLightPosition?.[0] ?? 10,
+            renderingSettings?.directionalLightPosition?.[1] ?? 10,
+            renderingSettings?.directionalLightPosition?.[2] ?? 5
+          ]}
           intensity={renderingSettings?.directionalLightIntensity ?? 1}
           castShadow
         />
         <pointLight
           ref={setPointRef}
-          position={[-10, -10, -5]} // Using hardcoded default as not in settings
-          intensity={0.5} // Using hardcoded default as not in settings
+          position={[
+            renderingSettings?.pointLightPosition?.[0] ?? -10,
+            renderingSettings?.pointLightPosition?.[1] ?? -10,
+            renderingSettings?.pointLightPosition?.[2] ?? -5
+          ]}
+          intensity={renderingSettings?.pointLightIntensity ?? 0.5}
         />
 
         <OrbitControls
@@ -239,10 +274,37 @@ const GraphViewport: React.FC = () => {
               <BotsVisualization />
             </Suspense>
 
-          {/* Removed showAxesHelper and showStats as they are not in DebugSettings type from settings.ts */}
-          {/* {debugSettings?.showAxesHelper && <axesHelper args={[graphSize > 0 ? graphSize / 10 : 2]} />} */}
-          {/* {debugSettings?.showStats && <Stats />} */}
-          {debugSettings?.enabled && <Stats />} {/* Show Stats if general debug is enabled, as a fallback */}
+          {/* Debug visualizations based on debug settings */}
+          {debugSettings?.enabled && (
+            <>
+              <Stats />
+              <axesHelper args={[50]} />
+              <gridHelper args={[200, 20]} />
+              {debugSettings.enablePhysicsDebug && (
+                <mesh>
+                  <boxGeometry args={[5, 5, 5]} />
+                  <meshBasicMaterial color="yellow" wireframe />
+                </mesh>
+              )}
+            </>
+          )}
+          
+          {/* Additional debug info logging */}
+          {debugSettings?.enableNodeDebug && debugState.isEnabled() && 
+            logger.info('Node debug enabled - Graph state:', { 
+              graphSize, 
+              graphCenter, 
+              nodeCount: graphDataManager.getGraphData().then(d => d.nodes.length) 
+            })
+          }
+          
+          {debugSettings?.enableShaderDebug && debugState.isEnabled() &&
+            logger.info('Shader debug enabled - Rendering state:', {
+              enableGlow,
+              hologramEnabled,
+              renderingSettings
+            })
+          }
 
           {enableGlow && (
             <EffectComposer

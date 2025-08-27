@@ -86,22 +86,8 @@ export function PhysicsEngineControls() {
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
-  // Initialize force params from settings - using camelCase
+  // Get physics settings directly from the settings store - no local state
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
-  const [forceParams, setForceParams] = useState<ForceParameters>({
-    repulsionStrength: physicsSettings?.repelK || 50.0,           // GPU param: repel_k
-    attractionStrength: physicsSettings?.attractionK || 0.001,    // GPU param: attraction_k
-    springStrength: physicsSettings?.springK || 0.005,            // GPU param: spring_k
-    damping: physicsSettings?.damping || 0.95,                    // GPU param: damping
-    gravity: physicsSettings?.gravity || 0.0001,                  // GPU param: gravity
-    timeStep: physicsSettings?.dt || 0.016,                       // GPU param: dt
-    maxVelocity: physicsSettings?.maxVelocity || 2.0,            // GPU param: max_velocity
-    temperature: physicsSettings?.temperature || 0.01,            // GPU param: temperature
-    // Boundary behavior parameters
-    boundaryExtremeMultiplier: physicsSettings?.boundaryExtremeMultiplier || 2.0,          // GPU param: boundary_extreme_multiplier
-    boundaryExtremeForceMultiplier: physicsSettings?.boundaryExtremeForceMultiplier || 5.0, // GPU param: boundary_extreme_force_multiplier
-    boundaryVelocityDamping: physicsSettings?.boundaryVelocityDamping || 0.8,              // GPU param: boundary_velocity_damping
-  });
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
     { id: 'fixed', name: 'Fixed Position', enabled: false, description: 'Lock nodes in place', icon: '📌' },
@@ -143,25 +129,7 @@ export function PhysicsEngineControls() {
     }
   }, [initialized]);
   
-  // Update local state when settings change - using camelCase
-  useEffect(() => {
-    if (physicsSettings && initialized) {
-      setForceParams({
-        repulsionStrength: physicsSettings.repelK || 50.0,           // GPU param: repel_k
-        attractionStrength: physicsSettings.attractionK || 0.001,    // GPU param: attraction_k
-        springStrength: physicsSettings.springK || 0.005,            // GPU param: spring_k
-        damping: physicsSettings.damping || 0.95,                    // GPU param: damping
-        gravity: physicsSettings.gravity || 0.0001,                  // GPU param: gravity
-        timeStep: physicsSettings.dt || 0.016,                       // GPU param: dt
-        maxVelocity: physicsSettings.maxVelocity || 2.0,            // GPU param: max_velocity
-        temperature: physicsSettings.temperature || 0.01,            // GPU param: temperature
-        // Boundary behavior parameters
-        boundaryExtremeMultiplier: physicsSettings.boundaryExtremeMultiplier || 2.0,          // GPU param: boundary_extreme_multiplier
-        boundaryExtremeForceMultiplier: physicsSettings.boundaryExtremeForceMultiplier || 5.0, // GPU param: boundary_extreme_force_multiplier
-        boundaryVelocityDamping: physicsSettings.boundaryVelocityDamping || 0.8,              // GPU param: boundary_velocity_damping
-      });
-    }
-  }, [physicsSettings, initialized]);
+  // All values are read directly from settings store - no local state needed
   
   // Fetch GPU metrics periodically
   useEffect(() => {
@@ -208,9 +176,6 @@ export function PhysicsEngineControls() {
   }, [toast]);
 
   const handleForceParamChange = useCallback(async (param: keyof ForceParameters, value: number) => {
-    const newParams = { ...forceParams, [param]: value };
-    setForceParams(newParams);
-    
     // Map UI parameter names to camelCase physics settings names
     const paramMapping: Record<string, string> = {
       repulsionStrength: 'repelK',
@@ -227,38 +192,31 @@ export function PhysicsEngineControls() {
       boundaryVelocityDamping: 'boundaryVelocityDamping',
     };
     
-    const physicsUpdate = {
-      [paramMapping[param] || param]: value
-    };
+    const settingsPath = `visualisation.graphs.${currentGraph}.physics.${paramMapping[param] || param}`;
     
     try {
       // Update through settings store
-      await updatePhysics(physicsUpdate);
-      
-      // Send to server - server will convert camelCase to snake_case
-      const response = await fetch('/api/physics/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(physicsUpdate),
+      updateSettings((draft) => {
+        const pathParts = settingsPath.split('.');
+        let current: any = draft;
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          current = current[pathParts[i]];
+        }
+        current[pathParts[pathParts.length - 1]] = value;
       });
-      
-      if (!response.ok) {
-        throw new Error(`Physics update failed: ${response.statusText}`);
-      }
       
       toast({
         title: 'Physics Updated',
         description: `${param} set to ${value.toFixed(3)}`,
       });
     } catch (error) {
-      // Failed to update force parameters
       toast({
         title: 'Error',
         description: 'Failed to update physics parameters',
         variant: 'destructive',
       });
     }
-  }, [forceParams, updatePhysics, toast]);
+  }, [currentGraph, updateSettings, toast]);
 
   const handleConstraintToggle = useCallback(async (constraintId: string) => {
     const newConstraints = constraints.map(c => 
@@ -459,14 +417,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="repulsionStrength">Repulsion Strength</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.repulsionStrength.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.repelK || 50.0).toFixed(1)}</span>
                 </div>
                 <Slider
                   id="repulsionStrength"
                   min={10}
                   max={200}  // Safe range to prevent explosion (was 1000!)
                   step={1}
-                  value={[forceParams.repulsionStrength]}
+                  value={[physicsSettings?.repelK || 50.0]}
                   onValueChange={([v]) => handleForceParamChange('repulsionStrength', v)}
                 />
               </div>
@@ -474,14 +432,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="attractionStrength">Attraction Strength</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.attractionStrength.toFixed(3)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.attractionK || 0.001).toFixed(3)}</span>
                 </div>
                 <Slider
                   id="attractionStrength"
                   min={0}
                   max={10}  // Full GPU experimentation range
                   step={0.01}
-                  value={[forceParams.attractionStrength]}
+                  value={[physicsSettings?.attractionK || 0.001]}
                   onValueChange={([v]) => handleForceParamChange('attractionStrength', v)}
                 />
               </div>
@@ -489,14 +447,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="damping">Damping</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.damping.toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.damping || 0.95).toFixed(2)}</span>
                 </div>
                 <Slider
                   id="damping"
                   min={0.5}  // Minimum 0.5 for stability (was 0.0!)
                   max={0.99}
                   step={0.01}
-                  value={[forceParams.damping]}
+                  value={[physicsSettings?.damping || 0.95]}
                   onValueChange={([v]) => handleForceParamChange('damping', v)}
                 />
               </div>
@@ -504,14 +462,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="temperature">Temperature</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.temperature.toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.temperature || 0.01).toFixed(2)}</span>
                 </div>
                 <Slider
                   id="temperature"
                   min={0}
                   max={2.0}  // Match server validation range
                   step={0.01}
-                  value={[forceParams.temperature]}
+                  value={[physicsSettings?.temperature || 0.01]}
                   onValueChange={([v]) => handleForceParamChange('temperature', v)}
                 />
               </div>
@@ -519,14 +477,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="gravity">Gravity</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.gravity.toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.gravity || 0.0001).toFixed(4)}</span>
                 </div>
                 <Slider
                   id="gravity"
                   min={-5.0}
                   max={5.0}  // Match server validation range
                   step={0.01}
-                  value={[forceParams.gravity]}
+                  value={[physicsSettings?.gravity || 0.0001]}
                   onValueChange={([v]) => handleForceParamChange('gravity', v)}
                 />
               </div>
@@ -534,14 +492,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="maxVelocity">Max Velocity</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.maxVelocity.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.maxVelocity || 2.0).toFixed(1)}</span>
                 </div>
                 <Slider
                   id="maxVelocity"
                   min={0.1}
                   max={10}   // Safe range to prevent explosion (was 100!)
                   step={0.1}
-                  value={[forceParams.maxVelocity]}
+                  value={[physicsSettings?.maxVelocity || 2.0]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
                 />
               </div>
@@ -549,14 +507,14 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="timeStep">Time Step</Label>
-                  <span className="text-sm text-muted-foreground">{forceParams.timeStep?.toFixed(3) || '0.150'}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.dt || 0.016).toFixed(3)}</span>
                 </div>
                 <Slider
                   id="timeStep"
                   min={0.001}
                   max={0.02}   // Safe range for numerical stability (was 0.1!)
                   step={0.001}
-                  value={[forceParams.timeStep || 0.016]}
+                  value={[physicsSettings?.dt || 0.016]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}
                 />
               </div>
@@ -590,14 +548,14 @@ export function PhysicsEngineControls() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <span className="text-sm text-muted-foreground">{forceParams.boundaryExtremeMultiplier.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryExtremeMultiplier || 2.0).toFixed(1)}</span>
                 </div>
                 <Slider
                   id="boundaryExtremeMultiplier"
                   min={1.0}
                   max={5.0}
                   step={0.1}
-                  value={[forceParams.boundaryExtremeMultiplier]}
+                  value={[physicsSettings?.boundaryExtremeMultiplier || 2.0]}
                   onValueChange={([v]) => handleForceParamChange('boundaryExtremeMultiplier', v)}
                 />
               </div>
@@ -617,14 +575,14 @@ export function PhysicsEngineControls() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <span className="text-sm text-muted-foreground">{forceParams.boundaryExtremeForceMultiplier.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryExtremeForceMultiplier || 5.0).toFixed(1)}</span>
                 </div>
                 <Slider
                   id="boundaryExtremeForceMultiplier"
                   min={1.0}
                   max={20.0}
                   step={0.5}
-                  value={[forceParams.boundaryExtremeForceMultiplier]}
+                  value={[physicsSettings?.boundaryExtremeForceMultiplier || 5.0]}
                   onValueChange={([v]) => handleForceParamChange('boundaryExtremeForceMultiplier', v)}
                 />
               </div>
@@ -644,14 +602,14 @@ export function PhysicsEngineControls() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <span className="text-sm text-muted-foreground">{forceParams.boundaryVelocityDamping.toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryVelocityDamping || 0.8).toFixed(2)}</span>
                 </div>
                 <Slider
                   id="boundaryVelocityDamping"
                   min={0.0}
                   max={1.0}
                   step={0.01}
-                  value={[forceParams.boundaryVelocityDamping]}
+                  value={[physicsSettings?.boundaryVelocityDamping || 0.8]}
                   onValueChange={([v]) => handleForceParamChange('boundaryVelocityDamping', v)}
                 />
               </div>

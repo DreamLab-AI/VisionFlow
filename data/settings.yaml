@@ -19,14 +19,22 @@ visualisation:
     pulse_speed: 1.2
     pulse_strength: 0.8
     wave_speed: 0.5
-  bloom:
-    edge_bloom_strength: 0.9127068
+  glow:
     enabled: true
-    environment_bloom_strength: 0.96262044
-    node_bloom_strength: 0.053478915
+    intensity: 0.95548993
     radius: 0.85
-    strength: 0.95548993
     threshold: 0.028522087
+    node_glow_strength: 0.053478915
+    edge_glow_strength: 0.9127068
+    environment_glow_strength: 0.96262044
+    diffuse_strength: 1.5
+    atmospheric_density: 0.8
+    volumetric_intensity: 1.2
+    base_color: '#00ffff'
+    emission_color: '#00e5ff'
+    opacity: 0.95
+    pulse_speed: 1.2
+    flow_speed: 0.5
   hologram:
     ring_count: 5
     ring_color: '#00ffff'
@@ -113,6 +121,9 @@ visualisation:
         enable_bounds: false
         enabled: true
         iterations: 50
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
+        compute_mode: 1
         max_velocity: 5.0
         max_force: 100.0
         repel_k: 155.46765
@@ -123,12 +134,9 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
         boundary_limit: 1000.0
         alignment_strength: 0.1
         cluster_strength: 0.1
-        compute_mode: 1
         rest_length: 50.0
         repulsion_cutoff: 50.0
         repulsion_softening_epsilon: 0.0001
@@ -216,6 +224,9 @@ visualisation:
         enable_bounds: false
         enabled: true
         iterations: 50
+        stress_weight: 0.0001
+        stress_alpha: 0.0001
+        compute_mode: 1
         max_velocity: 5.0
         max_force: 100.0
         repel_k: 2.0
@@ -226,12 +237,9 @@ visualisation:
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
         boundary_limit: 1000.0
         alignment_strength: 0.1
         cluster_strength: 0.1
-        compute_mode: 1
         rest_length: 50.0
         repulsion_cutoff: 50.0
         repulsion_softening_epsilon: 0.0001

@@ -14,18 +14,6 @@ export const BackgroundEnvironmentControls: React.FC = () => {
   // Get current background environment settings
   const backgroundSettings = settings?.visualisation?.rendering || {};
   const glowSettings = settings?.visualisation?.glow || {};
-  const bloomSettings = settings?.visualisation?.bloom || {};
-  
-  // For backward compatibility, fallback to bloom if glow is not available
-  const effectiveGlowSettings = {
-    enabled: glowSettings.enabled ?? bloomSettings.enabled ?? false,
-    environmentGlowStrength: glowSettings.environmentGlowStrength ?? (bloomSettings.environmentBloomStrength || 0)
-  };
-  
-  const effectiveBloomSettings = {
-    enabled: bloomSettings.enabled ?? glowSettings.enabled ?? false,
-    environmentBloomStrength: bloomSettings.environmentBloomStrength ?? (glowSettings.environmentGlowStrength || 0)
-  };
 
   const handleBackgroundColorChange = useCallback((color: string) => {
     updateSettings((draft) => {
@@ -45,7 +33,7 @@ export const BackgroundEnvironmentControls: React.FC = () => {
     updateSettings((draft) => {
       if (!draft.visualisation) draft.visualisation = {} as any;
       if (!draft.visualisation.rendering) draft.visualisation.rendering = {} as any;
-      draft.visualisation.rendering.backgroundOpacity = value;
+      (draft.visualisation.rendering as any).backgroundOpacity = value;
     });
   }, [updateSettings]);
 
@@ -55,10 +43,6 @@ export const BackgroundEnvironmentControls: React.FC = () => {
       if (!draft.visualisation) draft.visualisation = {} as any;
       if (!draft.visualisation.glow) draft.visualisation.glow = {} as any;
       draft.visualisation.glow.environmentGlowStrength = value;
-      
-      // Also update bloom for backward compatibility
-      if (!draft.visualisation.bloom) draft.visualisation.bloom = {} as any;
-      draft.visualisation.bloom.environmentBloomStrength = value;
     });
   }, [updateSettings]);
 
@@ -85,24 +69,9 @@ export const BackgroundEnvironmentControls: React.FC = () => {
       if (!draft.visualisation) draft.visualisation = {} as any;
       if (!draft.visualisation.glow) draft.visualisation.glow = {} as any;
       draft.visualisation.glow.enabled = enabled;
-      
-      // Also update bloom for backward compatibility
-      if (!draft.visualisation.bloom) draft.visualisation.bloom = {} as any;
-      draft.visualisation.bloom.enabled = enabled;
     });
   }, [updateSettings]);
 
-  const handleBloomEnabledChange = useCallback((enabled: boolean) => {
-    updateSettings((draft) => {
-      if (!draft.visualisation) draft.visualisation = {} as any;
-      if (!draft.visualisation.bloom) draft.visualisation.bloom = {} as any;
-      draft.visualisation.bloom.enabled = enabled;
-      
-      // Also update glow since server uses glow internally
-      if (!draft.visualisation.glow) draft.visualisation.glow = {} as any;
-      draft.visualisation.glow.enabled = enabled;
-    });
-  }, [updateSettings]);
 
   const handleEnvironmentIntensityChange = useCallback((intensity: number[]) => {
     const value = intensity[0];
@@ -136,13 +105,13 @@ export const BackgroundEnvironmentControls: React.FC = () => {
               <input
                 type="color"
                 id="bg-color"
-                value={backgroundSettings.backgroundColor || '#000000'}
+                value={(backgroundSettings as any).backgroundColor || '#000000'}
                 onChange={(e) => handleBackgroundColorChange(e.target.value)}
                 className="w-12 h-8 rounded border border-white/20 bg-transparent cursor-pointer"
               />
               <input
                 type="text"
-                value={backgroundSettings.backgroundColor || '#000000'}
+                value={(backgroundSettings as any).backgroundColor || '#000000'}
                 onChange={(e) => handleBackgroundColorChange(e.target.value)}
                 className="flex-1 px-2 py-1 text-xs bg-white/10 border border-white/20 rounded text-white"
                 placeholder="#000000"
@@ -155,11 +124,11 @@ export const BackgroundEnvironmentControls: React.FC = () => {
             <div className="flex justify-between items-center">
               <Label className="text-xs font-medium">Background Opacity</Label>
               <span className="text-xs text-white/60">
-                {((backgroundSettings.backgroundOpacity || 1) * 100).toFixed(0)}%
+                {(((backgroundSettings as any).backgroundOpacity || 1) * 100).toFixed(0)}%
               </span>
             </div>
             <Slider
-              value={[backgroundSettings.backgroundOpacity || 1]}
+              value={[(backgroundSettings as any).backgroundOpacity || 1]}
               onValueChange={handleBackgroundOpacityChange}
               min={0}
               max={1}
@@ -187,11 +156,11 @@ export const BackgroundEnvironmentControls: React.FC = () => {
             <div className="flex justify-between items-center">
               <Label className="text-xs font-medium">Ambient Light</Label>
               <span className="text-xs text-white/60">
-                {(backgroundSettings.ambientLightIntensity || 0.5).toFixed(2)}
+                {((backgroundSettings as any).ambientLightIntensity || 0.5).toFixed(2)}
               </span>
             </div>
             <Slider
-              value={[backgroundSettings.ambientLightIntensity || 0.5]}
+              value={[(backgroundSettings as any).ambientLightIntensity || 0.5]}
               onValueChange={handleAmbientLightChange}
               min={0}
               max={2}
@@ -205,11 +174,11 @@ export const BackgroundEnvironmentControls: React.FC = () => {
             <div className="flex justify-between items-center">
               <Label className="text-xs font-medium">Directional Light</Label>
               <span className="text-xs text-white/60">
-                {(backgroundSettings.directionalLightIntensity || 1).toFixed(2)}
+                {((backgroundSettings as any).directionalLightIntensity || 1).toFixed(2)}
               </span>
             </div>
             <Slider
-              value={[backgroundSettings.directionalLightIntensity || 1]}
+              value={[(backgroundSettings as any).directionalLightIntensity || 1]}
               onValueChange={handleDirectionalLightChange}
               min={0}
               max={2}
@@ -223,11 +192,11 @@ export const BackgroundEnvironmentControls: React.FC = () => {
             <div className="flex justify-between items-center">
               <Label className="text-xs font-medium">Environment Intensity</Label>
               <span className="text-xs text-white/60">
-                {(backgroundSettings.environmentIntensity || 1).toFixed(2)}
+                {((backgroundSettings as any).environmentIntensity || 1).toFixed(2)}
               </span>
             </div>
             <Slider
-              value={[backgroundSettings.environmentIntensity || 1]}
+              value={[(backgroundSettings as any).environmentIntensity || 1]}
               onValueChange={handleEnvironmentIntensityChange}
               min={0}
               max={2}
@@ -257,65 +226,26 @@ export const BackgroundEnvironmentControls: React.FC = () => {
             </Label>
             <Switch
               id="glow-enabled"
-              checked={glowSettings.enabled || false}
+              checked={(glowSettings as any).enabled || false}
               onCheckedChange={handleGlowEnabledChange}
             />
           </div>
 
           {/* Glow Intensity */}
-          {glowSettings.enabled && (
+          {(glowSettings as any).enabled && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-medium">Environment Glow</Label>
                 <span className="text-xs text-white/60">
-                  {(glowSettings.environmentGlowStrength || 0).toFixed(1)}
+                  {((glowSettings as any).environmentGlowStrength || 0).toFixed(1)}
                 </span>
               </div>
               <Slider
-                value={[glowSettings.environmentGlowStrength || 0]}
+                value={[(glowSettings as any).environmentGlowStrength || 0]}
                 onValueChange={handleGlowIntensityChange}
                 min={0}
                 max={10}
                 step={0.1}
-                className="w-full"
-              />
-            </div>
-          )}
-
-          {/* Bloom Toggle */}
-          <div className="flex items-center justify-between">
-            <Label htmlFor="bloom-enabled" className="text-xs font-medium">
-              Enable Bloom Effects
-            </Label>
-            <Switch
-              id="bloom-enabled"
-              checked={bloomSettings.enabled || false}
-              onCheckedChange={handleBloomEnabledChange}
-            />
-          </div>
-
-          {/* Environment Bloom Strength */}
-          {bloomSettings.enabled && (
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label className="text-xs font-medium">Environment Bloom</Label>
-                <span className="text-xs text-white/60">
-                  {((bloomSettings.environmentBloomStrength || 0) * 100).toFixed(0)}%
-                </span>
-              </div>
-              <Slider
-                value={[bloomSettings.environmentBloomStrength || 0]}
-                onValueChange={(values) => {
-                  const value = values[0];
-                  updateSettings((draft) => {
-                    if (!draft.visualisation) draft.visualisation = {} as any;
-                    if (!draft.visualisation.bloom) draft.visualisation.bloom = {} as any;
-                    draft.visualisation.bloom.environmentBloomStrength = value;
-                  });
-                }}
-                min={0}
-                max={1}
-                step={0.01}
                 className="w-full"
               />
             </div>

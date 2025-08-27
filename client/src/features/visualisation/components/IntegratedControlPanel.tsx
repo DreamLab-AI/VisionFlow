@@ -5,6 +5,13 @@ import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
 
+// Import new GraphFeatures tab components
+import { GraphAnalysisTab } from './tabs/GraphAnalysisTab';
+import { GraphVisualisationTab } from './tabs/GraphVisualisationTab';
+import { GraphOptimisationTab } from './tabs/GraphOptimisationTab';
+import { GraphInteractionTab } from './tabs/GraphInteractionTab';
+import { GraphExportTab } from './tabs/GraphExportTab';
+
 interface IntegratedControlPanelProps {
   showStats: boolean;
   enableBloom: boolean;
@@ -16,6 +23,10 @@ interface IntegratedControlPanelProps {
     mcpConnected: boolean;
     dataSource: string;
   };
+  // GraphFeatures integration props
+  graphData?: any;
+  otherGraphData?: any;
+  onGraphFeatureUpdate?: (feature: string, data: any) => void;
 }
 
 interface SettingField {
@@ -28,7 +39,7 @@ interface SettingField {
   options?: string[];
 }
 
-// Map SpacePilot buttons to menu sections (9 sections now)
+// Map SpacePilot buttons to menu sections (14 sections now with GraphFeatures integration)
 const BUTTON_MENU_MAP = {
   '1': { id: 'dashboard', label: 'Dashboard' },
   '2': { id: 'visualization', label: 'Visualization' },
@@ -38,7 +49,12 @@ const BUTTON_MENU_MAP = {
   '6': { id: 'integrations', label: 'Integrations' },
   '7': { id: 'developer', label: 'Developer' },
   '8': { id: 'auth', label: 'Authentication' },
-  '9': { id: 'xr', label: 'XR/AR' }
+  '9': { id: 'xr', label: 'XR/AR' },
+  'A': { id: 'graph-analysis', label: 'Graph Analysis' },
+  'B': { id: 'graph-visualisation', label: 'Graph Visualisation' },
+  'C': { id: 'graph-optimisation', label: 'Graph Optimisation' },
+  'D': { id: 'graph-interaction', label: 'Graph Interaction' },
+  'E': { id: 'graph-export', label: 'Graph Export' }
 };
 
 // Navigation button mappings (using hex values to avoid conflicts)
@@ -54,7 +70,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   showStats,
   enableBloom,
   onOrbitControlsToggle,
-  botsData
+  botsData,
+  graphData,
+  otherGraphData,
+  onGraphFeatureUpdate
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [spacePilotConnected, setSpacePilotConnected] = useState(false);
@@ -74,6 +93,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   const [nostrConnected, setNostrConnected] = useState(false);
   const [nostrPublicKey, setNostrPublicKey] = useState<string>('');
   const [showmultiAgentPrompt, setshowmultiAgentPrompt] = useState(false);
+  
+  // Graph features state
+  const [graphFeaturesEnabled, setGraphFeaturesEnabled] = useState(false);
 
   // Settings store access
   const settings = useSettingsStore(state => state.settings);
@@ -674,6 +696,59 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'xrAdaptiveQuality', label: 'XR Adaptive Quality', type: 'toggle', path: 'xr.enableAdaptiveQuality' }
           ]
         };
+      case 'graph-analysis':
+        return {
+          title: 'Graph Analysis',
+          fields: [
+            { key: 'comparisonEnabled', label: 'Enable Comparison', type: 'toggle', path: 'graphFeatures.analysis.comparisonEnabled' },
+            { key: 'autoAnalysis', label: 'Auto Analysis', type: 'toggle', path: 'graphFeatures.analysis.autoAnalysis' },
+            { key: 'metricsEnabled', label: 'Real-time Metrics', type: 'toggle', path: 'graphFeatures.analysis.metricsEnabled' },
+            { key: 'comparisonType', label: 'Comparison Type', type: 'select', options: ['structural', 'semantic', 'both'], path: 'graphFeatures.analysis.comparisonType' }
+          ]
+        };
+      case 'graph-visualisation':
+        return {
+          title: 'Graph Visualisation',
+          fields: [
+            { key: 'syncEnabled', label: 'Graph Synchronisation', type: 'toggle', path: 'graphFeatures.visualisation.syncEnabled' },
+            { key: 'cameraSync', label: 'Camera Sync', type: 'toggle', path: 'graphFeatures.visualisation.cameraSync' },
+            { key: 'animationsEnabled', label: 'Enable Animations', type: 'toggle', path: 'graphFeatures.visualisation.animationsEnabled' },
+            { key: 'transitionDuration', label: 'Transition Duration (ms)', type: 'slider', min: 0, max: 1000, path: 'graphFeatures.visualisation.transitionDuration' },
+            { key: 'visualEffects', label: 'Visual Effects', type: 'toggle', path: 'graphFeatures.visualisation.visualEffects' }
+          ]
+        };
+      case 'graph-optimisation':
+        return {
+          title: 'Graph Optimisation',
+          fields: [
+            { key: 'aiInsightsEnabled', label: 'AI Insights', type: 'toggle', path: 'graphFeatures.optimisation.aiInsightsEnabled' },
+            { key: 'autoOptimise', label: 'Auto-Optimise', type: 'toggle', path: 'graphFeatures.optimisation.autoOptimise' },
+            { key: 'optimisationLevel', label: 'Optimisation Level', type: 'slider', min: 1, max: 5, path: 'graphFeatures.optimisation.optimisationLevel' },
+            { key: 'layoutAlgorithm', label: 'Layout Algorithm', type: 'select', options: ['force-directed', 'hierarchical', 'circular', 'adaptive'], path: 'graphFeatures.optimisation.layoutAlgorithm' },
+            { key: 'clusteringEnabled', label: 'Enable Clustering', type: 'toggle', path: 'graphFeatures.optimisation.clusteringEnabled' }
+          ]
+        };
+      case 'graph-interaction':
+        return {
+          title: 'Graph Interaction',
+          fields: [
+            { key: 'timeTravelEnabled', label: 'Time Travel Mode', type: 'toggle', path: 'graphFeatures.interaction.timeTravelEnabled' },
+            { key: 'collaborationEnabled', label: 'Collaboration', type: 'toggle', path: 'graphFeatures.interaction.collaborationEnabled' },
+            { key: 'vrModeEnabled', label: 'VR Mode', type: 'toggle', path: 'graphFeatures.interaction.vrModeEnabled' },
+            { key: 'explorationMode', label: 'Exploration Mode', type: 'toggle', path: 'graphFeatures.interaction.explorationMode' },
+            { key: 'handTrackingEnabled', label: 'Hand Tracking', type: 'toggle', path: 'graphFeatures.interaction.handTrackingEnabled' }
+          ]
+        };
+      case 'graph-export':
+        return {
+          title: 'Graph Export',
+          fields: [
+            { key: 'exportFormat', label: 'Export Format', type: 'select', options: ['json', 'csv', 'png', 'svg', 'pdf'], path: 'graphFeatures.export.exportFormat' },
+            { key: 'includeMetadata', label: 'Include Metadata', type: 'toggle', path: 'graphFeatures.export.includeMetadata' },
+            { key: 'compressionEnabled', label: 'Enable Compression', type: 'toggle', path: 'graphFeatures.export.compressionEnabled' },
+            { key: 'shareExpiry', label: 'Share Expiry', type: 'select', options: ['1hour', '1day', '7days', '30days', 'never'], path: 'graphFeatures.export.shareExpiry' }
+          ]
+        };
       default:
         return null;
     }
@@ -872,8 +947,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           )}
         </div>
 
-        {/* Menu Buttons (1-9) - Always visible for mouse control */}
-        <div style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.7 }}>Menu Sections (9 Total):</div>
+        {/* Menu Buttons (1-9, A-E) - Always visible for mouse control */}
+        <div style={{ fontSize: '10px', marginBottom: '4px', opacity: 0.7 }}>Menu Sections (14 Total):</div>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -908,8 +983,74 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           })}
         </div>
 
+        {/* GraphFeatures Tab Sections */}
+        {activeSection && [
+          'graph-analysis',
+          'graph-visualisation', 
+          'graph-optimisation',
+          'graph-interaction',
+          'graph-export'
+        ].includes(activeSection) && (
+          <div
+            style={{
+              marginTop: '12px',
+              padding: '8px',
+              border: '1px solid rgba(0, 255, 255, 0.3)',
+              borderRadius: '4px',
+              background: 'rgba(0, 255, 255, 0.05)',
+              maxHeight: '500px',
+              overflowY: 'auto',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(0, 255, 255, 0.3) rgba(255,255,255,0.1)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: '12px'
+            }}
+          >
+            {activeSection === 'graph-analysis' && (
+              <GraphAnalysisTab 
+                graphId="current" 
+                graphData={graphData}
+                otherGraphData={otherGraphData}
+              />
+            )}
+            {activeSection === 'graph-visualisation' && (
+              <GraphVisualisationTab 
+                graphId="current"
+                onFeatureUpdate={onGraphFeatureUpdate}
+              />
+            )}
+            {activeSection === 'graph-optimisation' && (
+              <GraphOptimisationTab 
+                graphId="current"
+                onFeatureUpdate={onGraphFeatureUpdate}
+              />
+            )}
+            {activeSection === 'graph-interaction' && (
+              <GraphInteractionTab 
+                graphId="current"
+                onFeatureUpdate={onGraphFeatureUpdate}
+              />
+            )}
+            {activeSection === 'graph-export' && (
+              <GraphExportTab 
+                graphId="current"
+                graphData={graphData}
+                onExport={(format, options) => {
+                  onGraphFeatureUpdate?.('export', { format, options });
+                }}
+              />
+            )}
+          </div>
+        )}
+
         {/* Active Section Settings - Always visible for mouse control */}
-        {activeSection && sectionSettings && (
+        {activeSection && sectionSettings && ![
+          'graph-analysis',
+          'graph-visualisation', 
+          'graph-optimisation',
+          'graph-interaction',
+          'graph-export'
+        ].includes(activeSection) && (
           <div
             ref={scrollContainerRef}
             style={{

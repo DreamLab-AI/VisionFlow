@@ -149,34 +149,6 @@ export interface LabelSettings {
   maxLabelWidth?: number; // Maximum width for label text
 }
 
-// Bloom settings - Backward compatibility interface (client-side only)
-// Note: Server internally uses GlowSettings, but client may reference bloom for compatibility
-export interface BloomSettings {
-  // Core bloom properties (mapped to glow)
-  enabled: boolean;
-  strength: number; // maps to glow.intensity
-  radius: number;
-  threshold: number;
-  
-  // Color and appearance  
-  baseColor?: string;
-  emissionColor?: string;
-  opacity?: number;
-  
-  // Animation properties
-  pulseSpeed?: number;
-  flowSpeed?: number;
-  
-  // Selective bloom for different elements (client-side naming)
-  nodeBloomStrength: number; // maps to glow.nodeGlowStrength
-  edgeBloomStrength: number; // maps to glow.edgeGlowStrength
-  environmentBloomStrength: number; // maps to glow.environmentGlowStrength
-  
-  // Atmospheric diffusion properties
-  diffuseStrength?: number;
-  atmosphericDensity?: number;
-  volumetricIntensity?: number;
-}
 
 // Glow settings - Unified visual effects with diffuse atmospheric rendering
 // This is the server-preferred interface, but client supports both
@@ -376,10 +348,6 @@ export interface VisualisationSettings {
   
   // Graph-specific settings
   graphs: GraphsSettings;
-  
-  // Bloom settings for backward compatibility (client-side)
-  // Note: Server uses glow internally, but client may have bloom references
-  bloom?: BloomSettings;
 }
 
 // System settings

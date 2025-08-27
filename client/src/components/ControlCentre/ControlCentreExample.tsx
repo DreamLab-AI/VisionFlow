@@ -15,7 +15,7 @@ export const ControlCentreExample: React.FC = () => {
   // Update local state when settings change
   useEffect(() => {
     if (initialized && settings) {
-      setEnableBloom(settings.visualisation?.bloom?.enabled || false);
+      setEnableBloom(settings.visualisation?.glow?.enabled || false);
     }
   }, [settings, initialized]);
 
@@ -64,12 +64,12 @@ export const ControlCentreExample: React.FC = () => {
             {JSON.stringify({
               background: {
                 color: settings?.visualisation?.rendering?.backgroundColor,
-                opacity: settings?.visualisation?.rendering?.backgroundOpacity,
+                opacity: (settings?.visualisation?.rendering as any)?.backgroundOpacity,
                 ambientLight: settings?.visualisation?.rendering?.ambientLightIntensity
               },
-              bloom: {
-                enabled: settings?.visualisation?.bloom?.enabled,
-                strength: settings?.visualisation?.bloom?.environmentBloomStrength
+              glow: {
+                enabled: settings?.visualisation?.glow?.enabled,
+                strength: settings?.visualisation?.glow?.environmentGlowStrength
               },
               physics: {
                 enabled: settings?.visualisation?.graphs?.logseq?.physics?.enabled,

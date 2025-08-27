@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo } from 'react';
 import { Uniform } from 'three';
 import { Effect } from 'postprocessing';
+import * as THREE from 'three';
 
 const fragmentShader = `
   uniform sampler2D sceneTex;
@@ -59,11 +60,25 @@ class AtmosphericGlowEffect extends Effect {
     camera,
     resolution,
   } = {}) {
+    // Convert color to proper format for WebGL uniform3fv
+    let colorUniform;
+    if (typeof glowColor === 'string') {
+      const color = new THREE.Color(glowColor);
+      colorUniform = new THREE.Vector3(color.r, color.g, color.b);
+    } else if (glowColor instanceof THREE.Color) {
+      colorUniform = new THREE.Vector3(glowColor.r, glowColor.g, glowColor.b);
+    } else if (Array.isArray(glowColor)) {
+      colorUniform = new THREE.Vector3(glowColor[0], glowColor[1], glowColor[2]);
+    } else {
+      // Assume it's already a Vector3
+      colorUniform = glowColor;
+    }
+    
     super('AtmosphericGlowEffect', fragmentShader, {
       uniforms: new Map([
         ['sceneTex', new Uniform(null)],
         ['depthTex', new Uniform(null)],
-        ['glowColor', new Uniform(glowColor)],
+        ['glowColor', new Uniform(colorUniform)],
         ['intensity', new Uniform(intensity)],
         ['radius', new Uniform(radius)],
         ['threshold', new Uniform(threshold)],

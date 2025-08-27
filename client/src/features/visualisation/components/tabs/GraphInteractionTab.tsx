@@ -1,0 +1,460 @@
+/**
+ * Graph Interaction Tab Component
+ * Advanced interaction modes and controls with UK English localisation
+ */
+
+import React, { useState, useCallback } from 'react';
+import { 
+  Clock, 
+  Users,
+  Glasses,
+  Play,
+  Pause,
+  RotateCcw,
+  FastForward,
+  Rewind,
+  MapPin,
+  Radio,
+  Gamepad2,
+  AlertCircle,
+  Sparkles,
+  Navigation
+} from 'lucide-react';
+import { Button } from '@/features/design-system/components/Button';
+import { Switch } from '@/features/design-system/components/Switch';
+import { Label } from '@/features/design-system/components/Label';
+import { Badge } from '@/features/design-system/components/Badge';
+import { Slider } from '@/features/design-system/components/Slider';
+import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
+import { Progress } from '@/features/design-system/components/Progress';
+import { toast } from '@/features/design-system/components/Toast';
+
+interface GraphInteractionTabProps {
+  graphId?: string;
+  onFeatureUpdate?: (feature: string, data: any) => void;
+}
+
+export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({ 
+  graphId = 'default',
+  onFeatureUpdate
+}) => {
+  // Time Travel states
+  const [timeTravelActive, setTimeTravelActive] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState([1]);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Collaboration states
+  const [collaborationActive, setCollaborationActive] = useState(false);
+  const [participantCount, setParticipantCount] = useState(1);
+  const [sessionId, setSessionId] = useState<string>('');
+  
+  // VR/AR states
+  const [vrModeActive, setVrModeActive] = useState(false);
+  const [arModeActive, setArModeActive] = useState(false);
+  const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
+  const [hapticFeedback, setHapticFeedback] = useState(true);
+  
+  // Exploration states
+  const [explorationMode, setExplorationMode] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
+  const [currentTour, setCurrentTour] = useState<string>('');
+
+  const handleTimeTravelToggle = useCallback(() => {
+    const newState = !timeTravelActive;
+    setTimeTravelActive(newState);
+    
+    if (newState) {
+      // Mock initialization with 10 steps
+      setTotalSteps(10);
+      setCurrentStep(10); // Start at current state
+      onFeatureUpdate?.('timeTravel', { 
+        enabled: true, 
+        currentStep: 10, 
+        totalSteps: 10 
+      });
+      
+      toast({
+        title: "Time Travel Mode Activated",
+        description: "Navigate through graph history with the timeline controls"
+      });
+    } else {
+      setIsPlaying(false);
+      onFeatureUpdate?.('timeTravel', { enabled: false });
+      
+      toast({
+        title: "Time Travel Mode Deactivated",
+        description: "Returned to current graph state"
+      });
+    }
+  }, [timeTravelActive, onFeatureUpdate]);
+
+  const handleCollaborationToggle = useCallback(() => {
+    const newState = !collaborationActive;
+    setCollaborationActive(newState);
+    
+    if (newState) {
+      const newSessionId = `session-${Date.now()}`;
+      setSessionId(newSessionId);
+      onFeatureUpdate?.('collaboration', { 
+        enabled: true, 
+        sessionId: newSessionId,
+        participants: 1
+      });
+      
+      toast({
+        title: "Collaboration Session Started",
+        description: "Share this session to invite collaborators"
+      });
+    } else {
+      onFeatureUpdate?.('collaboration', { enabled: false });
+      setSessionId('');
+      setParticipantCount(1);
+      
+      toast({
+        title: "Collaboration Session Ended",
+        description: "All participants have been disconnected"
+      });
+    }
+  }, [collaborationActive, onFeatureUpdate]);
+
+  const handleVrModeToggle = useCallback(() => {
+    const newState = !vrModeActive;
+    setVrModeActive(newState);
+    
+    onFeatureUpdate?.('vrMode', { 
+      enabled: newState,
+      handTracking: handTrackingEnabled,
+      hapticFeedback
+    });
+    
+    toast({
+      title: newState ? "VR Mode Activated" : "VR Mode Deactivated",
+      description: newState 
+        ? "Entering immersive virtual reality environment..." 
+        : "Returned to standard 2D interface"
+    });
+  }, [vrModeActive, handTrackingEnabled, hapticFeedback, onFeatureUpdate]);
+
+  const handleArModeToggle = useCallback(() => {
+    const newState = !arModeActive;
+    setArModeActive(newState);
+    
+    onFeatureUpdate?.('arMode', { enabled: newState });
+    
+    toast({
+      title: newState ? "AR Mode Activated" : "AR Mode Deactivated",
+      description: newState 
+        ? "Overlaying graph data onto real world..." 
+        : "Returned to standard interface"
+    });
+  }, [arModeActive, onFeatureUpdate]);
+
+  const handleTimelineNavigation = useCallback((direction: 'previous' | 'next') => {
+    if (!timeTravelActive) return;
+    
+    const newStep = direction === 'next' 
+      ? Math.min(totalSteps, currentStep + 1)
+      : Math.max(0, currentStep - 1);
+    
+    setCurrentStep(newStep);
+    onFeatureUpdate?.('timeTravel', { 
+      currentStep: newStep, 
+      totalSteps,
+      action: 'navigate'
+    });
+    
+    toast({
+      title: `Navigated to Step ${newStep}`,
+      description: `Viewing graph state ${newStep}/${totalSteps}`
+    });
+  }, [timeTravelActive, currentStep, totalSteps, onFeatureUpdate]);
+
+  const togglePlayback = useCallback(() => {
+    const newPlayState = !isPlaying;
+    setIsPlaying(newPlayState);
+    
+    onFeatureUpdate?.('timeTravel', { 
+      isPlaying: newPlayState,
+      playbackSpeed: playbackSpeed[0]
+    });
+    
+    toast({
+      title: newPlayState ? "Timeline Playback Started" : "Timeline Playback Paused",
+      description: newPlayState ? `Playing at ${playbackSpeed[0]}x speed` : "Timeline paused"
+    });
+  }, [isPlaying, playbackSpeed, onFeatureUpdate]);
+
+  const createExplorationTour = useCallback(() => {
+    const tourId = `tour-${Date.now()}`;
+    setCurrentTour(tourId);
+    setTourActive(true);
+    
+    onFeatureUpdate?.('exploration', { 
+      tourId,
+      active: true,
+      waypoints: []
+    });
+    
+    toast({
+      title: "Exploration Tour Created",
+      description: "Add waypoints by clicking on interesting nodes"
+    });
+  }, [onFeatureUpdate]);
+
+  return (
+    <div className="space-y-4">
+      {/* Time Travel Mode */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Time Travel Mode
+            <Badge variant="secondary" className="text-xs">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Partial
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Enable Time Travel</Label>
+            <Switch
+              checked={timeTravelActive}
+              onCheckedChange={handleTimeTravelToggle}
+            />
+          </div>
+          
+          {timeTravelActive && (
+            <div className="space-y-3 pl-4 border-l-2 border-muted">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-xs">Timeline Position</Label>
+                  <span className="text-xs font-mono">{currentStep}/{totalSteps}</span>
+                </div>
+                <Progress value={(currentStep / totalSteps) * 100} className="w-full" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleTimelineNavigation('previous')}
+                  disabled={currentStep <= 0}
+                >
+                  <Rewind className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={togglePlayback}
+                >
+                  {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleTimelineNavigation('next')}
+                  disabled={currentStep >= totalSteps}
+                >
+                  <FastForward className="h-3 w-3" />
+                </Button>
+              </div>
+              
+              <div className="space-y-1">
+                <Label className="text-xs">Playback Speed</Label>
+                <Slider
+                  value={playbackSpeed}
+                  onValueChange={setPlaybackSpeed}
+                  min={0.1}
+                  max={5}
+                  step={0.1}
+                  className="w-full"
+                />
+                <span className="text-xs text-muted-foreground">{playbackSpeed[0]}x speed</span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Collaboration */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Collaboration
+            <Badge variant="secondary" className="text-xs">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Partial
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Enable Collaboration</Label>
+            <Switch
+              checked={collaborationActive}
+              onCheckedChange={handleCollaborationToggle}
+            />
+          </div>
+          
+          {collaborationActive && (
+            <div className="space-y-3 pl-4 border-l-2 border-muted">
+              <div className="text-xs space-y-1 p-2 bg-muted rounded">
+                <div className="flex justify-between">
+                  <span>Session ID:</span>
+                  <span className="font-mono">{sessionId.slice(-8)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Participants:</span>
+                  <span className="font-mono text-green-600">{participantCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="text-green-600">Active</span>
+                </div>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}?session=${sessionId}`);
+                  toast({ title: "Session link copied to clipboard" });
+                }}
+              >
+                <Radio className="h-3 w-3 mr-1" />
+                Copy Session Link
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* VR/AR Modes */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Glasses className="h-4 w-4" />
+            Immersive Modes
+            <Badge variant="secondary" className="text-xs">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Partial
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant={vrModeActive ? "default" : "outline"}
+              size="sm" 
+              className="w-full"
+              onClick={handleVrModeToggle}
+            >
+              <Glasses className="h-3 w-3 mr-1" />
+              {vrModeActive ? "Exit VR" : "Enter VR"}
+            </Button>
+            <Button 
+              variant={arModeActive ? "default" : "outline"}
+              size="sm" 
+              className="w-full"
+              onClick={handleArModeToggle}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              {arModeActive ? "Exit AR" : "Enter AR"}
+            </Button>
+          </div>
+          
+          {(vrModeActive || arModeActive) && (
+            <div className="space-y-2 pl-4 border-l-2 border-muted">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Hand Tracking</Label>
+                <Switch
+                  checked={handTrackingEnabled}
+                  onCheckedChange={setHandTrackingEnabled}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Haptic Feedback</Label>
+                <Switch
+                  checked={hapticFeedback}
+                  onCheckedChange={setHapticFeedback}
+                />
+              </div>
+              
+              <div className="text-xs space-y-1 p-2 bg-muted rounded">
+                <div className="flex justify-between">
+                  <span>Mode:</span>
+                  <span className="font-mono text-blue-600">
+                    {vrModeActive ? 'VR' : arModeActive ? 'AR' : 'Standard'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tracking:</span>
+                  <span className="font-mono text-green-600">
+                    {handTrackingEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Exploration Tools */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Navigation className="h-4 w-4" />
+            Exploration Tools
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Exploration Mode</Label>
+            <Switch
+              checked={explorationMode}
+              onCheckedChange={setExplorationMode}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={createExplorationTour}
+              disabled={!explorationMode}
+            >
+              <MapPin className="h-3 w-3 mr-1" />
+              Create Guided Tour
+            </Button>
+          </div>
+          
+          {tourActive && (
+            <div className="text-xs space-y-1 p-2 bg-muted rounded">
+              <div className="flex justify-between">
+                <span>Active Tour:</span>
+                <span className="font-mono">{currentTour.slice(-8)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Waypoints:</span>
+                <span className="font-mono">0</span>
+              </div>
+            </div>
+          )}
+          
+          <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+            <strong>Note:</strong> Advanced interaction modes are under development. 
+            Current implementation provides basic mode switching and state management.
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default GraphInteractionTab;

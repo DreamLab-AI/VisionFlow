@@ -13,7 +13,7 @@ const DiffuseWireframeShader = {
   uniforms: {
     tDiffuse: { value: null },
     glowIntensity: { value: 0.8 },
-    glowColor: { value: new THREE.Color(0x00ffff) },
+    glowColor: { value: [0.0, 1.0, 1.0] }, // Use array for vec3 uniforms
     diffuseRadius: { value: 2.0 },
     opacity: { value: 0.7 },
     time: { value: 0.0 },
@@ -31,6 +31,8 @@ const DiffuseWireframeShader = {
   `,
   
   fragmentShader: `
+    precision highp float;
+    
     uniform sampler2D tDiffuse;
     uniform float glowIntensity;
     uniform vec3 glowColor;
@@ -53,7 +55,7 @@ const DiffuseWireframeShader = {
     
     float sdBox(vec2 p, vec2 b) {
       vec2 d = abs(p) - b;
-      return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+      return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0);
     }
     
     // Multi-sample blur for diffuse glow effect
@@ -64,15 +66,15 @@ const DiffuseWireframeShader = {
       
       // Circular sampling pattern
       for (float i = 0.0; i < samples; i++) {
-        float angle = (i / samples) * 2.0 * 3.14159;
+        float angle = (i / samples) * 2.0 * 3.14159265359;
         vec2 offset = vec2(cos(angle), sin(angle)) * radius / resolution;
         
         // Multiple radius samples for smoother falloff
         for (float j = 0.2; j <= 1.0; j += 0.2) {
           vec2 sampleUv = uv + offset * j;
-          vec4 sample = texture2D(tex, sampleUv);
+          vec4 texSample = texture(tex, sampleUv);
           float weight = 1.0 - j * 0.8; // Falloff weight
-          color += sample * weight;
+          color += texSample * weight;
           total += weight;
         }
       }
@@ -82,23 +84,23 @@ const DiffuseWireframeShader = {
     
     // Wireframe edge detection
     float getWireframeIntensity(vec2 uv) {
-      vec4 texel = texture2D(tDiffuse, uv);
+      vec4 texel = texture(tDiffuse, uv);
       
       // Sample neighboring pixels for edge detection
       vec2 texelSize = 1.0 / resolution;
       float edge = 0.0;
       
       // Sobel edge detection for wireframe elements
-      vec3 tl = texture2D(tDiffuse, uv + vec2(-texelSize.x, -texelSize.y)).rgb;
-      vec3 tr = texture2D(tDiffuse, uv + vec2(texelSize.x, -texelSize.y)).rgb;
-      vec3 bl = texture2D(tDiffuse, uv + vec2(-texelSize.x, texelSize.y)).rgb;
-      vec3 br = texture2D(tDiffuse, uv + vec2(texelSize.x, texelSize.y)).rgb;
+      vec3 tl = texture(tDiffuse, uv + vec2(-texelSize.x, -texelSize.y)).rgb;
+      vec3 tr = texture(tDiffuse, uv + vec2(texelSize.x, -texelSize.y)).rgb;
+      vec3 bl = texture(tDiffuse, uv + vec2(-texelSize.x, texelSize.y)).rgb;
+      vec3 br = texture(tDiffuse, uv + vec2(texelSize.x, texelSize.y)).rgb;
       
-      vec3 horizontal = (tl + 2.0 * texture2D(tDiffuse, uv + vec2(-texelSize.x, 0.0)).rgb + bl) -
-                       (tr + 2.0 * texture2D(tDiffuse, uv + vec2(texelSize.x, 0.0)).rgb + br);
+      vec3 horizontal = (tl + 2.0 * texture(tDiffuse, uv + vec2(-texelSize.x, 0.0)).rgb + bl) -
+                       (tr + 2.0 * texture(tDiffuse, uv + vec2(texelSize.x, 0.0)).rgb + br);
       
-      vec3 vertical = (tl + 2.0 * texture2D(tDiffuse, uv + vec2(0.0, -texelSize.y)).rgb + tr) -
-                     (bl + 2.0 * texture2D(tDiffuse, uv + vec2(0.0, texelSize.y)).rgb + br);
+      vec3 vertical = (tl + 2.0 * texture(tDiffuse, uv + vec2(0.0, -texelSize.y)).rgb + tr) -
+                     (bl + 2.0 * texture(tDiffuse, uv + vec2(0.0, texelSize.y)).rgb + br);
       
       float edgeStrength = length(horizontal) + length(vertical);
       
@@ -110,7 +112,7 @@ const DiffuseWireframeShader = {
     
     void main() {
       vec2 uv = vUv;
-      vec4 originalColor = texture2D(tDiffuse, uv);
+      vec4 originalColor = texture(tDiffuse, uv);
       
       // Get wireframe intensity using edge detection
       float wireframeIntensity = getWireframeIntensity(uv);
@@ -143,7 +145,7 @@ const MoteParticleShader = {
   uniforms: {
     tDiffuse: { value: null },
     moteIntensity: { value: 0.6 },
-    moteColor: { value: new THREE.Color(0x00ffff) },
+    moteColor: { value: [0.0, 1.0, 1.0] }, // Use array for vec3 uniforms
     moteSize: { value: 1.0 },
     time: { value: 0.0 },
     opacity: { value: 0.8 }
@@ -158,6 +160,8 @@ const MoteParticleShader = {
   `,
   
   fragmentShader: `
+    precision highp float;
+    
     uniform sampler2D tDiffuse;
     uniform float moteIntensity;
     uniform vec3 moteColor;
@@ -187,7 +191,7 @@ const MoteParticleShader = {
     }
     
     void main() {
-      vec4 originalColor = texture2D(tDiffuse, vUv);
+      vec4 originalColor = texture(tDiffuse, vUv);
       
       // Generate animated motes
       vec2 moteCoord = vUv * 20.0 + time * 0.5;
@@ -210,7 +214,7 @@ const RingEnhancementShader = {
   uniforms: {
     tDiffuse: { value: null },
     ringGlow: { value: 0.9 },
-    ringColor: { value: new THREE.Color(0x00ffff) },
+    ringColor: { value: [0.0, 1.0, 1.0] }, // Use array for vec3 uniforms
     ringWidth: { value: 0.05 },
     time: { value: 0.0 },
     opacity: { value: 0.7 }
@@ -225,6 +229,8 @@ const RingEnhancementShader = {
   `,
   
   fragmentShader: `
+    precision highp float;
+    
     uniform sampler2D tDiffuse;
     uniform float ringGlow;
     uniform vec3 ringColor;
@@ -235,7 +241,7 @@ const RingEnhancementShader = {
     varying vec2 vUv;
     
     void main() {
-      vec4 originalColor = texture2D(tDiffuse, vUv);
+      vec4 originalColor = texture(tDiffuse, vUv);
       
       // Distance from center for ring detection
       float dist = distance(vUv, vec2(0.5));
@@ -352,7 +358,9 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
     if (effectsConfig.diffuse.enabled) {
       const diffusePass = new ShaderPass(DiffuseWireframeShader);
       diffusePass.uniforms.glowIntensity.value = effectsConfig.diffuse.intensity;
-      diffusePass.uniforms.glowColor.value = effectsConfig.diffuse.color;
+      // Convert Color to array for shader
+      const color = effectsConfig.diffuse.color;
+      diffusePass.uniforms.glowColor.value = [color.r, color.g, color.b];
       diffusePass.uniforms.diffuseRadius.value = effectsConfig.diffuse.radius;
       diffusePass.uniforms.opacity.value = effectsConfig.diffuse.opacity;
       diffusePass.uniforms.resolution.value.set(size.width, size.height);
@@ -365,7 +373,9 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
     if (effectsConfig.motes.enabled) {
       const motePass = new ShaderPass(MoteParticleShader);
       motePass.uniforms.moteIntensity.value = effectsConfig.motes.intensity;
-      motePass.uniforms.moteColor.value = effectsConfig.motes.color;
+      // Convert Color to array for shader
+      const moteColor = effectsConfig.motes.color;
+      motePass.uniforms.moteColor.value = [moteColor.r, moteColor.g, moteColor.b];
       motePass.uniforms.moteSize.value = effectsConfig.motes.size;
       motePass.uniforms.opacity.value = effectsConfig.motes.opacity;
       composer.addPass(motePass);
@@ -375,7 +385,9 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
     if (effectsConfig.rings.enabled) {
       const ringPass = new ShaderPass(RingEnhancementShader);
       ringPass.uniforms.ringGlow.value = effectsConfig.rings.glow;
-      ringPass.uniforms.ringColor.value = effectsConfig.rings.color;
+      // Convert Color to array for shader
+      const ringColor = effectsConfig.rings.color;
+      ringPass.uniforms.ringColor.value = [ringColor.r, ringColor.g, ringColor.b];
       ringPass.uniforms.ringWidth.value = effectsConfig.rings.width;
       ringPass.uniforms.opacity.value = effectsConfig.rings.opacity;
       composer.addPass(ringPass);
@@ -398,7 +410,7 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
     }
   }, [composer, size]);
   
-  // Animation loop
+  // Animation loop - only update uniforms, don't render
   useFrame((state, delta) => {
     timeRef.current += delta;
     
@@ -410,8 +422,9 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
         }
       });
       
-      // Render the effect composer
-      composer.render();
+      // Don't render here - let the main render loop handle it
+      // This was blocking mouse interaction
+      // composer.render();
     }
   }, 1);
   
@@ -438,7 +451,8 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
             pass.uniforms.glowIntensity.value = newConfig.diffuse.intensity;
           }
           if (newConfig.diffuse.color !== undefined) {
-            pass.uniforms.glowColor.value = newConfig.diffuse.color;
+            const color = newConfig.diffuse.color;
+            pass.uniforms.glowColor.value = [color.r, color.g, color.b];
           }
           if (newConfig.diffuse.radius !== undefined) {
             pass.uniforms.diffuseRadius.value = newConfig.diffuse.radius;
@@ -460,7 +474,8 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
             pass.uniforms.moteIntensity.value = newConfig.motes.intensity;
           }
           if (newConfig.motes.color !== undefined) {
-            pass.uniforms.moteColor.value = newConfig.motes.color;
+            const color = newConfig.motes.color;
+            pass.uniforms.moteColor.value = [color.r, color.g, color.b];
           }
           if (newConfig.motes.size !== undefined) {
             pass.uniforms.moteSize.value = newConfig.motes.size;
@@ -476,7 +491,8 @@ export const CustomEffectsRenderer: React.FC<CustomEffectsRendererProps> = ({
             pass.uniforms.ringGlow.value = newConfig.rings.glow;
           }
           if (newConfig.rings.color !== undefined) {
-            pass.uniforms.ringColor.value = newConfig.rings.color;
+            const color = newConfig.rings.color;
+            pass.uniforms.ringColor.value = [color.r, color.g, color.b];
           }
           if (newConfig.rings.width !== undefined) {
             pass.uniforms.ringWidth.value = newConfig.rings.width;

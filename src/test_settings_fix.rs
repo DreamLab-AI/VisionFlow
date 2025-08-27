@@ -1,4 +1,5 @@
 use crate::config::AppFullSettings;
+use crate::handlers::settings_handler::SettingsResponseDTO;
 
 /// Test to verify that the bloom/glow field mapping works correctly
 pub fn test_settings_deserialization() -> Result<(), String> {
@@ -380,16 +381,18 @@ auth:
         }
     }
 
-    // Test JSON serialization for client compatibility
-    println!("\nTesting JSON serialization for client...");
+    // Test JSON serialization for client compatibility using DTO
+    println!("\nTesting JSON serialization for client using DTO...");
     let default_settings = AppFullSettings::default();
-    match default_settings.to_camel_case_json() {
+    let response_dto: SettingsResponseDTO = (&default_settings).into();
+    
+    match serde_json::to_value(&response_dto) {
         Ok(json) => {
             if let Some(vis) = json.get("visualisation") {
                 if vis.get("bloom").is_some() {
-                    println!("✅ Client JSON contains 'bloom' field");
+                    println!("✅ Client JSON contains 'bloom' field via DTO");
                 } else {
-                    println!("⚠️  Warning: Client JSON missing 'bloom' field");
+                    println!("⚠️  Warning: Client JSON missing 'bloom' field in DTO");
                 }
             }
         }
