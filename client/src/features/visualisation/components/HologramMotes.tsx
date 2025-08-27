@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { DiffuseMoteMaterial } from '@/rendering/DiffuseWireframeMaterial';
+// DiffuseMoteMaterial doesn't exist, using standard Three.js materials
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
 
 interface MotesRingProps {
@@ -17,14 +17,14 @@ interface MotesRingProps {
 
 // Ring of motes circling around
 export const MotesRing: React.FC<MotesRingProps> = ({
-  radius = 15,
-  count = 300,
+  radius = 10,  // Smaller rings
+  count = 40,   // Reduced count
   color = '#00ffff',
-  size = 0.5,
+  size = 0.4,   // Smaller motes
   speed = 0.3,
   opacity = 0.8,
   density = 0.7,
-  height = 10
+  height = 8    // Smaller height
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
   const materialRef = useRef<DiffuseMoteMaterial>(null);
@@ -61,25 +61,26 @@ export const MotesRing: React.FC<MotesRingProps> = ({
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geo.setAttribute('random', new THREE.BufferAttribute(randoms, 1));
     
-    const mat = new DiffuseMoteMaterial({
-      color,
-      size,
-      opacity,
-      density,
-      speed
+    // Use standard point material with additive blending for glow effect
+    const mat = new THREE.PointsMaterial({
+      size: size,
+      vertexColors: true,
+      transparent: true,
+      opacity: opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true
     });
     
     return [geo, mat];
   }, [count, radius, height, color, size, opacity, density, speed]);
   
-  // Store material ref and enable bloom
+  // Enable proper layers for bloom
   React.useEffect(() => {
-    materialRef.current = material;
-    
-    // Enable bloom layer for motes
     const points = pointsRef.current;
     if (points) {
-      (points as any).layers.enable(1); // Bloom layer
+      (points as any).layers.set(0);  // Base layer for rendering
+      (points as any).layers.enable(2); // Layer 2 for hologram/glow bloom
       registerEnvObject(points as any);
     }
     
@@ -117,9 +118,10 @@ export const MotesRing: React.FC<MotesRingProps> = ({
       pointsRef.current.geometry.attributes.position.needsUpdate = true;
     }
     
-    // Update material time
-    if (materialRef.current) {
-      materialRef.current.updateTime(state.clock.elapsedTime);
+    // Update point material color if needed
+    if (pointsRef.current && pointsRef.current.material) {
+      const mat = pointsRef.current.material as THREE.PointsMaterial;
+      // Color is handled through vertex colors, update if needed
     }
   });
   
@@ -135,12 +137,28 @@ export const GlitterField: React.FC<{
   color?: string;
   sparkleSpeed?: number;
 }> = ({
-  count = 500,
-  bounds = 30,
+  count = 80,   // Reduced count
+  bounds = 30,  // Smaller bounds
   color = '#ffffff',
   sparkleSpeed = 3.0
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
+  
+  // Enable bloom for glitter
+  useEffect(() => {
+    const points = pointsRef.current;
+    if (points) {
+      (points as any).layers.set(0);
+      (points as any).layers.enable(2); // Hologram/glow layer
+      registerEnvObject(points as any);
+    }
+    
+    return () => {
+      if (points) {
+        unregisterEnvObject(points as any);
+      }
+    };
+  }, []);
   
   const [positions, colors, sizes] = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -167,11 +185,19 @@ export const GlitterField: React.FC<{
     return [pos, col, siz];
   }, [count, bounds, color]);
   
+  // Store color ref for animation
+  const colorRef = useRef(new THREE.Color(color));
+  
+  // Update color when it changes
+  useEffect(() => {
+    colorRef.current = new THREE.Color(color);
+  }, [color]);
+  
   // Animate sparkles
   useFrame((state) => {
     if (pointsRef.current) {
       const colors = pointsRef.current.geometry.attributes.color.array as Float32Array;
-      const c = new THREE.Color(color);
+      const c = colorRef.current;
       
       for (let i = 0; i < count; i++) {
         // Sparkle effect - random flashing
@@ -233,34 +259,57 @@ export const HologramEnvironment: React.FC<{
   color = '#00ffff',
   position = [0, 0, 0]
 }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  // Enable bloom for the entire environment
+  useEffect(() => {
+    const group = groupRef.current;
+    if (group && enabled) {
+      group.traverse((child: any) => {
+        if (child.layers) {
+          child.layers.set(0);
+          child.layers.enable(2); // Hologram/glow layer
+        }
+      });
+      registerEnvObject(group as any);
+    }
+    
+    return () => {
+      if (group) {
+        unregisterEnvObject(group as any);
+      }
+    };
+  }, [enabled]);
+  
   if (!enabled) return null;
   
   return (
-    <group position={position}>
-      {/* Ring of circling motes - reduced by 10x */}
+    <group ref={groupRef} position={position}>
+      {/* Ring of circling motes - smaller */}
       <MotesRing
-        radius={15}
-        count={30}
+        radius={12}
+        count={40}
         color={color}
-        size={0.5}
+        size={0.4}
         speed={0.3}
         opacity={0.8}
+        height={8}
       />
       
-      {/* Second ring at different height and radius - reduced by 10x */}
+      {/* Second ring at different height and radius - smaller */}
       <MotesRing
-        radius={25}
-        count={20}
+        radius={20}
+        count={30}
         color={color}
         size={0.3}
         speed={-0.2}
         opacity={0.6}
-        height={15}
+        height={12}
       />
       
-      {/* Glitter/sparkle field - reduced by 10x */}
+      {/* Glitter/sparkle field - smaller */}
       <GlitterField
-        count={50}
+        count={80}
         bounds={40}
         color={color}
         sparkleSpeed={3.0}

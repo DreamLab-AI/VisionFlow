@@ -1,5 +1,5 @@
-import React, { useRef, useMemo } from 'react';
-import { useThree, useFrame, extend } from '@react-three/fiber';
+import React, { useRef, useMemo, useEffect } from 'react';
+import { useThree, useFrame } from '@react-three/fiber';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
@@ -7,15 +7,10 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import * as THREE from 'three';
 import { useSettingsStore } from '../../../store/settingsStore';
 
-// Extend Three.js objects for React Three Fiber
-extend({ EffectComposer, RenderPass, UnrealBloomPass, ShaderPass });
-
-// Custom vignette shader
-const VignetteShader = {
+// Copy shader - just passes through the texture
+const CopyShader = {
   uniforms: {
-    tDiffuse: { value: null },
-    offset: { value: 1.0 },
-    darkness: { value: 1.0 }
+    tDiffuse: { value: null }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -26,68 +21,9 @@ const VignetteShader = {
   `,
   fragmentShader: `
     uniform sampler2D tDiffuse;
-    uniform float offset;
-    uniform float darkness;
-    varying vec2 vUv;
-    
-    void main() {
-      vec4 texel = texture2D(tDiffuse, vUv);
-      vec2 uv = (vUv - vec2(0.5)) * vec2(offset);
-      gl_FragColor = vec4(mix(texel.rgb, vec3(1.0 - darkness), dot(uv, uv)), texel.a);
-    }
-  `
-};
-
-// Depth of field shader (simplified)
-const DepthOfFieldShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    tDepth: { value: null },
-    focus: { value: 1.0 },
-    maxblur: { value: 0.01 },
-    aspect: { value: 1.0 }
-  },
-  vertexShader: `
     varying vec2 vUv;
     void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform sampler2D tDiffuse;
-    uniform sampler2D tDepth;
-    uniform float focus;
-    uniform float maxblur;
-    uniform float aspect;
-    varying vec2 vUv;
-    
-    float getDepth(vec2 coord) {
-      return texture2D(tDepth, coord).r;
-    }
-    
-    void main() {
-      vec2 aspectCorrect = vec2(1.0, aspect);
-      float depth = getDepth(vUv);
-      float factor = depth - focus;
-      
-      vec2 dofblur = vec2(clamp(factor * maxblur, -maxblur, maxblur));
-      vec2 dofblur9 = dofblur * 0.9;
-      vec2 dofblur7 = dofblur * 0.7;
-      vec2 dofblur4 = dofblur * 0.4;
-      
-      vec4 col = vec4(0.0);
-      col += texture2D(tDiffuse, vUv);
-      col += texture2D(tDiffuse, vUv + (vec2(0.0, 0.4) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(0.15, 0.37) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(0.29, 0.29) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(-0.37, 0.15) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(0.40, 0.0) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(0.37, -0.15) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(0.29, -0.29) * aspectCorrect) * dofblur);
-      col += texture2D(tDiffuse, vUv + (vec2(-0.15, -0.37) * aspectCorrect) * dofblur);
-      
-      gl_FragColor = col / 9.0;
+      gl_FragColor = texture2D(tDiffuse, vUv);
     }
   `
 };
@@ -98,82 +34,128 @@ export const PostProcessingEffects: React.FC<{
   graphElementsOnly = false 
 }) => {
   const { gl, scene, camera, size } = useThree();
-  const composerRef = useRef<EffectComposer>();
   const settings = useSettingsStore(state => state.settings?.visualisation);
+  const bloomSettings = settings?.bloom;
+  const glowSettings = settings?.glow;
   
   // Create effect composer and passes
-  const [composer, bloomPass, vignettePass] = useMemo(() => {
+  const [composer, bloomPass, glowPass] = useMemo(() => {
     const composer = new EffectComposer(gl);
     composer.setSize(size.width, size.height);
     
-    // Render pass with selective rendering for force-directed graphs only
+    // Standard render pass - renders everything normally
     const renderPass = new RenderPass(scene, camera);
-    
-    // If graphElementsOnly is true, only apply bloom to graph elements (layer 2)
-    if (graphElementsOnly) {
-      // Create a custom render pass that only renders specific layers
-      renderPass.renderToScreen = false;
-    }
-    
     composer.addPass(renderPass);
     
-    // Bloom pass - only enabled for force-directed graph elements
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(size.width, size.height),
-      settings?.bloom?.strength || 1.5,
-      settings?.bloom?.radius || 0.4,
-      settings?.bloom?.threshold || 0.85
-    );
-    
-    // Configure bloom - more restrictive for graph elements only
-    bloomPass.threshold = graphElementsOnly ? (settings?.bloom?.threshold || 0.8) : 0.0;
-    bloomPass.strength = settings?.bloom?.strength || 1.5;
-    bloomPass.radius = settings?.bloom?.radius || 0.4;
-    
-    // Only add bloom if enabled and appropriate context
-    const shouldEnableBloom = settings?.bloom?.enabled !== false && 
-                             (!graphElementsOnly || settings?.bloom?.graphElementsOnly !== false);
-    
-    if (shouldEnableBloom) {
+    // Bloom pass for nodes/edges (layer 1)
+    let bloomPass: UnrealBloomPass | null = null;
+    if (bloomSettings?.enabled) {
+      bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(size.width, size.height),
+        bloomSettings.strength || 1.5,
+        bloomSettings.radius || 0.4,
+        bloomSettings.threshold || 0.85
+      );
+      
+      // Custom selective bloom - only affect layer 1
+      const originalRender = bloomPass.render.bind(bloomPass);
+      bloomPass.render = function(renderer: any, writeBuffer: any, readBuffer: any, deltaTime: any, maskActive: any) {
+        // Save visibility state
+        const visibilityCache = new Map();
+        scene.traverse((obj: any) => {
+          if (obj.isMesh || obj.isPoints || obj.isLine) {
+            visibilityCache.set(obj, obj.visible);
+            // Only show objects on layer 1 for bloom
+            const onLayer1 = obj.layers.test({ mask: 1 << 1 } as any);
+            obj.visible = obj.visible && onLayer1;
+          }
+        });
+        
+        // Render bloom
+        originalRender(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
+        
+        // Restore visibility
+        visibilityCache.forEach((visible, obj) => {
+          obj.visible = visible;
+        });
+      };
+      
       composer.addPass(bloomPass);
     }
     
-    // Vignette pass - lighter for graph-only mode
-    const vignettePass = new ShaderPass(VignetteShader);
-    vignettePass.uniforms.offset.value = graphElementsOnly ? 0.98 : 0.95;
-    vignettePass.uniforms.darkness.value = graphElementsOnly ? 0.2 : 0.5;
-    
-    if (!graphElementsOnly) {
-      composer.addPass(vignettePass);
+    // Glow pass for hologram (layer 2)
+    let glowPass: UnrealBloomPass | null = null;
+    if (glowSettings?.enabled) {
+      glowPass = new UnrealBloomPass(
+        new THREE.Vector2(size.width, size.height),
+        glowSettings.intensity || 2.0,
+        glowSettings.radius || 0.6,
+        glowSettings.threshold || 0.5
+      );
+      
+      // Custom selective glow - only affect layer 2
+      const originalRender = glowPass.render.bind(glowPass);
+      glowPass.render = function(renderer: any, writeBuffer: any, readBuffer: any, deltaTime: any, maskActive: any) {
+        // Save visibility state
+        const visibilityCache = new Map();
+        scene.traverse((obj: any) => {
+          if (obj.isMesh || obj.isPoints || obj.isLine) {
+            visibilityCache.set(obj, obj.visible);
+            // Only show objects on layer 2 for glow
+            const onLayer2 = obj.layers.test({ mask: 1 << 2 } as any);
+            obj.visible = obj.visible && onLayer2;
+          }
+        });
+        
+        // Render glow
+        originalRender(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
+        
+        // Restore visibility
+        visibilityCache.forEach((visible, obj) => {
+          obj.visible = visible;
+        });
+      };
+      
+      composer.addPass(glowPass);
     }
     
-    return [composer, bloomPass, vignettePass];
-  }, [gl, scene, camera, size, settings?.bloom, graphElementsOnly]);
+    // If no effects enabled, add a copy pass to ensure rendering
+    if (!bloomSettings?.enabled && !glowSettings?.enabled) {
+      const copyPass = new ShaderPass(CopyShader);
+      copyPass.renderToScreen = true;
+      composer.addPass(copyPass);
+    }
+    
+    return [composer, bloomPass, glowPass];
+  }, [gl, scene, camera, size, bloomSettings?.enabled, glowSettings?.enabled]);
   
   // Update composer on resize
   React.useEffect(() => {
     composer.setSize(size.width, size.height);
   }, [composer, size]);
   
-  // Update bloom settings
+  // Update bloom settings dynamically
   React.useEffect(() => {
-    if (bloomPass && settings?.bloom) {
-      bloomPass.enabled = settings.bloom.enabled !== false;
-      bloomPass.threshold = settings.bloom.threshold || 0.0;
-      bloomPass.strength = settings.bloom.strength || 1.5;
-      bloomPass.radius = settings.bloom.radius || 0.4;
+    if (bloomPass && bloomSettings?.enabled) {
+      bloomPass.strength = bloomSettings.strength || 1.5;
+      bloomPass.radius = bloomSettings.radius || 0.4;
+      bloomPass.threshold = bloomSettings.threshold || 0.85;
     }
-  }, [bloomPass, settings?.bloom]);
+    
+    if (glowPass && glowSettings?.enabled) {
+      glowPass.strength = glowSettings.intensity || 2.0;
+      glowPass.radius = glowSettings.radius || 0.6;
+      glowPass.threshold = glowSettings.threshold || 0.5;
+    }
+  }, [bloomPass, glowPass, bloomSettings, glowSettings]);
   
   // Render with composer
   useFrame(() => {
-    if (composerRef.current) {
-      composerRef.current.render();
-    }
+    composer.render();
   }, 1);
   
+  // Cleanup
   React.useEffect(() => {
-    composerRef.current = composer;
     return () => {
       composer.dispose();
     };

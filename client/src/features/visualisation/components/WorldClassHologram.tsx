@@ -90,7 +90,7 @@ const HolographicRing: React.FC<{
   
   // Create particle geometry
   const particles = useMemo(() => {
-    const count = 200;
+    const count = 100;  // Integer count
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     
@@ -192,7 +192,8 @@ export const WorldClassHologram: React.FC<{
     if (!isEnabled) return; // Check inside hook
     const obj = groupRef.current as any;
     if (obj) {
-      obj.layers.enable(1);
+      obj.layers.set(0);
+      obj.layers.enable(2); // Hologram/glow layer
       registerEnvObject(obj);
     }
     return () => {
@@ -229,12 +230,12 @@ export const WorldClassHologram: React.FC<{
         </mesh>
       )}
       
-      {/* Multiple holographic rings */}
-      {hologramSettings?.ringCount && Array.from({ length: hologramSettings.ringCount }, (_, i) => (
+      {/* Multiple holographic rings - 2x larger */}
+      {hologramSettings?.ringCount && Array.from({ length: Math.floor(hologramSettings.ringCount) }, (_, i) => (
         <HolographicRing
           key={i}
-          radius={30 + i * 20}  // Original values
-          thickness={2}         // Original values
+          radius={20 + i * 15}  // Smaller rings
+          thickness={2}         // Smaller thickness
           rotationSpeed={1 + i * 0.3}
           color={new THREE.Color(hologramSettings.ringColor || '#00ffff')}
         />
@@ -298,7 +299,7 @@ export const EnergyFieldParticles: React.FC<{
   count?: number;
   bounds?: number;
   color?: string;
-}> = React.memo(({ count = 1000, bounds = 200, color = '#00ffff' }) => {
+}> = React.memo(({ count = 200, bounds = 400, color = '#00ffff' }) => {  // 2x larger bounds, integer count
   const pointsRef = useRef<THREE.Points>(null);
   
   const [positions, colors] = useMemo(() => {
@@ -323,7 +324,8 @@ export const EnergyFieldParticles: React.FC<{
   React.useEffect(() => {
     const obj = pointsRef.current as any;
     if (obj) {
-      obj.layers.enable(1);
+      obj.layers.set(0);
+      obj.layers.enable(2); // Hologram/glow layer
       registerEnvObject(obj);
     }
     return () => {

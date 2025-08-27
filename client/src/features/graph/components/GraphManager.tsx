@@ -193,11 +193,12 @@ const GraphManager: React.FC = () => {
     }
   }, [])
   
-  // Put instanced nodes on the "node bloom" layer (2) and register for selective bloom
+  // Set up layers properly: base layer 0 for rendering, layer 1 for node/edge bloom
   useEffect(() => {
     const obj = meshRef.current as any;
     if (obj) {
-      obj.layers.enable(1); // Use layer 1 for all bloom objects
+      obj.layers.set(0); // Base layer for standard rendering
+      obj.layers.enable(1); // Layer 1 for nodes/edges bloom
       registerNodeObject(obj);
     }
     return () => {
