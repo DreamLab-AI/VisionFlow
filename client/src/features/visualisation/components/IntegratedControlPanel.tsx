@@ -135,18 +135,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
       value = value?.[key];
     }
     
-    // Debug physics values
-    if (path.includes('physics')) {
-      console.log(`[Settings Debug] Path: ${path}, Value: ${value}`);
-      console.log('[Settings Debug] Full path breakdown:', {
-        path,
-        keys,
-        visualisation: settings?.visualisation,
-        graphs: settings?.visualisation?.graphs,
-        logseq: settings?.visualisation?.graphs?.logseq,
-        physics: settings?.visualisation?.graphs?.logseq?.physics
-      });
-    }
+    // Debug removed - no longer needed
     
     return value;
   };
@@ -608,7 +597,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'ringCount', label: 'Ring Count', type: 'slider', min: 0, max: 10, path: 'visualisation.hologram.ringCount' },
             { key: 'ringColor', label: 'Ring Color', type: 'color', path: 'visualisation.hologram.ringColor' },
             { key: 'ringOpacity', label: 'Ring Opacity', type: 'slider', min: 0, max: 1, path: 'visualisation.hologram.ringOpacity' },
-            { key: 'ringRotationSpeed', label: 'Ring Speed', type: 'slider', min: 0, max: 50, path: 'visualisation.hologram.ringRotationSpeed' },
+            { key: 'ringRotationSpeed', label: 'Ring Speed', type: 'slider', min: 0, max: 5, path: 'visualisation.hologram.ringRotationSpeed' },
 
             // Flow & Animation
             { key: 'flowEffect', label: 'Edge Flow', type: 'toggle', path: 'visualisation.graphs.logseq.edges.enableFlowEffect' },

@@ -9,6 +9,7 @@ import {
   DiffuseHologramRingMaterial, 
   DiffuseMoteMaterial 
 } from '@/rendering/DiffuseWireframeMaterial';
+import { BloomHologramMaterial, BloomStandardMaterial } from '../shaders/BloomHologramMaterial';
 
 const logger = createLogger('HologramManager');
 
@@ -33,27 +34,31 @@ export const HologramRing: React.FC<{
   const materialRef = useRef<DiffuseHologramRingMaterial | THREE.MeshBasicMaterial>();
   const [rotation, setRotation] = useState<[number, number, number]>([0, 0, 0]);
 
-  // Create material with diffuse effects
+  // Create material with bloom effect
   const material = React.useMemo(() => {
     if (useDiffuseEffects) {
-      return new DiffuseHologramRingMaterial({
+      // Use our new bloom shader for heavy blur effect
+      return new BloomHologramMaterial({
         color: color,
         opacity: opacity,
-        rotationSpeed: rotationSpeed,
-        glowIntensity: 0.9
+        glowRadius: 1.5,
+        glowIntensity: 2.0,
+        blurAmount: 4.0
       });
     } else {
-      return new THREE.MeshBasicMaterial({
+      // Fallback to standard emissive material
+      return new BloomStandardMaterial({
         color: color,
-        transparent: true,
+        emissive: color,
+        emissiveIntensity: 2.0,
         opacity: opacity,
         wireframe: true
       });
     }
-  }, [color, opacity, rotationSpeed, useDiffuseEffects]);
+  }, [color, opacity, useDiffuseEffects]);
 
   // Animate ring rotation
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (rotationSpeed > 0) {
       setRotation(prev => [
         prev[0] + delta * rotationSpeed * rotationAxis[0],
@@ -63,8 +68,8 @@ export const HologramRing: React.FC<{
     }
 
     // Update material time for animation
-    if (useDiffuseEffects && material instanceof DiffuseHologramRingMaterial) {
-      material.updateTime(performance.now() * 0.001);
+    if (material instanceof BloomHologramMaterial) {
+      material.updateTime(state.clock.elapsedTime);
     }
   });
 
@@ -78,7 +83,7 @@ export const HologramRing: React.FC<{
 
   return (
     <mesh rotation={rotation}>
-      <ringGeometry args={[size * 0.8, size, segments]} />
+      <torusGeometry args={[size, 0.5, 8, 16]} />
       <primitive object={material} attach="material" />
     </mesh>
   );
@@ -105,26 +110,17 @@ export const HologramSphere: React.FC<{
   const materialRef = useRef<DiffuseWireframeMaterial | THREE.MeshBasicMaterial>();
   const [rotationY, setRotationY] = useState(0);
 
-  // Create material with diffuse effects
+  // Create material - use basic material for now, shader needs debugging
   const material = React.useMemo(() => {
-    if (useDiffuseEffects) {
-      return new DiffuseWireframeMaterial({
-        color: color,
-        opacity: opacity,
-        glowIntensity: 0.7,
-        diffuseRadius: 1.5,
-        animated: true
-      });
-    } else {
-      return new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: opacity,
-        wireframe: true,
-        toneMapped: false
-      });
-    }
-  }, [color, opacity, useDiffuseEffects]);
+    // Always use basic material until we fix the shader
+    return new THREE.MeshBasicMaterial({
+      color: color,
+      transparent: true,
+      opacity: opacity,
+      wireframe: true,
+      toneMapped: false
+    });
+  }, [color, opacity]);
 
   // Animate sphere rotation
   useFrame((_, delta) => {
@@ -206,16 +202,17 @@ export const HologramManager: React.FC<{
   const triangleSphereSize = settings?.triangleSphereSize || 60;
   const triangleSphereOpacity = settings?.triangleSphereOpacity || 0.3;
   
-  // Ensure we have at least some spheres to render
-  const finalSphereSizes = sphereSizes.length > 0 ? sphereSizes : [40, 80];
+  // Ensure we have at least some spheres to render - making them 4x smaller
+  const defaultSizes = [10, 20]; // Was [40, 80], now 4x smaller
+  const finalSphereSizes = sphereSizes.length > 0 ? sphereSizes.map(s => s / 4) : defaultSizes;
 
   return (
     <group ref={groupRef} position={position as any}>
-      {/* Render rings with diffuse effects */}
+      {/* Render rings with simple materials */}
       {finalSphereSizes.map((size, index) => (
         <HologramRing
           key={`ring-${index}`}
-          size={size / 100}
+          size={size}  // Don't divide by 100 - use actual size
           color={color}
           opacity={opacity}
           rotationAxis={[
@@ -225,19 +222,19 @@ export const HologramManager: React.FC<{
           ]}
           rotationSpeed={rotationSpeed * (0.8 + index * 0.2)}
           segments={quality === 'high' ? 64 : 32}
-          useDiffuseEffects={useDiffuseEffects}
+          useDiffuseEffects={useDiffuseEffects}  // Re-enable diffuse effects
         />
       ))}
 
-      {/* Render triangle sphere with diffuse effects if enabled */}
+      {/* Render triangle sphere with diffuse material */}
       {enableTriangleSphere && (
         <HologramSphere
-          size={triangleSphereSize / 100}
+          size={triangleSphereSize}  // Don't divide by 100 - use actual size
           color={color}
           opacity={triangleSphereOpacity}
           detail={quality === 'high' ? 2 : 1}
           wireframe={true}
-          useDiffuseEffects={useDiffuseEffects}
+          useDiffuseEffects={useDiffuseEffects}  // Re-enable diffuse effects
         />
       )}
     </group>
