@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { useXRCore } from '../providers/XRCoreProvider';
 import { MetadataVisualizer, useTextLabelManager } from '../../visualisation/components/MetadataVisualizer';
 import { useHandTracking } from '../systems/HandInteractionSystem';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useMultiUserStore, MultiUserConnection } from '../../../store/multiUserStore';
 import { createLogger } from '../../../utils/logger';
+import { useSafeThreeContext, useXRConditionalRender, useSafeFrame } from '../hooks/useSafeXRHooks';
 import * as THREE from 'three';
 
 const logger = createLogger('XRVisualisationConnector');
@@ -19,7 +20,8 @@ const logger = createLogger('XRVisualisationConnector');
  */
 const XRVisualisationConnector: React.FC = () => {
   const { isSessionActive: isXRMode, sessionType, isPresenting } = useXRCore();
-  const { camera, scene } = useThree();
+  const { context: threeContext, error: threeError } = useSafeThreeContext();
+  const { shouldRender, canUseXR, isInThreeContext } = useXRConditionalRender([isXRMode, sessionType]);
   const settings = useSettingsStore(state => state.settings);
   const handTracking = useHandTracking();
   const labelManager = useTextLabelManager();
@@ -63,19 +65,37 @@ const XRVisualisationConnector: React.FC = () => {
     }
   }, [isXRMode, sessionType, settings?.system?.debug?.enabled]);
 
-  // Update user position and rotation in AR space
-  useFrame(() => {
+  // Safe access to camera and scene
+  const camera = threeContext?.camera;
+  const scene = threeContext?.scene;
+
+  // Update user position and rotation in AR space with safe frame handling
+  const frameCallback = useCallback((state: any, delta: number) => {
     if (!isPresenting || !camera) return;
 
-    // Get head position and rotation from camera (which represents the player in XR)
-    const position = camera.position.toArray() as [number, number, number];
-    const rotation = [
-      camera.rotation.x,
-      camera.rotation.y,
-      camera.rotation.z
-    ] as [number, number, number];
+    try {
+      // Get head position and rotation from camera (which represents the player in XR)
+      const position = camera.position.toArray() as [number, number, number];
+      const rotation = [
+        camera.rotation.x,
+        camera.rotation.y,
+        camera.rotation.z
+      ] as [number, number, number];
 
-    updateLocalPosition(position, rotation);
+      updateLocalPosition(position, rotation);
+    } catch (error) {
+      logger.error('Error updating position in XR frame:', error);
+    }
+  }, [isPresenting, camera, updateLocalPosition]);
+
+  // Use safe frame hook that works outside Canvas context
+  useSafeFrame(frameCallback, [isPresenting, camera]);
+
+  // Also use regular useFrame when in Canvas context
+  useFrame(() => {
+    if (isInThreeContext) {
+      frameCallback({}, 0);
+    }
   });
 
   // Handle hand gesture interactions with visualisations
@@ -115,6 +135,21 @@ const XRVisualisationConnector: React.FC = () => {
     };
   }, [handTracking.pinchState, handTracking.handPositions, interactionEnabled, camera, updateLocalSelection]);
 
+  // Early return if not safe to render or XR error
+  if (threeError) {
+    logger.warn('XR Visualisation Connector disabled due to Three.js context error:', threeError);
+    return null;
+  }
+
+  // Render only basic visualization if not in XR context
+  if (!shouldRender && !canUseXR) {
+    return (
+      <MetadataVisualizer
+        renderLabels={settings?.visualisation?.labels?.enableLabels !== false}
+      />
+    );
+  }
+
   // Render the visualisation system with AR-specific enhancements
   return (
     <>
@@ -122,8 +157,8 @@ const XRVisualisationConnector: React.FC = () => {
         renderLabels={settings?.visualisation?.labels?.enableLabels !== false}
       />
 
-      {/* AR-specific UI overlay */}
-      {isPresenting && (
+      {/* AR-specific UI overlay - only render when safely in XR context */}
+      {isPresenting && isInThreeContext && (
         <group>
           {/* Connection status indicator */}
           <mesh position={[0, 2.5, -2]}>

@@ -168,7 +168,6 @@ export const WorldClassHologram: React.FC<{
   const isEnabled = enabled && (settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram || 
                                (settings?.visualisation?.graphs?.logseq?.nodes as any)?.enable_hologram || false);
   
-  // Removed debug logging to reduce console noise
   
   const uniforms = useMemo(() => ({
     time: { value: 0 },
@@ -178,6 +177,7 @@ export const WorldClassHologram: React.FC<{
   }), [hologramSettings]);
   
   useFrame((state) => {
+    if (!isEnabled) return; // Check inside hook, not with early return
     if (materialRef.current) {
       materialRef.current.uniforms.time.value = state.clock.elapsedTime;
     }
@@ -186,13 +186,10 @@ export const WorldClassHologram: React.FC<{
       sphereRef.current.rotation.y = state.clock.elapsedTime * 0.03;
     }
   });
-  
-  if (!isEnabled) {
-    return null;
-  }
 
   // Ensure hologram content renders on env bloom layer (1) and register for selective bloom
   React.useEffect(() => {
+    if (!isEnabled) return; // Check inside hook
     const obj = groupRef.current as any;
     if (obj) {
       obj.layers.enable(1);
@@ -201,7 +198,11 @@ export const WorldClassHologram: React.FC<{
     return () => {
       if (obj) unregisterEnvObject(obj);
     };
-  }, []);
+  }, [isEnabled]); // Add dependency to properly handle enable/disable
+  
+  if (!isEnabled) {
+    return null;
+  }
   
   // Wrap with diffuse effects if enabled
   const hologramContent = (
@@ -210,7 +211,7 @@ export const WorldClassHologram: React.FC<{
       <HologramManager 
         position={[0, 0, 0]}
         isXRMode={false}
-        useDiffuseEffects={useDiffuseEffects}
+        useDiffuseEffects={true}  // Re-enable diffuse effects
       />
       
       {/* Quantum field sphere - fallback for custom settings */}

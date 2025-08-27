@@ -768,19 +768,9 @@ export const BotsVisualization: React.FC = () => {
   }
 
   if (botsData.agents.size === 0) {
-    return (
-      <Html center>
-        <div style={{ color: '#95A5A6', padding: '20px', textAlign: 'center' }}>
-          <h3>No Agents Active</h3>
-          <p>Spawn a hive mind to begin</p>
-          {!mcpConnected && (
-            <p style={{ fontSize: '12px', marginTop: '10px' }}>
-              MCP not connected
-            </p>
-          )}
-        </div>
-      </Html>
-    );
+    // Don't render anything in the 3D scene when no agents are active
+    // This message should be shown in the control panel instead
+    return null;
   }
 
   return (

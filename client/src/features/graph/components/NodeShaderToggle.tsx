@@ -60,44 +60,67 @@ const createBasicNodeShader = () => {
 export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef }) => {
   const settings = useSettingsStore(state => state.settings);
   
-  // Check if node animations are enabled (controls shader type)
+  // Check if node animations are enabled (controls animation intensity)
   const enableNodeAnimations = settings?.visualisation?.animations?.enableNodeAnimations || false;
+  // Get node settings from logseq graph or fallback to global
   const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+  // Check if hologram effect is enabled (controls hologram shader features) - check both paths
+  const enableHologram = nodeSettings?.enableHologram !== false;
   const nodeBloom = settings?.visualisation?.bloom?.nodeBloomStrength ?? 1;
   
   useEffect(() => {
     if (!materialRef.current) return;
     
-    if (enableNodeAnimations) {
-      // Use animated hologram shader when node animations are ON
-      // This includes scanlines, glitch effects, and pulsing
+    // Hologram is enabled if user has enabled it specifically
+    const shouldEnableHologram = enableHologram;
+    
+    if (shouldEnableHologram) {
+      // Enable hologram shader features
       materialRef.current.setHologramEnabled(true);
-      materialRef.current.updateHologramParams({
-        scanlineSpeed: 2.0,
-        scanlineCount: 30.0,
-        hologramStrength: 0.8,
-        glowStrength: 2.0 * nodeBloom,
-        rimPower: 3.0,
-      });
       
-      // Update animation properties
-      if (materialRef.current.uniforms) {
-        materialRef.current.uniforms.pulseSpeed = { value: 1.0 };
-        materialRef.current.uniforms.pulseStrength = { value: 0.3 };
+      // If animations are also enabled, use full animated effects
+      if (enableNodeAnimations) {
+        materialRef.current.updateHologramParams({
+          scanlineSpeed: 2.0,
+          scanlineCount: 30.0,
+          hologramStrength: 1.0,  // Increased from 0.8
+          glowStrength: 3.0 * nodeBloom,  // Increased from 2.0
+          rimPower: 2.0,  // Reduced for stronger rim
+        });
+        
+        // Enable animation
+        if (materialRef.current.uniforms) {
+          materialRef.current.uniforms.pulseSpeed = { value: 1.0 };
+          materialRef.current.uniforms.pulseStrength = { value: 0.3 };
+        }
+      } else {
+        // Hologram enabled but animations disabled - static hologram
+        materialRef.current.updateHologramParams({
+          scanlineSpeed: 0.5,  // Slow scanlines
+          scanlineCount: 15.0,  // Fewer scanlines
+          hologramStrength: 0.5,  // Reduced hologram strength
+          glowStrength: 1.5 * nodeBloom,
+          rimPower: 2.5,
+        });
+        
+        // Disable pulsing animation
+        if (materialRef.current.uniforms) {
+          materialRef.current.uniforms.pulseSpeed = { value: 0 };
+          materialRef.current.uniforms.pulseStrength = { value: 0 };
+        }
       }
     } else {
-      // Disable animated effects when node animations are OFF
-      // Keep the material but turn off the animated components
+      // Hologram disabled - use simple material
       materialRef.current.setHologramEnabled(false);
       materialRef.current.updateHologramParams({
         scanlineSpeed: 0,
         scanlineCount: 0,
         hologramStrength: 0,
-        glowStrength: 1.0 * nodeBloom, // Scaled by node bloom slider
+        glowStrength: 1.0 * nodeBloom, // Basic glow only
         rimPower: 2.0, // Keep rim lighting
       });
       
-      // Disable pulsing
+      // Disable all animations
       if (materialRef.current.uniforms) {
         materialRef.current.uniforms.pulseSpeed = { value: 0 };
         materialRef.current.uniforms.pulseStrength = { value: 0 };
@@ -117,7 +140,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
     materialRef.current.uniforms.metalness = { value: nodeSettings?.metalness ?? 0.8 };
     materialRef.current.uniforms.roughness = { value: nodeSettings?.roughness ?? 0.2 };
     
-  }, [enableNodeAnimations, nodeSettings, materialRef]);
+  }, [enableNodeAnimations, enableHologram, nodeSettings, nodeBloom, materialRef]);
   
   return null;
 };

@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
-import { useThree, useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { XRSessionManager } from '../managers/xrSessionManager';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
 import { debugState } from '../../../utils/clientDebugState';
+import { useSafeThreeContext, useAsyncXRCapability } from '../hooks/useSafeXRHooks';
 import * as THREE from 'three';
 import { XRSettings } from '../types/xr';
 import { XRControllerEvent } from '../managers/xrSessionManager';
@@ -68,10 +69,22 @@ interface XRCoreProviderProps {
 
 // Hook for XR interactions (teleportation, floor, etc.)
 export const useXRInteractions = () => {
-  const { scene, camera } = useThree();
+  const { context: threeContext, error: threeError } = useSafeThreeContext();
+  const scene = threeContext?.scene;
+  const camera = threeContext?.camera;
   const { isTeleporting, teleportPosition, sessionManager } = useXRCore();
   const { settings } = useSettingsStore();
   const xrSettings = settings?.xr;
+
+  // Early return if Three.js context is not available
+  if (threeError || !scene || !camera) {
+    logger.warn('useXRInteractions disabled due to Three.js context unavailability:', threeError);
+    return {
+      floorPlane: null,
+      teleportMarker: null,
+      controllerIntersections: new Map(),
+    };
+  }
   
   const floorPlaneRef = useRef<THREE.Mesh | null>(null);
   const teleportMarkerRef = useRef<THREE.Mesh | null>(null);
@@ -232,9 +245,19 @@ const XRCoreProvider: React.FC<XRCoreProviderProps> = ({
   children, 
   renderer: externalRenderer 
 }) => {
+  // Use async XR capability detection
+  const { 
+    isChecking: isCheckingXR, 
+    isSupported: isXRSupported, 
+    supportedModes, 
+    error: xrError 
+  } = useAsyncXRCapability();
+  
+  // Safe access to Three.js context
+  const { context: threeContext, error: threeError } = useSafeThreeContext();
+  
   // Basic XR capability state
   const [isXRCapable, setIsXRCapable] = useState(false);
-  const [isXRSupported, setIsXRSupported] = useState(false);
   
   // Session state
   const [isSessionActive, setIsSessionActive] = useState(false);

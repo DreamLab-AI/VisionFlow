@@ -192,7 +192,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           ringColor: { label: 'Ring Color', type: 'colorPicker', path: 'visualisation.hologram.ringColor', description: 'Color of hologram rings.' },
           ringOpacity: { label: 'Ring Opacity', type: 'slider', min: 0.01, max: 1.0, step: 0.01, path: 'visualisation.hologram.ringOpacity', description: 'Transparency of hologram rings.' },
           sphereSizes: { label: 'Sphere Sizes (Min/Max)', type: 'rangeSlider', min: 10, max: 200, step: 5, path: 'visualisation.hologram.sphereSizes', description: 'Min/max sizes for hologram spheres.' },
-          ringRotationSpeed: { label: 'Ring Rotation Speed', type: 'slider', min: 0, max: 50, step: 0.5, path: 'visualisation.hologram.ringRotationSpeed', description: 'Rotation speed of hologram rings.' },
+          ringRotationSpeed: { label: 'Ring Rotation Speed', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.hologram.ringRotationSpeed', description: 'Rotation speed of hologram rings.' },
           enableBuckminster: { label: 'Enable Buckminster', type: 'toggle', path: 'visualisation.hologram.enableBuckminster', description: 'Enable Buckminster fullerene style hologram.' },
           buckminsterSize: { label: 'Buckminster Size', type: 'slider', min: 10, max: 150, step: 5, path: 'visualisation.hologram.buckminsterSize', description: 'Size of Buckminster hologram.' },
           buckminsterOpacity: { label: 'Buckminster Opacity', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.hologram.buckminsterOpacity', description: 'Opacity of Buckminster hologram.' },
