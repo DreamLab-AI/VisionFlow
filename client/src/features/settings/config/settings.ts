@@ -407,6 +407,11 @@ export interface AuthSettings {
   enabled: boolean;
   provider: 'nostr' | string; // Allow other providers potentially
   required: boolean;
+  nostr?: {
+    connected: boolean;
+    publicKey: string;
+    isPowerUser?: boolean;
+  };
 }
 
 // Whisper speech recognition settings

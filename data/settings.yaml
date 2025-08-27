@@ -20,9 +20,9 @@ visualisation:
     pulse_strength: 0.8
     wave_speed: 0.5
   glow:
-    enabled: false
-    intensity: 0.21917808
-    radius: 3.8356164
+    enabled: true
+    intensity: 0.3561644
+    radius: 0.3561644
     threshold: 0.038356163
     diffuse_strength: 1.5
     atmospheric_density: 0.8
@@ -57,9 +57,9 @@ visualisation:
     logseq:
       nodes:
         base_color: '#00e5ff'
-        metalness: 0.05479452
-        opacity: 0.04931507
-        roughness: 0.16712329
+        metalness: 0.1780822
+        opacity: 0.13150685
+        roughness: 0.10958904
         node_size: 0.53370845
         quality: high
         enable_instancing: true
@@ -69,9 +69,9 @@ visualisation:
       edges:
         arrow_size: 0.02
         base_width: 0.5
-        color: '#aaa50e'
+        color: '#009e12'
         enable_arrows: false
-        opacity: 0.3260274
+        opacity: 0.3452055
         width_range:
         - 0.3
         - 1.5
@@ -281,11 +281,11 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
-      '3': fitToView
+      '2': cycleMode
       '4': topView
       '5': rightView
-      '2': cycleMode
       '6': frontView
+      '3': fitToView
       '1': resetView
 system:
   network:
