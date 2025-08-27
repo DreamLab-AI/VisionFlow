@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { toast } from '../utils/toast';
+import { useToast } from '../features/design-system/components/Toast';
 import { useSettingsStore } from '../store/settingsStore';
 
 interface AutoBalanceNotification {
@@ -9,6 +9,7 @@ interface AutoBalanceNotification {
 }
 
 export function useAutoBalanceNotifications() {
+  const { toast } = useToast();
   const lastTimestampRef = useRef<number>(Date.now());
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -38,16 +39,12 @@ export function useAutoBalanceNotifications() {
                 // Process new notifications
                 data.notifications.forEach((notification: AutoBalanceNotification) => {
                   // Show toast based on severity
-                  switch (notification.severity) {
-                    case 'success':
-                      toast.success(notification.message, { duration: 5000 });
-                      break;
-                    case 'warning':
-                      toast.warning(notification.message, { duration: 4000 });
-                      break;
-                    default:
-                      toast.info(notification.message, { duration: 3000 });
-                  }
+                  toast({
+                    title: notification.severity.charAt(0).toUpperCase() + notification.severity.slice(1),
+                    description: notification.message,
+                    variant: notification.severity === 'success' ? 'default' : notification.severity === 'warning' ? 'destructive' : 'default',
+                    duration: 5000,
+                  });
                   
                   // Update last timestamp
                   if (notification.timestamp > lastTimestampRef.current) {
@@ -78,5 +75,5 @@ export function useAutoBalanceNotifications() {
       }
       unsubscribe();
     };
-  }, []);
+  }, [toast]);
 }

@@ -10,7 +10,7 @@ import { PostProcessingEffects } from './PostProcessingEffects';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
 // SpacePilot Integration
-import { SpacePilotSimpleIntegration } from '../../visualisation/components/SpacePilotSimpleIntegration';
+import { SpacePilotIntegration } from '../../visualisation/components/SpacePilotOrbitControlsIntegration';
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
@@ -143,16 +143,15 @@ const GraphCanvas: React.FC = () => {
                 <BotsVisualization />
                 
                 {/* Camera controls with SpacePilot integration */}
-                <SpacePilotSimpleIntegration>
-                    <OrbitControls
-                        enablePan={true}
-                        enableZoom={true}
-                        enableRotate={true}
-                        zoomSpeed={0.8}
-                        panSpeed={0.8}
-                        rotateSpeed={0.8}
-                    />
-                </SpacePilotSimpleIntegration>
+                <OrbitControls
+                    enablePan={true}
+                    enableZoom={true}
+                    enableRotate={true}
+                    zoomSpeed={0.8}
+                    panSpeed={0.8}
+                    rotateSpeed={0.8}
+                />
+                <SpacePilotIntegration />
                 
                 {/* XR Support - causes graph to disappear */}
                 {/* {xrEnabled && <XRController />} */}
