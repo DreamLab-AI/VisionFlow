@@ -12,7 +12,8 @@ import { BotsVisualization } from '../../bots/components';
 // SpacePilot Integration
 import { SpacePilotIntegration } from '../../visualisation/components/SpacePilotOrbitControlsIntegration';
 // Hologram scene elements
-import { WorldClassHologram } from '../../visualisation/components/WorldClassHologram';
+import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
+import { HologramEnvironment } from '../../visualisation/components/HologramMotes';
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
@@ -113,10 +114,26 @@ const GraphCanvas: React.FC = () => {
                 
                 {/* Hologram scene elements - rings and wireframes */}
                 <WorldClassHologram 
-                    enabled={true}
+                    enabled={enableHologram}
                     position={[0, 0, 0]}
                     useDiffuseEffects={true}
                 />
+                
+                {/* Environmental effects - motes, particles and glitter */}
+                <HologramEnvironment 
+                    enabled={enableHologram}
+                    color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
+                    position={[0, 0, 0]}
+                />
+                
+                {/* Energy field particles - reduced by 10x and tied to hologram */}
+                {enableHologram && (
+                    <EnergyFieldParticles
+                        count={50}
+                        bounds={50}
+                        color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
+                    />
+                )}
                 
                 {/* Graph Manager - only render when we have data and canvas is ready */}
                 {canvasReady && graphData.nodes.length > 0 && (
