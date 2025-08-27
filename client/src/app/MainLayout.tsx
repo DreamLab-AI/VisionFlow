@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import GraphCanvas from '../features/graph/components/GraphCanvas';
+import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
+import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
 import { useSettingsStore } from '../store/settingsStore';
 import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';

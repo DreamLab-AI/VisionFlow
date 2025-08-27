@@ -248,30 +248,58 @@ const GraphManager: React.FC = () => {
       
       // Debug logging based on settings
       const debugSettings = settings?.system?.debug;
-      if (debugSettings?.enableNodeDebug && debugState.isEnabled()) {
-        logger.info('Initializing instanced mesh', {
+      if (debugSettings?.enableNodeDebug || true) { // Force debug for now
+        console.log('[GraphManager] Initializing instanced mesh', {
           nodeCount: graphData.nodes.length,
           meshCount: mesh.count,
-          hasPositions: !!nodePositionsRef.current
+          hasPositions: !!nodePositionsRef.current,
+          meshRef: meshRef.current
         });
       }
 
       // Set up instance colors
       const colors = new Float32Array(graphData.nodes.length * 3)
 
+      // CRITICAL: Initialize instance matrices immediately
+      const tempMatrix = new THREE.Matrix4();
+      const nodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize || 0.5;
+      const BASE_SPHERE_RADIUS = 0.5;
+      const baseScale = nodeSize / BASE_SPHERE_RADIUS;
+
       graphData.nodes.forEach((node, i) => {
+        // Set colors
         const color = getNodeColor(node)
         colors[i * 3] = color.r
         colors[i * 3 + 1] = color.g
         colors[i * 3 + 2] = color.b
+
+        // CRITICAL: Set initial instance matrix for each node
+        const nodeScale = getNodeScale(node, graphData.edges) * baseScale;
+        tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
+        
+        // Use node's initial position or spread them out
+        const angle = (i / graphData.nodes.length) * Math.PI * 2;
+        const radius = 10;
+        tempMatrix.setPosition(
+          Math.cos(angle) * radius,
+          (Math.random() - 0.5) * 5,
+          Math.sin(angle) * radius
+        );
+        
+        mesh.setMatrixAt(i, tempMatrix);
       })
 
       mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3))
+      
+      // CRITICAL: Mark instance matrix as needing update
+      mesh.instanceMatrix.needsUpdate = true;
 
       // Force material update
       if (materialRef.current) {
         materialRef.current.needsUpdate = true
       }
+
+      console.log('[GraphManager] Instance matrices initialized');
     }
   }, [graphData])
 
@@ -417,9 +445,18 @@ const GraphManager: React.FC = () => {
     }
   })
 
-  // Graph data subscription (same as original)
+  // Graph data subscription with enhanced error handling and diagnostics
   useEffect(() => {
+    console.log('[GraphManager] Setting up graph data subscription');
+    
     const handleGraphUpdate = (data: GraphData) => {
+      console.log('[GraphManager] Received graph update:', {
+        nodeCount: data.nodes.length,
+        edgeCount: data.edges.length,
+        firstNode: data.nodes[0],
+        hasValidData: data && Array.isArray(data.nodes) && Array.isArray(data.edges)
+      });
+
       if (debugState.isEnabled()) {
         logger.info('Graph data updated', { 
           nodeCount: data.nodes.length, 
@@ -428,12 +465,19 @@ const GraphManager: React.FC = () => {
         })
       }
 
+      // Validate data before processing
+      if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+        console.error('[GraphManager] Invalid graph data received:', data);
+        return;
+      }
+
       // Ensure nodes have valid positions
       const dataWithPositions = {
         ...data,
         nodes: data.nodes.map((node, i) => {
           if (!node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)) {
             const position = getPositionForNode(node, i, data.nodes.length)
+            console.log(`[GraphManager] Generated position for node ${node.id}:`, position);
             return {
               ...node,
               position: { x: position[0], y: position[1], z: position[2] }
@@ -447,6 +491,7 @@ const GraphManager: React.FC = () => {
         !node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)
       )
       setNodesAreAtOrigin(allAtOrigin)
+      console.log('[GraphManager] Nodes at origin:', allAtOrigin);
 
       setGraphData(dataWithPositions)
 
@@ -465,18 +510,44 @@ const GraphManager: React.FC = () => {
       })
 
       setEdgePoints(newEdgePoints)
+      console.log('[GraphManager] Updated edge points:', newEdgePoints.length / 6, 'edges');
     }
 
+    console.log('[GraphManager] Subscribing to graph data changes');
     const unsubscribe = graphDataManager.onGraphDataChange(handleGraphUpdate)
 
-    // Get initial data and update worker
+    // Get initial data and update worker with enhanced error handling
+    console.log('[GraphManager] Fetching initial graph data');
     graphDataManager.getGraphData().then((data) => {
+      console.log('[GraphManager] Got initial data from manager:', {
+        nodeCount: data.nodes.length,
+        edgeCount: data.edges.length
+      });
       handleGraphUpdate(data)
       // Ensure worker has the data
-      graphWorkerProxy.setGraphData(data)
+      return graphWorkerProxy.setGraphData(data)
+    }).then(() => {
+      console.log('[GraphManager] Worker updated with graph data');
+    }).catch((error) => {
+      console.error('[GraphManager] Error in initial data setup:', error);
+      // Fallback: create sample data
+      const fallbackData = {
+        nodes: [
+          { id: 'fallback1', label: 'Test Node 1', position: { x: -5, y: 0, z: 0 } },
+          { id: 'fallback2', label: 'Test Node 2', position: { x: 5, y: 0, z: 0 } },
+          { id: 'fallback3', label: 'Test Node 3', position: { x: 0, y: 5, z: 0 } }
+        ],
+        edges: [
+          { id: 'fallback_edge1', source: 'fallback1', target: 'fallback2' },
+          { id: 'fallback_edge2', source: 'fallback2', target: 'fallback3' }
+        ]
+      };
+      console.log('[GraphManager] Using fallback data');
+      handleGraphUpdate(fallbackData);
     })
 
     return () => {
+      console.log('[GraphManager] Unsubscribing from graph data changes');
       unsubscribe()
     }
   }, [])
@@ -609,10 +680,27 @@ const GraphManager: React.FC = () => {
     })
   }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels])
 
+  // Debug logging for render - only log once on mount/unmount
+  useEffect(() => {
+    console.log('[GraphManager] Component mounted with data:', {
+      nodeCount: graphData.nodes.length,
+      edgeCount: graphData.edges.length,
+      edgePointsLength: edgePoints.length,
+      enableMetadataShape,
+      meshRefCurrent: !!meshRef.current,
+      materialRefCurrent: !!materialRef.current
+    });
+    
+    return () => {
+      console.log('[GraphManager] Component unmounting');
+    };
+  }, []); // Empty deps = only on mount/unmount
+
   return (
     <>
       {/* Node shader toggle - controls animation effects */}
       <NodeShaderToggle materialRef={materialRef} />
+      
       
       {/* Render nodes based on metadata shape setting */}
       {enableMetadataShape ? (
@@ -632,7 +720,6 @@ const GraphManager: React.FC = () => {
           ref={meshRef}
           args={[undefined, undefined, graphData.nodes.length]}
           frustumCulled={false}
-          material={materialRef.current || undefined}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -643,6 +730,11 @@ const GraphManager: React.FC = () => {
           }}
         >
           <sphereGeometry args={[0.5, 32, 32]} />
+          {materialRef.current ? (
+            <primitive object={materialRef.current} attach="material" />
+          ) : (
+            <meshBasicMaterial color="#00ffff" />
+          )}
         </instancedMesh>
       )}
 

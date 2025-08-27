@@ -1,173 +1,168 @@
-import { useRef, useState, useEffect } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import React, { useRef, useState, useEffect } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Components
+// GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
-// GraphFeatures removed - now integrated into IntegratedControlPanel
+// Post-processing effects
 import { PostProcessingEffects } from './PostProcessingEffects';
-import XRController from '../../xr/components/XRController';
-import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
+// Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
-// import { DualVisualizationControls } from './DualVisualizationControls'; // Removed - both graphs now at origin
-
 // SpacePilot Integration
 import { SpacePilotSimpleIntegration } from '../../visualisation/components/SpacePilotSimpleIntegration';
-
-// Innovation Manager
-import { innovationManager } from '../innovations/index';
-import { graphDataManager, type GraphData } from '../managers/graphDataManager';
+// XR Support - causes graph to disappear
+// import XRController from '../../xr/components/XRController';
+// import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
 
 // Store and utils
 import { useSettingsStore } from '../../../store/settingsStore';
+import { graphDataManager, type GraphData } from '../managers/graphDataManager';
 import { createLogger } from '../../../utils/logger';
-import { clientDebugState as debugState } from '../../../utils/clientDebugState';
 
 const logger = createLogger('GraphCanvas');
 
-// Scene setup with lighting and background
-const SceneSetup = () => {
-    const { scene } = useThree();
-    const settings = useSettingsStore(state => state.settings?.visualisation);
-
-    // Render lights using JSX
-    return (
-        <>
-            <color attach="background" args={[0, 0, 0.8]} /> {/* Medium blue background */}
-            <ambientLight intensity={0.6} />
-            <directionalLight
-                intensity={0.8}
-                position={[1, 1, 1]}
-            />
-        </>
-    );
-};
-
 // Main GraphCanvas component
-const GraphCanvas = () => {
-    // console.log('[GRAPH CANVAS] Component rendering...');
-    // console.log('[GRAPH CANVAS] About to render BotsVisualization');
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+const GraphCanvas: React.FC = () => {
+    console.log('[GraphCanvas] Component rendering');
+    
     const containerRef = useRef<HTMLDivElement>(null);
-    const cameraRef = useRef<THREE.Camera>(null);
     const { settings } = useSettingsStore();
-    const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false; // Use performance debug flag
+    const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
     const xrEnabled = settings?.xr?.enabled !== false;
-    const antialias = settings?.visualisation?.rendering?.enableAntialiasing !== false; // Correct property name
-
-    // Graph data state for features
+    const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
+    
+    // Graph data state
     const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [canvasReady, setCanvasReady] = useState(false);
 
-    // Initialize innovation manager and features
+    // Subscribe to graph data updates
     useEffect(() => {
         let mounted = true;
         
-        const initializeFeatures = async () => {
-            try {
-                logger.info('Initializing world-class graph features...');
-                
-                // Initialize with essential features for production use
-                await innovationManager.initialize({
-                    enableSync: true,
-                    enableComparison: true,
-                    enableAnimations: true,
-                    enableAI: settings?.ai?.enabled ?? false,
-                    enableAdvancedInteractions: settings?.xr?.enabled ?? false,
-                    performanceMode: settings?.system?.performanceMode as any || 'balanced'
-                });
-                
-                if (mounted) {
-                    setIsInitialized(true);
-                    logger.info('Graph features initialized successfully');
-                }
-            } catch (error) {
-                logger.error('Failed to initialize graph features:', error);
-            }
-        };
-
-        // Subscribe to graph data updates
+        console.log('[GraphCanvas] Setting up graph data subscription');
+        
         const handleGraphData = (data: GraphData) => {
             if (mounted) {
+                console.log('[GraphCanvas] Received graph data update:', {
+                    nodeCount: data.nodes.length,
+                    edgeCount: data.edges.length
+                });
                 setGraphData(data);
             }
         };
 
-        const unsubscribeGraphData = graphDataManager.onGraphDataChange(handleGraphData);
-        initializeFeatures();
+        const unsubscribe = graphDataManager.onGraphDataChange(handleGraphData);
+        
+        // Get initial data
+        graphDataManager.getGraphData().then((data) => {
+            if (mounted) {
+                console.log('[GraphCanvas] Initial graph data loaded:', {
+                    nodeCount: data.nodes.length,
+                    edgeCount: data.edges.length
+                });
+                setGraphData(data);
+            }
+        }).catch((error) => {
+            console.error('[GraphCanvas] Failed to load initial graph data:', error);
+        });
 
         return () => {
             mounted = false;
-            unsubscribeGraphData();
-        };
-    }, [settings?.ai?.enabled, settings?.xr?.enabled, settings?.system?.performanceMode]);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            innovationManager.dispose();
+            unsubscribe();
         };
     }, []);
 
-    // Both visualizations now positioned at origin (0, 0, 0) for unified view
-
-    // Wrapper to ensure proper canvas sizing
     return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: '#000033' }}>
+        <div 
+            ref={containerRef}
+            style={{ 
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw', 
+                height: '100vh',
+                backgroundColor: '#000033',
+                zIndex: 0
+            }}
+        >
+            {/* Debug indicator */}
+            {showStats && (
+                <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    color: 'white',
+                    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+                    padding: '5px 10px',
+                    zIndex: 1000,
+                    fontSize: '12px'
+                }}>
+                    Nodes: {graphData.nodes.length} | Edges: {graphData.edges.length} | Ready: {canvasReady ? 'Yes' : 'No'}
+                </div>
+            )}
+            
             <Canvas
-                ref={canvasRef}
-                gl={{
-                    antialias,
-                    alpha: true,
-                    powerPreference: 'high-performance',
-                    failIfMajorPerformanceCaveat: false
-                }}
                 camera={{
                     fov: 75,
                     near: 0.1,
                     far: 2000,
-                    position: [40, 30, 40] // Better angle to see both visualization systems
+                    position: [20, 15, 20]
                 }}
-                onCreated={({ gl, camera }) => {
-                    cameraRef.current = camera;
-                    if (debugState.isEnabled()) {
-                        logger.debug('Canvas created with dimensions:', {
-                            width: gl.domElement.width,
-                            height: gl.domElement.height
-                        });
-                    }
+                onCreated={({ gl, camera, scene }) => {
+                    console.log('[GraphCanvas] Canvas created successfully');
+                    gl.setClearColor(0x000033, 1);
+                    setCanvasReady(true);
+                    
+                    // Log for debugging
+                    console.log('[GraphCanvas] WebGL context established:', {
+                        renderer: gl,
+                        camera: camera.position.toArray(),
+                        sceneChildren: scene.children.length
+                    });
                 }}
             >
-                <SceneSetup />
-
-                {/* Logseq Graph Visualization - positioned at origin */}
-                <group position={[0, 0, 0]}>
-                    <GraphManager />
-                </group>
-
-                {/* VisionFlow Bots Visualization - also positioned at origin for unified view */}
-                <group position={[0, 0, 0]}>
-                    <BotsVisualization />
-                </group>
-
-                {/* Graph features now integrated into IntegratedControlPanel */}
-                {/* GraphFeatures component removed and functionality moved to control panel tabs */}
-
-                {/* Camera Controls with SpacePilot Integration */}
-                <OrbitControls
-                    enablePan={true}
-                    enableZoom={true}
-                    enableRotate={true}
-                    zoomSpeed={0.8}
-                    panSpeed={0.8}
-                    rotateSpeed={0.8}
-                />
-
-                {xrEnabled && <XRController />}
-                {xrEnabled && <XRVisualisationConnector />}
+                {/* Basic lighting */}
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 10]} intensity={0.8} />
+                
+                {/* Graph Manager - only render when we have data and canvas is ready */}
+                {canvasReady && graphData.nodes.length > 0 && (
+                    <GraphManager graphData={graphData} />
+                )}
+                
+                {/* Fallback cube if no graph data */}
+                {canvasReady && graphData.nodes.length === 0 && (
+                    <mesh position={[0, 0, 0]}>
+                        <boxGeometry args={[2, 2, 2]} />
+                        <meshStandardMaterial color="hotpink" />
+                    </mesh>
+                )}
+                
+                {/* BotsVisualization for agent graph */}
+                <BotsVisualization />
+                
+                {/* Camera controls with SpacePilot integration */}
+                <SpacePilotSimpleIntegration>
+                    <OrbitControls
+                        enablePan={true}
+                        enableZoom={true}
+                        enableRotate={true}
+                        zoomSpeed={0.8}
+                        panSpeed={0.8}
+                        rotateSpeed={0.8}
+                    />
+                </SpacePilotSimpleIntegration>
+                
+                {/* XR Support - causes graph to disappear */}
+                {/* {xrEnabled && <XRController />} */}
+                {/* {xrEnabled && <XRVisualisationConnector />} */}
+                
+                {/* Post-processing effects */}
+                {enableBloom && <PostProcessingEffects />}
+                
+                {/* Performance stats */}
                 {showStats && <Stats />}
-                {settings?.visualisation?.bloom?.enabled && <PostProcessingEffects />}
             </Canvas>
         </div>
     );

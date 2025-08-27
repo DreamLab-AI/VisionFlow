@@ -35,11 +35,25 @@ class GraphDataManager {
 
   private async waitForWorker(): Promise<void> {
     try {
-      // Poll until worker is ready
-      while (!graphWorkerProxy.isReady()) {
+      console.log('[GraphDataManager] Waiting for worker to be ready...');
+      let attempts = 0;
+      const maxAttempts = 50; // 500ms total wait time
+      
+      // Poll until worker is ready with timeout
+      while (!graphWorkerProxy.isReady() && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 10));
+        attempts++;
       }
+      
+      if (!graphWorkerProxy.isReady()) {
+        console.warn('[GraphDataManager] Worker not ready after timeout, continuing without worker');
+        logger.warn('Graph worker proxy not ready after timeout, proceeding without worker');
+        this.workerInitialized = false;
+        return;
+      }
+      
       this.workerInitialized = true;
+      console.log('[GraphDataManager] Worker is ready!');
       
       // Connect to worker proxy listeners
       this.setupWorkerListeners();
@@ -48,7 +62,9 @@ class GraphDataManager {
         logger.info('Graph worker proxy is ready');
       }
     } catch (error) {
+      console.error('[GraphDataManager] Failed to wait for worker:', error);
       logger.error('Failed to wait for graph worker proxy:', createErrorMetadata(error));
+      this.workerInitialized = false;
     }
   }
 
@@ -109,11 +125,13 @@ class GraphDataManager {
   // Fetch initial graph data from the API
   public async fetchInitialData(): Promise<GraphData> {
     try {
+      console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data`);
       if (debugState.isEnabled()) {
         logger.info(`Fetching initial ${this.graphType} graph data`);
       }
 
       const response = await fetch('/api/graph/data');
+      console.log(`[GraphDataManager] API response status: ${response.status}`);
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
@@ -185,9 +203,11 @@ class GraphDataManager {
           }
         }
         
+        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
         await this.setGraphData(validatedData);
         
         const currentData = await graphWorkerProxy.getGraphData();
+        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
         if (debugState.isEnabled()) {
           logger.info(`Loaded initial graph data: ${currentData.nodes.length} nodes, ${currentData.edges.length} edges`);
           logger.debug('Node ID mappings created:', {
@@ -308,7 +328,17 @@ class GraphDataManager {
 
   // Get the current graph data
   public async getGraphData(): Promise<GraphData> {
-    return await graphWorkerProxy.getGraphData();
+    if (!this.workerInitialized) {
+      console.warn('[GraphDataManager] Worker not initialized, returning empty data');
+      return { nodes: [], edges: [] };
+    }
+    try {
+      return await graphWorkerProxy.getGraphData();
+    } catch (error) {
+      console.error('[GraphDataManager] Error getting data from worker:', error);
+      logger.error('Error getting graph data from worker:', createErrorMetadata(error));
+      return { nodes: [], edges: [] };
+    }
   }
 
   // Add a node to the graph
@@ -507,17 +537,24 @@ class GraphDataManager {
 
   // Add listener for graph data changes
   public onGraphDataChange(listener: GraphDataChangeListener): () => void {
+    console.log('[GraphDataManager] Adding graph data change listener');
     this.graphDataListeners.push(listener);
     
     // Call immediately with current data from worker
+    console.log('[GraphDataManager] Getting current data for new listener');
     graphWorkerProxy.getGraphData().then(data => {
+      console.log(`[GraphDataManager] Calling listener with current data: ${data.nodes.length} nodes`);
       listener(data);
     }).catch(error => {
+      console.error('[GraphDataManager] Error getting initial graph data for listener:', error);
       logger.error('Error getting initial graph data for listener:', createErrorMetadata(error));
+      // Provide empty data as fallback
+      listener({ nodes: [], edges: [] });
     });
     
     // Return unsubscribe function
     return () => {
+      console.log('[GraphDataManager] Removing graph data change listener');
       this.graphDataListeners = this.graphDataListeners.filter(l => l !== listener);
     };
   }

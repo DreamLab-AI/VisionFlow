@@ -69,40 +69,67 @@ class GraphWorkerProxy {
 
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
+      console.log('[GraphWorkerProxy] Already initialized, skipping');
       return;
     }
+    
+    console.log('[GraphWorkerProxy] Starting worker initialization');
     try {
       // Create worker instance
+      console.log('[GraphWorkerProxy] Creating worker');
       this.worker = new Worker(
         new URL('../workers/graph.worker.ts', import.meta.url),
         { type: 'module' }
       );
 
+      // Add error handler for worker
+      this.worker.onerror = (error) => {
+        console.error('[GraphWorkerProxy] Worker error:', error);
+        logger.error('Worker error:', error);
+      };
+
+      console.log('[GraphWorkerProxy] Wrapping worker with Comlink');
       // Wrap worker with Comlink
       this.workerApi = wrap<GraphWorkerType>(this.worker);
+
+      // Test worker communication
+      console.log('[GraphWorkerProxy] Testing worker communication');
+      try {
+        await this.workerApi.initialize();
+        console.log('[GraphWorkerProxy] Worker communication test successful');
+      } catch (commError) {
+        console.error('[GraphWorkerProxy] Worker communication failed:', commError);
+        throw new Error(`Worker communication failed: ${commError}`);
+      }
 
       // Set up shared array buffer for position data (4 floats per node * max 10k nodes)
       const maxNodes = 10000;
       const bufferSize = maxNodes * 4 * 4; // 4 floats * 4 bytes per float
 
       if (typeof SharedArrayBuffer !== 'undefined') {
+        console.log('[GraphWorkerProxy] Setting up SharedArrayBuffer');
         this.sharedBuffer = new SharedArrayBuffer(bufferSize);
         await this.workerApi.setupSharedPositions(this.sharedBuffer);
+        console.log(`[GraphWorkerProxy] SharedArrayBuffer initialized: ${bufferSize} bytes`);
         if (debugState.isEnabled()) {
           logger.info(`Initialized SharedArrayBuffer: ${bufferSize} bytes for ${maxNodes} nodes`);
         }
       } else {
+        console.warn('[GraphWorkerProxy] SharedArrayBuffer not available, using message passing');
         logger.warn('SharedArrayBuffer not available, falling back to regular message passing');
       }
 
       this.isInitialized = true;
+      console.log('[GraphWorkerProxy] Initialization complete');
       if (debugState.isEnabled()) {
         logger.info('Graph worker initialized successfully');
       }
 
       // Set initial graph type
+      console.log(`[GraphWorkerProxy] Setting initial graph type: ${this.graphType}`);
       await this.setGraphType(this.graphType);
     } catch (error) {
+      console.error('[GraphWorkerProxy] Failed to initialize worker:', error);
       logger.error('Failed to initialize graph worker:', error);
       throw error;
     }
@@ -180,9 +207,18 @@ class GraphWorkerProxy {
    */
   public async getGraphData(): Promise<GraphData> {
     if (!this.workerApi) {
+      console.error('[GraphWorkerProxy] Worker not initialized for getGraphData');
       throw new Error('Worker not initialized');
     }
-    return await this.workerApi.getGraphData();
+    console.log('[GraphWorkerProxy] Getting graph data from worker');
+    try {
+      const data = await this.workerApi.getGraphData();
+      console.log(`[GraphWorkerProxy] Got ${data.nodes.length} nodes, ${data.edges.length} edges from worker`);
+      return data;
+    } catch (error) {
+      console.error('[GraphWorkerProxy] Error getting graph data from worker:', error);
+      throw error;
+    }
   }
 
   /**

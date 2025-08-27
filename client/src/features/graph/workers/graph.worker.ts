@@ -105,6 +105,14 @@ class GraphWorker {
   private positionView: Float32Array | null = null;
 
   /**
+   * Initialize the worker
+   */
+  async initialize(): Promise<void> {
+    console.log('GraphWorker: Initialize method called');
+    return Promise.resolve();
+  }
+  
+  /**
    * Set the graph type
    */
   async setGraphType(type: 'logseq' | 'visionflow'): Promise<void> {

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Debug</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000033;
+            color: white;
+            font-family: monospace;
+        }
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .log-entry {
+            margin: 2px 0;
+            font-size: 11px;
+            border-left: 3px solid #00ffff;
+            padding-left: 5px;
+        }
+        .error { border-left-color: #ff0000; }
+        .warning { border-left-color: #ffaa00; }
+        .success { border-left-color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h3>Graph Rendering Debug</h3>
+        <div id="logs"></div>
+        <button onclick="testAPI()">Test API</button>
+        <button onclick="testWorker()">Test Worker</button>
+        <button onclick="clearLogs()">Clear</button>
+    </div>
+
+    <script>
+        const logs = document.getElementById('logs');
+        
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function clearLogs() {
+            logs.innerHTML = '';
+        }
+        
+        async function testAPI() {
+            addLog('Testing API connection...');
+            try {
+                const response = await fetch('/api/graph/data');
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog(`API Success: ${data.nodes?.length || 0} nodes, ${data.edges?.length || 0} edges`, 'success');
+                } else {
+                    addLog(`API Error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`API Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testWorker() {
+            addLog('Testing Worker creation...');
+            try {
+                const worker = new Worker('/src/features/graph/workers/graph.worker.ts', { type: 'module' });
+                worker.onmessage = (e) => {
+                    addLog(`Worker Message: ${JSON.stringify(e.data)}`, 'success');
+                };
+                worker.onerror = (e) => {
+                    addLog(`Worker Error: ${e.message}`, 'error');
+                };
+                addLog('Worker created successfully', 'success');
+            } catch (error) {
+                addLog(`Worker Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Capture console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = (...args) => {
+            originalLog(...args);
+            addLog(args.join(' '), 'info');
+        };
+        
+        console.error = (...args) => {
+            originalError(...args);
+            addLog(args.join(' '), 'error');
+        };
+        
+        console.warn = (...args) => {
+            originalWarn(...args);
+            addLog(args.join(' '), 'warning');
+        };
+        
+        addLog('Debug page loaded');
+        
+        // Auto-test API on load
+        setTimeout(testAPI, 1000);
+    </script>
+</body>
+</html>
