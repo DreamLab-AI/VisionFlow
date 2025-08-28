@@ -15,6 +15,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   onInitialized
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [mcpConnected, setMcpConnected] = useState<boolean | null>(null);
   const [topology, setTopology] = useState<'mesh' | 'hierarchical' | 'ring' | 'star'>('mesh');
   const [maxAgents, setMaxAgents] = useState(8);
   const [enableNeural, setEnableNeural] = useState(true);
@@ -35,6 +36,27 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+  // Check MCP connection status
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const response = await fetch(`${apiService.getBaseUrl()}/bots/mcp-status`);
+        const data = await response.json();
+        setMcpConnected(data.connected);
+      } catch (error) {
+        setMcpConnected(false);
+      }
+    };
+
+    // Initial check
+    checkConnection();
+
+    // Poll every 3 seconds
+    const interval = setInterval(checkConnection, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Create a portal container at the root level
@@ -134,7 +156,28 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <span>🧠 Spawn Hive Mind</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span>🧠 Spawn Hive Mind</span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '14px',
+            color: mcpConnected === null ? '#999' : mcpConnected ? '#2ECC71' : '#E74C3C'
+          }}>
+            <div style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              backgroundColor: mcpConnected === null ? '#999' : mcpConnected ? '#2ECC71' : '#E74C3C',
+              boxShadow: mcpConnected ? '0 0 8px #2ECC71' : mcpConnected === false ? '0 0 8px #E74C3C' : 'none',
+              animation: mcpConnected === null ? 'pulse 1.5s infinite' : 'none'
+            }} />
+            <span style={{ fontSize: '12px' }}>
+              {mcpConnected === null ? 'Checking...' : mcpConnected ? 'MCP Connected' : 'MCP Disconnected'}
+            </span>
+          </div>
+        </div>
         <button
           onClick={onClose}
           style={{
@@ -154,6 +197,14 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
           ×
         </button>
       </h2>
+      
+      <style>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
 
       {error && (
         <div style={{
@@ -165,6 +216,19 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
           color: '#E74C3C',
         }}>
           {error}
+        </div>
+      )}
+      
+      {mcpConnected === false && (
+        <div style={{
+          backgroundColor: 'rgba(243, 156, 18, 0.2)',
+          border: '1px solid #F39C12',
+          borderRadius: '4px',
+          padding: '10px',
+          marginBottom: '15px',
+          color: '#F39C12',
+        }}>
+          ⚠️ MCP service is not connected. The multi-agent system may not initialize properly.
         </div>
       )}
 

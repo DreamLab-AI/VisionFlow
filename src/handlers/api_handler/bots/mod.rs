@@ -11,6 +11,7 @@ pub use crate::handlers::bots_handler::{
     get_bots_positions,
     initialize_swarm,
     initialize_multi_agent,
+    check_mcp_connection,
 };
 
 // Configure bots API routes
@@ -22,5 +23,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/update", web::post().to(bots_update))
             .route("/initialize-swarm", web::post().to(initialize_swarm))
             .route("/initialize-multi-agent", web::post().to(initialize_multi_agent))
+            .route("/mcp-status", web::get().to(check_mcp_connection))
     );
 }

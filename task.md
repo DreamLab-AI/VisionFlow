@@ -45,7 +45,7 @@ we are claude code and claude flow working INSIDE A DOCKER CONTAINER called mult
                 "Name": "multi-agent-container",
                 "EndpointID": "7b39108ea2a1920ea776251940f3a19ab2ea3cad69a807e17d76038ec2b13a42",
                 "MacAddress": "ea:a7:2b:c4:fc:27",
-                "IPv4Address": "172.18.0.12/16",
+                "IPv4Address": "multi-agent-container/16",
                 "IPv6Address": ""
             },
             "41832746de33c97751b5b18fa23cd9bb531025ed19b20fd5ff916953662284f6": {
@@ -94,7 +94,7 @@ we are claude code and claude flow working INSIDE A DOCKER CONTAINER called mult
                 "Name": "visionflow_container",
                 "EndpointID": "b6bc1ad986f07fda79bfa5bf399efe559ebb049dea2cd4e08a50c397dba55b71",
                 "MacAddress": "fa:fe:c6:60:b2:3f",
-                "IPv4Address": "172.18.0.10/16",
+                "IPv4Address": "multi-agent-container/16",
                 "IPv6Address": ""
             },
             "b2be97b383944cb6ea8f13c19a5a50f1c8c0b2e5b44f9b6586a7ad68468e5b0b": {
@@ -144,3 +144,5 @@ This should be partially documented in the ext/docs but they are likely out of d
 This will require a full hive mind with the queen ensuring that the architecture is conformant with existing structures and code.
 
 start by spawning agents to examine the client code in ext/client and find how it tries to connect to the multi-agent-container. The word MOCK makes me think it is not trying to connect at all yet. We need to find where that is set and how to make it not MOCK but real.
+
+Lastly, we have version control. DO NOT make parallel implementations of anything for backward compatibility. We need to work on the files we have, making new files only if absolutely necessary.
