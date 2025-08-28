@@ -180,23 +180,6 @@ interface WarmupSettings {
   coolingRate?: number; // Optional for direct cooling rate control
 }
 
-// Clear bad physics from localStorage on startup
-if (typeof window !== 'undefined' && window.localStorage) {
-  try {
-    const stored = localStorage.getItem('settings-storage');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Clear physics to force reload from server
-      if (parsed?.state?.settings?.visualisation?.graphs) {
-        delete parsed.state.settings.visualisation.graphs.logseq?.physics;
-        delete parsed.state.settings.visualisation.graphs.visionflow?.physics;
-        localStorage.setItem('settings-storage', JSON.stringify(parsed));
-      }
-    }
-  } catch (e) {
-    // Could not clear cached physics settings
-  }
-}
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
@@ -579,6 +562,19 @@ export const useSettingsStore = create<SettingsState>()(
         user: state.user,
         isPowerUser: state.isPowerUser
       }),
+      merge: (persistedState: any, currentState: SettingsState): SettingsState => {
+        const mergedState = { ...currentState, ...persistedState };
+        if (persistedState && persistedState.settings) {
+          // Exclude the 'visualisation' settings from the persisted state to ensure
+          // the server is always the source of truth on a refresh.
+          const { visualisation, ...restOfPersistedSettings } = persistedState.settings;
+          mergedState.settings = {
+            ...currentState.settings,
+            ...restOfPersistedSettings,
+          };
+        }
+        return mergedState;
+      },
       onRehydrateStorage: () => (state) => {
         if (state && state.settings) {
           if (debugState.isEnabled()) {

@@ -79,11 +79,27 @@ impl BotsClient {
                 info!("Successfully connected to bots orchestrator at {}", bots_url);
                 info!("WebSocket response status: {:?}", response.status());
 
-                // Try different approaches to get bots data
-                // First, try a simple message format
+                // FIXED: Try to get bots data using proper MCP protocol
                 let subscribe_msg = serde_json::json!({
-                    "type": "subscribe",
-                    "event": "bots-update"
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": {
+                            "major": 2024,
+                            "minor": 11,
+                            "patch": 5
+                        },
+                        "clientInfo": {
+                            "name": "VisionFlow-BotsClient",
+                            "version": "1.0.0"
+                        },
+                        "capabilities": {
+                            "tools": {
+                                "listChanged": true
+                            }
+                        }
+                    },
+                    "id": "init-1"
                 });
 
                 self.handle_connection(ws_stream, subscribe_msg).await
@@ -102,11 +118,27 @@ impl BotsClient {
     ) -> Result<()> {
         let (mut write, mut read) = ws_stream.split();
 
-        // Send subscription
-        let subscribe_text = subscribe_msg.to_string();
-        info!("Sending subscription request: {}", subscribe_text);
-        write.send(Message::Text(subscribe_text)).await?;
-        info!("Successfully sent subscription request to bots orchestrator");
+        // FIXED: Send MCP initialization
+        let init_text = subscribe_msg.to_string();
+        info!("Sending MCP initialization: {}", init_text);
+        write.send(Message::Text(init_text)).await?;
+        info!("Successfully sent MCP initialization to bots orchestrator");
+        
+        // Wait a moment for initialization to complete
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        
+        // Send initial agent list request
+        let agent_list_request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "method": "agent_list",
+            "params": {
+                "filter": "all"
+            },
+            "id": "initial-agent-list"
+        });
+        
+        info!("Sending initial agent list request");
+        write.send(Message::Text(agent_list_request.to_string())).await?;
 
         // Clone for the read task
         let updates = self.updates.clone();
@@ -280,13 +312,29 @@ impl BotsClient {
             loop {
                 interval.tick().await;
 
-                // Send a ping or status request
-                let status_request = serde_json::json!({
-                    "jsonrpc": "2.0",
-                    "method": "ping",
-                    "params": {},
-                    "id": format!("rust-backend-ping-{}", request_id)
-                });
+                // FIXED: Send a proper MCP request using available methods
+                let status_request = if request_id % 2 == 0 {
+                    // Use tools/list which is a standard MCP method
+                    serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "method": "tools/list",
+                        "params": {},
+                        "id": format!("tools-list-{}", request_id)
+                    })
+                } else {
+                    // Try using tools.invoke format for agent_list
+                    serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "method": "tools.invoke",
+                        "params": {
+                            "name": "agent_list",
+                            "arguments": {
+                                "filter": "all"
+                            }
+                        },
+                        "id": format!("agent-list-{}", request_id)
+                    })
+                };
 
                 if let Err(e) = write.send(Message::Text(status_request.to_string())).await {
                     error!("Failed to send status request to bots: {}", e);
