@@ -4,18 +4,23 @@ import { OrbitControls } from '@react-three/drei';
 import { useSpacePilot } from '../hooks/useSpacePilot';
 import { useSettingsStore } from '../../../store/settingsStore';
 
+interface SpacePilotIntegrationProps {
+  orbitControlsRef?: React.RefObject<any>;
+}
+
 /**
  * SpacePilot integration that enhances existing OrbitControls with 6DOF input
  * This component should be placed in the same Canvas as your OrbitControls
  */
-export const SpacePilotIntegration: React.FC = () => {
-  const { camera, controls } = useThree();
+export const SpacePilotIntegration: React.FC<SpacePilotIntegrationProps> = ({ orbitControlsRef }) => {
+  const { camera } = useThree();
   const settings = useSettingsStore(state => state.settings);
   const spacePilotEnabled = settings?.visualisation?.spacePilot?.enabled !== false;
 
-  // Initialize SpacePilot hook
+  // Initialize SpacePilot hook with orbitControlsRef
   const spacePilot = useSpacePilot({
     enabled: spacePilotEnabled,
+    orbitControlsRef: orbitControlsRef,
     onConnect: () => {
       console.log('[SpacePilot] Connected to 6DOF controller');
     },
@@ -27,19 +32,9 @@ export const SpacePilotIntegration: React.FC = () => {
     }
   });
 
-  // Auto-connect if WebHID is supported and SpacePilot is enabled
-  useEffect(() => {
-    if (spacePilotEnabled && spacePilot.isSupported && !spacePilot.isConnected) {
-      // Check if a device was previously connected
-      const autoConnect = localStorage.getItem('spacepilot-auto-connect');
-      if (autoConnect === 'true') {
-        spacePilot.connect().catch(err => {
-          console.warn('[SpacePilot] Auto-connect failed:', err);
-          localStorage.removeItem('spacepilot-auto-connect');
-        });
-      }
-    }
-  }, [spacePilotEnabled, spacePilot.isSupported, spacePilot.isConnected]);
+  // Note: Auto-connect removed due to browser security requirements
+  // WebHID requires user gesture for device permissions
+  // Connection must be initiated through user interaction (button click)
 
   // Store connection state for auto-reconnect
   useEffect(() => {

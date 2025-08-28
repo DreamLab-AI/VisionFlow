@@ -10,8 +10,8 @@ import { PostProcessingEffects } from './PostProcessingEffects';
 import { SelectiveBloomPostProcessing } from './SelectiveBloomPostProcessing';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
-// SpacePilot Integration
-import { SpacePilotIntegration } from '../../visualisation/components/SpacePilotOrbitControlsIntegration';
+// SpacePilot Integration - using simpler version that works with useFrame
+import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
 // Hologram scene elements
 import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
 import { HologramEnvironment } from '../../visualisation/components/HologramMotes';
@@ -30,6 +30,7 @@ const logger = createLogger('GraphCanvas');
 const GraphCanvas: React.FC = () => {
     
     const containerRef = useRef<HTMLDivElement>(null);
+    const orbitControlsRef = useRef<any>(null);
     const { settings } = useSettingsStore();
     const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
     const xrEnabled = settings?.xr?.enabled !== false;
@@ -150,6 +151,7 @@ const GraphCanvas: React.FC = () => {
                 
                 {/* Camera controls with SpacePilot integration */}
                 <OrbitControls
+                    ref={orbitControlsRef}
                     enablePan={true}
                     enableZoom={true}
                     enableRotate={true}
@@ -157,7 +159,8 @@ const GraphCanvas: React.FC = () => {
                     panSpeed={0.8}
                     rotateSpeed={0.8}
                 />
-                <SpacePilotIntegration />
+                {/* Using the simpler SpacePilot integration that works with useFrame */}
+                <SpacePilotSimpleIntegration />
                 
                 {/* XR Support - causes graph to disappear */}
                 {/* {xrEnabled && <XRController />} */}

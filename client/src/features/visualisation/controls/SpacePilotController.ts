@@ -138,6 +138,7 @@ export class SpacePilotController {
    */
   start(): void {
     if (this.isActive) return;
+    console.log('[SpacePilot] Controller starting - animation loop beginning');
     this.isActive = true;
     this.animate();
   }
@@ -157,7 +158,15 @@ export class SpacePilotController {
    * Handle translation input from SpacePilot
    */
   handleTranslation(detail: { x: number; y: number; z: number }): void {
-    if (!this.isActive) return;
+    if (!this.isActive) {
+      console.log('[SpacePilot] Translation ignored - controller not active');
+      return;
+    }
+
+    // Debug log raw input
+    if (Math.abs(detail.x) > 10 || Math.abs(detail.y) > 10 || Math.abs(detail.z) > 10) {
+      console.log('[SpacePilot] Raw translation input:', detail);
+    }
 
     // Normalize and apply deadzone
     const normalized = {
@@ -284,6 +293,11 @@ export class SpacePilotController {
         this.config.enabledAxes.y ? this.translation.y * SpacePilotController.TRANSLATION_SPEED : 0,
         this.config.enabledAxes.z ? -this.translation.z * SpacePilotController.TRANSLATION_SPEED : 0
       );
+
+      // Debug log non-zero movements
+      if (translationVector.length() > 0.0001) {
+        console.log('[SpacePilot] Camera translation:', translationVector);
+      }
 
       // Apply translation in camera space
       translationVector.applyQuaternion(this.camera.quaternion);
