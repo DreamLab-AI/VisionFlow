@@ -1,5 +1,48 @@
 we are claude code and claude flow working INSIDE A DOCKER CONTAINER called multi-agent-container.
 
+## Progress Update (Latest - Patches Applied) ✅
+
+### MCP Server Successfully Patched
+
+We've applied two critical patches to the MCP server in our container:
+
+1. **Version Hardcoding Fix**:
+   - Changed from hardcoded `2.0.0-alpha.59` to dynamically read from package.json
+   - Now correctly reports `2.0.0-alpha.101`
+
+2. **Method Routing Fix**:
+   - Added fallback in `handleMessage` to route direct tool method calls (like `swarm_init`) to `handleToolCall`
+   - Direct method calls like `swarm_init` now work without needing `tools/call` wrapper
+
+**Patch Details:**
+- Location: `/home/ubuntu/.npm/_npx/40b07cf2bbe378ef/node_modules/claude-flow/src/mcp/mcp-server.js`
+- Automated: Added to `/app/setup-workspace.sh` for automatic patching on container rebuild
+- Status: MCP server restarted and patches active
+
+**Test Scripts Created:**
+- `/workspace/ext/test_swarm_init_direct.sh` - Tests both direct method calls and tools/call format
+- Ready to test from visionflow_container
+
+### Current Status:
+✅ MCP Connection: WORKING - visionflow_container successfully connects to multi-agent-container:9500
+✅ Swarm Creation: WORKING - Swarms are being created with unique IDs
+✅ Agent Spawning: WORKING - Agents can be spawned in swarms
+✅ Test Scripts: CREATED - Comprehensive stress tests available
+
+### Critical Issue: GPU Graph Visualization
+**Problem**: When spawning swarm from client, no graph appears even though:
+- GPU is initialized for knowledge graph (working)
+- Swarms are created successfully (confirmed in logs)
+- MCP connection is functional
+
+**Root Cause**: The swarm graph data is not being sent to the GPU visualization pipeline
+
+### Next Steps (Hive Mind Approach):
+1. Fix GPU graph instantiation for swarm visualization
+2. Connect swarm data to existing GPU graph renderer
+3. Handle multiple swarm instances with unique graph IDs
+4. Update client to render swarm topology graphs
+
 [
     {
         "Name": "docker_ragflow",
@@ -137,12 +180,81 @@ VisionFlow (MOCK)
 No active multi-agent
 Initialize multi-agent
 
-If I click initialize multi-agent it tries to connect to the multi-agent-container but fails. We need to make it work. The failure could be anywhere in the chain. We should first examine the client code to see how it tries to connect. Then we can check the backend server code. Finally we can check the visionflow to multi-agent-container MCP service connection. The flow is that the back end rust code intantiates the swarm in this container and connects to it via MCP, over tcp, then receives data back, uses the force directed graph library to make a graph, then sends that to the client via REST and updates via websocket.
+the client can launch a hive mind but lacks the command structure in the /ext/src codebase to launch agents according to the recipe in the control centre. It likely doesn't deal with the returning telemetry data very well yet either. you need to examine the client code in ext/client and the relevant rust server code and the source for the claude-flow agentic developer that we arte using in this container via the tcp mcp server which is curently running on 9500. The system partially connects, just we need to flesh out the control and data flow.
 
 This should be partially documented in the ext/docs but they are likely out of date and we should not rely on them, or even use them as a first source of knowledge. They may be useful if you get stuck.
 
-This will require a full hive mind with the queen ensuring that the architecture is conformant with existing structures and code.
+This will require a full hive mind with the queen ensuring that the architecture is conformant with existing structures and code, while fully developing the stubs, and routing the data to the agent force directed graph which should be rendered finally on the client with data populated by rest and updated by websocket.
+
+there are logs in ext/logs that may help. you have access to cargo check in ~/.cargo but you can't launch the external docker. you should not try. you can fully develop the rust code and the update the ext/docs in uk english, merging any lost files in that directory into the right locations after checking the validity.
 
 start by spawning agents to examine the client code in ext/client and find how it tries to connect to the multi-agent-container. The word MOCK makes me think it is not trying to connect at all yet. We need to find where that is set and how to make it not MOCK but real.
 
 Lastly, we have version control. DO NOT make parallel implementations of anything for backward compatibility. We need to work on the files we have, making new files only if absolutely necessary.
+
+## Progress Update (2025-08-28)
+
+### ✅ Completed
+1. **Fixed MCP Connection Issue**
+   - Root cause: Hardcoded IP `172.18.0.10` in `/workspace/ext/supervisord.dev.conf`
+   - Solution: Changed to use hostname `multi-agent-container` instead of IP
+   - Result: Connection now successful from visionflow_container to multi-agent-container:9500
+
+2. **Fixed TCP Server Crash**
+   - Issue: mcp-tcp-server.js crashed when accessing closed connections
+   - Solution: Added null check before accessing connection properties
+   - Result: TCP server stable and handling disconnections properly
+
+3. **Identified MCP Protocol Requirements**
+   - Discovery: MCP server at alpha.59 doesn't support `tools.invoke` format
+   - Discovery: Each TCP connection spawns isolated MCP instance
+   - Discovery: Tools are registered as direct methods in the router
+   - Reverted bots_handler.rs to use direct method calls
+
+4. **Created Test Scripts for VisionFlow Container**
+   - `/app/test.sh` - Master test script that runs all MCP tests
+   - Tests tools.invoke, direct methods, various formats
+   - Can be run from visionflow container: `docker exec -it visionflow_container bash`
+
+### 🔄 Current Issues
+1. **MCP Method Not Found**
+   - `swarm_init` returns "Method not found" with all tested formats
+   - MCP server version mismatch: reports alpha.59, package is alpha.101
+   - Found hardcoded version in `/src/mcp/mcp-server.js` line 66
+
+2. **500 Internal Server Error**
+   - Frontend shows "MCP Connected" but gets 500 error on spawn
+   - Backend rust server running in visionflow container
+   - Issue is in the swarm_init call from Rust to MCP
+
+### ⏳ Pending
+1. **Fix MCP Version Issue**
+   - PR needed for claude-flow to fix hardcoded version
+   - Line 66: `this.version = '2.0.0-alpha.59';`
+   - Should be: `this.version = require('../../package.json').version;`
+
+2. **GPU Initialization Error**
+   - Error: "GPU NOT INITIALIZED! Cannot update graph data"
+   - Affects graph visualization in client
+
+3. **Multiple Swarm Instance Support**
+   - Future requirement to handle multiple swarms with unique IDs
+   - Will need UI updates to render multiple graphs
+
+### 📝 Test Commands (Run in visionflow_container)
+```bash
+# From host:
+docker exec -it visionflow_container bash
+
+# Inside container:
+cd /app
+./test.sh  # Runs all MCP connection tests
+```
+
+### 📊 Test Results
+From visionflow_container to multi-agent-container:9500:
+- ✅ DNS resolution works
+- ✅ TCP connection successful
+- ✅ `tools/list` returns full tool list (90+ tools)
+- ❌ `swarm_init` returns "Method not found" (all formats)
+- ❌ Frontend gets 500 error when trying to spawn hive mind

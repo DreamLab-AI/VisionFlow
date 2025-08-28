@@ -3,7 +3,7 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
 use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
@@ -25,6 +25,7 @@ pub struct AppState {
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
     pub client_manager_addr: Addr<ClientManagerActor>,
+    pub claude_flow_addr: Addr<ClaudeFlowActor>,
     pub github_client: Arc<GitHubClient>,
     pub content_api: Arc<ContentAPI>,
     pub perplexity_service: Option<Arc<PerplexityService>>,
@@ -80,6 +81,17 @@ impl AppState {
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),
             Some(settings_addr.clone())
+        ).start();
+        
+        info!("[AppState::new] Starting ClaudeFlowActor (TCP)");
+        // Create ClaudeFlowClient for MCP connection on port 9500
+        let claude_flow_client = crate::types::claude_flow::ClaudeFlowClient::new(
+            "localhost".to_string(),
+            9500
+        );
+        let claude_flow_addr = ClaudeFlowActor::new(
+            claude_flow_client,
+            graph_service_addr.clone()
         ).start();
         
         // Send initial physics settings to both GraphServiceActor and GPUComputeActor
@@ -148,6 +160,7 @@ impl AppState {
             protected_settings_addr,
             metadata_addr,
             client_manager_addr,
+            claude_flow_addr,
             github_client,
             content_api,
             perplexity_service,

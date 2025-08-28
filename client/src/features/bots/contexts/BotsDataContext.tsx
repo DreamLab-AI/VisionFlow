@@ -46,13 +46,20 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateFromFullUpdate = (update: BotsFullUpdateMessage) => {
     setBotsData(prev => ({
       ...prev!,
-      agents: update.agents,
-      nodeCount: update.agents.length,
+      agents: update.agents || [],
+      nodeCount: update.agents?.length || 0,
       edgeCount: 0, // Will be calculated from communication patterns
-      tokenCount: update.multiAgentMetrics.totalTokens,
+      tokenCount: update.multiAgentMetrics?.totalTokens || 0,
       mcpConnected: true,
       dataSource: 'live',
-      multiAgentMetrics: update.multiAgentMetrics,
+      multiAgentMetrics: update.multiAgentMetrics || {
+        totalAgents: 0,
+        activeAgents: 0,
+        totalTasks: 0,
+        completedTasks: 0,
+        avgSuccessRate: 0,
+        totalTokens: 0
+      },
       lastUpdate: update.timestamp
     }));
   };

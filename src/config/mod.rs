@@ -884,7 +884,7 @@ impl AppFullSettings {
             }
         }
 
-        // Fallback to config crate approach (for environment variable support)
+        // Fallback to config crate approach (with environment variable support)
         let builder = ConfigBuilder::<config::builder::DefaultState>::default()
             .add_source(config::File::from(settings_path.clone()).required(true))
             .add_source(

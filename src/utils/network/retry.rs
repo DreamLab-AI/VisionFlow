@@ -93,6 +93,8 @@ pub enum RetryError<E> {
     Cancelled,
     #[error("Retry configuration error: {0}")]
     ConfigError(String),
+    #[error("Resource exhaustion detected: {0}")]
+    ResourceExhaustion(String),
 }
 
 /// Result of a retry operation
@@ -183,7 +185,7 @@ fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     Duration::from_millis(final_delay)
 }
 
-/// Retry a future operation with exponential backoff
+/// Retry a future operation with exponential backoff and resource monitoring
 pub async fn retry_with_backoff<F, Fut, T, E>(
     config: RetryConfig,
     mut operation: F,
@@ -198,6 +200,12 @@ where
     for attempt in 0..config.max_attempts {
         debug!("Retry attempt {} of {}", attempt + 1, config.max_attempts);
         
+        // Check system resources before attempting operation
+        if let Err(resource_error) = check_system_resources().await {
+            warn!("System resources exhausted, aborting retry: {:?}", resource_error);
+            return Err(RetryError::ConfigError(format!("Resource exhausted: {}", resource_error)));
+        }
+        
         match operation().await {
             Ok(result) => {
                 if attempt > 0 {
@@ -208,6 +216,12 @@ where
             Err(error) => {
                 if !error.is_retryable() {
                     warn!("Non-retryable error encountered: {:?}", error);
+                    return Err(RetryError::AllAttemptsFailed(error));
+                }
+                
+                // Check if error is due to resource exhaustion
+                if is_resource_exhaustion_error(&error) {
+                    error!("Resource exhaustion detected, aborting retries: {:?}", error);
                     return Err(RetryError::AllAttemptsFailed(error));
                 }
                 
@@ -237,6 +251,68 @@ where
     Err(RetryError::AllAttemptsFailed(
         last_error.expect("Should have at least one error"),
     ))
+}
+
+/// Check system resources to prevent resource exhaustion
+async fn check_system_resources() -> Result<(), String> {
+    // Check available file descriptors
+    if let Ok(fd_count) = count_open_file_descriptors() {
+        const FD_WARNING_THRESHOLD: usize = 800;  // Warning at 80% of typical limit
+        const FD_ERROR_THRESHOLD: usize = 950;    // Error at 95% of typical limit
+        
+        if fd_count > FD_ERROR_THRESHOLD {
+            return Err(format!("Too many open file descriptors: {} > {}", fd_count, FD_ERROR_THRESHOLD));
+        } else if fd_count > FD_WARNING_THRESHOLD {
+            warn!("High file descriptor usage: {} (threshold: {})", fd_count, FD_WARNING_THRESHOLD);
+        }
+    }
+    
+    // Check available memory (basic check)
+    #[cfg(target_os = "linux")]
+    if let Ok(meminfo) = std::fs::read_to_string("/proc/meminfo") {
+        if let Some(available_line) = meminfo.lines().find(|line| line.starts_with("MemAvailable:")) {
+            if let Some(available_kb) = available_line.split_whitespace().nth(1) {
+                if let Ok(available_kb) = available_kb.parse::<u64>() {
+                    const MIN_AVAILABLE_MB: u64 = 100; // Minimum 100MB available
+                    let available_mb = available_kb / 1024;
+                    if available_mb < MIN_AVAILABLE_MB {
+                        return Err(format!("Low memory: {}MB available", available_mb));
+                    }
+                }
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+/// Count currently open file descriptors for this process
+fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
+    #[cfg(target_os = "linux")]
+    {
+        use std::fs;
+        match fs::read_dir("/proc/self/fd") {
+            Ok(entries) => Ok(entries.count().saturating_sub(1)), // Subtract 1 for the dir handle
+            Err(e) => Err(e),
+        }
+    }
+    
+    #[cfg(not(target_os = "linux"))]
+    {
+        // For non-Linux systems, return a conservative estimate
+        Ok(10)
+    }
+}
+
+/// Check if an error indicates resource exhaustion
+fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
+    let error_str = format!("{:?}", error).to_lowercase();
+    error_str.contains("too many open files") ||
+    error_str.contains("resource temporarily unavailable") ||
+    error_str.contains("no buffer space available") ||
+    error_str.contains("out of memory") ||
+    error_str.contains("enfile") ||
+    error_str.contains("emfile")
 }
 
 /// Convenience function for retrying operations with default network configuration

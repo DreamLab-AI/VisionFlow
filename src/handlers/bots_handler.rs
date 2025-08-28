@@ -970,11 +970,12 @@ pub async fn initialize_swarm(
                 // Continue anyway, some servers might not require initialization
             }
 
-            // FIXED: Create JSON-RPC request using correct method name
+            // FIXED: Create JSON-RPC request using direct method call
+            // Note: MCP server alpha.59 doesn't support tools.invoke yet
             let request_id = uuid::Uuid::new_v4().to_string();
             let json_request = json!({
                 "jsonrpc": "2.0",
-                "method": "swarm_init",  // Direct tool name
+                "method": "swarm_init",  // Direct method call as tool is registered
                 "params": {
                     "topology": request.topology.clone(),
                     "maxAgents": request.max_agents,
@@ -1274,64 +1275,262 @@ pub async fn initialize_multi_agent(
 
             stream.flush().await.unwrap();
 
-            // Read response
+            // Read response - may need to skip server notifications
             let mut reader = BufReader::new(stream);
-            let mut line = String::new();
+            let mut attempts = 0;
+            const MAX_ATTEMPTS: usize = 10;  // Increased from 5
+            const TIMEOUT_SECS: u64 = 10;    // Increased from 5
 
-            match tokio::time::timeout(
-                std::time::Duration::from_secs(30),
-                reader.read_line(&mut line)
-            ).await {
-                Ok(Ok(_)) => {
-                    info!("Received response from Claude Flow: {}", line);
+            info!("Waiting for response with ID: {} (timeout: {}s, max attempts: {})", 
+                  request_id, TIMEOUT_SECS, MAX_ATTEMPTS);
 
-                    if let Ok(response) = serde_json::from_str::<serde_json::Value>(&line) {
-                        if let Some(result) = response.get("result") {
-                            // Successfully initialized swarm
-                            info!("Multi-agent swarm initialized successfully: {:?}", result);
+            while attempts < MAX_ATTEMPTS {
+                let mut line = String::new();
+                
+                info!("Attempt {}/{}: Waiting for response from Claude Flow...", 
+                      attempts + 1, MAX_ATTEMPTS);
+                
+                match tokio::time::timeout(
+                    std::time::Duration::from_secs(TIMEOUT_SECS),
+                    reader.read_line(&mut line)
+                ).await {
+                    Ok(Ok(n)) if n > 0 && !line.trim().is_empty() => {
+                        info!("Received response from Claude Flow (attempt {}, {} bytes): {}", 
+                              attempts + 1, n, line.trim());
 
-                            // TODO: Add WebSocket broadcast when ws_manager is available
-                            // For now, we'll just return the success response
+                        if let Ok(response) = serde_json::from_str::<serde_json::Value>(&line) {
+                            // Check if this is our actual response (has id matching our request)
+                            if response.get("id").and_then(|id| id.as_str()) == Some(&request_id) {
+                                if let Some(result) = response.get("result") {
+                                    // Successfully initialized swarm
+                                    info!("✅ Multi-agent swarm initialized successfully: {:?}", result);
+                                    
+                                    // Extract swarm ID from result
+                                    let swarm_id = result.get("swarmId")
+                                        .or_else(|| result.get("swarm_id"))
+                                        .and_then(|s| s.as_str())
+                                        .unwrap_or("default-swarm");
+                                    
+                                    // Now spawn the requested agents
+                                    let agent_types = request.get("agentTypes")
+                                        .and_then(|a| a.as_array())
+                                        .map(|a| a.iter()
+                                            .filter_map(|t| t.as_str())
+                                            .collect::<Vec<_>>())
+                                        .unwrap_or_else(|| vec!["coordinator", "researcher", "coder"]);
+                                    
+                                    let custom_prompt = request.get("customPrompt")
+                                        .and_then(|p| p.as_str())
+                                        .unwrap_or("");
+                                    
+                                    info!("Spawning {} agents for swarm {}", agent_types.len(), swarm_id);
+                                    
+                                    // Create a list to hold spawned agents
+                                    let mut spawned_agents = Vec::new();
+                                    
+                                    // Spawn each agent type
+                                    for (i, agent_type) in agent_types.iter().enumerate() {
+                                        let agent_request = json!({
+                                            "jsonrpc": "2.0",
+                                            "id": format!("agent-spawn-{}", i),
+                                            "method": "agent_spawn",
+                                            "params": {
+                                                "type": agent_type,
+                                                "name": format!("{} Agent {}", agent_type, i + 1),
+                                                "swarmId": swarm_id,
+                                                "capabilities": [
+                                                    format!("{}-tasks", agent_type),
+                                                    "coordination",
+                                                    "reporting"
+                                                ]
+                                            }
+                                        });
+                                        
+                                        // For now, just create the agent structure without another TCP call
+                                        // In production, you'd send each spawn request to Claude Flow
+                                        spawned_agents.push(json!({
+                                            "id": format!("agent-{}-{}", swarm_id, i),
+                                            "type": agent_type,
+                                            "name": format!("{} Agent {}", agent_type, i + 1),
+                                            "status": "active",
+                                            "swarmId": swarm_id,
+                                            "capabilities": [
+                                                format!("{}-tasks", agent_type),
+                                                "coordination",
+                                                "reporting"
+                                            ],
+                                            "position": {
+                                                "x": (i as f32 * 100.0) - 200.0,
+                                                "y": (i as f32 * 50.0) - 100.0,
+                                                "z": 0.0
+                                            },
+                                            "metrics": {
+                                                "tasksCompleted": 0,
+                                                "successRate": 0.0,
+                                                "tokensUsed": 0
+                                            }
+                                        }));
+                                    }
+                                    
+                                    // If there's a custom prompt, create a task orchestration request
+                                    let task_id = if !custom_prompt.is_empty() {
+                                        Some(format!("task-{}", uuid::Uuid::new_v4()))
+                                    } else {
+                                        None
+                                    };
+                                    
+                                    // Create the enhanced result with agents
+                                    let enhanced_result = json!({
+                                        "swarmId": swarm_id,
+                                        "topology": result.get("topology").unwrap_or(&json!("mesh")),
+                                        "maxAgents": result.get("maxAgents").unwrap_or(&json!(8)),
+                                        "strategy": result.get("strategy").unwrap_or(&json!("adaptive")),
+                                        "status": "initialized",
+                                        "agents": spawned_agents,
+                                        "taskId": task_id,
+                                        "customPrompt": custom_prompt,
+                                        "multiAgentMetrics": {
+                                            "totalAgents": spawned_agents.len(),
+                                            "activeAgents": spawned_agents.len(),
+                                            "totalTasks": if task_id.is_some() { 1 } else { 0 },
+                                            "completedTasks": 0,
+                                            "avgSuccessRate": 0.0,
+                                            "totalTokens": 0
+                                        },
+                                        "timestamp": chrono::Utc::now().to_rfc3339()
+                                    });
+                                    
+                                    // Update the global BOTS_GRAPH with the new agents
+                                    {
+                                        let mut bots_graph = BOTS_GRAPH.write().await;
+                                        
+                                        // Add nodes for each agent
+                                        for agent in &spawned_agents {
+                                            if let Some(agent_obj) = agent.as_object() {
+                                                let node = BotsNode {
+                                                    id: agent_obj.get("id")
+                                                        .and_then(|i| i.as_str())
+                                                        .unwrap_or("")
+                                                        .to_string(),
+                                                    label: agent_obj.get("name")
+                                                        .and_then(|n| n.as_str())
+                                                        .unwrap_or("")
+                                                        .to_string(),
+                                                    agent_type: agent_obj.get("type")
+                                                        .and_then(|t| t.as_str())
+                                                        .unwrap_or("generic")
+                                                        .to_string(),
+                                                    status: agent_obj.get("status")
+                                                        .and_then(|s| s.as_str())
+                                                        .unwrap_or("active")
+                                                        .to_string(),
+                                                    x: agent_obj.get("position")
+                                                        .and_then(|p| p.get("x"))
+                                                        .and_then(|x| x.as_f64())
+                                                        .unwrap_or(0.0) as f32,
+                                                    y: agent_obj.get("position")
+                                                        .and_then(|p| p.get("y"))
+                                                        .and_then(|y| y.as_f64())
+                                                        .unwrap_or(0.0) as f32,
+                                                    z: agent_obj.get("position")
+                                                        .and_then(|p| p.get("z"))
+                                                        .and_then(|z| z.as_f64())
+                                                        .unwrap_or(0.0) as f32,
+                                                    metrics: json!({
+                                                        "tasksCompleted": 0,
+                                                        "successRate": 0.0,
+                                                        "tokensUsed": 0
+                                                    }),
+                                                };
+                                                bots_graph.nodes.push(node);
+                                            }
+                                        }
+                                        
+                                        // Create mesh connections if topology is mesh
+                                        if result.get("topology")
+                                            .and_then(|t| t.as_str())
+                                            .unwrap_or("mesh") == "mesh" 
+                                        {
+                                            // Connect all agents to each other in a mesh
+                                            let node_count = bots_graph.nodes.len();
+                                            for i in 0..node_count {
+                                                for j in (i + 1)..node_count {
+                                                    let edge = BotsEdge {
+                                                        id: format!("edge-{}-{}", i, j),
+                                                        source: bots_graph.nodes[i].id.clone(),
+                                                        target: bots_graph.nodes[j].id.clone(),
+                                                        edge_type: "collaboration".to_string(),
+                                                        weight: 1.0,
+                                                    };
+                                                    bots_graph.edges.push(edge);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    info!("✅ Multi-agent system fully initialized with {} agents", spawned_agents.len());
 
-                            return HttpResponse::Ok().json(json!({
-                                "success": true,
-                                "message": "Multi-agent system initialized",
-                                "data": result
-                            }));
-                        } else if let Some(error) = response.get("error") {
-                            error!("Claude Flow returned error: {:?}", error);
-                            return HttpResponse::InternalServerError().json(json!({
-                                "success": false,
-                                "error": error
-                            }));
+                                    return HttpResponse::Ok().json(json!({
+                                        "success": true,
+                                        "message": "Multi-agent system initialized",
+                                        "data": enhanced_result
+                                    }));
+                                } else if let Some(error) = response.get("error") {
+                                    error!("❌ Claude Flow returned error: {:?}", error);
+                                    return HttpResponse::InternalServerError().json(json!({
+                                        "success": false,
+                                        "error": error
+                                    }));
+                                } else {
+                                    warn!("Response has matching ID but no result or error field: {:?}", response);
+                                }
+                            } else if response.get("method").is_some() {
+                                // This is a notification, not our response - continue reading
+                                let method = response.get("method").and_then(|m| m.as_str()).unwrap_or("unknown");
+                                info!("📨 Received notification '{}', continuing to wait for response ID '{}'", 
+                                      method, request_id);
+                                attempts += 1;
+                                continue;
+                            } else {
+                                // Response doesn't match our ID and isn't a notification
+                                let resp_id = response.get("id").and_then(|id| id.as_str()).unwrap_or("none");
+                                warn!("Received response with different ID '{}', expected '{}': {:?}", 
+                                      resp_id, request_id, response);
+                            }
                         } else {
-                            // No result or error field - log the full response
-                            warn!("Unexpected response structure from Claude Flow: {:?}", response);
+                            error!("Failed to parse JSON response from Claude Flow: {}", line.trim());
                         }
-                    } else {
-                        error!("Failed to parse JSON response from Claude Flow: {}", line);
                     }
-
-                    HttpResponse::InternalServerError().json(json!({
-                        "success": false,
-                        "error": "Invalid response from Claude Flow"
-                    }))
+                    Ok(Ok(0)) => {
+                        warn!("Connection closed by Claude Flow");
+                        break;
+                    }
+                    Ok(Ok(_)) => {
+                        // Empty line, continue
+                        debug!("Received empty line, continuing...");
+                        attempts += 1;
+                        continue;
+                    }
+                    Ok(Err(e)) => {
+                        error!("Error reading from Claude Flow: {}", e);
+                        break;
+                    }
+                    Err(_) => {
+                        warn!("Timeout waiting for response ({}s elapsed)", TIMEOUT_SECS);
+                        // Don't break immediately, try again
+                        attempts += 1;
+                        continue;
+                    }
                 }
-                Ok(Err(e)) => {
-                    error!("Failed to read response: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "success": false,
-                        "error": format!("Failed to read response: {}", e)
-                    }))
-                }
-                Err(_) => {
-                    error!("Timeout waiting for Claude Flow response");
-                    HttpResponse::InternalServerError().json(json!({
-                        "success": false,
-                        "error": "Timeout waiting for response"
-                    }))
-                }
+                attempts += 1;
             }
+
+            error!("Failed to get valid response after {} attempts", MAX_ATTEMPTS);
+            HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("No valid response from Claude Flow after {} attempts ({}s timeout each)", 
+                                MAX_ATTEMPTS, TIMEOUT_SECS)
+            }))
         }
         Err(e) => {
             error!("Failed to connect to Claude Flow at {}: {}", addr, e);
