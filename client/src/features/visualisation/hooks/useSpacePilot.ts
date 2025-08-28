@@ -9,6 +9,7 @@ import { SpaceDriver } from '../../../services/SpaceDriverService';
 export interface SpacePilotOptions {
   enabled?: boolean;
   config?: Partial<SpacePilotConfig>;
+  orbitControlsRef?: React.RefObject<any>;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onModeChange?: (mode: 'camera' | 'object' | 'navigation') => void;
@@ -34,12 +35,13 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
   const {
     enabled = true,
     config: userConfig = {},
+    orbitControlsRef,
     onConnect,
     onDisconnect,
     onModeChange
   } = options;
 
-  const { camera, scene, gl, controls } = useThree();
+  const { camera, scene, gl } = useThree();
   const [isConnected, setIsConnected] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [currentMode, setCurrentMode] = useState<'camera' | 'object' | 'navigation'>('camera');
@@ -68,11 +70,14 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     };
     configRef.current = mergedConfig;
 
+    // Get OrbitControls from ref if provided
+    const orbitControls = orbitControlsRef?.current || undefined;
+
     // Create controller instance
     const controller = new SpacePilotController(
       camera,
       mergedConfig,
-      controls as OrbitControls | undefined
+      orbitControls as OrbitControls | undefined
     );
     controllerRef.current = controller;
 
@@ -83,7 +88,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
       controller.stop();
       controllerRef.current = null;
     };
-  }, [enabled, camera, controls, isSupported, spacePilotSettings, userConfig]);
+  }, [enabled, camera, orbitControlsRef, isSupported, spacePilotSettings, userConfig]);
 
   // Handle SpaceDriver events
   useEffect(() => {
@@ -160,13 +165,14 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
 
   // Reset view
   const resetView = useCallback(() => {
-    if (controls && 'reset' in controls) {
-      (controls as OrbitControls).reset();
+    const orbitControls = orbitControlsRef?.current;
+    if (orbitControls && 'reset' in orbitControls) {
+      orbitControls.reset();
     } else if (camera) {
       camera.position.set(0, 10, 20);
       camera.lookAt(0, 0, 0);
     }
-  }, [camera, controls]);
+  }, [camera, orbitControlsRef]);
 
   // Set control mode
   const setMode = useCallback((mode: 'camera' | 'object' | 'navigation') => {
