@@ -8,6 +8,7 @@ pub mod gpu_safety;
 pub mod logging;
 pub mod memory_bounds;
 pub mod network;
+pub mod resource_monitor;
 pub mod socket_flow_constants;
 pub mod socket_flow_messages;
 pub mod unified_gpu_compute;

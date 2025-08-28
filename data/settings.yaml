@@ -71,7 +71,7 @@ visualisation:
         base_width: 0.5
         color: '#00bfc2'
         enable_arrows: false
-        opacity: 0.16986302
+        opacity: 0.05479452
         width_range:
         - 0.3
         - 1.5
@@ -281,12 +281,12 @@ visualisation:
     smoothing: 0.8
     deadzone: 0.1
     button_functions:
+      '3': fitToView
+      '5': rightView
       '4': topView
       '1': resetView
       '2': cycleMode
-      '5': rightView
       '6': frontView
-      '3': fitToView
 system:
   network:
     bind_address: 0.0.0.0

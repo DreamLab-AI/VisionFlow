@@ -199,6 +199,12 @@ impl ConnectionPool {
     pub async fn get_connection(&self, endpoint: &str) -> Result<PooledConnection, ConnectionPoolError> {
         let start_time = Instant::now();
         
+        // Check file descriptor usage before attempting connection
+        if let Err(fd_error) = self.check_file_descriptor_usage().await {
+            warn!("{}", fd_error);
+            return Err(ConnectionPoolError::ConnectionFailed(fd_error));
+        }
+        
         // Update stats
         {
             let mut stats = self.stats.lock().await;
@@ -415,6 +421,39 @@ impl ConnectionPool {
         }
     }
 
+    // Resource monitoring methods
+    async fn check_file_descriptor_usage(&self) -> Result<(), String> {
+        #[cfg(target_os = "linux")]
+        {
+            use tokio::fs;
+            match fs::read_dir("/proc/self/fd").await {
+                Ok(mut entries) => {
+                    let mut count: usize = 0;
+                    while let Ok(Some(_)) = entries.next_entry().await {
+                        count += 1;
+                    }
+                    let fd_count = count.saturating_sub(1); // Subtract dir handle
+                    
+                    const FD_WARNING_THRESHOLD: usize = 700;
+                    const FD_ERROR_THRESHOLD: usize = 900;
+                    
+                    if fd_count > FD_ERROR_THRESHOLD {
+                        return Err(format!(
+                            "File descriptor limit approaching: {} open FDs (limit: {})",
+                            fd_count, FD_ERROR_THRESHOLD
+                        ));
+                    } else if fd_count > FD_WARNING_THRESHOLD {
+                        warn!("High file descriptor usage: {} open FDs", fd_count);
+                    }
+                }
+                Err(_) => {
+                    // If /proc/self/fd is unavailable, continue without check
+                }
+            }
+        }
+        Ok(())
+    }
+    
     // Statistics methods
     async fn record_successful_borrow(&self) {
         let mut stats = self.stats.lock().await;

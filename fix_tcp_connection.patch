@@ -1,0 +1,32 @@
+--- Fix for TCP Connection File Descriptor Exhaustion ---
+
+The issue is that the retry logic in retry_tcp_connection is creating multiple file descriptors 
+without properly cleaning up failed connections. 
+
+IMMEDIATE FIX:
+1. Restart the container to clear all existing connections
+2. Set environment variable to use a single connection attempt initially
+3. Implement connection pooling
+
+The key issue is in /workspace/ext/src/utils/network/mod.rs where retry_tcp_connection
+keeps creating new connections without properly closing failed ones.
+
+QUICK FIX - Add to docker-compose.yml for visionflow_container:
+  environment:
+    - CLAUDE_FLOW_HOST=multi-agent-container
+    - MCP_TCP_PORT=9500
+    - RETRY_MAX_ATTEMPTS=1
+  ulimits:
+    nofile:
+      soft: 65536
+      hard: 65536
+
+This will:
+1. Ensure correct host is used in Docker environment
+2. Limit retry attempts to prevent file descriptor exhaustion  
+3. Increase file descriptor limits as a safety measure
+
+After applying these changes:
+1. docker-compose down
+2. docker-compose up -d --build visionflow_container
+3. The ClaudeFlowActor should connect successfully on first attempt

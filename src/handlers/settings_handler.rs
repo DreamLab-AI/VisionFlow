@@ -60,8 +60,7 @@ pub struct SettingsUpdateDTO {
 pub struct VisualisationSettingsDTO {
     pub rendering: RenderingSettingsDTO,
     pub animations: AnimationSettingsDTO,
-    // Note: Frontend expects "bloom" but backend stores as "glow"
-    #[serde(rename = "bloom")]
+    // Use "glow" consistently across all layers
     pub glow: GlowSettingsDTO,
     pub hologram: HologramSettingsDTO,
     pub graphs: GraphsSettingsDTO,
@@ -2216,57 +2215,55 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
         }
     }
     
-    // BLOOM/GLOW FIELD MAPPING: Accept both 'bloom' and 'glow' field names
-    // Frontend sends 'bloom', backend stores as 'glow' - both should be valid
-    let bloom_glow_field = rendering.get("bloom").or_else(|| rendering.get("glow"));
-    if let Some(bloom_glow) = bloom_glow_field {
-        validate_bloom_glow_settings(bloom_glow)?;
+    // Validate glow settings - use "glow" field consistently
+    if let Some(glow) = rendering.get("glow") {
+        validate_glow_settings(glow)?;
     }
     
     Ok(())
 }
 
-/// Validate bloom/glow effect settings
-fn validate_bloom_glow_settings(bloom_glow: &Value) -> Result<(), String> {
+/// Validate glow effect settings
+fn validate_glow_settings(glow: &Value) -> Result<(), String> {
     // Validate enabled flag
-    if let Some(enabled) = bloom_glow.get("enabled") {
+    if let Some(enabled) = glow.get("enabled") {
         if !enabled.is_boolean() {
-            return Err("bloom/glow enabled must be a boolean".to_string());
+            return Err("glow enabled must be a boolean".to_string());
         }
     }
     
     // Validate intensity/strength fields
     for field_name in ["intensity", "strength"] {
-        if let Some(intensity) = bloom_glow.get(field_name) {
-            let val = intensity.as_f64().ok_or(format!("bloom/glow {} must be a number", field_name))?;
+        if let Some(intensity) = glow.get(field_name) {
+            let val = intensity.as_f64().ok_or(format!("glow {} must be a number", field_name))?;
             if val < 0.0 || val > 10.0 {
-                return Err(format!("bloom/glow {} must be between 0.0 and 10.0", field_name));
+                return Err(format!("glow {} must be between 0.0 and 10.0", field_name));
             }
         }
     }
     
     // Validate radius field
-    if let Some(radius) = bloom_glow.get("radius") {
-        let val = radius.as_f64().ok_or("bloom/glow radius must be a number")?;
+    if let Some(radius) = glow.get("radius") {
+        let val = radius.as_f64().ok_or("glow radius must be a number")?;
         if val < 0.0 || val > 5.0 {
-            return Err("bloom/glow radius must be between 0.0 and 5.0".to_string());
+            return Err("glow radius must be between 0.0 and 5.0".to_string());
         }
     }
     
     // Validate threshold field
-    if let Some(threshold) = bloom_glow.get("threshold") {
-        let val = threshold.as_f64().ok_or("bloom/glow threshold must be a number")?;
+    if let Some(threshold) = glow.get("threshold") {
+        let val = threshold.as_f64().ok_or("glow threshold must be a number")?;
         if val < 0.0 || val > 2.0 {
-            return Err("bloom/glow threshold must be between 0.0 and 2.0".to_string());
+            return Err("glow threshold must be between 0.0 and 2.0".to_string());
         }
     }
     
-    // Validate specific bloom strength fields
-    for field_name in ["edgeBloomStrength", "environmentBloomStrength", "nodeBloomStrength"] {
-        if let Some(strength) = bloom_glow.get(field_name) {
-            let val = strength.as_f64().ok_or(format!("bloom/glow {} must be a number", field_name))?;
+    // Validate specific glow strength fields
+    for field_name in ["edgeGlowStrength", "environmentGlowStrength", "nodeGlowStrength"] {
+        if let Some(strength) = glow.get(field_name) {
+            let val = strength.as_f64().ok_or(format!("glow {} must be a number", field_name))?;
             if val < 0.0 || val > 1.0 {
-                return Err(format!("bloom/glow {} must be between 0.0 and 1.0", field_name));
+                return Err(format!("glow {} must be between 0.0 and 1.0", field_name));
             }
         }
     }

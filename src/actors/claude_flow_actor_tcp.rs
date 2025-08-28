@@ -16,8 +16,9 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use crate::utils::network::{
     NetworkResilienceManager, CircuitBreaker,
     retry_tcp_connection, RetryableError,
-    TimeoutConfig
+    TimeoutConfig, ConnectionPool, ConnectionPoolConfig
 };
+use crate::utils::resource_monitor::{ResourceMonitor, ResourceLimits};
 
 /// Make Box<dyn Error> retryable for network operations
 impl RetryableError for Box<dyn std::error::Error + Send + Sync> {
@@ -60,10 +61,19 @@ pub struct ClaudeFlowActorTcp {
     pending_updates: Vec<AgentUpdate>,
     pending_messages: Vec<MessageFlowEvent>,
     swarm_topology: Option<String>,
+    // Error tracking for circuit breaker
+    consecutive_poll_failures: u32,
+    last_successful_poll: Option<DateTime<Utc>>,
     // Network resilience components
     resilience_manager: Arc<NetworkResilienceManager>,
     circuit_breaker: Option<Arc<CircuitBreaker>>,
     timeout_config: TimeoutConfig,
+    // Connection pool for resource management
+    connection_pool: Option<Arc<tokio::sync::Mutex<ConnectionPool>>>,
+    // Track active connections for cleanup
+    active_connections: Arc<tokio::sync::RwLock<std::collections::HashMap<String, std::time::Instant>>>,
+    // Resource monitoring for preventing file descriptor exhaustion
+    resource_monitor: Arc<ResourceMonitor>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -86,7 +96,7 @@ impl ClaudeFlowActorTcp {
             is_connected: false,
             is_initialized: false,
             swarm_id: None,
-            polling_interval: Duration::from_millis(100), // 10Hz for telemetry updates
+            polling_interval: Duration::from_millis(1000), // 1Hz for telemetry updates
             _last_poll: Utc::now(),
             agent_cache: HashMap::new(),
             _swarm_status: None,
@@ -102,23 +112,53 @@ impl ClaudeFlowActorTcp {
             pending_updates: Vec::new(),
             pending_messages: Vec::new(),
             swarm_topology: None,
+            consecutive_poll_failures: 0,
+            last_successful_poll: None,
             resilience_manager: Arc::new(NetworkResilienceManager::new()),
             circuit_breaker: None,
             timeout_config: TimeoutConfig::tcp_connection(),
+            connection_pool: None,
+            active_connections: Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new())),
+            resource_monitor: Arc::new(ResourceMonitor::new(ResourceLimits::default())),
         }
     }
 
     /// Initialize direct TCP connection to Claude Flow on port 9500 with resilience patterns
     fn initialize_connection(&mut self, ctx: &mut Context<Self>) {
-        info!("Initializing resilient TCP connection to Claude Flow on port 9500");
+        debug!("Initializing resilient TCP connection to Claude Flow on port 9500");
+        
+        // Initialize connection pool if not already present
+        if self.connection_pool.is_none() {
+            let pool_config = ConnectionPoolConfig {
+                max_connections_per_endpoint: 2, // Limit connections per endpoint
+                max_total_connections: 5,        // Total connection limit
+                connection_timeout: std::time::Duration::from_secs(10),
+                idle_timeout: std::time::Duration::from_secs(60),
+                max_connection_lifetime: std::time::Duration::from_secs(300),
+                cleanup_interval: std::time::Duration::from_secs(30),
+                validate_on_borrow: true,
+                validate_while_idle: false,
+            };
+            let mut pool = ConnectionPool::new(pool_config);
+            pool.start_cleanup_task();
+            self.connection_pool = Some(Arc::new(tokio::sync::Mutex::new(pool)));
+        }
         
         let addr = ctx.address();
         let resilience_manager = self.resilience_manager.clone();
         let timeout_config = self.timeout_config.clone();
+        let active_connections = self.active_connections.clone();
         
         // Spawn async task to connect to Claude Flow with resilience
         tokio::spawn(async move {
-            // Use resilient connection with retry logic
+            // Track this connection attempt
+            let connection_id = uuid::Uuid::new_v4().to_string();
+            {
+                let mut connections = active_connections.write().await;
+                connections.insert(connection_id.clone(), std::time::Instant::now());
+            }
+            
+            // Use resilient connection with retry logic with resource limits
             let connection_operation = || async {
                 Self::connect_to_claude_flow_tcp().await
                     .map_err(|e| std::sync::Arc::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
@@ -135,6 +175,12 @@ impl ClaudeFlowActorTcp {
                     addr.do_send(ConnectionFailed);
                 }
             }
+            
+            // Remove connection tracking on completion
+            {
+                let mut connections = active_connections.write().await;
+                connections.remove(&connection_id);
+            }
         });
     }
     
@@ -150,7 +196,7 @@ impl ClaudeFlowActorTcp {
         });
         let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
         
-        info!("Attempting TCP connection to {}:{}", host, port);
+        debug!("Attempting TCP connection to {}:{}", host, port);
         
         let addr = format!("{}:{}", host, port);
         let stream = TcpStream::connect(&addr).await?;
@@ -322,6 +368,14 @@ impl Actor for ClaudeFlowActorTcp {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("ClaudeFlowActorTcp started - using TCP-only implementation");
         
+        // Start resource monitoring
+        let resource_monitor = self.resource_monitor.clone();
+        tokio::spawn(async move {
+            if let Err(e) = resource_monitor.start_monitoring(std::time::Duration::from_secs(10)).await {
+                error!("Failed to start resource monitoring: {}", e);
+            }
+        });
+        
         // Initialize TCP connection
         self.initialize_connection(ctx);
         
@@ -332,19 +386,37 @@ impl Actor for ClaudeFlowActorTcp {
             }
         });
         
-        // Schedule connection health check
-        ctx.run_interval(Duration::from_secs(30), |act, ctx| {
-            if !act.is_connected {
-                warn!("TCP connection lost, attempting reconnection...");
-                act.connection_stats.reconnect_attempts += 1;
-                act.initialize_connection(ctx);
-            }
-        });
+        // DEPRECATED: The ConnectionFailed handler is now responsible for all reconnection logic.
+        // This periodic check is redundant and can cause cascading failures.
+        // ctx.run_interval(Duration::from_secs(30), |act, ctx| {
+        //     if !act.is_connected {
+        //         warn!("TCP connection lost, attempting reconnection...");
+        //         act.connection_stats.reconnect_attempts += 1;
+        //         act.initialize_connection(ctx);
+        //     }
+        // });
     }
     
     fn stopped(&mut self, _: &mut Self::Context) {
-        info!("ClaudeFlowActorTcp stopped");
+        info!("ClaudeFlowActorTcp stopping - cleaning up resources");
         info!("Connection statistics: {:?}", self.connection_stats);
+        
+        // Cleanup connections and pools
+        if let Some(pool) = self.connection_pool.take() {
+            tokio::spawn(async move {
+                let mut pool_guard = pool.lock().await;
+                pool_guard.shutdown().await;
+            });
+        }
+        
+        // Clear connection tracking
+        let active_connections = self.active_connections.clone();
+        tokio::spawn(async move {
+            let mut connections = active_connections.write().await;
+            connections.clear();
+        });
+        
+        info!("ClaudeFlowActorTcp stopped - resources cleaned up");
     }
 }
 
@@ -402,6 +474,20 @@ struct TcpConnectionEstablished {
 struct ProcessTcpMessage {
     message: Value,
 }
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct UpdateAgentCache {
+    agents: Vec<AgentStatus>,
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RecordPollSuccess;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct RecordPollFailure;
 
 impl Handler<TcpConnectionEstablished> for ClaudeFlowActorTcp {
     type Result = ();
@@ -481,6 +567,10 @@ impl Handler<MCPSessionInitialized> for ClaudeFlowActorTcp {
         self.is_initialized = true;
         self.connection_stats.connected_at = Some(Utc::now());
         
+        // Reset failure counters on successful connection
+        self.consecutive_poll_failures = 0;
+        self.last_successful_poll = Some(Utc::now());
+        
         // Now we can start polling for agent statuses
         _ctx.notify(PollAgentStatuses);
     }
@@ -493,19 +583,53 @@ impl Handler<ConnectionFailed> for ClaudeFlowActorTcp {
         warn!("TCP connection failed or lost");
         self.is_connected = false;
         self.is_initialized = false;
-        self.tcp_writer = None;
-        self.tcp_reader = None;
         
-        // Clear pending requests
+        // Properly close existing connections
+        if let Some(writer_arc) = self.tcp_writer.take() {
+            tokio::spawn(async move {
+                // Attempt graceful shutdown of writer
+                if let Ok(mut writer) = writer_arc.try_write() {
+                    let _ = writer.shutdown().await;
+                }
+            });
+        }
+        
+        if let Some(_reader_arc) = self.tcp_reader.take() {
+            // Reader will be dropped automatically, closing the connection
+        }
+        
+        // Clear pending requests with proper error responses
         let pending_requests = self.pending_requests.clone();
         tokio::spawn(async move {
             let mut requests = pending_requests.write().await;
-            requests.clear();
+            // Send error responses to pending requests before clearing
+            for (id, sender) in requests.drain() {
+                let error_response = serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "id": id,
+                    "error": {
+                        "code": -1,
+                        "message": "Connection lost"
+                    }
+                });
+                let _ = sender.send(error_response);
+            }
         });
         
-        // Schedule reconnection attempt
-        ctx.run_later(Duration::from_secs(5), |act, ctx| {
-            info!("Attempting to reconnect to Claude Flow TCP server...");
+        // Increment reconnect attempts with exponential backoff
+        self.connection_stats.reconnect_attempts += 1;
+        let backoff_delay = std::cmp::min(
+            Duration::from_secs(5 * (1 << self.connection_stats.reconnect_attempts.min(5))),
+            Duration::from_secs(300) // Max 5 minutes
+        );
+        
+        info!("Scheduling reconnection attempt {} in {:?}", 
+              self.connection_stats.reconnect_attempts, backoff_delay);
+        
+        // Schedule reconnection attempt with exponential backoff
+        ctx.run_later(backoff_delay, |act, ctx| {
+            info!("Attempting to reconnect to Claude Flow TCP server (attempt {})", 
+                  act.connection_stats.reconnect_attempts);
             act.initialize_connection(ctx);
         });
     }
@@ -517,10 +641,25 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
 
     fn handle(&mut self, _: PollAgentStatuses, _ctx: &mut Self::Context) {
         if !self.is_connected || !self.is_initialized {
+            debug!("Skipping agent status poll - not connected or initialized (connected: {}, initialized: {})", 
+                   self.is_connected, self.is_initialized);
             return;
         }
         
-        debug!("Polling agent statuses via TCP");
+        // Circuit breaker: if too many consecutive failures, reduce polling frequency
+        if self.consecutive_poll_failures > 10 {
+            if let Some(last_success) = self.last_successful_poll {
+                let time_since_success = Utc::now().signed_duration_since(last_success);
+                if time_since_success.num_seconds() < 30 {
+                    debug!("Circuit breaker active - skipping poll due to {} consecutive failures", 
+                           self.consecutive_poll_failures);
+                    return;
+                }
+            }
+        }
+        
+        debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
+               self.consecutive_poll_failures);
         
         // Call the agent_list tool to get current agent statuses
         if let Some(writer) = &self.tcp_writer {
@@ -528,30 +667,150 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
             let pending_requests = self.pending_requests.clone();
             let graph_addr = self.graph_service_addr.clone();
             
+            // Get context address for cache updates
+            let ctx_addr = _ctx.address();
+            
             tokio::spawn(async move {
                 let params = json!({
-                    "filter": "active"
+                    "filter": "all" // Get all agents, not just active ones
                 });
                 
                 match Self::call_tcp_tool(writer_clone, pending_requests, "agent_list", params).await {
                     Ok(response) => {
-                        debug!("Received agent list: {:?}", response);
+                        debug!("Received agent list response: {:?}", response);
                         
-                        // Parse agents for monitoring
+                        // Parse agents and prepare for graph visualization
                         if let Some(agents) = response.get("agents").and_then(|a| a.as_array()) {
-                            for agent in agents {
-                                if let Ok(status) = serde_json::from_value::<AgentStatus>(agent.clone()) {
-                                    // Agent status monitoring - could be sent to monitoring service
-                                    debug!("Agent {} status: {:?}", status.agent_id, status.status);
+                            let mut agent_statuses = Vec::new();
+                            let mut parsing_errors = 0u32;
+                            
+                            for (idx, agent_data) in agents.iter().enumerate() {
+                                match serde_json::from_value::<AgentStatus>(agent_data.clone()) {
+                                    Ok(status) => {
+                                        info!("Agent [{}] {} - Status: {}, Type: {:?}, Tasks: {} active / {} completed", 
+                                              idx, 
+                                              status.agent_id, 
+                                              status.status,
+                                              status.profile.agent_type,
+                                              status.active_tasks_count,
+                                              status.completed_tasks_count);
+                                        
+                                        agent_statuses.push(status);
+                                    }
+                                    Err(e) => {
+                                        warn!("Failed to parse agent data at index {}: {} - Raw data: {:?}", 
+                                              idx, e, agent_data);
+                                        parsing_errors += 1;
+                                    }
                                 }
                             }
+                            
+                            // Always send graph update, even if no agents (clears visualization)
+                            let message = UpdateBotsGraph {
+                                agents: agent_statuses.clone()
+                            };
+                            
+                            info!("🔄 Sending graph update to GraphServiceActor: {} agents parsed ({} parsing errors)", 
+                                  agent_statuses.len(), parsing_errors);
+                            
+                            // Send to GraphServiceActor for real-time visualization
+                            graph_addr.do_send(message);
+                            
+                            // Update the actor's agent cache with latest data
+                            if !agent_statuses.is_empty() {
+                                ctx_addr.do_send(UpdateAgentCache { 
+                                    agents: agent_statuses.clone() 
+                                });
+                            }
+                            
+                            // Mark poll as successful
+                            ctx_addr.do_send(RecordPollSuccess);
+                            
+                            // Log detailed agent information for debugging
+                            if !agent_statuses.is_empty() {
+                                info!("📊 Agent Summary:");
+                                let mut by_type = std::collections::HashMap::new();
+                                let mut by_status = std::collections::HashMap::new();
+                                
+                                for agent in &agent_statuses {
+                                    *by_type.entry(format!("{:?}", agent.profile.agent_type)).or_insert(0u32) += 1;
+                                    *by_status.entry(agent.status.clone()).or_insert(0u32) += 1;
+                                }
+                                
+                                info!("  Types: {:?}", by_type);
+                                info!("  Statuses: {:?}", by_status);
+                                info!("  Total tokens: {}", agent_statuses.iter().map(|a| a.token_usage.total).sum::<u64>());
+                                info!("  Avg success rate: {:.2}%", 
+                                      agent_statuses.iter().map(|a| a.success_rate).sum::<f32>() / agent_statuses.len().max(1) as f32 * 100.0);
+                            } else {
+                                info!("📭 No agents found - sending empty graph update");
+                            }
+                        } else {
+                            warn!("Invalid response format - missing 'agents' array in: {:?}", response);
+                            
+                            // Send empty graph update to clear visualization
+                            graph_addr.do_send(UpdateBotsGraph {
+                                agents: Vec::new()
+                            });
                         }
                     }
                     Err(e) => {
-                        warn!("Failed to poll agent statuses: {}", e);
+                        error!("❌ Failed to poll agent statuses via TCP: {}", e);
+                        
+                        // Send empty graph update on error to avoid stale data
+                        graph_addr.do_send(UpdateBotsGraph {
+                            agents: Vec::new()
+                        });
+                        
+                        // Mark poll as failed
+                        ctx_addr.do_send(RecordPollFailure);
                     }
                 }
             });
+        } else {
+            warn!("No TCP writer available for agent status polling");
+        }
+    }
+}
+
+impl Handler<UpdateAgentCache> for ClaudeFlowActorTcp {
+    type Result = ();
+
+    fn handle(&mut self, msg: UpdateAgentCache, _ctx: &mut Self::Context) {
+        debug!("Updating agent cache with {} agents", msg.agents.len());
+        
+        // Clear old cache and update with new agent data
+        self.agent_cache.clear();
+        
+        for agent in msg.agents {
+            self.agent_cache.insert(agent.agent_id.clone(), agent);
+        }
+        
+        debug!("Agent cache updated: {} agents cached", self.agent_cache.len());
+    }
+}
+
+impl Handler<RecordPollSuccess> for ClaudeFlowActorTcp {
+    type Result = ();
+
+    fn handle(&mut self, _: RecordPollSuccess, _ctx: &mut Self::Context) {
+        self.consecutive_poll_failures = 0;
+        self.last_successful_poll = Some(Utc::now());
+        debug!("Poll success recorded - reset failure counter");
+    }
+}
+
+impl Handler<RecordPollFailure> for ClaudeFlowActorTcp {
+    type Result = ();
+
+    fn handle(&mut self, _: RecordPollFailure, _ctx: &mut Self::Context) {
+        self.consecutive_poll_failures += 1;
+        warn!("Poll failure recorded - {} consecutive failures", 
+              self.consecutive_poll_failures);
+        
+        if self.consecutive_poll_failures > 20 {
+            error!("Too many consecutive polling failures ({}), may need reconnection", 
+                   self.consecutive_poll_failures);
         }
     }
 }
@@ -573,5 +832,26 @@ impl Handler<GetSwarmStatus> for ClaudeFlowActorTcp {
             health_score: if self.is_connected && self.is_initialized { 1.0 } else { 0.0 },
             coordination_efficiency: 0.85, // Default efficiency metric
         })))
+    }
+}
+
+// Implement Drop to ensure proper cleanup of resources
+impl Drop for ClaudeFlowActorTcp {
+    fn drop(&mut self) {
+        info!("Dropping ClaudeFlowActorTcp - performing emergency cleanup");
+        
+        // Forcibly close any remaining connections
+        if let Some(writer_arc) = self.tcp_writer.take() {
+            if let Ok(mut writer) = writer_arc.try_write() {
+                let _ = futures::executor::block_on(writer.shutdown());
+            }
+        }
+        
+        // Clear connection tracking
+        if let Ok(mut connections) = self.active_connections.try_write() {
+            connections.clear();
+        }
+        
+        info!("ClaudeFlowActorTcp drop completed - connections cleaned up");
     }
 }

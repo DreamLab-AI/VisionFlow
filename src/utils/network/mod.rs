@@ -165,6 +165,7 @@ impl NetworkResilienceManager {
             Err(RetryError::AllAttemptsFailed(_)) => Err(ResilienceError::AllRetriesFailed),
             Err(RetryError::Cancelled) => Err(ResilienceError::OperationCancelled),
             Err(RetryError::ConfigError(msg)) => Err(ResilienceError::ConfigurationError(msg)),
+            Err(RetryError::ResourceExhaustion(msg)) => Err(ResilienceError::ResourceExhausted(msg)),
         }
     }
 
@@ -303,6 +304,8 @@ pub enum ResilienceError<E> {
     ConnectionPoolExhausted,
     #[error("Health check failed")]
     HealthCheckFailed,
+    #[error("Resource exhausted: {0}")]
+    ResourceExhausted(String),
     #[error("Timeout exceeded")]
     TimeoutExceeded,
     #[error("Original error: {0:?}")]
