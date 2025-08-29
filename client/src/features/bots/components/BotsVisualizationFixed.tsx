@@ -5,8 +5,6 @@ import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/logger';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { useBotsBinaryUpdates } from '../hooks/useBotsBinaryUpdates';
-import { BotsDebugInfo } from './BotsVisualizationDebugInfo';
 import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
 
@@ -110,8 +108,40 @@ const generateMockProcessingLogs = (agentType: string, status: string): string[]
 const getVisionFlowColors = (settings: any) => {
   const visionflowSettings = settings?.visualisation?.graphs?.visionflow;
   const baseColor = visionflowSettings?.nodes?.baseColor || '#F1C40F';
+  
+  // Get agent colors from server settings (provided via dev_config.toml)
+  const agentColors = settings?.visualisation?.rendering?.agentColors;
+  
+  if (agentColors) {
+    // Use server-provided colors
+    return {
+      // Agent types from server
+      coder: agentColors.coder || '#2ECC71',
+      tester: agentColors.tester || '#27AE60',
+      researcher: agentColors.researcher || '#1ABC9C',
+      reviewer: agentColors.reviewer || '#16A085',
+      documenter: agentColors.documenter || '#229954',
+      specialist: agentColors.default || '#239B56',
+      queen: agentColors.queen || '#FFD700',
+      coordinator: agentColors.coordinator || baseColor,
+      architect: agentColors.architect || '#F1C40F',
+      monitor: agentColors.default || '#E67E22',
+      analyst: agentColors.analyst || '#D68910',
+      optimizer: agentColors.optimizer || '#B7950B',
 
-  // Default gold and green color palette for bots
+      // Connections (not in server config, use defaults)
+      edge: '#3498DB',        // Bright blue
+      activeEdge: '#2980B9',  // Peter river blue
+
+      // States (not in server config, use defaults)
+      active: '#2ECC71',
+      busy: '#F39C12',
+      idle: '#95A5A6',
+      error: '#E74C3C'
+    };
+  }
+
+  // Fallback to hardcoded colors if server doesn't provide them
   return {
     // Primary agent types - Greens for roles
     coder: '#2ECC71',       // Emerald green
@@ -377,13 +407,13 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
       )}
 
       {/* multi-agent Info */}
-      {agent.multi-agentId && (
+      {agent.swarmId && (
         <div style={{
           fontSize: '9px',
           color: '#888',
           marginTop: '2px'
         }}>
-          multi-agent: {agent.multi-agentId}
+          swarm: {agent.swarmId}
           {agent.parentQueenId && ` • Queen: ${agent.parentQueenId.slice(0, 8)}...`}
         </div>
       )}
@@ -530,7 +560,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           outlineWidth={0.05}
           outlineColor="black"
         >
-          {agent.name || agent.id.slice(0, 8)}
+          {agent.name || String(agent.id).slice(0, 8)}
         </Text>
       </Billboard>
     </group>
@@ -649,27 +679,8 @@ export const BotsVisualization: React.FC = () => {
   // Refs for server-authoritative positions
   const positionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
 
-  // Binary updates from server physics
-  const { agentNodes, nodeIdMap, requestUpdate } = useBotsBinaryUpdates({
-    enabled: true,
-    onPositionUpdate: (agentNodes) => {
-      // Update position map from binary data
-      agentNodes.forEach((node, index) => {
-        const position = new THREE.Vector3(node.position.x, node.position.y, node.position.z);
-
-        // Map binary node ID to agent ID
-        // For now, we'll use the node index to match with agent array index
-        // This may need refinement based on how the server assigns node IDs
-        const agents = Array.from(botsData.agents.values());
-        if (index < agents.length) {
-          const agent = agents[index];
-          positionsRef.current.set(agent.id, position);
-        }
-      });
-
-      logger.debug(`Updated ${agentNodes.length} agent positions from binary protocol`);
-    }
-  });
+  // Note: Binary position updates removed - now handled via full graph updates
+  // The server sends complete graph data including positions via requestBotsGraph
 
   // Colors
   const colors = useMemo(() => getVisionFlowColors(settings), [settings]);
@@ -703,20 +714,11 @@ export const BotsVisualization: React.FC = () => {
       }
     });
 
-    // Generate edges based on parent relationships
+    // Use edges from context (provided by backend with full graph data)
+    const edges = (contextBotsData as any).edges || [];
     const edgeMap = new Map<string, BotsEdge>();
-    agents.forEach(agent => {
-      if (agent.parentQueenId) {
-        const edgeId = `${agent.parentQueenId}-${agent.id}`;
-        edgeMap.set(edgeId, {
-          id: edgeId,
-          source: agent.parentQueenId,
-          target: agent.id,
-          dataVolume: 0,
-          messageCount: 0,
-          lastMessageTime: Date.now()
-        });
-      }
+    edges.forEach((edge: BotsEdge) => {
+      edgeMap.set(edge.id, edge);
     });
 
     setBotsData({
@@ -737,13 +739,8 @@ export const BotsVisualization: React.FC = () => {
     // No client-side physics simulation needed
   });
 
-  // Request position updates from server
-  useEffect(() => {
-    if (botsData.agents.size > 0) {
-      // Request server to compute and send updated positions
-      requestUpdate();
-    }
-  }, [botsData.agents.size, requestUpdate]);
+  // Position updates are now handled automatically via WebSocket polling
+  // The BotsWebSocketIntegration service polls for graph updates every 2 seconds
 
   if (error) {
     return (
@@ -817,17 +814,7 @@ export const BotsVisualization: React.FC = () => {
         );
       })}
 
-      {/* Debug info */}
-      {debugState.isEnabled() && (
-        <BotsDebugInfo
-          nodeCount={botsData.agents.size}
-          edgeCount={botsData.edges.size}
-          mcpConnected={mcpConnected}
-          dataSource="mcp"
-          isLoading={isLoading}
-          error={error}
-        />
-      )}
+      {/* Debug info removed - now in control panel */}
     </group>
   );
 };

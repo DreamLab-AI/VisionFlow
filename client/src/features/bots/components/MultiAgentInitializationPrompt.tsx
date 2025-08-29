@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/logger';
 import { apiService } from '../../../services/apiService';
+import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 
 const logger = createLogger('MultiAgentInitializationPrompt');
 
@@ -118,6 +119,8 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);
+        // Restart polling to get the new agents
+        botsWebSocketIntegration.restartPolling();
         onInitialized();
       } else {
         throw new Error(response.error || 'Failed to spawn hive mind');

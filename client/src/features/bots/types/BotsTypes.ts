@@ -37,7 +37,7 @@ export interface BotsAgent {
   };
 
   // UPDATED: multi-agent and hive-mind metadata
-  multiAgentId?: string;
+  swarmId?: string; // Changed from multiAgentId for consistency
   agentMode?: 'centralized' | 'distributed' | 'strategic';
   parentQueenId?: string; // for hierarchical topologies
 

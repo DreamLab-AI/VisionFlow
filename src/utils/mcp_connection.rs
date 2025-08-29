@@ -333,6 +333,26 @@ pub async fn call_swarm_init(
     pool.execute_command("swarm_init", "tools/call", params).await
 }
 
+/// Simplified function to destroy a swarm
+pub async fn call_swarm_destroy(
+    host: &str,
+    port: &str,
+    swarm_id: &str,
+) -> Result<Value, Box<dyn std::error::Error>> {
+    let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
+    
+    info!("Calling swarm_destroy for swarm_id: {}", swarm_id);
+    
+    let params = json!({
+        "name": "swarm_destroy", 
+        "arguments": {
+            "swarmId": swarm_id
+        }
+    });
+    
+    pool.execute_command("swarm_destroy", "tools/call", params).await
+}
+
 /// Simplified function to list agents
 pub async fn call_agent_list(
     host: &str,

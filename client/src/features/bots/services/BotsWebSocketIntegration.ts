@@ -12,6 +12,7 @@ export class BotsWebSocketIntegration {
   private static instance: BotsWebSocketIntegration;
   private logseqConnected = false;
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  private botsGraphInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
     this.initializeConnections();
@@ -37,6 +38,13 @@ export class BotsWebSocketIntegration {
       logger.info(`Logseq WebSocket connection status: ${connected}`);
       this.logseqConnected = connected;
       this.emit('logseq-connected', { connected });
+      
+      // Start or stop polling based on connection status
+      if (connected) {
+        this.startBotsGraphPolling();
+      } else {
+        this.stopBotsGraphPolling();
+      }
     });
 
     // Listen for Logseq graph messages
@@ -44,6 +52,10 @@ export class BotsWebSocketIntegration {
       if (message.type === 'graph-update') {
         logger.debug('Received Logseq graph update', message.data);
         this.emit('logseq-graph-update', message.data);
+      } else if (message.type === 'botsGraphUpdate') {
+        // NEW: Handle full graph data with nodes and edges
+        logger.debug('Received bots graph update with', message.data?.nodes?.length || 0, 'nodes and', message.data?.edges?.length || 0, 'edges');
+        this.emit('bots-graph-update', message.data);
       } else if (message.type === 'bots-full-update') {
         logger.debug('Received bots full update with', message.agents?.length || 0, 'agents');
         this.emit('bots-full-update', message);
@@ -83,6 +95,40 @@ export class BotsWebSocketIntegration {
 
     // Emit general bots update
     this.emit('bots-update', data);
+  }
+
+  /**
+   * Start polling for full bots graph data
+   */
+  public startBotsGraphPolling(interval: number = 2000): void {
+    if (this.botsGraphInterval) {
+      clearInterval(this.botsGraphInterval);
+    }
+    
+    logger.info(`Starting bots graph polling with ${interval}ms interval`);
+    
+    this.botsGraphInterval = setInterval(() => {
+      if (webSocketService.isReady()) {
+        // Request full graph data with nodes and edges
+        webSocketService.sendMessage('requestBotsGraph');
+      }
+    }, interval);
+    
+    // Initial request
+    if (webSocketService.isReady()) {
+      webSocketService.sendMessage('requestBotsGraph');
+    }
+  }
+
+  /**
+   * Stop polling for bots graph data
+   */
+  public stopBotsGraphPolling(): void {
+    if (this.botsGraphInterval) {
+      logger.info('Stopping bots graph polling');
+      clearInterval(this.botsGraphInterval);
+      this.botsGraphInterval = null;
+    }
   }
 
   // Public API methods
@@ -161,10 +207,41 @@ export class BotsWebSocketIntegration {
   }
 
   /**
+   * Clear all agents data
+   */
+  clearAgents() {
+    logger.info('Clearing all agents data');
+    // Stop polling for bots graph
+    if (this.botsPollingInterval) {
+      clearInterval(this.botsPollingInterval);
+      this.botsPollingInterval = null;
+    }
+    // Emit cleared state via the proper event
+    this.emit('bots-graph-update', {
+      nodes: [],
+      edges: [],
+      metadata: {}
+    });
+  }
+
+  /**
+   * Restart polling for bots graph
+   */
+  restartPolling() {
+    logger.info('Restarting bots graph polling');
+    this.clearAgents();
+    // Small delay to ensure clean state
+    setTimeout(() => {
+      this.startBotsGraphPolling();
+    }, 500);
+  }
+
+  /**
    * Cleanup connections
    */
   disconnect() {
     logger.info('Disconnecting WebSocket services');
+    this.clearAgents();
     webSocketService.close();
     this.logseqConnected = false;
   }

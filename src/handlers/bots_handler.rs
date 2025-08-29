@@ -104,6 +104,8 @@ pub struct InitializeSwarmRequest {
 use once_cell::sync::Lazy;
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
     Lazy::new(|| Arc::new(RwLock::new(GraphData::new())));
+static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
+    Lazy::new(|| Arc::new(RwLock::new(None)));
 
 pub async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>, Box<dyn std::error::Error>> {
     // Connect directly to Claude Flow TCP server in multi-agent-container
@@ -161,25 +163,8 @@ pub async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>,
             }
 
             if let Ok(response) = serde_json::from_str::<serde_json::Value>(&line) {
-                // MCP tools/call returns result.content[0].text with JSON string
-                let agents_data = if let Some(result) = response.get("result") {
-                    if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
-                        if let Some(first_content) = content.first() {
-                            if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                                serde_json::from_str::<serde_json::Value>(text).ok()
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    } else {
-                        // Direct result object (for backward compatibility)
-                        Some(result.clone())
-                    }
-                } else {
-                    None
-                };
+                // MCP responses come directly as result objects
+                let agents_data = response.get("result").cloned();
                 
                 if let Some(agent_result) = agents_data {
                     if let Some(agents) = agent_result.get("agents").and_then(|a| a.as_array()) {
@@ -914,6 +899,81 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> HttpResponse {
     HttpResponse::Ok().json(&*bots_graph)
 }
 
+// Get full bots graph data (for WebSocket updates)
+pub async fn get_bots_graph_data(bots_client: &BotsClient) -> Option<GraphData> {
+    // Try to get live data from BotsClient
+    if let Some(bots_update) = bots_client.get_latest_update().await {
+        info!("Building graph data for {} agents", bots_update.agents.len());
+        
+        // Convert BotsClient agents to our BotsAgent format
+        // NOTE: BotsClient Agent struct doesn't have all fields, so we use sensible defaults
+        let agents: Vec<BotsAgent> = bots_update.agents.iter().map(|agent| BotsAgent {
+            id: agent.id.clone(),
+            agent_type: agent.agent_type.clone(),
+            status: agent.status.clone(),
+            name: agent.name.clone(),
+            cpu_usage: agent.cpu_usage,
+            memory_usage: agent.memory_usage,
+            health: agent.health,
+            workload: agent.workload,
+            position: Vec3::ZERO,
+            velocity: Vec3::ZERO,
+            force: Vec3::ZERO,
+            connections: vec![],
+            capabilities: None,
+            current_task: None,
+            tasks_active: Some(1), // Default to 1 active task if agent is running
+            tasks_completed: Some(0), // Will be updated when we get real data
+            success_rate: Some(1.0), // Default success rate
+            tokens: Some(1000), // Default token count for demo
+            token_rate: Some(10.0), // Default token rate
+            activity: Some(agent.workload), // Use workload as activity indicator
+            swarm_id: None,
+            agent_mode: None,
+            parent_queen_id: None,
+            processing_logs: None,
+            created_at: agent.created_at.clone(),
+            age: agent.age,
+        }).collect();
+        
+        // Convert to nodes for graph visualization
+        let nodes = convert_agents_to_nodes(agents);
+        
+        // Create node ID mapping for edges
+        let node_map: HashMap<String, u32> = nodes.iter()
+            .map(|node| (node.metadata_id.clone(), node.id))
+            .collect();
+        
+        // Generate simple mesh edges for now (each agent connected to others)
+        let mut edges = Vec::new();
+        for (i, node1) in nodes.iter().enumerate() {
+            for node2 in nodes.iter().skip(i + 1) {
+                edges.push(Edge {
+                    id: format!("edge-{}-{}", node1.metadata_id, node2.metadata_id),
+                    source: node1.id,
+                    target: node2.id,
+                    weight: 1.0,
+                    edge_type: Some("collaboration".to_string()),
+                    metadata: Some({
+                        let mut meta = HashMap::new();
+                        meta.insert("type".to_string(), "collaboration".to_string());
+                        meta
+                    }),
+                });
+            }
+        }
+        
+        return Some(GraphData {
+            nodes,
+            edges,
+            metadata: MetadataStore::new(),
+            id_to_metadata: HashMap::new(),
+        });
+    }
+    
+    None
+}
+
 // Get bots node positions (for WebSocket updates)
 pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
     // Try to get live data from BotsClient first
@@ -934,12 +994,12 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
             connections: vec![],
             capabilities: None,
             current_task: None,
-            tasks_active: None,
-            tasks_completed: None,
-            success_rate: None,
-            tokens: None,
-            token_rate: None,
-            activity: None,
+            tasks_active: Some(1), // Default to 1 active task if agent is running
+            tasks_completed: Some(0), // Will be updated when we get real data
+            success_rate: Some(1.0), // Default success rate
+            tokens: Some(1000), // Default token count for demo
+            token_rate: Some(10.0), // Default token rate
+            activity: Some(agent.workload), // Use workload as activity indicator
             swarm_id: None,
             agent_mode: None,
             parent_queen_id: None,
@@ -996,60 +1056,45 @@ pub async fn initialize_swarm(
         Ok(result) => {
             info!("Successfully received swarm_init response: {:?}", result);
             
-            // Parse the result - it comes wrapped in content[0].text
-            let swarm_data = if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
-                if let Some(first_content) = content.first() {
-                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                        serde_json::from_str::<serde_json::Value>(text).ok()
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                // Direct result (shouldn't happen with tools/call)
-                Some(result.clone())
-            };
+            // The MCP response is already the result object
+            let swarm_id = result.get("swarmId")
+                .or_else(|| result.get("swarm_id"))
+                .and_then(|s| s.as_str())
+                .unwrap_or("default-swarm")
+                .to_string();
             
-            if let Some(swarm_result) = swarm_data {
-                let swarm_id = swarm_result.get("swarmId")
-                    .or_else(|| swarm_result.get("swarm_id"))
-                    .and_then(|s| s.as_str())
-                    .unwrap_or("default-swarm")
-                    .to_string();
-                
-                info!("✅ Swarm initialized with ID: {}", swarm_id);
-                
-                // Create initial agent list based on requested types
-                let initial_agents: Vec<serde_json::Value> = request.agent_types.iter().enumerate().map(|(i, agent_type)| {
-                    json!({
-                        "id": format!("agent-{}-{}", swarm_id, i),
-                        "type": agent_type,
-                        "name": format!("{} Agent {}", agent_type, i + 1),
-                        "status": "initializing",
-                        "swarm_id": swarm_id.clone()
-                    })
-                }).collect();
-
-                return HttpResponse::Ok().json(serde_json::json!({
-                    "success": true,
-                    "message": "Swarm initialization started via Claude Flow TCP",
-                    "swarm_id": swarm_id,
-                    "agents": initial_agents,
-                    "topology": request.topology.clone(),
-                    "max_agents": request.max_agents,
-                    "strategy": request.strategy.clone(),
-                    "enable_neural": request.enable_neural,
-                    "mock_mode": false
-                }));
-            } else {
-                error!("Failed to parse swarm data from MCP response");
-                return HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Invalid response format from Claude Flow"
-                }));
+            info!("✅ Swarm initialized with ID: {}", swarm_id);
+            
+            // Store the swarm ID for later use (e.g., disconnection)
+            {
+                let mut current_id = CURRENT_SWARM_ID.write().await;
+                *current_id = Some(swarm_id.clone());
+                info!("Stored swarm ID for later disconnection: {}", swarm_id);
             }
+                
+            
+            // Create initial agent list based on requested types
+            let initial_agents: Vec<serde_json::Value> = request.agent_types.iter().enumerate().map(|(i, agent_type)| {
+                json!({
+                    "id": format!("agent-{}-{}", swarm_id, i),
+                    "type": agent_type,
+                    "name": format!("{} Agent {}", agent_type, i + 1),
+                    "status": "initializing",
+                    "swarm_id": swarm_id.clone()
+                })
+            }).collect();
+
+            return HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Swarm initialization started via Claude Flow TCP",
+                "swarm_id": swarm_id,
+                "agents": initial_agents,
+                "topology": request.topology.clone(),
+                "max_agents": request.max_agents,
+                "strategy": request.strategy.clone(),
+                "enable_neural": request.enable_neural,
+                "mock_mode": false
+            }));
         }
         Err(e) => {
             error!("Failed to initialize swarm via MCP: {}", e);
@@ -1292,70 +1337,55 @@ pub async fn initialize_multi_agent(
         strategy,
     ).await {
         Ok(result) => {
-            info!("Successfully received multi-agent swarm_init response");
+            info!("Successfully received multi-agent swarm_init response: {:?}", result);
             
-            // Parse the response
-            let swarm_data = if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
-                if let Some(first_content) = content.first() {
-                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                        serde_json::from_str::<serde_json::Value>(text).ok()
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                Some(result.clone())
-            };
+            // The MCP response is already the result object, not wrapped
+            let swarm_id = result.get("swarmId")
+                .or_else(|| result.get("swarm_id"))
+                .and_then(|s| s.as_str())
+                .unwrap_or("default-swarm")
+                .to_string();
             
-            if let Some(swarm_result) = swarm_data {
-                let swarm_id = swarm_result.get("swarmId")
-                    .or_else(|| swarm_result.get("swarm_id"))
-                    .and_then(|s| s.as_str())
-                    .unwrap_or("default-swarm")
-                    .to_string();
-                
-                info!("✅ Multi-agent swarm initialized with ID: {}", swarm_id);
-                
-                // Extract agent types from request
-                let agent_types = request.get("agentTypes")
-                    .and_then(|a| a.as_array())
-                    .map(|a| a.iter()
-                        .filter_map(|t| t.as_str())
-                        .collect::<Vec<_>>())
-                    .unwrap_or_else(|| vec!["coordinator", "researcher", "coder"]);
-                
-                // Create agent list
-                let agents: Vec<serde_json::Value> = agent_types.iter().enumerate().map(|(i, agent_type)| {
-                    json!({
-                        "id": format!("agent-{}-{}", swarm_id, i),
-                        "type": agent_type,
-                        "name": format!("{} Agent {}", agent_type, i + 1),
-                        "status": "active",
-                        "swarmId": swarm_id.clone()
-                    })
-                }).collect();
-                
-                return HttpResponse::Ok().json(json!({
-                    "success": true,
-                    "message": "Multi-agent system initialized successfully",
-                    "data": {
-                        "swarmId": swarm_id,
-                        "topology": topology,
-                        "maxAgents": max_agents,
-                        "strategy": strategy,
-                        "agents": agents,
-                        "status": "initialized"
-                    }
-                }));
-            } else {
-                error!("Failed to parse swarm data from multi-agent response");
-                return HttpResponse::InternalServerError().json(json!({
-                    "success": false,
-                    "error": "Invalid response format from Claude Flow"
-                }));
+            info!("✅ Multi-agent swarm initialized with ID: {}", swarm_id);
+            
+            // Store the swarm ID for later use (e.g., disconnection)
+            {
+                let mut current_id = CURRENT_SWARM_ID.write().await;
+                *current_id = Some(swarm_id.clone());
+                info!("Stored swarm ID for later disconnection: {}", swarm_id);
             }
+            
+            // Extract agent types from request
+            let agent_types = request.get("agentTypes")
+                .and_then(|a| a.as_array())
+                .map(|a| a.iter()
+                    .filter_map(|t| t.as_str())
+                    .collect::<Vec<_>>())
+                .unwrap_or_else(|| vec!["coordinator", "researcher", "coder"]);
+            
+            // Create agent list
+            let agents: Vec<serde_json::Value> = agent_types.iter().enumerate().map(|(i, agent_type)| {
+                json!({
+                    "id": format!("agent-{}-{}", swarm_id, i),
+                    "type": agent_type,
+                    "name": format!("{} Agent {}", agent_type, i + 1),
+                    "status": "active",
+                    "swarmId": swarm_id.clone()
+                })
+            }).collect();
+            
+            return HttpResponse::Ok().json(json!({
+                "success": true,
+                "message": "Multi-agent system initialized successfully",
+                "data": {
+                    "swarmId": swarm_id,
+                    "topology": topology,
+                    "maxAgents": max_agents,
+                    "strategy": strategy,
+                    "agents": agents,
+                    "status": "initialized"
+                }
+            }));
         }
         Err(e) => {
             error!("Failed to initialize multi-agent system: {}", e);
@@ -1882,6 +1912,55 @@ impl Default for EnhancedBotsHandler {
     }
 }
 
+// Handler for disconnecting/terminating multi-agent system
+pub async fn disconnect_multi_agent(state: web::Data<AppState>) -> impl Responder {
+    info!("Received request to disconnect multi-agent system");
+    
+    // Get the current swarm ID if it exists
+    let swarm_id = {
+        let current_id = CURRENT_SWARM_ID.read().await;
+        current_id.clone()
+    };
+    
+    // If we have a swarm ID, send destroy command to MCP server
+    if let Some(swarm_id) = swarm_id {
+        info!("Attempting to destroy swarm: {}", swarm_id);
+        
+        use crate::utils::mcp_connection::call_swarm_destroy;
+        
+        let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
+            .or_else(|_| std::env::var("MCP_HOST"))
+            .unwrap_or_else(|_| "multi-agent-container".to_string());
+        let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
+        
+        // Call swarm_destroy to properly terminate the agents
+        match call_swarm_destroy(&claude_flow_host, &claude_flow_port, &swarm_id).await {
+            Ok(result) => {
+                info!("Successfully destroyed swarm {}: {:?}", swarm_id, result);
+            }
+            Err(e) => {
+                warn!("Failed to destroy swarm {}: {}", swarm_id, e);
+                // Continue with cleanup even if destroy fails
+            }
+        }
+        
+        // Clear the stored swarm ID
+        let mut current_id = CURRENT_SWARM_ID.write().await;
+        *current_id = None;
+    } else {
+        info!("No active swarm ID found, skipping MCP destroy");
+    }
+    
+    // Clear the bots graph data
+    let mut bots_graph = BOTS_GRAPH.write().await;
+    *bots_graph = GraphData::new();
+    
+    HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "message": "Disconnected from multi-agent system"
+    }))
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     info!("Configuring bots routes:");
     info!("  - /bots/data (GET) - Full graph data");
@@ -1955,5 +2034,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                     };
                     response
                 }))
+        )
+        .route("/disconnect-multi-agent",
+            web::post().to(disconnect_multi_agent)
         );
 }

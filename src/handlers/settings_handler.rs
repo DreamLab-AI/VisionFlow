@@ -86,6 +86,24 @@ pub struct RenderingSettingsDTO {
     pub shadow_bias: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_colors: Option<AgentColorsDTO>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentColorsDTO {
+    pub coordinator: String,
+    pub coder: String,
+    pub architect: String,
+    pub analyst: String,
+    pub tester: String,
+    pub researcher: String,
+    pub reviewer: String,
+    pub optimizer: String,
+    pub documenter: String,
+    pub queen: String,
+    pub default: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -594,6 +612,22 @@ impl From<&crate::config::VisualisationSettings> for VisualisationSettingsDTO {
 
 impl From<&crate::config::RenderingSettings> for RenderingSettingsDTO {
     fn from(settings: &crate::config::RenderingSettings) -> Self {
+        // Load agent colors from dev_config
+        let dev_config = crate::config::dev_config::rendering();
+        let agent_colors = Some(AgentColorsDTO {
+            coordinator: dev_config.agent_colors.coordinator.clone(),
+            coder: dev_config.agent_colors.coder.clone(),
+            architect: dev_config.agent_colors.architect.clone(),
+            analyst: dev_config.agent_colors.analyst.clone(),
+            tester: dev_config.agent_colors.tester.clone(),
+            researcher: dev_config.agent_colors.researcher.clone(),
+            reviewer: dev_config.agent_colors.reviewer.clone(),
+            optimizer: dev_config.agent_colors.optimizer.clone(),
+            documenter: dev_config.agent_colors.documenter.clone(),
+            queen: "#FFD700".to_string(), // Gold color for queen
+            default: dev_config.agent_colors.default.clone(),
+        });
+        
         Self {
             ambient_light_intensity: settings.ambient_light_intensity,
             background_color: settings.background_color.clone(),
@@ -605,6 +639,7 @@ impl From<&crate::config::RenderingSettings> for RenderingSettingsDTO {
             shadow_map_size: settings.shadow_map_size.clone(),
             shadow_bias: settings.shadow_bias,
             context: settings.context.clone(),
+            agent_colors,
         }
     }
 }

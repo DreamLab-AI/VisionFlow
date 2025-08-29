@@ -672,6 +672,42 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     });
                                 }
                             }
+                            Some("requestBotsGraph") => {
+                                info!("Client requested full bots graph data");
+                                
+                                // Send complete graph structure (nodes + edges)
+                                let app_state = self.app_state.clone();
+                                
+                                ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                    // Get full graph data from the bots handler
+                                    crate::handlers::bots_handler::get_bots_graph_data(&app_state.bots_client).await
+                                }).map(|graph_data_opt, _act, ctx| {
+                                    if let Some(graph_data) = graph_data_opt {
+                                        // Send graph data as JSON
+                                        let response = serde_json::json!({
+                                            "type": "botsGraphUpdate",
+                                            "data": graph_data,
+                                            "timestamp": chrono::Utc::now().timestamp_millis()
+                                        });
+                                        
+                                        if let Ok(msg_str) = serde_json::to_string(&response) {
+                                            info!("Sending bots graph: {} nodes, {} edges",
+                                                graph_data.nodes.len(), graph_data.edges.len());
+                                            ctx.text(msg_str);
+                                        }
+                                    } else {
+                                        warn!("No bots graph data available");
+                                        let response = serde_json::json!({
+                                            "type": "botsGraphUpdate",
+                                            "error": "No data available",
+                                            "timestamp": chrono::Utc::now().timestamp_millis()
+                                        });
+                                        if let Ok(msg_str) = serde_json::to_string(&response) {
+                                            ctx.text(msg_str);
+                                        }
+                                    }
+                                }));
+                            }
                             Some("requestBotsPositions") => {
                                 info!("Client requested bots position updates");
 

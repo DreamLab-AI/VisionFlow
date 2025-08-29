@@ -4,6 +4,9 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
+import { apiService } from '../../../services/apiService';
+import { botsWebSocketIntegration } from '../../bots/services/BotsWebSocketIntegration';
+import { useBotsData } from '../../bots/contexts/BotsDataContext';
 // Import design system components
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../design-system/components/Tabs';
 import { Tooltip, TooltipProvider } from '../../design-system/components/Tooltip';
@@ -120,6 +123,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   
   // Graph features state
   const [graphFeaturesEnabled, setGraphFeaturesEnabled] = useState(false);
+  
+  // Get updateBotsData from context
+  const { updateBotsData } = useBotsData();
 
   // Settings store access
   const settings = useSettingsStore(state => state.settings);
@@ -950,7 +956,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                     <div style={{ color: '#F59E0B', fontWeight: 600, fontSize: '10px' }}>{botsData.tokenCount.toLocaleString()}</div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                   <button
                     onClick={() => setshowmultiAgentPrompt(true)}
                     style={{
@@ -975,6 +981,53 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                     }}
                   >
                     New multi-agent Task
+                  </button>
+                  <button
+                    onClick={async () => {
+                      // Disconnect from current hive mind
+                      try {
+                        const response = await fetch(`${apiService.getBaseUrl()}/bots/disconnect-multi-agent`, {
+                          method: 'POST'
+                        });
+                        if (response.ok) {
+                          // Clear local state
+                          botsWebSocketIntegration.clearAgents();
+                          updateBotsData({
+                            nodeCount: 0,
+                            edgeCount: 0,
+                            tokenCount: 0,
+                            mcpConnected: false,
+                            dataSource: 'disconnected',
+                            agents: [],
+                            edges: []
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Failed to disconnect:', error);
+                      }
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
+                    }}
+                  >
+                    Disconnect
                   </button>
                 </div>
               </>
