@@ -12,9 +12,12 @@ This document provides a complete implementation plan for integrating a novel hi
 1. **Core SSSP Algorithm**: GPU-accelerated shortest path computation
 2. **REST API**: Analytics endpoint for shortest path queries  
 3. **Physics Integration**: Optional SSSP-driven spring forces for improved layouts
-4. **Robust Testing**: Comprehensive validation and performance benchmarks
+4. **Client-Side Integration**: Interactive UI controls and 3D visualization
+5. **Robust Testing**: Comprehensive validation and performance benchmarks
 
 ### Primary Files Modified
+
+#### Backend
 - [`visionflow_unified.cu`](src/utils/visionflow_unified.cu) - CUDA kernels
 - [`unified_gpu_compute.rs`](src/utils/unified_gpu_compute.rs) - GPU orchestration
 - [`graph_actor.rs`](src/actors/graph_actor.rs) - Centralized GPU owner
@@ -22,11 +25,19 @@ This document provides a complete implementation plan for integrating a novel hi
 - [`analytics/mod.rs`](src/handlers/api_handler/analytics/mod.rs) - REST API
 - [`simulation_params.rs`](src/models/simulation_params.rs) - Parameters
 
+#### Frontend
+- [`apiService.ts`](client/src/services/apiService.ts) - API client
+- [`analyticsStore.ts`](client/src/features/analytics/store/analyticsStore.ts) - State management
+- [`ShortestPathControls.tsx`](client/src/features/analytics/components/ShortestPathControls.tsx) - UI controls
+- [`GraphManager.tsx`](client/src/features/graph/components/GraphManager.tsx) - 3D visualization
+- [`defaultCommands.ts`](client/src/features/command-palette/defaultCommands.ts) - Command palette
+
 ### Assumptions
 - Edge weights are non-negative (confirmed by user)
 - CSR format is directed (undirected edges uploaded twice)  
 - PTX build pipeline is functional and used by GraphServiceActor
 - Disconnected graphs are supported (unreachable nodes handled gracefully)
+- Client uses React, Zustand, React Three Fiber architecture
 
 ---
 
@@ -703,27 +714,450 @@ pub async fn run_sssp_async(&mut self, source: usize) -> Result<()> {
 
 ---
 
+## Phase 6: Client-Side Integration
+
+### Goal
+Enable the client application to consume the SSSP API and provide interactive visualization of shortest path results in the 3D graph interface.
+
+### 6.1 API Service Integration
+
+Location: [`client/src/services/apiService.ts`](client/src/services/apiService.ts)
+
+```typescript
+// Add to ApiService class
+/**
+ * Computes single-source shortest paths from a given node
+ * @param sourceNodeId The numeric ID of the source node
+ * @returns Map of node IDs to their shortest path distances
+ */
+public async computeShortestPaths(sourceNodeId: number): Promise<Record<number, number | null>> {
+    try {
+        logger.info(`Requesting SSSP calculation for source node: ${sourceNodeId}`);
+        const response = await this.post<{ 
+            distances: Record<number, number | null>,
+            unreachableCount: number 
+        } | { error: string }>(
+            '/analytics/shortest-path',
+            { sourceNodeId }
+        );
+
+        if ('error' in response) {
+            throw new Error(response.error);
+        }
+
+        return response.distances;
+    } catch (error) {
+        logger.error(`Failed to compute shortest paths for source ${sourceNodeId}:`, 
+                    createErrorMetadata(error));
+        throw error;
+    }
+}
+```
+
+### 6.2 State Management with Zustand
+
+Location: [`client/src/features/analytics/store/analyticsStore.ts`](client/src/features/analytics/store/analyticsStore.ts) (new file)
+
+```typescript
+import { create } from 'zustand';
+import { apiService } from '@/services/apiService';
+
+interface SSSPResult {
+    sourceNodeId: number | null;
+    distanceMap: Record<number, number | null> | null;
+    maxDistance: number;
+    unreachableNodes: Set<number>;
+}
+
+interface AnalyticsState {
+    ssspResult: SSSPResult | null;
+    isLoading: boolean;
+    error: string | null;
+    calculateShortestPaths: (sourceNodeId: number) => Promise<void>;
+    clearShortestPaths: () => void;
+    highlightPath: (targetNodeId: number) => void;
+}
+
+export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
+    ssspResult: null,
+    isLoading: false,
+    error: null,
+
+    calculateShortestPaths: async (sourceNodeId: number) => {
+        set({ isLoading: true, error: null, ssspResult: null });
+        
+        try {
+            const distanceMap = await apiService.computeShortestPaths(sourceNodeId);
+            
+            // Calculate max distance for normalization
+            const finiteDistances = Object.values(distanceMap)
+                .filter((d): d is number => d !== null && isFinite(d));
+            const maxDistance = Math.max(...finiteDistances, 0);
+            
+            // Track unreachable nodes
+            const unreachableNodes = new Set(
+                Object.entries(distanceMap)
+                    .filter(([_, dist]) => dist === null)
+                    .map(([id, _]) => parseInt(id))
+            );
+
+            set({
+                isLoading: false,
+                ssspResult: { 
+                    sourceNodeId, 
+                    distanceMap, 
+                    maxDistance,
+                    unreachableNodes
+                },
+            });
+            
+            logger.info(`SSSP calculation complete. Max distance: ${maxDistance}, ` +
+                       `Unreachable nodes: ${unreachableNodes.size}`);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to calculate paths';
+            set({ isLoading: false, error: errorMessage });
+            logger.error('SSSP calculation failed:', err);
+        }
+    },
+
+    clearShortestPaths: () => {
+        set({ ssspResult: null, error: null });
+    },
+
+    highlightPath: (targetNodeId: number) => {
+        const { ssspResult } = get();
+        if (!ssspResult) return;
+        
+        // Future: Implement path highlighting when parent tracking is added
+        logger.info(`Path highlighting requested for target node ${targetNodeId}`);
+    },
+}));
+```
+
+### 6.3 UI Controls Component
+
+Location: [`client/src/features/analytics/components/ShortestPathControls.tsx`](client/src/features/analytics/components/ShortestPathControls.tsx) (new file)
+
+```tsx
+import React, { useState } from 'react';
+import { useAnalyticsStore } from '../store/analyticsStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Badge } from '@/components/ui/Badge';
+import { AlertCircle, Play, X } from 'lucide-react';
+
+export function ShortestPathControls() {
+    const [sourceNodeId, setSourceNodeId] = useState('');
+    const { 
+        calculateShortestPaths, 
+        clearShortestPaths, 
+        isLoading, 
+        error, 
+        ssspResult 
+    } = useAnalyticsStore();
+
+    const handleCalculate = () => {
+        const id = parseInt(sourceNodeId, 10);
+        if (!isNaN(id)) {
+            calculateShortestPaths(id);
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !isLoading && sourceNodeId) {
+            handleCalculate();
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    Shortest Path Analysis
+                    {ssspResult && (
+                        <Badge variant="secondary">
+                            Source: {ssspResult.sourceNodeId}
+                        </Badge>
+                    )}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                    <Input
+                        type="number"
+                        placeholder="Source Node ID"
+                        value={sourceNodeId}
+                        onChange={(e) => setSourceNodeId(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        disabled={isLoading}
+                        className="flex-1"
+                    />
+                    <Button 
+                        onClick={handleCalculate} 
+                        disabled={isLoading || !sourceNodeId}
+                        size="icon"
+                    >
+                        {isLoading ? <LoadingSpinner size="sm" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        onClick={clearShortestPaths} 
+                        disabled={isLoading}
+                        size="icon"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+
+                {error && (
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        {error}
+                    </div>
+                )}
+
+                {ssspResult && (
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Max Distance:</span>
+                            <span className="font-mono">{ssspResult.maxDistance.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Unreachable Nodes:</span>
+                            <span className="font-mono">{ssspResult.unreachableNodes.size}</span>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+```
+
+### 6.4 3D Visualization Integration
+
+Location: [`client/src/features/graph/components/GraphManager.tsx`](client/src/features/graph/components/GraphManager.tsx)
+
+```tsx
+// Add to imports
+import { useAnalyticsStore } from '@/features/analytics/store/analyticsStore';
+
+// Inside GraphManager component
+export function GraphManager({ graphData, settings }: GraphManagerProps) {
+    const { ssspResult } = useAnalyticsStore();
+    const meshRef = useRef<THREE.InstancedMesh>(null);
+    
+    // ... existing code ...
+    
+    // Update node colors based on SSSP results
+    useEffect(() => {
+        if (!meshRef.current || !graphData) return;
+        
+        const colors = new Float32Array(graphData.nodes.length * 3);
+        const tempColor = new THREE.Color();
+        
+        graphData.nodes.forEach((node, i) => {
+            let finalColor = getNodeColor(node); // Default color
+            
+            if (ssspResult && ssspResult.distanceMap) {
+                const distance = ssspResult.distanceMap[node.id];
+                
+                if (distance === 0) {
+                    // Source node - bright white
+                    tempColor.set('#FFFFFF');
+                    finalColor = tempColor;
+                } else if (distance !== null && isFinite(distance)) {
+                    // Reachable node - gradient based on distance
+                    const normalizedDistance = Math.min(distance / ssspResult.maxDistance, 1);
+                    
+                    // Create gradient: green (close) -> yellow -> orange -> red (far)
+                    if (normalizedDistance < 0.25) {
+                        tempColor.setHSL(0.33, 1.0, 0.5); // Green
+                    } else if (normalizedDistance < 0.5) {
+                        tempColor.setHSL(0.17, 1.0, 0.5); // Yellow
+                    } else if (normalizedDistance < 0.75) {
+                        tempColor.setHSL(0.08, 1.0, 0.5); // Orange
+                    } else {
+                        tempColor.setHSL(0.0, 1.0, 0.5); // Red
+                    }
+                    finalColor = tempColor;
+                } else {
+                    // Unreachable node - dim gray
+                    tempColor.set('#333333');
+                    finalColor = tempColor;
+                }
+            }
+            
+            colors[i * 3] = finalColor.r;
+            colors[i * 3 + 1] = finalColor.g;
+            colors[i * 3 + 2] = finalColor.b;
+        });
+        
+        meshRef.current.geometry.setAttribute(
+            'instanceColor', 
+            new THREE.InstancedBufferAttribute(colors, 3)
+        );
+        
+        if (meshRef.current.instanceColor) {
+            meshRef.current.instanceColor.needsUpdate = true;
+        }
+    }, [graphData, ssspResult]);
+    
+    // ... rest of component ...
+}
+```
+
+### 6.5 Interactive Node Selection
+
+Location: [`client/src/features/graph/components/GraphManager_EventHandlers.ts`](client/src/features/graph/components/GraphManager_EventHandlers.ts)
+
+```typescript
+// Add to context menu handling
+import { useAnalyticsStore } from '@/features/analytics/store/analyticsStore';
+
+export function handleNodeRightClick(
+    event: ThreeEvent<MouseEvent>,
+    nodeId: number
+) {
+    event.stopPropagation();
+    
+    // Show context menu with SSSP option
+    const contextMenu = [
+        {
+            label: 'Calculate Shortest Paths from Here',
+            icon: 'route',
+            action: () => {
+                useAnalyticsStore.getState().calculateShortestPaths(nodeId);
+            }
+        },
+        // ... other menu items ...
+    ];
+    
+    showContextMenu(event.clientX, event.clientY, contextMenu);
+}
+```
+
+### 6.6 Command Palette Integration
+
+Location: [`client/src/features/command-palette/defaultCommands.ts`](client/src/features/command-palette/defaultCommands.ts)
+
+```typescript
+import { GitCompare } from 'lucide-react';
+import { useAnalyticsStore } from '@/features/analytics/store/analyticsStore';
+
+// Add to commands array
+{
+    id: 'analytics.shortestPath',
+    title: 'Calculate Shortest Paths',
+    description: 'Find shortest paths from a source node to all others',
+    category: 'Analytics',
+    icon: GitCompare,
+    keywords: ['sssp', 'dijkstra', 'path', 'distance', 'analytics'],
+    handler: async () => {
+        const sourceIdStr = await showPrompt({
+            title: 'Calculate Shortest Paths',
+            message: 'Enter the source node ID:',
+            placeholder: 'Node ID',
+            inputType: 'number'
+        });
+        
+        if (sourceIdStr) {
+            const sourceId = parseInt(sourceIdStr, 10);
+            if (!isNaN(sourceId)) {
+                await useAnalyticsStore.getState().calculateShortestPaths(sourceId);
+                showNotification({
+                    type: 'success',
+                    message: `Calculating shortest paths from node ${sourceId}...`
+                });
+            } else {
+                showNotification({
+                    type: 'error',
+                    message: 'Invalid node ID provided'
+                });
+            }
+        }
+    }
+}
+```
+
+### 6.7 Onboarding Integration
+
+Location: [`client/src/features/onboarding/flows/analyticsFlow.ts`](client/src/features/onboarding/flows/analyticsFlow.ts) (new file)
+
+```typescript
+export const analyticsOnboardingFlow = {
+    id: 'analytics-sssp',
+    title: 'Shortest Path Analysis',
+    description: 'Learn how to use the GPU-accelerated shortest path analysis',
+    steps: [
+        {
+            target: '[data-tour="shortest-path-panel"]',
+            title: 'Shortest Path Analysis',
+            content: 'This panel allows you to calculate shortest paths from any node ' +
+                    'to all other nodes in the graph using GPU acceleration.',
+            placement: 'left'
+        },
+        {
+            target: '[data-tour="source-node-input"]',
+            title: 'Select Source Node',
+            content: 'Enter the ID of the node you want to use as the source. ' +
+                    'You can also right-click any node in the graph to start from there.',
+            placement: 'bottom'
+        },
+        {
+            target: '[data-tour="calculate-button"]',
+            title: 'Run Analysis',
+            content: 'Click here to start the GPU-accelerated computation. ' +
+                    'Results will be visualized instantly on the graph.',
+            placement: 'bottom'
+        },
+        {
+            target: '[data-tour="graph-canvas"]',
+            title: 'Visual Results',
+            content: 'Nodes are colored based on their distance from the source: ' +
+                    'Green (close) → Yellow → Orange → Red (far). ' +
+                    'Gray nodes are unreachable from the source.',
+            placement: 'center'
+        }
+    ]
+};
+```
+
+---
+
 ## Implementation Workflow
 
 ```mermaid
 flowchart TD
-    A[Client Request] --> B[REST API]
-    B --> C[GraphServiceActor]
-    C --> D{GPU Context Ready?}
-    D -->|No| E[Return Error]
-    D -->|Yes| F[UnifiedGPUCompute::run_sssp]
-    F --> G[Initialize Distances]
-    G --> H[Relaxation Loop]
-    H --> I{Frontier Empty?}
-    I -->|No| J[Launch Kernel]
-    J --> K[Compact Frontier]
-    K --> H
-    I -->|Yes| L[Copy Results]
-    L --> M[Filter Unreachable]
-    M --> N[Return Response]
+    subgraph Client
+        A[User Input] --> B[React UI]
+        B --> C[Zustand Store]
+        C --> D[API Service]
+    end
     
-    style F fill:#f9f,stroke:#333,stroke-width:4px
+    subgraph Backend
+        D --> E[REST API]
+        E --> F[GraphServiceActor]
+        F --> G{GPU Ready?}
+        G -->|No| H[Error]
+        G -->|Yes| I[UnifiedGPUCompute]
+        I --> J[CUDA Kernels]
+        J --> K[Results]
+    end
+    
+    subgraph Visualization
+        K --> L[Response]
+        L --> C
+        C --> M[Three.js Scene]
+        M --> N[Color Mapping]
+        N --> O[Rendered Graph]
+    end
+    
+    style I fill:#f9f,stroke:#333,stroke-width:4px
     style J fill:#bbf,stroke:#333,stroke-width:2px
+    style M fill:#9f9,stroke:#333,stroke-width:2px
 ```
 
 ---
@@ -752,11 +1186,22 @@ flowchart TD
 3. **API Abuse**: Excessive SSSP requests
    - Mitigation: Rate limiting, request caching
 
+### Client-Side Risks
+
+1. **Large Result Sets**: Browser memory issues with millions of distances
+   - Mitigation: Pagination, progressive loading, result compression
+
+2. **Rendering Performance**: Color updates impact frame rate
+   - Mitigation: Debounced updates, LOD-based coloring
+
+3. **State Synchronization**: Client/server state mismatch
+   - Mitigation: Version tokens, optimistic updates with rollback
+
 ---
 
 ## Configuration and Tuning
 
-### Recommended Starting Values
+### Backend Configuration
 
 ```yaml
 sssp:
@@ -768,13 +1213,41 @@ sssp:
   cache_duration: 60         # Cache results for 60 seconds
 ```
 
+### Frontend Configuration
+
+```typescript
+// client/src/config/analytics.ts
+export const SSSP_CONFIG = {
+    // Visualization
+    colorScheme: 'heatmap',        // 'heatmap' | 'discrete' | 'monochrome'
+    sourceNodeColor: '#FFFFFF',
+    unreachableNodeColor: '#333333',
+    maxColorSteps: 5,
+    
+    // Performance
+    updateDebounce: 100,           // ms
+    maxRenderNodes: 100000,
+    useLOD: true,
+    
+    // UX
+    showDistanceLabels: false,
+    animateTransition: true,
+    transitionDuration: 500,       // ms
+    
+    // API
+    requestTimeout: 30000,         // ms
+    retryAttempts: 3,
+    cacheResults: true,
+};
+```
+
 ### Performance Targets
 
-| Graph Size | Target Latency | Memory Usage |
-|------------|---------------|--------------|
-| 10K nodes  | < 10ms       | < 100MB      |
-| 100K nodes | < 50ms       | < 1GB        |
-| 1M nodes   | < 200ms      | < 10GB       |
+| Graph Size | Target Latency | Memory Usage | Frame Rate |
+|------------|---------------|--------------|------------|
+| 10K nodes  | < 10ms       | < 100MB      | 60 FPS     |
+| 100K nodes | < 50ms       | < 1GB        | 30 FPS     |
+| 1M nodes   | < 200ms      | < 10GB       | 15 FPS     |
 
 ---
 
@@ -821,7 +1294,7 @@ sssp:
 ### Usage Examples
 
 ```bash
-# Compute shortest paths from node 42
+# Backend: Compute shortest paths from node 42
 curl -X POST http://localhost:8080/api/analytics/shortest-path \
   -H "Content-Type: application/json" \
   -d '{"sourceNodeId": 42}'
@@ -838,6 +1311,21 @@ curl -X POST http://localhost:8080/api/analytics/shortest-path \
 }
 ```
 
+```typescript
+// Frontend: Programmatic usage
+import { useAnalyticsStore } from '@/features/analytics/store/analyticsStore';
+
+// Calculate paths
+await useAnalyticsStore.getState().calculateShortestPaths(42);
+
+// Access results
+const { ssspResult } = useAnalyticsStore.getState();
+if (ssspResult) {
+    console.log(`Distance to node 43: ${ssspResult.distanceMap[43]}`);
+    console.log(`Unreachable nodes: ${ssspResult.unreachableNodes.size}`);
+}
+```
+
 ---
 
 ## Success Metrics
@@ -845,27 +1333,30 @@ curl -X POST http://localhost:8080/api/analytics/shortest-path \
 1. **Correctness**: 100% match with CPU reference implementation
 2. **Performance**: 10x speedup over CPU Dijkstra on graphs > 100K nodes
 3. **Reliability**: < 0.01% failure rate under normal load
-4. **Integration**: Physics layout quality improvement measurable via user studies
+4. **UX Quality**: < 100ms visual feedback, smooth transitions
+5. **Integration**: Physics layout quality improvement measurable via user studies
 
 ---
 
 ## Appendix: Complete Task Checklist
 
-### Phase 1: CUDA Implementation
+### Backend Tasks
+
+#### Phase 1: CUDA Implementation
 - [ ] Add atomicMinFloat utility function
 - [ ] Implement relaxation_step_kernel
 - [ ] Extend FeatureFlags with SSSP bit
 - [ ] Modify force_pass_kernel for SSSP distances
 - [ ] Add SimParams::sssp_alpha field
 
-### Phase 2: Rust Orchestration  
+#### Phase 2: Rust Orchestration  
 - [ ] Add SSSP buffers to UnifiedGPUCompute
 - [ ] Implement run_sssp with error handling
 - [ ] Add SSSP state invalidation on failure
 - [ ] Create separate SSSP stream
 - [ ] Implement host-side frontier compaction
 
-### Phase 3: Application Integration
+#### Phase 3: Application Integration
 - [ ] Create ComputeShortestPaths message
 - [ ] Implement GraphServiceActor handler
 - [ ] Handle unreachable nodes in response
@@ -873,7 +1364,7 @@ curl -X POST http://localhost:8080/api/analytics/shortest-path \
 - [ ] Add route configuration
 - [ ] Extend SimulationParams
 
-### Phase 4: Testing & Validation
+#### Phase 4: Testing & Validation
 - [ ] Unit tests for CUDA kernels
 - [ ] Integration tests vs CPU reference
 - [ ] Test disconnected graph handling
@@ -881,15 +1372,54 @@ curl -X POST http://localhost:8080/api/analytics/shortest-path \
 - [ ] API integration tests
 - [ ] Physics integration tests
 
-### Phase 5: Optimization
+#### Phase 5: Optimization
 - [ ] Device-side frontier compaction
 - [ ] Tunable parameters
 - [ ] Stream overlap implementation
 - [ ] Performance profiling
 - [ ] Memory optimization
 
-### Phase 6: Documentation
+### Frontend Tasks
+
+#### Phase 6.1: API Integration
+- [ ] Extend apiService with computeShortestPaths method
+- [ ] Add proper TypeScript types for response
+- [ ] Implement error handling and retry logic
+
+#### Phase 6.2: State Management
+- [ ] Create analyticsStore with Zustand
+- [ ] Implement SSSP result caching
+- [ ] Add distance normalization logic
+
+#### Phase 6.3: UI Controls
+- [ ] Create ShortestPathControls component
+- [ ] Integrate into GraphAnalysisTab
+- [ ] Add loading states and error display
+
+#### Phase 6.4: 3D Visualization
+- [ ] Implement node color mapping based on distance
+- [ ] Add smooth color transitions
+- [ ] Handle unreachable nodes visually
+
+#### Phase 6.5: Interactive Features
+- [ ] Add right-click context menu for nodes
+- [ ] Implement node selection for SSSP source
+- [ ] Add hover tooltips showing distances
+
+#### Phase 6.6: Command Palette
+- [ ] Add SSSP command to palette
+- [ ] Implement input prompt for node ID
+- [ ] Add keyboard shortcuts
+
+#### Phase 6.7: Polish & Documentation
+- [ ] Create onboarding flow for SSSP feature
+- [ ] Add help documentation
+- [ ] Implement telemetry for usage tracking
+- [ ] Performance optimization for large graphs
+
+### Phase 7: Documentation
 - [ ] API documentation
-- [ ] Usage examples
+- [ ] Frontend usage examples
 - [ ] Performance tuning guide
 - [ ] Troubleshooting guide
+- [ ] Video tutorial for feature usage
