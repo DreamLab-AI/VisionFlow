@@ -526,7 +526,6 @@ pub struct GetGPUStatus;
 #[derive(Debug, Clone)]
 pub struct GPUStatus {
     pub is_initialized: bool,
-    pub cpu_fallback_active: bool,
     pub failure_count: u32,
     pub iteration_count: u32,
     pub num_nodes: u32,

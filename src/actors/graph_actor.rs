@@ -597,14 +597,13 @@ impl GraphServiceActor {
         */
     }
     
-    fn generate_initial_semantic_constraints(&mut self, graph_data: &GraphData) {
+    fn generate_initial_semantic_constraints(&mut self, _graph_data: &GraphData) {
         // DISABLED: Boundary constraints cause bouncing behavior
         // Don't automatically generate any constraints - they should only be enabled through control center
         info!("Skipping automatic boundary constraint generation (prevents bouncing)");
-        return;  // Exit early to prevent any constraint generation
         
-        // The code below is disabled to prevent boundary constraints from causing bouncing
-        
+        // The code below has been disabled to prevent boundary constraints from causing bouncing
+        /*
         // Generate domain-based clustering
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
         
@@ -630,6 +629,7 @@ impl GraphServiceActor {
         }
         
         info!("Generated {} initial constraints", self.constraint_set.constraints.len());
+        */
     }
     
     fn generate_dynamic_semantic_constraints(&self) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {

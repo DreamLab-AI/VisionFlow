@@ -35,7 +35,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     edgeCount: 0,
     tokenCount: 0,
     mcpConnected: false,
-    dataSource: 'mock',
+    dataSource: 'live',
     agents: []
   });
 

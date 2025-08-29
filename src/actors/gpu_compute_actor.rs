@@ -72,7 +72,6 @@ pub struct GPUComputeActor {
     iteration_count: u32,
     gpu_failure_count: u32,
     last_failure_reset: Instant,
-    cpu_fallback_active: bool,
     
     // Current compute mode
     pub compute_mode: ComputeMode,
@@ -110,7 +109,6 @@ impl GPUComputeActor {
             iteration_count: 0,
             gpu_failure_count: 0,
             last_failure_reset: Instant::now(),
-            cpu_fallback_active: false,
             
             // Start in basic mode
             compute_mode: ComputeMode::Basic,
@@ -129,12 +127,16 @@ impl GPUComputeActor {
             Ok(count) => {
                 info!("Found {} CUDA device(s)", count);
                 if count == 0 {
-                    Err(Error::new(ErrorKind::NotFound, "No CUDA devices found. Ensure NVIDIA drivers are installed and working."))
+                    error!("No CUDA devices found");
+                    Err(Error::new(ErrorKind::NotFound, "No CUDA devices found"))
                 } else {
                     Ok(())
                 }
             }
-            Err(e) => Err(Error::new(ErrorKind::Other, format!("Failed to get CUDA device count: {}. Check NVIDIA drivers.", e))),
+            Err(e) => {
+                error!("Failed to get CUDA device count: {}", e);
+                Err(Error::new(ErrorKind::Other, format!("Failed to get CUDA device count: {}", e)))
+            }
         }
     }
 
@@ -146,22 +148,34 @@ impl GPUComputeActor {
         info!("(Static) Creating CUDA device with index 0");
         match CudaDevice::new(0) {
             Ok(device) => {
-                let max_threads = device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK as _).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                let compute_mode = device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_COMPUTE_MODE as _).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                let multiprocessor_count = device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT as _).map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                
-                info!("(Static) GPU Device detected:");
-                info!("  Max threads per MP: {}", max_threads);
-                info!("  Multiprocessor count: {}", multiprocessor_count);
-                info!("  Compute mode: {}", compute_mode);
+                match (
+                    device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK as _),
+                    device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_COMPUTE_MODE as _),
+                    device.attribute(CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT as _)
+                ) {
+                    (Ok(max_threads), Ok(compute_mode), Ok(multiprocessor_count)) => {
+                        info!("(Static) GPU Device detected:");
+                        info!("  Max threads per MP: {}", max_threads);
+                        info!("  Multiprocessor count: {}", multiprocessor_count);
+                        info!("  Compute mode: {}", compute_mode);
 
-                if max_threads < 256 {
-                    Err(Error::new(ErrorKind::Other, format!("GPU capability too low: {} threads per multiprocessor; minimum required is 256", max_threads)))
-                } else {
-                    Ok(device.into())
+                        if max_threads < 256 {
+                            error!("GPU capability too low: {} threads per multiprocessor; minimum required is 256", max_threads);
+                            Err(Error::new(ErrorKind::Other, format!("GPU capability too low: {} threads per multiprocessor; minimum required is 256", max_threads)))
+                        } else {
+                            Ok(device.into())
+                        }
+                    }
+                    _ => {
+                        error!("Failed to query GPU attributes");
+                        Err(Error::new(ErrorKind::Other, "Failed to query GPU attributes"))
+                    }
                 }
             }
-            Err(e) => Err(Error::new(ErrorKind::Other, format!("Failed to create CUDA device: {}", e))),
+            Err(e) => {
+                error!("Failed to create CUDA device: {}", e);
+                Err(Error::new(ErrorKind::Other, format!("Failed to create CUDA device: {}", e)))
+            }
         }
     }
 
@@ -379,21 +393,17 @@ impl GPUComputeActor {
             return Ok(());
         }
         
-        if self.cpu_fallback_active {
-            warn!("GPU not available, attempting reinitialization");
-            self.cpu_fallback_active = false;
-            // Try to reinitialize GPU
-            if self.unified_compute.is_none() {
-                error!("GPU compute not initialized - cannot compute forces");
-                return Err(Error::new(ErrorKind::Other, "GPU not available"));
-            }
+        // CPU fallback removed - check GPU availability directly
+        if self.unified_compute.is_none() {
+            error!("GPU compute not initialized - cannot compute forces");
+            return Err(Error::new(ErrorKind::Other, "GPU not available"));
         }
 
         if self.last_failure_reset.elapsed() > FAILURE_RESET_INTERVAL {
             if self.gpu_failure_count > 0 {
                 info!("Resetting GPU failure count after {} seconds", FAILURE_RESET_INTERVAL.as_secs());
                 self.gpu_failure_count = 0;
-                self.cpu_fallback_active = false;
+                // CPU fallback removed
             }
             self.last_failure_reset = Instant::now();
         }
@@ -452,7 +462,7 @@ impl GPUComputeActor {
 
         if self.gpu_failure_count >= MAX_GPU_FAILURES {
             warn!("GPU failure count exceeded limit, activating CPU fallback mode");
-            self.cpu_fallback_active = true;
+            // CPU fallback removed
             // Reset failure count to allow retry later, but keep fallback active until reset interval
             // self.gpu_failure_count = 0; // Don't reset immediately, let the interval handle it
             // self.last_failure_reset = Instant::now();
@@ -516,7 +526,7 @@ impl Handler<InitializeGPU> for GPUComputeActor {
         let actor_fut = fut.into_actor(self);
 
         Box::pin(
-            actor_fut.map(|result_of_logic, actor, _ctx_map| {
+            actor_fut.map(move |result_of_logic, actor, _ctx_map| {
                 match result_of_logic {
                     Ok(init_result) => {
                         actor.device = Some(init_result.device);
@@ -529,20 +539,13 @@ impl Handler<InitializeGPU> for GPUComputeActor {
                         actor.iteration_count = 0;
                         actor.gpu_failure_count = 0;
                         actor.last_failure_reset = Instant::now();
-                        actor.cpu_fallback_active = false;
 
                         info!("Unified GPU initialization successful");
                         Ok(())
                     }
                     Err(e) => {
-                        error!("Unified GPU initialization failed: {}", e);
-                        actor.device = None;
-                        actor.unified_compute = None;
-                        actor.num_nodes = 0;
-                        actor.num_edges = 0;
-                        actor.node_indices.clear();
-                        actor.cpu_fallback_active = true;
-                        Err(e.to_string())
+                        error!("GPU initialization failed: {}", e);
+                        Err(format!("GPU initialization failed: {}", e))
                     }
                 }
             })
@@ -625,19 +628,16 @@ impl Handler<ComputeForces> for GPUComputeActor {
             return Ok(());
         }
         
+        // CPU fallback removed
+        
         match self.compute_forces_internal() {
             Ok(_) => {
                 // iteration_count is already incremented in compute_forces_internal
                 Ok(())
             },
             Err(e) => {
-                if self.cpu_fallback_active {
-                    warn!("GPU compute failed, CPU fallback active: {}", e);
-                    Ok(())
-                } else {
-                    error!("GPU compute failed: {}", e);
-                    Err(e.to_string())
-                }
+                error!("GPU compute failed: {}", e);
+                Err(e.to_string())
             }
         }
     }
@@ -647,10 +647,11 @@ impl Handler<GetNodeData> for GPUComputeActor {
     type Result = Result<Vec<BinaryNodeData>, String>;
 
     fn handle(&mut self, _msg: GetNodeData, _ctx: &mut Self::Context) -> Self::Result {
-         if self.device.is_none() {
+        if self.device.is_none() {
             warn!("Attempted to get node data, but GPU is not initialized.");
             return Err("GPU not initialized".to_string());
         }
+        
         match self.get_node_data_internal() {
             Ok(data) => {
                 trace!("Retrieved {} node data items from GPU", data.len());
@@ -670,7 +671,6 @@ impl Handler<GetGPUStatus> for GPUComputeActor {
     fn handle(&mut self, _msg: GetGPUStatus, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(GPUStatus {
             is_initialized: self.device.is_some(),
-            cpu_fallback_active: self.cpu_fallback_active,
             failure_count: self.gpu_failure_count,
             iteration_count: self.iteration_count,
             num_nodes: self.num_nodes,
@@ -859,7 +859,7 @@ impl GPUComputeActor {
             stress_majorization_interval: self.stress_majorization_interval,
             last_stress_majorization: self.last_stress_majorization,
             gpu_failure_count: self.gpu_failure_count,
-            cpu_fallback_active: self.cpu_fallback_active,
+            // cpu_fallback_active removed
             has_advanced_features: self.has_advanced_features(),
             has_dual_graph_features: self.has_dual_graph_features(),
             has_visual_analytics_features: self.has_visual_analytics_features(),
@@ -879,7 +879,6 @@ pub struct PhysicsStats {
     pub stress_majorization_interval: u32,
     pub last_stress_majorization: u32,
     pub gpu_failure_count: u32,
-    pub cpu_fallback_active: bool,
     pub has_advanced_features: bool,
     pub has_dual_graph_features: bool,
     pub has_visual_analytics_features: bool,
