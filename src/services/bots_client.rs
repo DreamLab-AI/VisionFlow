@@ -193,31 +193,8 @@ impl BotsClient {
                                     info!("Processing result field from bots response");
                                     debug!("Raw result JSON: {}", serde_json::to_string_pretty(result).unwrap_or_default());
 
-                                    // First check for MCP wrapped format (result.content[0].text)
-                                    let actual_result = if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
-                                        if let Some(first_item) = content.first() {
-                                            if let Some(text) = first_item.get("text").and_then(|t| t.as_str()) {
-                                                info!("Found MCP wrapped response format, unwrapping...");
-                                                // Parse the inner JSON string
-                                                match serde_json::from_str::<serde_json::Value>(text) {
-                                                    Ok(parsed) => {
-                                                        info!("Successfully unwrapped MCP response");
-                                                        parsed
-                                                    }
-                                                    Err(e) => {
-                                                        error!("Failed to parse wrapped MCP response: {}", e);
-                                                        result.clone()
-                                                    }
-                                                }
-                                            } else {
-                                                result.clone()
-                                            }
-                                        } else {
-                                            result.clone()
-                                        }
-                                    } else {
-                                        result.clone()
-                                    };
+                                    // MCP responses come directly as result objects, not wrapped
+                                    let actual_result = result.clone();
 
                                     // Handle different possible result structures
                                     if let Some(result_obj) = actual_result.as_object() {
