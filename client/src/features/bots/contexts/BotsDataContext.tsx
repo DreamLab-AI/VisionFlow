@@ -100,14 +100,15 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tokens: parseInt(node.metadata?.tokens || '0'),
         createdAt: node.metadata?.created_at || new Date().toISOString(),
         age: parseInt(node.metadata?.age || '0'),
-      // Other fields from metadata
-      swarmId: node.metadata?.swarm_id,
-      parentQueenId: node.metadata?.parent_queen_id,
-      capabilities: node.metadata?.capabilities ? 
-        node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) : 
-        undefined,
-      connections: [],
-    }));
+        // Other fields from metadata
+        swarmId: node.metadata?.swarm_id,
+        parentQueenId: node.metadata?.parent_queen_id,
+        capabilities: node.metadata?.capabilities ? 
+          node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) : 
+          undefined,
+        connections: [],
+      };
+    });
 
     // Transform backend edges (u32 IDs) to frontend format (string IDs)
     // Need to map numeric node IDs to agent string IDs
