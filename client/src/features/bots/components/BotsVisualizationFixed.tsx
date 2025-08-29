@@ -700,8 +700,18 @@ export const BotsVisualization: React.FC = () => {
     const agentMap = new Map<string, BotsAgent>();
     agents.forEach((agent, index) => {
       agentMap.set(agent.id, agent);
-      // Initialize position if not exists (fallback for when binary data hasn't arrived yet)
-      if (!positionsRef.current.has(agent.id)) {
+      
+      // Check if agent has server-provided position data
+      if (agent.position && (agent.position.x !== undefined || agent.position.y !== undefined || agent.position.z !== undefined)) {
+        // Always update with server position when available
+        const serverPosition = new THREE.Vector3(
+          agent.position.x || 0,
+          agent.position.y || 0,
+          agent.position.z || 0
+        );
+        positionsRef.current.set(agent.id, serverPosition);
+      } else if (!positionsRef.current.has(agent.id)) {
+        // Only set initial calculated position if no server position and no existing position
         const radius = 25;
         const angle = (index / agents.length) * Math.PI * 2;
         const height = (Math.random() - 0.5) * 15;
