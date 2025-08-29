@@ -69,27 +69,43 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Handler for graph data with type conversion
   const updateFromGraphData = (data: any) => {
     // Transform backend nodes to BotsAgent format
-    const transformedAgents = (data.nodes || []).map((node: any) => ({
-      // Use metadata_id as the agent ID (original string ID)
-      id: node.metadata_id || String(node.id),
-      name: node.label || node.metadata?.name || `Agent-${node.id}`,
-      type: node.metadata?.agent_type || 'coordinator',  // 'type' not 'agent_type'
-      status: node.metadata?.status || 'active',
-      position: node.data?.position || { x: 0, y: 0, z: 0 },
-      velocity: node.data?.velocity || { x: 0, y: 0, z: 0 },
-      force: { x: 0, y: 0, z: 0 },
-      // Parse numeric values from metadata (use camelCase for frontend)
-      cpuUsage: parseFloat(node.metadata?.cpu_usage || '0'),
-      memoryUsage: parseFloat(node.metadata?.memory_usage || '0'),
-      health: parseFloat(node.metadata?.health || '100'),
-      workload: parseFloat(node.metadata?.workload || '0'),
-      tokens: parseInt(node.metadata?.tokens || '0'),
-      createdAt: node.metadata?.created_at || new Date().toISOString(),
-      age: parseInt(node.metadata?.age || '0'),
+    const transformedAgents = (data.nodes || []).map((node: any) => {
+      // Read agent type from correct field - check multiple possible locations
+      const agentType = node.metadata?.agent_type || node.node_type || node.nodeType;
+      
+      if (!agentType) {
+        console.error('Missing agent type for node:', {
+          nodeId: node.id,
+          metadataId: node.metadata_id,
+          metadata: node.metadata,
+          node_type: node.node_type,
+          nodeType: node.nodeType
+        });
+      }
+      
+      return {
+        // Use metadata_id as the agent ID (original string ID)
+        id: node.metadata_id || String(node.id),
+        name: node.label || node.metadata?.name || `Agent-${node.id}`,
+        type: agentType,
+        status: node.metadata?.status || 'active', // 'active' is the default status in backend
+        position: node.data?.position || { x: 0, y: 0, z: 0 },
+        velocity: node.data?.velocity || { x: 0, y: 0, z: 0 },
+        force: { x: 0, y: 0, z: 0 },
+        // Parse numeric values from metadata (use camelCase for frontend)
+        cpuUsage: parseFloat(node.metadata?.cpu_usage || '0'),
+        memoryUsage: parseFloat(node.metadata?.memory_usage || '0'),
+        health: parseFloat(node.metadata?.health || '100'),
+        workload: parseFloat(node.metadata?.workload || '0'),
+        tokens: parseInt(node.metadata?.tokens || '0'),
+        createdAt: node.metadata?.created_at || new Date().toISOString(),
+        age: parseInt(node.metadata?.age || '0'),
       // Other fields from metadata
       swarmId: node.metadata?.swarm_id,
       parentQueenId: node.metadata?.parent_queen_id,
-      capabilities: node.metadata?.capabilities ? JSON.parse(node.metadata.capabilities) : undefined,
+      capabilities: node.metadata?.capabilities ? 
+        node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) : 
+        undefined,
       connections: [],
     }));
 
