@@ -83,12 +83,7 @@ export class ProgrammaticMonitor {
   private agents: Map<string, BotsAgent> = new Map();
 
   constructor() {
-    // Initialize with some default agents
-    this.agents.set('agent-1', generateMockAgent('agent-1', 'coordinator', 'Bots Coordinator'));
-    this.agents.set('agent-2', generateMockAgent('agent-2', 'researcher', 'Data Researcher'));
-    this.agents.set('agent-3', generateMockAgent('agent-3', 'coder', 'Code Generator'));
-    this.agents.set('agent-4', generateMockAgent('agent-4', 'analyst', 'Performance Analyst'));
-    this.agents.set('agent-5', generateMockAgent('agent-5', 'tester', 'Quality Tester'));
+    // Initialize with empty agents map - will be populated from real swarm data
   }
 
   /**

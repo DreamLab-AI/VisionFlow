@@ -721,6 +721,97 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     ctx.text(msg_str);
                                 }
                             }
+                            Some("requestSwarmTelemetry") => {
+                                info!("Client requested enhanced swarm telemetry");
+
+                                let app_state = self.app_state.clone();
+
+                                ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                    // Get enhanced swarm data including telemetry
+                                    match crate::handlers::bots_handler::fetch_hive_mind_agents(&app_state).await {
+                                        Ok(agents) => {
+                                            let mut nodes_data = Vec::new();
+                                            let mut swarm_metrics = serde_json::json!({
+                                                "total_agents": agents.len(),
+                                                "active_agents": 0,
+                                                "avg_health": 0.0,
+                                                "avg_cpu": 0.0,
+                                                "avg_workload": 0.0,
+                                                "total_tokens": 0,
+                                                "swarm_ids": std::collections::HashSet::<String>::new(),
+                                            });
+
+                                            let mut active_count = 0;
+                                            let mut total_health = 0.0;
+                                            let mut total_cpu = 0.0;
+                                            let mut total_workload = 0.0;
+                                            let mut total_tokens = 0;
+                                            let mut swarm_ids = std::collections::HashSet::new();
+
+                                            for (idx, agent) in agents.iter().enumerate() {
+                                                if agent.status == "active" {
+                                                    active_count += 1;
+                                                }
+                                                total_health += agent.health;
+                                                total_cpu += agent.cpu_usage;
+                                                total_workload += agent.workload;
+                                                total_tokens += agent.tokens.unwrap_or(0);
+                                                if let Some(swarm_id) = &agent.swarm_id {
+                                                    swarm_ids.insert(swarm_id.clone());
+                                                }
+
+                                                // Create node with enhanced metadata
+                                                let position = Vec3Data::new(
+                                                    (idx as f32 * 100.0).sin() * 500.0,
+                                                    (idx as f32 * 100.0).cos() * 500.0,
+                                                    0.0
+                                                );
+
+                                                let node_data = BinaryNodeData {
+                                                    position,
+                                                    velocity: Vec3Data::zero(),
+                                                    mass: ((agent.health / 20.0) as u8).max(1), // Mass based on health
+                                                    flags: if agent.status == "active" { 0x81 } else { 0x80 }, // Active bot flag
+                                                    padding: [agent.cpu_usage as u8, agent.workload as u8],
+                                                };
+                                                nodes_data.push(((1000 + idx) as u32, node_data));
+                                            }
+
+                                            // Update metrics
+                                            if !agents.is_empty() {
+                                                swarm_metrics["active_agents"] = serde_json::json!(active_count);
+                                                swarm_metrics["avg_health"] = serde_json::json!(total_health / agents.len() as f32);
+                                                swarm_metrics["avg_cpu"] = serde_json::json!(total_cpu / agents.len() as f32);
+                                                swarm_metrics["avg_workload"] = serde_json::json!(total_workload / agents.len() as f32);
+                                                swarm_metrics["total_tokens"] = serde_json::json!(total_tokens);
+                                                swarm_metrics["swarm_count"] = serde_json::json!(swarm_ids.len());
+                                            }
+
+                                            (nodes_data, swarm_metrics)
+                                        }
+                                        Err(_) => (vec![], serde_json::json!({}))
+                                    }
+                                }).map(|(nodes_data, swarm_metrics), _act, ctx| {
+                                    // Send binary position data
+                                    if !nodes_data.is_empty() {
+                                        let binary_data = binary_protocol::encode_node_data(&nodes_data);
+                                        ctx.binary(binary_data);
+                                    }
+
+                                    // Send enhanced telemetry as JSON
+                                    let telemetry_response = serde_json::json!({
+                                        "type": "swarmTelemetry",
+                                        "timestamp": chrono::Utc::now().timestamp_millis(),
+                                        "data_source": "live",
+                                        "metrics": swarm_metrics,
+                                        "node_count": nodes_data.len()
+                                    });
+
+                                    if let Ok(msg_str) = serde_json::to_string(&telemetry_response) {
+                                        ctx.text(msg_str);
+                                    }
+                                }));
+                            }
                             _ => {
                                 warn!("[WebSocket] Unknown message type: {:?}", msg);
                             }

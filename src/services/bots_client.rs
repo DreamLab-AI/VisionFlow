@@ -193,22 +193,76 @@ impl BotsClient {
                                     info!("Processing result field from bots response");
                                     debug!("Raw result JSON: {}", serde_json::to_string_pretty(result).unwrap_or_default());
 
+                                    // First check for MCP wrapped format (result.content[0].text)
+                                    let actual_result = if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
+                                        if let Some(first_item) = content.first() {
+                                            if let Some(text) = first_item.get("text").and_then(|t| t.as_str()) {
+                                                info!("Found MCP wrapped response format, unwrapping...");
+                                                // Parse the inner JSON string
+                                                match serde_json::from_str::<serde_json::Value>(text) {
+                                                    Ok(parsed) => {
+                                                        info!("Successfully unwrapped MCP response");
+                                                        parsed
+                                                    }
+                                                    Err(e) => {
+                                                        error!("Failed to parse wrapped MCP response: {}", e);
+                                                        result.clone()
+                                                    }
+                                                }
+                                            } else {
+                                                result.clone()
+                                            }
+                                        } else {
+                                            result.clone()
+                                        }
+                                    } else {
+                                        result.clone()
+                                    };
+
                                     // Handle different possible result structures
-                                    if let Some(result_obj) = result.as_object() {
+                                    if let Some(result_obj) = actual_result.as_object() {
                                         // Check if result contains bots data directly
                                         if result_obj.contains_key("agents") || result_obj.contains_key("bots") {
-                                            match serde_json::from_value::<BotsUpdate>(result.clone()) {
-                                                Ok(update) => {
-                                                    info!("Successfully parsed BotsUpdate with {} agents", update.agents.len());
-                                                    for agent in &update.agents {
-                                                        debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
+                                            // Try to parse the agents manually to handle timestamp format issues
+                                            let mut agents = Vec::new();
+                                            if let Some(agents_array) = result_obj.get("agents").and_then(|a| a.as_array()) {
+                                                for agent_val in agents_array {
+                                                    if let Ok(agent) = serde_json::from_value::<Agent>(agent_val.clone()) {
+                                                        agents.push(agent);
                                                     }
-                                                    let mut lock = updates.write().await;
-                                                    *lock = Some(update);
                                                 }
-                                                Err(e) => {
-                                                    error!("Failed to parse BotsUpdate from result: {:?}", e);
-                                                    debug!("Result JSON was: {:?}", result);
+                                            }
+                                            
+                                            if !agents.is_empty() {
+                                                let update = BotsUpdate {
+                                                    agents: agents.clone(),
+                                                    metrics: BotsMetrics::default(),
+                                                    timestamp: std::time::SystemTime::now()
+                                                        .duration_since(std::time::UNIX_EPOCH)
+                                                        .unwrap_or_default()
+                                                        .as_secs(),
+                                                };
+                                                info!("Successfully constructed BotsUpdate with {} agents", update.agents.len());
+                                                for agent in &update.agents {
+                                                    debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
+                                                }
+                                                let mut lock = updates.write().await;
+                                                *lock = Some(update);
+                                            } else {
+                                                // Fall back to direct parsing
+                                                match serde_json::from_value::<BotsUpdate>(actual_result.clone()) {
+                                                    Ok(update) => {
+                                                        info!("Successfully parsed BotsUpdate with {} agents", update.agents.len());
+                                                        for agent in &update.agents {
+                                                            debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
+                                                        }
+                                                        let mut lock = updates.write().await;
+                                                        *lock = Some(update);
+                                                    }
+                                                    Err(e) => {
+                                                        error!("Failed to parse BotsUpdate from result: {:?}", e);
+                                                        debug!("Result JSON was: {:?}", actual_result);
+                                                    }
                                                 }
                                             }
                                         } else if let Some(bots_data) = result_obj.get("bots") {
@@ -322,10 +376,10 @@ impl BotsClient {
                         "id": format!("tools-list-{}", request_id)
                     })
                 } else {
-                    // Try using tools.invoke format for agent_list
+                    // Use correct MCP tools/call format
                     serde_json::json!({
                         "jsonrpc": "2.0",
-                        "method": "tools.invoke",
+                        "method": "tools/call",
                         "params": {
                             "name": "agent_list",
                             "arguments": {
