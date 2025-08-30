@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "A WebXR graph visualisation server with GPU-accelerated physics"
 authors = ["Your Name <your.email@example.com>"]
-license = "LGPL-3.0-or-later"
+license = "MIT"
 
 [dependencies]
 # Web framework and WebSocket

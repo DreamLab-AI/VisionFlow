@@ -1,10 +1,144 @@
-# UI Component Library
+# Client Components and UI Library
 
-## Overview
+This document details the client's component architecture, describing the relationships between major components, their responsibilities, and the reusable UI component library.
 
-The LogseqSpringThing client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behavior across the application, with support for theming and responsive design.
+## Component Architecture Overview
 
-## Component Categories
+The client is organized into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
+
+```mermaid
+flowchart TB
+    subgraph CoreServices [Core Services & Stores]
+        APIService[services/apiService.ts]
+        SettingsStore["settingsStore.ts"]
+        NostrAuthSvc[nostrAuthService.ts]
+        Logger[logger.ts]
+        Utils[utils/*]
+    end
+
+    subgraph AppInit [Application Initialization]
+        AppInitializer[AppInitializer.tsx]
+        Main[main.tsx]
+    end
+
+    subgraph MainUILayout [Main UI Layout & Panels]
+        MainLayout[MainLayout.tsx]
+        RightPaneCtrlPanel[RightPaneControlPanel.tsx]
+        ConversationPane[ConversationPane.tsx]
+        NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
+    end
+
+    subgraph SettingsUI [Settings UI Components]
+        SettingsPanelRedesign[SettingsPanelRedesign.tsx]
+        TabsUI["Tabs.tsx"]
+        SettingsSection[SettingsSection.tsx]
+        SettingControlComp[SettingControlComponent.tsx]
+    end
+
+    subgraph AuthUI [Authentication UI]
+        AuthUIHandler[AuthUIHandler.tsx]
+        NostrAuthSection[NostrAuthSection.tsx]
+    end
+
+    subgraph RenderingEngine ["Rendering Engine"]
+        GraphCanvas[GraphCanvas.tsx]
+        GraphManager[GraphManager.tsx]
+        GraphViewport[GraphViewport.tsx]
+        CameraController[CameraController.tsx]
+        TextRenderer[TextRenderer.tsx]
+        MetadataVisualizer[MetadataVisualizer.tsx]
+        HologramManager[HologramManager.tsx]
+    end
+
+    subgraph Network [Network & Data Management]
+        WebSocketSvc[WebSocketService.ts]
+        GraphDataMgr[GraphDataManager.ts]
+    end
+
+    subgraph XRModule [XR Module]
+        XRController[XRController.tsx]
+        XRScene[XRScene.tsx]
+        XRVisualisationConnector[XRVisualisationConnector.tsx]
+        HandInteractionSystem[HandInteractionSystem.tsx]
+        XRInitializer[xrInitializer.ts]
+        XRSessionManager[xrSessionManager.ts]
+    end
+
+    subgraph GenericUI [Generic UI Components]
+        MarkdownRenderer[MarkdownRenderer.tsx]
+        Button[Button.tsx]
+        Input[Input.tsx]
+        %% Add other generic UI components as needed
+    end
+
+    %% Initialization Flow
+    Main --> AppInitializer
+    AppInitializer --> SettingsStore
+    AppInitializer --> NostrAuthSvc
+    AppInitializer --> WebSocketSvc
+    AppInitializer --> GraphDataMgr
+    AppInitializer --> MainLayout
+    AppInitializer --> AuthUIHandler
+    AppInitializer --> XRController
+
+    %% UI Structure
+    MainLayout --> GraphViewport
+    MainLayout --> RightPaneCtrlPanel
+    RightPaneCtrlPanel --> ConversationPane
+    RightPaneCtrlPanel --> NarrativeGoldminePanel
+
+    RightPaneCtrlPanel --> NostrAuthSection
+    RightPaneCtrlPanel --> SettingsPanelRedesign
+
+    SettingsPanelRedesign --> TabsUI
+    TabsUI --> SettingsSection
+    SettingsSection --> SettingControlComp
+
+    %% Data Flow & Dependencies
+    SettingsStore --> SettingControlComp
+    SettingsStore --> GraphManager
+    SettingsStore --> HologramManager
+    SettingsStore --> TextRenderer
+
+    AuthUIHandler --> NostrAuthSvc
+    NostrAuthSvc --> APIService
+
+    ConversationPane --> APIService
+    NarrativeGoldminePanel --> APIService
+
+    WebSocketSvc --> GraphDataMgr
+    GraphDataMgr --> GraphManager
+    GraphDataMgr --> APIService
+
+    %% Rendering Dependencies
+    GraphCanvas --> GraphManager
+    GraphCanvas --> GraphViewport
+    GraphCanvas --> CameraController
+    GraphManager --> TextRenderer
+    GraphManager --> MetadataVisualizer
+    GraphManager --> HologramManager
+
+    %% XR Dependencies
+    XRController --> XRScene
+    XRController --> XRInitializer
+    XRController --> XRSessionManager
+    XRScene --> XRVisualisationConnector
+    XRVisualisationConnector --> GraphManager
+    XRVisualisationConnector --> HandInteractionSystem
+    HandInteractionSystem --> GraphManager
+
+    %% Cross-cutting
+    Logger -.-> APIService
+    Logger -.-> WebSocketSvc
+    Logger -.-> GraphManager
+    Logger -.-> XRController
+    Utils -.-> SettingsStore
+    Utils -.-> GraphDataMgr
+```
+
+## UI Component Library
+
+The client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behavior across the application, with support for theming and responsive design.
 
 ### Core UI Components
 
@@ -194,32 +328,6 @@ Renders markdown content with custom styling.
 <MarkdownRenderer content={markdownString} />
 ```
 
-## Application-Specific Components
-
-### ConversationPane ([`client/src/app/components/ConversationPane.tsx`](../../client/src/app/components/ConversationPane.tsx))
-Chat interface for AI interactions.
-- **Features**:
-  - Message history display
-  - Input field with send button
-  - Loading states during AI responses
-  - Support for different AI providers (RAGFlow, Perplexity)
-
-
-
-### NarrativeGoldminePanel ([`client/src/app/components/NarrativeGoldminePanel.tsx`](../../client/src/app/components/NarrativeGoldminePanel.tsx))
-Specialized panel for narrative exploration features.
-- **Features**:
-  - Content discovery tools
-  - Narrative thread visualization
-  - Interactive exploration controls
-
-### RightPaneControlPanel ([`client/src/app/components/RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx))
-Main control panel housing settings and authentication.
-- **Features**:
-  - Collapsible sections
-  - Authentication status display
-  - Quick access to common settings
-
 ## Design System
 
 ### Colors
@@ -262,30 +370,3 @@ All components support responsive design through:
 4. **Type Safety**: Full TypeScript support with exported prop types
 5. **Composition**: Prefer composition over configuration for flexibility
 6. **Theming**: Use CSS variables for easy theme customization
-
-## Usage Guidelines
-
-### Importing Components
-```tsx
-import { Button, Card, Input } from '@/features/design-system/components';
-```
-
-### Styling Components
-Components accept standard React props including `className` for custom styling:
-```tsx
-<Button className="custom-class" style={{ marginTop: '1rem' }}>
-  Custom Styled Button
-</Button>
-```
-
-### Form Integration
-Components work seamlessly with form libraries like react-hook-form:
-```tsx
-<Controller
-  control={control}
-  name="fieldName"
-  render={({ field }) => (
-    <Input {...field} placeholder="Controlled input" />
-  )}
-/>
-```
