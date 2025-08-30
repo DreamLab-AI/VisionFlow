@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 use cust::context::Context;
 use cust::device::Device;
 use cust::launch;
-use cust::memory::{DeviceBuffer, CopyDestination};
+use cust::memory::{DeviceBuffer, CopyDestination, DevicePointer};
 use cust_core::DeviceCopy;
 use cust::module::Module;
 use cust::stream::{Stream, StreamFlags};
@@ -84,6 +84,18 @@ pub struct UnifiedGPUCompute {
     
     // Reusable host buffer for zeroing grid cells
     zero_buffer: Vec<i32>,
+    
+    // SSSP state
+    pub dist: DeviceBuffer<f32>,                // [n] distances
+    pub current_frontier: DeviceBuffer<i32>,    // Dynamic frontier
+    pub next_frontier_flags: DeviceBuffer<i32>, // [n] flags
+    pub parents: Option<DeviceBuffer<i32>>,     // Optional for paths
+    
+    // Dedicated SSSP stream for overlap
+    sssp_stream: Option<Stream>,
+    
+    // State validity flag
+    pub sssp_available: bool,
 }
 
 
@@ -138,6 +150,12 @@ impl UnifiedGPUCompute {
             max_grid_cells,
         )?;
 
+        // SSSP buffers
+        let dist = DeviceBuffer::from_slice(&vec![f32::INFINITY; num_nodes])?;
+        let current_frontier = DeviceBuffer::zeroed(num_nodes)?;
+        let next_frontier_flags = DeviceBuffer::zeroed(num_nodes)?;
+        let sssp_stream = Some(Stream::new(StreamFlags::NON_BLOCKING, None)?);
+        
         // Store the module for kernel lookup
         let kernel_module = module;
 
@@ -181,6 +199,13 @@ impl UnifiedGPUCompute {
             max_grid_cells,
             iteration: 0,
             zero_buffer: vec![0i32; max_grid_cells], // Pre-allocate for reuse
+            // SSSP fields
+            dist,
+            current_frontier,
+            next_frontier_flags,
+            parents: None,  // Optional, not initialized by default
+            sssp_stream,
+            sssp_available: false,
         })
     }
 
@@ -413,6 +438,15 @@ impl UnifiedGPUCompute {
         // 6. Force Pass Kernel
         let force_pass_kernel = self._module.get_function(self.force_pass_kernel_name)?;
         let stream = &self.stream;
+        
+        // Get SSSP distances pointer if available
+        let d_sssp = if self.sssp_available && 
+                      (params.feature_flags & crate::models::simulation_params::FeatureFlags::ENABLE_SSSP_SPRING_ADJUST != 0) {
+            self.dist.as_device_ptr()
+        } else {
+            DevicePointer::null()
+        };
+        
         unsafe {
             launch!(
                 force_pass_kernel<<<grid_size, block_size, 0, stream>>>(
@@ -431,7 +465,8 @@ impl UnifiedGPUCompute {
                 self.edge_col_indices.as_device_ptr(),
                 self.edge_weights.as_device_ptr(),
                 params,
-                self.num_nodes as i32
+                self.num_nodes as i32,
+                d_sssp
             ))?;
         }
 
@@ -467,6 +502,94 @@ impl UnifiedGPUCompute {
         self.iteration += 1;
 
         Ok(())
+    }
+    
+    pub fn run_sssp(&mut self, source_idx: usize) -> Result<Vec<f32>> {
+        // Invalidate previous results immediately
+        self.sssp_available = false;
+        
+        // Wrap main logic for clean error handling
+        let result = (|| -> Result<Vec<f32>> {
+            // Initialize distances
+            let mut host_dist = vec![f32::INFINITY; self.num_nodes];
+            host_dist[source_idx] = 0.0;
+            self.dist.copy_from(&host_dist)?;
+            
+            // Initialize frontier
+            let mut host_frontier = vec![source_idx as i32];
+            self.current_frontier = DeviceBuffer::from_slice(&host_frontier)?;
+            
+            // Compute k parameter
+            let k = ((self.num_nodes as f32).log2().cbrt().ceil() as u32).max(3);
+            let s = self.sssp_stream.as_ref().unwrap_or(&self.stream);
+            
+            // Main iteration loop
+            for iteration in 0..k {
+                // Clear next frontier flags
+                let zeros = vec![0i32; self.num_nodes];
+                self.next_frontier_flags.copy_from(&zeros)?;
+                
+                // Check for convergence
+                let frontier_len = host_frontier.len();
+                if frontier_len == 0 {
+                    log::debug!("SSSP converged at iteration {}", iteration);
+                    break;
+                }
+                
+                // Launch relaxation kernel
+                let block = 256;
+                let grid = ((frontier_len as u32 + block - 1) / block) as u32;
+                
+                let func = self._module.get_function("relaxation_step_kernel")?;
+                unsafe {
+                    launch!(func<<<grid, block, 0, s>>>(
+                        self.dist.as_device_ptr(),
+                        self.current_frontier.as_device_ptr(),
+                        frontier_len as i32,
+                        self.edge_row_offsets.as_device_ptr(),
+                        self.edge_col_indices.as_device_ptr(),
+                        self.edge_weights.as_device_ptr(),
+                        self.next_frontier_flags.as_device_ptr(),
+                        f32::INFINITY,
+                        self.num_nodes as i32
+                    ))?;
+                }
+                
+                // Host-side frontier compaction (v1)
+                let mut flags = vec![0i32; self.num_nodes];
+                self.next_frontier_flags.copy_to(&mut flags)?;
+                
+                host_frontier.clear();
+                host_frontier.reserve(frontier_len * 2);
+                for (i, &flag) in flags.iter().enumerate() {
+                    if flag != 0 {
+                        host_frontier.push(i as i32);
+                    }
+                }
+                
+                if !host_frontier.is_empty() {
+                    self.current_frontier = DeviceBuffer::from_slice(&host_frontier)?;
+                }
+            }
+            
+            // Copy results back
+            self.dist.copy_to(&mut host_dist)?;
+            Ok(host_dist)
+        })();
+        
+        // Handle result and update state
+        match result {
+            Ok(distances) => {
+                self.sssp_available = true;
+                log::info!("SSSP computation successful from source {}", source_idx);
+                Ok(distances)
+            }
+            Err(e) => {
+                self.sssp_available = false;
+                log::error!("SSSP computation failed: {}. State invalidated.", e);
+                Err(e)
+            }
+        }
     }
 }
 

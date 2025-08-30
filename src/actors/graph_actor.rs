@@ -2080,3 +2080,42 @@ impl Handler<ResetGPUInitFlag> for GraphServiceActor {
         debug!("GPU initialization flag reset");
     }
 }
+
+impl Handler<ComputeShortestPaths> for GraphServiceActor {
+    type Result = Result<std::collections::HashMap<u32, Option<f32>>, String>;
+    
+    fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        let gpu = self.advanced_gpu_context.as_mut()
+            .ok_or("GPU not initialized")?;
+        
+        // Build ID mapping
+        let node_indices: std::collections::HashMap<u32, usize> = self.graph_data.nodes
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.id, i))
+            .collect();
+        
+        let src_idx = *node_indices.get(&msg.source_node_id)
+            .ok_or("Source node not found")?;
+        
+        // Run SSSP computation
+        let distances = gpu.run_sssp(src_idx)
+            .map_err(|e| format!("SSSP failed: {}", e))?;
+        
+        // Map back to public IDs, filtering unreachable nodes
+        let mut result = std::collections::HashMap::with_capacity(self.graph_data.nodes.len());
+        for (i, node) in self.graph_data.nodes.iter().enumerate() {
+            let dist = distances[i];
+            result.insert(
+                node.id,
+                if dist.is_finite() {
+                    Some(dist)
+                } else {
+                    None // Unreachable node
+                }
+            );
+        }
+        
+        Ok(result)
+    }
+}

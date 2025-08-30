@@ -637,6 +637,13 @@ pub struct ApplyConstraintsToNodes {
     pub strength: f32,
 }
 
+// SSSP (Single-Source Shortest Path) Message
+#[derive(Message)]
+#[rtype(result = "Result<std::collections::HashMap<u32, Option<f32>>, String>")]
+pub struct ComputeShortestPaths {
+    pub source_node_id: u32,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<u32, String>")]
 pub struct RemoveConstraints {

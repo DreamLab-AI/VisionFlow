@@ -39,12 +39,15 @@ struct SimParams {
     float alignment_strength;
     float temperature;
     float viewport_bounds;
+    // SSSP parameters
+    float sssp_alpha;  // Strength of SSSP influence on spring forces
 };
 
 struct FeatureFlags {
     static const unsigned int ENABLE_REPULSION = 1 << 0;
     static const unsigned int ENABLE_SPRINGS = 1 << 1;
     static const unsigned int ENABLE_CENTERING = 1 << 2;
+    static const unsigned int ENABLE_SSSP_SPRING_ADJUST = 1 << 6;  // Enable SSSP-based spring adjustment
 };
 
 struct AABB {
@@ -84,6 +87,18 @@ __device__ inline float3 vec3_clamp(float3 v, float limit) {
         return vec3_scale(v, limit / len);
     }
     return v;
+}
+
+// CAS-based atomic min for float (maximum portability)
+__device__ inline float atomicMinFloat(float* addr, float value) {
+    float old = __int_as_float(atomicAdd((int*)addr, 0)); // initial read
+    while (value < old) {
+        int old_i = __float_as_int(old);
+        int assumed = atomicCAS((int*)addr, old_i, __float_as_int(value));
+        if (assumed == old_i) break;
+        old = __int_as_float(assumed);
+    }
+    return old;
 }
 
 // =============================================================================
@@ -176,7 +191,8 @@ __global__ void force_pass_kernel(
     const int* __restrict__ edge_col_indices,
     const float* __restrict__ edge_weights,
     const SimParams params,
-    const int num_nodes)
+    const int num_nodes,
+    const float* __restrict__ d_sssp_dist)
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
@@ -236,6 +252,14 @@ __global__ void force_pass_kernel(
     if (params.feature_flags & FeatureFlags::ENABLE_SPRINGS) {
         int start_edge = edge_row_offsets[idx];
         int end_edge = edge_row_offsets[idx + 1];
+        
+        float du = 0.0f;
+        bool use_sssp = (d_sssp_dist != nullptr) &&
+                       (params.feature_flags & FeatureFlags::ENABLE_SSSP_SPRING_ADJUST);
+        if (use_sssp) {
+            du = d_sssp_dist[idx];
+        }
+        
         for (int i = start_edge; i < end_edge; ++i) {
             int neighbor_idx = edge_col_indices[i];
             float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], pos_in_y[neighbor_idx], pos_in_z[neighbor_idx]);
@@ -244,7 +268,17 @@ __global__ void force_pass_kernel(
             float dist = vec3_length(diff);
             
             if (dist > 1e-6f) {
-                float displacement = dist - params.rest_length;
+                float ideal = params.rest_length;
+                if (use_sssp) {
+                    float dv = d_sssp_dist[neighbor_idx];
+                    // Handle disconnected components gracefully
+                    if (isfinite(du) && isfinite(dv)) {
+                        float delta = fabsf(du - dv);
+                        float norm_delta = fminf(delta, 1000.0f); // Cap for stability
+                        ideal = params.rest_length + params.sssp_alpha * norm_delta;
+                    }
+                }
+                float displacement = dist - ideal;
                 float spring_force_mag = params.spring_k * displacement * edge_weights[i];
                 total_force = vec3_add(total_force, vec3_scale(diff, spring_force_mag / dist));
             }
@@ -258,6 +292,45 @@ __global__ void force_pass_kernel(
     force_out_x[idx] = total_force.x;
     force_out_y[idx] = total_force.y;
     force_out_z[idx] = total_force.z;
+}
+
+// =============================================================================
+// SSSP Relaxation Kernel
+// =============================================================================
+
+extern "C" __global__ void relaxation_step_kernel(
+    float* __restrict__ d_dist,                // [n] distance array
+    const int* __restrict__ d_current_frontier,// [frontier_size] active vertices
+    int frontier_size,
+    const int* __restrict__ d_row_offsets,     // [n+1] CSR row offsets
+    const int* __restrict__ d_col_indices,     // [m] CSR column indices  
+    const float* __restrict__ d_weights,       // [m] edge weights
+    int* __restrict__ d_next_frontier_flags,   // [n] output flags (0/1)
+    float B,                                   // distance boundary
+    int n                                      // total vertices
+) {
+    int t = blockIdx.x * blockDim.x + threadIdx.x;
+    if (t >= frontier_size) return;
+    
+    int u = d_current_frontier[t];
+    float du = d_dist[u];
+    if (!isfinite(du)) return; // Skip unreachable vertices
+    
+    int start = d_row_offsets[u];
+    int end = d_row_offsets[u + 1];
+    
+    for (int e = start; e < end; ++e) {
+        int v = d_col_indices[e];
+        float w = d_weights[e];
+        float nd = du + w;
+        
+        if (nd < B) {
+            float old = atomicMinFloat(&d_dist[v], nd);
+            if (nd < old) {
+                d_next_frontier_flags[v] = 1; // Mark for next frontier
+            }
+        }
+    }
 }
 
 // =============================================================================
