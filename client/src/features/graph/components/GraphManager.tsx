@@ -15,6 +15,7 @@ import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
+import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
 // import { useBloomStrength } from '../contexts/BloomContext' // Removed - bloom managed via settings
 
 const logger = createLogger('GraphManager')
@@ -65,8 +66,35 @@ const getGeometryForNodeType = (type?: string): THREE.BufferGeometry => {
   }
 };
 
-// Get node color based on type/metadata
-const getNodeColor = (node: GraphNode): THREE.Color => {
+// Get node color based on type/metadata and SSSP visualization
+const getNodeColor = (node: GraphNode, ssspResult?: any): THREE.Color => {
+  // SSSP visualization takes priority when available
+  if (ssspResult) {
+    const distance = ssspResult.distances[node.id]
+    
+    // Source node - special bright cyan color
+    if (node.id === ssspResult.sourceNodeId) {
+      return new THREE.Color('#00FFFF') // Bright cyan for source
+    }
+    
+    // Unreachable nodes - gray
+    if (!isFinite(distance)) {
+      return new THREE.Color('#666666') // Dark gray
+    }
+    
+    // Reachable nodes - gradient from green to red based on distance
+    const normalizedDistances = ssspResult.normalizedDistances || {}
+    const normalizedDistance = normalizedDistances[node.id] || 0
+    
+    // Create gradient from green (close) to red (far)
+    const red = Math.min(1, normalizedDistance * 1.2)
+    const green = Math.min(1, (1 - normalizedDistance) * 1.2)
+    const blue = 0.1 // Slight blue tint for depth
+    
+    return new THREE.Color(red, green, blue)
+  }
+  
+  // Default type-based coloring when no SSSP result
   const typeColors: Record<string, string> = {
     'folder': '#FFD700',     // Gold
     'file': '#00CED1',       // Dark turquoise
@@ -118,6 +146,11 @@ const GraphManager: React.FC = () => {
   // Handle both camelCase and snake_case field names from REST API
   const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
   const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? settings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
+  
+  // SSSP visualization state
+  const ssspResult = useCurrentSSSPResult();
+  const normalizeDistances = useAnalyticsStore(state => state.normalizeDistances);
+  const [normalizedSSSPResult, setNormalizedSSSPResult] = useState<any>(null);
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const materialRef = useRef<HologramNodeMaterial | null>(null)
   const particleSystemRef = useRef<THREE.Points>(null)
@@ -241,6 +274,42 @@ const GraphManager: React.FC = () => {
     }
   }, [settings?.visualisation])
 
+  // Update normalized SSSP result when ssspResult changes
+  useEffect(() => {
+    if (ssspResult) {
+      const normalized = normalizeDistances(ssspResult);
+      setNormalizedSSSPResult({
+        ...ssspResult,
+        normalizedDistances: normalized
+      });
+    } else {
+      setNormalizedSSSPResult(null);
+    }
+  }, [ssspResult, normalizeDistances]);
+
+  // Function to update node colors with smooth transitions
+  const updateNodeColors = useCallback(() => {
+    if (!meshRef.current || graphData.nodes.length === 0) return;
+
+    const mesh = meshRef.current;
+    const colors = new Float32Array(graphData.nodes.length * 3);
+
+    graphData.nodes.forEach((node, i) => {
+      const color = getNodeColor(node, normalizedSSSPResult);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    });
+
+    mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
+    mesh.geometry.attributes.instanceColor.needsUpdate = true;
+  }, [graphData.nodes, normalizedSSSPResult]);
+
+  // Update colors when SSSP result changes
+  useEffect(() => {
+    updateNodeColors();
+  }, [updateNodeColors]);
+
   // Initialize instance attributes
   useEffect(() => {
     if (meshRef.current && graphData.nodes.length > 0) {
@@ -254,12 +323,12 @@ const GraphManager: React.FC = () => {
           nodeCount: graphData.nodes.length,
           meshCount: mesh.count,
           hasPositions: !!nodePositionsRef.current,
-          meshRef: meshRef.current
+          meshRef: meshRef.current,
+          hasSSSPResult: !!normalizedSSSPResult
         });
       }
 
-      // Set up instance colors
-      const colors = new Float32Array(graphData.nodes.length * 3)
+      updateNodeColors();
 
       // CRITICAL: Initialize instance matrices immediately
       const tempMatrix = new THREE.Matrix4();
@@ -268,12 +337,6 @@ const GraphManager: React.FC = () => {
       const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
       graphData.nodes.forEach((node, i) => {
-        // Set colors
-        const color = getNodeColor(node)
-        colors[i * 3] = color.r
-        colors[i * 3 + 1] = color.g
-        colors[i * 3 + 2] = color.b
-
         // CRITICAL: Set initial instance matrix for each node
         const nodeScale = getNodeScale(node, graphData.edges) * baseScale;
         tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
@@ -289,8 +352,6 @@ const GraphManager: React.FC = () => {
         
         mesh.setMatrixAt(i, tempMatrix);
       })
-
-      mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3))
       
       // CRITICAL: Mark instance matrix as needing update
       mesh.instanceMatrix.needsUpdate = true;
@@ -302,7 +363,7 @@ const GraphManager: React.FC = () => {
 
       console.log('[GraphManager] Instance matrices initialized');
     }
-  }, [graphData])
+  }, [graphData, normalizedSSSPResult])
 
   // Pass settings to worker whenever they change
   useEffect(() => {
@@ -350,7 +411,14 @@ const GraphManager: React.FC = () => {
           for (let i = 0; i < graphData.nodes.length; i++) {
             const i3 = i * 3;
             const node = graphData.nodes[i];
-            const nodeScale = getNodeScale(node, graphData.edges) * baseScale;
+            let nodeScale = getNodeScale(node, graphData.edges) * baseScale;
+            
+            // Add pulsing effect for source node in SSSP visualization
+            if (normalizedSSSPResult && node.id === normalizedSSSPResult.sourceNodeId) {
+              const pulseScale = 1 + Math.sin(animationStateRef.current.time * 2) * 0.3;
+              nodeScale *= pulseScale;
+            }
+            
             tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
             tempMatrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
             meshRef.current.setMatrixAt(i, tempMatrix);
@@ -621,6 +689,20 @@ const GraphManager: React.FC = () => {
 
       // Determine which piece of metadata to show
       let metadataToShow = null;
+      let distanceInfo = null;
+      
+      // SSSP distance information takes priority
+      if (normalizedSSSPResult) {
+        const distance = normalizedSSSPResult.distances[node.id];
+        if (node.id === normalizedSSSPResult.sourceNodeId) {
+          distanceInfo = "Source (0)";
+        } else if (!isFinite(distance)) {
+          distanceInfo = "Unreachable";
+        } else {
+          distanceInfo = `Distance: ${distance.toFixed(2)}`;
+        }
+      }
+      
       if (labelSettings.showMetadata && node.metadata) {
         if (node.metadata.description) {
           metadataToShow = node.metadata.description;
@@ -663,7 +745,23 @@ const GraphManager: React.FC = () => {
           >
             {node.label || node.id}
           </Text>
-          {metadataToShow && (
+          {distanceInfo && (
+            <Text
+              position={[0, -(textPadding * 0.25), 0]}
+              fontSize={fontSize * 0.7}
+              color={node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF' : 
+                     (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00')}
+              anchorX="center"
+              anchorY="top"
+              maxWidth={maxWidth * 0.8}
+              textAlign="center"
+              outlineWidth={0.002}
+              outlineColor="#000000"
+            >
+              {distanceInfo}
+            </Text>
+          )}
+          {metadataToShow && !distanceInfo && (
             <Text
               position={[0, -(textPadding * 0.25), 0]}
               fontSize={fontSize * 0.6}
@@ -676,10 +774,23 @@ const GraphManager: React.FC = () => {
               {metadataToShow}
             </Text>
           )}
+          {metadataToShow && distanceInfo && (
+            <Text
+              position={[0, -(textPadding * 0.5), 0]}
+              fontSize={fontSize * 0.5}
+              color={new THREE.Color(labelSettings.textColor || '#ffffff').multiplyScalar(0.5).getStyle()}
+              anchorX="center"
+              anchorY="top"
+              maxWidth={maxWidth * 0.8}
+              textAlign="center"
+            >
+              {metadataToShow}
+            </Text>
+          )}
         </Billboard>
       )
     })
-  }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels])
+  }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
 
   // Debug logging for render - only log once on mount/unmount
   useEffect(() => {
@@ -715,6 +826,7 @@ const GraphManager: React.FC = () => {
       }
     }}
     settings={settings}
+    ssspResult={normalizedSSSPResult}
   />
 ) : (
         <instancedMesh
