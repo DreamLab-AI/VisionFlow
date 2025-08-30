@@ -55,6 +55,10 @@ export class BotsWebSocketIntegration {
       } else if (message.type === 'botsGraphUpdate') {
         // NEW: Handle full graph data with nodes and edges
         logger.debug('Received bots graph update with', message.data?.nodes?.length || 0, 'nodes and', message.data?.edges?.length || 0, 'edges');
+        // Add debug logging
+        if (!message.data) {
+          logger.warn('botsGraphUpdate message has no data field:', message);
+        }
         this.emit('bots-graph-update', message.data);
       } else if (message.type === 'bots-full-update') {
         logger.debug('Received bots full update with', message.agents?.length || 0, 'agents');

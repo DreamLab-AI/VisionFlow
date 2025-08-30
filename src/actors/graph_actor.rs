@@ -1864,6 +1864,22 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             message: bots_full_update.to_string(),
         });
         
+        // Also send the graph update message with nodes and edges
+        // Note: Using camelCase "botsGraphUpdate" to match frontend expectations
+        let bots_graph_update = serde_json::json!({
+            "type": "botsGraphUpdate",
+            "data": {
+                "nodes": self.bots_graph_data.nodes,
+                "edges": self.bots_graph_data.edges,
+            },
+            "timestamp": chrono::Utc::now().to_rfc3339(),
+        });
+        
+        // Broadcast the graph update to all connected clients
+        self.client_manager.do_send(BroadcastMessage {
+            message: bots_graph_update.to_string(),
+        });
+        
         // Remove CPU physics calculations for agent graph - delegate to GPU
         // The GPU will use the edge weights (communication intensity) for spring forces
     }

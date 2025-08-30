@@ -676,11 +676,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 info!("Client requested full bots graph data");
                                 
                                 // Send complete graph structure (nodes + edges)
-                                let app_state = self.app_state.clone();
+                                let graph_addr = self.app_state.graph_service_addr.clone();
                                 
                                 ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
-                                    // Get full graph data from the bots handler
-                                    crate::handlers::bots_handler::get_bots_graph_data(&app_state.bots_client).await
+                                    // Get full graph data from GraphServiceActor
+                                    use crate::actors::messages::GetBotsGraphData;
+                                    match graph_addr.send(GetBotsGraphData).await {
+                                        Ok(Ok(graph_data)) => Some(graph_data),
+                                        _ => None
+                                    }
                                 }).map(|graph_data_opt, _act, ctx| {
                                     if let Some(graph_data) = graph_data_opt {
                                         // Send graph data as JSON
