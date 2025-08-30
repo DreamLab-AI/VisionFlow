@@ -275,6 +275,45 @@ class ApiService {
   }): Promise<{ success: boolean; message?: string; error?: string }> {
     return await this.post('/bots/initialize-multi-agent', config);
   }
+
+  /**
+   * Compute shortest paths from a source node using Single Source Shortest Path (SSSP) algorithm
+   * @param sourceNodeId The ID of the source node to compute paths from
+   * @returns Promise containing the shortest path results
+   */
+  public async computeShortestPaths(sourceNodeId: number): Promise<{
+    success: boolean;
+    distances?: Record<string, number | null>;
+    unreachableCount?: number;
+    error?: string;
+  }> {
+    try {
+      if (debugState.isEnabled()) {
+        logger.debug(`Computing shortest paths from source node ${sourceNodeId}`);
+      }
+
+      const response = await this.post<{
+        success: boolean;
+        distances?: Record<string, number | null>;
+        unreachableCount?: number;
+        error?: string;
+      }>('/analytics/shortest-path', {
+        sourceNodeId
+      });
+
+      if (debugState.isEnabled()) {
+        logger.debug(`Shortest path computation completed for source node ${sourceNodeId}`);
+      }
+
+      return response;
+    } catch (error: any) {
+      logger.error(`Error computing shortest paths from node ${sourceNodeId}:`, createErrorMetadata(error));
+      return {
+        success: false,
+        error: error.message || 'Failed to compute shortest paths'
+      };
+    }
+  }
 }
 
 export const apiService = ApiService.getInstance();

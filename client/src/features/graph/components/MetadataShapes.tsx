@@ -7,7 +7,7 @@ import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial';
 
 // --- 1. Define Visual Metaphor Logic ---
 // This helper function is the heart of our new system.
-const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string) => {
+const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResult?: any) => {
   const visuals = {
     geometryType: 'sphere' as 'sphere' | 'box' | 'octahedron' | 'icosahedron',
     scale: 1.0,
@@ -15,6 +15,44 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string) => {
     emissive: new THREE.Color(settingsBaseColor || '#00ffff'),
     pulseSpeed: 0.5,
   };
+
+  // SSSP visualization takes priority over default metaphors
+  if (ssspResult) {
+    const distance = ssspResult.distances[node.id];
+    
+    // Source node - special bright cyan color and enhanced scale
+    if (node.id === ssspResult.sourceNodeId) {
+      visuals.color = new THREE.Color('#00FFFF');
+      visuals.emissive = new THREE.Color('#00FFFF');
+      visuals.scale = 1.5;
+      visuals.pulseSpeed = 2.0; // Faster pulsing for source
+      visuals.geometryType = 'icosahedron'; // Special shape for source
+    }
+    // Unreachable nodes - gray and smaller
+    else if (!isFinite(distance)) {
+      visuals.color = new THREE.Color('#666666');
+      visuals.emissive = new THREE.Color('#333333');
+      visuals.scale = 0.7;
+      visuals.pulseSpeed = 0.1;
+    }
+    // Reachable nodes - gradient from green to red based on distance
+    else {
+      const normalizedDistances = ssspResult.normalizedDistances || {};
+      const normalizedDistance = normalizedDistances[node.id] || 0;
+      
+      // Create gradient from green (close) to red (far)
+      const red = Math.min(1, normalizedDistance * 1.2);
+      const green = Math.min(1, (1 - normalizedDistance) * 1.2);
+      const blue = 0.1; // Slight blue tint for depth
+      
+      visuals.color = new THREE.Color(red, green, blue);
+      visuals.emissive = new THREE.Color(red * 0.5, green * 0.5, blue * 0.5);
+      visuals.scale = 0.8 + (1 - normalizedDistance) * 0.4; // Closer nodes are larger
+    }
+    
+    // Early return when SSSP is active
+    return visuals;
+  }
 
   const { metadata } = node;
   if (!metadata) return visuals;
@@ -159,9 +197,10 @@ interface MetadataShapesProps {
   nodePositions: Float32Array | null;
   onNodeClick?: (nodeId: string, event: any) => void;
   settings: any;
+  ssspResult?: any;
 }
 
-export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePositions, onNodeClick, settings }) => {
+export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePositions, onNodeClick, settings, ssspResult }) => {
   const geometries = useGeometries();
   const material = useHologramMaterial(settings);
   const meshRefs = useRef<Map<string, THREE.InstancedMesh>>(new Map());
@@ -173,7 +212,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
     const baseColor = nodeSettings?.baseColor || '#00ffff';
     
     nodes.forEach((node, index) => {
-      const { geometryType } = getVisualsForNode(node, baseColor);
+      const { geometryType } = getVisualsForNode(node, baseColor, ssspResult);
       if (!groups.has(geometryType)) {
         groups.set(geometryType, { nodes: [], originalIndices: [] });
       }
@@ -181,7 +220,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
       groups.get(geometryType)!.originalIndices.push(index);
     });
     return groups;
-  }, [nodes, settings]);
+  }, [nodes, settings, ssspResult]);
 
   // Frame loop to update instances
   useFrame((state) => {
@@ -201,7 +240,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
 
         const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
         const baseColorForNode = nodeSettings?.baseColor || '#00ffff';
-        const visuals = getVisualsForNode(node, baseColorForNode);
+        const visuals = getVisualsForNode(node, baseColorForNode, ssspResult);
         material.uniforms.pulseSpeed.value = visuals.pulseSpeed;
 
         // Position & Scale

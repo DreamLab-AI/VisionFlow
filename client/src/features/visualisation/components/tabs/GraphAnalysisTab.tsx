@@ -27,10 +27,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Separator } from '@/features/design-system/components/Separator';
 import { toast } from '@/features/design-system/components/Toast';
+import { ShortestPathControls } from '@/features/analytics/components/ShortestPathControls';
+import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';
 
 interface GraphAnalysisTabProps {
   graphId?: string;
-  graphData?: any;
+  graphData?: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+  };
   otherGraphData?: any;
 }
 
@@ -270,6 +275,14 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Shortest Path Analysis - Integrated analytics component */}
+      {graphData?.nodes && graphData?.edges && graphData.nodes.length > 0 && (
+        <ShortestPathControls 
+          nodes={graphData.nodes}
+          edges={graphData.edges}
+        />
+      )}
 
       {/* Export & Actions */}
       <Card>
