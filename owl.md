@@ -154,3 +154,119 @@ flowchart TD
 *   **Licensing Freedom:** The project retains its permissive MIT license, posing no barrier to adoption or commercial use.
 
 This approach provides the best of both worlds: world-class performance and architectural elegance without licensing compromises.
+
+Of course. Integrating horned-owl and whelk-rs into your system can create a powerful hybrid model that combines the performance and emergent pattern discovery of your existing property graph with the logical consistency and inference capabilities of a formal ontology. This allows you to augment your visualization with a "truth engine" that can validate your data and deduce new, implicit knowledge.
+Based on the provided paper and your system's architecture, here is a detailed plan for this integration.
+The Conceptual Bridge: Two Worlds of Semantics
+First, it's essential to understand the two paradigms of "semantics" at play. Your current system uses an implicit and statistical approach, where meaning is derived from labels and patterns. An OWL-based system provides explicit and formal semantics, where meaning is defined by a logical schema.
+Our Current System (Property Graph)	OWL-based System (Description Logic)
+Implicit & Statistical Semantics	Explicit & Formal Semantics
+"Meaning" comes from labels, metadata, and statistical analysis (e.g., clustering).	"Meaning" is defined by a formal ontology (a set of axioms and rules).
+Relationships are often based on similarity scores. The connection is a probability.	Relationships are logical and precise (e.g., is-a, part-of). The connection is a verifiable fact.
+Strengths: Flexible, high-performance for visualization, great for discovering emergent patterns.	Strengths: Guarantees data consistency, enables logical inference, provides explainable reasoning.
+Weakness: Can contain contradictory or nonsensical information without a formal check.	Weakness: Can be computationally expensive and requires a well-defined ontology.
+The goal is not to replace your system but to create a feedback loop where the OWL backend acts as an on-demand validation and augmentation service.
+The Interplay: A Hybrid Validation & Feedback Loop
+Here is the conceptual workflow for how the two systems would interact:
+code
+Mermaid
+flowchart TD
+    subgraph Our_System [Our Existing System]
+        A[1. Graph Ingestion] --> B{GraphData (Nodes/Edges)}
+        B --> C[2. Mapping to RDF/OWL Axioms]
+    end
+
+    subgraph OWL_Backend [New OWL Validation Service]
+        D[3. OWL Ontology (Schema)] --> E{Reasoner Engine (whelk-rs)}
+        C --> E
+        E --> F[4a. Consistency Check]
+        E --> G[4b. Inference Engine]
+    end
+
+    subgraph Feedback_Loop [Feedback to Our System]
+        F --> H{Validation Report}
+        G --> I{Inferred Triples (New Edges)}
+        H --> J[5. Visualize Inconsistencies]
+        I --> K[6. Augment Graph with Inferred Edges]
+    end
+
+    B --> L[Visualize & Explore]
+    J --> L
+    K --> L
+
+    style OWL_Backend fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
+    style Feedback_Loop fill:#e6ffe6,stroke:#009900,stroke-width:2px```
+
+**Step-by-Step Breakdown:**
+
+1.  **Graph Ingestion (Current):** Your system ingests data and creates its flexible `GraphData` structure.
+2.  **Mapping to RDF/OWL:** A new backend component translates your property graph into OWL axioms that `horned-owl` can understand.
+    *   A node with `label: "ComponentA"` and `metadata.type: "Software"` becomes an *Individual* (`:ComponentA`) of a *Class* (`:SoftwareComponent`).
+    *   An edge from `ComponentA` to `DatabaseB` with `label: "connects_to"` becomes an *Object Property Assertion*: `:ComponentA :connectsTo :DatabaseB`.
+3.  **OWL Ontology (The Rules):** You will define an `ontology.owl` file. This is your formal schema containing axioms like:
+    *   `SoftwareComponent` is a `subClassOf` `SystemResource`.
+    *   The property `connectsTo` has a `domain` of `SoftwareComponent` and a `range` of `Database`.
+    *   The property `dependsOn` is `transitive`.
+4.  **Reasoning (The Engine):** The mapped data and the ontology are fed into the `whelk-rs` reasoner. It performs two key tasks:
+    *   **4a. Consistency Check:** It verifies if the graph violates any axioms. For example, it would flag an inconsistency if a `SoftwareComponent` is connected to another `SoftwareComponent` via the `connectsTo` property, as this violates the defined range.
+    *   **4b. Inference:** It deduces new, logically valid facts. If it knows `A dependsOn B` and `B dependsOn C`, and `dependsOn` is transitive, it will infer a new edge: `A dependsOn C`.
+5.  **Visualize Inconsistencies:** The results of the consistency check are sent back to the frontend. You can now highlight nodes or edges that violate the ontology, showing the user exactly where the data model is "wrong" according to the formal rules.
+6.  **Augment Graph:** The inferred triples are translated back into new edges in your `GraphData`. These are logically guaranteed to be correct and can be visualized differently (e.g., with a dashed or glowing style) to distinguish them from ingested edges.
+
+---
+
+### Technical Implementation Plan
+
+This plan integrates the ontological validation capabilities as a new, advanced feature set.
+
+#### Phase 1: Ontological Validation Backend (Rust)
+
+**Goal:** Build the backend service that can receive graph data, validate it against an OWL ontology, and return inconsistencies and inferences.
+
+*   **New Component: OWL Validation Service (`src/services/owl_validator.rs`)**
+    *   **Action:** Create a new service responsible for OWL reasoning.
+    *   **Details:**
+        *   Integrate the `horned-owl` library to parse your `ontology.owl` file and to construct axioms from your mapped `GraphData`. The performance benefits cited in the paper make it an excellent choice for this.
+        *   Use the `whelk-rs` reasoner, which is built on `horned-owl`, to perform consistency checks and inference. This creates a pure Rust solution, eliminating the need for external services.
+        *   **Input:** An OWL ontology file (e.g., `data/ontology.owl`) and graph data mapped to `horned-owl` structures.
+        *   **Output:** A list of inconsistencies and a list of inferred axioms/triples.
+
+*   **New Actor: OntologyActor (`src/actors/ontology_actor.rs`)**
+    *   **Action:** Create an actor to manage the validation process asynchronously.
+    *   **Details:**
+        *   Receives a `ValidateGraph` message from your existing `GraphServiceActor`.
+        *   Contains the logic to map your `GraphData` struct to `horned-owl` axioms.
+        *   Calls the `OwlValidatorService`.
+        *   Sends the results (`ValidationReport`) back to the `GraphServiceActor`.
+
+*   **API Endpoint for Validation (`src/handlers/api_handler/analytics/mod.rs`)**
+    *   **Action:** Add a new route `POST /api/analytics/validate`.
+    *   **Details:** This endpoint will trigger the validation process on the current graph data. Since reasoning can be slow, it should return a task ID for polling the results.
+
+#### Phase 2: Frontend Integration for Ontological Insights (React)
+
+**Goal:** Provide UI controls to run validation and visualize the results, making the logical structure of the graph tangible to the user.
+
+*   **UI Controls for Validation (`client/src/features/analytics/components/OntologyControls.tsx`)**
+    *   **Action:** Create a new component within your `GraphAnalysisTab.tsx`.
+    *   **Details:**
+        *   Add a "Validate Graph Consistency" button.
+        *   Include a display area for the validation report, showing inconsistencies and a summary of inferences.
+        *   Add a toggle to show/hide inferred edges on the graph.
+
+*   **Visualization of Validation Results (`client/src/features/graph/components/GraphManager.tsx`)**
+    *   **Action:** Enhance the graph visualization to display validation results.
+    *   **Details:**
+        *   **Inconsistencies:** Nodes/edges flagged as inconsistent should be visually distinct (e.g., colored red, given a warning icon). A tooltip should explain the violation (e.g., *"Error: `connectsTo` property expects a `Database`, but is connected to a `SoftwareComponent`"*).
+        *   **Inferences:** New, inferred edges should be added to the graph but rendered with a distinct style (e.g., dashed lines, a subtle glow) to differentiate them from the original data.
+
+#### Phase 3: Semantically-Aware Physics (Advanced)
+
+**Goal:** Use the formal relationships from the ontology to create "hard" constraints for the physics engine.
+
+*   **Generate Hard Constraints from Ontology (`src/physics/semantic_constraints.rs`)**
+    *   **Action:** Extend the constraint generator to use the OWL validation results.
+    *   **Details:**
+        *   If the ontology defines `ClassA` as a `subClassOf` `ClassB`, generate a constraint that visually groups instances of A near or within instances of B.
+        *   Use `disjointWith` axioms to create strong repulsive forces between instances of different classes.
+        *   This creates a powerful feedback loop where the formal logic of the ontology directly and verifiably shapes the visual layout of the graph.

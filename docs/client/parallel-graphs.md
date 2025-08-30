@@ -1,6 +1,6 @@
 # Parallel Graphs Feature
 
-The parallel graphs feature enables simultaneous visualization of multiple graph data sources with independent visual configurations.
+The parallel graphs feature enables simultaneous visualisation of multiple graph data sources with independent visual configurations.
 
 This document provides comprehensive documentation for the parallel graphs feature that enables simultaneous visualisation of multiple graph data sources with independent visual configurations.
 
@@ -92,7 +92,7 @@ Each graph has its own visual theme as defined in `defaultSettings.ts`:
 // Logseq theme (Blue/Purple)
 const logseqTheme = {
   nodes: {
-    baseColor: '#4B5EFF',
+    basecolour: '#4B5EFF',
     nodeSize: 8,
     metalness: 0.4,
     roughness: 0.6,
@@ -104,7 +104,7 @@ const logseqTheme = {
     enableMetadataVisualisation: true
   },
   edges: {
-    color: '#F59E0B',
+    colour: '#F59E0B',
     baseWidth: 2,
     opacity: 0.8,
     enableArrows: true,
@@ -119,7 +119,7 @@ const logseqTheme = {
 // VisionFlow theme (Green)
 const visionflowTheme = {
   nodes: {
-    baseColor: '#10B981',
+    basecolour: '#10B981',
     nodeSize: 10,
     metalness: 0.3,
     roughness: 0.7,
@@ -127,7 +127,7 @@ const visionflowTheme = {
     // ... matches NodeSettings interface
   },
   edges: {
-    color: '#34D399',
+    colour: '#34D399',
     baseWidth: 3,
     glowStrength: 0.6,
     // ... matches EdgeSettings interface
@@ -192,7 +192,7 @@ Three viewport modes are supported:
 - **GPU**: Separate render passes for each graph
 - **CPU**: Independent physics simulations
 
-### Optimization Strategies
+### optimisation Strategies
 
 1. **Lazy Loading**: Load graph data on demand
 2. **LOD System**: Level-of-detail based on viewport

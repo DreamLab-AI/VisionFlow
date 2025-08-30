@@ -81,7 +81,7 @@ const {
 ### View Commands
 - **Toggle XR Mode**: Switches to WebXR view
 - **Reset Camera**: Resets 3D camera position
-- **Center Graph**: Centers the graph visualisation
+- **centre Graph**: centres the graph visualisation
 
 ### System Commands
 - **Refresh Data**: Reloads graph data
@@ -158,7 +158,7 @@ Each command includes:
 
 ## Performance Considerations
 
-### Fuzzy Search Optimization
+### Fuzzy Search optimisation
 - Uses efficient string matching algorithm
 - Caches search results
 - Debounces search input (150ms)
@@ -173,7 +173,7 @@ Each command includes:
 ### Theming
 Command palette respects application theme:
 - Dark/light mode support
-- Custom color schemes
+- Custom colour schemes
 - Font size adjustments
 
 ### Configuration Options

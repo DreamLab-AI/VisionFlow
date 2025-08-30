@@ -51,40 +51,40 @@ graph TD
 
 ## Quick Links
 
-*   **New to VisionFlow?** Start with the **[Getting Started](./01-getting-started/README.md)** guide.
-*   **Want to perform a specific task?** Check our **[How-to Guides](./02-guides/README.md)**.
-*   **Need to understand the architecture?** Read the **[Concepts](./03-concepts/README.md)** documentation.
-*   **Looking for technical details?** Dive into the **[Reference](./04-reference/README.md)** section.
-*   **Want to contribute?** See the **[Development](./05-development/README.md)** guides.
+*   **New to VisionFlow?** Start with the **[Getting Started](./getting-started/index.md)** guide.
+*   **Want to perform a specific task?** Check our **[How-to Guides](./guides/index.md)**.
+*   **Need to understand the architecture?** Read the **[Concepts](./architecture/index.md)** documentation.
+*   **Looking for technical details?** Dive into the **[Reference](./reference/index.md)** section.
+*   **Want to contribute?** See the **[Development](./development/index.md)** guides.
 
 ## Navigation by Role
 
 ### For Users & Analysts
-- **Installation**: [01-getting-started/installation.md](./01-getting-started/installation.md)
-- **First Visualisation**: [01-getting-started/quickstart.md](./01-getting-started/quickstart.md)
-- **Tuning and Settings**: [02-guides/settings-and-tuning.md](./02-guides/settings-and-tuning.md)
+- **Installation**: [getting-started/installation.md](./getting-started/installation.md)
+- **First Visualisation**: [getting-started/quickstart.md](./getting-started/quickstart.md)
+- **Tuning and Settings**: [guides/settings-guide.md](./guides/settings-guide.md)
 
 ### For DevOps & System Administrators
-- **Deployment with Docker**: [02-guides/deployment-with-docker.md](./02-guides/deployment-with-docker.md)
-- **Configuration Reference**: [04-reference/configuration.md](./04-reference/configuration.md)
-- **Troubleshooting**: [02-guides/troubleshooting.md](./02-guides/troubleshooting.md)
+- **Deployment with Docker**: [deployment/docker.md](./deployment/docker.md)
+- **Configuration Reference**: [configuration/index.md](./configuration/index.md)
+- **Troubleshooting**: [guides/troubleshooting.md](./guides/troubleshooting.md)
 
 ### For Developers & Contributors
-- **System Architecture**: [03-concepts/system-architecture.md](./03-concepts/system-architecture.md)
-- **API Reference**: [04-reference/api.md](./04-reference/api.md)
-- **Development Workflow**: [02-guides/development-workflow.md](./02-guides/development-workflow.md)
-- **Contributing Guide**: [05-development/contributing.md](./05-development/contributing.md)
+- **System Architecture**: [architecture/system-overview.md](./architecture/system-overview.md)
+- **API Reference**: [api/index.md](./api/index.md)
+- **Development Workflow**: [development/index.md](./development/index.md)
+- **Contributing Guide**: [contributing.md](./contributing.md)
 
 ## Documentation Sections
 
-### 📚 [01. Getting Started](./01-getting-started/README.md)
+### 📚 [Getting Started](./getting-started/index.md)
 Learn how to install VisionFlow and create your first visualisation. Perfect for new users who want to get up and running quickly.
 
 - Installation guide with prerequisites
 - Quick start tutorial
 - First visualisation walkthrough
 
-### 🔧 [02. Guides](./02-guides/README.md)
+### 🔧 [Guides](./guides/index.md)
 Practical how-to guides for accomplishing specific tasks with VisionFlow.
 
 - Agent orchestration and multi-agent configuration
@@ -93,7 +93,7 @@ Practical how-to guides for accomplishing specific tasks with VisionFlow.
 - Troubleshooting common issues
 - Development workflow best practices
 
-### 🧠 [03. Concepts](./03-concepts/README.md)
+### 🧠 [Architecture](./architecture/index.md)
 Understand the core concepts and architecture behind VisionFlow.
 
 - System architecture and design principles
@@ -101,7 +101,7 @@ Understand the core concepts and architecture behind VisionFlow.
 - GPU acceleration and CUDA integration
 - Dual-graph system for knowledge and agents
 
-### 📖 [04. Reference](./04-reference/README.md)
+### 📖 [Reference](./reference/index.md)
 Complete technical reference documentation.
 
 - REST and WebSocket API specifications
@@ -109,7 +109,7 @@ Complete technical reference documentation.
 - Configuration options and schemas
 - Glossary of terms
 
-### 🛠️ [05. Development](./05-development/README.md)
+### 🛠️ [Development](./development/index.md)
 Everything you need to contribute to VisionFlow development.
 
 - Contributing guidelines
@@ -120,34 +120,34 @@ Everything you need to contribute to VisionFlow development.
 ## Key Features Documentation
 
 ### 🤖 AI Agent Visualisation
-- [Agent Orchestration Guide](./02-guides/agent-orchestration.md) - Configure and manage AI agent swarms
-- [MCP Integration](./02-guides/agent-orchestration.md#mcp-integration) - Claude Flow Model Context Protocol setup
+- [Agent Orchestration Guide](./features/agent-orchestration.md) - Configure and manage AI agent swarms
+- [MCP Integration](./architecture/mcp-integration.md) - Claude Flow Model Context Protocol setup
 
 ### 📊 Knowledge Graph Integration
-- [Dual-Graph System](./03-concepts/dual-graph-system.md) - Understanding parallel visualisation
-- [Graph Configuration](./04-reference/configuration.md#graph-settings) - Customising graph behaviour
+- [Parallel Graphs](./client/parallel-graphs.md) - Understanding parallel visualisation
+- [Graph Configuration](./configuration/index.md) - Customising graph behaviour
 
 ### 🚀 Performance & Optimisation
-- [GPU Acceleration](./03-concepts/gpu-acceleration.md) - CUDA-powered physics engine
-- [Performance Tuning](./02-guides/settings-and-tuning.md#performance-optimisation) - Optimising for your hardware
+- [GPU Acceleration](./server/gpu-compute.md) - CUDA-powered physics engine
+- [Performance Tuning](./guides/settings-guide.md) - Optimising for your hardware
 
 ### 🔌 Integration & APIs
-- [API Reference](./04-reference/api.md) - Complete API documentation
-- [Binary Protocol](./04-reference/binary-protocol.md) - High-performance streaming protocol
+- [API Reference](./api/index.md) - Complete API documentation
+- [Binary Protocol](./api/websocket-protocols.md) - High-performance streaming protocol
 
 ## Production Deployment
 
 For production deployments, follow our comprehensive deployment guide:
 
-1. [Docker Deployment](./02-guides/deployment-with-docker.md) - Container-based deployment
-2. [Configuration Reference](./04-reference/configuration.md) - Production configuration
-3. [Troubleshooting](./02-guides/troubleshooting.md) - Common issues and solutions
+1. [Docker Deployment](./deployment/docker.md) - Container-based deployment
+2. [Configuration Reference](./configuration/index.md) - Production configuration
+3. [Troubleshooting](./guides/troubleshooting.md) - Common issues and solutions
 
 ## Community & Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/visionflow/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/visionflow/visionflow/issues)
 - **Discord**: [Join our community](https://discord.gg/visionflow)
-- **Contributing**: [How to contribute](./05-development/contributing.md)
+- **Contributing**: [How to contribute](./contributing.md)
 
 ## Documentation Standards
 
@@ -170,4 +170,4 @@ VisionFlow is licensed under the MIT License. See the [LICENSE](../LICENSE) file
 
 ---
 
-**Need help?** Start with our [Getting Started](./01-getting-started/README.md) guide or check the [Troubleshooting](./02-guides/troubleshooting.md) section.
+**Need help?** Start with our [Getting Started](./getting-started/index.md) guide or check the [Troubleshooting](./guides/troubleshooting.md) section.

@@ -58,7 +58,7 @@ const buttonClasses = cn('btn', isActive && 'btn-active', 'px-4');
 
 ### `debugState.ts` ([`client/src/utils/debugState.ts`](../../client/src/utils/debugState.ts))
 
-Provides utilities for managing and inspecting the application's debug state. This can include flags for enabling/disabling various debug visualizations, logging verbosity, or performance overlays.
+Provides utilities for managing and inspecting the application's debug state. This can include flags for enabling/disabling various debug visualisations, logging verbosity, or performance overlays.
 
 **Key Features:**
 -   Functions to set and retrieve debug flags (e.g., `isDebugEnabled('physics')`).

@@ -13,9 +13,9 @@ The system automatically selects the most appropriate control type based on the 
 -   **`textInput`**: For string values.
 -   **`passwordInput`**: A variant of `textInput` for sensitive string fields (API keys, secrets), providing masking.
 -   **`select`**: For predefined options (enum-like strings) defined in `options` array in `UISettingDefinition` -> Renders a Select Dropdown.
--   **`colorPicker`**: For single string color values -> Renders a Color Picker with hex input.
+-   **`colourPicker`**: For single string colour values -> Renders a colour Picker with hex input.
 -   **`rangeSlider`**: For `[number, number]` array values, representing a min/max range -> Renders a specialized Range Slider.
--   **`dualColorPicker`**: For `[string, string]` array values, representing two colors (e.g., for gradients) -> Renders two Color Pickers.
+-   **`dualcolourPicker`**: For `[string, string]` array values, representing two colours (e.g., for gradients) -> Renders two colour Pickers.
 -   **`radioGroup`**: For selecting one option from a list (mutually exclusive choices) defined in `options` -> Renders a Radio Group.
 -   **`buttonAction`**: For triggering an action (e.g., reset a section, trigger a backend process) -> Renders a Button. The action is defined by `actionId` in `UISettingDefinition`.
 
@@ -29,7 +29,7 @@ The system automatically selects the most appropriate control type based on the 
 
 #### Input Handling
 - **Debounced Inputs** - 300ms delay prevents excessive updates while typing
-- **Validation** - Color inputs validate hex format and auto-correct invalid entries
+- **Validation** - colour inputs validate hex format and auto-correct invalid entries
 - **Password Visibility Toggle** - Eye icon to show/hide sensitive values
 - **Placeholder Text** - Contextual hints for input fields
 
@@ -41,8 +41,8 @@ The system automatically selects the most appropriate control type based on the 
 
 ### 3. **Task-Appropriate Features**
 
-#### For Visualization Settings
-- **Real-time Updates** - Changes to visualization settings update the viewport immediately
+#### For visualisation Settings
+- **Real-time Updates** - Changes to visualisation settings update the viewport immediately
 - **Slider Preference** - Numeric inputs with ranges automatically use sliders for easier adjustment
 - **Precise Control** - Step values configured appropriately (0.01 for decimals, 1 for integers)
 
@@ -51,9 +51,9 @@ The system automatically selects the most appropriate control type based on the 
 - **Secure Placeholders** - "Enter secure value" for sensitive fields
 - **Power User Gating** - Advanced settings only visible to authenticated power users
 
-#### For Color Settings
+#### For colour Settings
 - **Dual Input** - Both visual picker and text input for flexibility
-- **Validation** - Ensures only valid hex colors are saved
+- **Validation** - Ensures only valid hex colours are saved
 - **Fallback Values** - Defaults to black (#000000) if invalid
 
 ### 4. **Accessibility Features**
@@ -71,7 +71,7 @@ The system automatically selects the most appropriate control type based on the 
 
 ### Advanced Settings
 - API Configuration → **Password Input with visibility toggle**
-- Color Themes → **Color Picker with hex validation**
+- colour Themes → **colour Picker with hex validation**
 - Performance Ranges → **Range Slider for min/max**
 - Display Modes → **Select Dropdown**
 
@@ -86,7 +86,7 @@ The controls are implemented in [`SettingControlComponent.tsx`](../../client/src
 - React hooks for state management (getting/setting values via `useSettingsStore`)
 - ⚠️ **CRITICAL**: Must use correct store import: `/store/settingsStore` not `/features/settings/store/settingsStore`
 - Logic to determine appropriate UI control based on `UISettingDefinition`
-- Custom debounce hook for input optimization (300ms delay)
+- Custom debounce hook for input optimisation (300ms delay)
 - TypeScript for type safety with proper Settings interface
 - Tailwind CSS for consistent styling
 - Lucide React icons for visual elements (tooltips, password visibility)
@@ -103,14 +103,14 @@ import { useSettingsStore } from '../store/settingsStore';
 **Multi-Graph Settings Support**:
 ```typescript
 // Access graph-specific settings
-const logseqNodeColor = useSettingsStore(
-  state => state.settings?.visualization?.graphs?.logseq?.nodes?.baseColor
+const logseqNodecolour = useSettingsStore(
+  state => state.settings?.visualisation?.graphs?.logseq?.nodes?.basecolour
 );
 
 // Update graph-specific settings
 setValue(newValue) {
   updateSettings(draft => {
-    draft.visualization.graphs.logseq.nodes.baseColor = newValue;
+    draft.visualisation.graphs.logseq.nodes.basecolour = newValue;
   });
 }
 ```
@@ -118,13 +118,13 @@ setValue(newValue) {
 All controls follow the same pattern:
 1. Receive value and onChange from parent (via settings store)
 2. Manage local state for debouncing if needed (300ms for text/number inputs)
-3. Validate input before calling onChange (especially for colors, numbers)
+3. Validate input before calling onChange (especially for colours, numbers)
 4. Provide appropriate visual feedback (hover, focus, validation states)
-5. ✅ **Real-time updates**: Changes immediately affect visualization via viewport settings
+5. ✅ **Real-time updates**: Changes immediately affect visualisation via viewport settings
 6. ✅ **Auto-save**: Changes are automatically persisted to server after debounce
 
 **Control Responsiveness**:
 - ✅ Sliders: Live value updates with immediate visual feedback
-- ✅ Color pickers: Real-time color changes in 3D scene  
+- ✅ colour pickers: Real-time colour changes in 3D scene  
 - ✅ Toggles: Instant enable/disable of features
 - ⚠️ **IF BROKEN**: Check store import in component files

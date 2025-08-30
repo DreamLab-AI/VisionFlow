@@ -474,11 +474,11 @@ sequenceDiagram
 
 For detailed information about specific components:
 
-- **[Actor System](actors.md)** - Detailed actor implementations and message definitions
-- **[GPU Compute](gpu-compute.md)** - CUDA kernel architecture and performance optimisation
-- **[Physics Engine](physics-engine.md)** - Force-directed algorithms and dual graph physics
-- **[Request Handlers](handlers.md)** - HTTP/WebSocket API endpoints and routing
-- **[Services](services.md)** - External integrations and business logic
-- **[Types & Models](types.md)** - Data structures and message definitions
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient client-server communication
-- **[MCP Integration](../architecture/mcp-integration.md)** - Claude Flow orchestrator connection
+- **[Actor System](./actors.md)** - Detailed actor implementations and message definitions
+- **[GPU Compute](./gpu-compute.md)** - CUDA kernel architecture and performance optimisation
+- **[Physics Engine](./physics-engine.md)** - Force-directed algorithms and dual graph physics
+- **[Request Handlers](./handlers.md)** - HTTP/WebSocket API endpoints and routing
+- **[Services](./services.md)** - External integrations and business logic
+- **[Types & Models](./types.md)** - Data structures and message definitions
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient client-server communication
+- **[MCP Integration](./mcp-integration.md)** - Claude Flow orchestrator connection

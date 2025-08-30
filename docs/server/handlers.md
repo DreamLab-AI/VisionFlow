@@ -571,8 +571,8 @@ services:
 
 ## Related Documentation
 
-- **[Actor System](actors.md)** - Backend message passing architecture
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient WebSocket communication format
-- **[Services](services.md)** - Business logic and external integrations
-- **[Types & Models](types.md)** - Data structures and message definitions
+- **[Actor System](./actors.md)** - Backend message passing architecture
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient WebSocket communication format
+- **[Services](./services.md)** - Business logic and external integrations
+- **[Types & Models](./types.md)** - Data structures and message definitions
 - **[WebSocket Protocols](../api/websocket.md)** - Real-time communication specifications

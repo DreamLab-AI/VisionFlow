@@ -1032,12 +1032,12 @@ pub struct PhysicsStabilityMetrics {
 
 ## Related Documentation
 
-- **[GPU Compute Architecture](gpu-compute.md)** - Detailed CUDA implementation and performance analysis
-- **[Actor System](actors.md)** - GraphServiceActor and GPUComputeActor integration patterns
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient position data streaming specifications
-- **[Dual Graph Architecture](../architecture/dual-graph.md)** - Knowledge + Agent graph coordination strategies
+- **[GPU Compute Architecture](./gpu-compute.md)** - Detailed CUDA implementation and performance analysis
+- **[Actor System](./actors.md)** - GraphServiceActor and GPUComputeActor integration patterns
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient position data streaming specifications
+- **[Dual Graph Architecture](../architecture/parallel-graphs.md)** - Knowledge + Agent graph coordination strategies
 - **[Settings System](../configuration/index.md)** - Comprehensive configuration management guide
-- **[MCP Integration](mcp-integration.md)** - Multi-agent coordination with Claude Flow
+- **[MCP Integration](./mcp-integration.md)** - Multi-agent coordination with Claude Flow
 
 ---
 

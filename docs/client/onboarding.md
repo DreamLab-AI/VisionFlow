@@ -76,11 +76,11 @@ Handles automatic flow triggers based on:
       id: 'welcome',
       title: 'Welcome to LogSeq Spring Thing!',
       description: 'This interactive tour will help you get familiar with the main features of the application. You can skip this tour at any time or restart it later from the help menu.',
-      position: 'center'
+      position: 'centre'
     },
     {
       id: 'graph-view',
-      title: 'Graph Visualization',
+      title: 'Graph visualisation',
       description: 'This is your main workspace where you can visualize and interact with your knowledge graph. Use your mouse to pan, zoom, and select nodes.',
       target: 'canvas',
       position: 'right'
@@ -88,7 +88,7 @@ Handles automatic flow triggers based on:
     {
       id: 'settings-panel',
       title: 'Settings Panel',
-      description: 'Customize your visualization with various settings. You can adjust colors, node sizes, and many other visual properties.',
+      description: 'Customize your visualisation with various settings. You can adjust colours, node sizes, and many other visual properties.',
       target: '.setting-control',
       position: 'left'
     },
@@ -96,7 +96,7 @@ Handles automatic flow triggers based on:
       id: 'command-palette',
       title: 'Command Palette',
       description: 'Press Ctrl+K (or Cmd+K on Mac) to open the command palette. It provides quick access to all available commands and features.',
-      position: 'center',
+      position: 'centre',
       action: () => {
         // Demonstrates command palette functionality
       }
@@ -114,7 +114,7 @@ Activated when user first enters XR mode:
 
 ### Settings Tour
 Comprehensive walkthrough of settings:
-- Visualization options
+- visualisation options
 - Performance settings
 - AI features configuration
 - Keyboard shortcuts

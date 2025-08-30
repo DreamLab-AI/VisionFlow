@@ -287,9 +287,9 @@ curl -X POST http://localhost:8080/api/debug/enable
 ### Getting Help
 
 **Documentation:**
-- [Architecture Guide](architecture/system-overview.md)
-- [API Reference](api/index.md)
-- [Configuration Reference](reference/configuration.md)
+- [Architecture Guide](./architecture/system-overview.md)
+- [API Reference](./api/index.md)
+- [Configuration Reference](./configuration/index.md)
 
 **Community:**
 - GitHub Issues: Report bugs and feature requests
@@ -300,18 +300,18 @@ curl -X POST http://localhost:8080/api/debug/enable
 
 ### Beginner
 1. ✅ Complete this getting started guide
-2. 📖 Read [Basic Usage Guide](guides/basic-usage.md)
-3. 🎯 Try [Tutorial: Your First Graph](tutorials/first-graph.md)
+2. 📖 Read [Basic Usage Guide](./guides/quick-start.md)
+3. 🎯 Try [Tutorial: Your First Graph](./guides/quick-start.md)
 
 ### Intermediate  
-1. 🔧 Explore [Configuration Options](reference/configuration.md)
-2. 🤖 Set up [Agent Integration](features/agent-orchestration.md)
-3. 🥽 Try [WebXR Mode](client/xr-integration.md)
+1. 🔧 Explore [Configuration Options](./configuration/index.md)
+2. 🤖 Set up [Agent Integration](./features/agent-orchestration.md)
+3. 🥽 Try [WebXR Mode](./client/xr-integration.md)
 
 ### Advanced
-1. 🏗️ Study [Architecture Documentation](architecture/index.md)
-2. 💻 Set up [Development Environment](development/setup.md)
-3. 🚀 Deploy to [Production](deployment/index.md)
+1. 🏗️ Study [Architecture Documentation](./architecture/index.md)
+2. 💻 Set up [Development Environment](./development/setup.md)
+3. 🚀 Deploy to [Production](./deployment/index.md)
 
 ## Quick Reference
 
@@ -348,4 +348,4 @@ docker-compose down
 
 🎉 **Welcome to VisionFlow!** You're now ready to explore real-time 3D visualisation with AI agent orchestration.
 
-For questions or issues, check our [Troubleshooting Guide](reference/troubleshooting.md) or reach out via GitHub Issues.
+For questions or issues, check our [Troubleshooting Guide](./guides/troubleshooting.md) or reach out via GitHub Issues.

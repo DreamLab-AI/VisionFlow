@@ -15,10 +15,10 @@ The core of the 3D scene is established by `@react-three/fiber`.
 This is the main entry point for the 3D scene. It wraps the Three.js `Canvas` component from R3F and sets up the fundamental rendering environment.
 
 **Responsibilities:**
--   Initializes the WebGL renderer.
+-   initialises the WebGL renderer.
 -   Configures the camera (e.g., `PerspectiveCamera`).
 -   Sets up basic scene elements like ambient lighting.
--   Hosts other 3D components that make up the graph visualization.
+-   Hosts other 3D components that make up the graph visualisation.
 -   Manages the `dpr` (device pixel ratio) for rendering quality.
 
 **Key Properties:**
@@ -34,7 +34,7 @@ This component is central to rendering the graph's nodes and edges. It receives 
 **Responsibilities:**
 -   Manages the creation and updating of 3D objects for nodes and edges
 -   Utilizes **instanced rendering** for nodes and edges to draw many similar objects with a single draw call, significantly improving performance for large graphs
--   Applies visual properties (color, size, material) based on settings and node/edge attributes
+-   Applies visual properties (colour, size, material) based on settings and node/edge attributes
 -   Orchestrates updates to node positions and other dynamic properties based on physics simulation data received from the server via binary protocol
 -   Supports dual-graph rendering for both Logseq and VisionFlow graph types simultaneously
 -   Integrates with post-processing effects and visual enhancements
@@ -85,7 +85,7 @@ This module defines a custom Three.js `ShaderMaterial` used to create a distinct
 **Key Features:**
 -   Utilizes GLSL shaders (vertex and fragment shaders) to achieve effects like:
     -   Animated scan lines or noise patterns.
-    -   Color tinting and transparency.
+    -   colour tinting and transparency.
     -   Edge glow or outline effects.
 -   Integrates with R3F by being exposed as a custom material component.
 
@@ -98,7 +98,7 @@ The GraphDataManager serves as the central hub for managing graph data flow betw
 **Key Features:**
 - **Binary Protocol Integration**: Processes incoming binary position updates via the 28-byte format
 - **Dual Graph Support**: Manages separate data streams for Logseq and VisionFlow graphs
-- **Real-time Updates**: Handles 60fps position synchronization from server-side physics
+- **Real-time Updates**: Handles 60fps position synchronisation from server-side physics
 - **Event Broadcasting**: Notifies rendering components of data changes
 - **Memory Management**: Efficiently manages large graph datasets with cleanup utilities
 
@@ -109,8 +109,8 @@ Handles heavy graph processing operations in Web Workers to maintain 60fps UI pe
 **Responsibilities:**
 - **Background Processing**: Offloads complex calculations from main thread
 - **Data Transformation**: Converts server data to render-ready format
-- **Performance Optimization**: Prevents UI blocking during large graph updates
+- **Performance optimisation**: Prevents UI blocking during large graph updates
 
 ## Distinction from `visualisation.md`
 
-While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` focuses on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node color representing file type), and the overall user experience of interacting with the visualized knowledge graph.
+While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` focuses on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node colour representing file type), and the overall user experience of interacting with the visualized knowledge graph.

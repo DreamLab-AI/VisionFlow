@@ -1,372 +1,221 @@
-# Client Components and UI Library
+# UI Component Library
 
-This document details the client's component architecture, describing the relationships between major components, their responsibilities, and the reusable UI component library.
+This document serves as a comprehensive reference for the client's design system and reusable UI component library. The components are built with React, TypeScript, and [Radix UI](https://www.radix-ui.com/) for accessibility, and styled with [Tailwind CSS](https://tailwindcss.com/).
 
-## Component Architecture Overview
+## Philosophy
 
-The client is organized into a modular component architecture with clear separation of concerns. Each component has well-defined responsibilities and interfaces.
+-   **Accessibility First**: Components are built on top of Radix UI primitives, ensuring they are accessible out-of-the-box (keyboard navigation, ARIA attributes, etc.).
+-   **Composition over Configuration**: Components are designed to be composed together to build complex UIs, favouring flexibility.
+-   **Theming**: The system is themed using CSS variables, allowing for easy customisation and consistency.
 
-```mermaid
-flowchart TB
-    subgraph CoreServices [Core Services & Stores]
-        APIService[services/apiService.ts]
-        SettingsStore["settingsStore.ts"]
-        NostrAuthSvc[nostrAuthService.ts]
-        Logger[logger.ts]
-        Utils[utils/*]
-    end
+---
 
-    subgraph AppInit [Application Initialization]
-        AppInitializer[AppInitializer.tsx]
-        Main[main.tsx]
-    end
+## Component Reference
 
-    subgraph MainUILayout [Main UI Layout & Panels]
-        MainLayout[MainLayout.tsx]
-        RightPaneCtrlPanel[RightPaneControlPanel.tsx]
-        ConversationPane[ConversationPane.tsx]
-        NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
-    end
+### Button
 
-    subgraph SettingsUI [Settings UI Components]
-        SettingsPanelRedesign[SettingsPanelRedesign.tsx]
-        TabsUI["Tabs.tsx"]
-        SettingsSection[SettingsSection.tsx]
-        SettingControlComp[SettingControlComponent.tsx]
-    end
+**Source**: [`client/src/features/design-system/components/Button.tsx`](../../client/src/features/design-system/components/Button.tsx)
 
-    subgraph AuthUI [Authentication UI]
-        AuthUIHandler[AuthUIHandler.tsx]
-        NostrAuthSection[NostrAuthSection.tsx]
-    end
+**Purpose**: A versatile button component for user actions. It includes multiple visual styles, sizes, and states.
 
-    subgraph RenderingEngine ["Rendering Engine"]
-        GraphCanvas[GraphCanvas.tsx]
-        GraphManager[GraphManager.tsx]
-        GraphViewport[GraphViewport.tsx]
-        CameraController[CameraController.tsx]
-        TextRenderer[TextRenderer.tsx]
-        MetadataVisualizer[MetadataVisualizer.tsx]
-        HologramManager[HologramManager.tsx]
-    end
+**Props**:
 
-    subgraph Network [Network & Data Management]
-        WebSocketSvc[WebSocketService.ts]
-        GraphDataMgr[GraphDataManager.ts]
-    end
+| Prop           | Type                          | Description                                                                                             |
+| -------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `variant`      | `string`                      | Visual style: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`, `gradient`, `glow`.      |
+| `size`         | `string`                      | Size of the button: `default`, `sm`, `lg`, `icon-sm`, `icon`, `icon-lg`.                                 |
+| `asChild`      | `boolean`                     | Renders the component as a child of its parent, merging props and behaviour.                            |
+| `loading`      | `boolean`                     | If `true`, displays a loading spinner and disables the button.                                          |
+| `loadingText`  | `string`                      | Optional text to display next to the spinner when `loading` is `true`.                                  |
+| `icon`         | `React.ReactNode`             | An optional icon to display within the button.                                                          |
+| `iconPosition` | `'left'` \| `'right'`         | Determines the position of the icon relative to the button text. Defaults to `left`.                     |
 
-    subgraph XRModule [XR Module]
-        XRController[XRController.tsx]
-        XRScene[XRScene.tsx]
-        XRVisualisationConnector[XRVisualisationConnector.tsx]
-        HandInteractionSystem[HandInteractionSystem.tsx]
-        XRInitializer[xrInitializer.ts]
-        XRSessionManager[xrSessionManager.ts]
-    end
+**Usage Example**:
 
-    subgraph GenericUI [Generic UI Components]
-        MarkdownRenderer[MarkdownRenderer.tsx]
-        Button[Button.tsx]
-        Input[Input.tsx]
-        %% Add other generic UI components as needed
-    end
-
-    %% Initialization Flow
-    Main --> AppInitializer
-    AppInitializer --> SettingsStore
-    AppInitializer --> NostrAuthSvc
-    AppInitializer --> WebSocketSvc
-    AppInitializer --> GraphDataMgr
-    AppInitializer --> MainLayout
-    AppInitializer --> AuthUIHandler
-    AppInitializer --> XRController
-
-    %% UI Structure
-    MainLayout --> GraphViewport
-    MainLayout --> RightPaneCtrlPanel
-    RightPaneCtrlPanel --> ConversationPane
-    RightPaneCtrlPanel --> NarrativeGoldminePanel
-
-    RightPaneCtrlPanel --> NostrAuthSection
-    RightPaneCtrlPanel --> SettingsPanelRedesign
-
-    SettingsPanelRedesign --> TabsUI
-    TabsUI --> SettingsSection
-    SettingsSection --> SettingControlComp
-
-    %% Data Flow & Dependencies
-    SettingsStore --> SettingControlComp
-    SettingsStore --> GraphManager
-    SettingsStore --> HologramManager
-    SettingsStore --> TextRenderer
-
-    AuthUIHandler --> NostrAuthSvc
-    NostrAuthSvc --> APIService
-
-    ConversationPane --> APIService
-    NarrativeGoldminePanel --> APIService
-
-    WebSocketSvc --> GraphDataMgr
-    GraphDataMgr --> GraphManager
-    GraphDataMgr --> APIService
-
-    %% Rendering Dependencies
-    GraphCanvas --> GraphManager
-    GraphCanvas --> GraphViewport
-    GraphCanvas --> CameraController
-    GraphManager --> TextRenderer
-    GraphManager --> MetadataVisualizer
-    GraphManager --> HologramManager
-
-    %% XR Dependencies
-    XRController --> XRScene
-    XRController --> XRInitializer
-    XRController --> XRSessionManager
-    XRScene --> XRVisualisationConnector
-    XRVisualisationConnector --> GraphManager
-    XRVisualisationConnector --> HandInteractionSystem
-    HandInteractionSystem --> GraphManager
-
-    %% Cross-cutting
-    Logger -.-> APIService
-    Logger -.-> WebSocketSvc
-    Logger -.-> GraphManager
-    Logger -.-> XRController
-    Utils -.-> SettingsStore
-    Utils -.-> GraphDataMgr
-```
-
-## UI Component Library
-
-The client includes a comprehensive UI component library built with React and TypeScript. These components provide consistent styling and behavior across the application, with support for theming and responsive design.
-
-### Core UI Components
-
-#### Button ([`client/src/features/design-system/components/Button.tsx`](../../client/src/features/design-system/components/Button.tsx))
-A versatile button component with multiple variants and sizes.
-- **Variants**: default, destructive, outline, secondary, ghost, link
-- **Sizes**: default, sm, lg, icon
-- **Features**: Loading states, disabled states, full-width option
-- **Usage**:
 ```tsx
-<Button variant="default" size="sm" onClick={handleClick}>
-  Click me
+import { Button } from '@/features/design-system/components';
+import { Mail } from 'lucide-react';
+
+<Button variant="outline" size="lg" onClick={() => console.log('Clicked!')}>
+  <Mail className="mr-2 h-4 w-4" /> Login with Email
+</Button>
+
+<Button variant="default" loading loadingText="Saving...">
+  Save Changes
 </Button>
 ```
 
-#### Input ([`client/src/features/design-system/components/Input.tsx`](../../client/src/features/design-system/components/Input.tsx))
-Standard input field component with consistent styling.
-- **Features**: Error states, disabled states, placeholder support
-- **Integrates with form validation libraries
-- **Usage**:
+---
+
+### Input
+
+**Source**: [`client/src/features/design-system/components/Input.tsx`](../../client/src/features/design-system/components/Input.tsx)
+
+**Purpose**: A flexible text input field with various styles, states, and advanced features like floating labels and clearable inputs.
+
+**Props**:
+
+| Prop            | Type                          | Description                                                                                             |
+| --------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `variant`       | `string`                      | Visual style: `default`, `filled`, `flushed`, `ghost`, `outlined`.                                      |
+| `size`          | `string`                      | Size of the input: `xs`, `sm`, `default`, `lg`, `xl`.                                                   |
+| `state`         | `string`                      | Visual state: `default`, `error`, `success`, `warning`.                                                 |
+| `label`         | `string`                      | A label for the input. Can be standard or floating.                                                     |
+| `error`         | `string`                      | An error message to display. Sets `state` to `error`.                                                   |
+| `icon`          | `React.ReactNode`             | An optional icon to display within the input field.                                                     |
+| `iconPosition`  | `'left'` \| `'right'`         | Position of the icon. Defaults to `left`.                                                               |
+| `clearable`     | `boolean`                     | If `true`, shows a clear button when the input has a value.                                             |
+| `floatingLabel` | `boolean`                     | If `true`, the label will float above the input when focused or has a value.                            |
+
+**Usage Example**:
+
 ```tsx
-<Input 
-  type="text" 
-  placeholder="Enter text..." 
-  value={value} 
-  onChange={onChange} 
+import { Input } from '@/features/design-system/components';
+import { User } from 'lucide-react';
+
+<Input
+  variant="filled"
+  label="Username"
+  floatingLabel
+  icon={<User />}
+  iconPosition="left"
+  placeholder="Enter your username"
+  error="Username is required."
 />
 ```
 
-#### Label ([`client/src/features/design-system/components/Label.tsx`](../../client/src/features/design-system/components/Label.tsx))
-Form label component for accessibility and consistent styling.
-- **Features**: Required field indicators, error states
-- **Automatically associates with form controls
-- **Usage**:
-```tsx
-<Label htmlFor="input-id">Field Label</Label>
-```
+---
 
-#### Select ([`client/src/features/design-system/components/Select.tsx`](../../client/src/features/design-system/components/Select.tsx))
-Dropdown selection component with customizable options.
-- **Features**: Single/multiple selection, searchable options
-- **Keyboard navigation support
-- **Usage**:
-```tsx
-<Select value={selected} onValueChange={setSelected}>
-  <SelectTrigger>
-    <SelectValue placeholder="Select an option" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="option1">Option 1</SelectItem>
-  </SelectContent>
-</Select>
-```
+### Card
 
-#### Switch ([`client/src/features/design-system/components/Switch.tsx`](../../client/src/features/design-system/components/Switch.tsx))
-Toggle switch component for boolean settings.
-- **Features**: Animated transitions, disabled states
-- **Accessible with keyboard navigation
-- **Usage**:
-```tsx
-<Switch 
-  checked={isEnabled} 
-  onCheckedChange={setIsEnabled} 
-/>
-```
+**Source**: [`client/src/features/design-system/components/Card.tsx`](../../client/src/features/design-system/components/Card.tsx)
 
-#### RadioGroup ([`client/src/features/design-system/components/RadioGroup.tsx`](../../client/src/features/design-system/components/RadioGroup.tsx))
-Radio button group for single selection from multiple options.
-- **Features**: Grouped radio buttons with consistent styling
-- **Keyboard navigation between options
-- **Usage**:
-```tsx
-<RadioGroup value={selected} onValueChange={setSelected}>
-  <RadioGroupItem value="option1" id="r1" />
-  <Label htmlFor="r1">Option 1</Label>
-</RadioGroup>
-```
+**Purpose**: A container component for grouping related content with a consistent visual style.
 
-#### Slider ([`client/src/features/design-system/components/Slider.tsx`](../../client/src/features/design-system/components/Slider.tsx))
-Range slider component for numeric value selection.
-- **Features**: Min/max bounds, step increments
-- **Visual feedback during interaction
-- **Usage**:
-```tsx
-<Slider 
-  value={[value]} 
-  onValueChange={([v]) => setValue(v)}
-  min={0} 
-  max={100} 
-  step={1} 
-/>
-```
+**Sub-components**:
 
-### Layout Components
+-   `CardHeader`: Container for the card's title and description.
+-   `CardTitle`: The main heading of the card.
+-   `CardDescription`: A subtitle or description for the card.
+-   `CardContent`: The main content area of the card.
+-   `CardFooter`: A container for actions or supplemental information at the bottom of the card.
 
-#### Card ([`client/src/features/design-system/components/Card.tsx`](../../client/src/features/design-system/components/Card.tsx))
-Container component for grouping related content.
-- **Sub-components**: CardHeader, CardTitle, CardDescription, CardContent, CardFooter
-- **Features**: Consistent padding and shadows
-- **Usage**:
+**Usage Example**:
+
 ```tsx
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/features/design-system/components';
+
 <Card>
   <CardHeader>
-    <CardTitle>Card Title</CardTitle>
-    <CardDescription>Card description</CardDescription>
+    <CardTitle>Create Project</CardTitle>
+    <CardDescription>Deploy your new project in one-click.</CardDescription>
   </CardHeader>
   <CardContent>
-    Content goes here
+    {/* Form fields go here */}
   </CardContent>
+  <CardFooter>
+    <Button variant="outline">Cancel</Button>
+    <Button>Deploy</Button>
+  </CardFooter>
 </Card>
 ```
 
-#### Tabs ([`client/src/features/design-system/components/Tabs.tsx`](../../client/src/features/design-system/components/Tabs.tsx))
-Tabbed interface component for organizing content.
-- **Sub-components**: TabsList, TabsTrigger, TabsContent
-- **Features**: Keyboard navigation, animated transitions
-- **Usage**:
+---
+
+### Slider
+
+**Source**: [`client/src/features/design-system/components/Slider.tsx`](../../client/src/features/design-system/components/Slider.tsx)
+
+**Purpose**: A range slider for selecting a numeric value within a defined range.
+
+**Props**: Inherits all props from `Radix UI Slider`.
+
+| Prop      | Type                | Description                               |
+| --------- | ------------------- | ----------------------------------------- |
+| `value`   | `number[]`          | The controlled value of the slider.       |
+| `onValueChange` | `(value: number[]) => void` | Event handler for when the value changes. |
+| `min`     | `number`            | The minimum value of the range.           |
+| `max`     | `number`            | The maximum value of the range.           |
+| `step`    | `number`            | The step increment.                       |
+
+**Usage Example**:
+
 ```tsx
-<Tabs value={activeTab} onValueChange={setActiveTab}>
-  <TabsList>
-    <TabsTrigger value="tab1">Tab 1</TabsTrigger>
-    <TabsTrigger value="tab2">Tab 2</TabsTrigger>
-  </TabsList>
-  <TabsContent value="tab1">Tab 1 content</TabsContent>
-  <TabsContent value="tab2">Tab 2 content</TabsContent>
-</Tabs>
+import { Slider } from '@/features/design-system/components';
+
+<Slider
+  defaultValue={[50]}
+  max={100}
+  step={1}
+  onValueChange={(value) => console.log(value)}
+/>
 ```
 
-#### Collapsible ([`client/src/features/design-system/components/Collapsible.tsx`](../../client/src/features/design-system/components/Collapsible.tsx))
-Expandable/collapsible content container.
-- **Features**: Smooth animations, controlled/uncontrolled modes
-- **Accessibility support with ARIA attributes
-- **Usage**:
+---
+
+### Switch
+
+**Source**: [`client/src/features/design-system/components/Switch.tsx`](../../client/src/features/design-system/components/Switch.tsx)
+
+**Purpose**: A toggle switch for boolean (on/off) settings.
+
+**Props**: Inherits all props from `Radix UI Switch`.
+
+| Prop              | Type                          | Description                                   |
+| ----------------- | ----------------------------- | --------------------------------------------- |
+| `checked`         | `boolean`                     | The controlled state of the switch.           |
+| `onCheckedChange` | `(checked: boolean) => void`  | Event handler for when the state changes.     |
+
+**Usage Example**:
+
 ```tsx
-<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-  <CollapsibleTrigger>Toggle Content</CollapsibleTrigger>
-  <CollapsibleContent>
-    Hidden content revealed when open
-  </CollapsibleContent>
-</Collapsible>
+import { Switch } from '@/features/design-system/components';
+import { Label } from '@/features/design-system/components';
+
+<div className="flex items-centre space-x-2">
+  <Switch id="airplane-mode" />
+  <Label htmlFor="airplane-mode">Airplane Mode</Label>
+</div>
 ```
 
-### Feedback Components
+---
 
-#### Toast ([`client/src/features/design-system/components/Toast.tsx`](../../client/src/features/design-system/components/Toast.tsx))
-Notification system for user feedback.
-- **Hook**: `useToast` for programmatic toast creation
-- **Features**: Multiple toast types (success, error, warning, info)
-- **Auto-dismiss with configurable duration
-- **Usage**:
+### Dialog
+
+**Source**: [`client/src/features/design-system/components/Dialog.tsx`](../../client/src/features/design-system/components/Dialog.tsx)
+
+**Purpose**: A modal dialog that appears over the main content to display critical information or request user input.
+
+**Sub-components**:
+
+-   `DialogTrigger`: The button or element that opens the dialog.
+-   `DialogContent`: The main content of the dialog.
+-   `DialogHeader`: Container for the dialog's title and description.
+-   `DialogTitle`: The title of the dialog.
+-   `DialogDescription`: A description or subtitle for the dialog.
+-   `DialogFooter`: A container for action buttons.
+-   `DialogClose`: A button to close the dialog.
+
+**Usage Example**:
+
 ```tsx
-const { toast } = useToast();
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/features/design-system/components';
 
-toast({
-  title: "Success",
-  description: "Operation completed successfully",
-  variant: "success"
-});
+<Dialog>
+  <DialogTrigger asChild>
+    <Button variant="outline">Edit Profile</Button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Edit Profile</DialogTitle>
+      <DialogDescription>
+        Make changes to your profile here. Click save when you're done.
+      </DialogDescription>
+    </DialogHeader>
+    {/* Form fields go here */}
+    <DialogFooter>
+      <Button type="submit">Save changes</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 ```
-
-#### Tooltip ([`client/src/features/design-system/components/Tooltip.tsx`](../../client/src/features/design-system/components/Tooltip.tsx))
-Contextual information on hover/focus.
-- **Features**: Customizable placement, delay options
-- **Keyboard accessible
-- **Usage**:
-```tsx
-<Tooltip>
-  <TooltipTrigger>Hover me</TooltipTrigger>
-  <TooltipContent>
-    Helpful information appears here
-  </TooltipContent>
-</Tooltip>
-```
-
-### Specialized Components
-
-#### MarkdownRenderer ([`client/src/features/design-system/patterns/MarkdownRenderer.tsx`](../../client/src/features/design-system/patterns/MarkdownRenderer.tsx))
-Renders markdown content with custom styling.
-- **Features**: 
-  - Syntax highlighting for code blocks
-  - Custom link handling
-  - Table support
-  - Embedded media rendering
-- **Security**: Sanitized HTML output
-- **Usage**:
-```tsx
-<MarkdownRenderer content={markdownString} />
-```
-
-## Design System
-
-### Colors
-The component library uses CSS variables for theming:
-- `--primary`: Primary brand color
-- `--secondary`: Secondary brand color
-- `--background`: Background colors
-- `--foreground`: Text colors
-- `--muted`: Muted elements
-- `--accent`: Accent colors
-- `--destructive`: Error/danger colors
-
-### Typography
-Consistent typography using system font stacks:
-- Headings: Inter, system-ui, sans-serif
-- Body: Inter, system-ui, sans-serif
-- Code: Fira Code, monospace
-
-### Spacing
-Standardized spacing scale:
-- `space-1`: 0.25rem (4px)
-- `space-2`: 0.5rem (8px)
-- `space-3`: 0.75rem (12px)
-- `space-4`: 1rem (16px)
-- `space-6`: 1.5rem (24px)
-- `space-8`: 2rem (32px)
-
-### Responsive Design
-All components support responsive design through:
-- Flexible layouts using CSS Grid and Flexbox
-- Responsive typography scaling
-- Touch-friendly interaction areas on mobile
-- Adaptive component behavior based on screen size
-
-## Best Practices
-
-1. **Accessibility**: All components follow WCAG 2.1 guidelines
-2. **Keyboard Navigation**: Full keyboard support for all interactive elements
-3. **Performance**: Components use React.memo and proper dependency arrays
-4. **Type Safety**: Full TypeScript support with exported prop types
-5. **Composition**: Prefer composition over configuration for flexibility
-6. **Theming**: Use CSS variables for easy theme customization
