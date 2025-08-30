@@ -120,16 +120,13 @@ impl ClaudeFlowActorTcp {
         let agent_type = match agent_type_str {
             "coordinator" | "task-orchestrator" => AgentType::Coordinator,
             "researcher" => AgentType::Researcher,
-            "coder" => AgentType::Coder,
-            "analyst" | "analyzer" | "code-analyzer" => AgentType::Analyst,
+            "coder" | "worker" => AgentType::Coder,  // Workers do implementation
+            "analyst" | "analyzer" | "code-analyzer" | "specialist" => AgentType::Analyst,  // Specialists analyze
             "architect" => AgentType::Architect,
             "tester" => AgentType::Tester,
             "reviewer" => AgentType::Reviewer,
             "optimizer" => AgentType::Optimizer,
             "documenter" => AgentType::Documenter,
-            // Map unrecognized types to closest matches
-            "worker" => AgentType::Coder,  // Workers do implementation
-            "specialist" => AgentType::Analyst,  // Specialists analyze
             _ => AgentType::Coordinator, // Default
         };
         
