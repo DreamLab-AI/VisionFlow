@@ -309,5 +309,4 @@ mod tests {
 
 - [MCP Specification](https://github.com/anthropics/mcp)
 - [Claude Flow Documentation](https://github.com/Agentic-Insights/claude-flow)
-- [Agent Control System](../../../agent-control-system/README.md)
-- [Binary Protocol](../../api/binary-protocol.md)
+- [Binary Protocol](../../api/websocket-protocols.md)

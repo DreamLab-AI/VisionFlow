@@ -36,7 +36,7 @@ Production validation system described in [API Documentation](../api/index.md#va
 - **Layer 5: Context Validation**: User permissions and access control
 
 ### 🔒 Binary Protocol Security
-The [Binary Protocol Documentation](../api/binary-protocol.md) includes production security:
+The [Binary Protocol Documentation](../api/websocket-protocols.md) includes production security:
 - **Memory Safety**: Bounds checking and safe memory operations
 - **Input Sanitization**: Comprehensive data validation before processing
 - **Rate Limiting**: Advanced rate limiting with backoff strategies
@@ -768,9 +768,9 @@ impl ThreatResponseSystem {
 VisionFlow operates a 24/7 Security Operations Center with comprehensive incident response capabilities:
 
 **Contact Information:**
-- **Security Incidents**: security@visionflow.dev
+- **Security Incidents**: mailto:security@visionflow.dev
 - **Emergency Hotline**: +1-xxx-xxx-xxxx (24/7)
-- **Bug Bounty Program**: security-bounty@visionflow.dev
+- **Bug Bounty Program**: mailto:security-bounty@visionflow.dev
 
 ### Incident Response Framework
 
@@ -1028,10 +1028,10 @@ impl SecurityGovernanceFramework {
 - **[Security Research](https://research.google/teams/security/)** - Latest security research
 
 ### VisionFlow Security Resources
-- **[Security Architecture Documentation](../architecture/security-architecture.md)** - Detailed security architecture
-- **[API Security Guide](../api/security.md)** - API security implementation
-- **[Network Security Configuration](../deployment/network-security.md)** - Network security setup
-- **[Security Monitoring Guide](../deployment/security-monitoring.md)** - Security monitoring setup
+- **[Security Architecture Documentation](../architecture/system-overview.md)** - Detailed security architecture
+- **[API Security Guide](../api/index.md)** - API security implementation
+- **[Network Security Configuration](../deployment/docker.md)** - Network security setup
+- **[Security Monitoring Guide](../deployment/index.md)** - Security monitoring setup
 
 ---
 

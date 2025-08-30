@@ -402,7 +402,7 @@ Once you have your first multi-agent system running successfully:
 
 ### Explore Advanced Features
 - [Architecture Overview](../architecture/system-overview.md) - Understand the system design
-- [API Documentation](../api/rest.md) - Integrate with the REST API  
+- [API Documentation](../api/index.md) - Integrate with the REST API  
 - [Configuration Guide](../configuration/index.md) - Advanced configuration options
 
 ### Development and Integration
@@ -416,10 +416,10 @@ Once you have your first multi-agent system running successfully:
 - [Monitoring Guide](../deployment/monitoring.md) - Set up comprehensive monitoring
 
 ### Community and Support
-- [GitHub Issues](https://github.com/yourusername/visionflow/issues) - Report bugs and request features
+- [GitHub Issues](https://github.com/visionflow/visionflow/issues) - Report bugs and request features
 - [Documentation Hub](../index.md) - Comprehensive documentation
 - [Community Discord](https://discord.gg/visionflow) - Connect with other users
-- [Contributing Guide](../CONTRIBUTING.md) - Contribute to the project
+- [Contributing Guide](../contributing.md) - Contribute to the project
 
 ## Example Workflows
 

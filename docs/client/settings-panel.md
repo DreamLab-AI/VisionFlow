@@ -4,7 +4,7 @@ This document describes the redesigned, fully functional settings panel and its 
 
 ## Overview
 
-The settings panel provides a user-friendly interface for configuring all aspects of the application's visualisation and behavior. It is organized, responsive, and provides real-time feedback.
+The settings panel provides a user-friendly interface for configuring all aspects of the application's visualisation and behaviour. It is organized, responsive, and provides real-time feedback.
 
 ## Design Principles
 
@@ -19,7 +19,7 @@ Settings are organized into logical tabs for clarity:
 Within each tab, settings are grouped into collapsible cards to reduce clutter and improve focus.
 
 ### 3. **Smart Controls**
-Each setting uses the most appropriate UI control for an intuitive user experience, including sliders, color pickers, switches, and select dropdowns.
+Each setting uses the most appropriate UI control for an intuitive user experience, including sliders, colour pickers, switches, and select dropdowns.
 
 ### 4. **Visual Feedback**
 The panel provides immediate visual feedback, such as hover effects and save confirmations. It also clearly indicates which features are gated for authenticated users.

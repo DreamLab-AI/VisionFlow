@@ -85,7 +85,7 @@ interface HelpTooltipProps {
 - Core concepts
 - First steps guide
 
-### Visualization
+### visualisation
 - Graph controls
 - Camera navigation
 - Node interactions
@@ -94,7 +94,7 @@ interface HelpTooltipProps {
 
 ### Settings
 - Settings panel overview
-- Visualization options
+- visualisation options
 - Performance tuning
 - Appearance customisation
 - Keyboard shortcuts

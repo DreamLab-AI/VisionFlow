@@ -1733,13 +1733,13 @@ Solution: Enable CPU fallback or reduce graph complexity
 
 ## Related Documentation
 
-- **[Physics Engine](physics-engine.md)** - Complete physics simulation architecture and algorithms
-- **[Actor System](actors.md)** - GPUComputeActor and GraphServiceActor integration patterns with supervision  
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient position data streaming specifications
-- **[Dual Graph Architecture](../architecture/dual-graph.md)** - Knowledge + Agent graph coordination strategies
-- **[MCP Integration](mcp-integration.md)** - Multi-agent coordination with Claude Flow integration
+- **[Physics Engine](./physics-engine.md)** - Complete physics simulation architecture and algorithms
+- **[Actor System](./actors.md)** - GPUComputeActor and GraphServiceActor integration patterns with supervision  
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient position data streaming specifications
+- **[Dual Graph Architecture](../architecture/system-overview.md)** - Knowledge + Agent graph coordination strategies
+- **[MCP Integration](./mcp-integration.md)** - Multi-agent coordination with Claude Flow integration
 - **[Security Implementation](../security/index.md)** - Validation and safety measures
-- **[Network Resilience](../architecture/network-resilience.md)** - Circuit breaker and retry patterns
+- **[Network Resilience](../architecture/system-overview.md)** - Circuit breaker and retry patterns
 
 ---
 

@@ -1574,10 +1574,10 @@ export MCP_DEBUG_CONNECTIONS=true
 ## Related Documentation
 
 - **[System Overview](../architecture/system-overview.md)** - Overall VisionFlow architecture
-- **[Dual Graph Architecture](../architecture/dual-graph.md)** - Agent graph visualisation strategies
-- **[Actor System](actors.md)** - Actor-based message passing and coordination
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient real-time data streaming
-- **[API Reference](../api/rest.md)** - REST endpoints for MCP control and monitoring
+- **[Dual Graph Architecture](../architecture/parallel-graphs.md)** - Agent graph visualisation strategies
+- **[Actor System](./actors.md)** - Actor-based message passing and coordination
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient real-time data streaming
+- **[API Reference](../api/rest/index.md)** - REST endpoints for MCP control and monitoring
 
 ---
 

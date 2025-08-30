@@ -960,11 +960,11 @@ async fn test_actor_supervision_restart() {
 
 ## Related Documentation
 
-- **[Server Architecture](architecture.md)** - Overall system design and initialization
-- **[GPU Compute](gpu-compute.md)** - CUDA kernel implementation details with safety improvements
-- **[Binary Protocol](../api/binary-protocol.md)** - Efficient WebSocket communication
-- **[MCP Integration](../architecture/mcp-integration.md)** - Claude Flow orchestrator connection with network resilience
-- **[Physics Engine](physics-engine.md)** - Force-directed algorithms and dual graph physics
-- **[Network Resilience](../architecture/network-resilience.md)** - Circuit breaker and retry patterns
+- **[Server Architecture](./architecture.md)** - Overall system design and initialization
+- **[GPU Compute](./gpu-compute.md)** - CUDA kernel implementation details with safety improvements
+- **[Binary Protocol](../api/websocket-protocols.md)** - Efficient WebSocket communication
+- **[MCP Integration](./mcp-integration.md)** - Claude Flow orchestrator connection with network resilience
+- **[Physics Engine](./physics-engine.md)** - Force-directed algorithms and dual graph physics
+- **[Network Resilience](../architecture/system-overview.md)** - Circuit breaker and retry patterns
 - **[Security](../security/index.md)** - Validation and security measures
-- **[Production Deployment](../deployment/production.md)** - Production deployment patterns
+- **[Production Deployment](../deployment/index.md)** - Production deployment patterns

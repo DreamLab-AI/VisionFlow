@@ -1,296 +1,106 @@
-# Client Architecture Overview
+# Client Architecture
 
-This document provides a high-level overview of the LogseqSpringThing client architecture, its major components, and their interactions.
+This document provides a detailed overview of the client application's architecture, initialization sequence, and data flow.
 
-## System Architecture
+## Core Principles
 
-The client is built as a modern TypeScript application that follows a component-based architecture. It integrates with React Three Fiber (R3F) and Three.js for 3D rendering, WebXR for VR/AR capabilities, and communicates with the Rust backend server through REST APIs and WebSocket connections.
+The client is a sophisticated TypeScript and React application built for high-performance, real-time graph visualisation. It follows several core principles:
+- **Modular Design**: Features are encapsulated in specific directories (e.g., `features/xr`, `features/analytics`).
+- **Centralized State Management**: Zustand is used for predictable and efficient global state management.
+- **Asynchronous Initialization**: A dedicated initialiser component manages the loading of services and data to ensure the application starts reliably.
+- **Component-Based Rendering**: The UI is built with React, and the 3D scene is managed by React Three Fiber.
 
-```mermaid
-graph TB
-    subgraph Client Architecture
-        AppInitializer[App Initializer]
+## Application Entry Point and Initialization
 
-        subgraph UILayer [User Interface Layer]
-            MainLayout[MainLayout.tsx]
-            Quest3AR[Quest3AR.tsx]
-            GraphViewportUI[GraphViewport.tsx]
-            RightPaneControlPanel[RightPaneControlPanel.tsx]
-            SettingsPanelRedesign[SettingsPanelRedesign.tsx]
-            ConversationPane[ConversationPane.tsx]
-            NarrativeGoldminePanel[NarrativeGoldminePanel.tsx]
-        end
+The application's lifecycle begins in `main.tsx`, which renders the main `App` component.
 
-        subgraph StateManagement [State Management]
-            SettingsStore["useSettingsStore"]
-            GraphDataManager[GraphDataManager]
-        end
+### `App.tsx`
+[`client/src/app/App.tsx`](../../client/src/app/App.tsx) serves as the root component. Its primary responsibilities are:
+- **Provider Setup**: It wraps the entire application in essential React Context providers, such as `XRCoreProvider`, `HelpProvider`, and `ApplicationModeProvider`.
+- **Initialization Gate**: It monitors the `initialised` flag from the `settingsStore`. Until initialization is complete, it displays a loading state and renders the `Appinitialiser`.
+- **Layout Switching**: Once initialised, it determines which main layout to render: `MainLayout.tsx` for desktop or `Quest3AR.tsx` for immersive XR experiences.
 
-        subgraph APILayer [API Layer]
-            NostrAuthService[nostrAuthService.ts]
-            APIService[apiService.ts]
-        end
+### `Appinitialiser.tsx`
+[`client/src/app/Appinitialiser.tsx`](../../client/src/app/Appinitialiser.tsx) is a non-rendering component that orchestrates the application's startup sequence.
 
-        Rendering["Rendering Engine"]
-        WebSocketClient["WebSocketClient"]
-        XRModule["XR Module"]
+**Initialization Sequence:**
+1.  **Services Loading**: initialises core services like the authentication service (`initialiseAuth`).
+2.  **Settings Store**: initialises the `settingsStore`, loading settings from `localStorage` and the server.
+3.  **WebSocket Service**: Establishes a connection with the WebSocket server and sets up listeners for real-time data.
+4.  **Graph Data Manager**: An adapter is created to link the `WebSocketService` to the `graphDataManager`, decoupling the two.
+5.  **Initial Data Fetch**: The `graphDataManager` fetches the initial graph structure via the REST API.
+6.  **Initialization Complete**: Once all steps are successful, it sets the `initialised` flag in the `settingsStore` to `true`, signaling the `App` component to render the main UI.
 
-        AppInitializer --> MainLayout
-        AppInitializer --> Quest3AR
-        AppInitializer --> SettingsStore
-        AppInitializer --> GraphDataManager
-        AppInitializer --> NostrAuthService
-        AppInitializer --> APIService
-        AppInitializer --> Rendering
-        AppInitializer --> WebSocketClient
-        AppInitializer --> XRModule
+## Architectural Diagram
 
-        MainLayout --> GraphViewportUI
-        MainLayout --> RightPaneControlPanel
-        MainLayout --> ConversationPane
-        MainLayout --> NarrativeGoldminePanel
-        Quest3AR --> GraphViewportUI
-        RightPaneControlPanel --> SettingsPanelRedesign
-
-        SettingsPanelRedesign --> SettingsStore
-        ConversationPane --> APIService
-        NarrativeGoldminePanel --> APIService
-
-        SettingsStore --> Rendering
-        GraphDataManager --> Rendering
-        SettingsStore --> APIService
-        GraphDataManager --> WebSocketClient
-
-        NostrAuthService --> APIService
-        GraphDataManager --> WebSocketClient
-
-        XRModule --> Rendering
-        XRModule --> SettingsStore
-        WebSocketClient --> GraphDataManager
-    end
-
-    subgraph ServerInterface [Server Interface]
-        RESTAPI[REST API]
-        WebSocketServer[WebSocket Server]
-        AuthHandler[Authentication Handler]
-
-        APIService --> RESTAPI
-        WebSocketClient --> WebSocketServer
-        NostrAuthService --> AuthHandler
-        APIService --> AuthHandler
-    end
-
-    style Client Architecture fill:#282C34,stroke:#61DAFB,stroke-width:2px,color:#FFFFFF
-    style UILayer fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style StateManagement fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style APILayer fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style AppInitializer fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style MainLayout fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style Quest3AR fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style GraphViewportUI fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style RightPaneControlPanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style SettingsPanelRedesign fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style ConversationPane fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style NarrativeGoldminePanel fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style SettingsStore fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style GraphDataManager fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style NostrAuthService fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style APIService fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style Rendering fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style WebSocketClient fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-    style XRModule fill:#3A3F47,stroke:#61DAFB,color:#FFFFFF
-
-    style ServerInterface fill:#282C34,stroke:#A2AAAD,stroke-width:2px,color:#FFFFFF
-    style RESTAPI fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
-    style WebSocketServer fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
-    style AuthHandler fill:#3A3F47,stroke:#A2AAAD,color:#FFFFFF
-```
-
-## Key Components
-
-### User Interface Layer
-The UI layer is built with React and TypeScript.
-- [`MainLayout.tsx`](../../client/src/app/MainLayout.tsx) serves as the primary layout for desktop and standard views, dividing the screen into a main visualisation area and a control panel area.
-- [`Quest3AR.tsx`](../../client/src/app/Quest3AR.tsx) provides specialized layout for Quest 3 AR experiences.
-- [`RightPaneControlPanel.tsx`](../../client/src/app/components/RightPaneControlPanel.tsx) hosts the authentication UI and the main settings panel: [`SettingsPanelRedesign.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesign.tsx). The `ConversationPane` and `NarrativeGoldminePanel` are rendered alongside it within the main `TwoPaneLayout`.
-- [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx) is responsible for the main 3D graph visualisation area.
-
-### State Management
-State management is handled through a combination of **Zustand** stores and **React Context API**, providing both global and localized state management solutions.
-
-#### Zustand Stores
-- `useSettingsStore` ([`client/src/store/settingsStore.ts`](../../client/src/store/settingsStore.ts)) - Manages application settings with validation and persistence
-- `GraphDataManager` ([`client/src/features/graph/managers/graphDataManager.ts`](../../client/src/features/graph/managers/graphDataManager.ts)) - Manages the graph data structure (nodes, edges, metadata) and handles real-time updates from the WebSocket
-- `usePlatformStore` ([`client/src/services/platformManager.ts`](../../client/src/services/platformManager.ts)) - Manages platform detection, XR capabilities, and device-specific features
-
-#### React Contexts
-- `ApplicationModeContext` ([`client/src/contexts/ApplicationModeContext.tsx`](../../client/src/contexts/ApplicationModeContext.tsx)) - Manages application mode (desktop/mobile/XR) and layout settings
-- Control panel contexts for localized UI state management
-
-State changes are propagated through Zustand's subscription mechanism and React's context system, allowing components to react efficiently to specific state slices.
-
-### API Layer
-The API layer handles communication with the server through REST endpoints and manages authentication:
-- Authentication and authorization: [`nostrAuthService.ts`](../../client/src/services/nostrAuthService.ts) handles Nostr-based authentication.
-- General API communication: [`apiService.ts`](../../client/src/services/apiService.ts) provides functions for interacting with other REST endpoints (graph data, files, settings).
-
-### Rendering Engine
-The rendering engine is built on **React Three Fiber (`@react-three/fiber`)** and **Three.js**, providing high-performance visualisation of graph data. Key components include:
-- [`GraphCanvas.tsx`](../../client/src/features/graph/components/GraphCanvas.tsx): The main R3F canvas where the 3D scene is rendered.
-- [`GraphManager.tsx`](../../client/src/features/graph/components/GraphManager.tsx): Manages the rendering of nodes and edges, handling their positions and visual properties.
-- [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx): Manages the camera, scene controls, and post-processing effects.
-- Node and edge rendering, often utilizing instancing for performance.
-- Text rendering with SDF fonts ([`TextRenderer.tsx`](../../client/src/features/visualisation/renderers/TextRenderer.tsx)).
-- Custom shaders like [`HologramMaterial.tsx`](../../client/src/features/visualisation/renderers/materials/HologramMaterial.tsx) for unique visual effects.
-- Metadata visualisation ([`MetadataVisualizer.tsx`](../../client/src/features/visualisation/components/MetadataVisualizer.tsx)).
-- Camera controls and scene management ([`CameraController.tsx`](../../client/src/features/visualisation/components/CameraController.tsx)).
-
-### WebSocket Client
-The WebSocket client ([`client/src/services/WebSocketService.ts`](../../client/src/services/WebSocketService.ts)) provides real-time communication with the server for:
-- Live position updates using a custom binary protocol
-- Graph data synchronisation
-- Control messages and event notifications (e.g., `connection_established`, `loading`)
-- Configurable reconnection attempts and compression settings
-- Binary chunk processing for large data transfers
-
-### Platform Manager
-The Platform Manager ([`client/src/services/platformManager.ts`](../../client/src/services/platformManager.ts)) provides comprehensive platform detection and capability management:
-- **Platform Detection**: Identifies device types (desktop, mobile, Quest, Pico)
-- **XR Capabilities**: Detects VR/AR support, hand tracking availability
-- **Performance Tiers**: Adjusts settings based on device capabilities
-- **Event System**: Notifies components of platform changes
-- **Backwards Compatibility**: Provides both hook-based and singleton patterns
-
-### XR Module
-The XR module, located under [`client/src/features/xr/`](../../client/src/features/xr/), integrates WebXR capabilities for VR/AR experiences:
-- Key Components:
-    - [`XRController.tsx`](../../client/src/features/xr/components/XRController.tsx): Manages the overall XR state and setup.
-    - [`HandInteractionSystem.tsx`](../../client/src/features/xr/systems/HandInteractionSystem.tsx): Handles hand tracking and interactions.
-    - [`xrSessionManager.ts`](../../client/src/features/xr/managers/xrSessionManager.ts): Manages WebXR sessions.
-    - [`xrInitializer.ts`](../../client/src/features/xr/managers/xrInitializer.ts): Handles the initial setup for XR.
-- Spatial UI elements.
-- XR-specific rendering optimizations.
-
-## High-Level Data Flow
+This diagram illustrates the relationships between the core components of the application.
 
 ```mermaid
-flowchart TB
-    subgraph Input
-        UserInput["UserInput"]
-        ServerData["ServerData"]
+flowchart TD
+    subgraph "Initialization"
+        Appinitialiser["Appinitialiser.tsx"]
     end
 
-    subgraph Processing
-        State["State Management"]
-        GraphProcessing["Graph Data Processing"]
-        RenderingLogic["Rendering Logic"]
+    subgraph "State Management"
+        SettingsStore["SettingsStore (Zustand)"]
+        GraphDataManager["GraphDataManager"]
     end
 
-    subgraph Output
-        Visualisation["3D Visualisation"]
-        UIUpdate["UI Update"]
-        ServerUpdate["Server Update"]
+    subgraph "Services"
+        WebSocketService["WebSocketService"]
+        APIService["apiService.ts"]
     end
 
-    UserInput --> State
-    ServerData --> State
+    subgraph "UI Layer"
+        MainLayout["MainLayout.tsx (Desktop)"]
+        Quest3AR["Quest3AR.tsx (Immersive)"]
+        RightPane["RightPaneControlPanel.tsx"]
+    end
 
-    State --> GraphProcessing
-    GraphProcessing --> RenderingLogic
-    RenderingLogic --> Visualisation
+    subgraph "Rendering Engine (R3F)"
+        GraphManager["GraphManager.tsx"]
+    end
 
-    State --> UIUpdate
-    State --> ServerUpdate
+    Appinitialiser --> SettingsStore
+    Appinitialiser --> WebSocketService
+    Appinitialiser --> GraphDataManager
+    Appinitialiser --> APIService
+
+    WebSocketService -- "Real-time updates" --> GraphDataManager
+    APIService -- "Initial data" --> GraphDataManager
+
+    SettingsStore -- "Settings data" --> MainLayout
+    SettingsStore -- "Settings data" --> Quest3AR
+    SettingsStore -- "Settings data" --> GraphManager
+
+    GraphDataManager -- "Graph data" --> GraphManager
+
+    MainLayout --> RightPane
+    MainLayout --> GraphManager
+    Quest3AR --> GraphManager
 ```
 
-## Core Technology Stack
+## Component Breakdown
 
-- **TypeScript** - Primary development language
-- **React** - Frontend UI library
-- **React Three Fiber (`@react-three/fiber`)** - React renderer for Three.js
-- **Three.js** - Core 3D rendering engine
-- **WebGL** - Hardware-accelerated graphics
-- **WebXR** - VR/AR integration
-- **Zustand** - Lightweight state management
-- **WebSockets** - Real-time communication
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Frontend build tool
-- **Custom Shaders** - GLSL shaders for specialized rendering effects (e.g., `HologramMaterial.tsx`)
+### UI Components
+-   **`MainLayout.tsx`**: The primary UI container for the desktop experience. It typically includes the main graph visualisation area and the `RightPaneControlPanel`.
+-   **`Quest3AR.tsx`**: The root component for the immersive AR experience on Quest 3 devices. It sets up the XR session and renders the graph in 3D space.
+-   **`RightPaneControlPanel.tsx`**: A key UI component that hosts various control panels, including the settings panel, authentication forms, and analytics controls.
 
-## Key Architectural Patterns
+### State and Data Management
+-   **`SettingsStore.ts`**: The single source of truth for all application settings. It's a Zustand store that handles persistence to `localStorage` and synchronisation with the server.
+-   **`GraphDataManager.ts`**: Manages the state of the graph data, including nodes, edges, and their positions. It receives initial data from the REST API and subsequent real-time position updates from the `WebSocketService`.
 
-1. **Component-Based Architecture** - Leveraging React's component model for modular and reusable UI elements
-2. **Hybrid State Management** - Combining Zustand for global state and React Context for localized state
-3. **Composition over Inheritance** - Building complex behaviors by combining simpler components and hooks
-4. **Service Layer** - Abstracting API calls and WebSocket communication into dedicated service modules:
-    - [`apiService.ts`](../../client/src/services/apiService.ts) - RESTful API communication
-    - [`WebSocketService.ts`](../../client/src/services/WebSocketService.ts) - Real-time data streaming
-    - [`nostrAuthService.ts`](../../client/src/services/nostrAuthService.ts) - Authentication services
-    - [`platformManager.ts`](../../client/src/services/platformManager.ts) - Platform detection and capabilities
-5. **Context-Based Dependency Injection** - Using React Context API for:
-    - Application-wide mode management (desktop/mobile/XR)
-    - Responsive design through window size context
-    - Feature-specific state isolation
-6. **Progressive Enhancement** - Adapting UI and features based on platform capabilities
-7. **Type-Safe Communication** - Using TypeScript interfaces for client-server data contracts
+### Services
+-   **`WebSocketService.ts`**: A singleton service that manages the real-time WebSocket connection to the server. It handles the binary protocol for efficient position updates and implements a readiness protocol to ensure the connection is stable before use.
+-   **`apiService.ts`**: Handles all communication with the server's REST API, used for fetching initial data, user settings, and triggering analytics computations.
 
-## Cross-Cutting Concerns
+## Data Flow
 
-- **Logging** - Centralized logging system with multiple levels
-- **Error Handling** - Comprehensive error capture and recovery
-- **Performance Monitoring** - Resource and performance monitoring
-- **Caching** - Strategic caching of data and assets
+The application follows a clear, unidirectional data flow:
 
-## Application Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Initialization
-    Initialization --> Loading: Configure
-    Loading --> Running: Assets Loaded
-    Running --> XR: Enter XR Mode
-    XR --> Running: Exit XR Mode
-    Running --> [*]: Shutdown
-
-    Running --> Error: Exception
-    Error --> Running: Recover
-    Error --> Shutdown: Fatal Error
-    Shutdown --> [*]
-```
-
-## Communication with Server
-
-The client communicates with the server through two primary channels:
-
-1. **REST API** - For configuration, authentication, and data operations
-    - Feature-based access control through Nostr authentication
-    - Settings synchronisation with server-side validation
-    - File processing and graph data operations
-    - AI service integration (RAGFlow, Perplexity)
-
-2. **WebSocket** - For real-time updates and streaming data
-    - Binary protocol for efficient position updates
-    - JSON messages for control and metadata
-    - Automatic reconnection with exponential backoff
-    - Compression for large payloads
-
-This dual-channel approach allows for efficient communication patterns based on the nature of the data being exchanged.
-
-## Client Settings Architecture
-
-The client uses a comprehensive settings payload structure ([`client_settings_payload.rs`](../../src/models/client_settings_payload.rs)) that includes:
-- **Visualization Settings**: Nodes, edges, physics, rendering, animations, labels, bloom, hologram, camera
-- **System Settings**: WebSocket configuration, debug options, persistence
-- **XR Settings**: VR/AR modes, hand tracking, locomotion, passthrough
-- **Authentication Settings**: Provider configuration, feature access
-- **AI Service Settings**: RAGFlow, Perplexity, OpenAI, Kokoro configurations
-
-Settings are validated on both client and server sides, with automatic type conversion between camelCase (client) and snake_case (server).
-
-## Related Documentation
-
-- [Components](components.md) - Detailed component relationships
-- [State Management](state.md) - State management approach
-- [Rendering System](rendering.md) - Technical rendering details
-- [WebSocket Communication](websocket.md) - WebSocket protocol details
-- [XR Integration](xr.md) - WebXR implementation details
+1.  **Initialization**: `Appinitialiser` coordinates the loading of settings and initial graph data. `apiService` fetches the initial graph state, which is loaded into `GraphDataManager`.
+2.  **Real-time Updates**: `WebSocketService` receives binary position updates from the server. It passes this data to `GraphDataManager`.
+3.  **State Propagation**: `GraphDataManager` processes the updates and manages the graph's state.
+4.  **Rendering**: The `GraphManager` component subscribes to `GraphDataManager` and `SettingsStore`. When data in these stores changes, it re-renders the nodes and edges in the 3D scene with the updated positions and visual styles.
+5.  **User Interaction**: UI components like `RightPaneControlPanel` allow users to modify settings. These interactions call actions on the `SettingsStore`, which updates its state and triggers a re-render of any subscribed components.

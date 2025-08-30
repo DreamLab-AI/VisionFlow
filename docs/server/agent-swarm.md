@@ -393,7 +393,7 @@ RUST_LOG=webxr::actors::claude_flow_actor=debug cargo run
 
 ## See Also
 
-- [ClaudeFlowActor](actors.md#claudeflowactor-primary)
-- [MCP Integration](../architecture/mcp-integration.md)
-- [Binary Protocol](../api/binary-protocol.md)
-- [Quick Start Guide](../quick-start.md#spawning-your-first-ai-agent-multi-agent)
+- [ClaudeFlowActor](./actors.md#claudeflowactor-primary)
+- [MCP Integration](./mcp-integration.md)
+- [Binary Protocol](../api/websocket-protocols.md)
+- [Quick Start Guide](../guides/quick-start.md#spawning-your-first-ai-agent-multi-agent)

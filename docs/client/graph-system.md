@@ -1,792 +1,200 @@
 # Graph System
 
-This document provides comprehensive coverage of VisionFlow's graph rendering and visualisation system, built on React Three Fiber and Three.js. The system supports dual-graph visualisation, real-time physics, and advanced visual effects.
+This document provides comprehensive coverage of VisionFlow's graph rendering and visualisation system. Built on React Three Fiber and Three.js, the system is engineered for high performance, supporting real-time physics, advanced visual effects through custom shaders, and a rich, data-driven approach to visualisation.
 
 ## System Architecture
 
-The graph system operates through several interconnected layers that handle data management, physics simulation, rendering, and user interaction:
+The graph system's architecture is designed to separate concerns, offloading heavy computation from the main thread to ensure a fluid user experience. Data flows from the manager to the rendering components, with physics calculations handled in a dedicated web worker.
 
 ```mermaid
 flowchart TB
-    subgraph DataLayer ["Data Layer"]
-        GraphDataMgr["Graph Data Manager"]
-        BinaryProtocol["Binary Protocol Handler"]
-        WebSocketSvc["WebSocket Service"]
+    subgraph MainThread ["Main Thread"]
+        direction LR
+        subgraph DataLayer ["Data Layer"]
+            GDM["GraphDataManager"]
+        end
+
+        subgraph RenderingLayer ["Rendering & Interaction"]
+            GV["GraphViewport.tsx"] --> GC["GraphCanvas.tsx"]
+            GC --> GM["GraphManager.tsx"]
+            GM --> MS["MetadataShapes.tsx"]
+            GM --> FE["FlowingEdges.tsx"]
+            GM --> HNM["HologramNodeMaterial.ts"]
+        end
+
+        subgraph WorkerCommunication ["Worker Communication"]
+            GWP["graphWorkerProxy.ts"]
+        end
     end
-    
-    subgraph PhysicsLayer ["Physics Layer"]
-        ServerPhysics["Server-Side Physics (Rust/CUDA)"]
-        PositionSync["Position Synchronisation"]
-        MotionDamping["Motion Damping"]
+
+    subgraph WorkerThread ["Web Worker"]
+        GW["graph.worker.ts"]
     end
-    
-    subgraph RenderingLayer ["Rendering Layer"]
-        GraphCanvas["Graph Canvas (R3F)"]
-        GraphManager["Graph Manager"]
-        InstancedRendering["Instanced Rendering"]
-        PostProcessing["Post-Processing Effects"]
-    end
-    
-    subgraph VisualisationLayer ["Visualisation Layer"]
-        NodeRenderer["Node Renderer"]
-        EdgeRenderer["Edge Renderer"] 
-        TextRenderer["Text Renderer"]
-        HologramEffects["Hologram Effects"]
-        MetadataViz["Metadata Visualiser"]
-    end
-    
-    subgraph InteractionLayer ["Interaction Layer"]
-        CameraControls["Camera Controls"]
-        Selection["Selection System"]
-        XRIntegration["XR Integration"]
-        GestureRecognition["Gesture Recognition"]
-    end
-    
-    WebSocketSvc --> GraphDataMgr
-    BinaryProtocol --> GraphDataMgr
-    ServerPhysics --> PositionSync
-    PositionSync --> GraphDataMgr
-    
-    GraphDataMgr --> GraphManager
-    GraphCanvas --> GraphManager
-    GraphManager --> NodeRenderer
-    GraphManager --> EdgeRenderer
-    GraphManager --> InstancedRendering
-    
-    NodeRenderer --> TextRenderer
-    NodeRenderer --> HologramEffects
-    NodeRenderer --> MetadataViz
-    
-    GraphCanvas --> CameraControls
-    GraphCanvas --> PostProcessing
-    Selection --> MetadataViz
-    XRIntegration --> GestureRecognition
+
+    GDM --> GWP
+    GWP -- Graph Data --> GW
+    GW -- Position Updates --> GWP
+    GWP -- Smoothed Positions --> GM
+
+    style GDM fill:#cde4ff
+    style GV fill:#d2ffd2
+    style GC fill:#d2ffd2
+    style GM fill:#d2ffd2
+    style GWP fill:#ffe4c4
+    style GW fill:#ffe4c4
+    style HNM fill:#fffacd
+    style MS fill:#fffacd
+    style FE fill:#fffacd
 ```
+
+**Architectural Flow:**
+
+1.  **Data Management**: `GraphDataManager` fetches and manages the raw graph data.
+2.  **Worker Communication**: It passes this data to the `graphWorkerProxy`, which acts as the main thread's interface to the web worker.
+3.  **Physics Simulation**: The `graph.worker.ts` receives the data and is responsible for all physics calculations. It continuously calculates node positions, either by smoothing incoming server data or by running its own fallback simulation.
+4.  **Position Updates**: The worker sends a stream of updated node positions back to the `graphWorkerProxy`.
+5.  **Rendering**: `GraphManager` receives the smoothed positions from the proxy. It uses this data to update the `InstancedMesh` instances for nodes and the geometry for edges.
+6.  **Visual Metaphors**: `MetadataShapes.tsx` is used by `GraphManager` to determine the visual representation (geometry, scale, colour) of each node based on its metadata, before rendering them as a single `InstancedMesh` per geometry type.
+7.  **Custom Shaders**: The `HologramNodeMaterial.ts` provides the custom GLSL shader used to render the nodes with advanced effects like fresnel glow, scanlines, and pulsing animations.
 
 ## Core Components
 
-### Graph Canvas (`client/src/features/graph/components/GraphCanvas.tsx`)
+### Rendering Entrypoint (`GraphViewport.tsx` & `GraphCanvas.tsx`)
 
-The Graph Canvas serves as the main entry point for the 3D scene, establishing the React Three Fiber context and coordinating all rendering components.
+-   **`GraphViewport.tsx`**: The top-level component that sets up the R3F `Canvas`, camera (`CameraController`), lighting, and post-processing effects like `AtmosphericGlow`. It is responsible for fetching the initial graph data via `graphDataManager`.
+-   **`GraphCanvas.tsx`**: Sits within the viewport and orchestrates the scene itself. It renders the core `GraphManager`, environmental effects (`WorldClassHologram`), and debug helpers.
 
-#### Key Responsibilities
-- **WebGL Renderer Initialisation**: Configures Three.js renderer with optimal settings
-- **Scene Setup**: Establishes lighting, background, and global rendering context
-- **Innovation Manager Integration**: Coordinates advanced features and optimisations
-- **XR Integration**: Seamlessly supports WebXR sessions
-- **Performance Monitoring**: Integrates debug tools and performance overlays
+### Rendering Orchestrator (`GraphManager.tsx`)
 
-#### Implementation
+This is the central component responsible for rendering the graph. It is highly optimised for performance with large datasets.
+
+-   **Instanced Rendering**: Nodes are not rendered as individual meshes. Instead, `GraphManager` uses `THREE.InstancedMesh` for nodes, batching all of them into a single draw call per geometry type. This is the key to rendering thousands of nodes efficiently.
+-   **Physics Integration**: It receives a `Float32Array` of node positions from `graphWorkerProxy` on every frame and uses it to update the instance matrices of the `InstancedMesh`.
+-   **Metadata-Driven Visuals**: It uses the `MetadataShapes` component to translate node metadata into visual properties, enabling a rich, data-driven visualisation.
+-   **Custom Shaders**: It applies the `HologramNodeMaterial` to the instanced mesh, giving all nodes advanced visual effects.
+-   **Interaction**: It contains the event handlers (`handlePointerDown`, `handlePointerMove`, `handlePointerUp`) for node selection and dragging.
+
 ```tsx
-const GraphCanvas: React.FC = () => {
-  const settings = useSettingsStore(state => state.settings);
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
-  
-  // Subscribe to graph data changes
-  useEffect(() => {
-    const unsubscribe = graphDataManager.onGraphDataChange(setGraphData);
-    return unsubscribe;
-  }, []);
-  
-  return (
-    <Canvas
-      ref={canvasRef}
-      camera={{ 
-        position: [0, 0, 50], 
-        fov: 75,
-        near: 0.1,
-        far: 2000 
-      }}
-      gl={{ 
-        antialias: settings.visualisation.rendering.enableAntialiasing,
-        powerPreference: 'high-performance',
-        alpha: true,
-        stencil: false,
-        depth: true
-      }}
-      dpr={Math.min(window.devicePixelRatio, 2)}
-    >
-      <SceneSetup />
-      <GraphManager graphData={graphData} />
-      <XRController />
-      <BotsVisualization />
-      <PostProcessingEffects />
-      
-      {settings.system.debug.enablePerformanceDebug && <Stats />}
-    </Canvas>
-  );
-};
-```
+// client/src/features/graph/components/GraphManager.tsx
 
-### Graph Manager (`client/src/features/graph/components/GraphManager.tsx`)
-
-The Graph Manager orchestrates the rendering of nodes and edges within the 3D scene, handling instanced rendering for optimal performance.
-
-#### Core Features
-- **Dual Graph Support**: Simultaneous rendering of multiple graph types
-- **Instanced Rendering**: Efficient batch rendering of thousands of objects
-- **Dynamic Updates**: Real-time position updates from physics simulation
-- **Visual Themes**: Per-graph colour schemes and styling
-- **LOD System**: Level-of-detail based on camera distance
-
-#### Multi-Graph Architecture
-```tsx
-interface GraphManagerProps {
-  graphData: {
-    logseq: { nodes: Node[], edges: Edge[] };
-    visionflow: { nodes: Node[], edges: Edge[] };
-  };
-}
-
-const GraphManager: React.FC<GraphManagerProps> = ({ graphData }) => {
-  const logseqSettings = useSettingsStore(s => 
-    s.settings.visualisation.graphs.logseq
-  );
-  const visionflowSettings = useSettingsStore(s => 
-    s.settings.visualisation.graphs.visionflow
-  );
-  
-  return (
-    <group name="graph-manager">
-      {/* Logseq Graph - Blue Theme */}
-      <group name="logseq-graph" position={[0, 0, 0]}>
-        <NodeInstances 
-          nodes={graphData.logseq.nodes}
-          settings={logseqSettings.nodes}
-          baseColor="#4B5EFF"
-        />
-        <EdgeInstances 
-          edges={graphData.logseq.edges}
-          settings={logseqSettings.edges}
-          baseColor="#6B73FF"
-        />
-      </group>
-      
-      {/* VisionFlow Graph - Green Theme */}
-      <group name="visionflow-graph" position={[0, 0, 0]}>
-        <NodeInstances 
-          nodes={graphData.visionflow.nodes}
-          settings={visionflowSettings.nodes}
-          baseColor="#10B981"
-        />
-        <EdgeInstances 
-          edges={graphData.visionflow.edges}
-          settings={visionflowSettings.edges}
-          baseColor="#34D399"
-        />
-      </group>
-    </group>
-  );
-};
-```
-
-### Node Rendering System
-
-#### Instanced Node Rendering
-```tsx
-const NodeInstances: React.FC<{
-  nodes: Node[];
-  settings: NodeSettings;
-  baseColor: string;
-}> = ({ nodes, settings, baseColor }) => {
-  const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
-  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-  
-  // Update instance matrices for position/scale
-  useFrame(() => {
-    if (!instancedMeshRef.current) return;
-    
-    const tempMatrix = new THREE.Matrix4();
-    const tempColor = new THREE.Color();
-    
-    nodes.forEach((node, index) => {
-      // Position and scale
-      tempMatrix.makeScale(
-        node.size * settings.nodeSize,
-        node.size * settings.nodeSize,
-        node.size * settings.nodeSize
-      );
-      tempMatrix.setPosition(node.position.x, node.position.y, node.position.z);
-      
-      instancedMeshRef.current!.setMatrixAt(index, tempMatrix);
-      
-      // Color variation based on metadata
-      const color = node.metadata?.type === 'central' 
-        ? new THREE.Color(baseColor).multiplyScalar(1.2)
-        : new THREE.Color(baseColor);
-      
-      instancedMeshRef.current!.setColorAt(index, color);
-    });
-    
-    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
-    if (instancedMeshRef.current.instanceColor) {
-      instancedMeshRef.current.instanceColor.needsUpdate = true;
-    }
-  });
-  
-  return (
-    <instancedMesh
-      ref={instancedMeshRef}
-      args={[undefined, undefined, nodes.length]}
-      castShadow
-      receiveShadow
-    >
-      <sphereGeometry args={[1, 16, 12]} />
-      <meshStandardMaterial
-        ref={materialRef}
-        color={baseColor}
-        metalness={settings.metalness}
-        roughness={settings.roughness}
-        transparent={settings.opacity < 1}
-        opacity={settings.opacity}
+// Simplified rendering logic
+return (
+  <>
+    {enableMetadataShape ? (
+      <MetadataShapes
+        nodes={graphData.nodes}
+        nodePositions={nodePositionsRef.current}
+        settings={settings}
+        ssspResult={normalizedSSSPResult}
       />
-    </instancedMesh>
-  );
-};
-```
+    ) : (
+      <instancedMesh
+        ref={meshRef}
+        args={[undefined, undefined, graphData.nodes.length]}
+        frustumCulled={false}
+      >
+        <sphereGeometry args={[0.5, 32, 32]} />
+        <primitive object={materialRef.current} attach="material" />
+      </instancedMesh>
+    )}
 
-#### Advanced Node Features
-```tsx
-// Hologram effects for special nodes
-const HologramNodes: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
-  const hologramSettings = useSettingsStore(s => 
-    s.settings.visualisation.hologram
-  );
-  
-  const specialNodes = nodes.filter(node => node.metadata?.isSpecial);
-  
-  return (
-    <group name="hologram-nodes">
-      {specialNodes.map(node => (
-        <group key={node.id} position={[node.position.x, node.position.y, node.position.z]}>
-          <HologramRing 
-            radius={node.size * 1.5}
-            rotationSpeed={hologramSettings.ringRotationSpeed}
-            color={hologramSettings.ringColor}
-          />
-          <HologramSphere
-            radius={node.size * 1.2}
-            segments={hologramSettings.sphereSegments}
-            color={hologramSettings.sphereColor}
-          />
-        </group>
-      ))}
-    </group>
-  );
-};
-```
-
-### Edge Rendering System
-
-#### Dynamic Edge Generation
-```tsx
-const EdgeInstances: React.FC<{
-  edges: Edge[];
-  settings: EdgeSettings;
-  baseColor: string;
-}> = ({ edges, settings, baseColor }) => {
-  const edgeGeometries = useMemo(() => {
-    return edges.map(edge => {
-      const start = new THREE.Vector3(
-        edge.source.position.x,
-        edge.source.position.y,
-        edge.source.position.z
-      );
-      const end = new THREE.Vector3(
-        edge.target.position.x,
-        edge.target.position.y,
-        edge.target.position.z
-      );
-      
-      if (settings.enableCurvedEdges) {
-        // Create curved edge using Catmull-Rom curve
-        const midPoint = start.clone().lerp(end, 0.5);
-        midPoint.y += edge.curvature || 0;
-        
-        const curve = new THREE.CatmullRomCurve3([start, midPoint, end]);
-        return new THREE.TubeGeometry(curve, 8, settings.baseWidth * 0.1, 6);
-      } else {
-        // Straight line edge
-        const geometry = new THREE.CylinderGeometry(
-          settings.baseWidth * 0.1,
-          settings.baseWidth * 0.1,
-          start.distanceTo(end)
-        );
-        
-        // Orient cylinder between nodes
-        const direction = end.clone().sub(start);
-        const orientation = new THREE.Matrix4();
-        orientation.lookAt(start, end, new THREE.Object3D().up);
-        orientation.multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-        geometry.applyMatrix4(orientation);
-        
-        return geometry;
-      }
-    });
-  }, [edges, settings.enableCurvedEdges, settings.baseWidth]);
-  
-  return (
-    <group name="edges">
-      {edges.map((edge, index) => (
-        <mesh key={edge.id} geometry={edgeGeometries[index]}>
-          <meshBasicMaterial
-            color={settings.useGradient ? edge.gradientColor : baseColor}
-            transparent={settings.opacity < 1}
-            opacity={settings.opacity}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-};
-```
-
-#### Flow Effects
-```tsx
-const FlowingEdges: React.FC<{ edges: Edge[] }> = ({ edges }) => {
-  const settings = useSettingsStore(s => s.settings.visualisation.edges);
-  
-  return (
-    <group name="flowing-edges">
-      {edges.map(edge => (
-        <FlowEffect
-          key={edge.id}
-          startPosition={edge.source.position}
-          endPosition={edge.target.position}
-          speed={settings.flowSpeed}
-          particleCount={settings.flowParticleCount}
-          color={settings.flowColor}
-        />
-      ))}
-    </group>
-  );
-};
-
-const FlowEffect: React.FC<{
-  startPosition: Vector3;
-  endPosition: Vector3;
-  speed: number;
-  particleCount: number;
-  color: string;
-}> = ({ startPosition, endPosition, speed, particleCount, color }) => {
-  const particlesRef = useRef<THREE.Points>(null);
-  
-  useFrame((state) => {
-    if (!particlesRef.current) return;
-    
-    const time = state.clock.elapsedTime;
-    const positions = particlesRef.current.geometry.attributes.position;
-    
-    for (let i = 0; i < particleCount; i++) {
-      const progress = ((time * speed + i / particleCount) % 1);
-      const position = new THREE.Vector3().lerpVectors(
-        new THREE.Vector3(...startPosition),
-        new THREE.Vector3(...endPosition),
-        progress
-      );
-      
-      positions.setXYZ(i, position.x, position.y, position.z);
-    }
-    
-    positions.needsUpdate = true;
-  });
-  
-  return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={particleCount}
-          array={new Float32Array(particleCount * 3)}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.1}
-        color={color}
-        transparent
-        opacity={0.8}
+    {edgePoints.length > 0 && (
+      <FlowingEdges
+        points={edgePoints}
+        settings={edgeSettings}
       />
-    </points>
-  );
-};
+    )}
+  </>
+)
 ```
 
-### Text Rendering System
+### Physics Simulation (Web Worker)
 
-#### SDF Text Rendering
-```tsx
-// client/src/features/visualisation/renderers/TextRenderer.tsx
-const TextRenderer: React.FC<{
-  nodes: Node[];
-  settings: LabelSettings;
-}> = ({ nodes, settings }) => {
-  const font = useFont('/fonts/roboto-sdf.fnt');
-  
-  return (
-    <group name="text-labels">
-      {nodes.map(node => (
-        <Text
-          key={`${node.id}-label`}
-          position={[
-            node.position.x,
-            node.position.y + node.size + 0.5,
-            node.position.z
-          ]}
-          fontSize={settings.fontSize}
-          color={settings.color}
-          anchorX="center"
-          anchorY="middle"
-          font={font}
-          maxWidth={settings.maxWidth}
-          overflowWrap="break-word"
-          textAlign="center"
-        >
-          {node.label || node.title}
-        </Text>
-      ))}
-    </group>
-  );
-};
-```
+To prevent UI blocking, all physics calculations are performed in a separate thread using a Web Worker.
 
-### Physics Integration
+#### `graph.worker.ts`
 
-#### Real-time Position Updates
-```tsx
-// Binary protocol integration for 60fps updates
-const usePhysicsSync = (graphDataManager: GraphDataManager) => {
-  const [positions, setPositions] = useState<Map<number, Vector3>>(new Map());
-  
-  useEffect(() => {
-    const unsubscribe = graphDataManager.onPositionUpdate((updates) => {
-      const newPositions = new Map(positions);
-      
-      updates.forEach(({ nodeId, position, velocity }) => {
-        // Apply smoothing for 60fps interpolation
-        const currentPos = newPositions.get(nodeId) || position;
-        const smoothedPos = {
-          x: currentPos.x + (position.x - currentPos.x) * 0.1,
-          y: currentPos.y + (position.y - currentPos.y) * 0.1,
-          z: currentPos.z + (position.z - currentPos.z) * 0.1
-        };
-        
-        newPositions.set(nodeId, smoothedPos);
-      });
-      
-      setPositions(newPositions);
-    });
-    
-    return unsubscribe;
-  }, [graphDataManager]);
-  
-  return positions;
-};
-```
+This worker is the physics engine of the graph system.
 
-#### Physics Configuration
+-   **Off-Main-Thread Calculation**: It runs a continuous simulation loop (`tick` method) to calculate node positions.
+-   **Dual Physics Model**:
+    1.  **Server-Authoritative**: When receiving binary position updates from the server, the worker's primary role is to smoothly interpolate the `currentPositions` towards the `targetPositions` sent by the server. This ensures fluid motion on the client even if server updates are not perfectly smooth.
+    2.  **Client-Side Fallback**: If no server data is available, it can run its own simple spring-based physics simulation to provide a basic layout.
+-   **State Management**: It maintains the state of all node positions, velocities, and user interactions (pinned nodes).
+
 ```typescript
-interface PhysicsSettings {
-  enabled: boolean;
-  springStrength: number;        // Force between connected nodes
-  repulsionStrength: number;     // Force between unconnected nodes
-  dampingFactor: number;         // Motion damping (0-1)
-  centralGravity: number;        // Attraction to centre
-  collisionRadius: number;       // Node collision detection
-  iterations: number;            // Physics simulation quality
-  timeStep: number;              // Simulation step size
-  maxVelocity: number;          // Speed limiting
-  boundaryConstraints: {
-    enabled: boolean;
-    size: number;
-    strength: number;
-  };
+// client/src/features/graph/workers/graph.worker.ts
+
+// Simplified tick method for server-driven physics
+async tick(deltaTime: number): Promise<Float32Array> {
+  if (!this.currentPositions || !this.targetPositions) return new Float32Array(0);
+
+  const dt = Math.min(deltaTime, 0.016); // Clamp delta time
+  
+  if (this.useServerPhysics) {
+    const lerpFactor = 1.0 - Math.exp(-8.0 * dt); // Smooth interpolation factor
+    
+    for (let i = 0; i < this.graphData.nodes.length; i++) {
+      const i3 = i * 3;
+      if (this.pinnedNodeIds.has(nodeId)) continue; // Skip user-dragged nodes
+
+      // Interpolate current position towards the target position from the server
+      this.currentPositions[i3] += (this.targetPositions[i3] - this.currentPositions[i3]) * lerpFactor;
+      this.currentPositions[i3 + 1] += (this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1]) * lerpFactor;
+      this.currentPositions[i3 + 2] += (this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2]) * lerpFactor;
+    }
+  }
+  // ... else, run local physics simulation
+
+  return this.currentPositions;
 }
-
-// Server-side physics simulation integration
-const updatePhysicsSettings = (settings: PhysicsSettings) => {
-  const wsService = WebSocketService.getInstance();
-  
-  if (wsService.isReady()) {
-    wsService.sendMessage({
-      type: 'physics_update',
-      settings: normalizePhysicsForServer(settings)
-    });
-  }
-};
 ```
 
-### Post-Processing Effects
+#### `graphWorkerProxy.ts`
 
-#### Bloom and Visual Enhancement
+This acts as a singleton bridge between the main thread and the physics worker. It uses `Comlink` to make communication seamless. It exposes a simple async API for starting the worker, sending it data, and requesting position updates.
+
+### Visualisation & Shaders
+
+#### `MetadataShapes.tsx`
+
+This component introduces the concept of **Visual Metaphors**. Instead of rendering all nodes identically, it maps individual node metadata to specific visual attributes.
+
+-   **Geometry**: `hyperlinkCount` can determine if a node is a sphere (few connections) or a more complex icosahedron (many connections).
+-   **Scale**: A combination of `fileSize` and connectivity determines the node's size.
+-   **Colour**: The `lastModified` date can be used to apply a "heat" map, making recently edited nodes glow more warmly.
+-   **Emissive Glow**: AI-processed nodes with a `perplexityLink` can have a distinct emissive gold tint.
+
+This system creates a much more insightful and intuitive visualisation, allowing users to understand the data's underlying properties at a glance.
+
 ```tsx
-// client/src/features/graph/components/PostProcessingEffects.tsx
-import { EffectComposer, Bloom, SSAO, Noise } from '@react-three/postprocessing';
+// client/src/features/graph/components/MetadataShapes.tsx
 
-const PostProcessingEffects: React.FC = () => {
-  const bloomSettings = useSettingsStore(s => s.settings.visualisation.bloom);
-  const renderingSettings = useSettingsStore(s => s.settings.visualisation.rendering);
-  
-  if (!renderingSettings.enablePostProcessing) return null;
-  
-  return (
-    <EffectComposer>
-      {bloomSettings.enabled && (
-        <Bloom
-          intensity={bloomSettings.intensity}
-          luminanceThreshold={bloomSettings.threshold}
-          luminanceSmoothing={bloomSettings.smoothing}
-          kernelSize={bloomSettings.kernelSize}
-        />
-      )}
-      
-      {renderingSettings.enableSSAO && (
-        <SSAO
-          intensity={0.1}
-          radius={0.1}
-          rings={4}
-          samples={16}
-        />
-      )}
-      
-      {renderingSettings.enableNoise && (
-        <Noise opacity={0.02} />
-      )}
-    </EffectComposer>
-  );
+// Example of mapping metadata to visuals
+const getVisualsForNode = (node: GraphNode) => {
+  // ...
+  // METAPHOR 1: Geometry from Connectivity (hyperlinkCount)
+  const hyperlinkCount = parseInt(metadata.hyperlinkCount || '0', 10);
+  if (hyperlinkCount > 7) {
+    visuals.geometryType = 'icosahedron';
+  } else if (hyperlinkCount > 3) {
+    visuals.geometryType = 'octahedron';
+  } // ...
+
+  // METAPHOR 3: colour modulation from Recency (lastModified)
+  const ageInDays = (Date.now() - new Date(metadata.lastModified).getTime()) / (1000 * 60 * 60 * 24);
+  const heat = Math.max(0, 1 - ageInDays / 90); // "Heat" for files modified in last 90 days
+  visuals.colour.lerp(new THREE.colour("#FFD700"), heat * 0.5); // Lerp towards yellow for recent files
+  // ...
+  return visuals;
 };
 ```
 
-### Selection and Interaction
+#### `HologramNodeMaterial.ts`
 
-#### Node Selection System
-```tsx
-const useNodeSelection = () => {
-  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  
-  const selectNode = useCallback((nodeId: string, multi = false) => {
-    setSelectedNodes(prev => {
-      const newSelection = new Set(multi ? prev : []);
-      if (newSelection.has(nodeId)) {
-        newSelection.delete(nodeId);
-      } else {
-        newSelection.add(nodeId);
-      }
-      return newSelection;
-    });
-  }, []);
-  
-  const clearSelection = useCallback(() => {
-    setSelectedNodes(new Set());
-  }, []);
-  
-  return { selectedNodes, hoveredNode, selectNode, clearSelection, setHoveredNode };
-};
+This is a custom `THREE.ShaderMaterial` that provides the signature look for the nodes. It is written in GLSL and includes several advanced effects:
 
-// Interactive node component
-const InteractiveNode: React.FC<{
-  node: Node;
-  onSelect: (nodeId: string) => void;
-  onHover: (nodeId: string | null) => void;
-}> = ({ node, onSelect, onHover }) => {
-  const [hovered, setHovered] = useState(false);
-  
-  return (
-    <mesh
-      position={[node.position.x, node.position.y, node.position.z]}
-      onClick={() => onSelect(node.id)}
-      onPointerEnter={() => {
-        setHovered(true);
-        onHover(node.id);
-      }}
-      onPointerLeave={() => {
-        setHovered(false);
-        onHover(null);
-      }}
-    >
-      <sphereGeometry args={[node.size * (hovered ? 1.2 : 1)]} />
-      <meshStandardMaterial
-        color={hovered ? '#ffffff' : node.color}
-        emissive={hovered ? '#444444' : '#000000'}
-      />
-    </mesh>
-  );
-};
-```
-
-### Camera System
-
-#### Advanced Camera Controls
-```tsx
-// client/src/features/visualisation/components/CameraController.tsx
-const CameraController: React.FC = () => {
-  const cameraSettings = useSettingsStore(s => s.settings.visualisation.camera);
-  const xrActive = useXRCore().isSessionActive;
-  
-  // Don't use orbit controls in XR mode
-  if (xrActive) return null;
-  
-  return (
-    <OrbitControls
-      enableDamping={cameraSettings?.enableDamping !== false}
-      dampingFactor={cameraSettings?.dampingFactor || 0.05}
-      rotateSpeed={cameraSettings?.rotateSpeed || 0.5}
-      zoomSpeed={cameraSettings?.zoomSpeed || 1.0}
-      panSpeed={cameraSettings?.panSpeed || 0.8}
-      maxDistance={cameraSettings?.maxDistance || 1000}
-      minDistance={cameraSettings?.minDistance || 1}
-      maxPolarAngle={Math.PI} // Allow full rotation
-      enableRotate={true}
-      enableZoom={true}
-      enablePan={true}
-    />
-  );
-};
-```
-
-#### SpacePilot 3D Mouse Integration
-```tsx
-// client/src/features/visualisation/components/SpacePilotSimpleIntegration.tsx
-const SpacePilotIntegration: React.FC = () => {
-  const { camera } = useThree();
-  const spacePilotSettings = useSettingsStore(s => s.settings.spacePilot);
-  
-  useEffect(() => {
-    if (!spacePilotSettings?.enabled) return;
-    
-    const spaceDriverService = SpaceDriverService.getInstance();
-    
-    const handleSpacePilotInput = (data: SpacePilotData) => {
-      if (!camera) return;
-      
-      // Apply translation
-      camera.position.x += data.translation.x * spacePilotSettings.sensitivity;
-      camera.position.y += data.translation.y * spacePilotSettings.sensitivity;
-      camera.position.z += data.translation.z * spacePilotSettings.sensitivity;
-      
-      // Apply rotation
-      const euler = new THREE.Euler().setFromQuaternion(camera.quaternion);
-      euler.x += data.rotation.x * spacePilotSettings.rotationSensitivity;
-      euler.y += data.rotation.y * spacePilotSettings.rotationSensitivity;
-      euler.z += data.rotation.z * spacePilotSettings.rotationSensitivity;
-      camera.quaternion.setFromEuler(euler);
-    };
-    
-    spaceDriverService.onData(handleSpacePilotInput);
-    
-    return () => spaceDriverService.removeListener(handleSpacePilotInput);
-  }, [camera, spacePilotSettings]);
-  
-  return null;
-};
-```
-
-### Performance Optimisation
-
-#### Level of Detail (LOD) System
-```tsx
-const useLOD = (nodes: Node[], camera: THREE.Camera) => {
-  return useMemo(() => {
-    return nodes.map(node => {
-      const distance = camera.position.distanceTo(
-        new THREE.Vector3(node.position.x, node.position.y, node.position.z)
-      );
-      
-      // Determine quality level based on distance
-      if (distance < 20) return 'high';    // Full quality
-      if (distance < 50) return 'medium';  // Reduced geometry
-      if (distance < 100) return 'low';    // Basic shapes only
-      return 'hidden';                     // Cull completely
-    });
-  }, [nodes, camera.position]);
-};
-
-const LODNode: React.FC<{ node: Node; quality: string }> = ({ node, quality }) => {
-  const geometry = useMemo(() => {
-    switch (quality) {
-      case 'high': return new THREE.SphereGeometry(1, 32, 24);
-      case 'medium': return new THREE.SphereGeometry(1, 16, 12);
-      case 'low': return new THREE.SphereGeometry(1, 8, 6);
-      default: return null;
-    }
-  }, [quality]);
-  
-  if (quality === 'hidden' || !geometry) return null;
-  
-  return (
-    <mesh geometry={geometry} position={[node.position.x, node.position.y, node.position.z]}>
-      <meshBasicMaterial color={node.color} />
-    </mesh>
-  );
-};
-```
-
-#### Memory Management
-```tsx
-// Cleanup and disposal utilities
-const useResourceCleanup = () => {
-  const cleanupRef = useRef<(() => void)[]>([]);
-  
-  const addCleanup = useCallback((cleanup: () => void) => {
-    cleanupRef.current.push(cleanup);
-  }, []);
-  
-  useEffect(() => {
-    return () => {
-      cleanupRef.current.forEach(cleanup => cleanup());
-      cleanupRef.current = [];
-    };
-  }, []);
-  
-  return { addCleanup };
-};
-
-// Automatic geometry disposal
-const useGeometryDisposal = (geometry: THREE.BufferGeometry) => {
-  useEffect(() => {
-    return () => {
-      geometry.dispose();
-    };
-  }, [geometry]);
-};
-```
-
-### Innovation Manager
-
-#### Advanced Feature Coordination
-```tsx
-// client/src/features/graph/innovations/index.ts
-class InnovationManager {
-  private features: Map<string, GraphFeature> = new Map();
-  
-  async initialize(config: InnovationConfig) {
-    // Core features
-    this.features.set('sync', new GraphSynchronisation());
-    this.features.set('comparison', new GraphComparison());
-    this.features.set('animations', new GraphAnimations());
-    
-    // Conditional features
-    if (config.enableAI) {
-      this.features.set('ai-insights', new AIInsights());
-    }
-    
-    if (config.enableAdvancedInteractions) {
-      this.features.set('advanced-interactions', new AdvancedInteractionModes());
-    }
-    
-    // Initialize all features
-    await Promise.all(
-      Array.from(this.features.values()).map(feature => feature.initialize())
-    );
-  }
-  
-  getFeature<T extends GraphFeature>(name: string): T | null {
-    return this.features.get(name) as T || null;
-  }
-}
-
-export const innovationManager = new InnovationManager();
-```
-
-The VisionFlow graph system provides a comprehensive, performant, and extensible foundation for complex 3D graph visualisation with real-time updates, advanced visual effects, and seamless XR integration.
+-   **Fresnel Rim Lighting**: Creates a glow effect around the edges of the nodes.
+-   **Scanlines**: Animated scanlines run across the surface of the nodes, giving them a futuristic, holographic feel.
+-   **Vertex Displacement**: A subtle pulsing effect is applied to the node's vertices for a more organic feel.
+-   **Instancing Support**: The shader is fully compatible with `InstancedMesh`, using `instancecolour` to apply unique colours to each node within the same draw call.
