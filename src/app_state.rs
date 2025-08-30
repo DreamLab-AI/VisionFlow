@@ -85,9 +85,19 @@ impl AppState {
         
         info!("[AppState::new] Starting ClaudeFlowActor (TCP)");
         // Create ClaudeFlowClient for MCP connection on port 9500
+        // Use multi-agent-container since VisionFlow runs in a separate container
+        let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
+            .or_else(|_| std::env::var("MCP_HOST"))
+            .unwrap_or_else(|_| "multi-agent-container".to_string());
+        let claude_flow_port = std::env::var("MCP_TCP_PORT")
+            .unwrap_or_else(|_| "9500".to_string())
+            .parse::<u16>()
+            .unwrap_or(9500);
+        
+        info!("[AppState::new] Connecting ClaudeFlowActor to {}:{}", claude_flow_host, claude_flow_port);
         let claude_flow_client = crate::types::claude_flow::ClaudeFlowClient::new(
-            "localhost".to_string(),
-            9500
+            claude_flow_host,
+            claude_flow_port
         );
         let claude_flow_addr = ClaudeFlowActor::new(
             claude_flow_client,

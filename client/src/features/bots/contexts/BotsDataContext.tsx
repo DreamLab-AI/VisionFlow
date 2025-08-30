@@ -68,6 +68,12 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Handler for graph data with type conversion
   const updateFromGraphData = (data: any) => {
+    // Safety check for undefined data
+    if (!data) {
+      console.warn('updateFromGraphData received undefined data');
+      return;
+    }
+    
     // Transform backend nodes to BotsAgent format
     const transformedAgents = (data.nodes || []).map((node: any) => {
       // Read agent type from correct field - check multiple possible locations

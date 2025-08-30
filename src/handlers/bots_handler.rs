@@ -1065,6 +1065,29 @@ pub async fn initialize_swarm(
             
             info!("✅ Swarm initialized with ID: {}", swarm_id);
             
+            // Now spawn some agents based on the topology
+            use crate::utils::mcp_connection::call_agent_spawn;
+            
+            let agent_types = match request.topology.as_str() {
+                "hierarchical" => vec!["coordinator", "analyst", "optimizer"],
+                "mesh" => vec!["coordinator", "researcher", "coder", "analyst"],
+                "star" => vec!["coordinator", "optimizer", "documenter"],
+                _ => vec!["coordinator", "analyst", "optimizer"],
+            };
+            
+            info!("Spawning {} agents for {} topology", agent_types.len(), request.topology);
+            
+            for agent_type in agent_types {
+                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type).await {
+                    Ok(spawn_result) => {
+                        info!("✅ Spawned {} agent: {:?}", agent_type, spawn_result);
+                    }
+                    Err(e) => {
+                        warn!("Failed to spawn {} agent: {}", agent_type, e);
+                    }
+                }
+            }
+            
             // Store the swarm ID for later use (e.g., disconnection)
             {
                 let mut current_id = CURRENT_SWARM_ID.write().await;
@@ -1347,6 +1370,29 @@ pub async fn initialize_multi_agent(
                 .to_string();
             
             info!("✅ Multi-agent swarm initialized with ID: {}", swarm_id);
+            
+            // Now spawn some agents based on the topology
+            use crate::utils::mcp_connection::call_agent_spawn;
+            
+            let agent_types = match topology {
+                "hierarchical" => vec!["coordinator", "analyst", "optimizer"],
+                "mesh" => vec!["coordinator", "researcher", "coder", "analyst"],
+                "star" => vec!["coordinator", "optimizer", "documenter"],
+                _ => vec!["coordinator", "analyst", "optimizer"],
+            };
+            
+            info!("Spawning {} agents for {} topology", agent_types.len(), topology);
+            
+            for agent_type in agent_types {
+                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type).await {
+                    Ok(spawn_result) => {
+                        info!("✅ Spawned {} agent: {:?}", agent_type, spawn_result);
+                    }
+                    Err(e) => {
+                        warn!("Failed to spawn {} agent: {}", agent_type, e);
+                    }
+                }
+            }
             
             // Store the swarm ID for later use (e.g., disconnection)
             {
