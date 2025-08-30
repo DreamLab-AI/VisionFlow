@@ -27,7 +27,7 @@ use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode, GetGraphData
+    SetComputeMode, GetGraphData, ComputeShortestPaths
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::ConstraintSet;
@@ -1132,6 +1132,70 @@ pub async fn get_ai_insights(
     }))
 }
 
+/// Request payload for shortest path computation
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SSSPRequest {
+    pub source_node_id: u32,
+}
+
+/// Response for shortest path computation
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SSSPResponse {
+    pub success: bool,
+    pub distances: Option<std::collections::HashMap<u32, Option<f32>>>,
+    pub unreachable_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// POST /api/analytics/shortest-path - Compute Single-Source Shortest Path
+pub async fn compute_sssp(
+    app_state: web::Data<AppState>,
+    request: web::Json<SSSPRequest>,
+) -> Result<HttpResponse> {
+    info!("Computing shortest paths from source node: {}", request.source_node_id);
+    
+    match app_state.graph_service_addr.send(ComputeShortestPaths {
+        source_node_id: request.source_node_id,
+    }).await {
+        Ok(Ok(distances)) => {
+            // Count unreachable nodes (nodes with None distance)
+            let unreachable_count = distances.values()
+                .filter(|&&dist| dist.is_none())
+                .count() as u32;
+            
+            info!("Shortest path computation completed. {} unreachable nodes", unreachable_count);
+            
+            Ok(HttpResponse::Ok().json(SSSPResponse {
+                success: true,
+                distances: Some(distances),
+                unreachable_count: Some(unreachable_count),
+                error: None,
+            }))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to compute shortest paths: {}", e);
+            Ok(HttpResponse::InternalServerError().json(SSSPResponse {
+                success: false,
+                distances: None,
+                unreachable_count: None,
+                error: Some(format!("Computation failed: {}", e)),
+            }))
+        }
+        Err(e) => {
+            error!("Graph service actor mailbox error: {}", e);
+            Ok(HttpResponse::ServiceUnavailable().json(SSSPResponse {
+                success: false,
+                distances: None,
+                unreachable_count: None,
+                error: Some("Graph service unavailable".to_string()),
+            }))
+        }
+    }
+}
+
 /// Configure analytics API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -1157,5 +1221,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             
             // New insights endpoint
             .route("/insights", web::get().to(get_ai_insights))
+            
+            // SSSP endpoint
+            .route("/shortest-path", web::post().to(compute_sssp))
     );
 }

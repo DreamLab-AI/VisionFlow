@@ -68,6 +68,7 @@ pub struct SimParams {
     pub alignment_strength: f32,
     pub temperature: f32,
     pub viewport_bounds: f32,
+    pub sssp_alpha: f32,  // SSSP influence on spring forces
 }
 
 /// Bitmask for enabling/disabling features in the CUDA kernel.
@@ -79,6 +80,7 @@ impl FeatureFlags {
     pub const ENABLE_TEMPORAL_COHERENCE: u32 = 1 << 3;
     pub const ENABLE_CONSTRAINTS: u32 = 1 << 4;
     pub const ENABLE_STRESS_MAJORIZATION: u32 = 1 << 5;
+    pub const ENABLE_SSSP_SPRING_ADJUST: u32 = 1 << 6;  // Enable SSSP-based spring adjustment
 }
 
 
@@ -132,6 +134,10 @@ pub struct SimulationParams {
     pub warmup_iterations: u32,
     pub cooling_rate: f32,
     
+    // SSSP (Single-Source Shortest Path) parameters
+    pub use_sssp_distances: bool,  // Enable SSSP-based distance computation
+    pub sssp_alpha: Option<f32>,   // Weight factor for SSSP distances (0.0-1.0)
+    
     // Simulation state
     pub phase: SimulationPhase,   // Current simulation phase
     pub mode: SimulationMode,     // Computation mode
@@ -183,6 +189,10 @@ impl SimulationParams {
         if self.center_gravity_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_CENTERING;
         }
+        // Enable SSSP-based spring adjustment if configured
+        if self.use_sssp_distances {
+            feature_flags |= FeatureFlags::ENABLE_SSSP_SPRING_ADJUST;
+        }
         // Add other feature flags based on settings as needed.
 
         SimParams {
@@ -207,6 +217,7 @@ impl SimulationParams {
             alignment_strength: self.alignment_strength,
             temperature: self.temperature,
             viewport_bounds: self.viewport_bounds,
+            sssp_alpha: self.sssp_alpha.unwrap_or(0.0),
         }
     }
 
@@ -265,6 +276,8 @@ impl SimParams {
             boundary_force_strength: 1.0,
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
+            use_sssp_distances: false,  // Default to false for backwards compatibility
+            sssp_alpha: Some(self.sssp_alpha),
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }
@@ -321,6 +334,7 @@ impl From<&PhysicsSettings> for SimParams {
             alignment_strength: physics.alignment_strength,
             temperature: physics.temperature,
             viewport_bounds: physics.bounds_size,
+            sssp_alpha: 0.0,  // Default to no SSSP influence
         }
     }
 }
@@ -361,6 +375,8 @@ impl From<&PhysicsSettings> for SimulationParams {
             boundary_force_strength: physics.boundary_force_strength,
             warmup_iterations: physics.warmup_iterations,
             cooling_rate: physics.cooling_rate,
+            use_sssp_distances: false,  // Default to disabled
+            sssp_alpha: None,  // Default to no SSSP influence
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }
