@@ -63,10 +63,11 @@ Goal: Build the backend service that can receive graph data, validate it against
 File: src/services/owl_validator.rs (New File)
 Action: Create a service responsible for OWL reasoning.
 Details:
-Integrate a Rust RDF library like sophia to handle triples.
-Use a Rust-based reasoner or, more likely, create bindings to a mature Java-based reasoner like HermiT (via JNI or by running it as a separate microservice).
-Input: An OWL ontology file (data/ontology.owl) and RDF data representing the graph.
-Output: A list of inconsistencies and a list of inferred triples.
+- Integrate the `horned-owl` library to handle OWL ontology parsing and manipulation.
+- Use a native Rust reasoner like `whelk-rs` (which is built on `horned-owl`) to perform consistency checks and inference.
+- This approach creates a pure Rust solution, eliminating the need for external Java services or FFI.
+- Input: An OWL ontology file (data/ontology.owl) and graph data mapped to `horned-owl`'s structures.
+- Output: A list of inconsistencies and a list of inferred axioms/triples.
 4.2. New Actor: OntologyActor
 File: src/actors/ontology_actor.rs (New File)
 Action: Create an actor to manage the validation process asynchronously.
@@ -109,78 +110,50 @@ Action: The existing constraint system can likely handle this, but we may need t
 Details: This creates a powerful feedback loop where the formal logic of the ontology directly and verifiably shapes the visual layout of the graph.
 By implementing this hybrid model, you gain the raw visualization power and discovery potential of your current system, while adding the rigor, correctness, and deep understanding of a formal ontology. It's a truly world-class feature.
 
-Yes, the Sophia and HermiT combination makes perfect sense. In fact, it represents the most robust and pragmatic architecture for what you want to achieve.
+### Final Architectural Plan: Pure Rust with `horned-owl`
 
-They don't combine into a single tool; instead, they are the **best-in-class specialists** for each side of the bridge between your Rust application and the world of formal ontology. They are perfectly complementary.
+Following a thorough evaluation of the performance, architectural, and licensing trade-offs, the decision has been made to re-license the project to **LGPLv3**. This allows us to adopt the technically superior pure-Rust solution for ontological validation.
 
-Here’s a breakdown of how they would work together in the recommended architecture:
+The hybrid Java-based approach is now obsolete. The definitive plan is as follows:
 
-### The Role of Each Component
+#### The `horned-owl` Architecture
 
-#### 1. **Sophia (The Data Preparation Layer in Rust)**
+We will implement a single, unified validation service within the existing Rust backend.
 
-Sophia would live entirely within your existing Rust backend. Its job is to speak the language of RDF (the foundation of OWL). It is **not** a reasoner; it is a toolkit for creating, manipulating, and serializing graph data in a way that a reasoner can understand.
-
-**In your system, Sophia would be used to:**
-
-*   **Map `GraphData` to RDF Triples:** Convert your native `Node` and `Edge` structs into a series of Subject-Predicate-Object triples.
-    *   **Example:** A `Node` with `id: "node123"` and `metadata.type: "SoftwareComponent"` becomes the triple `:node123 rdf:type :SoftwareComponent`.
-    *   An `Edge` from `node123` to `node456` with `label: "dependsOn"` becomes the triple `:node123 :dependsOn :node456`.
-*   **Serialize to a Standard Format:** Convert the collection of RDF triples into a standardized text format, like **Turtle (.ttl)** or **RDF/XML**, which can be sent in an HTTP request.
-*   **Provide Type Safety:** Ensure that the RDF you generate is well-formed and correct within your Rust application before you even send it for validation.
-
-**Why Sophia is the right choice for this role:**
-*   **Native Rust:** It integrates seamlessly into your existing backend with no FFI (Foreign Function Interface) overhead.
-*   **High Performance:** It is designed for efficiency, which is critical for handling large graphs.
-*   **Permissively Licensed:** It uses MIT/Apache 2.0 licenses, posing no risk to your project's licensing.
-
-#### 2. **HermiT (The Validation and Inference Engine in Java)**
-
-HermiT is the "compiler" you're looking for. It is a highly efficient OWL reasoner that takes an ontology (your rules) and a set of data (the RDF from Sophia) and performs logical checks. It would live inside the separate Java microservice.
-
-**In your system, HermiT would be used to:**
-
-*   **Perform Consistency Checks:** After the OWL API loads your ontology and the RDF data, HermiT checks for contradictions. It answers the question: "Does this graph data violate any of my formal rules?"
-    *   **Example:** If your ontology states that the `connectsTo` property can only link a `:SoftwareComponent` to a `:Database`, and your data contains a triple `:SoftwareComponentA :connectsTo :SoftwareComponentB`, HermiT will flag this as an inconsistency.
-*   **Perform Inference:** It deduces new facts that are logically implied by your data and ontology.
-    *   **Example:** If your ontology states that `dependsOn` is a transitive property, and your data contains `:A :dependsOn :B` and `:B :dependsOn :C`, HermiT will infer a new triple: `:A :dependsOn :C`.
-
-**Why HermiT is the right choice for this role:**
-*   **Mature and Correct:** It is one of the most well-established and correct OWL 2 reasoners available.
-*   **High Performance:** For a logic reasoner, it is known for its speed and efficiency.
-*   **Permissively Licensed:** It uses a BSD-style license, making it safe to use in a commercial or open-source project without viral licensing concerns.
-
-### The Workflow: Sophia + HermiT (Decoupled Service)
-
-This workflow diagram illustrates how the two components interact perfectly without being in the same codebase.
+*   **Core Library:** `horned-owl` will be used for all OWL parsing, manipulation, and data modeling.
+*   **Reasoner:** A native Rust reasoner compatible with `horned-owl`, such as `whelk-rs`, will be integrated directly into the service to perform consistency checks and inference.
+*   **Workflow:**
+    1.  The `OntologyActor` will receive a `ValidateGraph` message.
+    2.  It will map the internal `GraphData` structures directly to `horned-owl`'s axiom types.
+    3.  The ontology file (`ontology.owl`) and the mapped data will be loaded into the `whelk-rs` reasoner.
+    4.  The reasoner will perform its validation and inference tasks.
+    5.  The results (inconsistencies and new axioms) will be mapped back into a `ValidationReport` and sent back to the `GraphServiceActor`.
 
 ```mermaid
 flowchart TD
     subgraph Rust_Backend [Your Rust Backend]
-        A[GraphData (Nodes/Edges)] --> B["Sophia: Map to RDF Triples"];
-        B --> C["Sophia: Serialize to Turtle/RDF/XML format"];
-        C --> D[HTTP POST Request with RDF Payload];
+        A[GraphData (Nodes/Edges)] --> B["Map to horned-owl Axioms"];
+        B --> C["Load Ontology into `whelk-rs` Reasoner"];
+        D[ontology.owl] --> C;
+        C --> E["Reasoner: Perform Consistency Check & Inference"];
+        E --> F["Results: Inconsistencies & Inferred Axioms"];
+        F --> G["Map results back to GraphData (New Edges/Warnings)"];
     end
 
-    subgraph Java_OWL_Service [Java Validation Microservice]
-        E[REST Endpoint /validate] --> F["OWL API: Parse RDF & Ontology"];
-        G[ontology.owl] --> F;
-        F --> H["HermiT: Reason over the combined data"];
-        H --> I["Results: Inconsistencies & Inferences"];
-        I --> J[Format Results as JSON];
+    subgraph Feedback_Loop [Feedback to Our System]
+        G --> H{Validation Report};
+        G --> I{Inferred Triples (New Edges)};
+        H --> J[5. Visualize Inconsistencies];
+        I --> K[6. Augment Graph with Inferred Edges];
     end
-
-    D --> E;
-    J --> K[HTTP Response (JSON Report)];
-    K --> L[Rust Backend receives Validation Report];
 
     style Rust_Backend fill:#d6f5d6,stroke:#006400
-    style Java_OWL_Service fill:#e0e0ff,stroke:#000080
 ```
 
-### What this combination is NOT:
+**Advantages of this Final Plan:**
 
-*   **It is not a single Rust binary.** You cannot directly link HermiT (Java) into your Rust application. The microservice architecture is the key to making them work together.
-*   **It is not real-time validation.** The process of mapping, sending, reasoning, and returning is asynchronous and takes time. It's an on-demand or periodic check, not something that runs on every frame of your visualization.
+*   **Maximum Performance:** We leverage the 20x-40x potential speed increase of `horned-owl`.
+*   **Architectural Simplicity:** The entire system is contained within a single, maintainable Rust codebase, eliminating the complexity of a polyglot, multi-service architecture.
+*   **Unified Ecosystem:** The solution is idiomatic and leverages the strengths of the Rust ecosystem.
 
-In conclusion, combining **Sophia** in your Rust backend with a **HermiT**-powered Java microservice is not just plausible—it's the recommended, industry-standard approach for building a robust, scalable, and maintainable system that bridges high-performance graph visualization with formal ontological reasoning.
+This approach provides a world-class feature set in the most efficient and robust manner possible, enabled by the strategic decision to adopt the LGPLv3 license.
