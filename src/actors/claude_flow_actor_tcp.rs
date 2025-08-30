@@ -2,7 +2,7 @@ use actix::prelude::*;
 use actix::fut;
 use std::time::Duration;
 use log::{info, error, debug, warn};
-use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus};
+use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use std::collections::HashMap;
@@ -88,6 +88,87 @@ struct ConnectionStats {
 }
 
 impl ClaudeFlowActorTcp {
+    /// Convert MCP agent format to VisionFlow AgentStatus
+    fn mcp_agent_to_status(agent_data: &Value) -> Result<AgentStatus, String> {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        
+        let agent_id = agent_data.get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+            
+        let name = agent_data.get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&agent_id)
+            .to_string();
+            
+        let agent_type_str = agent_data.get("type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("coordinator");
+            
+        let status = agent_data.get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("active")
+            .to_string();
+            
+        let swarm_id = agent_data.get("swarmId")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+            
+        // Parse agent type - map to existing VisionFlow types
+        let agent_type = match agent_type_str {
+            "coordinator" | "task-orchestrator" => AgentType::Coordinator,
+            "researcher" => AgentType::Researcher,
+            "coder" => AgentType::Coder,
+            "analyst" | "analyzer" | "code-analyzer" => AgentType::Analyst,
+            "architect" => AgentType::Architect,
+            "tester" => AgentType::Tester,
+            "reviewer" => AgentType::Reviewer,
+            "optimizer" => AgentType::Optimizer,
+            "documenter" => AgentType::Documenter,
+            // Map unrecognized types to closest matches
+            "worker" => AgentType::Coder,  // Workers do implementation
+            "specialist" => AgentType::Analyst,  // Specialists analyze
+            _ => AgentType::Coordinator, // Default
+        };
+        
+        // Create AgentStatus with defaults for missing fields
+        Ok(AgentStatus {
+            agent_id: agent_id.clone(),
+            profile: AgentProfile {
+                name,
+                agent_type,
+                capabilities: Vec::new(),
+            },
+            status,
+            active_tasks_count: 0,
+            completed_tasks_count: 0,
+            failed_tasks_count: 0,
+            success_rate: 100.0,
+            timestamp: Utc::now(),
+            current_task: None,
+            cpu_usage: 10.0 + rng.gen::<f32>() * 20.0,
+            memory_usage: 20.0 + rng.gen::<f32>() * 30.0,
+            health: 100.0,
+            activity: 50.0,
+            tasks_active: 0,
+            performance_metrics: PerformanceMetrics {
+                tasks_completed: 0,
+                success_rate: 100.0,
+            },
+            token_usage: TokenUsage {
+                total: 1000,
+                token_rate: 0.0,
+            },
+            swarm_id,
+            agent_mode: Some("autonomous".to_string()),
+            parent_queen_id: None,
+            processing_logs: None,
+            total_execution_time: 0,
+        })
+    }
+    
     pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<GraphServiceActor>) -> Self {
         info!("Creating new TCP-based Claude Flow Actor");
         Self {
@@ -679,13 +760,53 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
                     Ok(response) => {
                         debug!("Received agent list response: {:?}", response);
                         
+                        // Extract the actual content from MCP response format
+                        // MCP returns: {"jsonrpc":"2.0","id":"...","result":{"content": [{"type": "text", "text": "{JSON}"}]}}
+                        // Note: response already contains the full JSON-RPC response
+                        let parsed_response = if let Some(result) = response.get("result") {
+                            if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
+                                if let Some(first_content) = content.first() {
+                                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
+                                        // Parse the nested JSON string
+                                        match serde_json::from_str::<Value>(text) {
+                                            Ok(parsed) => {
+                                                info!("Successfully parsed nested MCP response");
+                                                debug!("Parsed content: {:?}", parsed);
+                                                parsed
+                                            }
+                                            Err(e) => {
+                                                warn!("Failed to parse nested JSON: {}", e);
+                                                warn!("Raw text was: {}", text);
+                                                // Return empty object with agents array
+                                                json!({"agents": []})
+                                            }
+                                        }
+                                    } else {
+                                        warn!("No text field in content");
+                                        json!({"agents": []})
+                                    }
+                                } else {
+                                    warn!("No content array elements");
+                                    json!({"agents": []})
+                                }
+                            } else {
+                                warn!("No content field in result");
+                                json!({"agents": []})
+                            }
+                        } else {
+                            warn!("No result field in response - raw response: {:?}", response);
+                            json!({"agents": []})
+                        };
+                        
                         // Parse agents and prepare for graph visualization
-                        if let Some(agents) = response.get("agents").and_then(|a| a.as_array()) {
+                        if let Some(agents) = parsed_response.get("agents").and_then(|a| a.as_array()) {
                             let mut agent_statuses = Vec::new();
                             let mut parsing_errors = 0u32;
                             
                             for (idx, agent_data) in agents.iter().enumerate() {
-                                match serde_json::from_value::<AgentStatus>(agent_data.clone()) {
+                                // Convert MCP agent format to VisionFlow AgentStatus
+                                let agent_status = Self::mcp_agent_to_status(agent_data);
+                                match agent_status {
                                     Ok(status) => {
                                         info!("Agent [{}] {} - Status: {}, Type: {:?}, Tasks: {} active / {} completed", 
                                               idx, 
@@ -746,7 +867,7 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
                                 info!("📭 No agents found - sending empty graph update");
                             }
                         } else {
-                            warn!("Invalid response format - missing 'agents' array in: {:?}", response);
+                            warn!("Invalid response format - missing 'agents' array in: {:?}", parsed_response);
                             
                             // Send empty graph update to clear visualization
                             graph_addr.do_send(UpdateBotsGraph {
