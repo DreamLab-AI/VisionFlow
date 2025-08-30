@@ -110,30 +110,27 @@ Action: The existing constraint system can likely handle this, but we may need t
 Details: This creates a powerful feedback loop where the formal logic of the ontology directly and verifiably shapes the visual layout of the graph.
 By implementing this hybrid model, you gain the raw visualization power and discovery potential of your current system, while adding the rigor, correctness, and deep understanding of a formal ontology. It's a truly world-class feature.
 
-### Final Architectural Plan: Pure Rust with `horned-owl`
+### Final Architectural Plan: Pure Rust with `horned-owl` under MIT License
 
-Following a thorough evaluation of the performance, architectural, and licensing trade-offs, the decision has been made to re-license the project to **LGPLv3**. This allows us to adopt the technically superior pure-Rust solution for ontological validation.
+After a detailed review, the initial assessment of the licensing conflict between MIT and LGPLv3 was overly conservative. The LGPLv3 license on `horned-owl` does **not** require this project to be re-licensed.
 
-The hybrid Java-based approach is now obsolete. The definitive plan is as follows:
+The "weak copyleft" nature of the LGPL allows it to be used by a project with a different license, provided that users can replace the LGPL-covered component. For an open-source MIT project where the source code is available, this condition is already met.
 
-#### The `horned-owl` Architecture
+Therefore, we can proceed with the technically superior pure-Rust architecture while retaining the project's MIT license.
 
-We will implement a single, unified validation service within the existing Rust backend.
+#### The Definitive `horned-owl` Architecture
+
+The plan is to implement a single, unified validation service within the existing Rust backend.
 
 *   **Core Library:** `horned-owl` will be used for all OWL parsing, manipulation, and data modeling.
-*   **Reasoner:** A native Rust reasoner compatible with `horned-owl`, such as `whelk-rs`, will be integrated directly into the service to perform consistency checks and inference.
-*   **Workflow:**
-    1.  The `OntologyActor` will receive a `ValidateGraph` message.
-    2.  It will map the internal `GraphData` structures directly to `horned-owl`'s axiom types.
-    3.  The ontology file (`ontology.owl`) and the mapped data will be loaded into the `whelk-rs` reasoner.
-    4.  The reasoner will perform its validation and inference tasks.
-    5.  The results (inconsistencies and new axioms) will be mapped back into a `ValidationReport` and sent back to the `GraphServiceActor`.
+*   **Reasoner:** A native Rust reasoner compatible with `horned-owl`, such as `whelk-rs`, will be integrated directly into the service.
+*   **Project License:** The project will remain **MIT licensed**.
 
 ```mermaid
 flowchart TD
-    subgraph Rust_Backend [Your Rust Backend]
+    subgraph Rust_Backend [Your Rust Backend - MIT Licensed]
         A[GraphData (Nodes/Edges)] --> B["Map to horned-owl Axioms"];
-        B --> C["Load Ontology into `whelk-rs` Reasoner"];
+        B --> C["Load Ontology into `whelk-rs` Reasoner (LGPL)"];
         D[ontology.owl] --> C;
         C --> E["Reasoner: Perform Consistency Check & Inference"];
         E --> F["Results: Inconsistencies & Inferred Axioms"];
@@ -153,7 +150,7 @@ flowchart TD
 **Advantages of this Final Plan:**
 
 *   **Maximum Performance:** We leverage the 20x-40x potential speed increase of `horned-owl`.
-*   **Architectural Simplicity:** The entire system is contained within a single, maintainable Rust codebase, eliminating the complexity of a polyglot, multi-service architecture.
-*   **Unified Ecosystem:** The solution is idiomatic and leverages the strengths of the Rust ecosystem.
+*   **Architectural Simplicity:** The entire system is contained within a single, maintainable Rust codebase.
+*   **Licensing Freedom:** The project retains its permissive MIT license, posing no barrier to adoption or commercial use.
 
-This approach provides a world-class feature set in the most efficient and robust manner possible, enabled by the strategic decision to adopt the LGPLv3 license.
+This approach provides the best of both worlds: world-class performance and architectural elegance without licensing compromises.

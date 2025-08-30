@@ -1,6 +1,23 @@
 # WebXR Integration
 
-This document details VisionFlow's comprehensive WebXR integration, enabling immersive virtual and augmented reality experiences with a focus on Quest 3, Vision Pro, and other WebXR-compatible devices. The system provides sophisticated hand tracking, spatial interaction, and seamless graph visualisation in 3D space.
+This document provides an overview of VisionFlow's WebXR integration, enabling immersive virtual and augmented reality experiences. For comprehensive technical details, architecture, and implementation guides, please refer to [xr-integration.md](./xr-integration.md).
+
+VisionFlow's XR system supports Quest 3, Vision Pro, and other WebXR-compatible devices with advanced hand tracking, spatial interaction, and optimized graph visualization in 3D space.
+
+## Overview
+
+The WebXR integration allows users to explore their knowledge graph in a fully immersive 3D environment using VR headsets or AR-compatible devices. It leverages the `@react-three/xr` library, which provides React components and hooks for building WebXR experiences with React Three Fiber.
+
+## Core XR Setup and Components
+
+The XR functionality is primarily managed within the `client/src/features/xr/` directory.
+
+### `@react-three/xr`
+
+This library is fundamental to the XR integration. It provides:
+-   `<XR />` component: The main wrapper to enable WebXR capabilities in an R3F scene.
+-   `<Controllers />`, `<Hands />`: Components for rendering and interacting with VR controllers and tracked hands.
+-   Hooks like `useXR()`, `useController()`, `useHand()`: For accessing XR session state, controller input, and hand tracking data.
 
 ## WebXR Architecture Overview
 
@@ -908,5 +925,20 @@ window.debugXR = () => ({
   capabilities: getXRCapabilities()
 });
 ```
+
+## Settings Affecting XR Mode
+
+Several settings from the application's `SettingsStore` can influence the XR experience. These are found under the `xr` key in the [`Settings`](../../client/src/features/settings/config/settings.ts) interface, defined in [`client/src/features/settings/config/settings.ts`](../../client/src/features/settings/config/settings.ts).
+
+-   **`xr.enabled`**: A global toggle for enabling/disabling XR mode (often a server-side setting that the client respects).
+-   **`xr.clientSideEnableXR`**: A key client-side toggle that allows the user to enable/disable attempting to enter XR mode, independent of the server's `xr.enabled` setting. This is useful for client devices that may not support XR well.
+-   **`xr.mode`**: Specifies the desired XR mode (e.g., `'inline'`, `'immersive-vr'`, `'immersive-ar'`).
+-   **`xr.quality`**: Adjusts rendering quality for performance in XR.
+-   **`xr.enableHandTracking`**: Toggles the use of hand tracking (Note: the setting name is `enableHandTracking`, not `handTracking`).
+-   **`xr.handMeshEnabled`**, **`xr.handMeshColor`**: Controls the visual representation of tracked hands.
+-   **Locomotion settings** (e.g., `xr.locomotionMethod`, `xr.movementSpeed`): Configure how users move within the virtual environment.
+-   **AR-specific settings** (e.g., `xr.enablePlaneDetection`, `xr.passthroughOpacity`): For augmented reality experiences.
+
+These settings are typically accessed within XR components via the `useSettingsStore` hook and applied to configure the `@react-three/xr` components or custom interaction logic.
 
 VisionFlow's WebXR integration provides a comprehensive foundation for building immersive graph visualisation experiences across multiple XR platforms, with particular optimisations for Quest 3 and Vision Pro devices. The system seamlessly integrates hand tracking, spatial interaction, and advanced XR features while maintaining high performance and user experience standards.
