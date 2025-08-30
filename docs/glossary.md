@@ -107,3 +107,23 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 ## Z
 
 **Zustand** - Lightweight state management library used for client-side state management.
+
+**Inference** - The process of deriving new, implicit facts from existing data and a set of logical axioms in an ontology.
+
+**Louvain Method** - A fast, greedy algorithm for community detection in large networks, used in graph clustering.
+
+**Ontology** - A formal specification of a set of concepts and the relationships between them. In this project, it is used to define the logical rules for the knowledge graph.
+
+**OWL (Web Ontology Language)** - A standard, formal language used to define ontologies.
+
+**RDF (Resource Description Framework)** - A standard model for data interchange on the Web. It is used as the underlying structure for OWL ontologies.
+
+**Reasoner** - A software component that can infer logical consequences from a set of asserted facts or axioms.
+
+**Semantic Clustering** - The process of grouping nodes in a graph based on their meaning and relationships, rather than just their direct connections.
+
+**Semantic Features** - A set of attributes extracted from the graph's content and structure that describe the meaning of a node.
+
+**Spectral Clustering** - A clustering technique that uses the eigenvalues of the graph's Laplacian matrix to identify communities.
+
+**Stress Majorization** - A global layout optimization algorithm that aims to minimize the difference between the geometric distances and the graph-theoretic distances of nodes.

@@ -488,6 +488,24 @@ __device__ float3 compute_dual_graph_forces(
 
 ---
 
+## Semantic Constraints
+
+A key feature of the physics engine is its ability to incorporate semantic information into the layout process. The `semantic_constraints.rs` module, in coordination with the `SemanticAnalyzer`, generates dynamic layout constraints based on the meaning and relationships of the nodes.
+
+For example, nodes that are identified as belonging to the same topic or knowledge domain can be given an attractive force, pulling them together into a semantic cluster. Conversely, nodes that are identified as being unrelated or belonging to different domains can be given a repulsive force, ensuring they are visually separated.
+
+These constraints are not hard rules but are implemented as additional forces that are passed to the GPU. This allows the physics engine to produce a layout that is not only physically stable but also semantically meaningful.
+
+For more details, see the [Semantic Analysis documentation](features/semantic-analysis.md).
+
+## Stress Majorization
+
+In addition to the real-time, force-directed layout, the physics engine employs **Stress Majorization** as a periodic, global optimization step. This process is run by the `GraphServiceActor` to improve the overall quality of the graph layout beyond what the real-time simulation can achieve.
+
+While the force-directed layout is excellent for immediate, localized changes, Stress Majorization works to minimize the difference between the geometric distances of nodes in the 2D/3D space and their theoretical "graph distance" (i.e., the shortest path between them in the graph).
+
+This results in a more globally coherent and aesthetically pleasing layout, where the visual proximity of nodes more accurately reflects their relationship within the graph's structure.
+
 ## Advanced Features
 
 ### 1. Stress Majorization Solver

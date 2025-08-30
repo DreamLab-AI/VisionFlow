@@ -67,6 +67,7 @@ graph TD
             ClientManagerActor["ClientManagerActor"]
             GPUComputeActor["GPUComputeActor"]
             ProtectedSettingsActor["ProtectedSettingsActor"]
+            OntologyActor["OntologyActor"]
         end
         AppState["AppState"]
 
@@ -165,6 +166,7 @@ graph TB
             SettingsActor[Settings Actor]
             MetaActor[Metadata Actor]
             ProtectedActor[Protected Settings]
+            OntologyActor[OntologyActor]
         end
 
         subgraph "Services Layer"
@@ -174,6 +176,8 @@ graph TB
             SpeechSvc[Speech Service]
             BotsClient[Bots Client]
             AgentViz[Agent Viz Processor]
+            SemanticAnalyzer[SemanticAnalyzer]
+            AdvancedEdgeGenerator[AdvancedEdgeGenerator]
         end
     end
 
@@ -217,6 +221,9 @@ graph TB
 
     ClientMgr --> GraphActor
     GraphActor --> GPUActor
+    GraphActor --> SemanticAnalyzer
+    SemanticAnalyzer --> AdvancedEdgeGenerator
+    GraphActor --> OntologyActor
     GPUActor --> UnifiedKernel
     UnifiedKernel --> Physics
     UnifiedKernel --> ParallelGraphs
@@ -276,6 +283,9 @@ graph TB
     -   [`MetadataStore`](../../src/models/metadata.rs): In-memory store for file/node metadata, managed by `FileService` and read by `GraphService`.
     -   [`ClientManager`](../../src/handlers/socket_flow_handler.rs): (Often part of `socket_flow_handler` or a static utility) Manages active WebSocket clients for broadcasting.
     -   [`GPUCompute`](../../src/utils/gpu_compute.rs): Optional utility for CUDA-accelerated physics calculations.
+    -   **`OntologyActor`**: Manages OWL/RDF validation and reasoning.
+    -   **`SemanticAnalyzer`**: Extracts semantic features from graph data.
+    -   **`AdvancedEdgeGenerator`**: Generates new edges based on semantic similarity.
 
 ### External Services
 
