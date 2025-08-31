@@ -3,8 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../../utils/classNameUtils'
-import { animations } from '../animations'
-import { X, AlertTriangle, Info, CheckCircle } from 'lucide-react'
+import { X, AlertTriangle, Info } from 'lucide-react'
 import { Button } from './Button'
 
 const modalVariants = cva(
@@ -45,26 +44,6 @@ const overlayVariants = {
   exit: { opacity: 0 },
 }
 
-const modalAnimationVariants = {
-  center: animations.variants.scale,
-  top: animations.variants.slideDown,
-  bottom: animations.variants.slideUp,
-  left: animations.variants.slideRight,
-  right: animations.variants.slideLeft,
-}
-
-export interface ModalProps extends VariantProps<typeof modalVariants> {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  children: React.ReactNode
-  trigger?: React.ReactNode
-  closeOnOverlayClick?: boolean
-  closeOnEscape?: boolean
-  showCloseButton?: boolean
-  overlayBlur?: boolean
-  preventScroll?: boolean
-}
-
 const Modal = ({
   open,
   onOpenChange,
@@ -77,7 +56,7 @@ const Modal = ({
   showCloseButton = true,
   overlayBlur = false,
   preventScroll = true,
-}: ModalProps) => {
+}) => {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>}
@@ -94,7 +73,6 @@ const Modal = ({
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={animations.transitions.easing.easeOut}
                 onClick={closeOnOverlayClick ? () => onOpenChange?.(false) : undefined}
               />
             </DialogPrimitive.Overlay>
@@ -104,11 +82,9 @@ const Modal = ({
             >
               <motion.div
                 className={cn(modalVariants({ size, position }))}
-                variants={modalAnimationVariants[position]}
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={animations.transitions.spring.smooth}
                 onClick={(e) => e.stopPropagation()}
               >
                 {showCloseButton && (
@@ -185,19 +161,6 @@ const ModalFooter = React.forwardRef<
 ))
 ModalFooter.displayName = 'ModalFooter'
 
-interface ConfirmationModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
-  onCancel?: () => void
-  title: string
-  description?: string
-  confirmText?: string
-  cancelText?: string
-  type?: 'default' | 'danger' | 'warning'
-  loading?: boolean
-}
-
 const ConfirmationModal = ({
   open,
   onOpenChange,
@@ -209,7 +172,7 @@ const ConfirmationModal = ({
   cancelText = 'Cancel',
   type = 'default',
   loading = false,
-}: ConfirmationModalProps) => {
+}) => {
   const handleCancel = () => {
     onCancel?.()
     onOpenChange(false)
@@ -235,7 +198,6 @@ const ConfirmationModal = ({
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={animations.transitions.spring.bounce}
           >
             {iconVariants[type]}
           </motion.div>
