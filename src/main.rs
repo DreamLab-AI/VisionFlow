@@ -279,7 +279,7 @@ async fn main() -> std::io::Result<()> {
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) // Legacy MCP relay endpoint
             .service(
                 web::scope("/api") // Add /api prefix for these routes
-                    .configure(api_handler::config) // This will now serve /api/user-settings etc.
+                    .configure(api_handler::config) // This includes settings routes via api_handler
                     .service(web::scope("/health").configure(health_handler::config)) // This will now serve /api/health
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(bots_handler::config)) // This will now serve /api/bots/data and /api/bots/update

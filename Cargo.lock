@@ -1564,6 +1564,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
 name = "hex-conservative"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4298,6 +4304,7 @@ dependencies = [
  "futures",
  "futures-util",
  "glam 0.29.3",
+ "heck",
  "lazy_static",
  "log",
  "mockall",

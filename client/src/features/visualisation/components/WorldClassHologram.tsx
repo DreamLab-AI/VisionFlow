@@ -6,7 +6,7 @@ import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
 // import { useBloomStrength } from '../../graph/contexts/BloomContext'; // Removed - bloom managed via settings
 import { DiffuseEffectsIntegration } from '@/rendering/DiffuseEffectsIntegration';
-import { HologramManager } from '../renderers/HologramManager';
+import { HologramManager } from '@/features/visualisation/renderers/HologramManager';
 
 // Quantum field shader with advanced visuals
 const quantumFieldShader = {
@@ -157,11 +157,9 @@ export const WorldClassHologram: React.FC<{
   useDiffuseEffects?: boolean;
 }> = React.memo(({ enabled = true, position = [0, 0, 0], useDiffuseEffects = true }) => {
   // Use selective settings hooks for better performance
-  const envBloomStrength = useSelectiveSetting<number>('visualisation.bloom.environmentBloomStrength') ?? 
-                           useSelectiveSetting<number>('visualisation.bloom.environment_bloom_strength') ?? 0.5;
+  const envBloomStrength = useSelectiveSetting<number>('visualisation.bloom.environmentBloomStrength') ?? 0.5;
   const hologramSettings = useSelectiveSetting<any>('visualisation.hologram');
-  const enableHologram = useSelectiveSetting<boolean>('visualisation.graphs.logseq.nodes.enableHologram') ||
-                        useSelectiveSetting<boolean>('visualisation.graphs.logseq.nodes.enable_hologram') || false;
+  const enableHologram = useSelectiveSetting<boolean>('visualisation.graphs.logseq.nodes.enableHologram') || false;
   
   const sphereRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);

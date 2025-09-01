@@ -293,38 +293,22 @@ const XRCoreProvider: React.FC<XRCoreProviderProps> = ({
   const { settings } = useSettingsStore();
   const xrSettings = settings?.xr;
 
-  // Initialize XR capability detection (Quest 3 AR focused)
+  // Log XR capability from the hook
   useEffect(() => {
-    const checkXRSupport = async () => {
-      try {
-        if ('xr' in navigator) {
-          // Prioritize AR support for Quest 3
-          const arSupported = await (navigator.xr as any).isSessionSupported('immersive-ar');
-          
-          setIsXRSupported(arSupported);
-          setIsXRCapable(true);
-          
-          if (arSupported) {
-            if (settings?.system?.debug?.enabled) {
-              logger.info('Quest 3 AR mode detected and supported');
-            }
-          } else {
-            logger.warn('Quest 3 AR mode not supported - immersive-ar session required');
-          }
-        } else {
-          setIsXRCapable(false);
-          setIsXRSupported(false);
-          logger.warn('WebXR not available - Quest 3 browser required');
-        }
-      } catch (error) {
-        setIsXRCapable(false);
-        setIsXRSupported(false);
-        logger.error('Error checking XR support:', error);
+    if (isXRSupported) {
+      setIsXRCapable(true);
+      if (settings?.system?.debug?.enabled) {
+        logger.info('Quest 3 AR mode detected and supported');
       }
-    };
-
-    checkXRSupport();
-  }, [settings?.system?.debug?.enabled]);
+    } else if (!isCheckingXR && !isXRSupported) {
+      setIsXRCapable(false);
+      if (xrError) {
+        logger.error('Error checking XR support:', xrError);
+      } else {
+        logger.warn('WebXR not available - Quest 3 browser required');
+      }
+    }
+  }, [isXRSupported, isCheckingXR, xrError, settings?.system?.debug?.enabled]);
 
   // Handle controller select start event (trigger press)
   const handleControllerSelectStart = useCallback((event: XRControllerEvent) => {

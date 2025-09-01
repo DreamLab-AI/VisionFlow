@@ -1,6 +1,6 @@
 pub mod files;
 pub mod graph;
-pub mod visualisation;
+// REMOVED: pub mod visualisation; - legacy module moved to settings
 pub mod bots;
 pub mod analytics;
 pub mod quest3;
@@ -19,7 +19,7 @@ pub use graph::{
     update_graph,
 };
 
-pub use visualisation::get_visualisation_settings;
+// REMOVED: pub use visualisation::get_visualisation_settings; - legacy endpoint
 
 use actix_web::web;
 
@@ -29,7 +29,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("") // Removed redundant /api prefix
             .configure(files::config)
             .configure(graph::config)
-            .configure(visualisation::config)
+            // REMOVED: .configure(visualisation::config) - legacy module
             .configure(bots::config)
             .configure(analytics::config)
             .configure(quest3::config)

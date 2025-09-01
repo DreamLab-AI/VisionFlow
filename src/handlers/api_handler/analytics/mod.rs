@@ -25,12 +25,12 @@ use once_cell::sync::Lazy;
 
 use crate::AppState;
 use crate::actors::messages::{
-    UpdateVisualAnalyticsParams, 
+    // REMOVED: UpdateVisualAnalyticsParams - legacy GPU message
     GetConstraints, UpdateConstraints, GetPhysicsStats,
     SetComputeMode, GetGraphData, ComputeShortestPaths,
     GetSettingsByPaths
 };
-use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
+// REMOVED: use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics}; - legacy GPU module
 use crate::models::constraints::ConstraintSet;
 use crate::actors::gpu_compute_actor::PhysicsStats;
 
@@ -39,7 +39,7 @@ use crate::actors::gpu_compute_actor::PhysicsStats;
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsParamsResponse {
     pub success: bool,
-    pub params: Option<VisualAnalyticsParams>,
+    // REMOVED: params field - VisualAnalyticsParams type no longer exists
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -101,7 +101,7 @@ pub struct FocusResponse {
 pub struct StatsResponse {
     pub success: bool,
     pub physics_stats: Option<PhysicsStats>,
-    pub visual_analytics_metrics: Option<PerformanceMetrics>,
+    // REMOVED: visual_analytics_metrics field - PerformanceMetrics type no longer exists
     pub system_metrics: Option<SystemMetrics>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
@@ -318,7 +318,7 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
             error!("Failed to get analytics settings: {}", e);
             return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
                 success: false,
-                params: None,
+                // params field removed
                 error: Some(format!("Settings error: {}", e)),
             }));
         },
@@ -326,7 +326,7 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
             error!("Failed to send settings request: {}", e);
             return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
                 success: false,
-                params: None,
+                // params field removed
                 error: Some("Settings actor communication error".to_string()),
             }));
         }
@@ -339,7 +339,7 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
             error!("Failed to get settings for analytics params: {}", e);
             return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
                 success: false,
-                params: None,
+                // params field removed
                 error: Some("Failed to retrieve settings".to_string()),
             }));
         }
@@ -347,70 +347,21 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
             error!("Settings actor mailbox error");
             return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
                 success: false,
-                params: None,
+                // params field removed
                 error: Some("Settings service unavailable".to_string()),
             }));
         }
     };
 
-    // Extract or create default visual analytics parameters
-    // For now, we'll create a default set since they might not be stored in settings yet
-    // TODO: Adapt create_default_analytics_params to work with HashMap<String, Value>
-    use crate::config::AppFullSettings;
-    let default_settings = AppFullSettings::default();
-    let params = create_default_analytics_params(&default_settings);
-
+    // Visual analytics parameters no longer supported - legacy GPU functionality removed
     Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
         success: true,
-        params: Some(params),
+        // params field removed - type no longer exists
         error: None,
     }))
 }
 
-/// POST /api/analytics/params - Update visual analytics parameters
-/// CLEANED UP: No longer handles physics parameters - use /api/physics/update instead
-pub async fn update_analytics_params(
-    app_state: web::Data<AppState>,
-    params: web::Json<VisualAnalyticsParams>,
-) -> Result<HttpResponse> {
-    info!("Updating visual analytics parameters");
-    debug!("Visual analytics params: {:?}", params);
-    
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-        match gpu_addr.send(UpdateVisualAnalyticsParams { params: params.into_inner() }).await {
-            Ok(Ok(())) => {
-                info!("Visual analytics parameters updated successfully");
-                Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
-                    success: true,
-                    params: None,
-                    error: None,
-                }))
-            }
-            Ok(Err(e)) => {
-                error!("Failed to update visual analytics params: {}", e);
-                Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
-                    success: false,
-                    params: None,
-                    error: Some(format!("Failed to update parameters: {}", e)),
-                }))
-            }
-            Err(e) => {
-                error!("GPU compute actor mailbox error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(AnalyticsParamsResponse {
-                    success: false,
-                    params: None,
-                    error: Some("GPU compute service unavailable".to_string()),
-                }))
-            }
-        }
-    } else {
-        Ok(HttpResponse::ServiceUnavailable().json(AnalyticsParamsResponse {
-            success: false,
-            params: None,
-            error: Some("GPU compute service not available".to_string()),
-        }))
-    }
-}
+// REMOVED: update_analytics_params - uses removed VisualAnalyticsParams type
 
 /// GET /api/analytics/constraints - Get current constraints
 pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpResponse> {
@@ -581,23 +532,13 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
     Ok(HttpResponse::Ok().json(StatsResponse {
         success: true,
         physics_stats,
-        visual_analytics_metrics: None, // Would be populated from VisualAnalyticsGPU
+        // visual_analytics_metrics field removed - type no longer exists
         system_metrics: Some(system_metrics),
         error: None,
     }))
 }
 
-/// Helper function to create default analytics parameters
-fn create_default_analytics_params(_settings: &crate::config::AppFullSettings) -> VisualAnalyticsParams {
-    use crate::gpu::visual_analytics::VisualAnalyticsBuilder;
-    
-    VisualAnalyticsBuilder::new()
-        .with_nodes(1000)
-        .with_edges(2000)
-        .with_focus(-1, 2.2)
-        .with_temporal_decay(0.1)
-        .build()
-}
+// REMOVED: create_default_analytics_params - legacy GPU visual analytics functionality
 
 /// POST /api/analytics/kernel-mode - Set GPU kernel mode
 pub async fn set_kernel_mode(
@@ -1233,7 +1174,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("/analytics")
             // Existing endpoints
             .route("/params", web::get().to(get_analytics_params))
-            .route("/params", web::post().to(update_analytics_params))
+            // REMOVED: .route("/params", web::post().to(update_analytics_params)) - function removed
             .route("/constraints", web::get().to(get_constraints))
             .route("/constraints", web::post().to(update_constraints))
             .route("/focus", web::post().to(set_focus))

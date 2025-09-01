@@ -313,14 +313,11 @@ export const useSettingsStore = create<SettingsState>()(
 
         if (!isPathLoaded) {
           if (debugState.isEnabled()) {
-            logger.warn(`Accessing unloaded path: ${path}, triggering load`);
+            logger.warn(`Accessing unloaded path: ${path} - path should be loaded before access`);
           }
-          // Trigger loading instead of just warning
-          get().ensureLoaded([path]).catch(error => {
-            logger.error(`Failed to load path ${path}:`, error);
-          });
-          // Return loading indicator
-          return { loading: true, value: undefined } as unknown as T;
+          // Don't trigger loading here - it causes infinite loops
+          // The calling component should use ensureLoaded in useEffect
+          return undefined as unknown as T;
         }
 
         // Navigate the partial settings using the path

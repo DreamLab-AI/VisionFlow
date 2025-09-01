@@ -64,6 +64,7 @@ reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
 nostr-sdk = "0.36"
 
 # Utilities
+heck = "0.5"
 uuid = { version = "1.12", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 static_assertions = "1.1"

@@ -910,23 +910,15 @@ impl Handler<InitializeVisualAnalytics> for GPUComputeActor {
 }
 
 
-impl Handler<AddIsolationLayer> for GPUComputeActor {
+// REMOVED: Handler implementations for AddIsolationLayer and RemoveIsolationLayer - messages no longer exist
+
+impl Handler<SetComputeMode> for GPUComputeActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: AddIsolationLayer, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Isolation layers are now managed internally by unified kernel");
-        info!("  Layer {} functionality integrated into visual analytics mode", msg.layer.layer_id);
+    fn handle(&mut self, msg: SetComputeMode, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Setting compute mode to: {:?}", msg.mode);
+        self.compute_mode = msg.mode;
         Ok(())
-    }
-}
-
-impl Handler<RemoveIsolationLayer> for GPUComputeActor {
-    type Result = Result<bool, String>;
-
-    fn handle(&mut self, msg: RemoveIsolationLayer, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU: Isolation layers are now managed internally by unified kernel");
-        info!("  Layer {} removal handled by visual analytics mode", msg.layer_id);
-        Ok(true) // Always report success since it's handled internally
     }
 }
 

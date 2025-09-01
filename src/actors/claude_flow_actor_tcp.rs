@@ -464,15 +464,7 @@ impl Actor for ClaudeFlowActorTcp {
             }
         });
         
-        // DEPRECATED: The ConnectionFailed handler is now responsible for all reconnection logic.
-        // This periodic check is redundant and can cause cascading failures.
-        // ctx.run_interval(Duration::from_secs(30), |act, ctx| {
-        //     if !act.is_connected {
-        //         warn!("TCP connection lost, attempting reconnection...");
-        //         act.connection_stats.reconnect_attempts += 1;
-        //         act.initialize_connection(ctx);
-        //     }
-        // });
+        // Reconnection logic handled by ConnectionFailed handler
     }
     
     fn stopped(&mut self, _: &mut Self::Context) {

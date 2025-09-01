@@ -107,14 +107,6 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
     };
   }, []); // Empty dependency array to avoid re-registration
 
-  // Separate effect for auto-connect to avoid dependency issues
-  useEffect(() => {
-    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (customBackendUrl || window.location.origin)) {
-      autoConnectAttemptedRef.current = true;
-      connect().catch((error) => gatedConsole.voice.error('Auto-connect failed:', error));
-    }
-  }, [autoConnect, customBackendUrl, connect]);
-
   const connect = useCallback(async () => {
     if (!voiceServiceRef.current || isConnected) return;
 
@@ -126,6 +118,14 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
       onError?.(error);
     }
   }, [isConnected, customBackendUrl, onError]);
+
+  // Separate effect for auto-connect to avoid dependency issues
+  useEffect(() => {
+    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (customBackendUrl || window.location.origin)) {
+      autoConnectAttemptedRef.current = true;
+      connect().catch((error) => gatedConsole.voice.error('Auto-connect failed:', error));
+    }
+  }, [autoConnect, customBackendUrl, connect]);
 
   const disconnect = useCallback(async () => {
     if (!voiceServiceRef.current) return;

@@ -15,7 +15,7 @@ use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::actors::gpu_compute_actor::ComputeMode;
-use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
+// REMOVED: use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer}; - legacy GPU module
 
 // Graph Service Actor Messages
 #[derive(Message)]
@@ -131,23 +131,7 @@ pub struct InitializeVisualAnalytics {
     pub max_edges: usize,
 }
 
-#[derive(Message)]
-#[rtype(result = "Result<(), String>")]
-pub struct UpdateVisualAnalyticsParams {
-    pub params: VisualAnalyticsParams,
-}
-
-#[derive(Message)]
-#[rtype(result = "Result<(), String>")]
-pub struct AddIsolationLayer {
-    pub layer: IsolationLayer,
-}
-
-#[derive(Message)]
-#[rtype(result = "Result<bool, String>")]
-pub struct RemoveIsolationLayer {
-    pub layer_id: i32,
-}
+// REMOVED: UpdateVisualAnalyticsParams, AddIsolationLayer, RemoveIsolationLayer - legacy GPU messages
 
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]

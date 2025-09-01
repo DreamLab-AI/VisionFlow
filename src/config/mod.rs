@@ -1053,6 +1053,13 @@ impl AppFullSettings {
     // Physics updates now handled through the general merge_update method
     // which provides better validation and consistency
     
+    /// Convert settings to camelCase JSON for client consumption
+    pub fn to_camel_case_json(&self) -> Result<Value, String> {
+        let snake_json = serde_json::to_value(self)
+            .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+        Ok(crate::utils::case_conversion::keys_to_camel_case(snake_json))
+    }
+    
     /// Validate the entire configuration
     pub fn validate_config(&self) -> Result<(), HashMap<String, String>> {
         match self.validate() {

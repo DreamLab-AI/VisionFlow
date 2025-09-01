@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SettingsPath } from '@/types/generated/settings';
 import { createLogger } from '@/utils/logger';
@@ -10,8 +10,51 @@ const logger = createLogger('useSelectiveSettingsStore');
  * This hook optimizes re-renders by only subscribing to specific paths
  */
 export function useSelectiveSetting<T>(path: SettingsPath): T {
-  // Use zustand's built-in selector for reactive subscriptions
-  return useSettingsStore(state => state.get<T>(path));
+  // Ensure the path is loaded before accessing it
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+  const loadedPaths = useSettingsStore(state => state.loadedPaths);
+  const partialSettings = useSettingsStore(state => state.partialSettings);
+  
+  // Check if path is loaded and trigger load if needed (side effect in useEffect)
+  useEffect(() => {
+    const isPathLoaded = loadedPaths.has(path) || 
+      [...loadedPaths].some(loadedPath => 
+        path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
+      );
+    
+    if (!isPathLoaded) {
+      logger.debug(`Path ${path} not loaded, triggering load`);
+      ensureLoaded([path]).catch(error => {
+        logger.error(`Failed to load path ${path}:`, error);
+      });
+    }
+  }, [path, loadedPaths, ensureLoaded]);
+  
+  // Pure selector that just reads the value without side effects
+  return useSettingsStore(
+    useCallback(
+      (state) => {
+        if (!path?.trim()) {
+          return state.partialSettings as unknown as T;
+        }
+        
+        // Navigate the partial settings using the path
+        const pathParts = path.split('.');
+        let current: any = state.partialSettings;
+        
+        for (const part of pathParts) {
+          if (current && typeof current === 'object' && part in current) {
+            current = current[part];
+          } else {
+            return undefined as unknown as T;
+          }
+        }
+        
+        return current as T;
+      },
+      [path]
+    )
+  );
 }
 
 /**
@@ -21,19 +64,62 @@ export function useSelectiveSetting<T>(path: SettingsPath): T {
 export function useSelectiveSettings<T extends Record<string, any>>(
   paths: Record<keyof T, SettingsPath>
 ): T {
-  // Create a selector that returns all requested values
-  return useSettingsStore(
-    useCallback(
-      (state) => {
-        const result = {} as T;
-        for (const key in paths) {
-          result[key] = state.get(paths[key]);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+  const loadedPaths = useSettingsStore(state => state.loadedPaths);
+  
+  // Track paths in a ref to avoid re-running effect unnecessarily
+  const pathsRef = useRef(paths);
+  pathsRef.current = paths;
+  
+  // Load paths if needed
+  useEffect(() => {
+    const pathsToLoad: SettingsPath[] = [];
+    for (const key in pathsRef.current) {
+      const path = pathsRef.current[key];
+      const isPathLoaded = loadedPaths.has(path) || 
+        [...loadedPaths].some(loadedPath => 
+          path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
+        );
+      
+      if (!isPathLoaded) {
+        pathsToLoad.push(path);
+      }
+    }
+    
+    if (pathsToLoad.length > 0) {
+      logger.debug(`Loading paths: ${pathsToLoad.join(', ')}`);
+      ensureLoaded(pathsToLoad).catch(error => {
+        logger.error(`Failed to load paths:`, error);
+      });
+    }
+  }, [loadedPaths, ensureLoaded]);
+  
+  return useSettingsStore((state) => {
+    const result = {} as T;
+    for (const key in paths) {
+      const path = paths[key];
+      if (!path?.trim()) {
+        result[key] = state.partialSettings as any;
+        continue;
+      }
+      
+      // Navigate the partial settings using the path
+      const pathParts = path.split('.');
+      let current: any = state.partialSettings;
+      
+      for (const part of pathParts) {
+        if (current && typeof current === 'object' && part in current) {
+          current = current[part];
+        } else {
+          current = undefined;
+          break;
         }
-        return result;
-      },
-      [paths]
-    )
-  );
+      }
+      
+      result[key] = current;
+    }
+    return result;
+  });
 }
 
 /**

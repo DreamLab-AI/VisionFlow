@@ -78,47 +78,6 @@ impl GitHubClient {
         })
     }
 
-    /*
-    /// Get the properly encoded API path
-    pub(crate) async fn get_api_path(&self) -> String {
-        let settings = self.settings.read().await;
-        let debug_enabled = crate::utils::logging::is_debug_enabled();
-        drop(settings);
-
-        if debug_enabled {
-            debug!("Getting API path from base_path: '{}'", self.base_path);
-        }
-
-        let decoded_path = urlencoding::decode(&self.base_path)
-            .unwrap_or(std::borrow::Cow::Owned(self.base_path.clone()))
-            .into_owned();
-
-        if debug_enabled {
-            log::debug!("Decoded base path: '{}'", decoded_path);
-        }
-
-        let trimmed_path = decoded_path.trim_matches('/');
-        
-        if debug_enabled {
-            log::debug!("Trimmed path: '{}'", trimmed_path);
-        }
-        
-        if trimmed_path.is_empty() {
-            if debug_enabled {
-                log::debug!("Path is empty, returning empty string");
-            }
-            String::new()
-        } else {
-            let encoded = url::form_urlencoded::byte_serialize(trimmed_path.as_bytes())
-                .collect::<String>();
-            
-            if debug_enabled {
-                log::debug!("Final encoded API path: '{}'", encoded);
-            }
-            encoded
-        }
-    }
-    */
 
     /// Get the full path for a file
     pub(crate) async fn get_full_path(&self, path: &str) -> String {

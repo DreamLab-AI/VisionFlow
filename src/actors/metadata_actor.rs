@@ -42,44 +42,7 @@ impl MetadataActor {
         self.metadata.len() // Changed .files.len() to .len()
     }
 
-    // TODO: Re-implement or remove get_files_by_tag and get_files_by_type
-    // The Metadata struct no longer has a `properties` field.
-    // Tag and type information needs to be stored differently or derived.
-    /*
-    pub fn get_files_by_tag(&self, tag: &str) -> Vec<String> {
-        self.metadata // Changed .files.iter() to .iter()
-            .iter()
-            .filter_map(|(filename, file_meta)| {
-                // if let Some(ref properties) = file_meta.properties { // .properties does not exist
-                //     if let Some(tags) = properties.get("tags") {
-                //         if let Some(tag_array) = tags.as_array() {
-                //             if tag_array.iter().any(|t| t.as_str() == Some(tag)) {
-                //                 return Some(filename.clone());
-                //             }
-                //         }
-                //     }
-                // }
-                None // Placeholder
-            })
-            .collect()
-    }
-
-    pub fn get_files_by_type(&self, file_type: &str) -> Vec<String> {
-        self.metadata // Changed .files.iter() to .iter()
-            .iter()
-            .filter_map(|(filename, file_meta)| {
-                // if let Some(ref properties) = file_meta.properties { // .properties does not exist
-                //     if let Some(type_value) = properties.get("type") {
-                //         if type_value.as_str() == Some(file_type) {
-                //             return Some(filename.clone());
-                //         }
-                //     }
-                // }
-                None // Placeholder
-            })
-            .collect()
-    }
-    */
+    // Tag and type information would need to be stored differently in current data structure
 }
 
 impl Actor for MetadataActor {

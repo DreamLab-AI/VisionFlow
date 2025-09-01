@@ -102,7 +102,7 @@ pub struct SocketFlowServer {
     last_activity: std::time::Instant, // Track last activity time
     heartbeat_timer_set: bool, // Flag to track if heartbeat timer is set
     // Fields for batched updates and deadband filtering
-    _node_position_cache: HashMap<String, BinaryNodeData>, // Dead Code: Field is never read
+    // REMOVED: _node_position_cache - unused field
     last_sent_positions: HashMap<String, Vec3Data>,
     last_sent_velocities: HashMap<String, Vec3Data>,
     position_deadband: f32, // Minimum position change to trigger an update
@@ -153,7 +153,7 @@ impl SocketFlowServer {
             update_counter: 0,
             last_activity: std::time::Instant::now(),
             heartbeat_timer_set: false,
-            _node_position_cache: HashMap::new(), // Dead Code: Field is never read
+            // REMOVED: _node_position_cache - unused field
             last_sent_positions: HashMap::new(),
             last_sent_velocities: HashMap::new(),
             position_deadband,

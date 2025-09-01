@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import * as THREE from 'three';
@@ -31,20 +31,32 @@ const GraphCanvas: React.FC = () => {
     
     const containerRef = useRef<HTMLDivElement>(null);
     const orbitControlsRef = useRef<any>(null);
-    // Use selective hooks for performance
-    const settings = useSelectiveSettings({
+    
+    // Memoize settings paths to avoid recreating objects on every render
+    const settingsPaths = useMemo(() => ({
       showStats: 'system.debug.enablePerformanceDebug' as const,
       enableBloom: 'visualisation.glow.enabled' as const,
       enableOrbitControls: 'visualisation.camera.enableOrbitControls' as const,
       enablePostProcessing: 'visualisation.postprocessing.enabled' as const,
       showGridHelper: 'visualisation.helpers.showGridHelper' as const,
       showAxesHelper: 'visualisation.helpers.showAxesHelper' as const
-    });
+    }), []);
+    
+    const xrSettingsPaths = useMemo(() => ({
+      xrEnabled: 'xr.enabled' as const
+    }), []);
+    
+    const hologramSettingsPaths = useMemo(() => ({
+      enableHologram: 'visualisation.graphs.logseq.nodes.enableHologram' as const
+    }), []);
+    
+    // Use selective hooks for performance
+    const settings = useSelectiveSettings(settingsPaths);
     const showStats = settings.showStats ?? false;
-    const xrEnabled = useSelectiveSettings({ xrEnabled: 'xr.enabled' as const }).xrEnabled !== false;
+    const xrEnabled = useSelectiveSettings(xrSettingsPaths).xrEnabled !== false;
     const enableBloom = settings.enableBloom ?? false;
     const enableGlow = settings.enableBloom ?? false; // Using same setting as bloom
-    const enableHologram = useSelectiveSettings({ enableHologram: 'visualisation.graphs.logseq.nodes.enableHologram' as const }).enableHologram !== false;
+    const enableHologram = useSelectiveSettings(hologramSettingsPaths).enableHologram !== false;
     const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
     
     // Graph data state

@@ -16,7 +16,7 @@ export const ConnectionWarning: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [settingsSource, setSettingsSource] = useState<'server' | 'local'>('server');
   const [isReconnecting, setIsReconnecting] = useState(false);
-  const { settings } = useSettingsStore();
+  const settings = useSettingsStore(state => state.partialSettings);
 
   useEffect(() => {
     // Check WebSocket connection status

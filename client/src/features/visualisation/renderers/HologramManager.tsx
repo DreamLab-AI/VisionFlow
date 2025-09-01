@@ -8,7 +8,7 @@ import {
   DiffuseWireframeMaterial, 
   DiffuseHologramRingMaterial, 
   DiffuseMoteMaterial 
-} from '@/rendering/DiffuseWireframeMaterial';
+} from '@/rendering/DiffuseWireframeMaterial.tsx';
 import { BloomHologramMaterial, BloomStandardMaterial } from '../shaders/BloomHologramMaterial';
 import { EtherealDiffuseCloudMaterial } from '../shaders/EtherealDiffuseCloudMaterial';
 import { WireframeWithExtendedGlow } from '../components/WireframeWithExtendedGlow';
