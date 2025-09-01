@@ -6,5 +6,3 @@ declare const process: {
     [key: string]: string | undefined;
   };
 };
-
-declare function require(id: string): any;

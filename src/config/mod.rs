@@ -107,7 +107,6 @@ fn merge_json_values(base: Value, update: Value) -> Value {
 
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct MovementAxes {
     #[validate(range(min = -100, max = 100, message = "Movement axis must be between -100 and 100"))]
     pub horizontal: i32,
@@ -116,7 +115,6 @@ pub struct MovementAxes {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct NodeSettings {
     #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub base_color: String,
@@ -137,7 +135,6 @@ pub struct NodeSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
     #[validate(range(min = 0.1, max = 10.0, message = "Arrow size must be between 0.1 and 10.0"))]
     pub arrow_size: f32,
@@ -156,7 +153,6 @@ pub struct EdgeSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct AutoBalanceConfig {
     pub stability_variance_threshold: f32,
     pub stability_frame_count: u32,
@@ -222,7 +218,6 @@ impl AutoBalanceConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,
@@ -352,7 +347,6 @@ impl Default for PhysicsSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct RenderingSettings {
     #[validate(range(min = 0.0, max = 10.0, message = "Ambient light intensity must be between 0.0 and 10.0"))]
     pub ambient_light_intensity: f32,
@@ -374,7 +368,6 @@ pub struct RenderingSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
     pub enable_motion_blur: bool,
     pub enable_node_animations: bool,
@@ -391,7 +384,6 @@ pub struct AnimationSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct LabelSettings {
     #[validate(range(min = 8.0, max = 72.0, message = "Desktop font size must be between 8.0 and 72.0"))]
     pub desktop_font_size: f32,
@@ -414,7 +406,6 @@ pub struct LabelSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct GlowSettings {
     pub enabled: bool,
     #[validate(range(min = 0.0, max = 10.0, message = "Glow intensity must be between 0.0 and 10.0"))]
@@ -448,7 +439,6 @@ pub struct GlowSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct HologramSettings {
     pub ring_count: u32,
     pub ring_color: String,
@@ -468,7 +458,6 @@ pub struct HologramSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct CameraSettings {
     pub fov: f32,
     pub near: f32,
@@ -478,7 +467,6 @@ pub struct CameraSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct Position {
     pub x: f32,
     pub y: f32,
@@ -486,7 +474,6 @@ pub struct Position {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct SpacePilotSettings {
     pub enabled: bool,
     pub mode: String,
@@ -497,7 +484,6 @@ pub struct SpacePilotSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct Sensitivity {
     pub translation: f32,
     pub rotation: f32,
@@ -505,7 +491,6 @@ pub struct Sensitivity {
 
 // Graph-specific settings
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct GraphSettings {
     #[validate(nested)]
     pub nodes: NodeSettings,
@@ -519,7 +504,6 @@ pub struct GraphSettings {
 
 // Multi-graph container
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct GraphsSettings {
     #[validate(nested)]
     pub logseq: GraphSettings,
@@ -528,7 +512,6 @@ pub struct GraphsSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
     
     // Global settings
@@ -548,7 +531,6 @@ pub struct VisualisationSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct NetworkSettings {
     #[validate(length(min = 7, max = 45, message = "Bind address must be between 7 and 45 characters"))]
     pub bind_address: String,
@@ -582,7 +564,6 @@ pub struct NetworkSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct WebSocketSettings {
     #[validate(range(min = 64, max = 65536, message = "Binary chunk size must be between 64 bytes and 64KB"))]
     pub binary_chunk_size: usize,
@@ -641,7 +622,6 @@ impl Default for WebSocketSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct SecuritySettings {
     pub allowed_origins: Vec<String>,
     pub audit_log_path: String,
@@ -656,7 +636,6 @@ pub struct SecuritySettings {
 
 // Simple debug settings for server-side control
 #[derive(Debug, Serialize, Deserialize, Clone, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct DebugSettings {
     #[serde(default)]
     pub enabled: bool,
@@ -671,7 +650,6 @@ impl Default for DebugSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct SystemSettings {
     pub network: NetworkSettings,
     pub websocket: WebSocketSettings,
@@ -697,7 +675,6 @@ impl Default for SystemSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct XRSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
@@ -756,7 +733,6 @@ pub struct XRSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct AuthSettings {
     pub enabled: bool,
     pub provider: String,
@@ -764,7 +740,6 @@ pub struct AuthSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct RagFlowSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -781,7 +756,6 @@ pub struct RagFlowSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct PerplexitySettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -806,7 +780,6 @@ pub struct PerplexitySettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct OpenAISettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -819,7 +792,6 @@ pub struct OpenAISettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct KokoroSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -840,7 +812,6 @@ pub struct KokoroSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct WhisperSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -864,7 +835,6 @@ pub struct WhisperSettings {
 
 // Constraint system structures
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct ConstraintData {
     pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
     pub strength: f32,
@@ -888,7 +858,6 @@ impl Default for ConstraintData {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct ConstraintSystem {
     pub separation: ConstraintData,
     pub boundary: ConstraintData,
@@ -897,7 +866,6 @@ pub struct ConstraintSystem {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct ClusteringConfiguration {
     pub algorithm: String,
     pub num_clusters: u32,
@@ -909,7 +877,6 @@ pub struct ClusteringConfiguration {
 
 // Helper struct for physics updates
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
-#[serde(rename_all = "camelCase")]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
     pub spring_k: Option<f32>,
@@ -958,7 +925,6 @@ pub struct PhysicsUpdate {
 
 // Single unified settings struct
 #[derive(Debug, Clone, Deserialize, Serialize, Type, Validate)]
-#[serde(rename_all = "camelCase")]
 pub struct AppFullSettings {
     #[validate(nested)]
     pub visualisation: VisualisationSettings,
