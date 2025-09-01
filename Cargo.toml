@@ -111,6 +111,3 @@ opt-level = 1
 [package.metadata.rust-version]
 min = "1.75.0"
 
-[[bin]]
-name = "test-tcp"
-path = "src/bin/test_tcp_connection.rs"

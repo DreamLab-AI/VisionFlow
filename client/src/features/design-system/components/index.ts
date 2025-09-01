@@ -2,7 +2,7 @@ export * from './Button'
 export * from './Card'
 export * from './SearchInput'
 export * from './Input'
-export * from './Modal'
+// Modal components are now exported from Dialog (with backward compatibility aliases)
 export * from './Toast'
 export * from './Tooltip'
 export * from './Collapsible'

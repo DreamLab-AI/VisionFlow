@@ -1,5 +1,5 @@
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
-import { IFRAME_COMMUNICATION_CONFIG } from '../../config/iframeCommunication';
+import { IFRAME_COMMUNICATION_CONFIG } from '../../utils/iframeCommunication';
 import { isAllowedOrigin, isNavigationMessage, NavigationMessage } from '../../utils/iframeCommunication';
 
 const NarrativeGoldminePanel: React.FC = () => {
