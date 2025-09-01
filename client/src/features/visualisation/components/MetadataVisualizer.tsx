@@ -3,7 +3,7 @@ import * as THREE from 'three'; // Use namespace import
 import { useThree, useFrame } from '@react-three/fiber';
 // import { Text, Billboard, useTexture } from '@react-three/drei'; // Commented out due to import errors
 import { usePlatform } from '@/services/platformManager';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('MetadataVisualizer');
@@ -14,8 +14,6 @@ function isVector3Instance(obj: any): obj is THREE.Vector3 {
   // Check if Vector3 constructor exists on THREE before using instanceof
   return typeof THREE.Vector3 === 'function' && obj instanceof THREE.Vector3;
 }
-
-
 // Types for metadata and labels
 export interface NodeMetadata {
   id: string;
@@ -51,7 +49,7 @@ export const MetadataVisualizer: React.FC<MetadataVisualizerProps> = ({
   // Use THREE.Object3D as Group might not be resolving correctly
   const groupRef = useRef<THREE.Group>(null);
   const { isXRMode } = usePlatform();
-  const labelSettings = useSettingsStore(state => state.settings?.visualisation?.labels);
+  const labelSettings = useSelectiveSetting<any>('visualisation.labels');
 
   // Layer management for XR mode
   useEffect(() => {
@@ -92,7 +90,7 @@ export const MetadataVisualizer: React.FC<MetadataVisualizerProps> = ({
 const LabelSystem: React.FC = () => {
   const labelManagerRef = useTextLabelManager();
   const { labels } = labelManagerRef.current;
-  const labelSettings = useSettingsStore(state => state.settings?.visualisation?.labels);
+  const labelSettings = useSelectiveSetting<any>('visualisation.labels');
 
   // Don't render if labels are disabled
   // if (!labelSettings?.enabled) return null; // Commented out due to type error

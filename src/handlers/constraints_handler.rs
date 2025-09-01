@@ -1,6 +1,6 @@
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
-use crate::actors::messages::{GetSettings, UpdateSettings};
+use crate::actors::messages::{GetSettingsByPaths, SetSettingsByPaths};
 use log::{info, error, debug};
 use serde_json::{json, Value};
 use crate::config::{ConstraintData, ConstraintSystem};
@@ -53,8 +53,13 @@ async fn define_constraints(
         }
     });
     
-    // Get and update settings
-    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+    // Get constraint-related settings using granular path operations
+    let constraint_paths = vec![
+        "constraints.enabled".to_string(),
+        "constraints.max_count".to_string(),
+        "system.debug.enabled".to_string()
+    ];
+    let constraint_settings = match state.settings_addr.send(GetSettingsByPaths { paths: constraint_paths }).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
@@ -70,15 +75,13 @@ async fn define_constraints(
         }
     };
     
-    if let Err(e) = app_settings.merge_update(settings_update) {
-        error!("Failed to merge constraint settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update constraint settings: {}", e)
-        })));
-    }
-    
-    // Save updated settings
-    match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+    // Save constraint data and physics settings using granular path-based updates
+    let updates = vec![
+        ("visualisation.graphs.logseq.physics.computeMode".to_string(), json!(2)),
+        ("visualisation.graphs.visionflow.physics.computeMode".to_string(), json!(2)),
+        ("constraints.data".to_string(), serde_json::to_value(&constraints)?)
+    ];
+    match state.settings_addr.send(SetSettingsByPaths { updates }).await {
         Ok(Ok(())) => {
             info!("Constraints defined successfully");
             

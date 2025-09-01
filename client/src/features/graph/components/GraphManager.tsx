@@ -6,7 +6,7 @@ import { graphDataManager, type GraphData, type Node as GraphNode } from '../man
 import { graphWorkerProxy } from '../managers/graphWorkerProxy'
 import { createLogger, createErrorMetadata } from '../../../utils/logger'
 import { debugState } from '../../../utils/clientDebugState'
-import { useSettingsStore } from '../../../store/settingsStore'
+import { useSelectiveSetting, useSelectiveSettings } from '../../../hooks/useSelectiveSettingsStore'
 import { BinaryNodeData, createBinaryNodeData } from '../../../types/binaryProtocol'
 import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
@@ -16,7 +16,6 @@ import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
-// import { useBloomStrength } from '../contexts/BloomContext' // Removed - bloom managed via settings
 
 const logger = createLogger('GraphManager')
 
@@ -142,10 +141,47 @@ const getTypeImportance = (nodeType?: string): number => {
 }
 
 const GraphManager: React.FC = () => {
-  const settings = useSettingsStore((state) => state.settings);
-  // Handle both camelCase and snake_case field names from REST API
-  const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
-  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? settings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
+  // Use selective hooks for specific settings to prevent unnecessary re-renders
+  const nodeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.nodeBloomStrength');
+  const edgeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.edgeBloomStrength');
+  
+  // Get multiple related settings efficiently
+  const visualSettings = useSelectiveSettings({
+    nodeOpacity: 'visualisation.graphs.logseq.nodes.opacity' as const,
+    nodeSize: 'visualisation.graphs.logseq.nodes.nodeSize' as const,
+    nodeBaseColor: 'visualisation.graphs.logseq.nodes.baseColor' as const,
+    enableHologram: 'visualisation.graphs.logseq.nodes.enableHologram' as const,
+    enableMetadataShape: 'visualisation.graphs.logseq.nodes.enableMetadataShape' as const
+  });
+  
+  const debugSettings = useSelectiveSettings({
+    enableNodeDebug: 'system.debug.enableNodeDebug' as const,
+    enablePhysicsDebug: 'system.debug.enablePhysicsDebug' as const,
+    enablePerformanceDebug: 'system.debug.enablePerformanceDebug' as const
+  });
+  
+  const pulseStrength = useSelectiveSetting<number>('visualisation.animations.pulseStrength');
+  
+  // Label settings
+  const labelSettings = useSelectiveSettings({
+    enableLabels: 'visualisation.graphs.logseq.labels.enableLabels' as const,
+    showMetadata: 'visualisation.graphs.logseq.labels.showMetadata' as const,
+    textPadding: 'visualisation.graphs.logseq.labels.textPadding' as const,
+    maxLabelWidth: 'visualisation.graphs.logseq.labels.maxLabelWidth' as const,
+    desktopFontSize: 'visualisation.graphs.logseq.labels.desktopFontSize' as const,
+    textColor: 'visualisation.graphs.logseq.labels.textColor' as const,
+    textOutlineWidth: 'visualisation.graphs.logseq.labels.textOutlineWidth' as const,
+    textOutlineColor: 'visualisation.graphs.logseq.labels.textOutlineColor' as const
+  });
+  
+  // Edge settings
+  const edgeSettings = useSelectiveSettings({
+    arrowSize: 'visualisation.graphs.logseq.edges.arrowSize' as const,
+    baseWidth: 'visualisation.graphs.logseq.edges.baseWidth' as const,
+    color: 'visualisation.graphs.logseq.edges.color' as const,
+    enableArrows: 'visualisation.graphs.logseq.edges.enableArrows' as const,
+    opacity: 'visualisation.graphs.logseq.edges.opacity' as const
+  });
   
   // SSSP visualization state
   const ssspResult = useCurrentSSSPResult();
@@ -199,18 +235,16 @@ const GraphManager: React.FC = () => {
   const { camera, size } = useThree()
 
   // Check if metadata shapes are enabled
-  const logseqSettings = settings?.visualisation?.graphs?.logseq
-  const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes
-  const enableMetadataShape = nodeSettings?.enableMetadataShape ?? false
+  const enableMetadataShape = visualSettings.enableMetadataShape ?? false
 
   // Create custom hologram material
   useEffect(() => {
     if (!materialRef.current) {
       materialRef.current = new HologramNodeMaterial({
-        baseColor: '#0066ff', // Bright blue base
+        baseColor: visualSettings.nodeBaseColor || '#0066ff', // Bright blue base
         emissiveColor: '#00ffff', // Cyan emissive
-        opacity: settings?.visualisation?.graphs?.logseq?.nodes?.opacity ?? settings?.visualisation?.nodes?.opacity ?? 0.8,
-        enableHologram: true, // Force enable to test
+        opacity: visualSettings.nodeOpacity ?? 0.8,
+        enableHologram: visualSettings.enableHologram ?? true, // Force enable to test
         glowStrength: 2.0 * (nodeBloomStrength || 1), // Multiply by bloom strength with fallback
         pulseSpeed: 1.0,
         hologramStrength: 0.8, // Strong hologram effect
@@ -255,24 +289,20 @@ const GraphManager: React.FC = () => {
   
   // Update material settings for Logseq graph
   useEffect(() => {
-    if (materialRef.current && settings?.visualisation) {
-      // Use Logseq-specific settings, fallback to legacy nodes settings
-      const logseqSettings = settings.visualisation.graphs?.logseq;
-      const nodeSettings = logseqSettings?.nodes || settings.visualisation.nodes;
-
+    if (materialRef.current) {
       materialRef.current.updateColors(
-        nodeSettings?.baseColor || '#00ffff',
-        nodeSettings?.baseColor || '#00ffff'
+        visualSettings.nodeBaseColor || '#00ffff',
+        visualSettings.nodeBaseColor || '#00ffff'
       )
-      materialRef.current.uniforms.opacity.value = nodeSettings?.opacity ?? 0.8;
+      materialRef.current.uniforms.opacity.value = visualSettings.nodeOpacity ?? 0.8;
       materialRef.current.setHologramEnabled(
-        nodeSettings?.enableHologram !== false
+        visualSettings.enableHologram !== false
       )
       materialRef.current.updateHologramParams({
-        glowStrength: settings.visualisation.animations?.pulseStrength || 1.0,
+        glowStrength: pulseStrength || 1.0,
       })
     }
-  }, [settings?.visualisation])
+  }, [visualSettings.nodeBaseColor, visualSettings.nodeOpacity, visualSettings.enableHologram])
 
   // Update normalized SSSP result when ssspResult changes
   useEffect(() => {
@@ -316,23 +346,20 @@ const GraphManager: React.FC = () => {
       const mesh = meshRef.current
       mesh.count = graphData.nodes.length
       
-      // Debug logging based on settings
-      const debugSettings = settings?.system?.debug;
-      if (debugSettings?.enableNodeDebug || true) { // Force debug for now
-        console.log('[GraphManager] Initializing instanced mesh', {
+      if (debugSettings.enableNodeDebug) {
+        logger.debug('Initializing instanced mesh', {
           nodeCount: graphData.nodes.length,
           meshCount: mesh.count,
           hasPositions: !!nodePositionsRef.current,
-          meshRef: meshRef.current,
           hasSSSPResult: !!normalizedSSSPResult
-        });
+        })
       }
 
       updateNodeColors();
 
       // CRITICAL: Initialize instance matrices immediately
       const tempMatrix = new THREE.Matrix4();
-      const nodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize || 0.5;
+      const nodeSize = visualSettings.nodeSize || 0.5;
       const BASE_SPHERE_RADIUS = 0.5;
       const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
@@ -361,22 +388,15 @@ const GraphManager: React.FC = () => {
         materialRef.current.needsUpdate = true
       }
 
-      console.log('[GraphManager] Instance matrices initialized');
+      logger.debug('Instance matrices initialized')
     }
   }, [graphData, normalizedSSSPResult])
-
-  // Pass settings to worker whenever they change
-  useEffect(() => {
-    graphWorkerProxy.updateSettings(settings);
-  }, [settings]);
-
   // Animation loop with physics updates
   useFrame(async (state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
     
     // Debug: Log first frame and periodic updates
-    const debugSettings = settings?.system?.debug;
-    if (debugSettings?.enablePhysicsDebug && debugState.isEnabled()) {
+    if (debugSettings.enablePhysicsDebug && debugState.isEnabled()) {
       const frameCount = Math.floor(state.clock.elapsedTime * 60);
       if (frameCount === 1 || frameCount % 300 === 0) { // Log first frame and every 5 seconds
         logger.debug('Physics frame update', {
@@ -400,9 +420,7 @@ const GraphManager: React.FC = () => {
 
       if (positions) {
         // Update node positions from physics
-        const logseqSettings = settings?.visualisation?.graphs?.logseq;
-        const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
-        const nodeSize = nodeSettings?.nodeSize || 0.5;
+        const nodeSize = visualSettings.nodeSize || 0.5;
         const BASE_SPHERE_RADIUS = 0.5;
         const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
@@ -449,10 +467,8 @@ const GraphManager: React.FC = () => {
               // Calculate node radii based on scale
               const sourceNode = graphData.nodes[sourceNodeIndex];
               const targetNode = graphData.nodes[targetNodeIndex];
-              const logseqSettings = settings?.visualisation?.graphs?.logseq;
-              const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
-              const sourceRadius = getNodeScale(sourceNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
-              const targetRadius = getNodeScale(targetNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
+              const sourceRadius = getNodeScale(sourceNode, graphData.edges) * (visualSettings.nodeSize || 0.5);
+              const targetRadius = getNodeScale(targetNode, graphData.edges) * (visualSettings.nodeSize || 0.5);
 
               // Offset endpoints to stop before node surfaces (plus small gap)
               const offsetSource = new THREE.Vector3().addVectors(sourcePos, direction.clone().multiplyScalar(sourceRadius + 0.1));
@@ -516,10 +532,10 @@ const GraphManager: React.FC = () => {
 
   // Graph data subscription with enhanced error handling and diagnostics
   useEffect(() => {
-    console.log('[GraphManager] Setting up graph data subscription');
+    logger.debug('Setting up graph data subscription')
     
     const handleGraphUpdate = (data: GraphData) => {
-      console.log('[GraphManager] Received graph update:', {
+      logger.debug('Received graph update:', {
         nodeCount: data.nodes.length,
         edgeCount: data.edges.length,
         firstNode: data.nodes[0],
@@ -536,7 +552,7 @@ const GraphManager: React.FC = () => {
 
       // Validate data before processing
       if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
-        console.error('[GraphManager] Invalid graph data received:', data);
+        logger.error('Invalid graph data received:', data);
         return;
       }
 
@@ -546,7 +562,7 @@ const GraphManager: React.FC = () => {
         nodes: data.nodes.map((node, i) => {
           if (!node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)) {
             const position = getPositionForNode(node, i, data.nodes.length)
-            console.log(`[GraphManager] Generated position for node ${node.id}:`, position);
+            logger.debug(`Generated position for node ${node.id}:`, position)
             return {
               ...node,
               position: { x: position[0], y: position[1], z: position[2] }
@@ -560,7 +576,7 @@ const GraphManager: React.FC = () => {
         !node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)
       )
       setNodesAreAtOrigin(allAtOrigin)
-      console.log('[GraphManager] Nodes at origin:', allAtOrigin);
+      logger.debug('Nodes at origin:', allAtOrigin)
 
       setGraphData(dataWithPositions)
 
@@ -579,16 +595,16 @@ const GraphManager: React.FC = () => {
       })
 
       setEdgePoints(newEdgePoints)
-      console.log('[GraphManager] Updated edge points:', newEdgePoints.length / 6, 'edges');
+      logger.debug('Updated edge points:', newEdgePoints.length / 6, 'edges')
     }
 
-    console.log('[GraphManager] Subscribing to graph data changes');
+    logger.debug('Subscribing to graph data changes')
     const unsubscribe = graphDataManager.onGraphDataChange(handleGraphUpdate)
 
     // Get initial data and update worker with enhanced error handling
-    console.log('[GraphManager] Fetching initial graph data');
+    logger.debug('Fetching initial graph data')
     graphDataManager.getGraphData().then((data) => {
-      console.log('[GraphManager] Got initial data from manager:', {
+      logger.debug('Got initial data from manager:', {
         nodeCount: data.nodes.length,
         edgeCount: data.edges.length
       });
@@ -596,9 +612,9 @@ const GraphManager: React.FC = () => {
       // Ensure worker has the data
       return graphWorkerProxy.setGraphData(data)
     }).then(() => {
-      console.log('[GraphManager] Worker updated with graph data');
+      logger.debug('Worker updated with graph data')
     }).catch((error) => {
-      console.error('[GraphManager] Error in initial data setup:', error);
+      logger.error('Error in initial data setup:', error);
       // Fallback: create sample data
       const fallbackData = {
         nodes: [
@@ -611,12 +627,12 @@ const GraphManager: React.FC = () => {
           { id: 'fallback_edge2', source: 'fallback2', target: 'fallback3' }
         ]
       };
-      console.log('[GraphManager] Using fallback data');
+      logger.debug('Using fallback data')
       handleGraphUpdate(fallbackData);
     })
 
     return () => {
-      console.log('[GraphManager] Unsubscribing from graph data changes');
+      logger.debug('Unsubscribing from graph data changes')
       unsubscribe()
     }
   }, [])
@@ -675,9 +691,7 @@ const GraphManager: React.FC = () => {
   };
 
   const NodeLabels = useMemo(() => {
-      const logseqSettings = settings?.visualisation?.graphs?.logseq;
-      const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
-      if (!labelSettings?.enableLabels || graphData.nodes.length === 0) return null;
+      if (!labelSettings.enableLabels || graphData.nodes.length === 0) return null;
 
     return graphData.nodes.map((node, index) => {
       // Use physics position if available, otherwise fallback to node position
@@ -790,11 +804,11 @@ const GraphManager: React.FC = () => {
         </Billboard>
       )
     })
-  }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
+  }, [graphData.nodes, graphData.edges, labelPositions, labelSettings, normalizedSSSPResult])
 
   // Debug logging for render - only log once on mount/unmount
   useEffect(() => {
-    console.log('[GraphManager] Component mounted with data:', {
+    logger.debug('Component mounted with data:', {
       nodeCount: graphData.nodes.length,
       edgeCount: graphData.edges.length,
       edgePointsLength: edgePoints.length,
@@ -804,7 +818,7 @@ const GraphManager: React.FC = () => {
     });
     
     return () => {
-      console.log('[GraphManager] Component unmounting');
+      logger.debug('Component unmounting')
     };
   }, []); // Empty deps = only on mount/unmount
 
@@ -825,7 +839,18 @@ const GraphManager: React.FC = () => {
         handlePointerDown({ ...event, instanceId: nodeIndex } as any);
       }
     }}
-    settings={settings}
+    settings={{
+      visualisation: { 
+        graphs: { 
+          logseq: { 
+            nodes: visualSettings,
+            edges: edgeSettings,
+            labels: labelSettings
+          } 
+        } 
+      },
+      system: { debug: debugSettings }
+    }}
     ssspResult={normalizedSSSPResult}
   />
 ) : (
@@ -855,7 +880,7 @@ const GraphManager: React.FC = () => {
       {edgePoints.length > 0 && (
         <FlowingEdges
           points={edgePoints}
-          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
+          settings={{...defaultEdgeSettings, ...edgeSettings}}
           edgeData={graphData.edges}
         />
       )}
@@ -865,7 +890,7 @@ const GraphManager: React.FC = () => {
         <points ref={particleSystemRef} geometry={particleGeometry}>
           <pointsMaterial
             size={0.1}
-            color={settings?.visualisation?.graphs?.logseq?.nodes?.baseColor || settings?.visualisation?.nodes?.baseColor || '#00ffff'}
+            color={visualSettings.nodeBaseColor || '#00ffff'}
             transparent
             opacity={0.3}
             vertexColors

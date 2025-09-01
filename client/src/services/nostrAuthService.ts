@@ -177,7 +177,6 @@ class NostrAuthService {
 
       // 2. Construct NIP-42 Authentication Event (Kind 22242)
       const challenge = uuidv4(); // Use uuidv4 to generate the challenge
-      // TODO: Make relayUrl configurable or obtained from the provider if possible
       const relayUrl = 'wss://relay.damus.io';
 
       // Prepare the unsigned event structure expected by NIP-07 signEvent
@@ -269,8 +268,6 @@ class NostrAuthService {
     if (wasAuthenticated) {
         this.notifyListeners({ authenticated: false }); // Notify UI immediately only if state changed
     }
-
-
     if (token && user) {
       try {
         logger.info(`Calling server logout for pubkey: ${user.pubkey}`);

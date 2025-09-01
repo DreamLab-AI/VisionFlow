@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { createLogger } from '@/utils/logger';
 import { HologramMaterial } from './materials/HologramMaterial';
 import { 
@@ -233,7 +233,7 @@ export const HologramManager: React.FC<{
   isXRMode = false,
   useDiffuseEffects = true
 }) => {
-  const settings = useSettingsStore(state => state.settings?.visualisation?.hologram);
+  const settings = useSelectiveSetting<any>('visualisation.hologram');
   const groupRef = useRef<THREE.Group>(null);
 
   // Parse sphere sizes from settings

@@ -8,6 +8,7 @@ import { graphDataManager } from '../managers/graphDataManager';
 import GraphManager from './GraphManager';
 import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 import { createLogger } from '../../../utils/logger';
 import { debugState } from '../../../utils/clientDebugState';
 import { BotsVisualization } from '../../bots/components';
@@ -21,7 +22,7 @@ const logger = createLogger('GraphViewport');
 
 const AtmosphericGlowWrapper = () => {
   const { camera, size } = useThree();
-  const glowSettings = useSettingsStore(state => state.settings?.visualisation?.glow);
+  const glowSettings = useSelectiveSetting<any>('visualisation.glow');
   
   // Use default values if glow settings are not available
   const defaultGlow = {
@@ -61,30 +62,30 @@ const GraphViewport: React.FC = () => {
   const [dirRef, setDirRef] = useState<THREE.DirectionalLight | null>(null);
   const [pointRef, setPointRef] = useState<THREE.PointLight | null>(null);
 
-  // Settings for camera and visuals
-  const settings = useSettingsStore(state => state.settings);
+  // Settings for camera and visuals  
+  const cameraSettings = useSelectiveSetting<any>('visualisation.camera');
+  const renderingSettings = useSelectiveSetting<any>('visualisation.rendering');
+  const glowSettings = useSelectiveSetting<any>('visualisation.glow');
+  const debugSettings = useSelectiveSetting<any>('system.debug');
+  const nodeSettings = useSelectiveSetting<any>('visualisation.graphs.logseq.nodes') || useSelectiveSetting<any>('visualisation.nodes');
   const initialized = useSettingsStore(state => state.initialized);
   const [viewportRefresh, setViewportRefresh] = useState(0);
 
-  // Subscribe to viewport updates for real-time changes
+  // Subscribe to viewport updates using native browser events
+  // This listens to the custom event dispatched by the native Zustand subscription
   useEffect(() => {
-    const unsubscribe = useSettingsStore.getState().subscribe(
-      'viewport.update',
-      () => {
-        logger.debug('Viewport update triggered');
-        setViewportRefresh(prev => prev + 1); // Force re-render
-      },
-      false
-    );
+    const handleViewportUpdate = (event: CustomEvent) => {
+      logger.debug('Viewport update triggered by native Zustand subscription', event.detail);
+      setViewportRefresh(prev => prev + 1); // Force re-render
+    };
 
-    return unsubscribe;
+    window.addEventListener('viewport-update', handleViewportUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('viewport-update', handleViewportUpdate as EventListener);
+    };
   }, []);
 
-  const cameraSettings = settings?.visualisation?.camera;
-  const renderingSettings = settings?.visualisation?.rendering;
-  const glowSettings = settings?.visualisation?.glow;
-  const debugSettings = settings?.system?.debug;
-  const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
   const hologramEnabled = nodeSettings?.enableHologram || false;
 
   const fov = cameraSettings?.fov ?? 75;
@@ -99,8 +100,6 @@ const GraphViewport: React.FC = () => {
   ), [cameraSettings?.position]);
 
   const enableGlow = glowSettings?.enabled ?? true;
-
-
   useEffect(() => {
     const initializeGraph = async () => {
       setIsLoading(true);

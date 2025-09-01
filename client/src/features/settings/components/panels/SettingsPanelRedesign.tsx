@@ -1,5 +1,5 @@
 // Unified Settings Panel - The single control center for all settings
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../design-system/components/Tabs';
 import { Input } from '../../../design-system/components/Input';
 import { Button } from '../../../design-system/components/Button';
@@ -21,11 +21,90 @@ import {
   Undo2 as Undo,
   Redo2 as Redo
 } from 'lucide-react';
-import { useSettingsStore, settingsSelectors } from '../../../../store/settingsStore';
+import { useSettingsStore } from '../../../../store/settingsStore';
+import { useSelectiveSetting, useSettingSetter } from '../../../../hooks/useSelectiveSettingsStore';
+import { useSettingsHistory } from '../../hooks/useSettingsHistory';
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
 import { SettingControlComponent } from '../SettingControlComponent';
 import { toast } from '../../../../utils/toast';
 import { logger } from '../../../../utils/logger';
+
+// Skeleton component for loading state
+const SettingsTabSkeleton: React.FC = () => (
+  <div className="space-y-4 animate-pulse">
+    <div className="h-4 bg-muted rounded w-3/4"></div>
+    <div className="space-y-2">
+      <div className="h-3 bg-muted rounded w-1/2"></div>
+      <div className="h-8 bg-muted rounded"></div>
+      <div className="h-8 bg-muted rounded"></div>
+      <div className="h-8 bg-muted rounded"></div>
+    </div>
+  </div>
+);
+
+// Lazy-loaded settings tab component
+interface LazySettingsTabProps {
+  tabId: string;
+  category: string;
+  filteredUIDefinition: any;
+  updateSettings: (updater: (draft: any) => void) => void;
+}
+
+const LazySettingsTab: React.FC<LazySettingsTabProps> = ({
+  tabId,
+  category,
+  filteredUIDefinition,
+  updateSettings
+}) => {
+  const { loadSection } = useSettingsStore();
+  
+  useEffect(() => {
+    // Load the settings section when the tab becomes active
+    loadSection(category).catch(error => {
+      logger.error(`Failed to load settings section ${category}:`, error);
+    });
+  }, [category, loadSection]);
+
+  const categoryDef = filteredUIDefinition[category];
+  if (!categoryDef) return null;
+
+  return (
+    <>
+      {/* Tab description */}
+      {categoryDef.description && (
+        <div className="text-sm text-muted-foreground mb-4">
+          {categoryDef.description}
+        </div>
+      )}
+      
+      {/* Settings sections */}
+      {Object.entries(categoryDef.subsections || {}).map(([sectionKey, section]: [string, any]) => (
+        <div key={sectionKey} className="space-y-2">
+          <h3 className="text-sm font-semibold">{section.label}</h3>
+          {section.description && (
+            <p className="text-xs text-muted-foreground">{section.description}</p>
+          )}
+          <div className="space-y-2">
+            {Object.values(section.settings || {}).map((setting: any) => (
+              <SettingControlComponent
+                key={setting.path}
+                path={setting.path}
+                settingDef={setting}
+                value={useSettingsStore.getState().get(setting.path)}
+                onChange={(value) => {
+                  // Use path-based setter directly
+                  updateSettings((draft) => {
+                    setSettingValue(draft, setting.path, value);
+                  });
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
 
 interface SettingsPanelRedesignProps {
   isOpen?: boolean;
@@ -38,34 +117,92 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('visualization');
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   
-  // Settings store
+  // Settings store - using selective access for performance
+  const loading = useSelectiveSetting<boolean>('system.debug.enabled') === undefined; // Derive loading from essential settings
+  const saving = useSettingsStore(state => state.saving);
+  const hasUnsavedChanges = useSettingsStore(state => state.hasUnsavedChanges);
+  const { batchedSet } = useSettingSetter();
+  const saveSettings = useSettingsStore(state => state.saveSettings);
+  const resetSettingsStore = useSettingsStore(state => state.resetSettings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+  
+  // Only get settings when needed for filtering - avoid full object subscription
+  const getSettingsForFiltering = useSettingsStore(state => state.partialSettings);
+
+  // Undo/redo support using useSettingsHistory hook
   const { 
-    settings, 
-    saving, 
-    loading, 
-    updateSettings,
-    saveSettings,
-    resetSettings,
-    exportToFile,
-    loadFromFile,
-    hasUnsavedChanges: checkUnsavedChanges
-  } = useSettingsStore();
+    canUndo, 
+    canRedo, 
+    undo, 
+    redo 
+  } = useSettingsHistory();
+
+  // File operations (placeholder implementations for now)
+  const exportToFile = () => toast.info('Export not yet implemented')
+  const loadFromFile = () => toast.info('Import not yet implemented')
   
-  // Undo/redo support (disabled - not implemented yet)
-  const canUndo = false;
-  const canRedo = false;
-  const undo = () => toast.info('Undo not yet implemented');
-  const redo = () => toast.info('Redo not yet implemented');
+  // Reset with confirmation
+  const resetSettings = useCallback(async () => {
+    if (showResetConfirmation) {
+      try {
+        await resetSettingsStore()
+        setShowResetConfirmation(false)
+      } catch (error) {
+        logger.error('Failed to reset settings:', error)
+      }
+    } else {
+      setShowResetConfirmation(true)
+      setTimeout(() => setShowResetConfirmation(false), 5000)
+    }
+  }, [showResetConfirmation, resetSettingsStore])
   
-  // Check for unsaved changes
+  // Keyboard shortcuts
   useEffect(() => {
-    const interval = setInterval(() => {
-      setHasUnsavedChanges(checkUnsavedChanges());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [checkUnsavedChanges]);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts if no input is focused
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key.toLowerCase()) {
+          case 's':
+            event.preventDefault();
+            if (hasUnsavedChanges && !saving) {
+              saveSettings();
+            }
+            break;
+          case 'z':
+            if (event.shiftKey) {
+              // Ctrl+Shift+Z = Redo (alternative to Ctrl+Y)
+              event.preventDefault();
+              if (canRedo) {
+                redo();
+              }
+            } else {
+              // Ctrl+Z = Undo
+              event.preventDefault();
+              if (canUndo) {
+                undo();
+              }
+            }
+            break;
+          case 'y':
+            // Ctrl+Y = Redo
+            event.preventDefault();
+            if (canRedo) {
+              redo();
+            }
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [hasUnsavedChanges, saving, saveSettings, canUndo, canRedo, undo, redo]);
   
   // Filter settings based on search
   const filteredUIDefinition = useMemo(() => {
@@ -137,7 +274,16 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           <Settings className="w-5 h-5" />
           <h2 className="text-lg font-semibold">Control Center</h2>
           {hasUnsavedChanges && (
-            <span className="text-xs text-orange-500 ml-2">(Unsaved changes)</span>
+            <div className="flex items-center gap-1 ml-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-orange-500">Auto-saving...</span>
+            </div>
+          )}
+          {showResetConfirmation && (
+            <div className="flex items-center gap-1 ml-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-red-500">Click reset again to confirm</span>
+            </div>
           )}
         </div>
         
@@ -161,7 +307,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               size="icon"
               onClick={undo}
               disabled={!canUndo}
-              title="Undo"
+              title="Undo (Ctrl+Z)"
             >
               <Undo className="w-4 h-4" />
             </Button>
@@ -170,7 +316,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               size="icon"
               onClick={redo}
               disabled={!canRedo}
-              title="Redo"
+              title="Redo (Ctrl+Y)"
             >
               <Redo className="w-4 h-4" />
             </Button>
@@ -210,7 +356,8 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               size="icon"
               onClick={saveSettings}
               disabled={saving || !hasUnsavedChanges}
-              title="Save settings"
+              title="Force save pending changes (Ctrl+S)"
+              className={hasUnsavedChanges ? "text-orange-500 hover:text-orange-600" : ""}
             >
               <Save className="w-4 h-4" />
             </Button>
@@ -218,7 +365,8 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               variant="ghost"
               size="icon"
               onClick={resetSettings}
-              title="Reset to defaults"
+              title={showResetConfirmation ? "Click again to confirm reset" : "Reset to defaults"}
+              className={showResetConfirmation ? "text-red-500 hover:text-red-600 animate-pulse" : ""}
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
@@ -245,46 +393,18 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           </TabsList>
           
           <ScrollArea className="flex-1 h-[calc(100%-3rem)]">
-            {tabs.map(tab => {
-              const categoryDef = filteredUIDefinition[tab.category];
-              if (!categoryDef) return null;
-              
-              return (
-                <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-4">
-                  {/* Tab description */}
-                  {categoryDef.description && (
-                    <div className="text-sm text-muted-foreground mb-4">
-                      {categoryDef.description}
-                    </div>
-                  )}
-                  
-                  {/* Settings sections */}
-                  {Object.entries(categoryDef.subsections || {}).map(([sectionKey, section]) => (
-                    <div key={sectionKey} className="space-y-2">
-                      <h3 className="text-sm font-semibold">{section.label}</h3>
-                      {section.description && (
-                        <p className="text-xs text-muted-foreground">{section.description}</p>
-                      )}
-                      <div className="space-y-2">
-                        {Object.values(section.settings || {}).map(setting => (
-                          <SettingControlComponent
-                            key={setting.path}
-                            path={setting.path}
-                            settingDef={setting}
-                            value={getSettingValue(settings, setting.path)}
-                            onChange={(value) => {
-                              updateSettings((draft) => {
-                                setSettingValue(draft, setting.path, value);
-                              });
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-              );
-            })}
+            {tabs.map(tab => (
+              <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-4">
+                <Suspense fallback={<SettingsTabSkeleton />}>
+                  <LazySettingsTab 
+                    tabId={tab.id}
+                    category={tab.category}
+                    filteredUIDefinition={filteredUIDefinition}
+                    updateSettings={updateSettings}
+                  />
+                </Suspense>
+              </TabsContent>
+            ))}
           </ScrollArea>
         </Tabs>
       </div>

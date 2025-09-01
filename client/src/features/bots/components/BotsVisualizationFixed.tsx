@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/logger';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
 
@@ -661,7 +661,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
 // Note: This is a pure rendering component that receives positions from server physics simulation
 // via binary protocol. No client-side physics computation is performed.
 export const BotsVisualization: React.FC = () => {
-  const settings = useSettingsStore(state => state.settings);
+  const showBotsVisualization = useSelectiveSetting<boolean>('visualisation.bots.showBotsVisualization');
   const { botsData: contextBotsData } = useBotsData();
 
   // Component state

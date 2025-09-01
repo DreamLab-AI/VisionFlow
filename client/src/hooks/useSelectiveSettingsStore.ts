@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
-import { SettingsPath } from '@/features/settings/config/settings';
+import { SettingsPath } from '@/types/generated/settings';
 import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('useSelectiveSettingsStore');
@@ -10,28 +10,8 @@ const logger = createLogger('useSelectiveSettingsStore');
  * This hook optimizes re-renders by only subscribing to specific paths
  */
 export function useSelectiveSetting<T>(path: SettingsPath): T {
-  const value = useSettingsStore(state => state.get<T>(path));
-  const unsubscribeRef = useRef<(() => void) | null>(null);
-  
-  useEffect(() => {
-    // Subscribe only to the specific path
-    unsubscribeRef.current = useSettingsStore.getState().subscribe(
-      path,
-      () => {
-        // Force re-render when this specific setting changes
-        // This is handled by zustand's subscribe mechanism
-      },
-      true
-    );
-    
-    return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-      }
-    };
-  }, [path]);
-  
-  return value;
+  // Use zustand's built-in selector for reactive subscriptions
+  return useSettingsStore(state => state.get<T>(path));
 }
 
 /**
@@ -41,39 +21,19 @@ export function useSelectiveSetting<T>(path: SettingsPath): T {
 export function useSelectiveSettings<T extends Record<string, any>>(
   paths: Record<keyof T, SettingsPath>
 ): T {
-  const values = {} as T;
-  
-  // Get initial values
-  for (const key in paths) {
-    values[key] = useSettingsStore.getState().get(paths[key]);
-  }
-  
-  // Subscribe to changes
-  useEffect(() => {
-    const unsubscribes: (() => void)[] = [];
-    
-    for (const key in paths) {
-      const unsubscribe = useSettingsStore.getState().subscribe(
-        paths[key],
-        () => {
-          // Force re-render when any subscribed setting changes
-        },
-        true
-      );
-      unsubscribes.push(unsubscribe);
-    }
-    
-    return () => {
-      unsubscribes.forEach(unsub => unsub());
-    };
-  }, [paths]);
-  
-  // Return current values
-  for (const key in paths) {
-    values[key] = useSettingsStore(state => state.get(paths[key]));
-  }
-  
-  return values;
+  // Create a selector that returns all requested values
+  return useSettingsStore(
+    useCallback(
+      (state) => {
+        const result = {} as T;
+        for (const key in paths) {
+          result[key] = state.get(paths[key]);
+        }
+        return result;
+      },
+      [paths]
+    )
+  );
 }
 
 /**
@@ -81,32 +41,22 @@ export function useSelectiveSettings<T extends Record<string, any>>(
  * Returns a setter function that batches updates
  */
 export function useSettingSetter() {
-  const set = useSettingsStore(state => state.set); // Deprecated - kept for backward compatibility
-  const updateSettings = useSettingsStore(state => state.updateSettings);
+  const set = useSettingsStore(state => state.set);
+  const batchSet = useSettingsStore(state => state.batchSet);
   
-  const batchedSet = useCallback((updates: Record<SettingsPath, any>) => {
-    updateSettings((draft) => {
-      for (const [path, value] of Object.entries(updates)) {
-        const pathParts = path.split('.');
-        let current = draft as any;
-        
-        for (let i = 0; i < pathParts.length - 1; i++) {
-          const part = pathParts[i];
-          if (!current[part]) {
-            current[part] = {};
-          }
-          current = current[part];
-        }
-        
-        current[pathParts[pathParts.length - 1]] = value;
-      }
-    });
-  }, [updateSettings]);
+  const batchedSet = useCallback(async (updates: Record<SettingsPath, any>) => {
+    const pathValuePairs = Object.entries(updates).map(([path, value]) => ({
+      path: path as SettingsPath,
+      value
+    }));
+    
+    await batchSet(pathValuePairs);
+  }, [batchSet]);
   
   return {
-    set, // Deprecated - use updateSettings or batchedSet instead
+    set,
     batchedSet,
-    updateSettings // Expose updateSettings directly for single updates
+    batchSet // Expose batchSet directly for single updates
   };
 }
 
@@ -126,24 +76,13 @@ export function useSettingsSubscription(
     callbackRef.current = callback;
   }, [callback]);
   
+  // Get the current value and subscribe to changes
+  const value = useSelectiveSetting(path);
+  
+  // Effect for calling callback when value changes
   useEffect(() => {
-    const handleChange = () => {
-      const value = useSettingsStore.getState().get(path);
-      callbackRef.current(value);
-    };
-    
-    // Call immediately with current value
-    handleChange();
-    
-    // Subscribe to changes
-    const unsubscribe = useSettingsStore.getState().subscribe(
-      path,
-      handleChange,
-      false
-    );
-    
-    return unsubscribe;
-  }, [path, ...dependencies]);
+    callbackRef.current(value);
+  }, [value, ...dependencies]);
 }
 
 /**
@@ -151,8 +90,8 @@ export function useSettingsSubscription(
  * This allows for derived state from settings
  */
 export function useSettingsSelector<T>(
-  selector: (settings: any) => T,
+  selector: (partialSettings: any) => T,
   equalityFn?: (prev: T, next: T) => boolean
 ): T {
-  return useSettingsStore(state => selector(state.settings), equalityFn);
+  return useSettingsStore(state => selector(state.partialSettings), equalityFn);
 }

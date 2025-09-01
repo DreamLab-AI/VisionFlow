@@ -15,7 +15,8 @@ use serde::{Deserialize, Serialize};
 use log::{info, warn};
 
 use crate::AppState;
-use crate::actors::messages::{GetSettings, UpdateSettings};
+use crate::actors::messages::{GetSettingsByPaths, SetSettingsByPaths};
+// Note: Using granular settings operations through SettingsActor's path-based methods
 
 /// Quest 3 optimized settings profile
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -687,43 +688,57 @@ async fn apply_quest3_settings_to_system(
     app_state: web::Data<AppState>,
     quest3_settings: &Quest3Settings,
 ) -> Result<(), String> {
-    // Get current settings
-    let mut settings = app_state
+    // Get current Quest 3 specific settings
+    let quest3_paths = vec![
+        "xr.enabled".to_string(),
+        "xr.foveated_rendering.enabled".to_string(),
+        "gpu.texture_streaming_enabled".to_string(),
+        "performance.target_fps".to_string()
+    ];
+    let settings_map = app_state
         .settings_addr
-        .send(GetSettings)
+        .send(GetSettingsByPaths { paths: quest3_paths })
         .await
         .map_err(|e| format!("Failed to get settings: {}", e))?
         .map_err(|e| format!("Settings error: {}", e))?;
 
-    // Map Quest 3 settings to system settings
-    settings.xr.enabled = Some(quest3_settings.xr.enabled);
+    // Create settings updates using granular path operations
+    use serde_json::Value;
+    let mut settings_updates = Vec::new();
+
+    // Map Quest 3 settings to system settings using path-based updates
+    settings_updates.push(("xr.enabled".to_string(), Value::Bool(quest3_settings.xr.enabled)));
+    settings_updates.push(("xr.mode".to_string(), Value::String(quest3_settings.xr.display_mode.clone())));
     
-    // Map XR settings - using string fields directly since XRSettings uses Option<String>
-    settings.xr.mode = Some(quest3_settings.xr.display_mode.clone());
-    settings.xr.space_type = quest3_settings.xr.space_type.clone();
+    settings_updates.push(("xr.space_type".to_string(), Value::String(quest3_settings.xr.space_type.clone())));
+    settings_updates.push(("xr.enable_hand_tracking".to_string(), Value::Bool(quest3_settings.xr.enable_hand_tracking)));
+    settings_updates.push(("xr.enable_passthrough_portal".to_string(), Value::Bool(quest3_settings.xr.enable_passthrough_portal)));
+    settings_updates.push(("xr.passthrough_opacity".to_string(), Value::Number(serde_json::Number::from_f64(quest3_settings.xr.passthrough_opacity as f64).unwrap())));
+    settings_updates.push(("xr.passthrough_brightness".to_string(), Value::Number(serde_json::Number::from_f64(quest3_settings.xr.passthrough_brightness as f64).unwrap())));
+    settings_updates.push(("xr.passthrough_contrast".to_string(), Value::Number(serde_json::Number::from_f64(quest3_settings.xr.passthrough_contrast as f64).unwrap())));
+    settings_updates.push(("xr.movement_speed".to_string(), Value::Number(serde_json::Number::from_f64(quest3_settings.xr.movement_speed as f64).unwrap())));
+    settings_updates.push(("xr.locomotion_method".to_string(), Value::String(quest3_settings.xr.locomotion_method.clone())));
+    settings_updates.push(("xr.interaction_radius".to_string(), Value::Number(serde_json::Number::from_f64(quest3_settings.xr.interaction_distance as f64).unwrap())));
 
-    settings.xr.enable_hand_tracking = quest3_settings.xr.enable_hand_tracking;
-    settings.xr.enable_passthrough_portal = quest3_settings.xr.enable_passthrough_portal;
-    settings.xr.passthrough_opacity = quest3_settings.xr.passthrough_opacity;
-    settings.xr.passthrough_brightness = quest3_settings.xr.passthrough_brightness;
-    settings.xr.passthrough_contrast = quest3_settings.xr.passthrough_contrast;
-    settings.xr.movement_speed = quest3_settings.xr.movement_speed;
-    settings.xr.locomotion_method = quest3_settings.xr.locomotion_method.clone();
-    settings.xr.interaction_radius = quest3_settings.xr.interaction_distance;
-
-    // Map visualization settings to both graphs
-    settings.visualisation.graphs.logseq.physics.bounds_size = quest3_settings.visualisation.bounds_size;
-    settings.visualisation.graphs.logseq.physics.max_velocity = quest3_settings.visualisation.max_velocity;
-    settings.visualisation.graphs.logseq.physics.enabled = quest3_settings.visualisation.physics_enabled;
+    // Add visualization settings for both graphs
+    settings_updates.push(("visualisation.graphs.logseq.physics.bounds_size".to_string(), 
+                          Value::Number(serde_json::Number::from_f64(quest3_settings.visualisation.bounds_size as f64).unwrap())));
+    settings_updates.push(("visualisation.graphs.logseq.physics.max_velocity".to_string(), 
+                          Value::Number(serde_json::Number::from_f64(quest3_settings.visualisation.max_velocity as f64).unwrap())));
+    settings_updates.push(("visualisation.graphs.logseq.physics.enabled".to_string(), 
+                          Value::Bool(quest3_settings.visualisation.physics_enabled)));
     
-    settings.visualisation.graphs.visionflow.physics.bounds_size = quest3_settings.visualisation.bounds_size;
-    settings.visualisation.graphs.visionflow.physics.max_velocity = quest3_settings.visualisation.max_velocity;
-    settings.visualisation.graphs.visionflow.physics.enabled = quest3_settings.visualisation.physics_enabled;
+    settings_updates.push(("visualisation.graphs.visionflow.physics.bounds_size".to_string(), 
+                          Value::Number(serde_json::Number::from_f64(quest3_settings.visualisation.bounds_size as f64).unwrap())));
+    settings_updates.push(("visualisation.graphs.visionflow.physics.max_velocity".to_string(), 
+                          Value::Number(serde_json::Number::from_f64(quest3_settings.visualisation.max_velocity as f64).unwrap())));
+    settings_updates.push(("visualisation.graphs.visionflow.physics.enabled".to_string(), 
+                          Value::Bool(quest3_settings.visualisation.physics_enabled)));
 
-    // Apply updated settings
+    // Apply updated settings using granular path operations
     app_state
         .settings_addr
-        .send(UpdateSettings { settings })
+        .send(SetSettingsByPaths { updates: settings_updates })
         .await
         .map_err(|e| format!("Failed to update settings: {}", e))?
         .map_err(|e| format!("Settings update error: {}", e))?;

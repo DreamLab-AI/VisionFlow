@@ -3,7 +3,7 @@ import GraphCanvas from '../features/graph/components/GraphCanvas';
 import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
 import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSelectiveSetting } from '../hooks/useSelectiveSettingsStore';
 import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';
 import { AuthGatedVoiceButton } from '../components/AuthGatedVoiceButton';
 import { AuthGatedVoiceIndicator } from '../components/AuthGatedVoiceIndicator';
@@ -17,10 +17,9 @@ const logger = createLogger('MainLayout');
 
 const MainLayoutContent: React.FC = () => {
   // Both visualizations now positioned at origin (0, 0, 0) for unified view
-  const { settings } = useSettingsStore();
   const { botsData } = useBotsData();
-  const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-  const enableBloom = settings?.visualisation?.glow?.enabled ?? false;
+  const showStats = useSelectiveSetting<boolean>('system.debug.enablePerformanceDebug');
+  const enableBloom = useSelectiveSetting<boolean>('visualisation.glow.enabled');
   const [hasVoiceSupport, setHasVoiceSupport] = useState(true);
   
   // Graph data state for integrated features
@@ -137,15 +136,15 @@ const MainLayoutContent: React.FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 const MainLayout: React.FC = () => {
   return (
     <BotsDataProvider>
       <MainLayoutContent />
     </BotsDataProvider>
-  );
-};
+  )
+}
 
-export default MainLayout;
+export default MainLayout

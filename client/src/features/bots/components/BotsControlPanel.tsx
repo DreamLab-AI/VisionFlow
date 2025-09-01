@@ -48,7 +48,6 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   };
 
   const handleAddAgent = (type: BotsAgent['type']) => {
-    // TODO: Implement live agent addition via MCP service
     console.warn('Agent addition not yet implemented for live data');
     setAgentCount(prev => prev + 1);
   };

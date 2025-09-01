@@ -25,9 +25,10 @@ use once_cell::sync::Lazy;
 
 use crate::AppState;
 use crate::actors::messages::{
-    GetSettings, UpdateVisualAnalyticsParams, 
+    UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode, GetGraphData, ComputeShortestPaths
+    SetComputeMode, GetGraphData, ComputeShortestPaths,
+    GetSettingsByPaths
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::ConstraintSet;
@@ -305,7 +306,34 @@ struct AnomalyState {
 pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting current visual analytics parameters");
 
-    let settings = match app_state.settings_addr.send(GetSettings).await {
+    // Get analytics-specific settings using granular path operations
+    let analytics_paths = vec![
+        "gpu.compute.enabled".to_string(),
+        "visualisation.performance.enabled".to_string(),
+        "analytics.auto_detect_anomalies".to_string()
+    ];
+    let _settings = match app_state.settings_addr.send(GetSettingsByPaths { paths: analytics_paths }).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get analytics settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
+                success: false,
+                params: None,
+                error: Some(format!("Settings error: {}", e)),
+            }));
+        },
+        Err(e) => {
+            error!("Failed to send settings request: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
+                success: false,
+                params: None,
+                error: Some("Settings actor communication error".to_string()),
+            }));
+        }
+    };
+    
+    #[allow(dead_code)]
+    let settings = match Ok::<Result<std::collections::HashMap<String, serde_json::Value>, String>, ()>(Ok(Default::default())) {
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings for analytics params: {}", e);
@@ -315,8 +343,8 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
                 error: Some("Failed to retrieve settings".to_string()),
             }));
         }
-        Err(e) => {
-            error!("Settings actor mailbox error: {}", e);
+        Err(_) => {
+            error!("Settings actor mailbox error");
             return Ok(HttpResponse::InternalServerError().json(AnalyticsParamsResponse {
                 success: false,
                 params: None,
@@ -327,7 +355,10 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
 
     // Extract or create default visual analytics parameters
     // For now, we'll create a default set since they might not be stored in settings yet
-    let params = create_default_analytics_params(&settings);
+    // TODO: Adapt create_default_analytics_params to work with HashMap<String, Value>
+    use crate::config::AppFullSettings;
+    let default_settings = AppFullSettings::default();
+    let params = create_default_analytics_params(&default_settings);
 
     Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
         success: true,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 import { createLogger } from '../../../utils/logger';
 import { Switch } from '../../design-system/components/Switch';
 import { Slider } from '../../design-system/components/Slider';
@@ -15,14 +16,17 @@ const logger = createLogger('VisualEffectsPanel');
 
 export const VisualEffectsPanel: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const settings = useSettingsStore(state => state.settings);
+  // Get specific settings using selective hooks
+  const hologramEnabled = useSelectiveSetting<boolean>('visualisation.nodes.enableHologram');
+  const flowEffectEnabled = useSelectiveSetting<boolean>('visualisation.edges.enableFlowEffect');
+  const bloomEnabled = useSelectiveSetting<boolean>('visualisation.bloom.enabled');
+  const pulseEnabled = useSelectiveSetting<boolean>('visualisation.animation.pulseEnabled');
+  
+  // Still need updateSettings for mutations
   const updateSettings = useSettingsStore(state => state.updateSettings);
   
-  // Check if any effect is enabled
-  const anyEffectEnabled = settings?.visualisation?.nodes?.enableHologram || 
-                          settings?.visualisation?.edges?.enableFlowEffect ||
-                          settings?.visualisation?.bloom?.enabled ||
-                          settings?.visualisation?.animation?.pulseEnabled;
+  // Check if any effect is enabled using selective values
+  const anyEffectEnabled = hologramEnabled || flowEffectEnabled || bloomEnabled || pulseEnabled;
   
   const handleMasterToggle = () => {
     const newState = !anyEffectEnabled;
@@ -125,14 +129,13 @@ export const VisualEffectsPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-300">Enable Hologram</span>
               <Switch
-                checked={settings?.visualisation?.nodes?.enableHologram || false}
-                onCheckedChange={() => handleToggleEffect('visualisation.nodes.enableHologram', 
-                  settings?.visualisation?.nodes?.enableHologram || false)}
+                checked={hologramEnabled || false}
+                onCheckedChange={() => handleToggleEffect('visualisation.nodes.enableHologram', hologramEnabled || false)}
                 className="scale-90 data-[state=checked]:bg-cyan-500"
               />
             </div>
             
-            {settings?.visualisation?.nodes?.enableHologram && (
+            {hologramEnabled && (
               <div className="space-y-2 pl-4 border-l border-gray-700">
                 <div>
                   <label className="text-xs text-gray-400">Glow Strength</label>
@@ -170,14 +173,13 @@ export const VisualEffectsPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-300">Enable Flow</span>
               <Switch
-                checked={settings?.visualisation?.edges?.enableFlowEffect || false}
-                onCheckedChange={() => handleToggleEffect('visualisation.edges.enableFlowEffect',
-                  settings?.visualisation?.edges?.enableFlowEffect || false)}
+                checked={flowEffectEnabled || false}
+                onCheckedChange={() => handleToggleEffect('visualisation.edges.enableFlowEffect', flowEffectEnabled || false)}
                 className="scale-90 data-[state=checked]:bg-blue-500"
               />
             </div>
             
-            {settings?.visualisation?.edges?.enableFlowEffect && (
+            {flowEffectEnabled && (
               <div className="space-y-2 pl-4 border-l border-gray-700">
                 <div>
                   <label className="text-xs text-gray-400">Flow Speed</label>
@@ -224,14 +226,13 @@ export const VisualEffectsPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-300">Enable Bloom</span>
               <Switch
-                checked={settings?.visualisation?.bloom?.enabled || false}
-                onCheckedChange={() => handleToggleEffect('visualisation.bloom.enabled',
-                  settings?.visualisation?.bloom?.enabled || false)}
+                checked={bloomEnabled || false}
+                onCheckedChange={() => handleToggleEffect('visualisation.bloom.enabled', bloomEnabled || false)}
                 className="scale-90 data-[state=checked]:bg-purple-500"
               />
             </div>
             
-            {settings?.visualisation?.bloom?.enabled && (
+            {bloomEnabled && (
               <div className="space-y-2 pl-4 border-l border-gray-700">
                 <div>
                   <label className="text-xs text-gray-400">Bloom Strength</label>

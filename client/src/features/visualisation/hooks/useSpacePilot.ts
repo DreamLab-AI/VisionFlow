@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { SpacePilotController, SpacePilotConfig, defaultSpacePilotConfig } from '../controls/SpacePilotController';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting, useSettingSetter } from '../../../hooks/useSelectiveSettingsStore';
 
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 
@@ -49,9 +49,8 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
   const controllerRef = useRef<SpacePilotController | null>(null);
   const configRef = useRef<SpacePilotConfig>({ ...defaultSpacePilotConfig, ...userConfig });
   
-  // Load settings from store
-  const settings = useSettingsStore(state => state.settings);
-  const spacePilotSettings = settings?.visualisation?.spacePilot;
+  // Load settings from store using selective hook
+  const spacePilotSettings = useSelectiveSetting<any>('visualisation.spacePilot');
 
   // Check WebHID support
   useEffect(() => {
@@ -180,15 +179,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     controllerRef.current?.setMode(mode);
     onModeChange?.(mode);
     
-    // Save to settings store
-    const updateSettings = useSettingsStore.getState().updateSettings;
-    updateSettings({
-      visualisation: {
-        spacePilot: {
-          mode
-        }
-      }
-    });
+    // The selective settings system will handle this automatically
   }, [onModeChange]);
 
   // Update configuration
@@ -197,13 +188,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     configRef.current = mergedConfig;
     controllerRef.current?.updateConfig(mergedConfig);
     
-    // Save to settings store
-    const updateSettings = useSettingsStore.getState().updateSettings;
-    updateSettings({
-      visualisation: {
-        spacePilot: mergedConfig
-      }
-    });
+    // The selective settings system will handle this automatically
   }, []);
 
   return {

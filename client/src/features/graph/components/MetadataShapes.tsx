@@ -166,8 +166,6 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
 
   return visuals;
 };
-
-
 // --- 2. Create Geometry and Material Resources ---
 const useGeometries = () => useMemo(() => ({
   sphere: new THREE.SphereGeometry(0.5, 32, 16),
@@ -189,8 +187,6 @@ const useHologramMaterial = (settings: any) => useMemo(() => {
   material.needsUpdate = true;
   return material;
 }, [settings]);
-
-
 // --- 3. The React Component ---
 interface MetadataShapesProps {
   nodes: GraphNode[];

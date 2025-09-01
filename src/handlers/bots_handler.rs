@@ -11,7 +11,7 @@ use crate::models::node::Node;
 use crate::types::vec3::Vec3Data;
 use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams};
-use crate::actors::messages::{GetSettings, GetBotsGraphData};
+use crate::actors::messages::{GetBotsGraphData, GetSettingsByPaths};
 use crate::services::bots_client::BotsClient;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -482,8 +482,13 @@ pub async fn update_bots_data(
 
         let bots_graph = BOTS_GRAPH.read().await;
 
-        // Get physics settings
-        let settings = match state.settings_addr.send(GetSettings).await {
+        // Get physics settings for bots simulation
+        let physics_paths = vec![
+            "bots.simulation.physics.enabled".to_string(),
+            "bots.simulation.max_velocity".to_string(),
+            "bots.simulation.bounds_size".to_string()
+        ];
+        let physics_settings_map = match state.settings_addr.send(GetSettingsByPaths { paths: physics_paths }).await {
             Ok(Ok(settings)) => settings,
             Ok(Err(e)) => {
                 error!("Failed to get settings: {}", e);
@@ -505,16 +510,27 @@ pub async fn update_bots_data(
             }
         };
 
-        // Use logseq graph physics settings as the base for bots
-        let physics_settings = &settings.visualisation.graphs.logseq.physics;
+        // Extract physics settings from the map with defaults
+        let physics_enabled = physics_settings_map.get("bots.simulation.physics.enabled")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
+        let max_velocity = physics_settings_map.get("bots.simulation.max_velocity")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(10.0) as f32;
+        let bounds_size = physics_settings_map.get("bots.simulation.bounds_size")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0) as f32;
 
-        // Create simulation parameters for bots
-        // Use the From trait to ensure all fields are set
-        let mut params = SimulationParams::from(physics_settings);
-        // Adjust for bots
-        params.iterations = physics_settings.iterations / 2; // Fewer iterations for bots
-        params.spring_k = physics_settings.spring_k * 1.5; // Stronger attraction
-        params.repel_k = physics_settings.repel_k * 0.8; // Less repulsion
+        // Create simulation parameters for bots using extracted values
+        let mut params = SimulationParams::default();
+        params.enabled = physics_enabled;
+        params.max_velocity = max_velocity;
+        params.viewport_bounds = bounds_size;
+        
+        // Adjust default values for bots
+        params.iterations = params.iterations / 2; // Fewer iterations for bots
+        params.spring_k = params.spring_k * 1.5; // Stronger attraction
+        params.repel_k = params.repel_k * 0.8; // Less repulsion
 
         // Initialize GPU for bots graph first with retry logic
         info!("Initializing GPU for bots graph processing");

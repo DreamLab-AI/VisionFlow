@@ -13,10 +13,12 @@ pub mod utils;
 #[cfg(test)]
 pub mod tests;
 
+#[cfg(test)]
+mod test_case_conversion;
+
 pub use app_state::AppState;
 pub use actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor};
 pub use models::metadata::MetadataStore;
 pub use models::protected_settings::ProtectedSettings;
 pub use models::simulation_params::SimulationParams;
-pub use models::ui_settings::UISettings;
 pub use models::user_settings::UserSettings;

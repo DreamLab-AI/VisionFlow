@@ -13,6 +13,7 @@ import { useControlPanelContext } from './control-panel-context';
 import { UISettingDefinition } from '../config/settingsUIDefinition'; // Import the definition type
 import { SettingControlComponent } from './SettingControlComponent'; // Import the control component
 import { useSettingsStore } from '@/store/settingsStore'; // Adjust path if necessary
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 
 // Define props locally
 interface SettingsSectionProps {
@@ -25,8 +26,8 @@ export function SettingsSection({ id, title, subsectionSettings }: SettingsSecti
   const [isOpen, setIsOpen] = useState(true);
   const [isDetached, setIsDetached] = useState(false);
   const { advancedMode } = useControlPanelContext();
-  const settingsStore = useSettingsStore.getState(); // Get store state once
   const updateSettings = useSettingsStore(state => state.updateSettings); // Get updateSettings function
+  const isPowerUser = useSettingsStore(state => state.isPowerUser); // Use reactive subscription
 
   // Removed advanced prop check at the top level
 
@@ -45,17 +46,14 @@ export function SettingsSection({ id, title, subsectionSettings }: SettingsSecti
         }
 
         // Visibility/Read-only check: Power User
-        const isPowerUser = useSettingsStore.getState().isPowerUser;
         if (settingDef.isPowerUserOnly && !isPowerUser) {
           // Decide whether to hide or show as read-only. Hiding for now.
-          // TODO: Implement read-only display if needed
           return null;
         }
 
-        // Retrieve value and define onChange handler
-        const value = settingsStore.get(settingDef.path);
+        // Retrieve value using selective subscription for reactivity
+        const value = useSelectiveSetting(settingDef.path);
         const handleChange = (newValue: any) => {
-          // Use updateSettings instead of deprecated set method
           updateSettings((draft) => {
             const pathParts = settingDef.path.split('.');
             let current: any = draft;

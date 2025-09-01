@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSettings, useSettingSetter } from '../../../hooks/useSelectiveSettingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
@@ -128,8 +128,16 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   const { updateBotsData } = useBotsData();
 
   // Settings store access
-  const settings = useSettingsStore(state => state.settings);
-  const updateSettings = useSettingsStore(state => state.updateSettings);
+  // Use selective hooks for better performance
+  const settings = useSelectiveSettings({
+    showStats: 'system.debug.enablePerformanceDebug' as const,
+    enableBloom: 'visualisation.glow.enabled' as const,
+    bloomStrength: 'visualisation.bloom.nodeBloomStrength' as const,
+    enableOrbitControls: 'visualisation.camera.enableOrbitControls' as const,
+    showGridHelper: 'visualisation.helpers.showGridHelper' as const,
+    showAxesHelper: 'visualisation.helpers.showAxesHelper' as const
+  });
+  const { set } = useSettingSetter();
 
   // Ref for scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -358,15 +366,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   };
 
   const updateSettingByPath = (path: string, value: any) => {
-    updateSettings((draft) => {
-      const keys = path.split('.');
-      let obj: any = draft;
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (!obj[keys[i]]) obj[keys[i]] = {};
-        obj = obj[keys[i]];
-      }
-      obj[keys[keys.length - 1]] = value;
-    });
+    set(path as any, value);
     
     // Sync debug settings with clientDebugState
     if (path.startsWith('system.debug.')) {
@@ -392,7 +392,6 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     // Settings are already committed via updateSettings
     // This could trigger additional actions like saving to localStorage
     // or sending telemetry
-    console.log('Settings committed for section:', activeSection);
   };
 
   const handleNostrLogin = async () => {

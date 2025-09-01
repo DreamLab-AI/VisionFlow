@@ -1,23 +1,24 @@
 import { useEffect, Component, ReactNode, useCallback } from 'react'
 import AppInitializer from './AppInitializer'
-import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
-import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
-import { useSettingsStore } from '../store/settingsStore';
-import { createLogger, createErrorMetadata } from '../utils/logger';
-import Quest3AR from './Quest3AR';
-import MainLayout from './MainLayout';
-import { useQuest3Integration } from '../hooks/useQuest3Integration';
-import { CommandPalette } from '../features/command-palette/components/CommandPalette';
-import { initializeCommandPalette } from '../features/command-palette/defaultCommands';
-import { HelpProvider } from '../features/help/components/HelpProvider';
-import { registerSettingsHelp } from '../features/help/settingsHelp';
-import { OnboardingProvider } from '../features/onboarding/components/OnboardingProvider';
-import { registerOnboardingCommands } from '../features/onboarding/flows/defaultFlows';
-import { TooltipProvider } from '../features/design-system/components/Tooltip';
-import { useBotsWebSocketIntegration } from '../features/bots/hooks/useBotsWebSocketIntegration';
-import { DebugControlPanel } from '../components/DebugControlPanel';
-import { ConnectionWarning } from '../components/ConnectionWarning';
-import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
+import { ApplicationModeProvider } from '../contexts/ApplicationModeContext'
+import XRCoreProvider from '../features/xr/providers/XRCoreProvider'
+import { useSelectiveSetting } from '../hooks/useSelectiveSettingsStore'
+import { useSettingsStore } from '../store/settingsStore'
+import { createLogger, createErrorMetadata } from '../utils/logger'
+import Quest3AR from './Quest3AR'
+import MainLayout from './MainLayout'
+import { useQuest3Integration } from '../hooks/useQuest3Integration'
+import { CommandPalette } from '../features/command-palette/components/CommandPalette'
+import { initializeCommandPalette } from '../features/command-palette/defaultCommands'
+import { HelpProvider } from '../features/help/components/HelpProvider'
+import { registerSettingsHelp } from '../features/help/settingsHelp'
+import { OnboardingProvider } from '../features/onboarding/components/OnboardingProvider'
+import { registerOnboardingCommands } from '../features/onboarding/flows/defaultFlows'
+import { TooltipProvider } from '../features/design-system/components/Tooltip'
+import { useBotsWebSocketIntegration } from '../features/bots/hooks/useBotsWebSocketIntegration'
+import { DebugControlPanel } from '../components/DebugControlPanel'
+import { ConnectionWarning } from '../components/ConnectionWarning'
+import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications'
 const logger = createLogger('App')
 
 // Error boundary component to catch rendering errors
@@ -64,7 +65,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, { hasError: boolean; e
 }
 
 function App() {
-  const initialized = useSettingsStore(state => state.initialized)
+  const initialized = useSettingsStore(state => state.initialized); // Store state, not settings
   const { shouldUseQuest3Layout, isQuest3Detected, autoStartSuccessful } = useQuest3Integration({
     enableAutoStart: false
   });
@@ -108,14 +109,15 @@ function App() {
     }
   }, [initialized])
 
+  // Get debug setting using selective hook
+  const debugEnabled = useSelectiveSetting<boolean>('system.debug.enabled');
+  
   const handleInitialized = useCallback(() => {
-    const settings = useSettingsStore.getState().settings;
-    const debugEnabled = settings?.system?.debug?.enabled === true;
     if (debugEnabled) {
-      logger.debug('Application initialized');
-      logger.debug('Bots WebSocket connection status:', botsConnectionStatus);
+      logger.debug('Application initialized')
+      logger.debug('Bots WebSocket connection status:', botsConnectionStatus)
     }
-  }, [botsConnectionStatus])
+  }, [botsConnectionStatus, debugEnabled])
 
   return (
     <TooltipProvider delayDuration={300} skipDelayDuration={100}>

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame, extend } from '@react-three/fiber';
 import { GeodesicPolyhedronGeometry } from '@/utils/three-geometries';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
 extend({ GeodesicPolyhedronGeometry });
 
@@ -312,7 +312,7 @@ export const EnhancedHologramSystem: React.FC<{
   position?: [number, number, number];
   scale?: number;
 }> = ({ position = [0, 0, 0], scale = 1 }) => {
-  const settings = useSettingsStore(state => state.settings?.visualisation?.hologram);
+  const settings = useSelectiveSetting<any>('visualisation.hologram');
   const groupRef = useRef<THREE.Group>(null);
   
   useEffect(() => {

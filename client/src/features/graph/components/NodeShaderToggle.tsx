@@ -1,6 +1,6 @@
 // Node shader toggle handler - switches between basic and hologram shaders
 import { useEffect } from 'react';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial';
 import * as THREE from 'three';
 
@@ -58,15 +58,11 @@ const createBasicNodeShader = () => {
 };
 
 export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef }) => {
-  const settings = useSettingsStore(state => state.settings);
-  
-  // Check if node animations are enabled (controls animation intensity)
-  const enableNodeAnimations = settings?.visualisation?.animations?.enableNodeAnimations || false;
-  // Get node settings from logseq graph or fallback to global
-  const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-  // Check if hologram effect is enabled (controls hologram shader features) - check both paths
+  // Get specific settings using selective hooks
+  const enableNodeAnimations = useSelectiveSetting<boolean>('visualisation.animations.enableNodeAnimations') || false;
+  const nodeSettings = useSelectiveSetting<any>('visualisation.graphs.logseq.nodes') || useSelectiveSetting<any>('visualisation.nodes');
   const enableHologram = nodeSettings?.enableHologram !== false;
-  const nodeBloom = settings?.visualisation?.bloom?.nodeBloomStrength ?? 1;
+  const nodeBloom = useSelectiveSetting<number>('visualisation.bloom.nodeBloomStrength') ?? 1;
   
   useEffect(() => {
     if (!materialRef.current) return;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting, useSettingSetter } from '@/hooks/useSelectiveSettingsStore';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
@@ -10,15 +11,21 @@ import { createLogger } from '@/utils/logger';
 const logger = createLogger('BackendUrlSetting');
 
 export function BackendUrlSetting() {
-  const { get: getSetting, set: setSetting } = useSettingsStore();
-  const [backendUrl, setBackendUrl] = useState<string>('');
+  // PHASE 4: Using selective subscription for better performance
+  // Only subscribes to changes in the customBackendUrl setting
+  const backendUrlSetting = useSelectiveSetting<string>('system.customBackendUrl', '');
+  const setSetting = useSettingSetter();
+  
+  const [backendUrl, setBackendUrl] = useState<string>(backendUrlSetting);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   
-  // Initialize from settings
+  // Update local state when setting changes
   useEffect(() => {
-    const storedUrl = getSetting('system.customBackendUrl') as string;
-    setBackendUrl(storedUrl || '');
-    
+    setBackendUrl(backendUrlSetting);
+  }, [backendUrlSetting]);
+  
+  // Initialize connection status
+  useEffect(() => {
     // Check connection status
     const websocketService = WebSocketService.getInstance();
     setIsConnected(websocketService.isReady());
@@ -31,7 +38,7 @@ export function BackendUrlSetting() {
     return () => {
       unsubscribe();
     };
-  }, [getSetting]);
+  }, []);
   
   const handleSave = () => {
     // Save to settings

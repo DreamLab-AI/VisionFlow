@@ -1,6 +1,6 @@
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
-use crate::actors::messages::{GetSettings, UpdateSettings};
+use crate::actors::messages::{GetSettingsByPaths, SetSettingsByPaths};
 use log::{info, error, debug};
 use serde_json::{json, Value};
 use crate::config::ClusteringConfiguration;
@@ -60,7 +60,13 @@ async fn configure_clustering(
     });
     
     // Get and update settings
-    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+    // Get clustering-related settings using granular path operations
+    let clustering_paths = vec![
+        "clustering.enabled".to_string(),
+        "clustering.algorithm".to_string(),
+        "system.debug.enabled".to_string()
+    ];
+    let clustering_settings = match state.settings_addr.send(GetSettingsByPaths { paths: clustering_paths }).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
@@ -76,6 +82,10 @@ async fn configure_clustering(
         }
     };
     
+    // TODO: Replace this with granular SetSettingsByPaths approach
+    // For now, create a temporary settings object to maintain functionality
+    use crate::config::AppFullSettings;
+    let mut app_settings = AppFullSettings::default();
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge clustering configuration: {}", e);
         return Ok(HttpResponse::InternalServerError().json(json!({
@@ -83,8 +93,9 @@ async fn configure_clustering(
         })));
     }
     
-    // Save updated settings
-    match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+    // Save updated settings using granular path-based updates
+    let updates = vec![("clustering".to_string(), serde_json::to_value(&config)?)];
+    match state.settings_addr.send(SetSettingsByPaths { updates }).await {
         Ok(Ok(())) => {
             info!("Clustering configuration saved successfully");
             Ok(HttpResponse::Ok().json(json!({

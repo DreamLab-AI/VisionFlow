@@ -5,7 +5,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import * as THREE from 'three';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 
 // Shader for combining multiple bloom layers
 const LayerCombineShader = {
@@ -42,11 +42,9 @@ const LayerCombineShader = {
 export const MultiLayerPostProcessing: React.FC = () => {
   const { gl, scene, camera, size } = useThree();
   const composerRef = useRef<EffectComposer>();
-  const settings = useSettingsStore(state => state.settings?.visualisation);
-  
-  // Get bloom and glow settings
-  const bloomSettings = settings?.bloom;
-  const glowSettings = settings?.glow;
+  // Get bloom and glow settings using selective hooks
+  const bloomSettings = useSelectiveSetting<any>('visualisation.bloom');
+  const glowSettings = useSelectiveSetting<any>('visualisation.glow');
   
   // Create composers for different layers
   const composers = useMemo(() => {

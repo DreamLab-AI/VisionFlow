@@ -20,7 +20,7 @@ import { HologramEnvironment } from '../../visualisation/components/HologramMote
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
 
 // Store and utils
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSettings } from '../../../hooks/useSelectiveSettingsStore';
 import { graphDataManager, type GraphData } from '../managers/graphDataManager';
 import { createLogger } from '../../../utils/logger';
 
@@ -31,12 +31,20 @@ const GraphCanvas: React.FC = () => {
     
     const containerRef = useRef<HTMLDivElement>(null);
     const orbitControlsRef = useRef<any>(null);
-    const { settings } = useSettingsStore();
-    const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-    const xrEnabled = settings?.xr?.enabled !== false;
-    const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
-    const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram !== false;
+    // Use selective hooks for performance
+    const settings = useSelectiveSettings({
+      showStats: 'system.debug.enablePerformanceDebug' as const,
+      enableBloom: 'visualisation.glow.enabled' as const,
+      enableOrbitControls: 'visualisation.camera.enableOrbitControls' as const,
+      enablePostProcessing: 'visualisation.postprocessing.enabled' as const,
+      showGridHelper: 'visualisation.helpers.showGridHelper' as const,
+      showAxesHelper: 'visualisation.helpers.showAxesHelper' as const
+    });
+    const showStats = settings.showStats ?? false;
+    const xrEnabled = useSelectiveSettings({ xrEnabled: 'xr.enabled' as const }).xrEnabled !== false;
+    const enableBloom = settings.enableBloom ?? false;
+    const enableGlow = settings.enableBloom ?? false; // Using same setting as bloom
+    const enableHologram = useSelectiveSettings({ enableHologram: 'visualisation.graphs.logseq.nodes.enableHologram' as const }).enableHologram !== false;
     const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
     
     // Graph data state
@@ -126,7 +134,7 @@ const GraphCanvas: React.FC = () => {
                 {/* Environmental effects - motes, particles and glitter */}
                 <HologramEnvironment 
                     enabled={enableHologram}
-                    color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
+                    color={useSelectiveSettings({ ringColor: 'visualisation.hologram.ringColor' as const }).ringColor || '#00ffff'}
                     position={[0, 0, 0]}
                 />
                 
@@ -135,7 +143,7 @@ const GraphCanvas: React.FC = () => {
                     <EnergyFieldParticles
                         count={50}
                         bounds={50}
-                        color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
+                        color={useSelectiveSettings({ ringColor: 'visualisation.hologram.ringColor' as const }).ringColor || '#00ffff'}
                     />
                 )}
                 

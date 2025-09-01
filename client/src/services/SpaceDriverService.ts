@@ -127,8 +127,6 @@ class SpaceDriverService extends EventTarget {
       logger.error('Failed to initialize SpaceDriver:', error);
     }
   }
-
-
   /**
    * Open and connect to a specific HID device
    */

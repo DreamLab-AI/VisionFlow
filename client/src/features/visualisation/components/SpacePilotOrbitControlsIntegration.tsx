@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { useSpacePilot } from '../hooks/useSpacePilot';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 
 interface SpacePilotIntegrationProps {
   orbitControlsRef?: React.RefObject<any>;
@@ -14,8 +14,7 @@ interface SpacePilotIntegrationProps {
  */
 export const SpacePilotIntegration: React.FC<SpacePilotIntegrationProps> = ({ orbitControlsRef }) => {
   const { camera } = useThree();
-  const settings = useSettingsStore(state => state.settings);
-  const spacePilotEnabled = settings?.visualisation?.spacePilot?.enabled !== false;
+  const spacePilotEnabled = useSelectiveSetting<boolean>('visualisation.spacePilot.enabled') !== false;
 
   // Initialize SpacePilot hook with orbitControlsRef
   const spacePilot = useSpacePilot({

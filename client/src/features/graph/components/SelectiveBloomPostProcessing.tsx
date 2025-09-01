@@ -5,7 +5,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import * as THREE from 'three';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 
 // Shader for selective bloom mixing
 const SelectiveBloomShader = {
@@ -38,11 +38,9 @@ const SelectiveBloomShader = {
 
 export const SelectiveBloomPostProcessing: React.FC = () => {
   const { gl, scene, camera, size } = useThree();
-  const settings = useSettingsStore(state => state.settings?.visualisation);
-  
-  // Get bloom and glow settings
-  const bloomSettings = settings?.bloom;
-  const glowSettings = settings?.glow;
+  // Get bloom and glow settings using selective hooks
+  const bloomSettings = useSelectiveSetting<any>('visualisation.bloom');
+  const glowSettings = useSelectiveSetting<any>('visualisation.glow');
   
   // Create composers
   const composers = useMemo(() => {
@@ -163,8 +161,7 @@ export const SelectiveBloomPostProcessing: React.FC = () => {
       return;
     }
     
-    const bloomSettings = settings?.bloom;
-    const glowSettings = settings?.glow;
+    // Settings accessed via selective hooks above
     
     // Store original visibility
     const visibilityCache = new Map();

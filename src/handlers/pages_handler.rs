@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse, Result};
 use crate::AppState;
-use crate::actors::messages::{GetSettings, GetMetadata};
+use crate::actors::messages::{GetMetadata, GetSettingsByPaths};
 use serde::Serialize;
 use futures::future::join_all;
 use crate::models::metadata::Metadata;
@@ -18,7 +18,9 @@ pub struct PageInfo {
 }
 
 pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
-    let _settings = app_state.settings_addr.send(GetSettings).await
+    // Get relevant settings for pages handler (debug mode, cache settings)
+    let settings_paths = vec!["system.debug.enabled".to_string(), "system.cache.enabled".to_string()];
+    let _settings = app_state.settings_addr.send(GetSettingsByPaths { paths: settings_paths }).await
         .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Settings actor mailbox error: {}", e)))?
         .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     let debug_enabled = crate::utils::logging::is_debug_enabled();

@@ -5,7 +5,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import * as THREE from 'three';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 
 // Copy shader - just passes through the texture
 const CopyShader = {
@@ -34,9 +34,8 @@ export const PostProcessingEffects: React.FC<{
   graphElementsOnly = false 
 }) => {
   const { gl, scene, camera, size } = useThree();
-  const settings = useSettingsStore(state => state.settings?.visualisation);
-  const bloomSettings = settings?.bloom;
-  const glowSettings = settings?.glow;
+  const bloomSettings = useSelectiveSetting<any>('visualisation.bloom');
+  const glowSettings = useSelectiveSetting<any>('visualisation.glow');
   
   // Create effect composer and passes
   const [composer, bloomPass, glowPass] = useMemo(() => {

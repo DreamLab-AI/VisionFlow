@@ -1,6 +1,6 @@
 import React from 'react';
 import { VoiceButton, VoiceButtonProps } from './VoiceButton';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSelectiveSetting } from '../hooks/useSelectiveSettingsStore';
 import { nostrAuth } from '../services/nostrAuthService';
 import Lock from 'lucide-react/dist/esm/icons/lock';
 
@@ -12,8 +12,8 @@ export const AuthGatedVoiceButton: React.FC<AuthGatedVoiceButtonProps> = ({
   onAuthRequired,
   ...voiceButtonProps
 }) => {
-  const authenticated = useSettingsStore(state => state.authenticated);
-  const authEnabled = useSettingsStore(state => state.settings?.auth?.enabled);
+  const authenticated = useSelectiveSetting<boolean>('auth.authenticated');
+  const authEnabled = useSelectiveSetting<boolean>('auth.enabled');
 
   // If auth is not enabled in settings, show the voice button normally
   if (!authEnabled) {

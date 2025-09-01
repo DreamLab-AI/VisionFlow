@@ -287,8 +287,8 @@ visualisation:
       '4': topView
       '5': rightView
       '6': frontView
-      '4': topView
-      '5': rightView
+      '7': leftView
+      '8': bottomView
 system:
   network:
     bind_address: 0.0.0.0

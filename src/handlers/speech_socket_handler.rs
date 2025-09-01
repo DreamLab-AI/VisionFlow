@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::app_state::AppState;
-use crate::actors::messages::GetSettings;
+// TODO: Replace crate::actors::messages::GetSettingsByPaths { paths: vec![] } usage with crate::actors::messages::GetSettingsByPaths { paths: vec![] }ByPaths
 use crate::types::speech::SpeechOptions;
 use tokio::sync::broadcast;
 use futures::FutureExt;
@@ -83,16 +83,26 @@ impl SpeechSocket {
     // Process text-to-speech request
     async fn process_tts_request(app_state: Arc<AppState>, req: TextToSpeechRequest) -> Result<(), String> {
         if let Some(speech_service) = &app_state.speech_service {
-            // Get default settings from app state, handling optional Kokoro settings
-            let settings = app_state.settings_addr.send(GetSettings).await
+            // Get speech-specific settings from app state, handling optional Kokoro settings
+            let speech_paths = vec![
+                "kokoro.default_voice".to_string(),
+                "kokoro.default_speed".to_string(), 
+                "kokoro.stream".to_string()
+            ];
+            let settings_map = app_state.settings_addr.send(crate::actors::messages::GetSettingsByPaths { paths: speech_paths }).await
                 .map_err(|e| format!("Settings actor mailbox error: {}", e))?
                 .map_err(|e| format!("Failed to get settings: {}", e))?;
-            let kokoro_config = settings.kokoro.as_ref(); // Get Option<&KokoroSettings>
-
-            // Provide defaults if Kokoro config or specific fields are None
-            let default_voice = kokoro_config.and_then(|k| k.default_voice.clone()).unwrap_or_else(|| "default_voice_placeholder".to_string()); // Provide a sensible default
-            let default_speed = kokoro_config.and_then(|k| k.default_speed).unwrap_or(1.0);
-            let default_stream = kokoro_config.and_then(|k| k.stream).unwrap_or(true); // Default to streaming?
+            // Extract values from settings map with defaults
+            let default_voice = settings_map.get("kokoro.default_voice")
+                .and_then(|v| v.as_str())
+                .unwrap_or("default_voice_placeholder")
+                .to_string();
+            let default_speed = settings_map.get("kokoro.default_speed")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(1.0) as f32;
+            let default_stream = settings_map.get("kokoro.stream")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
 
             // Create options with defaults or provided values
             let options = SpeechOptions {

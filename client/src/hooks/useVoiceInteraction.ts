@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VoiceWebSocketService, TranscriptionResult } from '../services/VoiceWebSocketService';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSelectiveSetting } from './useSelectiveSettingsStore';
 import { gatedConsole } from '../utils/console';
 
 export interface UseVoiceInteractionOptions {
@@ -31,7 +31,12 @@ export interface UseVoiceInteractionReturn {
 
 export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): UseVoiceInteractionReturn {
   const { autoConnect = true, onTranscription, onError, language } = options;
-  const settings = useSettingsStore((state) => state.settings);
+  
+  // Use selective settings access for better performance
+  const customBackendUrl = useSelectiveSetting<string | undefined>('system.customBackendUrl');
+  const kokoroDefaultVoice = useSelectiveSetting<string | undefined>('kokoro.defaultVoice');
+  const kokoroDefaultSpeed = useSelectiveSetting<number | undefined>('kokoro.defaultSpeed');
+  const kokoroStream = useSelectiveSetting<boolean>('kokoro.stream');
 
   // All state hooks must be called unconditionally
   const [isConnected, setIsConnected] = useState(false);
@@ -104,23 +109,23 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
 
   // Separate effect for auto-connect to avoid dependency issues
   useEffect(() => {
-    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (settings.system?.customBackendUrl || window.location.origin)) {
+    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (customBackendUrl || window.location.origin)) {
       autoConnectAttemptedRef.current = true;
       connect().catch((error) => gatedConsole.voice.error('Auto-connect failed:', error));
     }
-  }, [autoConnect, settings.system?.customBackendUrl]);
+  }, [autoConnect, customBackendUrl, connect]);
 
   const connect = useCallback(async () => {
     if (!voiceServiceRef.current || isConnected) return;
 
     try {
-      const baseUrl = settings.system?.customBackendUrl || window.location.origin;
+      const baseUrl = customBackendUrl || window.location.origin;
       await voiceServiceRef.current.connectToSpeech(baseUrl);
     } catch (error) {
       gatedConsole.voice.error('Failed to connect to voice service:', error);
       onError?.(error);
     }
-  }, [isConnected, settings.system?.customBackendUrl]);
+  }, [isConnected, customBackendUrl, onError]);
 
   const disconnect = useCallback(async () => {
     if (!voiceServiceRef.current) return;
@@ -161,16 +166,16 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
     try {
       await voiceServiceRef.current.sendTextForTTS({
         text,
-        voice: settings.kokoro?.defaultVoice,
-        speed: settings.kokoro?.defaultSpeed,
-        stream: settings.kokoro?.stream ?? true
+        voice: kokoroDefaultVoice,
+        speed: kokoroDefaultSpeed,
+        stream: kokoroStream ?? true
       });
     } catch (error) {
       gatedConsole.voice.error('Failed to speak:', error);
       onError?.(error);
       throw error;
     }
-  }, [isConnected, settings.kokoro?.defaultVoice, settings.kokoro?.defaultSpeed, settings.kokoro?.stream]);
+  }, [isConnected, kokoroDefaultVoice, kokoroDefaultSpeed, kokoroStream, onError]);
 
   const toggleListening = useCallback(async () => {
     if (isListening) {

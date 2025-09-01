@@ -1,6 +1,6 @@
 import React from 'react';
 import { VoiceIndicator, VoiceIndicatorProps } from './VoiceIndicator';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSelectiveSetting } from '../hooks/useSelectiveSettingsStore';
 import { nostrAuth } from '../services/nostrAuthService';
 
 export interface AuthGatedVoiceIndicatorProps extends VoiceIndicatorProps {
@@ -11,8 +11,8 @@ export const AuthGatedVoiceIndicator: React.FC<AuthGatedVoiceIndicatorProps> = (
   onAuthRequired,
   ...voiceIndicatorProps
 }) => {
-  const authenticated = useSettingsStore(state => state.authenticated);
-  const authEnabled = useSettingsStore(state => state.settings?.auth?.enabled);
+  const authenticated = useSelectiveSetting<boolean>('auth.authenticated');
+  const authEnabled = useSelectiveSetting<boolean>('auth.enabled');
 
   // If auth is not enabled in settings, show the voice indicator normally
   if (!authEnabled) {

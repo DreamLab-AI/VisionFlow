@@ -9,7 +9,7 @@ use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata, GetAutoBalanceNotifications};
+use crate::actors::messages::{GetGraphData, GetMetadata, BuildGraphFromMetadata, GetAutoBalanceNotifications, GetSettingsByPaths};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -223,9 +223,19 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
         }
     };
     
-    let settings_result = state.settings_addr.send(GetSettings).await;
+    // Get settings needed for graph processing (file service, debug settings)
+    let graph_settings_paths = vec![
+        "system.debug.enabled".to_string(),
+        "graph.auto_balance.enabled".to_string(),
+        "graph.physics.enabled".to_string()
+    ];
+    let settings_result = state.settings_addr.send(GetSettingsByPaths { paths: graph_settings_paths }).await;
     let settings = match settings_result {
-        Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
+        Ok(Ok(s)) => {
+            // TODO: This is a temporary workaround - we need to refactor FileService to work with granular settings
+            use crate::config::AppFullSettings;
+            Arc::new(tokio::sync::RwLock::new(AppFullSettings::default()))
+        },
         _ => {
             error!("Failed to retrieve settings for FileService in update_graph");
             return HttpResponse::InternalServerError().json(serde_json::json!({

@@ -74,8 +74,6 @@ export function createLogger(namespace: string, options: LoggerOptions = {}) {
         return arg;
       });
   }
-
-
   function createLogMethod(logLevel: LogLevel) {
     return function(message: any, ...args: any[]) {
       if (!shouldLog(logLevel)) return;

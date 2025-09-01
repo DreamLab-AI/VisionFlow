@@ -30,18 +30,16 @@ interface VirtualizedSettingsGroupProps {
   groupIndex: number;
 }
 
-// Pre-calculate item data to avoid recalculation
+// Simplified item data interface - removed caching as we use reactive subscriptions
 interface ItemData {
   items: SettingItem[];
   isPowerUser: boolean;
   savedNotification: string | null;
   loadingSettings: Set<string>;
   onSettingChange: (path: string, value: any) => void;
-  getSettingValue: (path: string) => any;
-  itemCache: Map<string, any>;
 }
 
-// Memoized row component with aggressive optimization
+// Memoized row component with reactive subscriptions
 const SettingRow = memo(({
   index,
   style,
@@ -51,21 +49,14 @@ const SettingRow = memo(({
   style: React.CSSProperties;
   data: ItemData;
 }) => {
-  const { items, isPowerUser, savedNotification, loadingSettings, onSettingChange, getSettingValue, itemCache } = data;
+  const { items, isPowerUser, savedNotification, loadingSettings, onSettingChange } = data;
   const item = items[index];
 
   // Skip rendering for power-user items if not authorized
   if (item.isPowerUser && !isPowerUser) return null;
 
-  // Use cached value if available
-  const cacheKey = `${item.path}-${index}`;
-  const cachedValue = itemCache.get(cacheKey);
-  const value = cachedValue !== undefined ? cachedValue : getSettingValue(item.path);
-
-  // Update cache if value changed
-  if (cachedValue !== value) {
-    itemCache.set(cacheKey, value);
-  }
+  // Use reactive subscription to get the current value
+  const value = useSettingsStore(state => state.get(item.path));
 
   const isLoading = loadingSettings.has(item.path);
   const isSaved = savedNotification === item.path;
@@ -96,23 +87,15 @@ const SettingRow = memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Optimized comparison function
+  // Simplified comparison - rely on zustand's reactivity for value changes
+  // Only compare non-reactive props since value changes will trigger re-renders via zustand
   if (prevProps.index !== nextProps.index) return false;
   
   const prevItem = prevProps.data.items[prevProps.index];
   const nextItem = nextProps.data.items[nextProps.index];
   
-  if (prevItem.path !== nextItem.path) return false;
-  
-  // Use cached values for comparison
-  const prevCacheKey = `${prevItem.path}-${prevProps.index}`;
-  const nextCacheKey = `${nextItem.path}-${nextProps.index}`;
-  
-  const prevValue = prevProps.data.itemCache.get(prevCacheKey) ?? prevProps.data.getSettingValue(prevItem.path);
-  const nextValue = nextProps.data.itemCache.get(nextCacheKey) ?? nextProps.data.getSettingValue(nextItem.path);
-  
   return (
-    prevValue === nextValue &&
+    prevItem.path === nextItem.path &&
     prevProps.data.loadingSettings.has(prevItem.path) === nextProps.data.loadingSettings.has(nextItem.path) &&
     (prevProps.data.savedNotification === prevItem.path) === (nextProps.data.savedNotification === nextItem.path) &&
     prevProps.data.isPowerUser === nextProps.data.isPowerUser
@@ -139,53 +122,26 @@ export const VirtualizedSettingsGroup = memo(({
     sampleRate: 50,
   });
 
-  // Stable getter with caching
-  const itemCache = useMemo(() => new Map<string, any>(), []);
-  
-  const getSettingValue = useCallback((path: string) => {
-    // Check cache first
-    const cached = itemCache.get(path);
-    if (cached !== undefined) return cached;
-    
-    // Get from store and cache
-    const value = useSettingsStore.getState().get(path);
-    itemCache.set(path, value);
-    return value;
-  }, [itemCache]);
+  // Removed manual caching - zustand handles reactivity efficiently
 
-  // Filter and memoize visible items
+  // Filter visible items (removed pre-caching as zustand handles efficiently)
   const visibleItems = useMemo(() => {
-    const filtered = items.filter(item => !item.isPowerUser || isPowerUser);
-    // Pre-cache values for visible items
-    filtered.forEach(item => {
-      const cacheKey = `${item.path}-${items.indexOf(item)}`;
-      if (!itemCache.has(cacheKey)) {
-        itemCache.set(cacheKey, getSettingValue(item.path));
-      }
-    });
-    return filtered;
-  }, [items, isPowerUser, itemCache, getSettingValue]);
+    return items.filter(item => !item.isPowerUser || isPowerUser);
+  }, [items, isPowerUser]);
 
-  // Optimized setting change handler
+  // Simplified setting change handler - zustand store handles reactivity
   const handleSettingChange = useCallback((path: string, value: any) => {
-    // Update cache immediately for responsive UI
-    const itemIndex = items.findIndex(item => item.path === path);
-    if (itemIndex >= 0) {
-      itemCache.set(`${path}-${itemIndex}`, value);
-    }
     onSettingChange(path, value);
-  }, [items, itemCache, onSettingChange]);
+  }, [onSettingChange]);
 
-  // Memoized data object with minimal dependencies
+  // Memoized data object - simplified without caching
   const listData = useMemo<ItemData>(() => ({
     items: visibleItems,
     isPowerUser,
     savedNotification,
     loadingSettings,
     onSettingChange: handleSettingChange,
-    getSettingValue,
-    itemCache,
-  }), [visibleItems, isPowerUser, savedNotification, loadingSettings, handleSettingChange, getSettingValue, itemCache]);
+  }), [visibleItems, isPowerUser, savedNotification, loadingSettings, handleSettingChange]);
 
   // Skip rendering if not power user for power user groups
   if (isPowerUser !== undefined && !isPowerUser && items.every(item => item.isPowerUser)) {

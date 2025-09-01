@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { SettingsState } from '../types/settingsTypes';
+import { Settings } from '../../../types/generated/settings';
 
 interface HistoryEntry {
-  settings: SettingsState;
+  settings: Settings;
   timestamp: number;
   description?: string;
 }
@@ -36,7 +36,7 @@ export function useSettingsHistory() {
       // Skip if we're in the middle of an undo/redo operation
       if (isUndoingRef.current) return;
 
-      const currentSettings = JSON.stringify(state.settings);
+      const currentSettings = JSON.stringify(state.partialSettings);
       
       // Skip if settings haven't actually changed
       if (currentSettings === lastSettingsRef.current) return;
@@ -86,7 +86,7 @@ export function useSettingsHistory() {
       const targetEntry = historyState.history[targetIndex];
       
       if (targetEntry) {
-        await useSettingsStore.getState().updateSettings(targetEntry.settings);
+        await useSettingsStore.getState().updateSettings(() => targetEntry.settings);
         
         setHistoryState(prev => ({
           ...prev,
@@ -96,10 +96,10 @@ export function useSettingsHistory() {
         }));
       }
     } finally {
-      // Reset flag after a brief delay to ensure the update has propagated
-      setTimeout(() => {
+      // Use promise-based delay instead of setTimeout for better async flow
+      Promise.resolve().then(() => {
         isUndoingRef.current = false;
-      }, 100);
+      });
     }
   }, [historyState.canUndo, historyState.currentIndex, historyState.history]);
 
@@ -114,7 +114,7 @@ export function useSettingsHistory() {
       const targetEntry = historyState.history[targetIndex];
       
       if (targetEntry) {
-        await useSettingsStore.getState().updateSettings(targetEntry.settings);
+        await useSettingsStore.getState().updateSettings(() => targetEntry.settings);
         
         setHistoryState(prev => ({
           ...prev,
@@ -124,10 +124,10 @@ export function useSettingsHistory() {
         }));
       }
     } finally {
-      // Reset flag after a brief delay
-      setTimeout(() => {
+      // Use promise-based delay for consistent async behavior
+      Promise.resolve().then(() => {
         isUndoingRef.current = false;
-      }, 100);
+      });
     }
   }, [historyState.canRedo, historyState.currentIndex, historyState.history]);
 

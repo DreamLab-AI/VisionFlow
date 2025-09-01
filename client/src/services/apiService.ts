@@ -77,8 +77,6 @@ class ApiService {
       throw error;
     }
   }
-
-
   /**
    * Make a POST request to the API
    * @param endpoint The API endpoint

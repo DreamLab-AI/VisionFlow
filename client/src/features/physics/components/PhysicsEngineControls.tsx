@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { useSettingsStore } from '@/store/settingsStore';
-import { PhysicsSettings } from '@/features/settings/config/settings';
+import { PhysicsSettings } from '@/types/generated/settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -258,7 +258,6 @@ export function PhysicsEngineControls() {
 
   const handleSaveConstraint = useCallback((constraint: any) => {
     // Saving constraint
-    // TODO: Implement constraint saving
   }, []);
 
   return (

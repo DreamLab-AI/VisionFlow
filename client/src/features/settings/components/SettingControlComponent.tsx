@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UISettingDefinition } from '../config/settingsUIDefinition'; // Import the new definition type
 import { Label } from '@/features/design-system/components/Label';
 import { Slider } from '@/features/design-system/components/Slider';
@@ -10,8 +10,13 @@ import { Button } from '@/features/design-system/components/Button';
 import Eye from 'lucide-react/dist/esm/icons/eye';
 import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 import Loader2 from 'lucide-react/dist/esm/icons/loader2';
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
 import { HelpTooltip } from '../../help/components/HelpTooltip';
 import { helpRegistry } from '../../help/HelpRegistry';
+
+// Client-side validation removed - server is now the single source of truth
+// Basic HTML5 validation attributes are used on form inputs
+// Server validation errors are displayed from API responses
 
 // Simple inline useDebounce hook - only for text inputs that need it
 function useDebounce<T>(value: T, delay: number): T {
@@ -33,59 +38,43 @@ function useDebounce<T>(value: T, delay: number): T {
 // Define props based on the plan
 export interface SettingControlProps {
   path: string;
-  settingDef: UISettingDefinition & { required?: boolean };
+  settingDef: UISettingDefinition & { required?: boolean; minLength?: number; maxLength?: number };
   value: any;
   onChange: (value: any) => void;
+  serverError?: string; // Server validation error to display
 }
 
-export const SettingControlComponent = React.memo(({ path, settingDef, value, onChange }: SettingControlProps) => {
-  // Only use internal state for text inputs that need debouncing
-  const needsDebouncing = settingDef.type === 'textInput' || settingDef.type === 'numberInput';
-
-  const [inputValue, setInputValue] = useState(needsDebouncing ? String(value ?? '') : '');
+export const SettingControlComponent = React.memo(({ path, settingDef, value, onChange, serverError }: SettingControlProps) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, setIsPending] = useState(false); // Show loading state during debounce
 
-  const debouncedInputValue = useDebounce(inputValue, 150); // Reduced from 300ms to 150ms
-
-  // Update internal state when external value changes (only for debounced inputs)
-  useEffect(() => {
-    if (needsDebouncing && String(value) !== inputValue) {
-      setInputValue(String(value ?? ''));
+  // Create debounced onChange handler - input is controlled by value prop
+  const debouncedOnChangeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const handleDebouncedChange = useCallback((newValue: any) => {
+    // No client-side validation - just handle debounced changes
+    if (debouncedOnChangeRef.current) {
+      clearTimeout(debouncedOnChangeRef.current);
     }
-  }, [value, inputValue, needsDebouncing]);
+    
+    debouncedOnChangeRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, 150);
+  }, [onChange]);
 
-  // Handle debounced changes for text inputs
-  useEffect(() => {
-    if (!needsDebouncing) return;
-
-    if (debouncedInputValue !== String(value ?? '')) {
-      setIsPending(true);
-
-      if (settingDef.type === 'numberInput') {
-        const numValue = parseFloat(debouncedInputValue);
-        if (!isNaN(numValue)) {
-          onChange(numValue);
-        }
-      } else {
-        onChange(debouncedInputValue);
-      }
-
-      // Clear pending state after a brief moment
-      setTimeout(() => setIsPending(false), 100);
-    }
-  }, [debouncedInputValue, settingDef.type, onChange, value, needsDebouncing]);
-
-  // Track when input changes to show pending state
-  useEffect(() => {
-    if (needsDebouncing && inputValue !== String(value ?? '')) {
-      setIsPending(true);
-    }
-  }, [inputValue, value, needsDebouncing]);
-
-  // Handler for immediate input changes (only for debounced inputs)
+  // Handler for immediate input changes - apply debouncing to onChange only
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    const inputValue = e.target.value;
+    
+    if (settingDef.type === 'numberInput') {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        handleDebouncedChange(numValue);
+      } else if (inputValue === '') {
+        handleDebouncedChange(''); // Allow empty for editing
+      }
+    } else {
+      handleDebouncedChange(inputValue);
+    }
   };
 
   // Render appropriate control based on settingDef.type
@@ -130,18 +119,18 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
       }
 
       case 'numberInput':
-        // Always render an Input for 'numberInput' type.
-        // If a slider is preferred, 'slider' type should be used in definition.
+        // HTML5 validation attributes for basic validation
         return (
           <div className="flex items-center w-full">
             <Input
               id={path}
               type="number"
-              value={inputValue}
+              value={String(value ?? '')}
               onChange={handleInputChange}
               min={settingDef.min}
               max={settingDef.max}
               step={settingDef.step ?? 1}
+              required={settingDef.required}
               className="h-8 flex-1 tabular-nums"
             />
             {settingDef.unit && <span className="text-xs text-muted-foreground pl-2">{settingDef.unit}</span>}
@@ -158,10 +147,21 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
             <Input
               id={path}
               type={isSensitive && !showPassword ? "password" : "text"}
-              value={inputValue} // Use local state for debouncing
-              onChange={handleInputChange} // Update local state immediately
-              className="h-8 flex-1" // Allow input to grow
+              value={String(value ?? '')}
+              onChange={handleInputChange}
+              className="h-8 flex-1"
               placeholder={isSensitive ? "Enter secure value" : "Enter value"}
+              required={settingDef.required}
+              minLength={settingDef.minLength}
+              maxLength={settingDef.maxLength}
+              // HTML5 pattern validation for URLs and emails
+              pattern={
+                settingDef.path?.includes('url') || settingDef.path?.includes('Url') 
+                  ? "https?://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}.*"
+                  : settingDef.path?.includes('email')
+                    ? "[^\\s@]+@[^\\s@]+\\.[^\\s@]+"
+                    : undefined
+              }
             />
             {isSensitive && (
               <Button
@@ -185,9 +185,9 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
             <Input
               id={path}
               type="color"
-              value={String(value ?? '#000000')} // Ensure value is a string, default if null/undefined
+              value={String(value ?? '#000000')}
               onChange={(e) => {
-                // Ensure a valid hex color is always passed
+                // Basic validation for color picker
                 const newValue = e.target.value;
                 if (/^#[0-9A-Fa-f]{6}$/i.test(newValue)) {
                   onChange(newValue);
@@ -200,25 +200,18 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
             />
             <Input
               type="text"
-              value={String(value ?? '')} // Reflect current value, allow empty for typing
+              value={String(value ?? '')}
               onChange={(e) => {
                 const newValue = e.target.value;
                 if (/^#[0-9A-Fa-f]{6}$/i.test(newValue)) {
                   onChange(newValue);
                 } else if (newValue === '') {
-                  // If user clears the input, set to a default to avoid sending empty string
-                  // Or, you could choose not to call onChange, making the text input temporarily invalid
-                  // For now, let's set a default to prevent server errors.
                   onChange('#000000'); // Default if cleared
                 }
-                // For other invalid inputs, we don't call onChange,
-                // so the store isn't updated with an invalid partial hex.
-                // The visual input will show the invalid text until corrected or blurred.
               }}
-              onBlur={(e) => { // Ensure on blur, if invalid, it reverts or uses a default
+              onBlur={(e) => {
                 const currentValue = e.target.value;
                 if (!/^#[0-9A-Fa-f]{6}$/i.test(currentValue)) {
-                    // If current store value is valid, revert to it, else default
                     if (typeof value === 'string' && /^#[0-9A-Fa-f]{6}$/i.test(value)) {
                         onChange(value); // Revert to last known good value from store
                     } else {
@@ -228,6 +221,7 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
               }}
               className="h-8 flex-1 font-mono text-xs"
               placeholder="#rrggbb"
+              pattern="^#[0-9A-Fa-f]{6}$"
             />
           </div>
         );
@@ -288,11 +282,31 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Label htmlFor={`${path}-min`} className="text-xs w-10">Min:</Label>
-              <Input id={`${path}-min`} type="number" value={minVal} onChange={handleMinChange} min={settingDef.min} max={maxVal} step={settingDef.step} className="h-8 flex-1" placeholder="Min" />
+              <Input 
+                id={`${path}-min`} 
+                type="number" 
+                value={minVal} 
+                onChange={handleMinChange} 
+                min={settingDef.min} 
+                max={maxVal} 
+                step={settingDef.step} 
+                className="h-8 flex-1" 
+                placeholder="Min" 
+              />
             </div>
             <div className="flex items-center gap-2">
               <Label htmlFor={`${path}-max`} className="text-xs w-10">Max:</Label>
-              <Input id={`${path}-max`} type="number" value={maxVal} onChange={handleMaxChange} min={minVal} max={settingDef.max} step={settingDef.step} className="h-8 flex-1" placeholder="Max" />
+              <Input 
+                id={`${path}-max`} 
+                type="number" 
+                value={maxVal} 
+                onChange={handleMaxChange} 
+                min={minVal} 
+                max={settingDef.max} 
+                step={settingDef.step} 
+                className="h-8 flex-1" 
+                placeholder="Max" 
+              />
             </div>
             {settingDef.unit && <span className="text-xs text-muted-foreground self-end">{settingDef.unit}</span>}
           </div>
@@ -313,14 +327,12 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
             currentColors[index] = '#000000'; // Default if cleared
             onChange([...currentColors]);
           }
-          // For other invalid inputs, do not call onChange from text input
         };
 
         const createColorBlurHandler = (index: 0 | 1) => (e: React.ChangeEvent<HTMLInputElement>) => {
             const currentColors = [color1, color2];
             const blurredValue = e.target.value;
             if (!/^#[0-9A-Fa-f]{6}$/i.test(blurredValue)) {
-                // Revert to original value for this specific color input if it was valid, else default
                 const originalColorAtIndex = (Array.isArray(value) && value.length === 2 && typeof value[index] === 'string' && /^#[0-9A-Fa-f]{6}$/i.test(value[index])) ? value[index] : '#000000';
                 currentColors[index] = originalColorAtIndex;
                 onChange([...currentColors]);
@@ -331,18 +343,45 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Label className="text-xs w-16">Start:</Label>
-              <Input type="color" value={color1} onChange={createColorChangeHandler(0)} className="h-8 w-10 p-0.5 border-border cursor-pointer" title="Start Color" />
-              <Input type="text" value={color1} onChange={createColorChangeHandler(0)} onBlur={createColorBlurHandler(0)} className="h-8 flex-1 font-mono text-xs" placeholder="#rrggbb" />
+              <Input 
+                type="color" 
+                value={color1} 
+                onChange={createColorChangeHandler(0)} 
+                className="h-8 w-10 p-0.5 border-border cursor-pointer" 
+                title="Start Color" 
+              />
+              <Input 
+                type="text" 
+                value={color1} 
+                onChange={createColorChangeHandler(0)} 
+                onBlur={createColorBlurHandler(0)} 
+                className="h-8 flex-1 font-mono text-xs" 
+                placeholder="#rrggbb"
+                pattern="^#[0-9A-Fa-f]{6}$"
+              />
             </div>
             <div className="flex items-center gap-2">
               <Label className="text-xs w-16">End:</Label>
-              <Input type="color" value={color2} onChange={createColorChangeHandler(1)} className="h-8 w-10 p-0.5 border-border cursor-pointer" title="End Color" />
-              <Input type="text" value={color2} onChange={createColorChangeHandler(1)} onBlur={createColorBlurHandler(1)} className="h-8 flex-1 font-mono text-xs" placeholder="#rrggbb" />
+              <Input 
+                type="color" 
+                value={color2} 
+                onChange={createColorChangeHandler(1)} 
+                className="h-8 w-10 p-0.5 border-border cursor-pointer" 
+                title="End Color" 
+              />
+              <Input 
+                type="text" 
+                value={color2} 
+                onChange={createColorChangeHandler(1)} 
+                onBlur={createColorBlurHandler(1)} 
+                className="h-8 flex-1 font-mono text-xs" 
+                placeholder="#rrggbb"
+                pattern="^#[0-9A-Fa-f]{6}$"
+              />
             </div>
           </div>
         );
       }
-
 
       case 'buttonAction':
         return (
@@ -367,7 +406,7 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
   const helpContent = helpRegistry.getHelp(helpId);
 
   return (
-    <div className="setting-control grid grid-cols-3 items-center gap-x-4 gap-y-2 py-3 border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors rounded-sm px-1 -mx-1">
+    <div className="setting-control grid grid-cols-3 items-start gap-x-4 gap-y-2 py-3 border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors rounded-sm px-1 -mx-1">
       <div className="col-span-1 flex items-center"> {/* Label takes 1/3rd */}
         <HelpTooltip
           help={helpContent || settingDef.description || ''}
@@ -375,14 +414,20 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
           side="top"
           align="start"
         >
-          <Label htmlFor={path} className="text-sm cursor-help">
+          <Label htmlFor={path} className={`text-sm cursor-help ${serverError ? 'text-destructive' : ''}`}>
             {settingDef.label}
             {settingDef.required && <span className="text-destructive ml-1" aria-label="required">*</span>}
           </Label>
         </HelpTooltip>
       </div>
-      <div className="col-span-2"> {/* Control takes 2/3rds */}
+      <div className="col-span-2 space-y-1"> {/* Control takes 2/3rds */}
         {renderControl()}
+        {serverError && (
+          <div className="flex items-center gap-1 text-xs text-destructive">
+            <AlertTriangle className="w-3 h-3" />
+            <span>{serverError}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -392,7 +437,8 @@ export const SettingControlComponent = React.memo(({ path, settingDef, value, on
     prevProps.path === nextProps.path &&
     prevProps.value === nextProps.value &&
     prevProps.settingDef === nextProps.settingDef &&
-    prevProps.onChange === nextProps.onChange
+    prevProps.onChange === nextProps.onChange &&
+    prevProps.serverError === nextProps.serverError
   );
 });
 

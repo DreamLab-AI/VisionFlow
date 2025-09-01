@@ -2,7 +2,7 @@
 import React, { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSelectiveSetting } from '@/hooks/useSelectiveSettingsStore';
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
 // import { useBloomStrength } from '../../graph/contexts/BloomContext'; // Removed - bloom managed via settings
 import { DiffuseEffectsIntegration } from '@/rendering/DiffuseEffectsIntegration';
@@ -156,17 +156,18 @@ export const WorldClassHologram: React.FC<{
   position?: [number, number, number];
   useDiffuseEffects?: boolean;
 }> = React.memo(({ enabled = true, position = [0, 0, 0], useDiffuseEffects = true }) => {
-  const settings = useSettingsStore((state) => state.settings);
-  // Handle both snake_case and camelCase field names
-  const envBloomStrength = (settings?.visualisation?.bloom as any)?.environment_bloom_strength ?? 
-                           settings?.visualisation?.bloom?.environmentBloomStrength ?? 0.5;
+  // Use selective settings hooks for better performance
+  const envBloomStrength = useSelectiveSetting<number>('visualisation.bloom.environmentBloomStrength') ?? 
+                           useSelectiveSetting<number>('visualisation.bloom.environment_bloom_strength') ?? 0.5;
+  const hologramSettings = useSelectiveSetting<any>('visualisation.hologram');
+  const enableHologram = useSelectiveSetting<boolean>('visualisation.graphs.logseq.nodes.enableHologram') ||
+                        useSelectiveSetting<boolean>('visualisation.graphs.logseq.nodes.enable_hologram') || false;
+  
   const sphereRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const groupRef = useRef<THREE.Group>(null);
   
-  const hologramSettings = settings?.visualisation?.hologram;
-  const isEnabled = enabled && (settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram || 
-                               (settings?.visualisation?.graphs?.logseq?.nodes as any)?.enable_hologram || false);
+  const isEnabled = enabled && enableHologram;
   
   
   const uniforms = useMemo(() => ({

@@ -6,7 +6,7 @@ import GraphViewport from '../features/graph/components/GraphViewport';
 import { createLogger, createErrorMetadata } from '../utils/logger';
 import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSelectiveSettings } from '../hooks/useSelectiveSettingsStore';
 import { webSocketService } from '../services/WebSocketService';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { parseBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
@@ -22,7 +22,7 @@ const ARGraphRenderer: React.FC = () => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const { camera } = useThree();
   const [nodeData, setNodeData] = useState<BinaryNodeData[]>([]);
-  const settings = useSettingsStore((state) => state.settings);
+  const settings = useSelectiveSettings({ enabled: 'xr.enabled' as const, quality: 'xr.quality' as const, renderScale: 'xr.renderScale' as const });
   
   // Subscribe to graph data updates via the centralized graphDataManager
   useEffect(() => {
@@ -117,7 +117,7 @@ const ARGraphRenderer: React.FC = () => {
 const Quest3AR: React.FC = () => {
   const { isSessionActive, sessionType, startSession } = useXRCore();
   const { setMode } = useApplicationMode();
-  const settings = useSettingsStore((state) => state.settings);
+  const settings = useSelectiveSettings({ enabled: 'xr.enabled' as const, quality: 'xr.quality' as const, renderScale: 'xr.renderScale' as const });
   const [isConnected, setIsConnected] = useState(false);
   const [isReady, setIsReady] = useState(false);
   

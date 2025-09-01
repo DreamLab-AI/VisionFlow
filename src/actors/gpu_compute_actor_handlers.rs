@@ -1,9 +1,8 @@
 use actix::prelude::*;
 use crate::actors::gpu_compute_actor::{GPUComputeActor, ComputeMode};
 use crate::actors::messages::{UpdateVisualAnalyticsParams, SetComputeMode};
-use crate::gpu::visual_analytics::VisualAnalyticsParams;
 use crate::utils::unified_gpu_compute;
-use futures::future::{FutureExt, ready};
+use futures::future::ready;
 
 // Handler for UpdateVisualAnalyticsParams
 impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {

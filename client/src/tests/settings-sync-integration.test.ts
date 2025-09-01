@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
 import { settingsApi } from '../api/settingsApi';
 import { nostrAuth } from '../services/nostrAuthService';
-import { Settings, SettingsUpdate } from '../features/settings/config/settings';
+import { Settings, SettingsUpdate } from '../types/generated/settings';
 // import { defaultSettings } from '../features/settings/config/defaultSettings';
 
 // Mock fetch for testing

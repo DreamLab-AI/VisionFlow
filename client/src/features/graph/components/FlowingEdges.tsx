@@ -2,7 +2,7 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EdgeSettings } from '../../settings/config/settings';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 import { registerEdgeObject, unregisterEdgeObject } from '../../visualisation/hooks/bloomRegistry';
 // import { useBloomStrength } from '../contexts/BloomContext'; // Removed - bloom managed via settings
 
@@ -75,10 +75,9 @@ const flowFragmentShader = `
 `;
 
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
-  const globalSettings = useSettingsStore((state) => state.settings);
-  // Handle both snake_case and camelCase field names
-  const edgeBloomStrength = (globalSettings?.visualisation?.bloom as any)?.edge_bloom_strength ?? 
-                           globalSettings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
+  // Get edge bloom strength using selective hook
+  const edgeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.edgeBloomStrength') ?? 
+                           useSelectiveSetting<number>('visualisation.bloom.edge_bloom_strength') ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
   // Remove redundant edgeBloom - we're getting it from context now

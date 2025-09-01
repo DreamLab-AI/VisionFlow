@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
 use crate::models::metadata::MetadataStore;
-use crate::config::AppFullSettings;
 use crate::models::graph::GraphData as ServiceGraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::models::simulation_params::SimulationParams;
@@ -155,15 +154,6 @@ pub struct RemoveIsolationLayer {
 pub struct GetKernelMode;
 
 // Settings Actor Messages
-#[derive(Message)]
-#[rtype(result = "Result<AppFullSettings, String>")]
-pub struct GetSettings;
-
-#[derive(Message)]
-#[rtype(result = "Result<(), String>")]
-pub struct UpdateSettings {
-    pub settings: AppFullSettings,
-}
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -182,6 +172,18 @@ pub struct GetSettingByPath {
 pub struct SetSettingByPath {
     pub path: String,
     pub value: Value,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<HashMap<String, Value>, String>")]
+pub struct GetSettingsByPaths {
+    pub paths: Vec<String>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SetSettingsByPaths {
+    pub updates: Vec<(String, Value)>,
 }
 
 // Metadata Actor Messages
@@ -662,3 +664,8 @@ pub struct GetAutoBalanceNotifications {
     pub since_timestamp: Option<i64>, // Only get notifications after this timestamp
 }
 
+
+// All legacy message types have been removed
+// The system now uses only granular operations:
+// - GetSettingByPath / SetSettingByPath for single operations
+// - GetSettingsByPaths / SetSettingsByPaths for batch operations

@@ -3,9 +3,67 @@ use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_yaml;
+use specta::Type;
 use std::path::PathBuf;
+use validator::{Validate, ValidationError};
+use std::collections::HashMap;
+use regex::Regex;
+use lazy_static::lazy_static;
 
 pub mod dev_config;
+pub mod path_access;
+
+// Validation regex patterns
+lazy_static! {
+    static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#[0-9A-Fa-f]{6}$").unwrap();
+    static ref URL_REGEX: Regex = Regex::new(r"^https?://[a-zA-Z0-9.-]+(?:\.[a-zA-Z]{2,})?(?::[0-9]+)?(?:/.*)?$").unwrap();
+    static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/-]+$").unwrap();
+    static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+}
+
+// Custom validation functions
+fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
+    if HEX_COLOR_REGEX.is_match(color) {
+        Ok(())
+    } else {
+        Err(ValidationError::new("invalid_hex_color"))
+    }
+}
+
+fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
+    if range.len() != 2 {
+        return Err(ValidationError::new("invalid_range_length"));
+    }
+    if range[0] >= range[1] {
+        let mut error = ValidationError::new("invalid_range_order");
+        error.message = Some("Minimum width must be less than maximum width".into());
+        return Err(error);
+    }
+    if range[0] < 0.0 || range[1] < 0.0 {
+        let mut error = ValidationError::new("negative_width");
+        error.message = Some("Width values must be positive".into());
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn validate_port(port: u16) -> Result<(), ValidationError> {
+    if port == 0 {
+        let mut error = ValidationError::new("invalid_port");
+        error.message = Some("Port must be between 1 and 65535".into());
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn validate_percentage(value: f32) -> Result<(), ValidationError> {
+    if !(0.0..=100.0).contains(&value) {
+        let mut error = ValidationError::new("invalid_percentage");
+        error.message = Some("Value must be between 0 and 100".into());
+        return Err(error);
+    }
+    Ok(())
+}
 
 fn default_auto_balance_interval() -> u32 {
     500
@@ -22,49 +80,6 @@ fn default_glow_opacity() -> f32 {
 pub mod feature_access;
 
 // Types are already public in this module, no need to re-export
-
-// Helper function to convert empty strings to null for Option<String> fields
-fn convert_empty_strings_to_null(value: Value) -> Value {
-    match value {
-        Value::Object(map) => {
-            let new_map = map.into_iter().map(|(k, v)| {
-                let new_v = match v {
-                    Value::String(s) if s.is_empty() => {
-                        // For required String fields, keep empty strings
-                        // For optional fields, convert to null
-                        // List of required string fields that should NOT be null
-                        let required_string_fields = vec![
-                            "base_color", "color", "background_color", "text_color",
-                            "text_outline_color", "billboard_mode", "quality", "mode",
-                            "context", "cookie_samesite", "audit_log_path", "bind_address",
-                            "domain", "min_tls_version", "tunnel_id", "provider",
-                            "ring_color", "hand_mesh_color", "hand_ray_color",
-                            "teleport_ray_color", "controller_ray_color", "plane_color",
-                            "portal_edge_color", "space_type", "locomotion_method"
-                        ];
-                        
-                        if required_string_fields.contains(&k.as_str()) {
-                            // Keep empty string for required fields
-                            Value::String(s)
-                        } else {
-                            // Convert to null for optional fields
-                            Value::Null
-                        }
-                    },
-                    Value::Object(_) => convert_empty_strings_to_null(v),
-                    Value::Array(_) => convert_empty_strings_to_null(v),
-                    _ => v,
-                };
-                (k, new_v)
-            }).collect();
-            Value::Object(new_map)
-        }
-        Value::Array(arr) => {
-            Value::Array(arr.into_iter().map(convert_empty_strings_to_null).collect())
-        }
-        _ => value,
-    }
-}
 
 
 // Helper function to merge two JSON values
@@ -91,19 +106,29 @@ fn merge_json_values(base: Value, update: Value) -> Value {
 }
 
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct MovementAxes {
+    #[validate(range(min = -100, max = 100, message = "Movement axis must be between -100 and 100"))]
     pub horizontal: i32,
+    #[validate(range(min = -100, max = 100, message = "Movement axis must be between -100 and 100"))]
     pub vertical: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct NodeSettings {
+    #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub base_color: String,
+    #[validate(range(min = 0.0, max = 1.0, message = "Metalness must be between 0.0 and 1.0"))]
     pub metalness: f32,
+    #[validate(range(min = 0.0, max = 1.0, message = "Opacity must be between 0.0 and 1.0"))]
     pub opacity: f32,
+    #[validate(range(min = 0.0, max = 1.0, message = "Roughness must be between 0.0 and 1.0"))]
     pub roughness: f32,
+    #[validate(range(min = 0.1, max = 100.0, message = "Node size must be between 0.1 and 100.0"))]
     pub node_size: f32,
+    #[validate(length(min = 1, message = "Quality cannot be empty"))]
     pub quality: String,
     pub enable_instancing: bool,
     pub enable_hologram: bool,
@@ -111,18 +136,27 @@ pub struct NodeSettings {
     pub enable_metadata_visualisation: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
+    #[validate(range(min = 0.1, max = 10.0, message = "Arrow size must be between 0.1 and 10.0"))]
     pub arrow_size: f32,
+    #[validate(range(min = 0.1, max = 20.0, message = "Base width must be between 0.1 and 20.0"))]
     pub base_width: f32,
+    #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub color: String,
     pub enable_arrows: bool,
+    #[validate(range(min = 0.0, max = 1.0, message = "Opacity must be between 0.0 and 1.0"))]
     pub opacity: f32,
+    #[validate(length(min = 2, max = 2, message = "Width range must have exactly 2 values [min, max]"))]
+    #[validate(custom(function = "validate_width_range"))]
     pub width_range: Vec<f32>,
+    #[validate(length(min = 1, message = "Quality cannot be empty"))]
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct AutoBalanceConfig {
     pub stability_variance_threshold: f32,
     pub stability_frame_count: u32,
@@ -187,7 +221,8 @@ impl AutoBalanceConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,
@@ -195,22 +230,37 @@ pub struct PhysicsSettings {
     pub auto_balance_interval_ms: u32,
     #[serde(default)]
     pub auto_balance_config: AutoBalanceConfig,
+    #[validate(range(min = 0.0, max = 10.0, message = "Attraction k must be between 0.0 and 10.0"))]
     pub attraction_k: f32,
+    #[validate(range(min = 10.0, max = 10000.0, message = "Bounds size must be between 10.0 and 10000.0"))]
     pub bounds_size: f32,
+    #[validate(range(min = 0.1, max = 100.0, message = "Separation radius must be between 0.1 and 100.0"))]
     pub separation_radius: f32,
+    #[validate(range(min = 0.0, max = 1.0, message = "Damping must be between 0.0 and 1.0"))]
     pub damping: f32,
     pub enable_bounds: bool,
     pub enabled: bool,
+    #[validate(range(min = 1, max = 10000, message = "Iterations must be between 1 and 10000"))]
     pub iterations: u32,
+    #[validate(range(min = 0.1, max = 1000.0, message = "Max velocity must be between 0.1 and 1000.0"))]
     pub max_velocity: f32,
+    #[validate(range(min = 0.1, max = 10000.0, message = "Max force must be between 0.1 and 10000.0"))]
     pub max_force: f32,
+    #[validate(range(min = 0.0, max = 1000.0, message = "Repel k must be between 0.0 and 1000.0"))]
     pub repel_k: f32,
+    #[validate(range(min = 0.0, max = 10.0, message = "Spring k must be between 0.0 and 10.0"))]
     pub spring_k: f32,
+    #[validate(range(min = 0.1, max = 10.0, message = "Mass scale must be between 0.1 and 10.0"))]
     pub mass_scale: f32,
+    #[validate(range(min = 0.0, max = 1.0, message = "Boundary damping must be between 0.0 and 1.0"))]
     pub boundary_damping: f32,
+    #[validate(range(min = 0.001, max = 1.0, message = "Update threshold must be between 0.001 and 1.0"))]
     pub update_threshold: f32,
+    #[validate(range(min = 0.001, max = 1.0, message = "Delta time must be between 0.001 and 1.0"))]
     pub dt: f32,
+    #[validate(range(min = 0.0, max = 10.0, message = "Temperature must be between 0.0 and 10.0"))]
     pub temperature: f32,
+    #[validate(range(min = 0.0, max = 10.0, message = "Gravity must be between 0.0 and 10.0"))]
     pub gravity: f32,
     // New GPU-aligned fields
     pub stress_weight: f32,
@@ -301,14 +351,19 @@ impl Default for PhysicsSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RenderingSettings {
+    #[validate(range(min = 0.0, max = 10.0, message = "Ambient light intensity must be between 0.0 and 10.0"))]
     pub ambient_light_intensity: f32,
+    #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub background_color: String,
+    #[validate(range(min = 0.0, max = 10.0, message = "Directional light intensity must be between 0.0 and 10.0"))]
     pub directional_light_intensity: f32,
     pub enable_ambient_occlusion: bool,
     pub enable_antialiasing: bool,
     pub enable_shadows: bool,
+    #[validate(range(min = 0.0, max = 10.0, message = "Environment intensity must be between 0.0 and 10.0"))]
     pub environment_intensity: f32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shadow_map_size: Option<String>,
@@ -318,26 +373,38 @@ pub struct RenderingSettings {
     pub context: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
     pub enable_motion_blur: bool,
     pub enable_node_animations: bool,
+    #[validate(range(min = 0.0, max = 5.0, message = "Motion blur strength must be between 0.0 and 5.0"))]
     pub motion_blur_strength: f32,
     pub selection_wave_enabled: bool,
     pub pulse_enabled: bool,
+    #[validate(range(min = 0.0, max = 10.0, message = "Pulse speed must be between 0.0 and 10.0"))]
     pub pulse_speed: f32,
+    #[validate(range(min = 0.0, max = 5.0, message = "Pulse strength must be between 0.0 and 5.0"))]
     pub pulse_strength: f32,
+    #[validate(range(min = 0.0, max = 10.0, message = "Wave speed must be between 0.0 and 10.0"))]
     pub wave_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct LabelSettings {
+    #[validate(range(min = 8.0, max = 72.0, message = "Desktop font size must be between 8.0 and 72.0"))]
     pub desktop_font_size: f32,
     pub enable_labels: bool,
+    #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub text_color: String,
+    #[validate(custom(function = "validate_hex_color", message = "Must be a valid hex color (e.g., #ff0000)"))]
     pub text_outline_color: String,
+    #[validate(range(min = 0.0, max = 10.0, message = "Text outline width must be between 0.0 and 10.0"))]
     pub text_outline_width: f32,
+    #[validate(range(min = 64, max = 2048, message = "Text resolution must be between 64 and 2048"))]
     pub text_resolution: u32,
+    #[validate(range(min = 0.0, max = 50.0, message = "Text padding must be between 0.0 and 50.0"))]
     pub text_padding: f32,
     pub billboard_mode: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -346,11 +413,15 @@ pub struct LabelSettings {
     pub max_label_width: Option<f32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GlowSettings {
     pub enabled: bool,
+    #[validate(range(min = 0.0, max = 10.0, message = "Glow intensity must be between 0.0 and 10.0"))]
     pub intensity: f32,
+    #[validate(range(min = 0.0, max = 50.0, message = "Glow radius must be between 0.0 and 50.0"))]
     pub radius: f32,
+    #[validate(range(min = 0.0, max = 1.0, message = "Glow threshold must be between 0.0 and 1.0"))]
     pub threshold: f32,
     #[serde(default)]
     pub diffuse_strength: f32,
@@ -376,7 +447,8 @@ pub struct GlowSettings {
     pub environment_glow_strength: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct HologramSettings {
     pub ring_count: u32,
     pub ring_color: String,
@@ -395,7 +467,8 @@ pub struct HologramSettings {
     pub global_rotation_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct CameraSettings {
     pub fov: f32,
     pub near: f32,
@@ -404,14 +477,16 @@ pub struct CameraSettings {
     pub look_at: Position,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct Position {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct SpacePilotSettings {
     pub enabled: bool,
     pub mode: String,
@@ -421,36 +496,50 @@ pub struct SpacePilotSettings {
     pub button_functions: std::collections::HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct Sensitivity {
     pub translation: f32,
     pub rotation: f32,
 }
 
 // Graph-specific settings
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GraphSettings {
+    #[validate(nested)]
     pub nodes: NodeSettings,
+    #[validate(nested)]
     pub edges: EdgeSettings,
+    #[validate(nested)]
     pub labels: LabelSettings,
+    #[validate(nested)]
     pub physics: PhysicsSettings,
 }
 
 // Multi-graph container
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GraphsSettings {
+    #[validate(nested)]
     pub logseq: GraphSettings,
+    #[validate(nested)]
     pub visionflow: GraphSettings,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
     
     // Global settings
+    #[validate(nested)]
     pub rendering: RenderingSettings,
+    #[validate(nested)]
     pub animations: AnimationSettings,
+    #[validate(nested)]
     pub glow: GlowSettings,
     pub hologram: HologramSettings,
+    #[validate(nested)]
     pub graphs: GraphsSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub camera: Option<CameraSettings>,
@@ -458,44 +547,73 @@ pub struct VisualisationSettings {
     pub space_pilot: Option<SpacePilotSettings>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct NetworkSettings {
+    #[validate(length(min = 7, max = 45, message = "Bind address must be between 7 and 45 characters"))]
     pub bind_address: String,
+    #[validate(length(min = 1, max = 253, message = "Domain must be between 1 and 253 characters"))]
     pub domain: String,
     pub enable_http2: bool,
     pub enable_rate_limiting: bool,
     pub enable_tls: bool,
+    #[validate(range(min = 1024, max = 104857600, message = "Max request size must be between 1KB and 100MB"))]
     pub max_request_size: usize,
+    #[validate(length(min = 1, message = "TLS version cannot be empty"))]
     pub min_tls_version: String,
+    #[validate(range(min = 1, max = 65535, message = "Port must be between 1 and 65535"))]
     pub port: u16,
+    #[validate(range(min = 1, max = 10000, message = "Rate limit requests must be between 1 and 10000"))]
     pub rate_limit_requests: u32,
+    #[validate(range(min = 1, max = 3600, message = "Rate limit window must be between 1 and 3600 seconds"))]
     pub rate_limit_window: u32,
     pub tunnel_id: String,
+    #[validate(range(min = 1, max = 300, message = "API client timeout must be between 1 and 300 seconds"))]
     pub api_client_timeout: u64,
     pub enable_metrics: bool,
+    #[validate(range(min = 1, max = 1000, message = "Max concurrent requests must be between 1 and 1000"))]
     pub max_concurrent_requests: u32,
+    #[validate(range(min = 0, max = 10, message = "Max retries must be between 0 and 10"))]
     pub max_retries: u32,
+    #[validate(range(min = 1, max = 65535, message = "Metrics port must be between 1 and 65535"))]
     pub metrics_port: u16,
+    #[validate(range(min = 100, max = 30000, message = "Retry delay must be between 100ms and 30 seconds"))]
     pub retry_delay: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct WebSocketSettings {
+    #[validate(range(min = 64, max = 65536, message = "Binary chunk size must be between 64 bytes and 64KB"))]
     pub binary_chunk_size: usize,
+    #[validate(range(min = 1, max = 120, message = "Binary update rate must be between 1 and 120 FPS"))]
     pub binary_update_rate: u32,
+    #[validate(range(min = 1, max = 30, message = "Min update rate must be between 1 and 30 FPS"))]
     pub min_update_rate: u32,
+    #[validate(range(min = 30, max = 120, message = "Max update rate must be between 30 and 120 FPS"))]
     pub max_update_rate: u32,
+    #[validate(range(min = 0.001, max = 1.0, message = "Motion threshold must be between 0.001 and 1.0"))]
     pub motion_threshold: f32,
+    #[validate(range(min = 0.1, max = 1.0, message = "Motion damping must be between 0.1 and 1.0"))]
     pub motion_damping: f32,
+    #[validate(range(min = 1, max = 255, message = "Binary message version must be between 1 and 255"))]
     pub binary_message_version: u32,
     pub compression_enabled: bool,
+    #[validate(range(min = 64, max = 8192, message = "Compression threshold must be between 64 bytes and 8KB"))]
     pub compression_threshold: usize,
+    #[validate(range(min = 1000, max = 60000, message = "Heartbeat interval must be between 1 and 60 seconds"))]
     pub heartbeat_interval: u64,
+    #[validate(range(min = 5000, max = 600000, message = "Heartbeat timeout must be between 5 seconds and 10 minutes"))]
     pub heartbeat_timeout: u64,
+    #[validate(range(min = 1, max = 10000, message = "Max connections must be between 1 and 10000"))]
     pub max_connections: usize,
+    #[validate(range(min = 1024, max = 104857600, message = "Max message size must be between 1KB and 100MB"))]
     pub max_message_size: usize,
+    #[validate(range(min = 0, max = 20, message = "Reconnect attempts must be between 0 and 20"))]
     pub reconnect_attempts: u32,
+    #[validate(range(min = 100, max = 30000, message = "Reconnect delay must be between 100ms and 30 seconds"))]
     pub reconnect_delay: u64,
+    #[validate(range(min = 1, max = 120, message = "Update rate must be between 1 and 120 FPS"))]
     pub update_rate: u32,
 }
 
@@ -522,7 +640,8 @@ impl Default for WebSocketSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct SecuritySettings {
     pub allowed_origins: Vec<String>,
     pub audit_log_path: String,
@@ -536,7 +655,8 @@ pub struct SecuritySettings {
 }
 
 // Simple debug settings for server-side control
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct DebugSettings {
     #[serde(default)]
     pub enabled: bool,
@@ -550,7 +670,8 @@ impl Default for DebugSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SystemSettings {
     pub network: NetworkSettings,
     pub websocket: WebSocketSettings,
@@ -575,7 +696,8 @@ impl Default for SystemSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct XRSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
@@ -633,14 +755,16 @@ pub struct XRSettings {
     pub portal_edge_width: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct AuthSettings {
     pub enabled: bool,
     pub provider: String,
     pub required: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct RagFlowSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -656,7 +780,8 @@ pub struct RagFlowSettings {
     pub chat_id: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct PerplexitySettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -680,7 +805,8 @@ pub struct PerplexitySettings {
     pub rate_limit: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct OpenAISettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -692,7 +818,8 @@ pub struct OpenAISettings {
     pub rate_limit: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct KokoroSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -712,7 +839,8 @@ pub struct KokoroSettings {
     pub sample_rate: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct WhisperSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -735,7 +863,8 @@ pub struct WhisperSettings {
 }
 
 // Constraint system structures
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ConstraintData {
     pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
     pub strength: f32,
@@ -758,7 +887,8 @@ impl Default for ConstraintData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ConstraintSystem {
     pub separation: ConstraintData,
     pub boundary: ConstraintData,
@@ -766,7 +896,8 @@ pub struct ConstraintSystem {
     pub cluster: ConstraintData,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ClusteringConfiguration {
     pub algorithm: String,
     pub num_clusters: u32,
@@ -777,7 +908,7 @@ pub struct ClusteringConfiguration {
 }
 
 // Helper struct for physics updates
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
@@ -826,10 +957,14 @@ pub struct PhysicsUpdate {
 }
 
 // Single unified settings struct
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AppFullSettings {
+    #[validate(nested)]
     pub visualisation: VisualisationSettings,
+    #[validate(nested)]
     pub system: SystemSettings,
+    #[validate(nested)]
     pub xr: XRSettings,
     pub auth: AuthSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -952,6 +1087,26 @@ impl AppFullSettings {
     // Physics updates now handled through the general merge_update method
     // which provides better validation and consistency
     
+    /// Validate the entire configuration
+    pub fn validate_config(&self) -> Result<(), HashMap<String, String>> {
+        match self.validate() {
+            Ok(()) => Ok(()),
+            Err(errors) => {
+                let mut error_map = HashMap::new();
+                for (field, field_errors) in errors.field_errors() {
+                    for error in field_errors {
+                        let message = error.message
+                            .as_ref()
+                            .map(|m| m.to_string())
+                            .unwrap_or_else(|| format!("Validation error in field: {}", field));
+                        error_map.insert(field.to_string(), message);
+                    }
+                }
+                Err(error_map)
+            }
+        }
+    }
+
     /// Deep merge partial update into settings
     pub fn merge_update(&mut self, update: serde_json::Value) -> Result<(), String> {
         // Debug: Log the incoming update (only if debug is enabled)
@@ -959,17 +1114,11 @@ impl AppFullSettings {
             debug!("merge_update: Incoming update (camelCase): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
         
-        // Convert empty strings to null for Option<String> fields
-        let processed_update = convert_empty_strings_to_null(update.clone());
-        if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&processed_update).unwrap_or_else(|_| "Could not serialize".to_string()));
-        }
-        
-        // Merge the update into self
+        // Direct merge without empty string conversion - frontend should send proper values
         let current_value = serde_json::to_value(&self)
             .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
         
-        let merged = merge_json_values(current_value, processed_update);
+        let merged = merge_json_values(current_value, update.clone());
         if crate::utils::logging::is_debug_enabled() {
             debug!("merge_update: After merge: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
@@ -984,8 +1133,332 @@ impl AppFullSettings {
                 format!("Failed to deserialize merged settings: {}", e)
             })?;
         
+        // Validate the merged settings
+        if let Err(validation_errors) = self.validate_config() {
+            let error_summary = validation_errors
+                .iter()
+                .map(|(field, message)| format!("{}: {}", field, message))
+                .collect::<Vec<_>>()
+                .join("; ");
+            return Err(format!("Validation failed after merge: {}", error_summary));
+        }
+        
         Ok(())
     }
     
 }
+
+// Import the PathAccessible trait and macro
+use path_access::{PathAccessible, impl_field_access};
+
+// Implement PathAccessible for PhysicsSettings (leaf node - no nested structs)
+impl PathAccessible for PhysicsSettings {
+    fn get_by_path(&self, path: &str) -> Option<serde_json::Value> {
+        if path.is_empty() {
+            return serde_json::to_value(self).ok();
+        }
+        
+        match path {
+            "autoBalance" => serde_json::to_value(&self.auto_balance).ok(),
+            "autoBalanceIntervalMs" => serde_json::to_value(&self.auto_balance_interval_ms).ok(),
+            "attractionK" => serde_json::to_value(&self.attraction_k).ok(),
+            "boundsSize" => serde_json::to_value(&self.bounds_size).ok(),
+            "separationRadius" => serde_json::to_value(&self.separation_radius).ok(),
+            "damping" => serde_json::to_value(&self.damping).ok(),
+            "enableBounds" => serde_json::to_value(&self.enable_bounds).ok(),
+            "enabled" => serde_json::to_value(&self.enabled).ok(),
+            "iterations" => serde_json::to_value(&self.iterations).ok(),
+            "maxVelocity" => serde_json::to_value(&self.max_velocity).ok(),
+            "maxForce" => serde_json::to_value(&self.max_force).ok(),
+            "repelK" => serde_json::to_value(&self.repel_k).ok(),
+            "springK" => serde_json::to_value(&self.spring_k).ok(),
+            "massScale" => serde_json::to_value(&self.mass_scale).ok(),
+            "boundaryDamping" => serde_json::to_value(&self.boundary_damping).ok(),
+            "updateThreshold" => serde_json::to_value(&self.update_threshold).ok(),
+            "dt" => serde_json::to_value(&self.dt).ok(),
+            "temperature" => serde_json::to_value(&self.temperature).ok(),
+            "gravity" => serde_json::to_value(&self.gravity).ok(),
+            "stressWeight" => serde_json::to_value(&self.stress_weight).ok(),
+            "stressAlpha" => serde_json::to_value(&self.stress_alpha).ok(),
+            _ => None,
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: serde_json::Value) -> Result<(), String> {
+        match path {
+            "autoBalance" => {
+                self.auto_balance = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set autoBalance: {}", e))?;
+            },
+            "autoBalanceIntervalMs" => {
+                self.auto_balance_interval_ms = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set autoBalanceIntervalMs: {}", e))?;
+            },
+            "attractionK" => {
+                self.attraction_k = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set attractionK: {}", e))?;
+            },
+            "boundsSize" => {
+                self.bounds_size = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set boundsSize: {}", e))?;
+            },
+            "separationRadius" => {
+                self.separation_radius = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set separationRadius: {}", e))?;
+            },
+            "damping" => {
+                self.damping = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set damping: {}", e))?;
+            },
+            "enableBounds" => {
+                self.enable_bounds = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set enableBounds: {}", e))?;
+            },
+            "enabled" => {
+                self.enabled = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set enabled: {}", e))?;
+            },
+            "iterations" => {
+                self.iterations = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set iterations: {}", e))?;
+            },
+            "maxVelocity" => {
+                self.max_velocity = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set maxVelocity: {}", e))?;
+            },
+            "maxForce" => {
+                self.max_force = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set maxForce: {}", e))?;
+            },
+            "repelK" => {
+                self.repel_k = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set repelK: {}", e))?;
+            },
+            "springK" => {
+                self.spring_k = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set springK: {}", e))?;
+            },
+            "massScale" => {
+                self.mass_scale = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set massScale: {}", e))?;
+            },
+            "boundaryDamping" => {
+                self.boundary_damping = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set boundaryDamping: {}", e))?;
+            },
+            "updateThreshold" => {
+                self.update_threshold = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set updateThreshold: {}", e))?;
+            },
+            "dt" => {
+                self.dt = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set dt: {}", e))?;
+            },
+            "temperature" => {
+                self.temperature = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set temperature: {}", e))?;
+            },
+            "gravity" => {
+                self.gravity = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set gravity: {}", e))?;
+            },
+            "stressWeight" => {
+                self.stress_weight = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set stressWeight: {}", e))?;
+            },
+            "stressAlpha" => {
+                self.stress_alpha = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set stressAlpha: {}", e))?;
+            },
+            _ => return Err(format!("Unknown physics field: {}", path)),
+        }
+        Ok(())
+    }
+}
+
+// Use macro for structs with nested fields  
+impl_field_access!(GraphSettings, {
+    "nodes" => nodes: NodeSettings,
+    "edges" => edges: EdgeSettings, 
+    "labels" => labels: LabelSettings,
+    "physics" => physics: PhysicsSettings
+});
+
+impl_field_access!(GraphsSettings, {
+    "logseq" => logseq: GraphSettings,
+    "visionflow" => visionflow: GraphSettings
+});
+
+impl_field_access!(VisualisationSettings, {
+    "rendering" => rendering: RenderingSettings,
+    "animations" => animations: AnimationSettings,
+    "glow" => glow: GlowSettings,
+    "hologram" => hologram: HologramSettings,
+    "graphs" => graphs: GraphsSettings
+});
+
+impl_field_access!(SystemSettings, {
+    "network" => network: NetworkSettings,
+    "websocket" => websocket: WebSocketSettings,
+    "security" => security: SecuritySettings,
+    "debug" => debug: DebugSettings
+});
+
+// Implement PathAccessible for XRSettings (simple fields)
+impl PathAccessible for XRSettings {
+    fn get_by_path(&self, path: &str) -> Option<serde_json::Value> {
+        match path {
+            "enabled" => serde_json::to_value(&self.enabled).ok(),
+            "clientSideEnableXr" => serde_json::to_value(&self.client_side_enable_xr).ok(),
+            "mode" => serde_json::to_value(&self.mode).ok(),
+            "roomScale" => serde_json::to_value(&self.room_scale).ok(),
+            "spaceType" => serde_json::to_value(&self.space_type).ok(),
+            "quality" => serde_json::to_value(&self.quality).ok(),
+            "renderScale" => serde_json::to_value(&self.render_scale).ok(),
+            "interactionDistance" => serde_json::to_value(&self.interaction_distance).ok(),
+            "locomotionMethod" => serde_json::to_value(&self.locomotion_method).ok(),
+            "teleportRayColor" => serde_json::to_value(&self.teleport_ray_color).ok(),
+            "controllerRayColor" => serde_json::to_value(&self.controller_ray_color).ok(),
+            "controllerModel" => serde_json::to_value(&self.controller_model).ok(),
+            "enableHandTracking" => serde_json::to_value(&self.enable_hand_tracking).ok(),
+            "handMeshEnabled" => serde_json::to_value(&self.hand_mesh_enabled).ok(),
+            "handMeshColor" => serde_json::to_value(&self.hand_mesh_color).ok(),
+            "handMeshOpacity" => serde_json::to_value(&self.hand_mesh_opacity).ok(),
+            "handPointSize" => serde_json::to_value(&self.hand_point_size).ok(),
+            _ => None,
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: serde_json::Value) -> Result<(), String> {
+        match path {
+            "enabled" => {
+                self.enabled = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set enabled: {}", e))?;
+            },
+            "clientSideEnableXr" => {
+                self.client_side_enable_xr = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set clientSideEnableXr: {}", e))?;
+            },
+            "mode" => {
+                self.mode = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set mode: {}", e))?;
+            },
+            "roomScale" => {
+                self.room_scale = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set roomScale: {}", e))?;
+            },
+            "spaceType" => {
+                self.space_type = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set spaceType: {}", e))?;
+            },
+            "quality" => {
+                self.quality = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set quality: {}", e))?;
+            },
+            "renderScale" => {
+                self.render_scale = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set renderScale: {}", e))?;
+            },
+            "interactionDistance" => {
+                self.interaction_distance = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set interactionDistance: {}", e))?;
+            },
+            "locomotionMethod" => {
+                self.locomotion_method = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set locomotionMethod: {}", e))?;
+            },
+            "teleportRayColor" => {
+                self.teleport_ray_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set teleportRayColor: {}", e))?;
+            },
+            "controllerRayColor" => {
+                self.controller_ray_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set controllerRayColor: {}", e))?;
+            },
+            "controllerModel" => {
+                self.controller_model = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set controllerModel: {}", e))?;
+            },
+            "enableHandTracking" => {
+                self.enable_hand_tracking = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set enableHandTracking: {}", e))?;
+            },
+            "handMeshEnabled" => {
+                self.hand_mesh_enabled = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set handMeshEnabled: {}", e))?;
+            },
+            "handMeshColor" => {
+                self.hand_mesh_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set handMeshColor: {}", e))?;
+            },
+            "handMeshOpacity" => {
+                self.hand_mesh_opacity = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set handMeshOpacity: {}", e))?;
+            },
+            "handPointSize" => {
+                self.hand_point_size = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set handPointSize: {}", e))?;
+            },
+            _ => return Err(format!("Unknown XR field: {}", path)),
+        }
+        Ok(())
+    }
+}
+
+// Implement PathAccessible for AuthSettings (simple fields)
+impl PathAccessible for AuthSettings {
+    fn get_by_path(&self, path: &str) -> Option<serde_json::Value> {
+        match path {
+            "provider" => serde_json::to_value(&self.provider).ok(),
+            _ => None,
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: serde_json::Value) -> Result<(), String> {
+        match path {
+            "provider" => {
+                self.provider = serde_json::from_value(value)
+                    .map_err(|e| format!("Failed to set provider: {}", e))?;
+            },
+            _ => return Err(format!("Unknown auth field: {}", path)),
+        }
+        Ok(())
+    }
+}
+
+impl_field_access!(AppFullSettings, {
+    "visualisation" => visualisation: VisualisationSettings,
+    "system" => system: SystemSettings,
+    "xr" => xr: XRSettings,
+    "auth" => auth: AuthSettings
+});
+
+// Placeholder implementations for remaining structs (add fields as needed)
+macro_rules! impl_simple_path_access {
+    ($struct_name:ty) => {
+        impl PathAccessible for $struct_name {
+            fn get_by_path(&self, _path: &str) -> Option<serde_json::Value> {
+                // Default implementation - can be overridden per struct
+                serde_json::to_value(self).ok()
+            }
+            
+            fn set_by_path(&mut self, path: &str, _value: serde_json::Value) -> Result<(), String> {
+                Err(format!("Path access not implemented for {} at path: {}", stringify!($struct_name), path))
+            }
+        }
+    };
+}
+
+// Apply to remaining structs
+impl_simple_path_access!(NodeSettings);
+impl_simple_path_access!(EdgeSettings);
+impl_simple_path_access!(LabelSettings);
+impl_simple_path_access!(RenderingSettings);
+impl_simple_path_access!(AnimationSettings);
+impl_simple_path_access!(GlowSettings);
+impl_simple_path_access!(HologramSettings);
+impl_simple_path_access!(NetworkSettings);
+impl_simple_path_access!(WebSocketSettings);
+impl_simple_path_access!(SecuritySettings);
+impl_simple_path_access!(DebugSettings);
 

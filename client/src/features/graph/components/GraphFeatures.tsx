@@ -13,7 +13,7 @@ import { graphComparison, type NodeMatch, type GraphDifference, type SimilarityA
 import { graphAnimations, type AnimationOptions } from '../services/graphAnimations';
 import { aiInsights, type LayoutOptimization, type ClusterDetection, type NodeRecommendation } from '../services/aiInsights';
 import { advancedInteractionModes, type TimeTravelState, type ExplorationState, type CollaborationState } from '../services/advancedInteractionModes';
-import { useSettingsStore } from '../../../store/settingsStore';
+import { useSelectiveSetting } from '../../../hooks/useSelectiveSettingsStore';
 import { createLogger } from '../../../utils/logger';
 import type { GraphData } from '../managers/graphDataManager';
 
@@ -69,7 +69,7 @@ const GraphFeatures: React.FC<GraphFeaturesProps> = ({
   onFeatureUpdate
 }) => {
   const { scene } = useThree();
-  const settings = useSettingsStore(state => state.settings);
+  // Get settings using selective hooks - removed bulk settings access
   
   const [panelVisible, setPanelVisible] = useState(true);
   const [featureState, setFeatureState] = useState<FeatureState>({

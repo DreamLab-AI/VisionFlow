@@ -1,40 +1,51 @@
 use actix_web::{web, Error as ActixError, HttpResponse};
 use std::sync::Arc;
-use crate::actors::messages::{GetSettings, UpdateMetadata, BuildGraphFromMetadata, GetNodeData as GetGpuNodeData};
+use crate::actors::messages::{UpdateMetadata, BuildGraphFromMetadata, GetNodeData as GetGpuNodeData, GetSettingsByPaths};
 use serde_json::json;
 use log::{info, debug, error};
 
 use crate::AppState;
 use crate::services::file_service::{FileService, MARKDOWN_DIR};
 
-pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse {
+pub async fn fetch_and_process_files(state: web::Data<AppState>) -> Result<HttpResponse, ActixError> {
     info!("Initiating optimized file fetch and processing");
 
     let mut metadata_store = match FileService::load_or_create_metadata() {
         Ok(store) => store,
         Err(e) => {
             error!("Failed to load or create metadata: {}", e);
-            return HttpResponse::InternalServerError().json(json!({
+            return Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Failed to initialize metadata: {}", e)
-            }));
+            })));
         }
     };
     
-    let settings = match state.settings_addr.send(GetSettings).await {
-        Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
+    // Get settings needed for file processing (file service settings, debug)
+    let file_settings_paths = vec![
+        "system.debug.enabled".to_string(),
+        "files.max_size".to_string(),
+        "files.allowed_types".to_string()
+    ];
+    let _file_settings = match state.settings_addr.send(GetSettingsByPaths { paths: file_settings_paths }).await {
+        Ok(Ok(s)) => s,
         _ => {
             error!("Failed to retrieve settings from SettingsActor");
-            return HttpResponse::InternalServerError().json(json!({
+            return Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": "Failed to retrieve application settings"
-            }));
+            })));
         }
     };
     
-    let file_service = FileService::new(settings.clone());
+    // Create a temporary empty settings for FileService (this is a limitation we need to address)
+    // TODO: Refactor FileService to work with granular settings instead of full settings object
+    use crate::config::AppFullSettings;
+    use tokio::sync::RwLock;
+    let temp_settings = Arc::new(RwLock::new(AppFullSettings::default()));
+    let file_service = FileService::new(temp_settings.clone());
     
-    match file_service.fetch_and_process_files(state.content_api.clone(), settings.clone(), &mut metadata_store).await {
+    match file_service.fetch_and_process_files(state.content_api.clone(), temp_settings.clone(), &mut metadata_store).await {
         Ok(processed_files) => {
             let file_names: Vec<String> = processed_files.iter()
                 .map(|pf| pf.file_name.clone())
@@ -55,10 +66,10 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             // If it interacts with shared state, it should be refactored.
             if let Err(e) = FileService::save_metadata(&metadata_store) {
                 error!("Failed to save metadata: {}", e);
-                return HttpResponse::InternalServerError().json(json!({
+                return Ok(HttpResponse::InternalServerError().json(json!({
                     "status": "error",
                     "message": format!("Failed to save metadata: {}", e)
-                }));
+                })));
             }
 
             // Send BuildGraphFromMetadata message to GraphServiceActor
@@ -85,33 +96,33 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                         }
                     }
 
-                    HttpResponse::Ok().json(json!({
+                    Ok(HttpResponse::Ok().json(json!({
                         "status": "success",
                         "processed_files": file_names
-                    }))
+                    })))
                 },
                 Ok(Err(e)) => {
                     error!("GraphServiceActor failed to build graph from metadata: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
+                    Ok(HttpResponse::InternalServerError().json(json!({
                         "status": "error",
                         "message": format!("Failed to build graph: {}", e)
-                    }))
+                    })))
                 },
                 Err(e) => {
                     error!("Failed to build graph data: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
+                    Ok(HttpResponse::InternalServerError().json(json!({
                         "status": "error",
                         "message": format!("Failed to build graph data: {}", e)
-                    }))
+                    })))
                 }
             }
         },
         Err(e) => {
             error!("Error processing files: {}", e);
-            HttpResponse::InternalServerError().json(json!({
+            Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Error processing files: {}", e)
-            }))
+            })))
         }
     }
 }
