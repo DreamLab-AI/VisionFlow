@@ -29,7 +29,7 @@ export const SpaceMouseStatus: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-md">
+    <div className="fixed" style={{ top: '1rem', right: '1rem', zIndex: 50, maxWidth: '28rem' }}>
       {!isSecureContext && (
         <div className="bg-yellow-900/90 backdrop-blur-sm text-yellow-100 p-4 rounded-lg shadow-lg mb-2">
           <div className="flex items-start gap-3">

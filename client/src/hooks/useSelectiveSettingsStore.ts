@@ -3,6 +3,20 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { SettingsPath } from '@/types/generated/settings';
 import { createLogger } from '@/utils/logger';
 
+// Request deduplication and caching
+const pendingRequests = new Map<string, Promise<void>>();
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5000; // 5 seconds cache
+
+// Debounce utility for API calls
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  }) as T;
+}
+
 const logger = createLogger('useSelectiveSettingsStore');
 
 /**
@@ -15,7 +29,40 @@ export function useSelectiveSetting<T>(path: SettingsPath): T {
   const loadedPaths = useSettingsStore(state => state.loadedPaths);
   const partialSettings = useSettingsStore(state => state.partialSettings);
   
-  // Check if path is loaded and trigger load if needed (side effect in useEffect)
+  // Debounced path loading to prevent excessive API calls
+  const debouncedEnsureLoaded = useMemo(
+    () => debounce((pathsToLoad: SettingsPath[]) => {
+      const requestKey = pathsToLoad.join(',');
+      
+      // Check cache first
+      const cached = requestCache.get(requestKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return Promise.resolve();
+      }
+      
+      // Deduplicate requests
+      if (pendingRequests.has(requestKey)) {
+        return pendingRequests.get(requestKey)!;
+      }
+      
+      const promise = ensureLoaded(pathsToLoad)
+        .then(() => {
+          requestCache.set(requestKey, { data: true, timestamp: Date.now() });
+        })
+        .catch(error => {
+          logger.error(`Failed to load paths ${requestKey}:`, error);
+        })
+        .finally(() => {
+          pendingRequests.delete(requestKey);
+        });
+      
+      pendingRequests.set(requestKey, promise);
+      return promise;
+    }, 100), // 100ms debounce
+    [ensureLoaded]
+  );
+  
+  // Check if path is loaded and trigger load if needed (debounced)
   useEffect(() => {
     const isPathLoaded = loadedPaths.has(path) || 
       [...loadedPaths].some(loadedPath => 
@@ -23,12 +70,10 @@ export function useSelectiveSetting<T>(path: SettingsPath): T {
       );
     
     if (!isPathLoaded) {
-      logger.debug(`Path ${path} not loaded, triggering load`);
-      ensureLoaded([path]).catch(error => {
-        logger.error(`Failed to load path ${path}:`, error);
-      });
+      logger.debug(`Path ${path} not loaded, triggering debounced load`);
+      debouncedEnsureLoaded([path]);
     }
-  }, [path, loadedPaths, ensureLoaded]);
+  }, [path, loadedPaths, debouncedEnsureLoaded]);
   
   // Pure selector that just reads the value without side effects
   return useSettingsStore(
@@ -75,7 +120,43 @@ export function useSelectiveSettings<T extends Record<string, any>>(
     return keys.map(k => `${k}:${paths[k as keyof T]}`).join('|');
   }, [paths]);
   
-  // Load paths if needed
+  // Debounced batch path loading to prevent excessive API calls
+  const debouncedBatchEnsureLoaded = useMemo(
+    () => debounce((pathsToLoad: SettingsPath[]) => {
+      if (pathsToLoad.length === 0) return;
+      
+      const requestKey = pathsToLoad.sort().join(',');
+      
+      // Check cache first
+      const cached = requestCache.get(requestKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return;
+      }
+      
+      // Deduplicate requests
+      if (pendingRequests.has(requestKey)) {
+        return;
+      }
+      
+      logger.debug(`Loading paths batch: ${pathsToLoad.join(', ')}`);
+      
+      const promise = ensureLoaded(pathsToLoad)
+        .then(() => {
+          requestCache.set(requestKey, { data: true, timestamp: Date.now() });
+        })
+        .catch(error => {
+          logger.error(`Failed to load paths batch:`, error);
+        })
+        .finally(() => {
+          pendingRequests.delete(requestKey);
+        });
+      
+      pendingRequests.set(requestKey, promise);
+    }, 50), // 50ms debounce for batches
+    [ensureLoaded]
+  );
+  
+  // Load paths if needed (debounced batch)
   useEffect(() => {
     const pathsToLoad: SettingsPath[] = [];
     for (const key in paths) {
@@ -91,12 +172,9 @@ export function useSelectiveSettings<T extends Record<string, any>>(
     }
     
     if (pathsToLoad.length > 0) {
-      logger.debug(`Loading paths: ${pathsToLoad.join(', ')}`);
-      ensureLoaded(pathsToLoad).catch(error => {
-        logger.error(`Failed to load paths:`, error);
-      });
+      debouncedBatchEnsureLoaded(pathsToLoad);
     }
-  }, [pathsKey, loadedPaths, ensureLoaded]); // Use stable key
+  }, [pathsKey, loadedPaths, debouncedBatchEnsureLoaded]); // Use stable key
   
   // Create a cached selector to avoid the getSnapshot warning
   const selectorRef = useRef<{

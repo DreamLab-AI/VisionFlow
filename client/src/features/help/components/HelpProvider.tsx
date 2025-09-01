@@ -64,10 +64,11 @@ function HelpPanel() {
 
   return (
     <div className={cn(
-      "fixed right-4 top-20 z-40 w-96 max-h-[calc(100vh-6rem)]",
+      "fixed top-20 z-40 w-96 max-h-[calc(100vh-6rem)]",
       "bg-background border rounded-lg shadow-xl",
       "animate-in slide-in-from-right duration-200"
-    )}>
+    )}
+    style={{ right: '1rem' }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">

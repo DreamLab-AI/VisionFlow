@@ -2,13 +2,12 @@
 use actix_web::{web, HttpResponse, HttpRequest, Result};
 use crate::app_state::AppState;
 use crate::actors::messages::{GetSettingsByPaths, SetSettingsByPaths};
-use crate::utils::case_conversion::{keys_to_camel_case, keys_to_snake_case};
+use crate::utils::case_conversion::{keys_to_camel_case, keys_to_snake_case, path_to_snake_case, path_to_camel_case};
 // Remove unused rate limiting for now
 use log::{info, error, debug};
 use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use heck::ToSnakeCase;
 
 /// Request payload for setting multiple values at once
 #[derive(Debug, Deserialize)]
@@ -58,11 +57,8 @@ pub async fn get_settings(
     let snake_case_paths: Vec<String> = requested_paths.iter()
         .map(|p| {
             // Convert camelCase dot notation paths to snake_case 
-            // e.g. "physics.autoBalance" -> "physics.auto_balance"
-            p.split('.')
-                .map(|segment| heck::ToSnakeCase::to_snake_case(segment))
-                .collect::<Vec<_>>()
-                .join(".")
+            // e.g. "visualisation.camera.enableOrbitControls" -> "visualisation.camera.enable_orbit_controls"
+            path_to_snake_case(p)
         })
         .collect();
 
@@ -89,13 +85,7 @@ pub async fn get_settings(
                 .into_iter()
                 .map(|(key, value)| {
                     // Convert both the key path and the value contents to camelCase
-                    let camel_key = key.split('.')
-                        .map(|segment| {
-                            // Convert snake_case segment to camelCase manually
-                            crate::utils::case_conversion::snake_to_camel(segment)
-                        })
-                        .collect::<Vec<_>>()
-                        .join(".");
+                    let camel_key = path_to_camel_case(&key);
                     let camel_value = keys_to_camel_case(value);
                     (camel_key, camel_value)
                 })
@@ -144,10 +134,7 @@ pub async fn set_settings(
     let updates: Vec<(String, Value)> = request.updates.iter()
         .map(|u| {
             // Convert camelCase dot notation path to snake_case
-            let snake_path = u.path.split('.')
-                .map(|segment| segment.to_snake_case())
-                .collect::<Vec<_>>()
-                .join(".");
+            let snake_path = path_to_snake_case(&u.path);
             
             // Convert camelCase value keys to snake_case
             let snake_value = keys_to_snake_case(u.value.clone());

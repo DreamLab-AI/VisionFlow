@@ -77,6 +77,24 @@ pub fn camel_to_snake(s: &str) -> String {
     result
 }
 
+/// Convert a dot-notation camelCase path to snake_case
+/// e.g. "visualisation.camera.enableOrbitControls" -> "visualisation.camera.enable_orbit_controls"
+pub fn path_to_snake_case(path: &str) -> String {
+    path.split('.')
+        .map(|segment| camel_to_snake(segment))
+        .collect::<Vec<_>>()
+        .join(".")
+}
+
+/// Convert a dot-notation snake_case path to camelCase
+/// e.g. "visualisation.camera.enable_orbit_controls" -> "visualisation.camera.enableOrbitControls"
+pub fn path_to_camel_case(path: &str) -> String {
+    path.split('.')
+        .map(|segment| snake_to_camel(segment))
+        .collect::<Vec<_>>()
+        .join(".")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -166,5 +184,36 @@ mod tests {
         let back_to_snake = keys_to_snake_case(camel);
         
         assert_eq!(original, back_to_snake);
+    }
+
+    #[test]
+    fn test_path_to_snake_case() {
+        assert_eq!(path_to_snake_case("visualisation.camera.enableOrbitControls"), "visualisation.camera.enable_orbit_controls");
+        assert_eq!(path_to_snake_case("physics.autoBalance"), "physics.auto_balance");
+        assert_eq!(path_to_snake_case("system.debugMode"), "system.debug_mode");
+        assert_eq!(path_to_snake_case("simple"), "simple");
+        assert_eq!(path_to_snake_case("already_snake"), "already_snake");
+    }
+
+    #[test]
+    fn test_path_to_camel_case() {
+        assert_eq!(path_to_camel_case("visualisation.camera.enable_orbit_controls"), "visualisation.camera.enableOrbitControls");
+        assert_eq!(path_to_camel_case("physics.auto_balance"), "physics.autoBalance");
+        assert_eq!(path_to_camel_case("system.debug_mode"), "system.debugMode");
+        assert_eq!(path_to_camel_case("simple"), "simple");
+        assert_eq!(path_to_camel_case("alreadyCamel"), "alreadyCamel");
+    }
+
+    #[test]
+    fn test_path_round_trip_conversion() {
+        let original = "visualisation.camera.enable_orbit_controls";
+        let camel = path_to_camel_case(original);
+        let back_to_snake = path_to_snake_case(&camel);
+        assert_eq!(original, back_to_snake);
+
+        let original_camel = "visualisation.camera.enableOrbitControls";
+        let snake = path_to_snake_case(original_camel);
+        let back_to_camel = path_to_camel_case(&snake);
+        assert_eq!(original_camel, back_to_camel);
     }
 }

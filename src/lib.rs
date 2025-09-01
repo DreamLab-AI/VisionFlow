@@ -13,8 +13,6 @@ pub mod utils;
 #[cfg(test)]
 pub mod tests;
 
-#[cfg(test)]
-mod test_case_conversion;
 
 pub use app_state::AppState;
 pub use actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor};

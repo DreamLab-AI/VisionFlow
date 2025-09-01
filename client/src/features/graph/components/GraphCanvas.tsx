@@ -189,7 +189,7 @@ const GraphCanvas: React.FC = () => {
                 {/* Post-processing effects - always use standard bloom */}
                 {(enableBloom || enableGlow) && <PostProcessingEffects />}
                 
-                {/* Performance stats */}
+                {/* Performance stats - positioned to not overlap with control panel */}
                 {showStats && <Stats />}
             </Canvas>
         </div>

@@ -11,6 +11,17 @@ import { BinaryNodeData, createBinaryNodeData } from '../../../types/binaryProto
 import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
 import { createEventHandlers } from './GraphManager_EventHandlers'
+import { memoizeComponent, withPerformanceMonitoring, useDebounce, useStableObject } from '../../../utils/performanceUtils'
+import { ErrorBoundary } from '../../../components/ErrorBoundary'
+
+// Debounce utility for performance optimization
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  }) as T;
+}
 import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
@@ -140,30 +151,23 @@ const getTypeImportance = (nodeType?: string): number => {
   return importanceMap[nodeType || 'default'] || 1.0
 }
 
-const GraphManager: React.FC = () => {
-  // Use selective hooks for specific settings to prevent unnecessary re-renders
-  const nodeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.nodeBloomStrength');
-  const edgeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.edgeBloomStrength');
-  
-  // Get multiple related settings efficiently
-  const visualSettings = useSelectiveSettings({
+const GraphManager: React.FC = React.memo(() => {
+  // Memoize settings objects to prevent unnecessary re-renders
+  const visualSettingsPaths = useMemo(() => ({
     nodeOpacity: 'visualisation.graphs.logseq.nodes.opacity' as const,
     nodeSize: 'visualisation.graphs.logseq.nodes.nodeSize' as const,
     nodeBaseColor: 'visualisation.graphs.logseq.nodes.baseColor' as const,
     enableHologram: 'visualisation.graphs.logseq.nodes.enableHologram' as const,
     enableMetadataShape: 'visualisation.graphs.logseq.nodes.enableMetadataShape' as const
-  });
+  }), []);
   
-  const debugSettings = useSelectiveSettings({
+  const debugSettingsPaths = useMemo(() => ({
     enableNodeDebug: 'system.debug.enableNodeDebug' as const,
     enablePhysicsDebug: 'system.debug.enablePhysicsDebug' as const,
     enablePerformanceDebug: 'system.debug.enablePerformanceDebug' as const
-  });
+  }), []);
   
-  const pulseStrength = useSelectiveSetting<number>('visualisation.animations.pulseStrength');
-  
-  // Label settings
-  const labelSettings = useSelectiveSettings({
+  const labelSettingsPaths = useMemo(() => ({
     enableLabels: 'visualisation.graphs.logseq.labels.enableLabels' as const,
     showMetadata: 'visualisation.graphs.logseq.labels.showMetadata' as const,
     textPadding: 'visualisation.graphs.logseq.labels.textPadding' as const,
@@ -172,16 +176,26 @@ const GraphManager: React.FC = () => {
     textColor: 'visualisation.graphs.logseq.labels.textColor' as const,
     textOutlineWidth: 'visualisation.graphs.logseq.labels.textOutlineWidth' as const,
     textOutlineColor: 'visualisation.graphs.logseq.labels.textOutlineColor' as const
-  });
+  }), []);
   
-  // Edge settings
-  const edgeSettings = useSelectiveSettings({
+  const edgeSettingsPaths = useMemo(() => ({
     arrowSize: 'visualisation.graphs.logseq.edges.arrowSize' as const,
     baseWidth: 'visualisation.graphs.logseq.edges.baseWidth' as const,
     color: 'visualisation.graphs.logseq.edges.color' as const,
     enableArrows: 'visualisation.graphs.logseq.edges.enableArrows' as const,
     opacity: 'visualisation.graphs.logseq.edges.opacity' as const
-  });
+  }), []);
+  
+  // Use selective hooks for specific settings to prevent unnecessary re-renders
+  const nodeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.nodeBloomStrength');
+  const edgeBloomStrength = useSelectiveSetting<number>('visualisation.bloom.edgeBloomStrength');
+  const pulseStrength = useSelectiveSetting<number>('visualisation.animations.pulseStrength');
+  
+  // Get multiple related settings efficiently with memoized paths
+  const visualSettings = useSelectiveSettings(visualSettingsPaths);
+  const debugSettings = useSelectiveSettings(debugSettingsPaths);
+  const labelSettings = useSelectiveSettings(labelSettingsPaths);
+  const edgeSettings = useSelectiveSettings(edgeSettingsPaths);
   
   // SSSP visualization state
   const ssspResult = useCurrentSSSPResult();
@@ -335,10 +349,17 @@ const GraphManager: React.FC = () => {
     mesh.geometry.attributes.instanceColor.needsUpdate = true;
   }, [graphData.nodes, normalizedSSSPResult]);
 
-  // Update colors when SSSP result changes
+  // Update colors when SSSP result changes (debounced)
+  const debouncedUpdateColors = useCallback(
+    debounce(() => {
+      updateNodeColors();
+    }, 16), // Debounce to animation frame rate
+    [updateNodeColors]
+  );
+  
   useEffect(() => {
-    updateNodeColors();
-  }, [updateNodeColors]);
+    debouncedUpdateColors();
+  }, [debouncedUpdateColors]);
 
   // Initialize instance attributes
   useEffect(() => {
@@ -391,19 +412,27 @@ const GraphManager: React.FC = () => {
       logger.debug('Instance matrices initialized')
     }
   }, [graphData, normalizedSSSPResult])
-  // Animation loop with physics updates
+  // Animation loop with optimized physics updates
+  const lastPhysicsUpdate = useRef(0);
+  const PHYSICS_UPDATE_INTERVAL = 1000 / 60; // 60 FPS max for physics
+  
   useFrame(async (state, delta) => {
-    animationStateRef.current.time = state.clock.elapsedTime
+    animationStateRef.current.time = state.clock.elapsedTime;
     
-    // Debug: Log first frame and periodic updates
+    // Throttle physics updates to prevent excessive calculations
+    const now = performance.now();
+    const shouldUpdatePhysics = now - lastPhysicsUpdate.current >= PHYSICS_UPDATE_INTERVAL;
+    
+    // Debug: Log first frame and periodic updates (reduced frequency)
     if (debugSettings.enablePhysicsDebug && debugState.isEnabled()) {
       const frameCount = Math.floor(state.clock.elapsedTime * 60);
-      if (frameCount === 1 || frameCount % 300 === 0) { // Log first frame and every 5 seconds
+      if (frameCount === 1 || frameCount % 600 === 0) { // Log first frame and every 10 seconds
         logger.debug('Physics frame update', {
           time: state.clock.elapsedTime,
           delta,
           nodeCount: graphData.nodes.length,
-          hasPositions: !!nodePositionsRef.current
+          hasPositions: !!nodePositionsRef.current,
+          physicsThrottled: !shouldUpdatePhysics
         });
       }
     }
@@ -413,8 +442,9 @@ const GraphManager: React.FC = () => {
       materialRef.current.updateTime(animationStateRef.current.time)
     }
 
-    // Get smooth positions from physics worker
-    if ((meshRef.current || enableMetadataShape) && graphData.nodes.length > 0) {
+    // Get smooth positions from physics worker (throttled)
+    if ((meshRef.current || enableMetadataShape) && graphData.nodes.length > 0 && shouldUpdatePhysics) {
+      lastPhysicsUpdate.current = now;
       const positions = await graphWorkerProxy.tick(delta);
       nodePositionsRef.current = positions;
 
@@ -904,6 +934,11 @@ const GraphManager: React.FC = () => {
       {NodeLabels}
     </>
   )
-}
+});
 
-export default GraphManager
+// Apply performance monitoring in development
+const PerformanceMonitoredGraphManager = process.env.NODE_ENV === 'development' 
+  ? withPerformanceMonitoring(GraphManager, 'GraphManager')
+  : GraphManager;
+
+export default PerformanceMonitoredGraphManager;

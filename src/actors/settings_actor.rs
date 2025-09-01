@@ -143,24 +143,13 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
         
         Box::pin(async move {
             let mut current = settings.write().await;
-            let mut errors = Vec::new();
-            let mut success_count = 0;
-            
-            // Apply all updates
+            // Apply updates transactionally
             for (path, value) in msg.updates {
-                match current.set_by_path(&path, value) {
-                    Ok(()) => {
-                        success_count += 1;
-                        debug!("Successfully updated path: {}", path);
-                    }
-                    Err(e) => {
-                        errors.push(format!("{}: {}", path, e));
-                    }
+                if let Err(e) = current.set_by_path(&path, value) {
+                    error!("Transactional update failed for path '{}': {}", path, e);
+                    return Err(format!("Update failed for path '{}': {}", path, e));
                 }
-            }
-            
-            if success_count == 0 {
-                return Err(format!("No updates succeeded. Errors: {}", errors.join(", ")));
+                debug!("Successfully staged update for path: {}", path);
             }
             
             // Validate the entire settings struct using the validator crate
@@ -187,10 +176,10 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
             
             // Save to file once for all updates
             if let Err(e) = current.save() {
-                error!("Failed to save settings: {}", e);
+                error!("Failed to save settings after transactional update: {}", e);
                 Err(format!("Failed to save settings: {}", e))
             } else {
-                info!("Bulk settings update completed: {} successes, {} errors", success_count, errors.len());
+                info!("Transactional settings update completed successfully");
                 Ok(())
             }
         })

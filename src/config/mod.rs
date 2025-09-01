@@ -1423,15 +1423,167 @@ macro_rules! impl_simple_path_access {
 }
 
 // Apply to remaining structs
-impl_simple_path_access!(NodeSettings);
+// NodeSettings - custom implementation below
 impl_simple_path_access!(EdgeSettings);
 impl_simple_path_access!(LabelSettings);
 impl_simple_path_access!(RenderingSettings);
 impl_simple_path_access!(AnimationSettings);
-impl_simple_path_access!(GlowSettings);
+// GlowSettings - custom implementation below
 impl_simple_path_access!(HologramSettings);
 impl_simple_path_access!(NetworkSettings);
 impl_simple_path_access!(WebSocketSettings);
 impl_simple_path_access!(SecuritySettings);
 impl_simple_path_access!(DebugSettings);
+
+// Custom PathAccessible implementation for GlowSettings
+impl PathAccessible for GlowSettings {
+    fn get_by_path(&self, path: &str) -> Option<serde_json::Value> {
+        if path.is_empty() {
+            return serde_json::to_value(self).ok();
+        }
+        
+        match path {
+            "enabled" => serde_json::to_value(&self.enabled).ok(),
+            "intensity" => serde_json::to_value(&self.intensity).ok(),
+            "radius" => serde_json::to_value(&self.radius).ok(),
+            "threshold" => serde_json::to_value(&self.threshold).ok(),
+            "diffuseStrength" => serde_json::to_value(&self.diffuse_strength).ok(),
+            "atmosphericDensity" => serde_json::to_value(&self.atmospheric_density).ok(),
+            "volumetricIntensity" => serde_json::to_value(&self.volumetric_intensity).ok(),
+            "baseColor" => serde_json::to_value(&self.base_color).ok(),
+            "emissionColor" => serde_json::to_value(&self.emission_color).ok(),
+            "opacity" => serde_json::to_value(&self.opacity).ok(),
+            _ => None,
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: serde_json::Value) -> Result<(), String> {
+        match path {
+            "enabled" => {
+                self.enabled = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for enabled: {}", e))?;
+                Ok(())
+            },
+            "intensity" => {
+                self.intensity = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for intensity: {}", e))?;
+                Ok(())
+            },
+            "radius" => {
+                self.radius = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for radius: {}", e))?;
+                Ok(())
+            },
+            "threshold" => {
+                self.threshold = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for threshold: {}", e))?;
+                Ok(())
+            },
+            "diffuseStrength" => {
+                self.diffuse_strength = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for diffuseStrength: {}", e))?;
+                Ok(())
+            },
+            "atmosphericDensity" => {
+                self.atmospheric_density = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for atmosphericDensity: {}", e))?;
+                Ok(())
+            },
+            "volumetricIntensity" => {
+                self.volumetric_intensity = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for volumetricIntensity: {}", e))?;
+                Ok(())
+            },
+            "baseColor" => {
+                self.base_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for baseColor: {}", e))?;
+                Ok(())
+            },
+            "emissionColor" => {
+                self.emission_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for emissionColor: {}", e))?;
+                Ok(())
+            },
+            "opacity" => {
+                self.opacity = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for opacity: {}", e))?;
+                Ok(())
+            },
+            _ => Err(format!("Unknown path for GlowSettings: {}", path))
+        }
+    }
+}
+
+// Custom PathAccessible implementation for NodeSettings
+impl PathAccessible for NodeSettings {
+    fn get_by_path(&self, path: &str) -> Option<serde_json::Value> {
+        if path.is_empty() {
+            return serde_json::to_value(self).ok();
+        }
+        
+        match path {
+            "baseColor" => serde_json::to_value(&self.base_color).ok(),
+            "metalness" => serde_json::to_value(&self.metalness).ok(),
+            "opacity" => serde_json::to_value(&self.opacity).ok(),
+            "roughness" => serde_json::to_value(&self.roughness).ok(),
+            "nodeSize" => serde_json::to_value(&self.node_size).ok(),
+            "quality" => serde_json::to_value(&self.quality).ok(),
+            "enableInstancing" => serde_json::to_value(&self.enable_instancing).ok(),
+            "enableHologram" | "enable_hologram" => serde_json::to_value(&self.enable_hologram).ok(),
+            "enableMetadataShape" => serde_json::to_value(&self.enable_metadata_shape).ok(),
+            _ => None,
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: serde_json::Value) -> Result<(), String> {
+        match path {
+            "baseColor" => {
+                self.base_color = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for baseColor: {}", e))?;
+                Ok(())
+            },
+            "metalness" => {
+                self.metalness = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for metalness: {}", e))?;
+                Ok(())
+            },
+            "opacity" => {
+                self.opacity = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for opacity: {}", e))?;
+                Ok(())
+            },
+            "roughness" => {
+                self.roughness = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for roughness: {}", e))?;
+                Ok(())
+            },
+            "nodeSize" => {
+                self.node_size = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for nodeSize: {}", e))?;
+                Ok(())
+            },
+            "quality" => {
+                self.quality = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for quality: {}", e))?;
+                Ok(())
+            },
+            "enableInstancing" => {
+                self.enable_instancing = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for enableInstancing: {}", e))?;
+                Ok(())
+            },
+            "enableHologram" | "enable_hologram" => {
+                self.enable_hologram = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for enableHologram: {}", e))?;
+                Ok(())
+            },
+            "enableMetadataShape" => {
+                self.enable_metadata_shape = serde_json::from_value(value)
+                    .map_err(|e| format!("Invalid value for enableMetadataShape: {}", e))?;
+                Ok(())
+            },
+            _ => Err(format!("Unknown path for NodeSettings: {}", path))
+        }
+    }
+}
 

@@ -83,8 +83,11 @@ export const VisualEffectsPanel: React.FC = () => {
   };
   
   return (
-    <div className="fixed top-4 right-4 z-50 bg-gray-900/95 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-2xl transition-all duration-300"
-         style={{
+    <div className="fixed bg-gray-900 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-2xl transition-all duration-300" 
+         style={{ 
+           top: '1rem', 
+           right: '1rem', 
+           zIndex: 50,
            minWidth: '320px',
            boxShadow: anyEffectEnabled ? '0 0 30px rgba(0, 255, 255, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.5)'
          }}>
