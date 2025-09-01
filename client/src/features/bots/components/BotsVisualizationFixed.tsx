@@ -682,6 +682,9 @@ export const BotsVisualization: React.FC = () => {
   // Note: Binary position updates removed - now handled via full graph updates
   // The server sends complete graph data including positions via requestBotsGraph
 
+  // Get settings for colors
+  const settings = useSelectiveSetting<any>('');  // Get root settings object
+
   // Colors
   const colors = useMemo(() => getVisionFlowColors(settings), [settings]);
 

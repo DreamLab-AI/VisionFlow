@@ -124,7 +124,7 @@ impl StressMajorizationSolver {
     /// Create solver from advanced physics parameters
     pub fn from_advanced_params(params: &AdvancedParams) -> Self {
         let config = StressMajorizationConfig {
-            max_iterations: params.stress_step_interval_frames * 10,
+            max_iterations: params.stress_step_interval_frames.saturating_mul(10).min(10000),
             constraint_weight: params.constraint_force_weight,
             step_size: 0.05,
             tolerance: 1e-5,

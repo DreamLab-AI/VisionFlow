@@ -265,7 +265,7 @@ export const useSettingsStore = create<SettingsState>()(
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
 
           if (debugState.isEnabled()) {
-            logger.info('Essential settings loaded:', { essentialSettings })
+            // logger.info('Essential settings loaded:', { essentialSettings })
           }
 
           set(state => ({
@@ -279,7 +279,7 @@ export const useSettingsStore = create<SettingsState>()(
           autoSaveManager.setInitialized(true);
 
           if (debugState.isEnabled()) {
-            logger.info('Settings store initialized with essential paths and auto-save enabled')
+            // logger.info('Settings store initialized with essential paths and auto-save enabled')
           }
 
         } catch (error) {
@@ -361,7 +361,7 @@ export const useSettingsStore = create<SettingsState>()(
           // Viewport updates handled by native Zustand subscriptions
 
           if (debugState.isEnabled()) {
-            logger.info('Setting updated:', { path, value });
+            // logger.info('Setting updated:', { path, value });
           }
         } catch (error) {
           logger.error('Failed to update setting:', createErrorMetadata(error));
@@ -395,7 +395,7 @@ export const useSettingsStore = create<SettingsState>()(
           // Native Zustand subscriptions handle all notifications automatically
 
           if (debugState.isEnabled()) {
-            logger.info('Batch settings updated:', { updates });
+            // logger.info('Batch settings updated:', { updates });
           }
         } catch (error) {
           logger.error('Failed to batch update settings:', createErrorMetadata(error));
@@ -430,9 +430,10 @@ export const useSettingsStore = create<SettingsState>()(
             };
           });
 
-          if (debugState.isEnabled()) {
-            logger.info('Paths loaded on demand:', { paths: unloadedPaths });
-          }
+          // Commented out to reduce noise - only log in debug mode if really needed
+          // if (debugState.isEnabled()) {
+          //   logger.info('Paths loaded on demand:', { paths: unloadedPaths });
+          // }
         } catch (error) {
           logger.error('Failed to load paths:', createErrorMetadata(error));
           throw error;
@@ -461,7 +462,7 @@ export const useSettingsStore = create<SettingsState>()(
           await get().ensureLoaded(sectionPaths);
 
           if (debugState.isEnabled()) {
-            logger.info(`Section loaded: ${section}`, { paths: sectionPaths });
+            // logger.info(`Section loaded: ${section}`, { paths: sectionPaths });
           }
         } finally {
           // Mark as no longer loading

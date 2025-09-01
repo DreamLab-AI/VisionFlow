@@ -645,7 +645,7 @@ const GraphManager: React.FC = () => {
     graphData,
     camera,
     size,
-    settings,
+    visualSettings,
     setGraphData
   )
 

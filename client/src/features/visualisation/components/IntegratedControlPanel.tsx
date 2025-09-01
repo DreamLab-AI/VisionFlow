@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSelectiveSettings, useSettingSetter } from '../../../hooks/useSelectiveSettingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
@@ -111,8 +111,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     rotation: { rx: 0, ry: 0, rz: 0 }
   });
 
-  // Menu state
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  // Menu state - Initialize with 'dashboard' to avoid null
+  const [activeSection, setActiveSection] = useState<string>('dashboard');
   const [selectedFieldIndex, setSelectedFieldIndex] = useState(0);
   const [selectedValue, setSelectedValue] = useState<number>(0);
 
@@ -129,18 +129,79 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
 
   // Settings store access
   // Use selective hooks for better performance
-  const settings = useSelectiveSettings({
+  const settingsPaths = useMemo(() => ({
     showStats: 'system.debug.enablePerformanceDebug' as const,
     enableBloom: 'visualisation.glow.enabled' as const,
     bloomStrength: 'visualisation.bloom.nodeBloomStrength' as const,
     enableOrbitControls: 'visualisation.camera.enableOrbitControls' as const,
     showGridHelper: 'visualisation.helpers.showGridHelper' as const,
     showAxesHelper: 'visualisation.helpers.showAxesHelper' as const
-  });
+  }), []);
+  const settings = useSelectiveSettings(settingsPaths);
   const { set } = useSettingSetter();
+  
+  // Memoize tab styles to prevent re-renders
+  const tabsListStyle = useMemo(() => ({ 
+    width: '100%', 
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    borderRadius: '6px',
+    padding: '2px',
+    marginBottom: '16px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(8, 1fr)',
+    height: '80px'
+  }), []);
+  
+  const secondTabsListStyle = useMemo(() => ({ 
+    width: '100%', 
+    backgroundColor: 'rgba(0,255,255,0.08)',
+    border: '1px solid rgba(0,255,255,0.15)',
+    borderRadius: '6px',
+    padding: '2px',
+    marginBottom: '16px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    height: '70px'
+  }), []);
 
   // Ref for scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Memoize TabsTrigger style generator to prevent re-renders
+  const getTabTriggerStyle = useMemo(() => (isPressed: boolean, height: string = '100%') => ({
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
+    gap: '4px',
+    padding: '8px 4px',
+    fontSize: '10px',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.7)',
+    border: isPressed ? '1px solid #10B981' : 'none',
+    backgroundColor: isPressed ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    height
+  }), []);
+  
+  const getSecondTabTriggerStyle = useMemo(() => (isPressed: boolean) => ({
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
+    gap: '4px',
+    padding: '6px 4px',
+    fontSize: '9px',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.7)',
+    border: isPressed ? '1px solid #06B6D4' : 'none',
+    backgroundColor: isPressed ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    height: '100%'
+  }), []);
 
   // Helper function to get values from settings path
   const getValueFromPath = (path: string): any => {
@@ -1103,24 +1164,13 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
 
         {/* Tabbed Interface */}
         <Tabs 
-          value={activeSection || 'dashboard'} 
-          onValueChange={(value) => {
+          value={activeSection} 
+          onValueChange={useCallback((value: string) => {
             setActiveSection(value);
             setSelectedFieldIndex(0);
-          }}
-          style={{ width: '100%' }}
+          }, [])}
         >
-          <TabsList style={{ 
-            width: '100%', 
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '6px',
-            padding: '2px',
-            marginBottom: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(8, 1fr)',  // 8 buttons in first row
-            height: '80px'
-          }}>
+          <TabsList style={tabsListStyle}>
             {Object.entries(BUTTON_MENU_MAP).slice(0, 8).map(([btnNum, menu]) => {  // First 8 buttons (1-8)
               const IconComponent = menu.icon;
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
@@ -1128,22 +1178,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                 <Tooltip key={menu.id} content={menu.description}>
                   <TabsTrigger 
                     value={menu.id}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '8px 4px',
-                      fontSize: '10px',
-                      fontWeight: 500,
-                      color: 'rgba(255,255,255,0.7)',
-                      border: isPressed ? '1px solid #10B981' : 'none',
-                      backgroundColor: isPressed ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      height: '100%'
-                    }}
+                    style={getTabTriggerStyle(isPressed)}
                   >
                     {IconComponent && <IconComponent size={16} />}
                     <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
@@ -1157,17 +1192,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           </TabsList>
 
           {/* Second row of tabs for graph features */}
-          <TabsList style={{ 
-            width: '100%', 
-            backgroundColor: 'rgba(0,255,255,0.08)',
-            border: '1px solid rgba(0,255,255,0.15)',
-            borderRadius: '6px',
-            padding: '2px',
-            marginBottom: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',  // 6 buttons in second row including Auth
-            height: '70px'
-          }}>
+          <TabsList style={secondTabsListStyle}>
             {Object.entries(BUTTON_MENU_MAP).slice(8).map(([btnNum, menu]) => {  // Remaining buttons (A-F)
               const IconComponent = menu.icon;
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
@@ -1175,22 +1200,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                 <Tooltip key={menu.id} content={menu.description}>
                   <TabsTrigger 
                     value={menu.id}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '6px 4px',
-                      fontSize: '9px',
-                      fontWeight: 500,
-                      color: 'rgba(255,255,255,0.7)',
-                      border: isPressed ? '1px solid #06B6D4' : 'none',
-                      backgroundColor: isPressed ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      height: '100%'
-                    }}
+                    style={getSecondTabTriggerStyle(isPressed)}
                   >
                     {IconComponent && <IconComponent size={14} />}
                     <div style={{ textAlign: 'center', lineHeight: 1.2 }}>

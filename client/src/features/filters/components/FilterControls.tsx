@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSelectiveSetting, useSelectiveSettings, useSettingSetter } from '@/hooks/useSelectiveSettingsStore';
 import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
@@ -38,15 +38,18 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
     { id: '4', label: 'Completed', field: 'status', value: 'completed', active: false }
   ]);
   
-  // Subscribe only to filter control settings
-  const filterSettings = useSelectiveSettings({
+  // Memoize settings paths to prevent infinite loops
+  const settingsPaths = useMemo(() => ({
     enabled: 'filters.enabled',
     showQuickFilters: 'filters.quickFilters.enabled',
     showSearch: 'filters.search.enabled',
     searchPlaceholder: 'filters.search.placeholder',
     caseSensitive: 'filters.caseSensitive',
     autoApply: 'filters.autoApply'
-  });
+  }), []);
+  
+  // Subscribe only to filter control settings
+  const filterSettings = useSelectiveSettings(settingsPaths);
   
   const activeFilters = quickFilters.filter(filter => filter.active);
   

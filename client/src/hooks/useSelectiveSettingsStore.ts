@@ -60,6 +60,8 @@ export function useSelectiveSetting<T>(path: SettingsPath): T {
 /**
  * Hook for subscribing to multiple settings paths
  * Returns an object with the current values
+ * 
+ * IMPORTANT: The paths object MUST be stable (memoized) to avoid infinite loops
  */
 export function useSelectiveSettings<T extends Record<string, any>>(
   paths: Record<keyof T, SettingsPath>
@@ -67,15 +69,17 @@ export function useSelectiveSettings<T extends Record<string, any>>(
   const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
   const loadedPaths = useSettingsStore(state => state.loadedPaths);
   
-  // Track paths in a ref to avoid re-running effect unnecessarily
-  const pathsRef = useRef(paths);
-  pathsRef.current = paths;
+  // Create a stable key from paths for memoization
+  const pathsKey = useMemo(() => {
+    const keys = Object.keys(paths).sort();
+    return keys.map(k => `${k}:${paths[k as keyof T]}`).join('|');
+  }, [paths]);
   
   // Load paths if needed
   useEffect(() => {
     const pathsToLoad: SettingsPath[] = [];
-    for (const key in pathsRef.current) {
-      const path = pathsRef.current[key];
+    for (const key in paths) {
+      const path = paths[key];
       const isPathLoaded = loadedPaths.has(path) || 
         [...loadedPaths].some(loadedPath => 
           path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
@@ -92,33 +96,73 @@ export function useSelectiveSettings<T extends Record<string, any>>(
         logger.error(`Failed to load paths:`, error);
       });
     }
-  }, [loadedPaths, ensureLoaded]);
+  }, [pathsKey, loadedPaths, ensureLoaded]); // Use stable key
   
-  return useSettingsStore((state) => {
-    const result = {} as T;
-    for (const key in paths) {
-      const path = paths[key];
-      if (!path?.trim()) {
-        result[key] = state.partialSettings as any;
-        continue;
-      }
-      
-      // Navigate the partial settings using the path
-      const pathParts = path.split('.');
-      let current: any = state.partialSettings;
-      
-      for (const part of pathParts) {
-        if (current && typeof current === 'object' && part in current) {
-          current = current[part];
-        } else {
-          current = undefined;
-          break;
+  // Create a cached selector to avoid the getSnapshot warning
+  const selectorRef = useRef<{
+    lastState: any;
+    lastResult: T;
+    selector: (state: any) => T;
+  } | null>(null);
+  
+  // Initialize or update the selector ref when paths change
+  if (!selectorRef.current || selectorRef.current.selector.toString() !== pathsKey) {
+    selectorRef.current = {
+      lastState: null,
+      lastResult: {} as T,
+      selector: (state: any) => {
+        // Return cached result if state hasn't changed
+        if (selectorRef.current && selectorRef.current.lastState === state) {
+          return selectorRef.current.lastResult;
         }
+        
+        const result = {} as T;
+        for (const key in paths) {
+          const path = paths[key];
+          if (!path?.trim()) {
+            result[key] = state.partialSettings as any;
+            continue;
+          }
+          
+          // Navigate the partial settings using the path
+          const pathParts = path.split('.');
+          let current: any = state.partialSettings;
+          
+          for (const part of pathParts) {
+            if (current && typeof current === 'object' && part in current) {
+              current = current[part];
+            } else {
+              current = undefined;
+              break;
+            }
+          }
+          
+          result[key] = current;
+        }
+        
+        // Cache the result
+        if (selectorRef.current) {
+          selectorRef.current.lastState = state;
+          selectorRef.current.lastResult = result;
+        }
+        
+        return result;
       }
-      
-      result[key] = current;
+    };
+  }
+  
+  const selector = selectorRef.current.selector;
+  
+  // Use shallow equality to prevent unnecessary re-renders
+  return useSettingsStore(selector, (prev, next) => {
+    // Shallow compare the result objects
+    const prevKeys = Object.keys(prev);
+    const nextKeys = Object.keys(next);
+    if (prevKeys.length !== nextKeys.length) return false;
+    for (const key of prevKeys) {
+      if (prev[key] !== next[key]) return false;
     }
-    return result;
+    return true;
   });
 }
 
