@@ -131,7 +131,7 @@ export function useXRVisualizationSettings() {
   
   const xrEnabled = useSelectiveSetting<boolean>('visualisation.xr.enabled');
   const xrQuality = useSelectiveSetting<'low' | 'medium' | 'high'>('visualisation.xr.quality');
-  const handTracking = useSelectiveSetting<boolean>('visualisation.xr.handTracking');
+  const handTracking = useSelectiveSetting<boolean>('xr.enableHandTracking');
   const eyeTracking = useSelectiveSetting<boolean>('visualisation.xr.eyeTracking');
   const roomScale = useSelectiveSetting<boolean>('visualisation.xr.roomScale');
   

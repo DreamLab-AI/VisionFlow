@@ -58,9 +58,11 @@ const createBasicNodeShader = () => {
 };
 
 export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef }) => {
-  // Get specific settings using selective hooks
+  // Get specific settings using selective hooks - always call hooks in the same order
   const enableNodeAnimations = useSelectiveSetting<boolean>('visualisation.animations.enableNodeAnimations') || false;
-  const nodeSettings = useSelectiveSetting<any>('visualisation.graphs.logseq.nodes') || useSelectiveSetting<any>('visualisation.nodes');
+  const logseqNodeSettings = useSelectiveSetting<any>('visualisation.graphs.logseq.nodes');
+  const fallbackNodeSettings = useSelectiveSetting<any>('visualisation.nodes');
+  const nodeSettings = logseqNodeSettings || fallbackNodeSettings;
   const enableHologram = nodeSettings?.enableHologram !== false;
   const nodeBloom = useSelectiveSetting<number>('visualisation.bloom.nodeBloomStrength') ?? 1;
   
@@ -136,7 +138,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
     materialRef.current.uniforms.metalness = { value: nodeSettings?.metalness ?? 0.8 };
     materialRef.current.uniforms.roughness = { value: nodeSettings?.roughness ?? 0.2 };
     
-  }, [enableNodeAnimations, enableHologram, nodeSettings, nodeBloom, materialRef]);
+  }, [enableNodeAnimations, enableHologram, nodeSettings, nodeBloom]);
   
   return null;
 };

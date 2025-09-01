@@ -2,7 +2,6 @@
 // REMOVED: gpu_compute module - legacy implementation replaced by unified_gpu_compute
 pub mod audio_processor;
 pub mod binary_protocol;
-pub mod case_conversion;
 // REMOVED: pub mod edge_data; - unused struct
 pub mod gpu_diagnostics;
 pub mod gpu_safety;

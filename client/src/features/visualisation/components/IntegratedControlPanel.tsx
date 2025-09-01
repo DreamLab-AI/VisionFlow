@@ -763,7 +763,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'xrEnabled', label: 'XR Mode', type: 'toggle', path: 'xr.enabled' },
             { key: 'xrQuality', label: 'XR Quality', type: 'select', options: ['Low', 'Medium', 'High'], path: 'xr.quality' },
             { key: 'xrRenderScale', label: 'XR Render Scale', type: 'slider', min: 0.5, max: 2, path: 'xr.renderScale' },
-            { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.handTracking.enabled' },
+            { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.enableHandTracking' },
             { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.interactions.enableHaptics' },
             
             // XR-Optimized GPU Features

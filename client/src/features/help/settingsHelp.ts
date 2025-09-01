@@ -85,8 +85,8 @@ export const settingsHelpContent: Record<string, HelpContent> = {
     detailedHelp: 'XR features require compatible hardware and browser support. Enable this to access immersive visualization modes.',
     relatedTopics: ['WebXR', 'VR Headsets']
   },
-  'settings.xr.handTracking': {
-    id: 'settings.xr.handTracking',
+  'settings.xr.enableHandTracking': {
+    id: 'settings.xr.enableHandTracking',
     title: 'Hand Tracking',
     description: 'Use hand tracking instead of controllers in XR',
     detailedHelp: 'Hand tracking provides controller-free interaction but may be less precise. Requires supported XR hardware.',

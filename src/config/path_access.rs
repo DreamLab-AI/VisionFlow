@@ -84,4 +84,4 @@ macro_rules! impl_field_access {
     };
 }
 
-pub(crate) use impl_field_access;
+// pub(crate) use impl_field_access; // No longer used - replaced by unified_access

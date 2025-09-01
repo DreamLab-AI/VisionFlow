@@ -1,8 +1,7 @@
-// Refactored Settings Handler - Granular API with case conversion at boundary
+// Refactored Settings Handler - Granular API with automatic serde camelCase conversion
 use actix_web::{web, HttpResponse, HttpRequest, Result};
 use crate::app_state::AppState;
 use crate::actors::messages::{GetSettingsByPaths, SetSettingsByPaths};
-use crate::utils::case_conversion::{keys_to_camel_case, keys_to_snake_case, path_to_snake_case, path_to_camel_case};
 // Remove unused rate limiting for now
 use log::{info, error, debug};
 use serde::{Serialize, Deserialize};
@@ -38,7 +37,7 @@ pub struct SettingsSetResponse {
 /// GET /api/settings/get?paths=path1,path2,path3
 /// Retrieves specific settings by dot-notation paths
 pub async fn get_settings(
-    req: HttpRequest,
+    _req: HttpRequest,
     query: web::Query<HashMap<String, String>>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse> {
@@ -47,23 +46,14 @@ pub async fn get_settings(
     // Extract paths from query parameter
     let empty_string = String::new();
     let paths_str = query.get("paths").unwrap_or(&empty_string);
-    let requested_paths: Vec<&str> = if paths_str.is_empty() {
+    let requested_paths: Vec<String> = if paths_str.is_empty() {
         vec![] // Return all settings if no paths specified
     } else {
-        paths_str.split(',').collect()
+        paths_str.split(',').map(|s| s.to_string()).collect()
     };
 
-    // Convert camelCase paths from client to snake_case for backend
-    let snake_case_paths: Vec<String> = requested_paths.iter()
-        .map(|p| {
-            // Convert camelCase dot notation paths to snake_case 
-            // e.g. "visualisation.camera.enableOrbitControls" -> "visualisation.camera.enable_orbit_controls"
-            path_to_snake_case(p)
-        })
-        .collect();
-
     // Always use granular operations for better performance
-    let paths = if snake_case_paths.is_empty() || (snake_case_paths.len() == 1 && snake_case_paths[0].is_empty()) {
+    let paths = if requested_paths.is_empty() || (requested_paths.len() == 1 && requested_paths[0].is_empty()) {
         // If no specific paths requested, return common default paths
         // This provides backward compatibility while encouraging granular requests
         vec![
@@ -72,7 +62,7 @@ pub async fn get_settings(
             "gpu.compute.enabled".to_string(),
         ]
     } else {
-        snake_case_paths
+        requested_paths
     };
     
     // Use granular GetSettingsByPaths - MUCH MORE EFFICIENT!
@@ -80,18 +70,8 @@ pub async fn get_settings(
         Ok(Ok(response_settings)) => {
             info!("Successfully retrieved {} setting paths using granular operation", response_settings.len());
             
-            // Convert snake_case response values to camelCase for client
-            let camel_case_settings: HashMap<String, Value> = response_settings
-                .into_iter()
-                .map(|(key, value)| {
-                    // Convert both the key path and the value contents to camelCase
-                    let camel_key = path_to_camel_case(&key);
-                    let camel_value = keys_to_camel_case(value);
-                    (camel_key, camel_value)
-                })
-                .collect();
-                
-            Ok(HttpResponse::Ok().json(camel_case_settings))
+            // Return settings directly - serde handles camelCase conversion automatically
+            Ok(HttpResponse::Ok().json(response_settings))
         }
         Ok(Err(e)) => {
             error!("Settings actor returned error: {}", e);
@@ -114,7 +94,7 @@ pub async fn get_settings(
 /// POST /api/settings/set
 /// Sets multiple settings using dot-notation paths
 pub async fn set_settings(
-    req: HttpRequest,
+    _req: HttpRequest,
     request: web::Json<SettingsSetRequest>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse> {
@@ -130,17 +110,9 @@ pub async fn set_settings(
     debug!("Processing {} setting updates using granular operations", request.updates.len());
 
     // Prepare updates for granular operation - MUCH MORE EFFICIENT!
-    // Convert camelCase paths and values from client to snake_case for backend
+    // Pass paths and values directly - serde handles camelCase conversion automatically
     let updates: Vec<(String, Value)> = request.updates.iter()
-        .map(|u| {
-            // Convert camelCase dot notation path to snake_case
-            let snake_path = path_to_snake_case(&u.path);
-            
-            // Convert camelCase value keys to snake_case
-            let snake_value = keys_to_snake_case(u.value.clone());
-            
-            (snake_path, snake_value)
-        })
+        .map(|u| (u.path.clone(), u.value.clone()))
         .collect();
     
     // Validation is now handled by the SettingsActor using the validator crate on structs
@@ -172,6 +144,7 @@ pub async fn set_settings(
                     .filter_map(|error_str| {
                         let parts: Vec<&str> = error_str.splitn(2, ": ").collect();
                         if parts.len() == 2 {
+                            // Field names are already in camelCase from the validation error
                             Some((parts[0].to_string(), parts[1].to_string()))
                         } else {
                             None

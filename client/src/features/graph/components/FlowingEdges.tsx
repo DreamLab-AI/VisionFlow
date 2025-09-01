@@ -18,62 +18,8 @@ interface FlowingEdgesProps {
   }>;
 }
 
-// Custom shader for flowing edges
-const flowVertexShader = `
-  attribute float lineDistance;
-  attribute vec3 instanceColorStart;
-  attribute vec3 instanceColorEnd;
-  
-  varying float vLineDistance;
-  varying vec3 vColor;
-  
-  void main() {
-    vLineDistance = lineDistance;
-    vColor = mix(instanceColorStart, instanceColorEnd, lineDistance);
-    
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const flowFragmentShader = `
-  uniform float time;
-  uniform float flowSpeed;
-  uniform float flowIntensity;
-  uniform float opacity;
-  uniform vec3 baseColor;
-  uniform bool enableFlowEffect;
-  uniform bool useGradient;
-  uniform float glowStrength;
-  uniform float distanceIntensity;
-  
-  varying float vLineDistance;
-  varying vec3 vColor;
-  
-  void main() {
-    vec3 color = useGradient ? vColor : baseColor;
-    
-    // Flow effect
-    float flow = 0.0;
-    if (enableFlowEffect) {
-      float offset = time * flowSpeed;
-      flow = sin(vLineDistance * 10.0 - offset) * 0.5 + 0.5;
-      flow = pow(flow, 3.0) * flowIntensity;
-    }
-    
-    // Distance-based intensity
-    float distanceFade = 1.0 - vLineDistance * distanceIntensity;
-    
-    // Glow effect
-    float glow = pow(1.0 - abs(vLineDistance - 0.5) * 2.0, 2.0) * glowStrength;
-    
-    // Combine effects
-    color += vec3(flow + glow) * 0.5;
-    float alpha = opacity * distanceFade * (1.0 + flow * 0.5);
-    
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
+// Flow effect shaders removed - settings not supported by backend
+// Using basic LineBasicMaterial instead
 
 const FlowingEdgesComponent: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
   // Get edge bloom strength using selective hook
@@ -149,10 +95,8 @@ const FlowingEdgesComponent: React.FC<FlowingEdgesProps> = ({ points, settings: 
     }
     lastAnimationUpdate.current = now;
     
-    if (materialRef.current && (propSettings as any).enableFlowEffect) {
-      const flowIntensity = Math.sin(state.clock.elapsedTime * ((propSettings as any).flowSpeed || 1.0)) * 0.3 + 0.7;
-      materialRef.current.opacity = Math.max(0.1, (propSettings.opacity || 0.25) * flowIntensity);
-    }
+    // Flow effect animation removed - settings not supported by backend
+    // Static opacity based on EdgeSettings is used instead
   });
   
   if (!geometry) return null;

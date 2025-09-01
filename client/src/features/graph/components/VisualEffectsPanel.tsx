@@ -18,7 +18,6 @@ export const VisualEffectsPanel: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   // Get specific settings using selective hooks
   const hologramEnabled = useSelectiveSetting<boolean>('visualisation.nodes.enableHologram');
-  const flowEffectEnabled = useSelectiveSetting<boolean>('visualisation.edges.enableFlowEffect');
   const bloomEnabled = useSelectiveSetting<boolean>('visualisation.bloom.enabled');
   const pulseEnabled = useSelectiveSetting<boolean>('visualisation.animation.pulseEnabled');
   
@@ -26,7 +25,7 @@ export const VisualEffectsPanel: React.FC = () => {
   const updateSettings = useSettingsStore(state => state.updateSettings);
   
   // Check if any effect is enabled using selective values
-  const anyEffectEnabled = hologramEnabled || flowEffectEnabled || bloomEnabled || pulseEnabled;
+  const anyEffectEnabled = hologramEnabled || bloomEnabled || pulseEnabled;
   
   const handleMasterToggle = () => {
     const newState = !anyEffectEnabled;
@@ -39,11 +38,7 @@ export const VisualEffectsPanel: React.FC = () => {
           draft.visualisation.nodes.enableHologram = newState;
         }
         
-        // Edges
-        if (draft.visualisation.edges) {
-          draft.visualisation.edges.enableFlowEffect = newState;
-          draft.visualisation.edges.useGradient = newState;
-        }
+        // Edge flow effects removed - not supported by backend
         
         // Bloom
         if (draft.visualisation.bloom) {
@@ -166,58 +161,7 @@ export const VisualEffectsPanel: React.FC = () => {
             )}
           </div>
           
-          {/* Flow Effects */}
-          <div className="space-y-3 pt-3 border-t border-gray-700">
-            <div className="flex items-center gap-2 text-blue-400 mb-2">
-              <Activity className="w-4 h-4" />
-              <span className="text-sm font-medium">Edge Flow</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-300">Enable Flow</span>
-              <Switch
-                checked={flowEffectEnabled || false}
-                onCheckedChange={() => handleToggleEffect('visualisation.edges.enableFlowEffect', flowEffectEnabled || false)}
-                className="scale-90 data-[state=checked]:bg-blue-500"
-              />
-            </div>
-            
-            {flowEffectEnabled && (
-              <div className="space-y-2 pl-4 border-l border-gray-700">
-                <div>
-                  <label className="text-xs text-gray-400">Flow Speed</label>
-                  <Slider
-                    value={[settings?.visualisation?.edges?.flowSpeed || 1.0]}
-                    onValueChange={([value]) => handleSliderChange('visualisation.edges.flowSpeed', value)}
-                    min={0.1}
-                    max={5}
-                    step={0.1}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400">Flow Intensity</label>
-                  <Slider
-                    value={[settings?.visualisation?.edges?.flowIntensity || 0.5]}
-                    onValueChange={([value]) => handleSliderChange('visualisation.edges.flowIntensity', value)}
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-300">Use Gradient</span>
-                  <Switch
-                    checked={settings?.visualisation?.edges?.useGradient || false}
-                    onCheckedChange={() => handleToggleEffect('visualisation.edges.useGradient',
-                      settings?.visualisation?.edges?.useGradient || false)}
-                    className="scale-90 data-[state=checked]:bg-blue-500"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Edge Flow Effects removed - not supported by backend EdgeSettings */}
           
           {/* Bloom Effects */}
           <div className="space-y-3 pt-3 border-t border-gray-700">
@@ -275,7 +219,7 @@ export const VisualEffectsPanel: React.FC = () => {
                     // Minimal preset
                     if (draft.visualisation) {
                       draft.visualisation.nodes!.enableHologram = false;
-                      draft.visualisation.edges!.enableFlowEffect = false;
+                      // Flow effects removed - not supported by backend
                       draft.visualisation.bloom!.enabled = false;
                       draft.visualisation.animation!.pulseEnabled = false;
                     }
@@ -293,8 +237,7 @@ export const VisualEffectsPanel: React.FC = () => {
                     // Balanced preset
                     if (draft.visualisation) {
                       draft.visualisation.nodes!.enableHologram = true;
-                      draft.visualisation.edges!.enableFlowEffect = true;
-                      draft.visualisation.edges!.flowSpeed = 1.0;
+                      // Flow effects removed - not supported by backend
                       draft.visualisation.bloom!.enabled = false;
                       draft.visualisation.animation!.pulseEnabled = true;
                       draft.visualisation.animation!.pulseSpeed = 1.0;
@@ -313,9 +256,7 @@ export const VisualEffectsPanel: React.FC = () => {
                     // Maximum preset
                     if (draft.visualisation) {
                       draft.visualisation.nodes!.enableHologram = true;
-                      draft.visualisation.edges!.enableFlowEffect = true;
-                      draft.visualisation.edges!.useGradient = true;
-                      draft.visualisation.edges!.flowSpeed = 2.0;
+                      // Flow effects removed - not supported by backend
                       draft.visualisation.bloom!.enabled = true;
                       draft.visualisation.bloom!.strength = 2.0;
                       draft.visualisation.animation!.pulseEnabled = true;

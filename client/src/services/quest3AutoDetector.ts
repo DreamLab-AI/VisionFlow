@@ -154,7 +154,7 @@ export class Quest3AutoDetector {
       xr: {
         enabled: true,
         clientSideEnableXR: true,
-        displayMode: 'immersive-ar' as const,
+        mode: 'immersive-ar' as const,
         spaceType: 'local-floor' as const,
         enableHandTracking: true,
         enablePassthroughPortal: true,

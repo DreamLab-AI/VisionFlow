@@ -111,7 +111,7 @@ export const HandInteractionSystem: React.FC<HandInteractionSystemProps> = ({
   const { isPresenting, session, controllers, player } = useSafeXR();
   const platform = usePlatform();
   const settings = useSettingsStore(state => state.settings?.xr);
-  const handTrackingEnabled = settings?.handTracking && enabled;
+  const handTrackingEnabled = settings?.enableHandTracking && enabled;
   
   // State for hands and interaction
   const [handsVisible, setHandsVisible] = useState(false);

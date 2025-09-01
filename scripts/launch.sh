@@ -212,6 +212,12 @@ docker_compose() {
     fi
 
     cd "$PROJECT_ROOT"
+    
+    # Debug: show what command we're about to run
+    if [[ "$VERBOSE" == true ]]; then
+        info "Executing: docker compose --profile $PROFILE ${compose_args[*]} $*"
+    fi
+    
     docker compose --profile "$PROFILE" "${compose_args[@]}" "$@"
 }
 
@@ -232,12 +238,22 @@ start_environment() {
         if [[ "$NO_CACHE" == true ]]; then
             build_args+=("--no-cache")
         fi
+        
+        # Always use plain progress for builds to see what's happening
+        build_args+=("--progress=plain")
 
         # Always build with GPU features
         info "Building with GPU support enabled"
         build_args+=("--build-arg" "FEATURES=gpu")
 
-        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+        # Show the actual docker compose command being run
+        info "Running: docker compose --profile $PROFILE build ${build_args[*]}"
+        
+        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
+        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            error "Build failed during startup. Check /tmp/visionflow_build.log for details"
+            exit 1
+        fi
     fi
 
     docker_compose up "${up_args[@]}" &
@@ -310,12 +326,35 @@ build_only() {
     if [[ "$NO_CACHE" == true ]]; then
         build_args+=("--no-cache")
     fi
+    
+    # Always use plain progress for builds to see what's happening
+    build_args+=("--progress=plain")
 
     # Always build with GPU features
     info "Building with GPU support enabled"
     build_args+=("--build-arg" "FEATURES=gpu")
 
-    DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+    # Show the actual docker compose command being run
+    info "Running: docker compose --profile $PROFILE build ${build_args[*]}"
+    
+    # Try without DOCKER_BUILDKIT first, as it might be causing issues
+    if [[ "$VERBOSE" == true ]]; then
+        info "Attempting build without BuildKit..."
+        DOCKER_BUILDKIT=0 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
+        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            error "Build failed. Check /tmp/visionflow_build.log for details"
+            exit 1
+        fi
+    else
+        # Default with BuildKit
+        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
+        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            error "Build failed. Check /tmp/visionflow_build.log for details"
+            info "Try running with -v flag for more details: ./launch.sh -v build"
+            exit 1
+        fi
+    fi
+    
     success "Build complete"
 }
 

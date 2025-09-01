@@ -57,6 +57,9 @@ export const settingsApi = {
       throw new Error('No updates provided');
     }
 
+    // Log the request for debugging
+    logger.debug('Sending settings update request:', { updates });
+
     const response = await fetch(`${API_BASE}/set`, {
       method: 'POST',
       headers: {
@@ -66,7 +69,20 @@ export const settingsApi = {
     });
     
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to update settings by path' }));
+      const errorText = await response.text();
+      logger.error('Settings update failed:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        updates,
+        errorResponse: errorText 
+      });
+      const error = (() => {
+        try {
+          return JSON.parse(errorText);
+        } catch {
+          return { error: errorText || 'Failed to update settings by path' };
+        }
+      })();
       throw new Error(error.error || `Failed to update settings by path: ${response.statusText}`);
     }
     

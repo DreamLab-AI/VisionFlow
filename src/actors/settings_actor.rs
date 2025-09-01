@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use log::{info, error, debug};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use validator::Validate;
+// use validator::Validate; // Removed - using validate_config_camel_case instead
 
 pub struct SettingsActor {
     settings: Arc<RwLock<AppFullSettings>>,
@@ -59,7 +59,7 @@ impl Handler<GetSettingByPath> for SettingsActor {
         
         Box::pin(async move {
             let current = settings.read().await;
-            current.get_by_path(&path)
+            (*current).get_by_path(&path)
                 .ok_or_else(|| format!("Path not found: {}", path))
         })
     }
@@ -74,25 +74,16 @@ impl Handler<SetSettingByPath> for SettingsActor {
         
         Box::pin(async move {
             let mut current = settings.write().await;
-            current.set_by_path(&msg.path, msg.value)?;
+            (*current).set_by_path(&msg.path, msg.value)?;
             
-            // Validate the entire settings struct after the change
-            if let Err(validation_errors) = current.validate() {
+            // Validate the entire settings struct after the change with camelCase field names
+            if let Err(validation_errors) = current.validate_config_camel_case() {
                 error!("Settings validation failed after updating path {}: {:?}", msg.path, validation_errors);
                 
                 // Convert validation errors to a user-friendly format
                 let error_messages: Vec<String> = validation_errors
-                    .field_errors()
                     .iter()
-                    .flat_map(|(field, errors)| {
-                        errors.iter().map(move |error| {
-                            let message = error.message
-                                .as_ref()
-                                .map(|m| m.to_string())
-                                .unwrap_or_else(|| format!("Validation error in field: {}", field));
-                            format!("{}: {}", field, message)
-                        })
-                    })
+                    .map(|(field, message)| format!("{}: {}", field, message))
                     .collect();
                 
                 return Err(format!("Validation failed: {}", error_messages.join("; ")));
@@ -122,7 +113,7 @@ impl Handler<GetSettingsByPaths> for SettingsActor {
             let mut result = HashMap::new();
             
             for path in msg.paths {
-                if let Some(value) = current.get_by_path(&path) {
+                if let Some(value) = (*current).get_by_path(&path) {
                     result.insert(path, value);
                 } else {
                     debug!("Path not found: {}", path);
@@ -145,30 +136,21 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
             let mut current = settings.write().await;
             // Apply updates transactionally
             for (path, value) in msg.updates {
-                if let Err(e) = current.set_by_path(&path, value) {
+                if let Err(e) = (*current).set_by_path(&path, value) {
                     error!("Transactional update failed for path '{}': {}", path, e);
                     return Err(format!("Update failed for path '{}': {}", path, e));
                 }
                 debug!("Successfully staged update for path: {}", path);
             }
             
-            // Validate the entire settings struct using the validator crate
-            if let Err(validation_errors) = current.validate() {
+            // Validate the entire settings struct using the validator crate with camelCase field names
+            if let Err(validation_errors) = current.validate_config_camel_case() {
                 error!("Settings validation failed after bulk update: {:?}", validation_errors);
                 
                 // Convert validation errors to a user-friendly format
                 let error_messages: Vec<String> = validation_errors
-                    .field_errors()
                     .iter()
-                    .flat_map(|(field, errors)| {
-                        errors.iter().map(move |error| {
-                            let message = error.message
-                                .as_ref()
-                                .map(|m| m.to_string())
-                                .unwrap_or_else(|| format!("Validation error in field: {}", field));
-                            format!("{}: {}", field, message)
-                        })
-                    })
+                    .map(|(field, message)| format!("{}: {}", field, message))
                     .collect();
                 
                 return Err(format!("Validation failed: {}", error_messages.join("; ")));
