@@ -55,7 +55,7 @@ anyhow = "1.0.99"
 # GPU/Compute
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"
-cudarc = { version = "0.17.3", features = ["driver", "cuda-12040"] }
+cudarc = { version = "0.17.3", features = ["driver", "cuda-12080"] }
 cust = "0.3.2"
 cust_core = "0.1.1"
 
@@ -106,7 +106,7 @@ tempfile = "3.14"
 
 [features]
 default = ["gpu"]
-gpu = ["cudarc/driver"]  # Enable GPU support with CUDA driver
+gpu = ["cudarc/driver", "cudarc/cuda-12080"]  # Enable GPU support with CUDA driver
 cpu = []  # CPU-only mode
 
 [profile.release]

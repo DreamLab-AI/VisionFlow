@@ -64,10 +64,10 @@ impl MCPRelayActor {
                     while let Some(msg) = rx.next().await {
                         match msg {
                             Ok(TungsteniteMessage::Text(text)) => {
-                                addr.do_send(OrchestratorText(text));
+                                addr.do_send(OrchestratorText(text.to_string()));
                             }
                             Ok(TungsteniteMessage::Binary(bin)) => {
-                                addr.do_send(OrchestratorBinary(bin));
+                                addr.do_send(OrchestratorBinary(bin.to_vec()));
                             }
                             Ok(TungsteniteMessage::Close(_)) => {
                                 info!("[MCP Relay] Orchestrator connection closed");
@@ -77,7 +77,7 @@ impl MCPRelayActor {
                                 let tx_clone = tx.clone();
                                 actix::spawn(async move {
                                     let mut tx_guard = tx_clone.lock().await;
-                                    let _ = tx_guard.send(TungsteniteMessage::Pong(data)).await;
+                                    let _ = tx_guard.send(TungsteniteMessage::Pong(data.into())).await;
                                 });
                             }
                             Ok(TungsteniteMessage::Pong(_)) => {
@@ -195,7 +195,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                     
                     actix::spawn(async move {
                         let mut tx_guard = tx.lock().await;
-                        if let Err(e) = tx_guard.send(TungsteniteMessage::Text(text_clone)).await {
+                        if let Err(e) = tx_guard.send(TungsteniteMessage::Text(text_clone.into())).await {
                             error!("[MCP Relay] Failed to send to orchestrator: {}", e);
                         }
                     });
@@ -218,7 +218,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                     
                     actix::spawn(async move {
                         let mut tx_guard = tx.lock().await;
-                        if let Err(e) = tx_guard.send(TungsteniteMessage::Binary(bin_vec)).await {
+                        if let Err(e) = tx_guard.send(TungsteniteMessage::Binary(bin_vec.into())).await {
                             error!("[MCP Relay] Failed to send binary to orchestrator: {}", e);
                         }
                     });

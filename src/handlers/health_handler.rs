@@ -4,7 +4,7 @@ use crate::AppState;
 use log::{info, error, warn};
 use chrono::Utc;
 use crate::actors::messages::{GetMetadata, GetGraphData};
-use sysinfo::System;
+use sysinfo::{System, RefreshKind};
 use std::process::Command;
 use tokio::time::Duration;
 
@@ -20,10 +20,10 @@ pub async fn health_check(app_state: web::Data<AppState>) -> Result<HttpResponse
     let mut issues = Vec::new();
     
     // Check system metrics
-    let mut sys = System::new_all();
+    let mut sys = System::new_with_specifics(RefreshKind::everything());
     sys.refresh_all();
     
-    let cpu_usage = sys.global_cpu_usage();
+    let cpu_usage = sys.cpus().iter().map(|cpu| cpu.cpu_usage()).sum::<f32>() / sys.cpus().len() as f32;
     let memory_usage = sys.used_memory() as f64 / sys.total_memory() as f64 * 100.0;
     let disk_usage = check_disk_usage();
     

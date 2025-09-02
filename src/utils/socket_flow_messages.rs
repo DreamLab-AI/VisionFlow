@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
 use crate::types::vec3::Vec3Data;
-use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
+// use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
 
 #[repr(C)]
@@ -34,10 +34,10 @@ pub struct BinaryNodeData {
 static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 28);
 
 // Implement DeviceRepr for BinaryNodeData
-unsafe impl DeviceRepr for BinaryNodeData {}
+// unsafe impl DeviceRepr for BinaryNodeData {}
 
 // Implement ValidAsZeroBits for BinaryNodeData
-unsafe impl ValidAsZeroBits for BinaryNodeData {}
+// unsafe impl ValidAsZeroBits for BinaryNodeData {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PingMessage {

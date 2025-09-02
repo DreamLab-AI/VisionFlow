@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::types::claude_flow::AgentStatus;
 use crate::config::dev_config;
-use sysinfo::{System, Pid};
+use sysinfo::{System, RefreshKind, ProcessRefreshKind, Pid};
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 
@@ -188,7 +188,7 @@ pub struct GlowSettings {
 
 /// Global system instance for monitoring
 static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
-    let mut sys = System::new_all();
+    let mut sys = System::new_with_specifics(RefreshKind::everything());
     sys.refresh_all();
     Arc::new(Mutex::new(sys))
 });
@@ -198,7 +198,7 @@ pub struct AgentVisualizationProcessor {
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
     _performance_history: HashMap<String, Vec<PerformanceSnapshot>>,
     _last_update: DateTime<Utc>,
-    process_map: HashMap<String, Pid>,
+    _process_map: HashMap<String, u32>, // Changed from Pid to u32
 }
 
 impl AgentVisualizationProcessor {
@@ -207,7 +207,7 @@ impl AgentVisualizationProcessor {
             token_history: HashMap::new(),
             _performance_history: HashMap::new(),
             _last_update: Utc::now(),
-            process_map: HashMap::new(),
+            _process_map: HashMap::new(),
         }
     }
     
@@ -354,11 +354,11 @@ impl AgentVisualizationProcessor {
     /// Get real CPU and memory usage for an agent process
     fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
         let mut sys = SYSTEM.lock().unwrap();
-        sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+        sys.refresh_all();
         
         // Try to find process by agent ID or name
-        if let Some(&pid) = self.process_map.get(agent_id) {
-            if let Some(process) = sys.process(pid) {
+        if let Some(&pid) = self._process_map.get(agent_id) {
+            if let Some(process) = sys.process(Pid::from_u32(pid)) {
                 let cpu_usage = process.cpu_usage() / 100.0; // Convert to 0-1 range
                 let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0); // Convert to GB
                 let total_memory = sys.total_memory() as f32 / (1024.0 * 1024.0 * 1024.0); // GB
@@ -380,7 +380,7 @@ impl AgentVisualizationProcessor {
                process_name.contains("bot") {
                 
                 // Cache the mapping for future use
-                self.process_map.insert(agent_id.to_string(), *pid);
+                self._process_map.insert(agent_id.to_string(), pid.as_u32());
                 
                 let cpu_usage = process.cpu_usage() / 100.0;
                 let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0);

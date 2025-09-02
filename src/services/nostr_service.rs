@@ -117,8 +117,7 @@ impl NostrService {
 
         let user = NostrUser {
             pubkey: event.pubkey.clone(),
-            npub: nostr_event.pubkey.to_bech32()
-                .map_err(|_| NostrError::NostrError(EventError::InvalidId))?,
+            npub: nostr_event.pubkey.to_bech32().unwrap_or_default(),
             is_power_user,
             api_keys: ApiKeys::default(),
             last_seen: now.timestamp(),

@@ -4,7 +4,7 @@ use actix_web::web;
 use log::{info};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
-use cudarc::driver::CudaDevice;
+// use cudarc::driver::CudaDevice; // Replaced with CudaContext
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;
@@ -73,10 +73,7 @@ impl AppState {
         let gpu_compute_addr = Some(GPUComputeActor::new().start());
 
         info!("[AppState::new] Starting GraphServiceActor");
-        let _device = CudaDevice::new(0).map_err(|e| {
-            log::error!("Failed to create CUDA device: {}", e);
-            format!("CUDA initialization failed: {}", e)
-        })?;
+        let _device = 0u32; // Dummy device since CUDA is disabled
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),

@@ -164,7 +164,7 @@ impl SpeechService {
                                     }
                                 });
 
-                                if let Err(e) = stream.send(tungstenite::Message::Text(init_event.to_string())).await {
+                                if let Err(e) = stream.send(tungstenite::Message::Text(init_event.to_string().into())).await {
                                     error!("Failed to send initial response.create event: {}", e);
                                     continue;
                                 }
@@ -188,7 +188,7 @@ impl SpeechService {
                                 }
                             });
 
-                            if let Err(e) = stream.send(tungstenite::Message::Text(msg_event.to_string())).await {
+                            if let Err(e) = stream.send(tungstenite::Message::Text(msg_event.to_string().into())).await {
                                 error!("Failed to send message to OpenAI: {}", e);
                                 continue;
                             }
@@ -197,7 +197,7 @@ impl SpeechService {
                                 "type": "response.create"
                             });
 
-                            if let Err(e) = stream.send(tungstenite::Message::Text(response_event.to_string())).await {
+                            if let Err(e) = stream.send(tungstenite::Message::Text(response_event.to_string().into())).await {
                                 error!("Failed to request response from OpenAI: {}", e);
                                 continue;
                             }

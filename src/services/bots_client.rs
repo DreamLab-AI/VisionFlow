@@ -121,7 +121,7 @@ impl BotsClient {
         // FIXED: Send MCP initialization
         let init_text = subscribe_msg.to_string();
         info!("Sending MCP initialization: {}", init_text);
-        write.send(Message::Text(init_text)).await?;
+        write.send(Message::Text(init_text.into())).await?;
         info!("Successfully sent MCP initialization to bots orchestrator");
         
         // Wait a moment for initialization to complete
@@ -138,7 +138,7 @@ impl BotsClient {
         });
         
         info!("Sending initial agent list request");
-        write.send(Message::Text(agent_list_request.to_string())).await?;
+        write.send(Message::Text(agent_list_request.to_string().into())).await?;
 
         // Clone for the read task
         let updates = self.updates.clone();
@@ -367,7 +367,7 @@ impl BotsClient {
                     })
                 };
 
-                if let Err(e) = write.send(Message::Text(status_request.to_string())).await {
+                if let Err(e) = write.send(Message::Text(status_request.to_string().into())).await {
                     error!("Failed to send status request to bots: {}", e);
                     break;
                 }
@@ -385,7 +385,7 @@ impl BotsClient {
 
                 // Also send pings to keep connection alive
                 if request_id % 6 == 0 {  // Every 30 seconds
-                    if let Err(e) = write.send(Message::Ping(vec![])).await {
+                    if let Err(e) = write.send(Message::Ping(vec![].into())).await {
                         error!("Failed to send ping to bots: {}", e);
                         break;
                     }
