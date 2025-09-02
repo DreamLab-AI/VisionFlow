@@ -337,22 +337,13 @@ build_only() {
     # Show the actual docker compose command being run
     info "Running: docker compose --profile $PROFILE build ${build_args[*]}"
     
-    # Try without DOCKER_BUILDKIT first, as it might be causing issues
-    if [[ "$VERBOSE" == true ]]; then
-        info "Attempting build without BuildKit..."
-        DOCKER_BUILDKIT=0 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
-        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-            error "Build failed. Check /tmp/visionflow_build.log for details"
-            exit 1
-        fi
-    else
-        # Default with BuildKit
-        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
-        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-            error "Build failed. Check /tmp/visionflow_build.log for details"
-            info "Try running with -v flag for more details: ./launch.sh -v build"
-            exit 1
-        fi
+    # Always use BuildKit for multi-stage builds
+    info "Building with BuildKit enabled..."
+    DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}" 2>&1 | tee /tmp/visionflow_build.log
+    if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+        error "Build failed. Check /tmp/visionflow_build.log for details"
+        info "Try running with -v flag for more details: ./launch.sh -v build"
+        exit 1
     fi
     
     success "Build complete"
