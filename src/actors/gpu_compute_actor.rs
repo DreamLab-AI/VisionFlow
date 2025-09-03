@@ -4,9 +4,8 @@ use std::io::{Error, ErrorKind};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use cudarc::driver::safe::CudaContext;
-// use cudarc::nvrtc::Ptx; // Not needed with unified compute
-use cudarc::driver::sys::CUdevice_attribute;
+use cudarc::driver::{CudaDevice, CudaStream};
+use cudarc::driver::DevicePtr;
 
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::{SimulationParams};
@@ -53,7 +52,8 @@ pub enum ComputeMode {
 // Legacy KernelMode removed - all computation now uses unified kernel
 
 pub struct GPUComputeActor {
-    context: Option<Arc<CudaContext>>,
+    device: Option<Arc<CudaDevice>>,
+    stream: Option<CudaStream>,
     
     // Single unified compute engine
     pub unified_compute: Option<UnifiedGPUCompute>,
@@ -84,7 +84,8 @@ pub struct GPUComputeActor {
 
 // Unified GPU initialization result
 struct GpuInitializationResult {
-    context: Arc<CudaContext>,
+    device: Arc<CudaDevice>,
+    stream: Option<CudaStream>,
     unified_compute: UnifiedGPUCompute,
     num_nodes: u32,
     num_edges: u32,
@@ -94,7 +95,8 @@ struct GpuInitializationResult {
 impl GPUComputeActor {
     pub fn new() -> Self {
         Self {
-            context: None,
+            device: None,
+            stream: None,
             unified_compute: None,
             
             num_nodes: 0,
@@ -123,75 +125,69 @@ impl GPUComputeActor {
     // --- Static GPU Initialization Logic ---
 
 
-    async fn static_create_cuda_context() -> Result<Arc<CudaContext>, Error> {
-        trace!("(Static) Starting CUDA context initialization sequence");
+    async fn static_create_cuda_context() -> Result<Arc<CudaDevice>, Error> {
+        info!("Starting CUDA device initialization");
 
         let device_idx = env::var("CUDA_DEVICE")
             .ok()
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(0);
 
-        info!("(Static) Attempting to create CUDA context for device {}", device_idx);
+        info!("Attempting to create CUDA device for index {}", device_idx);
 
-        match CudaContext::new(device_idx) {
-            Ok(context) => {
-                let device = context.cu_device();
-                let max_threads = device.attribute(CUdevice_attribute::CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_MULTIPROCESSOR)
-                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                let multiprocessor_count = device.attribute(CUdevice_attribute::CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT)
-                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-                let compute_mode = device.attribute(CUdevice_attribute::CU_DEVICE_ATTRIBUTE_COMPUTE_MODE)
-                    .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))?;
-
-                info!("(Static) GPU Device detected:");
-                info!("  Max threads per MP: {}", max_threads);
-                info!("  Multiprocessor count: {}", multiprocessor_count);
-                info!("  Compute mode: {}", compute_mode);
-
-                if max_threads < 256 {
-                    error!("GPU capability too low: {} threads per multiprocessor; minimum required is 256", max_threads);
-                    Err(Error::new(ErrorKind::Other, format!("GPU capability too low: {} threads per multiprocessor; minimum required is 256", max_threads)))
-                } else {
-                    Ok(context)
+        // Modern cudarc approach - create device directly
+        match CudaDevice::new(device_idx) {
+            Ok(device) => {
+                // Get device properties using the device directly
+                let props = device.get_properties()
+                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to get device properties: {}", e)))?;
+                
+                info!("GPU Device detected:");
+                info!("  Name: {}", props.name);
+                info!("  Compute capability: {}.{}", props.major, props.minor);
+                info!("  Total memory: {} MB", props.total_memory / (1024 * 1024));
+                info!("  Multiprocessor count: {}", props.multiprocessor_count);
+                info!("  Max threads per block: {}", props.max_threads_per_block);
+                info!("  Max threads per multiprocessor: {}", props.max_threads_per_multiprocessor);
+                
+                // Check minimum requirements
+                if props.max_threads_per_multiprocessor < 256 {
+                    error!("GPU capability too low: {} threads per multiprocessor; minimum required is 256",
+                          props.max_threads_per_multiprocessor);
+                    return Err(Error::new(ErrorKind::Other,
+                        format!("GPU capability too low: {} threads per multiprocessor",
+                                props.max_threads_per_multiprocessor)));
                 }
+                
+                Ok(Arc::new(device))
             }
             Err(e) => {
-                error!("Failed to create CUDA context: {}", e);
-                Err(Error::new(ErrorKind::Other, format!("Failed to create CUDA context: {}", e)))
+                error!("Failed to create CUDA device: {}", e);
+                Err(Error::new(ErrorKind::Other, format!("Failed to create CUDA device: {}", e)))
             }
         }
     }
 
     async fn static_initialize_unified_compute(
+        device: &Arc<CudaDevice>,  // Accept device instead of creating internally
         num_nodes: u32,
-        num_edges: u32,  // Add num_edges parameter
-        graph_nodes: &[crate::models::node::Node], // Pass slice of nodes
+        num_edges: u32,
+        graph_nodes: &[crate::models::node::Node],
     ) -> Result<(UnifiedGPUCompute, HashMap<u32, usize>), Error> {
-        info!("UNIFIED_INIT: Starting unified GPU compute initialization for {} nodes, {} edges", num_nodes, num_edges);
+        info!("Starting unified GPU compute initialization for {} nodes, {} edges", num_nodes, num_edges);
         
-        let ptx_content = "";
-        // Initialize the unified GPU compute engine with actual edge count
-        let unified_compute = UnifiedGPUCompute::new(
+        // Pass device to UnifiedGPUCompute constructor
+        let unified_compute = UnifiedGPUCompute::new_with_device(
+            device.clone(),
             num_nodes as usize,
-            num_edges as usize,  // Use actual edge count from graph
-            ptx_content
+            num_edges as usize,
         ).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to initialize unified compute: {}", e)))?;
-        
-        info!("UNIFIED_INIT: Unified GPU compute initialized successfully");
         
         // Create node indices mapping
         let mut node_indices = HashMap::new();
         for (idx, node) in graph_nodes.iter().enumerate() {
             node_indices.insert(node.id, idx);
         }
-        
-        info!("UNIFIED_INIT: Created node indices for {} nodes", graph_nodes.len());
-        // The unified compute engine handles all kernel loading internally
-        info!("UNIFIED_INIT: Unified kernel is already loaded and ready");
-        // Visual analytics and all advanced features are now built into the unified kernel
-        info!("UNIFIED_INIT: All advanced features available through unified kernel");
-        // All advanced GPU algorithms are now part of the unified kernel
-        info!("UNIFIED_INIT: Advanced algorithms integrated into unified kernel");
         
         Ok((unified_compute, node_indices))
     }
@@ -209,14 +205,23 @@ impl GPUComputeActor {
         // Add delay to ensure CUDA runtime is ready
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
         
-        // Create CUDA context
-        let context = Self::static_create_cuda_context().await?;
+        // Create CUDA device (not context)
+        let device = Self::static_create_cuda_context().await?;
         
-        // Small delay after device creation to ensure it's ready
+        // Create a stream for async operations
+        let stream = device.fork_default_stream()
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to create stream: {}", e)))?;
+        
+        // Small delay after device creation
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         
-        // Initialize unified compute engine with edge count
-        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(num_nodes, num_edges, &graph.nodes).await?;
+        // Initialize unified compute engine with the device
+        let (mut unified_compute, node_indices) = Self::static_initialize_unified_compute(
+            &device,  // Pass device reference
+            num_nodes,
+            num_edges,
+            &graph.nodes
+        ).await?;
         info!("(Static Logic) Unified compute initialized successfully");
         
         // Upload node positions to unified compute
@@ -288,7 +293,8 @@ impl GPUComputeActor {
         }
         
         Ok(GpuInitializationResult {
-            context,
+            device,  // Changed from context
+            stream: Some(stream),
             unified_compute,
             num_nodes,
             num_edges,
@@ -509,7 +515,8 @@ impl Handler<InitializeGPU> for GPUComputeActor {
             actor_fut.map(move |result_of_logic, actor, _ctx| {
                 match result_of_logic {
                     Ok(init_result) => {
-                        actor.context = Some(init_result.context);
+                        actor.device = Some(init_result.device);
+                        actor.stream = init_result.stream;
                         actor.unified_compute = Some(init_result.unified_compute);
                         actor.num_nodes = init_result.num_nodes;
                         actor.num_edges = init_result.num_edges;
@@ -540,7 +547,7 @@ impl Handler<UpdateGPUGraphData> for GPUComputeActor {
         let node_count = msg.graph.nodes.len();
         info!("GPU: UpdateGPUGraphData received with {} nodes", node_count);
         
-        if self.context.is_none() {
+        if self.device.is_none() {
             error!("GPU NOT INITIALIZED! Cannot update graph data. Need to call InitializeGPU first!");
             return Err("GPU not initialized - call InitializeGPU first".to_string());
         }
@@ -598,7 +605,7 @@ impl Handler<ComputeForces> for GPUComputeActor {
                   self.iteration_count, self.num_nodes);
         }
         
-        if self.context.is_none() {
+        if self.device.is_none() {
             error!("GPU NOT INITIALIZED! Cannot compute forces!");
             return Err("GPU not initialized".to_string());
         }
@@ -627,7 +634,7 @@ impl Handler<GetNodeData> for GPUComputeActor {
     type Result = Result<Vec<BinaryNodeData>, String>;
 
     fn handle(&mut self, _msg: GetNodeData, _ctx: &mut Self::Context) -> Self::Result {
-        if self.context.is_none() {
+        if self.device.is_none() {
             warn!("Attempted to get node data, but GPU is not initialized.");
             return Err("GPU not initialized".to_string());
         }
@@ -650,7 +657,7 @@ impl Handler<GetGPUStatus> for GPUComputeActor {
 
     fn handle(&mut self, _msg: GetGPUStatus, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(GPUStatus {
-            is_initialized: self.context.is_some(),
+            is_initialized: self.device.is_some(),
             failure_count: self.gpu_failure_count,
             iteration_count: self.iteration_count,
             num_nodes: self.num_nodes,
@@ -922,7 +929,7 @@ impl Handler<PerformGPUClustering> for GPUComputeActor {
         info!("GPU: Performing {} clustering for task {}", msg.method, msg.task_id);
         
         // Check if GPU is initialized
-        if self.context.is_none() || self.unified_compute.is_none() {
+        if self.device.is_none() || self.unified_compute.is_none() {
             error!("GPU: Not initialized for clustering");
             return Box::pin(actix::fut::ready(Err("GPU not initialized".to_string())).into_actor(self));
         }

@@ -4,7 +4,7 @@ use actix_web::web;
 use log::{info};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
-// use cudarc::driver::CudaDevice; // Replaced with CudaContext
+// CudaDevice import removed - handled by GPU compute actor
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;

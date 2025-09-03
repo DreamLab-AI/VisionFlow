@@ -24,8 +24,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use log::{info, warn, debug, trace};
-use cudarc::driver::safe::CudaContext;
-use cudarc::driver::safe::CudaDevice;
+use cudarc::driver::CudaDevice;
 use nalgebra::DMatrix;
 
 use crate::models::{
@@ -87,7 +86,7 @@ pub struct OptimizationResult {
 /// Stress majorization solver for graph layout optimization
 pub struct StressMajorizationSolver {
     config: StressMajorizationConfig,
-    _gpu_context: Option<Arc<CudaContext>>,
+    _gpu_context: Option<Arc<CudaDevice>>,
     cached_distance_matrix: Option<DMatrix<f32>>,
     cached_weight_matrix: Option<DMatrix<f32>>,
     iteration_history: Vec<f32>,
@@ -137,17 +136,17 @@ impl StressMajorizationSolver {
     }
 
     /// Initialize GPU device for acceleration
-    fn initialize_gpu() -> Result<Arc<CudaContext>, Box<dyn std::error::Error>> {
-        info!("Initializing GPU context for stress majorization");
+    fn initialize_gpu() -> Result<Arc<CudaDevice>, Box<dyn std::error::Error>> {
+        info!("Initializing GPU device for stress majorization");
         
         let device_idx = std::env::var("CUDA_DEVICE")
             .ok()
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(0);
 
-        let context = CudaContext::new(device_idx)?;
-        info!("Successfully initialized CUDA context for stress majorization");
-        Ok(context)
+        let device = CudaDevice::new(device_idx)?;
+        info!("Successfully initialized CUDA device for stress majorization");
+        Ok(device)
     }
 
     /// Optimize graph layout using stress majorization

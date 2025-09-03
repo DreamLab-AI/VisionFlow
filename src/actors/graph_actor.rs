@@ -56,6 +56,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
 use log::{debug, info, warn, error, trace};
+use cudarc::driver::CudaDevice;
  
 use crate::actors::messages::*;
 use crate::utils::binary_protocol;
@@ -1264,14 +1265,27 @@ impl GraphServiceActor {
                 let num_directed_edges = graph_data_clone.edges.len() * 2;
                 info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)", 
                       graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
-                match UnifiedGPUCompute::new(
+                // Create CudaDevice and then UnifiedGPUCompute
+                let device = match CudaDevice::new(0) {
+                    Ok(d) => Arc::new(d),
+                    Err(e) => {
+                        warn!("Failed to create CUDA device: {}", e);
+                        self_addr.do_send(ResetGPUInitFlag);
+                        return;
+                    }
+                };
+                
+                match UnifiedGPUCompute::new_with_device(
+                    device,
                     graph_data_clone.nodes.len(),
                     num_directed_edges,
-                    &ptx_content,
                 ) {
                     Ok(context) => {
                         info!("Successfully initialized advanced GPU context");
-                        self_addr.do_send(SetAdvancedGPUContext { context });
+                        // For now, log success but don't send the context due to Send/Sync issues
+                        info!("GPU context created successfully, but cannot send due to threading constraints");
+                        // TODO: Redesign to handle GPU context in a thread-safe manner
+                        // self_addr.do_send(SetAdvancedGPUContext { context });
                     }
                     Err(e) => {
                         warn!("Failed to initialize advanced GPU context: {}", e);
