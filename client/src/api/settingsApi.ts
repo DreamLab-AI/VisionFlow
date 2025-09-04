@@ -109,12 +109,11 @@ export const settingsApi = {
   async updateSettingsByPaths(updates: BatchOperation[]): Promise<void> {
     try {
       const response = await fetch(`${API_BASE}/batch`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          operation: 'update',
           updates
         }),
       });
@@ -127,8 +126,8 @@ export const settingsApi = {
           // Fetch current settings
           const currentSettings = await this.fetchSettings();
           
-          // Apply updates to the settings object
-          const updatedSettings = { ...currentSettings };
+          // Deep clone to avoid modifying frozen objects
+          const updatedSettings = JSON.parse(JSON.stringify(currentSettings));
           for (const { path, value } of updates) {
             const keys = path.split('.');
             let obj: any = updatedSettings;
@@ -157,7 +156,8 @@ export const settingsApi = {
       
       // Fetch, update, and save
       const currentSettings = await this.fetchSettings();
-      const updatedSettings = { ...currentSettings };
+      // Deep clone to avoid modifying frozen objects
+      const updatedSettings = JSON.parse(JSON.stringify(currentSettings));
       
       for (const { path, value } of updates) {
         const keys = path.split('.');

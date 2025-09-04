@@ -56,11 +56,11 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#00e5ff'
+        baseColor: '#be1919'
         metalness: 0.10684931
         opacity: 0.043835618
         roughness: 0.32328767
-        nodeSize: 1.5598902
+        nodeSize: 0.53626376
         quality: high
         enableInstancing: true
         enableHologram: true
