@@ -1,265 +1,265 @@
 visualisation:
   rendering:
-    ambient_light_intensity: 1.2
-    background_color: '#0a0e1a'
-    directional_light_intensity: 1.5
-    enable_ambient_occlusion: false
-    enable_antialiasing: true
-    enable_shadows: true
-    environment_intensity: 0.7
-    shadow_map_size: '2048'
-    shadow_bias: 0.0001
+    ambientLightIntensity: 1.2
+    backgroundColor: '#0a0e1a'
+    directionalLightIntensity: 1.5
+    enableAmbientOcclusion: false
+    enableAntialiasing: true
+    enableShadows: true
+    environmentIntensity: 0.7
+    shadowMapSize: '2048'
+    shadowBias: 0.0001
     context: desktop
   animations:
-    enable_motion_blur: false
-    enable_node_animations: true
-    motion_blur_strength: 0.2
-    selection_wave_enabled: true
-    pulse_enabled: true
-    pulse_speed: 1.2
-    pulse_strength: 0.8
-    wave_speed: 0.5
+    enableMotionBlur: false
+    enableNodeAnimations: true
+    motionBlurStrength: 0.2
+    selectionWaveEnabled: true
+    pulseEnabled: true
+    pulseSpeed: 1.2
+    pulseStrength: 0.8
+    waveSpeed: 0.5
   glow:
     enabled: true
     intensity: 0.3561644
     radius: 0.3561644
     threshold: 0.038356163
-    diffuse_strength: 1.5
-    atmospheric_density: 0.8
-    volumetric_intensity: 1.2
-    base_color: '#00ffff'
-    emission_color: '#00e5ff'
+    diffuseStrength: 1.5
+    atmosphericDensity: 0.8
+    volumetricIntensity: 1.2
+    baseColor: '#00ffff'
+    emissionColor: '#00e5ff'
     opacity: 0.95
-    pulse_speed: 1.2
-    flow_speed: 0.5
-    node_glow_strength: 0.053478915
-    edge_glow_strength: 0.9127068
-    environment_glow_strength: 0.96262044
+    pulseSpeed: 1.2
+    flowSpeed: 0.5
+    nodeGlowStrength: 0.053478915
+    edgeGlowStrength: 0.9127068
+    environmentGlowStrength: 0.96262044
   hologram:
-    ring_count: 5
-    ring_color: '#00ffff'
-    ring_opacity: 0.8
-    sphere_sizes:
+    ringCount: 5
+    ringColor: '#00ffff'
+    ringOpacity: 0.8
+    sphereSizes:
     - 40.0
     - 80.0
-    ring_rotation_speed: 12.0
-    enable_buckminster: true
-    buckminster_size: 50.0
-    buckminster_opacity: 0.3
-    enable_geodesic: true
-    geodesic_size: 60.0
-    geodesic_opacity: 0.25
-    enable_triangle_sphere: true
-    triangle_sphere_size: 70.0
-    triangle_sphere_opacity: 0.4
-    global_rotation_speed: 0.5
+    ringRotationSpeed: 12.0
+    enableBuckminster: true
+    buckminsterSize: 50.0
+    buckminsterOpacity: 0.3
+    enableGeodesic: true
+    geodesicSize: 60.0
+    geodesicOpacity: 0.25
+    enableTriangleSphere: true
+    triangleSphereSize: 70.0
+    triangleSphereOpacity: 0.4
+    globalRotationSpeed: 0.5
   graphs:
     logseq:
       nodes:
-        base_color: '#00e5ff'
+        baseColor: '#00e5ff'
         metalness: 0.10684931
         opacity: 0.043835618
         roughness: 0.32328767
-        node_size: 0.53370845
+        nodeSize: 1.5598902
         quality: high
-        enable_instancing: true
-        enable_hologram: true
-        enable_metadata_shape: false
-        enable_metadata_visualisation: true
+        enableInstancing: true
+        enableHologram: true
+        enableMetadataShape: false
+        enableMetadataVisualisation: true
       edges:
-        arrow_size: 0.02
-        base_width: 0.5
+        arrowSize: 0.02
+        baseWidth: 0.5
         color: '#00bfc2'
-        enable_arrows: false
+        enableArrows: false
         opacity: 0.05479452
-        width_range:
+        widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktop_font_size: 0.5
-        enable_labels: true
-        text_color: '#ffffff'
-        text_outline_color: '#0a0e1a'
-        text_outline_width: 0.005
-        text_resolution: 32
-        text_padding: 0.6
-        billboard_mode: camera
-        show_metadata: true
-        max_label_width: 5.0
+        desktopFontSize: 0.5
+        enableLabels: true
+        textColor: '#ffffff'
+        textOutlineColor: '#0a0e1a'
+        textOutlineWidth: 0.005
+        textResolution: 32
+        textPadding: 0.6
+        billboardMode: camera
+        showMetadata: true
+        maxLabelWidth: 5.0
       physics:
-        auto_balance: false
-        auto_balance_interval_ms: 500
-        auto_balance_config:
-          stability_variance_threshold: 100.0
-          stability_frame_count: 180
-          clustering_distance_threshold: 20.0
-          bouncing_node_percentage: 0.33
-          boundary_min_distance: 90.0
-          boundary_max_distance: 100.0
-          extreme_distance_threshold: 1000.0
-          explosion_distance_threshold: 10000.0
-          spreading_distance_threshold: 500.0
-          oscillation_detection_frames: 10
-          oscillation_change_threshold: 5.0
-          min_oscillation_changes: 5
-          grid_cell_size_min: 1.0
-          grid_cell_size_max: 50.0
-          repulsion_cutoff_min: 5.0
-          repulsion_cutoff_max: 200.0
-          repulsion_softening_min: 0.000001
-          repulsion_softening_max: 1.0
-          center_gravity_min: 0.0
-          center_gravity_max: 0.1
-          spatial_hash_efficiency_threshold: 0.3
-          cluster_density_threshold: 50.0
-          numerical_instability_threshold: 0.001
-        attraction_k: 0.01
-        bounds_size: 1000.0
-        separation_radius: 2.0
+        autoBalance: false
+        autoBalanceIntervalMs: 500
+        autoBalanceConfig:
+          stabilityVarianceThreshold: 100.0
+          stabilityFrameCount: 180
+          clusteringDistanceThreshold: 20.0
+          bouncingNodePercentage: 0.33
+          boundaryMinDistance: 90.0
+          boundaryMaxDistance: 100.0
+          extremeDistanceThreshold: 1000.0
+          explosionDistanceThreshold: 10000.0
+          spreadingDistanceThreshold: 500.0
+          oscillationDetectionFrames: 10
+          oscillationChangeThreshold: 5.0
+          minOscillationChanges: 5
+          gridCellSizeMin: 1.0
+          gridCellSizeMax: 50.0
+          repulsionCutoffMin: 5.0
+          repulsionCutoffMax: 200.0
+          repulsionSofteningMin: 0.000001
+          repulsionSofteningMax: 1.0
+          centerGravityMin: 0.0
+          centerGravityMax: 0.1
+          spatialHashEfficiencyThreshold: 0.3
+          clusterDensityThreshold: 50.0
+          numericalInstabilityThreshold: 0.001
+        attractionK: 0.01
+        boundsSize: 1000.0
+        separationRadius: 2.0
         damping: 0.70958906
-        enable_bounds: false
+        enableBounds: false
         enabled: true
         iterations: 50
-        max_velocity: 5.0
-        max_force: 100.0
-        repel_k: 155.46765
-        spring_k: 0.1
-        mass_scale: 1.0
-        boundary_damping: 0.95
-        update_threshold: 0.01
+        maxVelocity: 5.0
+        maxForce: 100.0
+        repelK: 155.46765
+        springK: 0.1
+        massScale: 1.0
+        boundaryDamping: 0.95
+        updateThreshold: 0.01
         dt: 0.02269863
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
-        boundary_limit: 1000.0
-        alignment_strength: 0.1
-        cluster_strength: 0.1
-        compute_mode: 1
-        rest_length: 50.0
-        repulsion_cutoff: 50.0
-        repulsion_softening_epsilon: 0.0001
-        center_gravity_k: 0.0
-        grid_cell_size: 50.0
-        warmup_iterations: 100
-        cooling_rate: 0.001
-        boundary_extreme_multiplier: 2.0
-        boundary_extreme_force_multiplier: 5.0
-        boundary_velocity_damping: 0.5
-        min_distance: 1.0
-        max_repulsion_dist: 1000.0
-        boundary_margin: 10.0
-        boundary_force_strength: 1.0
-        warmup_curve: exponential
-        zero_velocity_iterations: 10
-        clustering_algorithm: none
-        cluster_count: 5
-        clustering_resolution: 1.0
-        clustering_iterations: 50
+        stressWeight: 0.0001
+        stressAlpha: 0.0001
+        boundaryLimit: 1000.0
+        alignmentStrength: 0.1
+        clusterStrength: 0.1
+        computeMode: 1
+        restLength: 50.0
+        repulsionCutoff: 50.0
+        repulsionSofteningEpsilon: 0.0001
+        centerGravityK: 0.0
+        gridCellSize: 50.0
+        warmupIterations: 100
+        coolingRate: 0.001
+        boundaryExtremeMultiplier: 2.0
+        boundaryExtremeForceMultiplier: 5.0
+        boundaryVelocityDamping: 0.5
+        minDistance: 1.0
+        maxRepulsionDist: 1000.0
+        boundaryMargin: 10.0
+        boundaryForceStrength: 1.0
+        warmupCurve: exponential
+        zeroVelocityIterations: 10
+        clusteringAlgorithm: none
+        clusterCount: 5
+        clusteringResolution: 1.0
+        clusteringIterations: 50
     visionflow:
       nodes:
-        base_color: '#40ff00'
+        baseColor: '#40ff00'
         metalness: 0.85
         opacity: 0.95
         roughness: 0.15
-        node_size: 1.2
+        nodeSize: 1.2
         quality: high
-        enable_instancing: true
-        enable_hologram: true
-        enable_metadata_shape: true
-        enable_metadata_visualisation: true
+        enableInstancing: true
+        enableHologram: true
+        enableMetadataShape: true
+        enableMetadataVisualisation: true
       edges:
-        arrow_size: 0.02
-        base_width: 0.5
+        arrowSize: 0.02
+        baseWidth: 0.5
         color: '#76ff03'
-        enable_arrows: false
+        enableArrows: false
         opacity: 0.45
-        width_range:
+        widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktop_font_size: 0.5
-        enable_labels: true
-        text_color: '#f0fff0'
-        text_outline_color: '#0a1a0a'
-        text_outline_width: 0.005
-        text_resolution: 32
-        text_padding: 0.6
-        billboard_mode: camera
-        show_metadata: true
-        max_label_width: 5.0
+        desktopFontSize: 0.5
+        enableLabels: true
+        textColor: '#f0fff0'
+        textOutlineColor: '#0a1a0a'
+        textOutlineWidth: 0.005
+        textResolution: 32
+        textPadding: 0.6
+        billboardMode: camera
+        showMetadata: true
+        maxLabelWidth: 5.0
       physics:
-        auto_balance: false
-        auto_balance_interval_ms: 500
-        auto_balance_config:
-          stability_variance_threshold: 100.0
-          stability_frame_count: 180
-          clustering_distance_threshold: 20.0
-          bouncing_node_percentage: 0.33
-          boundary_min_distance: 90.0
-          boundary_max_distance: 100.0
-          extreme_distance_threshold: 1000.0
-          explosion_distance_threshold: 10000.0
-          spreading_distance_threshold: 500.0
-          oscillation_detection_frames: 10
-          oscillation_change_threshold: 5.0
-          min_oscillation_changes: 5
-          grid_cell_size_min: 1.0
-          grid_cell_size_max: 50.0
-          repulsion_cutoff_min: 5.0
-          repulsion_cutoff_max: 200.0
-          repulsion_softening_min: 0.000001
-          repulsion_softening_max: 1.0
-          center_gravity_min: 0.0
-          center_gravity_max: 0.1
-          spatial_hash_efficiency_threshold: 0.3
-          cluster_density_threshold: 50.0
-          numerical_instability_threshold: 0.001
-        attraction_k: 0.01
-        bounds_size: 1000.0
-        separation_radius: 2.0
+        autoBalance: false
+        autoBalanceIntervalMs: 500
+        autoBalanceConfig:
+          stabilityVarianceThreshold: 100.0
+          stabilityFrameCount: 180
+          clusteringDistanceThreshold: 20.0
+          bouncingNodePercentage: 0.33
+          boundaryMinDistance: 90.0
+          boundaryMaxDistance: 100.0
+          extremeDistanceThreshold: 1000.0
+          explosionDistanceThreshold: 10000.0
+          spreadingDistanceThreshold: 500.0
+          oscillationDetectionFrames: 10
+          oscillationChangeThreshold: 5.0
+          minOscillationChanges: 5
+          gridCellSizeMin: 1.0
+          gridCellSizeMax: 50.0
+          repulsionCutoffMin: 5.0
+          repulsionCutoffMax: 200.0
+          repulsionSofteningMin: 0.000001
+          repulsionSofteningMax: 1.0
+          centerGravityMin: 0.0
+          centerGravityMax: 0.1
+          spatialHashEfficiencyThreshold: 0.3
+          clusterDensityThreshold: 50.0
+          numericalInstabilityThreshold: 0.001
+        attractionK: 0.01
+        boundsSize: 1000.0
+        separationRadius: 2.0
         damping: 0.85
-        enable_bounds: false
+        enableBounds: false
         enabled: true
         iterations: 50
-        max_velocity: 5.0
-        max_force: 100.0
-        repel_k: 2.0
-        spring_k: 0.1
-        mass_scale: 1.0
-        boundary_damping: 0.95
-        update_threshold: 0.01
+        maxVelocity: 5.0
+        maxForce: 100.0
+        repelK: 2.0
+        springK: 0.1
+        massScale: 1.0
+        boundaryDamping: 0.95
+        updateThreshold: 0.01
         dt: 0.016
         temperature: 0.01
         gravity: 0.0001
-        stress_weight: 0.0001
-        stress_alpha: 0.0001
-        boundary_limit: 1000.0
-        alignment_strength: 0.1
-        cluster_strength: 0.1
-        compute_mode: 1
-        rest_length: 50.0
-        repulsion_cutoff: 50.0
-        repulsion_softening_epsilon: 0.0001
-        center_gravity_k: 0.0
-        grid_cell_size: 50.0
-        warmup_iterations: 100
-        cooling_rate: 0.001
-        boundary_extreme_multiplier: 2.0
-        boundary_extreme_force_multiplier: 5.0
-        boundary_velocity_damping: 0.5
-        min_distance: 1.0
-        max_repulsion_dist: 1000.0
-        boundary_margin: 10.0
-        boundary_force_strength: 1.0
-        warmup_curve: exponential
-        zero_velocity_iterations: 10
-        clustering_algorithm: none
-        cluster_count: 5
-        clustering_resolution: 1.0
-        clustering_iterations: 50
+        stressWeight: 0.0001
+        stressAlpha: 0.0001
+        boundaryLimit: 1000.0
+        alignmentStrength: 0.1
+        clusterStrength: 0.1
+        computeMode: 1
+        restLength: 50.0
+        repulsionCutoff: 50.0
+        repulsionSofteningEpsilon: 0.0001
+        centerGravityK: 0.0
+        gridCellSize: 50.0
+        warmupIterations: 100
+        coolingRate: 0.001
+        boundaryExtremeMultiplier: 2.0
+        boundaryExtremeForceMultiplier: 5.0
+        boundaryVelocityDamping: 0.5
+        minDistance: 1.0
+        maxRepulsionDist: 1000.0
+        boundaryMargin: 10.0
+        boundaryForceStrength: 1.0
+        warmupCurve: exponential
+        zeroVelocityIterations: 10
+        clusteringAlgorithm: none
+        clusterCount: 5
+        clusteringResolution: 1.0
+        clusteringIterations: 50
   camera:
     fov: 75.0
     near: 0.1
@@ -268,161 +268,144 @@ visualisation:
       x: 0.0
       y: 10.0
       z: 50.0
-    look_at:
+    lookAt:
       x: 0.0
       y: 0.0
       z: 0.0
-  space_pilot:
-    enabled: true
-    mode: camera
-    sensitivity:
-      translation: 1.0
-      rotation: 1.0
-    smoothing: 0.8
-    deadzone: 0.1
-    button_functions:
-      '6': frontView
-      '1': resetView
-      '3': fitToView
-      '2': cycleMode
-      '4': topView
-      '5': rightView
-      '7': leftView
-      '8': bottomView
 system:
   network:
-    bind_address: 0.0.0.0
+    bindAddress: 0.0.0.0
     domain: visionflow.info
-    enable_http2: false
-    enable_rate_limiting: false
-    enable_tls: false
-    max_request_size: 10485760
-    min_tls_version: '1.2'
+    enableHttp2: false
+    enableRateLimiting: false
+    enableTls: false
+    maxRequestSize: 10485760
+    minTlsVersion: '1.2'
     port: 4000
-    rate_limit_requests: 10000
-    rate_limit_window: 600
-    tunnel_id: dummy
-    api_client_timeout: 30
-    enable_metrics: false
-    max_concurrent_requests: 1
-    max_retries: 3
-    metrics_port: 9090
-    retry_delay: 5
+    rateLimitRequests: 10000
+    rateLimitWindow: 600
+    tunnelId: dummy
+    apiClientTimeout: 30
+    enableMetrics: false
+    maxConcurrentRequests: 1
+    maxRetries: 3
+    metricsPort: 9090
+    retryDelay: 5
   websocket:
-    binary_chunk_size: 2048
-    binary_update_rate: 30
-    min_update_rate: 5
-    max_update_rate: 60
-    motion_threshold: 0.05
-    motion_damping: 0.9
-    binary_message_version: 1
-    compression_enabled: false
-    compression_threshold: 512
-    heartbeat_interval: 10000
-    heartbeat_timeout: 600000
-    max_connections: 100
-    max_message_size: 10485760
-    reconnect_attempts: 5
-    reconnect_delay: 1000
-    update_rate: 60
+    binaryChunkSize: 2048
+    binaryUpdateRate: 30
+    minUpdateRate: 5
+    maxUpdateRate: 60
+    motionThreshold: 0.05
+    motionDamping: 0.9
+    binaryMessageVersion: 1
+    compressionEnabled: false
+    compressionThreshold: 512
+    heartbeatInterval: 10000
+    heartbeatTimeout: 600000
+    maxConnections: 100
+    maxMessageSize: 10485760
+    reconnectAttempts: 5
+    reconnectDelay: 1000
+    updateRate: 60
   security:
-    allowed_origins:
+    allowedOrigins:
     - https://www.visionflow.info
     - https://visionflow.info
-    audit_log_path: /app/logs/audit.log
-    cookie_httponly: true
-    cookie_samesite: Strict
-    cookie_secure: true
-    csrf_token_timeout: 3600
-    enable_audit_logging: false
-    enable_request_validation: false
-    session_timeout: 3600
+    auditLogPath: /app/logs/audit.log
+    cookieHttponly: true
+    cookieSamesite: Strict
+    cookieSecure: true
+    csrfTokenTimeout: 3600
+    enableAuditLogging: false
+    enableRequestValidation: false
+    sessionTimeout: 3600
   debug:
     enabled: false
-  persist_settings: true
+  persistSettings: true
 xr:
   enabled: false
-  client_side_enable_xr: false
+  clientSideEnableXr: false
   mode: immersive-vr
-  room_scale: 1.0
-  space_type: local-floor
+  roomScale: 1.0
+  spaceType: local-floor
   quality: medium
-  render_scale: 1.0
-  interaction_distance: 1.5
-  locomotion_method: teleport
-  teleport_ray_color: '#ffffff'
-  controller_ray_color: '#ffffff'
-  controller_model: default
-  enable_hand_tracking: true
-  hand_mesh_enabled: true
-  hand_mesh_color: '#4287f5'
-  hand_mesh_opacity: 0.3
-  hand_point_size: 0.006
-  hand_ray_enabled: true
-  hand_ray_color: '#4287f5'
-  hand_ray_width: 0.003
-  gesture_smoothing: 0.7
-  enable_haptics: true
-  haptic_intensity: 0.3
-  drag_threshold: 0.08
-  pinch_threshold: 0.3
-  rotation_threshold: 0.08
-  interaction_radius: 0.15
-  movement_speed: 1.0
-  dead_zone: 0.12
-  movement_axes:
+  renderScale: 1.0
+  interactionDistance: 1.5
+  locomotionMethod: teleport
+  teleportRayColor: '#ffffff'
+  controllerRayColor: '#ffffff'
+  controllerModel: default
+  enableHandTracking: true
+  handMeshEnabled: true
+  handMeshColor: '#4287f5'
+  handMeshOpacity: 0.3
+  handPointSize: 0.006
+  handRayEnabled: true
+  handRayColor: '#4287f5'
+  handRayWidth: 0.003
+  gestureSmoothing: 0.7
+  enableHaptics: true
+  hapticIntensity: 0.3
+  dragThreshold: 0.08
+  pinchThreshold: 0.3
+  rotationThreshold: 0.08
+  interactionRadius: 0.15
+  movementSpeed: 1.0
+  deadZone: 0.12
+  movementAxes:
     horizontal: 2
     vertical: 3
-  enable_light_estimation: false
-  enable_plane_detection: false
-  enable_scene_understanding: false
-  plane_color: '#4287f5'
-  plane_opacity: 0.001
-  plane_detection_distance: 3.0
-  show_plane_overlay: false
-  snap_to_floor: false
-  enable_passthrough_portal: false
-  passthrough_opacity: 0.8
-  passthrough_brightness: 1.1
-  passthrough_contrast: 1.2
-  portal_size: 2.5
-  portal_edge_color: '#4287f5'
-  portal_edge_width: 0.02
+  enableLightEstimation: false
+  enablePlaneDetection: false
+  enableSceneUnderstanding: false
+  planeColor: '#4287f5'
+  planeOpacity: 0.001
+  planeDetectionDistance: 3.0
+  showPlaneOverlay: false
+  snapToFloor: false
+  enablePassthroughPortal: false
+  passthroughOpacity: 0.8
+  passthroughBrightness: 1.1
+  passthroughContrast: 1.2
+  portalSize: 2.5
+  portalEdgeColor: '#4287f5'
+  portalEdgeWidth: 0.02
 auth:
   enabled: true
   provider: nostr
   required: true
 ragflow:
-  agent_id: aa2e328812ef11f083dc0a0d6226f61b
+  agentId: aa2e328812ef11f083dc0a0d6226f61b
   timeout: 30
-  max_retries: 3
+  maxRetries: 3
 perplexity:
   model: llama-3.1-sonar-small-128k-online
-  max_tokens: 4096
+  maxTokens: 4096
   temperature: 0.5
-  top_p: 0.9
-  presence_penalty: 0.0
-  frequency_penalty: 0.0
+  topP: 0.9
+  presencePenalty: 0.0
+  frequencyPenalty: 0.0
   timeout: 30
-  rate_limit: 100
+  rateLimit: 100
 openai:
   timeout: 30
-  rate_limit: 100
+  rateLimit: 100
 kokoro:
-  api_url: http://pedantic_morse:8880
-  default_voice: af_heart
-  default_format: mp3
-  default_speed: 1.0
+  apiUrl: http://pedantic_morse:8880
+  defaultVoice: af_heart
+  defaultFormat: mp3
+  defaultSpeed: 1.0
   timeout: 30
   stream: true
-  return_timestamps: true
-  sample_rate: 24000
+  returnTimestamps: true
+  sampleRate: 24000
 whisper:
-  api_url: http://localhost:8080
-  default_model: base
-  default_language: en
+  apiUrl: http://localhost:8080
+  defaultModel: base
+  defaultLanguage: en
   timeout: 30
   temperature: 0.0
-  return_timestamps: false
-  vad_filter: true
-  word_timestamps: false
+  returnTimestamps: false
+  vadFilter: true
+  wordTimestamps: false

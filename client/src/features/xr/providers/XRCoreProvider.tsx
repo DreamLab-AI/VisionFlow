@@ -301,7 +301,7 @@ const XRCoreProvider: React.FC<XRCoreProviderProps> = ({
           // Prioritize AR support for Quest 3
           const arSupported = await (navigator.xr as any).isSessionSupported('immersive-ar');
           
-          setIsXRSupported(arSupported);
+          // isXRSupported is managed by useAsyncXRCapability hook
           setIsXRCapable(true);
           
           if (arSupported) {

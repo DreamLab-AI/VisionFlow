@@ -104,23 +104,23 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
 
   // Separate effect for auto-connect to avoid dependency issues
   useEffect(() => {
-    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (settings.system?.customBackendUrl || window.location.origin)) {
+    if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (settings?.system?.customBackendUrl || window.location.origin)) {
       autoConnectAttemptedRef.current = true;
       connect().catch((error) => gatedConsole.voice.error('Auto-connect failed:', error));
     }
-  }, [autoConnect, settings.system?.customBackendUrl]);
+  }, [autoConnect, settings?.system?.customBackendUrl]);
 
   const connect = useCallback(async () => {
     if (!voiceServiceRef.current || isConnected) return;
 
     try {
-      const baseUrl = settings.system?.customBackendUrl || window.location.origin;
+      const baseUrl = settings?.system?.customBackendUrl || window.location.origin;
       await voiceServiceRef.current.connectToSpeech(baseUrl);
     } catch (error) {
       gatedConsole.voice.error('Failed to connect to voice service:', error);
       onError?.(error);
     }
-  }, [isConnected, settings.system?.customBackendUrl]);
+  }, [isConnected, settings?.system?.customBackendUrl]);
 
   const disconnect = useCallback(async () => {
     if (!voiceServiceRef.current) return;
@@ -161,16 +161,16 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
     try {
       await voiceServiceRef.current.sendTextForTTS({
         text,
-        voice: settings.kokoro?.defaultVoice,
-        speed: settings.kokoro?.defaultSpeed,
-        stream: settings.kokoro?.stream ?? true
+        voice: settings?.kokoro?.defaultVoice,
+        speed: settings?.kokoro?.defaultSpeed,
+        stream: settings?.kokoro?.stream ?? true
       });
     } catch (error) {
       gatedConsole.voice.error('Failed to speak:', error);
       onError?.(error);
       throw error;
     }
-  }, [isConnected, settings.kokoro?.defaultVoice, settings.kokoro?.defaultSpeed, settings.kokoro?.stream]);
+  }, [isConnected, settings?.kokoro?.defaultVoice, settings?.kokoro?.defaultSpeed, settings?.kokoro?.stream]);
 
   const toggleListening = useCallback(async () => {
     if (isListening) {
