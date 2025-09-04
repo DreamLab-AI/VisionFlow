@@ -30,7 +30,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::time::Duration;
 use dotenvy::dotenv;
-use log::{error, info, debug, warn};
+use log::{error, info, debug};
 use webxr::utils::logging::init_logging;
 use tokio::signal::unix::{signal, SignalKind};
 

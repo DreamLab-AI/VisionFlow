@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use log::{info, error, debug, warn};
 use once_cell::sync::Lazy;
 
-use crate::models::UISettings;
+use crate::config::AppFullSettings;
 
 // Global cache for user settings
 static USER_SETTINGS_CACHE: Lazy<Arc<RwLock<HashMap<String, CachedUserSettings>>>> = 
@@ -25,12 +25,12 @@ struct CachedUserSettings {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserSettings {
     pub pubkey: String,
-    pub settings: UISettings,
+    pub settings: AppFullSettings,
     pub last_modified: i64,
 }
 
 impl UserSettings {
-    pub fn new(pubkey: &str, settings: UISettings) -> Self {
+    pub fn new(pubkey: &str, settings: AppFullSettings) -> Self {
         Self {
             pubkey: pubkey.to_string(),
             settings,

@@ -3,7 +3,10 @@
 
 use actix::prelude::*;
 use crate::config::AppFullSettings;
-use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, UpdatePhysicsFromAutoBalance};
+use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance};
+use crate::config::path_access::PathAccessible;
+use std::collections::HashMap;
+use serde_json::Value;
 use log::{info, error, debug};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -181,5 +184,228 @@ impl Handler<UpdatePhysicsFromAutoBalance> for SettingsActor {
                 info!("[AUTO-BALANCE] Settings persistence disabled, not saving to file");
             }
         }).into_actor(self));
+    }
+}
+
+// Handler for SetSettingByPath message - key performance improvement
+impl Handler<SetSettingByPath> for SettingsActor {
+    type Result = ResponseFuture<Result<(), String>>;
+    
+    fn handle(&mut self, msg: SetSettingByPath, _ctx: &mut Self::Context) -> Self::Result {
+        let settings = self.settings.clone();
+        let path = msg.path;
+        let value = msg.value;
+        
+        Box::pin(async move {
+            let mut current = settings.write().await;
+            
+            // Convert JSON value to appropriate type and use PathAccessible
+            match path.as_str() {
+                // Physics settings - the primary performance bottleneck being fixed
+                path_str if path_str.starts_with("visualisation.graphs.logseq.physics.") => {
+                    let field_name = path_str.replace("visualisation.graphs.logseq.physics.", "");
+                    
+                    // Handle camelCase to snake_case conversion for internal fields
+                    let internal_field = match field_name.as_str() {
+                        "springK" => "spring_k",
+                        "repelK" => "repel_k",
+                        "maxVelocity" => "max_velocity",
+                        "boundsSize" => "bounds_size",
+                        other => other,
+                    };
+                    
+                    let full_path = format!("visualisation.graphs.logseq.physics.{}", internal_field);
+                    
+                    // Convert the value to the appropriate Rust type
+                    match internal_field {
+                        "damping" | "spring_k" | "repel_k" | "max_velocity" | "bounds_size" | "gravity" | "temperature" => {
+                            if let Some(f_val) = value.as_f64() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(f_val as f32)) {
+                                    error!("Failed to set physics field {}: {}", internal_field, e);
+                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
+                                }
+                            } else {
+                                return Err(format!("Invalid value type for field {}", internal_field));
+                            }
+                        }
+                        "enabled" => {
+                            if let Some(b_val) = value.as_bool() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(b_val)) {
+                                    error!("Failed to set physics field {}: {}", internal_field, e);
+                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
+                                }
+                            } else {
+                                return Err(format!("Invalid value type for field {}", internal_field));
+                            }
+                        }
+                        "iterations" => {
+                            if let Some(i_val) = value.as_u64() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(i_val as u32)) {
+                                    error!("Failed to set physics field {}: {}", internal_field, e);
+                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
+                                }
+                            } else {
+                                return Err(format!("Invalid value type for field {}", internal_field));
+                            }
+                        }
+                        _ => {
+                            return Err(format!("Unsupported physics field: {}", internal_field));
+                        }
+                    }
+                    
+                    info!("Updated physics setting: {} = {:?}", internal_field, value);
+                }
+                _ => {
+                    return Err(format!("Path-based updates only supported for physics settings currently: {}", path));
+                }
+            }
+            
+            // Validate the updated settings
+            if let Err(e) = current.validate_config_camel_case() {
+                error!("Validation failed after path update: {:?}", e);
+                return Err(format!("Validation failed: {:?}", e));
+            }
+            
+            // Save to file if persistence is enabled
+            if current.system.persist_settings {
+                if let Err(e) = current.save() {
+                    error!("Failed to save settings after path update: {}", e);
+                    return Err(format!("Failed to save settings: {}", e));
+                }
+            }
+            
+            info!("Successfully updated setting at path: {}", path);
+            Ok(())
+        })
+    }
+}
+
+// Handler for batch path operations - for high-frequency updates like sliders
+impl Handler<GetSettingsByPaths> for SettingsActor {
+    type Result = ResponseFuture<Result<HashMap<String, Value>, String>>;
+    
+    fn handle(&mut self, msg: GetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
+        let settings = self.settings.clone();
+        let paths = msg.paths;
+        
+        Box::pin(async move {
+            let current = settings.read().await;
+            let mut results = HashMap::new();
+            
+            for path in paths {
+                match current.get_by_path(&path) {
+                    Ok(boxed_value) => {
+                        // Convert back to JSON value - this is a simplified version
+                        // In a full implementation, we'd need proper type conversion
+                        let json_val = serde_json::to_value(&*current)
+                            .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+                        
+                        // Navigate to the specific path in JSON
+                        let mut current_val = &json_val;
+                        for segment in path.split('.') {
+                            match current_val.get(segment) {
+                                Some(v) => current_val = v,
+                                None => {
+                                    error!("Path not found during batch get: {}", path);
+                                    continue;
+                                }
+                            }
+                        }
+                        results.insert(path, current_val.clone());
+                    }
+                    Err(e) => {
+                        error!("Failed to get path {}: {}", path, e);
+                        // Continue with other paths even if one fails
+                    }
+                }
+            }
+            
+            Ok(results)
+        })
+    }
+}
+
+// Handler for batch path updates - critical for slider performance
+impl Handler<SetSettingsByPaths> for SettingsActor {
+    type Result = ResponseFuture<Result<(), String>>;
+    
+    fn handle(&mut self, msg: SetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
+        let settings = self.settings.clone();
+        let updates = msg.updates;
+        
+        Box::pin(async move {
+            let mut current = settings.write().await;
+            let mut validation_needed = false;
+            
+            for (path, value) in updates {
+                // Use the same logic as SetSettingByPath but in batch
+                if path.starts_with("visualisation.graphs.logseq.physics.") {
+                    validation_needed = true;
+                    
+                    let field_name = path.replace("visualisation.graphs.logseq.physics.", "");
+                    let internal_field = match field_name.as_str() {
+                        "springK" => "spring_k",
+                        "repelK" => "repel_k", 
+                        "maxVelocity" => "max_velocity",
+                        "boundsSize" => "bounds_size",
+                        other => other,
+                    };
+                    
+                    let full_path = format!("visualisation.graphs.logseq.physics.{}", internal_field);
+                    
+                    match internal_field {
+                        "damping" | "spring_k" | "repel_k" | "max_velocity" | "bounds_size" | "gravity" | "temperature" => {
+                            if let Some(f_val) = value.as_f64() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(f_val as f32)) {
+                                    error!("Failed to batch update physics field {}: {}", internal_field, e);
+                                    continue;
+                                }
+                            }
+                        }
+                        "enabled" => {
+                            if let Some(b_val) = value.as_bool() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(b_val)) {
+                                    error!("Failed to batch update physics field {}: {}", internal_field, e);
+                                    continue;
+                                }
+                            }
+                        }
+                        "iterations" => {
+                            if let Some(i_val) = value.as_u64() {
+                                if let Err(e) = current.set_by_path(&full_path, Box::new(i_val as u32)) {
+                                    error!("Failed to batch update physics field {}: {}", internal_field, e);
+                                    continue;
+                                }
+                            }
+                        }
+                        _ => {
+                            error!("Unsupported physics field in batch update: {}", internal_field);
+                            continue;
+                        }
+                    }
+                    
+                    debug!("Batch updated physics setting: {} = {:?}", internal_field, value);
+                }
+            }
+            
+            // Only validate once for all batch updates
+            if validation_needed {
+                if let Err(e) = current.validate_config_camel_case() {
+                    error!("Validation failed after batch update: {:?}", e);
+                    return Err(format!("Batch validation failed: {:?}", e));
+                }
+                
+                // Save to file if persistence is enabled
+                if current.system.persist_settings {
+                    if let Err(e) = current.save() {
+                        error!("Failed to save settings after batch update: {}", e);
+                        return Err(format!("Failed to save batch settings: {}", e));
+                    }
+                }
+            }
+            
+            info!("Successfully completed batch settings update");
+            Ok(())
+        })
     }
 }

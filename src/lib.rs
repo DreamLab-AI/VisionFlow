@@ -18,5 +18,5 @@ pub use actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerA
 pub use models::metadata::MetadataStore;
 pub use models::protected_settings::ProtectedSettings;
 pub use models::simulation_params::SimulationParams;
-pub use models::ui_settings::UISettings;
+// pub use models::ui_settings::UISettings; // Removed - consolidated into AppFullSettings"
 pub use models::user_settings::UserSettings;

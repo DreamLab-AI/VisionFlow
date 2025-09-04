@@ -8,6 +8,19 @@ use cust_core::DeviceCopy;
 use cust::module::Module;
 use cust::stream::{Stream, StreamFlags};
 
+// External CUDA/Thrust function for sorting
+// This is provided by the compiled CUDA object file
+extern "C" {
+    fn thrust_sort_key_value(
+        d_keys_in: *const ::std::os::raw::c_void,
+        d_keys_out: *mut ::std::os::raw::c_void,
+        d_values_in: *const ::std::os::raw::c_void,
+        d_values_out: *mut ::std::os::raw::c_void,
+        num_items: ::std::os::raw::c_int,
+        stream: *mut ::std::os::raw::c_void,
+    );
+}
+
 // Define AABB and int3 structs to match CUDA
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, DeviceCopy)]
@@ -609,17 +622,8 @@ pub struct ConstraintData {
     pub node_mask: i32,
 }
 
-// Thrust wrapper functions for sorting and scanning
+// Additional Thrust wrapper function for scanning
 extern "C" {
-    fn thrust_sort_key_value(
-        d_keys_in: *const ::std::os::raw::c_void,
-        d_keys_out: *mut ::std::os::raw::c_void,
-        d_values_in: *const ::std::os::raw::c_void,
-        d_values_out: *mut ::std::os::raw::c_void,
-        num_items: ::std::os::raw::c_int,
-        stream: *mut ::std::os::raw::c_void,
-    );
-    
     fn thrust_exclusive_scan(
         d_in: *const ::std::os::raw::c_void,
         d_out: *mut ::std::os::raw::c_void,

@@ -1,0 +1,18 @@
+{
+  "default": [
+    {
+      "key": "hive/p0/dependencies",
+      "value": "P0 Dependencies Analysis Complete: Cargo.toml upgraded (73 packages), multi-stage Dockerfile.dev implemented (CUDA 12.4.1), build.rs deleted, docker-build.sh created, package.json reorganized. TypeScript integration ready. Technical debt: cudarc 0.12.1, tungstenite 0.21.0 downgrades for compatibility.",
+      "namespace": "default",
+      "timestamp": 1756979439484
+    }
+  ],
+  "hive-coordination": [
+    {
+      "key": "hive/p1/backend/status",
+      "value": "COMPLETED: Core performance refactor implemented. PathAccessible trait eliminates JSON serialization bottleneck. Physics settings now support direct field updates. Validation system with camelCase support added. Path-based actor messages implemented for granular updates. Ready for P2 frontend integration.",
+      "namespace": "hive-coordination",
+      "timestamp": 1756979726721
+    }
+  ]
+}

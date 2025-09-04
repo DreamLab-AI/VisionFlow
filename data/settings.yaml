@@ -20,7 +20,7 @@ visualisation:
     pulse_strength: 0.8
     wave_speed: 0.5
   glow:
-    enabled: false
+    enabled: true
     intensity: 0.3561644
     radius: 0.3561644
     threshold: 0.038356163
@@ -287,6 +287,8 @@ visualisation:
       '2': cycleMode
       '4': topView
       '5': rightView
+      '7': leftView
+      '8': bottomView
 system:
   network:
     bind_address: 0.0.0.0

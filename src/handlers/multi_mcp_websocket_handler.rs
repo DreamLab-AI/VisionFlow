@@ -9,15 +9,34 @@ use actix::{Actor, StreamHandler, AsyncContext, Handler, Message};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::{Duration, Instant};
-use log::{info, debug, warn};
+use log::{info, debug, warn, error};
 use uuid::Uuid;
 
 use crate::AppState;
 use crate::services::agent_visualization_protocol::McpServerType;
 use crate::utils::network::{
     TimeoutConfig, CircuitBreaker, 
-    HealthCheckManager
+    HealthCheckManager, RetryConfig, retry_with_backoff,
+    ServiceEndpoint, HealthCheckConfig, RetryableError
 };
+
+// Define a simple retryable error type for MCP operations
+#[derive(Debug, Clone)]
+struct McpError(String);
+
+impl std::fmt::Display for McpError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MCP Error: {}", self.0)
+    }
+}
+
+impl std::error::Error for McpError {}
+
+impl RetryableError for McpError {
+    fn is_retryable(&self) -> bool {
+        true // All MCP errors are considered retryable
+    }
+}
 
 /// WebSocket actor for multi-MCP agent visualization
 pub struct MultiMcpVisualizationWs {
@@ -32,6 +51,9 @@ pub struct MultiMcpVisualizationWs {
     timeout_config: TimeoutConfig,
     circuit_breaker: Option<std::sync::Arc<CircuitBreaker>>,
     health_manager: Option<std::sync::Arc<HealthCheckManager>>,
+    retry_config: RetryConfig,
+    connection_failures: u32,
+    last_successful_operation: Instant,
 }
 
 /// Client subscription filters
@@ -106,6 +128,9 @@ impl MultiMcpVisualizationWs {
             timeout_config: TimeoutConfig::websocket(),
             circuit_breaker: Some(circuit_breaker),
             health_manager: Some(health_manager),
+            retry_config: RetryConfig::mcp_operations(),
+            connection_failures: 0,
+            last_successful_operation: Instant::now(),
         }
     }
 
@@ -137,38 +162,133 @@ impl MultiMcpVisualizationWs {
         });
     }
 
+    /// Perform health check on MCP services
+    fn perform_health_checks(&mut self) {
+        if let Some(health_manager) = &self.health_manager {
+            let health_manager_clone = health_manager.clone();
+            let client_id = self.client_id.clone();
+            
+            actix::spawn(async move {
+                // Check various MCP services
+                for service in ["claude-flow", "ruv-swarm", "flow-nexus"] {
+                    let health_result = health_manager_clone.check_service_now(service).await;
+                    let is_healthy = health_result.map_or(false, |r| r.status.is_usable());
+                    
+                    if !is_healthy {
+                        warn!("[Multi-MCP] Service {} unhealthy for client {}", service, client_id);
+                    }
+                }
+            });
+        }
+    }
+    
+    /// Check if any MCP services are healthy
+    fn has_healthy_services(&self) -> bool {
+        if let Some(health_manager) = &self.health_manager {
+            for service in ["claude-flow", "ruv-swarm", "flow-nexus"] {
+                let health_result = futures::executor::block_on(health_manager.check_service_now(service));
+                if health_result.map_or(false, |r| r.status.is_usable()) {
+                    return true;
+                }
+            }
+        }
+        // Default to true if health manager not available
+        true
+    }
+    
+    /// Record successful operation
+    fn record_success(&mut self) {
+        self.connection_failures = 0;
+        self.last_successful_operation = Instant::now();
+    }
+    
+    /// Record failed operation
+    fn record_failure(&mut self) {
+        self.connection_failures += 1;
+        warn!("[Multi-MCP] Operation failure #{} for client {}", 
+              self.connection_failures, self.client_id);
+    }
+
     /// Send discovery data to client with resilience
-    fn send_discovery_data(&self, ctx: &mut ws::WebsocketContext<Self>) {
+    fn send_discovery_data(&mut self, ctx: &mut ws::WebsocketContext<Self>) {
         let client_id = self.client_id.clone();
         let circuit_breaker = self.circuit_breaker.clone();
         let timeout_config = self.timeout_config.clone();
         
+        // Check if we have healthy services before proceeding
+        if !self.has_healthy_services() {
+            warn!("[Multi-MCP] No healthy services available for discovery, client {}", client_id);
+            ctx.text(serde_json::json!({
+                "type": "error",
+                "message": "No healthy MCP services available",
+                "timestamp": chrono::Utc::now().timestamp_millis()
+            }).to_string());
+            return;
+        }
+        
         if let Some(cb) = circuit_breaker {
             // Execute discovery with circuit breaker protection
             let addr = ctx.address();
+            let retry_config = self.retry_config.clone();
+            let mut failures = self.connection_failures;
+            
             actix::spawn(async move {
-                let discovery_operation = || async {
-                    // Simulated discovery operation - in real implementation this would
-                    // connect to actual MCP servers
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                    Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
-                };
+                // Use retry logic with circuit breaker
+                let result = retry_with_backoff(retry_config, || {
+                    let cb_clone = cb.clone();
+                    Box::pin(async move {
+                        cb_clone.execute(async {
+                            // Simulated discovery operation with potential failures
+                            if fastrand::f32() < 0.2 && failures > 0 {
+                                return Err(Box::new(std::io::Error::new(
+                                    std::io::ErrorKind::ConnectionRefused,
+                                    "Discovery service temporarily unavailable"
+                                )) as Box<dyn std::error::Error + Send + Sync>);
+                            }
+                            
+                            tokio::time::sleep(Duration::from_millis(100)).await;
+                            Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
+                        }).await.map_err(|e| McpError(format!("{:?}", e)))
+                    })
+                }).await;
                 
-                match cb.execute(discovery_operation()).await {
+                match result {
                     Ok(_) => {
                         debug!("Discovery operation successful for client: {}", client_id);
+                        addr.do_send(DiscoverySuccess);
                         addr.do_send(RequestDiscoveryData);
                     }
                     Err(e) => {
-                        warn!("Discovery operation failed for client {}: {:?}", client_id, e);
-                        // Still send the request but log the issue
-                        addr.do_send(RequestDiscoveryData);
+                        error!("Discovery operation failed for client {} after retries: {:?}", client_id, e);
+                        addr.do_send(DiscoveryFailure(format!("{:?}", e)));
                     }
                 }
             });
         } else {
-            // Fallback to direct request
-            ctx.address().do_send(RequestDiscoveryData);
+            // Fallback to direct request with basic retry
+            let addr = ctx.address();
+            let retry_config = self.retry_config.clone();
+            
+            actix::spawn(async move {
+                let result = retry_with_backoff(retry_config, || {
+                    Box::pin(async {
+                        tokio::time::sleep(Duration::from_millis(100)).await;
+                        if fastrand::f32() < 0.1 {
+                            Err::<(), McpError>(McpError("Random failure".to_string()))
+                        } else {
+                            Ok::<(), McpError>(())
+                        }
+                    })
+                }).await;
+                
+                match result {
+                    Ok(_) => addr.do_send(RequestDiscoveryData),
+                    Err(e) => {
+                        error!("Discovery fallback failed for client {}: {:?}", client_id, e);
+                        addr.do_send(DiscoveryFailure(format!("{:?}", e)));
+                    }
+                }
+            });
         }
     }
 
@@ -273,8 +393,55 @@ impl Actor for MultiMcpVisualizationWs {
         // Start heartbeat
         self.start_heartbeat(ctx);
         
+        // Register MCP services for health monitoring
+        if let Some(health_manager) = &self.health_manager {
+            let health_manager = health_manager.clone();
+            actix::spawn(async move {
+                for (i, service) in ["claude-flow", "ruv-swarm", "flow-nexus"].iter().enumerate() {
+                    let endpoint = ServiceEndpoint {
+                        name: service.to_string(),
+                        host: "localhost".to_string(),
+                        port: 8080 + i as u16, // Different ports for different services
+                        config: HealthCheckConfig::default(),
+                        additional_endpoints: vec![],
+                    };
+                    health_manager.register_service(endpoint).await;
+                }
+            });
+        }
+        
         // Start position updates
         self.start_position_updates(ctx);
+        
+        // Start periodic health monitoring
+        ctx.run_interval(Duration::from_secs(30), |act, _ctx| {
+            act.perform_health_checks();
+        });
+        
+        // Start resilience monitoring
+        ctx.run_interval(Duration::from_secs(60), |act, ctx| {
+            let now = Instant::now();
+            let time_since_success = now.duration_since(act.last_successful_operation);
+            
+            // If we haven't had a successful operation in 5 minutes, try to reconnect
+            if time_since_success > Duration::from_secs(300) {
+                warn!("[Multi-MCP] No successful operations for {:?}, attempting recovery for client {}", 
+                     time_since_success, act.client_id);
+                act.send_discovery_data(ctx);
+            }
+            
+            // Log resilience stats
+            if let Some(cb) = &act.circuit_breaker {
+                let cb = cb.clone();
+                let client_id = act.client_id.clone();
+                let connection_failures = act.connection_failures;
+                actix::spawn(async move {
+                    let stats = cb.stats().await;
+                    debug!("[Multi-MCP] Client {} resilience stats - Circuit: {:?}, Failures: {}, Successes: {}, Connection failures: {}",
+                          client_id, stats.state, stats.failed_requests, stats.successful_requests, connection_failures);
+                });
+            }
+        });
         
         // Send initial discovery data
         self.send_discovery_data(ctx);
@@ -326,9 +493,34 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                             self.handle_discovery_request(ctx);
                         }
                         "request_agents" => {
+                            // Check circuit breaker state before processing
+                            if let Some(cb) = &self.circuit_breaker {
+                                let cb_clone = cb.clone();
+                                let stats = futures::executor::block_on(cb_clone.stats());
+                                match stats.state {
+                                    crate::utils::network::CircuitBreakerState::Open => {
+                                        warn!("[Multi-MCP] Circuit breaker open, rejecting agent request for client {}", self.client_id);
+                                        ctx.text(serde_json::json!({
+                                            "type": "error",
+                                            "message": "Service temporarily unavailable",
+                                            "timestamp": chrono::Utc::now().timestamp_millis()
+                                        }).to_string());
+                                        return;
+                                    }
+                                    _ => {}
+                                }
+                            }
                             ctx.address().do_send(RequestAgentUpdate);
                         }
                         "request_performance" => {
+                            if !self.has_healthy_services() {
+                                ctx.text(serde_json::json!({
+                                    "type": "error",
+                                    "message": "Performance data unavailable - no healthy services",
+                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                }).to_string());
+                                return;
+                            }
                             ctx.address().do_send(RequestPerformanceUpdate);
                         }
                         "request_topology" => {
@@ -352,7 +544,20 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                 warn!("Binary WebSocket messages not supported");
             }
             Ok(ws::Message::Close(reason)) => {
-                info!("WebSocket closing: {:?}", reason);
+                info!("[Multi-MCP] WebSocket closing for client {}: {:?}", self.client_id, reason);
+                
+                // Log final resilience statistics
+                if let Some(cb) = &self.circuit_breaker {
+                    let cb_clone = cb.clone();
+                    let client_id = self.client_id.clone();
+                    let connection_failures = self.connection_failures;
+                    actix::spawn(async move {
+                        let stats = cb_clone.stats().await;
+                        info!("[Multi-MCP] Final stats for client {} - Circuit: {:?}, Failures: {}, Successes: {}, Connection failures: {}",
+                             client_id, stats.state, stats.failed_requests, stats.successful_requests, connection_failures);
+                    });
+                }
+                
                 ctx.close(reason);
             }
             _ => ctx.close(None),
@@ -393,6 +598,14 @@ struct RequestTopologyUpdate {
     swarm_id: String,
 }
 
+#[derive(Message)]
+#[rtype(result = "()")]
+struct DiscoverySuccess;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct DiscoveryFailure(String);
+
 /// WebSocket message handlers
 impl Handler<RequestAgentUpdate> for MultiMcpVisualizationWs {
     type Result = ();
@@ -424,6 +637,33 @@ impl Handler<RequestTopologyUpdate> for MultiMcpVisualizationWs {
 
     fn handle(&mut self, msg: RequestTopologyUpdate, _ctx: &mut Self::Context) {
         debug!("Requesting topology update for swarm {} for client {}", msg.swarm_id, self.client_id);
+    }
+}
+
+impl Handler<DiscoverySuccess> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: DiscoverySuccess, _ctx: &mut Self::Context) {
+        debug!("[Multi-MCP] Discovery success for client {}", self.client_id);
+        self.record_success();
+    }
+}
+
+impl Handler<DiscoveryFailure> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, msg: DiscoveryFailure, ctx: &mut Self::Context) {
+        warn!("[Multi-MCP] Discovery failure for client {}: {}", self.client_id, msg.0);
+        self.record_failure();
+        
+        // Send error notification to client
+        ctx.text(serde_json::json!({
+            "type": "discovery_error",
+            "message": msg.0,
+            "client_id": self.client_id,
+            "timestamp": chrono::Utc::now().timestamp_millis(),
+            "retry_in_seconds": self.retry_config.initial_delay.as_secs()
+        }).to_string());
     }
 }
 

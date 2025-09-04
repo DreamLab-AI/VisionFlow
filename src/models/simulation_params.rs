@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
 use crate::config::{PhysicsSettings, AutoBalanceConfig};
-use cust_core::DeviceCopy;
+use cudarc::driver::DeviceRepr;
+use cust_core;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -32,7 +33,7 @@ impl Default for SimulationPhase {
 
 // GPU-compatible simulation parameters, matching the new CUDA kernel design.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Pod, Zeroable, DeviceCopy)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable)]
 pub struct SimParams {
     // Integration and Damping
     pub dt: f32,
@@ -70,6 +71,14 @@ pub struct SimParams {
     pub viewport_bounds: f32,
     pub sssp_alpha: f32,  // SSSP influence on spring forces
 }
+
+// SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
+// All fields are primitives (f32, u32, i32) with well-defined memory layout
+unsafe impl DeviceRepr for SimParams {}
+
+// SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
+// All fields are primitives (f32, u32, i32) with well-defined memory layout
+unsafe impl cust_core::DeviceCopy for SimParams {}
 
 /// Bitmask for enabling/disabling features in the CUDA kernel.
 pub struct FeatureFlags;

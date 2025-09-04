@@ -6,14 +6,65 @@ import { debugState } from '../utils/clientDebugState'
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
-import { settingsApi } from '../api/settingsApi';
+import { settingsApi, BatchOperation } from '../api/settingsApi';
 
 
 
 const logger = createLogger('SettingsStore')
 
-// Debounce utility
-let saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+// Batch operations for debounced server updates
+interface PendingUpdate {
+  path: string;
+  value: any;
+  timestamp: number;
+}
+
+let batchUpdateTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let pendingUpdates = new Map<string, PendingUpdate>();
+
+// Debounced batch update to server using path-based API
+const debouncedBatchUpdate = async (initialized: boolean) => {
+  if (!initialized || pendingUpdates.size === 0) return;
+  
+  try {
+    const updates: BatchOperation[] = Array.from(pendingUpdates.values()).map(update => ({
+      path: update.path,
+      value: update.value
+    }));
+    
+    if (debugState.isEnabled()) {
+      logger.debug('Sending batch update to server:', updates);
+    }
+    
+    await settingsApi.updateSettingsByPaths(updates);
+    
+    // Clear pending updates after successful send
+    pendingUpdates.clear();
+    
+    logger.debug(`Batch update completed: ${updates.length} settings saved`);
+  } catch (error) {
+    logger.error('Failed to save batch updates to server:', error);
+    // Don't clear pending updates on error - they'll be retried on next batch
+  }
+};
+
+// Schedule a batched update with debouncing
+const scheduleBatchUpdate = (path: string, value: any, initialized: boolean) => {
+  // Add/update the pending change
+  pendingUpdates.set(path, {
+    path,
+    value,
+    timestamp: Date.now()
+  });
+  
+  // Reset the debounce timer
+  if (batchUpdateTimeoutId) {
+    clearTimeout(batchUpdateTimeoutId);
+  }
+  
+  // Use shorter debounce for better responsiveness
+  batchUpdateTimeoutId = setTimeout(() => debouncedBatchUpdate(initialized), 300);
+};
 
 // Helper function to find changed paths between two objects
 function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[] {
@@ -54,27 +105,6 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
-
-// Debounced save to server
-const debouncedSaveToServer = async (settings: Settings, initialized: boolean) => {
-  if (!initialized) return;
-  
-  try {
-    await settingsApi.updateSettings(settings);
-    logger.debug('Settings saved to server');
-  } catch (error) {
-    logger.error('Failed to save settings to server:', error);
-  }
-};
-
-// Schedule debounced save
-const scheduleSave = (settings: Settings, initialized: boolean) => {
-  if (saveTimeoutId) {
-    clearTimeout(saveTimeoutId);
-  }
-  saveTimeoutId = setTimeout(() => debouncedSaveToServer(settings, initialized), 500);
-};
-
 interface SettingsState {
   settings: Settings
   initialized: boolean
@@ -93,6 +123,12 @@ interface SettingsState {
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
   notifyViewportUpdate: (path: SettingsPath) => void; // For real-time viewport updates
+  
+  // New path-based methods for better performance
+  getByPath: <T>(path: SettingsPath) => Promise<T>; // Async get from server
+  setByPath: <T>(path: SettingsPath, value: T) => void; // Immediate local + debounced server
+  batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void; // Batch operations
+  flushPendingUpdates: () => Promise<void>; // Force immediate server sync
   
   // GPU-specific methods
   updateComputeMode: (mode: string) => void;
@@ -395,8 +431,11 @@ export const useSettingsStore = create<SettingsState>()(
           }
         });
 
-        // Schedule save to server
-        scheduleSave(state.settings, state.initialized);
+        // Schedule batch updates to server for all changed paths
+        changedPaths.forEach(path => {
+          const value = state.get(path);
+          scheduleBatchUpdate(path, value, state.initialized);
+        });
       },
 
       // GPU-specific methods
@@ -551,7 +590,52 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      // The subscribe and unsubscribe functions below were duplicated and are removed by this change.
+      
+      // New path-based methods for enhanced performance
+      getByPath: async <T>(path: SettingsPath): Promise<T> => {
+        try {
+          const value = await settingsApi.getSettingByPath(path);
+          return value;
+        } catch (error) {
+          logger.error(`Failed to get setting by path ${path}:`, createErrorMetadata(error));
+          // Fallback to local state
+          return get().get(path);
+        }
+      },
+      
+      setByPath: <T>(path: SettingsPath, value: T) => {
+        const state = get();
+        
+        // Update local state immediately for responsive UI
+        state.set(path, value);
+        
+        // Schedule server update (will be batched and debounced)
+        scheduleBatchUpdate(path, value, state.initialized);
+      },
+      
+      batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => {
+        const state = get();
+        
+        // Update all local state immediately
+        updates.forEach(({ path, value }) => {
+          state.set(path, value);
+        });
+        
+        // Schedule all server updates (will be batched and debounced)
+        updates.forEach(({ path, value }) => {
+          scheduleBatchUpdate(path, value, state.initialized);
+        });
+      },
+      
+      flushPendingUpdates: async (): Promise<void> => {
+        if (batchUpdateTimeoutId) {
+          clearTimeout(batchUpdateTimeoutId);
+          batchUpdateTimeoutId = null;
+        }
+        
+        const state = get();
+        await debouncedBatchUpdate(state.initialized);
+      },
     }),
     {
       name: 'graph-viz-settings',
