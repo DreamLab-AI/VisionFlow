@@ -202,8 +202,6 @@ export const settingsApi = {
     }
   },
   
-  // Export batch operation type for external use
-  BatchOperation,
 };
 
 // Export types for use by other modules
