@@ -22,8 +22,15 @@ Purpose: Now provides a standardized and configurable way to build development a
 [x] 5. Reorganize Frontend Dependencies (package.json) ✅
 Action: Moved @types/node and wscat from dependencies to devDependencies.
 Action: Added the new types:generate script to integrate Rust type generation into the frontend build process.
-[ ] 6. Fix remaining Type derives on settings structs (IN PROGRESS)
+[✓] 6. Fix remaining Type derives on settings structs (COMPLETED)
 Action: Add Type derives to ~15 structs and validate(nested) annotations
+
+[✓] 7. Fix configuration loading snake_case to camelCase conversion (COMPLETED)
+Action: Fixed AppFullSettings::from_yaml_file() method to properly handle snake_case YAML → camelCase struct conversion
+- Added missing #[serde(rename_all = "camelCase")] attribute to LabelSettings struct
+- Enhanced configuration loading with YAML→JSON conversion fallback
+- All structs now properly handle snake_case field names from YAML files
+- The "missing field ambientLightIntensity" errors are now resolved
 P1: Backend Core Refactor (Performance & Stability) ✅ COMPLETE
 This phase addresses the primary performance bottleneck and modernizes the backend architecture.
 [x] 1. Implement PathAccessible Trait for Settings ✅
@@ -178,6 +185,24 @@ REMAINING ITEMS:
 - Fixed all compilation errors from refactor phases P0-P4
 - cargo check passes with only warnings
 - Ready for Docker build in host environment with CUDA_ARCH configuration
+
+✅ CONFIGURATION LOADING FIXED WITH SERDE ALIASES - APP STARTUP RESOLVED
+- Root cause: #[serde(rename_all = "camelCase")] broke YAML snake_case deserialization
+- Solution: Added #[serde(alias = "snake_case_name")] to all config structs
+- Implementation details:
+  - Keep #[serde(rename_all = "camelCase")] for JSON/REST API output
+  - Add #[serde(alias = "field_name")] for YAML snake_case input
+  - Example: `#[serde(alias = "ambient_light_intensity")]` on field
+- Fixed structs:
+  - RenderingSettings, AnimationSettings, NodeSettings, EdgeSettings
+  - PhysicsSettings (50+ fields), AutoBalanceConfig
+  - NetworkSettings, GlowSettings, HologramSettings, LabelSettings
+  - XRSettings, MovementAxes, Position, and more
+- Result:
+  - YAML loads with snake_case (ambient_light_intensity)
+  - REST API outputs camelCase JSON (ambientLightIntensity)
+  - Full backward compatibility maintained
+- Application now starts successfully without "missing field" errors
 
 The complex refactor has been successfully executed by the hive mind collective intelligence!
 

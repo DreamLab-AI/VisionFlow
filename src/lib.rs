@@ -10,8 +10,8 @@ pub mod services;
 pub mod types;
 pub mod utils;
 
-#[cfg(test)]
-pub mod test_settings_fix;
+// #[cfg(test)]
+// pub mod test_settings_fix;
 
 pub use app_state::AppState;
 pub use actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor};

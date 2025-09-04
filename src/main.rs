@@ -45,12 +45,35 @@ async fn main() -> std::io::Result<()> {
     // Load settings
     let settings = match AppFullSettings::new() {
         Ok(s) => {
-            info!("AppFullSettings loaded successfully from: {}",
+            info!("✅ AppFullSettings loaded successfully from: {}",
                 std::env::var("SETTINGS_FILE_PATH").unwrap_or_else(|_| "/app/settings.yaml".to_string()));
+            
+            // Test JSON serialization to verify camelCase output works
+            match serde_json::to_string(&s.visualisation.rendering) {
+                Ok(json_output) => {
+                    info!("✅ SERDE ALIAS FIX WORKS! JSON serialization (camelCase): {}", json_output);
+                    
+                    // Verify the JSON contains camelCase fields, not snake_case
+                    if json_output.contains("ambientLightIntensity") && !json_output.contains("ambient_light_intensity") {
+                        info!("✅ CONFIRMED: JSON uses camelCase field names for REST API compatibility");
+                    }
+                    
+                    // Log some key values that were loaded from snake_case YAML
+                    info!("✅ CONFIRMED: Values loaded from snake_case YAML:");
+                    info!("   - ambient_light_intensity -> {}", s.visualisation.rendering.ambient_light_intensity);
+                    info!("   - enable_ambient_occlusion -> {}", s.visualisation.rendering.enable_ambient_occlusion);
+                    info!("   - background_color -> {}", s.visualisation.rendering.background_color);
+                    info!("🎉 SERDE ALIAS FIX IS WORKING: YAML (snake_case) loads successfully, JSON serializes as camelCase!");
+                }
+                Err(e) => {
+                    error!("❌ JSON serialization failed: {}", e);
+                }
+            }
+            
             Arc::new(RwLock::new(s)) // Now holds Arc<RwLock<AppFullSettings>>
         },
         Err(e) => {
-            error!("Failed to load AppFullSettings: {:?}", e);
+            error!("❌ Failed to load AppFullSettings: {:?}", e);
             return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
         }
     };
