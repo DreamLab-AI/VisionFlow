@@ -672,6 +672,6 @@ export const useSettingsStore = create<SettingsState>()(
 
 // Export for testing and direct access
 export const settingsStoreUtils = {
-  debouncedSaveToServer,
-  scheduleSave
+  debouncedBatchUpdate,
+  scheduleBatchUpdate
 };
