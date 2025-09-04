@@ -313,12 +313,12 @@ const XRCoreProvider: React.FC<XRCoreProviderProps> = ({
           }
         } else {
           setIsXRCapable(false);
-          setIsXRSupported(false);
+          // isXRSupported is managed by useAsyncXRCapability hook
           logger.warn('WebXR not available - Quest 3 browser required');
         }
       } catch (error) {
         setIsXRCapable(false);
-        setIsXRSupported(false);
+        // isXRSupported is managed by useAsyncXRCapability hook
         logger.error('Error checking XR support:', error);
       }
     };
