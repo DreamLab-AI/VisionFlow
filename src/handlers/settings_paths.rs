@@ -544,7 +544,7 @@ fn generate_value_schema(value: &Value, path: &str) -> Value {
 // Configuration for path-based settings routes
 pub fn configure_settings_paths(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/settings")
+        web::scope("/settings")
             .route("/path", web::get().to(get_settings_by_path))
             .route("/path", web::put().to(update_settings_by_path))
             .route("/batch", web::put().to(batch_update_settings_by_path))
