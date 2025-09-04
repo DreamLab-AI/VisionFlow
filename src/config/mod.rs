@@ -4,8 +4,89 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_yaml;
 use std::path::PathBuf;
+use std::collections::HashMap;
+
+// New imports for enhanced validation and type generation
+use specta::Type;
+use validator::{Validate, ValidationError};
+use regex::Regex;
+use lazy_static::lazy_static;
 
 pub mod dev_config;
+pub mod path_access;
+
+// Import the trait and functions we need
+use path_access::{PathAccessible, parse_path};
+
+// Centralized validation patterns
+lazy_static! {
+    /// Validates hex color format (#RRGGBB or #RRGGBBAA)
+    static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").unwrap();
+    
+    /// Validates URL format (http/https)
+    static ref URL_REGEX: Regex = Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").unwrap();
+    
+    /// Validates file path format (Unix/Windows compatible)
+    static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/\\-]+$").unwrap();
+    
+    /// Validates domain name format
+    static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
+}
+
+/// Custom validation functions for specific business logic
+/// Validates hex color format (#RRGGBB or #RRGGBBAA)
+pub fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
+    if !HEX_COLOR_REGEX.is_match(color) {
+        return Err(ValidationError::new("invalid_hex_color"));
+    }
+    Ok(())
+}
+
+/// Validates width range has exactly 2 elements with proper min/max order
+pub fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
+    if range.len() != 2 {
+        return Err(ValidationError::new("width_range_length"));
+    }
+    if range[0] >= range[1] {
+        return Err(ValidationError::new("width_range_order"));
+    }
+    Ok(())
+}
+
+/// Validates port number is in valid range (1-65535)
+pub fn validate_port(port: u16) -> Result<(), ValidationError> {
+    if port == 0 {
+        return Err(ValidationError::new("invalid_port"));
+    }
+    Ok(())
+}
+
+/// Validates percentage is between 0 and 100
+pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
+    if !(0.0..=100.0).contains(&value) {
+        return Err(ValidationError::new("invalid_percentage"));
+    }
+    Ok(())
+}
+
+/// Converts snake_case to camelCase
+fn to_camel_case(snake_str: &str) -> String {
+    let mut result = String::new();
+    let mut capitalize_next = false;
+    
+    for ch in snake_str.chars() {
+        if ch == '_' {
+            capitalize_next = true;
+        } else if capitalize_next {
+            result.push(ch.to_ascii_uppercase());
+            capitalize_next = false;
+        } else {
+            result.push(ch);
+        }
+    }
+    
+    result
+}
 
 fn default_auto_balance_interval() -> u32 {
     500
@@ -91,18 +172,24 @@ fn merge_json_values(base: Value, update: Value) -> Value {
 }
 
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
 pub struct MovementAxes {
     pub horizontal: i32,
     pub vertical: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct NodeSettings {
+    #[validate(custom(function = "validate_hex_color"))]
     pub base_color: String,
+    #[validate(range(min = 0.0, max = 1.0))]
     pub metalness: f32,
+    #[validate(range(min = 0.0, max = 1.0))]
     pub opacity: f32,
+    #[validate(range(min = 0.0, max = 1.0))]
     pub roughness: f32,
+    #[validate(range(min = 0.1, max = 100.0))]
     pub node_size: f32,
     pub quality: String,
     pub enable_instancing: bool,
@@ -111,18 +198,25 @@ pub struct NodeSettings {
     pub enable_metadata_visualisation: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
+    #[validate(range(min = 0.1, max = 10.0))]
     pub arrow_size: f32,
+    #[validate(range(min = 0.1, max = 10.0))]
     pub base_width: f32,
+    #[validate(custom(function = "validate_hex_color"))]
     pub color: String,
     pub enable_arrows: bool,
+    #[validate(range(min = 0.0, max = 1.0))]
     pub opacity: f32,
+    #[validate(custom(function = "validate_width_range"))]
     pub width_range: Vec<f32>,
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AutoBalanceConfig {
     pub stability_variance_threshold: f32,
     pub stability_frame_count: u32,
@@ -187,13 +281,15 @@ impl AutoBalanceConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
     #[serde(default)]
     pub auto_balance: bool,
     #[serde(default = "default_auto_balance_interval")]
     pub auto_balance_interval_ms: u32,
     #[serde(default)]
+    #[validate(nested)]
     pub auto_balance_config: AutoBalanceConfig,
     pub attraction_k: f32,
     pub bounds_size: f32,
@@ -301,7 +397,8 @@ impl Default for PhysicsSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RenderingSettings {
     pub ambient_light_intensity: f32,
     pub background_color: String,
@@ -318,7 +415,8 @@ pub struct RenderingSettings {
     pub context: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
     pub enable_motion_blur: bool,
     pub enable_node_animations: bool,
@@ -330,7 +428,7 @@ pub struct AnimationSettings {
     pub wave_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
 pub struct LabelSettings {
     pub desktop_font_size: f32,
     pub enable_labels: bool,
@@ -346,7 +444,8 @@ pub struct LabelSettings {
     pub max_label_width: Option<f32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GlowSettings {
     pub enabled: bool,
     pub intensity: f32,
@@ -376,7 +475,8 @@ pub struct GlowSettings {
     pub environment_glow_strength: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct HologramSettings {
     pub ring_count: u32,
     pub ring_color: String,
@@ -395,7 +495,8 @@ pub struct HologramSettings {
     pub global_rotation_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct CameraSettings {
     pub fov: f32,
     pub near: f32,
@@ -404,14 +505,15 @@ pub struct CameraSettings {
     pub look_at: Position,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SpacePilotSettings {
     pub enabled: bool,
     pub mode: String,
@@ -421,36 +523,50 @@ pub struct SpacePilotSettings {
     pub button_functions: std::collections::HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
 pub struct Sensitivity {
     pub translation: f32,
     pub rotation: f32,
 }
 
 // Graph-specific settings
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GraphSettings {
+    #[validate(nested)]
     pub nodes: NodeSettings,
+    #[validate(nested)]
     pub edges: EdgeSettings,
+    #[validate(nested)]
     pub labels: LabelSettings,
+    #[validate(nested)]
     pub physics: PhysicsSettings,
 }
 
 // Multi-graph container
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct GraphsSettings {
+    #[validate(nested)]
     pub logseq: GraphSettings,
+    #[validate(nested)]
     pub visionflow: GraphSettings,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
     
     // Global settings
+    #[validate(nested)]
     pub rendering: RenderingSettings,
+    #[validate(nested)]
     pub animations: AnimationSettings,
+    #[validate(nested)]
     pub glow: GlowSettings,
+    #[validate(nested)]
     pub hologram: HologramSettings,
+    #[validate(nested)]
     pub graphs: GraphsSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub camera: Option<CameraSettings>,
@@ -458,7 +574,8 @@ pub struct VisualisationSettings {
     pub space_pilot: Option<SpacePilotSettings>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct NetworkSettings {
     pub bind_address: String,
     pub domain: String,
@@ -479,7 +596,8 @@ pub struct NetworkSettings {
     pub retry_delay: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct WebSocketSettings {
     pub binary_chunk_size: usize,
     pub binary_update_rate: u32,
@@ -522,7 +640,8 @@ impl Default for WebSocketSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SecuritySettings {
     pub allowed_origins: Vec<String>,
     pub audit_log_path: String,
@@ -536,7 +655,8 @@ pub struct SecuritySettings {
 }
 
 // Simple debug settings for server-side control
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct DebugSettings {
     #[serde(default)]
     pub enabled: bool,
@@ -550,11 +670,16 @@ impl Default for DebugSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct SystemSettings {
+    #[validate(nested)]
     pub network: NetworkSettings,
+    #[validate(nested)]
     pub websocket: WebSocketSettings,
+    #[validate(nested)]
     pub security: SecuritySettings,
+    #[validate(nested)]
     pub debug: DebugSettings,
     #[serde(default)]
     pub persist_settings: bool,
@@ -575,7 +700,8 @@ impl Default for SystemSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct XRSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
@@ -633,14 +759,16 @@ pub struct XRSettings {
     pub portal_edge_width: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AuthSettings {
     pub enabled: bool,
     pub provider: String,
     pub required: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct RagFlowSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -656,7 +784,8 @@ pub struct RagFlowSettings {
     pub chat_id: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct PerplexitySettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -680,7 +809,8 @@ pub struct PerplexitySettings {
     pub rate_limit: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct OpenAISettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -692,7 +822,8 @@ pub struct OpenAISettings {
     pub rate_limit: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct KokoroSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -712,7 +843,8 @@ pub struct KokoroSettings {
     pub sample_rate: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct WhisperSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_url: Option<String>,
@@ -735,7 +867,8 @@ pub struct WhisperSettings {
 }
 
 // Constraint system structures
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ConstraintData {
     pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
     pub strength: f32,
@@ -758,7 +891,8 @@ impl Default for ConstraintData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ConstraintSystem {
     pub separation: ConstraintData,
     pub boundary: ConstraintData,
@@ -766,7 +900,8 @@ pub struct ConstraintSystem {
     pub cluster: ConstraintData,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct ClusteringConfiguration {
     pub algorithm: String,
     pub num_clusters: u32,
@@ -777,7 +912,7 @@ pub struct ClusteringConfiguration {
 }
 
 // Helper struct for physics updates
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhysicsUpdate {
     pub damping: Option<f32>,
@@ -826,11 +961,16 @@ pub struct PhysicsUpdate {
 }
 
 // Single unified settings struct
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AppFullSettings {
+    #[validate(nested)]
     pub visualisation: VisualisationSettings,
+    #[validate(nested)]
     pub system: SystemSettings,
+    #[validate(nested)]
     pub xr: XRSettings,
+    #[validate(nested)]
     pub auth: AuthSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ragflow: Option<RagFlowSettings>,
@@ -987,5 +1127,380 @@ impl AppFullSettings {
         Ok(())
     }
     
+    /// Validates the entire configuration with camelCase field names for frontend compatibility
+    pub fn validate_config_camel_case(&self) -> Result<(), validator::ValidationErrors> {
+        // Validate the entire struct
+        self.validate()?;
+        
+        // Additional cross-field validation
+        self.validate_cross_field_constraints()?;
+        
+        Ok(())
+    }
+    
+    /// Validates constraints that span multiple fields
+    fn validate_cross_field_constraints(&self) -> Result<(), validator::ValidationErrors> {
+        let mut errors = validator::ValidationErrors::new();
+        
+        // Example: Check that physics simulation is enabled if physics settings are configured
+        if self.visualisation.graphs.logseq.physics.gravity != 0.0 && !self.visualisation.graphs.logseq.physics.enabled {
+            errors.add("physics", ValidationError::new("physics_enabled_required"));
+        }
+        
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+    
+    /// Gets user-friendly error messages in camelCase format
+    pub fn get_validation_errors_camel_case(
+        errors: &validator::ValidationErrors
+    ) -> HashMap<String, Vec<String>> {
+        let mut result = HashMap::new();
+        
+        for (field, field_errors) in errors.field_errors() {
+            let camel_case_field = to_camel_case(field);
+            let messages: Vec<String> = field_errors
+                .iter()
+                .map(|error| match error.code.as_ref() {
+                    "invalid_hex_color" => "Must be a valid hex color (#RRGGBB or #RRGGBBAA)".to_string(),
+                    "width_range_length" => "Width range must have exactly 2 values".to_string(),
+                    "width_range_order" => "Width range minimum must be less than maximum".to_string(),
+                    "invalid_port" => "Port must be between 1 and 65535".to_string(),
+                    "invalid_percentage" => "Value must be between 0 and 100".to_string(),
+                    "physics_enabled_required" => "Physics must be enabled when gravity is configured".to_string(),
+                    _ => format!("Invalid value for {}", camel_case_field),
+                })
+                .collect();
+            
+            result.insert(camel_case_field, messages);
+        }
+        
+        result
+    }
+    
+}
+
+// PathAccessible implementation for AppFullSettings
+impl PathAccessible for AppFullSettings {
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "visualisation" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.visualisation.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.visualisation.get_by_path(&remaining)
+                }
+            }
+            "system" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.system.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.system.get_by_path(&remaining)
+                }
+            }
+            "xr" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.xr.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.xr.get_by_path(&remaining)
+                }
+            }
+            "auth" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.auth.clone()))
+                } else {
+                    Err("Auth fields are not deeply accessible".to_string())
+                }
+            }
+            _ => Err(format!("Unknown top-level field: {}", segments[0]))
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "visualisation" => {
+                if segments.len() == 1 {
+                    match value.downcast::<VisualisationSettings>() {
+                        Ok(v) => {
+                            self.visualisation = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for visualisation field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.visualisation.set_by_path(&remaining, value)
+                }
+            }
+            "system" => {
+                if segments.len() == 1 {
+                    match value.downcast::<SystemSettings>() {
+                        Ok(v) => {
+                            self.system = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for system field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.system.set_by_path(&remaining, value)
+                }
+            }
+            "xr" => {
+                if segments.len() == 1 {
+                    match value.downcast::<XRSettings>() {
+                        Ok(v) => {
+                            self.xr = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for xr field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.xr.set_by_path(&remaining, value)
+                }
+            }
+            "auth" => {
+                if segments.len() == 1 {
+                    match value.downcast::<AuthSettings>() {
+                        Ok(v) => {
+                            self.auth = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for auth field".to_string())
+                    }
+                } else {
+                    Err("Auth nested fields are not modifiable".to_string())
+                }
+            }
+            _ => Err(format!("Unknown top-level field: {}", segments[0]))
+        }
+    }
+}
+
+// Basic PathAccessible implementations for nested structures
+impl PathAccessible for VisualisationSettings {
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "graphs" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.graphs.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.graphs.get_by_path(&remaining)
+                }
+            }
+            _ => Err(format!("Only graphs field is currently supported: {}", segments[0]))
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "graphs" => {
+                if segments.len() == 1 {
+                    match value.downcast::<GraphsSettings>() {
+                        Ok(v) => { self.graphs = *v; Ok(()) }
+                        Err(_) => Err("Type mismatch for graphs field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.graphs.set_by_path(&remaining, value)
+                }
+            }
+            _ => Err("Only graphs field is currently supported for modification".to_string())
+        }
+    }
+}
+
+impl PathAccessible for GraphsSettings {
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "logseq" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.logseq.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.logseq.get_by_path(&remaining)
+                }
+            }
+            "visionflow" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.visionflow.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.visionflow.get_by_path(&remaining)
+                }
+            }
+            _ => Err(format!("Unknown graph type: {}", segments[0]))
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "logseq" => {
+                if segments.len() == 1 {
+                    match value.downcast::<GraphSettings>() {
+                        Ok(v) => { self.logseq = *v; Ok(()) }
+                        Err(_) => Err("Type mismatch for logseq field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.logseq.set_by_path(&remaining, value)
+                }
+            }
+            "visionflow" => {
+                if segments.len() == 1 {
+                    match value.downcast::<GraphSettings>() {
+                        Ok(v) => { self.visionflow = *v; Ok(()) }
+                        Err(_) => Err("Type mismatch for visionflow field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.visionflow.set_by_path(&remaining, value)
+                }
+            }
+            _ => Err(format!("Unknown graph type: {}", segments[0]))
+        }
+    }
+}
+
+impl PathAccessible for GraphSettings {
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "physics" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.physics.clone()))
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.physics.get_by_path(&remaining)
+                }
+            }
+            _ => Err(format!("Only physics is supported currently: {}", segments[0]))
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "physics" => {
+                if segments.len() == 1 {
+                    match value.downcast::<PhysicsSettings>() {
+                        Ok(v) => { self.physics = *v; Ok(()) }
+                        Err(_) => Err("Type mismatch for physics field".to_string())
+                    }
+                } else {
+                    let remaining = segments[1..].join(".");
+                    self.physics.set_by_path(&remaining, value)
+                }
+            }
+            _ => Err("Only physics field is currently supported for modification".to_string())
+        }
+    }
+}
+
+// Critical: PhysicsSettings PathAccessible implementation for performance fix
+impl PathAccessible for PhysicsSettings {
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "damping" => Ok(Box::new(self.damping)),
+            "springK" => Ok(Box::new(self.spring_k)),
+            "repelK" => Ok(Box::new(self.repel_k)),
+            "enabled" => Ok(Box::new(self.enabled)),
+            "iterations" => Ok(Box::new(self.iterations)),
+            "maxVelocity" => Ok(Box::new(self.max_velocity)),
+            "boundsSize" => Ok(Box::new(self.bounds_size)),
+            "gravity" => Ok(Box::new(self.gravity)),
+            "temperature" => Ok(Box::new(self.temperature)),
+            _ => Err(format!("Unknown physics field: {}", segments[0]))
+        }
+    }
+    
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        let segments = parse_path(path)?;
+        
+        match segments[0] {
+            "damping" => match value.downcast::<f32>() {
+                Ok(v) => { self.damping = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for damping field".to_string())
+            },
+            "springK" => match value.downcast::<f32>() {
+                Ok(v) => { self.spring_k = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for springK field".to_string())
+            },
+            "repelK" => match value.downcast::<f32>() {
+                Ok(v) => { self.repel_k = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for repelK field".to_string())
+            },
+            "enabled" => match value.downcast::<bool>() {
+                Ok(v) => { self.enabled = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for enabled field".to_string())
+            },
+            "iterations" => match value.downcast::<u32>() {
+                Ok(v) => { self.iterations = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for iterations field".to_string())
+            },
+            "maxVelocity" => match value.downcast::<f32>() {
+                Ok(v) => { self.max_velocity = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for maxVelocity field".to_string())
+            },
+            "boundsSize" => match value.downcast::<f32>() {
+                Ok(v) => { self.bounds_size = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for boundsSize field".to_string())
+            },
+            "gravity" => match value.downcast::<f32>() {
+                Ok(v) => { self.gravity = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for gravity field".to_string())
+            },
+            "temperature" => match value.downcast::<f32>() {
+                Ok(v) => { self.temperature = *v; Ok(()) }
+                Err(_) => Err("Type mismatch for temperature field".to_string())
+            },
+            _ => Err(format!("Unknown physics field: {}", segments[0]))
+        }
+    }
+}
+
+// Placeholder implementations for other structures
+impl PathAccessible for SystemSettings {
+    fn get_by_path(&self, _path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        Err("SystemSettings path access not yet implemented".to_string())
+    }
+    
+    fn set_by_path(&mut self, _path: &str, _value: Box<dyn std::any::Any>) -> Result<(), String> {
+        Err("SystemSettings path modification not yet implemented".to_string())
+    }
+}
+
+impl PathAccessible for XRSettings {
+    fn get_by_path(&self, _path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        Err("XRSettings path access not yet implemented".to_string())
+    }
+    
+    fn set_by_path(&mut self, _path: &str, _value: Box<dyn std::any::Any>) -> Result<(), String> {
+        Err("XRSettings path modification not yet implemented".to_string())
+    }
 }
 

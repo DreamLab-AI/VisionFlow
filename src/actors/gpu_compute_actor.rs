@@ -4,7 +4,7 @@ use std::io::{Error, ErrorKind};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use cudarc::driver::CudaDevice;
+use cudarc::driver::{CudaDevice, CudaStream};
 // use cudarc::nvrtc::Ptx; // Not needed with unified compute
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
@@ -53,6 +53,7 @@ pub enum ComputeMode {
 
 pub struct GPUComputeActor {
     device: Option<Arc<CudaDevice>>,
+    cuda_stream: Option<CudaStream>,
     
     // Single unified compute engine
     pub unified_compute: Option<UnifiedGPUCompute>,
@@ -84,6 +85,7 @@ pub struct GPUComputeActor {
 // Unified GPU initialization result
 struct GpuInitializationResult {
     device: Arc<CudaDevice>,
+    cuda_stream: CudaStream,
     unified_compute: UnifiedGPUCompute,
     num_nodes: u32,
     num_edges: u32,
@@ -94,6 +96,7 @@ impl GPUComputeActor {
     pub fn new() -> Self {
         Self {
             device: None,
+            cuda_stream: None,
             unified_compute: None,
             
             num_nodes: 0,
@@ -232,6 +235,11 @@ impl GPUComputeActor {
         let device = Self::static_create_cuda_device().await?;
         info!("(Static Logic) CUDA device created successfully");
         
+        // Create CUDA stream for asynchronous operations
+        let cuda_stream = device.fork_default_stream()
+            .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to create CUDA stream: {}", e)))?;
+        info!("(Static Logic) CUDA stream created successfully");
+        
         // Small delay after device creation to ensure it's ready
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         
@@ -309,6 +317,7 @@ impl GPUComputeActor {
         
         Ok(GpuInitializationResult {
             device,
+            cuda_stream,
             unified_compute,
             num_nodes,
             num_edges,
@@ -530,6 +539,7 @@ impl Handler<InitializeGPU> for GPUComputeActor {
                 match result_of_logic {
                     Ok(init_result) => {
                         actor.device = Some(init_result.device);
+                        actor.cuda_stream = Some(init_result.cuda_stream);
                         actor.unified_compute = Some(init_result.unified_compute);
                         actor.num_nodes = init_result.num_nodes;
                         actor.num_edges = init_result.num_edges;
@@ -1111,4 +1121,36 @@ fn generate_gpu_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3
         radius * angle.sin(),
         (cluster_index as f32 - total_clusters as f32 / 2.0) * 7.0,
     ]
+}
+
+// Additional handlers consolidated from gpu_compute_actor_handlers.rs
+
+impl Handler<UpdateVisualAnalyticsParams> for GPUComputeActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, _msg: UpdateVisualAnalyticsParams, _ctx: &mut Self::Context) -> Self::Result {
+        use futures::future::ready;
+        Box::pin(ready(Ok(())).into_actor(self))
+    }
+}
+
+impl Handler<SetComputeMode> for GPUComputeActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: SetComputeMode, _ctx: &mut Self::Context) -> Self::Result {
+        use futures::future::ready;
+        
+        self.compute_mode = msg.mode;
+        
+        if let Some(ref mut compute) = self.unified_compute {
+            let unified_mode = match msg.mode {
+                ComputeMode::Basic => crate::utils::unified_gpu_compute::ComputeMode::Basic,
+                ComputeMode::DualGraph => crate::utils::unified_gpu_compute::ComputeMode::Basic,
+                ComputeMode::Advanced => crate::utils::unified_gpu_compute::ComputeMode::Constraints,
+            };
+            compute.set_mode(unified_mode);
+        }
+        
+        Box::pin(ready(Ok(())).into_actor(self))
+    }
 }

@@ -184,6 +184,19 @@ pub struct SetSettingByPath {
     pub value: Value,
 }
 
+// Batch path-based settings messages for performance
+#[derive(Message)]
+#[rtype(result = "Result<HashMap<String, Value>, String>")]
+pub struct GetSettingsByPaths {
+    pub paths: Vec<String>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SetSettingsByPaths {
+    pub updates: HashMap<String, Value>,
+}
+
 // Metadata Actor Messages
 #[derive(Message)]
 #[rtype(result = "Result<MetadataStore, String>")]

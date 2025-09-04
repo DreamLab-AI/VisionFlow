@@ -5,7 +5,7 @@ pub mod settings_actor;
 pub mod metadata_actor;
 pub mod client_manager_actor;
 pub mod gpu_compute_actor;
-pub mod gpu_compute_actor_handlers;
+// gpu_compute_actor_handlers consolidated into gpu_compute_actor.rs
 pub mod protected_settings_actor;
 pub mod claude_flow_actor_tcp;
 pub mod supervisor;

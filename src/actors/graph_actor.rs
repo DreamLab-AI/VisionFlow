@@ -1239,14 +1239,9 @@ impl GraphServiceActor {
             let self_addr = ctx.address();
             
             actix::spawn(async move {
-                // Load the PTX file content from the single location where build.rs places it
-                // In production, this is copied to /app/src/utils/ptx/
-                // In development, it's at src/utils/ptx/ relative to the workspace
-                let ptx_path = if std::path::Path::new("/app/src/utils/ptx/visionflow_unified.ptx").exists() {
-                    "/app/src/utils/ptx/visionflow_unified.ptx"  // Production path
-                } else {
-                    "src/utils/ptx/visionflow_unified.ptx"  // Development path
-                };
+                // Load the PTX file content from the location set by build.rs
+                // The build script compiles the CUDA code and sets VISIONFLOW_PTX_PATH
+                let ptx_path = env!("VISIONFLOW_PTX_PATH", "PTX file path not set by build.rs");
                 
                 let ptx_content = match std::fs::read_to_string(ptx_path) {
                     Ok(content) => {

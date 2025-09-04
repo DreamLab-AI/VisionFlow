@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 /// Resource monitoring and management utility to prevent "Too many open files" errors
 /// 
