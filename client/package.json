@@ -5,15 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "npm run types:generate && vite build",
+    "preview": "vite preview", 
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "types:generate": "cd .. && cargo build",
-    "types:watch": "cd .. && cargo watch -x build",
-    "types:clean": "rm -rf src/types/generated"
+    "types:generate": "cd .. && cargo run --bin generate_types",
+    "types:watch": "cd .. && cargo watch -x 'run --bin generate_types'",
+    "types:clean": "rm -rf src/types/generated",
+    "prebuild": "npm run types:generate"
   },
   "dependencies": {
     "@getalby/sdk": "^4.1.1",

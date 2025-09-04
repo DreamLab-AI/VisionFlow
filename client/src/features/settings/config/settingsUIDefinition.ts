@@ -1,42 +1,12 @@
-// client/src/features/settings/config/settingsUIDefinition.ts
+// Comprehensive settings UI definitions merging current implementation with codestore features
 
-export type SettingWidgetType =
-  | 'toggle'
-  | 'slider'
-  | 'numberInput'
-  | 'textInput'
-  | 'colorPicker'
-  | 'select'
-  | 'radioGroup' // For a small set of mutually exclusive choices
-  | 'rangeSlider' // For [number, number] arrays
-  | 'buttonAction'
-  | 'dualColorPicker'; // Custom type for [string, string] color arrays
-
-export interface UISettingDefinition {
-  label: string;
-  type: SettingWidgetType;
-  path: string; // Full path in the SettingsStore, e.g., "visualisation.nodes.baseColor"
-  description?: string; // Tooltip text
-  options?: Array<{ value: string | number; label: string }>; // For select
-  min?: number; // For slider, numberInput, rangeSlider
-  max?: number; // For slider, numberInput, rangeSlider
-  step?: number; // For slider, numberInput, rangeSlider
-  unit?: string; // e.g., "px", "ms"
-  isAdvanced?: boolean; // To hide behind an "Advanced" toggle if needed
-  isPowerUserOnly?: boolean; // Only visible/editable by power users
-  action?: () => void; // For buttonAction type
-}
-
-export interface UISubsectionDefinition {
-  label: string;
-  settings: Record<string, UISettingDefinition>;
-}
-
-export interface UICategoryDefinition {
-  label: string;
-  icon?: string; // Lucide icon name
-  subsections: Record<string, UISubsectionDefinition>;
-}
+// Re-export types from separate file for better organization
+export type {
+  SettingWidgetType,
+  UISettingDefinition,
+  UISubsectionDefinition,
+  UICategoryDefinition
+} from './widgetTypes';
 
 // Helper function to create graph-specific settings for a given graph name
 const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => ({
@@ -483,6 +453,48 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
+  // Enhanced system settings with comprehensive configuration
+  system: {
+    label: 'System',
+    icon: 'Settings',
+    subsections: {
+      general: {
+        label: 'General',
+        settings: {
+          persistSettings: { label: 'Persist Settings on Server', type: 'toggle', path: 'system.persistSettings', description: 'Save settings to your user profile on the server (if authenticated).'},
+          customBackendUrl: { label: 'Custom Backend URL', type: 'textInput', path: 'system.customBackendUrl', description: 'Overrides the default backend URL. Requires app reload. Leave empty for default.', isPowerUserOnly: true },
+        }
+      },
+      websocket: {
+        label: 'WebSocket',
+        settings: {
+          updateRate: { label: 'Update Rate', type: 'slider', min: 1, max: 120, step: 1, unit: 'Hz', path: 'system.websocket.updateRate', description: 'Network update frequency (higher = smoother, more bandwidth).' },
+          reconnectAttempts: { label: 'Reconnect Attempts', type: 'slider', min: 0, max: 20, step: 1, path: 'system.websocket.reconnectAttempts', description: 'Max reconnection attempts before giving up.' },
+          reconnectDelay: { label: 'Reconnect Delay', type: 'slider', min: 100, max: 30000, step: 100, unit: 'ms', path: 'system.websocket.reconnectDelay', description: 'Wait time between reconnection attempts.' },
+          binaryChunkSize: { label: 'Binary Chunk Size', type: 'slider', min: 512, max: 16384, step: 512, unit: 'bytes', path: 'system.websocket.binaryChunkSize', description: 'Binary data packet size (larger = fewer packets, more memory).' },
+          compressionEnabled: { label: 'Compression Enabled', type: 'toggle', path: 'system.websocket.compressionEnabled', description: 'Enable WebSocket message compression.' },
+          compressionThreshold: { label: 'Compression Threshold', type: 'slider', min: 128, max: 8192, step: 128, unit: 'bytes', path: 'system.websocket.compressionThreshold', description: 'Minimum message size to trigger compression.' },
+          heartbeatInterval: { label: 'Heartbeat Interval', type: 'slider', min: 1000, max: 60000, step: 1000, unit: 'ms', path: 'system.websocket.heartbeatInterval', description: 'WebSocket heartbeat ping interval.' },
+          heartbeatTimeout: { label: 'Heartbeat Timeout', type: 'slider', min: 1000, max: 30000, step: 1000, unit: 'ms', path: 'system.websocket.heartbeatTimeout', description: 'WebSocket heartbeat timeout.' },
+        },
+      },
+      network: {
+        label: 'Network Configuration',
+        settings: {
+          apiClientTimeout: { label: 'API Timeout', type: 'slider', min: 5, max: 300, step: 5, unit: 's', path: 'system.network.apiClientTimeout', description: 'HTTP client request timeout.' },
+          maxRetries: { label: 'Connection Retry Count', type: 'slider', min: 0, max: 10, step: 1, path: 'system.network.maxRetries', description: 'Maximum retry attempts for failed requests.' },
+          retryDelay: { label: 'Connection Retry Delay', type: 'slider', min: 100, max: 10000, step: 100, unit: 'ms', path: 'system.network.retryDelay', description: 'Delay between retry attempts.' },
+        },
+      },
+      security: {
+        label: 'Security Settings',
+        settings: {
+          sessionTimeout: { label: 'Session Timeout', type: 'slider', min: 5, max: 1440, step: 5, unit: 'min', path: 'system.security.sessionTimeout', description: 'User session timeout duration.' },
+        },
+      },
+    },
+  },
+  // AI Services - Comprehensive AI model configuration
   ai: {
     label: 'AI Services',
     icon: 'Brain',
@@ -533,6 +545,16 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           stream: { label: 'Stream Audio', type: 'toggle', path: 'kokoro.stream', description: 'Enable audio streaming.' },
           returnTimestamps: { label: 'Return Timestamps', type: 'toggle', path: 'kokoro.returnTimestamps', description: 'Request word timestamps from TTS.', isAdvanced: true },
           sampleRate: { label: 'Sample Rate', type: 'select', options: [{value: '8000', label: '8000 Hz'}, {value: '16000', label: '16000 Hz'}, {value: '22050', label: '22050 Hz'}, {value: '24000', label: '24000 Hz'}, {value: '44100', label: '44100 Hz'}, {value: '48000', label: '48000 Hz'}], path: 'kokoro.sampleRate', description: 'Audio sample rate.' },
+        },
+      },
+      whisper: {
+        label: 'Whisper Speech-to-Text',
+        settings: {
+          apiUrl: { label: 'API URL', type: 'textInput', path: 'whisper.apiUrl', description: 'Whisper API endpoint URL.', isPowerUserOnly: true },
+          defaultModel: { label: 'Default Model', type: 'textInput', path: 'whisper.defaultModel', description: 'Default Whisper model (e.g., whisper-1).' },
+          defaultLanguage: { label: 'Default Language', type: 'textInput', path: 'whisper.defaultLanguage', description: 'Default language for transcription (auto-detect if empty).' },
+          timeout: { label: 'Timeout (s)', type: 'slider', unit: 's', min: 10, max: 300, step: 5, path: 'whisper.timeout', description: 'API request timeout for speech processing.' },
+          temperature: { label: 'Temperature', type: 'slider', min: 0, max: 1.0, step: 0.1, path: 'whisper.temperature', description: 'Sampling temperature (0 = deterministic, 1 = creative).' },
         },
       },
     },

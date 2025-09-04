@@ -1,70 +1,33 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { Settings, SettingsPath } from '../features/settings/config/settings'
+import { Settings, SettingsPath, DeepPartial } from '../features/settings/config/settings'
 import { createLogger, createErrorMetadata } from '../utils/logger'
 import { debugState } from '../utils/clientDebugState'
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
 import { settingsApi, BatchOperation } from '../api/settingsApi';
+import { AutoSaveManager } from './autoSaveManager';
 
 
 
 const logger = createLogger('SettingsStore')
 
-// Batch operations for debounced server updates
-interface PendingUpdate {
-  path: string;
-  value: any;
-  timestamp: number;
-}
+// Create AutoSaveManager instance for debounced batch saving with retry logic
+const autoSaveManager = new AutoSaveManager();
 
-let batchUpdateTimeoutId: ReturnType<typeof setTimeout> | null = null;
-let pendingUpdates = new Map<string, PendingUpdate>();
+// Essential paths loaded at startup for fast initialization
+const ESSENTIAL_PATHS = [
+  'system.debug.enabled',
+  'system.websocket.updateRate',
+  'system.websocket.reconnectAttempts', 
+  'auth.enabled',
+  'auth.required',
+  'visualisation.rendering.context',
+  'xr.enabled',
+  'xr.mode'
+];
 
-// Debounced batch update to server using path-based API
-const debouncedBatchUpdate = async (initialized: boolean) => {
-  if (!initialized || pendingUpdates.size === 0) return;
-  
-  try {
-    const updates: BatchOperation[] = Array.from(pendingUpdates.values()).map(update => ({
-      path: update.path,
-      value: update.value
-    }));
-    
-    if (debugState.isEnabled()) {
-      logger.debug('Sending batch update to server:', updates);
-    }
-    
-    await settingsApi.updateSettingsByPaths(updates);
-    
-    // Clear pending updates after successful send
-    pendingUpdates.clear();
-    
-    logger.debug(`Batch update completed: ${updates.length} settings saved`);
-  } catch (error) {
-    logger.error('Failed to save batch updates to server:', error);
-    // Don't clear pending updates on error - they'll be retried on next batch
-  }
-};
-
-// Schedule a batched update with debouncing
-const scheduleBatchUpdate = (path: string, value: any, initialized: boolean) => {
-  // Add/update the pending change
-  pendingUpdates.set(path, {
-    path,
-    value,
-    timestamp: Date.now()
-  });
-  
-  // Reset the debounce timer
-  if (batchUpdateTimeoutId) {
-    clearTimeout(batchUpdateTimeoutId);
-  }
-  
-  // Use shorter debounce for better responsiveness
-  batchUpdateTimeoutId = setTimeout(() => debouncedBatchUpdate(initialized), 300);
-};
 
 // Helper function to find changed paths between two objects
 function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[] {
@@ -106,7 +69,11 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
 }
 
 interface SettingsState {
-  settings: Settings
+  // Partial state management - only holds what's been loaded
+  partialSettings: DeepPartial<Settings>
+  loadedPaths: Set<string> // Track which paths have been loaded
+  loadingSections: Set<string> // Track sections currently being loaded
+  
   initialized: boolean
   authenticated: boolean
   user: { isPowerUser: boolean; pubkey: string } | null
@@ -114,7 +81,7 @@ interface SettingsState {
   subscribers: Map<string, Set<() => void>>
 
   // Actions
-  initialize: () => Promise<Settings>
+  initialize: () => Promise<void>
   setAuthenticated: (authenticated: boolean) => void
   setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
   get: <T>(path: SettingsPath) => T
@@ -123,6 +90,11 @@ interface SettingsState {
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
   notifyViewportUpdate: (path: SettingsPath) => void; // For real-time viewport updates
+  
+  // Lazy loading - load settings on demand
+  ensureLoaded: (paths: string[]) => Promise<void>
+  loadSection: (section: string) => Promise<void>
+  isLoaded: (path: SettingsPath) => boolean
   
   // New path-based methods for better performance
   getByPath: <T>(path: SettingsPath) => Promise<T>; // Async get from server
@@ -220,7 +192,9 @@ interface WarmupSettings {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      settings: {} as Settings,
+      partialSettings: {},
+      loadedPaths: new Set(),
+      loadingSections: new Set(),
       initialized: false,
       authenticated: false,
       user: null,
@@ -230,44 +204,32 @@ export const useSettingsStore = create<SettingsState>()(
       initialize: async () => {
         try {
           if (debugState.isEnabled()) {
-            logger.info('Initializing settings')
+            logger.info('Initializing settings store with essential paths only')
           }
 
-          try {
-            // Fetch settings from server as single source of truth
-            const serverSettings = await settingsApi.fetchSettings();
+          // Load only essential settings for fast startup
+          const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
 
-            if (debugState.isEnabled()) {
-              logger.info('Fetched settings from server:', { serverSettings })
-            }
-
-            set({
-              settings: serverSettings,
-              initialized: true
-            })
-
-            if (debugState.isEnabled()) {
-              logger.info('Settings loaded from server successfully')
-            }
-
-            return serverSettings
-          } catch (error) {
-            logger.error('Failed to fetch settings from server:', createErrorMetadata(error))
-            
-            set({
-              initialized: false
-            })
-            
-            // Keep the error state - don't fall back to defaults
-            throw error
+          if (debugState.isEnabled()) {
+            logger.info('Essential settings loaded:', { essentialSettings })
           }
+
+          set(state => ({
+            partialSettings: essentialSettings as DeepPartial<Settings>,
+            loadedPaths: new Set(ESSENTIAL_PATHS),
+            initialized: true
+          }));
+
+          // Initialize AutoSaveManager now that store is ready
+          autoSaveManager.setInitialized(true);
+
+          if (debugState.isEnabled()) {
+            logger.info('Settings store initialized with essential paths')
+          }
+
         } catch (error) {
-          logger.error('Failed to initialize settings:', createErrorMetadata(error))
-          
-          set({
-            initialized: false
-          })
-          
+          logger.error('Failed to initialize settings store:', createErrorMetadata(error))
+          set({ initialized: false })
           throw error
         }
       },
@@ -293,55 +255,68 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      get: <T>(path: SettingsPath): T => {
-        const settings = get().settings
+      // Path-based getter - handles unloaded state properly
+      get: <T>(path: SettingsPath): T | undefined => {
+        const { partialSettings, loadedPaths } = get();
 
-        if (!path || path === '') {
-          return settings as unknown as T
+        if (!path?.trim()) {
+          return partialSettings as unknown as T;
         }
 
-        // Navigate the settings object using the path
-        let current: any = settings
-        const pathParts = path.split('.')
+        // Check if this path (or a parent path) has been loaded
+        const isPathLoaded = loadedPaths.has(path) || 
+          [...loadedPaths].some(loadedPath => 
+            path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
+          );
+
+        if (!isPathLoaded) {
+          if (debugState.isEnabled()) {
+            logger.warn(`Accessing unloaded path: ${path} - path should be loaded before access`);
+          }
+          // Don't trigger loading here - it causes infinite loops
+          // The calling component should use ensureLoaded in useEffect
+          return undefined as unknown as T;
+        }
+
+        // Navigate the partial settings using the path
+        const pathParts = path.split('.');
+        let current: any = partialSettings;
 
         for (const part of pathParts) {
-          if (current === undefined || current === null) {
-            return undefined as unknown as T
+          if (current?.[part] === undefined) {
+            return undefined;
           }
-          current = current[part]
+          current = current[part];
         }
 
-        return current as T
+        return current as T;
       },
 
+      // Path-based setter - updates partial settings and marks paths as loaded
       set: <T>(path: SettingsPath, value: T) => {
-        const state = get();
+        if (!path?.trim()) {
+          throw new Error('Path cannot be empty');
+        }
 
-        // Use updateSettings internally which will handle viewport updates
-        state.updateSettings((draft) => {
-          // If setting the entire object
-          if (!path || path === '') {
-            Object.assign(draft, value);
-            return;
-          }
+        // Update local state immediately
+        set(state => {
+          const newPartialSettings = { ...state.partialSettings };
+          setNestedValue(newPartialSettings, path, value);
+          const newLoadedPaths = new Set(state.loadedPaths);
+          newLoadedPaths.add(path);
 
-          // Navigate to the correct location and update
-          const pathParts = path.split('.');
-          let current: any = draft;
-
-          // Navigate to the parent of the setting we want to update
-          for (let i = 0; i < pathParts.length - 1; i++) {
-            const part = pathParts[i];
-            if (current[part] === undefined || current[part] === null) {
-              current[part] = {};
-            }
-            current = current[part];
-          }
-
-          // Update the value
-          const finalPart = pathParts[pathParts.length - 1];
-          current[finalPart] = value;
+          return {
+            partialSettings: newPartialSettings,
+            loadedPaths: newLoadedPaths
+          };
         });
+
+        // Schedule server update (will be batched and debounced)
+        autoSaveManager.queueChange(path, value);
+
+        if (debugState.isEnabled()) {
+          logger.info('Setting updated:', { path, value });
+        }
       },
 
       subscribe: (path: SettingsPath, callback: () => void, immediate: boolean = true) => {
@@ -383,26 +358,122 @@ export const useSettingsStore = create<SettingsState>()(
         })
       },
 
-      // Immer-based updateSettings - the preferred method for updating settings
-      updateSettings: (updater) => {
-        // Get the old settings for comparison
-        const oldSettings = get().settings;
+      // Ensure specific paths are loaded
+      ensureLoaded: async (paths: string[]): Promise<void> => {
+        const { loadedPaths } = get();
+        const unloadedPaths = paths.filter(path => !loadedPaths.has(path));
         
-        // Apply the update with safeguard for frozen objects
-        set((state) => produce(state, (draft) => {
-          updater(draft.settings);
-        }));
-
-        // After state update, handle notifications and saving
-        const state = get();
-        
-        // Find which paths changed
-        const changedPaths = findChangedPaths(oldSettings, state.settings);
-        
-        if (debugState.isEnabled() && changedPaths.length > 0) {
-          logger.info('Settings updated', { changedPaths });
+        if (unloadedPaths.length === 0) {
+          return; // All paths already loaded
         }
 
+        try {
+          const pathSettings = await settingsApi.getSettingsByPaths(unloadedPaths);
+          
+          set(state => {
+            const newPartialSettings = { ...state.partialSettings };
+            const newLoadedPaths = new Set(state.loadedPaths);
+            
+            Object.entries(pathSettings).forEach(([path, value]) => {
+              setNestedValue(newPartialSettings, path, value);
+              newLoadedPaths.add(path);
+            });
+
+            return {
+              partialSettings: newPartialSettings,
+              loadedPaths: newLoadedPaths
+            };
+          });
+
+          if (debugState.isEnabled()) {
+            logger.info('Paths loaded on demand:', { paths: unloadedPaths });
+          }
+        } catch (error) {
+          logger.error('Failed to load paths:', createErrorMetadata(error));
+          throw error;
+        }
+      },
+
+      // Load entire section (collection of related paths)  
+      loadSection: async (section: string): Promise<void> => {
+        const { loadingSections } = get();
+        if (loadingSections.has(section)) {
+          return; // Already loading
+        }
+
+        const sectionPaths = getSectionPaths(section);
+        if (sectionPaths.length === 0) {
+          logger.warn(`Unknown section: ${section}`);
+          return;
+        }
+
+        // Mark as loading
+        set(state => ({
+          loadingSections: new Set(state.loadingSections).add(section)
+        }));
+
+        try {
+          await get().ensureLoaded(sectionPaths);
+
+          if (debugState.isEnabled()) {
+            logger.info(`Section loaded: ${section}`, { paths: sectionPaths });
+          }
+        } finally {
+          // Mark as no longer loading
+          set(state => {
+            const newLoadingSections = new Set(state.loadingSections);
+            newLoadingSections.delete(section);
+            return { loadingSections: newLoadingSections };
+          });
+        }
+      },
+
+      // Check if a path has been loaded
+      isLoaded: (path: SettingsPath): boolean => {
+        const { loadedPaths } = get();
+        return loadedPaths.has(path);
+      },
+
+      // Update settings using immer-style updater
+      updateSettings: async (updater: (draft: DeepPartial<Settings>) => void): Promise<void> => {
+        const { partialSettings } = get();
+        
+        // Use produce to create immutable update
+        const newSettings = produce(partialSettings, updater);
+        
+        // Check what paths changed
+        const changedPaths = findChangedPaths(partialSettings, newSettings);
+        
+        if (changedPaths.length === 0) {
+          return; // No changes
+        }
+
+        // Update state and queue for batch update
+        set(state => {
+          return {
+            partialSettings: newSettings,
+            // Add changed paths to loaded paths
+            loadedPaths: new Set([...state.loadedPaths, ...changedPaths])
+          };
+        });
+
+        // Schedule batch updates to server for all changed paths
+        changedPaths.forEach(path => {
+          const pathParts = path.split('.');
+          let current: any = newSettings;
+          for (const part of pathParts) {
+            current = current[part];
+          }
+          autoSaveManager.queueChange(path, current);
+        });
+
+        if (debugState.isEnabled()) {
+          logger.info('Settings updated via updateSettings:', { changedPaths });
+        }
+
+        // Handle viewport updates and subscribers...
+        const state = get();
+        
         // Check if any viewport settings were updated
         const viewportUpdated = changedPaths.some(path => isViewportSetting(path));
         
@@ -429,12 +500,6 @@ export const useSettingsStore = create<SettingsState>()(
           } catch (error) {
             logger.error('Error in settings subscriber during updateSettings:', createErrorMetadata(error));
           }
-        });
-
-        // Schedule batch updates to server for all changed paths
-        changedPaths.forEach(path => {
-          const value = state.get(path);
-          scheduleBatchUpdate(path, value, state.initialized);
         });
       },
 
@@ -522,7 +587,14 @@ export const useSettingsStore = create<SettingsState>()(
         }
         
         state.updateSettings((draft) => {
-          const graphSettings = draft.visualisation.graphs[graphName as keyof typeof draft.visualisation.graphs];
+          if (!draft.visualisation) draft.visualisation = {};
+          if (!draft.visualisation.graphs) draft.visualisation.graphs = {};
+          
+          const graphs = draft.visualisation.graphs as any;
+          if (!graphs[graphName]) graphs[graphName] = {};
+          if (!graphs[graphName].physics) graphs[graphName].physics = {};
+          
+          const graphSettings = graphs[graphName];
           if (graphSettings && graphSettings.physics) {
             Object.assign(graphSettings.physics, validatedParams);
             
@@ -610,7 +682,7 @@ export const useSettingsStore = create<SettingsState>()(
         state.set(path, value);
         
         // Schedule server update (will be batched and debounced)
-        scheduleBatchUpdate(path, value, state.initialized);
+        autoSaveManager.queueChange(path, value);
       },
       
       batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => {
@@ -622,47 +694,49 @@ export const useSettingsStore = create<SettingsState>()(
         });
         
         // Schedule all server updates (will be batched and debounced)
+        const changes = new Map();
         updates.forEach(({ path, value }) => {
-          scheduleBatchUpdate(path, value, state.initialized);
+          changes.set(path, value);
         });
+        autoSaveManager.queueChanges(changes);
       },
       
       flushPendingUpdates: async (): Promise<void> => {
-        if (batchUpdateTimeoutId) {
-          clearTimeout(batchUpdateTimeoutId);
-          batchUpdateTimeoutId = null;
-        }
-        
-        const state = get();
-        await debouncedBatchUpdate(state.initialized);
+        await autoSaveManager.forceFlush();
       },
     }),
     {
-      name: 'graph-viz-settings',
+      name: 'graph-viz-settings-v2',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        settings: state.settings,
+        // Only persist auth state and essential settings, not full partial settings
         authenticated: state.authenticated,
         user: state.user,
-        isPowerUser: state.isPowerUser
+        isPowerUser: state.isPowerUser,
+        // Only persist essential paths to avoid staleness
+        essentialPaths: ESSENTIAL_PATHS.reduce((acc, path) => {
+          const value = state.partialSettings[path];
+          if (value !== undefined) {
+            acc[path] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>)
       }),
       merge: (persistedState: any, currentState: SettingsState): SettingsState => {
-        const mergedState = { ...currentState, ...persistedState };
-        if (persistedState && persistedState.settings) {
-          // Exclude the 'visualisation' settings from the persisted state to ensure
-          // the server is always the source of truth on a refresh.
-          const { visualisation, ...restOfPersistedSettings } = persistedState.settings;
-          mergedState.settings = {
-            ...currentState.settings,
-            ...restOfPersistedSettings,
-          };
-        }
-        return mergedState;
+        if (!persistedState) return currentState;
+        
+        return {
+          ...currentState,
+          authenticated: persistedState.authenticated || false,
+          user: persistedState.user || null,
+          isPowerUser: persistedState.isPowerUser || false,
+          // Don't merge partial settings - let them load fresh from server
+        };
       },
       onRehydrateStorage: () => (state) => {
-        if (state && state.settings) {
+        if (state) {
           if (debugState.isEnabled()) {
-            logger.info('Settings rehydrated from storage');
+            logger.info('Settings store rehydrated from storage');
           }
         }
       }
@@ -670,8 +744,101 @@ export const useSettingsStore = create<SettingsState>()(
   )
 )
 
+// Helper function to get paths for a specific section
+function getSectionPaths(section: string): string[] {
+  const sectionPathMap: Record<string, string[]> = {
+    'physics': [
+      'visualisation.graphs.logseq.physics',
+      'visualisation.graphs.visionflow.physics'
+    ],
+    'rendering': [
+      'visualisation.rendering.ambientLightIntensity',
+      'visualisation.rendering.backgroundColor',
+      'visualisation.rendering.directionalLightIntensity',
+      'visualisation.rendering.enableAmbientOcclusion',
+      'visualisation.rendering.enableAntialiasing',
+      'visualisation.rendering.enableShadows',
+      'visualisation.rendering.environmentIntensity',
+      'visualisation.rendering.shadowMapSize',
+      'visualisation.rendering.shadowBias',
+      'visualisation.rendering.context'
+    ],
+    'xr': [
+      'xr.enabled',
+      'xr.mode',
+      'xr.enableHandTracking',
+      'xr.enableHaptics',
+      'xr.quality'
+    ],
+    'glow': [
+      'visualisation.glow.enabled',
+      'visualisation.glow.intensity',
+      'visualisation.glow.radius',
+      'visualisation.glow.threshold'
+    ],
+    'hologram': [
+      'visualisation.hologram.ringCount',
+      'visualisation.hologram.ringColor',
+      'visualisation.hologram.globalRotationSpeed'
+    ],
+    'nodes': [
+      'visualisation.graphs.logseq.nodes',
+      'visualisation.graphs.visionflow.nodes'
+    ],
+    'edges': [
+      'visualisation.graphs.logseq.edges',
+      'visualisation.graphs.visionflow.edges'
+    ],
+    'labels': [
+      'visualisation.graphs.logseq.labels',
+      'visualisation.graphs.visionflow.labels'
+    ]
+  };
+
+  return sectionPathMap[section] || [];
+}
+
+// Helper function to set nested value by dot notation path
+function setNestedValue(obj: any, path: string, value: any): void {
+  const keys = path.split('.');
+  let current = obj;
+  
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+  
+  current[keys[keys.length - 1]] = value;
+}
+
+// Helper function to extract all paths from a settings object
+function getAllSettingsPaths(obj: any, prefix: string = ''): string[] {
+  const paths: string[] = [];
+  
+  if (obj && typeof obj === 'object') {
+    for (const [key, value] of Object.entries(obj)) {
+      const currentPath = prefix ? `${prefix}.${key}` : key;
+      
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Recursively get paths from nested objects
+        paths.push(...getAllSettingsPaths(value, currentPath));
+      } else {
+        // This is a leaf value
+        paths.push(currentPath);
+      }
+    }
+  }
+  
+  return paths;
+}
+
 // Export for testing and direct access
 export const settingsStoreUtils = {
-  debouncedBatchUpdate,
-  scheduleBatchUpdate
+  autoSaveManager,
+  getSectionPaths,
+  setNestedValue,
+  getAllSettingsPaths
 };
