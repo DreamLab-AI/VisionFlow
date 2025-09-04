@@ -82,7 +82,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
           const settings = await initialize();
 
           // Apply debug settings safely
-          if (settings.system?.debug) {
+          if (settings?.system?.debug) {
             try {
               const debugSettings = settings.system.debug;
               debugState.enableDebug(debugSettings.enabled);
