@@ -223,7 +223,7 @@ impl MCPConnectionPool {
                     
                     // Read response
                     let mut reader = BufReader::new(stream);
-                    let mut response_line = String::new();
+                    let response_line = String::new();
                     
                     // Read with timeout
                     match tokio::time::timeout(

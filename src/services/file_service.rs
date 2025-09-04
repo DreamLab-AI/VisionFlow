@@ -197,11 +197,11 @@ impl FileService {
         
         let metadata_path = "/app/data/metadata/metadata.json";
         
-        if let Ok(file) = File::open(metadata_path) {
+        match File::open(metadata_path) { Ok(file) => {
             info!("Loading existing metadata from {}", metadata_path);
             serde_json::from_reader(file)
                 .map_err(|e| format!("Failed to parse metadata: {}", e))
-        } else {
+        } _ => {
             info!("Creating new metadata file at {}", metadata_path);
             let empty_store = MetadataStore::default();
             let file = File::create(metadata_path)
@@ -219,7 +219,7 @@ impl FileService {
             }
             
             Ok(empty_store)
-        }
+        }}
     }
 
     /// Calculate node size based on file size

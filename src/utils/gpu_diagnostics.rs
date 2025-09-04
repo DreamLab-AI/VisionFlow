@@ -85,7 +85,8 @@ pub fn fix_cuda_environment() -> Result<(), Error> {
     // Check and set CUDA_VISIBLE_DEVICES if not set
     if env::var("CUDA_VISIBLE_DEVICES").is_err() {
         info!("CUDA_VISIBLE_DEVICES not set, setting to 0");
-        env::set_var("CUDA_VISIBLE_DEVICES", "0");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("CUDA_VISIBLE_DEVICES", "0") };
     }
     
     // Check if PTX file exists; if not, try to find it or create a symlink

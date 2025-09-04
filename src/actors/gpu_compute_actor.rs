@@ -423,7 +423,7 @@ impl GPUComputeActor {
         // We can update feature flags based on actor state if needed.
         // For now, we assume the params passed from the client are sufficient.
         
-        let mut sim_params = self.unified_params;
+        let sim_params = self.unified_params;
         match unified_compute.execute(sim_params) {
             Ok(()) => {
                 self.iteration_count += 1;
@@ -997,7 +997,7 @@ impl Handler<PerformGPUClustering> for GPUComputeActor {
                                 id: Uuid::new_v4().to_string(),
                                 label: format!("GPU Spectral Cluster {}", i + 1),
                                 node_count: cluster_nodes.len() as u32,
-                                coherence: 0.85 + rand::thread_rng().gen::<f32>() * 0.15,
+                                coherence: 0.85 + rand::thread_rng().r#gen::<f32>() * 0.15,
                                 color: generate_gpu_cluster_color(i),
                                 keywords: vec![
                                     "gpu".to_string(),
@@ -1028,7 +1028,7 @@ impl Handler<PerformGPUClustering> for GPUComputeActor {
                                 id: Uuid::new_v4().to_string(),
                                 label: format!("GPU K-means Cluster {}", i + 1),
                                 node_count: cluster_nodes.len() as u32,
-                                coherence: 0.75 + rand::thread_rng().gen::<f32>() * 0.2,
+                                coherence: 0.75 + rand::thread_rng().r#gen::<f32>() * 0.2,
                                 color: generate_gpu_cluster_color(i),
                                 keywords: vec![
                                     "gpu".to_string(),
@@ -1054,7 +1054,7 @@ impl Handler<PerformGPUClustering> for GPUComputeActor {
                             }
                             
                             let base_size = remaining_nodes.len() / (num_communities - i);
-                            let variation = (base_size as f32 * rand::thread_rng().gen::<f32>() * 0.5) as usize;
+                            let variation = (base_size as f32 * rand::thread_rng().r#gen::<f32>() * 0.5) as usize;
                             let community_size = (base_size + variation).min(remaining_nodes.len());
                             
                             let community_nodes: Vec<u32> = remaining_nodes
@@ -1065,7 +1065,7 @@ impl Handler<PerformGPUClustering> for GPUComputeActor {
                                 id: Uuid::new_v4().to_string(),
                                 label: format!("GPU Community {}", i + 1),
                                 node_count: community_nodes.len() as u32,
-                                coherence: 0.8 + rand::thread_rng().gen::<f32>() * 0.15,
+                                coherence: 0.8 + rand::thread_rng().r#gen::<f32>() * 0.15,
                                 color: generate_gpu_cluster_color(i),
                                 keywords: vec![
                                     "gpu".to_string(),

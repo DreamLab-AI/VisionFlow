@@ -1681,7 +1681,7 @@ impl Handler<GetAutoBalanceNotifications> for GraphServiceActor {
     type Result = Result<Vec<AutoBalanceNotification>, String>;
 
     fn handle(&mut self, msg: GetAutoBalanceNotifications, _ctx: &mut Self::Context) -> Self::Result {
-        if let Ok(notifications) = self.auto_balance_notifications.lock() {
+        match self.auto_balance_notifications.lock() { Ok(notifications) => {
             let filtered_notifications = if let Some(since) = msg.since_timestamp {
                 notifications.iter()
                     .filter(|n| n.timestamp > since)
@@ -1692,9 +1692,9 @@ impl Handler<GetAutoBalanceNotifications> for GraphServiceActor {
             };
             
             Ok(filtered_notifications)
-        } else {
+        } _ => {
             Err("Failed to access notifications".to_string())
-        }
+        }}
     }
 }
 

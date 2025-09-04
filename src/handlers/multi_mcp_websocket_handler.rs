@@ -230,7 +230,7 @@ impl MultiMcpVisualizationWs {
             // Execute discovery with circuit breaker protection
             let addr = ctx.address();
             let retry_config = self.retry_config.clone();
-            let mut failures = self.connection_failures;
+            let failures = self.connection_failures;
             
             actix::spawn(async move {
                 // Use retry logic with circuit breaker

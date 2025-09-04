@@ -10,7 +10,7 @@ use cust::stream::{Stream, StreamFlags};
 
 // External CUDA/Thrust function for sorting
 // This is provided by the compiled CUDA object file
-extern "C" {
+unsafe extern "C" {
     fn thrust_sort_key_value(
         d_keys_in: *const ::std::os::raw::c_void,
         d_keys_out: *mut ::std::os::raw::c_void,
@@ -623,7 +623,7 @@ pub struct ConstraintData {
 }
 
 // Additional Thrust wrapper function for scanning
-extern "C" {
+unsafe extern "C" {
     fn thrust_exclusive_scan(
         d_in: *const ::std::os::raw::c_void,
         d_out: *mut ::std::os::raw::c_void,
