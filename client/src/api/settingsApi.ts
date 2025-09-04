@@ -133,13 +133,17 @@ export const settingsApi = {
             let obj: any = updatedSettings;
             
             for (let i = 0; i < keys.length - 1; i++) {
-              if (!obj[keys[i]]) {
+              // Ensure the object exists and is not frozen
+              if (!obj[keys[i]] || typeof obj[keys[i]] !== 'object') {
                 obj[keys[i]] = {};
               }
               obj = obj[keys[i]];
             }
             
-            obj[keys[keys.length - 1]] = value;
+            // Set the final value
+            if (obj && typeof obj === 'object') {
+              obj[keys[keys.length - 1]] = value;
+            }
           }
           
           // Save the entire updated settings
@@ -164,13 +168,17 @@ export const settingsApi = {
         let obj: any = updatedSettings;
         
         for (let i = 0; i < keys.length - 1; i++) {
-          if (!obj[keys[i]]) {
+          // Ensure the object exists and is not frozen
+          if (!obj[keys[i]] || typeof obj[keys[i]] !== 'object') {
             obj[keys[i]] = {};
           }
           obj = obj[keys[i]];
         }
         
-        obj[keys[keys.length - 1]] = value;
+        // Set the final value
+        if (obj && typeof obj === 'object') {
+          obj[keys[keys.length - 1]] = value;
+        }
       }
       
       await this.saveSettings(updatedSettings);
