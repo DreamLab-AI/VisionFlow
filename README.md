@@ -2,7 +2,7 @@
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Swarm Visualisation" style="width:100%; display:block; margin:0 auto;">
 
-**Real-time 3D visualisation of AI agent swarms working alongside your Logseq knowledge graph.**
+**Real-time 3D visualisation of AI agent swarms with GPU-accelerated rendering and comprehensive knowledge graph integration.**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](docker-compose.yml)
@@ -33,19 +33,24 @@ docker-compose up -d
 open http://localhost:3001
 ```
 
-**[📚 Full Quick Start Guide](docs/quick-start-swarm.md)** - Spawn your first AI swarm in 5 minutes!
+**[📚 Full Quick Start Guide](/workspace/docs/getting-started/quickstart.md)** - Spawn your first AI swarm in 5 minutes!
 
 ---
 
 ## 🎯 Project Overview
 
-VisionFlow is a groundbreaking platform that bridges the gap between knowledge management and AI agent orchestration. Built entirely through AI-driven development, this project showcases the power of conversational coding and demonstrates what's possible when artificial intelligence becomes your co-developer.
+VisionFlow is a groundbreaking platform that bridges the gap between knowledge management and AI agent orchestration. This high-performance, GPU-accelerated system provides real-time 3D visualisation of multi-agent AI systems, enabling unprecedented insights into swarm behaviour and coordination patterns.
 
-### 🤖 AI-Driven Development Story
+### 🚀 Technical Excellence
 
-This entire codebase—from the Rust backend with Actix to the TypeScript frontend with React and Three.js—was generated through an iterative, conversational process with AI agents. This AI-first approach has shaped not only how the project was built but also the documentation and diagrams you see here.
+VisionFlow combines cutting-edge technologies to deliver unparalleled performance:
 
-The workflow allowed for rapid prototyping, complex feature implementation, and exploration of technologies that would typically be beyond the reach of a solo, non-developer founder.
+- **Rust + Actix Backend**: High-performance actor-based architecture
+- **TypeScript + React + Three.js Frontend**: Immersive 3D visualisations  
+- **GPU Acceleration**: CUDA-powered computation for massive agent swarms
+- **Real-time Binary Protocol**: Ultra-low latency WebSocket communication
+- **Distributed Consensus**: Advanced algorithms including Raft, Byzantine fault tolerance, and CRDTs
+- **AI Orchestration**: Comprehensive swarm intelligence with neural pattern recognition
 
 ---
 
@@ -382,3 +387,48 @@ This project is licenced under the MIT Licence. See the [LICENSE](LICENSE) file 
 **Built with ❤️ by the VisionFlow community using AI-driven development**
 
 *VisionFlow - Visualising the future of AI multi-agent systems* 🚀
+## 📚 Documentation
+
+The complete documentation has been organised and is available in `/workspace/docs/`:
+
+- **[Getting Started Guide](/workspace/docs/getting-started/)** - Installation, quickstart, and configuration
+- **[API Documentation](/workspace/docs/api/)** - REST, WebSocket, and MCP integration details
+- **[Technical Documentation](/workspace/docs/technical/)** - Architecture and implementation details
+- **[Server Documentation](/workspace/docs/server/)** - Backend systems and GPU compute
+
+### Recent Updates (September 2025)
+
+✅ **Documentation Migration Complete**:
+- Successfully migrated and reorganised 117 documentation files
+- Updated all content to use UK English spelling consistently
+- Improved documentation structure for better navigation
+- Validated and fixed internal cross-references
+- Removed obsolete development artifacts
+
+⚠️ **Known Issues**:
+- Some navigation links require placeholder files (work in progress)
+- Additional API documentation sections being populated
+
+## 🛠️ Development Status
+
+VisionFlow is in active development with regular updates to both functionality and documentation. The project showcases advanced multi-agent AI coordination with real-time visualisation capabilities.
+
+### Key Features
+
+- **Multi-Agent Orchestration**: Coordinate swarms of AI agents with different topologies
+- **Real-time 3D Visualisation**: GPU-accelerated rendering of agent behaviour
+- **Consensus Protocols**: Multiple distributed consensus implementations
+- **Neural Pattern Recognition**: AI-powered pattern detection and learning
+- **Comprehensive API**: RESTful and WebSocket interfaces for integration
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](/workspace/docs/development/contributing.md) for details on how to get involved.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+*Last Updated: September 2025 - Documentation structure reorganised and content updated*
