@@ -101,6 +101,7 @@ fn default_glow_opacity() -> f32 {
 }
 
 pub mod feature_access;
+// pub mod tests;
 
 // Types are already public in this module, no need to re-export
 
@@ -173,8 +174,11 @@ fn merge_json_values(base: Value, update: Value) -> Value {
 
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct MovementAxes {
+    #[serde(alias = "horizontal")]
     pub horizontal: i32,
+    #[serde(alias = "vertical")]
     pub vertical: i32,
 }
 
@@ -182,19 +186,29 @@ pub struct MovementAxes {
 #[serde(rename_all = "camelCase")]
 pub struct NodeSettings {
     #[validate(custom(function = "validate_hex_color"))]
+    #[serde(alias = "base_color")]
     pub base_color: String,
     #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(alias = "metalness")]
     pub metalness: f32,
     #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(alias = "opacity")]
     pub opacity: f32,
     #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(alias = "roughness")]
     pub roughness: f32,
     #[validate(range(min = 0.1, max = 100.0))]
+    #[serde(alias = "node_size")]
     pub node_size: f32,
+    #[serde(alias = "quality")]
     pub quality: String,
+    #[serde(alias = "enable_instancing")]
     pub enable_instancing: bool,
+    #[serde(alias = "enable_hologram")]
     pub enable_hologram: bool,
+    #[serde(alias = "enable_metadata_shape")]
     pub enable_metadata_shape: bool,
+    #[serde(alias = "enable_metadata_visualisation")]
     pub enable_metadata_visualisation: bool,
 }
 
@@ -202,48 +216,78 @@ pub struct NodeSettings {
 #[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
     #[validate(range(min = 0.1, max = 10.0))]
+    #[serde(alias = "arrow_size")]
     pub arrow_size: f32,
     #[validate(range(min = 0.1, max = 10.0))]
+    #[serde(alias = "base_width")]
     pub base_width: f32,
     #[validate(custom(function = "validate_hex_color"))]
+    #[serde(alias = "color")]
     pub color: String,
+    #[serde(alias = "enable_arrows")]
     pub enable_arrows: bool,
     #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(alias = "opacity")]
     pub opacity: f32,
     #[validate(custom(function = "validate_width_range"))]
+    #[serde(alias = "width_range")]
     pub width_range: Vec<f32>,
+    #[serde(alias = "quality")]
     pub quality: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct AutoBalanceConfig {
+    #[serde(alias = "stability_variance_threshold")]
     pub stability_variance_threshold: f32,
+    #[serde(alias = "stability_frame_count")]
     pub stability_frame_count: u32,
+    #[serde(alias = "clustering_distance_threshold")]
     pub clustering_distance_threshold: f32,
+    #[serde(alias = "bouncing_node_percentage")]
     pub bouncing_node_percentage: f32,
+    #[serde(alias = "boundary_min_distance")]
     pub boundary_min_distance: f32,
+    #[serde(alias = "boundary_max_distance")]
     pub boundary_max_distance: f32,
+    #[serde(alias = "extreme_distance_threshold")]
     pub extreme_distance_threshold: f32,
+    #[serde(alias = "explosion_distance_threshold")]
     pub explosion_distance_threshold: f32,
+    #[serde(alias = "spreading_distance_threshold")]
     pub spreading_distance_threshold: f32,
+    #[serde(alias = "oscillation_detection_frames")]
     pub oscillation_detection_frames: usize,
+    #[serde(alias = "oscillation_change_threshold")]
     pub oscillation_change_threshold: f32,
+    #[serde(alias = "min_oscillation_changes")]
     pub min_oscillation_changes: usize,
     
     // New CUDA kernel parameter tuning thresholds
+    #[serde(alias = "grid_cell_size_min")]
     pub grid_cell_size_min: f32,
+    #[serde(alias = "grid_cell_size_max")]
     pub grid_cell_size_max: f32,
+    #[serde(alias = "repulsion_cutoff_min")]
     pub repulsion_cutoff_min: f32,
+    #[serde(alias = "repulsion_cutoff_max")]
     pub repulsion_cutoff_max: f32,
+    #[serde(alias = "repulsion_softening_min")]
     pub repulsion_softening_min: f32,
+    #[serde(alias = "repulsion_softening_max")]
     pub repulsion_softening_max: f32,
+    #[serde(alias = "center_gravity_min")]
     pub center_gravity_min: f32,
+    #[serde(alias = "center_gravity_max")]
     pub center_gravity_max: f32,
     
     // Spatial hashing effectiveness thresholds
+    #[serde(alias = "spatial_hash_efficiency_threshold")]
     pub spatial_hash_efficiency_threshold: f32,
+    #[serde(alias = "cluster_density_threshold")]
     pub cluster_density_threshold: f32,
+    #[serde(alias = "numerical_instability_threshold")]
     pub numerical_instability_threshold: f32,
 }
 
@@ -284,60 +328,103 @@ impl AutoBalanceConfig {
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhysicsSettings {
-    #[serde(default)]
+    #[serde(default, alias = "auto_balance")]
     pub auto_balance: bool,
-    #[serde(default = "default_auto_balance_interval")]
+    #[serde(default = "default_auto_balance_interval", alias = "auto_balance_interval_ms")]
     pub auto_balance_interval_ms: u32,
-    #[serde(default)]
+    #[serde(default, alias = "auto_balance_config")]
     #[validate(nested)]
     pub auto_balance_config: AutoBalanceConfig,
+    #[serde(alias = "attraction_k")]
     pub attraction_k: f32,
+    #[serde(alias = "bounds_size")]
     pub bounds_size: f32,
+    #[serde(alias = "separation_radius")]
     pub separation_radius: f32,
+    #[serde(alias = "damping")]
     pub damping: f32,
+    #[serde(alias = "enable_bounds")]
     pub enable_bounds: bool,
+    #[serde(alias = "enabled")]
     pub enabled: bool,
+    #[serde(alias = "iterations")]
     pub iterations: u32,
+    #[serde(alias = "max_velocity")]
     pub max_velocity: f32,
+    #[serde(alias = "max_force")]
     pub max_force: f32,
+    #[serde(alias = "repel_k")]
     pub repel_k: f32,
+    #[serde(alias = "spring_k")]
     pub spring_k: f32,
+    #[serde(alias = "mass_scale")]
     pub mass_scale: f32,
+    #[serde(alias = "boundary_damping")]
     pub boundary_damping: f32,
+    #[serde(alias = "update_threshold")]
     pub update_threshold: f32,
+    #[serde(alias = "dt")]
     pub dt: f32,
+    #[serde(alias = "temperature")]
     pub temperature: f32,
+    #[serde(alias = "gravity")]
     pub gravity: f32,
     // New GPU-aligned fields
+    #[serde(alias = "stress_weight")]
     pub stress_weight: f32,
+    #[serde(alias = "stress_alpha")]
     pub stress_alpha: f32,
+    #[serde(alias = "boundary_limit")]
     pub boundary_limit: f32,
+    #[serde(alias = "alignment_strength")]
     pub alignment_strength: f32,
+    #[serde(alias = "cluster_strength")]
     pub cluster_strength: f32,
+    #[serde(alias = "compute_mode")]
     pub compute_mode: i32,
     
     // CUDA kernel parameters from dev_config.toml
+    #[serde(alias = "rest_length")]
     pub rest_length: f32,
+    #[serde(alias = "repulsion_cutoff")]
     pub repulsion_cutoff: f32,
+    #[serde(alias = "repulsion_softening_epsilon")]
     pub repulsion_softening_epsilon: f32,
+    #[serde(alias = "center_gravity_k")]
     pub center_gravity_k: f32,
+    #[serde(alias = "grid_cell_size")]
     pub grid_cell_size: f32,
+    #[serde(alias = "warmup_iterations")]
     pub warmup_iterations: u32,
+    #[serde(alias = "cooling_rate")]
     pub cooling_rate: f32,
+    #[serde(alias = "boundary_extreme_multiplier")]
     pub boundary_extreme_multiplier: f32,
+    #[serde(alias = "boundary_extreme_force_multiplier")]
     pub boundary_extreme_force_multiplier: f32,
+    #[serde(alias = "boundary_velocity_damping")]
     pub boundary_velocity_damping: f32,
     // Additional GPU parameters from documentation
+    #[serde(alias = "min_distance")]
     pub min_distance: f32,
+    #[serde(alias = "max_repulsion_dist")]
     pub max_repulsion_dist: f32,
+    #[serde(alias = "boundary_margin")]
     pub boundary_margin: f32,
+    #[serde(alias = "boundary_force_strength")]
     pub boundary_force_strength: f32,
+    #[serde(alias = "warmup_curve")]
     pub warmup_curve: String,
+    #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: u32,
     // Clustering parameters
+    #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: String,
+    #[serde(alias = "cluster_count")]
     pub cluster_count: u32,
+    #[serde(alias = "clustering_resolution")]
     pub clustering_resolution: f32,
+    #[serde(alias = "clustering_iterations")]
     pub clustering_iterations: u32,
 }
 
@@ -400,132 +487,193 @@ impl Default for PhysicsSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct RenderingSettings {
+    #[serde(alias = "ambient_light_intensity")]
     pub ambient_light_intensity: f32,
+    #[serde(alias = "background_color")]
     pub background_color: String,
+    #[serde(alias = "directional_light_intensity")]
     pub directional_light_intensity: f32,
+    #[serde(alias = "enable_ambient_occlusion")]
     pub enable_ambient_occlusion: bool,
+    #[serde(alias = "enable_antialiasing")]
     pub enable_antialiasing: bool,
+    #[serde(alias = "enable_shadows")]
     pub enable_shadows: bool,
+    #[serde(alias = "environment_intensity")]
     pub environment_intensity: f32,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "shadow_map_size")]
     pub shadow_map_size: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "shadow_bias")]
     pub shadow_bias: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "context")]
     pub context: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
+    #[serde(alias = "enable_motion_blur")]
     pub enable_motion_blur: bool,
+    #[serde(alias = "enable_node_animations")]
     pub enable_node_animations: bool,
+    #[serde(alias = "motion_blur_strength")]
     pub motion_blur_strength: f32,
+    #[serde(alias = "selection_wave_enabled")]
     pub selection_wave_enabled: bool,
+    #[serde(alias = "pulse_enabled")]
     pub pulse_enabled: bool,
+    #[serde(alias = "pulse_speed")]
     pub pulse_speed: f32,
+    #[serde(alias = "pulse_strength")]
     pub pulse_strength: f32,
+    #[serde(alias = "wave_speed")]
     pub wave_speed: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct LabelSettings {
+    #[serde(alias = "desktop_font_size")]
     pub desktop_font_size: f32,
+    #[serde(alias = "enable_labels")]
     pub enable_labels: bool,
+    #[serde(alias = "text_color")]
     pub text_color: String,
+    #[serde(alias = "text_outline_color")]
     pub text_outline_color: String,
+    #[serde(alias = "text_outline_width")]
     pub text_outline_width: f32,
+    #[serde(alias = "text_resolution")]
     pub text_resolution: u32,
+    #[serde(alias = "text_padding")]
     pub text_padding: f32,
+    #[serde(alias = "billboard_mode")]
     pub billboard_mode: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "show_metadata")]
     pub show_metadata: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "max_label_width")]
     pub max_label_width: Option<f32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct GlowSettings {
+    #[serde(alias = "enabled")]
     pub enabled: bool,
+    #[serde(alias = "intensity")]
     pub intensity: f32,
+    #[serde(alias = "radius")]
     pub radius: f32,
+    #[serde(alias = "threshold")]
     pub threshold: f32,
-    #[serde(default)]
+    #[serde(default, alias = "diffuse_strength")]
     pub diffuse_strength: f32,
-    #[serde(default)]
+    #[serde(default, alias = "atmospheric_density")]
     pub atmospheric_density: f32,
-    #[serde(default)]
+    #[serde(default, alias = "volumetric_intensity")]
     pub volumetric_intensity: f32,
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color")]
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "base_color")]
     pub base_color: String,
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color")]
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "emission_color")]
     pub emission_color: String,
-    #[serde(default = "default_glow_opacity")]
+    #[serde(default = "default_glow_opacity", alias = "opacity")]
     pub opacity: f32,
-    #[serde(default)]
+    #[serde(default, alias = "pulse_speed")]
     pub pulse_speed: f32,
-    #[serde(default)]
+    #[serde(default, alias = "flow_speed")]
     pub flow_speed: f32,
-    #[serde(default)]
+    #[serde(default, alias = "node_glow_strength")]
     pub node_glow_strength: f32,
-    #[serde(default)]
+    #[serde(default, alias = "edge_glow_strength")]
     pub edge_glow_strength: f32,
-    #[serde(default)]
+    #[serde(default, alias = "environment_glow_strength")]
     pub environment_glow_strength: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct HologramSettings {
+    #[serde(alias = "ring_count")]
     pub ring_count: u32,
+    #[serde(alias = "ring_color")]
     pub ring_color: String,
+    #[serde(alias = "ring_opacity")]
     pub ring_opacity: f32,
+    #[serde(alias = "sphere_sizes")]
     pub sphere_sizes: Vec<f32>,
+    #[serde(alias = "ring_rotation_speed")]
     pub ring_rotation_speed: f32,
+    #[serde(alias = "enable_buckminster")]
     pub enable_buckminster: bool,
+    #[serde(alias = "buckminster_size")]
     pub buckminster_size: f32,
+    #[serde(alias = "buckminster_opacity")]
     pub buckminster_opacity: f32,
+    #[serde(alias = "enable_geodesic")]
     pub enable_geodesic: bool,
+    #[serde(alias = "geodesic_size")]
     pub geodesic_size: f32,
+    #[serde(alias = "geodesic_opacity")]
     pub geodesic_opacity: f32,
+    #[serde(alias = "enable_triangle_sphere")]
     pub enable_triangle_sphere: bool,
+    #[serde(alias = "triangle_sphere_size")]
     pub triangle_sphere_size: f32,
+    #[serde(alias = "triangle_sphere_opacity")]
     pub triangle_sphere_opacity: f32,
+    #[serde(alias = "global_rotation_speed")]
     pub global_rotation_speed: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CameraSettings {
+    #[serde(alias = "fov")]
     pub fov: f32,
+    #[serde(alias = "near")]
     pub near: f32,
+    #[serde(alias = "far")]
     pub far: f32,
+    #[serde(alias = "position")]
     pub position: Position,
+    #[serde(alias = "look_at")]
     pub look_at: Position,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct Position {
+    #[serde(alias = "x")]
     pub x: f32,
+    #[serde(alias = "y")]
     pub y: f32,
+    #[serde(alias = "z")]
     pub z: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct SpacePilotSettings {
+    #[serde(alias = "enabled")]
     pub enabled: bool,
+    #[serde(alias = "mode")]
     pub mode: String,
+    #[serde(alias = "sensitivity")]
     pub sensitivity: Sensitivity,
+    #[serde(alias = "smoothing")]
     pub smoothing: f32,
+    #[serde(alias = "deadzone")]
     pub deadzone: f32,
+    #[serde(alias = "button_functions")]
     pub button_functions: std::collections::HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct Sensitivity {
+    #[serde(alias = "translation")]
     pub translation: f32,
+    #[serde(alias = "rotation")]
     pub rotation: f32,
 }
 
@@ -577,43 +725,76 @@ pub struct VisualisationSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkSettings {
+    #[serde(alias = "bind_address")]
     pub bind_address: String,
+    #[serde(alias = "domain")]
     pub domain: String,
+    #[serde(alias = "enable_http2")]
     pub enable_http2: bool,
+    #[serde(alias = "enable_rate_limiting")]
     pub enable_rate_limiting: bool,
+    #[serde(alias = "enable_tls")]
     pub enable_tls: bool,
+    #[serde(alias = "max_request_size")]
     pub max_request_size: usize,
+    #[serde(alias = "min_tls_version")]
     pub min_tls_version: String,
+    #[serde(alias = "port")]
     pub port: u16,
+    #[serde(alias = "rate_limit_requests")]
     pub rate_limit_requests: u32,
+    #[serde(alias = "rate_limit_window")]
     pub rate_limit_window: u32,
+    #[serde(alias = "tunnel_id")]
     pub tunnel_id: String,
+    #[serde(alias = "api_client_timeout")]
     pub api_client_timeout: u64,
+    #[serde(alias = "enable_metrics")]
     pub enable_metrics: bool,
+    #[serde(alias = "max_concurrent_requests")]
     pub max_concurrent_requests: u32,
+    #[serde(alias = "max_retries")]
     pub max_retries: u32,
+    #[serde(alias = "metrics_port")]
     pub metrics_port: u16,
+    #[serde(alias = "retry_delay")]
     pub retry_delay: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct WebSocketSettings {
+    #[serde(alias = "binary_chunk_size")]
     pub binary_chunk_size: usize,
+    #[serde(alias = "binary_update_rate")]
     pub binary_update_rate: u32,
+    #[serde(alias = "min_update_rate")]
     pub min_update_rate: u32,
+    #[serde(alias = "max_update_rate")]
     pub max_update_rate: u32,
+    #[serde(alias = "motion_threshold")]
     pub motion_threshold: f32,
+    #[serde(alias = "motion_damping")]
     pub motion_damping: f32,
+    #[serde(alias = "binary_message_version")]
     pub binary_message_version: u32,
+    #[serde(alias = "compression_enabled")]
     pub compression_enabled: bool,
+    #[serde(alias = "compression_threshold")]
     pub compression_threshold: usize,
+    #[serde(alias = "heartbeat_interval")]
     pub heartbeat_interval: u64,
+    #[serde(alias = "heartbeat_timeout")]
     pub heartbeat_timeout: u64,
+    #[serde(alias = "max_connections")]
     pub max_connections: usize,
+    #[serde(alias = "max_message_size")]
     pub max_message_size: usize,
+    #[serde(alias = "reconnect_attempts")]
     pub reconnect_attempts: u32,
+    #[serde(alias = "reconnect_delay")]
     pub reconnect_delay: u64,
+    #[serde(alias = "update_rate")]
     pub update_rate: u32,
 }
 
@@ -643,14 +824,23 @@ impl Default for WebSocketSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct SecuritySettings {
+    #[serde(alias = "allowed_origins")]
     pub allowed_origins: Vec<String>,
+    #[serde(alias = "audit_log_path")]
     pub audit_log_path: String,
+    #[serde(alias = "cookie_httponly")]
     pub cookie_httponly: bool,
+    #[serde(alias = "cookie_samesite")]
     pub cookie_samesite: String,
+    #[serde(alias = "cookie_secure")]
     pub cookie_secure: bool,
+    #[serde(alias = "csrf_token_timeout")]
     pub csrf_token_timeout: u32,
+    #[serde(alias = "enable_audit_logging")]
     pub enable_audit_logging: bool,
+    #[serde(alias = "enable_request_validation")]
     pub enable_request_validation: bool,
+    #[serde(alias = "session_timeout")]
     pub session_timeout: u32,
 }
 
@@ -658,7 +848,7 @@ pub struct SecuritySettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct DebugSettings {
-    #[serde(default)]
+    #[serde(default, alias = "enabled")]
     pub enabled: bool,
 }
 
@@ -674,16 +864,20 @@ impl Default for DebugSettings {
 #[serde(rename_all = "camelCase")]
 pub struct SystemSettings {
     #[validate(nested)]
+    #[serde(alias = "network")]
     pub network: NetworkSettings,
     #[validate(nested)]
+    #[serde(alias = "websocket")]
     pub websocket: WebSocketSettings,
     #[validate(nested)]
+    #[serde(alias = "security")]
     pub security: SecuritySettings,
     #[validate(nested)]
+    #[serde(alias = "debug")]
     pub debug: DebugSettings,
-    #[serde(default)]
+    #[serde(default, alias = "persist_settings")]
     pub persist_settings: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "custom_backend_url")]
     pub custom_backend_url: Option<String>,
 }
 
@@ -703,166 +897,209 @@ impl Default for SystemSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct XRSettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "enabled")]
     pub enabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "client_side_enable_xr")]
     pub client_side_enable_xr: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "mode")]
     pub mode: Option<String>,
+    #[serde(alias = "room_scale")]
     pub room_scale: f32,
+    #[serde(alias = "space_type")]
     pub space_type: String,
+    #[serde(alias = "quality")]
     pub quality: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "render_scale")]
     pub render_scale: Option<f32>,
+    #[serde(alias = "interaction_distance")]
     pub interaction_distance: f32,
+    #[serde(alias = "locomotion_method")]
     pub locomotion_method: String,
+    #[serde(alias = "teleport_ray_color")]
     pub teleport_ray_color: String,
+    #[serde(alias = "controller_ray_color")]
     pub controller_ray_color: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "controller_model")]
     pub controller_model: Option<String>,
     
+    #[serde(alias = "enable_hand_tracking")]
     pub enable_hand_tracking: bool,
+    #[serde(alias = "hand_mesh_enabled")]
     pub hand_mesh_enabled: bool,
+    #[serde(alias = "hand_mesh_color")]
     pub hand_mesh_color: String,
+    #[serde(alias = "hand_mesh_opacity")]
     pub hand_mesh_opacity: f32,
+    #[serde(alias = "hand_point_size")]
     pub hand_point_size: f32,
+    #[serde(alias = "hand_ray_enabled")]
     pub hand_ray_enabled: bool,
+    #[serde(alias = "hand_ray_color")]
     pub hand_ray_color: String,
+    #[serde(alias = "hand_ray_width")]
     pub hand_ray_width: f32,
+    #[serde(alias = "gesture_smoothing")]
     pub gesture_smoothing: f32,
     
+    #[serde(alias = "enable_haptics")]
     pub enable_haptics: bool,
+    #[serde(alias = "haptic_intensity")]
     pub haptic_intensity: f32,
+    #[serde(alias = "drag_threshold")]
     pub drag_threshold: f32,
+    #[serde(alias = "pinch_threshold")]
     pub pinch_threshold: f32,
+    #[serde(alias = "rotation_threshold")]
     pub rotation_threshold: f32,
+    #[serde(alias = "interaction_radius")]
     pub interaction_radius: f32,
+    #[serde(alias = "movement_speed")]
     pub movement_speed: f32,
+    #[serde(alias = "dead_zone")]
     pub dead_zone: f32,
+    #[serde(alias = "movement_axes")]
     pub movement_axes: MovementAxes,
     
+    #[serde(alias = "enable_light_estimation")]
     pub enable_light_estimation: bool,
+    #[serde(alias = "enable_plane_detection")]
     pub enable_plane_detection: bool,
+    #[serde(alias = "enable_scene_understanding")]
     pub enable_scene_understanding: bool,
+    #[serde(alias = "plane_color")]
     pub plane_color: String,
+    #[serde(alias = "plane_opacity")]
     pub plane_opacity: f32,
+    #[serde(alias = "plane_detection_distance")]
     pub plane_detection_distance: f32,
+    #[serde(alias = "show_plane_overlay")]
     pub show_plane_overlay: bool,
+    #[serde(alias = "snap_to_floor")]
     pub snap_to_floor: bool,
     
+    #[serde(alias = "enable_passthrough_portal")]
     pub enable_passthrough_portal: bool,
+    #[serde(alias = "passthrough_opacity")]
     pub passthrough_opacity: f32,
+    #[serde(alias = "passthrough_brightness")]
     pub passthrough_brightness: f32,
+    #[serde(alias = "passthrough_contrast")]
     pub passthrough_contrast: f32,
+    #[serde(alias = "portal_size")]
     pub portal_size: f32,
+    #[serde(alias = "portal_edge_color")]
     pub portal_edge_color: String,
+    #[serde(alias = "portal_edge_width")]
     pub portal_edge_width: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthSettings {
+    #[serde(alias = "enabled")]
     pub enabled: bool,
+    #[serde(alias = "provider")]
     pub provider: String,
+    #[serde(alias = "required")]
     pub required: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct RagFlowSettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_key")]
     pub api_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "agent_id")]
     pub agent_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_base_url")]
     pub api_base_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "timeout")]
     pub timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "max_retries")]
     pub max_retries: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "chat_id")]
     pub chat_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PerplexitySettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_key")]
     pub api_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "model")]
     pub model: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_url")]
     pub api_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "max_tokens")]
     pub max_tokens: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "temperature")]
     pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "top_p")]
     pub top_p: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "presence_penalty")]
     pub presence_penalty: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "frequency_penalty")]
     pub frequency_penalty: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "timeout")]
     pub timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "rate_limit")]
     pub rate_limit: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct OpenAISettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_key")]
     pub api_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "base_url")]
     pub base_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "timeout")]
     pub timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "rate_limit")]
     pub rate_limit: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct KokoroSettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_url")]
     pub api_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_voice")]
     pub default_voice: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_format")]
     pub default_format: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_speed")]
     pub default_speed: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "timeout")]
     pub timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "stream")]
     pub stream: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "return_timestamps")]
     pub return_timestamps: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "sample_rate")]
     pub sample_rate: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct WhisperSettings {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_url")]
     pub api_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_model")]
     pub default_model: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_language")]
     pub default_language: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "timeout")]
     pub timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "temperature")]
     pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "return_timestamps")]
     pub return_timestamps: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "vad_filter")]
     pub vad_filter: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "word_timestamps")]
     pub word_timestamps: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "initial_prompt")]
     pub initial_prompt: Option<String>,
 }
 
@@ -870,11 +1107,17 @@ pub struct WhisperSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintData {
+    #[serde(alias = "constraint_type")]
     pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
+    #[serde(alias = "strength")]
     pub strength: f32,
+    #[serde(alias = "param1")]
     pub param1: f32,
+    #[serde(alias = "param2")]
     pub param2: f32,
+    #[serde(alias = "node_mask")]
     pub node_mask: i32,  // Bit mask for selective application
+    #[serde(alias = "enabled")]
     pub enabled: bool,
 }
 
@@ -894,20 +1137,30 @@ impl Default for ConstraintData {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintSystem {
+    #[serde(alias = "separation")]
     pub separation: ConstraintData,
+    #[serde(alias = "boundary")]
     pub boundary: ConstraintData,
+    #[serde(alias = "alignment")]
     pub alignment: ConstraintData,
+    #[serde(alias = "cluster")]
     pub cluster: ConstraintData,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringConfiguration {
+    #[serde(alias = "algorithm")]
     pub algorithm: String,
+    #[serde(alias = "num_clusters")]
     pub num_clusters: u32,
+    #[serde(alias = "resolution")]
     pub resolution: f32,
+    #[serde(alias = "iterations")]
     pub iterations: u32,
+    #[serde(alias = "export_assignments")]
     pub export_assignments: bool,
+    #[serde(alias = "auto_update")]
     pub auto_update: bool,
 }
 
@@ -915,48 +1168,87 @@ pub struct ClusteringConfiguration {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PhysicsUpdate {
+    #[serde(alias = "damping")]
     pub damping: Option<f32>,
+    #[serde(alias = "spring_k")]
     pub spring_k: Option<f32>,
+    #[serde(alias = "repel_k")]
     pub repel_k: Option<f32>,
+    #[serde(alias = "iterations")]
     pub iterations: Option<u32>,
+    #[serde(alias = "enabled")]
     pub enabled: Option<bool>,
+    #[serde(alias = "bounds_size")]
     pub bounds_size: Option<f32>,
+    #[serde(alias = "enable_bounds")]
     pub enable_bounds: Option<bool>,
+    #[serde(alias = "max_velocity")]
     pub max_velocity: Option<f32>,
+    #[serde(alias = "max_force")]
     pub max_force: Option<f32>,
+    #[serde(alias = "separation_radius")]
     pub separation_radius: Option<f32>,
+    #[serde(alias = "attraction_k")]
     pub attraction_k: Option<f32>,
+    #[serde(alias = "mass_scale")]
     pub mass_scale: Option<f32>,
+    #[serde(alias = "boundary_damping")]
     pub boundary_damping: Option<f32>,
+    #[serde(alias = "dt")]
     pub dt: Option<f32>,
+    #[serde(alias = "temperature")]
     pub temperature: Option<f32>,
+    #[serde(alias = "gravity")]
     pub gravity: Option<f32>,
+    #[serde(alias = "update_threshold")]
     pub update_threshold: Option<f32>,
     // New GPU-aligned fields
+    #[serde(alias = "stress_weight")]
     pub stress_weight: Option<f32>,
+    #[serde(alias = "stress_alpha")]
     pub stress_alpha: Option<f32>,
+    #[serde(alias = "boundary_limit")]
     pub boundary_limit: Option<f32>,
+    #[serde(alias = "alignment_strength")]
     pub alignment_strength: Option<f32>,
+    #[serde(alias = "cluster_strength")]
     pub cluster_strength: Option<f32>,
+    #[serde(alias = "compute_mode")]
     pub compute_mode: Option<i32>,
     // Additional GPU parameters
+    #[serde(alias = "min_distance")]
     pub min_distance: Option<f32>,
+    #[serde(alias = "max_repulsion_dist")]
     pub max_repulsion_dist: Option<f32>,
+    #[serde(alias = "boundary_margin")]
     pub boundary_margin: Option<f32>,
+    #[serde(alias = "boundary_force_strength")]
     pub boundary_force_strength: Option<f32>,
+    #[serde(alias = "warmup_iterations")]
     pub warmup_iterations: Option<u32>,
+    #[serde(alias = "warmup_curve")]
     pub warmup_curve: Option<String>,
+    #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: Option<u32>,
+    #[serde(alias = "cooling_rate")]
     pub cooling_rate: Option<f32>,
     // Clustering parameters
+    #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: Option<String>,
+    #[serde(alias = "cluster_count")]
     pub cluster_count: Option<u32>,
+    #[serde(alias = "clustering_resolution")]
     pub clustering_resolution: Option<f32>,
+    #[serde(alias = "clustering_iterations")]
     pub clustering_iterations: Option<u32>,
     // New CUDA kernel parameters
+    #[serde(alias = "repulsion_softening_epsilon")]
     pub repulsion_softening_epsilon: Option<f32>,
+    #[serde(alias = "center_gravity_k")]
     pub center_gravity_k: Option<f32>,
+    #[serde(alias = "grid_cell_size")]
     pub grid_cell_size: Option<f32>,
+    #[serde(alias = "rest_length")]
     pub rest_length: Option<f32>,
 }
 
@@ -965,22 +1257,26 @@ pub struct PhysicsUpdate {
 #[serde(rename_all = "camelCase")]
 pub struct AppFullSettings {
     #[validate(nested)]
+    #[serde(alias = "visualisation")]
     pub visualisation: VisualisationSettings,
     #[validate(nested)]
+    #[serde(alias = "system")]
     pub system: SystemSettings,
     #[validate(nested)]
+    #[serde(alias = "xr")]
     pub xr: XRSettings,
     #[validate(nested)]
+    #[serde(alias = "auth")]
     pub auth: AuthSettings,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "ragflow")]
     pub ragflow: Option<RagFlowSettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "perplexity")]
     pub perplexity: Option<PerplexitySettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "openai")]
     pub openai: Option<OpenAISettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "kokoro")]
     pub kokoro: Option<KokoroSettings>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "whisper")]
     pub whisper: Option<WhisperSettings>,
 }
 
@@ -1001,6 +1297,35 @@ impl Default for AppFullSettings {
 }
 
 impl AppFullSettings {
+    /// Load AppFullSettings from a YAML file with proper snake_case to camelCase conversion
+    pub fn from_yaml_file(path: &PathBuf) -> Result<Self, ConfigError> {
+        let yaml_content = std::fs::read_to_string(path)
+            .map_err(|e| ConfigError::Message(format!("Failed to read YAML file {:?}: {}", path, e)))?;
+            
+        // Try direct YAML deserialization first
+        match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
+            Ok(settings) => {
+                debug!("Successfully loaded settings using direct YAML deserialization");
+                return Ok(settings);
+            }
+            Err(yaml_err) => {
+                debug!("Direct YAML deserialization failed: {}, trying YAML->JSON conversion", yaml_err);
+                
+                // Parse as raw Value first
+                let raw_value = serde_yaml::from_str::<Value>(&yaml_content)
+                    .map_err(|e| ConfigError::Message(format!("Failed to parse YAML as Value: {}", e)))?;
+                
+                // Convert to JSON string (this preserves the structure)
+                let json_str = serde_json::to_string(&raw_value)
+                    .map_err(|e| ConfigError::Message(format!("Failed to convert YAML to JSON: {}", e)))?;
+                
+                // Deserialize from JSON (this will respect serde rename attributes)
+                serde_json::from_str::<AppFullSettings>(&json_str)
+                    .map_err(|e| ConfigError::Message(format!("Failed to deserialize JSON: {}", e)))
+            }
+        }
+    }
+
     pub fn new() -> Result<Self, ConfigError> {
         debug!("Initializing AppFullSettings from YAML");
         dotenvy::dotenv().ok();
@@ -1010,21 +1335,21 @@ impl AppFullSettings {
             .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
         debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
 
-        // Try direct YAML deserialization first (respects serde attributes properly)
-        if let Ok(yaml_content) = std::fs::read_to_string(&settings_path) {
-            debug!("Attempting direct YAML deserialization...");
-            match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
-                Ok(settings) => {
-                    info!("Successfully loaded settings using direct YAML deserialization");
-                    return Ok(settings);
-                }
-                Err(yaml_err) => {
-                    debug!("Direct YAML deserialization failed: {}, trying config crate fallback", yaml_err);
-                }
+        // Use our improved YAML loading method
+        match Self::from_yaml_file(&settings_path) {
+            Ok(settings) => {
+                info!("Successfully loaded settings from YAML file");
+                return Ok(settings);
+            }
+            Err(yaml_err) => {
+                error!("YAML loading failed: {}", yaml_err);
+                debug!("Trying config crate fallback (this may fail due to case conversion issues)");
             }
         }
 
         // Fallback to config crate approach (with environment variable support)
+        // NOTE: This fallback doesn't respect serde rename attributes, so it will likely fail
+        // with "missing field ambientLightIntensity" type errors
         let builder = ConfigBuilder::<config::builder::DefaultState>::default()
             .add_source(config::File::from(settings_path.clone()).required(true))
             .add_source(
@@ -1033,21 +1358,16 @@ impl AppFullSettings {
                     .list_separator(",")
             );
         let config = builder.build()?;
-        debug!("Configuration built successfully. Deserializing AppFullSettings...");
+        debug!("Configuration built successfully. Attempting deserialization...");
 
-        let settings: AppFullSettings = match config.clone().try_deserialize() {
-            Ok(s) => s,
-            Err(e) => {
-                error!("Failed to deserialize AppFullSettings from {:?}: {}", settings_path, e);
-                match config.try_deserialize::<Value>() {
-                    Ok(raw_value) => error!("Raw settings structure from YAML: {:?}", raw_value),
-                    Err(val_err) => error!("Failed to deserialize into raw Value as well: {:?}", val_err),
-                }
-                return Err(e);
-            }
-        };
+        let settings: AppFullSettings = config.clone().try_deserialize()
+            .map_err(|e| {
+                error!("Config crate deserialization failed as expected: {}", e);
+                error!("This is because config crate doesn't respect #[serde(rename_all = \"camelCase\")] attributes");
+                e
+            })?;
         
-        
+        debug!("Unexpectedly succeeded with config crate fallback");
         Ok(settings)
     }
     
