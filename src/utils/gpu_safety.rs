@@ -377,11 +377,11 @@ impl GPUSafetyValidator {
 
     /// Check if CPU fallback should be triggered
     pub fn should_fallback_to_cpu(&self) -> bool {
-        if let Ok(count) = self.failure_count.lock() {
+        match self.failure_count.lock() { Ok(count) => {
             *count >= self.config.cpu_fallback_threshold
-        } else {
+        } _ => {
             false
-        }
+        }}
     }
 
     /// Check if we should use CPU fallback - alias for compatibility
@@ -399,24 +399,24 @@ impl GPUSafetyValidator {
 
     /// Get memory usage statistics
     pub fn get_memory_stats(&self) -> Option<(usize, usize, u64)> {
-        if let Ok(tracker) = self.memory_tracker.lock() {
+        match self.memory_tracker.lock() { Ok(tracker) => {
             Some((
                 tracker.get_total_allocated(),
                 tracker.get_max_allocated(),
                 tracker.get_allocation_count(),
             ))
-        } else {
+        } _ => {
             None
-        }
+        }}
     }
 
     /// Get kernel execution statistics
     pub fn get_kernel_stats(&self, kernel_name: &str) -> Option<f64> {
-        if let Ok(tracker) = self.kernel_tracker.lock() {
+        match self.kernel_tracker.lock() { Ok(tracker) => {
             Some(tracker.get_failure_rate(kernel_name))
-        } else {
+        } _ => {
             None
-        }
+        }}
     }
 
     /// Comprehensive validation for a complete GPU operation

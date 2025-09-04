@@ -403,17 +403,17 @@ impl From<ValidationErrorType> for DetailedValidationError {
 /// Helper macro for creating validation errors
 #[macro_export]
 macro_rules! validation_error {
-    (required: $field:expr) => {
+    (required: $field:expr_2021) => {
         crate::utils::validation::errors::ValidationErrorType::Required($field.to_string())
     };
-    (type: $field:expr, expected: $expected:expr, actual: $actual:expr) => {
+    (type: $field:expr_2021, expected: $expected:expr_2021, actual: $actual:expr_2021) => {
         crate::utils::validation::errors::ValidationErrorType::Type {
             field: $field.to_string(),
             expected: $expected.to_string(),
             actual: $actual.to_string(),
         }
     };
-    (range: $field:expr, value: $value:expr, min: $min:expr, max: $max:expr) => {
+    (range: $field:expr_2021, value: $value:expr_2021, min: $min:expr_2021, max: $max:expr_2021) => {
         crate::utils::validation::errors::ValidationErrorType::Range {
             field: $field.to_string(),
             value: $value,
@@ -421,14 +421,14 @@ macro_rules! validation_error {
             max: $max,
         }
     };
-    (pattern: $field:expr, pattern: $pattern:expr, value: $value:expr) => {
+    (pattern: $field:expr_2021, pattern: $pattern:expr_2021, value: $value:expr_2021) => {
         crate::utils::validation::errors::ValidationErrorType::Pattern {
             field: $field.to_string(),
             pattern: $pattern.to_string(),
             value: $value.to_string(),
         }
     };
-    (custom: $field:expr, message: $message:expr, code: $code:expr) => {
+    (custom: $field:expr_2021, message: $message:expr_2021, code: $code:expr_2021) => {
         crate::utils::validation::errors::ValidationErrorType::Custom {
             field: $field.to_string(),
             message: $message.to_string(),

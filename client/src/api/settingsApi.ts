@@ -191,7 +191,7 @@ export const settingsApi = {
       const settings = JSON.parse(jsonString);
       
       // Basic validation
-      if (!settings.visualisation || !settings.system) {
+      if (!settings?.visualisation || !settings?.system) {
         throw new Error('Invalid settings format');
       }
       

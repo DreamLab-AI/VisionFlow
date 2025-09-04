@@ -72,7 +72,7 @@ class WebSocketService {
     let newUrl = this.determineWebSocketUrl(); // Default to relative path
 
     if (settings?.system?.websocket) {
-      this.reconnectInterval = settings.system.websocket.reconnectDelay || 2000;
+      this.reconnectInterval = settings?.system?.websocket?.reconnectDelay || 2000;
       this.maxReconnectAttempts = settings.system.websocket.reconnectAttempts || 10;
     }
 

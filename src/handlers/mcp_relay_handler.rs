@@ -128,12 +128,12 @@ impl MCPRelayActor {
                                 actix::spawn(async move {
                                     // Respond to ping and update health status
                                     let mut tx_guard = tx_clone.lock().await;
-                                    if let Err(e) = tx_guard.send(TungsteniteMessage::Pong(data)).await {
+                                    match tx_guard.send(TungsteniteMessage::Pong(data)).await { Err(e) => {
                                         error!("[MCP Relay] Failed to send pong: {}", e);
                                         let _ = health_manager_clone.check_service_now("orchestrator").await;
-                                    } else {
+                                    } _ => {
                                         let _ = health_manager_clone.check_service_now("orchestrator").await;
-                                    }
+                                    }}
                                 });
                             }
                             Ok(TungsteniteMessage::Pong(_)) => {

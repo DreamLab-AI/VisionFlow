@@ -115,7 +115,7 @@ export const ConnectionWarning: React.FC = () => {
       </div>
 
       {/* Additional details in debug mode */}
-      {settings.system?.debug?.enabled && (
+      {settings?.system?.debug?.enabled && (
         <div className="max-w-7xl mx-auto mt-2 text-xs opacity-75 font-mono">
           <div>Settings Source: {settingsSource === 'local' ? 'localStorage' : 'server'}</div>
           <div>WebSocket: {isConnected ? 'connected' : 'disconnected'}</div>
