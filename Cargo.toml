@@ -34,7 +34,7 @@ serde_yaml = "0.9"
 validator = { version = "0.18", features = ["derive"] }
 
 # TypeScript type generation
-specta = { version = "2.0.0-rc.22", features = ["derive"] }
+specta = { version = "2.0.0-rc.22", features = ["derive", "export"] }
 specta-typescript = "0.0.9"
 
 # Configuration
@@ -119,5 +119,5 @@ opt-level = 1
 min = "1.75.0"
 
 [[bin]]
-name = "generate-types"
-path = "src/bin/generate-types.rs"
+name = "generate_types"
+path = "src/bin/generate_types.rs"

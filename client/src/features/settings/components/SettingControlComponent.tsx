@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UISettingDefinition } from '../config/settingsUIDefinition'; // Import the new definition type
+import { UISettingDefinition } from '../config/widgetTypes'; // Import from separate types file
 import { Label } from '@/features/design-system/components/Label';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';

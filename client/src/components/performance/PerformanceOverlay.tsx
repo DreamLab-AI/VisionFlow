@@ -7,7 +7,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { dualGraphPerformanceMonitor, type PerformanceMetrics } from '../../utils/dualGraphPerformanceMonitor';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useSelectiveSetting } from '../../hooks/useSelectiveSettingsStore';
 import { debugState } from '../../utils/clientDebugState';
 
 interface PerformanceOverlayProps {
@@ -29,7 +29,12 @@ export const PerformanceOverlay: React.FC<PerformanceOverlayProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const { gl } = useThree();
-  const settings = useSettingsStore(state => state.settings);
+  // Use selective hook to only subscribe to the specific performance setting we need
+  const hideOverlay = useSelectiveSetting<boolean>('visualisation.performance.hideOverlay', {
+    enableCache: true,
+    enableDeduplication: true,
+    fallbackToStore: true
+  });
   const updateInterval = useRef<number>(0);
   
   // Initialize performance monitor with WebGL context
@@ -74,7 +79,7 @@ export const PerformanceOverlay: React.FC<PerformanceOverlayProps> = ({
   });
 
   // Don't render if debug is disabled or settings hide it
-  if (!debugState.isEnabled() || settings?.visualisation?.performance?.hideOverlay) {
+  if (!debugState.isEnabled() || hideOverlay) {
     return null;
   }
 

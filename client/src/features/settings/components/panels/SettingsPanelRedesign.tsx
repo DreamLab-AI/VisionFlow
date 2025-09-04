@@ -19,7 +19,11 @@ import {
   Download,
   Upload,
   Undo2 as Undo,
-  Redo2 as Redo
+  Redo2 as Redo,
+  Brain,
+  Eye,
+  BarChart3,
+  Smartphone
 } from 'lucide-react';
 import { useSettingsStore, settingsSelectors } from '../../../../store/settingsStore';
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
@@ -116,15 +120,17 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     }
   };
   
-  // Tab definitions
+  // Tab definitions - comprehensive settings categories
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
-    { id: 'visualization', label: 'Visualization', icon: Palette, category: 'visualization' },
+    { id: 'visualization', label: 'Visualization', icon: Eye, category: 'visualization' },
     { id: 'physics', label: 'Physics', icon: Activity, category: 'physics' },
-    { id: 'analytics', label: 'Analytics', icon: Activity, category: 'analytics' },
-    { id: 'xr', label: 'XR/AR', icon: Headphones, category: 'xr' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, category: 'analytics' },
+    { id: 'xr', label: 'XR/AR', icon: Smartphone, category: 'xr' },
     { id: 'performance', label: 'Performance', icon: Activity, category: 'performance' },
     { id: 'data', label: 'Data', icon: Database, category: 'integrations' },
+    { id: 'system', label: 'System', icon: Settings, category: 'system' },
+    { id: 'ai', label: 'AI Services', icon: Brain, category: 'ai' },
     { id: 'developer', label: 'Developer', icon: Code, category: 'developer' },
     { id: 'auth', label: 'Auth', icon: Shield, category: 'auth' },
   ];
