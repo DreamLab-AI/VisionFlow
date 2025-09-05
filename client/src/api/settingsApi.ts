@@ -1,5 +1,5 @@
 // Settings API Client - Path-based interface for granular settings operations
-import { Settings, SettingsUpdate } from '../features/settings/config/settings';
+import { Settings } from '../features/settings/config/settings';
 import { logger } from '../utils/logger';
 
 const API_BASE = '/api/settings';
@@ -18,7 +18,7 @@ export const settingsApi = {
    */
   async getSettingByPath(path: string): Promise<any> {
     const encodedPath = encodeURIComponent(path);
-    const response = await fetch(`${API_BASE}/${encodedPath}`);
+    const response = await fetch(`${API_BASE}/path?path=${encodedPath}`);
     
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: `Failed to get setting at path: ${path}` }));
@@ -35,13 +35,12 @@ export const settingsApi = {
    * @param value - New value for the setting
    */
   async updateSettingByPath(path: string, value: any): Promise<void> {
-    const encodedPath = encodeURIComponent(path);
-    const response = await fetch(`${API_BASE}/${encodedPath}`, {
+    const response = await fetch(`${API_BASE}/path`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ value }),
+      body: JSON.stringify({ path, value }),
     });
     
     if (!response.ok) {
@@ -51,53 +50,62 @@ export const settingsApi = {
   },
   
   /**
-   * Get multiple settings by their paths in a single request
+   * Get multiple settings by their paths in a single request using optimized batch endpoint
    * @param paths - Array of dot notation paths
    * @returns Object mapping paths to their values
    */
   async getSettingsByPaths(paths: string[]): Promise<Record<string, any>> {
+    if (!paths || paths.length === 0) {
+      return {};
+    }
+
     try {
+      // Use the optimized batch POST endpoint
       const response = await fetch(`${API_BASE}/batch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          operation: 'get',
-          paths
-        }),
+        body: JSON.stringify({ paths }),
       });
       
       if (!response.ok) {
-        // If batch endpoint fails with 404, fall back to fetching all settings
-        if (response.status === 404) {
-          logger.warn('Batch endpoint not available, falling back to full settings fetch');
-          const allSettings = await this.fetchSettings();
-          
-          // Extract requested paths from full settings
-          const result: Record<string, any> = {};
-          for (const path of paths) {
-            const value = path.split('.').reduce((obj, key) => obj?.[key], allSettings as any);
-            result[path] = value;
-          }
-          return result;
-        }
-        
-        const error = await response.json().catch(() => ({ error: 'Failed to get settings by paths' }));
-        throw new Error(error.error || `Failed to get settings by paths: ${response.statusText}`);
+        throw new Error(`Batch read failed: ${response.status} ${response.statusText}`);
       }
       
-      return await response.json();
+      const result = await response.json();
+      logger.info(`Successfully fetched ${paths.length} settings using batch endpoint`);
+      return result; // Server returns { path: value } mapping
     } catch (error) {
-      // Additional fallback for network errors
-      logger.warn('Error fetching settings by paths, attempting fallback:', error);
-      const allSettings = await this.fetchSettings();
+      logger.warn('Batch endpoint failed, falling back to individual requests:', error);
       
+      // Fallback to individual path requests
       const result: Record<string, any> = {};
-      for (const path of paths) {
-        const value = path.split('.').reduce((obj, key) => obj?.[key], allSettings as any);
-        result[path] = value;
+      const results = await Promise.allSettled(
+        paths.map(async (path) => {
+          try {
+            const value = await this.getSettingByPath(path);
+            return { path, value };
+          } catch (err) {
+            logger.error(`Failed to fetch path ${path}:`, err);
+            return { path, value: undefined };
+          }
+        })
+      );
+      
+      // Process results
+      for (const [index, promiseResult] of results.entries()) {
+        if (promiseResult.status === 'fulfilled') {
+          const { path, value } = promiseResult.value;
+          result[path] = value;
+        } else {
+          const path = paths[index];
+          logger.error(`Failed to process path ${path}:`, promiseResult.reason);
+          result[path] = undefined;
+        }
       }
+      
+      logger.info(`Fallback completed: fetched ${Object.keys(result).length}/${paths.length} settings`);
       return result;
     }
   },
@@ -107,7 +115,12 @@ export const settingsApi = {
    * @param updates - Array of path-value updates
    */
   async updateSettingsByPaths(updates: BatchOperation[]): Promise<void> {
+    if (!updates || updates.length === 0) {
+      return;
+    }
+
     try {
+      // Try the server's batch endpoint first
       const response = await fetch(`${API_BASE}/batch`, {
         method: 'PUT',
         headers: {
@@ -118,133 +131,52 @@ export const settingsApi = {
         }),
       });
       
-      if (!response.ok) {
-        // If batch endpoint fails with 404, fall back to individual updates
-        if (response.status === 404) {
-          logger.warn('Batch update endpoint not available, falling back to individual updates');
-          
-          // Fetch current settings
-          const currentSettings = await this.fetchSettings();
-          
-          // Deep clone to avoid modifying frozen objects
-          const updatedSettings = JSON.parse(JSON.stringify(currentSettings));
-          for (const { path, value } of updates) {
-            const keys = path.split('.');
-            let obj: any = updatedSettings;
-            
-            for (let i = 0; i < keys.length - 1; i++) {
-              // Ensure the object exists and is not frozen
-              if (!obj[keys[i]] || typeof obj[keys[i]] !== 'object') {
-                obj[keys[i]] = {};
-              }
-              obj = obj[keys[i]];
-            }
-            
-            // Set the final value
-            if (obj && typeof obj === 'object') {
-              obj[keys[keys.length - 1]] = value;
-            }
-          }
-          
-          // Save the entire updated settings
-          await this.saveSettings(updatedSettings);
-          return;
-        }
-        
-        const error = await response.json().catch(() => ({ error: 'Failed to update settings by paths' }));
-        throw new Error(error.error || `Failed to update settings by paths: ${response.statusText}`);
+      if (response.ok) {
+        logger.info(`Successfully updated ${updates.length} settings using batch endpoint`);
+        return;
       }
+      
+      // If batch endpoint fails, fall back to individual updates
+      logger.warn(`Batch endpoint failed (${response.status}), falling back to individual updates`);
+      throw new Error(`Batch endpoint returned ${response.status}`);
+      
     } catch (error) {
-      // Additional fallback for network errors
-      logger.warn('Error updating settings by paths, attempting fallback:', error);
+      logger.warn('Error with batch endpoint, attempting individual updates fallback:', error);
       
-      // Fetch, update, and save
-      const currentSettings = await this.fetchSettings();
-      // Deep clone to avoid modifying frozen objects
-      const updatedSettings = JSON.parse(JSON.stringify(currentSettings));
-      
-      for (const { path, value } of updates) {
-        const keys = path.split('.');
-        let obj: any = updatedSettings;
-        
-        for (let i = 0; i < keys.length - 1; i++) {
-          // Ensure the object exists and is not frozen
-          if (!obj[keys[i]] || typeof obj[keys[i]] !== 'object') {
-            obj[keys[i]] = {};
+      // Fallback: Use individual path updates for better reliability
+      const results = await Promise.allSettled(
+        updates.map(async ({ path, value }) => {
+          try {
+            await this.updateSettingByPath(path, value);
+            return { path, success: true };
+          } catch (err) {
+            logger.error(`Failed to update path ${path}:`, err);
+            return { path, success: false, error: err };
           }
-          obj = obj[keys[i]];
-        }
-        
-        // Set the final value
-        if (obj && typeof obj === 'object') {
-          obj[keys[keys.length - 1]] = value;
-        }
-      }
+        })
+      );
       
-      await this.saveSettings(updatedSettings);
+      // Check if any individual updates failed
+      const failures = results
+        .map((result, index) => ({
+          result,
+          update: updates[index]
+        }))
+        .filter(({ result }) => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success));
+      
+      if (failures.length > 0) {
+        logger.error(`${failures.length} out of ${updates.length} settings updates failed`);
+        
+        // If individual updates fail, we don't have a fallback since we're removing legacy bulk updates
+        throw new Error(`Failed to update settings: ${failures.length} out of ${updates.length} individual path updates failed`);
+      } else {
+        logger.info(`Successfully updated ${updates.length} settings using individual path updates`);
+      }
     }
   },
   
-  // Legacy methods kept for backward compatibility during transition
-  /**
-   * Fetch all settings from the server (DEPRECATED - use path-based methods)
-   * @deprecated Use getSettingsByPaths for better performance
-   */
-  async fetchSettings(): Promise<Settings> {
-    const response = await fetch(API_BASE);
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to fetch settings' }));
-      throw new Error(error.error || `Failed to fetch settings: ${response.statusText}`);
-    }
-    
-    const settings = await response.json();
-    return settings;
-  },
-  
-  /**
-   * Update settings with a partial update (DEPRECATED - use path-based methods)
-   * @deprecated Use updateSettingsByPaths for better performance
-   */
-  async updateSettings(update: SettingsUpdate): Promise<Settings> {
-    const response = await fetch(API_BASE, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(update),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to update settings' }));
-      throw new Error(error.error || `Failed to update settings: ${response.statusText}`);
-    }
-    
-    const updatedSettings = await response.json();
-    return updatedSettings;
-  },
-  
-  /**
-   * Save full settings object (DEPRECATED - use path-based methods)
-   * @deprecated Use updateSettingsByPaths for better performance
-   */
-  async saveSettings(settings: Settings): Promise<Settings> {
-    const response = await fetch(API_BASE, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(settings),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to save settings' }));
-      throw new Error(error.error || `Failed to save settings: ${response.statusText}`);
-    }
-    
-    const savedSettings = await response.json();
-    return savedSettings;
-  },
+  // REMOVED: Legacy bulk settings methods have been completely removed.
+  // All settings operations now use granular path-based methods for better performance.
   
   /**
    * Reset settings to defaults

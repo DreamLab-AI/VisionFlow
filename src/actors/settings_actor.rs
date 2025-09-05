@@ -4,7 +4,7 @@
 use actix::prelude::*;
 use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance};
-use crate::config::path_access::PathAccessible;
+use crate::config::path_access::{PathAccessible, JsonPathAccessible};
 use std::collections::HashMap;
 use serde_json::Value;
 use log::{info, error, debug};
@@ -187,85 +187,30 @@ impl Handler<UpdatePhysicsFromAutoBalance> for SettingsActor {
     }
 }
 
-// Handler for SetSettingByPath message - key performance improvement
+// Handler for SetSettingByPath message - FIXED to use JsonPathAccessible
 impl Handler<SetSettingByPath> for SettingsActor {
     type Result = ResponseFuture<Result<(), String>>;
-    
+
     fn handle(&mut self, msg: SetSettingByPath, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
         let path = msg.path;
         let value = msg.value;
-        
+
         Box::pin(async move {
             let mut current = settings.write().await;
-            
-            // Convert JSON value to appropriate type and use PathAccessible
-            match path.as_str() {
-                // Physics settings - the primary performance bottleneck being fixed
-                path_str if path_str.starts_with("visualisation.graphs.logseq.physics.") => {
-                    let field_name = path_str.replace("visualisation.graphs.logseq.physics.", "");
-                    
-                    // Handle camelCase to snake_case conversion for internal fields
-                    let internal_field = match field_name.as_str() {
-                        "springK" => "spring_k",
-                        "repelK" => "repel_k",
-                        "maxVelocity" => "max_velocity",
-                        "boundsSize" => "bounds_size",
-                        other => other,
-                    };
-                    
-                    let full_path = format!("visualisation.graphs.logseq.physics.{}", internal_field);
-                    
-                    // Convert the value to the appropriate Rust type
-                    match internal_field {
-                        "damping" | "spring_k" | "repel_k" | "max_velocity" | "bounds_size" | "gravity" | "temperature" => {
-                            if let Some(f_val) = value.as_f64() {
-                                if let Err(e) = current.set_by_path(&full_path, Box::new(f_val as f32)) {
-                                    error!("Failed to set physics field {}: {}", internal_field, e);
-                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
-                                }
-                            } else {
-                                return Err(format!("Invalid value type for field {}", internal_field));
-                            }
-                        }
-                        "enabled" => {
-                            if let Some(b_val) = value.as_bool() {
-                                if let Err(e) = current.set_by_path(&full_path, Box::new(b_val)) {
-                                    error!("Failed to set physics field {}: {}", internal_field, e);
-                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
-                                }
-                            } else {
-                                return Err(format!("Invalid value type for field {}", internal_field));
-                            }
-                        }
-                        "iterations" => {
-                            if let Some(i_val) = value.as_u64() {
-                                if let Err(e) = current.set_by_path(&full_path, Box::new(i_val as u32)) {
-                                    error!("Failed to set physics field {}: {}", internal_field, e);
-                                    return Err(format!("Failed to set physics field {}: {}", internal_field, e));
-                                }
-                            } else {
-                                return Err(format!("Invalid value type for field {}", internal_field));
-                            }
-                        }
-                        _ => {
-                            return Err(format!("Unsupported physics field: {}", internal_field));
-                        }
-                    }
-                    
-                    info!("Updated physics setting: {} = {:?}", internal_field, value);
-                }
-                _ => {
-                    return Err(format!("Path-based updates only supported for physics settings currently: {}", path));
-                }
+
+            // Use the correct trait that respects serde's rename_all attribute
+            if let Err(e) = current.set_json_by_path(&path, value.clone()) {
+                error!("Failed to set setting via JSON path '{}': {}", path, e);
+                return Err(format!("Failed to set setting: {}", e));
             }
-            
+
             // Validate the updated settings
             if let Err(e) = current.validate_config_camel_case() {
                 error!("Validation failed after path update: {:?}", e);
                 return Err(format!("Validation failed: {:?}", e));
             }
-            
+
             // Save to file if persistence is enabled
             if current.system.persist_settings {
                 if let Err(e) = current.save() {
@@ -273,8 +218,8 @@ impl Handler<SetSettingByPath> for SettingsActor {
                     return Err(format!("Failed to save settings: {}", e));
                 }
             }
-            
-            info!("Successfully updated setting at path: {}", path);
+
+            info!("Successfully updated setting at path: {} = {:?}", path, value);
             Ok(())
         })
     }

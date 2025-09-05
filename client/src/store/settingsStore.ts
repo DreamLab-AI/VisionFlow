@@ -102,6 +102,11 @@ interface SettingsState {
   batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void; // Batch operations
   flushPendingUpdates: () => Promise<void>; // Force immediate server sync
   
+  // Settings management methods using path-based API
+  resetSettings: () => Promise<void>; // Reset to defaults and reload essential paths
+  exportSettings: () => Promise<string>; // Export current loaded settings as JSON
+  importSettings: (jsonString: string) => Promise<void>; // Import settings using path-based updates
+  
   // GPU-specific methods
   updateComputeMode: (mode: string) => void;
   updateClustering: (config: ClusteringConfig) => void;
@@ -434,8 +439,8 @@ export const useSettingsStore = create<SettingsState>()(
         return loadedPaths.has(path);
       },
 
-      // Update settings using immer-style updater
-      updateSettings: async (updater: (draft: DeepPartial<Settings>) => void): Promise<void> => {
+      // Update settings using immer-style updater (synchronous for immediate UI updates)
+      updateSettings: (updater: (draft: DeepPartial<Settings>) => void): void => {
         const { partialSettings } = get();
         
         // Use produce to create immutable update
@@ -704,6 +709,80 @@ export const useSettingsStore = create<SettingsState>()(
       flushPendingUpdates: async (): Promise<void> => {
         await autoSaveManager.forceFlush();
       },
+      
+      // Settings management methods using path-based API
+      resetSettings: async (): Promise<void> => {
+        try {
+          // Call the server's reset endpoint
+          await settingsApi.resetSettings();
+          
+          // Clear local state
+          set({
+            partialSettings: {},
+            loadedPaths: new Set()
+          });
+          
+          // Reload essential settings
+          await get().initialize();
+          
+          logger.info('Settings reset to defaults and essential paths reloaded');
+        } catch (error) {
+          logger.error('Failed to reset settings:', createErrorMetadata(error));
+          throw error;
+        }
+      },
+      
+      exportSettings: async (): Promise<string> => {
+        const { partialSettings, loadedPaths } = get();
+        
+        try {
+          // If we only have partial settings, fetch all settings paths first
+          if (loadedPaths.size === ESSENTIAL_PATHS.length) {
+            logger.info('Only essential settings loaded, fetching all settings for export...');
+            
+            // Get all available settings paths by fetching a comprehensive list
+            const allPaths = getAllAvailableSettingsPaths();
+            const allSettings = await settingsApi.getSettingsByPaths(allPaths);
+            
+            return settingsApi.exportSettings(allSettings as Settings);
+          } else {
+            // Export currently loaded settings
+            return settingsApi.exportSettings(partialSettings as Settings);
+          }
+        } catch (error) {
+          logger.error('Failed to export settings:', createErrorMetadata(error));
+          throw error;
+        }
+      },
+      
+      importSettings: async (jsonString: string): Promise<void> => {
+        try {
+          // Parse and validate the imported settings
+          const importedSettings = settingsApi.importSettings(jsonString);
+          
+          // Extract all paths and values from the imported settings
+          const allPaths = getAllSettingsPaths(importedSettings);
+          const updates: Array<{path: string, value: any}> = [];
+          
+          for (const path of allPaths) {
+            const value = path.split('.').reduce((obj, key) => obj?.[key], importedSettings);
+            if (value !== undefined) {
+              updates.push({ path, value });
+            }
+          }
+          
+          // Apply all updates using our batch update system
+          get().batchUpdate(updates);
+          
+          // Force immediate flush to server
+          await get().flushPendingUpdates();
+          
+          logger.info(`Successfully imported ${updates.length} settings using path-based updates`);
+        } catch (error) {
+          logger.error('Failed to import settings:', createErrorMetadata(error));
+          throw error;
+        }
+      },
     }),
     {
       name: 'graph-viz-settings-v2',
@@ -835,10 +914,64 @@ function getAllSettingsPaths(obj: any, prefix: string = ''): string[] {
   return paths;
 }
 
+// Helper function to get all available settings paths for comprehensive operations
+function getAllAvailableSettingsPaths(): string[] {
+  // This is a comprehensive list of all known settings paths in the system
+  // These should be kept in sync with the actual settings structure
+  return [
+    // System settings
+    ...ESSENTIAL_PATHS,
+    
+    // Visualization settings
+    'visualisation.rendering.ambientLightIntensity',
+    'visualisation.rendering.backgroundColor', 
+    'visualisation.rendering.directionalLightIntensity',
+    'visualisation.rendering.enableAmbientOcclusion',
+    'visualisation.rendering.enableAntialiasing',
+    'visualisation.rendering.enableShadows',
+    'visualisation.rendering.environmentIntensity',
+    'visualisation.rendering.shadowMapSize',
+    'visualisation.rendering.shadowBias',
+    
+    // Graph-specific settings
+    'visualisation.graphs.logseq.nodes',
+    'visualisation.graphs.logseq.edges', 
+    'visualisation.graphs.logseq.labels',
+    'visualisation.graphs.logseq.physics',
+    'visualisation.graphs.visionflow.nodes',
+    'visualisation.graphs.visionflow.edges',
+    'visualisation.graphs.visionflow.labels', 
+    'visualisation.graphs.visionflow.physics',
+    
+    // Effects
+    'visualisation.glow.enabled',
+    'visualisation.glow.intensity',
+    'visualisation.glow.radius',
+    'visualisation.glow.threshold',
+    'visualisation.hologram.ringCount',
+    'visualisation.hologram.ringColor',
+    'visualisation.hologram.globalRotationSpeed',
+    
+    // XR settings
+    'xr.enableHandTracking',
+    'xr.enableHaptics',
+    'xr.quality',
+    
+    // Additional system and performance settings
+    'system.performance.maxFPS',
+    'system.performance.enableVSync',
+    'system.websocket.url',
+    'system.websocket.protocol',
+    
+    // Add more paths as needed based on the actual settings structure
+  ];
+}
+
 // Export for testing and direct access
 export const settingsStoreUtils = {
   autoSaveManager,
   getSectionPaths,
   setNestedValue,
-  getAllSettingsPaths
+  getAllSettingsPaths,
+  getAllAvailableSettingsPaths
 };

@@ -74,6 +74,8 @@ export class AutoSaveManager {
     const updates: BatchOperation[] = Array.from(this.pendingChanges.entries())
       .map(([path, value]) => ({ path, value }));
     
+    logger.debug('Auto-save: Attempting to flush changes', { count: updates.length, paths: updates.map(u => u.path) });
+    
     try {
       await settingsApi.updateSettingsByPaths(updates);
       
@@ -83,7 +85,7 @@ export class AutoSaveManager {
         this.resetRetryCount(path);
       });
       
-      logger.debug('Auto-save: Flushed pending changes', { count: updates.length });
+      logger.info('Auto-save: Successfully flushed pending changes', { count: updates.length });
     } catch (error) {
       logger.error('Auto-save: Failed to flush changes', { error, updatesCount: updates.length });
       
@@ -94,26 +96,46 @@ export class AutoSaveManager {
 
   // Retry failed changes with exponential backoff
   private async retryFailedChanges(failedUpdates: BatchOperation[], error: any): Promise<void> {
+    let hasRetriableChanges = false;
+    let hasMaxedOutChanges = false;
+    
     for (const { path } of failedUpdates) {
       const currentRetries = this.retryCount.get(path) || 0;
       
       if (currentRetries < this.MAX_RETRIES) {
         this.retryCount.set(path, currentRetries + 1);
+        hasRetriableChanges = true;
         
         // Schedule retry with exponential backoff
         const retryDelay = this.RETRY_DELAY * Math.pow(2, currentRetries);
         
         setTimeout(() => {
           if (this.pendingChanges.has(path)) {
-            logger.info(`Auto-save: Retrying save for path ${path} (attempt ${currentRetries + 1})`);
+            logger.info(`Auto-save: Retrying save for path ${path} (attempt ${currentRetries + 1}/${this.MAX_RETRIES})`);
             this.scheduleFlush();
+          } else {
+            logger.debug(`Auto-save: Path ${path} no longer pending, skipping retry`);
           }
         }, retryDelay);
       } else {
-        // Max retries exceeded, log error but keep change in pending
-        logger.error(`Auto-save: Max retries exceeded for path ${path}`, { error });
-        toast?.error?.(`Failed to save setting: ${path}`);
+        // Max retries exceeded, log error but keep change in pending for manual flush
+        hasMaxedOutChanges = true;
+        logger.error(`Auto-save: Max retries exceeded for path ${path}`, { error, maxRetries: this.MAX_RETRIES });
+        
+        // Show user-friendly notification for important failures
+        if (toast?.error) {
+          toast.error(`Failed to save setting: ${path.split('.').pop()}. Changes are queued for retry.`);
+        }
       }
+    }
+    
+    // Log summary of retry status
+    if (hasRetriableChanges && hasMaxedOutChanges) {
+      logger.warn(`Auto-save: Some changes will be retried, others have exceeded max retries`);
+    } else if (hasRetriableChanges) {
+      logger.info(`Auto-save: All failed changes scheduled for retry`);
+    } else if (hasMaxedOutChanges) {
+      logger.error(`Auto-save: All failed changes have exceeded max retries`);
     }
   }
 
