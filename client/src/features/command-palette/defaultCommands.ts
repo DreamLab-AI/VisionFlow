@@ -172,8 +172,8 @@ export function registerDefaultCommands() {
       icon: Download,
       keywords: ['save', 'backup'],
       handler: async () => {
-        const settings = useSettingsStore.getState().settings;
-        const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+        const settingsJson = await useSettingsStore.getState().exportSettings();
+        const blob = new Blob([settingsJson], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -198,8 +198,7 @@ export function registerDefaultCommands() {
           if (file) {
             const text = await file.text();
             try {
-              const settings = JSON.parse(text);
-              await useSettingsStore.getState().updateSettings(settings);
+              await useSettingsStore.getState().importSettings(text);
               window.location.reload();
             } catch (error) {
               alert('Failed to import settings. Please check the file format.');
@@ -275,7 +274,7 @@ export function registerDefaultCommands() {
       icon: Save,
       shortcut: { key: 's', ctrl: true },
       handler: async () => {
-        await useSettingsStore.getState().saveSettings();
+        await useSettingsStore.getState().flushPendingUpdates();
         window.dispatchEvent(new CustomEvent('save-all'));
       }
     }

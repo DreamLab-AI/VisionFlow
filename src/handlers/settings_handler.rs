@@ -1543,20 +1543,32 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.app_data(handler.clone())
         .service(
             web::scope("/settings")
+                // DEPRECATED: Legacy bulk settings endpoints removed for performance
+                // These endpoints returned/updated entire settings objects causing performance issues
+                // Use path-based endpoints instead:
+                //   - GET /api/settings/path?path=x.y.z (granular read)
+                //   - PUT /api/settings/path (granular update) 
+                //   - POST /api/settings/batch (batch read)
+                //   - PUT /api/settings/batch (batch update)
+                //   - GET /api/settings/schema (schema introspection)
+                /*
                 .route("", web::get().to(|req, state, handler: web::Data<EnhancedSettingsHandler>| async move {
-                    // Try enhanced handler first, fallback to legacy
+                    // DEPRECATED: GET /api/settings - returns entire settings object
+                    // Use GET /api/settings/path?path=x.y.z for granular access instead
                     match handler.get_settings_enhanced(req, state).await {
                         Ok(response) => response,
                         Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings service temporarily unavailable"}))
                     }
                 }))
                 .route("", web::post().to(|req, state, payload, handler: web::Data<EnhancedSettingsHandler>| async move {
-                    // Try enhanced handler first, fallback to legacy
+                    // DEPRECATED: POST /api/settings - updates entire settings object
+                    // Use PUT /api/settings/path or PUT /api/settings/batch instead
                     match handler.update_settings_enhanced(req, state, payload).await {
                         Ok(response) => response,
                         Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings update service temporarily unavailable"}))
                     }
                 }))
+                */
                 .route("/reset", web::post().to(|req, state, handler: web::Data<EnhancedSettingsHandler>| async move {
                     // Try enhanced handler first, fallback to legacy
                     match handler.reset_settings_enhanced(req, state).await {

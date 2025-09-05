@@ -233,6 +233,72 @@ pub async fn update_settings_by_path(
     }
 }
 
+/// Batch read multiple settings values by path
+/// 
+/// POST /api/settings/batch
+/// Body: { "paths": ["visualisation.physics.damping", "visualisation.physics.gravity"] }
+/// Returns: { "values": [{"path": "...", "value": ...}, ...] }
+pub async fn batch_read_settings_by_path(
+    req: HttpRequest,
+    body: web::Json<BatchPathReadRequest>,
+    state: web::Data<AppState>,
+) -> ActixResult<HttpResponse> {
+    let _client_id = extract_client_id(&req);
+    
+    debug!("Batch reading {} settings paths", body.paths.len());
+
+    if body.paths.is_empty() {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": "No paths provided",
+            "success": false
+        })));
+    }
+
+    // Limit batch size to prevent abuse
+    if body.paths.len() > 50 {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": "Batch size exceeds maximum of 50 paths",
+            "success": false
+        })));
+    }
+
+    // Get current settings from actor
+    match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => {
+            // Use a Map for direct key-value results (client expectation)
+            let mut results = serde_json::Map::new();
+            
+            // Read all requested paths
+            for path in &body.paths {
+                if let Ok(value) = settings.get_json_by_path(path) {
+                    results.insert(path.clone(), value);
+                } else {
+                    // Insert null for paths that don't exist
+                    results.insert(path.clone(), serde_json::Value::Null);
+                }
+            }
+            
+            // Return the map directly as the JSON body (simple key-value format)
+            Ok(HttpResponse::Ok().json(results))
+        }
+        Ok(Err(err)) => {
+            error!("Settings actor returned error: {}", err);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to get current settings",
+                "details": err,
+                "success": false
+            })))
+        }
+        Err(err) => {
+            error!("Failed to communicate with settings actor: {}", err);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error", 
+                "success": false
+            })))
+        }
+    }
+}
+
 /// Batch update multiple settings values by path
 /// 
 /// PUT /api/settings/batch
@@ -484,6 +550,11 @@ pub struct BatchPathUpdateRequest {
     pub updates: Vec<PathUpdateRequest>,
 }
 
+#[derive(serde::Deserialize)]
+pub struct BatchPathReadRequest {
+    pub paths: Vec<String>,
+}
+
 // Helper functions
 
 /// Generate a basic schema description for a JSON value
@@ -547,6 +618,7 @@ pub fn configure_settings_paths(cfg: &mut web::ServiceConfig) {
         web::scope("/settings")
             .route("/path", web::get().to(get_settings_by_path))
             .route("/path", web::put().to(update_settings_by_path))
+            .route("/batch", web::post().to(batch_read_settings_by_path))
             .route("/batch", web::put().to(batch_update_settings_by_path))
             .route("/schema", web::get().to(get_settings_schema))
     );
