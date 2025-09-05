@@ -2,11 +2,9 @@
 
 <img src="./visionflow.gif" alt="VisionFlow AI Agent Swarm Visualisation" style="width:100%; display:block; margin:0 auto;">
 
-**Real-time 3D visualisation of AI agent swarms with GPU-accelerated rendering and comprehensive knowledge graph integration.**
+![Runtime Old Screenshot](./jarvisOld.png)
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](docker-compose.yml)
-[![CUDA](https://img.shields.io/badge/GPU-CUDA%20accelerated-green.svg)](#gpu-acceleration)
+**Experience the future of knowledge management:** Real-time 3D visualization of AI agent swarms working alongside your Logseq knowledge graph.
 
 **Inspired by the innovative work of Prof. Rob Aspin:** [https://github.com/trebornipsa](https://github.com/trebornipsa)
 
@@ -46,7 +44,7 @@ VisionFlow is a groundbreaking platform that bridges the gap between knowledge m
 VisionFlow combines cutting-edge technologies to deliver unparalleled performance:
 
 - **Rust + Actix Backend**: High-performance actor-based architecture
-- **TypeScript + React + Three.js Frontend**: Immersive 3D visualisations  
+- **TypeScript + React + Three.js Frontend**: Immersive 3D visualisations
 - **GPU Acceleration**: CUDA-powered computation for massive agent swarms
 - **Real-time Binary Protocol**: Ultra-low latency WebSocket communication
 - **Distributed Consensus**: Advanced algorithms including Raft, Byzantine fault tolerance, and CRDTs
@@ -268,7 +266,7 @@ docker-compose -f docker-compose.dev.yml up
 
 ## 🔮 What's New in VisionFlow
 
-### AI Agent Swarm Features
+### AI Agent Features
 - **Hive Mind Spawning**: Create coordinated AI agent swarms with different topologies (mesh, hierarchical, ring, star)
 - **Real-time Monitoring**: Track agent performance, task completion, and communication patterns
 - **MCP Tool Integration**: 70+ tools including task orchestration, memory management, and neural training
@@ -384,7 +382,7 @@ This project is licenced under the MIT Licence. See the [LICENSE](LICENSE) file 
 
 ---
 
-**Built with ❤️ by the VisionFlow community using AI-driven development**
+**Built using AI-driven development**
 
 *VisionFlow - Visualising the future of AI multi-agent systems* 🚀
 ## 📚 Documentation
@@ -395,19 +393,6 @@ The complete documentation has been organised and is available in `/workspace/do
 - **[API Documentation](/workspace/docs/api/)** - REST, WebSocket, and MCP integration details
 - **[Technical Documentation](/workspace/docs/technical/)** - Architecture and implementation details
 - **[Server Documentation](/workspace/docs/server/)** - Backend systems and GPU compute
-
-### Recent Updates (September 2025)
-
-✅ **Documentation Migration Complete**:
-- Successfully migrated and reorganised 117 documentation files
-- Updated all content to use UK English spelling consistently
-- Improved documentation structure for better navigation
-- Validated and fixed internal cross-references
-- Removed obsolete development artifacts
-
-⚠️ **Known Issues**:
-- Some navigation links require placeholder files (work in progress)
-- Additional API documentation sections being populated
 
 ## 🛠️ Development Status
 
@@ -430,5 +415,3 @@ We welcome contributions! Please see our [Contributing Guide](/workspace/docs/de
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-*Last Updated: September 2025 - Documentation structure reorganised and content updated*
