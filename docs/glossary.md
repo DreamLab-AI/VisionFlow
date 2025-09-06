@@ -126,4 +126,8 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 **Spectral Clustering** - A clustering technique that uses the eigenvalues of the graph's Laplacian matrix to identify communities.
 
-**Stress Majorization** - A global layout optimization algorithm that aims to minimize the difference between the geometric distances and the graph-theoretic distances of nodes.
+**Stress Majorization** - A global layout optimisation algorithm that aims to minimise the difference between the geometric distances and the graph-theoretic distances of nodes.
+
+## Related Topics
+
+- [VisionFlow Documentation](index.md)

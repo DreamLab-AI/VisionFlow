@@ -1,5 +1,7 @@
 # VisionFlow System Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 VisionFlow (formerly LogseqXR) is built on a unified, actor-based architecture that enables real-time 3D visualisation of parallel knowledge graphs and AI Multi Agents. The system combines a robust and scalable Rust-based backend server with a modern React/TypeScript frontend client, leveraging unified CUDA GPU acceleration and WebXR for immersive experiences. Key features include the unified GPU compute kernel, parallel graph coordination, and bidirectional synchronisation of graph state between all connected clients.
@@ -23,15 +25,15 @@ graph TD
         SettingsPanel --> SettingsStore["settingsStore.ts"]
         GraphViewport --> RenderingEngine["GraphCanvas_and_GraphManager"]
 
-        DataManager["GraphDataManager.ts"] <--> RenderingEngine
-        DataManager <--> WebSocketClient["WebSocketService.ts"]
-        DataManager <--> APIService["services/apiService.ts"]
+        DataManager["GraphDataManager.ts"] < --> RenderingEngine
+        DataManager < --> WebSocketClient["WebSocketService.ts"]
+        DataManager < --> APIService["services/apiService.ts"]
 
-        NostrAuthClient["nostrAuthService.ts"] <--> APIService
-        NostrAuthClient <--> UIMain
+        NostrAuthClient["nostrAuthService.ts"] < --> APIService
+        NostrAuthClient < --> UIMain
 
-        XRModule["XRController.tsx"] <--> RenderingEngine
-        XRModule <--> SettingsStore
+        XRModule["XRController.tsx"] < --> RenderingEngine
+        XRModule < --> SettingsStore
     end
 
     subgraph ServerApp ["Backend"]
@@ -114,8 +116,8 @@ graph TD
         KokoroAPI["Kokoro API"]
     end
 
-    WebSocketClient <--> SocketFlowHandler
-    APIService <--> ActixServer
+    WebSocketClient < --> SocketFlowHandler
+    APIService < --> ActixServer
 
     FileService --> GitHubAPI
     NostrService --> NostrRelays
@@ -248,7 +250,7 @@ graph TB
 -   **Settings UI ([`SettingsPanelRedesign.tsx`](../../client/src/features/settings/components/panels/SettingsPanelRedesign.tsx))**: Provides the interface for user settings.
 -   **Conversation UI ([`ConversationPane.tsx`](../../client/src/app/components/ConversationPane.tsx))**: Interface for AI chat.
 -   **Narrative UI ([`NarrativeGoldminePanel.tsx`](../../client/src/app/components/NarrativeGoldminePanel.tsx))**: Interface for narrative exploration.
--   **Rendering Engine ([`GraphCanvas.tsx`](../../client/src/features/graph/components/GraphCanvas.tsx), [`GraphManager.tsx`](../../client/src/features/graph/components/GraphManager.tsx), [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx))**: Handles 3D graph visualisation using React Three Fiber.
+-   **Rendering Engine ([`GraphCanvas.tsx`](../../client/src/features/graph/components/GraphCanvas.tsx), [`GraphManager.tsx`](../../client/src/features/graph/components/GraphManager.tsx), [`GraphViewport.tsx`](../../client/src/features/graph/components/GraphViewport.tsx))**: Handles 3D graph visualisation using React Three Fibre.
 -   **State Management**:
     -   [`settingsStore.ts`](../../client/src/store/settingsStore.ts) (Zustand): Manages application settings.
     -   [`GraphDataManager.ts`](../../client/src/features/graph/managers/graphDataManager.ts): Manages graph data, updates, and interaction with WebSocketService.
@@ -320,15 +322,14 @@ graph LR
         ControlPanel --> Voice[Voice Controls]
 
         BotsPanel --> AgentList[Agent List]
-        BotsPanel --> multi-agentViz[multi-agent Visualization]
+        BotsPanel --> multi-agentViz[multi-agent Visualisation]
         BotsPanel --> Metrics[Performance Metrics]
     end
 ```
 
 ### Actor Communication Flow
 
-```mermaid
-sequenceDiagram
+``sequenceDiagram
     participant Client
     participant WebSocket
     participant ClientManager
@@ -345,10 +346,10 @@ sequenceDiagram
     ClientManager->>GraphActor: Process Update
     GraphActor->>GPUActor: Compute Physics
     GPUActor->>CUDA: Execute Kernel
-    CUDA-->>GPUActor: Return Results
-    GPUActor-->>GraphActor: Physics Results
-    GraphActor-->>ClientManager: Graph Update
-    ClientManager-->>Client: Binary Update Stream
+    CUDA --> >GPUActor: Return Results
+    GPUActor --> >GraphActor: Physics Results
+    GraphActor --> >ClientManager: Graph Update
+    ClientManager --> >Client: Binary Update Streamte Stream
 ```
 
 ## Data Flow Architecture
@@ -442,10 +443,7 @@ graph LR
     UnifiedCompute --> Metrics
 ```
 
-## MCP Integration Architecture
-
-```mermaid
-graph TB
+## MCP Integration Architecgraph TB
     subgraph "VisionFlow Backend"
         CFActor[Claude Flow Actor]
         MCPRelay[MCP Relay Manager]
@@ -469,9 +467,9 @@ graph TB
         Others[15+ Types]
     end
 
-    CFActor <--> MCPRelay
-    MCPRelay <--> WSRelay
-    WSRelay <--> MCPServer
+    CFActor < --> MCPRelay
+    MCPRelay < --> WSRelay
+    WSRelay < --> MCPServer
 
     MCPServer --> Tools
     MCPServer --> SwarmMgr
@@ -483,7 +481,7 @@ graph TB
     SwarmMgr --> Coder
     SwarmMgr --> Analyst
     SwarmMgr --> Architect
-    SwarmMgr --> Others
+    SwarmMgr --> OthersarmMgr --> Others
 ```
 
 ## Deployment Architecture
@@ -572,7 +570,7 @@ graph TB
     Sanitization --> Encryption
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Caching Strategy
 - **Metadata Cache**: In-memory caching of graph metadata
@@ -610,7 +608,7 @@ graph TB
 ### Frontend Technologies
 - **Framework**: React 18
 - **Language**: TypeScript 5
-- **3D Graphics**: Three.js, React Three Fiber
+- **3D Graphics**: Three.js, React Three Fibre
 - **XR**: @react-three/xr
 - **State Management**: Zustand
 - **Build Tool**: Vite
@@ -638,7 +636,7 @@ The server now uses a continuous physics simulation system that pre-computes nod
 8. **Structure of Arrays**: GPU memory layout for maximum performance
 9. **Modular Architecture**: Allows independent component scaling
 10. **Continuous Physics**: Pre-computed node positions independent of client connections
-11. **Bidirectional Synchronization**: Real-time state sync across all connected clients
+11. **Bidirectional Synchronisation**: Real-time state sync across all connected clients
 
 ## Related Technical Documentation
 
@@ -649,3 +647,9 @@ For more detailed technical information, please refer to:
 - [WebSocket Protocols](../api/websocket-protocols.md)
 - [WebSockets Implementation](../api/websocket.md)
 - [REST API](../api/rest.md)
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

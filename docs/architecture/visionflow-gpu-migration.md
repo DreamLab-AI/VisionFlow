@@ -1,5 +1,7 @@
 # VisionFlow GPU Migration Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 This document consolidates the VisionFlow GPU physics migration, which transforms the real-time agent visualisation system from CPU-based JavaScript physics to GPU-accelerated processing. This enables visualisation of 200+ AI agents at 60 FPS with significant performance improvements.
@@ -10,14 +12,14 @@ This document consolidates the VisionFlow GPU physics migration, which transform
 ```
 Frontend → JavaScript Workers → JSON API → Mock Data
     ↓
-  3D Visualization (Limited to ~50 agents)
+  3D Visualisation (Limited to ~50 agents)
 ```
 
 ### New Architecture (Post-Migration)
 ```
 MCP Services → Rust Backend → GPU Simulation → Binary Protocol → Frontend
     ↓
-  Real-time 3D Visualization (200+ agents at 60 FPS)
+  Real-time 3D Visualisation (200+ agents at 60 FPS)
 ```
 
 ### Key Improvements
@@ -209,3 +211,46 @@ SPRING_STRENGTH=0.3
 - [WebSocket Implementation](../api/websocket.md)
 - [Agent Orchestration](../features/agent-orchestration.md)
 - [MCP Tool Usage](../technical/mcp_tool_usage.md)
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [CUDA Integration Fix Documentation](../cuda_integration_fix.md)
+- [CUDA Kernel Parameters Documentation](../cuda-parameters.md)
+- [CUDA Parameters Integration Documentation](../cuda_parameters_integration.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [Unified CUDA/PTX Build Process](../CUDA_PTX_BUILD_PROCESS.md)
+- [Updated GPU Analytics & Visualisation Plan](../new_cuda.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

@@ -1,5 +1,7 @@
 # MCP Integration Architecture
 
+*[Architecture](../index.md)*
+
 ## Executive Summary
 
 VisionFlow's MCP Integration represents a production-hardened, network-resilient connection to Claude Flow's Model Context Protocol that delivers exceptional reliability and performance. The system orchestrates and visualizes AI Multi-Agents in real-time with comprehensive fault tolerance and graceful degradation capabilities.
@@ -9,7 +11,7 @@ VisionFlow's MCP Integration represents a production-hardened, network-resilient
 **Network Resilience Features:**
 - **🔄 Circuit Breaker Pattern**: Automatic failure detection and isolation
 - **🔁 Exponential Backoff Retry**: Intelligent retry strategies with jitter
-- **🌐 Connection Pooling**: Optimized TCP connection management
+- **🌐 Connection Pooling**: Optimised TCP connection management
 - **💪 Health Monitoring**: Comprehensive service health checks
 - **🛡️ Graceful Degradation**: Maintains functionality during partial failures
 
@@ -19,7 +21,7 @@ VisionFlow integrates with Claude Flow's Model Context Protocol (MCP) through a 
 
 The MCP integration enables VisionFlow to:
 - Connect directly to Claude Flow via TCP with network resilience (backend-only)
-- Visualize agent interactions through REST API to frontend with error handling
+- Visualise agent interactions through REST API to frontend with error handling
 - Monitor agent performance and resource usage with health checks
 - Coordinate multi-agent collaboration in parallel graphs with graceful degradation
 
@@ -35,7 +37,7 @@ graph TB
     end
 
     subgraph "VisionFlow Backend"
-        ECFA[ClaudeFlowActorTcp] -->|Network Resilient TCP| CB
+        ECFA[ClaudeFlowActorTcp] --> |Network Resilient TCP| CB
         GSA[GraphServiceActor] --> ECFA
         API[REST API] --> ECFA
         PGC[ParallelGraphCoordinator] --> GSA
@@ -49,9 +51,9 @@ graph TB
     end
 
     subgraph "Frontend"
-        UI[React UI] -->|REST /api/bots/* ✅| API
-        UI -->|WebSocket Binary Protocol ✅| GSA
-        UI -.->|❌ NO DIRECT MCP ACCESS ✅| MCP
+        UI[React UI] --> |REST /api/bots/* ✅| API
+        UI --> |WebSocket Binary Protocol ✅| GSA
+        UI - -.-> |❌ NO DIRECT MCP ACCESS ✅| MCP
     end
 
     subgraph "Graceful Degradation"
@@ -59,7 +61,7 @@ graph TB
         KNOWLEDGE --> PARTIAL[Partial Functionality Maintained]
     end
 
-    CB -->|Connection Protected| MCP
+    CB --> |Connection Protected| MCP
     HEALTH --> FALLBACK
     TIMEOUT --> FALLBACK
 
@@ -212,8 +214,7 @@ let subscribe_req = json!({
 
 ### 1. multi-agent Initialization
 
-```mermaid
-sequenceDiagram
+```mermasequenceDiagram
     participant UI as Frontend
     participant API as REST API
     participant ECFA as EnhancedClaudeFlowActor
@@ -224,17 +225,16 @@ sequenceDiagram
     API->>ECFA: initializeMultiAgent message
     ECFA->>MCP: Direct TCP: swarm_init JSON-RPC
     MCP->>CF: Create agents
-    CF-->>MCP: Agent IDs
-    MCP-->>ECFA: swarm created via TCP response
+    CF --> >MCP: Agent IDs
+    MCP --> >ECFA: swarm created via TCP response
     ECFA->>ECFA: Update agent_cache
     ECFA->>API: Push to GraphServiceActor
-    API-->>UI: 200 OK + agent data
+    API --> >UI: 200 OK + agent dataata
 ```
 
 ### 2. Agent Data Flow
 
-```mermaid
-sequenceDiagram
+``sequenceDiagram
     participant MCP as MCP Server
     participant ECFA as EnhancedClaudeFlowActor
     participant GSA as GraphServiceActor
@@ -247,15 +247,16 @@ sequenceDiagram
         ECFA->>ECFA: Update agent_cache
         ECFA->>GSA: UpdateBotsGraph
         GSA->>GPU: Unified kernel with DualGraph mode
-        GPU-->>GSA: Updated positions
+        GPU --> >GSA: Updated positions
         GSA->>WS: Binary protocol position updates
     end
 
     loop Every 10s
         UI->>API: GET /api/bots/agents
         API->>ECFA: Request cached agents
-        ECFA-->>API: Return agent_cache
-        API-->>UI: JSON agent data
+        ECFA --> >API: Return agent_cache
+        API --> >UI: JSON agent data
+    enda
     end
 ```
 
@@ -515,7 +516,7 @@ where
 
 ### Connection Pool Management
 
-Optimized TCP connection pooling for high-performance MCP communication:
+Optimised TCP connection pooling for high-performance MCP communication:
 
 ```rust
 pub struct MCPConnectionPool {
@@ -700,7 +701,7 @@ impl GracefulDegradationManager {
                     knowledge_graph_enabled: true,
                     real_time_updates: true,
                     performance_mode: PerformanceMode::Standard,
-                    message: "Agent visualization temporarily unavailable".to_string(),
+                    message: "Agent visualisation temporarily unavailable".to_string(),
                 }
             }
             DegradationLevel::EmergencyMode => {
@@ -734,7 +735,7 @@ impl GracefulDegradationManager {
 When MCP is unavailable, the system now provides:
 1. ✅ **Intelligent Circuit Breaking**: Automatic failure detection and isolation
 2. ✅ **Smart Retry Logic**: Exponential backoff with jitter prevents overload
-3. ✅ **Connection Pooling**: Optimized resource utilization and recovery
+3. ✅ **Connection Pooling**: Optimised resource utilization and recovery
 4. ✅ **Health-Based Decisions**: Real-time health monitoring drives degradation
 5. ✅ **Frontend Notifications**: Clear status updates with degradation reasons
 6. ✅ **Gradual Recovery**: Automatic restoration when MCP becomes available
@@ -876,7 +877,7 @@ pub struct RetryStats {
 }
 ```
 
-### Performance Optimization
+### Performance Optimisation
 
 **Adaptive Configuration**:
 ```rust
@@ -897,7 +898,7 @@ impl MCPIntegration {
             info!("Reduced circuit breaker threshold due to high error rate");
         }
         
-        // Optimize connection pool size
+        // Optimise connection pool size
         let utilization = self.connection_pool.get_utilization().await;
         if utilization > 0.8 {
             self.connection_pool.expand_pool().await?;
@@ -981,7 +982,7 @@ async fn test_retry_with_exponential_backoff() {
 
 ## Best Practices for Production
 
-### 1. Configuration Optimization
+### 1. Configuration Optimisation
 - Set circuit breaker thresholds based on SLA requirements
 - Configure retry delays appropriate for network conditions
 - Size connection pools based on expected load
@@ -1004,9 +1005,15 @@ async fn test_retry_with_exponential_backoff() {
 ## See Also
 
 - **[System Overview](system-overview.md)** - Overall architecture with resilience patterns
-- **[Dual Graph](dual-graph.md)** - Agent graph visualization with failover
+- **[Dual Graph](dual-graph.md)** - Agent graph visualisation with failover
 - **[API Reference](../api/rest.md)** - REST endpoints for MCP control with error handling
 - **[Network Resilience](network-resilience.md)** - Detailed resilience pattern documentation
 - **[Actor System](../server/actors.md)** - Actor supervision and fault tolerance
 - **[Security](../security/index.md)** - Network security and validation measures
 - **[Monitoring](../deployment/monitoring.md)** - Production monitoring and alerting
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

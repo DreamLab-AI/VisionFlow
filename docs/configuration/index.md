@@ -1,5 +1,7 @@
 # Production Configuration Guide
 
+*[Configuration](../index.md)*
+
 ## Executive Summary
 
 VisionFlow's configuration system represents a **production-grade, security-hardened configuration architecture** that provides exceptional flexibility, safety, and operational excellence. The system implements comprehensive validation, hot-reload capabilities, and enterprise-grade security measures while maintaining intuitive management and deployment patterns.
@@ -179,7 +181,7 @@ cors:
 theme: "dark"
 language: "en"
 
-# Visualization preferences
+# Visualisation preferences
 visualisation:
   node_size: 10
   edge_width: 2
@@ -263,7 +265,7 @@ settings_actor.send(SetSettingByPath {
 }).await?;
 ```
 
-### Client Settings Synchronization
+### Client Settings Synchronisation
 
 Client settings are synchronized via WebSocket:
 
@@ -421,16 +423,16 @@ sequenceDiagram
     Config->>Env: Override with env vars
     Config->>Validator: Comprehensive validation
     Validator->>Security: Security validation
-    Security-->>Validator: Security status
-    Validator-->>Config: Validation results
+    Security --> >Validator: Security status
+    Validator --> >Config: Validation results
     
     alt Validation Failed
         Config->>Config: Generate detailed error report
-        Config-->>Main: ConfigurationError with details
+        Config --> >Main: ConfigurationError with details
     else Validation Successful
         Config->>Monitor: Start configuration monitor
         Monitor->>Monitor: Watch for file changes
-        Config-->>Main: Validated Settings
+        Config --> >Main: Validated Settings
     end
 ```
 
@@ -1442,7 +1444,7 @@ impl ConfigurationMigrator {
             production_config.external_services = self.migrate_ai_services(legacy_ai)?;
         }
         
-        // 3. Migrate visualization configuration
+        // 3. Migrate visualisation configuration
         if let Some(legacy_viz) = legacy_config.logseq_xr {
             production_config.visionflow = self.migrate_visualization_config(legacy_viz)?;
         }
@@ -1463,7 +1465,7 @@ impl ConfigurationMigrator {
     
     pub fn generate_migration_report(&self, legacy: &LegacyConfig, production: &ProductionConfig) -> MigrationReport {
         MigrationReport {
-            migrated_sections: vec!["server", "ai_services", "visualization"],
+            migrated_sections: vec!["server", "ai_services", "visualisation"],
             new_features_added: vec!["monitoring", "security", "health_checks", "circuit_breakers"],
             deprecated_features: vec!["sqlite_database", "single_instance_mode"],
             manual_review_required: vec!["api_keys", "ssl_certificates", "database_migration"],
@@ -1490,3 +1492,17 @@ pub struct MigrationReport {
 - [Environment Setup](../development/setup.md) - Development environment
 - [Deployment](../deployment/index.md) - Production configuration
 - [MCP Architecture](../mcp-architecture.md) - Understanding agent connections
+## Documents
+
+- [VisionFlow Configuration Quick Reference](./quick-reference.md)
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)

@@ -2,7 +2,7 @@
 
 ## Problem Summary
 
-The VisionFlow server was failing to start due to a critical case conversion synchronization issue between the Rust backend and TypeScript client. The primary issue was a field name mismatch in the settings structure.
+The VisionFlow server was failing to start due to a critical case conversion synchronisation issue between the Rust backend and TypeScript client. The primary issue was a field name mismatch in the settings structure.
 
 ## Root Cause Analysis
 

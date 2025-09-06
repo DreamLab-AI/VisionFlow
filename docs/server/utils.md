@@ -1,5 +1,7 @@
 # Utilities Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 The utilities layer provides common functionality, helper methods, and shared tools across the application.
 
@@ -66,7 +68,7 @@ pub struct SimulationParams {
 // #[derive(Default, Clone, Copy, Debug, Pod, Zeroable)] // For bytemuck if used
 // pub struct GPUSimulationParams { /* fields matching kernel expectations */ }
 ```
-- These parameters are crucial for tuning the behavior and performance of the graph layout algorithm.
+- These parameters are crucial for tuning the behaviour and performance of the graph layout algorithm.
 - The actual parameters used by `GPUCompute` might be a subset or a transformed version of those found in `AppFullSettings.visualisation.physics`.
 
 ## Logging
@@ -192,7 +194,7 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 - Fixed 28-byte wire format per node for predictable parsing
 - Zero-copy serialisation using `bytemuck`
 - Compile-time size assertions for safety
-- Optimized for high-frequency position updates
+- Optimised for high-frequency position updates
 
 ## Socket Flow Constants
 
@@ -299,3 +301,24 @@ pub enum UtilError {
 - Retry logic
 - Fallback mechanisms
 - Error reporting
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)

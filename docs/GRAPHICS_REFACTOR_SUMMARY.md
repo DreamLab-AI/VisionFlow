@@ -123,12 +123,12 @@ The Rust backend failed to start with the error: `Failed to deserialize AppFullS
 ## 8. Documentation Updates
 
 All documentation has been updated to use UK English spelling conventions:
-- colour (not color)
-- optimise (not optimize)
+- colour (not colour)
+- optimise (not optimise)
 - analyse (not analyze)
-- behaviour (not behavior)
-- centre (not center)
-- synchronise (not synchronize)
+- behaviour (not behaviour)
+- centre (not centre)
+- synchronise (not synchronise)
 
 ## Conclusion
 

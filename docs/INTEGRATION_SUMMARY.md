@@ -99,7 +99,7 @@ This integration successfully combined the **performance optimizations** from th
 | Network Traffic | 80-90% reduction | Path-based granular updates |
 | Component Re-renders | 70-90% reduction | Selective subscriptions |
 | Memory Usage | 40-60% reduction | Partial state management |
-| API Response Time | <100ms | Optimized path access |
+| API Response Time | <100ms | Optimised path access |
 
 ## 🔧 Technical Excellence Maintained
 
@@ -107,7 +107,7 @@ This integration successfully combined the **performance optimizations** from th
 
 1. **No Blind Copying**: Every feature was evaluated, keeping superior patterns
 2. **Backward Compatible**: No breaking changes to existing functionality
-3. **Type Safety**: Full synchronization between Rust and TypeScript
+3. **Type Safety**: Full synchronisation between Rust and TypeScript
 4. **Performance First**: All optimizations preserved and enhanced
 5. **Developer Experience**: Better debugging, testing, and documentation
 
@@ -127,18 +127,18 @@ The integration is complete with:
 - Superior patterns preserved from both systems
 - Comprehensive testing coverage
 - Full type safety and validation
-- Real-time synchronization working
+- Real-time synchronisation working
 - Advanced rendering effects active
 
 ## 📝 Deferred for Later (GPU-specific)
 
 As requested, these GPU-specific optimizations are documented but not implemented:
-- Grouped kernel parameters (CUDA optimization)
+- Grouped kernel parameters (CUDA optimisation)
 - Enhanced GPU context management
 - Unified GPU compute abstraction
 - Hierarchical agent positioning
 
-These can be addressed when GPU optimization becomes a priority.
+These can be addressed when GPU optimisation becomes a priority.
 
 ## 🎉 Conclusion
 

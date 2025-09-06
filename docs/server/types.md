@@ -1,5 +1,7 @@
 # Types Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 The types module defines core data structures, type aliases, and common enums used throughout the application.
 
@@ -254,3 +256,24 @@ pub const CACHE_DURATION: Duration = Duration::from_secs(3600);
 pub const DEFAULT_PORT: u16 = 8080;
 pub const DEFAULT_HOST: &str = "127.0.0.1";
 pub const API_VERSION: &str = "v1";
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Utilities Architecture](../server/utils.md)

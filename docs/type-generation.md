@@ -16,11 +16,11 @@ The type generation system automatically converts Rust struct definitions from t
 
 ## Generated Types Structure
 
-The generated types are organized into several main categories:
+The generated types are organised into several main categories:
 
 ### Core Settings
 - `AppFullSettings` - Main application configuration
-- `VisualisationSettings` - 3D visualization and rendering settings
+- `VisualisationSettings` - 3D visualisation and rendering settings
 - `SystemSettings` - Network, WebSocket, and system configuration
 - `XRSettings` - WebXR and VR/AR specific settings
 - `AuthSettings` - Authentication configuration
@@ -31,7 +31,7 @@ The generated types are organized into several main categories:
 - `RenderingSettings` - 3D rendering options
 - `AnimationSettings` - Animation and effects settings
 - `GlowSettings` - Glow and lighting effects
-- `HologramSettings` - Hologram visualization settings
+- `HologramSettings` - Hologram visualisation settings
 
 ### External Services
 - `RagFlowSettings` - RAG Flow AI service configuration

@@ -1,8 +1,8 @@
-# Multi-MCP Agent Visualization System
+# Multi-MCP Agent Visualisation System
 
 ## Overview
 
-The Multi-MCP Agent Visualization System provides comprehensive discovery, monitoring, and visualization of AI agents across multiple MCP (Model Context Protocol) servers including Claude Flow, RuvSwarm, and DAA (Decentralized Autonomous Agents). It creates beautiful force-directed 3D graphs showing agent relationships, topologies, and real-time metrics.
+The Multi-MCP Agent Visualisation System provides comprehensive discovery, monitoring, and visualisation of AI agents across multiple MCP (Model Context Protocol) servers including Claude Flow, RuvSwarm, and DAA (Decentralized Autonomous Agents). It creates beautiful force-directed 3D graphs showing agent relationships, topologies, and real-time metrics.
 
 ## Architecture
 
@@ -33,7 +33,7 @@ The Multi-MCP Agent Visualization System provides comprehensive discovery, monit
 │  └─────────────────────┬────────────────────────────────┘│
 │                        ▼                                  │
 │  ┌──────────────────────────────────────────────────────┐│
-│  │    Topology Visualization Engine                     ││
+│  │    Topology Visualisation Engine                     ││
 │  │  - Force-directed graph layouts                      ││
 │  │  - 6 topology types (Hierarchical, Mesh, Ring, etc.) ││
 │  │  - Physics simulation with convergence               ││
@@ -45,7 +45,7 @@ The Multi-MCP Agent Visualization System provides comprehensive discovery, monit
 │                 VisionFlow Container                      │
 │                                                           │
 │  ┌──────────────────────────────────────────────────────┐│
-│  │        Multi-MCP Visualization Actor                 ││
+│  │        Multi-MCP Visualisation Actor                 ││
 │  │  - Coordinates discovery across all MCP servers      ││
 │  │  - Manages layouts and visual hints                  ││
 │  │  - Streams updates at 10Hz                           ││
@@ -96,7 +96,7 @@ UnifiedAgent {
 }
 ```
 
-### 2. Topology Visualization Engine (`topology_visualization_engine.rs`)
+### 2. Topology Visualisation Engine (`topology_visualization_engine.rs`)
 
 Creates beautiful 3D layouts with force-directed physics:
 
@@ -125,18 +125,18 @@ Creates beautiful 3D layouts with force-directed physics:
 5. **Hybrid**: Multiple groups with different strategies
    - Groups by server type
    - Inter-group connections
-   - Flexible organization
+   - Flexible organisation
 
 6. **Adaptive**: Dynamic based on agent importance
    - Central placement for critical agents
    - Concentric rings by performance
-   - Self-organizing
+   - Self-organising
 
 #### Physics Simulation:
 
 - **Spring Forces**: Attraction between connected agents
 - **Repulsion Forces**: Prevent overlapping with distance decay
-- **Center Gravity**: Keep graph centered
+- **Centre Gravity**: Keep graph centered
 - **Damping**: Stabilize movement
 - **Convergence Detection**: Stop when stable
 
@@ -155,7 +155,7 @@ Connects to actual MCP servers running in the container:
 - `swarm_status`: Swarm topology and performance
 - `agent_metrics`: CPU, memory, task statistics
 
-### 4. Multi-MCP Visualization Actor (`multi_mcp_visualization_actor.rs`)
+### 4. Multi-MCP Visualisation Actor (`multi_mcp_visualization_actor.rs`)
 
 Actix actor that coordinates the entire system:
 
@@ -166,9 +166,9 @@ Actix actor that coordinates the entire system:
 
 ## Visual Features
 
-### Node Visualization:
+### Node Visualisation:
 
-- **Color**: Based on server type
+- **Colour**: Based on server type
   - Blue (#4287f5): Claude Flow agents
   - Green (#42f554): RuvSwarm agents
   - Red (#f54242): DAA agents
@@ -191,7 +191,7 @@ Actix actor that coordinates the entire system:
   - Pulse frequency: CPU usage
   - Connection width: Relationship strength
 
-### Edge Visualization:
+### Edge Visualisation:
 
 - **Connection Types**:
   - Coordination: Thick blue lines
@@ -235,7 +235,7 @@ The system uses TCP instead of WebSocket for inter-container communication:
 }
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 1. **Differential Updates**: Only send changed data
 2. **Batch Discovery**: Discover all servers in parallel
@@ -304,7 +304,7 @@ physics:
 ## Usage Example
 
 ```rust
-// Start the visualization system
+// Start the visualisation system
 let graph_service = GraphServiceActor::new(...);
 let mcp_viz = MultiMcpVisualizationActor::new(graph_service.clone());
 
@@ -328,7 +328,7 @@ println!("Agents: {}, Topology: {:?}", state.agent_count, state.topology);
 ## Benefits
 
 1. **Real-time Monitoring**: See all AI agents across containers
-2. **Beautiful Visualization**: Force-directed 3D graphs
+2. **Beautiful Visualisation**: Force-directed 3D graphs
 3. **Performance Insights**: CPU, memory, task metrics
 4. **Topology Flexibility**: 6 different layout algorithms
 5. **Scalable**: Handles hundreds of agents efficiently
@@ -343,7 +343,7 @@ println!("Agents: {}, Topology: {:?}", state.agent_count, state.topology);
 4. **Custom Topologies**: User-defined layout algorithms
 5. **3D VR Support**: Immersive agent management
 6. **Distributed Consensus**: Byzantine fault tolerance
-7. **Neural Training Visualization**: Show learning progress
+7. **Neural Training Visualisation**: Show learning progress
 
 ## Troubleshooting
 
@@ -364,4 +364,17 @@ println!("Agents: {}, Topology: {:?}", state.agent_count, state.topology);
 
 ## Summary
 
-The Multi-MCP Agent Visualization System provides a comprehensive solution for visualizing and monitoring AI agents across multiple MCP servers. It combines real-time discovery, beautiful force-directed layouts, and efficient TCP communication to create an engaging and informative visualization of your AI swarm.
+The Multi-MCP Agent Visualisation System provides a comprehensive solution for visualising and monitoring AI agents across multiple MCP servers. It combines real-time discovery, beautiful force-directed layouts, and efficient TCP communication to create an engaging and informative visualisation of your AI swarm.
+
+## Related Topics
+
+- [Claude Flow MCP Integration](server/features/claude-flow-mcp-integration.md)
+- [Docker MCP Integration - Production Deployment Guide](deployment/docker-mcp-integration.md)
+- [MCP Connection Architecture](architecture/mcp_connection.md)
+- [MCP Integration Architecture](architecture/mcp-integration.md)
+- [MCP Integration](server/mcp-integration.md)
+- [MCP Tool Integration Analysis](technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](architecture/mcp-websocket-relay.md)
+- [Multi-MCP Agent Visualisation API Reference](api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](multi-mcp-agent-visualization.md)
+- [VisionFlow MCP Integration Documentation](api/mcp/index.md)

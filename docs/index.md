@@ -83,7 +83,7 @@ open http://localhost:3001
 
 ### Frontend
 - React 18 with TypeScript 5
-- Three.js and React Three Fiber for 3D graphics
+- Three.js and React Three Fibre for 3D graphics
 - WebXR integration for AR/VR support
 
 ## Contributing
@@ -114,9 +114,9 @@ The core feature set of the physics engine includes several tunable forces and b
 
 These parameters are managed through a complete pipeline, starting from UI controls in `PhysicsEngineControls.tsx`, flowing through the Rust backend via the `/api/settings` and `/api/physics/update` endpoints, and ultimately updating the `SimParams` structure used by the CUDA kernel.
 
-### 2. Client Visualization: Interpreting the Knowledge Graph Nodes
+### 2. Client Visualisation: Interpreting the Knowledge Graph Nodes
 
-The primary graph visualization renders your knowledge base (e.g., Logseq notes). Each node's appearance is not random; it's a rich visual representation of its underlying metadata, primarily defined in `MetadataShapes.tsx`.
+The primary graph visualisation renders your knowledge base (e.g., Logseq notes). Each node's appearance is not random; it's a rich visual representation of its underlying metadata, primarily defined in `MetadataShapes.tsx`.
 
 Here is how to interpret the visual properties of a node:
 
@@ -130,28 +130,28 @@ Here is how to interpret the visual properties of a node:
     *   **File Size**: Larger files result in larger nodes (on a logarithmic scale).
     *   **Connectivity**: Nodes with more connections are rendered larger, making hubs naturally stand out.
 
-*   **Color & "Heat"**: The color is based on the node's base color setting but is modulated by its recency.
+*   **Colour & "Heat"**: The colour is based on the node's base colour setting but is modulated by its recency.
     *   **Recency**: More recently modified files (`lastModified`) have a "heat" effect applied. They appear brighter, more saturated, and their hue is shifted slightly towards warmer colors like yellow and orange. This allows you to see recent activity in your knowledge graph at a glance.
-    *   **Node Type**: If recency data is unavailable, the color is tinted based on the node's `metadata.type` (e.g., folder, file, function).
+    *   **Node Type**: If recency data is unavailable, the colour is tinted based on the node's `metadata.type` (e.g., folder, file, function).
 
 *   **Glow & AI Processing**: Nodes that have been processed by an AI service (indicated by a `perplexityLink` in their metadata) have a distinct gold-tinted emissive glow. This visually flags all AI-enriched content in your graph.
 
-*   **Pulse Animation**: The speed of the subtle hologram pulse effect is determined by the `fileSize`, adding another layer of data visualization to the node's animation.
+*   **Pulse Animation**: The speed of the subtle hologram pulse effect is determined by the `fileSize`, adding another layer of data visualisation to the node's animation.
 
-*   **Labels**: Node labels display the file or concept name, and can be configured to show additional metadata like file size or type, providing further context directly in the visualization.
+*   **Labels**: Node labels display the file or concept name, and can be configured to show additional metadata like file size or type, providing further context directly in the visualisation.
 
 ### 3. Agent Telemetry: Interpreting the Force Graph
 
-The application also visualizes a real-time force graph of a multi-agent AI system, driven by telemetry data from the "Claude Flow MCP" (Multi-Agent Control Plane). This visualization provides insights into the health, status, and activity of the AI agent swarm.
+The application also visualizes a real-time force graph of a multi-agent AI system, driven by telemetry data from the "Claude Flow MCP" (Multi-Agent Control Plane). This visualisation provides insights into the health, status, and activity of the AI agent swarm.
 
 The feature set and interpretation are as follows:
 
-*   **Data Source**: The backend connects to the Claude Flow MCP via a direct TCP connection (`claude_flow_actor_tcp.rs`). The `bots_handler.rs` processes this telemetry and streams it to the client for visualization.
+*   **Data Source**: The backend connects to the Claude Flow MCP via a direct TCP connection (`claude_flow_actor_tcp.rs`). The `bots_handler.rs` processes this telemetry and streams it to the client for visualisation.
 *   **Force-Directed Layout**: The agent graph uses the same GPU-accelerated physics engine as the knowledge graph. The `weight` of the edges between agents is determined by their **communication intensity**, meaning agents that communicate more frequently are pulled closer together.
 
 The visual representation of each agent node in `BotsVisualizationFixed.tsx` conveys its current state:
 
-*   **Glow Color (Health)**: The color of a node's glow is a direct indicator of its health.
+*   **Glow Colour (Health)**: The colour of a node's glow is a direct indicator of its health.
     *   **Green**: Healthy (> 80%).
     *   **Gold/Yellow**: Warning (> 50%).
     *   **Red**: Critical (< 50%).
@@ -169,7 +169,7 @@ The visual representation of each agent node in `BotsVisualizationFixed.tsx` con
 
 *   **Telemetry Overlay**: When hovering over a node (or if it's particularly active), an information panel appears displaying detailed telemetry:
     *   **Agent Name & Type**: (e.g., Coder, Tester, Analyst).
-    *   **Status**: Color-coded status badge (e.g., `active`, `busy`, `idle`).
+    *   **Status**: Colour-coded status badge (e.g., `active`, `busy`, `idle`).
     *   **Health & CPU Usage**: Precise percentage values.
     *   **Task Information**: The number of active and completed tasks, and the description of the current task.
     *   **Processing Logs**: A stream of the agent's latest activities.
@@ -177,3 +177,9 @@ The visual representation of each agent node in `BotsVisualizationFixed.tsx` con
 ---
 
 *VisionFlow - Real-time 3D visualisation platform with AI agent orchestration*
+
+## Related Topics
+
+- [Graph API Reference](api/rest/graph.md)
+- [Settings API Reference](api/rest/settings.md)
+- [VisionFlow Data Flow Architecture](architecture/data-flow.md)

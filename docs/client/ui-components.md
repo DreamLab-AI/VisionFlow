@@ -1,5 +1,7 @@
 # UI Component Library
 
+*[Client](../index.md)*
+
 This document serves as a comprehensive reference for the client's design system and reusable UI component library. The components are built with React, TypeScript, and [Radix UI](https://www.radix-ui.com/) for accessibility, and styled with [Tailwind CSS](https://tailwindcss.com/).
 
 ## Philosophy
@@ -180,28 +182,28 @@ import { Label } from '@/features/design-system/components';
 
 ---
 
-### Dialog
+### Dialogue
 
-**Source**: [`client/src/features/design-system/components/Dialog.tsx`](../../client/src/features/design-system/components/Dialog.tsx)
+**Source**: [`client/src/features/design-system/components/Dialogue.tsx`](../../client/src/features/design-system/components/Dialogue.tsx)
 
-**Purpose**: A modal dialog that appears over the main content to display critical information or request user input.
+**Purpose**: A modal dialogue that appears over the main content to display critical information or request user input.
 
 **Sub-components**:
 
--   `DialogTrigger`: The button or element that opens the dialog.
--   `DialogContent`: The main content of the dialog.
--   `DialogHeader`: Container for the dialog's title and description.
--   `DialogTitle`: The title of the dialog.
--   `DialogDescription`: A description or subtitle for the dialog.
+-   `DialogTrigger`: The button or element that opens the dialogue.
+-   `DialogContent`: The main content of the dialogue.
+-   `DialogHeader`: Container for the dialogue's title and description.
+-   `DialogTitle`: The title of the dialogue.
+-   `DialogDescription`: A description or subtitle for the dialogue.
 -   `DialogFooter`: A container for action buttons.
--   `DialogClose`: A button to close the dialog.
+-   `DialogClose`: A button to close the dialogue.
 
 **Usage Example**:
 
 ```tsx
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/features/design-system/components';
+import { Dialogue, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/features/design-system/components';
 
-<Dialog>
+<Dialogue>
   <DialogTrigger asChild>
     <Button variant="outline">Edit Profile</Button>
   </DialogTrigger>
@@ -217,5 +219,27 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
       <Button type="submit">Save changes</Button>
     </DialogFooter>
   </DialogContent>
-</Dialog>
+</Dialogue>
 ```
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

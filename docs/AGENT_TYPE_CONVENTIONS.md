@@ -43,9 +43,9 @@ The MCP server (Claude Flow) uses various agent type strings that need to be map
 - `"specialist"` → `AgentType::Analyst` (specialists analyze specific domains)
 - Any unknown type → `AgentType::Coordinator` (default)
 
-## Color Coding in Graph Visualization
+## Colour Coding in Graph Visualisation
 
-Each agent type has a specific color for graph visualization:
+Each agent type has a specific colour for graph visualisation:
 
 - **Coordinator**: `#FF6B6B` (Red) - Central orchestration role
 - **Researcher**: `#4ECDC4` (Teal) - Information gathering
@@ -54,7 +54,7 @@ Each agent type has a specific color for graph visualization:
 - **Architect**: `#98D8C8` (Mint) - System design
 - **Tester**: `#F7DC6F` (Yellow) - Testing and validation
 - **Reviewer**: `#95E77E` (Light Green) - Code review
-- **Optimizer**: `#FFB6D9` (Pink) - Performance optimization
+- **Optimizer**: `#FFB6D9` (Pink) - Performance optimisation
 - **Documenter**: `#D4A5A5` (Dusty Rose) - Documentation
 
 ## Connection Affinity Rules
@@ -70,7 +70,7 @@ Agents have different connection strengths based on their types:
 - Architect ↔ Coder (0.7) - Design guides implementation
 - Architect ↔ Analyst (0.6) - Architecture requires analysis
 - Reviewer ↔ Coder (0.6) - Review provides feedback to implementation
-- Optimizer ↔ Analyst (0.6) - Optimization needs performance analysis
+- Optimizer ↔ Analyst (0.6) - Optimisation needs performance analysis
 
 ### Default Affinity (0.5)
 - All other combinations
@@ -101,7 +101,7 @@ When converting from MCP to VisionFlow format, the following fields are populate
 - `profile.agent_type`: Mapped using conventions above
 - `status`: Direct from MCP (default: "active")
 - `swarm_id`: From MCP swarmId field
-- Default metrics are initialized for visualization
+- Default metrics are initialized for visualisation
 
 ## Adding New Agent Types
 
@@ -110,7 +110,7 @@ To add a new agent type:
 1. Add to `AgentType` enum in `/src/types/claude_flow.rs`
 2. Add ToString implementation
 3. Add mapping in `mcp_agent_to_status()` function
-4. Define color in graph visualization
+4. Define colour in graph visualisation
 5. Define connection affinities if needed
 6. Update this documentation
 

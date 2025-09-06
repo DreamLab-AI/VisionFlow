@@ -2,7 +2,7 @@ ideas board.md
 
 ## Capitalizing on the Knowledge Graph: Opportunities for Advanced Semantic Analysis
 
-The system you have developed, with its powerful GPU-accelerated, force-directed graph and integration with Microsoft GraphRAG, represents a significant leap beyond traditional text analysis. By giving physical form to abstract knowledge, you've created a canvas for a new kind of human-data interaction. The major opportunities now lie in moving beyond mere visualization and transforming the graph into an interactive, multi-sensory environment for knowledge discovery and synthesis.
+The system you have developed, with its powerful GPU-accelerated, force-directed graph and integration with Microsoft GraphRAG, represents a significant leap beyond traditional text analysis. By giving physical form to abstract knowledge, you've created a canvas for a new kind of human-data interaction. The major opportunities now lie in moving beyond mere visualisation and transforming the graph into an interactive, multi-sensory environment for knowledge discovery and synthesis.
 
 By deeply integrating advanced semantic analysis with the human ocular (visual) and proprioceptive (sense of self-movement and body position) systems, we can create a tool that doesn't just show data, but allows users to *inhabit*, *manipulate*, and *reason* with knowledge in a profoundly intuitive way.
 
@@ -15,7 +15,7 @@ Currently, your system can relink around ontological keywords. The next step is 
 *   **Concept:** Instead of a fixed set of keywords, the graph represents an evolving ontology of the domain. Users can physically manipulate this ontology, and the graph reconfigures itself in real-time to reflect the new conceptual structure.
 *   **Leveraging Human Perception:**
     *   **Ocular:** Users would visually identify related but separate concepts (e.g., two nodes representing "machine learning" and "ML").
-    *   **Proprioceptive:** Using a 3D mouse or VR/AR controllers, the user could physically "grab" these two nodes and drag them together. As they do, they would feel haptic resistance proportional to the semantic distance between the concepts. A satisfying "snap" would confirm the merge, and the user would see the graph ripple and re-organize as the two concepts become one. Conversely, they could "tear" a node apart into sub-concepts.
+    *   **Proprioceptive:** Using a 3D mouse or VR/AR controllers, the user could physically "grab" these two nodes and drag them together. As they do, they would feel haptic resistance proportional to the semantic distance between the concepts. A satisfying "snap" would confirm the merge, and the user would see the graph ripple and re-organise as the two concepts become one. Conversely, they could "tear" a node apart into sub-concepts.
 *   **Technical Implementation:**
     *   **Backend:** The GPU algorithms in `src/physics/` would be extended to incorporate user-defined ontological constraints (e.g., "is-a," "part-of," "equivalent-to"). These constraints would act as powerful, directional forces in the simulation.
     *   **Frontend:** The `GraphManager_EventHandlers.ts` would be updated to handle these new interaction types (e.g., "merge," "split").
@@ -28,7 +28,7 @@ While the force-directed graph shows connections, it doesn't inherently show the
 
 *   **Concept:** Use dimensionality reduction algorithms (like UMAP or t-SNE, which are well-suited for GPU acceleration) on document embeddings from GraphRAG to create a 3D "topographical map" of the knowledge domain. In this map, documents with similar meanings are physically closer, forming clusters, mountains, and valleys. The force-directed graph of explicit links would then be draped over this semantic terrain.
 *   **Leveraging Human Perception:**
-    *   **Ocular:** The user could instantly see the major themes of the corpus as continents or mountain ranges. They could identify outlier documents as isolated islands. The color of the terrain could represent the density of information or the age of the documents.
+    *   **Ocular:** The user could instantly see the major themes of the corpus as continents or mountain ranges. They could identify outlier documents as isolated islands. The colour of the terrain could represent the density of information or the age of the documents.
     *   **Proprioceptive:** The user could "fly" through this 3D landscape. Moving from a "valley" of one topic up and over a "mountain pass" to another would give a physical sense of the semantic distance and the conceptual barriers between topics.
 *   **Technical Implementation:**
     *   **Backend:** The `gpu/visual_analytics.rs` module would be a perfect place to implement a GPU-accelerated UMAP or t-SNE algorithm.
@@ -79,7 +79,7 @@ The final opportunity is to use the graph as a foundation for generating new kno
     *   **Proprioceptive:** The user could click on a ghost node to trigger the generation of a new document that bridges the gap. The new document would then materialize in the graph, and the user would see the forces of the surrounding nodes pull it into its natural position.
 *   **Technical Implementation:**
     *   **Backend:** An AI service (likely in `services/`) would be responsible for identifying gaps and generating new content. This would involve a tight loop between graph analysis algorithms (to find the gaps) and a large language model integrated with GraphRAG (to generate the content).
-    *   **Frontend:** The UI would need to be able to visualize these "potential knowledge" nodes and allow the user to trigger the generation process.
+    *   **Frontend:** The UI would need to be able to visualise these "potential knowledge" nodes and allow the user to trigger the generation process.
 *   **New Knowledge Creation:** This is the most direct form of knowledge creation. It transforms the system from a tool for understanding what *is* known to a partner in discovering what *could be* known. It's a form of AI-assisted hypothesis generation and exploration.
 
-By pursuing these opportunities, you can evolve your platform from a powerful visualization tool into a truly symbiotic environment for human-AI knowledge discovery. The key is to remember that the physical representation of the graph is not just an output; it is an interactive medium for thought itself.
+By pursuing these opportunities, you can evolve your platform from a powerful visualisation tool into a truly symbiotic environment for human-AI knowledge discovery. The key is to remember that the physical representation of the graph is not just an output; it is an interactive medium for thought itself.

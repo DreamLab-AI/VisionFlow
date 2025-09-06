@@ -1,5 +1,7 @@
 # Architecture Migration Guide
 
+*[Architecture](../index.md)*
+
 This guide helps developers understand the current VisionFlow architecture with unified GPU compute and parallel graphs.
 
 ## Current Architecture (v2.0)
@@ -8,8 +10,8 @@ This guide helps developers understand the current VisionFlow architecture with 
 - **Unified GPU Kernel**: Single CUDA kernel (`visionflow_unified.cu`) with 4 compute modes
 - **Parallel Graphs**: Independent Logseq and VisionFlow graph processing
 - **Direct MCP Integration**: Backend-only WebSocket connection to Claude Flow
-- **Enhanced Performance**: Structure of Arrays memory layout, optimized binary protocol
-- **Comprehensive Agent Visualization**: Real-time Multi Agent Visualisation
+- **Enhanced Performance**: Structure of Arrays memory layout, optimised binary protocol
+- **Comprehensive Agent Visualisation**: Real-time Multi Agent Visualisation
 
 ### Key Components
 - **EnhancedClaudeFlowActor**: Direct WebSocket MCP connection with differential updates
@@ -167,7 +169,7 @@ const DEFAULT_GRAPH_CONFIG = {
 
 ### Affected Components
 
-1. **Graph Visualization Components**
+1. **Graph Visualisation Components**
    - Update to use `useParallelGraphs` hook
    - Add graph type selector UI
 
@@ -181,7 +183,7 @@ const DEFAULT_GRAPH_CONFIG = {
 
 ### New Components
 
-1. **Agent Visualization**
+1. **Agent Visualisation**
    - `BotsRenderer` - 3D agent rendering
    - `AgentInspector` - Agent details panel
    - `CommunicationFlow` - Message visualisation
@@ -291,3 +293,39 @@ grep "ClaudeFlowActor" /app/logs/visionflow.log
 2. **Phase 2** (Completed): MCP backend relay
 3. **Phase 3** (Current): Documentation and migration support
 4. **Phase 4** (Future): WebSocket push updates
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

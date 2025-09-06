@@ -46,7 +46,7 @@ Key variables:
 ### 2. Application Settings (`data/settings.yaml`)
 **Purpose:** Runtime application configuration and defaults
 **Precedence:** Medium - can be overridden by environment variables
-**Scope:** Application behavior and feature configuration
+**Scope:** Application behaviour and feature configuration
 
 Structure:
 ```yaml
@@ -163,7 +163,7 @@ visualisation:
       edges:
         arrow_size: 0.34017882
         base_width: 1.9043301
-        color: '#e8edee'
+        colour: '#e8edee'
         enable_arrows: false
         opacity: 0.9519247
         width_range: [0.2, 1.0]
@@ -248,7 +248,7 @@ visualisation:
       edges:
         arrow_size: 0.7
         base_width: 0.15
-        color: '#ffaa00'
+        colour: '#ffaa00'
         enable_arrows: true
         opacity: 0.6
         width_range: [0.15, 1.5]
@@ -621,3 +621,30 @@ For configuration issues:
 2. Review logs: `docker logs visionflow_container`
 3. Consult `/docs/deployment/` for specific scenarios
 4. Open an issue with configuration details (excluding secrets)
+
+
+
+## See Also
+
+- [Configuration Guide](getting-started/configuration.md)
+- [Getting Started with VisionFlow](getting-started/index.md)
+- [Guides](guides/README.md)
+- [Installation Guide](getting-started/installation.md)
+- [Quick Start Guide](getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](guides/quick-start.md)
+- [VisionFlow Settings System Guide](guides/settings-guide.md)
+
+## Related Topics
+
+- [Binary Protocol Specification](binary-protocol.md)
+- [Configuration Architecture](server/config.md)
+- [Configuration Guide](getting-started/configuration.md)
+- [Developer Configuration System](DEV_CONFIG.md)
+- [Modern Settings API - Path-Based Architecture](MODERN_SETTINGS_API.md)
+- [Production Configuration Guide](configuration/index.md)
+- [Settings API Reference](api/rest/settings.md)
+- [Settings Panel](client/settings-panel.md)
+- [Settings Performance Optimisation Report](SETTINGS_PERFORMANCE_OPTIMIZATION.md)
+- [Settings Sync Integration Tests](testing/SETTINGS_SYNC_INTEGRATION_TESTS.md)
+- [VisionFlow Configuration Quick Reference](configuration/quick-reference.md)
+- [VisionFlow Settings System Guide](guides/settings-guide.md)

@@ -1,5 +1,7 @@
 # VisionFlow Quick Start Guide
 
+*[Guides](../index.md)*
+
 ## Overview
 
 Get VisionFlow up and running in minutes! This comprehensive guide will help you set up the real-time 3D visualisation platform for knowledge graphs and AI multi-agent systems, from installation through your first multi-agent deployment.
@@ -128,7 +130,7 @@ Describe what you want the agents to accomplish. Be specific and clear:
 "Refactor legacy code to TypeScript with full test coverage"
 ```
 
-**Specialized Tasks:**
+**Specialised Tasks:**
 ```
 "Design microservices architecture for e-commerce platform"
 "Create ML pipeline for text classification with evaluation metrics"
@@ -173,7 +175,7 @@ Click **"Spawn Hive Mind"** to initiate the system. The process will:
 2. **Initialize Multi-Agent** - Create the agent network with your configuration
 3. **Spawn Agents** - Deploy selected specialist agents
 4. **Apply Task** - Distribute your task across the agent network
-5. **Begin Visualization** - Start real-time 3D visualisation of agent activity
+5. **Begin Visualisation** - Start real-time 3D visualisation of agent activity
 
 ## Using the Control Panel
 
@@ -186,7 +188,7 @@ Click **"Spawn Hive Mind"** to initiate the system. The process will:
 - **Task Progress**: Overall completion status
 - **Performance Metrics**: System resource utilization
 
-#### 3D Visualization Controls
+#### 3D Visualisation Controls
 - **Node Colors**: Different agent types and current states
 - **Edge Thickness**: Communication intensity between agents
 - **Physics Simulation**: GPU-accelerated force-directed layout
@@ -258,7 +260,7 @@ Best for: Centralized coordination, single-focus tasks
 Enable WASM-accelerated AI processing for:
 - Faster agent decision-making
 - Enhanced pattern recognition
-- Optimized resource allocation
+- Optimised resource allocation
 - Improved coordination efficiency
 
 ### GPU Acceleration
@@ -458,4 +460,9 @@ Once you have your first multi-agent system running successfully:
 
 ---
 
-**Welcome to VisionFlow!** You now have everything needed to deploy intelligent multi-agent systems and visualize their collaborative workflows in real-time 3D environments.
+**Welcome to VisionFlow!** You now have everything needed to deploy intelligent multi-agent systems and visualise their collaborative workflows in real-time 3D environments.
+
+## Related Topics
+
+- [Getting Started with VisionFlow](../getting-started.md)
+- [VisionFlow Documentation](../index.md)

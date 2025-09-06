@@ -1,5 +1,7 @@
 # Client-Side visualisation Concepts
 
+*[Client](../index.md)*
+
 This document outlines the higher-level concepts behind the visualisation of the knowledge graph in the LogseqXR client. It explains *what* is being visualised and *how* different visual elements represent data, distinguishing itself from `rendering.md` which details the technical "how-to" of drawing these elements.
 
 ## Core visualisation Metaphor
@@ -37,7 +39,7 @@ The effectiveness of the visualisation hinges on how data attributes are mapped 
     -   **Default themes**: Logseq (blue `#4B5EFF`), VisionFlow (green `#10B981`)
     -   Dynamic colouring based on metadata (file type, tags)
 -   **Shape / Form:**
-    -   **Primary**: Spheres (performance optimized)
+    -   **Primary**: Spheres (performance optimised)
     -   **Metadata-driven**: `enableMetadataShape` allows geometry variation
     -   **Quality levels**: Low/medium/high affecting geometry detail
 -   **Holograms:**
@@ -115,10 +117,32 @@ This component is responsible for displaying additional information or visual cu
     -   What insights is the user intended to gain from these visual mappings?
     -   The *meaning* behind the visual design choices.
 -   **[`rendering.md`](./rendering.md):** Focuses on the *technical implementation*.
-    -   How are spheres, lines, and text *drawn* using React Three Fiber and Three.js?
+    -   How are spheres, lines, and text *drawn* using React Three Fibre and Three.js?
     -   What specific components (`GraphCanvas`, `GraphManager`, `TextRenderer`) are involved?
     -   What techniques (instanced rendering, shaders like `HologramMaterial.tsx`) are used for performance and visual effects?
     -   The *mechanics* of putting pixels on the screen.
     -   How does `GraphDataManager` coordinate data flow from WebSocket to rendering components?
 
 In essence, `visualisation.md` is about the "language" of the visual representation, while `rendering.md` is about the "grammar and tools" used to speak that language.
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

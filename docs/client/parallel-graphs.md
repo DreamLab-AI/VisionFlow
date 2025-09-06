@@ -1,12 +1,14 @@
 # Parallel Graphs Feature
 
+*[Client](../index.md)*
+
 The parallel graphs feature enables simultaneous visualisation of multiple graph data sources with independent visual configurations.
 
 This document provides comprehensive documentation for the parallel graphs feature that enables simultaneous visualisation of multiple graph data sources with independent visual configurations.
 
 ## Overview
 
-The parallel graphs feature allows the application to visualize multiple graph data sources simultaneously, each with its own independent visual theme and physics configuration. This enables side-by-side comparison and analysis of different knowledge graphs.
+The parallel graphs feature allows the application to visualise multiple graph data sources simultaneously, each with its own independent visual theme and physics configuration. This enables side-by-side comparison and analysis of different knowledge graphs.
 
 ## Architecture
 
@@ -269,7 +271,7 @@ wsManager.subscribe('visionflow-updates', (data) => {
 
 1. **Dynamic Graph Addition**: Add new graph types at runtime
 2. **Graph Merging**: Combine multiple graphs into one
-3. **Cross-Graph Links**: Visualize relationships between graphs
+3. **Cross-Graph Links**: Visualise relationships between graphs
 4. **Graph Diffing**: Highlight differences between graphs
 
 ### Extensibility
@@ -327,3 +329,25 @@ graphManager.getPerformanceStats(GraphType.LOGSEQ);
 // Export graph state
 graphManager.exportState(GraphType.VISIONFLOW);
 ```
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

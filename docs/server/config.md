@@ -1,5 +1,7 @@
 # Configuration Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 The configuration module manages application settings, environment variables, and feature flags.
 
@@ -11,7 +13,7 @@ The primary configuration struct is `Settings`, defined in [`src/config/mod.rs`]
 ```rust
 // In src/config/mod.rs
 pub struct Settings {
-    pub visualization: VisualizationSettings,
+    pub visualisation: VisualizationSettings,
     pub system: ServerSystemConfigFromFile, // Contains network, websocket, security, debug
     pub xr: XRSettings,
     pub auth: AuthSettings,
@@ -25,7 +27,7 @@ pub struct Settings {
 ```
 
 #### Main Categories in `Settings`:
--   **`visualization: VisualizationSettings`**: Configures 3D graph rendering, physics, animations, labels, bloom, and hologram effects. Contains nested structs like `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, etc.
+-   **`visualisation: VisualizationSettings`**: Configures 3D graph rendering, physics, animations, labels, bloom, and hologram effects. Contains nested structs like `NodeSettings`, `EdgeSettings`, `PhysicsSettings`, etc.
 -   **`system: ServerSystemConfigFromFile`**: Contains core server system settings:
     -   `network: NetworkSettings` (e.g., `bind_address`, `port`, `enable_tls`)
     -   `websocket: ServerFullWebSocketSettings` (e.g., `binary_chunk_size`, `update_rate`, `compression_enabled`, `min_update_rate`, `max_update_rate`, `motion_threshold`)
@@ -144,7 +146,7 @@ The client communicates settings updates through a comprehensive payload structu
 ```rust
 #[derive(Deserialize, Debug, Default, Clone)]
 pub struct ClientSettingsPayload {
-    pub visualization: Option<ClientVisualizationSettings>,
+    pub visualisation: Option<ClientVisualizationSettings>,
     pub system: Option<ClientSystemSettings>,
     pub xr: Option<ClientXRSettings>,
     pub auth: Option<ClientAuthSettings>,
@@ -161,7 +163,7 @@ The system handles automatic conversion between:
 - **Server Format**: snake_case Rust structs
 - **UI Settings**: Subset of settings safe for client display
 
-### Settings Synchronization
+### Settings Synchronisation
 Users with `settings_sync` permission can store and retrieve their settings across devices:
 - Settings are stored per user (by Nostr pubkey)
 - Power users can modify global server settings
@@ -197,3 +199,24 @@ Users with `settings_sync` permission can store and retrieve their settings acro
 5. **Backwards Compatibility**: Handle missing optional fields gracefully
 6. **Performance**: Cache frequently accessed settings
 7. **Security**: Validate all client-provided settings before applying
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)

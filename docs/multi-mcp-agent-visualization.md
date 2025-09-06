@@ -1,6 +1,6 @@
-# Multi-MCP Agent Visualization System
+# Multi-MCP Agent Visualisation System
 
-A comprehensive agent discovery, monitoring, and visualization system for multiple MCP (Model Context Protocol) servers including Claude Flow, RuvSwarm, and DAA (Decentralized Autonomous Agents).
+A comprehensive agent discovery, monitoring, and visualisation system for multiple MCP (Model Context Protocol) servers including Claude Flow, RuvSwarm, and DAA (Decentralized Autonomous Agents).
 
 ## 🚀 Overview
 
@@ -8,7 +8,7 @@ This system provides:
 
 - **Multi-Server Discovery**: Automatically discovers agents across Claude Flow, RuvSwarm, DAA, and custom MCP servers
 - **Real-time Monitoring**: Continuous monitoring of agent status, performance, and interactions
-- **Topology Visualization**: Supports hierarchical, mesh, ring, and star topologies with 3D positioning
+- **Topology Visualisation**: Supports hierarchical, mesh, ring, and star topologies with 3D positioning
 - **Performance Analytics**: Comprehensive metrics, bottleneck detection, and trend analysis  
 - **WebSocket Streaming**: Real-time updates to VisionFlow graph renderer
 - **Neural Tracking**: Monitors neural agent learning, adaptation, and cognitive patterns
@@ -48,20 +48,20 @@ This system provides:
 - Provides unified agent status aggregation
 - Supports server-specific configurations
 
-#### 2. Topology Visualization Engine (`topology_visualization_engine.rs`)
+#### 2. Topology Visualisation Engine (`topology_visualization_engine.rs`)
 - Generates 3D layouts for different topology types
 - Calculates agent positioning and connections
-- Provides performance metrics and optimization suggestions
+- Provides performance metrics and optimisation suggestions
 - Supports dynamic layout updates
 
-#### 3. Enhanced Visualization Protocol (`agent_visualization_protocol.rs`)
+#### 3. Enhanced Visualisation Protocol (`agent_visualization_protocol.rs`)
 - Defines comprehensive data structures for multi-MCP environments
 - Supports differential updates for performance
 - Handles neural agent data and learning events
 - Provides filtering and subscription management
 
-#### 4. Multi-MCP Visualization Actor (`multi_mcp_visualization_actor.rs`)
-- Coordinates all visualization components
+#### 4. Multi-MCP Visualisation Actor (`multi_mcp_visualization_actor.rs`)
+- Coordinates all visualisation components
 - Manages WebSocket client connections
 - Provides real-time streaming of agent data
 - Handles legacy compatibility with existing systems
@@ -99,7 +99,7 @@ pub struct MultiMcpAgentStatus {
 - High fault tolerance, moderate coordination overhead
 
 #### Ring
-- Circular arrangement with neighbor connections
+- Circular arrangement with neighbour connections
 - Good for pipeline processing
 - Low coordination overhead, limited fault tolerance
 
@@ -207,7 +207,7 @@ let discovery = MultiMcpAgentDiscovery::new();
 discovery.initialize_default_servers().await;
 discovery.start_discovery().await;
 
-// Create visualization actor
+// Create visualisation actor
 let graph_service = GraphServiceActor::new().start();
 let viz_actor = MultiMcpVisualizationActor::new(graph_service).start();
 ```
@@ -232,7 +232,7 @@ let config = McpServerConfig {
 discovery.add_server(config).await;
 ```
 
-### Topology Visualization
+### Topology Visualisation
 
 ```rust
 use visionflow_ext::services::topology_visualization_engine::{
@@ -312,17 +312,17 @@ pub struct SubscriptionFilters {
 }
 ```
 
-## 📈 Performance Optimization
+## 📈 Performance Optimisation
 
 ### Discovery Service
 - Configurable polling intervals per server
 - Retry logic with exponential backoff
 - Connection pooling and health monitoring
-- Differential updates to minimize bandwidth
+- Differential updates to minimise bandwidth
 
-### Visualization Engine
+### Visualisation Engine
 - Cached layout calculations
-- GPU-optimized positioning algorithms
+- GPU-optimised positioning algorithms
 - Level-of-detail rendering for large swarms
 - Efficient collision detection for force-directed layouts
 
@@ -338,7 +338,7 @@ The system integrates seamlessly with the existing VisionFlow graph renderer:
 
 1. **Data Format**: Uses VisionFlow-compatible JSON structures
 2. **Real-time Updates**: Streams via WebSocket to graph component
-3. **3D Positioning**: Provides optimized coordinates for GPU physics
+3. **3D Positioning**: Provides optimised coordinates for GPU physics
 4. **Visual Hints**: Includes colors, sizes, and animation states
 5. **Interaction Events**: Handles selection, hover, and click events
 
@@ -457,13 +457,26 @@ cargo test
 cargo run --example multi_mcp_integration_demo
 ```
 
-## 📄 License
+## 📄 Licence
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT Licence - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
 - **Claude Flow Team** for MCP protocol specifications
 - **RuvSwarm Project** for distributed agent coordination
-- **VisionFlow** for graph visualization foundation
+- **VisionFlow** for graph visualisation foundation
 - **Actix Web** for WebSocket and actor system capabilities
+
+## Related Topics
+
+- [Claude Flow MCP Integration](server/features/claude-flow-mcp-integration.md)
+- [Docker MCP Integration - Production Deployment Guide](deployment/docker-mcp-integration.md)
+- [MCP Connection Architecture](architecture/mcp_connection.md)
+- [MCP Integration Architecture](architecture/mcp-integration.md)
+- [MCP Integration](server/mcp-integration.md)
+- [MCP Tool Integration Analysis](technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](architecture/mcp-websocket-relay.md)
+- [Multi-MCP Agent Visualisation API Reference](api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](MCP_AGENT_VISUALIZATION.md)
+- [VisionFlow MCP Integration Documentation](api/mcp/index.md)

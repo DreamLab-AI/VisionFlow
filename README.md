@@ -4,7 +4,7 @@
 
 ![Runtime Old Screenshot](./jarvisOld.png)
 
-**Experience the future of knowledge management:** Real-time 3D visualization of AI agent swarms working alongside your Logseq knowledge graph.
+**Experience the future of knowledge management:** Real-time 3D visualisation of AI agent swarms working alongside your Logseq knowledge graph.
 
 **Inspired by the innovative work of Prof. Rob Aspin:** [https://github.com/trebornipsa](https://github.com/trebornipsa)
 
@@ -317,14 +317,14 @@ docker-compose -f docker-compose.dev.yml up
 
 ## 📚 Documentation Hub
 
-Comprehensive documentation is available to get you started:
+Comprehensive documentation is now organised in the new docs/ structure:
 
-- **[📚 Complete Documentation](docs/index.md)** - Comprehensive guide to all features
-- **[🏗️ Architecture Overview](docs/architecture/system-overview.md)** - System design and components
-- **[🚀 Docker Deployment](docs/deployment/docker-mcp-integration.md)** - Production deployment guide
-- **[🔌 API Reference](docs/api/index.md)** - REST and WebSocket APIs
-- **[🧪 Development Setup](docs/development/setup.md)** - Local development environment
-- **[🤝 Contributing Guide](docs/contributing.md)** - Join the development community
+- **[📚 Complete Documentation](docs/)** - Main documentation hub with organised structure
+- **[📖 Guides](docs/guides/)** - User and developer guides, tutorials
+- **[🔧 Technical Documentation](docs/technical/)** - Implementation details and system specs
+- **[📚 Reference Documentation](docs/reference/)** - API docs and configuration reference
+- **[🏗️ Architecture](docs/architecture/)** - System design and architectural decisions
+- **[📦 Archive](docs/archive/)** - Historical documentation and legacy content
 
 ---
 
@@ -387,12 +387,13 @@ This project is licenced under the MIT Licence. See the [LICENSE](LICENSE) file 
 *VisionFlow - Visualising the future of AI multi-agent systems* 🚀
 ## 📚 Documentation
 
-The complete documentation has been organised and is available in `/workspace/docs/`:
+The complete documentation is organised in the new structured format:
 
-- **[Getting Started Guide](/workspace/docs/getting-started/)** - Installation, quickstart, and configuration
-- **[API Documentation](/workspace/docs/api/)** - REST, WebSocket, and MCP integration details
-- **[Technical Documentation](/workspace/docs/technical/)** - Architecture and implementation details
-- **[Server Documentation](/workspace/docs/server/)** - Backend systems and GPU compute
+- **[📚 Documentation Hub](docs/)** - Central documentation index with organised structure
+- **[📖 Getting Started](docs/guides/)** - Installation, quickstart, and configuration guides
+- **[🔧 Technical Details](docs/technical/)** - Implementation details and system specifications
+- **[📚 API Reference](docs/reference/)** - REST, WebSocket, and agent documentation
+- **[🏗️ Architecture](docs/architecture/)** - System design and architectural decisions
 
 ## 🛠️ Development Status
 
@@ -410,8 +411,8 @@ VisionFlow is in active development with regular updates to both functionality a
 
 We welcome contributions! Please see our [Contributing Guide](/workspace/docs/development/contributing.md) for details on how to get involved.
 
-## 📄 License
+## 📄 Licence
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT Licence - see the [LICENSE](LICENSE) file for details.
 
 ---

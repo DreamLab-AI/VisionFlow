@@ -1,5 +1,7 @@
 # Debug System Architecture
 
+*[Development](../index.md)*
+
 ## Overview
 
 This document outlines the debug system architecture for our application, featuring a clean client-server separation design. The system uses localStorage for client-side debugging controls and environment variables for server-side configuration, ensuring clear separation of concerns and optimal performance.
@@ -10,7 +12,7 @@ This document outlines the debug system architecture for our application, featur
 - **No Backend Pollution**: Client debug state never affects server operations
 - **Instant Control**: Client-side debugging provides immediate feedback
 - **Persistent Configuration**: Server-side settings persist across deployments
-- **Development-First**: Optimized for developer experience and productivity
+- **Development-First**: Optimised for developer experience and productivity
 
 ## Architecture Design
 
@@ -34,7 +36,7 @@ This document outlines the debug system architecture for our application, featur
 
 - **Performance**: No network overhead for debug toggles
 - **Security**: Sensitive server logs never exposed to client
-- **Scalability**: Each system optimized for its specific needs
+- **Scalability**: Each system optimised for its specific needs
 - **Maintainability**: Clear boundaries reduce complexity
 
 ## Client-Side Debug System
@@ -602,7 +604,7 @@ pub fn hot_path_function(&self) -> Result<Data, Error> {
 #### Client-Side Performance
 
 ```javascript
-// Optimize debug checks
+// Optimise debug checks
 class DebugOptimizer {
   constructor() {
     // Cache debug state to avoid localStorage reads
@@ -671,7 +673,7 @@ pub fn set_debug_enabled(enabled: bool) {
 
 2. **Implement Debug Namespaces**
    ```rust
-   // Organize debug logs with structured prefixes
+   // Organise debug logs with structured prefixes
    debug!(target: "auth::login", "User login attempt: {}", user_id);
    debug!(target: "database::query", "Executing query: {}", sql);
    debug!(target: "cache::operations", "Cache hit for key: {}", key);
@@ -797,7 +799,7 @@ pub fn set_debug_enabled(enabled: bool) {
 
 This debug system has evolved from simple console.log statements and basic server logging to a sophisticated, production-ready architecture. The current implementation represents best practices learned from:
 
-- **Performance Optimization**: Moving from runtime debug checks to cached states
+- **Performance Optimisation**: Moving from runtime debug checks to cached states
 - **Security Hardening**: Separating client and server debug contexts
 - **Developer Experience**: Creating intuitive control panels and clear debug APIs
 - **Operational Excellence**: Integrating with monitoring and deployment systems
@@ -807,3 +809,14 @@ The architecture is designed to scale with application growth while maintaining 
 ---
 
 *This documentation is part of the comprehensive development guide and should be updated as the debug system evolves.*
+
+## Related Topics
+
+- [Developer Configuration System](../DEV_CONFIG.md)
+- [Development Documentation](../development/index.md)
+- [Testing Documentation](../development/testing.md)
+- [VisionFlow Development Setup Guide](../development/setup.md)
+- [VisionFlow Documentation](../index.md)
+- [Vite Development Routing Configuration Explained](../VITE_DEV_ROUTING_EXPLAINED.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [ops-cicd-github](../reference/agents/devops/ci-cd/ops-cicd-github.md)

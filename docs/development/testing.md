@@ -1,5 +1,7 @@
 # Testing Documentation
 
+*[Development](../index.md)*
+
 ## Overview
 
 LogseqSpringThing uses a comprehensive testing strategy covering unit tests, integration tests, and end-to-end tests across both Rust server and TypeScript client codebases.

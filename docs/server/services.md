@@ -1,5 +1,7 @@
 # Services Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 
 The services layer provides core business logic, external integrations, and data processing capabilities. VisionFlow uses a hybrid architecture combining traditional services (Arc-wrapped) with actor-based state management for optimal performance and maintainability.
@@ -663,7 +665,7 @@ impl From<GitHubError> for ServiceError {
 }
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Service Caching
 

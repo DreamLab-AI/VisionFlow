@@ -1,5 +1,7 @@
 # Decoupled Graph Architecture
 
+*[Technical](../index.md)*
+
 ## Overview
 
 The LogseqXR graph architecture has been modernized to decouple graph initialisation and physics processing from client connections. This document outlines the new architecture and explains the key components and their interactions.
@@ -41,7 +43,7 @@ sequenceDiagram
     
     Client->>Server: Connect via WebSocket
     Server->>Client: Send pre-computed graph state
-    GraphService-->>Client: Stream position updates
+    GraphService --> >Client: Stream position updates
 ```
 
 ### 2. Continuous Force-Directed Layout
@@ -52,7 +54,7 @@ The server now maintains a continuous physics simulation:
 - Reduced initial loading time for clients as layout is pre-calculated
 - Physics simulation stabilizes over time, creating a more balanced visualisation
 
-### 3. Bidirectional Synchronization
+### 3. Bidirectional Synchronisation
 
 The new architecture supports true bidirectional updates:
 
@@ -73,7 +75,7 @@ sequenceDiagram
     Server->>ClientB: Broadcast position update
 ```
 
-### 4. Optimized Data Transfer
+### 4. Optimised Data Transfer
 
 The system includes several optimisations:
 
@@ -114,3 +116,31 @@ When a client connects:
 - Conflict resolution for simultaneous node edits
 - Region-based updates for very large graphs
 - Client-specific view customizations
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

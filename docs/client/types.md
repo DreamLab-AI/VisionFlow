@@ -1,5 +1,7 @@
 # Client TypeScript Types
 
+*[Client](../index.md)*
+
 This document provides a summary of the key data structures used in the client application. While this document is a helpful reference, **the TypeScript source files are the single source of truth.**
 
 ## 1. Settings
@@ -81,3 +83,25 @@ export interface BinaryNodeData {
 -   **Total Size**: Each `BinaryNodeData` object is **28 bytes**.
 -   **Type Flags**: The `nodeId` is a `u32` integer where the highest two bits are used as flags to distinguish between node types (e.g., `AGENT_NODE_FLAG`, `KNOWLEDGE_NODE_FLAG`). The actual ID is extracted using a bitmask (`NODE_ID_MASK`). This allows the client to handle different types of nodes from the same binary stream.
 -   **Parsing**: The file provides `parseBinaryNodeData` and `createBinaryNodeData` functions for serializing and deserializing this data.
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

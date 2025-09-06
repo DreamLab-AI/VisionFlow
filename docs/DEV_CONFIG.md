@@ -37,7 +37,7 @@ let max_nodes = dev_config::cuda().max_nodes;
 ### Configuration Sections
 
 #### Physics
-Controls force calculations, boundary behavior, node distribution, and clustering:
+Controls force calculations, boundary behaviour, node distribution, and clustering:
 - `force_epsilon` - Prevents division by zero in force calculations
 - `spring_length_multiplier` - Natural spring length calculation
 - `boundary_extreme_multiplier` - When nodes are considered "extreme"
@@ -60,7 +60,7 @@ Connection pooling, circuit breakers, and retry logic:
 
 #### Rendering
 Visual appearance and animations:
-- `agent_colors` - Color scheme for different agent types
+- `agent_colors` - Colour scheme for different agent types
 - `agent_base_size` - Base size for agents
 - `animation speeds` - Pulse, rotate, glow speeds
 - `lod_distance_*` - Level of detail thresholds
@@ -93,7 +93,7 @@ Development and debugging flags:
 
 ## Best Practices
 
-1. **Group related settings** - Keep settings organized by purpose
+1. **Group related settings** - Keep settings organised by purpose
 2. **Document units** - Always specify ms, secs, MB, etc.
 3. **Provide sensible defaults** - System should work without config file
 4. **Use static access** - Config is loaded once for performance
@@ -114,14 +114,14 @@ When you find hardcoded values in the code:
 ```rust
 const MIN_DISTANCE: f32 = 0.15;
 const MAX_NODES: u32 = 1_000_000;
-let color = "#00FFFF"; // coordinator color
+let colour = "#00FFFF"; // coordinator colour
 ```
 
 ### After:
 ```rust
 let min_distance = dev_config::physics().min_distance;
 let max_nodes = dev_config::cuda().max_nodes;
-let color = &dev_config::rendering().agent_colors.coordinator;
+let colour = &dev_config::rendering().agent_colors.coordinator;
 ```
 
 ## Performance Considerations
@@ -139,3 +139,13 @@ Potential improvements:
 - Environment variable overrides
 - Per-graph type configurations
 - A/B testing different configurations
+
+## See Also
+
+- [Configuration Guide](getting-started/configuration.md)
+- [Getting Started with VisionFlow](getting-started/index.md)
+- [Guides](guides/README.md)
+- [Installation Guide](getting-started/installation.md)
+- [Quick Start Guide](getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](guides/quick-start.md)
+- [VisionFlow Settings System Guide](guides/settings-guide.md)

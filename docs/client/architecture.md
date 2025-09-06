@@ -1,5 +1,7 @@
 # Client Architecture
 
+*[Client](../index.md)*
+
 This document provides a detailed overview of the client application's architecture, initialization sequence, and data flow.
 
 ## Core Principles
@@ -8,7 +10,7 @@ The client is a sophisticated TypeScript and React application built for high-pe
 - **Modular Design**: Features are encapsulated in specific directories (e.g., `features/xr`, `features/analytics`).
 - **Centralized State Management**: Zustand is used for predictable and efficient global state management.
 - **Asynchronous Initialization**: A dedicated initialiser component manages the loading of services and data to ensure the application starts reliably.
-- **Component-Based Rendering**: The UI is built with React, and the 3D scene is managed by React Three Fiber.
+- **Component-Based Rendering**: The UI is built with React, and the 3D scene is managed by React Three Fibre.
 
 ## Application Entry Point and Initialization
 
@@ -104,3 +106,50 @@ The application follows a clear, unidirectional data flow:
 3.  **State Propagation**: `GraphDataManager` processes the updates and manages the graph's state.
 4.  **Rendering**: The `GraphManager` component subscribes to `GraphDataManager` and `SettingsStore`. When data in these stores changes, it re-renders the nodes and edges in the 3D scene with the updated positions and visual styles.
 5.  **User Interaction**: UI components like `RightPaneControlPanel` allow users to modify settings. These interactions call actions on the `SettingsStore`, which updates its state and triggers a re-render of any subscribed components.
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

@@ -166,7 +166,7 @@ pub struct NodeSettings {
 
 ### 4.3 Validation Functions
 
-- `validate_hex_color()` - Ensures valid hex color format
+- `validate_hex_color()` - Ensures valid hex colour format
 - `validate_width_range()` - Validates 2-element ranges with proper min/max
 - `validate_port()` - Ensures port numbers are valid (1-65535)
 - `validate_percentage()` - Ensures values are 0-100%
@@ -262,7 +262,7 @@ pub struct AppFullSettings {
 }
 ```
 
-### 6.2 Visualization Settings Breakdown
+### 6.2 Visualisation Settings Breakdown
 
 ```rust
 pub struct VisualisationSettings {
@@ -357,7 +357,7 @@ pub struct RenderingSettings {
 
 ## 9. Conclusion
 
-The settings refactor represents a sophisticated solution to the snake_case ↔ camelCase bridge problem. The core innovation is the use of `#[serde(rename_all = "camelCase")]` on all settings structs, combined with the PathAccessible trait for performance optimization.
+The settings refactor represents a sophisticated solution to the snake_case ↔ camelCase bridge problem. The core innovation is the use of `#[serde(rename_all = "camelCase")]` on all settings structs, combined with the PathAccessible trait for performance optimisation.
 
 **Key Achievements:**
 - ✅ Eliminated ~90% CPU overhead from JSON serialization
@@ -375,4 +375,32 @@ The "missing field ambientLightIntensity" error likely stems from the config cra
 3. Verify environment variable naming and conflicts
 4. Consider simplifying the loading process to rely primarily on direct serde deserialization
 
-This architecture demonstrates excellent software engineering practices, with clear separation of concerns, comprehensive validation, and performance optimization while maintaining type safety and maintainability.
+This architecture demonstrates excellent software engineering practices, with clear separation of concerns, comprehensive validation, and performance optimisation while maintaining type safety and maintainability.
+
+## Related Topics
+
+- [Agent Visualisation Architecture](agent-visualization-architecture.md)
+- [Architecture Documentation](architecture/README.md)
+- [Architecture Migration Guide](architecture/migration-guide.md)
+- [Bots Visualisation Architecture](architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](architecture/claude-flow-actor.md)
+- [Client Architecture](client/architecture.md)
+- [Decoupled Graph Architecture](technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](architecture/mcp_connection.md)
+- [MCP Integration Architecture](architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](architecture/parallel-graphs.md)
+- [Server Architecture](server/architecture.md)
+- [VisionFlow Component Architecture](architecture/components.md)
+- [VisionFlow Data Flow Architecture](architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](architecture/index.md)
+- [VisionFlow System Architecture](architecture/system-overview.md)
+- [arch-system-design](reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](reference/agents/sparc/architecture.md)

@@ -1,8 +1,10 @@
 # Semantic Analysis Pipeline
 
+*[Server](../index.md) > [Features](../server/features/index.md)*
+
 ## Introduction
 
-The goal of the semantic analysis pipeline is to enrich the knowledge graph with a deeper layer of meaning, creating a more insightful and organized visualization. Instead of relying solely on the explicit links defined in the source data, this pipeline analyzes the content and structure of the graph to infer semantic relationships.
+The goal of the semantic analysis pipeline is to enrich the knowledge graph with a deeper layer of meaning, creating a more insightful and organised visualisation. Instead of relying solely on the explicit links defined in the source data, this pipeline analyzes the content and structure of the graph to infer semantic relationships.
 
 This process is broken down into a three-stage pipeline that progressively adds semantic richness to the graph.
 
@@ -55,7 +57,33 @@ graph TD
 ### 3. Constraint Generation (`semantic_constraints.rs`)
 -   **File**: `semantic_constraints.rs`
 -   **Description**: The final stage uses the `SemanticFeatures` to create dynamic constraints for the physics engine. This is a crucial step that translates the abstract semantic information into a tangible impact on the graph's visual layout.
--   **Process**: The `GraphServiceActor` uses this module to generate forces that organize the graph in a semantically meaningful way. For example:
+-   **Process**: The `GraphServiceActor` uses this module to generate forces that organise the graph in a semantically meaningful way. For example:
     -   Nodes that share the same `KnowledgeDomain` are given an attractive force, pulling them together into visual clusters.
     -   Nodes with very different topics might be given a gentle repulsive force to ensure they are visually separated.
--   **Outcome**: The result is a graph layout where the spatial proximity of nodes directly reflects their semantic similarity, making the visualization more intuitive and easier to interpret.
+-   **Outcome**: The result is a graph layout where the spatial proximity of nodes directly reflects their semantic similarity, making the visualisation more intuitive and easier to interpret.
+
+## Related Topics
+
+- [AI Services Documentation](../../server/ai-services.md)
+- [Actor System](../../server/actors.md)
+- [Adaptive Balancing](../../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../../server/config.md)
+- [Feature Access Control](../../server/feature-access.md)
+- [Features Documentation](../../features/index.md)
+- [GPU Compute Architecture](../../server/gpu-compute.md)
+- [GPU-Accelerated Analytics](../../client/features/gpu-analytics.md)
+- [Graph Clustering](../../server/features/clustering.md)
+- [MCP Integration](../../server/mcp-integration.md)
+- [Multi Agent Orchestration](../../server/agent-swarm.md)
+- [Neural Auto-Balance Feature](../../features/AUTO_BALANCE.md)
+- [Ontology Validation](../../server/features/ontology.md)
+- [Physics Engine](../../server/physics-engine.md)
+- [Request Handlers Architecture](../../server/handlers.md)
+- [Server Architecture](../../server/architecture.md)
+- [Server Documentation](../../server/index.md)
+- [Server-Side Data Models](../../server/models.md)
+- [Services Architecture](../../server/services.md)
+- [Types Architecture](../../server/types.md)
+- [Utilities Architecture](../../server/utils.md)

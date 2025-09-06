@@ -1,5 +1,7 @@
 # Multi Agent Orchestration
 
+*[Server](../index.md)*
+
 ## Overview
 
 VisionFlow orchestrates AI Multi Agents through direct integration with Claude Flow's Model Context Protocol (MCP). This enables spawning, coordinating, and visualising autonomous AI agents working collaboratively on complex tasks.
@@ -25,9 +27,9 @@ graph LR
         POOL --> LLM[LLM APIs]
     end
 
-    subgraph "Visualization"
+    subgraph "Visualisation"
         GPU --> |Binary Stream| WS[WebSocket]
-        WS --> |60 FPS| V3D[3D Visualization]
+        WS --> |60 FPS| V3D[3D Visualisation]
     end
 ```
 
@@ -84,8 +86,8 @@ Orchestrates the multi-agent and delegates tasks.
 - Progress monitoring
 - Result aggregation
 
-**Node Visualization**:
-- Color: Purple (#8B5CF6)
+**Node Visualisation**:
+- Colour: Purple (#8B5CF6)
 - Size: 2x standard
 - Icon: Crown
 
@@ -98,8 +100,8 @@ Gathers information and analyzes requirements.
 - Knowledge synthesis
 - Requirement extraction
 
-**Node Visualization**:
-- Color: Blue (#3B82F6)
+**Node Visualisation**:
+- Colour: Blue (#3B82F6)
 - Size: 1.5x standard
 - Icon: Magnifying glass
 
@@ -112,8 +114,8 @@ Implements solutions and writes code.
 - Database design
 - Integration work
 
-**Node Visualization**:
-- Color: Green (#10B981)
+**Node Visualisation**:
+- Colour: Green (#10B981)
 - Size: Standard
 - Icon: Code brackets
 
@@ -126,8 +128,8 @@ Designs system architecture and patterns.
 - Component architecture
 - Technology decisions
 
-**Node Visualization**:
-- Color: Orange (#F97316)
+**Node Visualisation**:
+- Colour: Orange (#F97316)
 - Size: 1.5x standard
 - Icon: Blueprint
 
@@ -140,8 +142,8 @@ Validates implementations and quality.
 - Performance testing
 - Bug detection
 
-**Node Visualization**:
-- Color: Red (#EF4444)
+**Node Visualisation**:
+- Colour: Red (#EF4444)
 - Size: Standard
 - Icon: Checkmark
 
@@ -284,7 +286,7 @@ impl ClaudeFlowActor {
 }
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Batched Updates
 Agent updates are batched to reduce message overhead:

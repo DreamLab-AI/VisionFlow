@@ -2,7 +2,7 @@
 
 ## Problem Overview
 
-The knowledge graph visualization system can enter a deadlock state where all nodes become stuck at the boundary positions (typically around 980 units from center). This creates a perfect symmetry that prevents any movement, despite the physics simulation running.
+The knowledge graph visualisation system can enter a deadlock state where all nodes become stuck at the boundary positions (typically around 980 units from centre). This creates a perfect symmetry that prevents any movement, despite the physics simulation running.
 
 ### Symptoms of Deadlock
 - All 177 nodes positioned exactly at boundary distance
@@ -131,7 +131,7 @@ The system provides detailed logging:
 1. **Adaptive Perturbation**: Scale perturbation strength based on deadlock severity
 2. **Predictive Detection**: Detect approaching deadlock before it occurs
 3. **Machine Learning**: Learn optimal recovery parameters from successful recoveries
-4. **Visualization**: Add visual indicators for deadlock states and recovery progress
+4. **Visualisation**: Add visual indicators for deadlock states and recovery progress
 
 ## Summary
 

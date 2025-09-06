@@ -1,5 +1,7 @@
 # Installation Guide
 
+*[Getting-Started](../index.md)*
+
 This comprehensive guide covers everything you need to install and configure VisionFlow, from basic setup to advanced GPU-accelerated deployments.
 
 ## Prerequisites
@@ -539,7 +541,7 @@ nvidia-smi -l 1
 # Test network latency
 ping localhost
 
-# Optimize network settings
+# Optimise network settings
 NET_CORE_RMEM_MAX=134217728
 NET_CORE_WMEM_MAX=134217728
 
@@ -596,3 +598,10 @@ If you encounter issues during installation:
 ---
 
 **Installation complete!** VisionFlow is now ready to visualise your knowledge graphs and AI agent interactions.
+
+## Related Topics
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Quick Start Guide](../getting-started/quickstart.md)

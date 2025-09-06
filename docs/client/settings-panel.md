@@ -1,15 +1,17 @@
 # Settings Panel
 
+*[Client](../index.md)*
+
 This document describes the redesigned, fully functional settings panel and its underlying architecture.
 
 ## Overview
 
-The settings panel provides a user-friendly interface for configuring all aspects of the application's visualisation and behaviour. It is organized, responsive, and provides real-time feedback.
+The settings panel provides a user-friendly interface for configuring all aspects of the application's visualisation and behaviour. It is organised, responsive, and provides real-time feedback.
 
 ## Design Principles
 
-### 1. **Tabbed Organization**
-Settings are organized into logical tabs for clarity:
+### 1. **Tabbed Organisation**
+Settings are organised into logical tabs for clarity:
 - **Appearance**: Visual customisation (nodes, edges, labels, effects)
 - **Performance**: Quality and optimisation settings
 - **XR/VR**: Virtual and augmented reality configuration
@@ -61,3 +63,37 @@ This Zustand-based store is the single source of truth for all application setti
 - **Multi-Graph Support**: Manages separate configuration trees for different graph visualisations (e.g., `visualisation.graphs.logseq` and `visualisation.graphs.visionflow`).
 
 All UI components, including the settings panel, interact exclusively with this unified store, ensuring that the application state is always consistent and reliable.
+
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

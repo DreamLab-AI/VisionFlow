@@ -1,5 +1,7 @@
 # Server-Side Data Models
 
+*[Server](../index.md)*
+
 This document outlines the core data structures (models) used on the server-side of the LogseqXR application. These models define how data is structured, stored, and manipulated.
 
 ## Simulation Parameters (`SimulationParams`)
@@ -45,7 +47,7 @@ The struct uses `repulsion` as the field name for repulsive force strength.
 
 ### Usage
 -   Configuring the physics engine for graph layout.
--   Allowing real-time adjustment of simulation behavior.
+-   Allowing real-time adjustment of simulation behaviour.
 -   Defining boundary conditions for the simulation space.
 
 ## UI Settings (`UserSettings` and `UISettings`)
@@ -289,3 +291,24 @@ Data models are designed to be serializable and deserializable using `serde` for
 
 ### Validation
 Validation logic is typically implemented within the services that manage these models or during the deserialization process (e.g., using `serde` attributes or custom validation functions).
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)

@@ -1,5 +1,7 @@
 # Development Documentation
 
+*[Development](../index.md)*
+
 Welcome to the VisionFlow development documentation. This section covers everything you need to know to set up a development environment, contribute code, and debug issues.
 
 ## Quick Start for Developers
@@ -54,7 +56,7 @@ npm run dev
 
 ### Frontend (TypeScript/React)
 - **Framework**: React 18
-- **3D Graphics**: Three.js, React Three Fiber
+- **3D Graphics**: Three.js, React Three Fibre
 - **State Management**: Zustand
 - **WebSocket**: Native WebSocket API
 - **Build Tool**: Vite
@@ -74,14 +76,14 @@ flowchart LR
     B --> C[Make Changes]
     C --> D[Run Tests]
     D --> E{Tests Pass?}
-    E -->|No| C
-    E -->|Yes| F[Commit]
+    E --> |No| C
+    E --> |Yes| F[Commit]
     F --> G[Push Branch]
     G --> H[Create PR]
     H --> I[Code Review]
     I --> J{Approved?}
-    J -->|No| C
-    J -->|Yes| K[Merge]
+    J --> |No| C
+    J --> |Yes| K[Merge]
 ```
 
 ## Key Development Areas
@@ -215,3 +217,19 @@ localStorage.setItem('debug', 'true');
 ---
 
 [← Back to Documentation](../README.md) | [Development Setup →](setup.md)
+## Documents
+
+- [Debug System Architecture](./debugging.md)
+- [VisionFlow Development Setup Guide](./setup.md)
+- [Testing Documentation](./testing.md)
+
+
+## Related Topics
+
+- [Debug System Architecture](../development/debugging.md)
+- [Developer Configuration System](../DEV_CONFIG.md)
+- [Testing Documentation](../development/testing.md)
+- [VisionFlow Development Setup Guide](../development/setup.md)
+- [Vite Development Routing Configuration Explained](../VITE_DEV_ROUTING_EXPLAINED.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [ops-cicd-github](../reference/agents/devops/ci-cd/ops-cicd-github.md)

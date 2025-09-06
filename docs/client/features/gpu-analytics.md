@@ -1,14 +1,16 @@
 # GPU-Accelerated Analytics
 
-This document describes the client-side implementation for triggering and visualizing GPU-accelerated graph analytics, specifically the Single-Source Shortest Path (SSSP) feature.
+*[Client](../index.md) > [Features](../client/features/index.md)*
+
+This document describes the client-side implementation for triggering and visualising GPU-accelerated graph analytics, specifically the Single-Source Shortest Path (SSSP) feature.
 
 ## Overview
 
-The client provides an interface to compute and visualize the shortest paths from a selected source node to all other nodes in the graph. While the heavy computation is offloaded to the backend, potentially using GPU acceleration (e.g., CUDA), the client is responsible for:
+The client provides an interface to compute and visualise the shortest paths from a selected source node to all other nodes in the graph. While the heavy computation is offloaded to the backend, potentially using GPU acceleration (e.g., CUDA), the client is responsible for:
 1.  Providing a user interface to configure and trigger the analysis.
 2.  Managing the state of the request (loading, error, success).
 3.  Storing and caching the results.
-4.  Visualizing the results by colour-coding nodes in the graph.
+4.  Visualising the results by colour-coding nodes in the graph.
 
 ## UI Component: `ShortestPathControls.tsx`
 
@@ -34,7 +36,7 @@ The state for the analytics feature is managed by a dedicated Zustand store defi
 ### Actions
 -   `computeSSSP(...)`: The core action that triggers the analysis. It first checks the cache for a valid result. If a cached result is not found, it proceeds to compute the shortest paths.
 -   `clearResults()`: Resets `currentResult` and `error` to their initial states, effectively clearing the visualisation.
--   `normalizeDistances(...)`: A helper function to normalize the path distances to a 0-1 range, useful for visualisation.
+-   `normalizeDistances(...)`: A helper function to normalise the path distances to a 0-1 range, useful for visualisation.
 -   `getUnreachableNodes(...)`: A helper to get a list of nodes that are not reachable from the source.
 
 ## API Interaction
@@ -47,7 +49,7 @@ The `computeSSSP` action in `analyticsStore.ts` is expected to call a method lik
 
 ## visualisation
 
-The results of the SSSP analysis are visualized directly on the graph. This is typically handled by `GraphManager.tsx`.
+The results of the SSSP analysis are visualised directly on the graph. This is typically handled by `GraphManager.tsx`.
 
 ### Process
 1.  **Subscription**: `GraphManager.tsx` subscribes to the `useAnalyticsStore`.
@@ -58,3 +60,42 @@ The results of the SSSP analysis are visualized directly on the graph. This is t
     -   **Unreachable Nodes**: A specific colour (e.g., grey or red) to indicate they cannot be reached from the source.
 
 This provides an intuitive and immediate visual representation of the shortest path analysis on the graph.
+
+## Related Topics
+
+- [Adaptive Balancing](../../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../../features/agent-orchestration.md)
+- [CUDA Integration Fix Documentation](../../cuda_integration_fix.md)
+- [CUDA Kernel Parameters Documentation](../../cuda-parameters.md)
+- [CUDA Parameters Integration Documentation](../../cuda_parameters_integration.md)
+- [Claude Flow MCP Integration](../../server/features/claude-flow-mcp-integration.md)
+- [Client Architecture](../../client/architecture.md)
+- [Client Core Utilities and Hooks](../../client/core.md)
+- [Client Rendering System](../../client/rendering.md)
+- [Client TypeScript Types](../../client/types.md)
+- [Client side DCO](../../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../../client/visualization.md)
+- [Command Palette](../../client/command-palette.md)
+- [Features Documentation](../../features/index.md)
+- [GPU Compute Architecture](../../server/gpu-compute.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../../architecture/gpu-compute-improvements.md)
+- [Graph Clustering](../../server/features/clustering.md)
+- [Graph System](../../client/graph-system.md)
+- [Help System](../../client/help-system.md)
+- [Neural Auto-Balance Feature](../../features/AUTO_BALANCE.md)
+- [Onboarding System](../../client/onboarding.md)
+- [Ontology Validation](../../server/features/ontology.md)
+- [Parallel Graphs Feature](../../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Semantic Analysis Pipeline](../../server/features/semantic-analysis.md)
+- [Settings Panel](../../client/settings-panel.md)
+- [State Management](../../client/state-management.md)
+- [UI Component Library](../../client/ui-components.md)
+- [Unified CUDA/PTX Build Process](../../CUDA_PTX_BUILD_PROCESS.md)
+- [Updated GPU Analytics & Visualisation Plan](../../new_cuda.md)
+- [User Controls Summary - Settings Panel](../../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../../client/index.md)
+- [VisionFlow GPU Compute Integration](../../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../../architecture/visionflow-gpu-migration.md)
+- [WebSocket Communication](../../client/websocket.md)
+- [WebXR Integration](../../client/xr-integration.md)

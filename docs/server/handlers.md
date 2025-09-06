@@ -1,8 +1,10 @@
 # Request Handlers Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 
-VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimized for high-performance message passing and concurrent request processing.
+VisionFlow's request handlers provide HTTP and WebSocket endpoints for client interactions, implementing a modern Actor-based architecture with real-time capabilities. All handlers are optimised for high-performance message passing and concurrent request processing.
 
 ## Handler Architecture
 
@@ -80,18 +82,17 @@ sequenceDiagram
 
     Client->>WS: WebSocket Connect
     WS->>CMA: RegisterClient
-    CMA-->>WS: client_id
+    CMA --> >WS: client_id
 
     Client->>WS: "requestInitialData"
     loop Real-time Updates (60 FPS)
         WS->>GSA: GetGraphData
-        GSA-->>WS: Node positions
+        GSA --> >WS: Node positions
         WS->>Client: Binary updates
     end
 
     Client->>WS: Disconnect
-    WS->>CMA: UnregisterClient
-```
+    WS->>CMA: UnregisterClient`
 
 ### Speech Socket Handler
 
@@ -139,7 +140,7 @@ pub mod quest3;       // /api/quest3/*
 web::scope("")
     .configure(files::config)           // File processing
     .configure(graph::config)           // Graph operations
-    .configure(visualisation::config)   // Visualization settings
+    .configure(visualisation::config)   // Visualisation settings
     .configure(bots::config)           // Agent management
     .configure(analytics::config)       // Performance analytics
     .configure(quest3::config)         // VR/AR support
@@ -576,3 +577,17 @@ services:
 - **[Services](./services.md)** - Business logic and external integrations
 - **[Types & Models](./types.md)** - Data structures and message definitions
 - **[WebSocket Protocols](../api/websocket.md)** - Real-time communication specifications
+
+## See Also
+
+- [Analytics API Endpoints](../api/analytics-endpoints.md) - API specification
+- [Graph API Reference](../api/rest/graph.md) - API specification
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md) - API specification
+- [REST API Reference](../api/rest/index.md) - API specification
+- [Settings API Reference](../api/rest/settings.md) - API specification
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md) - API specification
+- [VisionFlow API Documentation](../api/index.md) - API specification
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md) - API specification
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md) - API specification
+- [WebSocket API Reference](../api/websocket.md) - API specification
+- [WebSocket Protocols](../api/websocket-protocols.md) - API specification

@@ -1,5 +1,7 @@
 # Single-Source Shortest Path (SSSP) API
 
+*[Api](../index.md)*
+
 ## Overview
 
 The SSSP API provides GPU-accelerated computation of shortest paths from a source node to all other nodes in the graph. This feature leverages CUDA kernels for high-performance parallel computation on large graphs.
@@ -84,7 +86,7 @@ The algorithm leverages several CUDA optimizations:
 
 - **Atomic operations**: Custom `atomicMinFloat` for thread-safe distance updates
 - **Frontier compaction**: Efficient active node tracking
-- **Memory coalescing**: Optimized memory access patterns
+- **Memory coalescing**: Optimised memory access patterns
 - **Stream processing**: Asynchronous execution with dedicated SSSP stream
 
 ## Integration with Physics Simulation
@@ -208,3 +210,7 @@ curl -X POST http://localhost:8080/api/physics/update \
 3. **Dynamic updates**: Incremental updates when graph changes
 4. **Weighted clustering**: Use shortest path distances for improved clustering
 5. **A* pathfinding**: Add heuristic-based pathfinding for specific targets
+
+## See Also
+
+- [Request Handlers Architecture](../server/handlers.md) - Server implementation

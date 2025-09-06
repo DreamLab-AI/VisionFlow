@@ -1,6 +1,8 @@
 # Graph System
 
-This document provides comprehensive coverage of VisionFlow's graph rendering and visualisation system. Built on React Three Fiber and Three.js, the system is engineered for high performance, supporting real-time physics, advanced visual effects through custom shaders, and a rich, data-driven approach to visualisation.
+*[Client](../index.md)*
+
+This document provides comprehensive coverage of VisionFlow's graph rendering and visualisation system. Built on React Three Fibre and Three.js, the system is engineered for high performance, supporting real-time physics, advanced visual effects through custom shaders, and a rich, data-driven approach to visualisation.
 
 ## System Architecture
 
@@ -198,3 +200,25 @@ This is a custom `THREE.ShaderMaterial` that provides the signature look for the
 -   **Scanlines**: Animated scanlines run across the surface of the nodes, giving them a futuristic, holographic feel.
 -   **Vertex Displacement**: A subtle pulsing effect is applied to the node's vertices for a more organic feel.
 -   **Instancing Support**: The shader is fully compatible with `InstancedMesh`, using `instancecolour` to apply unique colours to each node within the same draw call.
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

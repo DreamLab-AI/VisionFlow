@@ -1,4 +1,4 @@
-# Updated GPU Analytics & Visualization Plan
+# Updated GPU Analytics & Visualisation Plan
 
 **Project:** Advanced GPU Analytics Integration  
 **Status:** SSSP Backend Complete ✅, Frontend In Progress 🔄  
@@ -26,7 +26,7 @@ The GPU-accelerated SSSP algorithm has been successfully implemented on both bac
 - **Integration**: ❌ Not integrated into `GraphAnalysisTab.tsx` yet
 
 #### 🔄 Frontend Remaining (20%)
-- **3D Visualization**: Node coloring by distance (not started)
+- **3D Visualisation**: Node coloring by distance (not started)
 - **Interactive Features**: Right-click context menu (not started)
 - **Command Palette**: SSSP command integration (not started)
 
@@ -53,7 +53,7 @@ The GPU-accelerated SSSP algorithm has been successfully implemented on both bac
    - Connect UI to store
    - Test end-to-end flow
 
-4. **Visualization** (Priority 4)
+4. **Visualisation** (Priority 4)
    - Implement node coloring in GraphManager.tsx
    - Add distance-based visual feedback
 
@@ -115,8 +115,8 @@ curl -X POST http://localhost:4000/api/analytics/shortest-path \
 - Click calculate
 - Verify results display
 
-#### Step 4: Add Visualization
-- Update GraphManager.tsx to color nodes by distance
+#### Step 4: Add Visualisation
+- Update GraphManager.tsx to colour nodes by distance
 - This is where the feature comes alive visually
 
 ### Known Issues
@@ -138,7 +138,7 @@ curl -X POST http://localhost:4000/api/analytics/shortest-path \
 - [`apiService.ts`](client/src/services/apiService.ts) - API client
 - [`analyticsStore.ts`](client/src/features/analytics/store/analyticsStore.ts) - State management
 - [`ShortestPathControls.tsx`](client/src/features/analytics/components/ShortestPathControls.tsx) - UI controls
-- [`GraphManager.tsx`](client/src/features/graph/components/GraphManager.tsx) - 3D visualization
+- [`GraphManager.tsx`](client/src/features/graph/components/GraphManager.tsx) - 3D visualisation
 - [`defaultCommands.ts`](client/src/features/command-palette/defaultCommands.ts) - Command palette
 
 ### Assumptions
@@ -146,7 +146,7 @@ curl -X POST http://localhost:4000/api/analytics/shortest-path \
 - CSR format is directed (undirected edges uploaded twice)  
 - PTX build pipeline is functional and used by GraphServiceActor
 - Disconnected graphs are supported (unreachable nodes handled gracefully)
-- Client uses React, Zustand, React Three Fiber architecture
+- Client uses React, Zustand, React Three Fibre architecture
 
 ---
 
@@ -176,7 +176,7 @@ Build foundational understanding of the algorithm's strategy and value propositi
 #### Use Cases
 - **Knowledge Graph**: Edge weights = semantic similarity, find related concepts
 - **Agent Swarm**: Edge weights = communication latency, find efficient paths
-- **Visualization**: Use distances for meaningful node clustering
+- **Visualisation**: Use distances for meaningful node clustering
 
 ---
 
@@ -755,7 +755,7 @@ async fn test_sssp_invalid_source() {
 
 ---
 
-## Phase 5: Performance Optimization
+## Phase 5: Performance Optimisation
 
 ### 5.1 Device-Side Frontier Compaction (v2)
 
@@ -811,12 +811,12 @@ pub async fn run_sssp_async(&mut self, source: usize) -> Result<()> {
     // Start SSSP computation
     self.launch_sssp_kernels(source, sssp_stream)?;
     
-    // Record event for synchronization
+    // Record event for synchronisation
     let event = Event::new(EventFlags::DEFAULT)?;
     event.record(sssp_stream)?;
     
     // Physics can continue on main stream
-    // Synchronize only when distances needed
+    // Synchronise only when distances needed
     Ok(())
 }
 ```
@@ -826,7 +826,7 @@ pub async fn run_sssp_async(&mut self, source: usize) -> Result<()> {
 ## Phase 6: Client-Side Integration
 
 ### Goal
-Enable the client application to consume the SSSP API and provide interactive visualization of shortest path results in the 3D graph interface.
+Enable the client application to consume the SSSP API and provide interactive visualisation of shortest path results in the 3D graph interface.
 
 ### 6.1 API Service Integration
 
@@ -983,7 +983,7 @@ export function ShortestPathControls() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-centre justify-between">
                     Shortest Path Analysis
                     {ssspResult && (
                         <Badge variant="secondary">
@@ -1021,7 +1021,7 @@ export function ShortestPathControls() {
                 </div>
 
                 {error && (
-                    <div className="flex items-center gap-2 text-destructive text-sm">
+                    <div className="flex items-centre gap-2 text-destructive text-sm">
                         <AlertCircle className="h-4 w-4" />
                         {error}
                     </div>
@@ -1045,7 +1045,7 @@ export function ShortestPathControls() {
 }
 ```
 
-### 6.4 3D Visualization Integration
+### 6.4 3D Visualisation Integration
 
 Location: [`client/src/features/graph/components/GraphManager.tsx`](client/src/features/graph/components/GraphManager.tsx)
 
@@ -1065,10 +1065,10 @@ export function GraphManager({ graphData, settings }: GraphManagerProps) {
         if (!meshRef.current || !graphData) return;
         
         const colors = new Float32Array(graphData.nodes.length * 3);
-        const tempColor = new THREE.Color();
+        const tempColor = new THREE.Colour();
         
         graphData.nodes.forEach((node, i) => {
-            let finalColor = getNodeColor(node); // Default color
+            let finalColor = getNodeColor(node); // Default colour
             
             if (ssspResult && ssspResult.distanceMap) {
                 const distance = ssspResult.distanceMap[node.id];
@@ -1093,7 +1093,7 @@ export function GraphManager({ graphData, settings }: GraphManagerProps) {
                     }
                     finalColor = tempColor;
                 } else {
-                    // Unreachable node - dim gray
+                    // Unreachable node - dim grey
                     tempColor.set('#333333');
                     finalColor = tempColor;
                 }
@@ -1219,16 +1219,16 @@ export const analyticsOnboardingFlow = {
             target: '[data-tour="calculate-button"]',
             title: 'Run Analysis',
             content: 'Click here to start the GPU-accelerated computation. ' +
-                    'Results will be visualized instantly on the graph.',
+                    'Results will be visualised instantly on the graph.',
             placement: 'bottom'
         },
         {
             target: '[data-tour="graph-canvas"]',
             title: 'Visual Results',
-            content: 'Nodes are colored based on their distance from the source: ' +
+            content: 'Nodes are coloured based on their distance from the source: ' +
                     'Green (close) → Yellow → Orange → Red (far). ' +
                     'Gray nodes are unreachable from the source.',
-            placement: 'center'
+            placement: 'centre'
         }
     ]
 };
@@ -1250,17 +1250,17 @@ flowchart TD
         D --> E[REST API]
         E --> F[GraphServiceActor]
         F --> G{GPU Ready?}
-        G -->|No| H[Error]
-        G -->|Yes| I[UnifiedGPUCompute]
+        G --> |No| H[Error]
+        G --> |Yes| I[UnifiedGPUCompute]
         I --> J[CUDA Kernels]
         J --> K[Results]
     end
     
-    subgraph Visualization
+    subgraph Visualisation
         K --> L[Response]
         L --> C
         C --> M[Three.js Scene]
-        M --> N[Color Mapping]
+        M --> N[Colour Mapping]
         N --> O[Rendered Graph]
     end
     
@@ -1300,10 +1300,10 @@ flowchart TD
 1. **Large Result Sets**: Browser memory issues with millions of distances
    - Mitigation: Pagination, progressive loading, result compression
 
-2. **Rendering Performance**: Color updates impact frame rate
+2. **Rendering Performance**: Colour updates impact frame rate
    - Mitigation: Debounced updates, LOD-based coloring
 
-3. **State Synchronization**: Client/server state mismatch
+3. **State Synchronisation**: Client/server state mismatch
    - Mitigation: Version tokens, optimistic updates with rollback
 
 ---
@@ -1327,7 +1327,7 @@ sssp:
 ```typescript
 // client/src/config/analytics.ts
 export const SSSP_CONFIG = {
-    // Visualization
+    // Visualisation
     colorScheme: 'heatmap',        // 'heatmap' | 'discrete' | 'monochrome'
     sourceNodeColor: '#FFFFFF',
     unreachableNodeColor: '#333333',
@@ -1481,12 +1481,12 @@ if (ssspResult) {
 - [ ] API integration tests
 - [ ] Physics integration tests
 
-#### Phase 5: Optimization
+#### Phase 5: Optimisation
 - [ ] Device-side frontier compaction
 - [ ] Tunable parameters
 - [ ] Stream overlap implementation
 - [ ] Performance profiling
-- [ ] Memory optimization
+- [ ] Memory optimisation
 
 ### Frontend Tasks
 
@@ -1505,9 +1505,9 @@ if (ssspResult) {
 - [ ] Integrate into GraphAnalysisTab
 - [ ] Add loading states and error display
 
-#### Phase 6.4: 3D Visualization 🔄
-- [ ] Implement node color mapping based on distance
-- [ ] Add smooth color transitions
+#### Phase 6.4: 3D Visualisation 🔄
+- [ ] Implement node colour mapping based on distance
+- [ ] Add smooth colour transitions
 - [ ] Handle unreachable nodes visually
 - [ ] Add distance tooltips
 
@@ -1525,7 +1525,7 @@ if (ssspResult) {
 - [ ] Create onboarding flow for SSSP feature
 - [ ] Add help documentation
 - [ ] Implement telemetry for usage tracking
-- [ ] Performance optimization for large graphs
+- [ ] Performance optimisation for large graphs
 
 ### Phase 7: Documentation
 - [ ] API documentation

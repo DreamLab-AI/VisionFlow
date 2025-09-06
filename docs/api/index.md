@@ -1,5 +1,7 @@
 # VisionFlow API Documentation
 
+*[Api](../index.md)*
+
 ## Executive Summary
 
 VisionFlow's API ecosystem represents a production-ready, comprehensively validated, and highly secure interface layer that provides exceptional performance and reliability. The API system implements industry-leading validation, security, and error handling patterns while maintaining backwards compatibility and intuitive developer experiences.
@@ -9,7 +11,7 @@ VisionFlow's API ecosystem represents a production-ready, comprehensively valida
 **API Quality Features:**
 - **🛡️ Comprehensive Validation**: Multi-layer input validation with detailed error feedback
 - **🔒 Advanced Security**: Input sanitization, rate limiting, and malicious content detection
-- **⚡ High Performance**: Optimized binary protocols and efficient data serialization
+- **⚡ High Performance**: Optimised binary protocols and efficient data serialization
 - **📊 Production Monitoring**: Comprehensive metrics, health checks, and observability
 - **🎯 Developer Experience**: Intuitive schemas, detailed documentation, and helpful error messages
 
@@ -18,8 +20,8 @@ VisionFlow's API ecosystem represents a production-ready, comprehensively valida
 VisionFlow provides multiple API interfaces for different types of communication and functionality:
 
 - **REST API** - Traditional HTTP endpoints with comprehensive validation and error handling
-- **WebSocket API** - Real-time bidirectional communication with binary protocol optimization
-- **Binary Protocol** - Ultra-optimized binary format for high-frequency position updates
+- **WebSocket API** - Real-time bidirectional communication with binary protocol optimisation
+- **Binary Protocol** - Ultra-optimised binary format for high-frequency position updates
 - **MCP Integration** - Model Context Protocol with network resilience for AI agent orchestration
 - **Validation System** - Multi-tier validation with security and performance safeguards
 
@@ -148,7 +150,7 @@ ws.onmessage = (event) => {
 ### 🤖 Agent Orchestration
 - [Agent Control](rest/bots.md) - Manage AI agents
 - [MCP Integration](mcp/index.md) - Claude Flow tools
-- [Visualisation Stream](websocket/bots-visualization.md) - Agent state updates
+- [Visualisation Stream](websocket/bots-visualisation.md) - Agent state updates
 
 ### ⚙️ Configuration
 - [Settings API](rest/settings.md) - System configuration
@@ -228,7 +230,7 @@ interface GraphNode {
   x?: number;          // Range: -10000 to 10000
   y?: number;          // Range: -10000 to 10000
   z?: number;          // Range: -10000 to 10000
-  color?: string;      // Hex color: #RRGGBB or #RGB
+  colour?: string;      // Hex colour: #RRGGBB or #RGB
   size?: number;       // Range: 1 to 100
   metadata?: object;   // Max depth: 5, Max size: 1KB
 }
@@ -237,7 +239,7 @@ interface GraphEdge {
   source: number;      // Must reference existing node
   target: number;      // Must reference existing node
   weight?: number;     // Range: 0 to 1000
-  color?: string;      // Hex color validation
+  colour?: string;      // Hex colour validation
   metadata?: object;   // Max depth: 3, Max size: 512B
 }
 ```
@@ -257,7 +259,7 @@ interface SettingsRequest {
       nodeSize?: number;           // Range: 1 to 50
       edgeWidth?: number;          // Range: 0.1 to 10
       showLabels?: boolean;
-      backgroundColor?: string;     // Hex color validation
+      backgroundColor?: string;     // Hex colour validation
     };
   };
   features?: {
@@ -301,9 +303,9 @@ interface SettingsRequest {
     "requestId": "req-123",
     "timestamp": "2024-01-01T00:00:00Z",
     "details": {
-      "field": "graph.nodes[2].color",
+      "field": "graph.nodes[2].colour",
       "provided": "#zzzzzz",
-      "expected": "hex color format (#RRGGBB or #RGB)",
+      "expected": "hex colour format (#RRGGBB or #RGB)",
       "errorCode": "INVALID_COLOR_FORMAT"
     },
     "additionalErrors": [
@@ -464,9 +466,9 @@ impl Validator<GraphNode> for GraphNodeValidationRule {
             )?;
         }
         
-        // Validate color format
-        if let Some(color) = &node.color {
-            ValidationUtils::validate_hex_color(color, "nodes.color")?;
+        // Validate colour format
+        if let Some(colour) = &node.colour {
+            ValidationUtils::validate_hex_color(colour, "nodes.colour")?;
         }
         
         // Validate metadata structure
@@ -495,7 +497,7 @@ pub fn sanitize_input(input: &str) -> Result<String, ValidationError> {
         return Err(ValidationError::malicious_content("input"));
     }
     
-    // Normalize unicode and handle encoding
+    // Normalise unicode and handle encoding
     Ok(normalize_unicode(sanitized))
 }
 
@@ -730,3 +732,47 @@ Deprecation notices are provided 6 months before removal.
 - [WebSocket Protocols](websocket/index.md)
 - [Binary Protocol Spec](../binary-protocol.md)
 - [MCP Integration](mcp/index.md)
+## Documents
+
+- [Analytics API Endpoints](./analytics-endpoints.md)
+- [VisionFlow MCP Integration Documentation](./index.md)
+- [Multi-MCP Agent Visualisation API Reference](./multi-mcp-visualization-api.md)
+- [Graph API Reference](./graph.md)
+- [REST API Reference](./index.md)
+- [Settings API Reference](./settings.md)
+- [Single-Source Shortest Path (SSSP) API](./shortest-path-api.md)
+- [WebSocket Protocols](./websocket-protocols.md)
+- [WebSocket API Reference](./websocket.md)
+- [VisionFlow WebSocket API Documentation](./index.md)
+
+
+
+
+## See Also
+
+- [Request Handlers Architecture](../server/handlers.md) - Server implementation
+- [Server Documentation](../server/index.md) - Server implementation
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md) - Implementation
+- [Actor System](../server/actors.md) - Implementation
+- [Analytics API Endpoints](../api/analytics-endpoints.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Graph API Reference](../api/rest/graph.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [REST API Bloom/Glow Field Validation Fix](../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
+- [REST API Reference](../api/rest/index.md)
+- [Request Handlers Architecture](../server/handlers.md) - Implementation
+- [Server Documentation](../server/index.md) - Implementation
+- [Services Architecture](../server/services.md) - Implementation
+- [Settings API Reference](../api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md)
+- [VisionFlow Documentation](../index.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket API Reference](../api/websocket.md)
+- [WebSocket Protocols](../api/websocket-protocols.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../reference/agents/documentation/api-docs/docs-api-openapi.md)

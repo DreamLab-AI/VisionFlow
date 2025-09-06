@@ -388,7 +388,7 @@ force_x = clamp(force_x, -params.max_force, params.max_force);
 | `rest_length` | **Low** - Minimal performance impact | Adjust freely for desired layout |
 | `cooling_rate` | **Low** - Affects convergence speed, not computation | Lower values provide smoother transitions |
 
-### Optimization Guidelines
+### Optimisation Guidelines
 
 1. **Start with defaults**: The default values are optimised for most use cases
 2. **Monitor performance**: Use browser dev tools to monitor frame rates

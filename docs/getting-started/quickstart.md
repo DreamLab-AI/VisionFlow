@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+*[Getting-Started](../index.md)*
+
 Get VisionFlow running and create your first stunning 3D graph visualisation in just 5 minutes! This guide assumes you have already [installed VisionFlow](installation.md).
 
 ## 5-Minute Quick Start
@@ -233,7 +235,7 @@ Expected outcome:
 - **Physics Controls**: Adjust gravity, repulsion, and springs
 - **Rendering Options**: Quality settings and visual effects
 - **Camera Settings**: Field of view and movement sensitivity
-- **Performance**: Frame rate and optimization settings
+- **Performance**: Frame rate and optimisation settings
 
 #### Analytics and Insights
 - **Clustering**: Group related nodes automatically
@@ -307,13 +309,13 @@ Expected outcome:
 - **Research**: Information gathering, fact-checking, source validation
 - **Writing**: Content creation, editing, style consistency
 - **Review**: Quality assurance, accuracy verification
-- **Publishing**: Formatting, distribution, platform optimization
+- **Publishing**: Formatting, distribution, platform optimisation
 
 #### Data Analysis
 - **Collection**: Data gathering from multiple sources
 - **Processing**: Cleaning, transformation, validation
 - **Analysis**: Statistical analysis, pattern recognition
-- **Visualization**: Charts, graphs, dashboard creation
+- **Visualisation**: Charts, graphs, dashboard creation
 
 ## Tips for Success
 
@@ -325,7 +327,7 @@ Expected outcome:
 - Focus on one feature at a time
 - Gradually increase complexity
 
-#### Optimize Performance
+#### Optimise Performance
 - Enable GPU acceleration if available
 - Adjust physics quality based on your hardware
 - Use clustering for large datasets
@@ -370,7 +372,7 @@ Now that you've mastered the basics, explore these advanced features:
 ### Advanced Visualisation
 - **[Custom Shaders](../client/rendering.md)** - Create stunning visual effects
 - **[XR Integration](../client/xr.md)** - Immersive Quest 3 experiences
-- **[Performance Optimization](../client/performance.md)** - Smooth 60fps with large graphs
+- **[Performance Optimisation](../client/performance.md)** - Smooth 60fps with large graphs
 
 ### API Integration
 - **[REST API](../api/rest.md)** - Programmatic control and automation
@@ -378,7 +380,7 @@ Now that you've mastered the basics, explore these advanced features:
 - **[GraphQL](../api/graphql.md)** - Flexible data queries
 
 ### Advanced Multi-Agent Systems
-- **[Custom Agents](../features/custom-agents.md)** - Build specialized AI agents
+- **[Custom Agents](../features/custom-agents.md)** - Build specialised AI agents
 - **[Workflow Automation](../features/workflows.md)** - Automate complex processes
 - **[Performance Monitoring](../features/monitoring.md)** - Track system efficiency
 
@@ -403,3 +405,10 @@ Now that you've mastered the basics, explore these advanced features:
 ---
 
 **Congratulations!** You've successfully created your first VisionFlow graph and deployed AI agents. The future of knowledge visualisation and AI collaboration is at your fingertips!
+
+## Related Topics
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Installation Guide](../getting-started/installation.md)

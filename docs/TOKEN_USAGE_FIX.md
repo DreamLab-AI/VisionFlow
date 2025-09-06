@@ -8,7 +8,7 @@
 
 User reported: "i see three nodes for the bots but no token use"
 
-The WebXR agent graph visualization was showing nodes correctly but token usage was always 0.
+The WebXR agent graph visualisation was showing nodes correctly but token usage was always 0.
 
 ## Root Cause
 
@@ -54,7 +54,7 @@ BotsClient (no tokens) → BotsAgent (default tokens) → Node metadata → WebS
    ```
 
 3. **Verify in UI**
-   - Open WebXR visualization
+   - Open WebXR visualisation
    - Check that token usage now shows values
    - Confirm nodes display with token counts
 
@@ -64,7 +64,7 @@ For production, integrate with actual Claude Flow token tracking:
 
 1. Update `BotsClient::Agent` struct to include token fields
 2. Fetch real token data from Claude Flow MCP server
-3. Pass through to visualization pipeline
+3. Pass through to visualisation pipeline
 
 ## Testing
 

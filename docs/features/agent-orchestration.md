@@ -1,5 +1,7 @@
 # Agent Orchestration Architecture
 
+*[Features](../index.md)*
+
 ## Overview
 
 The Agent Orchestration Architecture provides a high-performance, TCP-based direct connection system that delivers 2-5x performance improvement over traditional WebSocket implementations. This architecture enables real-time coordination of multi-agent systems with GPU-accelerated visualisation and comprehensive MCP (Model Context Protocol) integration.
@@ -22,7 +24,7 @@ The Agent Orchestration Architecture provides a high-performance, TCP-based dire
 └─────────────────┘                     └─────────────────────┘
         │                                         │
         ├── React + Three.js                     ├── ClaudeFlowActorTcp
-        ├── GPU Visualization                    ├── Agent Management
+        ├── GPU Visualisation                    ├── Agent Management
         └── Binary Protocol                      └── MCP Integration
 ```
 
@@ -91,7 +93,7 @@ interface AgentCapabilities {
   dataProcessing: boolean;
   communication: boolean;
   
-  // Specialized Capabilities
+  // Specialised Capabilities
   codeGeneration?: boolean;
   performanceAnalysis?: boolean;
   systemMonitoring?: boolean;
@@ -156,7 +158,7 @@ Vote  Vote  Vote
 - Conflict resolution
 - Quality gates and approvals
 
-## MCP Tools Catalog (70+ Tools)
+## MCP Tools Catalogue (70+ Tools)
 
 ### Core Categories
 
@@ -276,7 +278,7 @@ const AgentOrchestrationView: React.FC = () => {
 };
 ```
 
-### Binary Protocol Optimization
+### Binary Protocol Optimisation
 
 For high-frequency position updates, the system uses a compact binary format:
 
@@ -312,7 +314,7 @@ class AgentDataProvider {
 }
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Connection Performance
 
@@ -350,7 +352,7 @@ void main() {
 - Real-time lighting and shadows
 - Dynamic LOD (Level of Detail) system
 
-### Memory Optimization
+### Memory Optimisation
 
 ```typescript
 interface MemoryPool {
@@ -364,7 +366,7 @@ interface MemoryPool {
 }
 ```
 
-**Optimization Strategies:**
+**Optimisation Strategies:**
 - Object pooling for frequent allocations
 - Circular buffers for time-series data
 - Memory-mapped files for large datasets
@@ -536,3 +538,16 @@ The Agent Orchestration Architecture provides a robust, high-performance foundat
 - **Quantum Computing**: Advanced optimisation algorithms
 
 This architecture serves as the foundation for next-generation multi-agent systems, providing the performance, reliability, and scalability required for modern distributed applications.
+
+## Related Topics
+
+- [Adaptive Balancing](../features/adaptive-balancing.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Features Documentation](../features/index.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [Neural Auto-Balance Feature](../features/AUTO_BALANCE.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [VisionFlow Documentation](../index.md)

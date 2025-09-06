@@ -1,5 +1,7 @@
 # Feature Access Control
 
+*[Server](../index.md)*
+
 ## Overview
 
 The Feature Access system provides role-based access control (RBAC) for various features and services in LogseqSpringThing. It manages user permissions, feature flags, and API access through environment variables and dynamic registration.
@@ -233,4 +235,25 @@ async fn clear_all_settings_cache(
 3. **Usage Quotas**: Rate limiting per feature
 4. **Feature Dependencies**: Automatic dependency resolution
 5. **Audit Logging**: Comprehensive access logs
-6. **Multi-tenant Support**: Organization-based access control
+6. **Multi-tenant Support**: Organisation-based access control
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)

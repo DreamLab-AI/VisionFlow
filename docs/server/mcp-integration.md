@@ -1,6 +1,8 @@
 # MCP Integration
 
-VisionFlow integrates with the Model Context Protocol (MCP) to orchestrate and visualize AI agents from an external controller, such as Claude Flow. The entire integration is handled by a dedicated actor, `ClaudeFlowActorTcp`, which communicates with the MCP server over a resilient, TCP-only connection.
+*[Server](../index.md)*
+
+VisionFlow integrates with the Model Context Protocol (MCP) to orchestrate and visualise AI agents from an external controller, such as Claude Flow. The entire integration is handled by a dedicated actor, `ClaudeFlowActorTcp`, which communicates with the MCP server over a resilient, TCP-only connection.
 
 This document outlines the architecture and key features of this integration.
 
@@ -10,7 +12,7 @@ To ensure robustness and security, all MCP communication happens exclusively bet
 
 -   **Protocol**: Line-delimited JSON-RPC 2.0 over a raw TCP socket.
 -   **Endpoint**: The server connects to the MCP endpoint specified in the configuration (e.g., `multi-agent-container:9500`).
--   **No WebSockets or Stdio**: All previous methods of communication have been deprecated and removed in favor of this more resilient TCP-based approach.
+-   **No WebSockets or Stdio**: All previous methods of communication have been deprecated and removed in favour of this more resilient TCP-based approach.
 
 ## The `ClaudeFlowActorTcp`
 
@@ -42,11 +44,11 @@ sequenceDiagram
 
     Requester->>+CFA: send(InitializeSwarm)
     CFA->>CFA: Generate UUID for request
-    CFA->>CFA: Store sender in `pending_requests` map
+    CFA->>CFA: Store sender in pending_requests map
     CFA->>+MCP: Send JSON-RPC request over TCP
-    MCP-->>-CFA: Send JSON-RPC response
-    CFA->>CFA: Look up request ID in `pending_requests`
-    CFA-->>-Requester: Forward response via channel
+    MCP --> >-CFA: Send JSON-RPC response
+    CFA->>CFA: Look up request ID in pending_requests
+    CFA --> >-Requester: Forward response via channel
 ```
 
 1.  An actor sends a message (e.g., `InitializeSwarm`) to `ClaudeFlowActorTcp`.
@@ -55,3 +57,33 @@ sequenceDiagram
 4.  The request is sent over the TCP stream.
 5.  When a response arrives, the actor parses it, extracts the ID, and finds the corresponding sender in the map.
 6.  The response is then sent back to the original requester through the channel, completing the asynchronous round trip.
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP Tool Integration Analysis](../technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../multi-mcp-agent-visualization.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)

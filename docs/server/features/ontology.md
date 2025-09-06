@@ -1,5 +1,7 @@
 # Ontology Validation
 
+*[Server](../index.md) > [Features](../server/features/index.md)*
+
 ## Introduction
 
 The ontology system provides a formal validation and logical inference layer for the knowledge graph, acting as a "truth engine." While the base graph is a flexible property graph, the ontology system maps it to a strict OWL/RDF structure to perform powerful consistency checks and infer new knowledge.
@@ -13,8 +15,8 @@ The system uses a hybrid model that combines the flexibility of a property graph
 ```mermaid
 graph TD
     subgraph "VisionFlow Property Graph"
-        A[Node A<br/>type: Person] -->|knows| B[Node B<br/>type: Person]
-        C[Node C<br/>type: Company] -->|employs| A
+        A[Node A<br/>type: Person] --> |knows| B[Node B<br/>type: Person]
+        C[Node C<br/>type: Company] --> |employs| A
     end
 
     subgraph "Ontology Mapping & Validation"
@@ -82,4 +84,30 @@ For example:
 -   An axiom like `Person disjointWith Company` can be translated into a strong repulsive force between all nodes of type `Person` and all nodes of type `Company`.
 -   An axiom defining a parent-child relationship can be used to create a stronger attractive force between the parent and its children.
 
-This allows the final graph layout to reflect the logical structure of the data, creating a more intuitive and insightful visualization.
+This allows the final graph layout to reflect the logical structure of the data, creating a more intuitive and insightful visualisation.
+
+## Related Topics
+
+- [AI Services Documentation](../../server/ai-services.md)
+- [Actor System](../../server/actors.md)
+- [Adaptive Balancing](../../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../../server/config.md)
+- [Feature Access Control](../../server/feature-access.md)
+- [Features Documentation](../../features/index.md)
+- [GPU Compute Architecture](../../server/gpu-compute.md)
+- [GPU-Accelerated Analytics](../../client/features/gpu-analytics.md)
+- [Graph Clustering](../../server/features/clustering.md)
+- [MCP Integration](../../server/mcp-integration.md)
+- [Multi Agent Orchestration](../../server/agent-swarm.md)
+- [Neural Auto-Balance Feature](../../features/AUTO_BALANCE.md)
+- [Physics Engine](../../server/physics-engine.md)
+- [Request Handlers Architecture](../../server/handlers.md)
+- [Semantic Analysis Pipeline](../../server/features/semantic-analysis.md)
+- [Server Architecture](../../server/architecture.md)
+- [Server Documentation](../../server/index.md)
+- [Server-Side Data Models](../../server/models.md)
+- [Services Architecture](../../server/services.md)
+- [Types Architecture](../../server/types.md)
+- [Utilities Architecture](../../server/utils.md)

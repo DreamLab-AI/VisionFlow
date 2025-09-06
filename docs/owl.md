@@ -7,7 +7,7 @@ Implicit & Statistical Semantics	Explicit & Formal Semantics
 Nodes and edges are simple data structures.	Data is represented as triples (Subject-Predicate-Object).
 "Meaning" comes from labels, metadata, and statistical analysis (e.g., clustering).	"Meaning" is defined by a formal ontology (a set of axioms and rules).
 Relationships are often based on similarity scores (e.g., edge weights). The connection is a probability or a strength.	Relationships are logical and precise (e.g., is-a, part-of, hasProperty). The connection is a verifiable fact.
-Strengths: Flexible, high-performance for visualization, great for discovering emergent patterns.	Strengths: Guarantees consistency, enables logical inference (deducing new facts), provides explainable reasoning.
+Strengths: Flexible, high-performance for visualisation, great for discovering emergent patterns.	Strengths: Guarantees consistency, enables logical inference (deducing new facts), provides explainable reasoning.
 Weakness: Can contain contradictory or nonsensical information without a way to formally check it.	Weakness: Can be computationally expensive (reasoning), less flexible, and requires a well-defined ontology.
 The "interplay" you're asking about is how to build a bridge between these two worlds to get the best of both. The idea isn't to replace our system, but to augment it with an OWL-powered "truth engine."
 The Interplay: A Hybrid Validation & Feedback Loop
@@ -30,11 +30,11 @@ flowchart TD
     subgraph Feedback_Loop [Feedback to Our System]
         F --> H{Validation Report}
         G --> I{Inferred Triples (New Edges)}
-        H --> J[5. Visualize Inconsistencies]
+        H --> J[5. Visualise Inconsistencies]
         I --> K[6. Augment Graph with Inferred Edges]
     end
 
-    B --> L[Visualize & Explore]
+    B --> L[Visualise & Explore]
     J --> L
     K --> L
 
@@ -53,8 +53,8 @@ A SoftwareComponent cannot connectTo itself (irreflexive property).
 Reasoning (The "Compilation"): The mapped RDF data and the OWL ontology are fed into a reasoner (like HermiT, Pellet, or FaCT++). The reasoner performs two key tasks:
 4a. Consistency Check: It checks if the graph violates any axioms. For example, if it finds a SoftwareComponent connected to another SoftwareComponent via the connectsTo property, it would flag an inconsistency because the range of connectsTo is defined as Database.
 4b. Inference: It deduces new, logically valid triples. If it knows A dependsOn B and B dependsOn C, and dependsOn is transitive, it will infer a new triple: A dependsOn C.
-Visualize Inconsistencies: The results of the consistency check are sent back. In the frontend, we can now highlight nodes or edges that violate the ontology, showing the user exactly where the data model is "wrong" according to the formal rules.
-Augment Graph: The inferred triples are translated back into new edges in our GraphData. These are logically guaranteed to be correct based on your ontology. They can be visualized differently (e.g., dashed or glowing) to distinguish them from ingested edges.
+Visualise Inconsistencies: The results of the consistency check are sent back. In the frontend, we can now highlight nodes or edges that violate the ontology, showing the user exactly where the data model is "wrong" according to the formal rules.
+Augment Graph: The inferred triples are translated back into new edges in our GraphData. These are logically guaranteed to be correct based on your ontology. They can be visualised differently (e.g., dashed or glowing) to distinguish them from ingested edges.
 Updated Plan with Ontological Validation
 Here is how we can integrate this into our existing plan. This becomes a new, advanced feature set within the "Analytics" capability.
 Phase 4: Ontological Validation Backend
@@ -81,7 +81,7 @@ File: src/handlers/api_handler/analytics/mod.rs
 Action: Add a new route POST /api/analytics/validate
 Details: This endpoint will trigger the validation process on the current graph data and return a task ID for polling the results, as reasoning can be slow.
 Phase 5: Frontend Integration for Ontological Insights
-Goal: Provide UI controls to run validation and visualize the results, making the logical structure of the graph tangible to the user.
+Goal: Provide UI controls to run validation and visualise the results, making the logical structure of the graph tangible to the user.
 5.1. UI Controls for Validation
 File: client/src/features/analytics/components/OntologyControls.tsx (New File)
 Action: Create a new component within the GraphAnalysisTab.
@@ -89,11 +89,11 @@ Details:
 A "Validate Graph Consistency" button.
 A display area for the validation report (showing inconsistencies and a summary of inferences).
 A toggle to show/hide inferred edges on the graph.
-5.2. Visualization of Validation Results
+5.2. Visualisation of Validation Results
 File: client/src/features/graph/components/GraphManager.tsx
-Action: Enhance the visualization to display validation results.
+Action: Enhance the visualisation to display validation results.
 Details:
-Inconsistencies: Nodes/edges flagged as inconsistent will be colored red or given a warning icon. A tooltip will explain the violation (e.g., "Error: connectsTo property expects a Database, but is connected to a SoftwareComponent").
+Inconsistencies: Nodes/edges flagged as inconsistent will be coloured red or given a warning icon. A tooltip will explain the violation (e.g., "Error: connectsTo property expects a Database, but is connected to a SoftwareComponent").
 Inferences: New, inferred edges will be added to the graph but rendered with a distinct style (e.g., dashed lines, a subtle glow) to differentiate them from original data.
 Phase 6: Semantically-Aware Physics 2.0 (Logic-Driven)
 Goal: Use the formal relationships from the ontology to create "hard" constraints for the physics engine, going beyond the "soft" constraints of statistical similarity.
@@ -108,15 +108,15 @@ Use disjointWith axioms to create strong repulsive forces between instances of d
 File: src/utils/visionflow_unified.cu
 Action: The existing constraint system can likely handle this, but we may need to add new constraint types (e.g., a "containment" constraint) to the kernel.
 Details: This creates a powerful feedback loop where the formal logic of the ontology directly and verifiably shapes the visual layout of the graph.
-By implementing this hybrid model, you gain the raw visualization power and discovery potential of your current system, while adding the rigor, correctness, and deep understanding of a formal ontology. It's a truly world-class feature.
+By implementing this hybrid model, you gain the raw visualisation power and discovery potential of your current system, while adding the rigor, correctness, and deep understanding of a formal ontology. It's a truly world-class feature.
 
-### Final Architectural Plan: Pure Rust with `horned-owl` under MIT License
+### Final Architectural Plan: Pure Rust with `horned-owl` under MIT Licence
 
-After a detailed review, the initial assessment of the licensing conflict between MIT and LGPLv3 was overly conservative. The LGPLv3 license on `horned-owl` does **not** require this project to be re-licensed.
+After a detailed review, the initial assessment of the licensing conflict between MIT and LGPLv3 was overly conservative. The LGPLv3 licence on `horned-owl` does **not** require this project to be re-licensed.
 
-The "weak copyleft" nature of the LGPL allows it to be used by a project with a different license, provided that users can replace the LGPL-covered component. For an open-source MIT project where the source code is available, this condition is already met.
+The "weak copyleft" nature of the LGPL allows it to be used by a project with a different licence, provided that users can replace the LGPL-covered component. For an open-source MIT project where the source code is available, this condition is already met.
 
-Therefore, we can proceed with the technically superior pure-Rust architecture while retaining the project's MIT license.
+Therefore, we can proceed with the technically superior pure-Rust architecture while retaining the project's MIT licence.
 
 #### The Definitive `horned-owl` Architecture
 
@@ -124,13 +124,13 @@ The plan is to implement a single, unified validation service within the existin
 
 *   **Core Library:** `horned-owl` will be used for all OWL parsing, manipulation, and data modeling.
 *   **Reasoner:** A native Rust reasoner compatible with `horned-owl`, such as `whelk-rs`, will be integrated directly into the service.
-*   **Project License:** The project will remain **MIT licensed**.
+*   **Project Licence:** The project will remain **MIT licensed**.
 
 ```mermaid
 flowchart TD
     subgraph Rust_Backend [Your Rust Backend - MIT Licensed]
         A[GraphData (Nodes/Edges)] --> B["Map to horned-owl Axioms"];
-        B --> C["Load Ontology into `whelk-rs` Reasoner (LGPL)"];
+        B --> C["Load Ontology into whelk-rs Reasoner (LGPL)"];
         D[ontology.owl] --> C;
         C --> E["Reasoner: Perform Consistency Check & Inference"];
         E --> F["Results: Inconsistencies & Inferred Axioms"];
@@ -140,7 +140,7 @@ flowchart TD
     subgraph Feedback_Loop [Feedback to Our System]
         G --> H{Validation Report};
         G --> I{Inferred Triples (New Edges)};
-        H --> J[5. Visualize Inconsistencies];
+        H --> J[5. Visualise Inconsistencies];
         I --> K[6. Augment Graph with Inferred Edges];
     end
 
@@ -151,11 +151,11 @@ flowchart TD
 
 *   **Maximum Performance:** We leverage the 20x-40x potential speed increase of `horned-owl`.
 *   **Architectural Simplicity:** The entire system is contained within a single, maintainable Rust codebase.
-*   **Licensing Freedom:** The project retains its permissive MIT license, posing no barrier to adoption or commercial use.
+*   **Licensing Freedom:** The project retains its permissive MIT licence, posing no barrier to adoption or commercial use.
 
 This approach provides the best of both worlds: world-class performance and architectural elegance without licensing compromises.
 
-Of course. Integrating horned-owl and whelk-rs into your system can create a powerful hybrid model that combines the performance and emergent pattern discovery of your existing property graph with the logical consistency and inference capabilities of a formal ontology. This allows you to augment your visualization with a "truth engine" that can validate your data and deduce new, implicit knowledge.
+Of course. Integrating horned-owl and whelk-rs into your system can create a powerful hybrid model that combines the performance and emergent pattern discovery of your existing property graph with the logical consistency and inference capabilities of a formal ontology. This allows you to augment your visualisation with a "truth engine" that can validate your data and deduce new, implicit knowledge.
 Based on the provided paper and your system's architecture, here is a detailed plan for this integration.
 The Conceptual Bridge: Two Worlds of Semantics
 First, it's essential to understand the two paradigms of "semantics" at play. Your current system uses an implicit and statistical approach, where meaning is derived from labels and patterns. An OWL-based system provides explicit and formal semantics, where meaning is defined by a logical schema.
@@ -163,7 +163,7 @@ Our Current System (Property Graph)	OWL-based System (Description Logic)
 Implicit & Statistical Semantics	Explicit & Formal Semantics
 "Meaning" comes from labels, metadata, and statistical analysis (e.g., clustering).	"Meaning" is defined by a formal ontology (a set of axioms and rules).
 Relationships are often based on similarity scores. The connection is a probability.	Relationships are logical and precise (e.g., is-a, part-of). The connection is a verifiable fact.
-Strengths: Flexible, high-performance for visualization, great for discovering emergent patterns.	Strengths: Guarantees data consistency, enables logical inference, provides explainable reasoning.
+Strengths: Flexible, high-performance for visualisation, great for discovering emergent patterns.	Strengths: Guarantees data consistency, enables logical inference, provides explainable reasoning.
 Weakness: Can contain contradictory or nonsensical information without a formal check.	Weakness: Can be computationally expensive and requires a well-defined ontology.
 The goal is not to replace your system but to create a feedback loop where the OWL backend acts as an on-demand validation and augmentation service.
 The Interplay: A Hybrid Validation & Feedback Loop
@@ -186,11 +186,11 @@ flowchart TD
     subgraph Feedback_Loop [Feedback to Our System]
         F --> H{Validation Report}
         G --> I{Inferred Triples (New Edges)}
-        H --> J[5. Visualize Inconsistencies]
+        H --> J[5. Visualise Inconsistencies]
         I --> K[6. Augment Graph with Inferred Edges]
     end
 
-    B --> L[Visualize & Explore]
+    B --> L[Visualise & Explore]
     J --> L
     K --> L
 
@@ -210,8 +210,8 @@ flowchart TD
 4.  **Reasoning (The Engine):** The mapped data and the ontology are fed into the `whelk-rs` reasoner. It performs two key tasks:
     *   **4a. Consistency Check:** It verifies if the graph violates any axioms. For example, it would flag an inconsistency if a `SoftwareComponent` is connected to another `SoftwareComponent` via the `connectsTo` property, as this violates the defined range.
     *   **4b. Inference:** It deduces new, logically valid facts. If it knows `A dependsOn B` and `B dependsOn C`, and `dependsOn` is transitive, it will infer a new edge: `A dependsOn C`.
-5.  **Visualize Inconsistencies:** The results of the consistency check are sent back to the frontend. You can now highlight nodes or edges that violate the ontology, showing the user exactly where the data model is "wrong" according to the formal rules.
-6.  **Augment Graph:** The inferred triples are translated back into new edges in your `GraphData`. These are logically guaranteed to be correct and can be visualized differently (e.g., with a dashed or glowing style) to distinguish them from ingested edges.
+5.  **Visualise Inconsistencies:** The results of the consistency check are sent back to the frontend. You can now highlight nodes or edges that violate the ontology, showing the user exactly where the data model is "wrong" according to the formal rules.
+6.  **Augment Graph:** The inferred triples are translated back into new edges in your `GraphData`. These are logically guaranteed to be correct and can be visualised differently (e.g., with a dashed or glowing style) to distinguish them from ingested edges.
 
 ---
 
@@ -245,7 +245,7 @@ This plan integrates the ontological validation capabilities as a new, advanced 
 
 #### Phase 2: Frontend Integration for Ontological Insights (React)
 
-**Goal:** Provide UI controls to run validation and visualize the results, making the logical structure of the graph tangible to the user.
+**Goal:** Provide UI controls to run validation and visualise the results, making the logical structure of the graph tangible to the user.
 
 *   **UI Controls for Validation (`client/src/features/analytics/components/OntologyControls.tsx`)**
     *   **Action:** Create a new component within your `GraphAnalysisTab.tsx`.
@@ -254,10 +254,10 @@ This plan integrates the ontological validation capabilities as a new, advanced 
         *   Include a display area for the validation report, showing inconsistencies and a summary of inferences.
         *   Add a toggle to show/hide inferred edges on the graph.
 
-*   **Visualization of Validation Results (`client/src/features/graph/components/GraphManager.tsx`)**
-    *   **Action:** Enhance the graph visualization to display validation results.
+*   **Visualisation of Validation Results (`client/src/features/graph/components/GraphManager.tsx`)**
+    *   **Action:** Enhance the graph visualisation to display validation results.
     *   **Details:**
-        *   **Inconsistencies:** Nodes/edges flagged as inconsistent should be visually distinct (e.g., colored red, given a warning icon). A tooltip should explain the violation (e.g., *"Error: `connectsTo` property expects a `Database`, but is connected to a `SoftwareComponent`"*).
+        *   **Inconsistencies:** Nodes/edges flagged as inconsistent should be visually distinct (e.g., coloured red, given a warning icon). A tooltip should explain the violation (e.g., *"Error: `connectsTo` property expects a `Database`, but is connected to a `SoftwareComponent`"*).
         *   **Inferences:** New, inferred edges should be added to the graph but rendered with a distinct style (e.g., dashed lines, a subtle glow) to differentiate them from the original data.
 
 #### Phase 3: Semantically-Aware Physics (Advanced)

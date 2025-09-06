@@ -1,5 +1,7 @@
 # Bots/VisionFlow System Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 The Bots/VisionFlow system is a core feature that enables real-time visualisation and control of AI Multi Agents through the Model Context Protocol (MCP). It provides a spring-physics based 3D visualisation of agent interactions, communication patterns, and system health.
@@ -77,7 +79,7 @@ The system supports 12 specialised agent types:
 - **Architect**: System design and planning
 - **Tester**: Quality assurance and validation
 - **Reviewer**: Code review and approval workflows
-- **Optimizer**: Performance tuning and optimization
+- **Optimizer**: Performance tuning and optimisation
 - **Documenter**: Documentation and knowledge management
 - **Monitor**: System monitoring and diagnostics
 - **Specialist**: Domain-specific expertise
@@ -94,14 +96,14 @@ The system supports multiple multi-agent organizational patterns:
 ## Frontend Components
 
 ### BotsVisualization
-- 3D force-directed graph using React Three Fiber
+- 3D force-directed graph using React Three Fibre
 - Spring physics simulation for natural movement
-- Visual encoding of agent state through size, color, and animation
-- Real-time message flow visualization
+- Visual encoding of agent state through size, colour, and animation
+- Real-time message flow visualisation
 
 ### UI Panels
 - **SystemHealthPanel**: Overall multi-agent health and metrics
-- **ActivityLogPanel**: Real-time activity feed with color coding
+- **ActivityLogPanel**: Real-time activity feed with colour coding
 - **AgentDetailPanel**: Detailed view of individual agents
 
 ### multiAgentInitializationPrompt
@@ -125,7 +127,7 @@ pub struct AgentControlActor {
 
 Key responsibilities:
 - Maintains TCP connection to agent control system
-- Translates between agent data and graph visualization format
+- Translates between agent data and graph visualisation format
 - Handles multi-agent initialization requests
 - Provides real-time metrics
 
@@ -133,7 +135,7 @@ Key responsibilities:
 
 - `GET /api/bots/status` - Current agent states and metrics
 - `POST /api/bots/initialize-multi-agent` - Spawn new Multi Agent
-- `GET /api/bots/data` - Full graph data for visualization
+- `GET /api/bots/data` - Full graph data for visualisation
 - WebSocket `/ws` - Real-time position and state updates
 
 ## Configuration
@@ -153,7 +155,7 @@ PHYSICS_UPDATE_RATE=60
 
 ### Visual Theme
 
-The VisionFlow graph uses a distinct gold/green color palette:
+The VisionFlow graph uses a distinct gold/green colour palette:
 - Coordinator agents: Gold (#F1C40F)
 - Worker agents: Various greens
 - Active connections: Blue (#3498DB)
@@ -171,3 +173,9 @@ The VisionFlow graph uses a distinct gold/green color palette:
 - [Parallel Graphs Architecture](./parallel-graphs.md) - How VisionFlow coexists with Logseq graph
 - [MCP Integration](../server/features/mcp-integration.md) - Details on Model Context Protocol
 - [Agent Control System](../../agent-control-system/README.md) - Standalone agent control package
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

@@ -94,7 +94,7 @@ Updated `defaultSettings.ts` to include both bloom and glow with synchronized va
 
 #### BackgroundEnvironmentControls
 - Added effective settings computation for backward compatibility
-- Dual update handlers that maintain both bloom and glow field synchronization
+- Dual update handlers that maintain both bloom and glow field synchronisation
 - Fallback logic: `glow.field ?? bloom.field ?? default`
 
 #### Settings UI Definition
@@ -199,7 +199,7 @@ await settingsApi.saveSettings(settings); // Bloom → Glow mapping applied
 ### For Existing Components
 - **No breaking changes**: Existing bloom references continue to work
 - **Optional migration**: Gradually migrate to glow fields when convenient
-- **Dual updates**: Ensure updates synchronize both bloom and glow fields
+- **Dual updates**: Ensure updates synchronise both bloom and glow fields
 
 ## Performance Considerations
 

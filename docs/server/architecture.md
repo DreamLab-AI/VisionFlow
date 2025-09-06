@@ -1,8 +1,10 @@
 # Server Architecture
 
+*[Server](../index.md)*
+
 ## Overview
 
-VisionFlow's backend is an actor-based system built in Rust using the Actix framework. It is designed for high-performance, real-time graph visualization and computation. The architecture is centered around a message-passing model that eliminates lock contention and enables a high degree of concurrency.
+VisionFlow's backend is an actor-based system built in Rust using the Actix framework. It is designed for high-performance, real-time graph visualisation and computation. The architecture is centered around a message-passing model that eliminates lock contention and enables a high degree of concurrency.
 
 Key architectural pillars include:
 - **Actor-Based Concurrency**: State is managed by independent actors that communicate via asynchronous messages, avoiding shared-memory pitfalls like `Arc<RwLock<T>>`.
@@ -12,7 +14,7 @@ Key architectural pillars include:
 
 ## Core Components & Data Flow
 
-The system is composed of several specialized actors that collaborate to process data and serve it to clients.
+The system is composed of several specialised actors that collaborate to process data and serve it to clients.
 
 ```mermaid
 graph TD
@@ -72,12 +74,12 @@ graph TD
     *   **REST API**: Clients can interact with the graph, run analytics, and manage settings through a standard HTTP API, handled primarily by the `GraphServiceActor`.
     *   **File System**: The `GraphServiceActor` monitors the file system for changes to the knowledge graph's source files.
 
-2.  **Orchestration (`GraphServiceActor`)**: The `GraphServiceActor` is the central hub. It manages the dual graph (knowledge vs. agent) and orchestrates all major operations. It delegates tasks to specialized actors and services:
+2.  **Orchestration (`GraphServiceActor`)**: The `GraphServiceActor` is the central hub. It manages the dual graph (knowledge vs. agent) and orchestrates all major operations. It delegates tasks to specialised actors and services:
     *   It sends compute-heavy tasks like clustering and physics calculations to the `GPUComputeActor`.
     *   It requests graph validation from the `OntologyActor`.
-    *   It uses the `SemanticAnalyzer` to enrich the graph and the `StressMajorizationSolver` for layout optimization.
+    *   It uses the `SemanticAnalyzer` to enrich the graph and the `StressMajorizationSolver` for layout optimisation.
 
-3.  **Specialized Actors & Services**:
+3.  **Specialised Actors & Services**:
     *   **`GPUComputeActor`**: Manages the `UnifiedGPUCompute` engine, executing various compute modes as requested.
     *   **`OntologyActor`**: Provides an asynchronous interface to the `OwlValidatorService`, which performs formal OWL/RDF validation and reasoning.
     *   **`SemanticAnalyzer`**: A service that extracts features, generates semantic edges, and creates layout constraints.
@@ -93,3 +95,49 @@ This approach provides several key benefits:
 -   **Clear Ownership**: State ownership is unambiguous, simplifying the design and reducing bugs.
 -   **Fault Isolation**: If an actor panics, its state is lost, but it does not corrupt the state of other actors. The supervisor can restart it cleanly.
 -   **Asynchronous by Default**: The entire system is built on non-blocking communication, ensuring that no single task can hold up the entire server.
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Configuration Architecture](../server/config.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

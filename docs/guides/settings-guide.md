@@ -1,5 +1,7 @@
 # VisionFlow Settings System Guide
 
+*[Guides](../index.md)*
+
 ## ✅ RESOLVED: Settings Store Integration (January 2025)
 
 ### Current Status
@@ -28,7 +30,7 @@ Frontend UI → Settings Store → REST API → Actor System → GPU Compute
 2. **REST API** (`/api/settings`) - camelCase JSON interface
 3. **Settings Actor** (`/src/actors/settings_actor.rs`) - State management
 4. **GPU Compute Actor** (`/src/actors/gpu_compute_actor.rs`) - Physics execution
-5. **Control Center UI** - Real-time settings panels
+5. **Control Centre UI** - Real-time settings panels
 
 ---
 
@@ -64,7 +66,7 @@ graph TD
 
 - **WebSocket Streaming**: Position/velocity updates via binary protocol
 - **Settings Broadcast**: Changes propagated to all connected clients
-- **GPU Synchronization**: Immediate parameter updates to simulation
+- **GPU Synchronisation**: Immediate parameter updates to simulation
 
 ---
 
@@ -338,7 +340,7 @@ ws.on('physics_update', (data) => {
 
 ---
 
-## Control Center Integration
+## Control Centre Integration
 
 ### Physics Engine Controls
 
@@ -370,7 +372,7 @@ The control centre provides real-time physics parameter adjustment through four 
 #### 4. Analytics Tab
 - **Performance Metrics**: FPS, GPU utilization, memory usage
 - **Semantic Clustering**: Knowledge graph analysis
-- **Force Visualization**: Real-time force vector display
+- **Force Visualisation**: Real-time force vector display
 - **Trajectory Tracking**: Node movement history
 
 ### Settings Store Integration
@@ -426,12 +428,12 @@ The GPU implementation uses a hybrid approach combining:
 
 1. **Repulsion Forces** (Coulomb-like):
    ```cuda
-   float3 repulsion = (repel_k / (dist * dist + 0.01f)) * normalize(delta);
+   float3 repulsion = (repel_k / (dist * dist + 0.01f)) * normalise(delta);
    ```
 
 2. **Spring Forces** (Hooke's law):
    ```cuda
-   float3 spring = -spring_k * (dist - rest_length) * normalize(delta);
+   float3 spring = -spring_k * (dist - rest_length) * normalise(delta);
    ```
 
 3. **Velocity Integration** (Velocity Verlet):
@@ -484,7 +486,7 @@ position += learning_rate * gradient * step_size
 
 ## Performance Tuning Guide
 
-### GPU Optimization
+### GPU Optimisation
 
 #### Memory Management
 ```rust
@@ -530,7 +532,7 @@ physics:
 
 ### Network Performance
 
-#### WebSocket Optimization
+#### WebSocket Optimisation
 ```typescript
 // Binary protocol for position streaming
 const positionBuffer = new ArrayBuffer(nodeCount * 12); // 3 floats per node
@@ -570,7 +572,7 @@ const handleSliderChange = (param: string, value: number) => {
 
 ### Visual Performance
 
-#### Bloom Optimization
+#### Bloom Optimisation
 ```yaml
 bloom:
   enabled: true
@@ -580,7 +582,7 @@ bloom:
   samples: 5        # Reduce for better performance
 ```
 
-#### Material Optimization
+#### Material Optimisation
 ```yaml
 nodes:
   metalness: 0.85
@@ -815,7 +817,7 @@ if semantic_analysis.cluster_detected {
 
 ### Constraint-Based Layout
 
-Advanced constraint system for specialized layouts:
+Advanced constraint system for specialised layouts:
 
 ```typescript
 const constraints = {
@@ -847,10 +849,10 @@ await updateSettings({
 
 ### Machine Learning Integration
 
-Settings can be optimized using ML feedback:
+Settings can be optimised using ML feedback:
 
 ```rust
-// ML-optimized parameter suggestion
+// ML-optimised parameter suggestion
 pub struct MLOptimizer {
     pub learning_rate: f32,
     pub target_metrics: TargetMetrics,
@@ -950,7 +952,7 @@ let migration = SettingsMigration {
 // Future API endpoints
 interface FutureAPIs {
   '/api/settings/profiles': ProfileManagement;
-  '/api/settings/optimize': MLOptimization;
+  '/api/settings/optimise': MLOptimization;
   '/api/settings/compare': ParameterComparison;
   '/api/settings/export': ConfigurationExport;
   '/api/settings/templates': TemplateSystem;
@@ -966,7 +968,7 @@ The VisionFlow settings system provides a robust, scalable foundation for real-t
 ✅ **Unified Architecture**: Single source of truth eliminates inconsistencies
 ✅ **Real-time Updates**: Immediate propagation from UI to GPU simulation
 ✅ **Comprehensive Controls**: Complete physics parameter management
-✅ **Performance Optimization**: Tuned for different graph sizes and use cases
+✅ **Performance Optimisation**: Tuned for different graph sizes and use cases
 ✅ **Type Safety**: Full TypeScript and Rust validation
 ✅ **User Persistence**: Nostr-based authentication for settings storage
 
@@ -975,3 +977,19 @@ The system successfully bridges the gap between user interface controls and high
 ---
 
 *This guide represents the complete settings system as of January 2025. All critical issues have been resolved, and the system is fully operational across all components.*
+
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)
+
+## Related Topics
+
+- [VisionFlow Documentation](../index.md)

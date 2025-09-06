@@ -1,5 +1,7 @@
 # Configuration Guide
 
+*[Getting-Started](../index.md)*
+
 This comprehensive guide covers all configuration options for VisionFlow, from basic environment variables to advanced performance tuning and feature customisation.
 
 ## Configuration Overview
@@ -495,8 +497,8 @@ networks:
     "multiSelect": true,        // Enable multi-node selection
     "highlightConnected": true, // Highlight connected nodes
     "fadeUnselected": false,    // Fade unselected nodes
-    "selectionColor": "#ff6b35", // Selection highlight color
-    "hoverColor": "#4ecdc4"     // Hover highlight color
+    "selectionColor": "#ff6b35", // Selection highlight colour
+    "hoverColor": "#4ecdc4"     // Hover highlight colour
   },
   
   "keyboard": {
@@ -559,7 +561,7 @@ networks:
 
 ### Performance Tuning
 
-#### CPU Optimization
+#### CPU Optimisation
 ```bash
 # System-level optimisations
 echo 'performance' | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
@@ -571,7 +573,7 @@ echo 'performance' | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_gover
 --cpu-shares=1024                      # CPU weight
 ```
 
-#### Memory Optimization
+#### Memory Optimisation
 ```bash
 # Kernel parameters
 echo 'vm.swappiness=10' >> /etc/sysctl.conf
@@ -585,7 +587,7 @@ echo 'vm.dirty_background_ratio=5' >> /etc/sysctl.conf
 --memory-swappiness=10                 # Container swappiness
 ```
 
-#### I/O Optimization
+#### I/O Optimisation
 ```bash
 # Storage optimisations
 echo 'mq-deadline' > /sys/block/nvme0n1/queue/scheduler
@@ -837,3 +839,33 @@ sudo usermod -aG docker $USER        # Add user to docker group
 ---
 
 This comprehensive configuration guide should help you optimise VisionFlow for your specific needs, from development through to production deployment.
+
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)
+
+## Related Topics
+
+- [Configuration Architecture](../server/config.md)
+- [Developer Configuration System](../DEV_CONFIG.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Production Configuration Guide](../configuration/index.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [Settings API Reference](../api/rest/settings.md)
+- [Settings Panel](../client/settings-panel.md)
+- [Settings Performance Optimisation Report](../SETTINGS_PERFORMANCE_OPTIMIZATION.md)
+- [Settings Sync Integration Tests](../testing/SETTINGS_SYNC_INTEGRATION_TESTS.md)
+- [VisionFlow Configuration Guide](../CONFIGURATION.md)
+- [VisionFlow Configuration Quick Reference](../configuration/quick-reference.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)

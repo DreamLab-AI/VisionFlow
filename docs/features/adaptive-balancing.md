@@ -1,5 +1,7 @@
 # Adaptive Balancing
 
+*[Features](../index.md)*
+
 ## Overview
 
 Adaptive Balancing is an intelligent physics auto-tuning system that automatically adjusts force-directed graph parameters to maintain stable, aesthetically pleasing visualisations. The system continuously monitors graph behaviour and makes real-time adjustments to prevent common issues like node clustering, boundary bouncing, and explosive spreading.
@@ -9,10 +11,10 @@ Adaptive Balancing is an intelligent physics auto-tuning system that automatical
 ```mermaid
 flowchart TD
     A[Monitor Graph State] --> B{Detect Instability}
-    B -->|Bouncing| C[Reduce Forces & Increase Damping]
-    B -->|Spreading| D[Scale Forces & Enable Boundaries]
-    B -->|Clustering| E[Increase Repulsion]
-    B -->|Stable| F[Maintain Current Settings]
+    B --> |Bouncing| C[Reduce Forces & Increase Damping]
+    B --> |Spreading| D[Scale Forces & Enable Boundaries]
+    B --> |Clustering| E[Increase Repulsion]
+    B --> |Stable| F[Maintain Current Settings]
     
     C --> G[Smooth Parameter Transition]
     D --> G
@@ -23,7 +25,7 @@ flowchart TD
     I --> J[Update Positions]
     J --> A
     
-    H -->|Stable for 3s| K[Notify Settings System]
+    H --> |Stable for 3s| K[Notify Settings System]
     K --> L[Update UI Sliders]
 ```
 
@@ -344,3 +346,14 @@ Look for log entries with `[AUTO-BALANCE]` prefix:
 ---
 
 [← Back to Features](index.md) | [API Reference →](../api/rest/graph.md)
+
+## Related Topics
+
+- [Agent Orchestration Architecture](../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Features Documentation](../features/index.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [Neural Auto-Balance Feature](../features/AUTO_BALANCE.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)

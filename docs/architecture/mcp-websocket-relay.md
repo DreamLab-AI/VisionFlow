@@ -1,5 +1,7 @@
 # MCP WebSocket Relay Architecture
 
+*[Architecture](../index.md)*
+
 This document describes the architecture for relaying MCP (Model Context Protocol) data through the backend to the frontend visualisation.
 
 ## Overview
@@ -55,7 +57,7 @@ MCPWebSocketService (frontend)
     ↓ Physics simulation
 BotsPhysicsWorker
     ↓ Position updates
-3D Visualization
+3D Visualisation
 ```
 
 ### 4. Agent Data Transformation
@@ -221,7 +223,55 @@ The system gracefully degrades when MCP is unavailable:
 ## Future Enhancements
 
 1. **WebSocket Push**: Replace polling with real-time push
-2. **Binary Protocol**: Optimize agent data transmission
+2. **Binary Protocol**: Optimise agent data transmission
 3. **Event Streaming**: Stream agent events as they occur
 4. **Multi-MCP Support**: Connect to multiple Claude Flow instances
 5. **Agent Metrics Dashboard**: Detailed performance visualisation
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [MCP Tool Integration Analysis](../technical/mcp_tool_usage.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../multi-mcp-agent-visualization.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket API Reference](../api/websocket.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebSocket Protocols](../api/websocket-protocols.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

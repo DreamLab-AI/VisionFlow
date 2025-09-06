@@ -1,8 +1,10 @@
 # Settings Sync Integration Tests
 
+*[Testing](../index.md)*
+
 ## Overview
 
-This document describes the comprehensive integration test suite for the settings synchronization functionality, with a particular focus on the robustness of the REST API and proper handling of bloom/glow field validation.
+This document describes the comprehensive integration test suite for the settings synchronisation functionality, with a particular focus on the robustness of the REST API and proper handling of bloom/glow field validation.
 
 ## Test Coverage
 
@@ -24,7 +26,7 @@ The test suite covers the complete settings sync flow:
 
 ### 3. Physics Settings Propagation
 - Validation of physics parameters (damping, iterations, spring constants)
-- Auto-balance synchronization across both graphs (logseq and visionflow)
+- Auto-balance synchronisation across both graphs (logseq and visionflow)
 - GPU parameter validation and propagation
 
 ### 4. Bidirectional Sync
@@ -423,3 +425,26 @@ echo "Test environment setup complete!"
 ```
 
 This comprehensive test suite ensures that the settings sync functionality is robust, secure, and reliable, with particular attention to the bloom field validation that was mentioned as brittle in the requirements.
+
+
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)
+
+## Related Topics
+
+- [Debug Test Page](../archive/legacy/old_markdown/Debug Test Page.md)
+- [Settings Sync Integration Tests - Implementation Summary](../INTEGRATION_TEST_SUMMARY.md)
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md)
+- [Testing Documentation](../development/testing.md)
+- [production-validator](../reference/agents/testing/validation/production-validator.md)
+- [tdd-london-swarm](../reference/agents/testing/unit/tdd-london-swarm.md)
+- [tester](../reference/agents/core/tester.md)

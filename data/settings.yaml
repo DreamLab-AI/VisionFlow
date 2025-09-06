@@ -2,7 +2,7 @@ visualisation:
   rendering:
     ambientLightIntensity: 1.2
     backgroundColor: '#0a0e1a'
-    directionalLightIntensity: 1.5
+    directionalLightIntensity: 0.12637363
     enableAmbientOcclusion: false
     enableAntialiasing: true
     enableShadows: true
@@ -21,9 +21,9 @@ visualisation:
     waveSpeed: 0.5
   glow:
     enabled: true
-    intensity: 0.3561644
-    radius: 0.3561644
-    threshold: 0.038356163
+    intensity: 1.1538461
+    radius: 0.71428573
+    threshold: 0.07417583
     diffuseStrength: 1.5
     atmosphericDensity: 0.8
     volumetricIntensity: 1.2
@@ -38,21 +38,21 @@ visualisation:
   bloom:
     enabled: true
     intensity: 1.0
-    radius: 0.8
+    radius: 0.21978022
     threshold: 0.17032968
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 0.28846154
+    strength: 1.1401099
     blurPasses: 0.0
     knee: 0.0
   hologram:
     ringCount: 5
-    ringColor: '#00ffff'
-    ringOpacity: 0.8
+    ringColor: '#6e7000'
+    ringOpacity: 0.5934066
     sphereSizes:
     - 40.0
     - 80.0
-    ringRotationSpeed: 12.0
+    ringRotationSpeed: 0.12362637
     enableBuckminster: true
     buckminsterSize: 50.0
     buckminsterOpacity: 0.3
@@ -67,10 +67,10 @@ visualisation:
     logseq:
       nodes:
         baseColor: '#ff0000'
-        metalness: 0.42582417
-        opacity: 0.27197802
-        roughness: 0.32328767
-        nodeSize: 1.9010988
+        metalness: 0.25824177
+        opacity: 0.20879121
+        roughness: 0.3653846
+        nodeSize: 1.9703296
         quality: high
         enableInstancing: true
         enableHologram: true
@@ -78,7 +78,7 @@ visualisation:
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
-        baseWidth: 0.5
+        baseWidth: 1.671978
         color: '#5e2626'
         enableArrows: false
         opacity: 0.260989
@@ -87,11 +87,11 @@ visualisation:
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 0.5
+        desktopFontSize: 1.3567308
         enableLabels: true
-        textColor: '#ffffff'
-        textOutlineColor: '#0a0e1a'
-        textOutlineWidth: 0.005
+        textColor: '#805b5b'
+        textOutlineColor: '#ff0000'
+        textOutlineWidth: 0.00239011
         textResolution: 32
         textPadding: 0.6
         billboardMode: camera
@@ -124,17 +124,17 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 0.01
+        attractionK: 8.434066
         boundsSize: 1000.0
-        separationRadius: 2.0
-        damping: 0.70958906
+        separationRadius: 3.7717032
+        damping: 0.2967033
         enableBounds: false
         enabled: true
         iterations: 50
-        maxVelocity: 5.0
+        maxVelocity: 9.728022
         maxForce: 100.0
-        repelK: 155.46765
-        springK: 0.1
+        repelK: 14.927748
+        springK: 2.5824919
         massScale: 1.0
         boundaryDamping: 0.95
         updateThreshold: 0.01

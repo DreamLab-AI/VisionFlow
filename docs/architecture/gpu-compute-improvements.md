@@ -1,5 +1,7 @@
 # GPU Compute Improvements & Troubleshooting Guide
 
+*[Architecture](../index.md)*
+
 This document details recent improvements to the GPU compute system to address graph stability issues and provides troubleshooting guidance.
 
 ## Problem: Graph Bouncing
@@ -12,7 +14,7 @@ The graph visualisation exhibited excessive oscillation ("bouncing") due to:
 
 ## Solutions Implemented
 
-### 1. Optimized Physics Parameters
+### 1. Optimised Physics Parameters
 
 #### Default SimulationParams (Reduced Bouncing)
 ```rust
@@ -32,7 +34,7 @@ SimulationParams {
 - **Dynamic Phase**: Lower time_step (0.12) for optimal stability
 - **Finalize Phase**: High damping (0.95) for settling
 
-### 2. PTX Loading Path Standardization
+### 2. PTX Loading Path Standardisation
 
 #### Search Order (Priority)
 1. `/app/src/utils/ptx/*.ptx` - Primary location
@@ -249,3 +251,46 @@ Monitor key metrics:
    - Run for 60-120 seconds
    - Save logs for analysis
    - Compare before/after parameter changes
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [CUDA Integration Fix Documentation](../cuda_integration_fix.md)
+- [CUDA Kernel Parameters Documentation](../cuda-parameters.md)
+- [CUDA Parameters Integration Documentation](../cuda_parameters_integration.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [Unified CUDA/PTX Build Process](../CUDA_PTX_BUILD_PROCESS.md)
+- [Updated GPU Analytics & Visualisation Plan](../new_cuda.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

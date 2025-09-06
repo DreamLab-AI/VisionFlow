@@ -1,5 +1,7 @@
 # Onboarding System
 
+*[Client](../index.md)*
+
 ## Overview
 The onboarding system provides guided tours and interactive tutorials to help new users understand the application's features. It supports multi-step flows, element highlighting, and progress tracking.
 
@@ -81,14 +83,14 @@ Handles automatic flow triggers based on:
     {
       id: 'graph-view',
       title: 'Graph visualisation',
-      description: 'This is your main workspace where you can visualize and interact with your knowledge graph. Use your mouse to pan, zoom, and select nodes.',
+      description: 'This is your main workspace where you can visualise and interact with your knowledge graph. Use your mouse to pan, zoom, and select nodes.',
       target: 'canvas',
       position: 'right'
     },
     {
       id: 'settings-panel',
       title: 'Settings Panel',
-      description: 'Customize your visualisation with various settings. You can adjust colours, node sizes, and many other visual properties.',
+      description: 'Customise your visualisation with various settings. You can adjust colours, node sizes, and many other visual properties.',
       target: '.setting-control',
       position: 'left'
     },
@@ -256,3 +258,25 @@ if (!isFlowCompleted('first-time-user')) {
 - Video-based onboarding
 - Collaborative onboarding for teams
 - AI-guided personalized tours
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

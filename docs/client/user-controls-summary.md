@@ -1,5 +1,7 @@
 # User Controls Summary - Settings Panel
 
+*[Client](../index.md)*
+
 ⚠️ **CURRENT STATUS**: Controls may not respond correctly due to dual store issue. See settings-migration.md for details.
 
 ## Intuitive Features Implemented
@@ -14,7 +16,7 @@ The system automatically selects the most appropriate control type based on the 
 -   **`passwordInput`**: A variant of `textInput` for sensitive string fields (API keys, secrets), providing masking.
 -   **`select`**: For predefined options (enum-like strings) defined in `options` array in `UISettingDefinition` -> Renders a Select Dropdown.
 -   **`colourPicker`**: For single string colour values -> Renders a colour Picker with hex input.
--   **`rangeSlider`**: For `[number, number]` array values, representing a min/max range -> Renders a specialized Range Slider.
+-   **`rangeSlider`**: For `[number, number]` array values, representing a min/max range -> Renders a specialised Range Slider.
 -   **`dualcolourPicker`**: For `[string, string]` array values, representing two colours (e.g., for gradients) -> Renders two colour Pickers.
 -   **`radioGroup`**: For selecting one option from a list (mutually exclusive choices) defined in `options` -> Renders a Radio Group.
 -   **`buttonAction`**: For triggering an action (e.g., reset a section, trigger a backend process) -> Renders a Button. The action is defined by `actionId` in `UISettingDefinition`.
@@ -128,3 +130,25 @@ All controls follow the same pattern:
 - ✅ colour pickers: Real-time colour changes in 3D scene  
 - ✅ Toggles: Instant enable/disable of features
 - ⚠️ **IF BROKEN**: Check store import in component files
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

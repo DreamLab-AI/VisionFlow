@@ -1,6 +1,8 @@
 # Server Documentation
 
-The VisionFlow backend is a high-performance data processing and visualization engine built in Rust. It leverages an actor-based architecture (via Actix) to handle complex, concurrent operations with high throughput. Key architectural features include a unified GPU compute kernel for accelerated analytics, a dual-graph model for managing knowledge and agent states, and a resilient, TCP-only MCP integration for external agent control.
+*[Server](../index.md)*
+
+The VisionFlow backend is a high-performance data processing and visualisation engine built in Rust. It leverages an actor-based architecture (via Actix) to handle complex, concurrent operations with high throughput. Key architectural features include a unified GPU compute kernel for accelerated analytics, a dual-graph model for managing knowledge and agent states, and a resilient, TCP-only MCP integration for external agent control.
 
 ## Core Architecture
 
@@ -65,3 +67,54 @@ cargo test
 
 # Run tests with GPU features enabled
 cargo test --features gpu
+## Documents
+
+- [Actor System](./actors.md)
+- [Multi Agent Orchestration](./agent-swarm.md)
+- [AI Services Documentation](./ai-services.md)
+- [Server Architecture](./architecture.md)
+- [Configuration Architecture](./config.md)
+- [Feature Access Control](./feature-access.md)
+- [Claude Flow MCP Integration](./claude-flow-mcp-integration.md)
+- [Graph Clustering](./clustering.md)
+- [Ontology Validation](./ontology.md)
+- [Semantic Analysis Pipeline](./semantic-analysis.md)
+- [GPU Compute Architecture](./gpu-compute.md)
+- [Request Handlers Architecture](./handlers.md)
+- [MCP Integration](./mcp-integration.md)
+- [Server-Side Data Models](./models.md)
+- [Physics Engine](./physics-engine.md)
+- [Services Architecture](./services.md)
+- [Types Architecture](./types.md)
+- [Utilities Architecture](./utils.md)
+
+
+
+
+## See Also
+
+- [REST API Reference](../api/rest/index.md) - API specification
+- [VisionFlow API Documentation](../api/index.md) - API specification
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md) - API specification
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md) - API specification
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Actor System](../server/actors.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)

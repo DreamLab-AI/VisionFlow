@@ -1,5 +1,7 @@
 # Graph API Reference
 
+*[Api](../index.md) > [Rest](../api/rest/index.md)*
+
 The Graph API provides endpoints for managing knowledge graph data, including retrieval, updates, and the Adaptive Balancing system.
 
 ## Base URL
@@ -365,3 +367,30 @@ def poll_auto_balance_notifications():
 ---
 
 [← Back to API Documentation](index.md) | [WebSocket API →](../websocket/index.md)
+
+
+
+## See Also
+
+- [Request Handlers Architecture](../../server/handlers.md) - Server implementation
+
+## Related Topics
+
+- [AI Services Documentation](../../server/ai-services.md) - Implementation
+- [Actor System](../../server/actors.md) - Implementation
+- [Analytics API Endpoints](../../api/analytics-endpoints.md)
+- [Modern Settings API - Path-Based Architecture](../../MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation API Reference](../../api/multi-mcp-visualization-api.md)
+- [REST API Bloom/Glow Field Validation Fix](../../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
+- [REST API Reference](../../api/rest/index.md)
+- [Request Handlers Architecture](../../server/handlers.md) - Implementation
+- [Services Architecture](../../server/services.md) - Implementation
+- [Settings API Reference](../../api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](../../api/shortest-path-api.md)
+- [VisionFlow API Documentation](../../api/index.md)
+- [VisionFlow MCP Integration Documentation](../../api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](../../api/websocket/index.md)
+- [WebSocket API Reference](../../api/websocket.md)
+- [WebSocket Protocols](../../api/websocket-protocols.md)
+- [dev-backend-api](../../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../../reference/agents/documentation/api-docs/docs-api-openapi.md)
