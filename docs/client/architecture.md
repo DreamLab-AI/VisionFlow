@@ -1,0 +1,106 @@
+# Client Architecture
+
+This document provides a detailed overview of the client application's architecture, initialization sequence, and data flow.
+
+## Core Principles
+
+The client is a sophisticated TypeScript and React application built for high-performance, real-time graph visualisation. It follows several core principles:
+- **Modular Design**: Features are encapsulated in specific directories (e.g., `features/xr`, `features/analytics`).
+- **Centralized State Management**: Zustand is used for predictable and efficient global state management.
+- **Asynchronous Initialization**: A dedicated initialiser component manages the loading of services and data to ensure the application starts reliably.
+- **Component-Based Rendering**: The UI is built with React, and the 3D scene is managed by React Three Fiber.
+
+## Application Entry Point and Initialization
+
+The application's lifecycle begins in `main.tsx`, which renders the main `App` component.
+
+### `App.tsx`
+[`client/src/app/App.tsx`](../../client/src/app/App.tsx) serves as the root component. Its primary responsibilities are:
+- **Provider Setup**: It wraps the entire application in essential React Context providers, such as `XRCoreProvider`, `HelpProvider`, and `ApplicationModeProvider`.
+- **Initialization Gate**: It monitors the `initialised` flag from the `settingsStore`. Until initialization is complete, it displays a loading state and renders the `Appinitialiser`.
+- **Layout Switching**: Once initialised, it determines which main layout to render: `MainLayout.tsx` for desktop or `Quest3AR.tsx` for immersive XR experiences.
+
+### `Appinitialiser.tsx`
+[`client/src/app/Appinitialiser.tsx`](../../client/src/app/Appinitialiser.tsx) is a non-rendering component that orchestrates the application's startup sequence.
+
+**Initialization Sequence:**
+1.  **Services Loading**: initialises core services like the authentication service (`initialiseAuth`).
+2.  **Settings Store**: initialises the `settingsStore`, loading settings from `localStorage` and the server.
+3.  **WebSocket Service**: Establishes a connection with the WebSocket server and sets up listeners for real-time data.
+4.  **Graph Data Manager**: An adapter is created to link the `WebSocketService` to the `graphDataManager`, decoupling the two.
+5.  **Initial Data Fetch**: The `graphDataManager` fetches the initial graph structure via the REST API.
+6.  **Initialization Complete**: Once all steps are successful, it sets the `initialised` flag in the `settingsStore` to `true`, signaling the `App` component to render the main UI.
+
+## Architectural Diagram
+
+This diagram illustrates the relationships between the core components of the application.
+
+```mermaid
+flowchart TD
+    subgraph "Initialization"
+        Appinitialiser["Appinitialiser.tsx"]
+    end
+
+    subgraph "State Management"
+        SettingsStore["SettingsStore (Zustand)"]
+        GraphDataManager["GraphDataManager"]
+    end
+
+    subgraph "Services"
+        WebSocketService["WebSocketService"]
+        APIService["apiService.ts"]
+    end
+
+    subgraph "UI Layer"
+        MainLayout["MainLayout.tsx (Desktop)"]
+        Quest3AR["Quest3AR.tsx (Immersive)"]
+        RightPane["RightPaneControlPanel.tsx"]
+    end
+
+    subgraph "Rendering Engine (R3F)"
+        GraphManager["GraphManager.tsx"]
+    end
+
+    Appinitialiser --> SettingsStore
+    Appinitialiser --> WebSocketService
+    Appinitialiser --> GraphDataManager
+    Appinitialiser --> APIService
+
+    WebSocketService -- "Real-time updates" --> GraphDataManager
+    APIService -- "Initial data" --> GraphDataManager
+
+    SettingsStore -- "Settings data" --> MainLayout
+    SettingsStore -- "Settings data" --> Quest3AR
+    SettingsStore -- "Settings data" --> GraphManager
+
+    GraphDataManager -- "Graph data" --> GraphManager
+
+    MainLayout --> RightPane
+    MainLayout --> GraphManager
+    Quest3AR --> GraphManager
+```
+
+## Component Breakdown
+
+### UI Components
+-   **`MainLayout.tsx`**: The primary UI container for the desktop experience. It typically includes the main graph visualisation area and the `RightPaneControlPanel`.
+-   **`Quest3AR.tsx`**: The root component for the immersive AR experience on Quest 3 devices. It sets up the XR session and renders the graph in 3D space.
+-   **`RightPaneControlPanel.tsx`**: A key UI component that hosts various control panels, including the settings panel, authentication forms, and analytics controls.
+
+### State and Data Management
+-   **`SettingsStore.ts`**: The single source of truth for all application settings. It's a Zustand store that handles persistence to `localStorage` and synchronisation with the server.
+-   **`GraphDataManager.ts`**: Manages the state of the graph data, including nodes, edges, and their positions. It receives initial data from the REST API and subsequent real-time position updates from the `WebSocketService`.
+
+### Services
+-   **`WebSocketService.ts`**: A singleton service that manages the real-time WebSocket connection to the server. It handles the binary protocol for efficient position updates and implements a readiness protocol to ensure the connection is stable before use.
+-   **`apiService.ts`**: Handles all communication with the server's REST API, used for fetching initial data, user settings, and triggering analytics computations.
+
+## Data Flow
+
+The application follows a clear, unidirectional data flow:
+
+1.  **Initialization**: `Appinitialiser` coordinates the loading of settings and initial graph data. `apiService` fetches the initial graph state, which is loaded into `GraphDataManager`.
+2.  **Real-time Updates**: `WebSocketService` receives binary position updates from the server. It passes this data to `GraphDataManager`.
+3.  **State Propagation**: `GraphDataManager` processes the updates and manages the graph's state.
+4.  **Rendering**: The `GraphManager` component subscribes to `GraphDataManager` and `SettingsStore`. When data in these stores changes, it re-renders the nodes and edges in the 3D scene with the updated positions and visual styles.
+5.  **User Interaction**: UI components like `RightPaneControlPanel` allow users to modify settings. These interactions call actions on the `SettingsStore`, which updates its state and triggers a re-render of any subscribed components.
