@@ -37,14 +37,14 @@ visualisation:
     environmentGlowStrength: 0.96262044
   bloom:
     enabled: true
-    intensity: 1.8
-    radius: 0.85
-    threshold: 0.15
+    intensity: 1.0
+    radius: 0.8
+    threshold: 0.17032968
     color: '#ffffff'
-    tintColor: '#00ffff'
-    strength: 0.8
-    blurPasses: 3.0
-    knee: 0.5
+    tintColor: '#ffffff'
+    strength: 0.28846154
+    blurPasses: 0.0
+    knee: 0.0
   hologram:
     ringCount: 5
     ringColor: '#00ffff'
@@ -66,22 +66,22 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#ab0707'
+        baseColor: '#ff0000'
         metalness: 0.42582417
         opacity: 0.27197802
         roughness: 0.32328767
-        nodeSize: 1.6489011
+        nodeSize: 1.9010988
         quality: high
         enableInstancing: true
         enableHologram: true
-        enableMetadataShape: false
+        enableMetadataShape: true
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
         baseWidth: 0.5
-        color: '#00bfc2'
+        color: '#5e2626'
         enableArrows: false
-        opacity: 0.05479452
+        opacity: 0.260989
         widthRange:
         - 0.3
         - 1.5

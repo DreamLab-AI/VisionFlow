@@ -207,6 +207,33 @@ class SettingsUpdateManager {
         
         logger.info(`[DEBOUNCE] Successfully processed chunk of ${chunk.length} updates via individual fallback`);
       } else {
+        // Parse the response to get the actual values from the server
+        const responseData = await response.json();
+        
+        // Process the results from the server to ensure client state matches
+        if (responseData.results && Array.isArray(responseData.results)) {
+          // We need to update the store directly without triggering another server update
+          // Since the server has already saved these values, we just need to sync the local state
+          // For now, log the server response to verify it's working
+          logger.info(`[DEBOUNCE] Server batch update response:`, responseData);
+          
+          // Check if any values were modified by the server
+          responseData.results.forEach((result: any) => {
+            if (result.success) {
+              // Find the original value we sent
+              const originalUpdate = chunk.find(u => u.path === result.path);
+              if (originalUpdate && JSON.stringify(originalUpdate.value) !== JSON.stringify(result.value)) {
+                logger.warn(`[DEBOUNCE] Server modified value for ${result.path}:`, {
+                  sent: originalUpdate.value,
+                  received: result.value
+                });
+                // TODO: Update the local store with the server's value without triggering another update
+                // This needs a new store method like setLocalOnly() that doesn't call autoSaveManager
+              }
+            }
+          });
+        }
+        
         logger.info(`[DEBOUNCE] Successfully processed batch chunk of ${chunk.length} updates`);
       }
     } catch (error) {

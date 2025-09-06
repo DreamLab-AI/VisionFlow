@@ -74,6 +74,9 @@ interface SettingsState {
   loadedPaths: Set<string> // Track which paths have been loaded
   loadingSections: Set<string> // Track sections currently being loaded
   
+  // Computed getter for backward compatibility with components
+  settings: DeepPartial<Settings> // Maps to partialSettings for component access
+  
   initialized: boolean
   authenticated: boolean
   user: { isPowerUser: boolean; pubkey: string } | null
@@ -198,6 +201,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       partialSettings: {},
+      settings: {}, // Initialize settings as alias to partialSettings
       loadedPaths: new Set(),
       loadingSections: new Set(),
       initialized: false,
@@ -221,6 +225,7 @@ export const useSettingsStore = create<SettingsState>()(
 
           set(state => ({
             partialSettings: essentialSettings as DeepPartial<Settings>,
+            settings: essentialSettings as DeepPartial<Settings>, // Keep settings in sync
             loadedPaths: new Set(ESSENTIAL_PATHS),
             initialized: true
           }));
@@ -312,6 +317,7 @@ export const useSettingsStore = create<SettingsState>()(
 
           return {
             partialSettings: newPartialSettings,
+            settings: newPartialSettings, // Keep settings in sync
             loadedPaths: newLoadedPaths
           };
         });
@@ -386,6 +392,7 @@ export const useSettingsStore = create<SettingsState>()(
 
             return {
               partialSettings: newPartialSettings,
+              settings: newPartialSettings, // Keep settings in sync
               loadedPaths: newLoadedPaths
             };
           });
@@ -457,6 +464,7 @@ export const useSettingsStore = create<SettingsState>()(
         set(state => {
           return {
             partialSettings: newSettings,
+            settings: newSettings, // Keep settings in sync
             // Add changed paths to loaded paths
             loadedPaths: new Set([...state.loadedPaths, ...changedPaths])
           };
@@ -719,6 +727,7 @@ export const useSettingsStore = create<SettingsState>()(
           // Clear local state
           set({
             partialSettings: {},
+            settings: {}, // Keep settings in sync
             loadedPaths: new Set()
           });
           
