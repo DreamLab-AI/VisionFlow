@@ -35,6 +35,16 @@ visualisation:
     nodeGlowStrength: 0.053478915
     edgeGlowStrength: 0.9127068
     environmentGlowStrength: 0.96262044
+  bloom:
+    enabled: true
+    intensity: 1.8
+    radius: 0.85
+    threshold: 0.15
+    color: '#ffffff'
+    tintColor: '#00ffff'
+    strength: 0.8
+    blurPasses: 3.0
+    knee: 0.5
   hologram:
     ringCount: 5
     ringColor: '#00ffff'
@@ -57,10 +67,10 @@ visualisation:
     logseq:
       nodes:
         baseColor: '#ab0707'
-        metalness: 0.10684931
-        opacity: 0.043835618
+        metalness: 0.42582417
+        opacity: 0.27197802
         roughness: 0.32328767
-        nodeSize: 0.86758244
+        nodeSize: 1.6489011
         quality: high
         enableInstancing: true
         enableHologram: true

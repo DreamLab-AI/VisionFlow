@@ -535,22 +535,26 @@ pub async fn get_settings_schema(
 // Request/Response DTOs
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PathQuery {
     pub path: String,
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PathUpdateRequest {
     pub path: String,
     pub value: Value,
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BatchPathUpdateRequest {
     pub updates: Vec<PathUpdateRequest>,
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BatchPathReadRequest {
     pub paths: Vec<String>,
 }
