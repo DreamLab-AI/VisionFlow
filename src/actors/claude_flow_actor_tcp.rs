@@ -738,6 +738,12 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
             }
         }
         
+        // DISABLED: ClaudeFlowActor TCP polling is broken due to persistent connection issues
+        // The MCP server closes connections after each request, but this actor expects persistent connections
+        // BotsClient handles agent fetching correctly with fresh connections
+        debug!("ClaudeFlowActor polling DISABLED - using BotsClient instead");
+        return;
+        
         debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
                self.consecutive_poll_failures);
         

@@ -7,6 +7,10 @@ use futures_util::{StreamExt, SinkExt};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use log::{info, error, debug, warn};
+use actix::Addr;
+use crate::actors::graph_actor::GraphServiceActor;
+use crate::actors::messages::UpdateBotsGraph;
+use crate::types::claude_flow::{AgentStatus, AgentProfile, AgentType, TokenUsage};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BotsUpdate {
@@ -59,12 +63,21 @@ pub struct BotsMetrics {
 #[derive(Clone)]
 pub struct BotsClient {
     updates: Arc<RwLock<Option<BotsUpdate>>>,
+    graph_service_addr: Option<Addr<GraphServiceActor>>,
 }
 
 impl BotsClient {
     pub fn new() -> Self {
         Self {
             updates: Arc::new(RwLock::new(None)),
+            graph_service_addr: None,
+        }
+    }
+    
+    pub fn with_graph_service(graph_addr: Addr<GraphServiceActor>) -> Self {
+        Self {
+            updates: Arc::new(RwLock::new(None)),
+            graph_service_addr: Some(graph_addr),
         }
     }
 
@@ -142,6 +155,7 @@ impl BotsClient {
 
         // Clone for the read task
         let updates = self.updates.clone();
+        let graph_service_addr = self.graph_service_addr.clone();
 
         // Spawn read task
         tokio::spawn(async move {
@@ -223,6 +237,48 @@ impl BotsClient {
                                                             for agent in &update.agents {
                                                                 debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
                                                             }
+                                                            
+                                                            // CRITICAL FIX: Send agents to graph
+                                                            if let Some(ref graph_addr) = graph_service_addr {
+                                                                info!("📨 BotsClient sending {} agents to graph", update.agents.len());
+                                                                
+                                                                // Convert Agent to AgentStatus for UpdateBotsGraph
+                                                                let agent_statuses: Vec<AgentStatus> = update.agents.clone()
+                                                                    .into_iter()
+                                                                    .map(|agent| AgentStatus {
+                                                                        id: agent.id.clone(),
+                                                                        profile: AgentProfile {
+                                                                            id: agent.id,
+                                                                            name: agent.name,
+                                                                            agent_type: match agent.agent_type.as_str() {
+                                                                                "coordinator" => AgentType::Coordinator,
+                                                                                "researcher" => AgentType::Researcher,
+                                                                                "coder" => AgentType::Coder,
+                                                                                "tester" => AgentType::Tester,
+                                                                                "reviewer" => AgentType::Reviewer,
+                                                                                _ => AgentType::Specialist,
+                                                                            },
+                                                                            capabilities: vec![],
+                                                                        },
+                                                                        status: agent.status,
+                                                                        x: agent.x,
+                                                                        y: agent.y,
+                                                                        z: agent.z,
+                                                                        health: 100.0,
+                                                                        cpu_usage: 0.0,
+                                                                        memory_usage: 0.0,
+                                                                        token_usage: TokenUsage::default(),
+                                                                        success_rate: 100.0,
+                                                                        tasks_completed: 0,
+                                                                        last_activity: std::time::SystemTime::now(),
+                                                                    })
+                                                                    .collect();
+                                                                
+                                                                graph_addr.do_send(UpdateBotsGraph {
+                                                                    agents: agent_statuses
+                                                                });
+                                                            }
+                                                            
                                                             let mut lock = updates.write().await;
                                                             *lock = Some(update);
                                                             continue; // Skip the rest of the parsing
