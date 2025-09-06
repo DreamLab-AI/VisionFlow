@@ -10,7 +10,7 @@ use log::{info, error, debug, warn};
 use actix::Addr;
 use crate::actors::graph_actor::GraphServiceActor;
 use crate::actors::messages::UpdateBotsGraph;
-use crate::types::claude_flow::{AgentStatus, AgentProfile, AgentType, TokenUsage};
+use crate::types::claude_flow::{AgentStatus, AgentProfile, AgentType, TokenUsage, PerformanceMetrics};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BotsUpdate {
@@ -246,9 +246,8 @@ impl BotsClient {
                                                                 let agent_statuses: Vec<AgentStatus> = update.agents.clone()
                                                                     .into_iter()
                                                                     .map(|agent| AgentStatus {
-                                                                        id: agent.id.clone(),
+                                                                        agent_id: agent.id.clone(),
                                                                         profile: AgentProfile {
-                                                                            id: agent.id,
                                                                             name: agent.name,
                                                                             agent_type: match agent.agent_type.as_str() {
                                                                                 "coordinator" => AgentType::Coordinator,
@@ -256,21 +255,39 @@ impl BotsClient {
                                                                                 "coder" => AgentType::Coder,
                                                                                 "tester" => AgentType::Tester,
                                                                                 "reviewer" => AgentType::Reviewer,
-                                                                                _ => AgentType::Specialist,
+                                                                                "analyst" => AgentType::Analyst,
+                                                                                "architect" => AgentType::Architect,
+                                                                                "optimizer" => AgentType::Optimizer,
+                                                                                "documenter" => AgentType::Documenter,
+                                                                                _ => AgentType::Coder, // Default to Coder
                                                                             },
                                                                             capabilities: vec![],
                                                                         },
                                                                         status: agent.status,
-                                                                        x: agent.x,
-                                                                        y: agent.y,
-                                                                        z: agent.z,
-                                                                        health: 100.0,
+                                                                        active_tasks_count: 0,
+                                                                        completed_tasks_count: 0,
+                                                                        failed_tasks_count: 0,
+                                                                        success_rate: 100.0,
+                                                                        timestamp: chrono::Utc::now(),
+                                                                        current_task: None,
                                                                         cpu_usage: 0.0,
                                                                         memory_usage: 0.0,
-                                                                        token_usage: TokenUsage::default(),
-                                                                        success_rate: 100.0,
-                                                                        tasks_completed: 0,
-                                                                        last_activity: std::time::SystemTime::now(),
+                                                                        health: 100.0,
+                                                                        activity: 0.0,
+                                                                        tasks_active: 0,
+                                                                        performance_metrics: PerformanceMetrics {
+                                                                            tasks_completed: 0,
+                                                                            success_rate: 100.0,
+                                                                        },
+                                                                        token_usage: TokenUsage {
+                                                                            total: 0,
+                                                                            token_rate: 0.0,
+                                                                        },
+                                                                        swarm_id: None,
+                                                                        agent_mode: None,
+                                                                        parent_queen_id: None,
+                                                                        processing_logs: None,
+                                                                        total_execution_time: 0,
                                                                     })
                                                                     .collect();
                                                                 
