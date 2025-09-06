@@ -1294,11 +1294,26 @@ impl GraphServiceActor {
                     &ptx_content,
                 ) {
                     Ok(context) => {
-                        info!("Successfully initialized advanced GPU context");
+                        info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges", 
+                              graph_data_clone.nodes.len(), num_directed_edges);
+                        info!("GPU physics simulation is now active for knowledge graph");
                         self_addr.do_send(SetAdvancedGPUContext { context });
                     }
                     Err(e) => {
-                        warn!("Failed to initialize advanced GPU context: {}", e);
+                        error!("❌ Failed to initialize advanced GPU context: {}", e);
+                        error!("GPU Details: {} nodes, {} directed edges, PTX size: {} bytes", 
+                               graph_data_clone.nodes.len(), num_directed_edges, ptx_content.len());
+                        
+                        // Log specific error details
+                        let error_str = e.to_string();
+                        if error_str.contains("PTX") {
+                            error!("PTX compilation or loading issue detected");
+                        } else if error_str.contains("memory") {
+                            error!("GPU memory allocation issue - may need to reduce graph size");
+                        } else if error_str.contains("device") {
+                            error!("CUDA device issue - check GPU availability");
+                        }
+                        
                         // Reset the flag on failure so we can retry later
                         self_addr.do_send(ResetGPUInitFlag);
                     }
@@ -2182,9 +2197,10 @@ async fn compile_ptx_fallback() -> Result<String, String> {
     let ptx_output = temp_dir.join("visionflow_unified.ptx");
     
     // Get CUDA architecture from environment or use default
-    let cuda_arch = std::env::var("CUDA_ARCH").unwrap_or_else(|_| "89".to_string());
+    let cuda_arch = std::env::var("CUDA_ARCH").unwrap_or_else(|_| "86".to_string());
     
-    info!("Compiling CUDA kernel to PTX with sm_{} architecture...", cuda_arch);
+    info!("🔧 Compiling CUDA kernel to PTX with sm_{} architecture...", cuda_arch);
+    info!("Source file: {}", cuda_src);
     
     // Run nvcc to compile PTX
     let output = Command::new("nvcc")
@@ -2204,7 +2220,12 @@ async fn compile_ptx_fallback() -> Result<String, String> {
         return Err(format!("CUDA compilation failed: {}", stderr));
     }
     
+    info!("✅ PTX compilation successful, output file: {:?}", ptx_output);
+    
     // Read the compiled PTX file
-    std::fs::read_to_string(&ptx_output)
-        .map_err(|e| format!("Failed to read compiled PTX: {}", e))
+    let ptx_content = std::fs::read_to_string(&ptx_output)
+        .map_err(|e| format!("Failed to read compiled PTX: {}", e))?;
+    
+    info!("📄 PTX file loaded successfully, size: {} bytes", ptx_content.len());
+    Ok(ptx_content)
 }

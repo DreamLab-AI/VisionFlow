@@ -31,7 +31,7 @@ services:
       - .env
     environment:
       - NVIDIA_VISIBLE_DEVICES=0  # Use GPU 0 (RTX A6000)
-      - CUDA_ARCH=${CUDA_ARCH:-89} # Pass CUDA architecture for runtime PTX compilation
+      - CUDA_ARCH=${CUDA_ARCH:-86} # Pass CUDA architecture for runtime PTX compilation (86 for RTX A6000)
       # RUST_LOG is now inherited from the .env file via env_file directive
       - VITE_DEBUG=${DEBUG_ENABLED:-true} # Pass master debug switch to frontend
       - NODE_ENV=development
