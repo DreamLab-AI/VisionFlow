@@ -127,8 +127,8 @@ impl AppState {
         info!("[AppState::new] Starting ProtectedSettingsActor");
         let protected_settings_addr = ProtectedSettingsActor::new(ProtectedSettings::default()).start();
 
-        info!("[AppState::new] Initializing BotsClient");
-        let bots_client = Arc::new(BotsClient::new());
+        info!("[AppState::new] Initializing BotsClient with graph service");
+        let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
         // Initialize GPU with delay to ensure graph data is ready
         if let Some(ref gpu_addr) = gpu_compute_addr {
