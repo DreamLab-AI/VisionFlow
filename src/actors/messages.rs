@@ -197,6 +197,131 @@ pub struct SetSettingsByPaths {
     pub updates: HashMap<String, Value>,
 }
 
+// Priority-based update for concurrent update handling
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum UpdatePriority {
+    Critical = 1,  // Physics parameters that affect GPU simulation
+    High = 2,      // Visual settings that impact rendering
+    Normal = 3,    // General configuration changes
+    Low = 4,       // Non-critical settings like UI preferences
+}
+
+impl PartialOrd for UpdatePriority {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for UpdatePriority {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        (*self as u8).cmp(&(*other as u8))
+    }
+}
+
+// Enhanced update structure with priority and batching support
+#[derive(Debug, Clone, PartialEq)]
+pub struct PriorityUpdate {
+    pub path: String,
+    pub value: Value,
+    pub priority: UpdatePriority,
+    pub timestamp: std::time::Instant,
+    pub client_id: Option<String>,
+}
+
+impl Eq for PriorityUpdate {}
+
+impl PartialOrd for PriorityUpdate {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PriorityUpdate {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // First compare by priority (Critical < High < Normal < Low)
+        match self.priority.cmp(&other.priority) {
+            std::cmp::Ordering::Equal => {
+                // If priorities are equal, compare by timestamp (earlier first)
+                self.timestamp.cmp(&other.timestamp)
+            }
+            other => other
+        }
+    }
+}
+
+impl PriorityUpdate {
+    pub fn new(path: String, value: Value) -> Self {
+        let priority = Self::determine_priority(&path);
+        Self {
+            path,
+            value,
+            priority,
+            timestamp: std::time::Instant::now(),
+            client_id: None,
+        }
+    }
+    
+    pub fn with_client_id(mut self, client_id: String) -> Self {
+        self.client_id = Some(client_id);
+        self
+    }
+    
+    fn determine_priority(path: &str) -> UpdatePriority {
+        if path.contains(".physics.") {
+            // Physics parameters are critical for GPU simulation
+            UpdatePriority::Critical
+        } else if path.contains(".bloom.") || path.contains(".glow.") || path.contains(".visual") {
+            // Visual settings are high priority for user experience
+            UpdatePriority::High
+        } else if path.contains(".system.") || path.contains(".security.") {
+            // System settings have normal priority
+            UpdatePriority::Normal
+        } else {
+            // UI preferences and other settings are low priority
+            UpdatePriority::Low
+        }
+    }
+}
+
+// Batched update message for handling concurrent updates efficiently
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct BatchedUpdate {
+    pub updates: Vec<PriorityUpdate>,
+    pub max_batch_size: usize,
+    pub timeout_ms: u64,
+}
+
+impl BatchedUpdate {
+    pub fn new(updates: Vec<PriorityUpdate>) -> Self {
+        Self {
+            updates,
+            max_batch_size: 50, // Default batch size to prevent mailbox overflow
+            timeout_ms: 100,    // Default 100ms timeout for batching
+        }
+    }
+    
+    pub fn with_batch_config(mut self, max_batch_size: usize, timeout_ms: u64) -> Self {
+        self.max_batch_size = max_batch_size;
+        self.timeout_ms = timeout_ms;
+        self
+    }
+    
+    /// Sort updates by priority (Critical first, Low last)
+    pub fn sort_by_priority(&mut self) {
+        self.updates.sort_by(|a, b| a.priority.cmp(&b.priority));
+    }
+    
+    /// Group updates by priority level
+    pub fn group_by_priority(&self) -> HashMap<UpdatePriority, Vec<&PriorityUpdate>> {
+        let mut groups = HashMap::new();
+        for update in &self.updates {
+            groups.entry(update.priority.clone()).or_insert_with(Vec::new).push(update);
+        }
+        groups
+    }
+}
+
 // Metadata Actor Messages
 #[derive(Message)]
 #[rtype(result = "Result<MetadataStore, String>")]

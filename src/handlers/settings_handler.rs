@@ -2,6 +2,7 @@
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
 use crate::config::AppFullSettings;
+use crate::config::path_access::JsonPathAccessible;
 use crate::actors::messages::{GetSettings, UpdateSettings, UpdateSimulationParams};
 use crate::handlers::validation_handler::ValidationService;
 use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, EndpointRateLimits, extract_client_id};
@@ -10,6 +11,7 @@ use log::{info, warn, error, debug};
 use serde_json::{json, Value};
 use serde::{Serialize, Deserialize};
 use std::sync::Arc;
+use std::borrow::Cow;
 
 /// DTO for settings responses with camelCase serialization
 #[derive(Debug, Serialize, Clone)]
@@ -1543,66 +1545,369 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.app_data(handler.clone())
         .service(
             web::scope("/settings")
-                // DEPRECATED: Legacy bulk settings endpoints removed for performance
-                // These endpoints returned/updated entire settings objects causing performance issues
-                // Use path-based endpoints instead:
-                //   - GET /api/settings/path?path=x.y.z (granular read)
-                //   - PUT /api/settings/path (granular update) 
-                //   - POST /api/settings/batch (batch read)
-                //   - PUT /api/settings/batch (batch update)
-                //   - GET /api/settings/schema (schema introspection)
-                /*
-                .route("", web::get().to(|req, state, handler: web::Data<EnhancedSettingsHandler>| async move {
-                    // DEPRECATED: GET /api/settings - returns entire settings object
-                    // Use GET /api/settings/path?path=x.y.z for granular access instead
-                    match handler.get_settings_enhanced(req, state).await {
-                        Ok(response) => response,
-                        Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings service temporarily unavailable"}))
-                    }
-                }))
-                .route("", web::post().to(|req, state, payload, handler: web::Data<EnhancedSettingsHandler>| async move {
-                    // DEPRECATED: POST /api/settings - updates entire settings object
-                    // Use PUT /api/settings/path or PUT /api/settings/batch instead
-                    match handler.update_settings_enhanced(req, state, payload).await {
-                        Ok(response) => response,
-                        Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings update service temporarily unavailable"}))
-                    }
-                }))
-                */
-                .route("/reset", web::post().to(|req, state, handler: web::Data<EnhancedSettingsHandler>| async move {
-                    // Try enhanced handler first, fallback to legacy
-                    match handler.reset_settings_enhanced(req, state).await {
-                        Ok(response) => response,
-                        Err(_) => HttpResponse::InternalServerError().json(json!({"error": "Settings reset service temporarily unavailable"}))
-                    }
-                }))
+                // Modern path-based endpoints
+                .route("/path", web::get().to(get_setting_by_path))
+                .route("/path", web::put().to(update_setting_by_path))
+                .route("/batch", web::post().to(batch_get_settings))
+                .route("/batch", web::put().to(batch_update_settings))
+                .route("/schema", web::get().to(get_settings_schema))
+                // Legacy endpoints (kept for compatibility but deprecated)
+                .route("", web::get().to(get_settings))
+                .route("", web::post().to(update_settings))
+                .route("/reset", web::post().to(reset_settings))
                 .route("/validation/stats", web::get().to(|req, handler: web::Data<EnhancedSettingsHandler>| async move {
                     handler.get_validation_stats(req).await
                 }))
         )
         .service(
-            web::scope("/physics")
+            web::scope("/api/physics")
                 .route("/compute-mode", web::post().to(update_compute_mode))
         )
         .service(
-            web::scope("/clustering")
+            web::scope("/api/clustering")
                 .route("/algorithm", web::post().to(update_clustering_algorithm))
         )
         .service(
-            web::scope("/constraints")
+            web::scope("/api/constraints")
                 .route("/update", web::post().to(update_constraints))
         )
         .service(
-            web::scope("/analytics")
+            web::scope("/api/analytics")
                 .route("/clusters", web::get().to(get_cluster_analytics))
         )
         .service(
-            web::scope("/stress")
+            web::scope("/api/stress")
                 .route("/optimization", web::post().to(update_stress_optimization))
         );
 }
 
-/// Get current settings - returns camelCase JSON
+/// Get single setting by path
+async fn get_setting_by_path(
+    req: HttpRequest,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    let path = req.query_string()
+        .split('&')
+        .find(|param| param.starts_with("path="))
+        .and_then(|p| p.strip_prefix("path="))
+        .map(|p| urlencoding::decode(p).unwrap_or(Cow::Borrowed(p)).to_string())
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Missing 'path' query parameter"))?;
+
+    let app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve settings",
+                "path": path
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable",
+                "path": path
+            })));
+        }
+    };
+
+    match app_settings.get_json_by_path(&path) {
+        Ok(value_json) => {
+            Ok(HttpResponse::Ok().json(json!({
+                "success": true,
+                "path": path,
+                "value": value_json
+            })))
+        }
+        Err(e) => {
+            warn!("Path not found '{}': {}", path, e);
+            Ok(HttpResponse::NotFound().json(json!({
+                "success": false,
+                "error": "Path not found",
+                "path": path,
+                "message": e
+            })))
+        }
+    }
+}
+
+/// Update single setting by path
+async fn update_setting_by_path(
+    req: HttpRequest,
+    state: web::Data<AppState>,
+    payload: web::Json<Value>,
+) -> Result<HttpResponse, Error> {
+    let update = payload.into_inner();
+    let path = update.get("path")
+        .and_then(|p| p.as_str())
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Missing 'path' in request body"))?
+        .to_string();
+    let value = update.get("value")
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Missing 'value' in request body"))?
+        .clone();
+
+    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve settings",
+                "path": path
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable",
+                "path": path
+            })));
+        }
+    };
+
+    let previous_value = app_settings.get_json_by_path(&path).ok();
+
+    match app_settings.set_json_by_path(&path, value) {
+        Ok(()) => {
+            match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+                Ok(Ok(())) => {
+                    info!("Updated setting at path: {}", path);
+                    Ok(HttpResponse::Ok().json(json!({
+                        "success": true,
+                        "path": path,
+                        "value": update.get("value").unwrap(),
+                        "previousValue": previous_value
+                    })))
+                }
+                Ok(Err(e)) => {
+                    error!("Failed to save settings: {}", e);
+                    Ok(HttpResponse::InternalServerError().json(json!({
+                        "error": format!("Failed to save settings: {}", e),
+                        "path": path
+                    })))
+                }
+                Err(e) => {
+                    error!("Settings actor error: {}", e);
+                    Ok(HttpResponse::ServiceUnavailable().json(json!({
+                        "error": "Settings service unavailable",
+                        "path": path
+                    })))
+                }
+            }
+        }
+        Err(e) => {
+            warn!("Failed to update path '{}': {}", path, e);
+            Ok(HttpResponse::BadRequest().json(json!({
+                "success": false,
+                "error": "Invalid path or value",
+                "path": path,
+                "message": e
+            })))
+        }
+    }
+}
+
+/// Batch get multiple settings
+async fn batch_get_settings(
+    state: web::Data<AppState>,
+    payload: web::Json<Value>,
+) -> Result<HttpResponse, Error> {
+    let paths = payload.get("paths")
+        .and_then(|p| p.as_array())
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Missing 'paths' array"))?
+        .iter()
+        .map(|p| p.as_str().unwrap_or("").to_string())
+        .collect::<Vec<String>>();
+
+    if paths.is_empty() {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "Paths array cannot be empty"
+        })));
+    }
+
+    let app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve settings"
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })));
+        }
+    };
+
+    let results: Vec<Value> = paths.iter().map(|path| {
+        match app_settings.get_json_by_path(path) {
+            Ok(value_json) => {
+                json!({
+                    "path": path,
+                    "value": value_json,
+                    "success": true
+                })
+            }
+            Err(e) => {
+                warn!("Path not found '{}': {}", path, e);
+                json!({
+                    "path": path,
+                    "success": false,
+                    "error": "Path not found",
+                    "message": e
+                })
+            }
+        }
+    }).collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "success": true,
+        "message": format!("Successfully processed {} paths", results.len()),
+        "values": results
+    })))
+}
+
+/// Batch update multiple settings
+async fn batch_update_settings(
+    state: web::Data<AppState>,
+    payload: web::Json<Value>,
+) -> Result<HttpResponse, Error> {
+    // Log the incoming request for debugging
+    info!("Batch update request received: {:?}", payload);
+    
+    let updates = payload.get("updates")
+        .and_then(|u| u.as_array())
+        .ok_or_else(|| {
+            error!("Batch update failed: Missing 'updates' array in payload: {:?}", payload);
+            actix_web::error::ErrorBadRequest("Missing 'updates' array")
+        })?;
+
+    if updates.is_empty() {
+        error!("Batch update failed: Empty updates array");
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "Updates array cannot be empty"
+        })));
+    }
+    
+    info!("Processing {} batch updates", updates.len());
+
+    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve settings"
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })));
+        }
+    };
+
+    let mut results = Vec::new();
+    let mut success_count = 0;
+
+    for update in updates {
+        let path = update.get("path").and_then(|p| p.as_str()).unwrap_or("");
+        let value = update.get("value").unwrap_or(&Value::Null).clone();
+        
+        info!("Processing batch update: path='{}', value={:?}", path, value);
+
+        let previous_value = app_settings.get_json_by_path(path).ok();
+
+        match app_settings.set_json_by_path(path, value.clone()) {
+            Ok(()) => {
+                success_count += 1;
+                info!("Successfully updated path '{}' with value {:?}", path, value);
+                results.push(json!({
+                    "path": path,
+                    "success": true,
+                    "value": update.get("value").unwrap(),
+                    "previousValue": previous_value
+                }));
+            }
+            Err(e) => {
+                error!("Failed to update path '{}' with value {:?}: {}", path, value, e);
+                results.push(json!({
+                    "path": path,
+                    "success": false,
+                    "error": "Invalid path or value",
+                    "message": e
+                }));
+            }
+        }
+    }
+
+    // Save only if at least one update succeeded
+    if success_count > 0 {
+        match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+            Ok(Ok(())) => {
+                info!("Batch updated {} settings successfully", success_count);
+            }
+            Ok(Err(e)) => {
+                error!("Failed to save batch settings: {}", e);
+                return Ok(HttpResponse::InternalServerError().json(json!({
+                    "success": false,
+                    "error": format!("Failed to save settings: {}", e),
+                    "results": results
+                })));
+            }
+            Err(e) => {
+                error!("Settings actor error: {}", e);
+                return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                    "success": false,
+                    "error": "Settings service unavailable",
+                    "results": results
+                })));
+            }
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(json!({
+        "success": true,
+        "message": format!("Successfully updated {} out of {} settings", success_count, updates.len()),
+        "results": results
+    })))
+}
+
+/// Get settings schema for introspection
+async fn get_settings_schema(
+    req: HttpRequest,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    let path = req.query_string()
+        .split('&')
+        .find(|param| param.starts_with("path="))
+        .and_then(|p| p.strip_prefix("path="))
+        .map(|p| urlencoding::decode(p).unwrap_or(Cow::Borrowed(p)).to_string())
+        .unwrap_or_default();
+
+    // For now, return a simple schema based on the path
+    // In a full implementation, this would reflect the actual structure
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "damping": { "type": "number", "description": "Physics damping factor (0.0-1.0)" },
+            "gravity": { "type": "number", "description": "Physics gravity strength" },
+            // Add more fields based on path
+        },
+        "path": path
+    });
+
+    Ok(HttpResponse::Ok().json(json!({
+        "success": true,
+        "path": path,
+        "schema": schema
+    })))
+}
+
+/// Get current settings - returns camelCase JSON (legacy, kept for compatibility)
 async fn get_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,

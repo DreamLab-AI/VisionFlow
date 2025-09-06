@@ -39,11 +39,33 @@ export default defineConfig({
     },
     
     // Proxy API requests to backend server
-    proxy: {
+    // In Docker dev mode, Nginx handles proxying, but for local dev we need Vite proxy
+    proxy: process.env.DOCKER_ENV ? {} : {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_URL || 'http://localhost:4000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          });
+        }
+      },
+      '/ws': {
+        target: process.env.VITE_WS_URL || 'ws://localhost:4000',
+        ws: true,
+        changeOrigin: true
+      },
+      '/wss': {
+        target: process.env.VITE_WS_URL || 'ws://localhost:4000',
+        ws: true,
+        changeOrigin: true
       }
     }
   },

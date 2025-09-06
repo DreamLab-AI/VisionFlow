@@ -59,13 +59,6 @@ impl AppState {
         // Extract physics settings from logseq graph before moving settings
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
         
-        info!("[AppState::new] Starting SettingsActor");
-        let settings_actor = SettingsActor::new().map_err(|e| {
-            log::error!("Failed to create SettingsActor: {}", e);
-            e
-        })?;
-        let settings_addr = settings_actor.start();
-
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
@@ -80,8 +73,18 @@ impl AppState {
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
             gpu_compute_addr.clone(),
-            Some(settings_addr.clone())
+            None // SettingsActor address will be set later
         ).start();
+
+        info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
+        let settings_actor = SettingsActor::with_actors(
+            Some(graph_service_addr.clone()),
+            gpu_compute_addr.clone(),
+        ).map_err(|e| {
+            log::error!("Failed to create SettingsActor: {}", e);
+            e
+        })?;
+        let settings_addr = settings_actor.start();
         
         info!("[AppState::new] Starting ClaudeFlowActor (TCP)");
         // Create ClaudeFlowClient for MCP connection on port 9500

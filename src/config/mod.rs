@@ -69,6 +69,73 @@ pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
     Ok(())
 }
 
+/// Validates bloom/glow settings to prevent GPU kernel crashes
+/// This function checks ranges for intensity, threshold, radius, and validates hex colors
+pub fn validate_bloom_glow_settings(glow: &GlowSettings, bloom: &BloomSettings) -> Result<(), ValidationError> {
+    // Validate glow settings
+    if glow.intensity < 0.0 || glow.intensity > 10.0 {
+        return Err(ValidationError::new("glow_intensity_out_of_range"));
+    }
+    if glow.radius < 0.0 || glow.radius > 10.0 {
+        return Err(ValidationError::new("glow_radius_out_of_range"));
+    }
+    if glow.threshold < 0.0 || glow.threshold > 1.0 {
+        return Err(ValidationError::new("glow_threshold_out_of_range"));
+    }
+    if glow.opacity < 0.0 || glow.opacity > 1.0 {
+        return Err(ValidationError::new("glow_opacity_out_of_range"));
+    }
+
+    // Validate glow colors
+    validate_hex_color(&glow.base_color)?;
+    validate_hex_color(&glow.emission_color)?;
+
+    // Check for NaN/Infinity values that would crash GPU kernel
+    if !glow.intensity.is_finite() {
+        return Err(ValidationError::new("glow_intensity_not_finite"));
+    }
+    if !glow.radius.is_finite() {
+        return Err(ValidationError::new("glow_radius_not_finite"));
+    }
+    if !glow.threshold.is_finite() {
+        return Err(ValidationError::new("glow_threshold_not_finite"));
+    }
+
+    // Validate bloom settings
+    if bloom.intensity < 0.0 || bloom.intensity > 10.0 {
+        return Err(ValidationError::new("bloom_intensity_out_of_range"));
+    }
+    if bloom.radius < 0.0 || bloom.radius > 10.0 {
+        return Err(ValidationError::new("bloom_radius_out_of_range"));
+    }
+    if bloom.threshold < 0.0 || bloom.threshold > 1.0 {
+        return Err(ValidationError::new("bloom_threshold_out_of_range"));
+    }
+    if bloom.strength < 0.0 || bloom.strength > 1.0 {
+        return Err(ValidationError::new("bloom_strength_out_of_range"));
+    }
+    if bloom.knee < 0.0 || bloom.knee > 2.0 {
+        return Err(ValidationError::new("bloom_knee_out_of_range"));
+    }
+
+    // Validate bloom colors
+    validate_hex_color(&bloom.color)?;
+    validate_hex_color(&bloom.tint_color)?;
+
+    // Check for NaN/Infinity values in bloom settings
+    if !bloom.intensity.is_finite() {
+        return Err(ValidationError::new("bloom_intensity_not_finite"));
+    }
+    if !bloom.radius.is_finite() {
+        return Err(ValidationError::new("bloom_radius_not_finite"));
+    }
+    if !bloom.threshold.is_finite() {
+        return Err(ValidationError::new("bloom_threshold_not_finite"));
+    }
+
+    Ok(())
+}
+
 /// Converts snake_case to camelCase
 fn to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
@@ -560,34 +627,115 @@ pub struct LabelSettings {
 pub struct GlowSettings {
     #[serde(alias = "enabled")]
     pub enabled: bool,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(alias = "intensity")]
     pub intensity: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(alias = "radius")]
     pub radius: f32,
+    #[validate(range(min = 0.0, max = 1.0))]
     #[serde(alias = "threshold")]
     pub threshold: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "diffuse_strength")]
     pub diffuse_strength: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "atmospheric_density")]
     pub atmospheric_density: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "volumetric_intensity")]
     pub volumetric_intensity: f32,
+    #[validate(custom(function = "validate_hex_color"))]
     #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "base_color")]
     pub base_color: String,
+    #[validate(custom(function = "validate_hex_color"))]
     #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "emission_color")]
     pub emission_color: String,
+    #[validate(range(min = 0.0, max = 1.0))]
     #[serde(default = "default_glow_opacity", alias = "opacity")]
     pub opacity: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "pulse_speed")]
     pub pulse_speed: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "flow_speed")]
     pub flow_speed: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "node_glow_strength")]
     pub node_glow_strength: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "edge_glow_strength")]
     pub edge_glow_strength: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "environment_glow_strength")]
     pub environment_glow_strength: f32,
+}
+
+/// Default function for bloom intensity
+fn default_bloom_intensity() -> f32 {
+    1.0
+}
+
+/// Default function for bloom radius  
+fn default_bloom_radius() -> f32 {
+    0.8
+}
+
+/// Default function for bloom threshold
+fn default_bloom_threshold() -> f32 {
+    0.15
+}
+
+/// Default function for bloom color
+fn default_bloom_color() -> String {
+    "#ffffff".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct BloomSettings {
+    #[serde(alias = "enabled")]
+    pub enabled: bool,
+    #[validate(range(min = 0.0, max = 10.0))]
+    #[serde(default = "default_bloom_intensity", alias = "intensity")]
+    pub intensity: f32,
+    #[validate(range(min = 0.0, max = 10.0))]
+    #[serde(default = "default_bloom_radius", alias = "radius")]
+    pub radius: f32,
+    #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(default = "default_bloom_threshold", alias = "threshold")]
+    pub threshold: f32,
+    #[validate(custom(function = "validate_hex_color"))]
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_bloom_color", alias = "color")]
+    pub color: String,
+    #[validate(custom(function = "validate_hex_color"))]
+    #[serde(skip_serializing_if = "String::is_empty", default = "default_bloom_color", alias = "tint_color")]
+    pub tint_color: String,
+    #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(default, alias = "strength")]
+    pub strength: f32,
+    #[validate(range(min = 0.0, max = 5.0))]
+    #[serde(default, alias = "blur_passes")]
+    pub blur_passes: f32,
+    #[validate(range(min = 0.0, max = 2.0))]
+    #[serde(default, alias = "knee")]
+    pub knee: f32,
+}
+
+impl Default for BloomSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            intensity: default_bloom_intensity(),
+            radius: default_bloom_radius(), 
+            threshold: default_bloom_threshold(),
+            color: default_bloom_color(),
+            tint_color: default_bloom_color(),
+            strength: 0.8,
+            blur_passes: 1.0,
+            knee: 0.7,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
@@ -712,6 +860,8 @@ pub struct VisualisationSettings {
     pub animations: AnimationSettings,
     #[validate(nested)]
     pub glow: GlowSettings,
+    #[validate(nested)]
+    pub bloom: BloomSettings,
     #[validate(nested)]
     pub hologram: HologramSettings,
     #[validate(nested)]
@@ -1465,6 +1615,11 @@ impl AppFullSettings {
         // Example: Check that physics simulation is enabled if physics settings are configured
         if self.visualisation.graphs.logseq.physics.gravity != 0.0 && !self.visualisation.graphs.logseq.physics.enabled {
             errors.add("physics", ValidationError::new("physics_enabled_required"));
+        }
+        
+        // Validate bloom/glow settings to prevent GPU kernel crashes
+        if let Err(validation_error) = validate_bloom_glow_settings(&self.visualisation.glow, &self.visualisation.bloom) {
+            errors.add("visualisation.bloom_glow", validation_error);
         }
         
         if errors.is_empty() {
