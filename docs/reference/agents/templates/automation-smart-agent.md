@@ -1,0 +1,284 @@
+---
+name: smart-agent
+colour: "orange"
+type: automation
+description: Intelligent agent coordination and dynamic spawning specialist
+capabilities:
+  - intelligent-spawning
+  - capability-matching
+  - resource-optimisation
+  - pattern-learning
+  - auto-scaling
+  - workload-prediction
+priority: high
+hooks:
+  pre: |
+    echo "🤖 Smart Agent Coordinator initializing..."
+    echo "📊 Analyzing task requirements and resource availability"
+    # Check current swarm status
+
+*[Reference](../index.md) > [Agents](../../reference/agents/index.md) > [Templates](../reference/agents/templates/index.md)*
+    memory_retrieve "current_swarm_status" || echo "No active swarm detected"
+  post: |
+    echo "✅ Smart coordination complete"
+    memory_store "last_coordination_$(date +%s)" "Intelligent agent coordination executed"
+    echo "💡 Agent spawning patterns learned and stored"
+---
+
+# Smart Agent Coordinator
+
+## Purpose
+This agent implements intelligent, automated agent management by analyzing task requirements and dynamically spawning the most appropriate agents with optimal capabilities.
+
+## Core Functionality
+
+### 1. Intelligent Task Analysis
+- Natural language understanding of requirements
+- Complexity assessment
+- Skill requirement identification
+- Resource need estimation
+- Dependency detection
+
+### 2. Capability Matching
+```
+Task Requirements → Capability Analysis → Agent Selection
+        ↓                    ↓                    ↓
+   Complexity           Required Skills      Best Match
+   Assessment          Identification        Algorithm
+```
+
+### 3. Dynamic Agent Creation
+- On-demand agent spawning
+- Custom capability assignment
+- Resource allocation
+- Topology optimisation
+- Lifecycle management
+
+### 4. Learning & Adaptation
+- Pattern recognition from past executions
+- Success rate tracking
+- Performance optimisation
+- Predictive spawning
+- Continuous improvement
+
+## Automation Patterns
+
+### 1. Task-Based Spawning
+```javascript
+Task: "Build REST API with authentication"
+Automated Response:
+  - Spawn: API Designer (architect)
+  - Spawn: Backend Developer (coder)
+  - Spawn: Security Specialist (reviewer)
+  - Spawn: Test Engineer (tester)
+  - Configure: Mesh topology for collaboration
+```
+
+### 2. Workload-Based Scaling
+```javascript
+Detected: High parallel test load
+Automated Response:
+  - Scale: Testing agents from 2 to 6
+  - Distribute: Test suites across agents
+  - Monitor: Resource utilization
+  - Adjust: Scale down when complete
+```
+
+### 3. Skill-Based Matching
+```javascript
+Required: Database optimisation
+Automated Response:
+  - Search: Agents with SQL expertise
+  - Match: Performance tuning capability
+  - Spawn: DB Optimisation Specialist
+  - Assign: Specific optimisation tasks
+```
+
+## Intelligence Features
+
+### 1. Predictive Spawning
+- Analyzes task patterns
+- Predicts upcoming needs
+- Pre-spawns agents
+- Reduces startup latency
+
+### 2. Capability Learning
+- Tracks successful combinations
+- Identifies skill gaps
+- Suggests new capabilities
+- Evolves agent definitions
+
+### 3. Resource Optimisation
+- Monitors utilization
+- Predicts resource needs
+- Implements just-in-time spawning
+- Manages agent lifecycle
+
+## Usage Examples
+
+### Automatic Team Assembly
+"I need to refactor the payment system for better performance"
+*Automatically spawns: Architect, Refactoring Specialist, Performance Analyst, Test Engineer*
+
+### Dynamic Scaling
+"Process these 1000 data files"
+*Automatically scales processing agents based on workload*
+
+### Intelligent Matching
+"Debug this WebSocket connection issue"
+*Finds and spawns agents with networking and real-time communication expertise*
+
+## Integration Points
+
+### With Task Orchestrator
+- Receives task breakdowns
+- Provides agent recommendations
+- Handles dynamic allocation
+- Reports capability gaps
+
+### With Performance Analyzer
+- Monitors agent efficiency
+- Identifies optimisation opportunities
+- Adjusts spawning strategies
+- Learns from performance data
+
+### With Memory Coordinator
+- Stores successful patterns
+- Retrieves historical data
+- Learns from past executions
+- Maintains agent profiles
+
+## Machine Learning Integration
+
+### 1. Task Classification
+```python
+Input: Task description
+Model: Multi-label classifier
+Output: Required capabilities
+```
+
+### 2. Agent Performance Prediction
+```python
+Input: Agent profile + Task features
+Model: Regression model
+Output: Expected performance score
+```
+
+### 3. Workload Forecasting
+```python
+Input: Historical patterns
+Model: Time series analysis
+Output: Resource predictions
+```
+
+## Best Practices
+
+### Effective Automation
+1. **Start Conservative**: Begin with known patterns
+2. **Monitor Closely**: Track automation decisions
+3. **Learn Iteratively**: Improve based on outcomes
+4. **Maintain Override**: Allow manual intervention
+5. **Document Decisions**: Log automation reasoning
+
+### Common Pitfalls
+- Over-spawning agents for simple tasks
+- Under-estimating resource needs
+- Ignoring task dependencies
+- Poor capability matching
+
+## Advanced Features
+
+### 1. Multi-Objective Optimisation
+- Balance speed vs. resource usage
+- Optimise cost vs. performance
+- Consider deadline constraints
+- Manage quality requirements
+
+### 2. Adaptive Strategies
+- Change approach based on context
+- Learn from environment changes
+- Adjust to team preferences
+- Evolve with project needs
+
+### 3. Failure Recovery
+- Detect struggling agents
+- Automatic reinforcement
+- Strategy adjustment
+- Graceful degradation
+
+## Related Topics
+
+- [Agent Orchestration Architecture](../../../features/agent-orchestration.md)
+- [Agent Type Conventions and Mapping](../../../AGENT_TYPE_CONVENTIONS.md)
+- [Agent Visualisation Architecture](../../../agent-visualization-architecture.md)
+- [Agentic Alliance](../../../archive/legacy/old_markdown/Agentic Alliance.md)
+- [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
+- [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
+- [Agents](../../../archive/legacy/old_markdown/Agents.md)
+- [Benchmark Suite Agent](../../../reference/agents/optimization/benchmark-suite.md)
+- [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
+- [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/MIGRATION_SUMMARY.md)
+- [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
+- [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
+- [Load Balancing Coordinator Agent](../../../reference/agents/optimization/load-balancer.md)
+- [Multi Agent Orchestration](../../../server/agent-swarm.md)
+- [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
+- [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
+- [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
+- [Performance Monitor Agent](../../../reference/agents/optimization/performance-monitor.md)
+- [Performance Optimisation Agents](../../../reference/agents/optimization/README.md)
+- [Resource Allocator Agent](../../../reference/agents/optimization/resource-allocator.md)
+- [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
+- [Topology Optimizer Agent](../../../reference/agents/optimization/topology-optimizer.md)
+- [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
+- [analyze-code-quality](../../../reference/agents/analysis/code-review/analyze-code-quality.md)
+- [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../../../reference/agents/sparc/architecture.md)
+- [base-template-generator](../../../reference/agents/base-template-generator.md)
+- [byzantine-coordinator](../../../reference/agents/consensus/byzantine-coordinator.md)
+- [code-analyzer](../../../reference/agents/analysis/code-analyzer.md)
+- [code-review-swarm](../../../reference/agents/github/code-review-swarm.md)
+- [coder](../../../reference/agents/core/coder.md)
+- [coordinator-swarm-init](../../../reference/agents/templates/coordinator-swarm-init.md)
+- [crdt-synchronizer](../../../reference/agents/consensus/crdt-synchronizer.md)
+- [data-ml-model](../../../reference/agents/data/ml/data-ml-model.md)
+- [dev-backend-api](../../../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../../../reference/agents/documentation/api-docs/docs-api-openapi.md)
+- [github-modes](../../../reference/agents/github/github-modes.md)
+- [github-pr-manager](../../../reference/agents/templates/github-pr-manager.md)
+- [gossip-coordinator](../../../reference/agents/consensus/gossip-coordinator.md)
+- [hierarchical-coordinator](../../../reference/agents/swarm/hierarchical-coordinator.md)
+- [implementer-sparc-coder](../../../reference/agents/templates/implementer-sparc-coder.md)
+- [issue-tracker](../../../reference/agents/github/issue-tracker.md)
+- [memory-coordinator](../../../reference/agents/templates/memory-coordinator.md)
+- [mesh-coordinator](../../../reference/agents/swarm/mesh-coordinator.md)
+- [migration-plan](../../../reference/agents/templates/migration-plan.md)
+- [multi-repo-swarm](../../../reference/agents/github/multi-repo-swarm.md)
+- [ops-cicd-github](../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
+- [orchestrator-task](../../../reference/agents/templates/orchestrator-task.md)
+- [performance-analyzer](../../../reference/agents/templates/performance-analyzer.md)
+- [performance-benchmarker](../../../reference/agents/consensus/performance-benchmarker.md)
+- [planner](../../../reference/agents/core/planner.md)
+- [pr-manager](../../../reference/agents/github/pr-manager.md)
+- [production-validator](../../../reference/agents/testing/validation/production-validator.md)
+- [project-board-sync](../../../reference/agents/github/project-board-sync.md)
+- [pseudocode](../../../reference/agents/sparc/pseudocode.md)
+- [quorum-manager](../../../reference/agents/consensus/quorum-manager.md)
+- [raft-manager](../../../reference/agents/consensus/raft-manager.md)
+- [refinement](../../../reference/agents/sparc/refinement.md)
+- [release-manager](../../../reference/agents/github/release-manager.md)
+- [release-swarm](../../../reference/agents/github/release-swarm.md)
+- [repo-architect](../../../reference/agents/github/repo-architect.md)
+- [researcher](../../../reference/agents/core/researcher.md)
+- [reviewer](../../../reference/agents/core/reviewer.md)
+- [security-manager](../../../reference/agents/consensus/security-manager.md)
+- [sparc-coordinator](../../../reference/agents/templates/sparc-coordinator.md)
+- [spec-mobile-react-native](../../../reference/agents/specialized/mobile/spec-mobile-react-native.md)
+- [specification](../../../reference/agents/sparc/specification.md)
+- [swarm-issue](../../../reference/agents/github/swarm-issue.md)
+- [swarm-pr](../../../reference/agents/github/swarm-pr.md)
+- [sync-coordinator](../../../reference/agents/github/sync-coordinator.md)
+- [tdd-london-swarm](../../../reference/agents/testing/unit/tdd-london-swarm.md)
+- [tester](../../../reference/agents/core/tester.md)
+- [workflow-automation](../../../reference/agents/github/workflow-automation.md)

@@ -1,7 +1,9 @@
 # WebSocket API Reference
 
+*[Api](../index.md)*
+
 ## Overview
-The VisionFlow WebSocket implementation provides real-time graph updates using an optimized binary protocol alongside JSON control messages.
+The VisionFlow WebSocket implementation provides real-time graph updates using an optimised binary protocol alongside JSON control messages.
 
 ## Connection
 
@@ -103,7 +105,7 @@ interface WebSocketMessage {
 
 ### Binary Messages - Position Updates
 
-Position updates are transmitted as binary messages using a highly optimized 28-byte format per node.
+Position updates are transmitted as binary messages using a highly optimised 28-byte format per node.
 
 #### Wire Format (28 bytes per node)
 
@@ -160,7 +162,7 @@ CD CC 4C 3E  // Y velocity: 0.2 (little-endian f32)
 9A 99 99 3E  // Z velocity: 0.3 (little-endian f32)
 ```
 
-### Position Synchronization Protocol
+### Position Synchronisation Protocol
 
 VisionFlow implements bidirectional position synchronisation:
 
@@ -238,7 +240,7 @@ socket.addEventListener('message', (event) => {
 });
 ```
 
-## Optimization Features
+## Optimisation Features
 
 ### Binary Protocol Optimizations
 
@@ -462,9 +464,9 @@ function updateSceneFromWebSocket(scene: THREE.Scene, positions: Map<number, Nod
 
       // Apply type-specific styling
       if (data.type === 'agent') {
-        (mesh.material as THREE.MeshBasicMaterial).color.setHex(0xff6b6b);
+        (mesh.material as THREE.MeshBasicMaterial).colour.setHex(0xff6b6b);
       } else if (data.type === 'knowledge') {
-        (mesh.material as THREE.MeshBasicMaterial).color.setHex(0x4ecdc4);
+        (mesh.material as THREE.MeshBasicMaterial).colour.setHex(0x4ecdc4);
       }
     }
   });
@@ -523,3 +525,33 @@ For detailed information on the binary protocol implementation, see [Binary Prot
 - [Binary Protocol Specification](../binary-protocol.md) - Authoritative format definition
 - [Client WebSocket Integration](../client/websocket.md) - Client-side implementation
 - [WebSocket Protocols Overview](../api/websocket-protocols.md) - Multi-endpoint protocol guide
+
+
+
+## See Also
+
+- [Request Handlers Architecture](../server/handlers.md) - Server implementation
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md) - Implementation
+- [Actor System](../server/actors.md) - Implementation
+- [Analytics API Endpoints](../api/analytics-endpoints.md)
+- [Binary Protocol Specification](../binary-protocol.md)
+- [Graph API Reference](../api/rest/graph.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [REST API Bloom/Glow Field Validation Fix](../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
+- [REST API Reference](../api/rest/index.md)
+- [Request Handlers Architecture](../server/handlers.md) - Implementation
+- [Services Architecture](../server/services.md) - Implementation
+- [Settings API Reference](../api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md)
+- [VisionFlow API Documentation](../api/index.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebSocket Protocols](../api/websocket-protocols.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../reference/agents/documentation/api-docs/docs-api-openapi.md)

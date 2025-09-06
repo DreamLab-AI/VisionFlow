@@ -1,5 +1,7 @@
 # WebSocket Communication
 
+*[Client](../index.md)*
+
 This document describes the WebSocket communication system, which is the primary channel for real-time data transfer between the client and server, most notably for graph physics updates.
 
 ## Architecture & Patterns
@@ -55,7 +57,7 @@ stateDiagram-v2
     [*] --> Disconnected
     Disconnected --> Connecting: connect()
     Connecting --> Connected: onopen event fires
-    Connected --> Ready: `connection_established` message received
+    Connected --> Ready: connection_established message received
     Ready --> Disconnected: onclose event
     Connected --> Disconnected: onclose event
 ```
@@ -106,3 +108,30 @@ The primary use of the WebSocket is to receive real-time binary position updates
 5.  **Processing**: The `onBinaryMessage` handler in `WebSocketService` passes the data to `graphDataManager.updateNodePositions(data)`.
 6.  **Worker Thread**: The `GraphDataManager` forwards the binary data to the `graph.worker.ts` for efficient off-main-thread processing and position smoothing.
 7.  **Rendering**: The main thread receives smoothed positions back from the worker and updates the graph visualisation.
+
+## Related Topics
+
+- [Binary Protocol Specification](../binary-protocol.md)
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket API Reference](../api/websocket.md)
+- [WebSocket Protocols](../api/websocket-protocols.md)
+- [WebXR Integration](../client/xr-integration.md)

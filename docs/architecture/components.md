@@ -1,5 +1,7 @@
 # VisionFlow Component Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 This document provides a comprehensive breakdown of VisionFlow's component architecture, consolidating information from the actor system, services layer, and client-side components into a unified view. The architecture follows a message-passing paradigm with strict separation of concerns.
@@ -445,7 +447,7 @@ The service layer provides abstraction between actors and external systems, hand
 
 ## Frontend Component Architecture
 
-The frontend follows a modern React architecture with TypeScript, using React Three Fiber for 3D rendering and Zustand for state management.
+The frontend follows a modern React architecture with TypeScript, using React Three Fibre for 3D rendering and Zustand for state management.
 
 ### Core Application Components
 
@@ -627,11 +629,11 @@ sequenceDiagram
 
     Client->>WS: Connect WebSocket
     WS->>CMA: RegisterClient
-    CMA-->>WS: client_id
+    CMA --> >WS: client_id
 
     loop Physics Simulation (60 FPS)
         GSA->>GCA: ComputeForces
-        GCA-->>GSA: Updated Positions
+        GCA --> >GSA: Updated Positions
         GSA->>CMA: BroadcastNodePositions(binary_data)
         CMA->>WS: Binary position update
         WS->>Client: Real-time node positions
@@ -643,8 +645,7 @@ sequenceDiagram
 
 ### Settings Update Flow
 
-```mermaid
-sequenceDiagram
+```mermsequenceDiagram
     participant Client
     participant API as SettingsHandler
     participant SA as SettingsActor
@@ -657,19 +658,17 @@ sequenceDiagram
 
     alt Protected Setting
         SA->>PSA: Update protected setting
-        PSA-->>SA: OK
+        PSA --> >SA: OK
     end
 
-    SA-->>API: Settings updated
+    SA --> >API: Settings updated
     API->>GSA: Notify physics change
     GSA->>GCA: UpdateSimulationParams(new_params)
-    GCA-->>GSA: Applied
-    API-->>Client: 200 OK
+    GCA --> >GSA: Applied
+    API --> >Client: 200 OK0 OK
 ```
 
 ### Claude Flow Agent Integration
-
-```mermaid
 sequenceDiagram
     participant Frontend
     participant CFA as ClaudeFlowActor
@@ -680,23 +679,21 @@ sequenceDiagram
 
     Frontend->>CFA: InitializeMultiAgent("mesh", 5, "researcher,coder")
     CFA->>MCP: multi_agent.initialize(topology="mesh", agents=5)
-    MCP-->>CFA: multi_agent_id="abc123", agents=[...]
-    CFA-->>Frontend: Multi Agent initialised
+    MCP --> >CFA: multi_agent_id="abc123", agents=[...]
+    CFA --> >Frontend: Multi Agent initialised
 
     loop Agent Telemetry (10Hz)
         MCP->>CFA: Agent status updates
         CFA->>GSA: UpdateBotsGraph(agent_data)
         GSA->>GCA: ComputeForces(agent_graph_only)
-        GCA-->>GSA: Agent positions
+        GCA --> >GSA: Agent positions
         GSA->>CMA: BroadcastNodePositions(agent_updates)
         CMA->>Frontend: Real-time agent visualisation
+    endtion
     end
 ```
 
-## Component Dependencies
-
-```mermaid
-graph TB
+## Component Dependegraph TB
     subgraph "Actor Dependencies"
         GSA[GraphServiceActor] --> GCA[GPUComputeActor]
         GSA --> CMA[ClientManagerActor]
@@ -721,7 +718,8 @@ graph TB
         UI[UI Components] --> SettingsStore[SettingsStore]
     end
 
-    WebSocketService -.-> CMA
+    WebSocketService - -.-> CMA
+    UI - -.-> SACMA
     UI -.-> SA
 ```
 
@@ -792,3 +790,9 @@ async fn test_graph_service_actor() {
 *Last updated: January 2025*  
 *Component count: 25+ actors, 15+ services, 30+ frontend components*  
 *Status: Production Ready*
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

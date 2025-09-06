@@ -1,14 +1,16 @@
 # Client Rendering System
 
-This document provides a detailed overview of the 3D rendering system in the LogseqXR client, which is built using React Three Fiber (R3F) and Three.js. It covers the setup, key components, and how various visual elements are rendered.
+*[Client](../index.md)*
+
+This document provides a detailed overview of the 3D rendering system in the LogseqXR client, which is built using React Three Fibre (R3F) and Three.js. It covers the setup, key components, and how various visual elements are rendered.
 
 ## Overview
 
 The rendering system is responsible for transforming the graph data (nodes, edges, metadata) into an interactive 3D visualisation. It leverages the declarative nature of React with the power of Three.js through R3F, allowing for efficient management of the 3D scene graph and performance optimisations like instancing. This document serves as the primary documentation for the technical implementation of the client-side visualisation.
 
-## React Three Fiber (R3F) Setup
+## React Three Fibre (R3F) Setup
 
-The core of the 3D scene is established by `@react-three/fiber`.
+The core of the 3D scene is established by `@react-three/fibre`.
 
 ### `GraphCanvas.tsx` (`client/src/features/graph/components/GraphCanvas.tsx`)
 
@@ -29,7 +31,7 @@ This is the main entry point for the 3D scene. It wraps the Three.js `Canvas` co
 
 ### `GraphManager.tsx` (`client/src/features/graph/components/GraphManager.tsx`)
 
-This component is central to rendering the graph's nodes and edges. It receives processed graph data from the `GraphDataManager` and efficiently renders it in the 3D scene using React Three Fiber.
+This component is central to rendering the graph's nodes and edges. It receives processed graph data from the `GraphDataManager` and efficiently renders it in the 3D scene using React Three Fibre.
 
 **Responsibilities:**
 -   Manages the creation and updating of 3D objects for nodes and edges
@@ -74,7 +76,7 @@ This component is responsible for rendering text labels (e.g., node names, metad
 **Key Features:**
 -   Uses **Signed Distance Field (SDF) fonts** for crisp, scalable text that looks good at any distance and angle.
 -   Handles text positioning, alignment, and scaling relative to the 3D objects they label.
--   Optimized for performance, often by batching text geometries or using instancing for common labels.
+-   Optimised for performance, often by batching text geometries or using instancing for common labels.
 
 ## Custom Shaders
 
@@ -113,4 +115,26 @@ Handles heavy graph processing operations in Web Workers to maintain 60fps UI pe
 
 ## Distinction from `visualisation.md`
 
-While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` focuses on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node colour representing file type), and the overall user experience of interacting with the visualized knowledge graph.
+While `rendering.md` focuses on the "how" of drawing elements in 3D space (technical implementation, R3F components, performance techniques), `visualisation.md` focuses on the "what" and "why" – the higher-level concepts of how data is mapped to visual properties, the meaning of different visual elements (e.g., node colour representing file type), and the overall user experience of interacting with the visualised knowledge graph.
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

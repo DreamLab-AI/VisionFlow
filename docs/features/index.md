@@ -1,5 +1,7 @@
 # Features Documentation
 
+*[Features](../index.md)*
+
 VisionFlow provides a comprehensive set of features for visualising and interacting with knowledge graphs and AI multi-agent systems. This section details each major feature and how to use it effectively.
 
 ## Core Features
@@ -204,3 +206,20 @@ For feature-specific issues or questions:
 ---
 
 [← Back to Documentation](../README.md) | [Adaptive Balancing →](adaptive-balancing.md)
+## Documents
+
+- [Neural Auto-Balance Feature](./AUTO_BALANCE.md)
+- [Adaptive Balancing](./adaptive-balancing.md)
+- [Agent Orchestration Architecture](./agent-orchestration.md)
+
+
+## Related Topics
+
+- [Adaptive Balancing](../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [Neural Auto-Balance Feature](../features/AUTO_BALANCE.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)

@@ -1,5 +1,7 @@
 # VisionFlow System Architecture Overview
 
+*[Architecture](../index.md)*
+
 ## Executive Summary
 
 VisionFlow is a production-ready, GPU-accelerated 3D knowledge graph visualisation platform that combines a unified CUDA compute kernel with an actor-based Rust backend and modern React/TypeScript frontend. The system enables real-time visualisation of parallel knowledge graphs and AI Multi Agents, supporting 100,000+ nodes at 60 FPS with bidirectional synchronisation across all connected clients.
@@ -153,7 +155,7 @@ graph TB
 ### Frontend Technologies
 - **Framework**: React 18
 - **Language**: TypeScript 5
-- **3D Graphics**: Three.js, React Three Fiber
+- **3D Graphics**: Three.js, React Three Fibre
 - **XR**: @react-three/xr
 - **State Management**: Zustand
 - **Build Tool**: Vite
@@ -399,3 +401,30 @@ graph TB
 *Last updated: January 2025*  
 *Version: 2.0.0*  
 *Status: Production Ready*
+## Documents
+
+- [Case Conversion Architecture](./CASE_CONVERSION.md)
+- [Architecture Documentation](./README.md)
+- [Bots/VisionFlow System Architecture](./bots-visionflow-system.md)
+- [Bots Visualisation Architecture](./bots-visualization.md)
+- [ClaudeFlowActor Architecture](./claude-flow-actor.md)
+- [VisionFlow Component Architecture](./components.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](./daa-setup-guide.md)
+- [VisionFlow Data Flow Architecture](./data-flow.md)
+- [GPU Compute Improvements & Troubleshooting Guide](./gpu-compute-improvements.md)
+- [VisionFlow GPU Compute Integration](./gpu-compute.md)
+- [Managing the Claude-Flow System](./managing_claude_flow.md)
+- [MCP Integration Architecture](./mcp-integration.md)
+- [MCP WebSocket Relay Architecture](./mcp-websocket-relay.md)
+- [MCP Connection Architecture](./mcp_connection.md)
+- [Architecture Migration Guide](./migration-guide.md)
+- [Parallel Graph Architecture](./parallel-graphs.md)
+- [VisionFlow System Architecture](./system-overview.md)
+- [VisionFlow GPU Migration Architecture](./visionflow-gpu-migration.md)
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

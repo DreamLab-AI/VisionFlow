@@ -1,5 +1,7 @@
 # Neural Auto-Balance Feature
 
+*[Features](../index.md)*
+
 ## Overview
 
 The Neural Auto-Balance feature provides intelligent, automatic tuning of physics parameters to achieve stable graph visualisation. When enabled, the system continuously monitors node positions and automatically adjusts physics forces to prevent graph explosion whilst maintaining optimal spacing.
@@ -36,8 +38,8 @@ flowchart TB
     Tuner --> GPU
     GPU --> Display
     
-    Tuner -.->|Update on stability| Convert1
-    Convert1 -.->|Update UI| Settings
+    Tuner - -.-> |Update on stability| Convert1
+    Convert1 - -.-> |Update UI| Settings
 ```
 
 ## How It Works
@@ -200,3 +202,14 @@ The system maintains consistent naming across layers:
 - Custom stability thresholds per dataset
 - Export/import optimal parameter sets
 - A/B testing of parameter combinations
+
+## Related Topics
+
+- [Adaptive Balancing](../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Features Documentation](../features/index.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)

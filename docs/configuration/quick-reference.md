@@ -1,5 +1,7 @@
 # VisionFlow Configuration Quick Reference
 
+*[Configuration](../index.md)*
+
 ## Essential Environment Variables
 
 ```bash
@@ -24,7 +26,7 @@ POWER_USER_KEY_2=secret-key-2
 
 ## Quick Configuration Tasks
 
-### Enable VisionFlow multi-agent Visualization
+### Enable VisionFlow multi-agent Visualisation
 ```yaml
 # In data/settings.yaml
 features:
@@ -113,3 +115,29 @@ docker network create mcp-visionflow-net
 # Verify containers on network
 docker network inspect mcp-visionflow-net
 ```
+
+
+
+## See Also
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started/index.md)
+- [Guides](../guides/README.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](../guides/quick-start.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)
+
+## Related Topics
+
+- [Configuration Architecture](../server/config.md)
+- [Configuration Guide](../getting-started/configuration.md)
+- [Developer Configuration System](../DEV_CONFIG.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Production Configuration Guide](../configuration/index.md)
+- [Settings API Reference](../api/rest/settings.md)
+- [Settings Panel](../client/settings-panel.md)
+- [Settings Performance Optimisation Report](../SETTINGS_PERFORMANCE_OPTIMIZATION.md)
+- [Settings Sync Integration Tests](../testing/SETTINGS_SYNC_INTEGRATION_TESTS.md)
+- [VisionFlow Configuration Guide](../CONFIGURATION.md)
+- [VisionFlow Settings System Guide](../guides/settings-guide.md)

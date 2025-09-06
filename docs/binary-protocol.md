@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow uses a highly optimized binary protocol for real-time position updates, providing 85% bandwidth reduction compared to JSON WebSocket messaging. This document serves as the **single source of truth** for the binary protocol format.
+VisionFlow uses a highly optimised binary protocol for real-time position updates, providing 85% bandwidth reduction compared to JSON WebSocket messaging. This document serves as the **single source of truth** for the binary protocol format.
 
 ## Protocol Version
 
@@ -33,8 +33,8 @@ Byte Offset | Field Name    | Data Type | Size (bytes) | Description
 
 ### Coordinate System
 
-- **Origin**: Center of 3D space (0, 0, 0)
-- **Units**: Arbitrary units (typically 1 unit = 1 meter for XR scaling)
+- **Origin**: Centre of 3D space (0, 0, 0)
+- **Units**: Arbitrary units (typically 1 unit = 1 metre for XR scaling)
 - **Bounds**: ±1000 units on each axis
 - **Velocity Range**: ±100 units/second maximum
 
@@ -51,7 +51,7 @@ ws://localhost:8080/ws/positions
 1. **Client Connection**: WebSocket handshake
 2. **Server Stream**: Continuous binary frames at 60fps
 3. **Frame Processing**: Client deserializes 28-byte packets
-4. **Position Updates**: Real-time node position synchronization
+4. **Position Updates**: Real-time node position synchronisation
 
 ### Error Handling
 

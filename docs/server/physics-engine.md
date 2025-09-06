@@ -1,5 +1,7 @@
 # Physics Engine
 
+*[Server](../index.md)*
+
 ## Executive Summary
 
 VisionFlow's physics engine represents a cutting-edge implementation of GPU-accelerated real-time physics simulation for force-directed graph layout. Through extensive consolidation, optimisation, and stability improvements, the system achieves exceptional performance whilst maintaining high visual quality and system stability.
@@ -152,7 +154,7 @@ if (distance < MIN_DISTANCE) {  // MIN_DISTANCE = 0.15
     float angle = (float)(idx - j) * 0.618034f;  // Golden ratio
     float3 push_direction = make_float3(cos(angle), sin(angle), 0.1f * (idx - j));
     float push_force = repel_k * (MIN_DISTANCE - distance + 1.0f) / (MIN_DISTANCE * MIN_DISTANCE);
-    total_force += normalize(push_direction) * push_force;
+    total_force += normalise(push_direction) * push_force;
 }
 ```
 
@@ -500,9 +502,9 @@ For more details, see the [Semantic Analysis documentation](features/semantic-an
 
 ## Stress Majorization
 
-In addition to the real-time, force-directed layout, the physics engine employs **Stress Majorization** as a periodic, global optimization step. This process is run by the `GraphServiceActor` to improve the overall quality of the graph layout beyond what the real-time simulation can achieve.
+In addition to the real-time, force-directed layout, the physics engine employs **Stress Majorization** as a periodic, global optimisation step. This process is run by the `GraphServiceActor` to improve the overall quality of the graph layout beyond what the real-time simulation can achieve.
 
-While the force-directed layout is excellent for immediate, localized changes, Stress Majorization works to minimize the difference between the geometric distances of nodes in the 2D/3D space and their theoretical "graph distance" (i.e., the shortest path between them in the graph).
+While the force-directed layout is excellent for immediate, localized changes, Stress Majorization works to minimise the difference between the geometric distances of nodes in the 2D/3D space and their theoretical "graph distance" (i.e., the shortest path between them in the graph).
 
 This results in a more globally coherent and aesthetically pleasing layout, where the visual proximity of nodes more accurately reflects their relationship within the graph's structure.
 
@@ -760,7 +762,7 @@ physics:
   mass_scale: 1.0              # Node mass scaling factor
   boundary_damping: 0.95        # Additional damping near boundaries
   update_threshold: 0.05        # Minimum change threshold for updates
-  gravity: 0.0                  # Global gravity force toward center
+  gravity: 0.0                  # Global gravity force toward centre
 ```
 
 ### Multi-Graph Configuration
@@ -844,7 +846,7 @@ physics:
 #### 1. Node Explosion (Nodes Moving to Infinity)
 
 **Symptoms:**
-- Nodes rapidly accelerate away from center
+- Nodes rapidly accelerate away from centre
 - Graph becomes unreadable within seconds
 - High system energy readings
 
@@ -871,7 +873,7 @@ RUST_LOG=webxr::utils::unified_gpu_compute=debug cargo run
 #### 2. Node Collapse (All Nodes at Origin)
 
 **Symptoms:**
-- All nodes cluster at center point
+- All nodes cluster at centre point
 - No movement despite parameter changes
 - Zero system energy
 

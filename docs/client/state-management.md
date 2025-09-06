@@ -1,5 +1,7 @@
 # State Management
 
+*[Client](../index.md)*
+
 This document details the state management architecture of the client application. The system is built around two primary components: a Zustand store for application settings and a dedicated manager for graph data.
 
 ## Architecture Overview
@@ -70,3 +72,25 @@ The state of the graph itself (nodes, edges, and their real-time positions) is m
 3.  **Worker Processing**: The binary data is transferred to the web worker for parsing and processing.
 4.  **Notification**: Once processed, the worker notifies the `GraphDataManager` on the main thread.
 5.  **Listener Execution**: `GraphDataManager` invokes the registered listeners, passing the new graph data or position updates to subscribed components like `GraphManager.tsx`, which then updates the 3D visualisation.
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [Command Palette](../client/command-palette.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

@@ -2,14 +2,14 @@
 
 ## Executive Summary
 
-The VisionFlow client implements a sophisticated Three.js-based 3D visualization system with dual-graph rendering, advanced post-processing effects, force-directed physics simulation, and comprehensive control systems. The implementation spans multiple layers from low-level shaders to high-level React components.
+The VisionFlow client implements a sophisticated Three.js-based 3D visualisation system with dual-graph rendering, advanced post-processing effects, force-directed physics simulation, and comprehensive control systems. The implementation spans multiple layers from low-level shaders to high-level React components.
 
 ## 1. Core Architecture Overview
 
 ### Main Canvas System
 - **Location**: `/features/graph/components/GraphCanvas.tsx`
-- **Framework**: React Three Fiber (@react-three/fiber)
-- **Rendering Context**: Single unified canvas supporting both Logseq graph and VisionFlow bots visualization
+- **Framework**: React Three Fibre (@react-three/fibre)
+- **Rendering Context**: Single unified canvas supporting both Logseq graph and VisionFlow bots visualisation
 - **Camera Setup**: Perspective camera with FOV 75°, positioned at [40, 30, 40] for optimal dual-graph viewing
 - **Scene Background**: Medium blue (#000080) with ambient and directional lighting
 
@@ -24,7 +24,7 @@ The system renders two separate graph visualizations in the same 3D space:
 2. **VisionFlow Bots** (Agent Network)
    - Component: `BotsVisualization`
    - Position: Origin [0, 0, 0] (unified view)
-   - Purpose: Multi-agent system visualization
+   - Purpose: Multi-agent system visualisation
 
 ## 2. Bloom and Post-Processing Pipeline
 
@@ -93,7 +93,7 @@ rotationSpeed: 1 + i * 0.3  // Varied rotation rates
 ### Atmospheric Effects
 - **Energy Field Particles**: 1000+ particles in 3D space
 - **Floating Motion**: Sin-wave based Y-axis animation
-- **Color Variation**: Instance-based color intensity
+- **Colour Variation**: Instance-based colour intensity
 - **Bounds**: 200-unit cubic space
 
 ### Mote Systems
@@ -134,7 +134,7 @@ damping: 0.85         // Energy dissipation
 #### CUDA Kernel Parameters
 ```typescript
 restLength: 50                    // Default spring rest length
-repulsionCutoff: 50.0            // Optimization cutoff
+repulsionCutoff: 50.0            // Optimisation cutoff
 repulsionSofteningEpsilon: 0.0001 // Singularity prevention
 centerGravityK: 0                 // Central attraction
 gridCellSize: 50                  // Spatial partitioning
@@ -151,7 +151,7 @@ gridCellSize: 50                  // Spatial partitioning
 2. **Worker Processing**: Web worker handles decompression and interpolation
 3. **Instance Matrix Update**: GPU-efficient instance rendering
 4. **Edge Recalculation**: Dynamic edge endpoint positioning
-5. **Label Synchronization**: Billboard text positioning
+5. **Label Synchronisation**: Billboard text positioning
 
 ## 5. Node and Edge Rendering
 
@@ -180,7 +180,7 @@ gridCellSize: 50                  // Spatial partitioning
   - Fresnel rim lighting
   - Scanline effects
   - Glitch animations
-  - Instance color support
+  - Instance colour support
   - Depth-based fading
 
 ### Edge Rendering System
@@ -192,7 +192,7 @@ gridCellSize: 50                  // Spatial partitioning
 - **Features**:
   - Surface-offset endpoints (no node penetration)
   - Animated flow effects
-  - Color gradient support
+  - Colour gradient support
   - Distance-based intensity
 
 #### Edge Animation Effects
@@ -202,12 +202,12 @@ flowIntensity = sin(time * flowSpeed) * 0.3 + 0.7
 material.opacity = baseOpacity * flowIntensity
 ```
 
-## 6. Control Center UI Components
+## 6. Control Centre UI Components
 
 ### Integrated Control Panel
 - **File**: `/features/visualisation/components/IntegratedControlPanel.tsx`
 - **Integration**: SpacePilot hardware controller support
-- **Categories**: 9 major setting sections (Dashboard, Visualization, Physics, etc.)
+- **Categories**: 9 major setting sections (Dashboard, Visualisation, Physics, etc.)
 
 #### SpacePilot Integration
 - **Hardware**: 3Dconnexion SpacePilot Pro
@@ -217,12 +217,12 @@ material.opacity = baseOpacity * flowIntensity
 
 #### Settings Categories
 1. **Dashboard**: Graph status, compute modes, convergence indicators
-2. **Visualization**: Node/edge appearance, materials, lighting
-3. **Physics**: Force parameters, boundaries, optimization settings
+2. **Visualisation**: Node/edge appearance, materials, lighting
+3. **Physics**: Force parameters, boundaries, optimisation settings
 4. **Analytics**: Clustering, metrics, degree distribution
 5. **Performance**: FPS targets, GPU memory, quality presets
 6. **Integrations**: Bloom effects, hologram settings, animations
-7. **Developer**: Debug modes, profiling, force visualization
+7. **Developer**: Debug modes, profiling, force visualisation
 8. **Authentication**: Nostr integration, auth providers
 9. **XR/AR**: Virtual/Augmented reality settings
 
@@ -237,13 +237,13 @@ material.opacity = baseOpacity * flowIntensity
 ### Hologram Vertex Shader
 - **Input**: Instance matrices, vertex positions, normals
 - **Processing**: Instance transform application, vertex displacement
-- **Output**: World position, view-space normal, instance color
+- **Output**: World position, view-space normal, instance colour
 
 ### Hologram Fragment Shader
 - **Fresnel Calculation**: View-dependent rim lighting
 - **Scanline Generation**: Sin-wave based horizontal lines
 - **Glitch Effects**: Random temporal distortions
-- **Color Mixing**: Base color + instance color + emission
+- **Colour Mixing**: Base colour + instance colour + emission
 
 ### Material Variants
 1. **HologramNodeMaterial**: Full-featured shader for nodes
@@ -254,9 +254,9 @@ material.opacity = baseOpacity * flowIntensity
 
 ### Rendering Optimizations
 - **Instanced Rendering**: Single draw call for all nodes
-- **Frustum Culling**: Automatic Three.js optimization
+- **Frustum Culling**: Automatic Three.js optimisation
 - **LOD System**: Quality presets (Low/Medium/High/Ultra)
-- **Depth Write Control**: Transparent object optimization
+- **Depth Write Control**: Transparent object optimisation
 
 ### Animation Optimizations
 - **Web Worker Physics**: Off-main-thread calculations
@@ -305,7 +305,7 @@ material.opacity = baseOpacity * flowIntensity
 - **Haptic Feedback**: Force feedback for graph manipulation
 
 ### Physics Enhancements
-- **Multi-Level Optimization**: Hierarchical force calculations
+- **Multi-Level Optimisation**: Hierarchical force calculations
 - **Constraint Networks**: User-defined spatial relationships  
 - **Adaptive Time-Stepping**: Dynamic physics accuracy
 - **Distributed Computing**: Multi-threaded physics workers
@@ -318,6 +318,6 @@ material.opacity = baseOpacity * flowIntensity
 
 ## Conclusion
 
-The VisionFlow Three.js implementation represents a sophisticated 3D visualization system with production-quality rendering, physics simulation, and user interaction capabilities. The modular architecture supports both knowledge graphs and agent networks with extensive customization options and hardware controller integration.
+The VisionFlow Three.js implementation represents a sophisticated 3D visualisation system with production-quality rendering, physics simulation, and user interaction capabilities. The modular architecture supports both knowledge graphs and agent networks with extensive customisation options and hardware controller integration.
 
-The system successfully balances visual fidelity with performance through careful optimization strategies, though some advanced effects remain disabled due to stability concerns. Future enhancements should focus on WebGPU migration for next-generation rendering capabilities and improved mobile performance.
+The system successfully balances visual fidelity with performance through careful optimisation strategies, though some advanced effects remain disabled due to stability concerns. Future enhancements should focus on WebGPU migration for next-generation rendering capabilities and improved mobile performance.

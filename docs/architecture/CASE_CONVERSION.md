@@ -1,5 +1,7 @@
 # Case Conversion Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 VisionFlow maintains strict case conventions across different layers of the application to ensure consistency and prevent naming conflicts. This document outlines the naming conventions and automatic conversion mechanisms.
@@ -24,9 +26,9 @@ flowchart LR
         GPU[snake_case<br/>Matches Rust]
     end
     
-    Client <--> API
-    API <--> Server
-    Server <--> GPU
+    Client < --> API
+    API < --> Server
+    Server < --> GPU
 ```
 
 ## Case Convention Rules
@@ -76,17 +78,16 @@ physics:
 
 ### Server → Client (GET /api/settings)
 
-```mermaid
-sequenceDiagram
+```mermasequenceDiagram
     participant Client
     participant API
     participant Settings
     
     Client->>API: GET /api/settings
     API->>Settings: GetSettings
-    Settings-->>API: AppFullSettings (snake_case)
+    Settings --> >API: AppFullSettings (snake_case)
     API->>API: to_camel_case_json()
-    API-->>Client: JSON (camelCase)
+    API --> >Client: JSON (camelCase)se)
 ```
 
 The conversion happens in `config/mod.rs`:
@@ -99,8 +100,7 @@ pub fn to_camel_case_json(&self) -> Result<Value, String> {
 
 ### Client → Server (POST /api/settings)
 
-```mermaid
-sequenceDiagram
+```msequenceDiagram
     participant Client
     participant API
     participant Validator
@@ -109,10 +109,10 @@ sequenceDiagram
     Client->>API: POST /api/settings (camelCase)
     API->>API: keys_to_snake_case()
     API->>Validator: validate_settings_update()
-    Validator-->>API: Valid ✓
+    Validator --> >API: Valid ✓
     API->>Settings: UpdateSettings (snake_case)
-    Settings-->>API: Success
-    API-->>Client: 200 OK
+    Settings --> >API: Success
+    API --> >Client: 200 OK 200 OK
 ```
 
 The conversion happens in `handlers/settings_handler.rs`:
@@ -237,3 +237,39 @@ When adding new fields:
 3. Add camelCase field to TypeScript interface
 4. Update UI component paths to use camelCase
 5. Test round-trip conversion
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

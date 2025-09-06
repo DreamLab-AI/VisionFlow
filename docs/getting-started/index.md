@@ -1,5 +1,7 @@
 # Getting Started with VisionFlow
 
+*[Getting-Started](../index.md)*
+
 Welcome to VisionFlow, a cutting-edge platform for real-time visualisation of AI multi-agent systems and knowledge graphs. This comprehensive guide will help you get up and running quickly whilst providing the depth needed for advanced configurations.
 
 ## What is VisionFlow?
@@ -174,3 +176,16 @@ Choose your path based on your immediate needs:
 ---
 
 **Ready to visualise the future of AI and knowledge?** Choose your path above and let's get started!
+## Documents
+
+- [Configuration Guide](./configuration.md)
+- [Installation Guide](./installation.md)
+- [Quick Start Guide](./quickstart.md)
+
+
+## Related Topics
+
+- [Configuration Guide](../getting-started/configuration.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Installation Guide](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quickstart.md)

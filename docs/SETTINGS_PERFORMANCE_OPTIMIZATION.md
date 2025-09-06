@@ -1,8 +1,8 @@
-# Settings Performance Optimization Report
+# Settings Performance Optimisation Report
 
 ## 🚀 Executive Summary
 
-The granular settings system has been completely redesigned and optimized, achieving remarkable performance improvements:
+The granular settings system has been completely redesigned and optimised, achieving remarkable performance improvements:
 
 - **99% bandwidth reduction** for single setting operations (50KB → 500B)
 - **300-400% faster response times** with multi-layered caching
@@ -12,16 +12,16 @@ The granular settings system has been completely redesigned and optimized, achie
 
 ## 📊 Performance Metrics
 
-### Before Optimization (Bulk Fetch System)
+### Before Optimisation (Bulk Fetch System)
 - **Single Setting Fetch**: ~50KB payload, ~200ms response time
 - **Batch Operations**: Full settings reload required
 - **Cache Hit Rate**: 0% (no caching)
 - **Concurrent Users**: Limited by JSON serialization bottlenecks
 - **Memory Usage**: High due to full object duplication
 
-### After Optimization (Granular Path System)
+### After Optimisation (Granular Path System)
 - **Single Setting Fetch**: ~500B payload, ~5ms response time
-- **Batch Operations**: Optimized with direct field access
+- **Batch Operations**: Optimised with direct field access
 - **Cache Hit Rate**: 85-95% with intelligent invalidation
 - **Concurrent Users**: 10x improvement with connection pooling
 - **Memory Usage**: 60% reduction with LRU caching
@@ -149,7 +149,7 @@ pub struct WebSocketSettingsHandler {
 - **Binary Protocol**: 70% smaller than JSON
 - **Automatic Reconnection**: Fault-tolerant connections
 
-### 6. Binary Protocol Optimization
+### 6. Binary Protocol Optimisation
 
 ```rust
 // Custom binary format for minimal overhead
@@ -221,7 +221,7 @@ BenchmarkConfig {
 
 **Multi-user Environments**:
 - **Before**: Conflicts and overrides
-- **After**: Real-time synchronization
+- **After**: Real-time synchronisation
 
 ## 🏗️ Architecture Comparison
 
@@ -371,7 +371,7 @@ pub struct PerformanceMetrics {
 ```rust
 // Write to both old and new systems
 async fn migrate_write(&self, path: &str, value: Value) {
-    // Write to new optimized system
+    // Write to new optimised system
     let new_result = self.new_actor.send(SetSettingByPath { path, value }).await;
     
     // Write to old system for consistency
@@ -418,7 +418,7 @@ async fn migrate_write(&self, path: &str, value: Value) {
    # Monitor CPU and memory usage
    htop -p $(pgrep settings-server)
    
-   # Solution: Scale horizontally or optimize queries
+   # Solution: Scale horizontally or optimise queries
    ```
 
 3. **WebSocket Connection Issues**:
@@ -455,7 +455,7 @@ let memory_usage = std::process::Command::new("ps")
 - [ ] Rollback procedure documented
 
 ### Deployment
-- [ ] Deploy new optimized actors
+- [ ] Deploy new optimised actors
 - [ ] Enable dual-write mode
 - [ ] Gradually shift traffic
 - [ ] Monitor key metrics
@@ -474,7 +474,7 @@ let memory_usage = std::process::Command::new("ps")
 1. **GraphQL Integration**: Enable complex queries with field selection
 2. **Edge Caching**: CDN integration for global settings distribution  
 3. **Predictive Preloading**: ML-based cache warming
-4. **Connection Pooling**: Optimize database connections
+4. **Connection Pooling**: Optimise database connections
 
 ### Long Term (Next Year)
 1. **Distributed Consensus**: Eventual consistency across data centers
@@ -492,7 +492,7 @@ let memory_usage = std::process::Command::new("ps")
 ### User Experience Improvements
 - **Slider Responsiveness**: Buttery smooth physics adjustments
 - **Settings Panel**: Near-instant loading
-- **Multi-user Collaboration**: Real-time synchronization
+- **Multi-user Collaboration**: Real-time synchronisation
 - **Offline Capability**: Cached settings work offline
 
 ### Technical Benefits
@@ -503,18 +503,28 @@ let memory_usage = std::process::Command::new("ps")
 
 ## 🎉 Conclusion
 
-The granular settings system optimization represents a **fundamental architecture upgrade** that delivers:
+The granular settings system optimisation represents a **fundamental architecture upgrade** that delivers:
 
 - **99% bandwidth reduction** through intelligent caching and compression
-- **300-400% performance improvement** via multi-layered optimization
+- **300-400% performance improvement** via multi-layered optimisation
 - **Infinite scalability potential** with Redis clustering and connection pooling
 - **Enhanced user experience** with real-time updates and offline capability
 
-This optimization sets the foundation for future enhancements and positions the system to handle exponential growth in users and data volume.
+This optimisation sets the foundation for future enhancements and positions the system to handle exponential growth in users and data volume.
 
 The implementation successfully transforms a legacy bulk-fetch system into a **modern, high-performance, distributed settings infrastructure** that exceeds all performance targets while maintaining backward compatibility and operational reliability.
 
 ---
-*Performance optimization completed by Hive Mind Settings Optimizer*  
+*Performance optimisation completed by Hive Mind Settings Optimizer*  
 *Generated on: 2025-09-05*  
 *Last benchmarked: 2025-09-05T08:54:32Z*
+
+## See Also
+
+- [Configuration Guide](getting-started/configuration.md)
+- [Getting Started with VisionFlow](getting-started/index.md)
+- [Guides](guides/README.md)
+- [Installation Guide](getting-started/installation.md)
+- [Quick Start Guide](getting-started/quickstart.md)
+- [VisionFlow Quick Start Guide](guides/quick-start.md)
+- [VisionFlow Settings System Guide](guides/settings-guide.md)

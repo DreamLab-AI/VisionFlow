@@ -119,7 +119,7 @@ The enhanced system works automatically when auto-balance is enabled:
 
 The system provides detailed notifications:
 
-- **Spatial Hashing**: "Optimizing spatial hashing efficiency"
+- **Spatial Hashing**: "Optimising spatial hashing efficiency"
 - **Numerical Issues**: "Emergency - Fixing numerical instability" 
 - **Containment**: "Increasing containment forces to prevent spreading"
 - **Traditional**: "Stabilizing bouncing nodes", "Expanding clustered nodes"
@@ -159,5 +159,5 @@ fn smooth_transition_params(&mut self) {
 
 1. **Machine Learning Integration**: Use neural networks to predict optimal parameters
 2. **Historical Analysis**: Learn from past successful configurations
-3. **Multi-Graph Optimization**: Optimize parameters across different graph types
+3. **Multi-Graph Optimisation**: Optimise parameters across different graph types
 4. **Real-time Metrics**: Provide detailed performance metrics for parameter effectiveness

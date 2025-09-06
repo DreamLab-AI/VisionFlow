@@ -1,5 +1,7 @@
 # Settings API Reference
 
+*[Api](../index.md) > [Rest](../api/rest/index.md)*
+
 ## Overview
 
 The Settings API manages all configuration aspects of VisionFlow, including physics parameters, visualisation settings, node properties, and rendering options. It supports multiple graph types with independent configurations and automatic case conversion between client and server.
@@ -658,3 +660,7 @@ curl -X POST http://localhost:3001/api/settings \
 - [WebSocket Integration](../websocket/index.md)
 - [Client Settings Store](../../client/state.md)
 - [GPU Compute Integration](../../server/gpu-compute.md)
+
+## See Also
+
+- [Request Handlers Architecture](../../server/handlers.md) - Server implementation

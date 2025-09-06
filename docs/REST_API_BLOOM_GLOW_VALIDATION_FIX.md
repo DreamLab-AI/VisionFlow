@@ -391,3 +391,20 @@ The fix can be verified by:
 3. **Testing API endpoints** with both 'bloom' and 'glow' field formats
 
 The REST API now properly validates bloom/glow field updates, accepts both field naming conventions, and provides clear error messages for invalid values.
+
+## Related Topics
+
+- [Analytics API Endpoints](api/analytics-endpoints.md)
+- [Graph API Reference](api/rest/graph.md)
+- [Modern Settings API - Path-Based Architecture](MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation API Reference](api/multi-mcp-visualization-api.md)
+- [REST API Reference](api/rest/index.md)
+- [Settings API Reference](api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](api/shortest-path-api.md)
+- [VisionFlow API Documentation](api/index.md)
+- [VisionFlow MCP Integration Documentation](api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](api/websocket/index.md)
+- [WebSocket API Reference](api/websocket.md)
+- [WebSocket Protocols](api/websocket-protocols.md)
+- [dev-backend-api](reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](reference/agents/documentation/api-docs/docs-api-openapi.md)

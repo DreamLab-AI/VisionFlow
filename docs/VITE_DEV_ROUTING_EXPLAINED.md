@@ -162,7 +162,7 @@ The development routing is designed to provide a unified entry point (port 3001)
 - Nginx handles all routing and proxying
 - Vite serves the frontend with HMR
 - Rust backend handles API and WebSocket
-- Docker environment variables control behavior
+- Docker environment variables control behaviour
 
 When issues arise, check:
 1. Is `DOCKER_ENV=true` set?

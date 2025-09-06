@@ -1,5 +1,7 @@
 # Actor System
 
+*[Server](../index.md)*
+
 VisionFlow's backend is built around the Actix actor framework, which allows for highly concurrent and fault-tolerant state management. Each core component of the server is implemented as an actor, an independent entity that communicates with other actors by sending and receiving asynchronous messages.
 
 This model avoids common concurrency problems like race conditions and deadlocks by ensuring that each piece of state is owned by a single actor.
@@ -26,7 +28,7 @@ This model avoids common concurrency problems like race conditions and deadlocks
     -   `Basic`: A standard force-directed layout.
     -   `DualGraph`: Manages physics for both the knowledge and agent graphs simultaneously.
     -   `Constraints`: Applies semantic constraints to the layout.
-    -   `VisualAnalytics`: Runs specialized analytics computations.
+    -   `VisualAnalytics`: Runs specialised analytics computations.
 -   Handles new message types for offloading specific analytics tasks, such as `PerformGPUClustering` and `ComputeShortestPaths`.
 -   Manages the transfer of data between system memory and GPU memory.
 
@@ -55,3 +57,40 @@ This model avoids common concurrency problems like race conditions and deadlocks
 -   Operates asynchronously to handle potentially long-running reasoning tasks without blocking the main application threads.
 
 For more details, see the [Ontology Validation documentation](features/ontology.md).
+
+
+
+## See Also
+
+- [Analytics API Endpoints](../api/analytics-endpoints.md) - API specification
+- [Graph API Reference](../api/rest/graph.md) - API specification
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md) - API specification
+- [REST API Reference](../api/rest/index.md) - API specification
+- [Settings API Reference](../api/rest/settings.md) - API specification
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md) - API specification
+- [VisionFlow API Documentation](../api/index.md) - API specification
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md) - API specification
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md) - API specification
+- [WebSocket API Reference](../api/websocket.md) - API specification
+- [WebSocket Protocols](../api/websocket-protocols.md) - API specification
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+- [Graph Clustering](../server/features/clustering.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [Multi Agent Orchestration](../server/agent-swarm.md)
+- [Ontology Validation](../server/features/ontology.md)
+- [Physics Engine](../server/physics-engine.md)
+- [Request Handlers Architecture](../server/handlers.md)
+- [Semantic Analysis Pipeline](../server/features/semantic-analysis.md)
+- [Server Architecture](../server/architecture.md)
+- [Server Documentation](../server/index.md)
+- [Server-Side Data Models](../server/models.md)
+- [Services Architecture](../server/services.md)
+- [Types Architecture](../server/types.md)
+- [Utilities Architecture](../server/utils.md)

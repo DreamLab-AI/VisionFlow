@@ -1,4 +1,6 @@
-# Bots Visualization Architecture
+# Bots Visualisation Architecture
+
+*[Architecture](../index.md)*
 
 This document describes the current architecture for visualising AI agents (bots) in the VisionFlow 3D environment using the unified GPU kernel and parallel graph coordinator.
 
@@ -89,7 +91,7 @@ visionflow:
     spring_strength: 0.3     # Edge attraction
     damping: 0.95           # Velocity damping
     repulsion_strength: 0.8  # Node repulsion
-    center_force: 0.002     # Center attraction
+    center_force: 0.002     # Centre attraction
     max_velocity: 0.5       # Speed limit
     link_distance: 3.0      # Ideal edge length
 ```
@@ -101,7 +103,7 @@ Agents are rendered as 3D objects with visual indicators:
 ```typescript
 function renderAgent(agent: BotsAgent) {
   const geometry = getAgentGeometry(agent.type);  // Shape by type
-  const material = getAgentMaterial(agent.status); // Color by status
+  const material = getAgentMaterial(agent.status); // Colour by status
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(getAgentPosition(agent.id));
@@ -116,7 +118,7 @@ function renderAgent(agent: BotsAgent) {
 
 **Visual Encoding:**
 - **Shape**: Agent type (cube=coordinator, sphere=researcher, etc.)
-- **Color**: Status (green=active, yellow=idle, red=error)
+- **Colour**: Status (green=active, yellow=idle, red=error)
 - **Size**: Task load or importance
 - **Glow**: Recent activity
 - **Connections**: Communication volume
@@ -315,11 +317,11 @@ Communications are aggregated into edges to reduce data volume
 ```typescript
 const AGENT_THEMES = {
   default: {
-    coordinator: { color: 0x4A90E2, shape: 'cube' },
-    researcher: { color: 0x7ED321, shape: 'sphere' },
-    coder: { color: 0xF5A623, shape: 'octahedron' },
-    analyst: { color: 0xBD10E0, shape: 'tetrahedron' },
-    tester: { color: 0x50E3C2, shape: 'icosahedron' }
+    coordinator: { colour: 0x4A90E2, shape: 'cube' },
+    researcher: { colour: 0x7ED321, shape: 'sphere' },
+    coder: { colour: 0xF5A623, shape: 'octahedron' },
+    analyst: { colour: 0xBD10E0, shape: 'tetrahedron' },
+    tester: { colour: 0x50E3C2, shape: 'icosahedron' }
   },
   dark: { /* ... */ },
   highContrast: { /* ... */ }
@@ -340,9 +342,45 @@ const PHYSICS_PRESETS = {
 ## Future Enhancements
 
 1. **Real-time WebSocket**: Replace polling with push updates
-2. **Agent Trails**: Visualize movement history
+2. **Agent Trails**: Visualise movement history
 3. **Communication Replay**: Replay message sequences
 4. **3D Charts**: Embed performance metrics in 3D space
 5. **VR Interaction**: Manipulate agents in VR
-6. **multi-agent Patterns**: Visualize emergent multi-agent behaviors
+6. **multi-agent Patterns**: Visualise emergent multi-agent behaviors
 7. **Cross-Graph Links**: Connect agents to Logseq nodes
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

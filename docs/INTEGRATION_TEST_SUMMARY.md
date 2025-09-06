@@ -31,15 +31,15 @@ I have created a comprehensive integration test suite for the settings sync func
 - **POST** `/api/clustering/algorithm` - Clustering configuration
 
 ### ✅ Bloom/Glow Field Robustness Testing
-- **Valid Cases**: Proper intensity, radius, color formats, opacity ranges
+- **Valid Cases**: Proper intensity, radius, colour formats, opacity ranges
 - **Invalid Cases**: Negative values, invalid colors, out-of-range parameters  
 - **Edge Cases**: Boundary conditions, extreme values, malformed data
-- **Color Validation**: Hex colors (#fff, #ffffff), rejection of RGB/named colors
+- **Colour Validation**: Hex colors (#fff, #ffffff), rejection of RGB/named colors
 - **Range Validation**: Intensity (0.0-10.0), opacity (0.0-1.0), radius limits
 
 ### ✅ Server Processing Verification
 - Settings merge and update logic validation
-- Auto-balance synchronization across both graphs (logseq & visionflow)
+- Auto-balance synchronisation across both graphs (logseq & visionflow)
 - Physics parameter propagation to GPU actors
 - Settings persistence and retrieval consistency
 
@@ -76,16 +76,16 @@ I have created a comprehensive integration test suite for the settings sync func
 ```rust
 // Example: Bloom field validation with 15+ test cases
 BloomFieldTest {
-    name: "Invalid color format",
+    name: "Invalid colour format",
     settings: json!({
         "visualisation": {
             "glow": {
-                "baseColor": "not-a-color"
+                "baseColor": "not-a-colour"
             }
         }
     }),
     should_pass: false,
-    expected_error_pattern: Some("color"),
+    expected_error_pattern: Some("colour"),
 }
 ```
 
@@ -172,7 +172,7 @@ The tests specifically address the "brittle REST API" mentioned in the requireme
 ## ✨ Key Benefits
 
 1. **Confidence**: Comprehensive coverage ensures the API is robust
-2. **Documentation**: Tests serve as living documentation of expected behavior  
+2. **Documentation**: Tests serve as living documentation of expected behaviour  
 3. **Regression Prevention**: Automated tests catch breaking changes
 4. **Performance Monitoring**: Built-in performance benchmarks
 5. **Security Validation**: Rate limiting and input validation tested

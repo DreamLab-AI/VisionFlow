@@ -1,6 +1,8 @@
-# Multi-MCP Agent Visualization API Reference
+# Multi-MCP Agent Visualisation API Reference
 
-Complete API documentation for the Multi-MCP Agent Visualization System.
+*[Api](../index.md)*
+
+Complete API documentation for the Multi-MCP Agent Visualisation System.
 
 **Current Version:** 1.0  
 **Last Updated:** 2025-01-19  
@@ -711,4 +713,40 @@ pub struct ServerConfig {
 }
 ```
 
-This comprehensive API reference provides everything needed to integrate with the Multi-MCP Agent Visualization System.
+This comprehensive API reference provides everything needed to integrate with the Multi-MCP Agent Visualisation System.
+
+
+
+## See Also
+
+- [Request Handlers Architecture](../server/handlers.md) - Server implementation
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md) - Implementation
+- [Actor System](../server/actors.md) - Implementation
+- [Analytics API Endpoints](../api/analytics-endpoints.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)
+- [Graph API Reference](../api/rest/graph.md)
+- [MCP Connection Architecture](../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [MCP Tool Integration Analysis](../technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation System](../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../multi-mcp-agent-visualization.md)
+- [REST API Bloom/Glow Field Validation Fix](../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
+- [REST API Reference](../api/rest/index.md)
+- [Request Handlers Architecture](../server/handlers.md) - Implementation
+- [Services Architecture](../server/services.md) - Implementation
+- [Settings API Reference](../api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md)
+- [VisionFlow API Documentation](../api/index.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket API Reference](../api/websocket.md)
+- [WebSocket Protocols](../api/websocket-protocols.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../reference/agents/documentation/api-docs/docs-api-openapi.md)

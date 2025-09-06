@@ -1,5 +1,7 @@
 # MCP Connection Architecture
 
+*[Architecture](../index.md)*
+
 This document outlines the corrected architecture for the Multi-agent Control Plane (MCP) connection, which now exclusively uses TCP transport to communicate with the `multi-agent-container`.
 
 ## Overview
@@ -20,12 +22,12 @@ The following Mermaid diagram illustrates the corrected data flow:
 ```mermaid
 graph TD
     subgraph "Rust Backend"
-        A[Client Application] -->|HTTP/WebSocket| B(Actix Web Server)
-        B -->|TCP| C{ClaudeFlowActorTcp}
+        A[Client Application] --> |HTTP/WebSocket| B(Actix Web Server)
+        B --> |TCP| C{ClaudeFlowActorTcp}
     end
 
     subgraph "Docker Network"
-        C -->|TCP: tcp://multi-agent-container:9500| D[multi-agent-container]
+        C --> |TCP: tcp://multi-agent-container:9500| D[multi-agent-container]
     end
 
     subgraph "MCP Service"
@@ -46,3 +48,47 @@ graph TD
 5.  **Claude Flow MCP**: The `multi-agent-container` runs the Claude Flow MCP, which manages the multi-agent system.
 
 This TCP-only architecture is more robust and reliable. It eliminates the complexity of WebSocket handshakes and provides direct, efficient communication with the MCP server.
+
+
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)
+
+## Related Topics
+
+- [Agent Visualisation Architecture](../agent-visualization-architecture.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Architecture Migration Guide](../architecture/migration-guide.md)
+- [Bots Visualisation Architecture](../architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](../architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](../architecture/CASE_CONVERSION.md)
+- [Claude Flow MCP Integration](../server/features/claude-flow-mcp-integration.md)
+- [ClaudeFlowActor Architecture](../architecture/claude-flow-actor.md)
+- [Client Architecture](../client/architecture.md)
+- [Decoupled Graph Architecture](../technical/decoupled-graph-architecture.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](../architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](../architecture/gpu-compute-improvements.md)
+- [MCP Integration Architecture](../architecture/mcp-integration.md)
+- [MCP Integration](../server/mcp-integration.md)
+- [MCP Tool Integration Analysis](../technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](../architecture/managing_claude_flow.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../multi-mcp-agent-visualization.md)
+- [Parallel Graph Architecture](../architecture/parallel-graphs.md)
+- [Server Architecture](../server/architecture.md)
+- [Settings Architecture Analysis Report](../architecture_analysis_report.md)
+- [VisionFlow Component Architecture](../architecture/components.md)
+- [VisionFlow Data Flow Architecture](../architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](../architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](../architecture/visionflow-gpu-migration.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow System Architecture Overview](../architecture/index.md)
+- [VisionFlow System Architecture](../architecture/system-overview.md)
+- [arch-system-design](../reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](../reference/agents/sparc/architecture.md)

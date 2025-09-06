@@ -1,5 +1,7 @@
 # AI Services Documentation
 
+*[Server](../index.md)*
+
 ## Overview
 
 LogseqSpringThing integrates multiple AI services to provide intelligent features including chat, content generation, and speech processing. The system supports RAGFlow for chat interactions, Perplexity for content queries, and speech-to-text/text-to-speech capabilities.
@@ -304,7 +306,7 @@ mod tests {
 ### Integration Tests
 - Mock external API responses
 - Test error scenarios
-- Verify timeout behavior
+- Verify timeout behaviour
 - Test streaming responses
 
 ## Monitoring

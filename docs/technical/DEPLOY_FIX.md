@@ -1,5 +1,7 @@
 # Settings System Fix - Deployment Instructions
 
+*[Technical](../index.md)*
+
 ## Problem Identified
 The Docker container was serving a **stale client bundle** that was built BEFORE the settings API fixes were applied. This caused 404 errors on `/api/settings/batch` and `/api/settings/path` endpoints.
 

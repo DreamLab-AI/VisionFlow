@@ -1,5 +1,7 @@
 # VisionFlow Data Flow Architecture
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 VisionFlow implements a sophisticated data pipeline that processes multiple data sources into a unified, real-time 3D graph visualisation. The architecture supports bidirectional data flow, enabling real-time collaboration whilst maintaining consistency across all connected clients.
@@ -533,7 +535,7 @@ sequenceDiagram
     
     loop Every 16ms
         GraphActor->>GPUActor: ComputeForces
-        GPUActor-->>GraphActor: Updated Positions
+        GPUActor --> >GraphActor: Updated Positions
         GraphActor->>GraphActor: Calculate Differential Updates
         
         alt Updates Available
@@ -549,7 +551,7 @@ sequenceDiagram
     Client1->>WSHandler: Move node (user drag)
     WSHandler->>GraphActor: UpdateNodePosition
     GraphActor->>GPUActor: Apply user constraint
-    GPUActor-->>GraphActor: Acknowledge
+    GPUActor --> >GraphActor: Acknowledge
     GraphActor->>ClientManager: BroadcastNodePositions
     ClientManager->>WSHandler: Forward update
     WSHandler->>Client2: Reflect user action
@@ -871,3 +873,9 @@ impl PipelineMetrics {
 *Pipeline throughput: 100K+ nodes at 60 FPS*  
 *Latency: <10ms end-to-end*  
 *Status: Production Ready*
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

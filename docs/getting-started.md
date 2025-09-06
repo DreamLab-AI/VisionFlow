@@ -56,7 +56,7 @@ open http://localhost:3002
 
 ### Option 2: Development Setup
 
-For development and customization:
+For development and customisation:
 
 ```bash
 # Prerequisites
@@ -202,7 +202,7 @@ Simultaneously visualise multiple graph types with unified physics:
 
 **Node Interaction:**
 - Click: Select node and show metadata
-- Double-click: Center camera on node
+- Double-click: Centre camera on node
 - Hover: Show quick info tooltip
 
 **Edge Interaction:**
@@ -349,3 +349,10 @@ docker-compose down
 🎉 **Welcome to VisionFlow!** You're now ready to explore real-time 3D visualisation with AI agent orchestration.
 
 For questions or issues, check our [Troubleshooting Guide](./guides/troubleshooting.md) or reach out via GitHub Issues.
+
+## Related Topics
+
+- [Configuration Guide](getting-started/configuration.md)
+- [Getting Started with VisionFlow](getting-started/index.md)
+- [Installation Guide](getting-started/installation.md)
+- [Quick Start Guide](getting-started/quickstart.md)

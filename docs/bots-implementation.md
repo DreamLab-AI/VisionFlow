@@ -1,4 +1,4 @@
-# Bots Visualization & Hive Mind Implementation
+# Bots Visualisation & Hive Mind Implementation
 
 ## Overview
 
@@ -7,7 +7,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 1. **Backend Integration** - Processing bots data through the GPU physics system
 2. **API Endpoints** - RESTful endpoints for bots data management and multi-agent initialisation
 3. **Binary WebSocket** - Real-time position updates using the same protocol as the main graph
-4. **Frontend Visualization** - 3D force-directed graph with gold/green color scheme
+4. **Frontend Visualisation** - 3D force-directed graph with gold/green colour scheme
 5. **Hive Mind Spawning** - Interactive UI to spawn and configure Claude Flow multi-agents
 
 ## Architecture
@@ -33,7 +33,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 ### Frontend Components
 
 #### 1. BotsVisualizationIntegrated Component
-- Main visualisation component using React Three Fiber
+- Main visualisation component using React Three Fibre
 - Retrieves agent data from backend API
 - Renders agents as spheres with size based on workload
 - Shows communication edges between agents
@@ -44,7 +44,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 - Updates positions in real-time
 
 #### 4. multiAgentInitializationPrompt Component
-- Interactive modal dialog for spawning hive minds
+- Interactive modal dialogue for spawning hive minds
 - Configurable options:
   - **Topology**: mesh, hierarchical, ring, or star
   - **Agent Count**: 3-20 agents
@@ -54,7 +54,7 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
 
 ## Data Flow
 
-### Visualization Updates
+### Visualisation Updates
 1. **Claude Flow MCP Server** → Sends agent data to backend
 2. **Backend** → Receives data, processes through GPU physics
 3. **Binary WebSocket** → Streams position updates to frontend
@@ -71,13 +71,13 @@ The bots visualisation has been successfully integrated into VisionFlow to displ
    - Enables neural patterns if selected
    - Applies custom task prompt
 6. **Claude Flow** → Creates agents and begins task execution
-7. **Visualization** → Updates to show active agents
+7. **Visualisation** → Updates to show active agents
 
 ## Visual Design
 
 - **Gold** (#F1C40F) - Coordinator agents
 - **Green** (#2ECC71) - Worker agents (coder, tester)
-- **Orange/Teal** - Specialized agents
+- **Orange/Teal** - Specialised agents
 - **Edge thickness** - Represents communication volume
 - **Node size** - Scales with agent workload
 
@@ -139,7 +139,7 @@ curl -X POST http://localhost:4000/api/bots/initialize-multi-agent \
 ## Next Steps
 
 1. **Live MCP Integration** - Connect to actual claude-flow container
-2. **Performance Optimization** - Batch updates for large botss
+2. **Performance Optimisation** - Batch updates for large botss
 3. **Enhanced Visuals** - Add particle effects for active communications
 4. **Interaction** - Click agents to see detailed metrics
 

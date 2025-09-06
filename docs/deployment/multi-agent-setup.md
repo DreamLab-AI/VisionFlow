@@ -1,5 +1,7 @@
 # Multi-Agent Container Setup
 
+*[Deployment](../index.md)*
+
 ## Overview
 
 VisionFlow integrates with the `multi-agent-container` for Claude Flow MCP services. This container must be running on the same Docker network (`docker_ragflow`) for the system to function properly.
@@ -86,8 +88,8 @@ graph LR
     VF[VisionFlow Container<br/>Port 3001/4000]
     MA[Multi-Agent Container<br/>Port 9500]
     
-    VF -->|TCP 9500<br/>Claude Flow MCP| MA
-    VF -->|WS 3002<br/>Bots Orchestrator| MA
+    VF --> |TCP 9500<br/>Claude Flow MCP| MA
+    VF --> |WS 3002<br/>Bots Orchestrator| MA
     
     subgraph docker_ragflow network
         VF
@@ -102,3 +104,10 @@ graph LR
 - **Same Docker network required** - Both containers must be on `docker_ragflow`
 - **TCP protocol** - Using TCP on port 9500, not WebSocket
 - **Automatic reconnection** - VisionFlow will retry connection if multi-agent-container restarts
+
+## Related Topics
+
+- [Deployment Guide](../deployment/index.md)
+- [Docker Compose Profiles Configuration](../deployment/docker-profiles.md)
+- [Docker Deployment Guide](../deployment/docker.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)

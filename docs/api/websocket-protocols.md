@@ -1,8 +1,10 @@
 # WebSocket Protocols
 
+*[Api](../index.md)*
+
 ## Overview
 
-VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the backend. The system implements multiple specialized WebSocket endpoints, each optimized for specific data types and update patterns.
+VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the backend. The system implements multiple specialised WebSocket endpoints, each optimised for specific data types and update patterns.
 
 ## WebSocket Architecture
 
@@ -18,7 +20,7 @@ graph TB
         Flow[/wss<br/>Binary Graph Updates]
         Speech[/ws/speech<br/>Voice Streaming]
         MCP[/ws/mcp-relay<br/>MCP Protocol]
-        Bots[/api/visualization/agents/ws<br/>Agent Updates]
+        Bots[/api/visualisation/agents/ws<br/>Agent Updates]
     end
 
     subgraph "Backend Handlers"
@@ -62,9 +64,9 @@ graph TB
 - **Protocol**: JSON-RPC 2.0
 - **Features**: Tool invocation, agent orchestration
 
-### 4. Agent Visualization
-- **Endpoint**: `/api/visualization/agents/ws`
-- **Purpose**: Multi-Agent system visualization and monitoring
+### 4. Agent Visualisation
+- **Endpoint**: `/api/visualisation/agents/ws`
+- **Purpose**: Multi-Agent system visualisation and monitoring
 - **Protocol**: JSON with agent states, metrics, and position updates
 - **Update Rate**: 16 ms intervals (~60 FPS)
 - **Features**: Agent status tracking, performance metrics, swarm coordination
@@ -274,7 +276,7 @@ interface WebSocketMessage<T = any> {
 - Used for streaming audio input/output
 - Format depends on configured audio codec
 
-### Agent Visualization Messages (/ws/bots_visualization)
+### Agent Visualisation Messages (/ws/bots_visualization)
 
 #### Initialization Message
 ```json
@@ -430,7 +432,7 @@ interface WebSocketMessage<T = any> {
 }
 ```
 
-## Compression and Optimization
+## Compression and Optimisation
 
 ### Compression Strategy
 - Messages > 1KB automatically use permessage-deflate
@@ -598,16 +600,16 @@ function updateSceneFromWebSocket(
 
       // Apply type-specific styling
       if (data.type === 'agent') {
-        mesh.material.color.setHex(0xff6b6b);
+        mesh.material.colour.setHex(0xff6b6b);
       } else if (data.type === 'knowledge') {
-        mesh.material.color.setHex(0x4ecdc4);
+        mesh.material.colour.setHex(0x4ecdc4);
       }
     }
   });
 }
 ```
 
-### Agent Visualization Integration
+### Agent Visualisation Integration
 ```typescript
 function useAgentVisualization() {
   const [agents, setAgents] = useState([]);
@@ -716,3 +718,33 @@ class WebSocketMetrics {
 - [REST API Documentation](rest/index.md)
 - [WebSocket API Reference](websocket/index.md)
 - [VisionFlow Architecture](../architecture/system-overview.md)
+
+
+
+## See Also
+
+- [Request Handlers Architecture](../server/handlers.md) - Server implementation
+
+## Related Topics
+
+- [AI Services Documentation](../server/ai-services.md) - Implementation
+- [Actor System](../server/actors.md) - Implementation
+- [Analytics API Endpoints](../api/analytics-endpoints.md)
+- [Binary Protocol Specification](../binary-protocol.md)
+- [Graph API Reference](../api/rest/graph.md)
+- [MCP WebSocket Relay Architecture](../architecture/mcp-websocket-relay.md)
+- [Modern Settings API - Path-Based Architecture](../MODERN_SETTINGS_API.md)
+- [Multi-MCP Agent Visualisation API Reference](../api/multi-mcp-visualization-api.md)
+- [REST API Bloom/Glow Field Validation Fix](../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
+- [REST API Reference](../api/rest/index.md)
+- [Request Handlers Architecture](../server/handlers.md) - Implementation
+- [Services Architecture](../server/services.md) - Implementation
+- [Settings API Reference](../api/rest/settings.md)
+- [Single-Source Shortest Path (SSSP) API](../api/shortest-path-api.md)
+- [VisionFlow API Documentation](../api/index.md)
+- [VisionFlow MCP Integration Documentation](../api/mcp/index.md)
+- [VisionFlow WebSocket API Documentation](../api/websocket/index.md)
+- [WebSocket API Reference](../api/websocket.md)
+- [WebSocket Communication](../client/websocket.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [docs-api-openapi](../reference/agents/documentation/api-docs/docs-api-openapi.md)

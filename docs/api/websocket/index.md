@@ -1,5 +1,7 @@
 # VisionFlow WebSocket API Documentation
 
+*[Api](../index.md) > [Websocket](../api/websocket/index.md)*
+
 ## Overview
 
 The VisionFlow WebSocket API provides real-time, bidirectional communication for live graph updates, physics simulation state, collaborative editing, and system notifications. Built on a high-performance Rust backend with Tokio async runtime, it ensures low-latency communication with automatic reconnection and message ordering.
@@ -50,14 +52,14 @@ wss://your-domain.com/wss (Production)
 
 **Note**: The primary endpoint changed from `/ws` to `/wss` in the current implementation.
 
-### Specialized Endpoints
+### Specialised Endpoints
 
 **Based on actual server implementation (src/main.rs):**
 
 - `/wss` - Primary graph position updates (binary protocol)
 - `/ws/speech` - Voice interaction and audio streaming  
 - `/ws/mcp-relay` - MCP protocol relay and agent orchestration
-- `/api/visualization/agents/ws` - Multi-agent system visualization
+- `/api/visualisation/agents/ws` - Multi-agent system visualisation
 
 ## Connection Establishment
 
@@ -737,3 +739,8 @@ client.on('error', (error) => console.error('Error:', error));
 - [MCP Integration](../mcp/index.md)
 - [Client WebSocket Integration](../../client/websocket.md)
 - [Physics Engine](../../server/physics-engine.md)
+
+## See Also
+
+- [Request Handlers Architecture](../../server/handlers.md) - Server implementation
+- [Server Documentation](../../server/index.md) - Server implementation

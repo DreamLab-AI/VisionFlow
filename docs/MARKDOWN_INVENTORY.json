@@ -1,0 +1,209 @@
+{
+  "metadata": {
+    "scan_date": "2025-09-06T17:36:34.527330",
+    "total_files": 455,
+    "total_size_bytes": 4742039,
+    "scan_scope": "All markdown files (.md, .MD, .markdown) excluding node_modules and .venv",
+    "excluded_paths": [
+      "*/node_modules/*",
+      "*/.venv/*"
+    ]
+  },
+  "summary": {
+    "categories": {
+      "documentation": {
+        "count": 130,
+        "total_size_bytes": 1402004,
+        "description": "Technical documentation, API docs, guides, and architecture documentation"
+      },
+      "old_markdown_data": {
+        "count": 177,
+        "total_size_bytes": 2506138,
+        "description": "Legacy markdown files containing research and notes on various topics"
+      },
+      "claude_agents_commands": {
+        "count": 133,
+        "total_size_bytes": 660063,
+        "description": "Claude agent definitions, templates, and command documentation"
+      },
+      "other": {
+        "count": 6,
+        "total_size_bytes": 115375,
+        "description": "Miscellaneous markdown files including task reports and deployment fixes"
+      },
+      "testing": {
+        "count": 4,
+        "total_size_bytes": 27228,
+        "description": "Test-related documentation and guides"
+      },
+      "client": {
+        "count": 3,
+        "total_size_bytes": 16898,
+        "description": "Client-side documentation and feature guides"
+      },
+      "scripts": {
+        "count": 1,
+        "total_size_bytes": 3706,
+        "description": "Script documentation"
+      },
+      "root": {
+        "count": 1,
+        "total_size_bytes": 13627,
+        "description": "Main project README"
+      }
+    },
+    "largest_files": [
+      {
+        "path": "/workspace/ext/data/old_markdown/Papers Of Note.md",
+        "size_bytes": 119797,
+        "category": "old_markdown_data"
+      },
+      {
+        "path": "/workspace/ext/data/old_markdown/Bitcoin.md",
+        "size_bytes": 97286,
+        "category": "old_markdown_data"
+      },
+      {
+        "path": "/workspace/ext/task.md",
+        "size_bytes": 93833,
+        "category": "other"
+      },
+      {
+        "path": "/workspace/ext/data/old_markdown/Money.md",
+        "size_bytes": 85818,
+        "category": "old_markdown_data"
+      },
+      {
+        "path": "/workspace/ext/data/old_markdown/Base models.md",
+        "size_bytes": 84942,
+        "category": "old_markdown_data"
+      }
+    ]
+  },
+  "directory_structure": {
+    "/workspace/ext/": {
+      "files": ["README.md", "task.md", "DEPLOY_FIX.md", "HIVE_MIND_FIXES_REPORT.md"],
+      "subdirectories": {
+        "docs/": {
+          "description": "Main documentation directory",
+          "file_count": 130,
+          "subdirectories": [
+            "api/", "architecture/", "client/", "configuration/", 
+            "deployment/", "development/", "features/", "getting-started/", 
+            "guides/", "security/", "server/", "technical/", "testing/"
+          ]
+        },
+        "data/old_markdown/": {
+          "description": "Legacy research and notes",
+          "file_count": 177,
+          "topics": [
+            "AI and Machine Learning", "Bitcoin and Cryptocurrency", 
+            "Blockchain Technology", "Digital Society", "Privacy and Security",
+            "Metaverse and AR/VR", "Product Design", "Technical Research"
+          ]
+        },
+        "workspace/.claude/": {
+          "description": "Claude agent system",
+          "file_count": 133,
+          "subdirectories": [
+            "agents/", "commands/"
+          ],
+          "agent_categories": [
+            "core", "consensus", "github", "optimization", "swarm", 
+            "templates", "testing", "sparc", "specialized"
+          ]
+        },
+        "client/": {
+          "description": "Client-side documentation",
+          "file_count": 3,
+          "areas": ["analytics", "control-center"]
+        },
+        "tests/": {
+          "description": "Test documentation",
+          "file_count": 4
+        }
+      }
+    }
+  },
+  "key_files": {
+    "project_root": {
+      "/workspace/ext/README.md": {
+        "size_bytes": 13627,
+        "description": "Main project README for VisionFlow",
+        "content_preview": "VisionFlow: AI Agent Swarm Visualisation & Knowledge Graph Explorer"
+      }
+    },
+    "critical_documentation": {
+      "/workspace/ext/docs/configuration/index.md": {
+        "size_bytes": 43442,
+        "description": "Production configuration guide"
+      },
+      "/workspace/ext/docs/security/index.md": {
+        "size_bytes": 40559,
+        "description": "Production security architecture"
+      },
+      "/workspace/ext/docs/architecture/system-overview.md": {
+        "size_bytes": 22588,
+        "description": "VisionFlow system architecture overview"
+      }
+    },
+    "agent_system": {
+      "/workspace/ext/workspace/.claude/agents/README.md": {
+        "size_bytes": 2890,
+        "description": "Agent system overview"
+      },
+      "/workspace/ext/workspace/.claude/agents/consensus/quorum-manager.md": {
+        "size_bytes": 27992,
+        "description": "Largest agent definition file - quorum management"
+      }
+    },
+    "legacy_research": {
+      "/workspace/ext/data/old_markdown/Papers Of Note.md": {
+        "size_bytes": 119797,
+        "description": "Largest file - research paper collection"
+      },
+      "/workspace/ext/data/old_markdown/Bitcoin.md": {
+        "size_bytes": 97286,
+        "description": "Comprehensive Bitcoin analysis"
+      }
+    }
+  },
+  "file_patterns": {
+    "by_extension": {
+      ".md": 455,
+      ".MD": 0,
+      ".markdown": 0
+    },
+    "naming_conventions": [
+      "kebab-case (most common)",
+      "PascalCase (old_markdown directory)",
+      "snake_case (some technical files)"
+    ],
+    "content_types": [
+      "Technical Documentation",
+      "Agent Definitions", 
+      "API References",
+      "Configuration Guides",
+      "Research Notes",
+      "Architecture Overviews",
+      "Installation Guides"
+    ]
+  },
+  "recommendations": {
+    "organization": [
+      "Consider archiving or consolidating the 177 old_markdown files",
+      "Standardize naming conventions across directories",
+      "Create index files for major documentation sections"
+    ],
+    "maintenance": [
+      "Review and update large legacy files (>50KB)",
+      "Consolidate duplicate documentation",
+      "Add table of contents to major documentation sections"
+    ],
+    "structure": [
+      "Consider moving agent documentation to main docs hierarchy",
+      "Create cross-references between related documentation",
+      "Implement documentation versioning for API changes"
+    ]
+  }
+}

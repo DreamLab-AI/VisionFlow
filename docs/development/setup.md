@@ -1,5 +1,7 @@
 # VisionFlow Development Setup Guide
 
+*[Development](../index.md)*
+
 This guide will help you set up your development environment for contributing to VisionFlow, with a focus on the Rust backend development workflow.
 
 ## Prerequisites
@@ -247,7 +249,7 @@ docker volume rm visionflow_cargo-target-cache
 ./scripts/dev.sh --no-cache
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Development Performance Tips
 
@@ -413,3 +415,15 @@ If you encounter issues not covered in this guide:
 ---
 
 Happy coding! This setup is designed to give you a smooth development experience with fast iteration cycles.
+
+## Related Topics
+
+- [Debug System Architecture](../development/debugging.md)
+- [Developer Configuration System](../DEV_CONFIG.md)
+- [Development Documentation](../development/index.md)
+- [Getting Started with VisionFlow](../getting-started.md)
+- [Testing Documentation](../development/testing.md)
+- [VisionFlow Documentation](../index.md)
+- [Vite Development Routing Configuration Explained](../VITE_DEV_ROUTING_EXPLAINED.md)
+- [dev-backend-api](../reference/agents/development/backend/dev-backend-api.md)
+- [ops-cicd-github](../reference/agents/devops/ci-cd/ops-cicd-github.md)

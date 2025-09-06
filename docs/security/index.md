@@ -1,5 +1,7 @@
 # Production Security Architecture
 
+*[Security](../index.md)*
+
 ## Executive Summary
 
 VisionFlow's security implementation represents a **production-hardened, zero-trust security architecture** that delivers comprehensive protection across all system layers. Built with enterprise-grade security principles, the system implements multi-tier validation, comprehensive threat mitigation, and industry-leading security practices.
@@ -206,7 +208,7 @@ impl ThreatDetectionSystem {
         // Pattern analysis for known attack signatures
         assessment.pattern_score = self.pattern_analyzer.analyze(request).await;
         
-        // Anomaly detection based on normal behavior
+        // Anomaly detection based on normal behaviour
         assessment.anomaly_score = self.anomaly_detector.score_request(request, client_id).await;
         
         // Client reputation scoring
@@ -655,7 +657,7 @@ impl ZeroTrustAuthenticator {
 
 | Threat Category | Risk Level | Impact | Likelihood | Mitigation Status |
 |----------------|------------|---------|------------|-------------------|
-| **Advanced Persistent Threats** | High | Critical | Medium | ✅ Comprehensive Defense |
+| **Advanced Persistent Threats** | High | Critical | Medium | ✅ Comprehensive Defence |
 | **Session Hijacking** | Medium | High | Low | ✅ Multi-Layer Protection |
 | **Privilege Escalation** | High | Critical | Low | ✅ Zero-Trust Architecture |
 | **Data Breach** | Critical | Critical | Low | ✅ Encryption + Access Control |
@@ -672,7 +674,7 @@ impl ZeroTrustAuthenticator {
 - **Behavioral Analysis**: Machine learning-based anomaly detection
 - **Threat Intelligence**: Real-time threat intelligence integration
 - **Network Segmentation**: Zero-trust network architecture
-- **Continuous Monitoring**: 24/7 security operations center
+- **Continuous Monitoring**: 24/7 security operations centre
 
 ```rust
 pub struct APTDetectionSystem {
@@ -763,9 +765,9 @@ impl ThreatResponseSystem {
 
 ## Production Incident Response
 
-### Security Operations Center (SOC)
+### Security Operations Centre (SOC)
 
-VisionFlow operates a 24/7 Security Operations Center with comprehensive incident response capabilities:
+VisionFlow operates a 24/7 Security Operations Centre with comprehensive incident response capabilities:
 
 **Contact Information:**
 - **Security Incidents**: mailto:security@visionflow.dev
@@ -955,7 +957,7 @@ VisionFlow maintains compliance with major security and privacy regulations:
 ### Security Certifications
 
 **Current Security Certifications:**
-- ✅ **SOC 2 Type II**: Service Organization Control 2 certification
+- ✅ **SOC 2 Type II**: Service Organisation Control 2 certification
 - ✅ **ISO 27001**: Information Security Management certification
 - ✅ **GDPR Compliance**: General Data Protection Regulation compliance
 - ✅ **PCI DSS**: Payment Card Industry Data Security Standard (if applicable)
@@ -1039,3 +1041,14 @@ impl SecurityGovernanceFramework {
 *Last Updated: December 2024*  
 *Security Clearance: Public*  
 *Classification: Production Security Documentation*
+## Documents
+
+- [Authentication & Security](./authentication.md)
+
+
+## Related Topics
+
+- [Authentication & Security](../security/authentication.md)
+- [Cyber Security and Military](../archive/legacy/old_markdown/Cyber Security and Military.md)
+- [Cyber security and Cryptography](../archive/legacy/old_markdown/Cyber security and Cryptography.md)
+- [security-manager](../reference/agents/consensus/security-manager.md)

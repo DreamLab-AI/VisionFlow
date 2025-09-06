@@ -1,5 +1,7 @@
 # VisionFlow MCP Integration Documentation
 
+*[Api](../index.md) > [Mcp](../api/mcp/index.md)*
+
 ## Overview
 
 The Model Context Protocol (MCP) integration enables VisionFlow to communicate seamlessly with Claude-based AI agents, facilitating intelligent graph analysis, automated optimisation, and collaborative development workflows. This integration provides bidirectional communication between VisionFlow's visualisation engine and external AI systems.
@@ -28,13 +30,13 @@ graph TB
         AS[Agent Swarms]
     end
     
-    VF <--> WS
-    WS <--> MR
-    MR <--> MP
-    MP <--> MS
-    MS <--> CF
-    MS <--> CA
-    CF <--> AS
+    VF < --> WS
+    WS < --> MR
+    MR < --> MP
+    MP < --> MS
+    MS < --> CF
+    MS < --> CA
+    CF < --> AS
     
     VF --> GA
     GA --> MR
@@ -912,3 +914,8 @@ kill $VISIONFLOW_PID
 - [Claude Flow Documentation](https://github.com/ruvnet/claude-flow)
 - [Graph Analytics Service](../../server/services.md)
 - [Agent Orchestration](../../architecture/managing_claude_flow.md)
+
+## See Also
+
+- [Request Handlers Architecture](../../server/handlers.md) - Server implementation
+- [Server Documentation](../../server/index.md) - Server implementation

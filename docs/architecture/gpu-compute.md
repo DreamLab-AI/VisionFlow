@@ -1,5 +1,7 @@
 # VisionFlow GPU Compute Integration
 
+*[Architecture](../index.md)*
+
 ## Overview
 
 VisionFlow's GPU compute system represents a comprehensive integration of NVIDIA CUDA technology with modern graph physics simulation. The system exposes 100% of GPU capabilities through a unified CUDA kernel, supporting four distinct compute modes and advanced features including clustering algorithms, constraint satisfaction, and visual analytics.
@@ -833,7 +835,7 @@ impl GPUComputeActor {
         }
         
         // Synchronise stream
-        self.stream.synchronize()?;
+        self.stream.synchronise()?;
         
         // Copy results back to host
         let mut pos_x = vec![0.0f32; self.gpu_data.node_count as usize];
@@ -988,3 +990,9 @@ impl GPUComputeActor {
 *GPU Utilisation: 100% of capabilities exposed*  
 *Performance: 60-120 FPS for 100K+ nodes*  
 *Status: Production Ready*
+
+## See Also
+
+- [Configuration Architecture](../server/config.md)
+- [Feature Access Control](../server/feature-access.md)
+- [GPU Compute Architecture](../server/gpu-compute.md)

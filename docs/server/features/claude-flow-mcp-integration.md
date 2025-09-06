@@ -1,5 +1,7 @@
 # Claude Flow MCP Integration
 
+*[Server](../index.md) > [Features](../server/features/index.md)*
+
 ## Overview
 
 The Claude Flow integration enables the Rust backend to communicate with claude-flow hive-mind AI agents through the Model Context Protocol (MCP). This integration supports spawning, managing, and visualising AI Multi Agents in real-time using TCP communication.
@@ -68,7 +70,7 @@ The Claude Flow integration enables the Rust backend to communicate with claude-
 
 ### Core Agent Management
 - `multi-agent_init` - Initialize multi-agent with topology (mesh, hierarchical, ring, star)
-- `agent_spawn` - Create specialized agents with capabilities
+- `agent_spawn` - Create specialised agents with capabilities
 - `agent_list` - List active agents with status and metrics
 - `agent_metrics` - Get detailed performance metrics
 - `agent_command` - Send commands to specific agents
@@ -252,7 +254,7 @@ const POLL_INTERVAL: Duration = Duration::from_secs(5);
 const RECONNECT_DELAY: Duration = Duration::from_secs(10);
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Agent Update Batching
 - Updates are batched in 5-second intervals
@@ -310,3 +312,38 @@ mod tests {
 - [MCP Specification](https://github.com/anthropics/mcp)
 - [Claude Flow Documentation](https://github.com/Agentic-Insights/claude-flow)
 - [Binary Protocol](../../api/websocket-protocols.md)
+
+## Related Topics
+
+- [AI Services Documentation](../../server/ai-services.md)
+- [Actor System](../../server/actors.md)
+- [Adaptive Balancing](../../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../../features/agent-orchestration.md)
+- [Configuration Architecture](../../server/config.md)
+- [Docker MCP Integration - Production Deployment Guide](../../deployment/docker-mcp-integration.md)
+- [Feature Access Control](../../server/feature-access.md)
+- [Features Documentation](../../features/index.md)
+- [GPU Compute Architecture](../../server/gpu-compute.md)
+- [GPU-Accelerated Analytics](../../client/features/gpu-analytics.md)
+- [Graph Clustering](../../server/features/clustering.md)
+- [MCP Connection Architecture](../../architecture/mcp_connection.md)
+- [MCP Integration Architecture](../../architecture/mcp-integration.md)
+- [MCP Integration](../../server/mcp-integration.md)
+- [MCP Tool Integration Analysis](../../technical/mcp_tool_usage.md)
+- [MCP WebSocket Relay Architecture](../../architecture/mcp-websocket-relay.md)
+- [Multi Agent Orchestration](../../server/agent-swarm.md)
+- [Multi-MCP Agent Visualisation API Reference](../../api/multi-mcp-visualization-api.md)
+- [Multi-MCP Agent Visualisation System](../../MCP_AGENT_VISUALIZATION.md)
+- [Multi-MCP Agent Visualisation System](../../multi-mcp-agent-visualization.md)
+- [Neural Auto-Balance Feature](../../features/AUTO_BALANCE.md)
+- [Ontology Validation](../../server/features/ontology.md)
+- [Physics Engine](../../server/physics-engine.md)
+- [Request Handlers Architecture](../../server/handlers.md)
+- [Semantic Analysis Pipeline](../../server/features/semantic-analysis.md)
+- [Server Architecture](../../server/architecture.md)
+- [Server Documentation](../../server/index.md)
+- [Server-Side Data Models](../../server/models.md)
+- [Services Architecture](../../server/services.md)
+- [Types Architecture](../../server/types.md)
+- [Utilities Architecture](../../server/utils.md)
+- [VisionFlow MCP Integration Documentation](../../api/mcp/index.md)

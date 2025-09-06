@@ -1,5 +1,7 @@
 # Command Palette
 
+*[Client](../index.md)*
+
 ## Overview
 The Command Palette provides a keyboard-driven interface for quickly accessing application features and executing commands. Inspired by VS Code and similar modern applications, it offers fuzzy search, keyboard shortcuts, and command categorization.
 
@@ -154,7 +156,7 @@ Each command includes:
 - **Keywords**: Alternative search terms for discovery
 - **Icons**: Visual identifiers from Lucide React
 - **Shortcuts**: Optional keyboard shortcuts
-- **Categories**: Organized grouping for better navigation
+- **Categories**: Organised grouping for better navigation
 
 ## Performance Considerations
 
@@ -199,3 +201,25 @@ interface CommandRegistryOptions {
 - Command history with undo
 - Plugin system for external commands
 - Voice command integration
+
+## Related Topics
+
+- [Client Architecture](../client/architecture.md)
+- [Client Core Utilities and Hooks](../client/core.md)
+- [Client Rendering System](../client/rendering.md)
+- [Client TypeScript Types](../client/types.md)
+- [Client side DCO](../archive/legacy/old_markdown/Client side DCO.md)
+- [Client-Side visualisation Concepts](../client/visualization.md)
+- [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
+- [Graph System](../client/graph-system.md)
+- [Help System](../client/help-system.md)
+- [Onboarding System](../client/onboarding.md)
+- [Parallel Graphs Feature](../client/parallel-graphs.md)
+- [RGB and Client Side Validation](../archive/legacy/old_markdown/RGB and Client Side Validation.md)
+- [Settings Panel](../client/settings-panel.md)
+- [State Management](../client/state-management.md)
+- [UI Component Library](../client/ui-components.md)
+- [User Controls Summary - Settings Panel](../client/user-controls-summary.md)
+- [VisionFlow Client Documentation](../client/index.md)
+- [WebSocket Communication](../client/websocket.md)
+- [WebXR Integration](../client/xr-integration.md)

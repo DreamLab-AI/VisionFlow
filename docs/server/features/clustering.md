@@ -1,10 +1,12 @@
 # Graph Clustering
 
+*[Server](../index.md) > [Features](../server/features/index.md)*
+
 ## Introduction
 
 Graph clustering is a critical analytical feature used to automatically identify communities, functional modules, and semantic groups within the knowledge graph. By partitioning the graph into clusters of densely connected nodes, we can uncover hidden structures and relationships that are not immediately obvious.
 
-This is particularly useful for understanding the high-level structure of a knowledge base, identifying related concepts, and improving the quality of the visualization.
+This is particularly useful for understanding the high-level structure of a knowledge base, identifying related concepts, and improving the quality of the visualisation.
 
 ## Available Algorithms
 
@@ -19,7 +21,7 @@ The system supports several industry-standard clustering algorithms, each with i
     *   **Use Case**: Best suited for when the number of clusters is known beforehand and the clusters are roughly spherical and of similar size. It is computationally efficient for large graphs.
 
 -   **Louvain Method**:
-    *   **Description**: A fast, greedy optimization method for community detection in large networks. It works by optimizing a "modularity" score, which measures the density of links inside communities compared to links between communities.
+    *   **Description**: A fast, greedy optimisation method for community detection in large networks. It works by optimising a "modularity" score, which measures the density of links inside communities compared to links between communities.
     *   **Use Case**: Highly effective and scalable for community detection in very large graphs. It does not require the number of clusters to be specified in advance.
 
 ## API Endpoints
@@ -60,3 +62,29 @@ The clustering process can be configured by sending a `ClusteringParams` struct 
 -   `algorithm`: The name of the clustering algorithm to use (`spectral`, `kmeans`, or `louvain`).
 -   `parameters`: A nested object containing algorithm-specific parameters (e.g., `k` for K-means, `resolution` for Louvain).
 -   `output_property`: The name of the node property where the resulting cluster ID should be stored.
+
+## Related Topics
+
+- [AI Services Documentation](../../server/ai-services.md)
+- [Actor System](../../server/actors.md)
+- [Adaptive Balancing](../../features/adaptive-balancing.md)
+- [Agent Orchestration Architecture](../../features/agent-orchestration.md)
+- [Claude Flow MCP Integration](../../server/features/claude-flow-mcp-integration.md)
+- [Configuration Architecture](../../server/config.md)
+- [Feature Access Control](../../server/feature-access.md)
+- [Features Documentation](../../features/index.md)
+- [GPU Compute Architecture](../../server/gpu-compute.md)
+- [GPU-Accelerated Analytics](../../client/features/gpu-analytics.md)
+- [MCP Integration](../../server/mcp-integration.md)
+- [Multi Agent Orchestration](../../server/agent-swarm.md)
+- [Neural Auto-Balance Feature](../../features/AUTO_BALANCE.md)
+- [Ontology Validation](../../server/features/ontology.md)
+- [Physics Engine](../../server/physics-engine.md)
+- [Request Handlers Architecture](../../server/handlers.md)
+- [Semantic Analysis Pipeline](../../server/features/semantic-analysis.md)
+- [Server Architecture](../../server/architecture.md)
+- [Server Documentation](../../server/index.md)
+- [Server-Side Data Models](../../server/models.md)
+- [Services Architecture](../../server/services.md)
+- [Types Architecture](../../server/types.md)
+- [Utilities Architecture](../../server/utils.md)

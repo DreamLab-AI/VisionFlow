@@ -1,5 +1,7 @@
 # Authentication & Security
 
+*[Security](../index.md)*
+
 ## Overview
 
 LogseqSpringThing implements a comprehensive authentication system using Nostr (Notes and Other Stuff Transmitted by Relays) protocol for decentralised identity verification, combined with session-based authentication and role-based access control.
@@ -543,3 +545,10 @@ Client-side debug logging:
 const logger = createLogger('NostrAuthService');
 logger.setLevel('debug');
 ```
+
+## Related Topics
+
+- [Cyber Security and Military](../archive/legacy/old_markdown/Cyber Security and Military.md)
+- [Cyber security and Cryptography](../archive/legacy/old_markdown/Cyber security and Cryptography.md)
+- [Production Security Architecture](../security/index.md)
+- [security-manager](../reference/agents/consensus/security-manager.md)

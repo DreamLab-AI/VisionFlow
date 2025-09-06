@@ -1,5 +1,7 @@
 # Docker Compose Profiles Configuration
 
+*[Deployment](../index.md)*
+
 ## Overview
 
 VisionFlow uses Docker Compose profiles to manage different deployment environments from a single `docker-compose.yml` file. This simplifies configuration management and reduces duplication.
@@ -23,7 +25,7 @@ docker-compose --profile dev up
 ```
 
 ### Production Profile (`production` or `prod`)
-For production deployments with optimized builds and security.
+For production deployments with optimised builds and security.
 
 **Features:**
 - Optimised production builds
@@ -189,3 +191,10 @@ docker-compose --profile production build webxr-prod
 3. **Easier comparison** - Dev vs prod side-by-side
 4. **Simplified CI/CD** - Same file, different profiles
 5. **Better documentation** - Clear profile boundaries
+
+## Related Topics
+
+- [Deployment Guide](../deployment/index.md)
+- [Docker Deployment Guide](../deployment/docker.md)
+- [Docker MCP Integration - Production Deployment Guide](../deployment/docker-mcp-integration.md)
+- [Multi-Agent Container Setup](../deployment/multi-agent-setup.md)
