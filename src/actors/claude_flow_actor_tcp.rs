@@ -862,8 +862,18 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
                                 info!("  Total tokens: {}", agent_statuses.iter().map(|a| a.token_usage.total).sum::<u64>());
                                 info!("  Avg success rate: {:.2}%", 
                                       agent_statuses.iter().map(|a| a.success_rate).sum::<f32>() / agent_statuses.len().max(1) as f32 * 100.0);
+                                
+                                // CRITICAL FIX: Send the agents to the graph!
+                                info!("📨 Sending {} agents to graph update", agent_statuses.len());
+                                graph_addr.do_send(UpdateBotsGraph {
+                                    agents: agent_statuses
+                                });
                             } else {
                                 info!("📭 No agents found - sending empty graph update");
+                                // Send empty graph update
+                                graph_addr.do_send(UpdateBotsGraph {
+                                    agents: Vec::new()
+                                });
                             }
                         } else {
                             warn!("Invalid response format - missing 'agents' array in: {:?}", parsed_response);
