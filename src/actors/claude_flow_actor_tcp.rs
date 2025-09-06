@@ -265,13 +265,15 @@ impl ClaudeFlowActorTcp {
     /// Establish TCP connection to Claude Flow
     async fn connect_to_claude_flow_tcp() -> Result<(BufWriter<tokio::net::tcp::OwnedWriteHalf>, BufReader<tokio::net::tcp::OwnedReadHalf>), Box<dyn std::error::Error + Send + Sync>> {
         // Use service name for Docker networking, fallback to localhost for development
-        let host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| {
-            if std::env::var("DOCKER_ENV").is_ok() {
-                "claude-flow-mcp".to_string()  // Docker service name
-            } else {
-                "localhost".to_string()  // Local development
-            }
-        });
+        let host = std::env::var("CLAUDE_FLOW_HOST")
+            .or_else(|_| std::env::var("MCP_HOST"))
+            .unwrap_or_else(|_| {
+                if std::env::var("DOCKER_ENV").is_ok() {
+                    "multi-agent-container".to_string()  // Docker service name
+                } else {
+                    "localhost".to_string()  // Local development
+                }
+            });
         let port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
         
         debug!("Attempting TCP connection to {}:{}", host, port);

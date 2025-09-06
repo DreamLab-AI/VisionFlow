@@ -193,6 +193,46 @@ impl BotsClient {
                                     info!("Processing result field from bots response");
                                     debug!("Raw result JSON: {}", serde_json::to_string_pretty(result).unwrap_or_default());
 
+                                    // First check if this is an MCP-style response with content array
+                                    if let Some(content_array) = result.get("content").and_then(|c| c.as_array()) {
+                                        if let Some(first_content) = content_array.first() {
+                                            if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
+                                                // Parse the text field as JSON
+                                                if let Ok(parsed_json) = serde_json::from_str::<serde_json::Value>(text) {
+                                                    info!("Parsed MCP content.text JSON successfully");
+                                                    
+                                                    // Now check for agents in the parsed JSON
+                                                    if let Some(agents_array) = parsed_json.get("agents").and_then(|a| a.as_array()) {
+                                                        let mut agents = Vec::new();
+                                                        for agent_val in agents_array {
+                                                            if let Ok(agent) = serde_json::from_value::<Agent>(agent_val.clone()) {
+                                                                agents.push(agent);
+                                                            }
+                                                        }
+                                                        
+                                                        if !agents.is_empty() {
+                                                            let update = BotsUpdate {
+                                                                agents: agents.clone(),
+                                                                metrics: BotsMetrics::default(),
+                                                                timestamp: std::time::SystemTime::now()
+                                                                    .duration_since(std::time::UNIX_EPOCH)
+                                                                    .unwrap_or_default()
+                                                                    .as_secs(),
+                                                            };
+                                                            info!("Successfully parsed {} agents from MCP response", update.agents.len());
+                                                            for agent in &update.agents {
+                                                                debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
+                                                            }
+                                                            let mut lock = updates.write().await;
+                                                            *lock = Some(update);
+                                                            continue; // Skip the rest of the parsing
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     // MCP responses come directly as result objects, not wrapped
                                     let actual_result = result.clone();
 

@@ -1,8 +1,23 @@
 # WebXR Agent Graph System - Current Status & Future Work
 
-**Date**: 2025-08-30
+**Date**: 2025-09-06
 **Status**: 🟡 **MOSTLY COMPLETE** - Core functionality working, architectural improvements pending
 **Environment**: `multi-agent-container` + `visionflow_container`
+
+## ✅ RESOLVED - Rust App Running (2025-09-06 20:50)
+
+### Issue Summary:
+The Rust backend in the logseq container is now running successfully.
+
+### Root Causes Fixed:
+1. **Configuration Issue**: Missing `z` coordinate in camera `lookAt` field in `/workspace/ext/data/settings.yaml` - **FIXED**
+2. **CUDA Error**: Previously crashed with `cudaErrorSymbolNotFound` - **RESOLVED**
+
+### Current Status:
+✅ Rust app is running without crashes
+✅ No more CUDA termination errors
+⚠️ GPU compute context warnings remain but are non-fatal
+✅ WebXR backend operational
 
 ## 🔍 MCP TCP Interface Analysis Results - COMPLETE ✅
 
@@ -205,66 +220,74 @@ visionflow_container ──TCP:9500──> multi-agent-container
 - `MCP_TCP_PORT` → `9500`
 - `CLAUDE_FLOW_DIRECT_MODE` → `true` (in MCP server)
 
-## 🔴 CRITICAL ISSUE - Agent Tracking Not Working
+## ⚠️ PARTIALLY RESOLVED - Agent Tracking System Issues Persist
 
-### Root Cause Analysis (2025-08-30 15:18)
-**Priority**: CRITICAL
-**Status**: MCP server not recognizing agent methods
+### Resolution Summary (2025-09-06 20:38)
+**Priority**: HIGH
+**Status**: Configuration fixes applied, agent tracking still returns mock data
 
 #### Problem Summary:
-- `agent_list` returns empty array instead of spawned agents
-- Agents ARE being created (get valid IDs like `agent_1756564254868_pcgsya`)
-- Agent tracker module exists but agents aren't being tracked
-- The MCP server wrapper is NOT using our modified code
+- `agent_list` was returning mock data (agent-1, agent-2, agent-3) instead of real agents
+- Root cause: Multi-layered architecture issue with process isolation
+- Agents ARE persisted to database but query filtering fails
 
-#### Technical Analysis:
-1. **MCP Architecture**:
-   - `/app/core-assets/scripts/mcp-tcp-server.js` - TCP wrapper (spawns MCP per connection)
-   - Each connection spawns: `npx claude-flow@alpha mcp start`
-   - This uses GLOBAL npm package, NOT our local `/workspace/ext/claude-flow` code
+#### Root Causes Identified:
+1. **Process Isolation**:
+   - Each TCP connection spawns a NEW MCP process
+   - Agent tracker is per-process (not shared)
+   - Database persistence works but query fails
 
-2. **Agent Tracking Flow**:
-   - `agent_spawn` creates agent and stores in memory
-   - `global.agentTracker` should track agents in AgentTracker class
-   - `agent_list` checks `global.agentTracker.getAgents(swarmId)`
-   - Returns empty because tracker isn't populated
+2. **Multiple Issues Fixed**:
+   - TCP server was using `npx claude-flow@alpha` (downloading fresh copy each time)
+   - Agent tracker wasn't initialized in constructor
+   - Mock data fallback was masking the real issue
+   - Variable scoping conflicts in switch statements
+   - Database query filtering doesn't match key structure
 
-3. **Code Changes Made**:
-   - ✅ Fixed agent tracker initialization logging
-   - ✅ Added swarmId consistency to agent_spawn
-   - ✅ Removed mock data fallback from agent_list
-   - ✅ Added debug logging throughout
-   - ✅ Modified TCP wrapper to use local code
-   - ❌ Changes NOT active (wrapper keeps getting restarted)
+3. **Fixes Applied**:
+   - ✅ Changed TCP server to use global installation `/usr/bin/claude-flow`
+   - ✅ Added agent tracker initialization in constructor
+   - ✅ Removed mock data fallback
+   - ✅ Fixed variable naming conflicts (swarmId → listSwarmId)
+   - ✅ Updated database query to use list() with filtering
+   - ⚠️ Database filtering still needs work (finds 29 total agents but 0 for current swarm)
 
-#### ✅ SOLUTION IMPLEMENTED (2025-08-30 15:00)
+#### ✅ UPDATED SOLUTION (2025-09-06 20:30)
 
-**Final Working Solution:**
+**Updated `/workspace/ext/setup-workspace.sh`**:
 
-1. **Enhanced `/workspace/ext/multi-agent-docker/setup-workspace.sh`**:
-   - Updated `patch_mcp_server()` function to find global installation at `/usr/lib/node_modules/claude-flow`
-   - Added Patch 3: Remove mock data fallback from agent_list
-   - Added Patch 4: Fix agent_spawn to properly track agents with swarmId
-   - Added Patch 5: Enhanced agent tracker initialization with verification
-   - Patches are applied to the INSTALLED claude-flow, not a transient copy
+The setup script now includes comprehensive patches:
 
-2. **Added agent spawning to VisionFlow handlers**:
-   - Modified `/workspace/ext/src/handlers/bots_handler.rs`
-   - Added `call_agent_spawn` function to `/workspace/ext/src/utils/mcp_connection.rs`
-   - Now automatically spawns 3-4 agents after swarm_init based on topology
+1. **Patch 1**: Fix hardcoded version (dynamic from package.json)
+2. **Patch 2**: Fix method routing for direct tool calls  
+3. **Patch 3**: Fix agent_list to check database with proper filtering
+4. **Patch 4**: Fix agent tracker module export
+5. **Patch 5**: Initialize agent tracker in constructor
+6. **Patch 6**: Store active swarm ID when creating swarm
+7. **Patch 7**: Fix TCP server to use global claude-flow instead of npx
 
-**How It Works:**
-1. When container starts, `setup-workspace.sh` runs
-2. It finds the globally installed claude-flow at `/usr/lib/node_modules/claude-flow`
-3. Applies all patches directly to the installed version
-4. Supervisord starts mcp-tcp-server which uses the patched claude-flow
-5. Agent tracking now works correctly with real agents instead of mock data
+**Key Discoveries**:
+- Agents ARE being persisted to SQLite database at `/workspace/.swarm/memory.db`
+- Database keys format: `agent:swarm_ID:agent_ID`
+- The memoryStore.list() returns all entries but filtering logic needs adjustment
+- Each TCP connection gets its own MCP process with isolated memory
 
-**To Apply Changes:**
-1. Restart the Docker container to run setup-workspace.sh
-2. The patches will be applied to the installed claude-flow
-3. Supervisord will restart mcp-tcp-server automatically
-4. VisionFlow will spawn agents automatically when creating swarms
+**Current Status (2025-09-06 20:50)**:
+- ✅ TCP server running on port 9500
+- ✅ Multiple swarms created and persisted to database
+- ✅ Agents ARE persisted to `/workspace/.swarm/memory.db`
+- ❌ Agent tracking STILL returns mock data - verified with test script
+- ❌ `agent_list` returns hardcoded agents (agent-1, agent-2, agent-3)
+- ❌ `swarm_status` shows 0 agents even for swarms with 5+ agents in DB
+- 📝 Found multiple active swarms with real agents in database:
+  - `swarm_1757190236313_k0cl75zp7` - Latest with 5+ agents
+  - `swarm_1757190098787_ji7urxyhb` - Previous with 5+ agents
+  - Database contains real agent data but MCP can't query it properly
+
+**Next Steps for Full Resolution**:
+1. Fix the database key filtering logic to match actual key structure
+2. Consider implementing cross-process agent sharing via Redis or shared memory
+3. Add connection pooling to reuse MCP processes
 
 ## ⚠️ FUTURE WORK REQUIRED
 
