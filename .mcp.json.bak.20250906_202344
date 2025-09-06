@@ -1,0 +1,69 @@
+{
+  "mcpServers": {
+    "claude-flow": {
+      "command": "npx",
+      "args": [
+        "claude-flow@alpha",
+        "mcp",
+        "start"
+      ],
+      "type": "stdio"
+    },
+    "ruv-swarm": {
+      "command": "npx",
+      "args": [
+        "ruv-swarm@latest",
+        "mcp",
+        "start"
+      ],
+      "type": "stdio"
+    },
+    "blender-mcp": {
+      "command": "node",
+      "args": [
+        "./scripts/mcp-blender-client.js"
+      ],
+      "type": "stdio"
+    },
+    "qgis-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "./mcp-tools/qgis_mcp.py"
+      ],
+      "type": "stdio"
+    },
+    "kicad-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "./mcp-tools/kicad_mcp.py"
+      ],
+      "type": "stdio"
+    },
+    "ngspice-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "./mcp-tools/ngspice_mcp.py"
+      ],
+      "type": "stdio"
+    },
+    "imagemagick-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "./mcp-tools/imagemagick_mcp.py"
+      ],
+      "type": "stdio"
+    },
+    "pbr-generator-mcp": {
+      "command": "python3",
+      "args": [
+        "-u",
+        "./mcp-tools/pbr_mcp_client.py"
+      ],
+      "type": "stdio"
+    }
+  }
+}

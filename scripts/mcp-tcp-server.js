@@ -44,7 +44,7 @@ class MCPServerWrapper {
       this.stats.activeConnections++;
       
       // Spawn dedicated MCP instance for this connection
-      const mcp = spawn('npx', ['claude-flow@2.0.0-alpha.101', 'mcp', 'start', '--stdio', '--file', '/workspace/.mcp.json'], {
+      const mcp = spawn('/usr/bin/claude-flow', ['mcp', 'start', '--stdio', '--file', '/workspace/.mcp.json'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: '/workspace',
         env: { ...process.env, CLAUDE_FLOW_DIRECT_MODE: 'true' }
@@ -87,12 +87,9 @@ class MCPServerWrapper {
         
         lines.forEach(line => {
           if (line.trim()) {
-            const conn = this.connections.get(clientAddr);
-            if (conn) {
-              conn.messagesOut++;
-              this.log('debug', `MCP -> TCP [${clientAddr}]: ${line.substring(0, 100)}...`);
-              socket.write(line + '\n');
-            }
+            this.connections.get(clientAddr).messagesOut++;
+            this.log('debug', `MCP -> TCP [${clientAddr}]: ${line.substring(0, 100)}...`);
+            socket.write(line + '\n');
           }
         });
       });
@@ -157,7 +154,7 @@ class MCPServerWrapper {
       this.stats.activeConnections++;
       
       // Same logic as TCP but for Unix socket
-      const mcp = spawn('npx', ['claude-flow@2.0.0-alpha.101', 'mcp', 'start', '--stdio', '--file', '/workspace/.mcp.json'], {
+      const mcp = spawn('/usr/bin/claude-flow', ['mcp', 'start', '--stdio', '--file', '/workspace/.mcp.json'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: '/workspace'
       });
