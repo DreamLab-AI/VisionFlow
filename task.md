@@ -220,37 +220,57 @@ visionflow_container ──TCP:9500──> multi-agent-container
 - `MCP_TCP_PORT` → `9500`
 - `CLAUDE_FLOW_DIRECT_MODE` → `true` (in MCP server)
 
-## ⚠️ PARTIALLY RESOLVED - Agent Tracking System Issues Persist
+## ✅ RESOLVED - Agent Visualization Fixed (2025-09-06 22:00)
 
-### Resolution Summary (2025-09-06 20:38)
+### Final Solution
 **Priority**: HIGH
-**Status**: Configuration fixes applied, agent tracking still returns mock data
+**Status**: ✅ COMPLETE - Consolidated fix applied
 
-#### Problem Summary:
-- `agent_list` was returning mock data (agent-1, agent-2, agent-3) instead of real agents
-- Root cause: Multi-layered architecture issue with process isolation
-- Agents ARE persisted to database but query filtering fails
+#### Root Cause Analysis:
 
-#### Root Causes Identified:
-1. **Process Isolation**:
-   - Each TCP connection spawns a NEW MCP process
-   - Agent tracker is per-process (not shared)
-   - Database persistence works but query fails
+The system had **TWO competing agent fetching systems** that conflicted:
+1. **BotsClient**: Used fresh TCP connections (worked) but didn't update graph
+2. **ClaudeFlowActor**: Used persistent TCP connection (broken) but sent graph updates
 
-2. **Multiple Issues Fixed**:
-   - TCP server was using `npx claude-flow@alpha` (downloading fresh copy each time)
-   - Agent tracker wasn't initialized in constructor
-   - Mock data fallback was masking the real issue
-   - Variable scoping conflicts in switch statements
-   - Database query filtering doesn't match key structure
+The MCP server closes connections after each request, breaking ClaudeFlowActor's persistent connection model.
 
-3. **Fixes Applied**:
-   - ✅ Changed TCP server to use global installation `/usr/bin/claude-flow`
-   - ✅ Added agent tracker initialization in constructor
-   - ✅ Removed mock data fallback
-   - ✅ Fixed variable naming conflicts (swarmId → listSwarmId)
-   - ✅ Updated database query to use list() with filtering
-   - ⚠️ Database filtering still needs work (finds 29 total agents but 0 for current swarm)
+#### Solution Applied:
+
+**Consolidated Single-System Approach**:
+1. **Disabled ClaudeFlowActor polling** - Persistent connections don't work with MCP
+2. **Enhanced BotsClient** - Added graph update functionality
+3. **Unified data flow**: BotsClient → GraphServiceActor → WebSocket → Frontend
+
+#### Technical Changes:
+
+**File: `/workspace/ext/patches/consolidated_agent_graph_fix.patch`**
+```diff
+// Disable broken ClaudeFlowActor polling
++ return; // MCP server incompatible with persistent connections
+
+// Add graph updates to working BotsClient
++ graph_addr.do_send(UpdateBotsGraph {
++     agents: update.agents.clone()
++ });
+```
+
+#### Clean Architecture:
+```
+MCP Server (port 9500)
+     ↓ [Fresh TCP connection per request]
+BotsClient (parses agents)
+     ↓ [UpdateBotsGraph message]
+GraphServiceActor (manages state)
+     ↓ [WebSocket broadcast]
+Frontend (renders graph)
+```
+
+#### Benefits:
+- ✅ Single source of truth (BotsClient)
+- ✅ No conflicting updates
+- ✅ Works with MCP's connection model
+- ✅ Cleaner, simpler architecture
+- ✅ Easier to maintain and debug
 
 #### ✅ UPDATED SOLUTION (2025-09-06 20:30)
 

@@ -9,15 +9,21 @@ The agent visualisation system provides real-time, GPU-accelerated rendering of 
 ### 1. Server-Side (Rust)
 
 #### Data Flow Pipeline
-1. **MCP Data Source** → Claude Flow Actor polls agent status
-2. **Agent Visualisation Processor** → Transforms raw MCP data into visualisation format
-3. **Agent Visualisation Protocol** → Handles JSON/WebSocket message formatting
-4. **WebSocket Handler** → Streams data to connected clients
+1. **MCP Data Source** → BotsClient fetches agent status via fresh TCP connections
+2. **Agent Parser** → BotsClient parses MCP responses and extracts agent data
+3. **Graph Update** → BotsClient sends UpdateBotsGraph messages to GraphServiceActor
+4. **WebSocket Handler** → GraphServiceActor broadcasts updates to connected clients
 
-#### Key Files:
-- `/src/services/agent_visualization_processor.rs` - Processes MCP data for visualisation
-- `/src/services/agent_visualization_protocol.rs` - Defines JSON/WebSocket protocol
-- `/src/handlers/bots_visualization_handler.rs` - WebSocket endpoint and handlers
+#### Key Components:
+- `/src/services/bots_client.rs` - Primary MCP client with fresh TCP connections
+- `/src/actors/graph_actor.rs` - Manages graph state and WebSocket broadcasts
+- `/src/handlers/socket_flow_handler.rs` - WebSocket endpoint for real-time updates
+- `/src/actors/claude_flow_actor_tcp.rs` - DEPRECATED: Has connection issues, disabled
+
+#### Important Notes:
+- **BotsClient** uses fresh TCP connections per request (works reliably)
+- **ClaudeFlowActor** attempted persistent connections (broken, now disabled)
+- All agent data flows through BotsClient → GraphServiceActor → WebSocket
 
 ### 2. Client-Side (TypeScript/Three.js)
 
