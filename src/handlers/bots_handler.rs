@@ -946,6 +946,29 @@ pub async fn get_bots_graph_data(bots_client: &BotsClient) -> Option<GraphData> 
         
         // Generate simple mesh edges for now (each agent connected to others)
         let mut edges = Vec::new();
+        
+        // Use node_map to create edges based on agent relationships
+        for (agent_id, &node_id) in &node_map {
+            // Create edges to other agents (simplified mesh topology)
+            for (other_id, &other_node_id) in &node_map {
+                if agent_id != other_id {
+                    edges.push(Edge {
+                        edge_type: Some("agent_connection".to_string()),
+                        id: (edges.len() as u32).to_string(),
+                        source: node_id,
+                        target: other_node_id,
+                        weight: 1.0,
+                        metadata: Some({
+                            let mut metadata = HashMap::new();
+                            metadata.insert("label".to_string(), "agent_connection".to_string());
+                            metadata.insert("source_type".to_string(), "agent".to_string());
+                            metadata.insert("target_type".to_string(), "agent".to_string());
+                            metadata
+                        }),
+                    });
+                }
+            }
+        }
         for (i, node1) in nodes.iter().enumerate() {
             for node2 in nodes.iter().skip(i + 1) {
                 edges.push(Edge {
@@ -1027,7 +1050,7 @@ pub async fn get_agent_telemetry(
 }
 
 pub async fn initialize_swarm(
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     request: web::Json<InitializeSwarmRequest>,
 ) -> HttpResponse {
     info!("=== INITIALIZE SWARM ENDPOINT CALLED ===");
@@ -1327,7 +1350,7 @@ pub async fn check_mcp_connection(
 }
 
 pub async fn initialize_multi_agent(
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
 ) -> impl Responder {
     info!("=== INITIALIZE MULTI-AGENT ENDPOINT CALLED ===");
@@ -1573,7 +1596,7 @@ impl EnhancedBotsHandler {
 
         // Call existing handler logic and convert to Result<HttpResponse>
         match update_bots_data(state, web::Json(bots_data_request)).await {
-            response => {
+            _response => {
                 // For now, just return a success response
                 // TODO: Properly handle the impl Responder conversion
                 Ok(HttpResponse::Ok().json(json!({
@@ -1613,7 +1636,7 @@ impl EnhancedBotsHandler {
 
         // Call existing handler - convert to HttpResponse
         match get_bots_data(state).await {
-            response => {
+            _response => {
                 // For now, just return a success response
                 // TODO: Properly handle the impl Responder conversion
                 Ok(HttpResponse::Ok().json(json!({
@@ -1699,7 +1722,7 @@ impl EnhancedBotsHandler {
 
         // Call existing handler and convert to Result<HttpResponse>
         match initialize_swarm(state, web::Json(init_request)).await {
-            response => {
+            _response => {
                 // For now, just return a success response
                 // TODO: Properly handle the impl Responder conversion
                 Ok(HttpResponse::Ok().json(json!({
@@ -1739,7 +1762,7 @@ impl EnhancedBotsHandler {
 
         // Call existing handler - convert to HttpResponse
         match get_agent_status(state).await {
-            response => {
+            _response => {
                 // For now, just return a success response
                 // TODO: Properly handle the impl Responder conversion
                 Ok(HttpResponse::Ok().json(json!({
@@ -1959,7 +1982,7 @@ impl Default for EnhancedBotsHandler {
 }
 
 // Handler for disconnecting/terminating multi-agent system
-pub async fn disconnect_multi_agent(state: web::Data<AppState>) -> impl Responder {
+pub async fn disconnect_multi_agent(_state: web::Data<AppState>) -> impl Responder {
     info!("Received request to disconnect multi-agent system");
     
     // Get the current swarm ID if it exists

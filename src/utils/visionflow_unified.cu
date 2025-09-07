@@ -41,7 +41,11 @@ struct SimParams {
     float viewport_bounds;
     // SSSP parameters
     float sssp_alpha;  // Strength of SSSP influence on spring forces
+    float boundary_damping;  // Damping applied at boundaries
 };
+
+// Global constant memory for simulation parameters
+__constant__ SimParams c_params;
 
 struct FeatureFlags {
     static const unsigned int ENABLE_REPULSION = 1 << 0;
@@ -211,7 +215,6 @@ __global__ void force_pass_kernel(
     const int* __restrict__ edge_row_offsets,
     const int* __restrict__ edge_col_indices,
     const float* __restrict__ edge_weights,
-    const SimParams params,
     const int num_nodes,
     const float* __restrict__ d_sssp_dist,
     const ConstraintData* __restrict__ constraints,
@@ -223,7 +226,7 @@ __global__ void force_pass_kernel(
     float3 my_pos = make_vec3(pos_in_x[idx], pos_in_y[idx], pos_in_z[idx]);
     float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
 
-    if (params.feature_flags & FeatureFlags::ENABLE_REPULSION) {
+    if (c_params.feature_flags & FeatureFlags::ENABLE_REPULSION) {
         int my_cell_key = cell_keys[idx];
         int grid_x = my_cell_key % grid_dims.x;
         int grid_y = (my_cell_key / grid_dims.x) % grid_dims.y;
@@ -252,12 +255,12 @@ __global__ void force_pass_kernel(
                             float3 diff = vec3_sub(my_pos, neighbor_pos);
                             float dist_sq = vec3_length_sq(diff);
 
-                            if (dist_sq < params.repulsion_cutoff * params.repulsion_cutoff && dist_sq > 1e-6f) {
+                            if (dist_sq < c_params.repulsion_cutoff * c_params.repulsion_cutoff && dist_sq > 1e-6f) {
                                 float dist = sqrtf(dist_sq);
-                                float repulsion = params.repel_k / (dist_sq + params.repulsion_softening_epsilon);
+                                float repulsion = c_params.repel_k / (dist_sq + c_params.repulsion_softening_epsilon);
                                 
                                 // Prevent repulsion force overflow when nodes are too close
-                                float max_repulsion = params.max_force * 0.5f;
+                                float max_repulsion = c_params.max_force * 0.5f;
                                 repulsion = fminf(repulsion, max_repulsion);
                                 
                                 // Safety check for NaN/Inf
@@ -272,13 +275,13 @@ __global__ void force_pass_kernel(
         }
     }
 
-    if (params.feature_flags & FeatureFlags::ENABLE_SPRINGS) {
+    if (c_params.feature_flags & FeatureFlags::ENABLE_SPRINGS) {
         int start_edge = edge_row_offsets[idx];
         int end_edge = edge_row_offsets[idx + 1];
         
         float du = 0.0f;
         bool use_sssp = (d_sssp_dist != nullptr) &&
-                       (params.feature_flags & FeatureFlags::ENABLE_SSSP_SPRING_ADJUST);
+                       (c_params.feature_flags & FeatureFlags::ENABLE_SSSP_SPRING_ADJUST);
         if (use_sssp) {
             du = d_sssp_dist[idx];
         }
@@ -291,29 +294,29 @@ __global__ void force_pass_kernel(
             float dist = vec3_length(diff);
             
             if (dist > 1e-6f) {
-                float ideal = params.rest_length;
+                float ideal = c_params.rest_length;
                 if (use_sssp) {
                     float dv = d_sssp_dist[neighbor_idx];
                     // Handle disconnected components gracefully
                     if (isfinite(du) && isfinite(dv)) {
                         float delta = fabsf(du - dv);
                         float norm_delta = fminf(delta, 1000.0f); // Cap for stability
-                        ideal = params.rest_length + params.sssp_alpha * norm_delta;
+                        ideal = c_params.rest_length + c_params.sssp_alpha * norm_delta;
                     }
                 }
                 float displacement = dist - ideal;
-                float spring_force_mag = params.spring_k * displacement * edge_weights[i];
+                float spring_force_mag = c_params.spring_k * displacement * edge_weights[i];
                 total_force = vec3_add(total_force, vec3_scale(diff, spring_force_mag / dist));
             }
         }
     }
     
-    if (params.feature_flags & FeatureFlags::ENABLE_CENTERING) {
-        total_force = vec3_sub(total_force, vec3_scale(my_pos, params.center_gravity_k));
+    if (c_params.feature_flags & FeatureFlags::ENABLE_CENTERING) {
+        total_force = vec3_sub(total_force, vec3_scale(my_pos, c_params.center_gravity_k));
     }
 
     // Constraint force accumulation
-    if (params.feature_flags & FeatureFlags::ENABLE_CONSTRAINTS) {
+    if (c_params.feature_flags & FeatureFlags::ENABLE_CONSTRAINTS) {
         for (int c = 0; c < num_constraints; c++) {
             const ConstraintData& constraint = constraints[c];
             
@@ -347,7 +350,7 @@ __global__ void force_pass_kernel(
                         float force_magnitude = -constraint.weight * error * 0.5f; // Spring-like force
                         
                         // Cap constraint forces to prevent instability
-                        float max_constraint_force = params.max_force * 0.3f;
+                        float max_constraint_force = c_params.max_force * 0.3f;
                         force_magnitude = fmaxf(-max_constraint_force, fminf(max_constraint_force, force_magnitude));
                         
                         constraint_force = vec3_scale(diff, force_magnitude / current_dist);
@@ -364,7 +367,7 @@ __global__ void force_pass_kernel(
                     float force_magnitude = constraint.weight * distance * 0.1f; // Gentle attraction
                     
                     // Cap constraint forces
-                    float max_constraint_force = params.max_force * 0.2f;
+                    float max_constraint_force = c_params.max_force * 0.2f;
                     force_magnitude = fminf(force_magnitude, max_constraint_force);
                     
                     constraint_force = vec3_scale(diff, force_magnitude / distance);
@@ -443,7 +446,6 @@ __global__ void integrate_pass_kernel(
     float* __restrict__ vel_out_x,
     float* __restrict__ vel_out_y,
     float* __restrict__ vel_out_z,
-    const SimParams params,
     const int num_nodes)
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -454,48 +456,71 @@ __global__ void integrate_pass_kernel(
     float3 force = make_vec3(force_x[idx], force_y[idx], force_z[idx]);
     float node_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
 
-    force = vec3_clamp(force, params.max_force);
-
-    float effective_damping = params.damping;
-    if (params.iteration < params.warmup_iterations) {
-        float warmup_factor = (float)params.iteration / (float)params.warmup_iterations;
-        force = vec3_scale(force, warmup_factor * warmup_factor);
-        effective_damping = 1.0f - (1.0f - params.damping) * warmup_factor;
+    // Force capping using settings values only
+    float force_mag = vec3_length(force);
+    if (force_mag > c_params.max_force) {
+        force = vec3_scale(force, c_params.max_force / force_mag);
     }
 
-    vel = vec3_add(vel, vec3_scale(force, params.dt / node_mass));
-    vel = vec3_scale(vel, effective_damping);
-    vel = vec3_clamp(vel, params.max_velocity);
-    pos = vec3_add(pos, vec3_scale(vel, params.dt));
+    // Use damping exactly as specified in settings
+    float effective_damping = c_params.damping;
 
-    // Apply boundary constraints
-    float boundary_limit = params.viewport_bounds;
+    // Apply warmup if configured in settings
+    if (c_params.iteration < c_params.warmup_iterations) {
+        float warmup_factor = (float)c_params.iteration / (float)c_params.warmup_iterations;
+        force = vec3_scale(force, warmup_factor);
+        // Use cooling_rate from settings for warmup damping adjustment
+        effective_damping = c_params.damping + (c_params.cooling_rate - c_params.damping) * (1.0f - warmup_factor);
+    }
+
+    // Apply integration with settings-based damping
+    vel = vec3_add(vel, vec3_scale(force, c_params.dt / node_mass));
+    vel = vec3_scale(vel, effective_damping);
+    vel = vec3_clamp(vel, c_params.max_velocity);
+    pos = vec3_add(pos, vec3_scale(vel, c_params.dt));
+
+    // Apply enhanced boundary constraints with progressive repulsion
+    float boundary_limit = c_params.viewport_bounds;
     if (boundary_limit > 0.0f) {
-        // Soft boundary with repulsion force
-        float boundary_margin = boundary_limit * 0.9f;
+        // Use boundary damping from settings for margin and strength
+        float boundary_margin = boundary_limit * c_params.boundary_damping;
+        float boundary_repulsion_strength = c_params.max_force * c_params.boundary_damping;
         
         // Check X boundary
         if (fabsf(pos.x) > boundary_margin) {
-            float boundary_force = (fabsf(pos.x) - boundary_margin) / (boundary_limit - boundary_margin);
-            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            float boundary_dist = fabsf(pos.x) - boundary_margin;
+            float boundary_force = boundary_repulsion_strength * (boundary_dist / (boundary_limit - boundary_margin));
+            boundary_force = fminf(boundary_force, c_params.max_force); // Cap using max_force setting
             pos.x = pos.x > 0 ? fminf(pos.x, boundary_limit) : fmaxf(pos.x, -boundary_limit);
-            vel.x *= (1.0f - boundary_force * 0.5f); // Dampen velocity near boundary
+            vel.x *= c_params.boundary_damping; // Apply boundary damping from settings
+            // Add reflection for strong collisions
+            if (fabsf(pos.x) >= boundary_limit) {
+                vel.x = -vel.x * c_params.boundary_damping; // Reflect with boundary damping
+            }
         }
         
         // Check Y boundary
         if (fabsf(pos.y) > boundary_margin) {
-            float boundary_force = (fabsf(pos.y) - boundary_margin) / (boundary_limit - boundary_margin);
-            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            float boundary_dist = fabsf(pos.y) - boundary_margin;
+            float boundary_force = boundary_repulsion_strength * (boundary_dist / (boundary_limit - boundary_margin));
+            boundary_force = fminf(boundary_force, 15.0f);
             pos.y = pos.y > 0 ? fminf(pos.y, boundary_limit) : fmaxf(pos.y, -boundary_limit);
-            vel.y *= (1.0f - boundary_force * 0.5f);
+            vel.y *= c_params.boundary_damping;
+            if (fabsf(pos.y) >= boundary_limit) {
+                vel.y = -vel.y * c_params.boundary_damping;
+            }
         }
         
         // Check Z boundary
         if (fabsf(pos.z) > boundary_margin) {
-            float boundary_force = (fabsf(pos.z) - boundary_margin) / (boundary_limit - boundary_margin);
-            boundary_force = fminf(boundary_force * 10.0f, 10.0f);
+            float boundary_dist = fabsf(pos.z) - boundary_margin;
+            float boundary_force = boundary_repulsion_strength * (boundary_dist / (boundary_limit - boundary_margin));
+            boundary_force = fminf(boundary_force, 15.0f);
             pos.z = pos.z > 0 ? fminf(pos.z, boundary_limit) : fmaxf(pos.z, -boundary_limit);
-            vel.z *= (1.0f - boundary_force * 0.5f);
+            vel.z *= c_params.boundary_damping;
+            if (fabsf(pos.z) >= boundary_limit) {
+                vel.z = -vel.z * c_params.boundary_damping;
+            }
         }
     }
 
@@ -505,6 +530,25 @@ __global__ void integrate_pass_kernel(
     vel_out_x[idx] = vel.x;
     vel_out_y[idx] = vel.y;
     vel_out_z[idx] = vel.z;
+}
+
+// =============================================================================
+// Device-side Frontier Compaction for SSSP
+// =============================================================================
+
+__global__ void compact_frontier_kernel(
+    const int* __restrict__ flags,          // Input: per-node flags (1 if in frontier)
+    int* __restrict__ compacted_frontier,   // Output: compacted frontier
+    int* __restrict__ frontier_counter,     // Output: frontier size (atomic counter)
+    const int num_nodes)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if (idx < num_nodes && flags[idx] != 0) {
+        // Atomically get position in compacted array
+        int pos = atomicAdd(frontier_counter, 1);
+        compacted_frontier[pos] = idx;
+    }
 }
 
 // =============================================================================

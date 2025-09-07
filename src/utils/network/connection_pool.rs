@@ -197,7 +197,7 @@ impl ConnectionPool {
 
     /// Get a connection from the pool or create a new one
     pub async fn get_connection(&self, endpoint: &str) -> Result<PooledConnection, ConnectionPoolError> {
-        let start_time = Instant::now();
+        let _start_time = Instant::now();
         
         // Check file descriptor usage before attempting connection
         if let Err(fd_error) = self.check_file_descriptor_usage().await {

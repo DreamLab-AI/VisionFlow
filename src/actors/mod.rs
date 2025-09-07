@@ -9,6 +9,8 @@ pub mod gpu_compute_actor;
 pub mod protected_settings_actor;
 pub mod claude_flow_actor_tcp;
 pub mod supervisor;
+pub mod voice_commands;
+pub mod supervisor_voice;
 // pub mod multi_mcp_visualization_actor; // Removed - file not implemented
 pub mod messages;
 
@@ -21,5 +23,6 @@ pub use protected_settings_actor::ProtectedSettingsActor;
 // Export the TCP actor as the ONLY ClaudeFlowActor
 pub use claude_flow_actor_tcp::ClaudeFlowActorTcp as ClaudeFlowActor;
 pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
+pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePreamble};
 // pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor; // Removed - not implemented
 pub use messages::*;

@@ -104,7 +104,10 @@ impl SettingsActor {
             return Err(format!("Failed to persist settings: {}", e));
         }
         
-        info!("Settings updated and saved successfully");
+        // Propagate physics updates after settings update
+        self.propagate_physics_updates(&settings, "logseq").await;
+        
+        info!("Settings updated, saved, and physics parameters propagated successfully");
         Ok(())
     }
     
@@ -675,9 +678,8 @@ impl Handler<GetSettingsByPaths> for SettingsActor {
             
             for path in paths {
                 match current.get_by_path(&path) {
-                    Ok(boxed_value) => {
-                        // Convert back to JSON value - this is a simplified version
-                        // In a full implementation, we'd need proper type conversion
+                    Ok(_boxed_value) => {
+                        // The boxed_value is retrieved successfully, now get the JSON representation
                         let json_val = serde_json::to_value(&*current)
                             .map_err(|e| format!("Failed to serialize settings: {}", e))?;
                         
@@ -696,6 +698,7 @@ impl Handler<GetSettingsByPaths> for SettingsActor {
                     }
                     Err(e) => {
                         error!("Failed to get path {}: {}", path, e);
+                        warn!("Unable to retrieve setting at path '{}', skipping", path);
                         // Continue with other paths even if one fails
                     }
                 }

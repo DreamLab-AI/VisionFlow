@@ -70,6 +70,7 @@ pub struct SimParams {
     pub temperature: f32,
     pub viewport_bounds: f32,
     pub sssp_alpha: f32,  // SSSP influence on spring forces
+    pub boundary_damping: f32, // Damping applied at boundaries
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -227,6 +228,7 @@ impl SimulationParams {
             temperature: self.temperature,
             viewport_bounds: self.viewport_bounds,
             sssp_alpha: self.sssp_alpha.unwrap_or(0.0),
+            boundary_damping: self.boundary_damping,
         }
     }
 
@@ -344,6 +346,7 @@ impl From<&PhysicsSettings> for SimParams {
             temperature: physics.temperature,
             viewport_bounds: physics.bounds_size,
             sssp_alpha: 0.0,  // Default to no SSSP influence
+            boundary_damping: physics.boundary_damping,
         }
     }
 }

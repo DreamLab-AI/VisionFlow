@@ -110,7 +110,7 @@ async fn configure_clustering(
 /// Start clustering analysis
 async fn start_clustering(
     _req: HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
     let request = payload.into_inner();

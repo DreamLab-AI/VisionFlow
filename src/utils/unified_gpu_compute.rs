@@ -23,6 +23,7 @@ unsafe extern "C" {
     );
 }
 
+
 // Define AABB and int3 structs to match CUDA
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, DeviceCopy)]
@@ -50,6 +51,9 @@ pub struct UnifiedGPUCompute {
     compute_cell_bounds_kernel_name: &'static str,
     force_pass_kernel_name: &'static str,
     integrate_pass_kernel_name: &'static str,
+
+    // Simulation parameters
+    params: SimParams,
 
     // Node data (double buffered)
     pub pos_in_x: DeviceBuffer<f32>,
@@ -190,6 +194,7 @@ impl UnifiedGPUCompute {
         // Store the module for kernel lookup
         let kernel_module = module;
 
+
         Ok(Self {
             _context,
             _module: kernel_module,
@@ -198,6 +203,7 @@ impl UnifiedGPUCompute {
             compute_cell_bounds_kernel_name: "compute_cell_bounds_kernel",
             force_pass_kernel_name: "force_pass_kernel",
             integrate_pass_kernel_name: "integrate_pass_kernel",
+            params: SimParams::default(),
             pos_in_x,
             pos_in_y,
             pos_in_z,
@@ -243,16 +249,16 @@ impl UnifiedGPUCompute {
         })
     }
 
-    fn calculate_cub_temp_storage(num_nodes: usize, num_cells: usize) -> Result<DeviceBuffer<u8>> {
+    fn calculate_cub_temp_storage(_num_nodes: usize, _num_cells: usize) -> Result<DeviceBuffer<u8>> {
         let mut sort_bytes = 0;
         let mut scan_bytes = 0;
         let mut error;
 
         // Get storage size for sorting
         let d_keys_temp = DeviceBuffer::<i32>::zeroed(0)?;
-        let d_keys_null = d_keys_temp.as_slice();
+        let _d_keys_null = d_keys_temp.as_slice();
         let d_values_temp = DeviceBuffer::<i32>::zeroed(0)?;
-        let d_values_null = d_values_temp.as_slice();
+        let _d_values_null = d_values_temp.as_slice();
         // Thrust handles temp storage internally
         sort_bytes = 0; // Not needed with Thrust
         error = 0; // Success
@@ -262,7 +268,7 @@ impl UnifiedGPUCompute {
 
         // Get storage size for prefix sum (scan)
         let d_scan_temp = DeviceBuffer::<i32>::zeroed(0)?;
-        let d_scan_null = d_scan_temp.as_slice();
+        let _d_scan_null = d_scan_temp.as_slice();
         // Thrust handles temp storage internally
         scan_bytes = 0; // Not needed with Thrust
         error = 0; // Success
@@ -405,7 +411,7 @@ impl UnifiedGPUCompute {
 
         // Recreate spatial grid buffers  
         self.cell_keys = DeviceBuffer::zeroed(actual_new_nodes)?;
-        let mut sorted_indices: Vec<i32> = (0..actual_new_nodes as i32).collect();
+        let sorted_indices: Vec<i32> = (0..actual_new_nodes as i32).collect();
         self.sorted_node_indices = DeviceBuffer::from_slice(&sorted_indices)?;
 
         // Update sizes
@@ -419,9 +425,15 @@ impl UnifiedGPUCompute {
         Ok(())
     }
 
-    pub fn set_params(&mut self, _params: SimParams) {
-        // This is a placeholder. A real implementation would likely copy the params
-        // to a constant memory buffer on the GPU.
+    pub fn set_params(&mut self, params: SimParams) -> Result<()> {
+        // Store parameters to be passed to kernels
+        info!("Setting SimParams - spring_k: {:.4}, repel_k: {:.2}, damping: {:.3}, dt: {:.3}", 
+              params.spring_k, params.repel_k, params.damping, params.dt);
+        
+        self.params = params;
+        
+        info!("SimParams successfully updated");
+        Ok(())
     }
 
     pub fn set_mode(&mut self, _mode: ComputeMode) {
@@ -609,7 +621,6 @@ impl UnifiedGPUCompute {
                 self.edge_row_offsets.as_device_ptr(),
                 self.edge_col_indices.as_device_ptr(),
                 self.edge_weights.as_device_ptr(),
-                params,
                 self.num_nodes as i32,
                 d_sssp,
                 self.constraint_data.as_device_ptr(),
@@ -639,7 +650,6 @@ impl UnifiedGPUCompute {
                 self.vel_out_x.as_device_ptr(),
                 self.vel_out_y.as_device_ptr(),
                 self.vel_out_z.as_device_ptr(),
-                params,
                 self.num_nodes as i32
             ))?;
         }
@@ -662,9 +672,10 @@ impl UnifiedGPUCompute {
             host_dist[source_idx] = 0.0;
             self.dist.copy_from(&host_dist)?;
             
-            // Initialize frontier
-            let mut host_frontier = vec![source_idx as i32];
-            self.current_frontier = DeviceBuffer::from_slice(&host_frontier)?;
+            // Initialize frontier on GPU
+            let initial_frontier = vec![source_idx as i32];
+            self.current_frontier = DeviceBuffer::from_slice(&initial_frontier)?;
+            let mut frontier_len = 1usize; // Track frontier size
             
             // Compute k parameter
             let k = ((self.num_nodes as f32).log2().cbrt().ceil() as u32).max(3);
@@ -677,7 +688,6 @@ impl UnifiedGPUCompute {
                 self.next_frontier_flags.copy_from(&zeros)?;
                 
                 // Check for convergence
-                let frontier_len = host_frontier.len();
                 if frontier_len == 0 {
                     log::debug!("SSSP converged at iteration {}", iteration);
                     break;
@@ -702,21 +712,30 @@ impl UnifiedGPUCompute {
                     ))?;
                 }
                 
-                // Host-side frontier compaction (v1)
-                let mut flags = vec![0i32; self.num_nodes];
-                self.next_frontier_flags.copy_to(&mut flags)?;
+                // Device-side frontier compaction using GPU kernel
+                // Allocate counter for new frontier size
+                let d_frontier_counter = DeviceBuffer::from_slice(&[0i32])?;
                 
-                host_frontier.clear();
-                host_frontier.reserve(frontier_len * 2);
-                for (i, &flag) in flags.iter().enumerate() {
-                    if flag != 0 {
-                        host_frontier.push(i as i32);
-                    }
+                // Compact frontier on GPU
+                let compact_func = self._module.get_function("compact_frontier_kernel")?;
+                let compact_grid = ((self.num_nodes as u32 + 255) / 256, 1, 1);
+                let compact_block = (256, 1, 1);
+                
+                unsafe {
+                    launch!(compact_func<<<compact_grid, compact_block, 0, s>>>(
+                        self.next_frontier_flags.as_device_ptr(),
+                        self.current_frontier.as_device_ptr(),
+                        d_frontier_counter.as_device_ptr(),
+                        self.num_nodes as i32
+                    ))?;
                 }
                 
-                if !host_frontier.is_empty() {
-                    self.current_frontier = DeviceBuffer::from_slice(&host_frontier)?;
-                }
+                // Get new frontier size
+                let mut new_frontier_size = vec![0i32; 1];
+                d_frontier_counter.copy_to(&mut new_frontier_size)?;
+                frontier_len = new_frontier_size[0] as usize;
+                
+                // No need to copy back to host - frontier stays on GPU!
             }
             
             // Copy results back

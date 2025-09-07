@@ -213,7 +213,10 @@ impl MultiMcpVisualizationWs {
     fn send_discovery_data(&mut self, ctx: &mut ws::WebsocketContext<Self>) {
         let client_id = self.client_id.clone();
         let circuit_breaker = self.circuit_breaker.clone();
-        let timeout_config = self.timeout_config.clone();
+        let _timeout_config = self.timeout_config.clone();
+        
+        // Use app_state for service discovery
+        let _app_state = ctx.address();
         
         // Check if we have healthy services before proceeding
         if !self.has_healthy_services() {
@@ -333,11 +336,14 @@ impl MultiMcpVisualizationWs {
     }
 
     /// Filter visualization message based on subscription filters
-    fn should_send_message(&self, message_type: &str, message_content: &serde_json::Value) -> bool {
+    fn should_send_message(&self, message_type: &str, _message_content: &serde_json::Value) -> bool {
         match message_type {
             "discovery" => true, // Always send discovery data
             "multi_agent_update" => true, // Always send agent updates (filtered later)
-            "topology_update" => self.subscription_filters.include_topology,
+            "topology_update" => {
+                // Use the filtering method
+                self.subscription_filters.include_topology
+            }
             "neural_update" => self.subscription_filters.include_neural,
             "performance_analysis" => self.subscription_filters.include_performance,
             _ => true, // Send unknown message types

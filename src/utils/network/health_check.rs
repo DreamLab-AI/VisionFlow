@@ -471,7 +471,7 @@ impl HealthCheckManager {
     }
 
     async fn http_health_check(&self, endpoint: &ServiceEndpoint) -> Result<Duration, String> {
-        let start_time = Instant::now();
+        let _start_time = Instant::now();
         
         // For now, we'll implement a basic HTTP check
         // In a real implementation, you'd use an HTTP client like reqwest

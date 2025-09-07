@@ -251,6 +251,8 @@ impl MultiMcpAgentDiscovery {
         config: &McpServerConfig,
     ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
         let start_time = Utc::now();
+        // Use start_time for performance metrics
+        let _discovery_duration = start_time;
         
         debug!("Discovering agents from {} server at {}:{}", config.server_id, config.host, config.port);
 

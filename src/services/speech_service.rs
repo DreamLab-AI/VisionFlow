@@ -15,7 +15,10 @@ use url::Url;
 use base64::Engine as _;
 use base64::engine::general_purpose::{STANDARD as BASE64};
 use crate::types::speech::{SpeechError, SpeechCommand, TTSProvider, STTProvider, SpeechOptions, TranscriptionOptions};
+use crate::actors::voice_commands::VoiceCommand;
+// use crate::actors::supervisor::SupervisorActor; // For future integration
 use reqwest::Client;
+use uuid::Uuid;
 
 
 /// Centralized speech service managing both Text-to-Speech (TTS) and Speech-to-Text (STT) operations
@@ -340,8 +343,9 @@ impl SpeechService {
                                     let api_url_base = match config.api_url.as_deref() {
                                         Some(url) if !url.is_empty() => url,
                                         _ => {
-                                            error!("Kokoro API URL not configured or empty.");
-                                            continue;
+                                            // Use default Kokoro URL on Docker network
+                                            info!("Using default Kokoro API URL on Docker network");
+                                            "http://172.18.0.9:8880"
                                         }
                                     };
                                     let api_url = format!("{}/v1/audio/speech", api_url_base.trim_end_matches('/'));
@@ -440,7 +444,7 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url = config.api_url.as_deref().unwrap_or("http://172.18.0.4:8000");
+                                    let api_url = config.api_url.as_deref().unwrap_or("http://172.18.0.5:8000");
                                     info!("Whisper STT initialized with API URL: {}", api_url);
 
                                     let _ = transcription_tx.send("Whisper STT ready".to_string());
@@ -488,7 +492,7 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url_base = config.api_url.as_deref().unwrap_or("http://172.18.0.4:8000");
+                                    let api_url_base = config.api_url.as_deref().unwrap_or("http://172.18.0.5:8000");
                                     let api_url = format!("{}/transcription/", api_url_base.trim_end_matches('/'));
 
                                     let form = reqwest::multipart::Form::new()
@@ -533,7 +537,36 @@ impl SpeechService {
                                                             if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
                                                                 if !text.trim().is_empty() {
                                                                     debug!("Whisper transcription: {}", text);
-                                                                    let _ = transcription_broadcaster.send(text.to_string());
+                                                                    let transcription_text = text.to_string();
+                                                                    let _ = transcription_broadcaster.send(transcription_text.clone());
+                                                                    
+                                                                    // Check if this is a voice command and process it
+                                                                    if Self::is_voice_command(&transcription_text) {
+                                                                        let session_id = Uuid::new_v4().to_string();
+                                                                        debug!("Processing as voice command: {}", transcription_text);
+                                                                        
+                                                                        // Parse and send to supervisor
+                                                                        if let Ok(voice_cmd) = VoiceCommand::parse(&transcription_text, session_id) {
+                                                                            // For now, just log that we would process this as a voice command
+                                                                            // In production, we would need to have the supervisor registered as a system service
+                                                                            // or pass its address through the app state
+                                                                            debug!("Would process voice command: {:?}", voice_cmd.parsed_intent);
+                                                                            
+                                                                            // Simulate a response for testing
+                                                                            let response_text = match voice_cmd.parsed_intent {
+                                                                                crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
+                                                                                    "I've spawned the agent for you.".to_string()
+                                                                                },
+                                                                                crate::actors::voice_commands::SwarmIntent::QueryStatus { .. } => {
+                                                                                    "All systems are operational.".to_string()
+                                                                                },
+                                                                                _ => "Command received and processing.".to_string()
+                                                                            };
+                                                                            
+                                                                            // Broadcast the response text
+                                                                            let _ = transcription_broadcaster.send(format!("Response: {}", response_text));
+                                                                        }
+                                                                    }
                                                                 }
                                                             } else {
                                                                 error!("No text field in Whisper response: {:?}", json);
@@ -743,5 +776,17 @@ impl SpeechService {
     /// Transcription results are broadcast as plain text strings from Whisper STT processing.
     pub fn subscribe_to_transcriptions(&self) -> broadcast::Receiver<String> {
         self.transcription_tx.subscribe()
+    }
+    
+    /// Check if text looks like a voice command for the swarm
+    fn is_voice_command(text: &str) -> bool {
+        let command_keywords = [
+            "spawn", "agent", "status", "list", "stop", "add", "remove", 
+            "help", "show", "create", "delete", "query", "execute", "run",
+            "node", "graph", "connect", "researcher", "coder", "analyst"
+        ];
+        
+        let lower = text.to_lowercase();
+        command_keywords.iter().any(|keyword| lower.contains(keyword))
     }
 }

@@ -123,7 +123,7 @@ impl SupervisorActor {
 
     fn calculate_restart_delay(&self, state: &ActorState) -> Duration {
         match &state.actor_info.strategy {
-            SupervisionStrategy::RestartWithBackoff { initial_delay, max_delay, multiplier } => {
+            SupervisionStrategy::RestartWithBackoff { initial_delay: _, max_delay, multiplier } => {
                 let delay = Duration::from_millis(
                     (state.current_delay.as_millis() as f64 * multiplier) as u64
                 );
@@ -252,7 +252,7 @@ impl Handler<ActorFailed> for SupervisorActor {
             };
             
             // Get the state again since we dropped it above
-            let state = self.supervised_actors.get_mut(&msg.actor_name).expect("State should still exist");
+            let _state = self.supervised_actors.get_mut(&msg.actor_name).expect("State should still exist");
             
             // Now handle the strategy without borrowing issues
             match strategy {

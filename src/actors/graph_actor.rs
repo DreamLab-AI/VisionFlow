@@ -45,7 +45,7 @@
 //! let actor = GraphServiceActor::new(client_manager, gpu_compute_addr);
 //!
 //! // Enhanced features
-//! actor.update_advanced_physics_params(advanced_params);
+//! actor.update_advanced_physics_params(advanced_params)?;
 //! actor.trigger_stress_optimization()?;
 //! let status = actor.get_semantic_analysis_status();
 //! ```
@@ -451,9 +451,14 @@ impl GraphServiceActor {
             new_graph_data.edges.push(Edge::new(source_id, target_id, weight));
         }
         
-        // Phase 3: DISABLED - Don't automatically generate constraints
-        // Constraints should only be enabled explicitly through the control center
-        info!("Phase 3: Skipping automatic constraint generation (prevents bouncing)");
+        // Phase 3: Generate initial semantic constraints from the built graph
+        info!("Phase 3: Generating initial semantic constraints");
+        
+        // Store the graph data first so constraint generation can access it
+        self.graph_data = Arc::new(new_graph_data.clone());
+        
+        // Generate constraints based on semantic analysis
+        self.generate_initial_semantic_constraints(&new_graph_data);
         
         // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
         // Note: Advanced GPU context initialization will be attempted on first physics step
@@ -461,8 +466,8 @@ impl GraphServiceActor {
             trace!("Advanced GPU context will be initialized on first physics step");
         }
         
-        new_graph_data.metadata = metadata.clone();
-        self.graph_data = Arc::new(new_graph_data);
+        // Update graph data metadata and timestamp
+        Arc::make_mut(&mut self.graph_data).metadata = metadata.clone();
         self.last_semantic_analysis = Some(std::time::Instant::now());
         
         info!("Built enhanced graph: {} nodes, {} edges, {} constraints",
@@ -589,13 +594,9 @@ impl GraphServiceActor {
     }
     
     fn update_dynamic_constraints(&mut self) {
-        // DISABLED: Dynamic constraints cause bouncing behavior
-        // Constraints should only be enabled explicitly through the control center
-        info!("Skipping dynamic constraint updates (prevents bouncing)");
-        return;
+        // Update dynamic constraints based on semantic analysis
+        trace!("Updating dynamic constraints based on semantic analysis");
         
-        // Original code disabled to prevent automatic constraint generation:
-        /*
         // Only update if we have recent semantic analysis
         if self.last_semantic_analysis.is_none() {
             return;
@@ -606,31 +607,33 @@ impl GraphServiceActor {
         
         // Generate new semantic constraints
         if let Ok(constraints) = self.generate_dynamic_semantic_constraints() {
+            let constraint_count = constraints.len();
             for constraint in constraints {
                 self.constraint_set.add_to_group("semantic_dynamic", constraint);
             }
-            trace!("Updated dynamic semantic constraints");
+            trace!("Updated {} dynamic semantic constraints", constraint_count);
+        } else {
+            trace!("Failed to generate dynamic semantic constraints");
         }
         
         // Re-cluster nodes based on current positions and semantic features
         if let Ok(clustering_constraints) = self.generate_clustering_constraints() {
             self.constraint_set.set_group_active("clustering_dynamic", false);
+            let constraint_count = clustering_constraints.len();
             for constraint in clustering_constraints {
                 self.constraint_set.add_to_group("clustering_dynamic", constraint);
             }
-            trace!("Updated dynamic clustering constraints");
+            trace!("Updated {} dynamic clustering constraints", constraint_count);
+        } else {
+            trace!("Failed to generate dynamic clustering constraints");
         }
-        */
+        
+        // Upload updated constraints to GPU
+        self.upload_constraints_to_gpu();
     }
     
-    fn generate_initial_semantic_constraints(&mut self, _graph_data: &GraphData) {
-        // DISABLED: Boundary constraints cause bouncing behavior
-        // Don't automatically generate any constraints - they should only be enabled through control center
-        info!("Skipping automatic boundary constraint generation (prevents bouncing)");
-        
-        // The code below has been disabled to prevent boundary constraints from causing bouncing
-        /*
-        // Generate domain-based clustering
+    fn generate_initial_semantic_constraints(&mut self, graph_data: &GraphData) {
+        // Generate domain-based clustering constraints from semantic analysis
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
         
         for node in &graph_data.nodes {
@@ -641,6 +644,9 @@ impl GraphServiceActor {
                 }
             }
         }
+        
+        // Clear existing initial constraints
+        self.constraint_set.set_group_active("domain_clustering", false);
         
         // Create clustering constraints for domains with multiple files
         for (domain, node_ids) in domain_clusters {
@@ -654,8 +660,11 @@ impl GraphServiceActor {
             }
         }
         
-        info!("Generated {} initial constraints", self.constraint_set.constraints.len());
-        */
+        // Upload constraints to GPU if available
+        self.upload_constraints_to_gpu();
+        
+        info!("Generated {} initial semantic constraints", 
+              self.constraint_set.active_constraints().len());
     }
     
     fn generate_dynamic_semantic_constraints(&self) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
@@ -711,6 +720,24 @@ impl GraphServiceActor {
         Ok(constraints)
     }
     
+    /// Upload current constraints to GPU context
+    fn upload_constraints_to_gpu(&mut self) {
+        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
+            // Convert constraints to GPU format and upload
+            let active_constraints = self.constraint_set.active_constraints();
+            let constraint_data: Vec<crate::models::constraints::ConstraintData> = 
+                active_constraints.iter().map(|c| c.to_gpu_format()).collect();
+                
+            if let Err(e) = gpu_context.set_constraints(constraint_data.clone()) {
+                error!("Failed to upload constraints to GPU: {}", e);
+            } else {
+                trace!("Successfully uploaded {} constraints to GPU", constraint_data.len());
+            }
+        } else {
+            trace!("No advanced GPU context available for constraint upload");
+        }
+    }
+    
     /// Handle control frames for constraint updates
     pub fn handle_constraint_update(&mut self, constraint_data: serde_json::Value) -> Result<(), String> {
         match constraint_data.get("action").and_then(|v| v.as_str()) {
@@ -753,6 +780,9 @@ impl GraphServiceActor {
                 return Err("Unknown constraint action".to_string());
             }
         }
+        
+        // Upload updated constraints to GPU after any modification
+        self.upload_constraints_to_gpu();
         
         Ok(())
     }
@@ -1290,11 +1320,13 @@ impl GraphServiceActor {
                     num_directed_edges,
                     &ptx_content,
                 ) {
-                    Ok(context) => {
+                    Ok(_context) => {
                         info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges", 
                               graph_data_clone.nodes.len(), num_directed_edges);
                         info!("GPU physics simulation is now active for knowledge graph");
-                        self_addr.do_send(SetAdvancedGPUContext { context });
+                        // Store the context locally instead of sending it
+                        // The GPU actor will initialize its own context
+                        self_addr.do_send(SetAdvancedGPUContext { initialize: true });
                     }
                     Err(e) => {
                         error!("❌ Failed to initialize advanced GPU context: {}", e);
@@ -1461,17 +1493,21 @@ impl GraphServiceActor {
     // All physics computation uses the unified GPU kernel
 
     /// Update advanced physics parameters
-    pub fn update_advanced_physics_params(&mut self, params: AdvancedParams) {
+    pub fn update_advanced_physics_params(&mut self, params: AdvancedParams) -> Result<(), String> {
         self.advanced_params = params.clone();
         self.stress_solver = StressMajorizationSolver::from_advanced_params(&params);
         
         // Update advanced GPU context if available
         if let Some(ref mut gpu_context) = self.advanced_gpu_context {
             let sim_params = SimParams::from(&self.simulation_params);
-            gpu_context.set_params(sim_params);
+            if let Err(e) = gpu_context.set_params(sim_params) {
+                error!("Failed to update GPU parameters: {}", e);
+                return Err(format!("GPU parameter update failed: {}", e));
+            }
         }
         
         info!("Updated advanced physics parameters via public API");
+        Ok(())
     }
     
     /// Get current constraint set (read-only access)
@@ -1760,7 +1796,12 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
             self.node_map.insert(node.id, node.clone());
         }
         
-        info!("Graph data updated successfully");
+        // Generate initial semantic constraints for the new graph data
+        // Generate initial semantic constraints with graph data
+        let graph_data_clone = self.graph_data.clone();
+        self.generate_initial_semantic_constraints(&graph_data_clone);
+        
+        info!("Graph data updated successfully with constraint generation");
         Ok(())
     }
 }
@@ -1984,7 +2025,11 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             if crate::utils::logging::is_debug_enabled() {
                 info!("Updating advanced_gpu_context with new params");
             }
-            gpu_context.set_params(sim_params);
+            if let Err(e) = gpu_context.set_params(sim_params) {
+                error!("Failed to update GPU parameters during simulation step: {}", e);
+                warn!("GPU parameter update failed, continuing with CPU fallback for simulation step");
+                // Don't return error here as simulation can continue with CPU
+            }
         }
         
         // Also update GPU compute actor if available
@@ -2066,7 +2111,11 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
         // Update advanced GPU context if available
         if let Some(ref mut gpu_context) = self.advanced_gpu_context {
             let sim_params = SimParams::from(&self.simulation_params);
-            gpu_context.set_params(sim_params);
+            if let Err(e) = gpu_context.set_params(sim_params) {
+                error!("Failed to update GPU parameters after advanced params update: {}", e);
+                warn!("GPU context parameter update failed, physics simulation may be degraded but continuing");
+                // Don't return error here as the system can continue with CPU fallback
+            }
         }
         
         info!("Updated advanced physics parameters");
@@ -2109,9 +2158,14 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         self.constraint_set.set_group_active("domain_clustering", false);
         self.constraint_set.set_group_active("clustering_dynamic", false);
         
-        // DISABLED: Don't regenerate constraints automatically
-        // Constraints should only be enabled through control center
-        info!("Skipping automatic constraint regeneration (prevents bouncing)");
+        // Regenerate initial semantic constraints
+        let graph_data_clone = self.graph_data.clone();
+        self.generate_initial_semantic_constraints(&graph_data_clone);
+        
+        // Regenerate dynamic constraints if semantic analysis is available
+        if self.last_semantic_analysis.is_some() {
+            self.update_dynamic_constraints();
+        }
         
         info!("Regenerated semantic constraints: {} total constraints", 
               self.constraint_set.constraints.len());
@@ -2122,10 +2176,11 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
 impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
     type Result = ();
     
-    fn handle(&mut self, msg: SetAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
-        self.advanced_gpu_context = Some(msg.context);
+    fn handle(&mut self, _msg: SetAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        // The GPU context initialization signal has been received
+        // The actual context is managed separately in the actor that created it
         self.gpu_init_in_progress = false; // Reset the flag
-        info!("Advanced GPU context successfully initialized and set");
+        info!("Advanced GPU context initialization signal received");
     }
 }
 

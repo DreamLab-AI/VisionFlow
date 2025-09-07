@@ -316,6 +316,12 @@ impl GPUComputeActor {
             info!("(Static Logic) Successfully uploaded {} CSR edges to unified compute", col_indices.len());
         }
         
+        // Initialize GPU with default parameters
+        let default_params = SimParams::default();
+        unified_compute.set_params(default_params).map_err(|e| 
+            Error::new(ErrorKind::Other, format!("Failed to initialize GPU parameters: {}", e)))?;
+        info!("(Static Logic) Initialized GPU with default parameters");
+        
         Ok(GpuInitializationResult {
             device,
             cuda_stream,
@@ -347,10 +353,12 @@ impl GPUComputeActor {
             info!("Graph size changed: nodes {} -> {}, edges {} -> {}", 
                   self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
             
-            // TODO: Implement buffer resizing in UnifiedGPUCompute
-            // For now, we'll recreate the context when the size changes significantly
-            // unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
-            //     .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to resize buffers: {}", e)))?;
+            // Call resize_buffers which preserves existing data during resize
+            unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to resize buffers: {}", e)))?;
+            
+            info!("Successfully resized GPU buffers: nodes {} -> {}, edges {} -> {}", 
+                  self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
             
             self.num_nodes = new_num_nodes;
             self.num_edges = new_num_edges;
@@ -604,13 +612,32 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
         self.simulation_params = msg.params.clone();
         self.unified_params = SimParams::from(&msg.params);
         
+        // Set unified compute mode based on params.compute_mode
+        let compute_mode = match msg.params.compute_mode {
+            0 => ComputeMode::Basic,
+            1 => ComputeMode::DualGraph,
+            2 | _ => ComputeMode::Advanced, // Default to Advanced for any other value
+        };
+        if self.compute_mode != compute_mode {
+            info!("UpdateSimulationParams: Setting compute mode to {:?}", compute_mode);
+            self.compute_mode = compute_mode;
+            self.set_unified_compute_mode(compute_mode);
+        }
+        
         // Push to GPU immediately
         if let Some(ref mut unified_compute) = self.unified_compute {
-            unified_compute.set_params(self.unified_params);
-            info!("Physics pushed to GPU: spring={:.4}, repel={:.2}, damping={:.3}, dt={:.3}, enabled={}",
-                  self.unified_params.spring_k, self.unified_params.repel_k,
-                  self.unified_params.damping, self.unified_params.dt,
-                  self.simulation_params.enabled);
+            match unified_compute.set_params(self.unified_params) {
+                Ok(()) => {
+                    info!("Physics pushed to GPU: spring={:.4}, repel={:.2}, damping={:.3}, dt={:.3}, enabled={}, mode={:?}",
+                          self.unified_params.spring_k, self.unified_params.repel_k,
+                          self.unified_params.damping, self.unified_params.dt,
+                          self.simulation_params.enabled, self.compute_mode);
+                }
+                Err(e) => {
+                    error!("Failed to push physics params to GPU: {}", e);
+                    return Err(format!("Failed to update GPU parameters: {}", e));
+                }
+            }
         }
         
         Ok(())
@@ -703,7 +730,6 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
         match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data) {
             Ok(constraints) => {
                 let old_count = self.constraints.len();
-                let old_mode = self.compute_mode;
                 
                 info!("MSG_HANDLER: Parsed {} new constraints (was {})", constraints.len(), old_count);
                 self.constraints = constraints.clone();
@@ -750,8 +776,14 @@ impl Handler<UpdateAdvancedParams> for GPUComputeActor {
         
         // Update unified compute parameters
         if let Some(ref mut unified_compute) = self.unified_compute {
-            unified_compute.set_params(self.unified_params);
-            info!("MSG_HANDLER: Unified compute updated with new parameters");
+            match unified_compute.set_params(self.unified_params) {
+                Ok(()) => {
+                    info!("MSG_HANDLER: Unified compute updated with new parameters");
+                }
+                Err(e) => {
+                    error!("MSG_HANDLER: Failed to update GPU parameters: {}", e);
+                }
+            }
         } else {
             info!("MSG_HANDLER: No unified compute to update");
         }
