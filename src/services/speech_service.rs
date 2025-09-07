@@ -495,17 +495,39 @@ impl SpeechService {
                                     let api_url_base = config.api_url.as_deref().unwrap_or("http://172.18.0.5:8000");
                                     let api_url = format!("{}/transcription/", api_url_base.trim_end_matches('/'));
 
+                                    // Detect audio format from the data
+                                    // WebM files start with 0x1A45DFA3 (EBML header)
+                                    // WAV files start with "RIFF" (0x52494646)
+                                    let (mime_type, file_ext) = if audio_data.len() >= 4 {
+                                        let header = &audio_data[0..4];
+                                        if header == [0x1A, 0x45, 0xDF, 0xA3] {
+                                            // WebM/Opus format from browser
+                                            ("audio/webm", "audio.webm")
+                                        } else if header == [0x52, 0x49, 0x46, 0x46] {
+                                            // WAV format
+                                            ("audio/wav", "audio.wav")
+                                        } else {
+                                            // Default to webm as that's what browser sends
+                                            info!("Unknown audio format, header: {:?}, defaulting to webm", header);
+                                            ("audio/webm", "audio.webm")
+                                        }
+                                    } else {
+                                        ("audio/webm", "audio.webm")
+                                    };
+
+                                    info!("Detected audio format: {} for upload to Whisper", mime_type);
+
                                     let form = reqwest::multipart::Form::new()
                                         .part("file", reqwest::multipart::Part::bytes(audio_data)
-                                            .file_name("audio.wav")
-                                            .mime_str("audio/wav").unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/wav").unwrap()));
+                                            .file_name(file_ext)
+                                            .mime_str(mime_type).unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/webm").unwrap()));
 
                                     let mut form = form;
                                     if let Some(model) = &config.default_model {
-                                        form = form.text("model", model.clone());
+                                        form = form.text("model_size", model.clone());
                                     }
                                     if let Some(language) = &config.default_language {
-                                        form = form.text("language", language.clone());
+                                        form = form.text("lang", language.clone());
                                     }
                                     if let Some(temperature) = config.temperature {
                                         form = form.text("temperature", temperature.to_string());

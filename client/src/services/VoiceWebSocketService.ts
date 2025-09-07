@@ -287,16 +287,46 @@ export class VoiceWebSocketService {
    * Set up audio input listeners
    */
   private setupAudioInputListeners() {
-    this.audioInput.on('audioChunk', (chunk: AudioChunk) => {
+    // Listen for complete recording instead of chunks
+    this.audioInput.on('recordingComplete', async (completeAudio: Blob) => {
+      console.log('[VoiceWebSocketService] recordingComplete event received, blob size:', completeAudio.size);
       if (this.isStreamingAudio && this.isConnected()) {
-        // Send audio chunk to server
-        this.sendBinary(chunk.data);
+        // Convert blob to ArrayBuffer and send complete audio
+        try {
+          const arrayBuffer = await completeAudio.arrayBuffer();
+          console.log('[VoiceWebSocketService] Sending complete audio file:', arrayBuffer.byteLength, 'bytes');
+          gatedConsole.voice.log('Sending complete audio file:', {
+            size: arrayBuffer.byteLength,
+            type: completeAudio.type
+          });
+          // Send the complete audio file
+          this.sendBinary(arrayBuffer);
+        } catch (error) {
+          console.error('[VoiceWebSocketService] Failed to send audio:', error);
+          gatedConsole.voice.error('Failed to send audio:', error);
+        }
+      } else {
+        console.log('[VoiceWebSocketService] Not sending audio - streaming:', this.isStreamingAudio, 'connected:', this.isConnected());
       }
+    });
+
+    // Still listen to chunks for audio level monitoring
+    this.audioInput.on('audioChunk', (chunk: AudioChunk) => {
+      // Use chunks only for monitoring, not sending
+      // This keeps audio level indicators working
     });
 
     this.audioInput.on('error', (error: any) => {
       gatedConsole.voice.error('Audio input error:', error);
       this.emit('audioInputError', error);
+    });
+
+    this.audioInput.on('audioLevel', (level: number) => {
+      this.emit('audioLevel', level);
+    });
+
+    this.audioInput.on('stateChange', (state: AudioInputState) => {
+      this.emit('audioInputStateChange', state);
     });
   }
 

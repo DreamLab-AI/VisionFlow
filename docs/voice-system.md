@@ -20,24 +20,26 @@ The voice system consists of three main components:
 
 3. **External Services**
    - Kokoro TTS API (containerized)
-   - Whisper STT API (fully integrated and operational at configurable endpoint)
+   - Whisper STT API (async task-based API at whisper-webui-backend:8000)
 
 ## Audio Flow Diagram
 
 ```
-┌─────────────┐     Audio Stream    ┌──────────────┐     HTTP/WS     ┌─────────────┐
+┌─────────────┐     Audio Stream    ┌──────────────┐     HTTP POST    ┌─────────────┐
 │   Browser   │ ──────────────────> │   Backend    │ ──────────────> │   Whisper   │
-│             │                      │   (/ws/      │                 │   Service   │
-│ Microphone  │                      │   speech)    │                 └─────────────┘
-└─────────────┘                      │              │                         │
+│             │                      │   (/ws/      │  (multipart)    │   Service   │
+│ Microphone  │                      │   speech)    │                 │   (Async)   │
+└─────────────┘                      │              │ <───────────────┤             │
+       │                             │              │   Task ID       └─────────────┘
+       │                             │              │                         │
+       │                             │              │ ──────────────>        │
+       │                             │              │   Poll Status          │
        │                             │              │ <───────────────────────┘
-       │                             │              │     Transcription
-       │                             │              │
-       v                             │              │                 ┌─────────────┐
-┌─────────────┐     Audio Playback   │              │ ──────────────> │   Kokoro    │
-│   Browser   │ <────────────────── │              │     TTS Request │   Service   │
-│             │                      │              │                 └─────────────┘
-│   Speaker   │                      │              │ <───────────────────────┘
+       v                             │              │   Transcription
+┌─────────────┐     Audio Playback   │              │                 ┌─────────────┐
+│   Browser   │ <────────────────── │              │ ──────────────> │   Kokoro    │
+│             │                      │              │     TTS Request │   Service   │
+│   Speaker   │                      │              │                 └─────────────┘
 └─────────────┘                      └──────────────┘     Audio Stream
 ```
 
@@ -173,16 +175,21 @@ import { VoiceButton, VoiceIndicator } from './components';
 // In settings.toml or environment variables
 
 [kokoro]
-api_url = "http://kokoro-service:8080"
-default_voice = "af_heart"
+api_url = "http://172.18.0.9:8880"  # Kokoro container IP on docker_ragflow network
+default_voice = "af_heart"  # Options: af_bella, af_sky, af_heart, etc.
 default_speed = 1.0
 default_format = "mp3"
 stream = true
 
 [whisper]
-api_url = "http://whisper-service:8000"  // Configurable endpoint
-model = "whisper-1"
+api_url = "http://whisper-webui-backend:8000"  # Docker DNS name
+default_model = "base"  # Or "large-v2" for better accuracy
 default_language = "en"
+timeout = 30
+temperature = 0.0
+return_timestamps = false
+vad_filter = true  # Voice activity detection
+word_timestamps = false
 ```
 
 ### Docker Services
@@ -190,33 +197,45 @@ default_language = "en"
 The voice services run within the Docker network:
 
 ```yaml
-# docker-compose.yml excerpt
+# Docker Network Configuration
+# Both services must be on the same Docker network (docker_ragflow)
+
 services:
-  kokoro:
-    image: kokoro-tts:latest
+  kokoro:  # Container name may vary (e.g., friendly_dewdney, trusting_hugle)
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
     ports:
-      - "8080:8080"
+      - "8880:8880"
     networks:
-      - ragflow
+      - docker_ragflow  # Must be added to this network
+    # Current IP: 172.18.0.9 (may change on restart)
       
-  whisper:
-    image: openai/whisper:latest
+  whisper-webui-backend:
+    image: jhj0517/whisper-webui-backend:latest
     ports:
       - "8000:8000"
     networks:
-      - ragflow
+      - docker_ragflow
+    # Current IP: 172.18.0.5
+    environment:
+      - MODEL_SIZE=large-v2  # Options: tiny, base, small, medium, large, large-v2
+      - DEVICE=cuda  # or cpu
 ```
 
 ## Implementation Status
 
 ### ✅ Completed
-- TTS Backend with Kokoro integration
-- STT Backend with Whisper integration
+- TTS Backend with Kokoro integration (IP-based connection)
+- STT Backend with async Whisper API integration
 - WebSocket endpoint (`/ws/speech`)
 - Audio streaming infrastructure
 - Client-side audio services
 - Voice UI components
 - Full speech service architecture with provider switching
+- Async task polling for Whisper transcriptions
+- Spacebar push-to-talk hotkey support
+- Voice status indicator in control panel
+- Docker network integration for both services
+- End-to-end voice pipeline testing
 
 ### 🚧 In Progress
 - Full duplex audio communication optimisation
@@ -227,8 +246,9 @@ services:
 - Multiple language support
 - Voice command processing
 - Audio visualisations
-- Push-to-talk and hotkey support
+- Additional hotkey configurations
 - Noise gate and echo cancellation
+- Real-time streaming transcription (when Whisper supports it)
 
 ## API Reference
 
@@ -298,26 +318,111 @@ class VoiceWebSocketService extends WebSocketService {
 }
 ```
 
+## Whisper API Integration Details
+
+### Async Task-Based Processing
+
+The Whisper integration uses an asynchronous task-based API that follows this workflow:
+
+1. **Audio Submission**: Audio data is sent as multipart/form-data to `/transcription/`
+2. **Task Creation**: Whisper returns a task ID immediately (not the transcription)
+3. **Status Polling**: Backend polls `/task/{identifier}` endpoint until completion
+4. **Result Extraction**: Once status is "completed", transcription text is extracted from result array
+
+### Whisper API Endpoints
+
+```bash
+# Submit audio for transcription
+POST http://whisper-webui-backend:8000/transcription/
+Content-Type: multipart/form-data
+- file: audio data (WAV/WebM/etc)
+- model_size: "base" or "large-v2" 
+- lang: language code (optional)
+- vad_filter: true/false (voice activity detection)
+
+# Response
+{
+  "identifier": "uuid-task-id",
+  "status": "queued",
+  "message": "Transcription task has queued"
+}
+
+# Poll task status
+GET http://whisper-webui-backend:8000/task/{identifier}
+
+# Response when completed
+{
+  "identifier": "uuid-task-id",
+  "status": "completed",
+  "result": [
+    {
+      "text": "Transcribed text here",
+      "start": 0.0,
+      "end": 2.0,
+      "tokens": [...],
+      "temperature": 0.0
+    }
+  ],
+  "duration": 1.5,
+  "progress": 1.0
+}
+```
+
+### Polling Configuration
+
+The backend polls with these parameters:
+- **Poll Interval**: 200ms between checks
+- **Max Attempts**: 30 (6 seconds total timeout)
+- **Status Values**: "queued", "in_progress", "completed", "failed"
+
+### Error Handling
+
+The system handles several error scenarios:
+- **Task Timeout**: After 30 attempts, stops polling and logs timeout
+- **Task Failure**: If status is "failed", extracts error message
+- **Connection Errors**: Logs and retries with exponential backoff
+- **Invalid Response**: Falls back gracefully if response format unexpected
+
 ## Testing
 
 ### Manual Testing
 
-1. **Test TTS**:
+1. **Test TTS with Kokoro**:
    ```bash
-   # Send test message via WebSocket
-   wscat -c ws://localhost:3000/ws/speech
-   > {"type":"tts","text":"Hello world"}
+   # Direct API test (using current IP)
+   curl -X POST "http://172.18.0.9:8880/v1/audio/speech" \
+     -H "Content-Type: application/json" \
+     -d '{"model":"kokoro","input":"Hello world","voice":"af_bella","response_format":"wav"}' \
+     --output test.wav
    ```
 
-2. **Test Audio Capture**:
-   - Click the voice button in the UI
+2. **Test STT with Whisper**:
+   ```bash
+   # Submit audio for transcription
+   curl -X POST "http://172.18.0.5:8000/transcription/" \
+     -F "file=@test.wav" \
+     -F "model_size=base" \
+     -F "lang=en"
+   # Returns task ID, then poll for result
+   ```
+
+3. **Test Complete Pipeline**:
+   ```bash
+   # Run the comprehensive test script
+   bash /workspace/ext/scripts/voice_pipeline_test.sh
+   ```
+
+4. **Test Audio Capture**:
+   - Press spacebar (push-to-talk) in the UI
+   - Check voice indicator in control center
    - Check browser console for audio level logs
    - Verify microphone permission prompt
 
-3. **Test End-to-End**:
-   - Open the application
-   - Click voice button to start recording
+5. **Test End-to-End**:
+   - Open the application at http://localhost:3001
+   - Press and hold spacebar to record
    - Speak a phrase
+   - Release spacebar
    - Verify transcription appears
    - System responds with TTS audio
 
@@ -331,6 +436,9 @@ See `tests/voice_integration_test.rs` for backend tests.
 
 1. **No Audio Output**
    - Check Kokoro service is running: `docker ps | grep kokoro`
+   - Verify Kokoro is on the correct network: `docker network inspect docker_ragflow`
+   - If not on network, add it: `docker network connect docker_ragflow <container_name>`
+   - Update IP in settings.yaml after network changes
    - Verify audio format compatibility
    - Check browser audio permissions
 
@@ -345,9 +453,17 @@ See `tests/voice_integration_test.rs` for backend tests.
    - Check for proxy/firewall issues
 
 4. **Transcription Not Working**
-   - Whisper service deployment pending
+   - Verify Whisper container is running: `docker ps | grep whisper`
+   - Check if both services are on same network
+   - Try with different model_size (base vs large-v2)
    - Check audio format compatibility
    - Verify audio data is being sent
+
+5. **Network Connection Issues**
+   - Both Kokoro and Whisper must be on `docker_ragflow` network
+   - To add container to network: `docker network connect docker_ragflow <container_name>`
+   - Find container IPs: `docker network inspect docker_ragflow | grep -A 5 "<container_name>"`
+   - Update settings.yaml with correct IPs after network changes
 
 ### Debug Logging
 
