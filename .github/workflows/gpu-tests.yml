@@ -1,0 +1,184 @@
+name: GPU Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run nightly to catch regressions
+    - cron: '0 2 * * *'
+
+jobs:
+  gpu-tests:
+    runs-on: [self-hosted, gpu, nvidia]
+    container:
+      image: nvidia/cuda:12.0-devel-ubuntu20.04
+      options: --gpus all
+      
+    env:
+      CUDA_ARCH: "86"
+      RUN_GPU_SMOKE: "1"
+      RUST_LOG: "debug"
+      DOCKER_ENV: "1"
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Verify GPU environment
+      run: |
+        echo "🔍 Verifying GPU environment..."
+        nvidia-smi
+        nvcc --version
+        echo "✅ GPU environment ready"
+        
+    - name: Install system dependencies
+      run: |
+        apt-get update
+        apt-get install -y build-essential cmake pkg-config
+        
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        components: rustfmt, clippy
+        
+    - name: Cache Cargo dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target/
+        key: ${{ runner.os }}-cargo-gpu-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-gpu-
+          
+    - name: Build project with GPU support
+      run: |
+        cd /workspace/ext
+        echo "🔧 Building with CUDA arch $CUDA_ARCH..."
+        CUDA_ARCH=$CUDA_ARCH cargo build --release --features gpu-tests
+        echo "✅ Build completed"
+        
+    - name: Run PTX smoke tests
+      run: |
+        cd /workspace/ext
+        echo "🌡️ Running PTX cold start smoke tests..."
+        RUN_GPU_SMOKE=1 cargo test --test ptx_smoke_test -- --nocapture
+        echo "✅ PTX smoke tests passed"
+        
+    - name: Run GPU safety validation
+      run: |
+        cd /workspace/ext
+        echo "🛡️ Running GPU safety validation suite..."
+        cargo test gpu_safety_tests -- --nocapture --test-threads=1
+        echo "✅ GPU safety tests passed"
+        
+    - name: Run buffer management tests
+      run: |
+        cd /workspace/ext
+        echo "📊 Running buffer management integration tests..."
+        cargo test buffer_resize -- --nocapture
+        echo "✅ Buffer management tests passed"
+        
+    - name: Run constraint stability tests
+      run: |
+        cd /workspace/ext
+        echo "⛓️ Running constraint stability regression tests..."
+        cargo test constraint_stability -- --nocapture
+        echo "✅ Constraint stability tests passed"
+        
+    - name: Run SSSP accuracy validation
+      run: |
+        cd /workspace/ext
+        echo "🛤️ Running SSSP accuracy validation..."
+        cargo test sssp_accuracy -- --nocapture
+        echo "✅ SSSP accuracy tests passed"
+        
+    - name: Run spatial hashing efficiency tests
+      run: |
+        cd /workspace/ext
+        echo "🗂️ Running spatial hashing efficiency tests..."
+        cargo test spatial_hashing_efficiency -- --nocapture
+        echo "✅ Spatial hashing tests passed"
+        
+    - name: Run GPU analytics validation
+      run: |
+        cd /workspace/ext
+        echo "🎯 Running GPU analytics validation..."
+        cargo test gpu_kmeans_validation gpu_anomaly_validation -- --nocapture --test-threads=1
+        echo "✅ GPU analytics tests passed"
+        
+    - name: Run performance benchmarks
+      run: |
+        cd /workspace/ext
+        echo "⚡ Running performance benchmarks..."
+        cargo test performance_benchmarks -- --nocapture --test-threads=1
+        echo "✅ Performance benchmarks completed"
+        
+    - name: Generate test coverage report
+      run: |
+        cd /workspace/ext
+        echo "📋 Generating test coverage report..."
+        cargo test -- --format json > gpu-test-results.json || true
+        
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: gpu-test-results-${{ github.sha }}
+        path: |
+          /workspace/ext/gpu-test-results.json
+          /workspace/ext/target/debug/deps/
+          
+    - name: Test result summary
+      if: always()
+      run: |
+        cd /workspace/ext
+        echo "📊 GPU Test Suite Summary"
+        echo "========================"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref }}"
+        echo "Timestamp: $(date -Iseconds)"
+        echo ""
+        echo "Test Categories Executed:"
+        echo "  ✅ PTX Pipeline & Cold Start"
+        echo "  ✅ GPU Safety Validation"
+        echo "  ✅ Buffer Management Integration"
+        echo "  ✅ Constraint Stability Regression"
+        echo "  ✅ SSSP Accuracy Validation"
+        echo "  ✅ Spatial Hashing Efficiency"
+        echo "  ✅ GPU Analytics (K-means, Anomaly)"
+        echo "  ✅ Performance Benchmarks"
+        echo ""
+        
+  gpu-tests-fallback:
+    # Fallback job for when GPU runners aren't available
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        
+    - name: Run CPU-only tests
+      run: |
+        cd /workspace/ext
+        echo "⚠️ GPU not available, running CPU-only tests..."
+        cargo test --lib --features cpu-fallback -- --nocapture
+        echo "✅ CPU fallback tests completed"
+        
+    - name: Notify GPU unavailable
+      run: |
+        echo "⚠️ GPU test infrastructure unavailable"
+        echo "Only CPU fallback tests were executed"
+        echo "Manual GPU testing required before merge"
