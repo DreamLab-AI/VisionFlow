@@ -68,7 +68,7 @@ visualisation:
       nodes:
         baseColor: '#ff0000'
         metalness: 0.25824177
-        opacity: 0.4478022
+        opacity: 0.23626374
         roughness: 0.3653846
         nodeSize: 1.9703296
         quality: high
@@ -79,9 +79,9 @@ visualisation:
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#5e2626'
+        color: '#4c2929'
         enableArrows: false
-        opacity: 0.260989
+        opacity: 0.20604396
         widthRange:
         - 0.3
         - 1.5
@@ -124,18 +124,18 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 0.9065934
+        attractionK: 0.989011
         boundsSize: 1000.0
         separationRadius: 3.7717032
         damping: 0.2967033
         enableBounds: false
         enabled: true
         iterations: 50
-        maxVelocity: 9.728022
+        maxVelocity: 9.4016485
         maxForce: 100.0
-        repelK: 172.54121
-        springK: 2.5824919
-        massScale: 1.0
+        repelK: 189.01648
+        springK: 2.4726028
+        massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
         dt: 0.02269863
@@ -151,7 +151,7 @@ visualisation:
         repulsionCutoff: 50.0
         repulsionSofteningEpsilon: 0.0001
         centerGravityK: 0.0
-        gridCellSize: 50.0
+        gridCellSize: 28.543957
         warmupIterations: 100
         coolingRate: 0.001
         boundaryExtremeMultiplier: 2.0
