@@ -114,6 +114,30 @@ impl Constraint {
             active: true,
         }
     }
+
+    /// Convert constraint to GPU-compatible format
+    pub fn to_gpu_format(&self) -> ConstraintData {
+        let mut gpu_constraint = ConstraintData {
+            kind: self.kind as i32,
+            count: self.node_indices.len().min(4) as i32,
+            node_idx: [0, 0, 0, 0],
+            params: [0.0; 8],
+            weight: self.weight,
+            _padding: 0.0,
+        };
+
+        // Copy node indices (max 4)
+        for (i, &node_idx) in self.node_indices.iter().take(4).enumerate() {
+            gpu_constraint.node_idx[i] = node_idx as i32;
+        }
+
+        // Copy parameters (max 8)
+        for (i, &param) in self.params.iter().take(8).enumerate() {
+            gpu_constraint.params[i] = param;
+        }
+
+        gpu_constraint
+    }
 }
 
 /// Advanced physics parameters for enhanced force simulation
@@ -158,7 +182,7 @@ impl Default for AdvancedParams {
             temporal_force_weight: 0.3,
             structural_force_weight: 0.5,
             constraint_force_weight: 0.8,
-            stress_step_interval_frames: u32::MAX, // Disabled - was causing position explosions
+            stress_step_interval_frames: 600, // Re-enabled with safe cadence
             separation_factor: 1.5,
             boundary_force_weight: 0.7,
             knowledge_force_weight: 0.4,
@@ -209,7 +233,7 @@ impl AdvancedParams {
 
 /// GPU-compatible constraint data for CUDA kernel
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ConstraintData {
     /// Discriminant matching ConstraintKind
     pub kind: i32,
@@ -222,13 +246,11 @@ pub struct ConstraintData {
     /// Weight of this constraint
     pub weight: f32,
     /// Padding for alignment
-    pub _pad: [u8; 12],
+    pub _padding: f32,
 }
 
-// TODO: Re-enable after unified GPU compute stabilization
-// Safety: ConstraintData is repr(C) with only POD types
-// unsafe impl DeviceRepr for ConstraintData {}
-// unsafe impl ValidAsZeroBits for ConstraintData {}
+// Manual implementation of DeviceCopy for ConstraintData
+unsafe impl cust::memory::DeviceCopy for ConstraintData {}
 
 impl ConstraintData {
     /// Convert a Constraint to GPU-compatible format
@@ -249,7 +271,7 @@ impl ConstraintData {
             node_idx,
             params,
             weight: constraint.weight,
-            _pad: [0; 12],
+            _padding: 0.0,
         }
     }
 }

@@ -10,7 +10,7 @@ use cudarc::driver::sys::CUdevice_attribute_enum;
 
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::{SimulationParams};
-use crate::models::constraints::{Constraint, ConstraintSet};
+use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 // use crate::utils::edge_data::EdgeData; // Not directly used
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
@@ -189,12 +189,13 @@ impl GPUComputeActor {
     ) -> Result<(UnifiedGPUCompute, HashMap<u32, usize>), Error> {
         info!("UNIFIED_INIT: Starting unified GPU compute initialization for {} nodes, {} edges", num_nodes, num_edges);
         
-        let ptx_content = "";
+        let ptx_content = crate::utils::ptx::load_ptx().await
+            .map_err(|e| Error::new(ErrorKind::Other, format!("PTX load failed: {}", e)))?;
         // Initialize the unified GPU compute engine with actual edge count
         let unified_compute = UnifiedGPUCompute::new(
             num_nodes as usize,
             num_edges as usize,  // Use actual edge count from graph
-            ptx_content
+            &ptx_content
         ).map_err(|e| Error::new(ErrorKind::Other, format!("Failed to initialize unified compute: {}", e)))?;
         
         info!("UNIFIED_INIT: Unified GPU compute initialized successfully");
@@ -705,31 +706,18 @@ impl Handler<UpdateConstraints> for GPUComputeActor {
                 let old_mode = self.compute_mode;
                 
                 info!("MSG_HANDLER: Parsed {} new constraints (was {})", constraints.len(), old_count);
-                self.constraints = constraints;
+                self.constraints = constraints.clone();
                 
-                // DISABLED: Auto-switching to constraint mode causes bouncing
-                // Keep the mode as Basic (0) as configured in settings.yaml
-                info!("MSG_HANDLER: Keeping compute mode as {:?} (not auto-switching for constraints)", self.compute_mode);
-                
-                // Clear any constraints to prevent bouncing
-                if !self.constraints.is_empty() {
-                    warn!("MSG_HANDLER: Clearing {} constraints to prevent bouncing behavior", self.constraints.len());
-                    self.constraints.clear();
-                }
-                
-                // DISABLED: Don't set constraints to prevent bouncing
-                // Keep unified compute in Basic mode
+                // Convert to GPU-compatible format and upload to GPU compute
+                let constraint_data: Vec<ConstraintData> = self.constraints.iter().map(|c| c.to_gpu_format()).collect();
                 if let Some(ref mut unified_compute) = self.unified_compute {
-                    // Force Basic mode and clear constraints
-                    unified_compute.set_mode(crate::utils::unified_gpu_compute::ComputeMode::Basic);
-                    
-                    // Set empty constraints to clear any existing ones
-                    if let Err(e) = unified_compute.set_constraints(Vec::new()) {
-                        warn!("Failed to clear unified compute constraints: {}", e);
+                    if let Err(e) = unified_compute.set_constraints(constraint_data) {
+                        error!("Failed to update GPU constraints: {}", e);
+                        return Err(format!("GPU constraint update failed: {}", e));
                     }
-                    
-                    info!("MSG_HANDLER: Forced unified compute to Basic mode with no constraints");
                 }
+                
+                info!("MSG_HANDLER: Successfully updated {} constraints", constraints.len());
                 
                 info!("  New state - compute_mode: {:?}, constraints: {}",
                       self.compute_mode, self.constraints.len());

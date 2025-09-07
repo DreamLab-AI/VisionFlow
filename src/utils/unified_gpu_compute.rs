@@ -1,5 +1,7 @@
 pub use crate::models::simulation_params::SimParams;
+use crate::models::constraints::ConstraintData;
 use anyhow::{anyhow, Result};
+use log::{info, debug};
 use cust::context::Context;
 use cust::device::Device;
 use cust::launch;
@@ -107,6 +109,10 @@ pub struct UnifiedGPUCompute {
     // Dedicated SSSP stream for overlap
     sssp_stream: Option<Stream>,
     
+    // Constraint data
+    constraint_data: DeviceBuffer<ConstraintData>,
+    num_constraints: usize,
+    
     // State validity flag
     pub sssp_available: bool,
 }
@@ -114,9 +120,21 @@ pub struct UnifiedGPUCompute {
 
 impl UnifiedGPUCompute {
     pub fn new(num_nodes: usize, num_edges: usize, ptx_content: &str) -> Result<Self> {
+        // Enhanced PTX validation before device initialization
+        if let Err(e) = crate::utils::gpu_diagnostics::validate_ptx_content(ptx_content) {
+            let diagnosis = crate::utils::gpu_diagnostics::diagnose_ptx_error(&e);
+            return Err(anyhow!("PTX validation failed: {}\n{}", e, diagnosis));
+        }
+        
         let device = Device::get_device(0)?;
         let _context = Context::new(device)?;
-        let module = Module::from_ptx(ptx_content, &[])?;
+        
+        // Enhanced module creation with better error reporting
+        let module = Module::from_ptx(ptx_content, &[]).map_err(|e| {
+            let error_msg = format!("Module::from_ptx() failed: {}", e);
+            let diagnosis = crate::utils::gpu_diagnostics::diagnose_ptx_error(&error_msg);
+            anyhow!("{}\n{}", error_msg, diagnosis)
+        })?;
         let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
 
         // Allocate double buffers for position and velocity
@@ -218,6 +236,9 @@ impl UnifiedGPUCompute {
             next_frontier_flags,
             parents: None,  // Optional, not initialized by default
             sssp_stream,
+            // Constraint fields
+            constraint_data: DeviceBuffer::from_slice(&vec![])?,
+            num_constraints: 0,
             sssp_available: false,
         })
     }
@@ -317,12 +338,86 @@ impl UnifiedGPUCompute {
         std::mem::swap(&mut self.vel_in_z, &mut self.vel_out_z);
     }
 
-    // NOTE: resize_buffers is intentionally not implemented as it would require
-    // reallocating all DeviceBuffers which is complex and error-prone.
-    // Instead, create a new UnifiedGPUCompute instance when size requirements change.
-    // pub fn resize_buffers(&mut self, num_nodes: usize, num_edges: usize) -> Result<()> {
-    //     unimplemented!("Use a new UnifiedGPUCompute instance for different sizes")
-    // }
+    /// Resize buffers with growth factor while preserving data
+    pub fn resize_buffers(&mut self, new_num_nodes: usize, new_num_edges: usize) -> Result<()> {
+        // Only resize if we need more capacity
+        if new_num_nodes <= self.num_nodes && new_num_edges <= self.num_edges {
+            self.num_nodes = new_num_nodes;
+            self.num_edges = new_num_edges;
+            return Ok(());
+        }
+
+        info!("Resizing GPU buffers from {}/{} to {}/{} nodes/edges", 
+              self.num_nodes, self.num_edges, new_num_nodes, new_num_edges);
+
+        // Calculate new sizes with 1.5x growth factor
+        let actual_new_nodes = ((new_num_nodes as f32 * 1.5) as usize).max(self.num_nodes);
+        let actual_new_edges = ((new_num_edges as f32 * 1.5) as usize).max(self.num_edges);
+
+        // Save current position and velocity data
+        let mut pos_x_data = vec![0.0f32; self.num_nodes];
+        let mut pos_y_data = vec![0.0f32; self.num_nodes];
+        let mut pos_z_data = vec![0.0f32; self.num_nodes];
+        let mut vel_x_data = vec![0.0f32; self.num_nodes];
+        let mut vel_y_data = vec![0.0f32; self.num_nodes];
+        let mut vel_z_data = vec![0.0f32; self.num_nodes];
+
+        // Download existing data
+        self.pos_in_x.copy_to(&mut pos_x_data)?;
+        self.pos_in_y.copy_to(&mut pos_y_data)?;
+        self.pos_in_z.copy_to(&mut pos_z_data)?;
+        self.vel_in_x.copy_to(&mut vel_x_data)?;
+        self.vel_in_y.copy_to(&mut vel_y_data)?;
+        self.vel_in_z.copy_to(&mut vel_z_data)?;
+
+        // Resize data vectors
+        pos_x_data.resize(actual_new_nodes, 0.0);
+        pos_y_data.resize(actual_new_nodes, 0.0);
+        pos_z_data.resize(actual_new_nodes, 0.0);
+        vel_x_data.resize(actual_new_nodes, 0.0);
+        vel_y_data.resize(actual_new_nodes, 0.0);
+        vel_z_data.resize(actual_new_nodes, 0.0);
+
+        // Create new buffers
+        self.pos_in_x = DeviceBuffer::from_slice(&pos_x_data)?;
+        self.pos_in_y = DeviceBuffer::from_slice(&pos_y_data)?;
+        self.pos_in_z = DeviceBuffer::from_slice(&pos_z_data)?;
+        self.vel_in_x = DeviceBuffer::from_slice(&vel_x_data)?;
+        self.vel_in_y = DeviceBuffer::from_slice(&vel_y_data)?;
+        self.vel_in_z = DeviceBuffer::from_slice(&vel_z_data)?;
+
+        self.pos_out_x = DeviceBuffer::from_slice(&pos_x_data)?;
+        self.pos_out_y = DeviceBuffer::from_slice(&pos_y_data)?;
+        self.pos_out_z = DeviceBuffer::from_slice(&pos_z_data)?;
+        self.vel_out_x = DeviceBuffer::from_slice(&vel_x_data)?;
+        self.vel_out_y = DeviceBuffer::from_slice(&vel_y_data)?;
+        self.vel_out_z = DeviceBuffer::from_slice(&vel_z_data)?;
+
+        // Recreate other buffers
+        self.mass = DeviceBuffer::from_slice(&vec![1.0f32; actual_new_nodes])?;
+        self.node_graph_id = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.edge_row_offsets = DeviceBuffer::zeroed(actual_new_nodes + 1)?;
+        self.edge_col_indices = DeviceBuffer::zeroed(actual_new_edges)?;
+        self.edge_weights = DeviceBuffer::zeroed(actual_new_edges)?;
+        self.force_x = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.force_y = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.force_z = DeviceBuffer::zeroed(actual_new_nodes)?;
+
+        // Recreate spatial grid buffers  
+        self.cell_keys = DeviceBuffer::zeroed(actual_new_nodes)?;
+        let mut sorted_indices: Vec<i32> = (0..actual_new_nodes as i32).collect();
+        self.sorted_node_indices = DeviceBuffer::from_slice(&sorted_indices)?;
+
+        // Update sizes
+        self.num_nodes = new_num_nodes;
+        self.num_edges = new_num_edges;
+        self.allocated_nodes = actual_new_nodes;
+        self.allocated_edges = actual_new_edges;
+
+        info!("Successfully resized GPU buffers to {}/{} allocated nodes/edges", 
+              actual_new_nodes, actual_new_edges);
+        Ok(())
+    }
 
     pub fn set_params(&mut self, _params: SimParams) {
         // This is a placeholder. A real implementation would likely copy the params
@@ -333,8 +428,22 @@ impl UnifiedGPUCompute {
         // Placeholder for setting compute mode
     }
 
-    pub fn set_constraints(&mut self, _constraints: Vec<ConstraintData>) -> Result<()> {
-        // Placeholder for setting constraints
+    pub fn set_constraints(&mut self, constraints: Vec<ConstraintData>) -> Result<()> {
+        // Resize constraint buffers if needed
+        if constraints.len() > self.constraint_data.len() {
+            info!("Resizing constraint buffer from {} to {}", self.constraint_data.len(), constraints.len());
+            // Create new constraint buffer
+            let new_constraint_buffer = DeviceBuffer::from_slice(&constraints)?;
+            self.constraint_data = new_constraint_buffer;
+        } else if !constraints.is_empty() {
+            // Copy constraints to existing buffer
+            let constraint_len = self.constraint_data.len();
+            let copy_len = constraints.len().min(constraint_len);
+            self.constraint_data.copy_from(&constraints[..copy_len])?;
+        }
+        
+        self.num_constraints = constraints.len();
+        debug!("Updated GPU constraints: {} active constraints", self.num_constraints);
         Ok(())
     }
 
@@ -342,6 +451,9 @@ impl UnifiedGPUCompute {
         params.iteration = self.iteration;
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+        
+        // Validate kernel launch parameters upfront
+        crate::utils::gpu_diagnostics::validate_kernel_launch("unified_gpu_execute", grid_size, block_size, self.num_nodes).map_err(|e| anyhow::anyhow!(e))?;
 
         // 1. Calculate AABB (on CPU for now, can be moved to GPU later)
         // Use allocated_nodes for buffer sizes to ensure they match GPU buffers
@@ -365,16 +477,32 @@ impl UnifiedGPUCompute {
             aabb.max[1] = aabb.max[1].max(host_pos_y[i]);
             aabb.max[2] = aabb.max[2].max(host_pos_z[i]);
         }
-        // Add padding to AABB
-        aabb.min[0] -= params.grid_cell_size; aabb.max[0] += params.grid_cell_size;
-        aabb.min[1] -= params.grid_cell_size; aabb.max[1] += params.grid_cell_size;
-        aabb.min[2] -= params.grid_cell_size; aabb.max[2] += params.grid_cell_size;
+        // Auto-tune grid cell size for optimal spatial hashing (target 4-16 neighbors per cell)
+        let scene_volume = (aabb.max[0] - aabb.min[0]) * (aabb.max[1] - aabb.min[1]) * (aabb.max[2] - aabb.min[2]);
+        let target_neighbors_per_cell = 8.0; // Middle of 4-16 range
+        let optimal_cells = self.num_nodes as f32 / target_neighbors_per_cell;
+        let optimal_cell_size = (scene_volume / optimal_cells).powf(1.0/3.0);
+        
+        // Use auto-tuned size if reasonable, otherwise fall back to parameter
+        let auto_tuned_cell_size = if optimal_cell_size > 10.0 && optimal_cell_size < 1000.0 {
+            optimal_cell_size
+        } else {
+            params.grid_cell_size
+        };
+        
+        debug!("Spatial hashing: scene_volume={:.2}, optimal_cell_size={:.2}, using_size={:.2}", 
+               scene_volume, optimal_cell_size, auto_tuned_cell_size);
 
-        // 2. Define grid dimensions
+        // Add padding to AABB
+        aabb.min[0] -= auto_tuned_cell_size; aabb.max[0] += auto_tuned_cell_size;
+        aabb.min[1] -= auto_tuned_cell_size; aabb.max[1] += auto_tuned_cell_size;
+        aabb.min[2] -= auto_tuned_cell_size; aabb.max[2] += auto_tuned_cell_size;
+
+        // 2. Define grid dimensions with dynamic sizing
         let grid_dims = int3 {
-            x: ((aabb.max[0] - aabb.min[0]) / params.grid_cell_size).ceil() as i32,
-            y: ((aabb.max[1] - aabb.min[1]) / params.grid_cell_size).ceil() as i32,
-            z: ((aabb.max[2] - aabb.min[2]) / params.grid_cell_size).ceil() as i32,
+            x: ((aabb.max[0] - aabb.min[0]) / auto_tuned_cell_size).ceil() as i32,
+            y: ((aabb.max[1] - aabb.min[1]) / auto_tuned_cell_size).ceil() as i32,
+            z: ((aabb.max[2] - aabb.min[2]) / auto_tuned_cell_size).ceil() as i32,
         };
         let num_grid_cells = (grid_dims.x * grid_dims.y * grid_dims.z) as usize;
 
@@ -384,7 +512,11 @@ impl UnifiedGPUCompute {
         }
 
         // 3. Build Grid: Assign cell keys to each node
-        let build_grid_kernel = self._module.get_function(self.build_grid_kernel_name)?;
+        crate::utils::gpu_diagnostics::validate_kernel_launch(self.build_grid_kernel_name, grid_size, block_size, self.num_nodes).map_err(|e| anyhow::anyhow!(e))?;
+        let build_grid_kernel = self._module.get_function(self.build_grid_kernel_name).map_err(|e| {
+            let diagnosis = crate::utils::gpu_diagnostics::diagnose_ptx_error(&format!("Kernel '{}' not found: {}", self.build_grid_kernel_name, e));
+            anyhow!("Failed to get kernel function '{}':\n{}", self.build_grid_kernel_name, diagnosis)
+        })?;
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -395,7 +527,7 @@ impl UnifiedGPUCompute {
                 self.cell_keys.as_device_ptr(),
                 aabb,
                 grid_dims,
-                params.grid_cell_size,
+                auto_tuned_cell_size,
                 self.num_nodes as i32
             ))?;
         }
@@ -479,7 +611,9 @@ impl UnifiedGPUCompute {
                 self.edge_weights.as_device_ptr(),
                 params,
                 self.num_nodes as i32,
-                d_sssp
+                d_sssp,
+                self.constraint_data.as_device_ptr(),
+                self.num_constraints as i32
             ))?;
         }
 
@@ -609,18 +743,11 @@ impl UnifiedGPUCompute {
 #[derive(Debug, Clone, Copy)]
 pub enum ComputeMode {
     Basic,
+    DualGraph,  // Map to Basic for compatibility
+    Advanced,   // Map to Constraints for advanced features
     Constraints,
 }
 
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct ConstraintData {
-    pub constraint_type: i32,
-    pub strength: f32,
-    pub param1: f32,
-    pub param2: f32,
-    pub node_mask: i32,
-}
 
 // Additional Thrust wrapper function for scanning
 unsafe extern "C" {

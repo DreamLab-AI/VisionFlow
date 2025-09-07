@@ -1,153 +1,202 @@
-Project Brief: GPU Analytics Engine Maturation — Execution Plan v2
-Objective:
-Transition all analytics to a fully GPU-accelerated engine (CUDA), eliminating CPU fallbacks and mock implementations once GPU parity is proven.
+# GPU Analytics Engine Maturation — Status and Plan (Updated)
 
-Phase 0: Architectural Decision and Build Pipeline Hardening
-Decision: Select Path A — extend the active UnifiedGPUCompute engine.
-Rationale:
-- Lowest delivery risk; builds on the working physics pipeline in [src/utils/unified_gpu_compute.rs](src/utils/unified_gpu_compute.rs).
-- Incremental kernel additions for analytics without a wholesale data model migration.
-- Option to add adapters later to the richer data model in [src/gpu/visual_analytics.rs](src/gpu/visual_analytics.rs) if required.
-Re-evaluation trigger: Consider Path B only if a planned feature demonstrably needs VisualAnalyticsGPU semantics that cannot be mapped to SoA buffers with acceptable performance.
-Record of decision: Path A is the baseline for this plan; Path B tasks are parked as optional deltas.
+Date: 2025-09-07
 
-Build/Runtime PTX pipeline (Phase 0 blocker)
-Actions:
-- Verify env export of VISIONFLOW_PTX_PATH in [build.rs](build.rs:111) and keep the build script linking consistent in [build.rs](build.rs:1).
-- Align runtime PTX loading via [Module::from_ptx()](src/utils/unified_gpu_compute.rs:119).
-- Unify and guard the on-the-fly fallback [compile_ptx_fallback()](src/actors/graph_actor.rs:2178) so it only triggers when the env path is absent or invalid.
-- Add diagnostics in [src/utils/gpu_diagnostics.rs](src/utils/gpu_diagnostics.rs) to surface precise PTX errors.
-Validation gates:
-- Cold start should not surface “device kernel image is invalid”.
-- PTX files are found through VISIONFLOW_PTX_PATH or the fallback compiles successfully on first run.
-- Per-kernel launch succeeds at least once under CI smoke tests.
+Summary
+- Path A retained: extend UnifiedGPUCompute. VisualAnalyticsGPU remains parked for now.
+- PTX build/runtime pipeline is stabilized with centralized loader and diagnostics; a gated smoke test has been added.
+- Constraints and SSSP are partially integrated on GPU; spatial hashing uses auto-tuned cell size but keeps fixed cell buffers.
+- Buffer resizing for nodes/edges exists in core but is not yet wired through the actor flow.
+- Clustering and anomaly endpoints still return simulated results; GPU implementations are planned.
 
-Phase 1: Stabilize and Re-enable Existing Features
-1.1 Stress Majorization
-Scope:
-- Re-enable scheduling in [execute_stress_majorization_step()](src/actors/graph_actor.rs:500) by lowering [AdvancedParams::stress_step_interval_frames](src/models/constraints.rs:161) from u32::MAX to a safe cadence (e.g., 600 frames).
-- Keep the CPU implementation as the authority in [StressMajorizationSolver](src/physics/stress_majorization.rs:86). GPU porting is optional and deferred.
-Safety controls:
-- Clamp delta positions per iteration; cap displacement per node (e.g., <= 5% of layout extent).
-- Reject NaN/Inf; if detected, revert to last stable snapshot and exponentially back-off step size.
-- Bound the layout domain (AABB) during optimization to avoid “position explosions”.
-Observability:
-- Emit iteration residuals and max displacement to performance metrics.
-Validation gate:
-- Over 5 runs on representative graphs, no divergence; improves stress (Kamada-Kawai style) by >= 10% vs baseline, frame-time overhead < 10 ms at cadence.
+Evidence map (key references)
+- PTX loader: [`ptx::load_ptx_sync()`](src/utils/ptx.rs:41), [`effective_cuda_arch()`](src/utils/ptx.rs:24)
+- Unified GPU init and module load: [`UnifiedGPUCompute::new`](src/utils/unified_gpu_compute.rs:122), [`Module::from_ptx()`](src/utils/unified_gpu_compute.rs:133)
+- GPU compute actor init: [`GPUComputeActor::static_initialize_unified_compute`](src/actors/gpu_compute_actor.rs:185)
+- Force/Integrate kernels: [`force_pass_kernel`](src/utils/visionflow_unified.cu:199), [`integrate_pass_kernel`](src/utils/visionflow_unified.cu:429)
+- Constraints upload and usage: [`UnifiedGPUCompute::set_constraints`](src/utils/unified_gpu_compute.rs:431), [`ConstraintData` (Rust)](src/models/constraints.rs:235), [`ConstraintData` (CUDA)](src/utils/visionflow_unified.cu:60)
+- SSSP path: [`relaxation_step_kernel`](src/utils/visionflow_unified.cu:390), [`UnifiedGPUCompute::run_sssp`](src/utils/unified_gpu_compute.rs:654), feature flag [`FeatureFlags::ENABLE_SSSP_SPRING_ADJUST`](src/models/simulation_params.rs:92)
+- Spatial hashing: [`build_grid_kernel`](src/utils/visionflow_unified.cu:129), [`compute_cell_bounds_kernel`](src/utils/visionflow_unified.cu:155), host auto-tune in [`UnifiedGPUCompute::execute`](src/utils/unified_gpu_compute.rs:480)
+- Buffer resizing (core): [`UnifiedGPUCompute::resize_buffers`](src/utils/unified_gpu_compute.rs:342)
+- Actor data updates: [`GPUComputeActor::update_graph_data_internal`](src/actors/gpu_compute_actor.rs:331)
+- Analytics API (clustering/anomaly): [`analytics/mod.rs`](src/handlers/api_handler/analytics/mod.rs:1), [`clustering.rs`](src/handlers/api_handler/analytics/clustering.rs:1), [`anomaly.rs`](src/handlers/api_handler/analytics/anomaly.rs:1)
+- GPU diagnostics and smoke test: [`gpu_diagnostics::ptx_module_smoke_test`](src/utils/gpu_diagnostics.rs:11), cargo test [`tests/ptx_smoke_test.rs`](tests/ptx_smoke_test.rs:1)
+- Build script exporting PTX: [`build.rs`](build.rs:117)
 
-1.2 Semantic Constraints end-to-end
-Scope:
-- Ensure constraint data is GPU-transferable: update struct in [ConstraintData](src/models/constraints.rs:211) to use GPU-safe marker derives (Pod/Zeroable) equivalent to those used in SimParams.
-- Implement host-side upload via [UnifiedGPUCompute::set_constraints()](src/utils/unified_gpu_compute.rs:336).
-- Add constraint force accumulation in [force_pass_kernel()](src/utils/visionflow_unified.cu:178), balancing with repulsion/springs.
-- Re-enable handler without clearing in [UpdateConstraints](src/actors/gpu_compute_actor.rs:695).
-Safety controls:
-- Scale constraint forces relative to local degree/edge weights; hard-cap force per node.
-- Progressive activation: ramp from 0% to 100% over N frames to avoid “bouncing”.
-Validation gate:
-- With constraints on, no sustained oscillation; average kinetic energy returns to baseline within 2 seconds; constraint violations decrease monotonically in first 200 frames.
+Current status by area
+- PTX pipeline: Implemented and unified. Build exports [`VISIONFLOW_PTX_PATH`](build.rs:117). Runtime fallback compilation via NVCC is available. Gated smoke tests exist.
+- UnifiedGPUCompute: Core buffers and kernels load; main execution path runs. Node/edge buffers resize function implemented; cell buffers remain fixed-size.
+- Constraints: Host-to-device upload implemented; GPU force accumulation supports DISTANCE and POSITION; handler uploads constraints from API.
+- SSSP: Kernel and host routine implemented; spring adjustment uses distances when the feature flag is set and distances are available.
+- Spatial hashing: Grid cell size auto-tuned; grid dimensions computed per frame; error returned if grid exceeds fixed allocated cell buffers.
+- Stress majorization: Not enabled; placeholder method remains; scheduling disabled in actor.
+- Analytics endpoints: Clustering and anomaly detection currently simulate/mock outputs; GPU implementations planned.
+- Tests: New PTX smoke test added; broader safety tests exist but include placeholders/simulations.
 
-1.3 Finalize SSSP integration
-Scope:
-- Confirm kernel [relaxation_step_kernel()](src/utils/visionflow_unified.cu:301) and host path [UnifiedGPUCompute::run_sssp()](src/utils/unified_gpu_compute.rs:520).
-- Gate spring adjustment with [FeatureFlags::ENABLE_SSSP_SPRING_ADJUST](src/models/simulation_params.rs:92) and expose API toggle in [src/handlers/api_handler/analytics/mod.rs](src/handlers/api_handler/analytics/mod.rs:1154).
-Validation gate:
-- SSSP distances validated on small graphs against CPU Dijkstra (tolerance 1e-5); enabling spring adjust improves edge length variance by >= 10% without destabilizing layout.
+Changes since previous document
+- Added centralized PTX loader module and improved diagnostics; both actors now use it.
+- Implemented [`UnifiedGPUCompute::resize_buffers`](src/utils/unified_gpu_compute.rs:342) and basic constraints upload/usage.
+- Added SSSP kernel integration and host wrapper with safe-state handling.
+- Introduced auto-tuned grid cell size in execute path.
+- Created a gated smoke test at [`tests/ptx_smoke_test.rs`](tests/ptx_smoke_test.rs:1) to validate cold-start load and kernel presence.
 
-1.4 Spatial hashing robustness
-Scope:
-- Replace fixed allocations keyed to max grid cells near [src/utils/unified_gpu_compute.rs](src/utils/unified_gpu_compute.rs:156) with dynamic sizing based on node count and scene extent.
-- Auto-tune grid cell size to target 4–16 neighbors per cell; validate [build_grid_kernel()](src/utils/visionflow_unified.cu:108) and [compute_cell_bounds_kernel()](src/utils/visionflow_unified.cu:134).
-Validation gate:
-- Hashing efficiency (non-empty cells / total) stays within 0.2–0.6 across workloads; repulsion pass time variance < 20% under node count doubling.
+Runbook: PTX smoke test (GPU host only)
+- Build (choose arch, e.g. 86 for RTX 30xx): CUDA_ARCH=86 cargo build -vv
+- Run smoke tests: RUN_GPU_SMOKE=1 cargo test --test ptx_smoke_test -- --nocapture
+- Expected: successful PTX load, module creation, required kernels found, tiny UnifiedGPUCompute::new() succeeds.
+- Troubleshooting: Rebuild with correct CUDA_ARCH; ensure NVIDIA driver/toolkit compatibility; in containers set DOCKER_ENV=1 to force runtime -ptx path.
 
-1.5 Buffer resizing strategy
-Scope:
-- Implement [UnifiedGPUCompute::resize_buffers()](src/utils/unified_gpu_compute.rs:323) with growth factor (e.g., 1.5x) and no data loss; prefer in-place reallocation with temporary staging if needed.
-- Update resize flow in [update_graph_data_internal()](src/actors/gpu_compute_actor.rs:330) to carry over positions/velocities seamlessly.
-Validation gate:
-- Resizing during live simulation produces no panics, no NaNs, and preserves positions within 1e-6 relative error.
+Phase overview (truthful to codebase)
 
-Phase 2: Port Mocked Analytics to GPU
-2.1 GPU-Accelerated Clustering (K-means MVP)
-Algorithm plan:
-- Initialization: k-means++ or random seeding on GPU; maintain centroids in device memory.
-- Assignment kernel: compute distance of each node to k centroids; write cluster_id per node.
-- Update kernel: parallel reduce to sum positions per cluster and counts; update centroids.
-- Convergence: stop when centroid delta < epsilon or max_iters reached; expose deterministic seed for reproducibility.
-Implementation:
-- Add device buffers for centroids, cluster assignments, and temporary reductions in [src/utils/unified_gpu_compute.rs](src/utils/unified_gpu_compute.rs).
-- Implement kernels in [src/utils/visionflow_unified.cu](src/utils/visionflow_unified.cu).
-- Wire through message [PerformGPUClustering](src/actors/messages.rs:734) via the handler path in [src/actors/gpu_compute_actor.rs](src/actors/gpu_compute_actor.rs:953).
-- Remove CPU fallback paths in [src/handlers/api_handler/analytics/clustering.rs](src/handlers/api_handler/analytics/clustering.rs).
-Validation gate:
-- On labeled benchmark graphs, ARI/NMI within 2% of CPU reference at equal k; runtime 10–50x faster for 100k nodes; stable across three seeds.
+Phase 0 — PTX pipeline hardening
+Status: Mostly complete
+- ✔ Build-time PTX export in [`build.rs`](build.rs:117)
+- ✔ Centralized load + validation in [`ptx.rs`](src/utils/ptx.rs:1)
+- ✔ Diagnostics including kernel symbol checks in [`gpu_diagnostics.rs`](src/utils/gpu_diagnostics.rs:11)
+- ✔ Gated smoke test in [`tests/ptx_smoke_test.rs`](tests/ptx_smoke_test.rs:1)
+- ☐ CI GPU runner not yet configured to execute smoke test
 
-2.2 Community Detection (Phase 2b)
-Plan:
-- Implement label propagation first (fully parallel friendly); consider Louvain later for modularity maximization.
-- Share CSR and temporary buffers; expose results through the same API as K-means for UI reuse.
+Phase 1 — Core engine stabilization
+Status: In progress (partial)
+- Constraints: Host upload + GPU application (DISTANCE, POSITION) present; API handler wires through.
+- SSSP: Implemented and gated via feature flag; distances used in springs when available.
+- Spatial hashing: Auto-tuned cell size; fixed-size cell buffers remain (overflow -> error).
+- Buffer resizing: Implemented in core; not yet invoked from actor on graph resize.
+- Stress majorization: Disabled; placeholder only.
 
-2.3 GPU Anomaly Detection MVP
-Algorithm options:
-- Local Outlier Factor using spatial grid/graph neighbors; or z-score on degree/centrality/velocity residuals.
-Implementation:
-- Add device buffers for anomaly scores in [src/utils/unified_gpu_compute.rs](src/utils/unified_gpu_compute.rs).
-- Implement scoring kernels in [src/utils/visionflow_unified.cu](src/utils/visionflow_unified.cu); schedule periodically.
-- Introduce an actor message to trigger detection and return top-N; replace the simulated loop in [src/handlers/api_handler/analytics/anomaly.rs](src/handlers/api_handler/analytics/anomaly.rs:18).
-Validation gate:
-- On synthetic injections, AUC >= 0.85 for detectable anomalies; latency < 100 ms for 100k nodes.
+Phase 2 — GPU analytics (planned)
+- K-means clustering: kernels + buffers + API integration.
+- Community detection (label propagation, then Louvain).
+- Anomaly detection MVP (e.g., LOF/z-score).
 
-Phase 3: Advanced Integration and Observability
-3.1 Real “AI Insights”
-- Replace mocked strings by synthesizing insights from clustering and anomaly outputs in the analytics module in [src/handlers/api_handler/analytics/mod.rs](src/handlers/api_handler/analytics/mod.rs).
-- Examples: “Detected 5 clusters; largest cohesion 0.85”, “Node X anomaly score 0.95; isolated but central”.
-3.2 Telemetry and auto-balance
-- Expose GPU-side metrics (kinetic energy, hashing efficiency, active constraints) and feed into [GraphServiceActor::update_node_positions()](src/actors/graph_actor.rs:832).
-- Add per-kernel timings and memory stats; surface via [get_performance_stats](src/handlers/api_handler/analytics/mod.rs:520) and extend [get_gpu_metrics](src/handlers/api_handler/analytics/mod.rs:642).
-Validation gate:
-- Metrics endpoints live; kernel timing overhead < 2%; auto-balance improves frame time jitter by >= 10%.
+Phase 3 — Observability and auto-balance (planned)
+- Kernel timings, memory metrics, hashing efficiency, kinetic energy exposure.
+- Adaptive auto-balance loop using GPU metrics.
 
-Phase 4: Deprecation and Cleanup
-Scope:
-- Delete simulated CPU functions and fallbacks in [src/handlers/api_handler/analytics/clustering.rs](src/handlers/api_handler/analytics/clustering.rs) and [src/handlers/api_handler/analytics/anomaly.rs](src/handlers/api_handler/analytics/anomaly.rs).
-- If Path A remains, deprecate [src/gpu/visual_analytics.rs](src/gpu/visual_analytics.rs) to avoid confusion.
-- Remove obsolete FIXME/TODOs related to GPU parity; update docs.
+Phase 4 — Deprecation and cleanup (planned)
+- Remove CPU fallbacks/mocks for analytics.
+- Optionally deprecate VisualAnalyticsGPU if Path A remains sufficient.
 
-Success Metrics (Program-level)
-- No CPU fallback paths remain; GPU is mandatory.
-- Steady-state frame time meets budget on target hardware; no “device kernel image is invalid” in normal runs.
-- Clustering accuracy: ARI/NMI within 2–5% of CPU references on small graphs.
-- Anomaly detection: AUC >= 0.85 on synthetic tests; top-N anomalies stable across runs (deterministic seed).
-- Startup: PTX pipeline stable; cold start within acceptable latency (< 3 s).
-- Memory: No leaks; VRAM usage scales linearly with nodes/edges within projections.
+Updated acceptance criteria (key gates)
+- PTX: CI smoke test passes on GPU runner (module loads, all kernels resolvable).
+- Constraints: No oscillation; violations decrease; forces capped; regression tests stable.
+- SSSP: CPU parity at 1e-5 tolerance; improves edge length variance ≥10% without destabilization; API toggle documented.
+- Spatial hashing: Efficiency 0.2–0.6 across workloads; no overflow errors after dynamic cell buffer sizing is implemented.
+- Resizing: Live resizing preserves state, no NaN/panics; actor wiring invokes core resizing when graph size changes.
+- Analytics: Clustering/anomaly endpoints return real GPU results with documented accuracy/latency targets.
+- Observability: Kernel timing and memory metrics accessible via API; <2% overhead.
 
-Risks and Mitigations
-- PTX/driver mismatches: lock NVCC version; add explicit diagnostics in [src/utils/gpu_diagnostics.rs](src/utils/gpu_diagnostics.rs); CI GPU runners execute a smoke kernel.
-- Numerical instability: clamps, bounded AABB, adaptive step sizes; fall back to last stable snapshot.
-- OOM under large graphs: capacity growth and back-pressure; optional batch processing for analytics; expose clear 429/503 API responses.
-- Kernel nondeterminism: fixed seeds; avoid racey atomics in reductions (use segmented reductions via Thrust where possible).
-- Actor concurrency: single-threaded GPU command queue per device; serialize kernel launches; back-pressure via mailbox limits.
+Detailed plan with file-level tasks
 
-Rollout and Feature Flags
-- Introduce analytics feature flags and expose toggles via API in [src/handlers/api_handler/analytics/mod.rs](src/handlers/api_handler/analytics/mod.rs:1154).
-- Default off until validation gates pass; then flip to on in staged environments.
-- Telemetry-first rollout; alert on regressions; documented rollback (disable flags without process restarts).
+A. PTX pipeline and CI (Phase 0 wrap-up)
+- [ ] Configure GPU CI runner and add a job to run PTX smoke test: [`tests/ptx_smoke_test.rs`](tests/ptx_smoke_test.rs:1)
+- [ ] Add a Makefile/cargo alias: cargo test-smoke (sets RUN_GPU_SMOKE=1)
+- [ ] Expose a health endpoint to surface PTX status (reuse [`ptx_module_smoke_test`](src/utils/gpu_diagnostics.rs:11))
 
-Documentation and CI
-- Update this plan and developer CUDA setup/troubleshooting in docs (gpu-analytics.md, cuda-parameters.md).
-- Ensure [build.rs](build.rs:1) runs in CI GPU jobs; provide informative failures when GPU is unavailable.
-- Keep and extend safety tests in [tests/gpu_safety_tests.rs](tests/gpu_safety_tests.rs).
+B. Constraints end-to-end (Phase 1)
+- [ ] Expand GPU constraint kinds beyond DISTANCE/POSITION in [`force_pass_kernel`](src/utils/visionflow_unified.cu:199)
+- [ ] Add stability ramp (progressive activation) and per-node force caps (utilize [`SimParams`](src/models/simulation_params.rs:34))
+- [ ] Add constraint metrics (violations, energy) to observability pipeline
+- [ ] Persistence/round-trip tests for constraint serialization and upload
 
-Deliverables per Phase (DoD)
-Phase 0:
-- PTX pipeline green; diagnostics actionable; decision recorded (Path A).
-Phase 1:
-- Stress majorization enabled and stable; constraints applied on-GPU; SSSP feature-gated and validated; spatial hash and resizing robust.
-Phase 2:
-- K-means GPU clustering live; community detection prototype; anomaly detection MVP live; API returns real results.
-Phase 3:
-- Insights generated from real analytics; telemetry endpoints expose timings and GPU metrics; auto-balance uses GPU metrics.
-Phase 4:
-- CPU fallbacks removed; deprecated modules cleaned; docs updated.
+C. SSSP finalization (Phase 1)
+- [ ] Add API toggle for SSSP spring adjust (update analytics control to set [`FeatureFlags::ENABLE_SSSP_SPRING_ADJUST`](src/models/simulation_params.rs:92))
+- [ ] Add host-side validation comparing GPU vs CPU distances on small graphs
+- [ ] Add edge-length variance metric before/after adjust
+
+D. Spatial hashing robustness (Phase 1)
+- [ ] Implement dynamic allocation/resizing for cell_start/cell_end buffers in [`UnifiedGPUCompute`](src/utils/unified_gpu_compute.rs:83)
+- [ ] Record hashing efficiency and neighbor counts; surface via analytics metrics
+- [ ] Add guardrails to prevent pathological grid sizes (caps + warnings)
+
+E. Buffer resizing integration (Phase 1)
+- [ ] Invoke [`resize_buffers`](src/utils/unified_gpu_compute.rs:342) from [`update_graph_data_internal`](src/actors/gpu_compute_actor.rs:331) on node/edge count changes
+- [ ] Preserve CSR edge data on resize; add tests for no data loss
+- [ ] Consider re-initializing grid-related buffers on resize to avoid stale sizes
+
+F. Stress majorization safe enablement (Phase 1)
+- [ ] Schedule and clamp outputs in actor; tune interval via [`AdvancedParams`](src/models/constraints.rs:144)
+- [ ] Add regression tests (5-run stability; displacement and residual thresholds)
+
+G. GPU clustering MVP (Phase 2)
+- [ ] Add K-means device buffers (centroids, assignments, reductions) in [`UnifiedGPUCompute`](src/utils/unified_gpu_compute.rs:83)
+- [ ] Implement kernels in [`visionflow_unified.cu`](src/utils/visionflow_unified.cu:1)
+- [ ] Wire through [`PerformGPUClustering`](src/actors/messages.rs:734) and handler in [`GPUComputeActor`](src/actors/gpu_compute_actor.rs:941)
+- [ ] Replace CPU/mock paths in [`analytics/clustering.rs`](src/handlers/api_handler/analytics/clustering.rs:18)
+- [ ] Add ARI/NMI validation harness on small labeled graphs; document deterministic seeds
+
+H. Community detection (Phase 2b)
+- [ ] Label propagation kernel and host loop; expose via same API route as K-means
+- [ ] Explore Louvain (later), sharing CSR buffers and reductions
+
+I. GPU anomaly detection MVP (Phase 2)
+- [ ] Implement statistical/z-score or neighborhood LOF kernels in [`visionflow_unified.cu`](src/utils/visionflow_unified.cu:1)
+- [ ] Add device buffers for anomaly scores in [`UnifiedGPUCompute`](src/utils/unified_gpu_compute.rs:83)
+- [ ] Replace simulation in [`anomaly.rs`](src/handlers/api_handler/analytics/anomaly.rs:18) with GPU path; expose config
+- [ ] Validate AUC ≥ 0.85 on synthetic injections; document latency target
+
+J. Observability and auto-balance (Phase 3)
+- [ ] Add per-kernel timing and device memory metrics; surface via [`get_performance_stats`](src/handlers/api_handler/analytics/mod.rs:523) and [`get_gpu_metrics`](src/handlers/api_handler/analytics/mod.rs:645)
+- [ ] Compute hashing efficiency, kinetic energy on-device and report periodically
+- [ ] Use metrics to adapt physics parameters in [`GraphServiceActor`](src/actors/graph_actor.rs:1) update loop
+
+K. CI/build and guardrails (Phase 0/3)
+- [ ] Add GPU-enabled CI workflow (NVCC toolchain, driver/container runtime)
+- [ ] Fail-informative path when GPU unavailable; skip smoke under non-GPU CI
+- [ ] Document CUDA setup and troubleshooting; include arch table and envs (CUDA_ARCH, DOCKER_ENV)
+
+L. Deprecation and cleanup (Phase 4)
+- [ ] Remove mocks/fallbacks in analytics once GPU parity achieved
+- [ ] Consider deprecating [`visual_analytics.rs`](src/gpu/visual_analytics.rs:1) if Path A suffices
+- [ ] Remove stale TODOs and update docs
+
+Open issues and mismatches previously claimed as “done”
+- Stress majorization is not enabled; actor still contains a placeholder.
+- Spatial grid cell buffers are fixed-size; dynamic resizing remains to be implemented.
+- Buffer resizing is not invoked from the actor; only core function exists.
+- Clustering/anomaly endpoints are simulated; no GPU kernels implemented yet.
+- CI GPU smoke execution is not yet configured.
+
+Success metrics (unchanged but reiterated)
+- No CPU fallbacks remain for analytics; all GPU.
+- PTX cold start stable; CI smoke green; startup < 3s.
+- Clustering ARI/NMI within 2–5% of CPU baselines on small graphs; 10–50× speedup at scale.
+- Anomaly AUC ≥ 0.85 on synthetic tests; deterministic with seed.
+- Steady-state frame time within target; no “device kernel image is invalid” in normal runs.
+- Memory growth linear and within projections; no leaks.
+
+Appendix: Quick references
+- Physics params/flags: [`SimParams`](src/models/simulation_params.rs:34), [`FeatureFlags`](src/models/simulation_params.rs:84)
+- Constraint models: [`ConstraintKind`/`Constraint`](src/models/constraints.rs:7), [`ConstraintSet`](src/models/constraints.rs:280)
+- GPU kernels: [`visionflow_unified.cu`](src/utils/visionflow_unified.cu:1)
+- Actor messages: [`messages.rs`](src/actors/messages.rs:1)
+- Analytics API routes: [`analytics/mod.rs::config`](src/handlers/api_handler/analytics/mod.rs:1695)
+
+Enhanced TODO checklist (execution order)
+- [ ] Configure GPU CI smoke (Phase 0 wrap-up)
+- [ ] Wire actor -> resize_buffers on graph size change (Phase 1)
+- [ ] Implement dynamic cell buffer sizing (Phase 1)
+- [ ] Enable constraints ramp/caps + telemetry (Phase 1)
+- [ ] Expose SSSP toggle via API + metrics (Phase 1)
+- [ ] Re-enable stress majorization with safeties (Phase 1)
+- [ ] GPU K-means MVP end-to-end (Phase 2)
+- [ ] Community detection (Phase 2b)
+- [ ] GPU anomaly MVP (Phase 2)
+- [ ] Kernel timings + GPU metrics endpoints (Phase 3)
+- [ ] Auto-balance loop using GPU signals (Phase 3)
+- [ ] Remove mocks; consider deprecating VisualAnalyticsGPU (Phase 4)
+
+Notes on environment variables
+- VISIONFLOW_PTX_PATH: set by build; used by runtime loader [`COMPILED_PTX_PATH`](src/utils/ptx.rs:16)
+- CUDA_ARCH: controls NVCC arch for both build and runtime fallback
+- DOCKER_ENV=1: forces runtime NVCC -ptx path in containers to avoid path mismatches
+
+Risk controls (active)
+- PTX diagnostics: detailed messages in [`diagnose_ptx_error`](src/utils/gpu_diagnostics.rs:216)
+- Kernel launch validation on host side: [`validate_kernel_launch`](src/utils/gpu_diagnostics.rs:253)
+- Force/velocity clamps in kernels: see [`integrate_pass_kernel`](src/utils/visionflow_unified.cu:429) and constraint caps in [`force_pass_kernel`](src/utils/visionflow_unified.cu:349)
+
+Changelog (this update)
+- Rewrote status to reflect actual code state; removed inaccurate “completed” claims.
+- Added references to new PTX smoke test and clarified remaining Phase 1 work.
+- Expanded actionable TODOs with file-level pointers and validation gates.

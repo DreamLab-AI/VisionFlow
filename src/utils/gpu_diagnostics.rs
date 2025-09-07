@@ -3,13 +3,112 @@ use log::{info, warn, error};
 use std::env;
 use std::path::Path;
 use std::io::{Error, ErrorKind};
+use crate::utils::ptx;
+use cust::device::Device;
+use cust::context::Context;
+use cust::module::Module;
+
+pub fn ptx_module_smoke_test() -> String {
+    let mut report = String::new();
+    report.push_str("==== GPU PTX MODULE SMOKE TEST ====\n");
+    // Step 1: Resolve PTX
+    match ptx::load_ptx_sync() {
+        Ok(ptx_content) => {
+            report.push_str(&format!("PTX loaded ({} bytes)\n", ptx_content.len()));
+            // Step 2: Create CUDA context
+            let device = match Device::get_device(0) {
+                Ok(d) => {
+                    report.push_str("CUDA device(0) acquired\n");
+                    d
+                }
+                Err(e) => {
+                    report.push_str(&format!("❌ Failed to get CUDA device: {}\n", e));
+                    return report;
+                }
+            };
+            let _ctx = match Context::new(device) {
+                Ok(c) => {
+                    report.push_str("CUDA context created\n");
+                    c
+                }
+                Err(e) => {
+                    report.push_str(&format!("❌ Failed to create CUDA context: {}\n", e));
+                    return report;
+                }
+            };
+            // Step 3: Create module
+            match Module::from_ptx(&ptx_content, &[]) {
+                Ok(module) => {
+                    report.push_str("PTX module created successfully\n");
+                    // Step 4: Validate expected kernels exist
+                    let kernels = [
+                        "build_grid_kernel",
+                        "compute_cell_bounds_kernel",
+                        "force_pass_kernel",
+                        "integrate_pass_kernel",
+                        "relaxation_step_kernel",
+                    ];
+                    let mut missing = Vec::new();
+                    for k in kernels {
+                        if module.get_function(k).is_err() {
+                            missing.push(k.to_string());
+                        }
+                    }
+                    if missing.is_empty() {
+                        report.push_str("✅ Smoke test PASSED: all expected kernels found\n");
+                    } else {
+                        report.push_str(&format!("⚠️ Smoke test PARTIAL: missing kernels: {:?}\n", missing));
+                    }
+                }
+                Err(e) => {
+                    let diag = diagnose_ptx_error(&format!("Module::from_ptx error: {}", e));
+                    report.push_str(&format!("❌ Failed to create module: {}\n{}", e, diag));
+                    return report;
+                }
+            }
+        }
+        Err(e) => {
+            report.push_str(&format!("❌ Failed to load PTX: {}\n", e));
+            return report;
+        }
+    }
+    report
+}
 
 pub fn run_gpu_diagnostics() -> String {
     let mut report = String::new();
-    report.push_str("==== GPU DIAGNOSTIC REPORT ====\n");
+    report.push_str("==== GPU DIAGNOSTIC REPORT (Phase 0 Enhanced) ====\n");
+    
+    // Check build-time PTX environment variable
+    report.push_str("PTX Build Environment:\n");
+    match std::env::var("VISIONFLOW_PTX_PATH") {
+        Ok(path) => {
+            report.push_str(&format!("  VISIONFLOW_PTX_PATH = {}\n", path));
+            if std::path::Path::new(&path).exists() {
+                match std::fs::metadata(&path) {
+                    Ok(metadata) => {
+                        report.push_str(&format!("  ✅ PTX file exists, size: {} bytes\n", metadata.len()));
+                        info!("GPU Diagnostic: PTX file exists at {} ({} bytes)", path, metadata.len());
+                    },
+                    Err(e) => {
+                        report.push_str(&format!("  ❌ PTX file exists but metadata error: {}\n", e));
+                        error!("GPU Diagnostic: PTX metadata error: {}", e);
+                    }
+                }
+            } else {
+                report.push_str(&format!("  ❌ PTX file does not exist at: {}\n", path));
+                error!("GPU Diagnostic: PTX file missing at {}", path);
+            }
+        },
+        Err(_) => {
+            report.push_str("  ❌ VISIONFLOW_PTX_PATH not set - build.rs may have failed\n");
+            error!("GPU Diagnostic: VISIONFLOW_PTX_PATH environment variable not set");
+        }
+    }
     
     // Check environment variables
-    report.push_str("Environment Variables:\n");
+    report.push_str(&format!("\nEffective fallback CUDA arch (for runtime PTX compile): sm_{}\n", ptx::effective_cuda_arch()));
+    report.push_str("\nRuntime Environment Variables:\n");
     for var in &["NVIDIA_GPU_UUID", "NVIDIA_VISIBLE_DEVICES", "CUDA_VISIBLE_DEVICES"] {
         match env::var(var) {
             Ok(val) => {
@@ -76,6 +175,124 @@ pub fn run_gpu_diagnostics() -> String {
     
     report.push_str("=============================\n");
     info!("GPU diagnostic report complete");
+    report
+}
+
+/// Validate PTX content for common issues
+pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
+    if ptx_content.trim().is_empty() {
+        return Err("PTX content is empty".to_string());
+    }
+    
+    // Check for required PTX headers
+    if !ptx_content.contains(".version") {
+        return Err("PTX content missing .version directive".to_string());
+    }
+    
+    if !ptx_content.contains(".target") {
+        return Err("PTX content missing .target directive".to_string());
+    }
+    
+    // Check for expected kernel functions
+    let required_kernels = [
+        "build_grid_kernel",
+        "compute_cell_bounds_kernel", 
+        "force_pass_kernel",
+        "integrate_pass_kernel",
+        "relaxation_step_kernel"
+    ];
+    
+    for kernel in &required_kernels {
+        if !ptx_content.contains(kernel) {
+            warn!("PTX validation: missing expected kernel function: {}", kernel);
+        }
+    }
+    
+    info!("PTX validation successful: {} bytes, contains required directives", ptx_content.len());
+    Ok(())
+}
+
+/// Surface precise PTX-related errors with actionable diagnostics
+pub fn diagnose_ptx_error(error: &str) -> String {
+    let mut diagnosis = String::new();
+    diagnosis.push_str("PTX Error Diagnosis:\n");
+    
+    if error.contains("device kernel image is invalid") {
+        diagnosis.push_str("  ⚠️  'device kernel image is invalid' error detected\n");
+        diagnosis.push_str("  🔧 Possible causes:\n");
+        diagnosis.push_str("    - PTX architecture mismatch (check CUDA_ARCH)\n");
+        diagnosis.push_str("    - Corrupted PTX file\n");
+        diagnosis.push_str("    - CUDA driver/runtime version mismatch\n");
+        diagnosis.push_str("  🛠️  Solutions:\n");
+        diagnosis.push_str("    - Rebuild with correct CUDA_ARCH (75, 80, 86, etc.)\n");
+        diagnosis.push_str("    - Check CUDA driver version with nvidia-smi\n");
+        diagnosis.push_str("    - Verify PTX file integrity\n");
+    } else if error.contains("no kernel image is available") {
+        diagnosis.push_str("  ⚠️  'no kernel image is available' error detected\n");
+        diagnosis.push_str("  🔧 Possible causes:\n");
+        diagnosis.push_str("    - PTX compilation failed\n");
+        diagnosis.push_str("    - Wrong GPU architecture target\n");
+        diagnosis.push_str("  🛠️  Solutions:\n");
+        diagnosis.push_str("    - Check nvcc compilation output\n");
+        diagnosis.push_str("    - Set correct CUDA_ARCH environment variable\n");
+    } else if error.contains("Module::from_ptx") {
+        diagnosis.push_str("  ⚠️  Module creation from PTX failed\n");
+        diagnosis.push_str("  🔧 Possible causes:\n");
+        diagnosis.push_str("    - Invalid PTX syntax\n");
+        diagnosis.push_str("    - Missing kernel functions\n");
+        diagnosis.push_str("  🛠️  Solutions:\n");
+        diagnosis.push_str("    - Validate PTX content manually\n");
+        diagnosis.push_str("    - Check CUDA compilation warnings\n");
+    }
+    
+    diagnosis.push_str("\n");
+    error!("PTX Error Diagnosed: {}", diagnosis);
+    diagnosis
+}
+
+/// Validate kernel launch parameters before execution
+pub fn validate_kernel_launch(kernel_name: &str, grid_size: u32, block_size: u32, num_nodes: usize) -> Result<(), String> {
+    if grid_size == 0 {
+        return Err(format!("Invalid grid size 0 for kernel {}", kernel_name));
+    }
+    
+    if block_size == 0 || block_size > 1024 {
+        return Err(format!("Invalid block size {} for kernel {} (must be 1-1024)", block_size, kernel_name));
+    }
+    
+    if num_nodes == 0 {
+        return Err(format!("Cannot launch kernel {} with 0 nodes", kernel_name));
+    }
+    
+    let total_threads = grid_size as usize * block_size as usize;
+    if total_threads < num_nodes {
+        warn!("Kernel {} may have insufficient threads: {} total, {} nodes", 
+              kernel_name, total_threads, num_nodes);
+    }
+    
+    info!("Kernel launch validation passed: {} (grid: {}, block: {}, nodes: {})", 
+          kernel_name, grid_size, block_size, num_nodes);
+    Ok(())
+}
+
+/// Create diagnostic reporting functions for GPU metrics
+pub fn create_gpu_metrics_report() -> String {
+    let mut report = String::new();
+    report.push_str("==== GPU METRICS REPORT ====\n");
+    
+    // Memory usage reporting would go here
+    // For now, provide placeholder structure
+    report.push_str("Memory Usage:\n");
+    report.push_str("  Device Memory: N/A (requires CUDA context)\n");
+    report.push_str("  Host Memory: N/A (requires implementation)\n");
+    
+    report.push_str("\nKernel Performance:\n");
+    report.push_str("  Last kernel times: N/A (requires timing implementation)\n");
+    
+    report.push_str("\nGPU Utilization:\n");
+    report.push_str("  GPU Usage: N/A (requires nvidia-ml-py or similar)\n");
+    
+    report.push_str("==============================\n");
     report
 }
 

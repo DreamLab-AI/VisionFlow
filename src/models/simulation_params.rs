@@ -87,7 +87,7 @@ impl FeatureFlags {
     pub const ENABLE_SPRINGS: u32 = 1 << 1;
     pub const ENABLE_CENTERING: u32 = 1 << 2;
     pub const ENABLE_TEMPORAL_COHERENCE: u32 = 1 << 3;
-    pub const ENABLE_CONSTRAINTS: u32 = 1 << 4;
+    pub const ENABLE_CONSTRAINTS: u32 = 1 << 4;  // Enable semantic constraints
     pub const ENABLE_STRESS_MAJORIZATION: u32 = 1 << 5;
     pub const ENABLE_SSSP_SPRING_ADJUST: u32 = 1 << 6;  // Enable SSSP-based spring adjustment
 }

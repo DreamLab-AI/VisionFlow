@@ -103,6 +103,7 @@ tempfile = "3.14"
 [features]
 default = ["gpu"]
 gpu = ["cudarc/driver"]  # Enable GPU support with CUDA driver
+gpu-safe = []  # Feature for GPU-safe types
 cpu = []  # CPU-only mode
 
 [profile.release]
