@@ -267,9 +267,12 @@ export class VoiceWebSocketService {
       return;
     }
 
+    // Stop recording first - this will trigger the recordingComplete event
     this.audioInput.stopRecording();
-    this.isStreamingAudio = false;
-
+    
+    // Keep the flag true until after the audio is sent
+    // We'll set it to false after sending the complete audio
+    
     if (this.isConnected()) {
       // Send stop message - server expects flat structure
       const message = {
@@ -280,7 +283,11 @@ export class VoiceWebSocketService {
       this.send(JSON.stringify(message));
     }
 
-    this.emit('audioStreamingStopped');
+    // Delay setting the flag to false to allow recordingComplete to send audio
+    setTimeout(() => {
+      this.isStreamingAudio = false;
+      this.emit('audioStreamingStopped');
+    }, 100);
   }
 
   /**
