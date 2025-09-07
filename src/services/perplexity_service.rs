@@ -61,7 +61,7 @@ impl PerplexityService {
         // Get perplexity settings or return error if not configured
         let perplexity_config = match settings_read.perplexity.as_ref() {
             Some(p) => p,
-            None => return Err("Perplexity settings not configured".into()),
+            None => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::NotFound, "Perplexity settings not configured"))),
         };
 
         // Safely get required fields or return error
@@ -94,7 +94,7 @@ impl PerplexityService {
         if !status.is_success() {
             let error_text = response.text().await?;
             error!("Perplexity API error: Status: {}, Error: {}", status, error_text);
-            return Err(format!("Perplexity API error: {}", error_text).into());
+            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, format!("Perplexity API error: {}", error_text))));
         }
 
         let perplexity_response: PerplexityResponse = response.json().await?;
@@ -104,7 +104,7 @@ impl PerplexityService {
     pub async fn process_file(&self, file_name: &str) -> Result<ProcessedFile, Box<dyn StdError + Send + Sync>> {
         let file_path = format!("{}/{}", MARKDOWN_DIR, file_name);
         if !Path::new(&file_path).exists() {
-            return Err(format!("File not found: {}", file_name).into());
+            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::NotFound, format!("File not found: {}", file_name))));
         }
 
         let content = fs::read_to_string(&file_path)?;
@@ -113,7 +113,7 @@ impl PerplexityService {
         // Get perplexity settings or return error if not configured
         let perplexity_config = match settings_read.perplexity.as_ref() {
             Some(p) => p,
-            None => return Err("Perplexity settings not configured".into()),
+            None => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::NotFound, "Perplexity settings not configured"))),
         };
         
         // Safely get required fields or return error
@@ -134,7 +134,7 @@ impl PerplexityService {
         if !status.is_success() {
             let error_text = response.text().await?;
             error!("Perplexity API error: Status: {}, Error: {}", status, error_text);
-            return Err(format!("Perplexity API error: {}", error_text).into());
+            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, format!("Perplexity API error: {}", error_text))));
         }
 
         let perplexity_response: PerplexityResponse = response.json().await?;

@@ -47,12 +47,33 @@ struct FeatureFlags {
     static const unsigned int ENABLE_REPULSION = 1 << 0;
     static const unsigned int ENABLE_SPRINGS = 1 << 1;
     static const unsigned int ENABLE_CENTERING = 1 << 2;
+    static const unsigned int ENABLE_CONSTRAINTS = 1 << 4;  // Enable semantic constraints
     static const unsigned int ENABLE_SSSP_SPRING_ADJUST = 1 << 6;  // Enable SSSP-based spring adjustment
 };
 
 struct AABB {
     float3 min;
     float3 max;
+};
+
+// GPU-compatible constraint data for CUDA kernel
+struct ConstraintData {
+    int kind;                    // Discriminant matching ConstraintKind
+    int count;                   // Number of node indices used
+    int node_idx[4];            // Node indices (max 4 for GPU efficiency)
+    float params[8];            // Parameters (max 8 for various constraint types)
+    float weight;               // Weight of this constraint
+    float _padding;             // Padding for alignment
+};
+
+// Constraint kinds enum to match Rust
+enum ConstraintKind {
+    DISTANCE = 0,
+    POSITION = 1,
+    ANGLE = 2,
+    SEMANTIC = 3,
+    TEMPORAL = 4,
+    GROUP = 5
 };
 
 // =============================================================================
@@ -192,7 +213,9 @@ __global__ void force_pass_kernel(
     const float* __restrict__ edge_weights,
     const SimParams params,
     const int num_nodes,
-    const float* __restrict__ d_sssp_dist)
+    const float* __restrict__ d_sssp_dist,
+    const ConstraintData* __restrict__ constraints,
+    const int num_constraints)
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
@@ -287,6 +310,72 @@ __global__ void force_pass_kernel(
     
     if (params.feature_flags & FeatureFlags::ENABLE_CENTERING) {
         total_force = vec3_sub(total_force, vec3_scale(my_pos, params.center_gravity_k));
+    }
+
+    // Constraint force accumulation
+    if (params.feature_flags & FeatureFlags::ENABLE_CONSTRAINTS) {
+        for (int c = 0; c < num_constraints; c++) {
+            const ConstraintData& constraint = constraints[c];
+            
+            // Check if this node is involved in this constraint
+            bool is_involved = false;
+            int node_role = -1; // Which position in the constraint this node occupies
+            for (int n = 0; n < constraint.count && n < 4; n++) {
+                if (constraint.node_idx[n] == idx) {
+                    is_involved = true;
+                    node_role = n;
+                    break;
+                }
+            }
+            
+            if (!is_involved) continue;
+            
+            float3 constraint_force = make_vec3(0.0f, 0.0f, 0.0f);
+            
+            // Process constraint based on type
+            if (constraint.kind == ConstraintKind::DISTANCE && constraint.count >= 2) {
+                // Distance constraint: maintain distance between two nodes
+                int other_idx = (node_role == 0) ? constraint.node_idx[1] : constraint.node_idx[0];
+                if (other_idx >= 0 && other_idx < num_nodes) {
+                    float3 other_pos = make_vec3(pos_in_x[other_idx], pos_in_y[other_idx], pos_in_z[other_idx]);
+                    float3 diff = vec3_sub(my_pos, other_pos);
+                    float current_dist = vec3_length(diff);
+                    float target_dist = constraint.params[0];
+                    
+                    if (current_dist > 1e-6f && isfinite(current_dist) && target_dist > 0.0f) {
+                        float error = current_dist - target_dist;
+                        float force_magnitude = -constraint.weight * error * 0.5f; // Spring-like force
+                        
+                        // Cap constraint forces to prevent instability
+                        float max_constraint_force = params.max_force * 0.3f;
+                        force_magnitude = fmaxf(-max_constraint_force, fminf(max_constraint_force, force_magnitude));
+                        
+                        constraint_force = vec3_scale(diff, force_magnitude / current_dist);
+                    }
+                }
+            }
+            else if (constraint.kind == ConstraintKind::POSITION && constraint.count >= 1) {
+                // Position constraint: attract node to target position
+                float3 target_pos = make_vec3(constraint.params[0], constraint.params[1], constraint.params[2]);
+                float3 diff = vec3_sub(target_pos, my_pos);
+                float distance = vec3_length(diff);
+                
+                if (distance > 1e-6f && isfinite(distance)) {
+                    float force_magnitude = constraint.weight * distance * 0.1f; // Gentle attraction
+                    
+                    // Cap constraint forces
+                    float max_constraint_force = params.max_force * 0.2f;
+                    force_magnitude = fminf(force_magnitude, max_constraint_force);
+                    
+                    constraint_force = vec3_scale(diff, force_magnitude / distance);
+                }
+            }
+            
+            // Apply constraint force with safety checks
+            if (isfinite(constraint_force.x) && isfinite(constraint_force.y) && isfinite(constraint_force.z)) {
+                total_force = vec3_add(total_force, constraint_force);
+            }
+        }
     }
 
     force_out_x[idx] = total_force.x;

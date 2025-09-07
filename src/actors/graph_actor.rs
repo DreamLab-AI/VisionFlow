@@ -523,17 +523,43 @@ impl GraphServiceActor {
                             let new_z = optimized_node.data.position.z;
                             
                             if new_x.is_finite() && new_y.is_finite() && new_z.is_finite() {
-                                // Use physics boundary settings if enabled, otherwise no clamping
+                                // Calculate displacement for safety clamping
+                                let old_pos = node.data.position;
+                                let displacement_x = new_x - old_pos.x;
+                                let displacement_y = new_y - old_pos.y;
+                                let displacement_z = new_z - old_pos.z;
+                                let displacement_magnitude = (displacement_x * displacement_x + 
+                                                            displacement_y * displacement_y + 
+                                                            displacement_z * displacement_z).sqrt();
+                                
+                                // Calculate layout extent for displacement clamping (5% max displacement)
+                                let layout_extent = self.simulation_params.viewport_bounds.max(1000.0);
+                                let max_displacement = layout_extent * 0.05;
+                                
+                                let (final_x, final_y, final_z) = if displacement_magnitude > max_displacement {
+                                    // Clamp displacement to safe range
+                                    let scale = max_displacement / displacement_magnitude;
+                                    (
+                                        old_pos.x + displacement_x * scale,
+                                        old_pos.y + displacement_y * scale,
+                                        old_pos.z + displacement_z * scale,
+                                    )
+                                } else {
+                                    (new_x, new_y, new_z)
+                                };
+                                
+                                // Apply boundary constraints with bounded AABB domain
                                 if self.simulation_params.enable_bounds && self.simulation_params.viewport_bounds > 0.0 {
                                     let boundary_limit = self.simulation_params.viewport_bounds;
-                                    node.data.position.x = new_x.clamp(-boundary_limit, boundary_limit);
-                                    node.data.position.y = new_y.clamp(-boundary_limit, boundary_limit);
-                                    node.data.position.z = new_z.clamp(-boundary_limit, boundary_limit);
+                                    node.data.position.x = final_x.clamp(-boundary_limit, boundary_limit);
+                                    node.data.position.y = final_y.clamp(-boundary_limit, boundary_limit);
+                                    node.data.position.z = final_z.clamp(-boundary_limit, boundary_limit);
                                 } else {
-                                    // No boundary constraints
-                                    node.data.position.x = new_x;
-                                    node.data.position.y = new_y;
-                                    node.data.position.z = new_z;
+                                    // Apply default AABB bounds to prevent position explosions
+                                    let default_bound = 10000.0;
+                                    node.data.position.x = final_x.clamp(-default_bound, default_bound);
+                                    node.data.position.y = final_y.clamp(-default_bound, default_bound);
+                                    node.data.position.z = final_z.clamp(-default_bound, default_bound);
                                 }
                             } else {
                                 warn!("Skipping invalid position from stress majorization for node {}: ({}, {}, {})", 
@@ -1243,44 +1269,15 @@ impl GraphServiceActor {
                 info!("Waiting 2 seconds before GPU initialization to ensure system is ready...");
                 tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                 
-                // In Docker, always compile PTX on the fly since build paths don't match runtime paths
-                let ptx_content = if std::env::var("DOCKER_ENV").is_ok() {
-                    info!("Running in Docker, compiling PTX on the fly...");
-                    match compile_ptx_fallback().await {
-                        Ok(content) => {
-                            info!("Successfully compiled PTX file on the fly");
-                            content
-                        },
-                        Err(compile_err) => {
-                            error!("Failed to compile PTX on the fly: {}", compile_err);
-                            return;
-                        }
-                    }
-                } else {
-                    // Try to load pre-compiled PTX for non-Docker environments
-                    let ptx_path = env!("VISIONFLOW_PTX_PATH", "PTX file path not set by build.rs");
-                    
-                    match std::fs::read_to_string(ptx_path) {
-                        Ok(content) => {
-                            info!("Successfully loaded PTX file from: {}", ptx_path);
-                            content
-                        },
-                        Err(e) => {
-                            error!("Failed to load PTX file from {}: {}", ptx_path, e);
-                            
-                            // Try to compile PTX on the fly as a fallback
-                            warn!("Attempting to compile PTX file on the fly as fallback...");
-                            match compile_ptx_fallback().await {
-                                Ok(content) => {
-                                    info!("Successfully compiled PTX file on the fly");
-                                    content
-                                },
-                                Err(compile_err) => {
-                                    error!("Failed to compile PTX on the fly: {}", compile_err);
-                                    return;
-                                }
-                            }
-                        }
+                // Enhanced PTX loading with proper fallback logic
+                let ptx_content = match crate::utils::ptx::load_ptx().await {
+                    Ok(content) => {
+                        info!("PTX content loaded successfully");
+                        content
+                    },
+                    Err(e) => {
+                        error!("Failed to load PTX content: {}", e);
+                        return;
                     }
                 };
                 
@@ -1569,6 +1566,11 @@ impl Actor for GraphServiceActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("GraphServiceActor started");
+        // Optional GPU smoke test on start (set GPU_SMOKE_ON_START=1)
+        if std::env::var("GPU_SMOKE_ON_START").ok().as_deref() == Some("1") {
+            let report = crate::utils::gpu_diagnostics::ptx_module_smoke_test();
+            info!("{}", report);
+        }
         self.start_simulation_loop(ctx);
     }
 
@@ -2175,57 +2177,3 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
     }
 }
 
-/// Compile PTX file on the fly as a fallback when build.rs didn't create it
-async fn compile_ptx_fallback() -> Result<String, String> {
-    use std::process::Command;
-    
-    // Try multiple possible CUDA source locations
-    let cuda_src_paths = vec![
-        "/app/src/utils/visionflow_unified.cu",
-        "/workspace/ext/src/utils/visionflow_unified.cu", 
-        "src/utils/visionflow_unified.cu",
-    ];
-    
-    let cuda_src = cuda_src_paths.iter()
-        .find(|p| std::path::Path::new(p).exists())
-        .ok_or_else(|| "Could not find visionflow_unified.cu source file".to_string())?;
-    
-    info!("Found CUDA source at: {}", cuda_src);
-    
-    // Create temporary PTX output path
-    let temp_dir = std::env::temp_dir();
-    let ptx_output = temp_dir.join("visionflow_unified.ptx");
-    
-    // Get CUDA architecture from environment or use default
-    let cuda_arch = std::env::var("CUDA_ARCH").unwrap_or_else(|_| "86".to_string());
-    
-    info!("🔧 Compiling CUDA kernel to PTX with sm_{} architecture...", cuda_arch);
-    info!("Source file: {}", cuda_src);
-    
-    // Run nvcc to compile PTX
-    let output = Command::new("nvcc")
-        .args(&[
-            "-ptx",
-            "-arch", &format!("sm_{}", cuda_arch),
-            "-o", ptx_output.to_str().unwrap(),
-            cuda_src,
-            "--use_fast_math",
-            "-O3",
-        ])
-        .output()
-        .map_err(|e| format!("Failed to run nvcc: {}", e))?;
-    
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("CUDA compilation failed: {}", stderr));
-    }
-    
-    info!("✅ PTX compilation successful, output file: {:?}", ptx_output);
-    
-    // Read the compiled PTX file
-    let ptx_content = std::fs::read_to_string(&ptx_output)
-        .map_err(|e| format!("Failed to read compiled PTX: {}", e))?;
-    
-    info!("📄 PTX file loaded successfully, size: {} bytes", ptx_content.len());
-    Ok(ptx_content)
-}

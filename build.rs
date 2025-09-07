@@ -21,9 +21,12 @@ fn main() {
     let ptx_output = PathBuf::from(&out_dir).join("visionflow_unified.ptx");
     let obj_output = PathBuf::from(&out_dir).join("thrust_wrapper.o");
     
-    // Compile CUDA kernel to PTX
+    // Compile CUDA kernel to PTX with enhanced error handling
     println!("Compiling CUDA kernel to PTX...");
-    let ptx_status = Command::new("nvcc")
+    println!("NVCC Command: nvcc -ptx -arch sm_{} -o {} {} --use_fast_math -O3", 
+             cuda_arch, ptx_output.display(), cuda_src.display());
+    
+    let nvcc_output = Command::new("nvcc")
         .args(&[
             "-ptx",
             "-arch", &format!("sm_{}", cuda_arch),
@@ -32,12 +35,16 @@ fn main() {
             "--use_fast_math",
             "-O3",
         ])
-        .status()
-        .expect("Failed to compile CUDA kernel to PTX");
+        .output()
+        .expect("Failed to execute nvcc - is CUDA toolkit installed and in PATH?");
     
-    if !ptx_status.success() {
-        panic!("CUDA PTX compilation failed");
+    if !nvcc_output.status.success() {
+        eprintln!("NVCC STDOUT: {}", String::from_utf8_lossy(&nvcc_output.stdout));
+        eprintln!("NVCC STDERR: {}", String::from_utf8_lossy(&nvcc_output.stderr));
+        panic!("CUDA PTX compilation failed with exit code: {:?}. Check CUDA installation and source file.", nvcc_output.status.code());
     }
+    
+    println!("PTX compilation successful!");
     
     // Compile Thrust wrapper functions to object file
     println!("Compiling Thrust wrapper functions...");
@@ -107,8 +114,25 @@ fn main() {
     // Link C++ standard library for Thrust
     println!("cargo:rustc-link-lib=stdc++");
     
-    // Export the PTX file path for runtime loading
+    // Export the PTX file path for runtime loading - FIXED
     println!("cargo:rustc-env=VISIONFLOW_PTX_PATH={}", ptx_output.display());
+    
+    // Additional diagnostics for PTX path export
+    println!("PTX Build: Exported VISIONFLOW_PTX_PATH={}", ptx_output.display());
+    eprintln!("PTX Build Debug: PTX file created at {}", ptx_output.display());
+    
+    // Verify the PTX file was actually created and is readable
+    match std::fs::metadata(&ptx_output) {
+        Ok(metadata) => {
+            println!("PTX Build: Verified PTX file exists, size: {} bytes", metadata.len());
+            if metadata.len() == 0 {
+                panic!("PTX file was created but is empty - CUDA compilation may have failed silently");
+            }
+        },
+        Err(e) => {
+            panic!("PTX file was not created despite successful nvcc status: {}", e);
+        }
+    }
     
     println!("CUDA build complete!");
 }

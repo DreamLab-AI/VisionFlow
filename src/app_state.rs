@@ -66,7 +66,7 @@ impl AppState {
         let gpu_compute_addr = Some(GPUComputeActor::new().start());
 
         info!("[AppState::new] Starting GraphServiceActor");
-        let device = CudaDevice::new(0).map_err(|e| {
+        let _device = CudaDevice::new(0).map_err(|e| {
             log::error!("Failed to create CUDA device: {}", e);
             format!("CUDA initialization failed: {}", e)
         })?;
