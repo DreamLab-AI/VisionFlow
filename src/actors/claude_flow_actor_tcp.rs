@@ -223,8 +223,8 @@ impl ClaudeFlowActorTcp {
         }
         
         let addr = ctx.address();
-        let resilience_manager = self.resilience_manager.clone();
-        let timeout_config = self.timeout_config.clone();
+        let _resilience_manager = self.resilience_manager.clone();
+        let _timeout_config = self.timeout_config.clone();
         let active_connections = self.active_connections.clone();
         
         // Spawn async task to connect to Claude Flow with resilience
@@ -440,6 +440,187 @@ impl ClaudeFlowActorTcp {
             }
         }
     }
+    
+    /// Handle agent updates with proper queue processing
+    fn handle_agent_update(&mut self, update: AgentUpdate) {
+        debug!("Processing agent update for agent: {}", update.agent_id);
+        
+        // Add to pending updates queue
+        self.pending_updates.push(update.clone());
+        
+        // Update system metrics
+        self.system_metrics.active_agents = self.agent_cache.len() as u32;
+        
+        // Create message flow event
+        let flow_event = MessageFlowEvent {
+            id: uuid::Uuid::new_v4().to_string(),
+            from_agent: "system".to_string(),
+            to_agent: update.agent_id.clone(),
+            message_type: "status_update".to_string(),
+            priority: 5,
+            timestamp: update.timestamp,
+            latency_ms: 0.0,
+        };
+        
+        // Add to message flow history
+        self.message_flow_history.push(flow_event.clone());
+        self.pending_messages.push(flow_event);
+        
+        // Keep message history bounded
+        if self.message_flow_history.len() > 1000 {
+            self.message_flow_history.drain(..100);
+        }
+        
+        // Update coordination patterns if applicable
+        let pattern_id_opt = self.get_or_create_coordination_pattern(&update.agent_id);
+        if let Some(pattern_id) = pattern_id_opt {
+            // Find the pattern and calculate progress separately
+            let mut participants_to_check = Vec::new();
+            let mut pattern_found = false;
+            
+            for pattern in &self.coordination_patterns {
+                if pattern.id == pattern_id {
+                    participants_to_check = pattern.participants.clone();
+                    pattern_found = true;
+                    break;
+                }
+            }
+            
+            if pattern_found {
+                let progress = self.calculate_coordination_progress(&participants_to_check);
+                
+                // Now update the pattern
+                if let Some(pattern) = self.coordination_patterns.iter_mut().find(|p| p.id == pattern_id) {
+                    pattern.progress = progress;
+                    if progress >= 1.0 && pattern.status == "active" {
+                        pattern.status = "completed".to_string();
+                    }
+                }
+            }
+        }
+        
+        info!("Agent update processed: {} pending updates, {} message events", 
+              self.pending_updates.len(), self.pending_messages.len());
+    }
+    
+    /// Get or create a coordination pattern for an agent
+    fn get_or_create_coordination_pattern(&mut self, agent_id: &str) -> Option<String> {
+        // Check if agent is already in an active pattern
+        for pattern in &self.coordination_patterns {
+            if pattern.participants.contains(&agent_id.to_string()) && pattern.status == "active" {
+                return Some(pattern.id.clone());
+            }
+        }
+        
+        // Create new coordination pattern if we have multiple agents
+        if self.agent_cache.len() > 1 {
+            let pattern = CoordinationPattern {
+                id: uuid::Uuid::new_v4().to_string(),
+                pattern_type: "mesh".to_string(), // Default to mesh topology
+                participants: vec![agent_id.to_string()],
+                status: "forming".to_string(),
+                progress: 0.0,
+            };
+            let pattern_id = pattern.id.clone();
+            self.coordination_patterns.push(pattern);
+            Some(pattern_id)
+        } else {
+            None
+        }
+    }
+    
+    /// Calculate coordination progress based on participants
+    fn calculate_coordination_progress(&self, participants: &[String]) -> f32 {
+        let active_count = participants.iter()
+            .filter(|id| self.agent_cache.get(*id).map_or(false, |agent| agent.status == "active"))
+            .count();
+        
+        if participants.is_empty() {
+            0.0
+        } else {
+            active_count as f32 / participants.len() as f32
+        }
+    }
+    
+    /// Process pending queues
+    fn process_pending_queues(&mut self) {
+        // Process pending additions
+        if !self.pending_additions.is_empty() {
+            info!("Processing {} pending agent additions", self.pending_additions.len());
+            self.pending_additions.clear();
+        }
+        
+        // Process pending removals
+        if !self.pending_removals.is_empty() {
+            info!("Processing {} pending agent removals", self.pending_removals.len());
+            for agent_id in &self.pending_removals {
+                self.agent_cache.remove(agent_id);
+            }
+            self.pending_removals.clear();
+        }
+        
+        // Process pending updates
+        if !self.pending_updates.is_empty() {
+            info!("Processing {} pending agent updates", self.pending_updates.len());
+            self.pending_updates.clear();
+        }
+        
+        // Process pending messages
+        if !self.pending_messages.is_empty() {
+            info!("Processing {} pending message flow events", self.pending_messages.len());
+            self.pending_messages.clear();
+        }
+    }
+    
+    /// Calculate average latency from recent message flow events
+    fn calculate_average_latency(&self) -> f32 {
+        if self.message_flow_history.is_empty() {
+            return 0.0;
+        }
+        
+        let recent_events = self.message_flow_history.iter()
+            .rev()
+            .take(100)
+            .collect::<Vec<_>>();
+            
+        let total_latency: f32 = recent_events.iter()
+            .map(|event| event.latency_ms)
+            .sum();
+            
+        total_latency / recent_events.len() as f32
+    }
+    
+    /// Calculate error rate based on recent activities
+    fn calculate_error_rate(&self) -> f32 {
+        let total_attempts = self.consecutive_poll_failures + 1;
+        let error_count = self.consecutive_poll_failures.min(10); // Cap for calculation
+        
+        if total_attempts == 0 {
+            0.0
+        } else {
+            error_count as f32 / total_attempts as f32
+        }
+    }
+    
+    /// Send message and update connection stats
+    async fn send_tcp_message_with_stats(
+        writer: &mut BufWriter<tokio::net::tcp::OwnedWriteHalf>, 
+        message: Value,
+        stats: &mut ConnectionStats
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let msg_str = serde_json::to_string(&message)?;
+        let msg_bytes = format!("{}\n", msg_str);
+        
+        // Update stats
+        stats.messages_sent += 1;
+        stats.bytes_sent += msg_bytes.len() as u64;
+        stats.last_message_at = Some(Utc::now());
+        
+        writer.write_all(msg_bytes.as_bytes()).await?;
+        writer.flush().await?;
+        debug!("Sent TCP message with stats: {}", msg_str);
+        Ok(())
+    }
 }
 
 impl Actor for ClaudeFlowActorTcp {
@@ -613,25 +794,54 @@ impl Handler<ProcessTcpMessage> for ClaudeFlowActorTcp {
     type Result = ();
 
     fn handle(&mut self, msg: ProcessTcpMessage, _ctx: &mut Self::Context) {
+        // Update connection stats
         self.connection_stats.messages_received += 1;
         self.connection_stats.last_message_at = Some(Utc::now());
+        
+        // Calculate message size for bytes_received
+        let message_size = serde_json::to_string(&msg.message)
+            .map(|s| s.len() as u64)
+            .unwrap_or(0);
+        self.connection_stats.bytes_received += message_size;
         
         // Process the message based on its type
         if let Some(method) = msg.message.get("method").and_then(|m| m.as_str()) {
             match method {
                 "agent/status" => {
                     debug!("Received agent status update via TCP");
-                    // Process agent status update
+                    // Extract agent information and create update
+                    if let Some(params) = msg.message.get("params") {
+                        if let Some(agent_id) = params.get("agentId").and_then(|id| id.as_str()) {
+                            let update = AgentUpdate {
+                                agent_id: agent_id.to_string(),
+                                status: params.get("status").and_then(|s| s.as_str()).unwrap_or("unknown").to_string(),
+                                timestamp: Utc::now(),
+                            };
+                            self.handle_agent_update(update);
+                        }
+                    }
                 }
                 "swarm/update" => {
                     debug!("Received swarm update via TCP");
-                    // Process swarm update
+                    // Update system metrics based on swarm data
+                    if let Some(params) = msg.message.get("params") {
+                        if let Some(health) = params.get("health").and_then(|h| h.as_f64()) {
+                            self.system_metrics.network_health = health as f32;
+                        }
+                        if let Some(message_rate) = params.get("messageRate").and_then(|mr| mr.as_f64()) {
+                            self.system_metrics.message_rate = message_rate as f32;
+                        }
+                    }
                 }
                 _ => {
                     debug!("Received unknown method via TCP: {}", method);
                 }
             }
         }
+        
+        // Update system metrics
+        self.system_metrics.average_latency = self.calculate_average_latency();
+        self.system_metrics.error_rate = self.calculate_error_rate();
     }
 }
 
@@ -742,10 +952,18 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
         // The MCP server closes connections after each request, but this actor expects persistent connections
         // BotsClient handles agent fetching correctly with fresh connections
         debug!("ClaudeFlowActor polling DISABLED - using BotsClient instead");
+        
+        // Update system metrics even when polling is disabled
+        self.system_metrics.active_agents = self.agent_cache.len() as u32;
+        
+        // Process any pending updates in the queues
+        self.process_pending_queues();
+        
         return;
         
-        debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
-               self.consecutive_poll_failures);
+        // Unreachable code below - kept for reference but commented out
+        // debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
+        //        self.consecutive_poll_failures);
         
         // Call the agent_list tool to get current agent statuses
         if let Some(writer) = &self.tcp_writer {

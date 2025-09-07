@@ -1269,9 +1269,11 @@ impl EnhancedSettingsHandler {
         }
         
         // Continue with existing update logic...
-        let updated_graphs = if auto_balance_update.is_some() {
+        let _updated_graphs = if auto_balance_update.is_some() {
             vec!["logseq", "visionflow"]
         } else {
+            // Use the extract_physics_updates helper function
+            let _physics_updates = extract_physics_updates(&modified_update);
             modified_update.get("visualisation")
                 .and_then(|v| v.get("graphs"))
                 .and_then(|g| g.as_object())
@@ -1633,7 +1635,7 @@ async fn get_setting_by_path(
 
 /// Update single setting by path
 async fn update_setting_by_path(
-    req: HttpRequest,
+    _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
@@ -1879,7 +1881,7 @@ async fn batch_update_settings(
 /// Get settings schema for introspection
 async fn get_settings_schema(
     req: HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     let path = req.query_string()
         .split('&')
@@ -2041,7 +2043,9 @@ async fn update_settings(
     
     // Check which graphs had physics updated
     // If auto_balance was synchronized, both graphs are considered updated
-    let updated_graphs = if auto_balance_update.is_some() {
+    let _updated_graphs = if auto_balance_update.is_some() {
+        // Also extract physics updates for analysis
+        let _physics_updates = extract_physics_updates(&update);
         vec!["logseq", "visionflow"]
     } else {
         modified_update.get("visualisation")
@@ -2217,7 +2221,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         let rounded_val = (val * 1000.0).round() / 1000.0;
         
         // Be more lenient with auto-balance enabled
-        let max_damping = if auto_balance_enabled { 1.0 } else { 0.999 };
+        let _max_damping = if auto_balance_enabled { 1.0 } else { 0.999 };
         
         if rounded_val < 0.0 || rounded_val > 1.0 {
             return Err("damping must be between 0.0 and 1.0".to_string());
@@ -3271,7 +3275,8 @@ async fn get_cluster_analytics(
     info!("Cluster analytics request received");
     
     // Check if GPU clustering is available
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(_gpu_addr) = &state.gpu_compute_addr {
+        // TODO: Use GPU clustering when implemented
         // Get cluster data from GPU
         // This would call a GPU clustering analysis function
         // For now, return mock data

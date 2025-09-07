@@ -981,7 +981,9 @@ fn generate_default_clusters(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
 ) -> Vec<Cluster> {
-    generate_mock_clusters(graph_data, 6, "default")
+    // Use params for cluster configuration
+    let cluster_count = params.num_clusters.unwrap_or(6) as usize;
+    generate_mock_clusters(graph_data, cluster_count as u32, "default")
 }
 
 /// Generate mock clusters for demonstration

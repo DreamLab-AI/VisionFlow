@@ -117,7 +117,8 @@ pub struct RegenerateSemanticConstraints;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetAdvancedGPUContext {
-    pub context: crate::utils::unified_gpu_compute::UnifiedGPUCompute,
+    // Don't send the whole GPU context, just a signal to initialize it
+    pub initialize: bool,
 }
 
 #[derive(Message)]

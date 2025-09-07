@@ -15,6 +15,16 @@ pub struct MCPConnectionPool {
     port: String,
     max_retries: u32,
     retry_delay: Duration,
+    session_state: Arc<RwLock<HashMap<String, SessionState>>>,
+}
+
+#[derive(Debug, Clone)]
+struct SessionState {
+    session_id: String,
+    purpose: String,
+    created_at: std::time::Instant,
+    last_used: std::time::Instant,
+    command_count: u64,
 }
 
 struct MCPConnection {
@@ -32,6 +42,7 @@ impl MCPConnectionPool {
             port,
             max_retries: 3,
             retry_delay: Duration::from_millis(500),
+            session_state: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -46,7 +57,7 @@ impl MCPConnectionPool {
                 conn.last_used = std::time::Instant::now();
                 
                 // Clone the stream for use
-                if let Some(stream) = &conn.stream {
+                if let Some(_stream) = &conn.stream {
                     // For now, create a new connection since TcpStream can't be cloned
                     // In production, we'd use a connection pool with Arc<Mutex<>>
                     return self.create_new_connection(purpose).await;
@@ -173,7 +184,7 @@ impl MCPConnectionPool {
         }
     }
 
-    /// Execute an MCP command with retry logic
+    /// Execute an MCP command with retry logic and session state tracking
     pub async fn execute_command(
         &self,
         purpose: &str,
@@ -188,14 +199,41 @@ impl MCPConnectionPool {
             // Get fresh connection for each attempt
             match TcpStream::connect(&addr).await {
                 Ok(mut stream) => {
-                    // Initialize session
-                    if let Err(e) = self.initialize_mcp_session(&mut stream).await {
-                        warn!("Failed to initialize MCP session: {}", e);
-                        if attempt < self.max_retries {
-                            tokio::time::sleep(self.retry_delay).await;
-                            continue;
+                    // Initialize session and get session_id
+                    let session_id = match self.initialize_mcp_session(&mut stream).await {
+                        Ok(session_id) => {
+                            info!("Initialized MCP session: {} for purpose: {}", session_id, purpose);
+                            
+                            // Track session state
+                            let mut session_state = self.session_state.write().await;
+                            session_state.insert(session_id.clone(), SessionState {
+                                session_id: session_id.clone(),
+                                purpose: purpose.to_string(),
+                                created_at: std::time::Instant::now(),
+                                last_used: std::time::Instant::now(),
+                                command_count: 0,
+                            });
+                            
+                            session_id
                         }
-                        return Err(e);
+                        Err(e) => {
+                            warn!("Failed to initialize MCP session: {}", e);
+                            if attempt < self.max_retries {
+                                tokio::time::sleep(self.retry_delay).await;
+                                continue;
+                            }
+                            return Err(e);
+                        }
+                    };
+                    
+                    // Update session state before sending command
+                    {
+                        let mut session_state = self.session_state.write().await;
+                        if let Some(state) = session_state.get_mut(&session_id) {
+                            state.last_used = std::time::Instant::now();
+                            state.command_count += 1;
+                            debug!("Session {} command count: {}", session_id, state.command_count);
+                        }
                     }
                     
                     // Send command
@@ -208,7 +246,7 @@ impl MCPConnectionPool {
                     });
                     
                     let msg = format!("{}\n", request.to_string());
-                    debug!("Sending MCP command: {}", msg.trim());
+                    debug!("Sending MCP command: {} (session: {})", msg.trim(), session_id);
                     
                     if let Err(e) = stream.write_all(msg.as_bytes()).await {
                         warn!("Failed to send command: {}", e);
@@ -223,7 +261,7 @@ impl MCPConnectionPool {
                     
                     // Read response
                     let mut reader = BufReader::new(stream);
-                    let response_line = String::new();
+                    let _response_line = String::new();
                     
                     // Read with timeout
                     match tokio::time::timeout(
@@ -308,6 +346,31 @@ impl MCPConnectionPool {
                 }
             }
         }
+    }
+    
+    /// Clean up old session states to prevent memory leaks
+    pub async fn cleanup_old_sessions(&self) {
+        let mut session_state = self.session_state.write().await;
+        let now = std::time::Instant::now();
+        let session_timeout = Duration::from_secs(300); // 5 minutes
+        
+        session_state.retain(|session_id, state| {
+            if now.duration_since(state.last_used) > session_timeout {
+                info!("Cleaning up expired session: {} (purpose: {}, commands: {})", 
+                      session_id, state.purpose, state.command_count);
+                false
+            } else {
+                true
+            }
+        });
+    }
+    
+    /// Get session statistics
+    pub async fn get_session_stats(&self) -> (usize, u64) {
+        let session_state = self.session_state.read().await;
+        let active_sessions = session_state.len();
+        let total_commands = session_state.values().map(|s| s.command_count).sum();
+        (active_sessions, total_commands)
     }
 }
 

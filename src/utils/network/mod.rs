@@ -88,6 +88,11 @@ impl NetworkResilienceManager {
             default_timeout_config: TimeoutConfig::low_latency(),
         }
     }
+    
+    /// Get the default timeout configuration
+    pub fn get_default_timeout_config(&self) -> &TimeoutConfig {
+        &self.default_timeout_config
+    }
 
     /// Register a service with comprehensive resilience patterns
     pub async fn register_service(&self, service_config: ServiceResilienceConfig) -> Result<(), String> {

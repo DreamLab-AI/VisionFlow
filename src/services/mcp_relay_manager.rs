@@ -1,5 +1,5 @@
 use std::process::Command;
-use log::{info, error, warn};
+use log::{info, error, warn, debug};
 use std::sync::Arc;
 use crate::utils::network::{
     CircuitBreaker, CircuitBreakerConfig, RetryableError,
@@ -103,7 +103,21 @@ impl McpRelayManager {
     }
     
     /// Start the MCP relay in the multi-agent-container if not already running
-    pub async fn ensure_relay_running() -> Result<(), String> {
+    pub async fn ensure_relay_running(&self) -> Result<(), String> {
+        // Check service health before proceeding
+        if let Some(health_result) = self.health_manager.check_service_now("mcp-relay").await {
+            match health_result.status {
+                crate::utils::network::HealthStatus::Healthy => {
+                    info!("MCP relay health check passed");
+                }
+                _ => {
+                    warn!("Health check failed for MCP relay: {:?}", health_result);
+                }
+            }
+        } else {
+            warn!("No health check configuration found for MCP relay");
+        }
+        
         if Self::check_relay_status_internal().await.unwrap_or(false) {
             info!("MCP relay already running, no action needed");
             return Ok(());
@@ -169,6 +183,33 @@ impl McpRelayManager {
         }
     }
     
+    /// Implement continuous health monitoring for the MCP relay
+    pub async fn start_health_monitoring(&self) {
+        let health_manager = self.health_manager.clone();
+        
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+            
+            loop {
+                interval.tick().await;
+                
+                if let Some(health_result) = health_manager.check_service_now("mcp-relay").await {
+                    match health_result.status {
+                        crate::utils::network::HealthStatus::Healthy => {
+                            debug!("MCP relay health check passed");
+                        }
+                        _ => {
+                            warn!("MCP relay health check failed: {:?}", health_result);
+                            // Could trigger automatic restart here if needed
+                        }
+                    }
+                } else {
+                    warn!("No health check configuration found for MCP relay");
+                }
+            }
+        });
+    }
+    
     /// Check if multi-agent-container is running
     pub fn check_mcp_container() -> bool {
         let output = Command::new("docker")
@@ -191,8 +232,11 @@ pub async fn ensure_mcp_ready() -> Result<(), String> {
         return Err("multi-agent-container is not running".to_string());
     }
     
+    // Create manager instance to use health monitoring
+    let manager = McpRelayManager::new();
+    
     // Try to ensure relay is running
-    McpRelayManager::ensure_relay_running().await?;
+    manager.ensure_relay_running().await?;
     
     // Additional wait for relay to be fully ready
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
