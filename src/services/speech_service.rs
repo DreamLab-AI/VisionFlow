@@ -524,6 +524,7 @@ impl SpeechService {
                                     let transcription_broadcaster = transcription_tx.clone();
 
                                     tokio::spawn(async move {
+                                        // Submit audio to Whisper API
                                         match http_client_clone
                                             .post(&api_url)
                                             .multipart(form)
@@ -534,42 +535,99 @@ impl SpeechService {
                                                 if response.status().is_success() {
                                                     match response.json::<serde_json::Value>().await {
                                                         Ok(json) => {
-                                                            if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
-                                                                if !text.trim().is_empty() {
-                                                                    debug!("Whisper transcription: {}", text);
-                                                                    let transcription_text = text.to_string();
-                                                                    let _ = transcription_broadcaster.send(transcription_text.clone());
+                                                            // Whisper returns a task ID, not the transcription directly
+                                                            if let Some(identifier) = json.get("identifier").and_then(|t| t.as_str()) {
+                                                                info!("Whisper task queued with ID: {}", identifier);
+                                                                
+                                                                // Poll for task completion
+                                                                let task_url = format!("{}/task/{}", api_url.trim_end_matches("/transcription/"), identifier);
+                                                                let mut attempts = 0;
+                                                                const MAX_ATTEMPTS: u32 = 30;
+                                                                const POLL_DELAY_MS: u64 = 200;
+                                                                
+                                                                loop {
+                                                                    attempts += 1;
+                                                                    if attempts > MAX_ATTEMPTS {
+                                                                        error!("Timeout waiting for Whisper task {}", identifier);
+                                                                        break;
+                                                                    }
                                                                     
-                                                                    // Check if this is a voice command and process it
-                                                                    if Self::is_voice_command(&transcription_text) {
-                                                                        let session_id = Uuid::new_v4().to_string();
-                                                                        debug!("Processing as voice command: {}", transcription_text);
-                                                                        
-                                                                        // Parse and send to supervisor
-                                                                        if let Ok(voice_cmd) = VoiceCommand::parse(&transcription_text, session_id) {
-                                                                            // For now, just log that we would process this as a voice command
-                                                                            // In production, we would need to have the supervisor registered as a system service
-                                                                            // or pass its address through the app state
-                                                                            debug!("Would process voice command: {:?}", voice_cmd.parsed_intent);
-                                                                            
-                                                                            // Simulate a response for testing
-                                                                            let response_text = match voice_cmd.parsed_intent {
-                                                                                crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
-                                                                                    "I've spawned the agent for you.".to_string()
-                                                                                },
-                                                                                crate::actors::voice_commands::SwarmIntent::QueryStatus { .. } => {
-                                                                                    "All systems are operational.".to_string()
-                                                                                },
-                                                                                _ => "Command received and processing.".to_string()
-                                                                            };
-                                                                            
-                                                                            // Broadcast the response text
-                                                                            let _ = transcription_broadcaster.send(format!("Response: {}", response_text));
+                                                                    tokio::time::sleep(tokio::time::Duration::from_millis(POLL_DELAY_MS)).await;
+                                                                    
+                                                                    match http_client_clone.get(&task_url).send().await {
+                                                                        Ok(task_response) => {
+                                                                            if task_response.status().is_success() {
+                                                                                if let Ok(task_json) = task_response.json::<serde_json::Value>().await {
+                                                                                    if let Some(status) = task_json.get("status").and_then(|s| s.as_str()) {
+                                                                                        match status {
+                                                                                            "completed" => {
+                                                                                                // Extract transcription from result array
+                                                                                                if let Some(result) = task_json.get("result").and_then(|r| r.as_array()) {
+                                                                                                    let mut full_text = String::new();
+                                                                                                    for segment in result {
+                                                                                                        if let Some(text) = segment.get("text").and_then(|t| t.as_str()) {
+                                                                                                            full_text.push_str(text);
+                                                                                                            full_text.push(' ');
+                                                                                                        }
+                                                                                                    }
+                                                                                                    
+                                                                                                    let transcription_text = full_text.trim().to_string();
+                                                                                                    if !transcription_text.is_empty() {
+                                                                                                        info!("Whisper transcription: {}", transcription_text);
+                                                                                                        let _ = transcription_broadcaster.send(transcription_text.clone());
+                                                                                                        
+                                                                                                        // Check if this is a voice command and process it
+                                                                                                        if Self::is_voice_command(&transcription_text) {
+                                                                                                            let session_id = Uuid::new_v4().to_string();
+                                                                                                            debug!("Processing as voice command: {}", transcription_text);
+                                                                                                            
+                                                                                                            // Parse and send to supervisor
+                                                                                                            if let Ok(voice_cmd) = VoiceCommand::parse(&transcription_text, session_id) {
+                                                                                                                debug!("Would process voice command: {:?}", voice_cmd.parsed_intent);
+                                                                                                                
+                                                                                                                // Simulate a response for testing
+                                                                                                                let response_text = match voice_cmd.parsed_intent {
+                                                                                                                    crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
+                                                                                                                        "I've spawned the agent for you.".to_string()
+                                                                                                                    },
+                                                                                                                    crate::actors::voice_commands::SwarmIntent::QueryStatus { .. } => {
+                                                                                                                        "All systems are operational.".to_string()
+                                                                                                                    },
+                                                                                                                    _ => "Command received and processing.".to_string()
+                                                                                                                };
+                                                                                                                
+                                                                                                                // Broadcast the response text
+                                                                                                                let _ = transcription_broadcaster.send(format!("Response: {}", response_text));
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                                break;
+                                                                                            },
+                                                                                            "failed" => {
+                                                                                                error!("Whisper task {} failed: {:?}", identifier, task_json.get("error"));
+                                                                                                break;
+                                                                                            },
+                                                                                            "queued" | "in_progress" => {
+                                                                                                // Continue polling
+                                                                                                debug!("Whisper task {} status: {}", identifier, status);
+                                                                                            },
+                                                                                            _ => {
+                                                                                                debug!("Unknown Whisper task status: {}", status);
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        Err(e) => {
+                                                                            error!("Failed to poll Whisper task {}: {}", identifier, e);
+                                                                            break;
                                                                         }
                                                                     }
                                                                 }
                                                             } else {
-                                                                error!("No text field in Whisper response: {:?}", json);
+                                                                error!("No identifier field in Whisper response: {:?}", json);
                                                             }
                                                         }
                                                         Err(e) => {
