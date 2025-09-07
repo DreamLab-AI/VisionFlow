@@ -20,7 +20,7 @@ visualisation:
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: true
+    enabled: false
     intensity: 1.1538461
     radius: 0.71428573
     threshold: 0.07417583
@@ -47,8 +47,8 @@ visualisation:
     knee: 0.0
   hologram:
     ringCount: 5
-    ringColor: '#6e7000'
-    ringOpacity: 0.5934066
+    ringColor: '#34321d'
+    ringOpacity: 0.008241759
     sphereSizes:
     - 40.0
     - 80.0
@@ -68,7 +68,7 @@ visualisation:
       nodes:
         baseColor: '#ff0000'
         metalness: 0.25824177
-        opacity: 0.20879121
+        opacity: 0.4478022
         roughness: 0.3653846
         nodeSize: 1.9703296
         quality: high
@@ -124,7 +124,7 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 8.434066
+        attractionK: 0.9065934
         boundsSize: 1000.0
         separationRadius: 3.7717032
         damping: 0.2967033
@@ -133,7 +133,7 @@ visualisation:
         iterations: 50
         maxVelocity: 9.728022
         maxForce: 100.0
-        repelK: 14.927748
+        repelK: 172.54121
         springK: 2.5824919
         massScale: 1.0
         boundaryDamping: 0.95
