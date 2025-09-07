@@ -34,6 +34,7 @@ export class AudioInputService {
   private listeners: Map<string, Set<Function>> = new Map();
   private audioChunks: AudioChunk[] = [];
   private recordingStartTime: number = 0;
+  private audioBlobs: Blob[] = [];  // Store raw blobs for complete audio
 
   private constructor() {
     this.initializeAudioContext();
@@ -175,6 +176,7 @@ export class AudioInputService {
     }
 
     this.audioChunks = [];
+    this.audioBlobs = [];  // Clear previous recording
     this.recordingStartTime = Date.now();
 
     // Check supported mime types
@@ -187,6 +189,9 @@ export class AudioInputService {
 
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
+        // Store the blob for complete audio
+        this.audioBlobs.push(event.data);
+        // Still handle chunks for real-time features
         this.handleAudioData(event.data);
       }
     };
@@ -197,11 +202,16 @@ export class AudioInputService {
       this.stopRecording();
     };
 
-    this.mediaRecorder.onstop = () => {
+    this.mediaRecorder.onstop = async () => {
+      // Combine all blobs into a single complete audio file
+      console.log('[AudioInputService] Recording stopped, creating blob from', this.audioBlobs.length, 'chunks');
+      const completeAudio = new Blob(this.audioBlobs, { type: this.mediaRecorder?.mimeType || 'audio/webm' });
+      console.log('[AudioInputService] Complete audio blob created:', completeAudio.size, 'bytes, type:', completeAudio.type);
+      this.emit('recordingComplete', completeAudio);
       this.emit('recordingStopped', this.audioChunks);
     };
 
-    // Start recording with timeslice for streaming
+    // Start recording with timeslice for monitoring
     this.mediaRecorder.start(100); // Get data every 100ms
     this.setState('recording');
     this.emit('recordingStarted');
@@ -212,6 +222,7 @@ export class AudioInputService {
    */
   stopRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
+      console.log('[AudioInputService] Stopping recording, blobs collected:', this.audioBlobs.length);
       this.mediaRecorder.stop();
       this.setState('ready');
     }
