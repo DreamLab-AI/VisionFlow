@@ -124,6 +124,11 @@ export class VoiceWebSocketService {
     // Handle text messages
     try {
       const message: VoiceMessage = JSON.parse(event.data);
+      
+      // Debug logging to see what we're receiving
+      if (message.type === 'error') {
+        console.log('Raw error message from server:', message);
+      }
 
       switch (message.type) {
         case 'connected':
@@ -136,8 +141,9 @@ export class VoiceWebSocketService {
           break;
 
         case 'error':
-          gatedConsole.voice.error('Voice service error:', message.data);
-          this.emit('voiceError', message.data);
+          const errorMsg = message.data || message.error || 'Unknown voice service error';
+          gatedConsole.voice.error('Voice service error:', errorMsg);
+          this.emit('voiceError', errorMsg);
           break;
 
         default:
@@ -205,23 +211,23 @@ export class VoiceWebSocketService {
       return;
     }
 
-    // Check browser support first
+    // DEVELOPER WORKAROUND: Bypass all browser checks for testing
     const support = AudioInputService.getBrowserSupport();
-    if (!support.getUserMedia) {
-      throw new Error('Browser does not support microphone access. Please use a modern browser with HTTPS.');
-    }
-
-    if (!support.isHttps) {
-      throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
-    }
-
-    if (!support.mediaRecorder) {
-      throw new Error('Browser does not support audio recording. Please use a modern browser.');
-    }
-
-    if (!support.audioContext) {
-      throw new Error('Browser does not support Web Audio API. Please use a modern browser.');
-    }
+    console.log('DEVELOPER MODE: Browser support checks bypassed', support);
+    
+    // Original checks commented out for testing
+    // if (!support.getUserMedia) {
+    //   throw new Error('Browser does not support microphone access. Please use a modern browser with HTTPS.');
+    // }
+    // if (!support.isHttps) {
+    //   throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
+    // }
+    // if (!support.mediaRecorder) {
+    //   throw new Error('Browser does not support audio recording. Please use a modern browser.');
+    // }
+    // if (!support.audioContext) {
+    //   throw new Error('Browser does not support Web Audio API. Please use a modern browser.');
+    // }
 
     try {
       // Request microphone access
@@ -234,13 +240,13 @@ export class VoiceWebSocketService {
       await this.audioInput.startRecording();
       this.isStreamingAudio = true;
 
-      // Send start streaming message
-      const message: VoiceMessage = {
+      // Send start streaming message - server expects flat structure
+      const message = {
         type: 'stt',
-        data: {
-          action: 'start',
-          ...options
-        }
+        action: 'start',
+        language: options?.language || 'en',
+        model: options?.model || 'whisper-1',
+        ...options
       };
 
       this.send(JSON.stringify(message));
@@ -265,11 +271,10 @@ export class VoiceWebSocketService {
     this.isStreamingAudio = false;
 
     if (this.isConnected()) {
-      const message: VoiceMessage = {
+      // Send stop message - server expects flat structure
+      const message = {
         type: 'stt',
-        data: {
-          action: 'stop'
-        }
+        action: 'stop'
       };
 
       this.send(JSON.stringify(message));

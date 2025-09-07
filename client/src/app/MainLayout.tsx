@@ -126,16 +126,7 @@ const MainLayoutContent: React.FC = () => {
       )}
 
       {/* Voice Interaction Components - Only show when browser supports it */}
-      {hasVoiceSupport && (
-        <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-1 items-start pointer-events-auto">
-          <AuthGatedVoiceButton size="md" variant="primary" />
-          <AuthGatedVoiceIndicator
-            className="max-w-xs text-xs"
-            showTranscription={true}
-            showStatus={false}
-          />
-        </div>
-      )}
+      {/* Voice button removed - now integrated into control center */}
     </div>
   );
 };

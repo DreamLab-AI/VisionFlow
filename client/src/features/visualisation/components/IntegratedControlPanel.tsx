@@ -4,6 +4,7 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
+import { VoiceStatusIndicator } from '../../../components/VoiceStatusIndicator';
 import { apiService } from '../../../services/apiService';
 import { botsWebSocketIntegration } from '../../bots/services/BotsWebSocketIntegration';
 import { useBotsData } from '../../bots/contexts/BotsDataContext';
@@ -841,6 +842,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             Control Center
             <AutoBalanceIndicator />
           </div>
+          <VoiceStatusIndicator className="ml-auto mr-2" />
           <button
             style={{
               width: '24px',
