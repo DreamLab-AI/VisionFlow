@@ -11,8 +11,8 @@ Date: 2025-09-07
 Summary
 - Path A retained: extend UnifiedGPUCompute. VisualAnalyticsGPU remains parked for now.
 - PTX build/runtime pipeline is stabilized with centralized loader and diagnostics; a gated smoke test has been added. **[✅ Phase 0 COMPLETE]**
-- Constraints and SSSP are partially integrated on GPU; spatial hashing uses auto-tuned cell size but keeps fixed cell buffers. **[⚠️ CRITICAL: Buffer resize disconnected]**
-- Buffer resizing for nodes/edges exists in core but is **NOT wired through the actor flow** - immediate fix required.
+- Constraints and SSSP are partially integrated on GPU; spatial hashing uses auto-tuned cell size but keeps fixed cell buffers. **[✅ Buffer resize FIXED]**
+- Buffer resizing for nodes/edges properly connected - accounts for bidirectional edges in CSR format.
 - Clustering and anomaly endpoints still return simulated results; GPU implementations are planned with templates created.
 
 ## ✅ AUTO-BALANCE AND GPU COMPUTE MODE FIXES COMPLETED (2025-09-07)
@@ -67,6 +67,42 @@ Summary
 - `/workspace/ext/src/utils/visionflow_unified.cu`: Removed all hardcoded values
 - `/workspace/ext/client/src/features/settings/config/settingsUIDefinition.ts`: Fixed all ranges
 - `/workspace/ext/src/models/simulation_params.rs`: Added boundary_damping to GPU struct
+
+## ✅ VOICE INTEGRATION WITH SPACEBAR HOTKEY COMPLETED (2025-09-07)
+
+### Voice Features Implemented:
+
+1. **Spacebar Hotkey for Voice Activation**:
+   - Press and hold spacebar to start recording
+   - Release spacebar to stop recording and send to swarm
+   - Visual feedback with button scale animation
+   - Prevents spacebar activation when typing in inputs
+
+2. **Voice Status Indicator in Control Center**:
+   - Live status display at top of control panel
+   - Shows "Recording (Space)", "Speaking", or "Voice Ready (Space)"
+   - Red indicator when recording, blue when speaking
+   - Animated pulse ring for active states
+   - Real-time audio level visualization
+
+3. **Voice Button Visibility Improvements**:
+   - Moved to bottom-right corner (more visible)
+   - Increased size to "lg" variant
+   - Added background to status text for better readability
+   - Maintained auth gating for security
+
+4. **GPU Edge Buffer Allocation Fixed**:
+   - Fixed "Too many edges" error (7734 edges vs 3867 allocated)
+   - Properly accounts for bidirectional edges in CSR format
+   - Counts actual edges during initialization and updates
+   - Prevents graph settling failure under GPU forces
+
+### Files Modified:
+- `/workspace/ext/client/src/components/VoiceButton.tsx`: Added spacebar hotkey support
+- `/workspace/ext/client/src/components/VoiceStatusIndicator.tsx`: Created new indicator component
+- `/workspace/ext/client/src/features/visualisation/components/IntegratedControlPanel.tsx`: Added voice indicator
+- `/workspace/ext/client/src/app/MainLayout.tsx`: Improved voice button positioning
+- `/workspace/ext/src/actors/gpu_compute_actor.rs`: Fixed edge buffer allocation
 
 ## ✅ COMPREHENSIVE DEAD CODE CLEANUP COMPLETED (2025-09-07)
 

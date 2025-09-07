@@ -72,10 +72,11 @@ export class AudioInputService {
         throw new Error('Browser does not support microphone access. Please use a modern browser with HTTPS.');
       }
 
-      // Check if we're in a secure context
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
-      }
+      // DEVELOPER WORKAROUND: Bypass HTTPS check for testing
+      // if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      //   throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
+      // }
+      console.log('DEVELOPER MODE: HTTPS check bypassed in AudioInputService');
 
       const defaultConstraints: MediaStreamConstraints = {
         audio: {

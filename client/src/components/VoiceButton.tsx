@@ -45,6 +45,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
   const [audioLevel, setAudioLevel] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   const {
     isListening,
@@ -84,6 +85,41 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     }
   }, [isListening, hasError]);
 
+  // Add spacebar hotkey support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only activate if spacebar is pressed and no input is focused
+      if (e.code === 'Space' && 
+          !e.repeat && 
+          !(e.target instanceof HTMLInputElement) && 
+          !(e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        setIsSpacePressed(true);
+        if (!isListening) {
+          handleToggle();
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsSpacePressed(false);
+        if (isListening) {
+          handleToggle();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isListening]);
+
   const handleToggle = async () => {
     if (!isSupported) {
       setHasError(true);
@@ -120,6 +156,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     rounded-full transition-all duration-200
     focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background
     ${isListening ? 'ring-2 ring-destructive' : ''}
+    ${isSpacePressed ? 'scale-95' : ''}
   `;
 
   return (
