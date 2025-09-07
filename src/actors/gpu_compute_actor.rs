@@ -219,9 +219,22 @@ impl GPUComputeActor {
 
     async fn perform_gpu_initialization(graph: GraphData) -> Result<GpuInitializationResult, Error> {
         let num_nodes = graph.nodes.len() as u32;
-        let num_edges = graph.edges.len() as u32;
         
-        info!("(Static Logic) Initializing unified GPU for {} nodes, {} edges", num_nodes, num_edges);
+        // Count actual edges that will be uploaded - need to build node indices first
+        let mut temp_indices = HashMap::new();
+        for (idx, node) in graph.nodes.iter().enumerate() {
+            temp_indices.insert(node.id, idx);
+        }
+        
+        let mut actual_edge_count = 0;
+        for edge in &graph.edges {
+            if temp_indices.contains_key(&edge.source) && temp_indices.contains_key(&edge.target) {
+                actual_edge_count += 2; // Currently adding bidirectionally in CSR
+            }
+        }
+        let num_edges = actual_edge_count as u32;
+        
+        info!("(Static Logic) Initializing unified GPU for {} nodes, {} edges (actual CSR count)", num_nodes, num_edges);
 
         if num_nodes > MAX_NODES {
             return Err(Error::new(ErrorKind::Other, format!("Node count {} exceeds limit {}", num_nodes, MAX_NODES)));
@@ -346,11 +359,20 @@ impl GPUComputeActor {
         }
 
         let new_num_nodes = graph.nodes.len() as u32;
-        let new_num_edges = graph.edges.len() as u32;
+        
+        // Count actual edges that will be uploaded to CSR format
+        // Some edges might be unidirectional, some bidirectional
+        let mut actual_edge_count = 0;
+        for edge in &graph.edges {
+            if self.node_indices.contains_key(&edge.source) && self.node_indices.contains_key(&edge.target) {
+                actual_edge_count += 2; // Currently adding bidirectionally
+            }
+        }
+        let new_num_edges = actual_edge_count as u32;
         
         // FIX: Handle buffer resize for dynamic graph changes
         if new_num_nodes != self.num_nodes || new_num_edges != self.num_edges {
-            info!("Graph size changed: nodes {} -> {}, edges {} -> {}", 
+            info!("Graph size changed: nodes {} -> {}, edges {} -> {} (bidirectional)", 
                   self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
             
             // Call resize_buffers which preserves existing data during resize
@@ -396,6 +418,8 @@ impl GPUComputeActor {
                 row_offsets.push(col_indices.len() as i32);
             }
     
+            info!("Uploading {} CSR edges to unified compute (from {} original edges)", col_indices.len(), graph.edges.len());
+            
             unified_compute.upload_edges_csr(&row_offsets, &col_indices, &weights)
                 .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload CSR edges: {}", e)))?;
             
