@@ -8,7 +8,7 @@ import { createLogger, createErrorMetadata } from '../../../utils/logger'
 import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData, createBinaryNodeData } from '../../../types/binaryProtocol'
-import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial'
+import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
 import { createEventHandlers } from './GraphManager_EventHandlers'
 import { MetadataShapes } from './MetadataShapes'
@@ -226,18 +226,18 @@ const GraphManager: React.FC = () => {
     }
   }, [])
   
-  // Set up layers properly: base layer 0 for rendering, layer 1 for node/edge bloom
+  // Set up bloom for nodes
   useEffect(() => {
     const obj = meshRef.current as any;
     if (obj) {
-      obj.layers.set(0); // Base layer for standard rendering
-      obj.layers.enable(1); // Layer 1 for nodes/edges bloom
+      // Enable bloom layer for nodes
+      obj.layers.enable(1); // Bloom layer
       registerNodeObject(obj);
     }
     return () => {
       if (obj) unregisterNodeObject(obj);
     };
-  }, [])
+  }, [graphData.nodes.length]) // Re-run when nodes change
   
   // Update material settings for bloom strength changes
   useEffect(() => {
@@ -318,8 +318,8 @@ const GraphManager: React.FC = () => {
       
       // Debug logging based on settings
       const debugSettings = settings?.system?.debug;
-      if (debugSettings?.enableNodeDebug || true) { // Force debug for now
-        console.log('[GraphManager] Initializing instanced mesh', {
+      if (debugSettings?.enableNodeDebug) {
+        console.log('GraphManager: Node mesh initialized', {
           nodeCount: graphData.nodes.length,
           meshCount: mesh.count,
           hasPositions: !!nodePositionsRef.current,
@@ -361,7 +361,6 @@ const GraphManager: React.FC = () => {
         materialRef.current.needsUpdate = true
       }
 
-      console.log('[GraphManager] Instance matrices initialized');
     }
   }, [graphData, normalizedSSSPResult])
 
@@ -516,15 +515,18 @@ const GraphManager: React.FC = () => {
 
   // Graph data subscription with enhanced error handling and diagnostics
   useEffect(() => {
-    console.log('[GraphManager] Setting up graph data subscription');
     
     const handleGraphUpdate = (data: GraphData) => {
-      console.log('[GraphManager] Received graph update:', {
-        nodeCount: data.nodes.length,
-        edgeCount: data.edges.length,
-        firstNode: data.nodes[0],
-        hasValidData: data && Array.isArray(data.nodes) && Array.isArray(data.edges)
-      });
+      // Debug logging if enabled
+      const debugSettings = settings?.system?.debug;
+      if (debugSettings?.enableNodeDebug) {
+        console.log('GraphManager: Graph data updated', {
+          nodeCount: data.nodes.length,
+          edgeCount: data.edges.length,
+          firstNode: data.nodes[0],
+          hasValidData: data && Array.isArray(data.nodes) && Array.isArray(data.edges)
+        });
+      }
 
       if (debugState.isEnabled()) {
         logger.info('Graph data updated', { 
@@ -536,7 +538,6 @@ const GraphManager: React.FC = () => {
 
       // Validate data before processing
       if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
-        console.error('[GraphManager] Invalid graph data received:', data);
         return;
       }
 
@@ -546,7 +547,6 @@ const GraphManager: React.FC = () => {
         nodes: data.nodes.map((node, i) => {
           if (!node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)) {
             const position = getPositionForNode(node, i, data.nodes.length)
-            console.log(`[GraphManager] Generated position for node ${node.id}:`, position);
             return {
               ...node,
               position: { x: position[0], y: position[1], z: position[2] }
@@ -560,7 +560,6 @@ const GraphManager: React.FC = () => {
         !node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)
       )
       setNodesAreAtOrigin(allAtOrigin)
-      console.log('[GraphManager] Nodes at origin:', allAtOrigin);
 
       setGraphData(dataWithPositions)
 
@@ -579,26 +578,25 @@ const GraphManager: React.FC = () => {
       })
 
       setEdgePoints(newEdgePoints)
-      console.log('[GraphManager] Updated edge points:', newEdgePoints.length / 6, 'edges');
     }
 
-    console.log('[GraphManager] Subscribing to graph data changes');
     const unsubscribe = graphDataManager.onGraphDataChange(handleGraphUpdate)
 
     // Get initial data and update worker with enhanced error handling
-    console.log('[GraphManager] Fetching initial graph data');
     graphDataManager.getGraphData().then((data) => {
-      console.log('[GraphManager] Got initial data from manager:', {
-        nodeCount: data.nodes.length,
-        edgeCount: data.edges.length
-      });
+      // Debug logging if enabled
+      const debugSettings = settings?.system?.debug;
+      if (debugSettings?.enableNodeDebug) {
+        console.log('GraphManager: Initial graph data loaded', {
+          nodeCount: data.nodes.length,
+          edgeCount: data.edges.length
+        });
+      }
       handleGraphUpdate(data)
       // Ensure worker has the data
       return graphWorkerProxy.setGraphData(data)
     }).then(() => {
-      console.log('[GraphManager] Worker updated with graph data');
     }).catch((error) => {
-      console.error('[GraphManager] Error in initial data setup:', error);
       // Fallback: create sample data
       const fallbackData = {
         nodes: [
@@ -611,12 +609,10 @@ const GraphManager: React.FC = () => {
           { id: 'fallback_edge2', source: 'fallback2', target: 'fallback3' }
         ]
       };
-      console.log('[GraphManager] Using fallback data');
       handleGraphUpdate(fallbackData);
     })
 
     return () => {
-      console.log('[GraphManager] Unsubscribing from graph data changes');
       unsubscribe()
     }
   }, [])
@@ -794,17 +790,23 @@ const GraphManager: React.FC = () => {
 
   // Debug logging for render - only log once on mount/unmount
   useEffect(() => {
-    console.log('[GraphManager] Component mounted with data:', {
-      nodeCount: graphData.nodes.length,
-      edgeCount: graphData.edges.length,
-      edgePointsLength: edgePoints.length,
-      enableMetadataShape,
-      meshRefCurrent: !!meshRef.current,
-      materialRefCurrent: !!materialRef.current
-    });
+    // Debug logging if enabled
+    const debugSettings = settings?.system?.debug;
+    if (debugSettings?.enableNodeDebug) {
+      console.log('GraphManager: Component mounted', {
+        nodeCount: graphData.nodes.length,
+        edgeCount: graphData.edges.length,
+        edgePointsLength: edgePoints.length,
+        enableMetadataShape,
+        meshRefCurrent: !!meshRef.current,
+        materialRefCurrent: !!materialRef.current
+      });
+    }
     
     return () => {
-      console.log('[GraphManager] Component unmounting');
+      if (debugSettings?.enableNodeDebug) {
+        console.log('GraphManager: Component unmounting');
+      }
     };
   }, []); // Empty deps = only on mount/unmount
 
@@ -862,7 +864,22 @@ const GraphManager: React.FC = () => {
 
       {/* Ambient particle system - disabled to prevent white blocks */}
       {particleGeometry && (
-        <points ref={particleSystemRef} geometry={particleGeometry}>
+        <points 
+          ref={(points) => {
+            particleSystemRef.current = points;
+            // Ensure particles are on Layer 1 (graph bloom) only
+            if (points) {
+              // Initialize layers if not present
+              if (!points.layers) {
+                points.layers = new THREE.Layers();
+              }
+              points.layers.set(0); // Base layer for rendering
+              points.layers.enable(1); // Layer 1 for graph bloom
+              points.layers.disable(2); // Explicitly disable Layer 2 (environment glow)
+            }
+          }}
+          geometry={particleGeometry}
+        >
           <pointsMaterial
             size={0.1}
             color={settings?.visualisation?.graphs?.logseq?.nodes?.baseColor || settings?.visualisation?.nodes?.baseColor || '#00ffff'}

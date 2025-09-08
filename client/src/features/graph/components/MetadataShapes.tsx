@@ -3,7 +3,7 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { type Node as GraphNode } from '../managers/graphDataManager';
-import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial';
+import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial';
 
 // --- 1. Define Visual Metaphor Logic ---
 // This helper function is the heart of our new system.
@@ -265,7 +265,19 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
       {Array.from(nodeGroups.entries()).map(([geometryType, group]) => (
         <instancedMesh
           key={geometryType}
-          ref={(ref) => { if (ref) meshRefs.current.set(geometryType, ref); }}
+          ref={(ref) => { 
+            if (ref) {
+              meshRefs.current.set(geometryType, ref);
+              // Initialize layers if not present
+              if (!ref.layers) {
+                ref.layers = new THREE.Layers();
+              }
+              // Set proper layers for graph elements (Layer 1 for bloom, NOT Layer 2 for glow)
+              ref.layers.set(0); // Base layer for rendering
+              ref.layers.enable(1); // Layer 1 for graph bloom
+              ref.layers.disable(2); // Explicitly disable Layer 2 (environment glow)
+            }
+          }}
           args={[geometries[geometryType], material, group.nodes.length]}
           frustumCulled={false}
           onClick={(e) => {
