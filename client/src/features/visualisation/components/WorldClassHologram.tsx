@@ -4,8 +4,6 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
 import { registerEnvObject, unregisterEnvObject } from '../hooks/bloomRegistry';
-// import { useBloomStrength } from '../../graph/contexts/BloomContext'; // Removed - bloom managed via settings
-import { DiffuseEffectsIntegration } from '@/rendering/DiffuseEffectsIntegration';
 import { HologramManager } from '../renderers/HologramManager';
 
 // Quantum field shader with advanced visuals
@@ -154,8 +152,7 @@ const HolographicRing: React.FC<{
 export const WorldClassHologram: React.FC<{
   enabled?: boolean;
   position?: [number, number, number];
-  useDiffuseEffects?: boolean;
-}> = React.memo(({ enabled = true, position = [0, 0, 0], useDiffuseEffects = true }) => {
+}> = React.memo(({ enabled = true, position = [0, 0, 0] }) => {
   const settings = useSettingsStore((state) => state.settings);
   // Handle both snake_case and camelCase field names
   const envBloomStrength = (settings?.visualisation?.bloom as any)?.environment_bloom_strength ?? 
@@ -205,30 +202,15 @@ export const WorldClassHologram: React.FC<{
     return null;
   }
   
-  // Wrap with diffuse effects if enabled
+  // Create hologram content
   const hologramContent = (
     <group ref={groupRef} position={new THREE.Vector3(...position)}>
-      {/* Use new HologramManager with diffuse effects */}
+      {/* HologramManager renders rings and spheres */}
       <HologramManager 
         position={[0, 0, 0]}
         isXRMode={false}
-        useDiffuseEffects={true}  // Re-enable diffuse effects
       />
       
-      {/* Quantum field sphere - fallback for custom settings */}
-      {!useDiffuseEffects && (
-        <mesh ref={sphereRef}>
-          <icosahedronGeometry args={[hologramSettings?.sphereSizes?.[0] || 40, 4]} />
-          <meshBasicMaterial
-            color={hologramSettings?.ringColor || '#00ffff'}
-            wireframe
-            transparent
-            opacity={hologramSettings?.ringOpacity || 0.4}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-      )}
       
       {/* Multiple holographic rings - 2x larger */}
       {hologramSettings?.ringCount && Array.from({ length: Math.floor(hologramSettings.ringCount) }, (_, i) => (
@@ -281,17 +263,8 @@ export const WorldClassHologram: React.FC<{
     </group>
   );
 
-  // Wrap with diffuse effects integration
-  return useDiffuseEffects ? (
-    <DiffuseEffectsIntegration
-      enableDiffuseEffects={true}
-      enableBloomForGraphs={false}
-    >
-      {hologramContent}
-    </DiffuseEffectsIntegration>
-  ) : (
-    hologramContent
-  );
+  // Return hologram content directly - post-processing handled by SelectiveBloom
+  return hologramContent;
 });
 
 // Energy field particles - memoized to prevent unnecessary re-renders

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { WireframeWithBloomCloudMaterial } from '../shaders/WireframeWithBloomCloudMaterial';
+// Using standard THREE.js materials instead of custom cloud materials
 
 interface WireframeCloudMeshProps {
   geometry: 'torus' | 'sphere' | 'icosahedron';
@@ -37,7 +37,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
   rotationAxis = [0, 1, 0]
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<WireframeWithBloomCloudMaterial>();
+  const materialRef = useRef<THREE.MeshBasicMaterial>();
 
   // Create geometry
   const geometryObj = useMemo(() => {
@@ -60,18 +60,19 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
     return geo;
   }, [geometry, geometryArgs]);
 
-  // Create material
+  // Create material using standard THREE.js material with emissive properties
   const material = useMemo(() => {
-    return new WireframeWithBloomCloudMaterial({
-      color,
-      wireframeColor: wireframeColor || color,
-      opacity,
-      wireframeOpacity,
-      cloudExtension,
-      blurRadius,
-      glowIntensity
+    const c = new THREE.Color(color);
+    return new THREE.MeshBasicMaterial({
+      color: c,
+      emissive: c,
+      emissiveIntensity: glowIntensity * 0.3,
+      transparent: true,
+      opacity: opacity,
+      wireframe: true,
+      toneMapped: false
     });
-  }, [color, wireframeColor, opacity, wireframeOpacity, cloudExtension, blurRadius, glowIntensity]);
+  }, [color, opacity, glowIntensity]);
 
   // Store material ref
   useEffect(() => {
@@ -89,9 +90,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
       meshRef.current.rotation.z += delta * rotationSpeed * rotationAxis[2];
     }
 
-    if (materialRef.current) {
-      materialRef.current.updateTime(state.clock.elapsedTime);
-    }
+    // Standard material doesn't need time updates
   });
 
   return (

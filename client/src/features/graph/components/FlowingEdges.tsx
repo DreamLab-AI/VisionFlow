@@ -124,7 +124,13 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   useEffect(() => {
     const obj = lineRef.current as any;
     if (obj) {
-      obj.layers.enable(1); // Use layer 1 for all bloom objects to avoid SelectiveBloom issues
+      // Initialize layers if not present
+      if (!obj.layers) {
+        obj.layers = new THREE.Layers();
+      }
+      obj.layers.set(0); // Base layer for rendering
+      obj.layers.enable(1); // Layer 1 for graph bloom
+      obj.layers.disable(2); // Explicitly disable Layer 2 (environment glow) to prevent cross-contamination
       registerEdgeObject(obj);
     }
     return () => {

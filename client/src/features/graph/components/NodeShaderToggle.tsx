@@ -1,7 +1,7 @@
 // Node shader toggle handler - switches between basic and hologram shaders
 import { useEffect } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
-import { HologramNodeMaterial } from '../shaders/HologramNodeMaterial';
+import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial';
 import * as THREE from 'three';
 
 export interface NodeShaderToggleProps {

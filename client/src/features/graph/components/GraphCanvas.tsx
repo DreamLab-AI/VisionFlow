@@ -5,16 +5,14 @@ import * as THREE from 'three';
 
 // GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
-// Post-processing effects
-import { PostProcessingEffects } from './PostProcessingEffects';
-import { SelectiveBloomPostProcessing } from './SelectiveBloomPostProcessing';
+// Post-processing effects - using modern R3F selective bloom
+import { SelectiveBloom } from '../../../rendering/SelectiveBloom';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
 // SpacePilot Integration - using simpler version that works with useFrame
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
-// Hologram scene elements
-import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
-import { HologramEnvironment } from '../../visualisation/components/HologramMotes';
+// Consolidated hologram environment
+import HologramEnvironment from '../../visualisation/components/HologramEnvironment';
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
@@ -116,28 +114,12 @@ const GraphCanvas: React.FC = () => {
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[10, 10, 10]} intensity={0.8} />
                 
-                {/* Hologram scene elements - rings and wireframes */}
-                <WorldClassHologram 
+                {/* Consolidated hologram environment - all effects in one component on Layer 2 */}
+                <HologramEnvironment 
                     enabled={enableHologram}
                     position={[0, 0, 0]}
                     useDiffuseEffects={true}
                 />
-                
-                {/* Environmental effects - motes, particles and glitter */}
-                <HologramEnvironment 
-                    enabled={enableHologram}
-                    color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
-                    position={[0, 0, 0]}
-                />
-                
-                {/* Energy field particles - reduced by 10x and tied to hologram */}
-                {enableHologram && (
-                    <EnergyFieldParticles
-                        count={50}
-                        bounds={50}
-                        color={settings?.visualisation?.hologram?.ringColor || '#00ffff'}
-                    />
-                )}
                 
                 {/* Graph Manager - only render when we have data and canvas is ready */}
                 {canvasReady && graphData.nodes.length > 0 && (
@@ -166,8 +148,8 @@ const GraphCanvas: React.FC = () => {
                 {/* {xrEnabled && <XRController />} */}
                 {/* {xrEnabled && <XRVisualisationConnector />} */}
                 
-                {/* Post-processing effects - always use standard bloom */}
-                {(enableBloom || enableGlow) && <PostProcessingEffects />}
+                {/* Post-processing effects - using modern R3F selective bloom */}
+                <SelectiveBloom enabled={enableBloom || enableGlow} />
                 
                 {/* Performance stats */}
                 {showStats && <Stats />}

@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run types:generate && vite build",
-    "preview": "vite preview", 
+    "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
+    "test": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
+    "test:ui": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
+    "test:coverage": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
     "types:generate": "cd .. && cargo run --bin generate_types",
     "types:watch": "cd .. && cargo watch -x 'run --bin generate_types'",
     "types:clean": "rm -rf src/types/generated",
-    "prebuild": "npm run types:generate"
+    "prebuild": "npm run types:generate",
+    "preinstall": "node scripts/block-test-packages.js",
+    "security:check": "node scripts/block-test-packages.js && npm audit"
   },
   "dependencies": {
     "@getalby/sdk": "^4.1.1",
@@ -49,7 +51,7 @@
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.3",
     "react-rnd": "^10.5.2",
-    "react-syntax-highlighter": "^15.6.1",
+    "react-syntax-highlighter": "^15.6.6",
     "react-window": "^1.8.10",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.2.0",
@@ -58,22 +60,29 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
-    "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/react": "^14.1.2",
     "@types/node": "^22.14.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/coverage-v8": "^1.1.0",
-    "@vitest/ui": "^1.1.0",
     "autoprefixer": "^10.4.21",
-    "jsdom": "^23.0.1",
+    "jsdom": "^25.0.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.3",
     "typescript": "^5.8.3",
     "vite": "^6.2.6",
-    "vitest": "^1.1.0",
     "wscat": "^6.1.0"
+  },
+  "overrides": {
+    "ansi-regex": "6.1.0",
+    "ansi-styles": "6.2.1",
+    "color-name": "2.0.0",
+    "color-convert": "2.0.1",
+    "supports-color": "9.4.0",
+    "strip-ansi": "7.1.0",
+    "string-width": "7.2.0",
+    "wrap-ansi": "9.0.0",
+    "esbuild": "0.25.9",
+    "prismjs": "1.30.0"
   }
 }

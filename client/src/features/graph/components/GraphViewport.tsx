@@ -11,7 +11,6 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/logger';
 import { debugState } from '../../../utils/clientDebugState';
 import { BotsVisualization } from '../../bots/components';
-import { EnhancedHologramSystem } from '../../visualisation/renderers/EnhancedHologramSystem';
 import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
 
 // Ensure Three.js types are properly loaded if not globally done
@@ -263,9 +262,9 @@ const GraphViewport: React.FC = () => {
                   bounds={graphSize * 2}
                   color={nodeSettings?.baseColor || '#00ffff'}
                 />
-                <EnhancedHologramSystem
+                <WorldClassHologram
+                  enabled={hologramEnabled}
                   position={graphCenter}
-                  scale={graphSize > 0 ? graphSize / 100 : 1}
                 />
               </>
             )}

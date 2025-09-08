@@ -20,10 +20,10 @@ visualisation:
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: false
-    intensity: 1.1538461
-    radius: 0.71428573
-    threshold: 0.07417583
+    enabled: true
+    intensity: 0.8010822
+    radius: 0.7598874
+    threshold: 0.1300069
     diffuseStrength: 1.5
     atmosphericDensity: 0.8
     volumetricIntensity: 1.2
@@ -36,23 +36,23 @@ visualisation:
     edgeGlowStrength: 0.9127068
     environmentGlowStrength: 0.96262044
   bloom:
-    enabled: true
+    enabled: false
     intensity: 1.0
-    radius: 0.21978022
-    threshold: 0.17032968
+    radius: 0.105289996
+    threshold: 0.097051024
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 1.1401099
+    strength: 0.4577919
     blurPasses: 0.0
     knee: 0.0
   hologram:
     ringCount: 5
-    ringColor: '#34321d'
-    ringOpacity: 0.008241759
+    ringColor: '#555700'
+    ringOpacity: 0.14099218
     sphereSizes:
     - 40.0
     - 80.0
-    ringRotationSpeed: 0.12362637
+    ringRotationSpeed: 0.16942804
     enableBuckminster: true
     buckminsterSize: 50.0
     buckminsterOpacity: 0.3
@@ -66,15 +66,15 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#ff0000'
+        baseColor: '#db3939'
         metalness: 0.3249958
         opacity: 0.23711348
         roughness: 0.25633773
         nodeSize: 0.70589834
         quality: high
-        enableInstancing: true
+        enableInstancing: false
         enableHologram: true
-        enableMetadataShape: true
+        enableMetadataShape: false
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
@@ -124,17 +124,17 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 1.1902161
+        attractionK: 1.9317231
         boundsSize: 1000.0
         separationRadius: 2.1155233
-        damping: 0.92369413
+        damping: 0.8852456
         enableBounds: false
         enabled: true
         iterations: 50
         maxVelocity: 9.570835
         maxForce: 100.0
-        repelK: 183.09949
-        springK: 0.6135822
+        repelK: 190.23636
+        springK: 4.8703394
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01

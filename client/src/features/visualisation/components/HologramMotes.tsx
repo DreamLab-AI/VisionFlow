@@ -27,7 +27,7 @@ export const MotesRing: React.FC<MotesRingProps> = ({
   height = 8    // Smaller height
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
-  const materialRef = useRef<DiffuseMoteMaterial>(null);
+  const materialRef = useRef<THREE.PointsMaterial>(null);
   
   // Create mote positions in a ring formation
   const [geometry, material] = useMemo(() => {

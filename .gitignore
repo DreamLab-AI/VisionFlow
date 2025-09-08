@@ -23,6 +23,7 @@ multi-agent-docker/mcp-logs/
 multi-agent-docker/.venv/
 multi-agent-docker/pbr_outputs/
 #multi-agent-docker/gui-based-tools-docker/tessellating-pbr-generator/src/
+client/src/vircadia-web/
 
 # .claude
 .npm
