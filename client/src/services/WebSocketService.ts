@@ -350,13 +350,26 @@ class WebSocketService {
       }
 
       // Only process binary data for Logseq graphs (check graph type)
-      if (graphDataManager.getGraphType() === 'logseq') {
+      const graphType = graphDataManager.getGraphType();
+      
+      // Log only occasionally to avoid spam
+      this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
+      if (this.binaryMessageCount % 100 === 1) { // Log first message and every 100th message
+        console.log('[WebSocketService] Binary data received, graph type:', graphType, 'data size:', data.byteLength, 'msg count:', this.binaryMessageCount);
+      }
+      
+      if (graphType === 'logseq') {
         try {
           await graphDataManager.updateNodePositions(data);
+          if (this.binaryMessageCount % 100 === 1) {
+            console.log('[WebSocketService] Node positions updated successfully');
+          }
         } catch (error) {
+          console.error('[WebSocketService] Error updating positions:', error);
           logger.error('Error processing binary data in graphDataManager:', createErrorMetadata(error));
         }
-      } else {
+      } else if (this.binaryMessageCount % 100 === 1) {
+        console.log('[WebSocketService] Skipping binary - graph type is:', graphType);
         if (debugState.isDataDebugEnabled()) {
           logger.debug('Skipping binary data processing - not a Logseq graph');
         }

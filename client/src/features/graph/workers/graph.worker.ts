@@ -203,6 +203,10 @@ class GraphWorker {
       this.useServerPhysics = true;
       console.log('GraphWorker: Auto-enabled server physics mode due to binary position updates');
     }
+    
+    // DEBUG: Log binary updates occasionally
+    this.binaryUpdateCount = (this.binaryUpdateCount || 0) + 1;
+    this.lastBinaryUpdate = Date.now();
 
     // ... (decompression logic remains the same)
     if (isZlibCompressed(data)) {
@@ -351,10 +355,38 @@ class GraphWorker {
     // Clamp deltaTime to prevent physics explosion when tab regains focus
     const dt = Math.min(deltaTime, 0.016); // Cap at ~60fps (16ms) to avoid large jumps
 
+    // DEBUG: Log physics mode rarely
+    this.frameCount = (this.frameCount || 0) + 1;
+    if (this.frameCount < 3 || this.frameCount % 100 === 0) { // First 3 frames, then every 100 frames
+      const timeSinceLastUpdate = this.lastBinaryUpdate ? Date.now() - this.lastBinaryUpdate : 999999;
+      console.log('[GraphWorker] Physics mode - useServerPhysics:', this.useServerPhysics, 
+                  'frame:', this.frameCount,
+                  'ms since last binary update:', timeSinceLastUpdate);
+    }
+    
     // When using server physics, only interpolate between current and target positions
     if (this.useServerPhysics) {
-      // Optimized exponential smoothing for server positions - prevents bouncing
-      const lerpFactor = 1.0 - Math.exp(-8.0 * dt); // Faster, smoother interpolation
+      // Ultra-gentle interpolation to prevent any oscillation
+      // Using very small linear interpolation factor
+      const lerpFactor = 0.05; // Fixed 5% interpolation per frame - even gentler
+      
+      // Track total movement for debugging
+      let totalMovement = 0;
+      
+      // DEBUG: Log interpolation state very rarely
+      if (this.frameCount % 200 === 0) { // Log every 200 frames (about every 3 seconds)
+        const node0_current = [this.currentPositions[0], this.currentPositions[1], this.currentPositions[2]];
+        const node0_target = [this.targetPositions[0], this.targetPositions[1], this.targetPositions[2]];
+        const dist = Math.sqrt(
+          Math.pow(node0_target[0] - node0_current[0], 2) +
+          Math.pow(node0_target[1] - node0_current[1], 2) +
+          Math.pow(node0_target[2] - node0_current[2], 2)
+        );
+        console.log('[GraphWorker] Interpolation - lerpFactor:', lerpFactor.toFixed(3), 
+                    'distance to target:', dist.toFixed(3),
+                    'dt:', dt.toFixed(4),
+                    'useServerPhysics:', this.useServerPhysics);
+      }
       
       for (let i = 0; i < this.graphData.nodes.length; i++) {
         const i3 = i * 3;
@@ -372,12 +404,21 @@ class GraphWorker {
         const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
         const distanceSq = dx * dx + dy * dy + dz * dz;
         
-        // If very close to target, snap to prevent micro-oscillations
-        const snapThreshold = 0.1; // Increased threshold for better stability
+        // Very large snap threshold to prevent ANY micro-oscillations
+        // When nodes are within this distance, they snap directly to target
+        const snapThreshold = 5.0; // Very large threshold - snap when within 5 units
         if (distanceSq < snapThreshold * snapThreshold) {
-          this.currentPositions[i3] = this.targetPositions[i3];
-          this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
-          this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+          // Only update if there's an actual meaningful change
+          const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
+                                 Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||
+                                 Math.abs(this.currentPositions[i3 + 2] - this.targetPositions[i3 + 2]) > 0.01;
+          
+          if (positionChanged) {
+            totalMovement += Math.sqrt(distanceSq);
+            this.currentPositions[i3] = this.targetPositions[i3];
+            this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+            this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+          }
           // Clear any residual velocity
           if (this.velocities) {
             this.velocities[i3] = 0;
@@ -385,11 +426,22 @@ class GraphWorker {
             this.velocities[i3 + 2] = 0;
           }
         } else {
-          // Smooth interpolation towards server positions
-          this.currentPositions[i3] += dx * lerpFactor;
-          this.currentPositions[i3 + 1] += dy * lerpFactor;
-          this.currentPositions[i3 + 2] += dz * lerpFactor;
+          // Very gentle linear interpolation towards server positions
+          const moveX = dx * lerpFactor;
+          const moveY = dy * lerpFactor;
+          const moveZ = dz * lerpFactor;
+          
+          totalMovement += Math.sqrt(moveX * moveX + moveY * moveY + moveZ * moveZ);
+          
+          this.currentPositions[i3] += moveX;
+          this.currentPositions[i3 + 1] += moveY;
+          this.currentPositions[i3 + 2] += moveZ;
         }
+      }
+      
+      // Log total movement to detect if nodes are actually moving
+      if (this.frameCount % 100 === 0 && totalMovement > 0.01) {
+        console.log('[GraphWorker] Total movement this frame:', totalMovement.toFixed(4), 'nodes:', this.graphData.nodes.length);
       }
       
       return this.currentPositions;

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e # Exit immediately if a command exits with a non-zero status.
 
+# Set Docker environment variable to ensure PTX compilation at runtime
+export DOCKER_ENV=1
+
 # Add Docker group if socket is mounted
 if [ -S /var/run/docker.sock ]; then
     DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
@@ -95,20 +98,38 @@ start_rust_server() {
     else
         log "fuser command not found. Skipping fuser check. Port ${TARGET_PORT} might still be in use if Rust server fails to start."
     fi
-    # Check if Rust needs rebuild due to source changes
-    if [ -f /app/scripts/check-rust-rebuild.sh ]; then
-        log "Checking if Rust rebuild is needed..."
-        if /app/scripts/check-rust-rebuild.sh; then
-            log "Rust binary is ready"
+    # ALWAYS rebuild Rust backend in dev mode to ensure code changes are applied
+    # This is critical for development workflow
+    if [ "${SKIP_RUST_REBUILD:-false}" != "true" ]; then
+        log "Rebuilding Rust backend with GPU support (set SKIP_RUST_REBUILD=true to skip)..."
+        cd /app
+        
+        # Build with GPU features - this ensures all code changes are compiled
+        if cargo build --release --features gpu 2>&1 | tee -a "${RUST_LOG_FILE}"; then
+            log "✓ Rust backend rebuilt successfully with latest code changes"
         else
-            log "WARNING: Rust rebuild check failed, continuing anyway"
+            log "ERROR: Failed to rebuild Rust backend"
+            log "Check ${RUST_LOG_FILE} for build errors"
+            exit 1
         fi
+        
+        # The binary is built at target/release/webxr
+        RUST_BINARY="/app/target/release/webxr"
+    else
+        log "Skipping Rust rebuild (SKIP_RUST_REBUILD=true)"
+        RUST_BINARY="/app/webxr"
+    fi
+    
+    # Verify binary exists
+    if [ ! -f "${RUST_BINARY}" ]; then
+        log "ERROR: Rust binary not found at ${RUST_BINARY}"
+        exit 1
     fi
 
     # Rotate log before starting
     rotate_log_file "${RUST_LOG_FILE}"
     # Start Rust server, redirect stdout/stderr to its log file
-    /app/webxr --gpu-debug > "${RUST_LOG_FILE}" 2>&1 &
+    ${RUST_BINARY} --gpu-debug > "${RUST_LOG_FILE}" 2>&1 &
     RUST_PID=$!
     log "Rust server started (PID: $RUST_PID)"
     # Basic check if process started

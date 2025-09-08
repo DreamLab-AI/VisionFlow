@@ -1668,11 +1668,30 @@ async fn update_setting_by_path(
 
     let previous_value = app_settings.get_json_by_path(&path).ok();
 
-    match app_settings.set_json_by_path(&path, value) {
+    match app_settings.set_json_by_path(&path, value.clone()) {
         Ok(()) => {
-            match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+            match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
                 Ok(Ok(())) => {
                     info!("Updated setting at path: {}", path);
+                    
+                    // Check if this is a physics setting and propagate to GPU if so
+                    if path.contains(".physics.") || path.contains(".graphs.logseq.") || path.contains(".graphs.visionflow.") {
+                        info!("Physics setting changed, propagating to GPU actors");
+                        
+                        // Determine which graph was updated
+                        let graph_name = if path.contains(".graphs.logseq.") {
+                            "logseq"
+                        } else if path.contains(".graphs.visionflow.") {
+                            "visionflow"
+                        } else {
+                            // Default to logseq for general physics settings
+                            "logseq"
+                        };
+                        
+                        // Propagate physics to GPU
+                        propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
+                    }
+                    
                     Ok(HttpResponse::Ok().json(json!({
                         "success": true,
                         "path": path,
@@ -1848,9 +1867,27 @@ async fn batch_update_settings(
 
     // Save only if at least one update succeeded
     if success_count > 0 {
-        match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+        match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
             Ok(Ok(())) => {
                 info!("Batch updated {} settings successfully", success_count);
+                
+                // Check if any physics settings were updated and propagate if so
+                let mut physics_updated = false;
+                for update in updates {
+                    let path = update.get("path").and_then(|p| p.as_str()).unwrap_or("");
+                    if path.contains(".physics.") || path.contains(".graphs.logseq.") || path.contains(".graphs.visionflow.") {
+                        physics_updated = true;
+                        break;
+                    }
+                }
+                
+                if physics_updated {
+                    info!("Physics settings changed in batch update, propagating to GPU actors");
+                    // Propagate to both graphs since batch update might affect both
+                    propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
+                    // Optionally propagate to visionflow if needed
+                    // propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
+                }
             }
             Ok(Err(e)) => {
                 error!("Failed to save batch settings: {}", e);

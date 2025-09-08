@@ -401,12 +401,24 @@ class GraphDataManager {
 
   // Update node positions from binary data
   public async updateNodePositions(positionData: ArrayBuffer): Promise<void> {
+    // Log only occasionally
+    this.updateCount = (this.updateCount || 0) + 1;
+    if (this.updateCount % 100 === 1) { // First call and every 100th call
+      console.log('[GraphDataManager] updateNodePositions called, size:', positionData?.byteLength, 'graph type:', this.graphType, 'count:', this.updateCount);
+    }
+    
     if (!positionData || positionData.byteLength === 0) {
+      if (this.updateCount % 100 === 1) {
+        console.log('[GraphDataManager] No position data, returning');
+      }
       return;
     }
 
     // Only process if this is for Logseq graph (VisionFlow uses different update mechanism)
     if (this.graphType !== 'logseq') {
+      if (this.updateCount % 100 === 1) {
+        console.log('[GraphDataManager] Skipping - not logseq graph, type is:', this.graphType);
+      }
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Skipping binary update for ${this.graphType} graph`);
       }
@@ -436,7 +448,13 @@ class GraphDataManager {
       }
       
       // Delegate to worker proxy for processing
+      if (this.updateCount % 100 === 1) {
+        console.log('[GraphDataManager] Sending to worker proxy for processing');
+      }
       await graphWorkerProxy.processBinaryData(positionData);
+      if (this.updateCount % 100 === 1) {
+        console.log('[GraphDataManager] Worker proxy processing complete');
+      }
       
       // Log node positions only if debug mode is enabled in settings
       const settings = useSettingsStore.getState().settings;
