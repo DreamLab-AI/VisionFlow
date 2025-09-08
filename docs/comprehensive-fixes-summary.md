@@ -9,7 +9,7 @@ Successfully addressed all 60+ dead code issues, implemented incomplete features
 
 ### 1. ✅ GPU Result Handling Fixed
 - **Problem**: GPU parameter updates were failing silently
-- **Solution**: 
+- **Solution**:
   - Fixed Result handling in `graph_actor.rs` with proper error propagation
   - Implemented `propagate_physics_updates` in `settings_actor.rs`
   - Added comprehensive error logging with CPU fallback
@@ -70,14 +70,14 @@ Successfully addressed all 60+ dead code issues, implemented incomplete features
 ## Technical Details
 
 ### Files Modified (Key Changes):
-1. `/workspace/ext/src/actors/graph_actor.rs` - Result handling, constraint wiring
-2. `/workspace/ext/src/actors/settings_actor.rs` - Physics propagation
-3. `/workspace/ext/src/actors/gpu_compute_actor.rs` - Compute mode, buffer resize
-4. `/workspace/ext/src/actors/claude_flow_actor_tcp.rs` - Queue processing, metrics
-5. `/workspace/ext/src/utils/visionflow_unified.cu` - Device-side compaction
-6. `/workspace/ext/src/utils/unified_gpu_compute.rs` - SSSP optimization
-7. `/workspace/ext/src/services/mcp_relay_manager.rs` - Health monitoring
-8. `/workspace/ext/src/handlers/*.rs` - Various handler fixes
+1. `//src/actors/graph_actor.rs` - Result handling, constraint wiring
+2. `//src/actors/settings_actor.rs` - Physics propagation
+3. `//src/actors/gpu_compute_actor.rs` - Compute mode, buffer resize
+4. `//src/actors/claude_flow_actor_tcp.rs` - Queue processing, metrics
+5. `//src/utils/visionflow_unified.cu` - Device-side compaction
+6. `//src/utils/unified_gpu_compute.rs` - SSSP optimization
+7. `//src/services/mcp_relay_manager.rs` - Health monitoring
+8. `//src/handlers/*.rs` - Various handler fixes
 
 ### Compilation Status:
 - **Before**: 9 errors + 60+ warnings

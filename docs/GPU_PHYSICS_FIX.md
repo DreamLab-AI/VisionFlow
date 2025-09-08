@@ -49,9 +49,9 @@ let ptx_content = match std::fs::read_to_string(ptx_path) {
 ```
 
 ## Files Modified
-- `/workspace/ext/src/actors/graph_actor.rs` - Added delay and fallback compilation
-- `/workspace/ext/docker-compose.dev.yml` - Added CUDA_ARCH to runtime environment
-- `/workspace/ext/.env` - Already had CUDA_ARCH=89 configured
+- `//src/actors/graph_actor.rs` - Added delay and fallback compilation
+- `//docker-compose.dev.yml` - Added CUDA_ARCH to runtime environment
+- `//.env` - Already had CUDA_ARCH=89 configured
 
 ## How It Works Now
 1. System waits 2 seconds after startup for GPU to be ready

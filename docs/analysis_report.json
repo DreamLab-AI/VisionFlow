@@ -588,7 +588,7 @@
   },
   "documents": {
     "README.md": {
-      "path": "/workspace/ext/docs/README.md",
+      "path": "//docs/README.md",
       "relative_path": "README.md",
       "title": "Project Documentation",
       "size": 1342,
@@ -694,7 +694,7 @@
       ]
     },
     "DOCUMENTATION_ANALYSIS_REPORT.md": {
-      "path": "/workspace/ext/docs/DOCUMENTATION_ANALYSIS_REPORT.md",
+      "path": "//docs/DOCUMENTATION_ANALYSIS_REPORT.md",
       "relative_path": "DOCUMENTATION_ANALYSIS_REPORT.md",
       "title": "VisionFlow Documentation Analysis Report",
       "size": 12194,
@@ -855,7 +855,7 @@
       ]
     },
     "new_cuda.md": {
-      "path": "/workspace/ext/docs/new_cuda.md",
+      "path": "//docs/new_cuda.md",
       "relative_path": "new_cuda.md",
       "title": "Updated GPU Analytics & Visualisation Plan",
       "size": 48657,
@@ -1449,7 +1449,7 @@
       ]
     },
     "MCP_AGENT_VISUALIZATION.md": {
-      "path": "/workspace/ext/docs/MCP_AGENT_VISUALIZATION.md",
+      "path": "//docs/MCP_AGENT_VISUALIZATION.md",
       "relative_path": "MCP_AGENT_VISUALIZATION.md",
       "title": "Multi-MCP Agent Visualisation System",
       "size": 14587,
@@ -1598,7 +1598,7 @@
       ]
     },
     "owl.md": {
-      "path": "/workspace/ext/docs/owl.md",
+      "path": "//docs/owl.md",
       "relative_path": "owl.md",
       "title": "owl",
       "size": 19960,
@@ -1631,7 +1631,7 @@
       ]
     },
     "MERMAID_VALIDATION_FINAL_REPORT.md": {
-      "path": "/workspace/ext/docs/MERMAID_VALIDATION_FINAL_REPORT.md",
+      "path": "//docs/MERMAID_VALIDATION_FINAL_REPORT.md",
       "relative_path": "MERMAID_VALIDATION_FINAL_REPORT.md",
       "title": "Final Mermaid Diagram Validation Report",
       "size": 10959,
@@ -1663,7 +1663,7 @@
         },
         {
           "level": 3,
-          "text": "1. Mermaid Diagram Validator (`/workspace/ext/scripts/validate_mermaid_diagrams.py`)"
+          "text": "1. Mermaid Diagram Validator (`//scripts/validate_mermaid_diagrams.py`)"
         },
         {
           "level": 1,
@@ -1675,7 +1675,7 @@
         },
         {
           "level": 3,
-          "text": "2. Automatic Diagram Fixer (`/workspace/ext/scripts/fix_mermaid_diagrams.py`)"
+          "text": "2. Automatic Diagram Fixer (`//scripts/fix_mermaid_diagrams.py`)"
         },
         {
           "level": 3,
@@ -1820,7 +1820,7 @@
       ]
     },
     "BLOOM_GLOW_FIELD_MAPPING.md": {
-      "path": "/workspace/ext/docs/BLOOM_GLOW_FIELD_MAPPING.md",
+      "path": "//docs/BLOOM_GLOW_FIELD_MAPPING.md",
       "relative_path": "BLOOM_GLOW_FIELD_MAPPING.md",
       "title": "Bloom/Glow Field Mapping Implementation",
       "size": 8958,
@@ -1977,7 +1977,7 @@
       ]
     },
     "GRAPHICS_REFACTOR_SUMMARY.md": {
-      "path": "/workspace/ext/docs/GRAPHICS_REFACTOR_SUMMARY.md",
+      "path": "//docs/GRAPHICS_REFACTOR_SUMMARY.md",
       "relative_path": "GRAPHICS_REFACTOR_SUMMARY.md",
       "title": "Graphics System Refactor Summary",
       "size": 5070,
@@ -2098,7 +2098,7 @@
       ]
     },
     "MERMAID_VALIDATION_SUMMARY.md": {
-      "path": "/workspace/ext/docs/MERMAID_VALIDATION_SUMMARY.md",
+      "path": "//docs/MERMAID_VALIDATION_SUMMARY.md",
       "relative_path": "MERMAID_VALIDATION_SUMMARY.md",
       "title": "VisionFlow Mermaid Diagram Validation Summary",
       "size": 7203,
@@ -2243,7 +2243,7 @@
       ]
     },
     "multi-mcp-agent-visualization.md": {
-      "path": "/workspace/ext/docs/multi-mcp-agent-visualization.md",
+      "path": "//docs/multi-mcp-agent-visualization.md",
       "relative_path": "multi-mcp-agent-visualization.md",
       "title": "Multi-MCP Agent Visualisation System",
       "size": 13373,
@@ -2480,7 +2480,7 @@
       ]
     },
     "AGENT_TYPE_CONVENTIONS.md": {
-      "path": "/workspace/ext/docs/AGENT_TYPE_CONVENTIONS.md",
+      "path": "//docs/AGENT_TYPE_CONVENTIONS.md",
       "relative_path": "AGENT_TYPE_CONVENTIONS.md",
       "title": "Agent Type Conventions and Mapping",
       "size": 3886,
@@ -2553,7 +2553,7 @@
       ]
     },
     "INTEGRATION_TEST_SUMMARY.md": {
-      "path": "/workspace/ext/docs/INTEGRATION_TEST_SUMMARY.md",
+      "path": "//docs/INTEGRATION_TEST_SUMMARY.md",
       "relative_path": "INTEGRATION_TEST_SUMMARY.md",
       "title": "Settings Sync Integration Tests - Implementation Summary",
       "size": 6678,
@@ -2686,7 +2686,7 @@
       ]
     },
     "cuda_parameters_integration.md": {
-      "path": "/workspace/ext/docs/cuda_parameters_integration.md",
+      "path": "//docs/cuda_parameters_integration.md",
       "relative_path": "cuda_parameters_integration.md",
       "title": "CUDA Parameters Integration Documentation",
       "size": 17900,
@@ -2971,7 +2971,7 @@
       ]
     },
     "deadlock_recovery_system.md": {
-      "path": "/workspace/ext/docs/deadlock_recovery_system.md",
+      "path": "//docs/deadlock_recovery_system.md",
       "relative_path": "deadlock_recovery_system.md",
       "title": "Knowledge Graph Deadlock Recovery System",
       "size": 5511,
@@ -3060,7 +3060,7 @@
       ]
     },
     "MERMAID_VALIDATION_REPORT.md": {
-      "path": "/workspace/ext/docs/MERMAID_VALIDATION_REPORT.md",
+      "path": "//docs/MERMAID_VALIDATION_REPORT.md",
       "relative_path": "MERMAID_VALIDATION_REPORT.md",
       "title": "Mermaid Diagram Validation Report",
       "size": 24200,
@@ -3517,7 +3517,7 @@
       ]
     },
     "CASE_CONVERSION_FIX.md": {
-      "path": "/workspace/ext/docs/CASE_CONVERSION_FIX.md",
+      "path": "//docs/CASE_CONVERSION_FIX.md",
       "relative_path": "CASE_CONVERSION_FIX.md",
       "title": "Case Conversion Fix Documentation",
       "size": 6316,
@@ -3618,7 +3618,7 @@
       ]
     },
     "binary-protocol.md": {
-      "path": "/workspace/ext/docs/binary-protocol.md",
+      "path": "//docs/binary-protocol.md",
       "relative_path": "binary-protocol.md",
       "title": "Binary Protocol Specification",
       "size": 7690,
@@ -3816,7 +3816,7 @@
       ]
     },
     "TEMPLATE.md": {
-      "path": "/workspace/ext/docs/TEMPLATE.md",
+      "path": "//docs/TEMPLATE.md",
       "relative_path": "TEMPLATE.md",
       "title": "Documentation Template",
       "size": 2280,
@@ -3926,7 +3926,7 @@
       ]
     },
     "MODERN_SETTINGS_API.md": {
-      "path": "/workspace/ext/docs/MODERN_SETTINGS_API.md",
+      "path": "//docs/MODERN_SETTINGS_API.md",
       "relative_path": "MODERN_SETTINGS_API.md",
       "title": "Modern Settings API - Path-Based Architecture",
       "size": 5279,
@@ -4015,7 +4015,7 @@
       ]
     },
     "contributing.md": {
-      "path": "/workspace/ext/docs/contributing.md",
+      "path": "//docs/contributing.md",
       "relative_path": "contributing.md",
       "title": "Contributing Guidelines",
       "size": 506,
@@ -4036,7 +4036,7 @@
       ]
     },
     "REST_API_BLOOM_GLOW_VALIDATION_FIX.md": {
-      "path": "/workspace/ext/docs/REST_API_BLOOM_GLOW_VALIDATION_FIX.md",
+      "path": "//docs/REST_API_BLOOM_GLOW_VALIDATION_FIX.md",
       "relative_path": "REST_API_BLOOM_GLOW_VALIDATION_FIX.md",
       "title": "REST API Bloom/Glow Field Validation Fix",
       "size": 13982,
@@ -4137,7 +4137,7 @@
       ]
     },
     "VITE_DEV_ROUTING_EXPLAINED.md": {
-      "path": "/workspace/ext/docs/VITE_DEV_ROUTING_EXPLAINED.md",
+      "path": "//docs/VITE_DEV_ROUTING_EXPLAINED.md",
       "relative_path": "VITE_DEV_ROUTING_EXPLAINED.md",
       "title": "Vite Development Routing Configuration Explained",
       "size": 5020,
@@ -4258,7 +4258,7 @@
       ]
     },
     "SETTINGS_PERFORMANCE_OPTIMIZATION.md": {
-      "path": "/workspace/ext/docs/SETTINGS_PERFORMANCE_OPTIMIZATION.md",
+      "path": "//docs/SETTINGS_PERFORMANCE_OPTIMIZATION.md",
       "relative_path": "SETTINGS_PERFORMANCE_OPTIMIZATION.md",
       "title": "Settings Performance Optimisation Report",
       "size": 15687,
@@ -4503,7 +4503,7 @@
       ]
     },
     "cuda_integration_fix.md": {
-      "path": "/workspace/ext/docs/cuda_integration_fix.md",
+      "path": "//docs/cuda_integration_fix.md",
       "relative_path": "cuda_integration_fix.md",
       "title": "CUDA Integration Fix Documentation",
       "size": 4061,
@@ -4584,7 +4584,7 @@
       ]
     },
     "partial-state-migration.md": {
-      "path": "/workspace/ext/docs/partial-state-migration.md",
+      "path": "//docs/partial-state-migration.md",
       "relative_path": "partial-state-migration.md",
       "title": "Partial State Management System Migration",
       "size": 5312,
@@ -4689,7 +4689,7 @@
       ]
     },
     "CUDA_PTX_BUILD_PROCESS.md": {
-      "path": "/workspace/ext/docs/CUDA_PTX_BUILD_PROCESS.md",
+      "path": "//docs/CUDA_PTX_BUILD_PROCESS.md",
       "relative_path": "CUDA_PTX_BUILD_PROCESS.md",
       "title": "Unified CUDA/PTX Build Process",
       "size": 3502,
@@ -4778,7 +4778,7 @@
       ]
     },
     "UK_ENGLISH_CONVERSION_REPORT.md": {
-      "path": "/workspace/ext/docs/UK_ENGLISH_CONVERSION_REPORT.md",
+      "path": "//docs/UK_ENGLISH_CONVERSION_REPORT.md",
       "relative_path": "UK_ENGLISH_CONVERSION_REPORT.md",
       "title": "UK English Conversion Report",
       "size": 6980,
@@ -4955,7 +4955,7 @@
       ]
     },
     "DOCUMENTATION_VERIFICATION_REPORT.md": {
-      "path": "/workspace/ext/docs/DOCUMENTATION_VERIFICATION_REPORT.md",
+      "path": "//docs/DOCUMENTATION_VERIFICATION_REPORT.md",
       "relative_path": "DOCUMENTATION_VERIFICATION_REPORT.md",
       "title": "Documentation Verification Report",
       "size": 10023,
@@ -5060,7 +5060,7 @@
       ]
     },
     "architecture_analysis_report.md": {
-      "path": "/workspace/ext/docs/architecture_analysis_report.md",
+      "path": "//docs/architecture_analysis_report.md",
       "relative_path": "architecture_analysis_report.md",
       "title": "Settings Architecture Analysis Report",
       "size": 12727,
@@ -5290,7 +5290,7 @@
       ]
     },
     "enhanced_auto_balance_system.md": {
-      "path": "/workspace/ext/docs/enhanced_auto_balance_system.md",
+      "path": "//docs/enhanced_auto_balance_system.md",
       "relative_path": "enhanced_auto_balance_system.md",
       "title": "Enhanced Auto-Balance System for CUDA Kernel Parameters",
       "size": 5576,
@@ -5383,7 +5383,7 @@
       ]
     },
     "DEV_CONFIG.md": {
-      "path": "/workspace/ext/docs/DEV_CONFIG.md",
+      "path": "//docs/DEV_CONFIG.md",
       "relative_path": "DEV_CONFIG.md",
       "title": "Developer Configuration System",
       "size": 4518,
@@ -5476,7 +5476,7 @@
       ]
     },
     "index.md": {
-      "path": "/workspace/ext/docs/index.md",
+      "path": "//docs/index.md",
       "relative_path": "index.md",
       "title": "VisionFlow Documentation",
       "size": 10776,
@@ -5718,7 +5718,7 @@
       ]
     },
     "type-generation.md": {
-      "path": "/workspace/ext/docs/type-generation.md",
+      "path": "//docs/type-generation.md",
       "relative_path": "type-generation.md",
       "title": "TypeScript Type Generation from Rust",
       "size": 7237,
@@ -5855,7 +5855,7 @@
       ]
     },
     "BLOOM_GLOW_FIELD_FIX.md": {
-      "path": "/workspace/ext/docs/BLOOM_GLOW_FIELD_FIX.md",
+      "path": "//docs/BLOOM_GLOW_FIELD_FIX.md",
       "relative_path": "BLOOM_GLOW_FIELD_FIX.md",
       "title": "Bloom/Glow Field Mapping Fix",
       "size": 4784,
@@ -5932,7 +5932,7 @@
       ]
     },
     "MERMAID_BEST_PRACTICES.md": {
-      "path": "/workspace/ext/docs/MERMAID_BEST_PRACTICES.md",
+      "path": "//docs/MERMAID_BEST_PRACTICES.md",
       "relative_path": "MERMAID_BEST_PRACTICES.md",
       "title": "Mermaid Diagram Best Practices for VisionFlow",
       "size": 10218,
@@ -6133,7 +6133,7 @@
       ]
     },
     "THREE_JS_GRAPHICS_ANALYSIS.md": {
-      "path": "/workspace/ext/docs/THREE_JS_GRAPHICS_ANALYSIS.md",
+      "path": "//docs/THREE_JS_GRAPHICS_ANALYSIS.md",
       "relative_path": "THREE_JS_GRAPHICS_ANALYSIS.md",
       "title": "Three.js Graphics Implementation Analysis",
       "size": 12829,
@@ -6382,7 +6382,7 @@
       ]
     },
     "bots-implementation.md": {
-      "path": "/workspace/ext/docs/bots-implementation.md",
+      "path": "//docs/bots-implementation.md",
       "relative_path": "bots-implementation.md",
       "title": "Bots Visualisation & Hive Mind Implementation",
       "size": 7186,
@@ -6511,7 +6511,7 @@
       ]
     },
     "glossary.md": {
-      "path": "/workspace/ext/docs/glossary.md",
+      "path": "//docs/glossary.md",
       "relative_path": "glossary.md",
       "title": "Glossary",
       "size": 5476,
@@ -6596,7 +6596,7 @@
       ]
     },
     "CONFIGURATION.md": {
-      "path": "/workspace/ext/docs/CONFIGURATION.md",
+      "path": "//docs/CONFIGURATION.md",
       "relative_path": "CONFIGURATION.md",
       "title": "VisionFlow Configuration Guide",
       "size": 17201,
@@ -6825,7 +6825,7 @@
       ]
     },
     "voice-system.md": {
-      "path": "/workspace/ext/docs/voice-system.md",
+      "path": "//docs/voice-system.md",
       "relative_path": "voice-system.md",
       "title": "Voice System Integration",
       "size": 9327,
@@ -6962,7 +6962,7 @@
       ]
     },
     "TOKEN_USAGE_FIX.md": {
-      "path": "/workspace/ext/docs/TOKEN_USAGE_FIX.md",
+      "path": "//docs/TOKEN_USAGE_FIX.md",
       "relative_path": "TOKEN_USAGE_FIX.md",
       "title": "Token Usage Display Fix",
       "size": 2039,
@@ -7007,7 +7007,7 @@
       ]
     },
     "cuda-parameters.md": {
-      "path": "/workspace/ext/docs/cuda-parameters.md",
+      "path": "//docs/cuda-parameters.md",
       "relative_path": "cuda-parameters.md",
       "title": "CUDA Kernel Parameters Documentation",
       "size": 3363,
@@ -7076,7 +7076,7 @@
       ]
     },
     "INTEGRATION_SUMMARY.md": {
-      "path": "/workspace/ext/docs/INTEGRATION_SUMMARY.md",
+      "path": "//docs/INTEGRATION_SUMMARY.md",
       "relative_path": "INTEGRATION_SUMMARY.md",
       "title": "VisionFlow Integration Summary: Best-of-Both-Systems Approach",
       "size": 5409,
@@ -7149,7 +7149,7 @@
       ]
     },
     "ideasboard.md": {
-      "path": "/workspace/ext/docs/ideasboard.md",
+      "path": "//docs/ideasboard.md",
       "relative_path": "ideasboard.md",
       "title": "ideasboard",
       "size": 10740,
@@ -7182,7 +7182,7 @@
       ]
     },
     "agent-visualization-architecture.md": {
-      "path": "/workspace/ext/docs/agent-visualization-architecture.md",
+      "path": "//docs/agent-visualization-architecture.md",
       "relative_path": "agent-visualization-architecture.md",
       "title": "Agent Visualisation Architecture",
       "size": 6606,
@@ -7303,7 +7303,7 @@
       ]
     },
     "getting-started.md": {
-      "path": "/workspace/ext/docs/getting-started.md",
+      "path": "//docs/getting-started.md",
       "relative_path": "getting-started.md",
       "title": "Getting Started with VisionFlow",
       "size": 9143,
@@ -7641,7 +7641,7 @@
       ]
     },
     "technical/mcp_tool_usage.md": {
-      "path": "/workspace/ext/docs/technical/mcp_tool_usage.md",
+      "path": "//docs/technical/mcp_tool_usage.md",
       "relative_path": "technical/mcp_tool_usage.md",
       "title": "MCP Tool Integration Analysis",
       "size": 2968,
@@ -7666,7 +7666,7 @@
       ]
     },
     "technical/README.md": {
-      "path": "/workspace/ext/docs/technical/README.md",
+      "path": "//docs/technical/README.md",
       "relative_path": "technical/README.md",
       "title": "Technical Documentation",
       "size": 1013,
@@ -7724,7 +7724,7 @@
       ]
     },
     "technical/HIVE_MIND_FIXES_REPORT.md": {
-      "path": "/workspace/ext/docs/technical/HIVE_MIND_FIXES_REPORT.md",
+      "path": "//docs/technical/HIVE_MIND_FIXES_REPORT.md",
       "relative_path": "technical/HIVE_MIND_FIXES_REPORT.md",
       "title": "\ud83d\udc1d Hive Mind Settings System Fix Report",
       "size": 5870,
@@ -7821,7 +7821,7 @@
       ]
     },
     "technical/DEPLOY_FIX.md": {
-      "path": "/workspace/ext/docs/technical/DEPLOY_FIX.md",
+      "path": "//docs/technical/DEPLOY_FIX.md",
       "relative_path": "technical/DEPLOY_FIX.md",
       "title": "Settings System Fix - Deployment Instructions",
       "size": 2414,
@@ -7898,7 +7898,7 @@
       ]
     },
     "technical/decoupled-graph-architecture.md": {
-      "path": "/workspace/ext/docs/technical/decoupled-graph-architecture.md",
+      "path": "//docs/technical/decoupled-graph-architecture.md",
       "relative_path": "technical/decoupled-graph-architecture.md",
       "title": "Decoupled Graph Architecture",
       "size": 5550,
@@ -8016,7 +8016,7 @@
       ]
     },
     "security/index.md": {
-      "path": "/workspace/ext/docs/security/index.md",
+      "path": "//docs/security/index.md",
       "relative_path": "security/index.md",
       "title": "Production Security Architecture",
       "size": 40560,
@@ -8378,7 +8378,7 @@
       ]
     },
     "security/authentication.md": {
-      "path": "/workspace/ext/docs/security/authentication.md",
+      "path": "//docs/security/authentication.md",
       "relative_path": "security/authentication.md",
       "title": "Authentication & Security",
       "size": 14165,
@@ -8571,7 +8571,7 @@
       ]
     },
     "getting-started/configuration.md": {
-      "path": "/workspace/ext/docs/getting-started/configuration.md",
+      "path": "//docs/getting-started/configuration.md",
       "relative_path": "getting-started/configuration.md",
       "title": "Configuration Guide",
       "size": 26128,
@@ -9216,7 +9216,7 @@
       ]
     },
     "getting-started/quickstart.md": {
-      "path": "/workspace/ext/docs/getting-started/quickstart.md",
+      "path": "//docs/getting-started/quickstart.md",
       "relative_path": "getting-started/quickstart.md",
       "title": "Quick Start Guide",
       "size": 13849,
@@ -9588,7 +9588,7 @@
       ]
     },
     "getting-started/installation.md": {
-      "path": "/workspace/ext/docs/getting-started/installation.md",
+      "path": "//docs/getting-started/installation.md",
       "relative_path": "getting-started/installation.md",
       "title": "Installation Guide",
       "size": 14251,
@@ -10318,7 +10318,7 @@
       ]
     },
     "getting-started/index.md": {
-      "path": "/workspace/ext/docs/getting-started/index.md",
+      "path": "//docs/getting-started/index.md",
       "relative_path": "getting-started/index.md",
       "title": "Getting Started with VisionFlow",
       "size": 7826,
@@ -10604,7 +10604,7 @@
       ]
     },
     "reference/README.md": {
-      "path": "/workspace/ext/docs/reference/README.md",
+      "path": "//docs/reference/README.md",
       "relative_path": "reference/README.md",
       "title": "Reference Documentation",
       "size": 1063,
@@ -10660,7 +10660,7 @@
       ]
     },
     "archive/README.md": {
-      "path": "/workspace/ext/docs/archive/README.md",
+      "path": "//docs/archive/README.md",
       "relative_path": "archive/README.md",
       "title": "Archive",
       "size": 1607,
@@ -10724,7 +10724,7 @@
       ]
     },
     "archive/old-task-analysis.md": {
-      "path": "/workspace/ext/docs/archive/old-task-analysis.md",
+      "path": "//docs/archive/old-task-analysis.md",
       "relative_path": "archive/old-task-analysis.md",
       "title": "Archive: Previous Task Analysis",
       "size": 94279,
@@ -10797,7 +10797,7 @@
       ]
     },
     "server/gpu-compute.md": {
-      "path": "/workspace/ext/docs/server/gpu-compute.md",
+      "path": "//docs/server/gpu-compute.md",
       "relative_path": "server/gpu-compute.md",
       "title": "GPU Compute Architecture",
       "size": 3990,
@@ -10833,7 +10833,7 @@
       ]
     },
     "server/config.md": {
-      "path": "/workspace/ext/docs/server/config.md",
+      "path": "//docs/server/config.md",
       "relative_path": "server/config.md",
       "title": "Configuration Architecture",
       "size": 9096,
@@ -10959,7 +10959,7 @@
       ]
     },
     "server/feature-access.md": {
-      "path": "/workspace/ext/docs/server/feature-access.md",
+      "path": "//docs/server/feature-access.md",
       "relative_path": "server/feature-access.md",
       "title": "Feature Access Control",
       "size": 6785,
@@ -11099,7 +11099,7 @@
       ]
     },
     "server/actors.md": {
-      "path": "/workspace/ext/docs/server/actors.md",
+      "path": "//docs/server/actors.md",
       "relative_path": "server/actors.md",
       "title": "Actor System",
       "size": 3869,
@@ -11139,7 +11139,7 @@
       ]
     },
     "server/models.md": {
-      "path": "/workspace/ext/docs/server/models.md",
+      "path": "//docs/server/models.md",
       "relative_path": "server/models.md",
       "title": "Server-Side Data Models",
       "size": 13131,
@@ -11359,7 +11359,7 @@
       ]
     },
     "server/services.md": {
-      "path": "/workspace/ext/docs/server/services.md",
+      "path": "//docs/server/services.md",
       "relative_path": "server/services.md",
       "title": "Services Architecture",
       "size": 27714,
@@ -11551,7 +11551,7 @@
       ]
     },
     "server/physics-engine.md": {
-      "path": "/workspace/ext/docs/server/physics-engine.md",
+      "path": "//docs/server/physics-engine.md",
       "relative_path": "server/physics-engine.md",
       "title": "Physics Engine",
       "size": 38111,
@@ -12009,7 +12009,7 @@
       ]
     },
     "server/handlers.md": {
-      "path": "/workspace/ext/docs/server/handlers.md",
+      "path": "//docs/server/handlers.md",
       "relative_path": "server/handlers.md",
       "title": "Request Handlers Architecture",
       "size": 16049,
@@ -12189,7 +12189,7 @@
       ]
     },
     "server/agent-swarm.md": {
-      "path": "/workspace/ext/docs/server/agent-swarm.md",
+      "path": "//docs/server/agent-swarm.md",
       "relative_path": "server/agent-swarm.md",
       "title": "Multi Agent Orchestration",
       "size": 9039,
@@ -12363,7 +12363,7 @@
       ]
     },
     "server/architecture.md": {
-      "path": "/workspace/ext/docs/server/architecture.md",
+      "path": "//docs/server/architecture.md",
       "relative_path": "server/architecture.md",
       "title": "Server Architecture",
       "size": 5069,
@@ -12392,7 +12392,7 @@
       ]
     },
     "server/mcp-integration.md": {
-      "path": "/workspace/ext/docs/server/mcp-integration.md",
+      "path": "//docs/server/mcp-integration.md",
       "relative_path": "server/mcp-integration.md",
       "title": "MCP Integration",
       "size": 3912,
@@ -12421,7 +12421,7 @@
       ]
     },
     "server/types.md": {
-      "path": "/workspace/ext/docs/server/types.md",
+      "path": "//docs/server/types.md",
       "relative_path": "server/types.md",
       "title": "Types Architecture",
       "size": 10529,
@@ -12581,7 +12581,7 @@
       ]
     },
     "server/index.md": {
-      "path": "/workspace/ext/docs/server/index.md",
+      "path": "//docs/server/index.md",
       "relative_path": "server/index.md",
       "title": "Server Documentation",
       "size": 2721,
@@ -12703,7 +12703,7 @@
       ]
     },
     "server/utils.md": {
-      "path": "/workspace/ext/docs/server/utils.md",
+      "path": "//docs/server/utils.md",
       "relative_path": "server/utils.md",
       "title": "Utilities Architecture",
       "size": 14157,
@@ -12947,7 +12947,7 @@
       ]
     },
     "server/ai-services.md": {
-      "path": "/workspace/ext/docs/server/ai-services.md",
+      "path": "//docs/server/ai-services.md",
       "relative_path": "server/ai-services.md",
       "title": "AI Services Documentation",
       "size": 7289,
@@ -13139,7 +13139,7 @@
       ]
     },
     "development/setup.md": {
-      "path": "/workspace/ext/docs/development/setup.md",
+      "path": "//docs/development/setup.md",
       "relative_path": "development/setup.md",
       "title": "VisionFlow Development Setup Guide",
       "size": 10575,
@@ -13420,7 +13420,7 @@
       ]
     },
     "development/index.md": {
-      "path": "/workspace/ext/docs/development/index.md",
+      "path": "//docs/development/index.md",
       "relative_path": "development/index.md",
       "title": "Development Documentation",
       "size": 5695,
@@ -13678,7 +13678,7 @@
       ]
     },
     "development/debugging.md": {
-      "path": "/workspace/ext/docs/development/debugging.md",
+      "path": "//docs/development/debugging.md",
       "relative_path": "development/debugging.md",
       "title": "Debug System Architecture",
       "size": 21201,
@@ -13991,7 +13991,7 @@
       ]
     },
     "development/testing.md": {
-      "path": "/workspace/ext/docs/development/testing.md",
+      "path": "//docs/development/testing.md",
       "relative_path": "development/testing.md",
       "title": "Testing Documentation",
       "size": 9868,
@@ -14291,7 +14291,7 @@
       ]
     },
     "deployment/docker.md": {
-      "path": "/workspace/ext/docs/deployment/docker.md",
+      "path": "//docs/deployment/docker.md",
       "relative_path": "deployment/docker.md",
       "title": "Docker Deployment Guide",
       "size": 540,
@@ -14328,7 +14328,7 @@
       ]
     },
     "deployment/docker-mcp-integration.md": {
-      "path": "/workspace/ext/docs/deployment/docker-mcp-integration.md",
+      "path": "//docs/deployment/docker-mcp-integration.md",
       "relative_path": "deployment/docker-mcp-integration.md",
       "title": "Docker MCP Integration - Production Deployment Guide",
       "size": 47927,
@@ -15138,7 +15138,7 @@
       ]
     },
     "deployment/index.md": {
-      "path": "/workspace/ext/docs/deployment/index.md",
+      "path": "//docs/deployment/index.md",
       "relative_path": "deployment/index.md",
       "title": "Deployment Guide",
       "size": 5687,
@@ -15414,7 +15414,7 @@
       ]
     },
     "deployment/docker-profiles.md": {
-      "path": "/workspace/ext/docs/deployment/docker-profiles.md",
+      "path": "//docs/deployment/docker-profiles.md",
       "relative_path": "deployment/docker-profiles.md",
       "title": "Docker Compose Profiles Configuration",
       "size": 4691,
@@ -15595,7 +15595,7 @@
       ]
     },
     "deployment/multi-agent-setup.md": {
-      "path": "/workspace/ext/docs/deployment/multi-agent-setup.md",
+      "path": "//docs/deployment/multi-agent-setup.md",
       "relative_path": "deployment/multi-agent-setup.md",
       "title": "Multi-Agent Container Setup",
       "size": 2685,
@@ -15656,7 +15656,7 @@
       ]
     },
     "features/agent-orchestration.md": {
-      "path": "/workspace/ext/docs/features/agent-orchestration.md",
+      "path": "//docs/features/agent-orchestration.md",
       "relative_path": "features/agent-orchestration.md",
       "title": "Agent Orchestration Architecture",
       "size": 14904,
@@ -15849,7 +15849,7 @@
       ]
     },
     "features/index.md": {
-      "path": "/workspace/ext/docs/features/index.md",
+      "path": "//docs/features/index.md",
       "relative_path": "features/index.md",
       "title": "Features Documentation",
       "size": 6144,
@@ -16043,7 +16043,7 @@
       ]
     },
     "features/AUTO_BALANCE.md": {
-      "path": "/workspace/ext/docs/features/AUTO_BALANCE.md",
+      "path": "//docs/features/AUTO_BALANCE.md",
       "relative_path": "features/AUTO_BALANCE.md",
       "title": "Neural Auto-Balance Feature",
       "size": 6223,
@@ -16156,7 +16156,7 @@
       ]
     },
     "features/adaptive-balancing.md": {
-      "path": "/workspace/ext/docs/features/adaptive-balancing.md",
+      "path": "//docs/features/adaptive-balancing.md",
       "relative_path": "features/adaptive-balancing.md",
       "title": "Adaptive Balancing",
       "size": 10710,
@@ -16332,7 +16332,7 @@
       ]
     },
     "configuration/quick-reference.md": {
-      "path": "/workspace/ext/docs/configuration/quick-reference.md",
+      "path": "//docs/configuration/quick-reference.md",
       "relative_path": "configuration/quick-reference.md",
       "title": "VisionFlow Configuration Quick Reference",
       "size": 2572,
@@ -16453,7 +16453,7 @@
       ]
     },
     "configuration/index.md": {
-      "path": "/workspace/ext/docs/configuration/index.md",
+      "path": "//docs/configuration/index.md",
       "relative_path": "configuration/index.md",
       "title": "Production Configuration Guide",
       "size": 43450,
@@ -17071,7 +17071,7 @@
       ]
     },
     "api/websocket.md": {
-      "path": "/workspace/ext/docs/api/websocket.md",
+      "path": "//docs/api/websocket.md",
       "relative_path": "api/websocket.md",
       "title": "WebSocket API Reference",
       "size": 15597,
@@ -17285,7 +17285,7 @@
       ]
     },
     "api/shortest-path-api.md": {
-      "path": "/workspace/ext/docs/api/shortest-path-api.md",
+      "path": "//docs/api/shortest-path-api.md",
       "relative_path": "api/shortest-path-api.md",
       "title": "Single-Source Shortest Path (SSSP) API",
       "size": 6119,
@@ -17406,7 +17406,7 @@
       ]
     },
     "api/analytics-endpoints.md": {
-      "path": "/workspace/ext/docs/api/analytics-endpoints.md",
+      "path": "//docs/api/analytics-endpoints.md",
       "relative_path": "api/analytics-endpoints.md",
       "title": "Analytics API Endpoints",
       "size": 2723,
@@ -17452,7 +17452,7 @@
       ]
     },
     "api/index.md": {
-      "path": "/workspace/ext/docs/api/index.md",
+      "path": "//docs/api/index.md",
       "relative_path": "api/index.md",
       "title": "VisionFlow API Documentation",
       "size": 20617,
@@ -17778,7 +17778,7 @@
       ]
     },
     "api/websocket-protocols.md": {
-      "path": "/workspace/ext/docs/api/websocket-protocols.md",
+      "path": "//docs/api/websocket-protocols.md",
       "relative_path": "api/websocket-protocols.md",
       "title": "WebSocket Protocols",
       "size": 16262,
@@ -18080,7 +18080,7 @@
       ]
     },
     "api/multi-mcp-visualization-api.md": {
-      "path": "/workspace/ext/docs/api/multi-mcp-visualization-api.md",
+      "path": "//docs/api/multi-mcp-visualization-api.md",
       "relative_path": "api/multi-mcp-visualization-api.md",
       "title": "Multi-MCP Agent Visualisation API Reference",
       "size": 16584,
@@ -18282,7 +18282,7 @@
       ]
     },
     "client/core.md": {
-      "path": "/workspace/ext/docs/client/core.md",
+      "path": "//docs/client/core.md",
       "relative_path": "client/core.md",
       "title": "Client Core Utilities and Hooks",
       "size": 6523,
@@ -18374,7 +18374,7 @@
       ]
     },
     "client/parallel-graphs.md": {
-      "path": "/workspace/ext/docs/client/parallel-graphs.md",
+      "path": "//docs/client/parallel-graphs.md",
       "relative_path": "client/parallel-graphs.md",
       "title": "Parallel Graphs Feature",
       "size": 8497,
@@ -18519,7 +18519,7 @@
       ]
     },
     "client/websocket.md": {
-      "path": "/workspace/ext/docs/client/websocket.md",
+      "path": "//docs/client/websocket.md",
       "relative_path": "client/websocket.md",
       "title": "WebSocket Communication",
       "size": 5083,
@@ -18565,7 +18565,7 @@
       ]
     },
     "client/user-controls-summary.md": {
-      "path": "/workspace/ext/docs/client/user-controls-summary.md",
+      "path": "//docs/client/user-controls-summary.md",
       "relative_path": "client/user-controls-summary.md",
       "title": "User Controls Summary - Settings Panel",
       "size": 6718,
@@ -18661,7 +18661,7 @@
       ]
     },
     "client/help-system.md": {
-      "path": "/workspace/ext/docs/client/help-system.md",
+      "path": "//docs/client/help-system.md",
       "relative_path": "client/help-system.md",
       "title": "Help System",
       "size": 6889,
@@ -18846,7 +18846,7 @@
       ]
     },
     "client/visualization.md": {
-      "path": "/workspace/ext/docs/client/visualization.md",
+      "path": "//docs/client/visualization.md",
       "relative_path": "client/visualization.md",
       "title": "Client-Side visualisation Concepts",
       "size": 7710,
@@ -18952,7 +18952,7 @@
       ]
     },
     "client/rendering.md": {
-      "path": "/workspace/ext/docs/client/rendering.md",
+      "path": "//docs/client/rendering.md",
       "relative_path": "client/rendering.md",
       "title": "Client Rendering System",
       "size": 6676,
@@ -19033,7 +19033,7 @@
       ]
     },
     "client/settings-panel.md": {
-      "path": "/workspace/ext/docs/client/settings-panel.md",
+      "path": "//docs/client/settings-panel.md",
       "relative_path": "client/settings-panel.md",
       "title": "Settings Panel",
       "size": 3295,
@@ -19109,7 +19109,7 @@
       ]
     },
     "client/ui-components.md": {
-      "path": "/workspace/ext/docs/client/ui-components.md",
+      "path": "//docs/client/ui-components.md",
       "relative_path": "client/ui-components.md",
       "title": "UI Component Library",
       "size": 9670,
@@ -19191,7 +19191,7 @@
       ]
     },
     "client/architecture.md": {
-      "path": "/workspace/ext/docs/client/architecture.md",
+      "path": "//docs/client/architecture.md",
       "relative_path": "client/architecture.md",
       "title": "Client Architecture",
       "size": 6267,
@@ -19257,7 +19257,7 @@
       ]
     },
     "client/types.md": {
-      "path": "/workspace/ext/docs/client/types.md",
+      "path": "//docs/client/types.md",
       "relative_path": "client/types.md",
       "title": "Client TypeScript Types",
       "size": 3389,
@@ -19299,7 +19299,7 @@
       ]
     },
     "client/index.md": {
-      "path": "/workspace/ext/docs/client/index.md",
+      "path": "//docs/client/index.md",
       "relative_path": "client/index.md",
       "title": "VisionFlow Client Documentation",
       "size": 3102,
@@ -19435,7 +19435,7 @@
       ]
     },
     "client/onboarding.md": {
-      "path": "/workspace/ext/docs/client/onboarding.md",
+      "path": "//docs/client/onboarding.md",
       "relative_path": "client/onboarding.md",
       "title": "Onboarding System",
       "size": 6804,
@@ -19580,7 +19580,7 @@
       ]
     },
     "client/command-palette.md": {
-      "path": "/workspace/ext/docs/client/command-palette.md",
+      "path": "//docs/client/command-palette.md",
       "relative_path": "client/command-palette.md",
       "title": "Command Palette",
       "size": 5787,
@@ -19717,7 +19717,7 @@
       ]
     },
     "client/state-management.md": {
-      "path": "/workspace/ext/docs/client/state-management.md",
+      "path": "//docs/client/state-management.md",
       "relative_path": "client/state-management.md",
       "title": "State Management",
       "size": 4837,
@@ -19771,7 +19771,7 @@
       ]
     },
     "client/xr-integration.md": {
-      "path": "/workspace/ext/docs/client/xr-integration.md",
+      "path": "//docs/client/xr-integration.md",
       "relative_path": "client/xr-integration.md",
       "title": "WebXR Integration",
       "size": 5742,
@@ -19829,7 +19829,7 @@
       ]
     },
     "client/graph-system.md": {
-      "path": "/workspace/ext/docs/client/graph-system.md",
+      "path": "//docs/client/graph-system.md",
       "relative_path": "client/graph-system.md",
       "title": "Graph System",
       "size": 9925,
@@ -19882,7 +19882,7 @@
       ]
     },
     "guides/README.md": {
-      "path": "/workspace/ext/docs/guides/README.md",
+      "path": "//docs/guides/README.md",
       "relative_path": "guides/README.md",
       "title": "Guides",
       "size": 872,
@@ -19927,7 +19927,7 @@
       ]
     },
     "guides/quick-start.md": {
-      "path": "/workspace/ext/docs/guides/quick-start.md",
+      "path": "//docs/guides/quick-start.md",
       "relative_path": "guides/quick-start.md",
       "title": "VisionFlow Quick Start Guide",
       "size": 12993,
@@ -20279,7 +20279,7 @@
       ]
     },
     "guides/settings-guide.md": {
-      "path": "/workspace/ext/docs/guides/settings-guide.md",
+      "path": "//docs/guides/settings-guide.md",
       "relative_path": "guides/settings-guide.md",
       "title": "VisionFlow Settings System Guide",
       "size": 25208,
@@ -20676,7 +20676,7 @@
       ]
     },
     "architecture/README.md": {
-      "path": "/workspace/ext/docs/architecture/README.md",
+      "path": "//docs/architecture/README.md",
       "relative_path": "architecture/README.md",
       "title": "Architecture Documentation",
       "size": 1039,
@@ -20721,7 +20721,7 @@
       ]
     },
     "architecture/bots-visionflow-system.md": {
-      "path": "/workspace/ext/docs/architecture/bots-visionflow-system.md",
+      "path": "//docs/architecture/bots-visionflow-system.md",
       "relative_path": "architecture/bots-visionflow-system.md",
       "title": "Bots/VisionFlow System Architecture",
       "size": 7934,
@@ -20845,7 +20845,7 @@
       ]
     },
     "architecture/gpu-compute.md": {
-      "path": "/workspace/ext/docs/architecture/gpu-compute.md",
+      "path": "//docs/architecture/gpu-compute.md",
       "relative_path": "architecture/gpu-compute.md",
       "title": "VisionFlow GPU Compute Integration",
       "size": 35131,
@@ -21025,7 +21025,7 @@
       ]
     },
     "architecture/parallel-graphs.md": {
-      "path": "/workspace/ext/docs/architecture/parallel-graphs.md",
+      "path": "//docs/architecture/parallel-graphs.md",
       "relative_path": "architecture/parallel-graphs.md",
       "title": "Parallel Graph Architecture",
       "size": 6614,
@@ -21126,7 +21126,7 @@
       ]
     },
     "architecture/migration-guide.md": {
-      "path": "/workspace/ext/docs/architecture/migration-guide.md",
+      "path": "//docs/architecture/migration-guide.md",
       "relative_path": "architecture/migration-guide.md",
       "title": "Architecture Migration Guide",
       "size": 7628,
@@ -21247,7 +21247,7 @@
       ]
     },
     "architecture/CASE_CONVERSION.md": {
-      "path": "/workspace/ext/docs/architecture/CASE_CONVERSION.md",
+      "path": "//docs/architecture/CASE_CONVERSION.md",
       "relative_path": "architecture/CASE_CONVERSION.md",
       "title": "Case Conversion Architecture",
       "size": 6378,
@@ -21364,7 +21364,7 @@
       ]
     },
     "architecture/mcp_connection.md": {
-      "path": "/workspace/ext/docs/architecture/mcp_connection.md",
+      "path": "//docs/architecture/mcp_connection.md",
       "relative_path": "architecture/mcp_connection.md",
       "title": "MCP Connection Architecture",
       "size": 2444,
@@ -21389,7 +21389,7 @@
       ]
     },
     "architecture/gpu-compute-improvements.md": {
-      "path": "/workspace/ext/docs/architecture/gpu-compute-improvements.md",
+      "path": "//docs/architecture/gpu-compute-improvements.md",
       "relative_path": "architecture/gpu-compute-improvements.md",
       "title": "GPU Compute Improvements & Troubleshooting Guide",
       "size": 7512,
@@ -21534,7 +21534,7 @@
       ]
     },
     "architecture/managing_claude_flow.md": {
-      "path": "/workspace/ext/docs/architecture/managing_claude_flow.md",
+      "path": "//docs/architecture/managing_claude_flow.md",
       "relative_path": "architecture/managing_claude_flow.md",
       "title": "Managing the Claude-Flow System",
       "size": 3700,
@@ -21575,7 +21575,7 @@
       ]
     },
     "architecture/bots-visualization.md": {
-      "path": "/workspace/ext/docs/architecture/bots-visualization.md",
+      "path": "//docs/architecture/bots-visualization.md",
       "relative_path": "architecture/bots-visualization.md",
       "title": "Bots Visualisation Architecture",
       "size": 9652,
@@ -21684,7 +21684,7 @@
       ]
     },
     "architecture/daa-setup-guide.md": {
-      "path": "/workspace/ext/docs/architecture/daa-setup-guide.md",
+      "path": "//docs/architecture/daa-setup-guide.md",
       "relative_path": "architecture/daa-setup-guide.md",
       "title": "Dynamic Agent Architecture (DAA) Setup Guide",
       "size": 4588,
@@ -21757,7 +21757,7 @@
       ]
     },
     "architecture/mcp-integration.md": {
-      "path": "/workspace/ext/docs/architecture/mcp-integration.md",
+      "path": "//docs/architecture/mcp-integration.md",
       "relative_path": "architecture/mcp-integration.md",
       "title": "MCP Integration Architecture",
       "size": 31469,
@@ -22053,7 +22053,7 @@
       ]
     },
     "architecture/index.md": {
-      "path": "/workspace/ext/docs/architecture/index.md",
+      "path": "//docs/architecture/index.md",
       "relative_path": "architecture/index.md",
       "title": "VisionFlow System Architecture Overview",
       "size": 12772,
@@ -22241,7 +22241,7 @@
       ]
     },
     "architecture/claude-flow-actor.md": {
-      "path": "/workspace/ext/docs/architecture/claude-flow-actor.md",
+      "path": "//docs/architecture/claude-flow-actor.md",
       "relative_path": "architecture/claude-flow-actor.md",
       "title": "ClaudeFlowActor Architecture",
       "size": 7548,
@@ -22350,7 +22350,7 @@
       ]
     },
     "architecture/system-overview.md": {
-      "path": "/workspace/ext/docs/architecture/system-overview.md",
+      "path": "//docs/architecture/system-overview.md",
       "relative_path": "architecture/system-overview.md",
       "title": "VisionFlow System Architecture",
       "size": 22608,
@@ -22712,7 +22712,7 @@
       ]
     },
     "architecture/components.md": {
-      "path": "/workspace/ext/docs/architecture/components.md",
+      "path": "//docs/architecture/components.md",
       "relative_path": "architecture/components.md",
       "title": "VisionFlow Component Architecture",
       "size": 23803,
@@ -22986,7 +22986,7 @@
       ]
     },
     "architecture/data-flow.md": {
-      "path": "/workspace/ext/docs/architecture/data-flow.md",
+      "path": "//docs/architecture/data-flow.md",
       "relative_path": "architecture/data-flow.md",
       "title": "VisionFlow Data Flow Architecture",
       "size": 26097,
@@ -23216,7 +23216,7 @@
       ]
     },
     "architecture/visionflow-gpu-migration.md": {
-      "path": "/workspace/ext/docs/architecture/visionflow-gpu-migration.md",
+      "path": "//docs/architecture/visionflow-gpu-migration.md",
       "relative_path": "architecture/visionflow-gpu-migration.md",
       "title": "VisionFlow GPU Migration Architecture",
       "size": 6304,
@@ -23390,7 +23390,7 @@
       ]
     },
     "architecture/mcp-websocket-relay.md": {
-      "path": "/workspace/ext/docs/architecture/mcp-websocket-relay.md",
+      "path": "//docs/architecture/mcp-websocket-relay.md",
       "relative_path": "architecture/mcp-websocket-relay.md",
       "title": "MCP WebSocket Relay Architecture",
       "size": 5686,
@@ -23475,7 +23475,7 @@
       ]
     },
     "testing/SETTINGS_SYNC_INTEGRATION_TESTS.md": {
-      "path": "/workspace/ext/docs/testing/SETTINGS_SYNC_INTEGRATION_TESTS.md",
+      "path": "//docs/testing/SETTINGS_SYNC_INTEGRATION_TESTS.md",
       "relative_path": "testing/SETTINGS_SYNC_INTEGRATION_TESTS.md",
       "title": "Settings Sync Integration Tests",
       "size": 11527,
@@ -23736,7 +23736,7 @@
       ]
     },
     "reference/agents/README.md": {
-      "path": "/workspace/ext/docs/reference/agents/README.md",
+      "path": "//docs/reference/agents/README.md",
       "relative_path": "reference/agents/README.md",
       "title": "Claude Code Agents Directory Structure",
       "size": 2890,
@@ -23765,7 +23765,7 @@
       ]
     },
     "reference/agents/base-template-generator.md": {
-      "path": "/workspace/ext/docs/reference/agents/base-template-generator.md",
+      "path": "//docs/reference/agents/base-template-generator.md",
       "relative_path": "reference/agents/base-template-generator.md",
       "title": "base-template-generator",
       "size": 3837,
@@ -23773,7 +23773,7 @@
       "headings": []
     },
     "reference/agents/MIGRATION_SUMMARY.md": {
-      "path": "/workspace/ext/docs/reference/agents/MIGRATION_SUMMARY.md",
+      "path": "//docs/reference/agents/MIGRATION_SUMMARY.md",
       "relative_path": "reference/agents/MIGRATION_SUMMARY.md",
       "title": "Claude Flow Commands to Agent System Migration Summary",
       "size": 7181,
@@ -23930,7 +23930,7 @@
       ]
     },
     "reference/agents/github/repo-architect.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/repo-architect.md",
+      "path": "//docs/reference/agents/github/repo-architect.md",
       "relative_path": "reference/agents/github/repo-architect.md",
       "title": "repo-architect",
       "size": 12368,
@@ -24047,7 +24047,7 @@
       ]
     },
     "reference/agents/github/workflow-automation.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/workflow-automation.md",
+      "path": "//docs/reference/agents/github/workflow-automation.md",
       "relative_path": "reference/agents/github/workflow-automation.md",
       "title": "workflow-automation",
       "size": 15862,
@@ -24395,7 +24395,7 @@
       ]
     },
     "reference/agents/github/release-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/release-manager.md",
+      "path": "//docs/reference/agents/github/release-manager.md",
       "relative_path": "reference/agents/github/release-manager.md",
       "title": "release-manager",
       "size": 12366,
@@ -24548,7 +24548,7 @@
       ]
     },
     "reference/agents/github/sync-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/sync-coordinator.md",
+      "path": "//docs/reference/agents/github/sync-coordinator.md",
       "relative_path": "reference/agents/github/sync-coordinator.md",
       "title": "sync-coordinator",
       "size": 16090,
@@ -24721,7 +24721,7 @@
       ]
     },
     "reference/agents/github/release-swarm.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/release-swarm.md",
+      "path": "//docs/reference/agents/github/release-swarm.md",
       "relative_path": "reference/agents/github/release-swarm.md",
       "title": "release-swarm",
       "size": 13915,
@@ -25155,7 +25155,7 @@
       ]
     },
     "reference/agents/github/github-modes.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/github-modes.md",
+      "path": "//docs/reference/agents/github/github-modes.md",
       "relative_path": "reference/agents/github/github-modes.md",
       "title": "github-modes",
       "size": 6666,
@@ -25252,7 +25252,7 @@
       ]
     },
     "reference/agents/github/swarm-pr.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/swarm-pr.md",
+      "path": "//docs/reference/agents/github/swarm-pr.md",
       "relative_path": "reference/agents/github/swarm-pr.md",
       "title": "swarm-pr",
       "size": 11172,
@@ -25560,7 +25560,7 @@
       ]
     },
     "reference/agents/github/swarm-issue.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/swarm-issue.md",
+      "path": "//docs/reference/agents/github/swarm-issue.md",
       "relative_path": "reference/agents/github/swarm-issue.md",
       "title": "swarm-issue",
       "size": 14344,
@@ -26004,7 +26004,7 @@
       ]
     },
     "reference/agents/github/code-review-swarm.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/code-review-swarm.md",
+      "path": "//docs/reference/agents/github/code-review-swarm.md",
       "relative_path": "reference/agents/github/code-review-swarm.md",
       "title": "code-review-swarm",
       "size": 12068,
@@ -26366,7 +26366,7 @@
       ]
     },
     "reference/agents/github/pr-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/pr-manager.md",
+      "path": "//docs/reference/agents/github/pr-manager.md",
       "relative_path": "reference/agents/github/pr-manager.md",
       "title": "pr-manager",
       "size": 6100,
@@ -26451,7 +26451,7 @@
       ]
     },
     "reference/agents/github/multi-repo-swarm.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/multi-repo-swarm.md",
+      "path": "//docs/reference/agents/github/multi-repo-swarm.md",
       "relative_path": "reference/agents/github/multi-repo-swarm.md",
       "title": "multi-repo-swarm",
       "size": 12749,
@@ -26857,7 +26857,7 @@
       ]
     },
     "reference/agents/github/issue-tracker.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/issue-tracker.md",
+      "path": "//docs/reference/agents/github/issue-tracker.md",
       "relative_path": "reference/agents/github/issue-tracker.md",
       "title": "issue-tracker",
       "size": 9353,
@@ -27050,7 +27050,7 @@
       ]
     },
     "reference/agents/github/project-board-sync.md": {
-      "path": "/workspace/ext/docs/reference/agents/github/project-board-sync.md",
+      "path": "//docs/reference/agents/github/project-board-sync.md",
       "relative_path": "reference/agents/github/project-board-sync.md",
       "title": "project-board-sync",
       "size": 11368,
@@ -27432,7 +27432,7 @@
       ]
     },
     "reference/agents/optimization/README.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/README.md",
+      "path": "//docs/reference/agents/optimization/README.md",
       "relative_path": "reference/agents/optimization/README.md",
       "title": "Performance Optimisation Agents",
       "size": 10683,
@@ -27637,7 +27637,7 @@
       ]
     },
     "reference/agents/optimization/performance-monitor.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/performance-monitor.md",
+      "path": "//docs/reference/agents/optimization/performance-monitor.md",
       "relative_path": "reference/agents/optimization/performance-monitor.md",
       "title": "Performance Monitor Agent",
       "size": 19393,
@@ -27758,7 +27758,7 @@
       ]
     },
     "reference/agents/optimization/resource-allocator.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/resource-allocator.md",
+      "path": "//docs/reference/agents/optimization/resource-allocator.md",
       "relative_path": "reference/agents/optimization/resource-allocator.md",
       "title": "Resource Allocator Agent",
       "size": 19224,
@@ -27871,7 +27871,7 @@
       ]
     },
     "reference/agents/optimization/topology-optimizer.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/topology-optimizer.md",
+      "path": "//docs/reference/agents/optimization/topology-optimizer.md",
       "relative_path": "reference/agents/optimization/topology-optimizer.md",
       "title": "Topology Optimizer Agent",
       "size": 24383,
@@ -27996,7 +27996,7 @@
       ]
     },
     "reference/agents/optimization/benchmark-suite.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/benchmark-suite.md",
+      "path": "//docs/reference/agents/optimization/benchmark-suite.md",
       "relative_path": "reference/agents/optimization/benchmark-suite.md",
       "title": "Benchmark Suite Agent",
       "size": 19447,
@@ -28105,7 +28105,7 @@
       ]
     },
     "reference/agents/optimization/load-balancer.md": {
-      "path": "/workspace/ext/docs/reference/agents/optimization/load-balancer.md",
+      "path": "//docs/reference/agents/optimization/load-balancer.md",
       "relative_path": "reference/agents/optimization/load-balancer.md",
       "title": "Load Balancing Coordinator Agent",
       "size": 12075,
@@ -28234,7 +28234,7 @@
       ]
     },
     "reference/agents/analysis/code-analyzer.md": {
-      "path": "/workspace/ext/docs/reference/agents/analysis/code-analyzer.md",
+      "path": "//docs/reference/agents/analysis/code-analyzer.md",
       "relative_path": "reference/agents/analysis/code-analyzer.md",
       "title": "code-analyzer",
       "size": 5741,
@@ -28375,7 +28375,7 @@
       ]
     },
     "reference/agents/templates/github-pr-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/github-pr-manager.md",
+      "path": "//docs/reference/agents/templates/github-pr-manager.md",
       "relative_path": "reference/agents/templates/github-pr-manager.md",
       "title": "github-pr-manager",
       "size": 4502,
@@ -28532,7 +28532,7 @@
       ]
     },
     "reference/agents/templates/sparc-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/sparc-coordinator.md",
+      "path": "//docs/reference/agents/templates/sparc-coordinator.md",
       "relative_path": "reference/agents/templates/sparc-coordinator.md",
       "title": "sparc-coordinator",
       "size": 4643,
@@ -28669,7 +28669,7 @@
       ]
     },
     "reference/agents/templates/orchestrator-task.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/orchestrator-task.md",
+      "path": "//docs/reference/agents/templates/orchestrator-task.md",
       "relative_path": "reference/agents/templates/orchestrator-task.md",
       "title": "orchestrator-task",
       "size": 4014,
@@ -28786,7 +28786,7 @@
       ]
     },
     "reference/agents/templates/migration-plan.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/migration-plan.md",
+      "path": "//docs/reference/agents/templates/migration-plan.md",
       "relative_path": "reference/agents/templates/migration-plan.md",
       "title": "migration-plan",
       "size": 18315,
@@ -28955,7 +28955,7 @@
       ]
     },
     "reference/agents/templates/performance-analyzer.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/performance-analyzer.md",
+      "path": "//docs/reference/agents/templates/performance-analyzer.md",
       "relative_path": "reference/agents/templates/performance-analyzer.md",
       "title": "performance-analyzer",
       "size": 5209,
@@ -29120,7 +29120,7 @@
       ]
     },
     "reference/agents/templates/memory-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/memory-coordinator.md",
+      "path": "//docs/reference/agents/templates/memory-coordinator.md",
       "relative_path": "reference/agents/templates/memory-coordinator.md",
       "title": "memory-coordinator",
       "size": 4505,
@@ -29265,7 +29265,7 @@
       ]
     },
     "reference/agents/templates/automation-smart-agent.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/automation-smart-agent.md",
+      "path": "//docs/reference/agents/templates/automation-smart-agent.md",
       "relative_path": "reference/agents/templates/automation-smart-agent.md",
       "title": "automation-smart-agent",
       "size": 5336,
@@ -29414,7 +29414,7 @@
       ]
     },
     "reference/agents/templates/coordinator-swarm-init.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/coordinator-swarm-init.md",
+      "path": "//docs/reference/agents/templates/coordinator-swarm-init.md",
       "relative_path": "reference/agents/templates/coordinator-swarm-init.md",
       "title": "coordinator-swarm-init",
       "size": 2810,
@@ -29495,7 +29495,7 @@
       ]
     },
     "reference/agents/templates/implementer-sparc-coder.md": {
-      "path": "/workspace/ext/docs/reference/agents/templates/implementer-sparc-coder.md",
+      "path": "//docs/reference/agents/templates/implementer-sparc-coder.md",
       "relative_path": "reference/agents/templates/implementer-sparc-coder.md",
       "title": "implementer-sparc-coder",
       "size": 6512,
@@ -29636,7 +29636,7 @@
       ]
     },
     "reference/agents/core/researcher.md": {
-      "path": "/workspace/ext/docs/reference/agents/core/researcher.md",
+      "path": "//docs/reference/agents/core/researcher.md",
       "relative_path": "reference/agents/core/researcher.md",
       "title": "researcher",
       "size": 4040,
@@ -29717,7 +29717,7 @@
       ]
     },
     "reference/agents/core/coder.md": {
-      "path": "/workspace/ext/docs/reference/agents/core/coder.md",
+      "path": "//docs/reference/agents/core/coder.md",
       "relative_path": "reference/agents/core/coder.md",
       "title": "coder",
       "size": 5240,
@@ -29814,7 +29814,7 @@
       ]
     },
     "reference/agents/core/planner.md": {
-      "path": "/workspace/ext/docs/reference/agents/core/planner.md",
+      "path": "//docs/reference/agents/core/planner.md",
       "relative_path": "reference/agents/core/planner.md",
       "title": "planner",
       "size": 3354,
@@ -29867,7 +29867,7 @@
       ]
     },
     "reference/agents/core/reviewer.md": {
-      "path": "/workspace/ext/docs/reference/agents/core/reviewer.md",
+      "path": "//docs/reference/agents/core/reviewer.md",
       "relative_path": "reference/agents/core/reviewer.md",
       "title": "reviewer",
       "size": 6619,
@@ -29968,7 +29968,7 @@
       ]
     },
     "reference/agents/core/tester.md": {
-      "path": "/workspace/ext/docs/reference/agents/core/tester.md",
+      "path": "//docs/reference/agents/core/tester.md",
       "relative_path": "reference/agents/core/tester.md",
       "title": "tester",
       "size": 7369,
@@ -30045,7 +30045,7 @@
       ]
     },
     "reference/agents/swarm/README.md": {
-      "path": "/workspace/ext/docs/reference/agents/swarm/README.md",
+      "path": "//docs/reference/agents/swarm/README.md",
       "relative_path": "reference/agents/swarm/README.md",
       "title": "Swarm Coordination Agents",
       "size": 6860,
@@ -30234,7 +30234,7 @@
       ]
     },
     "reference/agents/swarm/hierarchical-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/swarm/hierarchical-coordinator.md",
+      "path": "//docs/reference/agents/swarm/hierarchical-coordinator.md",
       "relative_path": "reference/agents/swarm/hierarchical-coordinator.md",
       "title": "hierarchical-coordinator",
       "size": 9090,
@@ -30443,7 +30443,7 @@
       ]
     },
     "reference/agents/swarm/adaptive-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/swarm/adaptive-coordinator.md",
+      "path": "//docs/reference/agents/swarm/adaptive-coordinator.md",
       "relative_path": "reference/agents/swarm/adaptive-coordinator.md",
       "title": "adaptive-coordinator",
       "size": 15931,
@@ -30672,7 +30672,7 @@
       ]
     },
     "reference/agents/swarm/mesh-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/swarm/mesh-coordinator.md",
+      "path": "//docs/reference/agents/swarm/mesh-coordinator.md",
       "relative_path": "reference/agents/swarm/mesh-coordinator.md",
       "title": "mesh-coordinator",
       "size": 12862,
@@ -30945,7 +30945,7 @@
       ]
     },
     "reference/agents/consensus/README.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/README.md",
+      "path": "//docs/reference/agents/consensus/README.md",
       "relative_path": "reference/agents/consensus/README.md",
       "title": "Distributed Consensus Builder Agents",
       "size": 9024,
@@ -31098,7 +31098,7 @@
       ]
     },
     "reference/agents/consensus/quorum-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/quorum-manager.md",
+      "path": "//docs/reference/agents/consensus/quorum-manager.md",
       "relative_path": "reference/agents/consensus/quorum-manager.md",
       "title": "quorum-manager",
       "size": 27993,
@@ -31159,7 +31159,7 @@
       ]
     },
     "reference/agents/consensus/crdt-synchronizer.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/crdt-synchronizer.md",
+      "path": "//docs/reference/agents/consensus/crdt-synchronizer.md",
       "relative_path": "reference/agents/consensus/crdt-synchronizer.md",
       "title": "crdt-synchronizer",
       "size": 25027,
@@ -31244,7 +31244,7 @@
       ]
     },
     "reference/agents/consensus/gossip-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/gossip-coordinator.md",
+      "path": "//docs/reference/agents/consensus/gossip-coordinator.md",
       "relative_path": "reference/agents/consensus/gossip-coordinator.md",
       "title": "gossip-coordinator",
       "size": 2387,
@@ -31289,7 +31289,7 @@
       ]
     },
     "reference/agents/consensus/raft-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/raft-manager.md",
+      "path": "//docs/reference/agents/consensus/raft-manager.md",
       "relative_path": "reference/agents/consensus/raft-manager.md",
       "title": "raft-manager",
       "size": 2279,
@@ -31334,7 +31334,7 @@
       ]
     },
     "reference/agents/consensus/performance-benchmarker.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/performance-benchmarker.md",
+      "path": "//docs/reference/agents/consensus/performance-benchmarker.md",
       "relative_path": "reference/agents/consensus/performance-benchmarker.md",
       "title": "performance-benchmarker",
       "size": 27228,
@@ -31395,7 +31395,7 @@
       ]
     },
     "reference/agents/consensus/byzantine-coordinator.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/byzantine-coordinator.md",
+      "path": "//docs/reference/agents/consensus/byzantine-coordinator.md",
       "relative_path": "reference/agents/consensus/byzantine-coordinator.md",
       "title": "byzantine-coordinator",
       "size": 2316,
@@ -31440,7 +31440,7 @@
       ]
     },
     "reference/agents/consensus/security-manager.md": {
-      "path": "/workspace/ext/docs/reference/agents/consensus/security-manager.md",
+      "path": "//docs/reference/agents/consensus/security-manager.md",
       "relative_path": "reference/agents/consensus/security-manager.md",
       "title": "security-manager",
       "size": 19632,
@@ -31513,7 +31513,7 @@
       ]
     },
     "reference/agents/sparc/specification.md": {
-      "path": "/workspace/ext/docs/reference/agents/sparc/specification.md",
+      "path": "//docs/reference/agents/sparc/specification.md",
       "relative_path": "reference/agents/sparc/specification.md",
       "title": "specification",
       "size": 6997,
@@ -31618,7 +31618,7 @@
       ]
     },
     "reference/agents/sparc/pseudocode.md": {
-      "path": "/workspace/ext/docs/reference/agents/sparc/pseudocode.md",
+      "path": "//docs/reference/agents/sparc/pseudocode.md",
       "relative_path": "reference/agents/sparc/pseudocode.md",
       "title": "pseudocode",
       "size": 8361,
@@ -31683,7 +31683,7 @@
       ]
     },
     "reference/agents/sparc/architecture.md": {
-      "path": "/workspace/ext/docs/reference/agents/sparc/architecture.md",
+      "path": "//docs/reference/agents/sparc/architecture.md",
       "relative_path": "reference/agents/sparc/architecture.md",
       "title": "architecture",
       "size": 10885,
@@ -31748,7 +31748,7 @@
       ]
     },
     "reference/agents/sparc/refinement.md": {
-      "path": "/workspace/ext/docs/reference/agents/sparc/refinement.md",
+      "path": "//docs/reference/agents/sparc/refinement.md",
       "relative_path": "reference/agents/sparc/refinement.md",
       "title": "refinement",
       "size": 13767,
@@ -31833,7 +31833,7 @@
       ]
     },
     "reference/agents/analysis/code-review/analyze-code-quality.md": {
-      "path": "/workspace/ext/docs/reference/agents/analysis/code-review/analyze-code-quality.md",
+      "path": "//docs/reference/agents/analysis/code-review/analyze-code-quality.md",
       "relative_path": "reference/agents/analysis/code-review/analyze-code-quality.md",
       "title": "analyze-code-quality",
       "size": 4597,
@@ -31894,7 +31894,7 @@
       ]
     },
     "reference/agents/development/backend/dev-backend-api.md": {
-      "path": "/workspace/ext/docs/reference/agents/development/backend/dev-backend-api.md",
+      "path": "//docs/reference/agents/development/backend/dev-backend-api.md",
       "relative_path": "reference/agents/development/backend/dev-backend-api.md",
       "title": "dev-backend-api",
       "size": 3662,
@@ -31919,7 +31919,7 @@
       ]
     },
     "reference/agents/specialized/mobile/spec-mobile-react-native.md": {
-      "path": "/workspace/ext/docs/reference/agents/specialized/mobile/spec-mobile-react-native.md",
+      "path": "//docs/reference/agents/specialized/mobile/spec-mobile-react-native.md",
       "relative_path": "reference/agents/specialized/mobile/spec-mobile-react-native.md",
       "title": "spec-mobile-react-native",
       "size": 5543,
@@ -31948,7 +31948,7 @@
       ]
     },
     "reference/agents/documentation/api-docs/docs-api-openapi.md": {
-      "path": "/workspace/ext/docs/reference/agents/documentation/api-docs/docs-api-openapi.md",
+      "path": "//docs/reference/agents/documentation/api-docs/docs-api-openapi.md",
       "relative_path": "reference/agents/documentation/api-docs/docs-api-openapi.md",
       "title": "docs-api-openapi",
       "size": 4596,
@@ -31989,7 +31989,7 @@
       ]
     },
     "reference/agents/architecture/system-design/arch-system-design.md": {
-      "path": "/workspace/ext/docs/reference/agents/architecture/system-design/arch-system-design.md",
+      "path": "//docs/reference/agents/architecture/system-design/arch-system-design.md",
       "relative_path": "reference/agents/architecture/system-design/arch-system-design.md",
       "title": "arch-system-design",
       "size": 4797,
@@ -32018,7 +32018,7 @@
       ]
     },
     "reference/agents/testing/unit/tdd-london-swarm.md": {
-      "path": "/workspace/ext/docs/reference/agents/testing/unit/tdd-london-swarm.md",
+      "path": "//docs/reference/agents/testing/unit/tdd-london-swarm.md",
       "relative_path": "reference/agents/testing/unit/tdd-london-swarm.md",
       "title": "tdd-london-swarm",
       "size": 7023,
@@ -32123,7 +32123,7 @@
       ]
     },
     "reference/agents/testing/validation/production-validator.md": {
-      "path": "/workspace/ext/docs/reference/agents/testing/validation/production-validator.md",
+      "path": "//docs/reference/agents/testing/validation/production-validator.md",
       "relative_path": "reference/agents/testing/validation/production-validator.md",
       "title": "production-validator",
       "size": 11740,
@@ -32228,7 +32228,7 @@
       ]
     },
     "reference/agents/data/ml/data-ml-model.md": {
-      "path": "/workspace/ext/docs/reference/agents/data/ml/data-ml-model.md",
+      "path": "//docs/reference/agents/data/ml/data-ml-model.md",
       "relative_path": "reference/agents/data/ml/data-ml-model.md",
       "title": "data-ml-model",
       "size": 5183,
@@ -32277,7 +32277,7 @@
       ]
     },
     "reference/agents/devops/ci-cd/ops-cicd-github.md": {
-      "path": "/workspace/ext/docs/reference/agents/devops/ci-cd/ops-cicd-github.md",
+      "path": "//docs/reference/agents/devops/ci-cd/ops-cicd-github.md",
       "relative_path": "reference/agents/devops/ci-cd/ops-cicd-github.md",
       "title": "ops-cicd-github",
       "size": 4477,
@@ -32310,7 +32310,7 @@
       ]
     },
     "archive/legacy/old_markdown/Apple.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Apple.md",
+      "path": "//docs/archive/legacy/old_markdown/Apple.md",
       "relative_path": "archive/legacy/old_markdown/Apple.md",
       "title": "Apple",
       "size": 9598,
@@ -32318,7 +32318,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Distributed Identity.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Distributed Identity.md",
+      "path": "//docs/archive/legacy/old_markdown/Distributed Identity.md",
       "relative_path": "archive/legacy/old_markdown/Distributed Identity.md",
       "title": "Distributed Identity",
       "size": 59124,
@@ -32339,7 +32339,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Norbert Wiener.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Norbert Wiener.md",
+      "path": "//docs/archive/legacy/old_markdown/Norbert Wiener.md",
       "relative_path": "archive/legacy/old_markdown/Norbert Wiener.md",
       "title": "Norbert Wiener",
       "size": 2437,
@@ -32347,7 +32347,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Proprietary AI Video.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Proprietary AI Video.md",
+      "path": "//docs/archive/legacy/old_markdown/Proprietary AI Video.md",
       "relative_path": "archive/legacy/old_markdown/Proprietary AI Video.md",
       "title": "Proprietary AI Video",
       "size": 5154,
@@ -32355,7 +32355,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Agentic Alliance.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Agentic Alliance.md",
+      "path": "//docs/archive/legacy/old_markdown/Agentic Alliance.md",
       "relative_path": "archive/legacy/old_markdown/Agentic Alliance.md",
       "title": "Agentic Alliance",
       "size": 8864,
@@ -32370,7 +32370,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Facebook Meta.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Facebook Meta.md",
+      "path": "//docs/archive/legacy/old_markdown/Facebook Meta.md",
       "relative_path": "archive/legacy/old_markdown/Facebook Meta.md",
       "title": "Facebook Meta",
       "size": 4010,
@@ -32378,7 +32378,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Training and fine tuning.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Training and fine tuning.md",
+      "path": "//docs/archive/legacy/old_markdown/Training and fine tuning.md",
       "relative_path": "archive/legacy/old_markdown/Training and fine tuning.md",
       "title": "Training and fine tuning",
       "size": 4404,
@@ -32386,7 +32386,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Agents.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Agents.md",
+      "path": "//docs/archive/legacy/old_markdown/Agents.md",
       "relative_path": "archive/legacy/old_markdown/Agents.md",
       "title": "Agents",
       "size": 5445,
@@ -32407,7 +32407,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Comparison of SDXL and Midjourney v6.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Comparison of SDXL and Midjourney v6.md",
+      "path": "//docs/archive/legacy/old_markdown/Comparison of SDXL and Midjourney v6.md",
       "relative_path": "archive/legacy/old_markdown/Comparison of SDXL and Midjourney v6.md",
       "title": "Comparison of SDXL and Midjourney v6",
       "size": 731,
@@ -32452,7 +32452,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Speech and voice.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Speech and voice.md",
+      "path": "//docs/archive/legacy/old_markdown/Speech and voice.md",
       "relative_path": "archive/legacy/old_markdown/Speech and voice.md",
       "title": "Speech and voice",
       "size": 13439,
@@ -32460,7 +32460,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Bitcoin Technical Overview.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Bitcoin Technical Overview.md",
+      "path": "//docs/archive/legacy/old_markdown/Bitcoin Technical Overview.md",
       "relative_path": "archive/legacy/old_markdown/Bitcoin Technical Overview.md",
       "title": "Bitcoin Technical Overview",
       "size": 34708,
@@ -32475,7 +32475,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Diagrams as Code.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Diagrams as Code.md",
+      "path": "//docs/archive/legacy/old_markdown/Diagrams as Code.md",
       "relative_path": "archive/legacy/old_markdown/Diagrams as Code.md",
       "title": "Diagrams as Code",
       "size": 19585,
@@ -32483,7 +32483,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Education and AI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Education and AI.md",
+      "path": "//docs/archive/legacy/old_markdown/Education and AI.md",
       "relative_path": "archive/legacy/old_markdown/Education and AI.md",
       "title": "Education and AI",
       "size": 15391,
@@ -32504,7 +32504,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/p(doom).md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/p(doom).md",
+      "path": "//docs/archive/legacy/old_markdown/p(doom).md",
       "relative_path": "archive/legacy/old_markdown/p(doom).md",
       "title": "p(doom)",
       "size": 556,
@@ -32512,7 +32512,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Stable Diffusion.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Stable Diffusion.md",
+      "path": "//docs/archive/legacy/old_markdown/Stable Diffusion.md",
       "relative_path": "archive/legacy/old_markdown/Stable Diffusion.md",
       "title": "Stable Diffusion",
       "size": 37561,
@@ -32551,7 +32551,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Hardware and Edge.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Hardware and Edge.md",
+      "path": "//docs/archive/legacy/old_markdown/Hardware and Edge.md",
       "relative_path": "archive/legacy/old_markdown/Hardware and Edge.md",
       "title": "Hardware and Edge",
       "size": 32617,
@@ -32572,7 +32572,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Text to 3D and 4D.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Text to 3D and 4D.md",
+      "path": "//docs/archive/legacy/old_markdown/Text to 3D and 4D.md",
       "relative_path": "archive/legacy/old_markdown/Text to 3D and 4D.md",
       "title": "Text to 3D and 4D",
       "size": 8515,
@@ -32593,7 +32593,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Human tracking and SLAM capture.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Human tracking and SLAM capture.md",
+      "path": "//docs/archive/legacy/old_markdown/Human tracking and SLAM capture.md",
       "relative_path": "archive/legacy/old_markdown/Human tracking and SLAM capture.md",
       "title": "Human tracking and SLAM capture",
       "size": 1761,
@@ -32608,7 +32608,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Courses and Training.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Courses and Training.md",
+      "path": "//docs/archive/legacy/old_markdown/Courses and Training.md",
       "relative_path": "archive/legacy/old_markdown/Courses and Training.md",
       "title": "Courses and Training",
       "size": 7329,
@@ -32616,7 +32616,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/cypherpunk.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/cypherpunk.md",
+      "path": "//docs/archive/legacy/old_markdown/cypherpunk.md",
       "relative_path": "archive/legacy/old_markdown/cypherpunk.md",
       "title": "cypherpunk",
       "size": 5430,
@@ -32631,7 +32631,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Landscape.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Landscape.md",
+      "path": "//docs/archive/legacy/old_markdown/Landscape.md",
       "relative_path": "archive/legacy/old_markdown/Landscape.md",
       "title": "Landscape",
       "size": 308,
@@ -32639,7 +32639,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/RGB and Client Side Validation.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/RGB and Client Side Validation.md",
+      "path": "//docs/archive/legacy/old_markdown/RGB and Client Side Validation.md",
       "relative_path": "archive/legacy/old_markdown/RGB and Client Side Validation.md",
       "title": "RGB and Client Side Validation",
       "size": 8861,
@@ -32660,7 +32660,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Digital Asset Risks.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Digital Asset Risks.md",
+      "path": "//docs/archive/legacy/old_markdown/Digital Asset Risks.md",
       "relative_path": "archive/legacy/old_markdown/Digital Asset Risks.md",
       "title": "Digital Asset Risks",
       "size": 38439,
@@ -32687,7 +32687,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/ollama.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/ollama.md",
+      "path": "//docs/archive/legacy/old_markdown/ollama.md",
       "relative_path": "archive/legacy/old_markdown/ollama.md",
       "title": "ollama",
       "size": 1924,
@@ -32695,7 +32695,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Bitcoin.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Bitcoin.md",
+      "path": "//docs/archive/legacy/old_markdown/Bitcoin.md",
       "relative_path": "archive/legacy/old_markdown/Bitcoin.md",
       "title": "Bitcoin",
       "size": 97290,
@@ -32800,7 +32800,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Knowledge Graphing and RAG.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Knowledge Graphing and RAG.md",
+      "path": "//docs/archive/legacy/old_markdown/Knowledge Graphing and RAG.md",
       "relative_path": "archive/legacy/old_markdown/Knowledge Graphing and RAG.md",
       "title": "Knowledge Graphing and RAG",
       "size": 21956,
@@ -32845,7 +32845,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Base models.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Base models.md",
+      "path": "//docs/archive/legacy/old_markdown/Base models.md",
       "relative_path": "archive/legacy/old_markdown/Base models.md",
       "title": "Base models",
       "size": 84947,
@@ -32853,7 +32853,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/GANs.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/GANs.md",
+      "path": "//docs/archive/legacy/old_markdown/GANs.md",
       "relative_path": "archive/legacy/old_markdown/GANs.md",
       "title": "GANs",
       "size": 14,
@@ -32861,7 +32861,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Call Centres.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Call Centres.md",
+      "path": "//docs/archive/legacy/old_markdown/Call Centres.md",
       "relative_path": "archive/legacy/old_markdown/Call Centres.md",
       "title": "Call Centres",
       "size": 23902,
@@ -32869,7 +32869,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/LoRA DoRA etc.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/LoRA DoRA etc.md",
+      "path": "//docs/archive/legacy/old_markdown/LoRA DoRA etc.md",
       "relative_path": "archive/legacy/old_markdown/LoRA DoRA etc.md",
       "title": "LoRA DoRA etc",
       "size": 1519,
@@ -32884,7 +32884,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Tokenisation.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Tokenisation.md",
+      "path": "//docs/archive/legacy/old_markdown/Tokenisation.md",
       "relative_path": "archive/legacy/old_markdown/Tokenisation.md",
       "title": "Tokenisation",
       "size": 2570,
@@ -32892,7 +32892,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Comparison of GPT4 and Gemini Ultra.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Comparison of GPT4 and Gemini Ultra.md",
+      "path": "//docs/archive/legacy/old_markdown/Comparison of GPT4 and Gemini Ultra.md",
       "relative_path": "archive/legacy/old_markdown/Comparison of GPT4 and Gemini Ultra.md",
       "title": "Comparison of GPT4 and Gemini Ultra",
       "size": 3048,
@@ -32900,7 +32900,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Product and Risk Management.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Product and Risk Management.md",
+      "path": "//docs/archive/legacy/old_markdown/Product and Risk Management.md",
       "relative_path": "archive/legacy/old_markdown/Product and Risk Management.md",
       "title": "Product and Risk Management",
       "size": 4320,
@@ -32915,7 +32915,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Music and audio.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Music and audio.md",
+      "path": "//docs/archive/legacy/old_markdown/Music and audio.md",
       "relative_path": "archive/legacy/old_markdown/Music and audio.md",
       "title": "Music and audio",
       "size": 8182,
@@ -32930,7 +32930,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Global Inequality.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Global Inequality.md",
+      "path": "//docs/archive/legacy/old_markdown/Global Inequality.md",
       "relative_path": "archive/legacy/old_markdown/Global Inequality.md",
       "title": "Global Inequality",
       "size": 35143,
@@ -32938,7 +32938,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Diffusion Models.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Diffusion Models.md",
+      "path": "//docs/archive/legacy/old_markdown/Diffusion Models.md",
       "relative_path": "archive/legacy/old_markdown/Diffusion Models.md",
       "title": "Diffusion Models",
       "size": 14,
@@ -32946,7 +32946,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Debug Test Page.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Debug Test Page.md",
+      "path": "//docs/archive/legacy/old_markdown/Debug Test Page.md",
       "relative_path": "archive/legacy/old_markdown/Debug Test Page.md",
       "title": "Debug Test Page",
       "size": 303,
@@ -32954,7 +32954,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Upscaling.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Upscaling.md",
+      "path": "//docs/archive/legacy/old_markdown/Upscaling.md",
       "relative_path": "archive/legacy/old_markdown/Upscaling.md",
       "title": "Upscaling",
       "size": 1184,
@@ -32969,7 +32969,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Semantic Web.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Semantic Web.md",
+      "path": "//docs/archive/legacy/old_markdown/Semantic Web.md",
       "relative_path": "archive/legacy/old_markdown/Semantic Web.md",
       "title": "Semantic Web",
       "size": 15524,
@@ -32977,7 +32977,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/artificial superintelligence.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/artificial superintelligence.md",
+      "path": "//docs/archive/legacy/old_markdown/artificial superintelligence.md",
       "relative_path": "archive/legacy/old_markdown/artificial superintelligence.md",
       "title": "artificial superintelligence",
       "size": 2628,
@@ -32992,7 +32992,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Metaverse and Spatial Risks.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Metaverse and Spatial Risks.md",
+      "path": "//docs/archive/legacy/old_markdown/Metaverse and Spatial Risks.md",
       "relative_path": "archive/legacy/old_markdown/Metaverse and Spatial Risks.md",
       "title": "Metaverse and Spatial Risks",
       "size": 2443,
@@ -33000,7 +33000,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Cyber security and Cryptography.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Cyber security and Cryptography.md",
+      "path": "//docs/archive/legacy/old_markdown/Cyber security and Cryptography.md",
       "relative_path": "archive/legacy/old_markdown/Cyber security and Cryptography.md",
       "title": "Cyber security and Cryptography",
       "size": 16387,
@@ -33008,7 +33008,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Reasoning.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Reasoning.md",
+      "path": "//docs/archive/legacy/old_markdown/Reasoning.md",
       "relative_path": "archive/legacy/old_markdown/Reasoning.md",
       "title": "Reasoning",
       "size": 2937,
@@ -33023,7 +33023,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/multimodal.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/multimodal.md",
+      "path": "//docs/archive/legacy/old_markdown/multimodal.md",
       "relative_path": "archive/legacy/old_markdown/multimodal.md",
       "title": "multimodal",
       "size": 4601,
@@ -33031,7 +33031,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Multi Agent RAG scrapbook.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Multi Agent RAG scrapbook.md",
+      "path": "//docs/archive/legacy/old_markdown/Multi Agent RAG scrapbook.md",
       "relative_path": "archive/legacy/old_markdown/Multi Agent RAG scrapbook.md",
       "title": "Multi Agent RAG scrapbook",
       "size": 6503,
@@ -33046,7 +33046,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Deepfakes and fraudulent content.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Deepfakes and fraudulent content.md",
+      "path": "//docs/archive/legacy/old_markdown/Deepfakes and fraudulent content.md",
       "relative_path": "archive/legacy/old_markdown/Deepfakes and fraudulent content.md",
       "title": "Deepfakes and fraudulent content",
       "size": 1457,
@@ -33067,7 +33067,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Proprietary Large Language Models.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Proprietary Large Language Models.md",
+      "path": "//docs/archive/legacy/old_markdown/Proprietary Large Language Models.md",
       "relative_path": "archive/legacy/old_markdown/Proprietary Large Language Models.md",
       "title": "Proprietary Large Language Models",
       "size": 6317,
@@ -33082,7 +33082,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/flossverse.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/flossverse.md",
+      "path": "//docs/archive/legacy/old_markdown/flossverse.md",
       "relative_path": "archive/legacy/old_markdown/flossverse.md",
       "title": "flossverse",
       "size": 3984,
@@ -33103,7 +33103,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Metaverse Ontology.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Metaverse Ontology.md",
+      "path": "//docs/archive/legacy/old_markdown/Metaverse Ontology.md",
       "relative_path": "archive/legacy/old_markdown/Metaverse Ontology.md",
       "title": "Metaverse Ontology",
       "size": 44874,
@@ -33136,7 +33136,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Deep Learning.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Deep Learning.md",
+      "path": "//docs/archive/legacy/old_markdown/Deep Learning.md",
       "relative_path": "archive/legacy/old_markdown/Deep Learning.md",
       "title": "Deep Learning",
       "size": 18833,
@@ -33144,7 +33144,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Time Series Forecasting.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Time Series Forecasting.md",
+      "path": "//docs/archive/legacy/old_markdown/Time Series Forecasting.md",
       "relative_path": "archive/legacy/old_markdown/Time Series Forecasting.md",
       "title": "Time Series Forecasting",
       "size": 865,
@@ -33152,7 +33152,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Blockchain.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Blockchain.md",
+      "path": "//docs/archive/legacy/old_markdown/Blockchain.md",
       "relative_path": "archive/legacy/old_markdown/Blockchain.md",
       "title": "Blockchain",
       "size": 15132,
@@ -33209,7 +33209,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Ai in Games.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Ai in Games.md",
+      "path": "//docs/archive/legacy/old_markdown/Ai in Games.md",
       "relative_path": "archive/legacy/old_markdown/Ai in Games.md",
       "title": "Ai in Games",
       "size": 3232,
@@ -33230,7 +33230,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/ecash.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/ecash.md",
+      "path": "//docs/archive/legacy/old_markdown/ecash.md",
       "relative_path": "archive/legacy/old_markdown/ecash.md",
       "title": "ecash",
       "size": 4860,
@@ -33238,7 +33238,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Digital Society Harms.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Digital Society Harms.md",
+      "path": "//docs/archive/legacy/old_markdown/Digital Society Harms.md",
       "relative_path": "archive/legacy/old_markdown/Digital Society Harms.md",
       "title": "Digital Society Harms",
       "size": 2052,
@@ -33246,7 +33246,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Prompt Engineering.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Prompt Engineering.md",
+      "path": "//docs/archive/legacy/old_markdown/Prompt Engineering.md",
       "relative_path": "archive/legacy/old_markdown/Prompt Engineering.md",
       "title": "Prompt Engineering",
       "size": 33407,
@@ -33254,7 +33254,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Haptics.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Haptics.md",
+      "path": "//docs/archive/legacy/old_markdown/Haptics.md",
       "relative_path": "archive/legacy/old_markdown/Haptics.md",
       "title": "Haptics",
       "size": 16,
@@ -33262,7 +33262,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Ethereum.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Ethereum.md",
+      "path": "//docs/archive/legacy/old_markdown/Ethereum.md",
       "relative_path": "archive/legacy/old_markdown/Ethereum.md",
       "title": "Ethereum",
       "size": 15310,
@@ -33283,7 +33283,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Geopolitical hot takes.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Geopolitical hot takes.md",
+      "path": "//docs/archive/legacy/old_markdown/Geopolitical hot takes.md",
       "relative_path": "archive/legacy/old_markdown/Geopolitical hot takes.md",
       "title": "Geopolitical hot takes",
       "size": 15430,
@@ -33291,7 +33291,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Digital Society Surveillance.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Digital Society Surveillance.md",
+      "path": "//docs/archive/legacy/old_markdown/Digital Society Surveillance.md",
       "relative_path": "archive/legacy/old_markdown/Digital Society Surveillance.md",
       "title": "Digital Society Surveillance",
       "size": 52792,
@@ -33306,7 +33306,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Layoff tracker and threatened roles.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Layoff tracker and threatened roles.md",
+      "path": "//docs/archive/legacy/old_markdown/Layoff tracker and threatened roles.md",
       "relative_path": "archive/legacy/old_markdown/Layoff tracker and threatened roles.md",
       "title": "Layoff tracker and threatened roles",
       "size": 3408,
@@ -33314,7 +33314,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AI Video.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AI Video.md",
+      "path": "//docs/archive/legacy/old_markdown/AI Video.md",
       "relative_path": "archive/legacy/old_markdown/AI Video.md",
       "title": "AI Video",
       "size": 18535,
@@ -33346,7 +33346,7 @@
       ]
     },
     "archive/legacy/old_markdown/Interfaces.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Interfaces.md",
+      "path": "//docs/archive/legacy/old_markdown/Interfaces.md",
       "relative_path": "archive/legacy/old_markdown/Interfaces.md",
       "title": "Interfaces",
       "size": 5576,
@@ -33354,7 +33354,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/SLAM.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/SLAM.md",
+      "path": "//docs/archive/legacy/old_markdown/SLAM.md",
       "relative_path": "archive/legacy/old_markdown/SLAM.md",
       "title": "SLAM",
       "size": 312,
@@ -33362,7 +33362,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Research Tools.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Research Tools.md",
+      "path": "//docs/archive/legacy/old_markdown/Research Tools.md",
       "relative_path": "archive/legacy/old_markdown/Research Tools.md",
       "title": "Research Tools",
       "size": 8185,
@@ -33370,7 +33370,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Bitcoin As Money.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Bitcoin As Money.md",
+      "path": "//docs/archive/legacy/old_markdown/Bitcoin As Money.md",
       "relative_path": "archive/legacy/old_markdown/Bitcoin As Money.md",
       "title": "Bitcoin As Money",
       "size": 18468,
@@ -33385,7 +33385,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AI privacy at the 2024 Olympics.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AI privacy at the 2024 Olympics.md",
+      "path": "//docs/archive/legacy/old_markdown/AI privacy at the 2024 Olympics.md",
       "relative_path": "archive/legacy/old_markdown/AI privacy at the 2024 Olympics.md",
       "title": "AI privacy at the 2024 Olympics",
       "size": 8139,
@@ -33393,7 +33393,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Soon-Next-Later (AI futurology).md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Soon-Next-Later (AI futurology).md",
+      "path": "//docs/archive/legacy/old_markdown/Soon-Next-Later (AI futurology).md",
       "relative_path": "archive/legacy/old_markdown/Soon-Next-Later (AI futurology).md",
       "title": "Soon-Next-Later (AI futurology)",
       "size": 12947,
@@ -33414,7 +33414,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Definitions and frameworks for Metaverse.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Definitions and frameworks for Metaverse.md",
+      "path": "//docs/archive/legacy/old_markdown/Definitions and frameworks for Metaverse.md",
       "relative_path": "archive/legacy/old_markdown/Definitions and frameworks for Metaverse.md",
       "title": "Definitions and frameworks for Metaverse",
       "size": 48177,
@@ -33435,7 +33435,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/nostr.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/nostr.md",
+      "path": "//docs/archive/legacy/old_markdown/nostr.md",
       "relative_path": "archive/legacy/old_markdown/nostr.md",
       "title": "nostr",
       "size": 41170,
@@ -33443,7 +33443,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/OpenAI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/OpenAI.md",
+      "path": "//docs/archive/legacy/old_markdown/OpenAI.md",
       "relative_path": "archive/legacy/old_markdown/OpenAI.md",
       "title": "OpenAI",
       "size": 59,
@@ -33451,7 +33451,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Microsoft Work Trends Impact 2024.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Microsoft Work Trends Impact 2024.md",
+      "path": "//docs/archive/legacy/old_markdown/Microsoft Work Trends Impact 2024.md",
       "relative_path": "archive/legacy/old_markdown/Microsoft Work Trends Impact 2024.md",
       "title": "Microsoft Work Trends Impact 2024",
       "size": 7664,
@@ -33466,7 +33466,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Vesuvian Scrolls.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Vesuvian Scrolls.md",
+      "path": "//docs/archive/legacy/old_markdown/Vesuvian Scrolls.md",
       "relative_path": "archive/legacy/old_markdown/Vesuvian Scrolls.md",
       "title": "Vesuvian Scrolls",
       "size": 2741,
@@ -33474,7 +33474,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Bitcoin ETF.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Bitcoin ETF.md",
+      "path": "//docs/archive/legacy/old_markdown/Bitcoin ETF.md",
       "relative_path": "archive/legacy/old_markdown/Bitcoin ETF.md",
       "title": "Bitcoin ETF",
       "size": 6185,
@@ -33495,7 +33495,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Octave Multi Model Laboratory.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Octave Multi Model Laboratory.md",
+      "path": "//docs/archive/legacy/old_markdown/Octave Multi Model Laboratory.md",
       "relative_path": "archive/legacy/old_markdown/Octave Multi Model Laboratory.md",
       "title": "Octave Multi Model Laboratory",
       "size": 2325,
@@ -33534,7 +33534,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/ChatGPT.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/ChatGPT.md",
+      "path": "//docs/archive/legacy/old_markdown/ChatGPT.md",
       "relative_path": "archive/legacy/old_markdown/ChatGPT.md",
       "title": "ChatGPT",
       "size": 16014,
@@ -33549,7 +33549,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Microsoft CoPilot.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Microsoft CoPilot.md",
+      "path": "//docs/archive/legacy/old_markdown/Microsoft CoPilot.md",
       "relative_path": "archive/legacy/old_markdown/Microsoft CoPilot.md",
       "title": "Microsoft CoPilot",
       "size": 4569,
@@ -33564,7 +33564,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Vision Pro.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Vision Pro.md",
+      "path": "//docs/archive/legacy/old_markdown/Vision Pro.md",
       "relative_path": "archive/legacy/old_markdown/Vision Pro.md",
       "title": "Vision Pro",
       "size": 2841,
@@ -33572,7 +33572,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Safety and alignment.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Safety and alignment.md",
+      "path": "//docs/archive/legacy/old_markdown/Safety and alignment.md",
       "relative_path": "archive/legacy/old_markdown/Safety and alignment.md",
       "title": "Safety and alignment",
       "size": 20453,
@@ -33593,7 +33593,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Blender.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Blender.md",
+      "path": "//docs/archive/legacy/old_markdown/Blender.md",
       "relative_path": "archive/legacy/old_markdown/Blender.md",
       "title": "Blender",
       "size": 168,
@@ -33601,7 +33601,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Death of the Internet.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Death of the Internet.md",
+      "path": "//docs/archive/legacy/old_markdown/Death of the Internet.md",
       "relative_path": "archive/legacy/old_markdown/Death of the Internet.md",
       "title": "Death of the Internet",
       "size": 31877,
@@ -33634,7 +33634,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/latent space.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/latent space.md",
+      "path": "//docs/archive/legacy/old_markdown/latent space.md",
       "relative_path": "archive/legacy/old_markdown/latent space.md",
       "title": "latent space",
       "size": 1627,
@@ -33642,7 +33642,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Robotics.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Robotics.md",
+      "path": "//docs/archive/legacy/old_markdown/Robotics.md",
       "relative_path": "archive/legacy/old_markdown/Robotics.md",
       "title": "Robotics",
       "size": 1753,
@@ -33657,7 +33657,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Digital Objects.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Digital Objects.md",
+      "path": "//docs/archive/legacy/old_markdown/Digital Objects.md",
       "relative_path": "archive/legacy/old_markdown/Digital Objects.md",
       "title": "Digital Objects",
       "size": 62939,
@@ -33684,7 +33684,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Agentic Mycelia.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Agentic Mycelia.md",
+      "path": "//docs/archive/legacy/old_markdown/Agentic Mycelia.md",
       "relative_path": "archive/legacy/old_markdown/Agentic Mycelia.md",
       "title": "Agentic Mycelia",
       "size": 28646,
@@ -33699,7 +33699,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AnimateDiff.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AnimateDiff.md",
+      "path": "//docs/archive/legacy/old_markdown/AnimateDiff.md",
       "relative_path": "archive/legacy/old_markdown/AnimateDiff.md",
       "title": "AnimateDiff",
       "size": 298,
@@ -33707,7 +33707,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Energy and Power.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Energy and Power.md",
+      "path": "//docs/archive/legacy/old_markdown/Energy and Power.md",
       "relative_path": "archive/legacy/old_markdown/Energy and Power.md",
       "title": "Energy and Power",
       "size": 26099,
@@ -33728,7 +33728,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AI Scrapers.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AI Scrapers.md",
+      "path": "//docs/archive/legacy/old_markdown/AI Scrapers.md",
       "relative_path": "archive/legacy/old_markdown/AI Scrapers.md",
       "title": "AI Scrapers",
       "size": 3595,
@@ -33736,7 +33736,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/ComfyUI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/ComfyUI.md",
+      "path": "//docs/archive/legacy/old_markdown/ComfyUI.md",
       "relative_path": "archive/legacy/old_markdown/ComfyUI.md",
       "title": "ComfyUI",
       "size": 36608,
@@ -33751,7 +33751,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Artificial Intelligence.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Artificial Intelligence.md",
+      "path": "//docs/archive/legacy/old_markdown/Artificial Intelligence.md",
       "relative_path": "archive/legacy/old_markdown/Artificial Intelligence.md",
       "title": "Artificial Intelligence",
       "size": 5855,
@@ -33759,7 +33759,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Anthropic Claude.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Anthropic Claude.md",
+      "path": "//docs/archive/legacy/old_markdown/Anthropic Claude.md",
       "relative_path": "archive/legacy/old_markdown/Anthropic Claude.md",
       "title": "Anthropic Claude",
       "size": 1398,
@@ -33767,7 +33767,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Tim Reutermann.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Tim Reutermann.md",
+      "path": "//docs/archive/legacy/old_markdown/Tim Reutermann.md",
       "relative_path": "archive/legacy/old_markdown/Tim Reutermann.md",
       "title": "Tim Reutermann",
       "size": 3622,
@@ -33775,7 +33775,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Coding support.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Coding support.md",
+      "path": "//docs/archive/legacy/old_markdown/Coding support.md",
       "relative_path": "archive/legacy/old_markdown/Coding support.md",
       "title": "Coding support",
       "size": 15162,
@@ -33790,7 +33790,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Virtual Production.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Virtual Production.md",
+      "path": "//docs/archive/legacy/old_markdown/Virtual Production.md",
       "relative_path": "archive/legacy/old_markdown/Virtual Production.md",
       "title": "Virtual Production",
       "size": 2609,
@@ -33798,7 +33798,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Machine Learning.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Machine Learning.md",
+      "path": "//docs/archive/legacy/old_markdown/Machine Learning.md",
       "relative_path": "archive/legacy/old_markdown/Machine Learning.md",
       "title": "Machine Learning",
       "size": 13287,
@@ -33806,7 +33806,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Proprietary Image Generation.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Proprietary Image Generation.md",
+      "path": "//docs/archive/legacy/old_markdown/Proprietary Image Generation.md",
       "relative_path": "archive/legacy/old_markdown/Proprietary Image Generation.md",
       "title": "Proprietary Image Generation",
       "size": 3077,
@@ -33850,7 +33850,7 @@
       ]
     },
     "archive/legacy/old_markdown/Mixed reality.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Mixed reality.md",
+      "path": "//docs/archive/legacy/old_markdown/Mixed reality.md",
       "relative_path": "archive/legacy/old_markdown/Mixed reality.md",
       "title": "Mixed reality",
       "size": 59931,
@@ -33870,7 +33870,7 @@
       ]
     },
     "archive/legacy/old_markdown/California AI bill.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/California AI bill.md",
+      "path": "//docs/archive/legacy/old_markdown/California AI bill.md",
       "relative_path": "archive/legacy/old_markdown/California AI bill.md",
       "title": "California AI bill",
       "size": 5403,
@@ -33878,7 +33878,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Conspiracies.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Conspiracies.md",
+      "path": "//docs/archive/legacy/old_markdown/Conspiracies.md",
       "relative_path": "archive/legacy/old_markdown/Conspiracies.md",
       "title": "Conspiracies",
       "size": 13147,
@@ -33886,7 +33886,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Competition in AI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Competition in AI.md",
+      "path": "//docs/archive/legacy/old_markdown/Competition in AI.md",
       "relative_path": "archive/legacy/old_markdown/Competition in AI.md",
       "title": "Competition in AI",
       "size": 2339,
@@ -33894,7 +33894,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/debug linked node.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/debug linked node.md",
+      "path": "//docs/archive/legacy/old_markdown/debug linked node.md",
       "relative_path": "archive/legacy/old_markdown/debug linked node.md",
       "title": "debug linked node",
       "size": 63,
@@ -33902,7 +33902,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Knowhere.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Knowhere.md",
+      "path": "//docs/archive/legacy/old_markdown/Knowhere.md",
       "relative_path": "archive/legacy/old_markdown/Knowhere.md",
       "title": "Knowhere",
       "size": 15800,
@@ -33974,7 +33974,7 @@
       ]
     },
     "archive/legacy/old_markdown/Depth Estimation.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Depth Estimation.md",
+      "path": "//docs/archive/legacy/old_markdown/Depth Estimation.md",
       "relative_path": "archive/legacy/old_markdown/Depth Estimation.md",
       "title": "Depth Estimation",
       "size": 862,
@@ -33982,7 +33982,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Deepmind.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Deepmind.md",
+      "path": "//docs/archive/legacy/old_markdown/Deepmind.md",
       "relative_path": "archive/legacy/old_markdown/Deepmind.md",
       "title": "Deepmind",
       "size": 14,
@@ -33990,7 +33990,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Leopold Aschenbrenner.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Leopold Aschenbrenner.md",
+      "path": "//docs/archive/legacy/old_markdown/Leopold Aschenbrenner.md",
       "relative_path": "archive/legacy/old_markdown/Leopold Aschenbrenner.md",
       "title": "Leopold Aschenbrenner",
       "size": 8770,
@@ -34005,7 +34005,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Social contract and jobs.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Social contract and jobs.md",
+      "path": "//docs/archive/legacy/old_markdown/Social contract and jobs.md",
       "relative_path": "archive/legacy/old_markdown/Social contract and jobs.md",
       "title": "Social contract and jobs",
       "size": 44945,
@@ -34062,7 +34062,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Transformers.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Transformers.md",
+      "path": "//docs/archive/legacy/old_markdown/Transformers.md",
       "relative_path": "archive/legacy/old_markdown/Transformers.md",
       "title": "Transformers",
       "size": 2437,
@@ -34070,7 +34070,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Recent Projects.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Recent Projects.md",
+      "path": "//docs/archive/legacy/old_markdown/Recent Projects.md",
       "relative_path": "archive/legacy/old_markdown/Recent Projects.md",
       "title": "Recent Projects",
       "size": 1485,
@@ -34097,7 +34097,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/State Space and Other Approaches.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/State Space and Other Approaches.md",
+      "path": "//docs/archive/legacy/old_markdown/State Space and Other Approaches.md",
       "relative_path": "archive/legacy/old_markdown/State Space and Other Approaches.md",
       "title": "State Space and Other Approaches",
       "size": 28558,
@@ -34105,7 +34105,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Flux.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Flux.md",
+      "path": "//docs/archive/legacy/old_markdown/Flux.md",
       "relative_path": "archive/legacy/old_markdown/Flux.md",
       "title": "Flux",
       "size": 27923,
@@ -34120,7 +34120,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Gold.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Gold.md",
+      "path": "//docs/archive/legacy/old_markdown/Gold.md",
       "relative_path": "archive/legacy/old_markdown/Gold.md",
       "title": "Gold",
       "size": 5495,
@@ -34128,7 +34128,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Bitcoin Value Proposition.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Bitcoin Value Proposition.md",
+      "path": "//docs/archive/legacy/old_markdown/Bitcoin Value Proposition.md",
       "relative_path": "archive/legacy/old_markdown/Bitcoin Value Proposition.md",
       "title": "Bitcoin Value Proposition",
       "size": 53300,
@@ -34136,7 +34136,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Robin Hanson.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Robin Hanson.md",
+      "path": "//docs/archive/legacy/old_markdown/Robin Hanson.md",
       "relative_path": "archive/legacy/old_markdown/Robin Hanson.md",
       "title": "Robin Hanson",
       "size": 4256,
@@ -34144,7 +34144,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Client side DCO.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Client side DCO.md",
+      "path": "//docs/archive/legacy/old_markdown/Client side DCO.md",
       "relative_path": "archive/legacy/old_markdown/Client side DCO.md",
       "title": "Client side DCO",
       "size": 14735,
@@ -34197,7 +34197,7 @@
       ]
     },
     "archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md",
+      "path": "//docs/archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md",
       "relative_path": "archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md",
       "title": "Agentic Metaverse for Global Creatives",
       "size": 30731,
@@ -34205,7 +34205,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Financialised Agentic Memetics.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Financialised Agentic Memetics.md",
+      "path": "//docs/archive/legacy/old_markdown/Financialised Agentic Memetics.md",
       "relative_path": "archive/legacy/old_markdown/Financialised Agentic Memetics.md",
       "title": "Financialised Agentic Memetics",
       "size": 2442,
@@ -34213,7 +34213,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Money.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Money.md",
+      "path": "//docs/archive/legacy/old_markdown/Money.md",
       "relative_path": "archive/legacy/old_markdown/Money.md",
       "title": "Money",
       "size": 85818,
@@ -34221,7 +34221,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Jailbreaking.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Jailbreaking.md",
+      "path": "//docs/archive/legacy/old_markdown/Jailbreaking.md",
       "relative_path": "archive/legacy/old_markdown/Jailbreaking.md",
       "title": "Jailbreaking",
       "size": 911,
@@ -34229,7 +34229,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Sam Hammond.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Sam Hammond.md",
+      "path": "//docs/archive/legacy/old_markdown/Sam Hammond.md",
       "relative_path": "archive/legacy/old_markdown/Sam Hammond.md",
       "title": "Sam Hammond",
       "size": 17938,
@@ -34237,7 +34237,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/BTC Layer 3.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/BTC Layer 3.md",
+      "path": "//docs/archive/legacy/old_markdown/BTC Layer 3.md",
       "relative_path": "archive/legacy/old_markdown/BTC Layer 3.md",
       "title": "BTC Layer 3",
       "size": 26265,
@@ -34245,7 +34245,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Gemini.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Gemini.md",
+      "path": "//docs/archive/legacy/old_markdown/Gemini.md",
       "relative_path": "archive/legacy/old_markdown/Gemini.md",
       "title": "Gemini",
       "size": 1958,
@@ -34253,7 +34253,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Product Design.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Product Design.md",
+      "path": "//docs/archive/legacy/old_markdown/Product Design.md",
       "relative_path": "archive/legacy/old_markdown/Product Design.md",
       "title": "Product Design",
       "size": 81911,
@@ -34292,7 +34292,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Politics, Law, Privacy.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Politics, Law, Privacy.md",
+      "path": "//docs/archive/legacy/old_markdown/Politics, Law, Privacy.md",
       "relative_path": "archive/legacy/old_markdown/Politics, Law, Privacy.md",
       "title": "Politics, Law, Privacy",
       "size": 33651,
@@ -34313,7 +34313,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Llama.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Llama.md",
+      "path": "//docs/archive/legacy/old_markdown/Llama.md",
       "relative_path": "archive/legacy/old_markdown/Llama.md",
       "title": "Llama",
       "size": 3432,
@@ -34328,7 +34328,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Singularity.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Singularity.md",
+      "path": "//docs/archive/legacy/old_markdown/Singularity.md",
       "relative_path": "archive/legacy/old_markdown/Singularity.md",
       "title": "Singularity",
       "size": 5040,
@@ -34336,7 +34336,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Algorithmic Bias and Variance.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Algorithmic Bias and Variance.md",
+      "path": "//docs/archive/legacy/old_markdown/Algorithmic Bias and Variance.md",
       "relative_path": "archive/legacy/old_markdown/Algorithmic Bias and Variance.md",
       "title": "Algorithmic Bias and Variance",
       "size": 8495,
@@ -34349,7 +34349,7 @@
       ]
     },
     "archive/legacy/old_markdown/Overview of Machine Learning Techniques.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Overview of Machine Learning Techniques.md",
+      "path": "//docs/archive/legacy/old_markdown/Overview of Machine Learning Techniques.md",
       "relative_path": "archive/legacy/old_markdown/Overview of Machine Learning Techniques.md",
       "title": "Overview of Machine Learning Techniques",
       "size": 7147,
@@ -34364,7 +34364,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AI Companies.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AI Companies.md",
+      "path": "//docs/archive/legacy/old_markdown/AI Companies.md",
       "relative_path": "archive/legacy/old_markdown/AI Companies.md",
       "title": "AI Companies",
       "size": 7132,
@@ -34372,7 +34372,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Cyber Security and Military.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Cyber Security and Military.md",
+      "path": "//docs/archive/legacy/old_markdown/Cyber Security and Military.md",
       "relative_path": "archive/legacy/old_markdown/Cyber Security and Military.md",
       "title": "Cyber Security and Military",
       "size": 7660,
@@ -34380,7 +34380,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/infrastructure.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/infrastructure.md",
+      "path": "//docs/archive/legacy/old_markdown/infrastructure.md",
       "relative_path": "archive/legacy/old_markdown/infrastructure.md",
       "title": "infrastructure",
       "size": 5571,
@@ -34388,7 +34388,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Cashu.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Cashu.md",
+      "path": "//docs/archive/legacy/old_markdown/Cashu.md",
       "relative_path": "archive/legacy/old_markdown/Cashu.md",
       "title": "Cashu",
       "size": 4261,
@@ -34403,7 +34403,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Humans, Avatars , Character.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Humans, Avatars , Character.md",
+      "path": "//docs/archive/legacy/old_markdown/Humans, Avatars , Character.md",
       "relative_path": "archive/legacy/old_markdown/Humans, Avatars , Character.md",
       "title": "Humans, Avatars , Character",
       "size": 14756,
@@ -34411,7 +34411,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Accessibility.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Accessibility.md",
+      "path": "//docs/archive/legacy/old_markdown/Accessibility.md",
       "relative_path": "archive/legacy/old_markdown/Accessibility.md",
       "title": "Accessibility",
       "size": 17789,
@@ -34419,7 +34419,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/collaborative.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/collaborative.md",
+      "path": "//docs/archive/legacy/old_markdown/collaborative.md",
       "relative_path": "archive/legacy/old_markdown/collaborative.md",
       "title": "collaborative",
       "size": 14,
@@ -34427,7 +34427,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/AI Risks.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/AI Risks.md",
+      "path": "//docs/archive/legacy/old_markdown/AI Risks.md",
       "relative_path": "archive/legacy/old_markdown/AI Risks.md",
       "title": "AI Risks",
       "size": 5071,
@@ -34435,7 +34435,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Convergence.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Convergence.md",
+      "path": "//docs/archive/legacy/old_markdown/Convergence.md",
       "relative_path": "archive/legacy/old_markdown/Convergence.md",
       "title": "Convergence",
       "size": 10596,
@@ -34450,7 +34450,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Large language models.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Large language models.md",
+      "path": "//docs/archive/legacy/old_markdown/Large language models.md",
       "relative_path": "archive/legacy/old_markdown/Large language models.md",
       "title": "Large language models",
       "size": 63093,
@@ -34465,7 +34465,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/NVIDIA Omniverse.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/NVIDIA Omniverse.md",
+      "path": "//docs/archive/legacy/old_markdown/NVIDIA Omniverse.md",
       "relative_path": "archive/legacy/old_markdown/NVIDIA Omniverse.md",
       "title": "NVIDIA Omniverse",
       "size": 8803,
@@ -34473,7 +34473,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Adoption of Convergent Technologies.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Adoption of Convergent Technologies.md",
+      "path": "//docs/archive/legacy/old_markdown/Adoption of Convergent Technologies.md",
       "relative_path": "archive/legacy/old_markdown/Adoption of Convergent Technologies.md",
       "title": "Adoption of Convergent Technologies",
       "size": 20065,
@@ -34524,7 +34524,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/relighting.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/relighting.md",
+      "path": "//docs/archive/legacy/old_markdown/relighting.md",
       "relative_path": "archive/legacy/old_markdown/relighting.md",
       "title": "relighting",
       "size": 1368,
@@ -34532,7 +34532,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Human vs AI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Human vs AI.md",
+      "path": "//docs/archive/legacy/old_markdown/Human vs AI.md",
       "relative_path": "archive/legacy/old_markdown/Human vs AI.md",
       "title": "Human vs AI",
       "size": 5108,
@@ -34540,7 +34540,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Procedural and Hybrid 4D.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Procedural and Hybrid 4D.md",
+      "path": "//docs/archive/legacy/old_markdown/Procedural and Hybrid 4D.md",
       "relative_path": "archive/legacy/old_markdown/Procedural and Hybrid 4D.md",
       "title": "Procedural and Hybrid 4D",
       "size": 61,
@@ -34548,7 +34548,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Segmentation and Identification.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Segmentation and Identification.md",
+      "path": "//docs/archive/legacy/old_markdown/Segmentation and Identification.md",
       "relative_path": "archive/legacy/old_markdown/Segmentation and Identification.md",
       "title": "Segmentation and Identification",
       "size": 6843,
@@ -34556,7 +34556,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Runes and Glyphs.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Runes and Glyphs.md",
+      "path": "//docs/archive/legacy/old_markdown/Runes and Glyphs.md",
       "relative_path": "archive/legacy/old_markdown/Runes and Glyphs.md",
       "title": "Runes and Glyphs",
       "size": 1840,
@@ -34583,7 +34583,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Parametric.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Parametric.md",
+      "path": "//docs/archive/legacy/old_markdown/Parametric.md",
       "relative_path": "archive/legacy/old_markdown/Parametric.md",
       "title": "Parametric",
       "size": 6574,
@@ -34598,7 +34598,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/State of the art in AI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/State of the art in AI.md",
+      "path": "//docs/archive/legacy/old_markdown/State of the art in AI.md",
       "relative_path": "archive/legacy/old_markdown/State of the art in AI.md",
       "title": "State of the art in AI",
       "size": 8137,
@@ -34637,7 +34637,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Calculating Empires.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Calculating Empires.md",
+      "path": "//docs/archive/legacy/old_markdown/Calculating Empires.md",
       "relative_path": "archive/legacy/old_markdown/Calculating Empires.md",
       "title": "Calculating Empires",
       "size": 2064,
@@ -34645,7 +34645,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Open Generative AI tools.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Open Generative AI tools.md",
+      "path": "//docs/archive/legacy/old_markdown/Open Generative AI tools.md",
       "relative_path": "archive/legacy/old_markdown/Open Generative AI tools.md",
       "title": "Open Generative AI tools",
       "size": 2630,
@@ -34660,7 +34660,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Evaluation benchmarks and leaderboards.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Evaluation benchmarks and leaderboards.md",
+      "path": "//docs/archive/legacy/old_markdown/Evaluation benchmarks and leaderboards.md",
       "relative_path": "archive/legacy/old_markdown/Evaluation benchmarks and leaderboards.md",
       "title": "Evaluation benchmarks and leaderboards",
       "size": 1148,
@@ -34675,7 +34675,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Spatial Computing.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Spatial Computing.md",
+      "path": "//docs/archive/legacy/old_markdown/Spatial Computing.md",
       "relative_path": "archive/legacy/old_markdown/Spatial Computing.md",
       "title": "Spatial Computing",
       "size": 1826,
@@ -34683,7 +34683,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Visionflow.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Visionflow.md",
+      "path": "//docs/archive/legacy/old_markdown/Visionflow.md",
       "relative_path": "archive/legacy/old_markdown/Visionflow.md",
       "title": "Visionflow",
       "size": 5188,
@@ -34691,7 +34691,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Inpainting.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Inpainting.md",
+      "path": "//docs/archive/legacy/old_markdown/Inpainting.md",
       "relative_path": "archive/legacy/old_markdown/Inpainting.md",
       "title": "Inpainting",
       "size": 59,
@@ -34699,7 +34699,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/EU AI Act.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/EU AI Act.md",
+      "path": "//docs/archive/legacy/old_markdown/EU AI Act.md",
       "relative_path": "archive/legacy/old_markdown/EU AI Act.md",
       "title": "EU AI Act",
       "size": 3083,
@@ -34707,7 +34707,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Papers Of Note.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Papers Of Note.md",
+      "path": "//docs/archive/legacy/old_markdown/Papers Of Note.md",
       "relative_path": "archive/legacy/old_markdown/Papers Of Note.md",
       "title": "Papers Of Note",
       "size": 119797,
@@ -34715,7 +34715,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/IPAdapter.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/IPAdapter.md",
+      "path": "//docs/archive/legacy/old_markdown/IPAdapter.md",
       "relative_path": "archive/legacy/old_markdown/IPAdapter.md",
       "title": "IPAdapter",
       "size": 4117,
@@ -34723,7 +34723,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Rust.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Rust.md",
+      "path": "//docs/archive/legacy/old_markdown/Rust.md",
       "relative_path": "archive/legacy/old_markdown/Rust.md",
       "title": "Rust",
       "size": 3324,
@@ -34740,7 +34740,7 @@
       ]
     },
     "archive/legacy/old_markdown/Lead Poisoning Hypothesis.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Lead Poisoning Hypothesis.md",
+      "path": "//docs/archive/legacy/old_markdown/Lead Poisoning Hypothesis.md",
       "relative_path": "archive/legacy/old_markdown/Lead Poisoning Hypothesis.md",
       "title": "Lead Poisoning Hypothesis",
       "size": 3998,
@@ -34748,7 +34748,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Stable Coins.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Stable Coins.md",
+      "path": "//docs/archive/legacy/old_markdown/Stable Coins.md",
       "relative_path": "archive/legacy/old_markdown/Stable Coins.md",
       "title": "Stable Coins",
       "size": 18917,
@@ -34763,7 +34763,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Proprietary Video.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Proprietary Video.md",
+      "path": "//docs/archive/legacy/old_markdown/Proprietary Video.md",
       "relative_path": "archive/legacy/old_markdown/Proprietary Video.md",
       "title": "Proprietary Video",
       "size": 6701,
@@ -34796,7 +34796,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/National Industrial Centre for Virtual Environments.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/National Industrial Centre for Virtual Environments.md",
+      "path": "//docs/archive/legacy/old_markdown/National Industrial Centre for Virtual Environments.md",
       "relative_path": "archive/legacy/old_markdown/National Industrial Centre for Virtual Environments.md",
       "title": "National Industrial Centre for Virtual Environments",
       "size": 2721,
@@ -34847,7 +34847,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Model Optimisation and Performance.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Model Optimisation and Performance.md",
+      "path": "//docs/archive/legacy/old_markdown/Model Optimisation and Performance.md",
       "relative_path": "archive/legacy/old_markdown/Model Optimisation and Performance.md",
       "title": "Model Optimisation and Performance",
       "size": 10270,
@@ -34862,7 +34862,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Scene Capture and Reconstruction.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Scene Capture and Reconstruction.md",
+      "path": "//docs/archive/legacy/old_markdown/Scene Capture and Reconstruction.md",
       "relative_path": "archive/legacy/old_markdown/Scene Capture and Reconstruction.md",
       "title": "Scene Capture and Reconstruction",
       "size": 12426,
@@ -34883,7 +34883,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Decentralised Web.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Decentralised Web.md",
+      "path": "//docs/archive/legacy/old_markdown/Decentralised Web.md",
       "relative_path": "archive/legacy/old_markdown/Decentralised Web.md",
       "title": "Decentralised Web",
       "size": 68332,
@@ -34898,7 +34898,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Metaverse as Markets.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Metaverse as Markets.md",
+      "path": "//docs/archive/legacy/old_markdown/Metaverse as Markets.md",
       "relative_path": "archive/legacy/old_markdown/Metaverse as Markets.md",
       "title": "Metaverse as Markets",
       "size": 11006,
@@ -34913,7 +34913,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Comfy UI for Fashion and Brands.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Comfy UI for Fashion and Brands.md",
+      "path": "//docs/archive/legacy/old_markdown/Comfy UI for Fashion and Brands.md",
       "relative_path": "archive/legacy/old_markdown/Comfy UI for Fashion and Brands.md",
       "title": "Comfy UI for Fashion and Brands",
       "size": 11244,
@@ -34946,7 +34946,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Medical AI.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Medical AI.md",
+      "path": "//docs/archive/legacy/old_markdown/Medical AI.md",
       "relative_path": "archive/legacy/old_markdown/Medical AI.md",
       "title": "Medical AI",
       "size": 18110,
@@ -34954,7 +34954,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Automated Podcast Project.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Automated Podcast Project.md",
+      "path": "//docs/archive/legacy/old_markdown/Automated Podcast Project.md",
       "relative_path": "archive/legacy/old_markdown/Automated Podcast Project.md",
       "title": "Automated Podcast Project",
       "size": 10868,
@@ -34994,7 +34994,7 @@
       ]
     },
     "archive/legacy/old_markdown/Gaussian splatting and Similar.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Gaussian splatting and Similar.md",
+      "path": "//docs/archive/legacy/old_markdown/Gaussian splatting and Similar.md",
       "relative_path": "archive/legacy/old_markdown/Gaussian splatting and Similar.md",
       "title": "Gaussian splatting and Similar",
       "size": 7756,
@@ -35002,7 +35002,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Revision List.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Revision List.md",
+      "path": "//docs/archive/legacy/old_markdown/Revision List.md",
       "relative_path": "archive/legacy/old_markdown/Revision List.md",
       "title": "Revision List",
       "size": 3977,
@@ -35010,7 +35010,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Suggested Reading Order.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Suggested Reading Order.md",
+      "path": "//docs/archive/legacy/old_markdown/Suggested Reading Order.md",
       "relative_path": "archive/legacy/old_markdown/Suggested Reading Order.md",
       "title": "Suggested Reading Order",
       "size": 2782,
@@ -35018,7 +35018,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/BroBots.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/BroBots.md",
+      "path": "//docs/archive/legacy/old_markdown/BroBots.md",
       "relative_path": "archive/legacy/old_markdown/BroBots.md",
       "title": "BroBots",
       "size": 351,
@@ -35026,7 +35026,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Hyper personalisation.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Hyper personalisation.md",
+      "path": "//docs/archive/legacy/old_markdown/Hyper personalisation.md",
       "relative_path": "archive/legacy/old_markdown/Hyper personalisation.md",
       "title": "Hyper personalisation",
       "size": 3115,
@@ -35034,7 +35034,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Privacy, Trust and Safety.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Privacy, Trust and Safety.md",
+      "path": "//docs/archive/legacy/old_markdown/Privacy, Trust and Safety.md",
       "relative_path": "archive/legacy/old_markdown/Privacy, Trust and Safety.md",
       "title": "Privacy, Trust and Safety",
       "size": 20401,
@@ -35054,7 +35054,7 @@
       ]
     },
     "archive/legacy/old_markdown/legacy media.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/legacy media.md",
+      "path": "//docs/archive/legacy/old_markdown/legacy media.md",
       "relative_path": "archive/legacy/old_markdown/legacy media.md",
       "title": "legacy media",
       "size": 355,
@@ -35069,7 +35069,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/license.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/license.md",
+      "path": "//docs/archive/legacy/old_markdown/license.md",
       "relative_path": "archive/legacy/old_markdown/license.md",
       "title": "license",
       "size": 356,
@@ -35077,7 +35077,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Controlnet and similar.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Controlnet and similar.md",
+      "path": "//docs/archive/legacy/old_markdown/Controlnet and similar.md",
       "relative_path": "archive/legacy/old_markdown/Controlnet and similar.md",
       "title": "Controlnet and similar",
       "size": 8004,
@@ -35085,7 +35085,7 @@
       "headings": []
     },
     "archive/legacy/old_markdown/Introduction to me.md": {
-      "path": "/workspace/ext/docs/archive/legacy/old_markdown/Introduction to me.md",
+      "path": "//docs/archive/legacy/old_markdown/Introduction to me.md",
       "relative_path": "archive/legacy/old_markdown/Introduction to me.md",
       "title": "Introduction to me",
       "size": 5006,
@@ -35124,7 +35124,7 @@
       "headings": []
     },
     "server/features/clustering.md": {
-      "path": "/workspace/ext/docs/server/features/clustering.md",
+      "path": "//docs/server/features/clustering.md",
       "relative_path": "server/features/clustering.md",
       "title": "Graph Clustering",
       "size": 4017,
@@ -35157,7 +35157,7 @@
       ]
     },
     "server/features/ontology.md": {
-      "path": "/workspace/ext/docs/server/features/ontology.md",
+      "path": "//docs/server/features/ontology.md",
       "relative_path": "server/features/ontology.md",
       "title": "Ontology Validation",
       "size": 4677,
@@ -35206,7 +35206,7 @@
       ]
     },
     "server/features/claude-flow-mcp-integration.md": {
-      "path": "/workspace/ext/docs/server/features/claude-flow-mcp-integration.md",
+      "path": "//docs/server/features/claude-flow-mcp-integration.md",
       "relative_path": "server/features/claude-flow-mcp-integration.md",
       "title": "Claude Flow MCP Integration",
       "size": 9130,
@@ -35406,7 +35406,7 @@
       ]
     },
     "server/features/semantic-analysis.md": {
-      "path": "/workspace/ext/docs/server/features/semantic-analysis.md",
+      "path": "//docs/server/features/semantic-analysis.md",
       "relative_path": "server/features/semantic-analysis.md",
       "title": "Semantic Analysis Pipeline",
       "size": 3734,
@@ -35439,7 +35439,7 @@
       ]
     },
     "api/rest/graph.md": {
-      "path": "/workspace/ext/docs/api/rest/graph.md",
+      "path": "//docs/api/rest/graph.md",
       "relative_path": "api/rest/graph.md",
       "title": "Graph API Reference",
       "size": 7792,
@@ -35593,7 +35593,7 @@
       ]
     },
     "api/rest/settings.md": {
-      "path": "/workspace/ext/docs/api/rest/settings.md",
+      "path": "//docs/api/rest/settings.md",
       "relative_path": "api/rest/settings.md",
       "title": "Settings API Reference",
       "size": 16239,
@@ -35903,7 +35903,7 @@
       ]
     },
     "api/rest/index.md": {
-      "path": "/workspace/ext/docs/api/rest/index.md",
+      "path": "//docs/api/rest/index.md",
       "relative_path": "api/rest/index.md",
       "title": "REST API Reference",
       "size": 8567,
@@ -36229,7 +36229,7 @@
       ]
     },
     "api/websocket/index.md": {
-      "path": "/workspace/ext/docs/api/websocket/index.md",
+      "path": "//docs/api/websocket/index.md",
       "relative_path": "api/websocket/index.md",
       "title": "VisionFlow WebSocket API Documentation",
       "size": 16679,
@@ -36509,7 +36509,7 @@
       ]
     },
     "api/mcp/index.md": {
-      "path": "/workspace/ext/docs/api/mcp/index.md",
+      "path": "//docs/api/mcp/index.md",
       "relative_path": "api/mcp/index.md",
       "title": "VisionFlow MCP Integration Documentation",
       "size": 21542,
@@ -36706,7 +36706,7 @@
         },
         {
           "level": 1,
-          "text": "/workspace/ext/config.yml"
+          "text": "//config.yml"
         },
         {
           "level": 3,
@@ -36811,7 +36811,7 @@
       ]
     },
     "client/features/gpu-analytics.md": {
-      "path": "/workspace/ext/docs/client/features/gpu-analytics.md",
+      "path": "//docs/client/features/gpu-analytics.md",
       "relative_path": "client/features/gpu-analytics.md",
       "title": "GPU-Accelerated Analytics",
       "size": 4639,

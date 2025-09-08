@@ -54,42 +54,42 @@
     },
     "largest_files": [
       {
-        "path": "/workspace/ext/data/old_markdown/Papers Of Note.md",
+        "path": "//data/old_markdown/Papers Of Note.md",
         "size_bytes": 119797,
         "category": "old_markdown_data"
       },
       {
-        "path": "/workspace/ext/data/old_markdown/Bitcoin.md",
+        "path": "//data/old_markdown/Bitcoin.md",
         "size_bytes": 97286,
         "category": "old_markdown_data"
       },
       {
-        "path": "/workspace/ext/task.md",
+        "path": "//task.md",
         "size_bytes": 93833,
         "category": "other"
       },
       {
-        "path": "/workspace/ext/data/old_markdown/Money.md",
+        "path": "//data/old_markdown/Money.md",
         "size_bytes": 85818,
         "category": "old_markdown_data"
       },
       {
-        "path": "/workspace/ext/data/old_markdown/Base models.md",
+        "path": "//data/old_markdown/Base models.md",
         "size_bytes": 84942,
         "category": "old_markdown_data"
       }
     ]
   },
   "directory_structure": {
-    "/workspace/ext/": {
+    "//": {
       "files": ["README.md", "task.md", "DEPLOY_FIX.md", "HIVE_MIND_FIXES_REPORT.md"],
       "subdirectories": {
         "docs/": {
           "description": "Main documentation directory",
           "file_count": 130,
           "subdirectories": [
-            "api/", "architecture/", "client/", "configuration/", 
-            "deployment/", "development/", "features/", "getting-started/", 
+            "api/", "architecture/", "client/", "configuration/",
+            "deployment/", "development/", "features/", "getting-started/",
             "guides/", "security/", "server/", "technical/", "testing/"
           ]
         },
@@ -97,7 +97,7 @@
           "description": "Legacy research and notes",
           "file_count": 177,
           "topics": [
-            "AI and Machine Learning", "Bitcoin and Cryptocurrency", 
+            "AI and Machine Learning", "Bitcoin and Cryptocurrency",
             "Blockchain Technology", "Digital Society", "Privacy and Security",
             "Metaverse and AR/VR", "Product Design", "Technical Research"
           ]
@@ -109,7 +109,7 @@
             "agents/", "commands/"
           ],
           "agent_categories": [
-            "core", "consensus", "github", "optimization", "swarm", 
+            "core", "consensus", "github", "optimization", "swarm",
             "templates", "testing", "sparc", "specialized"
           ]
         },
@@ -127,42 +127,42 @@
   },
   "key_files": {
     "project_root": {
-      "/workspace/ext/README.md": {
+      "//README.md": {
         "size_bytes": 13627,
         "description": "Main project README for VisionFlow",
         "content_preview": "VisionFlow: AI Agent Swarm Visualisation & Knowledge Graph Explorer"
       }
     },
     "critical_documentation": {
-      "/workspace/ext/docs/configuration/index.md": {
+      "//docs/configuration/index.md": {
         "size_bytes": 43442,
         "description": "Production configuration guide"
       },
-      "/workspace/ext/docs/security/index.md": {
+      "//docs/security/index.md": {
         "size_bytes": 40559,
         "description": "Production security architecture"
       },
-      "/workspace/ext/docs/architecture/system-overview.md": {
+      "//docs/architecture/system-overview.md": {
         "size_bytes": 22588,
         "description": "VisionFlow system architecture overview"
       }
     },
     "agent_system": {
-      "/workspace/ext/workspace/.claude/agents/README.md": {
+      "//workspace/.claude/agents/README.md": {
         "size_bytes": 2890,
         "description": "Agent system overview"
       },
-      "/workspace/ext/workspace/.claude/agents/consensus/quorum-manager.md": {
+      "//workspace/.claude/agents/consensus/quorum-manager.md": {
         "size_bytes": 27992,
         "description": "Largest agent definition file - quorum management"
       }
     },
     "legacy_research": {
-      "/workspace/ext/data/old_markdown/Papers Of Note.md": {
+      "//data/old_markdown/Papers Of Note.md": {
         "size_bytes": 119797,
         "description": "Largest file - research paper collection"
       },
-      "/workspace/ext/data/old_markdown/Bitcoin.md": {
+      "//data/old_markdown/Bitcoin.md": {
         "size_bytes": 97286,
         "description": "Comprehensive Bitcoin analysis"
       }
@@ -181,7 +181,7 @@
     ],
     "content_types": [
       "Technical Documentation",
-      "Agent Definitions", 
+      "Agent Definitions",
       "API References",
       "Configuration Guides",
       "Research Notes",

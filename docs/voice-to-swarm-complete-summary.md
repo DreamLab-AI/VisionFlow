@@ -68,7 +68,7 @@ Modified `process_audio_chunk` to:
 Browser (MediaRecorder)
     ↓ WebSocket Binary
 SpeechSocket Handler
-    ↓ 
+    ↓
 SpeechService::process_audio_chunk
     ↓
 Whisper STT (172.18.0.5:8000)
@@ -102,13 +102,13 @@ Audio Playback
 ## Key Files Modified/Created
 
 ### New Files:
-- `/workspace/ext/src/actors/voice_commands.rs` - Command parsing
-- `/workspace/ext/src/actors/supervisor_voice.rs` - Handler implementation
-- `/workspace/ext/src/services/speech_voice_integration.rs` - Integration trait
+- `//src/actors/voice_commands.rs` - Command parsing
+- `//src/actors/supervisor_voice.rs` - Handler implementation
+- `//src/services/speech_voice_integration.rs` - Integration trait
 
 ### Modified Files:
-- `/workspace/ext/src/actors/mod.rs` - Added voice modules
-- `/workspace/ext/src/services/speech_service.rs` - Integrated voice command processing
+- `//src/actors/mod.rs` - Added voice modules
+- `//src/services/speech_service.rs` - Integrated voice command processing
 
 ### Existing Files (No Changes Needed):
 - Client voice components (already complete!)
