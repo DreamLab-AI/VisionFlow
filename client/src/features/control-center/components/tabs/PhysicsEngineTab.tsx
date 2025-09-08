@@ -1,5 +1,5 @@
 // Physics Engine Tab - GPU engine, forces, constraints and layout controls
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Separator } from '@/features/design-system/components/Separator';
 import { Badge } from '@/features/design-system/components/Badge';
@@ -20,19 +20,32 @@ interface PhysicsEngineTabProps {
 }
 
 export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery = '' }) => {
-  const { settings, setByPath } = useSettingsStore();
-  const physics = settings?.visualisation?.physics;
+  const { settings, setByPath, ensureLoaded } = useSettingsStore();
+  const [currentGraph] = useState<'logseq' | 'visionflow'>('logseq');
+  const physics = settings?.visualisation?.graphs?.[currentGraph]?.physics;
+  
+  // Load physics settings on mount
+  useEffect(() => {
+    const loadPhysics = async () => {
+      await ensureLoaded([
+        `visualisation.graphs.${currentGraph}.physics`,
+        'visualisation.graphs.logseq.physics',
+        'visualisation.graphs.visionflow.physics'
+      ]);
+    };
+    loadPhysics();
+  }, [currentGraph, ensureLoaded]);
   
   // GPU Engine Settings
   const gpuEngineSettings = [
     {
-      path: 'visualisation.physics.enabled',
+      path: `visualisation.graphs.${currentGraph}.physics.enabled`,
       label: 'Enable GPU Physics',
       type: 'toggle' as const,
       description: 'Enable GPU-accelerated physics simulation'
     },
     {
-      path: 'visualisation.physics.computeMode',
+      path: `visualisation.graphs.${currentGraph}.physics.computeMode`,
       label: 'Compute Mode',
       type: 'select' as const,
       description: 'GPU kernel computation mode',
@@ -43,7 +56,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       ]
     },
     {
-      path: 'visualisation.physics.gridCellSize',
+      path: `visualisation.graphs.${currentGraph}.physics.gridCellSize`,
       label: 'Grid Cell Size',
       type: 'slider' as const,
       min: 1.0,
@@ -52,7 +65,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Spatial grid cell size for optimization'
     },
     {
-      path: 'visualisation.physics.featureFlags',
+      path: `visualisation.graphs.${currentGraph}.physics.featureFlags`,
       label: 'Feature Flags',
       type: 'numberInput' as const,
       min: 0,
@@ -64,7 +77,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
   // Force Dynamics Settings
   const forceDynamicsSettings = [
     {
-      path: 'visualisation.physics.springK',
+      path: `visualisation.graphs.${currentGraph}.physics.springK`,
       label: 'Spring Force',
       type: 'slider' as const,
       min: 0.001,
@@ -73,7 +86,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Spring constant for attractive forces'
     },
     {
-      path: 'visualisation.physics.repelK',
+      path: `visualisation.graphs.${currentGraph}.physics.repelK`,
       label: 'Repulsion Force',
       type: 'slider' as const,
       min: 0.001,
@@ -82,7 +95,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Repulsion force strength'
     },
     {
-      path: 'visualisation.physics.attractionK',
+      path: `visualisation.graphs.${currentGraph}.physics.attractionK`,
       label: 'Attraction Force',
       type: 'slider' as const,
       min: 0.0,
@@ -91,7 +104,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Global attraction force strength'
     },
     {
-      path: 'visualisation.physics.gravity',
+      path: `visualisation.graphs.${currentGraph}.physics.gravity`,
       label: 'Gravity',
       type: 'slider' as const,
       min: -1.0,
@@ -100,7 +113,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Central gravity force'
     },
     {
-      path: 'visualisation.physics.damping',
+      path: `visualisation.graphs.${currentGraph}.physics.damping`,
       label: 'Damping',
       type: 'slider' as const,
       min: 0.0,
@@ -113,7 +126,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
   // Advanced Parameters
   const advancedSettings = [
     {
-      path: 'visualisation.physics.restLength',
+      path: `visualisation.graphs.${currentGraph}.physics.restLength`,
       label: 'Rest Length',
       type: 'slider' as const,
       min: 0.1,
@@ -122,7 +135,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Default spring rest length'
     },
     {
-      path: 'visualisation.physics.repulsionCutoff',
+      path: `visualisation.graphs.${currentGraph}.physics.repulsionCutoff`,
       label: 'Repulsion Cutoff',
       type: 'slider' as const,
       min: 1.0,
@@ -131,7 +144,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Distance cutoff for repulsion forces'
     },
     {
-      path: 'visualisation.physics.centerGravityK',
+      path: `visualisation.graphs.${currentGraph}.physics.centerGravityK`,
       label: 'Center Gravity',
       type: 'slider' as const,
       min: -1.0,
@@ -140,7 +153,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Central gravity strength'
     },
     {
-      path: 'visualisation.physics.maxForce',
+      path: `visualisation.graphs.${currentGraph}.physics.maxForce`,
       label: 'Max Force',
       type: 'numberInput' as const,
       min: 1,
@@ -152,13 +165,13 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
   // Boundary & Collision Settings
   const boundarySettings = [
     {
-      path: 'visualisation.physics.enableBounds',
+      path: `visualisation.graphs.${currentGraph}.physics.enableBounds`,
       label: 'Enable Boundaries',
       type: 'toggle' as const,
       description: 'Enable simulation boundaries'
     },
     {
-      path: 'visualisation.physics.boundsSize',
+      path: `visualisation.graphs.${currentGraph}.physics.boundsSize`,
       label: 'Boundary Size',
       type: 'slider' as const,
       min: 100,
@@ -167,7 +180,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Simulation boundary size'
     },
     {
-      path: 'visualisation.physics.boundaryDamping',
+      path: `visualisation.graphs.${currentGraph}.physics.boundaryDamping`,
       label: 'Boundary Damping',
       type: 'slider' as const,
       min: 0.0,
@@ -176,7 +189,7 @@ export const PhysicsEngineTab: React.FC<PhysicsEngineTabProps> = ({ searchQuery 
       description: 'Velocity damping at boundaries'
     },
     {
-      path: 'visualisation.physics.separationRadius',
+      path: `visualisation.graphs.${currentGraph}.physics.separationRadius`,
       label: 'Separation Radius',
       type: 'slider' as const,
       min: 0.1,

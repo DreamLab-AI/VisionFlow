@@ -259,6 +259,9 @@ impl GraphServiceActor {
             }
         };
         
+        // Clone simulation_params for target_params before moving it
+        let target_params = simulation_params.clone();
+        
         Self {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
             node_map: HashMap::new(),
@@ -292,8 +295,8 @@ impl GraphServiceActor {
             auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
             kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
             
-            // Smooth parameter transitions
-            target_params: SimulationParams::default(),
+            // Smooth parameter transitions - initialize with actual loaded settings
+            target_params,
             param_transition_rate: 0.1, // 10% per frame for smooth transitions
         }
     }
@@ -1071,10 +1074,11 @@ impl GraphServiceActor {
                         } else {
                             // Normal bouncing stabilization - use gentler reduction
                             let mut new_target = self.target_params.clone();
-                            new_target.repel_k = (self.simulation_params.repel_k * 0.8).max(0.1);  // Less extreme reduction
+                            // CRITICAL: Keep minimum viable values to prevent collapse to zero
+                            new_target.repel_k = (self.simulation_params.repel_k * 0.8).max(10.0);  // Minimum repulsion to prevent overlap
                             new_target.damping = (self.simulation_params.damping * 1.05).min(0.95);  // Gradual damping increase
-                            new_target.max_velocity = (self.simulation_params.max_velocity * 0.8).max(0.5);  // Keep some velocity
-                            new_target.spring_k = (self.simulation_params.spring_k * 0.9).max(0.1);
+                            new_target.max_velocity = (self.simulation_params.max_velocity * 0.8).max(2.0);  // Keep reasonable velocity
+                            new_target.spring_k = (self.simulation_params.spring_k * 0.9).max(0.5);  // Minimum spring force
                             // Keep existing boundary settings from simulation_params
                             // Don't override enable_bounds or viewport_bounds
                             
@@ -1099,8 +1103,8 @@ impl GraphServiceActor {
                         
                         let mut new_target = self.target_params.clone();
                         // CORRECT: Increase attractive forces to pull nodes together
-                        new_target.spring_k = (self.simulation_params.spring_k * attraction_boost).min(0.1);
-                        new_target.attraction_k = (self.simulation_params.attraction_k * attraction_boost).min(0.5);
+                        new_target.spring_k = (self.simulation_params.spring_k * attraction_boost).max(0.5).min(10.0);
+                        new_target.attraction_k = (self.simulation_params.attraction_k * attraction_boost).max(0.01).min(0.5);
                         
                         // NEW: Adjust center gravity through cooling_rate proxy (center_gravity_k equivalent)
                         new_target.cooling_rate = (self.simulation_params.cooling_rate * gravity_boost)
