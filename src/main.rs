@@ -1,3 +1,4 @@
+// Rebuild: KE velocity fix applied
 use webxr::services::nostr_service::NostrService;
 use webxr::{
     AppState,

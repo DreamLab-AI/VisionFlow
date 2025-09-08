@@ -342,6 +342,13 @@ impl UnifiedGPUCompute {
         Ok(())
     }
 
+    pub fn download_velocities(&self, x: &mut [f32], y: &mut [f32], z: &mut [f32]) -> Result<()> {
+        self.vel_in_x.copy_to(x)?;
+        self.vel_in_y.copy_to(y)?;
+        self.vel_in_z.copy_to(z)?;
+        Ok(())
+    }
+
     pub fn swap_buffers(&mut self) {
         std::mem::swap(&mut self.pos_in_x, &mut self.pos_out_x);
         std::mem::swap(&mut self.pos_in_y, &mut self.pos_out_y);
