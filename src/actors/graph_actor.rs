@@ -1320,13 +1320,12 @@ impl GraphServiceActor {
                     num_directed_edges,
                     &ptx_content,
                 ) {
-                    Ok(_context) => {
+                    Ok(context) => {
                         info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges", 
                               graph_data_clone.nodes.len(), num_directed_edges);
                         info!("GPU physics simulation is now active for knowledge graph");
-                        // Store the context locally instead of sending it
-                        // The GPU actor will initialize its own context
-                        self_addr.do_send(SetAdvancedGPUContext { initialize: true });
+                        // Send the context back to the actor to store it
+                        self_addr.do_send(StoreAdvancedGPUContext { context });
                     }
                     Err(e) => {
                         error!("❌ Failed to initialize advanced GPU context: {}", e);
@@ -2181,6 +2180,20 @@ impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
         // The actual context is managed separately in the actor that created it
         self.gpu_init_in_progress = false; // Reset the flag
         info!("Advanced GPU context initialization signal received");
+    }
+}
+
+impl Handler<StoreAdvancedGPUContext> for GraphServiceActor {
+    type Result = ();
+    
+    fn handle(&mut self, msg: StoreAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        // Store the GPU context that was created in the async block
+        self.advanced_gpu_context = Some(msg.context);
+        self.gpu_init_in_progress = false;
+        info!("Advanced GPU context stored successfully and ready for physics simulation");
+        
+        // Upload constraints to the newly initialized GPU
+        self.upload_constraints_to_gpu();
     }
 }
 
