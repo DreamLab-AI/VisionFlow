@@ -226,7 +226,7 @@ Current status by area
 - Analytics endpoints: Clustering and anomaly detection currently simulate/mock outputs; GPU implementations planned.
 - Tests: New PTX smoke test added; broader safety tests exist but include placeholders/simulations.
 
-Changes since previous document (2025-09-07)
+Changes since previous document (2025-09-08)
 - ✅ Fixed all Result handling for GPU parameter updates with proper error propagation
 - ✅ Wired up auto-balance feature completely with compute mode switching
 - ✅ Implemented all constraint generation methods with automatic GPU upload
@@ -235,6 +235,25 @@ Changes since previous document (2025-09-07)
 - ✅ Cleaned up all 60+ dead code issues - MCP connections, handlers, services
 - ✅ Resolved all compilation errors - code now builds cleanly
 - ✅ Added comprehensive error handling with graceful degradation
+
+CRITICAL BUG FIXES (2025-09-08):
+- ✅ FIXED: GPU context not being stored - was immediately dropped after creation
+  - Added StoreAdvancedGPUContext message to properly store context in graph_actor
+  - GPU physics now actually runs instead of failing silently
+- ✅ FIXED: Physics parameters collapsing to near-zero values
+  - target_params now initialized with loaded settings instead of defaults
+  - Added minimum bounds to prevent parameter collapse (repel_k min 10.0, spring_k min 0.5)
+  - Fixes bouncing behavior every few seconds
+- ✅ FIXED: Dynamic spatial grid allocation 
+  - Reduced initial allocation from 128³ (2M cells) to 32³ (32K cells) 
+  - Implements proper resizing when needed, huge memory savings
+- ✅ FIXED: Hardcoded magic numbers in CUDA kernels removed
+  - All values now use SimParams properly
+- ✅ FIXED: Client-side settings synchronization
+  - Added physics settings to ESSENTIAL_PATHS for startup loading
+  - Fixed PhysicsEngineTab using wrong settings paths (was visualisation.physics.*, now visualisation.graphs.[graph].physics.*)
+  - PhysicsEngineControls now properly loads physics settings on mount
+  - Control center now reads and applies settings.yaml values correctly
 
 Runbook: PTX smoke test (GPU host only)
 - Build (choose arch, e.g. 86 for RTX 30xx): CUDA_ARCH=86 cargo build -vv
@@ -562,18 +581,32 @@ Available Integration Tests: 27 total
 
 ## Hive Mind Implementation Progress (2025-09-08)
 
-### 🚨 CRITICAL BUG FIX - GPU CONTEXT NOT STORED
+### 🚨 CRITICAL BUG FIXES - PHYSICS PARAMETERS AND GPU
 
-**Issue Found**: GPU physics controls not working despite successful initialization
+#### Fix 1: GPU CONTEXT NOT STORED
+**Issue**: GPU physics controls not working despite successful initialization
 **Root Cause**: GPU context was created but immediately dropped (line 1323)
 **Fix Applied**: Added `StoreAdvancedGPUContext` message to properly store the GPU context
+- **graph_actor.rs:1328** - Send context back to actor for storage
+- **messages.rs:128-132** - Added `StoreAdvancedGPUContext` message
+- **graph_actor.rs:2186-2198** - Added handler to store GPU context
 
-#### Code Changes:
-1. **graph_actor.rs:1328** - Send context back to actor for storage
-2. **messages.rs:128-132** - Added `StoreAdvancedGPUContext` message
-3. **graph_actor.rs:2186-2198** - Added handler to store GPU context
+#### Fix 2: PHYSICS PARAMETERS COLLAPSING TO ZERO
+**Issue**: Physics parameters (spring_k, repel_k, damping) becoming near-zero values
+**Root Causes**: 
+1. `target_params` initialized with `SimulationParams::default()` which has near-zero values
+2. Auto-balance aggressively reducing values without minimum bounds
+3. Smooth transition continuously lerping toward bad target values
 
-**Result**: GPU physics should now work correctly with control center parameters
+**Fixes Applied**:
+1. **graph_actor.rs:263** - Initialize `target_params` with loaded settings instead of defaults
+2. **graph_actor.rs:1075-1078** - Added minimum bounds to prevent collapse:
+   - `repel_k` minimum: 10.0 (was 0.1)
+   - `spring_k` minimum: 0.5 (was 0.1)  
+   - `max_velocity` minimum: 2.0 (was 0.5)
+3. **graph_actor.rs:1103-1104** - Fixed spreading force minimums
+
+**Result**: Physics parameters now maintain reasonable values preventing static/collapsed graphs
 
 ### ✅ COMPLETED IMPLEMENTATIONS TODAY:
 1. **SimParams GPU Propagation**: ✅ Added proper parameter sync mechanism

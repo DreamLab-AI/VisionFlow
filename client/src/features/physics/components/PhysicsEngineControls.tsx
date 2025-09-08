@@ -60,7 +60,7 @@ interface IsolationLayer {
 export function PhysicsEngineControls() {
   const { toast } = useToast();
   // Use the settings store
-  const { settings, initialized, updateSettings } = useSettingsStore();
+  const { settings, initialized, updateSettings, loadSection, ensureLoaded } = useSettingsStore();
   const [currentGraph] = useState<'logseq' | 'visionflow'>('logseq');
   
   // Helper function to update physics settings
@@ -122,12 +122,21 @@ export function PhysicsEngineControls() {
     power: 0,
   });
 
-  // Initialize the settings store on mount
+  // Initialize the settings store and load physics settings on mount
   useEffect(() => {
-    if (!initialized) {
-      // The settings store automatically initializes on first use
-    }
-  }, [initialized]);
+    const loadPhysicsSettings = async () => {
+      if (initialized) {
+        // Ensure physics settings are loaded for both graphs
+        await ensureLoaded([
+          `visualisation.graphs.${currentGraph}.physics`,
+          'visualisation.graphs.logseq.physics',
+          'visualisation.graphs.visionflow.physics'
+        ]);
+      }
+    };
+    
+    loadPhysicsSettings();
+  }, [initialized, currentGraph, ensureLoaded]);
   
   // All values are read directly from settings store - no local state needed
   

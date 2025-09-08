@@ -25,7 +25,10 @@ const ESSENTIAL_PATHS = [
   'auth.required',
   'visualisation.rendering.context',
   'xr.enabled',
-  'xr.mode'
+  'xr.mode',
+  // Add physics settings so control center has them on startup
+  'visualisation.graphs.logseq.physics',
+  'visualisation.graphs.visionflow.physics'
 ];
 
 
