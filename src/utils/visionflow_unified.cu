@@ -260,7 +260,8 @@ __global__ void force_pass_kernel(
                                 float repulsion = c_params.repel_k / (dist_sq + c_params.repulsion_softening_epsilon);
                                 
                                 // Prevent repulsion force overflow when nodes are too close
-                                float max_repulsion = c_params.max_force * 0.5f;
+                                // Use full max_force instead of arbitrary 0.5 multiplier
+                                float max_repulsion = c_params.max_force;
                                 repulsion = fminf(repulsion, max_repulsion);
                                 
                                 // Safety check for NaN/Inf
@@ -347,10 +348,12 @@ __global__ void force_pass_kernel(
                     
                     if (current_dist > 1e-6f && isfinite(current_dist) && target_dist > 0.0f) {
                         float error = current_dist - target_dist;
-                        float force_magnitude = -constraint.weight * error * 0.5f; // Spring-like force
+                        // Use constraint weight directly without arbitrary scaling
+                        float force_magnitude = -constraint.weight * error;
                         
                         // Cap constraint forces to prevent instability
-                        float max_constraint_force = c_params.max_force * 0.3f;
+                        // Use a dedicated constraint force cap (could be added to SimParams)
+                        float max_constraint_force = c_params.max_force;
                         force_magnitude = fmaxf(-max_constraint_force, fminf(max_constraint_force, force_magnitude));
                         
                         constraint_force = vec3_scale(diff, force_magnitude / current_dist);
@@ -503,7 +506,8 @@ __global__ void integrate_pass_kernel(
         if (fabsf(pos.y) > boundary_margin) {
             float boundary_dist = fabsf(pos.y) - boundary_margin;
             float boundary_force = boundary_repulsion_strength * (boundary_dist / (boundary_limit - boundary_margin));
-            boundary_force = fminf(boundary_force, 15.0f);
+            // Use max_force instead of hardcoded 15.0f
+            boundary_force = fminf(boundary_force, c_params.max_force);
             pos.y = pos.y > 0 ? fminf(pos.y, boundary_limit) : fmaxf(pos.y, -boundary_limit);
             vel.y *= c_params.boundary_damping;
             if (fabsf(pos.y) >= boundary_limit) {
@@ -515,7 +519,8 @@ __global__ void integrate_pass_kernel(
         if (fabsf(pos.z) > boundary_margin) {
             float boundary_dist = fabsf(pos.z) - boundary_margin;
             float boundary_force = boundary_repulsion_strength * (boundary_dist / (boundary_limit - boundary_margin));
-            boundary_force = fminf(boundary_force, 15.0f);
+            // Use max_force instead of hardcoded 15.0f
+            boundary_force = fminf(boundary_force, c_params.max_force);
             pos.z = pos.z > 0 ? fminf(pos.z, boundary_limit) : fmaxf(pos.z, -boundary_limit);
             vel.z *= c_params.boundary_damping;
             if (fabsf(pos.z) >= boundary_limit) {

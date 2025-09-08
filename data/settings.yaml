@@ -67,10 +67,10 @@ visualisation:
     logseq:
       nodes:
         baseColor: '#ff0000'
-        metalness: 0.25824177
-        opacity: 0.23626374
-        roughness: 0.3653846
-        nodeSize: 1.9703296
+        metalness: 0.3249958
+        opacity: 0.23711348
+        roughness: 0.25633773
+        nodeSize: 1.6253672
         quality: high
         enableInstancing: true
         enableHologram: true
@@ -79,9 +79,9 @@ visualisation:
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#4c2929'
+        color: '#7d1717'
         enableArrows: false
-        opacity: 0.20604396
+        opacity: 0.23162083
         widthRange:
         - 0.3
         - 1.5
@@ -98,7 +98,7 @@ visualisation:
         showMetadata: true
         maxLabelWidth: 5.0
       physics:
-        autoBalance: false
+        autoBalance: true
         autoBalanceIntervalMs: 500
         autoBalanceConfig:
           stabilityVarianceThreshold: 100.0
@@ -124,17 +124,17 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 0.989011
+        attractionK: 3.4696639
         boundsSize: 1000.0
         separationRadius: 3.7717032
-        damping: 0.2967033
+        damping: 0.84679705
         enableBounds: false
         enabled: true
         iterations: 50
         maxVelocity: 9.4016485
         maxForce: 100.0
         repelK: 189.01648
-        springK: 2.4726028
+        springK: 5.9963207
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
