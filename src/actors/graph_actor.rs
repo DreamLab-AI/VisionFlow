@@ -1453,23 +1453,57 @@ impl GraphServiceActor {
                     let mut host_pos_x = vec![0.0; self.graph_data.nodes.len()];
                     let mut host_pos_y = vec![0.0; self.graph_data.nodes.len()];
                     let mut host_pos_z = vec![0.0; self.graph_data.nodes.len()];
+                    let mut host_vel_x = vec![0.0; self.graph_data.nodes.len()];
+                    let mut host_vel_y = vec![0.0; self.graph_data.nodes.len()];
+                    let mut host_vel_z = vec![0.0; self.graph_data.nodes.len()];
+                    
                     gpu_context.download_positions(&mut host_pos_x, &mut host_pos_y, &mut host_pos_z).unwrap();
+                    gpu_context.download_velocities(&mut host_vel_x, &mut host_vel_y, &mut host_vel_z).unwrap();
 
                     let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
                     
+                    // Calculate total kinetic energy from GPU velocities
+                    let mut total_ke = 0.0f32;
+                    
                     for (index, node_id) in node_ids.iter().enumerate() {
+                        // Calculate KE for this node: 0.5 * (vx^2 + vy^2 + vz^2)
+                        let vel_squared = host_vel_x[index] * host_vel_x[index] + 
+                                        host_vel_y[index] * host_vel_y[index] + 
+                                        host_vel_z[index] * host_vel_z[index];
+                        total_ke += 0.5 * vel_squared;
+                        
                         let binary_node = BinaryNodeData {
                             position: crate::types::vec3::Vec3Data {
                                 x: host_pos_x[index],
                                 y: host_pos_y[index],
                                 z: host_pos_z[index]
                             },
-                            velocity: crate::types::vec3::Vec3Data::zero(),
+                            velocity: crate::types::vec3::Vec3Data {
+                                x: host_vel_x[index],
+                                y: host_vel_y[index],
+                                z: host_vel_z[index]
+                            },
                             mass: 1,
                             flags: 0,
                             padding: [0, 0],
                         };
                         positions_to_update.push((*node_id, binary_node));
+                    }
+                    
+                    // Update kinetic energy history
+                    let avg_ke = if !self.graph_data.nodes.is_empty() {
+                        total_ke / self.graph_data.nodes.len() as f32
+                    } else {
+                        0.0
+                    };
+                    
+                    self.kinetic_energy_history.push(avg_ke);
+                    if self.kinetic_energy_history.len() > 60 {
+                        self.kinetic_energy_history.remove(0);
+                    }
+                    
+                    if crate::utils::logging::is_debug_enabled() && self.frames_since_last_broadcast.unwrap_or(0) % 30 == 0 {
+                        info!("[GPU PHYSICS] Average KE: {:.6}, Total KE: {:.6}", avg_ke, total_ke);
                     }
                     
                     // Broadcast positions with smart throttling

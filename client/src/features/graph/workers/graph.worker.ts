@@ -366,6 +366,26 @@ class GraphWorker {
     
     // When using server physics, only interpolate between current and target positions
     if (this.useServerPhysics) {
+      // First check if we have any movement at all
+      let hasAnyMovement = false;
+      for (let i = 0; i < this.graphData.nodes.length && !hasAnyMovement; i++) {
+        const i3 = i * 3;
+        const dx = Math.abs(this.targetPositions[i3] - this.currentPositions[i3]);
+        const dy = Math.abs(this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1]);
+        const dz = Math.abs(this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2]);
+        if (dx > 0.001 || dy > 0.001 || dz > 0.001) {
+          hasAnyMovement = true;
+        }
+      }
+      
+      // If no movement at all, just return current positions without any processing
+      if (!hasAnyMovement) {
+        if (this.frameCount % 500 === 0) {
+          console.log('[GraphWorker] No movement detected, skipping interpolation entirely');
+        }
+        return this.currentPositions;
+      }
+      
       // Ultra-gentle interpolation to prevent any oscillation
       // Using very small linear interpolation factor
       const lerpFactor = 0.05; // Fixed 5% interpolation per frame - even gentler
