@@ -125,6 +125,12 @@ pub struct SetAdvancedGPUContext {
 #[rtype(result = "()")]
 pub struct ResetGPUInitFlag;
 
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct StoreAdvancedGPUContext {
+    pub context: crate::utils::unified_gpu_compute::UnifiedGPUCompute,
+}
+
 // Visual Analytics Messages
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]

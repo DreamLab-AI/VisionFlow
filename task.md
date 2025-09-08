@@ -562,6 +562,19 @@ Available Integration Tests: 27 total
 
 ## Hive Mind Implementation Progress (2025-09-08)
 
+### 🚨 CRITICAL BUG FIX - GPU CONTEXT NOT STORED
+
+**Issue Found**: GPU physics controls not working despite successful initialization
+**Root Cause**: GPU context was created but immediately dropped (line 1323)
+**Fix Applied**: Added `StoreAdvancedGPUContext` message to properly store the GPU context
+
+#### Code Changes:
+1. **graph_actor.rs:1328** - Send context back to actor for storage
+2. **messages.rs:128-132** - Added `StoreAdvancedGPUContext` message
+3. **graph_actor.rs:2186-2198** - Added handler to store GPU context
+
+**Result**: GPU physics should now work correctly with control center parameters
+
 ### ✅ COMPLETED IMPLEMENTATIONS TODAY:
 1. **SimParams GPU Propagation**: ✅ Added proper parameter sync mechanism
    - Modified `set_params()` method in unified_gpu_compute.rs
