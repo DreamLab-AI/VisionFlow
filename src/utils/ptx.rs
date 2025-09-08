@@ -7,6 +7,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use log::{info, error, warn};
 
 pub const DEFAULT_CUDA_ARCH: &str = "75";
 pub const CUDA_ARCH_ENV: &str = "CUDA_ARCH";
@@ -39,8 +40,11 @@ fn validate_ptx(ptx: &str) -> Result<(), String> {
 /// Load PTX content, preferring the build-time artifact. Falls back to runtime compilation.
 /// In Docker environments (DOCKER_ENV set), always compile at runtime to avoid path mismatches.
 pub fn load_ptx_sync() -> Result<String, String> {
+    info!("load_ptx_sync: Starting PTX load process");
+    
     // Always compile in Docker to avoid mismatched build/runtime paths
     if std::env::var(DOCKER_ENV_VAR).is_ok() {
+        info!("Docker environment detected, using runtime compilation");
         return compile_ptx_fallback_sync();
     }
 
@@ -75,7 +79,9 @@ pub async fn load_ptx() -> Result<String, String> {
 /// Compile the CUDA source to PTX on-the-fly using nvcc.
 /// Uses DEFAULT_CUDA_ARCH (sm_75) unless overridden by CUDA_ARCH env var.
 pub fn compile_ptx_fallback_sync() -> Result<String, String> {
+    info!("compile_ptx_fallback_sync: Starting runtime PTX compilation");
     let arch = effective_cuda_arch();
+    info!("Using CUDA architecture: sm_{}", arch);
 
     // Locate the CUDA source relative to the crate root
     let manifest_dir = env!("CARGO_MANIFEST_DIR");

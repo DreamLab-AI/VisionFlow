@@ -1,44 +1,10 @@
-# Multi-stage build for WebXR with CUDA support
-# Stage 1: Builder
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS builder
+# Development Docker image for WebXR with CUDA support
+# This image includes all build tools and ALWAYS builds the Rust backend on startup
+# to ensure compatibility with the container's architecture
 
-# Build argument for CUDA architecture
-ARG CUDA_ARCH=86
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=${RUST_LOG:-warn} \
-    PATH="/root/.cargo/bin:${PATH}" \
-    NVIDIA_DRIVER_CAPABILITIES=all \
-    CUDA_HOME=/usr/local/cuda \
-    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    CUDA_PATH=/usr/local/cuda
-
-# Install Rust toolchain
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* && apt-get update -o Acquire::Retries=3 && apt-get install -y curl && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Install build dependencies
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* && apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-recommends \
-    build-essential \
-    pkg-config \
-    libssl-dev
-
-WORKDIR /app
-
-# Copy only necessary files for dependency caching
-COPY Cargo.toml ./
-COPY build.rs ./
-RUN cargo fetch
-
-# Copy source and build
-COPY src ./src
-RUN cargo build --release
-
-# Stage 2: Final runtime image
 FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
 
-# Build argument for CUDA architecture
+# Build argument for CUDA architecture (will be detected at runtime)
 ARG CUDA_ARCH=86
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -49,12 +15,15 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
     CUDA_PATH=/usr/local/cuda
 
-# Install runtime dependencies only
+# Install runtime dependencies and build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     gcc-11 \
     g++-11 \
+    build-essential \
+    pkg-config \
+    libssl-dev \
     netcat-openbsd \
     lsof \
     gzip \
@@ -64,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     && rm -rf /var/lib/apt/lists/*
 
-# Create Nginx log and run directories and verify nginx installation
+# Create Nginx log and run directories
 RUN mkdir -p /var/log/nginx /var/run/nginx && \
     chown -R www-data:www-data /var/run/nginx && \
     which nginx && \
@@ -73,6 +42,10 @@ RUN mkdir -p /var/log/nginx /var/run/nginx && \
 # Set gcc-11 as default compiler (needed for CUDA compatibility)
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
+
+# Install Rust toolchain - REQUIRED for building on startup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
@@ -85,10 +58,14 @@ RUN mkdir -p /app/data/markdown \
     /app/data/metadata \
     /app/data/runtime \
     /app/user_settings \
-    /app/client
+    /app/client \
+    /app/logs \
+    /app/scripts
 
-# Copy built binary from builder stage
-COPY --from=builder /app/target/release/webxr /app/webxr
+# Copy source code and build files
+# These MUST be in the container for building on startup
+COPY Cargo.toml build.rs ./
+COPY src ./src
 
 # Copy client directory with all frontend files
 COPY client ./client
@@ -99,16 +76,25 @@ RUN npm install
 
 WORKDIR /app
 
+# Pre-download Rust dependencies to speed up first build
+RUN cargo fetch
+
 # Copy Nginx config for development
 COPY nginx.dev.conf /etc/nginx/nginx.conf
 
 # Copy settings file
 COPY data/settings.yaml /app/settings.yaml
 
-# Development entrypoint script
+# Copy all scripts including the wrapper
 COPY scripts/dev-entrypoint.sh ./
-RUN chmod +x ./dev-entrypoint.sh
+COPY scripts/rust-backend-wrapper.sh ./scripts/
+RUN chmod +x ./dev-entrypoint.sh ./scripts/rust-backend-wrapper.sh
+
+# Copy supervisord configuration
+COPY supervisord.dev.conf ./
 
 EXPOSE 3001 4000 5173 24678
 
+# The entrypoint will ALWAYS build the Rust backend on startup
+# This ensures the binary matches the container's architecture
 ENTRYPOINT ["./dev-entrypoint.sh"]

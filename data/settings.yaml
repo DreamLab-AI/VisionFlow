@@ -70,7 +70,7 @@ visualisation:
         metalness: 0.3249958
         opacity: 0.23711348
         roughness: 0.25633773
-        nodeSize: 1.6253672
+        nodeSize: 0.70589834
         quality: high
         enableInstancing: true
         enableHologram: true
@@ -98,7 +98,7 @@ visualisation:
         showMetadata: true
         maxLabelWidth: 5.0
       physics:
-        autoBalance: true
+        autoBalance: false
         autoBalanceIntervalMs: 500
         autoBalanceConfig:
           stabilityVarianceThreshold: 100.0
@@ -124,17 +124,17 @@ visualisation:
           spatialHashEfficiencyThreshold: 0.3
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
-        attractionK: 3.4696639
+        attractionK: 1.1902161
         boundsSize: 1000.0
-        separationRadius: 3.7717032
-        damping: 0.84679705
+        separationRadius: 2.1155233
+        damping: 0.92369413
         enableBounds: false
         enabled: true
         iterations: 50
-        maxVelocity: 9.4016485
+        maxVelocity: 9.570835
         maxForce: 100.0
-        repelK: 189.01648
-        springK: 5.9963207
+        repelK: 183.09949
+        springK: 0.6135822
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01

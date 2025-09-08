@@ -254,6 +254,16 @@ CRITICAL BUG FIXES (2025-09-08):
   - Fixed PhysicsEngineTab using wrong settings paths (was visualisation.physics.*, now visualisation.graphs.[graph].physics.*)
   - PhysicsEngineControls now properly loads physics settings on mount
   - Control center now reads and applies settings.yaml values correctly
+- ✅ FIXED: Control changes not propagating to GPU (Backend)
+  - update_setting_by_path and batch_update_settings now call propagate_physics_to_gpu
+  - Physics changes from control center are immediately sent to GraphServiceActor via UpdateSimulationParams
+  - Fixed target_params not being updated in UpdateSimulationParams handler
+  - No more need to restart server for settings changes to take effect
+  
+REMAINING ISSUE: Client-side not sending HTTP requests
+  - Client is modifying settings.yaml directly on disk
+  - AutoSaveManager may not be initialized properly
+  - Need to verify client sends HTTP requests to /api/settings/path when controls change
 
 Runbook: PTX smoke test (GPU host only)
 - Build (choose arch, e.g. 86 for RTX 30xx): CUDA_ARCH=86 cargo build -vv

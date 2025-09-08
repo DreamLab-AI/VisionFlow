@@ -112,6 +112,8 @@ pub struct GraphServiceActor {
     stable_count: u32, // Count stable frames to detect settling
     auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
     kinetic_energy_history: Vec<f32>, // Track kinetic energy for stability detection
+    frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast
+    initial_positions_sent: bool, // Track if initial positions have been sent to clients
     
     // Smooth parameter transitions
     target_params: SimulationParams, // Target physics parameters
@@ -294,6 +296,8 @@ impl GraphServiceActor {
             stable_count: 0,
             auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
             kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
+            frames_since_last_broadcast: None,
+            initial_positions_sent: false,
             
             // Smooth parameter transitions - initialize with actual loaded settings
             target_params,
@@ -1311,6 +1315,9 @@ impl GraphServiceActor {
                     },
                     Err(e) => {
                         error!("Failed to load PTX content: {}", e);
+                        error!("PTX load error details: {:?}", e);
+                        // Reset the init flag so we can retry
+                        self_addr.do_send(ResetGPUInitFlag {});
                         return;
                     }
                 };
@@ -1319,6 +1326,8 @@ impl GraphServiceActor {
                 let num_directed_edges = graph_data_clone.edges.len() * 2;
                 info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)", 
                       graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
+                info!("PTX content size: {} bytes", ptx_content.len());
+                
                 match UnifiedGPUCompute::new(
                     graph_data_clone.nodes.len(),
                     num_directed_edges,
@@ -1335,6 +1344,7 @@ impl GraphServiceActor {
                         error!("❌ Failed to initialize advanced GPU context: {}", e);
                         error!("GPU Details: {} nodes, {} directed edges, PTX size: {} bytes", 
                                graph_data_clone.nodes.len(), num_directed_edges, ptx_content.len());
+                        error!("Full error: {:?}", e);
                         
                         // Log specific error details
                         let error_str = e.to_string();
@@ -1347,7 +1357,7 @@ impl GraphServiceActor {
                         }
                         
                         // Reset the flag on failure so we can retry later
-                        self_addr.do_send(ResetGPUInitFlag);
+                        self_addr.do_send(ResetGPUInitFlag {});
                     }
                 }
             });
@@ -1462,7 +1472,46 @@ impl GraphServiceActor {
                         positions_to_update.push((*node_id, binary_node));
                     }
                     
-                    if !positions_to_update.is_empty() {
+                    // Broadcast positions with smart throttling
+                    // Always send initial positions, then throttle based on physics activity
+                    let should_broadcast = if !self.initial_positions_sent {
+                        // ALWAYS send the first update to ensure clients get initial positions
+                        self.initial_positions_sent = true;
+                        self.frames_since_last_broadcast = Some(0);
+                        info!("[BROADCAST] Sending initial positions to clients");
+                        true
+                    } else {
+                        // Track frames since last broadcast
+                        let frames_since_last = self.frames_since_last_broadcast.unwrap_or(0);
+                        self.frames_since_last_broadcast = Some(frames_since_last + 1);
+                        
+                        // Get current kinetic energy
+                        let current_ke = self.kinetic_energy_history.last().copied().unwrap_or(1.0);
+                        
+                        // Determine if we should send based on activity and time
+                        let should_send = if current_ke > 0.1 {
+                            // High activity - send every frame
+                            true
+                        } else if current_ke > 0.01 {
+                            // Medium activity - send every 5 frames
+                            frames_since_last >= 5
+                        } else {
+                            // Low/no activity - send every 30 frames to keep connection alive
+                            frames_since_last >= 30
+                        };
+                        
+                        if should_send {
+                            self.frames_since_last_broadcast = Some(0);
+                            if crate::utils::logging::is_debug_enabled() && frames_since_last > 10 {
+                                info!("[BROADCAST] Sending positions (KE: {:.4}, frames since last: {})", 
+                                      current_ke, frames_since_last);
+                            }
+                        }
+                        
+                        should_send
+                    };
+                    
+                    if !positions_to_update.is_empty() && should_broadcast {
                         // Broadcast to clients
                         let binary_data = binary_protocol::encode_node_data(&positions_to_update);
                         self.client_manager.do_send(BroadcastNodePositions {
@@ -2009,6 +2058,8 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
         let auto_balance_just_enabled = !self.simulation_params.auto_balance && msg.params.auto_balance;
         
         self.simulation_params = msg.params.clone();
+        // CRITICAL: Also update target_params so smooth transitions work correctly
+        self.target_params = msg.params.clone();
         
         // If auto-balance was just enabled, reset tracking state for fresh start
         if auto_balance_just_enabled {
