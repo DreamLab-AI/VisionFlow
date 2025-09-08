@@ -174,8 +174,8 @@ impl UnifiedGPUCompute {
         sorted_node_indices.copy_from(&initial_indices)?;
 
         // Grid dimensions will be calculated on the fly, but we need a buffer for cell starts/ends.
-        // Allocate for a reasonably large grid, e.g., 128^3. This can be resized if needed.
-        let max_grid_cells = 128 * 128 * 128;
+        // Start with a smaller initial allocation (32^3) to save memory - will grow dynamically as needed
+        let max_grid_cells = 32 * 32 * 32;  // ~32K cells initially, grows on demand
         let cell_start = DeviceBuffer::zeroed(max_grid_cells)?;
         let cell_end = DeviceBuffer::zeroed(max_grid_cells)?;
 
@@ -195,7 +195,7 @@ impl UnifiedGPUCompute {
         let kernel_module = module;
 
 
-        Ok(Self {
+        let gpu_compute = Self {
             _context,
             _module: kernel_module,
             stream,
@@ -246,7 +246,14 @@ impl UnifiedGPUCompute {
             constraint_data: DeviceBuffer::from_slice(&vec![])?,
             num_constraints: 0,
             sssp_available: false,
-        })
+        };
+        
+        // Note: Constant memory initialization would require cust's global symbol API
+        // which is not readily available. Parameters will be passed as kernel arguments
+        // until we can implement proper constant memory sync.
+        // TODO: Investigate cust::module::Module::get_global() API for constant memory
+        
+        Ok(gpu_compute)
     }
 
     fn calculate_cub_temp_storage(_num_nodes: usize, _num_cells: usize) -> Result<DeviceBuffer<u8>> {
@@ -432,6 +439,12 @@ impl UnifiedGPUCompute {
         
         self.params = params;
         
+        // Note: With the cust crate, constant memory updates require different API
+        // For now, parameters are passed as kernel arguments which still works
+        // but may have slightly lower performance than constant memory.
+        // TODO: Implement proper constant memory sync when cust API supports it
+        // The kernels already read from c_params when available, falling back to arguments
+        
         info!("SimParams successfully updated");
         Ok(())
     }
@@ -518,9 +531,19 @@ impl UnifiedGPUCompute {
         };
         let num_grid_cells = (grid_dims.x * grid_dims.y * grid_dims.z) as usize;
 
+        // Dynamically resize grid buffers if needed
         if num_grid_cells > self.max_grid_cells {
-            return Err(anyhow!("Grid size {} exceeds allocated buffer {}. Re-allocate with larger max_grid_cells.", 
-                       num_grid_cells, self.max_grid_cells));
+            info!("Resizing spatial grid buffers from {} to {} cells", self.max_grid_cells, num_grid_cells);
+            
+            // Allocate new larger buffers
+            self.cell_start = DeviceBuffer::zeroed(num_grid_cells)?;
+            self.cell_end = DeviceBuffer::zeroed(num_grid_cells)?;
+            
+            // Update tracking variables
+            self.max_grid_cells = num_grid_cells;
+            self.zero_buffer = vec![0i32; num_grid_cells];
+            
+            info!("Successfully resized spatial grid buffers to {} cells", num_grid_cells);
         }
 
         // 3. Build Grid: Assign cell keys to each node
@@ -571,12 +594,9 @@ impl UnifiedGPUCompute {
         // 5. Find cell start/end indices using our new kernel
         // Zero out the full allocated buffers to ensure all cells are initialized
         // Use pre-allocated zero buffer to avoid allocation every frame
-        if num_grid_cells <= self.max_grid_cells {
-            self.cell_start.copy_from(&self.zero_buffer)?;
-            self.cell_end.copy_from(&self.zero_buffer)?;
-        } else {
-            return Err(anyhow!("Grid cells {} exceeds max {}", num_grid_cells, self.max_grid_cells));
-        }
+        // Note: Grid buffers are already resized above if needed, so this should always succeed
+        self.cell_start.copy_from(&self.zero_buffer)?;
+        self.cell_end.copy_from(&self.zero_buffer)?;
 
         let grid_cells_blocks = (num_grid_cells as u32 + 255) / 256;
         let compute_cell_bounds_kernel = self._module.get_function(self.compute_cell_bounds_kernel_name)?;
