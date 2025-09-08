@@ -16,13 +16,13 @@ KOKORO_IP=$(docker inspect friendly_dewdney -f '{{range .NetworkSettings.Network
 if [ -n "$KOKORO_IP" ]; then
     echo -e "\n✓ Kokoro is now accessible at: $KOKORO_IP:8880"
     echo "  Internal hostname: friendly_dewdney"
-    
+
     # Update the settings file
     echo -e "\nUpdating settings.yaml with correct Kokoro URL..."
-    sed -i "s|apiUrl: http://pedantic_morse:8880|apiUrl: http://$KOKORO_IP:8880|" /workspace/ext/data/settings.yaml
-    
+    sed -i "s|apiUrl: http://pedantic_morse:8880|apiUrl: http://$KOKORO_IP:8880|" //data/settings.yaml
+
     echo "✓ Settings updated!"
-    
+
     # Test the connection
     echo -e "\nTesting Kokoro connection..."
     curl -s "http://$KOKORO_IP:8880/health" | head -5

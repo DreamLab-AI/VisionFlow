@@ -58,7 +58,7 @@ if [ "$PTX_FOUND" = false ]; then
     echo -e "${YELLOW}Attempting to compile PTX...${NC}"
 
     if [ -f "/scripts/compile_unified_ptx.sh" ]; then
-        cd /workspace/ext && ./scripts/compile_unified_ptx.sh
+        cd / && ./scripts/compile_unified_ptx.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ PTX compilation successful${NC}"
         else

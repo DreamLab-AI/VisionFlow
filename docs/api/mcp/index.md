@@ -17,19 +17,19 @@ graph TB
         MR[MCP Relay Manager]
         GA[Graph Analytics]
     end
-    
+
     subgraph "MCP Layer"
         MP[MCP Protocol]
         MS[MCP Server]
         MC[MCP Client]
     end
-    
+
     subgraph "AI Agents"
         CF[Claude Flow]
         CA[Custom Agents]
         AS[Agent Swarms]
     end
-    
+
     VF < --> WS
     WS < --> MR
     MR < --> MP
@@ -37,7 +37,7 @@ graph TB
     MS < --> CF
     MS < --> CA
     CF < --> AS
-    
+
     VF --> GA
     GA --> MR
 ```
@@ -45,7 +45,7 @@ graph TB
 ### Core Components
 
 #### 1. MCP Relay Manager
-**Location**: `/workspace/ext/src/services/mcp_relay_manager.rs`
+**Location**: `//src/services/mcp_relay_manager.rs`
 
 Manages communication between VisionFlow and MCP servers:
 - Protocol translation and message routing
@@ -54,7 +54,7 @@ Manages communication between VisionFlow and MCP servers:
 - Error handling and retry logic
 
 #### 2. WebSocket MCP Bridge
-**Location**: `/workspace/ext/src/handlers/mcp_relay_handler.rs`
+**Location**: `//src/handlers/mcp_relay_handler.rs`
 
 Provides real-time MCP communication:
 - WebSocket endpoint for MCP message relay
@@ -63,11 +63,11 @@ Provides real-time MCP communication:
 - Performance monitoring and metrics
 
 #### 3. Graph Analytics Service
-**Location**: `/workspace/ext/src/services/semantic_analyzer.rs`
+**Location**: `//src/services/semantic_analyzer.rs`
 
 Analyses graph data for AI consumption:
 - Semantic relationship extraction
-- Node clustering and community detection  
+- Node clustering and community detection
 - Temporal pattern analysis
 - Performance bottleneck identification
 
@@ -162,7 +162,7 @@ Analyses graph data for AI consumption:
         }
       },
       {
-        "id": "cluster_2", 
+        "id": "cluster_2",
         "label": "Software Development",
         "nodeCount": 63,
         "centrality": 0.71,
@@ -229,7 +229,7 @@ Analyses graph data for AI consumption:
         "priority": "high"
       },
       {
-        "id": "optimiser_agent", 
+        "id": "optimiser_agent",
         "role": "optimisation",
         "capabilities": ["physics_tuning", "performance_analysis"],
         "priority": "medium"
@@ -263,7 +263,7 @@ Analyses graph data for AI consumption:
       },
       {
         "agentId": "optimiser_agent",
-        "subtask": "physics_optimisation", 
+        "subtask": "physics_optimisation",
         "input": {
           "currentSettings": "settings_export_url",
           "targetMetrics": {
@@ -290,7 +290,7 @@ Analyses graph data for AI consumption:
     "maxAgents": 5,
     "specialisations": [
       "graph_analysis",
-      "physics_optimisation", 
+      "physics_optimisation",
       "user_experience",
       "performance_monitoring",
       "documentation"
@@ -445,7 +445,7 @@ mcpWs.onmessage = (event) => {
     },
     "metrics_to_optimise": [
       "simulation_stability",
-      "convergence_speed", 
+      "convergence_speed",
       "visual_aesthetics",
       "user_interaction_responsiveness"
     ],
@@ -537,15 +537,15 @@ class MCPErrorHandler {
           await this.fallbackToLocalAnalysis();
         }
         break;
-        
+
       case -32602: // Invalid params
         await this.validateAndCorrectParams();
         break;
-        
+
       case -32700: // Parse error
         await this.reconstructMessage();
         break;
-        
+
       default:
         await this.handleUnknownError(error);
     }
@@ -574,7 +574,7 @@ class MCPErrorHandler {
     },
     "permissions": [
       "read_graph_data",
-      "analyse_patterns", 
+      "analyse_patterns",
       "update_settings",
       "export_data"
     ],
@@ -594,16 +594,16 @@ impl MCPPermissionValidator {
     pub fn validate_request(&self, user_id: &str, method: &str) -> Result<(), PermissionError> {
         let required_perms = self.allowed_methods.get(method)
             .ok_or(PermissionError::UnknownMethod)?;
-            
+
         let user_perms = self.user_permissions.get(user_id)
             .ok_or(PermissionError::UserNotFound)?;
-            
+
         for required in required_perms {
             if !user_perms.contains(required) {
                 return Err(PermissionError::InsufficientPermissions);
             }
         }
-        
+
         Ok(())
     }
 }
@@ -613,36 +613,36 @@ impl MCPPermissionValidator {
 
 ### MCP Server Configuration
 ```yaml
-# /workspace/ext/config.yml
+# //config.yml
 mcp:
   enabled: true
   server:
     host: "0.0.0.0"
     port: 4001
     protocol: "jsonrpc"
-    
+
   relay:
     websocket_endpoint: "/ws/mcp"
     max_connections: 100
     message_buffer_size: 1000
     timeout: 30000
-    
+
   authentication:
     required: false  # Set to true in production
     token_expiry: 3600
     refresh_enabled: true
-    
+
   analysis:
     cache_results: true
     cache_ttl: 300
     max_concurrent_analyses: 5
-    
+
   integrations:
     claude_flow:
       enabled: true
       endpoint: "http://localhost:8080"
       timeout: 60000
-    
+
     custom_agents:
       discovery_enabled: true
       auto_register: false
@@ -667,16 +667,16 @@ impl MCPConfig {
         config.validate()?;
         Ok(config)
     }
-    
+
     pub fn validate(&self) -> Result<(), ConfigError> {
         if self.server.port < 1024 || self.server.port > 65535 {
             return Err(ConfigError::InvalidPort);
         }
-        
+
         if self.relay.max_connections > 10000 {
             return Err(ConfigError::ExcessiveConnections);
         }
-        
+
         Ok(())
     }
 }
@@ -821,11 +821,11 @@ impl Drop for MCPRelayManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_graph_analysis_request() {
         let mut mcp_relay = MCPRelayManager::new();
-        
+
         let request = json!({
             "jsonrpc": "2.0",
             "method": "visionflow/graph_analysis",
@@ -835,18 +835,18 @@ mod tests {
             },
             "id": "test_001"
         });
-        
+
         let response = mcp_relay.process_request(request).await.unwrap();
-        
+
         assert_eq!(response["jsonrpc"], "2.0");
         assert_eq!(response["id"], "test_001");
         assert!(response["result"]["clusters"].is_array());
     }
-    
+
     #[tokio::test]
     async fn test_settings_update_via_mcp() {
         let mut mcp_relay = MCPRelayManager::new();
-        
+
         let request = json!({
             "jsonrpc": "2.0",
             "method": "visionflow/update_settings",
@@ -857,11 +857,11 @@ mod tests {
             },
             "id": "settings_001"
         });
-        
+
         let response = mcp_relay.process_request(request).await.unwrap();
-        
+
         assert_eq!(response["result"]["success"], true);
-        
+
         // Verify settings were actually updated
         let settings = get_current_settings().await;
         assert_eq!(settings.physics.spring_strength, 0.7);

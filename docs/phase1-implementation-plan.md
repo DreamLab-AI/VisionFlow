@@ -9,10 +9,10 @@ This document outlines the comprehensive implementation strategy for Phase 1 of 
 ## Implementation Priority Matrix
 
 ### Priority 1 (Critical Path - Week 1)
-1. **Buffer Resizing Integration** 
+1. **Buffer Resizing Integration**
 2. **Dynamic Spatial Grid Management**
 
-### Priority 2 (High Impact - Week 2) 
+### Priority 2 (High Impact - Week 2)
 3. **SSSP Optimization**
 4. **Constraint System Enhancement**
 
@@ -27,7 +27,7 @@ This document outlines the comprehensive implementation strategy for Phase 1 of 
 
 #### Implementation Steps:
 ```rust
-// Location: /workspace/ext/src/actors/gpu_compute_actor.rs:346-358
+// Location: //src/actors/gpu_compute_actor.rs:346-358
 ```
 
 **A. Wire resize_buffers() into update_graph_data_internal**
@@ -37,13 +37,13 @@ This document outlines the comprehensive implementation strategy for Phase 1 of 
 ```rust
 // Replace TODO section with:
 if new_num_nodes != self.num_nodes || new_num_edges != self.num_edges {
-    info!("Graph size changed: nodes {} -> {}, edges {} -> {}", 
+    info!("Graph size changed: nodes {} -> {}, edges {} -> {}",
           self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
-    
+
     // Call resize_buffers with growth factor
     unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
         .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to resize buffers: {}", e)))?;
-    
+
     self.num_nodes = new_num_nodes;
     self.num_edges = new_num_edges;
     self.iteration_count = 0; // Reset iteration count on size change
@@ -58,7 +58,7 @@ if new_num_nodes != self.num_nodes || new_num_edges != self.num_edges {
 // Before resizing edge buffers, preserve CSR structure
 let mut edge_data = vec![0i32; self.num_edges];
 self.edge_col_indices.copy_to(&mut edge_data)?;
-let mut edge_weights_data = vec![0.0f32; self.num_edges];  
+let mut edge_weights_data = vec![0.0f32; self.num_edges];
 self.edge_weights.copy_to(&mut edge_weights_data)?;
 let mut row_offsets_data = vec![0i32; self.num_nodes + 1];
 self.edge_row_offsets.copy_to(&mut row_offsets_data)?;
@@ -100,13 +100,13 @@ if num_grid_cells > self.max_grid_cells {
 // New method to add:
 fn resize_grid_buffers(&mut self, new_max_cells: usize) -> Result<()> {
     info!("Resizing grid buffers from {} to {} cells", self.max_grid_cells, new_max_cells);
-    
+
     // Preserve existing grid state if needed
     self.cell_start = DeviceBuffer::zeroed(new_max_cells)?;
     self.cell_end = DeviceBuffer::zeroed(new_max_cells)?;
     self.zero_buffer = vec![0i32; new_max_cells];
     self.max_grid_cells = new_max_cells;
-    
+
     Ok(())
 }
 ```
@@ -119,7 +119,7 @@ fn resize_grid_buffers(&mut self, new_max_cells: usize) -> Result<()> {
   - Cell overflow incidents
   - Auto-tune effectiveness
 
-### 3. SSSP Optimization  
+### 3. SSSP Optimization
 **Status**: Basic GPU implementation exists, needs performance optimization
 **Risk**: Medium - Performance critical but not stability critical
 
@@ -140,15 +140,15 @@ unsafe {
         &mut temp_storage_bytes,
         self.next_frontier_flags.as_device_ptr(),
         DevicePointer::null(),
-        DevicePointer::null(), 
+        DevicePointer::null(),
         self.num_nodes
     );
-    
+
     // Allocate temp storage and perform compaction
     let temp_storage = DeviceBuffer::<u8>::zeroed(temp_storage_bytes)?;
     let compacted_frontier = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
     let num_selected = DeviceBuffer::<i32>::zeroed(1)?;
-    
+
     cub::DeviceSelect::Flagged(
         temp_storage.as_slice(),
         &mut temp_storage_bytes,
@@ -179,7 +179,7 @@ async fn toggle_sssp_spring_adjust(
 - **Reporting**: Surface through performance stats
 
 ### 4. Constraint System Enhancement
-**Status**: Basic DISTANCE/POSITION implemented, needs expansion  
+**Status**: Basic DISTANCE/POSITION implemented, needs expansion
 **Risk**: Medium - Feature completeness and stability
 
 #### Implementation Steps:
@@ -204,7 +204,7 @@ float effective_weight = constraint.weight * stability_ramp;
 - **CUDA Implementation**: Add handling in `force_pass_kernel`
 
 ### 5. Stress Majorization Enablement
-**Status**: Disabled, placeholder implementation  
+**Status**: Disabled, placeholder implementation
 **Risk**: Low - Advanced feature, not critical path
 
 #### Implementation Steps:
@@ -233,7 +233,7 @@ stress_majorization_interval: 100, // Enable every 100 iterations
 - **Fallback**: Graceful degradation to smaller buffer sizes
 - **Monitoring**: Memory usage tracking and alerting
 
-### Performance Risks  
+### Performance Risks
 - **Strategy**: Comprehensive benchmarking before/after changes
 - **Validation**: Performance regression tests in CI
 - **Metrics**: Frame time, GPU utilization, memory bandwidth
@@ -251,7 +251,7 @@ stress_majorization_interval: 100, // Enable every 100 iterations
 - [ ] Memory usage grows predictably with graph size
 - [ ] No crashes with repeated resize operations
 
-### Gate 2: Spatial Grid Performance  
+### Gate 2: Spatial Grid Performance
 - [ ] No overflow errors with dynamic scenes
 - [ ] Grid efficiency metrics within target ranges (0.2-0.6)
 - [ ] Performance improvement vs fixed-size allocation
@@ -271,7 +271,7 @@ stress_majorization_interval: 100, // Enable every 100 iterations
 
 ### Gate 5: Stress Majorization
 - [ ] Safe enablement without position explosions
-- [ ] Configurable intervals work correctly  
+- [ ] Configurable intervals work correctly
 - [ ] Regression tests pass consistently
 - [ ] Performance impact <5% baseline
 
@@ -283,7 +283,7 @@ stress_majorization_interval: 100, // Enable every 100 iterations
 - **Stability**: Zero crashes during normal operation
 - **Scalability**: Handle 10x graph size increases gracefully
 
-### Quality Metrics  
+### Quality Metrics
 - **Test Coverage**: >90% for new functionality
 - **Documentation**: All public APIs documented
 - **Error Handling**: Graceful failure modes
@@ -293,7 +293,7 @@ stress_majorization_interval: 100, // Enable every 100 iterations
 
 ### Week 1: Foundation (Buffer + Grid)
 - Day 1-2: Buffer resizing integration and testing
-- Day 3-4: Dynamic spatial grid implementation  
+- Day 3-4: Dynamic spatial grid implementation
 - Day 5: Integration testing and validation
 
 ### Week 2: Optimization (SSSP + Constraints)

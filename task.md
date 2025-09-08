@@ -64,9 +64,9 @@ Summary
    - All parameters respect user settings without override
 
 ### Key Changes:
-- `/workspace/ext/src/utils/visionflow_unified.cu`: Removed all hardcoded values
-- `/workspace/ext/client/src/features/settings/config/settingsUIDefinition.ts`: Fixed all ranges
-- `/workspace/ext/src/models/simulation_params.rs`: Added boundary_damping to GPU struct
+- `//src/utils/visionflow_unified.cu`: Removed all hardcoded values
+- `//client/src/features/settings/config/settingsUIDefinition.ts`: Fixed all ranges
+- `//src/models/simulation_params.rs`: Added boundary_damping to GPU struct
 
 ## ✅ VOICE INTEGRATION WITH SPACEBAR HOTKEY COMPLETED (2025-09-07)
 
@@ -98,11 +98,11 @@ Summary
    - Prevents graph settling failure under GPU forces
 
 ### Files Modified:
-- `/workspace/ext/client/src/components/VoiceButton.tsx`: Added spacebar hotkey support
-- `/workspace/ext/client/src/components/VoiceStatusIndicator.tsx`: Created new indicator component
-- `/workspace/ext/client/src/features/visualisation/components/IntegratedControlPanel.tsx`: Added voice indicator
-- `/workspace/ext/client/src/app/MainLayout.tsx`: Improved voice button positioning
-- `/workspace/ext/src/actors/gpu_compute_actor.rs`: Fixed edge buffer allocation
+- `//client/src/components/VoiceButton.tsx`: Added spacebar hotkey support
+- `//client/src/components/VoiceStatusIndicator.tsx`: Created new indicator component
+- `//client/src/features/visualisation/components/IntegratedControlPanel.tsx`: Added voice indicator
+- `//client/src/app/MainLayout.tsx`: Improved voice button positioning
+- `//src/actors/gpu_compute_actor.rs`: Fixed edge buffer allocation
 
 ## ✅ COMPREHENSIVE DEAD CODE CLEANUP COMPLETED (2025-09-07)
 
@@ -396,7 +396,7 @@ Risk controls (active)
 **Successful Tests Using `/home/ubuntu/.cargo/bin/cargo test`:**
 
 1. **PTX Smoke Test**: ✅ PTX loading and kernel symbol validation passes
-2. **Unit Tests**: ✅ Core modules tested independently 
+2. **Unit Tests**: ✅ Core modules tested independently
 3. **Integration Tests**: ✅ Actor message flow validated
 4. **Safety Tests**: ✅ Buffer management and error handling confirmed
 
@@ -414,7 +414,7 @@ Risk controls (active)
    - Community detection with label propagation
    - All templates include proper error handling and numerical stability
 
-2. **Test Strategy Documentation** (`/workspace/ext/docs/test-strategy-comprehensive.md`)
+2. **Test Strategy Documentation** (`//docs/test-strategy-comprehensive.md`)
    - Complete testing framework for Phases 0-3
    - Validation gates and success criteria
    - Performance benchmarking protocols

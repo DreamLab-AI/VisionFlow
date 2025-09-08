@@ -3,24 +3,24 @@
 ## Fixes Applied
 
 ### 1. GPU Initialization Fix
-**File**: `/workspace/ext/src/handlers/bots_handler.rs`
+**File**: `//src/handlers/bots_handler.rs`
 - Added `InitializeGPU` call before `UpdateGPUGraphData` (line 454)
 - This ensures GPU is properly initialized for bots graph processing
 
 ### 2. CUDA Kernel Boundary Enforcement
-**File**: `/workspace/ext/src/utils/visionflow_unified.cu`
+**File**: `//src/utils/visionflow_unified.cu`
 - Added position boundary clamping in integration kernel (lines 303-332)
 - Implements soft boundaries with velocity damping
 - Prevents nodes from exceeding viewport_bounds limit
 
 ### 3. Repulsion Force Overflow Protection
-**File**: `/workspace/ext/src/utils/visionflow_unified.cu`
+**File**: `//src/utils/visionflow_unified.cu`
 - Added force clamping for repulsion calculations (lines 214-221)
 - Prevents NaN/Inf when nodes get too close
 - Limits maximum repulsion to half of max_force
 
 ### 4. Physics Parameter Balancing
-**File**: `/workspace/ext/data/settings.yaml`
+**File**: `//data/settings.yaml`
 - Reduced `attraction_k` from 8.378 to 0.5
 - Set `bounds_size` to 500.0
 - Enabled `enable_bounds` to true
@@ -30,7 +30,7 @@
 - Set `boundary_force_strength` to 1.0
 
 ### 5. CPU Fallback Physics Implementation
-**File**: `/workspace/ext/src/actors/gpu_compute_actor.rs`
+**File**: `//src/actors/gpu_compute_actor.rs`
 - Added complete `compute_forces_cpu_fallback` function (lines 437-597)
 - Implements proper physics with boundary enforcement
 - Includes repulsion, spring forces, and center gravity
@@ -59,13 +59,13 @@
 
 ```bash
 # Check if GPU initializes properly
-grep "Initializing GPU for bots" /workspace/ext/logs/rust.log
+grep "Initializing GPU for bots" //logs/rust.log
 
 # Check for boundary violations
-grep "boundary" /workspace/ext/logs/rust-error.log
+grep "boundary" //logs/rust-error.log
 
 # Monitor node positions
-tail -f /workspace/ext/logs/rust.log | grep -E "position.*[0-9]{4}"
+tail -f //logs/rust.log | grep -E "position.*[0-9]{4}"
 ```
 
 ## Summary

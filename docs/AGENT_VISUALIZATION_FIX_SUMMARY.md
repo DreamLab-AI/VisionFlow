@@ -63,11 +63,11 @@ if let Some(graph_addr) = graph_service_addr {
 
 ## Files Changed
 
-1. **Patch File**: `/workspace/ext/patches/consolidated_agent_graph_fix.patch`
-2. **Setup Script**: `/workspace/ext/setup-workspace.sh` (includes patch creation)
-3. **Documentation**: 
-   - `/workspace/ext/docs/agent-visualization-architecture.md` (updated flow)
-   - `/workspace/ext/task.md` (complete resolution details)
+1. **Patch File**: `//patches/consolidated_agent_graph_fix.patch`
+2. **Setup Script**: `//setup-workspace.sh` (includes patch creation)
+3. **Documentation**:
+   - `//docs/agent-visualization-architecture.md` (updated flow)
+   - `//task.md` (complete resolution details)
 
 ## MCP Server Configuration
 

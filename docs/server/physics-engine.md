@@ -140,7 +140,7 @@ F_total = clamp((F_repulsion + F_attraction + F_gravity) * damping, max_force)
 if (params.iteration < 200) {
     float warmup_factor = (params.iteration / 200.0f) * (params.iteration / 200.0f);
     total_force *= warmup_factor;
-    
+
     // Enhanced damping during warmup
     float extra_damping = 0.98f - 0.13f * (params.iteration / 200.0f);
     damping = max(damping, extra_damping);
@@ -242,12 +242,12 @@ impl From<&SimulationParams> for SimParams {
 // Progressive boundary force application
 float boundary_margin = viewport_bounds * 0.85f;
 if (abs(position.x) > boundary_margin) {
-    float distance_ratio = (abs(position.x) - boundary_margin) / 
+    float distance_ratio = (abs(position.x) - boundary_margin) /
                           (viewport_bounds - boundary_margin);
-    float boundary_force = -distance_ratio * distance_ratio * 
+    float boundary_force = -distance_ratio * distance_ratio *
                           boundary_force_strength * sign(position.x);
     float progressive_damping = boundary_damping * (1.0f - 0.5f * distance_ratio);
-    
+
     force.x += boundary_force;
     velocity.x *= progressive_damping;
 }
@@ -289,19 +289,19 @@ The unified kernel replaces 7 legacy implementations with a single optimised sol
 __global__ void visionflow_compute_kernel(GpuKernelParams p) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= p.num_nodes) return;
-    
+
     // Load current state using Structure of Arrays
     float3 position = make_float3(
-        p.nodes.pos_x[idx], 
-        p.nodes.pos_y[idx], 
+        p.nodes.pos_x[idx],
+        p.nodes.pos_y[idx],
         p.nodes.pos_z[idx]
     );
     float3 velocity = make_float3(
-        p.nodes.vel_x[idx], 
-        p.nodes.vel_y[idx], 
+        p.nodes.vel_x[idx],
+        p.nodes.vel_y[idx],
         p.nodes.vel_z[idx]
     );
-    
+
     // Mode-based force computation
     float3 force = {0, 0, 0};
     switch (p.params.compute_mode) {
@@ -310,10 +310,10 @@ __global__ void visionflow_compute_kernel(GpuKernelParams p) {
         case 2: force = compute_constraint_forces(idx, position, p); break;
         case 3: force = compute_analytics_forces(idx, position, p); break;
     }
-    
+
     // Progressive warmup and stability controls
     force = apply_stability_controls(force, p.params);
-    
+
     // Physics integration with Verlet method
     integrate_verlet_physics(idx, position, velocity, force, p);
 }
@@ -365,7 +365,7 @@ graph LR
     ASA --> GSA[GraphServiceActor]
     GSA --> UGC[UnifiedGPUCompute]
     UGC --> GPU[CUDA Kernel]
-    
+
     YAML[settings.yaml] --> AFS[AppFullSettings]
     AFS --> PS[PhysicsSettings]
     PS --> SP[SimulationParams]
@@ -399,25 +399,25 @@ graph LR
 impl Handler<UpdateSimulationParams> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
         info!("=== GraphServiceActor::UpdateSimulationParams RECEIVED ===");
-        info!("OLD params: repulsion={}, damping={}", 
+        info!("OLD params: repulsion={}, damping={}",
               self.simulation_params.repulsion, self.simulation_params.damping);
-        info!("NEW params: repulsion={}, damping={}", 
+        info!("NEW params: repulsion={}, damping={}",
               msg.params.repulsion, msg.params.damping);
-        
+
         // Update internal parameters
         self.simulation_params = msg.params.clone();
-        
+
         // Convert to GPU-compatible format with validation
         let gpu_params = SimParams::from(&self.simulation_params);
-        info!("Converted GPU params: repel_k={}, damping={}", 
+        info!("Converted GPU params: repel_k={}, damping={}",
               gpu_params.repel_k, gpu_params.damping);
-        
+
         // Push to GPU compute engine
         if let Some(ref mut unified_compute) = self.unified_compute {
             unified_compute.set_params(gpu_params);
             info!("✅ Parameters successfully pushed to GPU");
         }
-        
+
         Ok(())
     }
 }
@@ -466,10 +466,10 @@ __device__ float3 compute_dual_graph_forces(
     int idx, float3 position, GpuKernelParams params
 ) {
     int graph_id = params.nodes.graph_id ? params.nodes.graph_id[idx] : 0;
-    
+
     // Knowledge graph (graph_id = 0): stable, slow evolution
     // Agent graph (graph_id = 1): dynamic, rapid changes
-    
+
     SimParams adjusted_params = params.params;
     if (graph_id == 1) { // Agent graph modifications
         adjusted_params.spring_k *= 2.0f;    // Stronger connections
@@ -477,13 +477,13 @@ __device__ float3 compute_dual_graph_forces(
         adjusted_params.damping *= 0.7f;     // More responsive to changes
         adjusted_params.max_velocity *= 5.0f; // Faster movement
     }
-    
+
     // Different repulsion for same vs different graph types
     float3 total_force = compute_standard_forces(idx, position, adjusted_params, params);
-    
+
     // Apply cross-graph interaction (weaker forces between different graph types)
     total_force += compute_cross_graph_forces(idx, position, graph_id, params);
-    
+
     return total_force;
 }
 ```
@@ -565,17 +565,17 @@ __device__ float3 compute_analytics_forces(
     float importance = params.nodes.importance ? params.nodes.importance[idx] : 1.0f;
     float temporal = params.nodes.temporal ? params.nodes.temporal[idx] : 0.0f;
     int cluster = params.nodes.cluster ? params.nodes.cluster[idx] : -1;
-    
+
     // Importance-weighted forces
     float3 base_force = compute_basic_forces(idx, position, params);
     base_force *= (0.5f + 0.5f * importance);  // Scale by importance
-    
+
     // Temporal coherence (previous position influence)
     float3 temporal_force = temporal * 0.1f * (previous_position - position);
-    
+
     // Cluster-aware repulsion (reduced within clusters)
     float3 cluster_force = compute_cluster_aware_repulsion(idx, position, cluster, params);
-    
+
     return base_force + temporal_force + cluster_force;
 }
 ```
@@ -589,21 +589,21 @@ impl PhysicsEngine {
     fn update_adaptive_parameters(&mut self) {
         let system_energy = self.calculate_system_energy();
         let convergence_rate = self.calculate_convergence_rate();
-        
+
         // Increase damping as system stabilises
         if convergence_rate < 0.01 {
             self.params.damping = (self.params.damping + 0.95) / 2.0;
         }
-        
+
         // Reduce time step if system becomes unstable
         if system_energy > self.energy_threshold {
             self.params.dt *= 0.9;
         }
-        
+
         // Adaptive temperature for simulated annealing
         self.params.temperature *= 0.99;
     }
-    
+
     fn calculate_system_energy(&self) -> f32 {
         // Sum of kinetic energy (velocity²) + potential energy (forces)
         self.nodes.iter().map(|node| {
@@ -727,7 +727,7 @@ Performance Improvement: 3.5x speedup
 
 ```
 Linear Scaling Range: 100-5,000 nodes (minimal performance impact)
-Optimal Performance Range: 500-2,000 nodes (60+ FPS on mid-range GPUs)  
+Optimal Performance Range: 500-2,000 nodes (60+ FPS on mid-range GPUs)
 Large Scale Range: 10,000+ nodes (requires high-end GPUs RTX 3080+)
 Memory Bound Threshold: 50,000+ nodes (memory bandwidth becomes limiting)
 
@@ -747,16 +747,16 @@ The physics engine uses `settings.yaml` as the authoritative source for all phys
 physics:
   # Core force parameters
   spring_strength: 0.005        # Attractive force between connected nodes
-  repulsion_strength: 50.0      # Repulsive force between all nodes  
+  repulsion_strength: 50.0      # Repulsive force between all nodes
   damping: 0.9                  # Velocity damping factor (higher = more stable)
   time_step: 0.01               # Physics integration timestep
   max_velocity: 1.0             # Maximum node velocity (prevents runaway)
-  
+
   # Layout control parameters
   collision_radius: 0.15        # Minimum node separation distance
   bounds_size: 200.0            # Simulation boundary size
   temperature: 0.5              # Simulated annealing temperature
-  
+
   # Advanced tuning parameters
   attraction_strength: 0.001    # Fine-tune edge attraction forces
   mass_scale: 1.0              # Node mass scaling factor
@@ -778,8 +778,8 @@ visualisation:
         repulsion_strength: 50.0  # Strong separation for clarity
         damping: 0.9              # High stability, slow evolution
         max_velocity: 1.0         # Deliberate, readable movement
-    
-    visionflow:  # Agent graph configuration  
+
+    visionflow:  # Agent graph configuration
       physics:
         spring_strength: 0.01     # Stronger connections for coupling
         repulsion_strength: 25.0  # Moderate separation for dynamics
@@ -864,7 +864,7 @@ physics:
 **Debug Commands:**
 ```bash
 # Check system energy
-tail -f /workspace/ext/logs/rust.log | grep -E "system_energy|total_force"
+tail -f //logs/rust.log | grep -E "system_energy|total_force"
 
 # Verify parameter clamping
 RUST_LOG=webxr::utils::unified_gpu_compute=debug cargo run
@@ -882,7 +882,7 @@ RUST_LOG=webxr::utils::unified_gpu_compute=debug cargo run
 // Enable proper position initialisation
 fn upload_positions(&mut self, positions: &[(f32, f32, f32)]) -> Result<(), Error> {
     let needs_init = positions.iter().all(|&(x, y, z)| x == 0.0 && y == 0.0 && z == 0.0);
-    
+
     if needs_init {
         // Use golden angle spiral initialisation to prevent clustering
         let mut initialized_positions = Vec::new();
@@ -908,7 +908,7 @@ fn upload_positions(&mut self, positions: &[(f32, f32, f32)]) -> Result<(), Erro
 ```rust
 // Check GPU utilisation
 let status = gpu_compute_actor.send(GetGPUStatus).await?;
-info!("GPU Status: initialized={}, fallback={}, fps={:.1}", 
+info!("GPU Status: initialized={}, fallback={}, fps={:.1}",
       status.is_initialized, status.cpu_fallback_active, status.frame_rate);
 
 if status.frame_rate < 30.0 && !status.cpu_fallback_active {
@@ -942,7 +942,7 @@ if status.frame_rate < 30.0 && !status.cpu_fallback_active {
 **Diagnostic Steps:**
 ```bash
 # Verify parameter flow chain
-tail -f /workspace/ext/logs/rust.log | grep -E "UpdateSimulationParams|set_params|GraphServiceActor"
+tail -f //logs/rust.log | grep -E "UpdateSimulationParams|set_params|GraphServiceActor"
 
 # Check endpoint routing
 curl -X POST localhost:8080/api/analytics/params \
@@ -1061,6 +1061,6 @@ pub struct PhysicsStabilityMetrics {
 
 ---
 
-*Document Version: 2.0*  
-*Last Updated: August 2025*  
+*Document Version: 2.0*
+*Last Updated: August 2025*
 *Status: Production Ready ✅*

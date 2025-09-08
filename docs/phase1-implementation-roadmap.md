@@ -9,8 +9,8 @@
 **Dependencies**: PTX pipeline stable, UnifiedGPUCompute operational
 **Risk Level**: HIGH - Memory management and spatial hashing are stability critical
 
-### Task 1.1: Buffer Resizing Integration 
-**File**: `/workspace/ext/src/actors/gpu_compute_actor.rs`
+### Task 1.1: Buffer Resizing Integration
+**File**: `//src/actors/gpu_compute_actor.rs`
 **Lines**: 346-358 in `update_graph_data_internal`
 
 #### Specific Code Changes:
@@ -28,7 +28,7 @@ unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
 
 #### Validation Criteria:
 - [ ] CSR edge data preserved during resize operations
-- [ ] Node position data maintained across buffer changes  
+- [ ] Node position data maintained across buffer changes
 - [ ] Memory usage grows predictably (1.5x growth factor)
 - [ ] No NaN values or GPU memory corruption
 
@@ -42,7 +42,7 @@ fn test_graph_resize_preserves_csr_data() {
     // Check position continuity
 }
 
-#[test] 
+#[test]
 fn test_repeated_resize_stability() {
     // Resize up/down 10 times
     // Monitor memory usage patterns
@@ -51,12 +51,12 @@ fn test_repeated_resize_stability() {
 ```
 
 ### Task 1.2: Dynamic Spatial Grid Management
-**File**: `/workspace/ext/src/utils/unified_gpu_compute.rs`
+**File**: `//src/utils/unified_gpu_compute.rs`
 **Target**: Lines 174-176, 509-512 (grid allocation and overflow handling)
 
 #### Implementation Strategy:
 1. **Replace fixed max_grid_cells allocation**
-2. **Add dynamic grid buffer resizing**  
+2. **Add dynamic grid buffer resizing**
 3. **Implement overflow recovery**
 
 #### Specific Changes:
@@ -65,14 +65,14 @@ fn test_repeated_resize_stability() {
 // BEFORE:
 let max_grid_cells = 128 * 128 * 128;
 
-// AFTER:  
+// AFTER:
 let initial_grid_cells = Self::calculate_initial_grid_size(num_nodes);
 let max_grid_cells = initial_grid_cells;
 
 // New method to add:
 fn calculate_initial_grid_size(num_nodes: usize) -> usize {
     // Target 8 neighbors per cell on average
-    let target_cells = (num_nodes / 8).max(1000); 
+    let target_cells = (num_nodes / 8).max(1000);
     // Round up to next power of 2 for alignment
     target_cells.next_power_of_two()
 }
@@ -83,14 +83,14 @@ fn calculate_initial_grid_size(num_nodes: usize) -> usize {
 // Location: execute() method around line 509
 // BEFORE (error case):
 if num_grid_cells > self.max_grid_cells {
-    return Err(anyhow!("Grid size {} exceeds allocated buffer {}", 
+    return Err(anyhow!("Grid size {} exceeds allocated buffer {}",
                num_grid_cells, self.max_grid_cells));
 }
 
 // AFTER (dynamic resize):
 if num_grid_cells > self.max_grid_cells {
     let new_size = (num_grid_cells * 2).max(self.max_grid_cells * 2);
-    info!("Grid overflow detected, resizing from {} to {} cells", 
+    info!("Grid overflow detected, resizing from {} to {} cells",
           self.max_grid_cells, new_size);
     self.resize_grid_buffers(new_size)?;
 }
@@ -101,14 +101,14 @@ if num_grid_cells > self.max_grid_cells {
 // Add to execute() method - track efficiency
 let neighbors_per_cell = (self.num_nodes as f32) / (num_grid_cells as f32);
 if neighbors_per_cell < 2.0 || neighbors_per_cell > 32.0 {
-    debug!("Grid efficiency suboptimal: {:.2} neighbors/cell (target: 4-16)", 
+    debug!("Grid efficiency suboptimal: {:.2} neighbors/cell (target: 4-16)",
            neighbors_per_cell);
 }
 ```
 
 #### Validation Criteria:
 - [ ] No overflow errors with dynamic scenes
-- [ ] Grid efficiency 0.2-0.6 across workloads  
+- [ ] Grid efficiency 0.2-0.6 across workloads
 - [ ] Memory usage scales linearly with scene complexity
 - [ ] Performance improvement vs fixed allocation
 
@@ -117,7 +117,7 @@ if neighbors_per_cell < 2.0 || neighbors_per_cell > 32.0 {
 **Risk Level**: MEDIUM - Performance critical but not stability critical
 
 ### Task 2.1: SSSP GPU Frontier Compaction (CUB Integration)
-**File**: `/workspace/ext/src/utils/unified_gpu_compute.rs`
+**File**: `//src/utils/unified_gpu_compute.rs`
 **Target**: Lines 705-720 in `run_sssp()` method
 
 #### Current Issue:
@@ -153,12 +153,12 @@ unsafe {
         self.num_nodes as i32,
         s.as_inner()
     );
-    
+
     // Allocate and perform compaction
     let temp_storage = DeviceBuffer::<u8>::zeroed(temp_storage_bytes)?;
-    let compacted_frontier = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;  
+    let compacted_frontier = DeviceBuffer::<i32>::zeroed(self.num_nodes)?;
     let mut num_selected = 0i32;
-    
+
     DeviceSelect_Flagged_i32(
         temp_storage.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
         &mut temp_storage_bytes,
@@ -169,7 +169,7 @@ unsafe {
         self.num_nodes as i32,
         s.as_inner()
     );
-    
+
     // Use compacted frontier for next iteration
     if num_selected > 0 {
         let host_frontier: Vec<i32> = vec![0; num_selected as usize];
@@ -180,7 +180,7 @@ unsafe {
 ```
 
 #### API Toggle Implementation:
-**File**: `/workspace/ext/src/handlers/api_handler/analytics/mod.rs`
+**File**: `//src/handlers/api_handler/analytics/mod.rs`
 
 ```rust
 #[derive(Deserialize)]
@@ -195,20 +195,20 @@ pub async fn toggle_sssp_spring_adjust(
     req: web::Json<SSSpToggleRequest>,
 ) -> Result<impl Responder, Error> {
     let mut flags = data.simulation_params.feature_flags;
-    
+
     if req.enable_spring_adjust {
         flags |= FeatureFlags::ENABLE_SSSP_SPRING_ADJUST;
     } else {
         flags &= !FeatureFlags::ENABLE_SSSP_SPRING_ADJUST;
     }
-    
+
     // Update params with new alpha if provided
     if let Some(alpha) = req.alpha_strength {
         data.simulation_params.sssp_alpha = alpha.clamp(0.0, 1.0);
     }
-    
+
     data.simulation_params.feature_flags = flags;
-    
+
     // Push to GPU immediately
     if let Some(gpu_actor) = data.gpu_compute_actor.as_ref() {
         let params_msg = UpdateSimulationParams {
@@ -216,7 +216,7 @@ pub async fn toggle_sssp_spring_adjust(
         };
         gpu_actor.send(params_msg).await??;
     }
-    
+
     Ok(web::Json(json!({
         "success": true,
         "sssp_enabled": req.enable_spring_adjust,
@@ -253,7 +253,7 @@ if (use_sssp) {
 - [ ] API toggle functions correctly with immediate GPU update
 
 ### Task 2.2: Constraint System Enhancement
-**File**: `/workspace/ext/src/utils/visionflow_unified.cu`
+**File**: `//src/utils/visionflow_unified.cu`
 **Target**: Lines 316-379 (constraint force calculation)
 
 #### Progressive Constraint Activation:
@@ -300,23 +300,23 @@ else if (constraint.kind == ConstraintKind::ANGLE && constraint.count >= 3) {
     int idx_a = constraint.node_idx[0];
     int idx_b = constraint.node_idx[1]; // Vertex of angle
     int idx_c = constraint.node_idx[2];
-    
+
     if (node_role == 1) { // This node is the angle vertex
         float3 pos_a = make_vec3(pos_in_x[idx_a], pos_in_y[idx_a], pos_in_z[idx_a]);
         float3 pos_c = make_vec3(pos_in_x[idx_c], pos_in_y[idx_c], pos_in_z[idx_c]);
-        
+
         float3 vec_ba = vec3_sub(pos_a, my_pos);
         float3 vec_bc = vec3_sub(pos_c, my_pos);
-        
+
         float dot_product = vec3_dot(vec_ba, vec_bc);
         float len_ba = vec3_length(vec_ba);
         float len_bc = vec3_length(vec_bc);
-        
+
         if (len_ba > 1e-6f && len_bc > 1e-6f) {
             float current_angle = acosf(dot_product / (len_ba * len_bc));
             float target_angle = constraint.params[0]; // Target angle in radians
             float angle_error = current_angle - target_angle;
-            
+
             // Apply corrective torque
             float3 torque_direction = vec3_normalize(vec3_cross(vec_ba, vec_bc));
             float torque_magnitude = constraint.weight * angle_error * 0.1f;
@@ -337,7 +337,7 @@ else if (constraint.kind == ConstraintKind::ANGLE && constraint.count >= 3) {
 **Risk Level**: LOW - Advanced features, not critical path
 
 ### Task 3.1: Stress Majorization Safe Enablement
-**File**: `/workspace/ext/src/actors/gpu_compute_actor.rs`
+**File**: `//src/actors/gpu_compute_actor.rs`
 **Target**: Lines 119-121 (stress majorization interval)
 
 #### Enable with Safe Parameters:
@@ -352,20 +352,20 @@ stress_majorization_interval: 200, // Every 200 iterations (~3.3s at 60fps)
 ```
 
 #### Tunable via AdvancedParams:
-**File**: `/workspace/ext/src/models/constraints.rs`
+**File**: `//src/models/constraints.rs`
 **Target**: AdvancedParams struct around line 144
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvancedParams {
     // ... existing fields ...
-    
+
     /// Stress majorization execution interval (iterations)
     pub stress_majorization_interval: u32,
-    
-    /// Maximum displacement per stress majorization step  
+
+    /// Maximum displacement per stress majorization step
     pub stress_majorization_max_displacement: f32,
-    
+
     /// Convergence threshold for stress majorization
     pub stress_majorization_convergence_threshold: f32,
 }
@@ -388,39 +388,39 @@ impl Default for AdvancedParams {
 fn perform_stress_majorization(&mut self) -> Result<(), Error> {
     let unified_compute = self.unified_compute.as_mut()
         .ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
-    
+
     info!("Performing stress majorization with {} constraints", self.constraints.len());
-    
+
     // Download current positions
     let mut pos_x = vec![0.0f32; self.num_nodes as usize];
     let mut pos_y = vec![0.0f32; self.num_nodes as usize];
     let mut pos_z = vec![0.0f32; self.num_nodes as usize];
-    
+
     unified_compute.download_positions(&mut pos_x, &mut pos_y, &mut pos_z)?;
-    
+
     // Apply stress majorization algorithm (simplified version)
     let max_displacement = 10.0; // Configurable via AdvancedParams
     let mut total_displacement = 0.0;
-    
+
     for i in 0..self.num_nodes as usize {
         // Calculate ideal position based on constraints and graph structure
         let (new_x, new_y, new_z) = self.calculate_stress_majorization_position(i, &pos_x, &pos_y, &pos_z)?;
-        
+
         // Clamp displacement to prevent explosions
         let dx = (new_x - pos_x[i]).clamp(-max_displacement, max_displacement);
-        let dy = (new_y - pos_y[i]).clamp(-max_displacement, max_displacement);  
+        let dy = (new_y - pos_y[i]).clamp(-max_displacement, max_displacement);
         let dz = (new_z - pos_z[i]).clamp(-max_displacement, max_displacement);
-        
+
         pos_x[i] += dx;
         pos_y[i] += dy;
         pos_z[i] += dz;
-        
+
         total_displacement += (dx*dx + dy*dy + dz*dz).sqrt();
     }
-    
+
     // Upload optimized positions back to GPU
     unified_compute.upload_positions(&pos_x, &pos_y, &pos_z)?;
-    
+
     info!("Stress majorization completed, total displacement: {:.2}", total_displacement);
     Ok(())
 }
@@ -432,19 +432,19 @@ fn perform_stress_majorization(&mut self) -> Result<(), Error> {
 #[test]
 fn test_stress_majorization_stability_5_runs() {
     let mut positions_history = Vec::new();
-    
+
     for run in 0..5 {
         let final_positions = run_stress_majorization_simulation(100_iterations);
         positions_history.push(final_positions);
-        
+
         // Check for position explosions
         for pos in &final_positions {
             assert!(pos.x.abs() < 1000.0, "X position exploded in run {}", run);
-            assert!(pos.y.abs() < 1000.0, "Y position exploded in run {}", run);  
+            assert!(pos.y.abs() < 1000.0, "Y position exploded in run {}", run);
             assert!(pos.z.abs() < 1000.0, "Z position exploded in run {}", run);
         }
     }
-    
+
     // Check consistency across runs
     let position_variance = calculate_position_variance(&positions_history);
     assert!(position_variance < 50.0, "Stress majorization not converging consistently");
@@ -484,14 +484,14 @@ cargo test test_buffer_resize_stress -- --nocapture
 
 **Performance Benchmark**:
 ```bash
-# Grid efficiency test suite  
+# Grid efficiency test suite
 cargo test test_spatial_grid_efficiency -- --nocapture
 # Expected: 4-16 neighbors/cell average, <1s frame time @60fps
 ```
 
 ### Gate 3: SSSP & Constraint Integration
 **Entry Criteria**: Gates 1-2 passed, SSSP optimization complete
-**Validation Requirements**:  
+**Validation Requirements**:
 - [ ] SSSP distances match CPU reference (max error < 1e-5)
 - [ ] Edge-length variance improves ≥10% with SSSP adjustment
 - [ ] Constraint system stable across all implemented types
@@ -526,13 +526,13 @@ RUN_STABILITY_TEST=1 cargo test test_24_hour_stability
 **Mitigation**: Pre-allocate with growth factors, monitor fragmentation metrics
 **Fallback**: Graceful degradation to CPU processing for oversized graphs
 
-### Performance Regression Risks  
+### Performance Regression Risks
 **Risk**: Multiple optimizations interact negatively
 **Mitigation**: Comprehensive benchmarking after each task
 **Fallback**: Feature flags to disable problematic optimizations
 
 ### Stability Risks
-**Risk**: Complex constraint interactions cause simulation instability  
+**Risk**: Complex constraint interactions cause simulation instability
 **Mitigation**: Progressive rollout, extensive testing, force clamping
 **Fallback**: Automatic constraint disabling on instability detection
 
@@ -545,7 +545,7 @@ RUN_STABILITY_TEST=1 cargo test test_24_hour_stability
 - [ ] **Day 4**: Spatial grid testing and optimization
 - [ ] **Day 5**: Week 1 integration testing and Gate 1-2 validation
 
-### Week 2: Optimization  
+### Week 2: Optimization
 - [ ] **Day 1**: SSSP GPU frontier compaction implementation
 - [ ] **Day 2**: SSSP API toggle and metrics integration
 - [ ] **Day 3**: Constraint system enhancement implementation
@@ -570,10 +570,10 @@ RUN_STABILITY_TEST=1 cargo test test_24_hour_stability
 ### Monitoring & Observability
 - [ ] Add metrics for buffer resize frequency and performance impact
 - [ ] Monitor spatial grid efficiency and auto-tuning effectiveness
-- [ ] Track constraint violation rates and force distributions  
+- [ ] Track constraint violation rates and force distributions
 - [ ] Alert on performance regressions or stability issues
 
-### Future Preparation  
+### Future Preparation
 - [ ] Identify Phase 2 dependencies and requirements
 - [ ] Document lessons learned and optimization opportunities
 - [ ] Plan Phase 2 GPU analytics implementation approach

@@ -11,7 +11,7 @@ The constraint generation methods were previously defined but not wired up to th
 ### 1. Enabled Initial Semantic Constraints (`generate_initial_semantic_constraints`)
 
 **Location:** Called from:
-- `UpdateGraphData` handler (line ~1790)  
+- `UpdateGraphData` handler (line ~1790)
 - `BuildGraphFromMetadata` -> `build_from_metadata` method (line ~461)
 
 **Implementation:**
@@ -116,6 +116,6 @@ A test framework has been outlined in `test_constraint_integration.rs` to verify
 
 ## Files Modified
 
-- `/workspace/ext/src/actors/graph_actor.rs` - Main implementation
-- `/workspace/ext/src/test_constraint_integration.rs` - Test framework
-- `/workspace/ext/docs/constraint_integration_summary.md` - This document
+- `//src/actors/graph_actor.rs` - Main implementation
+- `//src/test_constraint_integration.rs` - Test framework
+- `//docs/constraint_integration_summary.md` - This document

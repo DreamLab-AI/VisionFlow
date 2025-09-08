@@ -154,14 +154,14 @@ voiceService.stopAudioStreaming();
 import { VoiceButton, VoiceIndicator } from './components';
 
 // Voice control button
-<VoiceButton 
-  size="md" 
+<VoiceButton
+  size="md"
   variant="primary"
   className="my-voice-btn"
 />
 
 // Voice status indicator with transcription display
-<VoiceIndicator 
+<VoiceIndicator
   showTranscription={true}
   showStatus={true}
 />
@@ -208,7 +208,7 @@ services:
     networks:
       - docker_ragflow  # Must be added to this network
     # Current IP: 172.18.0.9 (may change on restart)
-      
+
   whisper-webui-backend:
     image: jhj0517/whisper-webui-backend:latest
     ports:
@@ -258,15 +258,15 @@ services:
 class AudioInputService {
   // Request microphone access
   requestMicrophoneAccess(constraints?: AudioConstraints): Promise<boolean>
-  
+
   // Start/stop recording
   startRecording(mimeType?: string): Promise<void>
   stopRecording(): void
-  
+
   // Audio level monitoring
   getAudioLevel(): number  // 0-1
   getFrequencyData(): Uint8Array
-  
+
   // Events
   on('audioChunk', (chunk: AudioChunk) => void)
   on('audioLevel', (level: number) => void)
@@ -280,16 +280,16 @@ class AudioInputService {
 class AudioOutputService {
   // Queue audio for playback
   queueAudio(audioData: ArrayBuffer, id?: string): Promise<void>
-  
+
   // Playback control
   stop(): void
   pause(): void
   resume(): void
-  
+
   // Volume control
   setVolume(volume: number): void  // 0-1
   getVolume(): number
-  
+
   // Events
   on('audioStarted', (item: AudioQueueItem) => void)
   on('audioEnded', (item: AudioQueueItem) => void)
@@ -303,14 +303,14 @@ class AudioOutputService {
 class VoiceWebSocketService extends WebSocketService {
   // Connection
   connectToSpeech(baseUrl: string): Promise<void>
-  
+
   // TTS
   sendTextForTTS(request: TTSRequest): Promise<void>
-  
+
   // STT
   startAudioStreaming(options?: { language?: string }): Promise<void>
   stopAudioStreaming(): void
-  
+
   // Events
   on('voiceConnected', (data: any) => void)
   on('transcription', (result: TranscriptionResult) => void)
@@ -336,7 +336,7 @@ The Whisper integration uses an asynchronous task-based API that follows this wo
 POST http://whisper-webui-backend:8000/transcription/
 Content-Type: multipart/form-data
 - file: audio data (WAV/WebM/etc)
-- model_size: "base" or "large-v2" 
+- model_size: "base" or "large-v2"
 - lang: language code (optional)
 - vad_filter: true/false (voice activity detection)
 
@@ -409,7 +409,7 @@ The system handles several error scenarios:
 3. **Test Complete Pipeline**:
    ```bash
    # Run the comprehensive test script
-   bash /workspace/ext/scripts/voice_pipeline_test.sh
+   bash //scripts/voice_pipeline_test.sh
    ```
 
 4. **Test Audio Capture**:
