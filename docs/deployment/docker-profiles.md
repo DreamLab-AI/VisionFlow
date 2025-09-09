@@ -78,7 +78,7 @@ docker-compose --profile production down
 
 | Profile | Service Name | Container Name | Port |
 |---------|-------------|----------------|------|
-| dev | webxr-dev | visionflow_container | 3001 |
+| dev | webxr | visionflow_container | 3001 |
 | production | webxr-prod | visionflow_container | 4000 |
 | production | cloudflared | cloudflared-tunnel | - |
 | all | powerdev | powerdev | 8080 |
@@ -170,7 +170,7 @@ COMPOSE_PROFILES=production PORT=8080 docker-compose up
 ### Profile-specific builds
 ```bash
 # Build only development image
-docker-compose --profile dev build webxr-dev
+docker-compose --profile dev build webxr
 
 # Build only production image
 docker-compose --profile production build webxr-prod

@@ -26,7 +26,7 @@ docker-compose ps
 Expected output:
 ```
 NAME                    COMMAND                  SERVICE             STATUS
-visionflow_container    "/app/scripts/start.sh"  webxr-dev          Up
+visionflow_container    "/app/scripts/start.sh"  webxr          Up
 multi-agent-container   "python3 -m claude..."   claude-flow        Up
 ```
 

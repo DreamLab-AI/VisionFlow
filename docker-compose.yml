@@ -1,6 +1,6 @@
 services:
   # Development configuration
-  webxr-dev:
+  webxr:
     profiles: ["dev"]
     container_name: visionflow_container
     build:

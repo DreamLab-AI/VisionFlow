@@ -905,7 +905,19 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     }
                                 }
 
-                                // Update node positions using actor messages
+                                // TEMPORARILY DISABLED: Client-to-server position feedback loop
+                                // This was causing the graph to never settle because:
+                                // 1. Server sends positions to client
+                                // 2. Client receives and processes them
+                                // 3. Client sends them back to server (HERE)
+                                // 4. Server updates positions, triggering GPU recalculation
+                                // 5. Loop continues indefinitely
+                                //
+                                // This should only be enabled for actual user interactions (node dragging),
+                                // not for all position updates received from the server.
+                                //
+                                // TODO: Add a flag to distinguish user-initiated updates from server broadcasts
+                                /*
                                 for (node_id, node_data) in nodes_vec {
                                     debug!("Updated position for node ID {} to [{:.3}, {:.3}, {:.3}]",
                                          node_id, node_data.position.x, node_data.position.y, node_data.position.z);
@@ -920,6 +932,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                         error!("Failed to update node position in GraphServiceActor: {}", e);
                                     }
                                 }
+                                */
+                                
+                                // Log that we received positions but are not feeding them back
+                                info!("Received {} node positions from client (feedback loop disabled)", nodes_vec.len());
 
                                 info!("Updated node positions from binary data (preserving server-side properties)");
 

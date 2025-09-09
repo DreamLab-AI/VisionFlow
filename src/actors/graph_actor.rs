@@ -112,12 +112,16 @@ pub struct GraphServiceActor {
     stable_count: u32, // Count stable frames to detect settling
     auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
     kinetic_energy_history: Vec<f32>, // Track kinetic energy for stability detection
-    frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast
+    frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast (deprecated - use time-based instead)
+    last_broadcast_time: Option<std::time::Instant>, // Time-based broadcast tracking to fix 10-second delay issue
     initial_positions_sent: bool, // Track if initial positions have been sent to clients
     
     // Smooth parameter transitions
     target_params: SimulationParams, // Target physics parameters
     param_transition_rate: f32, // How fast to transition (0.0 - 1.0)
+    
+    // Position change tracking to avoid unnecessary updates
+    previous_positions: HashMap<u32, crate::types::vec3::Vec3Data>, // Track previous positions for change detection
 }
 
 // Auto-balance notification structure
@@ -297,11 +301,15 @@ impl GraphServiceActor {
             auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
             kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
             frames_since_last_broadcast: None,
+            last_broadcast_time: None, // Initialize time-based broadcast tracking
             initial_positions_sent: false,
             
             // Smooth parameter transitions - initialize with actual loaded settings
             target_params,
             param_transition_rate: 0.1, // 10% per frame for smooth transitions
+            
+            // Position change tracking
+            previous_positions: HashMap::new(),
         }
     }
 
@@ -343,6 +351,9 @@ impl GraphServiceActor {
         
         // Remove related edges
         graph_data_mut.edges.retain(|e| e.source != node_id && e.target != node_id);
+        
+        // Clean up position tracking
+        self.previous_positions.remove(&node_id);
         
         debug!("Removed node: {}", node_id);
     }
@@ -956,6 +967,10 @@ impl GraphServiceActor {
             0.0
         };
         
+        // TEMPORARILY DISABLED: Auto-balance system causing oscillation every 10-12 seconds
+        // The system was aggressively overcorrecting between spread/clustered states
+        // Re-enable after tuning thresholds to be less aggressive
+        /*
         // Auto-tune physics if enabled
         if self.simulation_params.auto_balance {
             // Normalize kinetic energy by number of nodes
@@ -1246,6 +1261,7 @@ impl GraphServiceActor {
                 }
             }
         }
+        */
         
         debug!("Updated positions for {} nodes", updated_count);
     }
@@ -1272,10 +1288,15 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
+        // TEMPORARILY DISABLED: Smooth parameter transitions causing oscillation feedback loop
+        // The system was aggressively overcorrecting between spread/clustered states
+        // Re-enable after tuning thresholds to be less aggressive
+        /*
         // Apply smooth parameter transitions if auto-balance is enabled
         if self.simulation_params.auto_balance {
             self.smooth_transition_params();
         }
+        */
         
         // Increment counters for periodic operations
         self.stress_step_counter += 1;
@@ -1472,22 +1493,40 @@ impl GraphServiceActor {
                                         host_vel_z[index] * host_vel_z[index];
                         total_ke += 0.5 * vel_squared;
                         
-                        let binary_node = BinaryNodeData {
-                            position: crate::types::vec3::Vec3Data {
-                                x: host_pos_x[index],
-                                y: host_pos_y[index],
-                                z: host_pos_z[index]
-                            },
-                            velocity: crate::types::vec3::Vec3Data {
-                                x: host_vel_x[index],
-                                y: host_vel_y[index],
-                                z: host_vel_z[index]
-                            },
-                            mass: 1,
-                            flags: 0,
-                            padding: [0, 0],
+                        let new_position = crate::types::vec3::Vec3Data {
+                            x: host_pos_x[index],
+                            y: host_pos_y[index],
+                            z: host_pos_z[index]
                         };
-                        positions_to_update.push((*node_id, binary_node));
+                        
+                        // Check if position has changed significantly (threshold of 0.001)
+                        let position_changed = if let Some(prev_pos) = self.previous_positions.get(node_id) {
+                            let dx = new_position.x - prev_pos.x;
+                            let dy = new_position.y - prev_pos.y;
+                            let dz = new_position.z - prev_pos.z;
+                            let distance_squared = dx * dx + dy * dy + dz * dz;
+                            distance_squared > 0.001 * 0.001 // Use squared threshold for efficiency
+                        } else {
+                            true // First time seeing this node, always update
+                        };
+                        
+                        if position_changed {
+                            let binary_node = BinaryNodeData {
+                                position: new_position,
+                                velocity: crate::types::vec3::Vec3Data {
+                                    x: host_vel_x[index],
+                                    y: host_vel_y[index],
+                                    z: host_vel_z[index]
+                                },
+                                mass: 1,
+                                flags: 0,
+                                padding: [0, 0],
+                            };
+                            positions_to_update.push((*node_id, binary_node));
+                            
+                            // Update the previous position for this node
+                            self.previous_positions.insert(*node_id, new_position);
+                        }
                     }
                     
                     // Update kinetic energy history
@@ -1515,31 +1554,43 @@ impl GraphServiceActor {
                         info!("[BROADCAST] Sending initial positions to clients");
                         true
                     } else {
-                        // Track frames since last broadcast
-                        let frames_since_last = self.frames_since_last_broadcast.unwrap_or(0);
-                        self.frames_since_last_broadcast = Some(frames_since_last + 1);
+                        // FIXED: Use time-based broadcast logic instead of frame-based to prevent 10-second delays
+                        // With physics running at ~3 FPS, 30 frames = 10 seconds (too slow)
+                        let now = std::time::Instant::now();
+                        let time_since_last = if let Some(last_time) = self.last_broadcast_time {
+                            now.duration_since(last_time)
+                        } else {
+                            std::time::Duration::from_secs(999) // Force first broadcast
+                        };
                         
                         // Get current kinetic energy
                         let current_ke = self.kinetic_energy_history.last().copied().unwrap_or(1.0);
                         
-                        // Determine if we should send based on activity and time
+                        // Determine if we should send based on activity and elapsed time (not frames)
                         let should_send = if current_ke > 0.1 {
-                            // High activity - send every frame
+                            // High activity - send every frame (no time limit)
                             true
                         } else if current_ke > 0.01 {
-                            // Medium activity - send every 5 frames
-                            frames_since_last >= 5
+                            // Medium activity - send every 200ms minimum
+                            time_since_last >= std::time::Duration::from_millis(200)
                         } else {
-                            // Low/no activity - send every 30 frames to keep connection alive
-                            frames_since_last >= 30
+                            // Low/no activity - send every 2 seconds to keep connection alive
+                            // This fixes the 10-second delay issue caused by frame-based logic
+                            time_since_last >= std::time::Duration::from_secs(2)
                         };
                         
                         if should_send {
+                            self.last_broadcast_time = Some(now);
+                            // Keep legacy frame counter for compatibility but don't rely on it for timing
                             self.frames_since_last_broadcast = Some(0);
-                            if crate::utils::logging::is_debug_enabled() && frames_since_last > 10 {
-                                info!("[BROADCAST] Sending positions (KE: {:.4}, frames since last: {})", 
-                                      current_ke, frames_since_last);
+                            if crate::utils::logging::is_debug_enabled() && time_since_last.as_millis() > 1000 {
+                                info!("[BROADCAST] Sending positions (KE: {:.4}, time since last: {}ms)", 
+                                      current_ke, time_since_last.as_millis());
                             }
+                        } else {
+                            // Update frame counter for compatibility (but don't use for timing decisions)
+                            let frames_since_last = self.frames_since_last_broadcast.unwrap_or(0);
+                            self.frames_since_last_broadcast = Some(frames_since_last + 1);
                         }
                         
                         should_send

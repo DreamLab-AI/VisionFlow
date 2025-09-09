@@ -786,7 +786,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        pointerEvents: 'auto',
+        zIndex: 1000
       }}
       onClick={() => setIsExpanded(true)}
       >
@@ -822,7 +824,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         maxHeight: '85vh',
         overflowY: 'hidden',
         backdropFilter: 'blur(10px)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        pointerEvents: 'auto',
+        zIndex: 1000
       }}>
         {/* Header with fold button */}
         <div style={{

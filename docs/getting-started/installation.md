@@ -216,7 +216,7 @@ docker-compose ps
 
 # Expected output:
 # NAME                    COMMAND                  SERVICE             STATUS
-# visionflow_container    "/app/scripts/start.sh"  webxr-dev          Up
+# visionflow_container    "/app/scripts/start.sh"  webxr          Up
 # multi-agent-container   "python3 -m claude..."   claude-flow        Up
 # postgres_container      "docker-entrypoint.s..."  postgres           Up
 # redis_container         "redis-server --appen..."  redis              Up
@@ -300,7 +300,7 @@ services:
     deploy:
       placement:
         constraints: [node.labels.role == primary]
-    
+
   visionflow-node2:
     image: visionflow:latest
     deploy:
@@ -582,7 +582,7 @@ After installation, verify these components:
 Now that VisionFlow is installed, proceed to:
 
 1. **[Quick Start Guide](quickstart.md)** - Create your first graph in 5 minutes
-2. **[Configuration Guide](configuration.md)** - Customise VisionFlow for your needs  
+2. **[Configuration Guide](configuration.md)** - Customise VisionFlow for your needs
 3. **[API Documentation](../api/index.md)** - Integrate with your applications
 4. **[Architecture Overview](../architecture/system-overview.md)** - Understand the system design
 
