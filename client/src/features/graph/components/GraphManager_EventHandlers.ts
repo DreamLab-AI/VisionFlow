@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { graphDataManager } from '../managers/graphDataManager';
@@ -29,7 +29,8 @@ export const createEventHandlers = (
   camera: THREE.Camera,
   size: { width: number; height: number },
   settings: any,
-  setGraphData: React.Dispatch<React.SetStateAction<any>>
+  setGraphData: React.Dispatch<React.SetStateAction<any>>,
+  onDragStateChange?: (isDragging: boolean) => void
 ) => {
   const handlePointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
@@ -53,10 +54,16 @@ export const createEventHandlers = (
       currentNodePos3D: new THREE.Vector3(node.position.x, node.position.y, node.position.z),
     };
 
+    // Lock camera immediately on node click (if callback is provided)
+    if (onDragStateChange) {
+      console.log('Calling onDragStateChange(true)');
+      onDragStateChange(true);
+    }
+
     if (debugState.isEnabled()) {
       logger.debug(`Pointer down on node ${node.id}`);
     }
-  }, [graphData.nodes, meshRef, dragDataRef]);
+  }, [graphData.nodes, meshRef, dragDataRef, onDragStateChange]);
 
   const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
     const drag = dragDataRef.current;
@@ -70,6 +77,7 @@ export const createEventHandlers = (
       if (distance > DRAG_THRESHOLD) {
         drag.isDragging = true;
         setDragState({ nodeId: drag.nodeId, instanceId: drag.instanceId });
+        // Camera is already locked from pointerDown, no need to call onDragStateChange here
 
         const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
         if (numericId !== undefined) {
@@ -85,17 +93,27 @@ export const createEventHandlers = (
     if (drag.isDragging) {
       event.stopPropagation();
 
-      // Create a plane at the node's starting depth, facing the camera
-      const planeNormal = camera.getWorldDirection(new THREE.Vector3()).negate();
+      // Use camera-parallel plane method for proper screen-space movement
+      // This ensures nodes move in the XY plane relative to the camera view
+      
+      // Create a plane parallel to the camera's view plane at the node's depth
+      const cameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(cameraDirection);
+      const planeNormal = cameraDirection.clone().normalize();
+      
+      // Create plane at the node's starting depth
+      // The plane passes through the node's starting position and is perpendicular to camera direction
       const plane = new THREE.Plane(planeNormal, -planeNormal.dot(drag.startNodePos3D));
-
+      
       // Cast a ray from the camera through the current mouse position
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(event.pointer, camera);
-
+      
       // Find where the ray intersects the plane
       const intersection = new THREE.Vector3();
-      if (raycaster.ray.intersectPlane(plane, intersection)) {
+      const intersectionFound = raycaster.ray.intersectPlane(plane, intersection);
+      
+      if (intersectionFound && intersection) {
         const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
         if (numericId !== undefined) {
           graphWorkerProxy.updateUserDrivenNodePosition(numericId, intersection);
@@ -142,7 +160,13 @@ export const createEventHandlers = (
 
   const handlePointerUp = useCallback(() => {
     const drag = dragDataRef.current;
-    if (!drag.pointerDown) return;
+    if (!drag.pointerDown) {
+      // Release camera lock even if no drag was active
+      if (onDragStateChange) {
+        onDragStateChange(false);
+      }
+      return;
+    }
 
     if (drag.isDragging) {
       // End of a DRAG action
@@ -186,7 +210,31 @@ export const createEventHandlers = (
     dragDataRef.current.instanceId = null;
     dragDataRef.current.pendingUpdate = null;
     setDragState({ nodeId: null, instanceId: null });
-  }, [graphData.nodes, dragDataRef, setDragState]);
+    
+    // Release camera lock (if callback is provided)
+    if (onDragStateChange) {
+      console.log('Calling onDragStateChange(false)');
+      onDragStateChange(false);
+    }
+  }, [graphData.nodes, dragDataRef, setDragState, onDragStateChange]);
+
+  // Add global event listeners for pointer up
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (dragDataRef.current.pointerDown || dragDataRef.current.isDragging) {
+        handlePointerUp();
+      }
+    };
+
+    // Add global listener for mouse up
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+    
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
+    };
+  }, [handlePointerUp, dragDataRef]);
 
   return {
     handlePointerDown,

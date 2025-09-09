@@ -313,7 +313,7 @@ GENERATE_COVERAGE=false            # Generate code coverage reports
 ```yaml
 # docker-compose.dev.yml
 services:
-  webxr-dev:
+  webxr:
     profiles: ["dev"]
     build:
       context: .
@@ -376,7 +376,7 @@ volumes:
       type: none
       o: bind
       device: /opt/visionflow/data
-  
+
   # Database Storage
   postgres_data:
     driver: local
@@ -384,7 +384,7 @@ volumes:
       type: none
       o: bind
       device: /opt/visionflow/postgres
-  
+
   # Cache Storage
   redis_data:
     driver: local
@@ -404,7 +404,7 @@ volumes:
       type: none
       o: bind
       device: /mnt/nvme/visionflow
-  
+
   # Shared Memory for GPU
   gpu_shared_memory:
     driver_opts:
@@ -425,14 +425,14 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-  
+
   # External Access
   external:
     driver: bridge
     ipam:
       config:
         - subnet: 172.21.0.0/16
-  
+
   # GPU Communication
   gpu_network:
     driver: bridge
@@ -457,7 +457,7 @@ networks:
     "maxVelocity": 50,          // Maximum node velocity
     "restLength": 100           // Default edge rest length
   },
-  
+
   "rendering": {
     "quality": "high",           // Rendering quality: low, medium, high, ultra
     "antialias": true,          // Enable anti-aliasing
@@ -467,7 +467,7 @@ networks:
     "maxFPS": 60,              // Target frame rate
     "vsync": true              // Enable vertical sync
   },
-  
+
   "camera": {
     "fov": 75,                  // Field of view (degrees)
     "near": 0.1,               // Near clipping plane
@@ -492,7 +492,7 @@ networks:
     "maxDistance": 5000,       // Maximum zoom out distance
     "minDistance": 10          // Minimum zoom in distance
   },
-  
+
   "selection": {
     "multiSelect": true,        // Enable multi-node selection
     "highlightConnected": true, // Highlight connected nodes
@@ -500,7 +500,7 @@ networks:
     "selectionColor": "#ff6b35", // Selection highlight colour
     "hoverColor": "#4ecdc4"     // Hover highlight colour
   },
-  
+
   "keyboard": {
     "enableShortcuts": true,    // Enable keyboard shortcuts
     "customBindings": {},       // Custom key bindings
@@ -523,13 +523,13 @@ networks:
       "maxRequests": 1000,      // Max requests per window
       "skipSuccessfulRequests": false
     },
-    
+
     "pagination": {
       "defaultLimit": 50,       // Default page size
       "maxLimit": 1000,         // Maximum page size
       "allowAll": false         // Allow unlimited results
     },
-    
+
     "authentication": {
       "required": false,        // Require authentication
       "providers": ["jwt", "oauth"], // Auth providers

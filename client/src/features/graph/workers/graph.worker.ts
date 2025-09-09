@@ -424,6 +424,23 @@ class GraphWorker {
         const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
         const distanceSq = dx * dx + dy * dy + dz * dz;
         
+        // =================================================================================
+        // EXPERIMENTAL: Disable Node Smoothing
+        // The following lines force nodes to snap directly to their target positions,
+        // bypassing the gentle interpolation (smoothing) logic. This is useful for
+        // debugging the raw output of the server-side physics simulation.
+        //
+        // To re-enable smoothing, comment out this block and uncomment the original
+        // `if/else` block below.
+        // =================================================================================
+        this.currentPositions[i3] = this.targetPositions[i3];
+        this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+        this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+
+        /*
+        // =================================================================================
+        // ORIGINAL SMOOTHING LOGIC (DISABLED)
+        // =================================================================================
         // Very large snap threshold to prevent ANY micro-oscillations
         // When nodes are within this distance, they snap directly to target
         const snapThreshold = 5.0; // Very large threshold - snap when within 5 units
@@ -457,6 +474,8 @@ class GraphWorker {
           this.currentPositions[i3 + 1] += moveY;
           this.currentPositions[i3 + 2] += moveZ;
         }
+        // =================================================================================
+        */
       }
       
       // Log total movement to detect if nodes are actually moving

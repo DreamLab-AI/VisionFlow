@@ -141,7 +141,17 @@ const getTypeImportance = (nodeType?: string): number => {
   return importanceMap[nodeType || 'default'] || 1.0
 }
 
-const GraphManager: React.FC = () => {
+interface GraphManagerProps {
+  onDragStateChange?: (isDragging: boolean) => void;
+}
+
+const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
+  // Only log once on mount, not every frame
+  useEffect(() => {
+    if (onDragStateChange) {
+      console.log('GraphManager: onDragStateChange callback available');
+    }
+  }, []);
   const settings = useSettingsStore((state) => state.settings);
   // Handle both camelCase and snake_case field names from REST API
   const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
@@ -230,8 +240,9 @@ const GraphManager: React.FC = () => {
   useEffect(() => {
     const obj = meshRef.current as any;
     if (obj) {
-      // Enable bloom layer for nodes
-      obj.layers.enable(1); // Bloom layer
+      // Make sure mesh is on default layer for raycasting
+      obj.layers.set(0); // Default layer for raycasting
+      obj.layers.enable(1); // Also enable bloom layer
       registerNodeObject(obj);
     }
     return () => {
@@ -355,6 +366,9 @@ const GraphManager: React.FC = () => {
       
       // CRITICAL: Mark instance matrix as needing update
       mesh.instanceMatrix.needsUpdate = true;
+      
+      // IMPORTANT: Update bounding sphere for proper raycasting
+      mesh.computeBoundingSphere();
 
       // Force material update
       if (materialRef.current) {
@@ -423,6 +437,8 @@ const GraphManager: React.FC = () => {
             meshRef.current.setMatrixAt(i, tempMatrix);
           }
           meshRef.current.instanceMatrix.needsUpdate = true;
+          // Update bounding sphere for raycasting to work properly
+          meshRef.current.computeBoundingSphere();
         }
 
         // Update edge points based on new positions with endpoint offset
@@ -626,7 +642,8 @@ const GraphManager: React.FC = () => {
     camera,
     size,
     settings,
-    setGraphData
+    setGraphData,
+    onDragStateChange
   )
 
   // Create ambient particles (disabled for now to avoid white blocks)

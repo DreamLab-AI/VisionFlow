@@ -9873,7 +9873,7 @@
         },
         {
           "level": 1,
-          "text": "visionflow_container    \"/app/scripts/start.sh\"  webxr-dev          Up"
+          "text": "visionflow_container    \"/app/scripts/start.sh\"  webxr          Up"
         },
         {
           "level": 1,

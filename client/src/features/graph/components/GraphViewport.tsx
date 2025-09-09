@@ -55,7 +55,13 @@ const GraphViewport: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [graphCenter, setGraphCenter] = useState<[number, number, number]>([0, 0, 0]);
   const [graphSize, setGraphSize] = useState(50); // Default size
-  const [isNodeDragging, setIsNodeDragging] = useState(false); // <--- Add this state
+  const [isNodeDragging, setIsNodeDragging] = useState(false);
+  
+  // Debug state changes
+  useEffect(() => {
+    console.log('GraphViewport: isNodeDragging changed to', isNodeDragging);
+    console.log('OrbitControls should be:', !isNodeDragging ? 'ENABLED' : 'DISABLED');
+  }, [isNodeDragging]);
   const [ambientRef, setAmbientRef] = useState<THREE.AmbientLight | null>(null);
   const [dirRef, setDirRef] = useState<THREE.DirectionalLight | null>(null);
   const [pointRef, setPointRef] = useState<THREE.PointLight | null>(null);
@@ -237,18 +243,26 @@ const GraphViewport: React.FC = () => {
         />
 
         <OrbitControls
+          key="main-orbit-controls"
           makeDefault
           enableDamping
           dampingFactor={0.05}
           minDistance={1}
           maxDistance={far / 2} // Max distance related to camera far plane
           target={graphCenter}
-          enabled={!isNodeDragging} // <--- Control OrbitControls here
+          enabled={!isNodeDragging}
+          enableRotate={!isNodeDragging}
+          enablePan={!isNodeDragging}
+          enableZoom={!isNodeDragging}
+          mouseButtons={isNodeDragging ? {} : undefined} // Disable all mouse buttons when dragging
         />
 
             <Suspense fallback={null}>
               {/* Using GraphManager for all graph rendering */}
-              <GraphManager />
+              <GraphManager onDragStateChange={(isDragging) => {
+                console.log('GraphViewport: onDragStateChange called with', isDragging);
+                setIsNodeDragging(isDragging);
+              }} />
 
             {/* World-class hologram effects controlled by hologram toggle */}
             {hologramEnabled && (
