@@ -11,6 +11,7 @@ use actix::Addr;
 use crate::actors::graph_actor::GraphServiceActor;
 use crate::actors::messages::UpdateBotsGraph;
 use crate::types::claude_flow::{AgentStatus, AgentProfile, AgentType, TokenUsage, PerformanceMetrics};
+use crate::types::mcp_responses::{McpResponse, McpContentResult, AgentListResponse, McpParseError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BotsUpdate {
@@ -203,108 +204,109 @@ impl BotsClient {
                                     }
                                 }
 
-                                if let Some(result) = json.get("result") {
-                                    info!("Processing result field from bots response");
-                                    debug!("Raw result JSON: {}", serde_json::to_string_pretty(result).unwrap_or_default());
-
-                                    // First check if this is an MCP-style response with content array
-                                    if let Some(content_array) = result.get("content").and_then(|c| c.as_array()) {
-                                        if let Some(first_content) = content_array.first() {
-                                            if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                                                // Parse the text field as JSON
-                                                if let Ok(parsed_json) = serde_json::from_str::<serde_json::Value>(text) {
-                                                    info!("Parsed MCP content.text JSON successfully");
-                                                    
-                                                    // Now check for agents in the parsed JSON
-                                                    if let Some(agents_array) = parsed_json.get("agents").and_then(|a| a.as_array()) {
-                                                        let mut agents = Vec::new();
-                                                        for agent_val in agents_array {
-                                                            if let Ok(agent) = serde_json::from_value::<Agent>(agent_val.clone()) {
-                                                                agents.push(agent);
-                                                            }
+                                // Try to parse as MCP response first
+                                if let Ok(mcp_response) = serde_json::from_value::<McpResponse<McpContentResult>>(json.clone()) {
+                                    match mcp_response.into_result() {
+                                        Ok(content_result) => {
+                                            info!("Successfully parsed MCP response structure");
+                                            
+                                            // Extract agent data using type-safe parsing
+                                            match content_result.extract_data::<AgentListResponse>() {
+                                                Ok(agent_list) => {
+                                                    if !agent_list.agents.is_empty() {
+                                                        let update = BotsUpdate {
+                                                            agents: agent_list.agents.clone(),
+                                                            metrics: BotsMetrics::default(),
+                                                            timestamp: std::time::SystemTime::now()
+                                                                .duration_since(std::time::UNIX_EPOCH)
+                                                                .unwrap_or_default()
+                                                                .as_secs(),
+                                                        };
+                                                        info!("Successfully parsed {} agents from MCP response", update.agents.len());
+                                                        for agent in &update.agents {
+                                                            debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
+                                                        }
+                                                            
+                                                        // CRITICAL FIX: Send agents to graph
+                                                        if let Some(ref graph_addr) = graph_service_addr {
+                                                            info!("📨 BotsClient sending {} agents to graph", update.agents.len());
+                                                            
+                                                            // Convert Agent to AgentStatus for UpdateBotsGraph
+                                                            let agent_statuses: Vec<AgentStatus> = update.agents.clone()
+                                                                .into_iter()
+                                                                .map(|agent| AgentStatus {
+                                                                    agent_id: agent.id.clone(),
+                                                                    profile: AgentProfile {
+                                                                        name: agent.name,
+                                                                        agent_type: match agent.agent_type.as_str() {
+                                                                            "coordinator" => AgentType::Coordinator,
+                                                                            "researcher" => AgentType::Researcher,
+                                                                            "coder" => AgentType::Coder,
+                                                                            "tester" => AgentType::Tester,
+                                                                            "reviewer" => AgentType::Reviewer,
+                                                                            "analyst" => AgentType::Analyst,
+                                                                            "architect" => AgentType::Architect,
+                                                                            "optimizer" => AgentType::Optimizer,
+                                                                            "documenter" => AgentType::Documenter,
+                                                                            _ => AgentType::Coder, // Default to Coder
+                                                                        },
+                                                                        capabilities: vec![],
+                                                                    },
+                                                                    status: agent.status,
+                                                                    active_tasks_count: 0,
+                                                                    completed_tasks_count: 0,
+                                                                    failed_tasks_count: 0,
+                                                                    success_rate: 100.0,
+                                                                    timestamp: chrono::Utc::now(),
+                                                                    current_task: None,
+                                                                    cpu_usage: 0.0,
+                                                                    memory_usage: 0.0,
+                                                                    health: 100.0,
+                                                                    activity: 0.0,
+                                                                    tasks_active: 0,
+                                                                    performance_metrics: PerformanceMetrics {
+                                                                        tasks_completed: 0,
+                                                                        success_rate: 100.0,
+                                                                    },
+                                                                    token_usage: TokenUsage {
+                                                                        total: 0,
+                                                                        token_rate: 0.0,
+                                                                    },
+                                                                    swarm_id: None,
+                                                                    agent_mode: None,
+                                                                    parent_queen_id: None,
+                                                                    processing_logs: None,
+                                                                    total_execution_time: 0,
+                                                                })
+                                                                .collect();
+                                                            
+                                                            graph_addr.do_send(UpdateBotsGraph {
+                                                                agents: agent_statuses
+                                                            });
                                                         }
                                                         
-                                                        if !agents.is_empty() {
-                                                            let update = BotsUpdate {
-                                                                agents: agents.clone(),
-                                                                metrics: BotsMetrics::default(),
-                                                                timestamp: std::time::SystemTime::now()
-                                                                    .duration_since(std::time::UNIX_EPOCH)
-                                                                    .unwrap_or_default()
-                                                                    .as_secs(),
-                                                            };
-                                                            info!("Successfully parsed {} agents from MCP response", update.agents.len());
-                                                            for agent in &update.agents {
-                                                                debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
-                                                            }
-                                                            
-                                                            // CRITICAL FIX: Send agents to graph
-                                                            if let Some(ref graph_addr) = graph_service_addr {
-                                                                info!("📨 BotsClient sending {} agents to graph", update.agents.len());
-                                                                
-                                                                // Convert Agent to AgentStatus for UpdateBotsGraph
-                                                                let agent_statuses: Vec<AgentStatus> = update.agents.clone()
-                                                                    .into_iter()
-                                                                    .map(|agent| AgentStatus {
-                                                                        agent_id: agent.id.clone(),
-                                                                        profile: AgentProfile {
-                                                                            name: agent.name,
-                                                                            agent_type: match agent.agent_type.as_str() {
-                                                                                "coordinator" => AgentType::Coordinator,
-                                                                                "researcher" => AgentType::Researcher,
-                                                                                "coder" => AgentType::Coder,
-                                                                                "tester" => AgentType::Tester,
-                                                                                "reviewer" => AgentType::Reviewer,
-                                                                                "analyst" => AgentType::Analyst,
-                                                                                "architect" => AgentType::Architect,
-                                                                                "optimizer" => AgentType::Optimizer,
-                                                                                "documenter" => AgentType::Documenter,
-                                                                                _ => AgentType::Coder, // Default to Coder
-                                                                            },
-                                                                            capabilities: vec![],
-                                                                        },
-                                                                        status: agent.status,
-                                                                        active_tasks_count: 0,
-                                                                        completed_tasks_count: 0,
-                                                                        failed_tasks_count: 0,
-                                                                        success_rate: 100.0,
-                                                                        timestamp: chrono::Utc::now(),
-                                                                        current_task: None,
-                                                                        cpu_usage: 0.0,
-                                                                        memory_usage: 0.0,
-                                                                        health: 100.0,
-                                                                        activity: 0.0,
-                                                                        tasks_active: 0,
-                                                                        performance_metrics: PerformanceMetrics {
-                                                                            tasks_completed: 0,
-                                                                            success_rate: 100.0,
-                                                                        },
-                                                                        token_usage: TokenUsage {
-                                                                            total: 0,
-                                                                            token_rate: 0.0,
-                                                                        },
-                                                                        swarm_id: None,
-                                                                        agent_mode: None,
-                                                                        parent_queen_id: None,
-                                                                        processing_logs: None,
-                                                                        total_execution_time: 0,
-                                                                    })
-                                                                    .collect();
-                                                                
-                                                                graph_addr.do_send(UpdateBotsGraph {
-                                                                    agents: agent_statuses
-                                                                });
-                                                            }
-                                                            
-                                                            let mut lock = updates.write().await;
-                                                            *lock = Some(update);
-                                                            continue; // Skip the rest of the parsing
-                                                        }
+                                                        let mut lock = updates.write().await;
+                                                        *lock = Some(update);
+                                                        continue; // Skip the rest of the parsing
                                                     }
+                                                }
+                                                Err(e) => {
+                                                    debug!("Failed to extract agent data from MCP response: {}", e);
+                                                    // Fall through to legacy parsing
                                                 }
                                             }
                                         }
+                                        Err(mcp_error) => {
+                                            warn!("MCP response returned error: {}", mcp_error.message);
+                                            // Fall through to legacy parsing
+                                        }
                                     }
+                                }
+
+                                // Legacy parsing for non-MCP responses
+                                if let Some(result) = json.get("result") {
+                                    info!("Processing result field from bots response (legacy format)");
+                                    debug!("Raw result JSON: {}", serde_json::to_string_pretty(result).unwrap_or_default());
 
                                     // MCP responses come directly as result objects, not wrapped
                                     let actual_result = result.clone();

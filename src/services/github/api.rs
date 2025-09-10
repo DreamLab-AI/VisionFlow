@@ -4,9 +4,8 @@ use log::debug;
 use super::config::GitHubConfig;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use std::error::Error;
 use crate::config::AppFullSettings; // Changed from Settings to AppFullSettings
-use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
+use crate::errors::VisionFlowResult;
 
 // const GITHUB_API_DELAY: Duration = Duration::from_millis(500); // Unused
 // const MAX_RETRIES: u32 = 3; // Unused

@@ -5,6 +5,7 @@ pub mod settings_actor;
 pub mod metadata_actor;
 pub mod client_manager_actor;
 pub mod gpu_compute_actor;
+pub mod gpu; // New modular GPU actors
 // gpu_compute_actor_handlers consolidated into gpu_compute_actor.rs
 pub mod protected_settings_actor;
 pub mod claude_flow_actor_tcp_refactored;
@@ -21,6 +22,7 @@ pub use settings_actor::SettingsActor;
 pub use metadata_actor::MetadataActor;
 pub use client_manager_actor::ClientManagerActor;
 pub use gpu_compute_actor::GPUComputeActor;
+pub use gpu::GPUManagerActor; // New modular GPU manager
 pub use protected_settings_actor::ProtectedSettingsActor;
 // Export the refactored TCP actor as the only ClaudeFlowActor
 pub use claude_flow_actor_tcp_refactored::ClaudeFlowActorTcp as ClaudeFlowActor;

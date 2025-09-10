@@ -2,9 +2,8 @@ use super::api::GitHubClient;
 use super::types::{CreateBranchRequest, CreatePullRequest, UpdateFileRequest, PullRequestResponse};
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use log::{error, info};
-use std::error::Error;
 use chrono::Utc;
-use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
+use crate::errors::VisionFlowResult;
 
 /// Handles GitHub Pull Request operations
 use std::sync::Arc;

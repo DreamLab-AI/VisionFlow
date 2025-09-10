@@ -233,7 +233,7 @@ impl JsonRpcClient {
     }
     
     /// Process an incoming message (response or notification)
-    fn process_message(&self, ctx: &mut Context<Self>, message: Value) {
+    fn process_message(&self, _ctx: &mut Context<Self>, message: Value) {
         debug!("Processing JSON-RPC message: {:?}", message);
         
         // Check if this is a response to a pending request

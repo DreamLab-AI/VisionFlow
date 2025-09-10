@@ -3,7 +3,7 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, ProtectedSettingsActor, ClaudeFlowActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor};
 use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
@@ -20,7 +20,8 @@ use crate::services::bots_client::BotsClient;
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceActor>,
-    pub gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Changed to actor address
+    pub gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Legacy - kept for backward compatibility
+    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // New modular GPU manager
     pub settings_addr: Addr<SettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
@@ -62,8 +63,11 @@ impl AppState {
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        info!("[AppState::new] Starting GPUComputeActor");
+        info!("[AppState::new] Starting GPUComputeActor (legacy)");
         let gpu_compute_addr = Some(GPUComputeActor::new().start());
+        
+        info!("[AppState::new] Starting GPUManagerActor (new modular architecture)");
+        let gpu_manager_addr = Some(GPUManagerActor::new().start());
 
         info!("[AppState::new] Starting GraphServiceActor");
         let _device = CudaDevice::new(0).map_err(|e| {
@@ -169,6 +173,7 @@ impl AppState {
         Ok(Self {
             graph_service_addr,
             gpu_compute_addr,
+            gpu_manager_addr,
             settings_addr,
             protected_settings_addr,
             metadata_addr,
