@@ -222,7 +222,16 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     // Process data in chunks of WIRE_ITEM_SIZE bytes
     for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
         // Use bytemuck for safe deserialization from bytes
-        let wire_item: WireNodeDataItem = *bytemuck::from_bytes(chunk);
+        // Note: We need to handle potential alignment issues
+        let wire_item: WireNodeDataItem = if chunk.as_ptr() as usize % std::mem::align_of::<WireNodeDataItem>() == 0 {
+            // Data is aligned, can use from_bytes directly
+            *bytemuck::from_bytes(chunk)
+        } else {
+            // Data is not aligned, need to copy to an aligned buffer
+            let mut aligned_buffer = [0u8; WIRE_ITEM_SIZE];
+            aligned_buffer.copy_from_slice(chunk);
+            *bytemuck::from_bytes(&aligned_buffer)
+        };
         
         // Log the first few decoded items as samples
         if samples_logged < max_samples {
