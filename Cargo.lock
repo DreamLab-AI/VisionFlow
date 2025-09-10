@@ -4212,6 +4212,7 @@ dependencies = [
  "bytes",
  "chrono",
  "config",
+ "crossbeam-channel",
  "cudarc",
  "cust",
  "cust_core",

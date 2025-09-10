@@ -6,6 +6,7 @@ pub mod edge_data;
 pub mod gpu_diagnostics;
 pub mod gpu_safety;
 pub mod logging;
+pub mod advanced_logging;
 pub mod memory_bounds;
 pub mod mcp_connection;
 pub mod network;

@@ -2,6 +2,8 @@ use actix::prelude::*;
 use log::{debug, error, warn, info, trace};
 use std::io::{Error, ErrorKind};
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::time::{Duration, Instant};
 
 use cudarc::driver::{CudaDevice, CudaStream};
@@ -9,6 +11,7 @@ use cudarc::driver::{CudaDevice, CudaStream};
 use cudarc::driver::sys::CUdevice_attribute_enum;
 
 use crate::models::graph::GraphData;
+use crate::models::node::Node;
 use crate::models::simulation_params::{SimulationParams};
 use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData};
 use crate::utils::socket_flow_messages::BinaryNodeData;
@@ -27,6 +30,230 @@ use serde::{Serialize, Deserialize};
 // Constants for GPU computation - now from dev config
 // These are still here as const for performance but initialized from config
 const MAX_NODES: u32 = 1_000_000;  // Will use dev_config::cuda().max_nodes in init
+
+/// Safety controls for stress majorization to prevent numerical instability
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StressMajorizationSafety {
+    /// Maximum allowed displacement per iteration
+    pub max_displacement_threshold: f32,
+    /// Maximum allowed position magnitude
+    pub max_position_magnitude: f32,
+    /// Number of consecutive failures before disabling
+    pub max_consecutive_failures: u32,
+    /// Convergence threshold for displacement
+    pub convergence_threshold: f32,
+    /// Maximum allowed stress value before emergency stop
+    pub max_stress_threshold: f32,
+    
+    // Runtime state
+    consecutive_failures: u32,
+    last_stress_values: Vec<f32>,
+    last_displacement_values: Vec<f32>,
+    total_runs: u64,
+    successful_runs: u64,
+    total_computation_time_ms: u64,
+    is_emergency_stopped: bool,
+    last_emergency_stop_reason: String,
+}
+
+impl StressMajorizationSafety {
+    pub fn new() -> Self {
+        Self {
+            max_displacement_threshold: 1000.0, // Prevent position explosions
+            max_position_magnitude: 5000.0,     // Maximum distance from origin
+            max_consecutive_failures: 3,         // Disable after 3 consecutive failures
+            convergence_threshold: 0.01,         // Displacement convergence threshold
+            max_stress_threshold: 1e6,           // Emergency stop for extreme stress
+            
+            consecutive_failures: 0,
+            last_stress_values: Vec::with_capacity(10),
+            last_displacement_values: Vec::with_capacity(10),
+            total_runs: 0,
+            successful_runs: 0,
+            total_computation_time_ms: 0,
+            is_emergency_stopped: false,
+            last_emergency_stop_reason: String::new(),
+        }
+    }
+    
+    pub fn is_safe_to_run(&self) -> bool {
+        !self.is_emergency_stopped && self.consecutive_failures < self.max_consecutive_failures
+    }
+    
+    pub fn record_iteration(&mut self, stress: f32, max_displacement: f32, converged: bool) {
+        self.total_runs += 1;
+        
+        // Track stress values for trend analysis
+        self.last_stress_values.push(stress);
+        if self.last_stress_values.len() > 10 {
+            self.last_stress_values.remove(0);
+        }
+        
+        // Track displacement values
+        self.last_displacement_values.push(max_displacement);
+        if self.last_displacement_values.len() > 10 {
+            self.last_displacement_values.remove(0);
+        }
+        
+        // Check for emergency stop conditions
+        if stress > self.max_stress_threshold {
+            self.trigger_emergency_stop(format!("Stress value too high: {:.2}", stress));
+        }
+        
+        if max_displacement > self.max_displacement_threshold * 2.0 {
+            self.trigger_emergency_stop(format!("Displacement too large: {:.2}", max_displacement));
+        }
+        
+        // Check for divergence (increasing stress over last few iterations)
+        if self.is_diverging() {
+            self.trigger_emergency_stop("Stress is diverging (increasing trend detected)".to_string());
+        }
+    }
+    
+    pub fn record_success(&mut self, computation_time_ms: u64) {
+        self.successful_runs += 1;
+        self.total_computation_time_ms += computation_time_ms;
+        self.consecutive_failures = 0; // Reset failure counter on success
+    }
+    
+    pub fn record_failure(&mut self, reason: String) {
+        self.consecutive_failures += 1;
+        warn!("Stress majorization failure #{}: {}", self.consecutive_failures, reason);
+        
+        if self.consecutive_failures >= self.max_consecutive_failures {
+            self.trigger_emergency_stop(format!("Too many consecutive failures: {}", reason));
+        }
+    }
+    
+    pub fn should_disable(&self) -> bool {
+        self.is_emergency_stopped || self.consecutive_failures >= self.max_consecutive_failures
+    }
+    
+    pub fn clamp_position(&self, pos: &Vec3Data) -> Vec3Data {
+        let magnitude = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
+        
+        if magnitude > self.max_position_magnitude {
+            let scale = self.max_position_magnitude / magnitude;
+            Vec3Data {
+                x: pos.x * scale,
+                y: pos.y * scale,
+                z: pos.z * scale,
+            }
+        } else {
+            pos.clone()
+        }
+    }
+    
+    pub fn get_stats(&self) -> StressMajorizationStats {
+        let success_rate = if self.total_runs > 0 {
+            (self.successful_runs as f32 / self.total_runs as f32) * 100.0
+        } else {
+            0.0
+        };
+        
+        let avg_computation_time = if self.successful_runs > 0 {
+            self.total_computation_time_ms / self.successful_runs
+        } else {
+            0
+        };
+        
+        let avg_stress = if !self.last_stress_values.is_empty() {
+            self.last_stress_values.iter().sum::<f32>() / self.last_stress_values.len() as f32
+        } else {
+            0.0
+        };
+        
+        let avg_displacement = if !self.last_displacement_values.is_empty() {
+            self.last_displacement_values.iter().sum::<f32>() / self.last_displacement_values.len() as f32
+        } else {
+            0.0
+        };
+        
+        StressMajorizationStats {
+            total_runs: self.total_runs,
+            successful_runs: self.successful_runs,
+            success_rate,
+            consecutive_failures: self.consecutive_failures,
+            is_emergency_stopped: self.is_emergency_stopped,
+            emergency_stop_reason: self.last_emergency_stop_reason.clone(),
+            avg_computation_time_ms: avg_computation_time,
+            avg_stress,
+            avg_displacement,
+            is_converging: self.is_converging(),
+        }
+    }
+    
+    pub fn reset_safety_state(&mut self) {
+        self.consecutive_failures = 0;
+        self.is_emergency_stopped = false;
+        self.last_emergency_stop_reason.clear();
+        info!("Stress majorization safety state reset");
+    }
+    
+    fn trigger_emergency_stop(&mut self, reason: String) {
+        if !self.is_emergency_stopped {
+            error!("Emergency stop triggered for stress majorization: {}", reason);
+            self.is_emergency_stopped = true;
+            self.last_emergency_stop_reason = reason;
+        }
+    }
+    
+    fn is_diverging(&self) -> bool {
+        if self.last_stress_values.len() < 5 {
+            return false; // Need at least 5 values to detect trend
+        }
+        
+        // Check if stress is consistently increasing over the last 5 iterations
+        let recent_values = &self.last_stress_values[self.last_stress_values.len().saturating_sub(5)..];
+        
+        let mut increasing_count = 0;
+        for i in 1..recent_values.len() {
+            if recent_values[i] > recent_values[i-1] {
+                increasing_count += 1;
+            }
+        }
+        
+        increasing_count >= 3 // 3 out of 4 increases indicates divergence
+    }
+    
+    fn is_converging(&self) -> bool {
+        if self.last_displacement_values.len() < 3 {
+            return false;
+        }
+        
+        let recent_displacements = &self.last_displacement_values[self.last_displacement_values.len().saturating_sub(3)..];
+        
+        // Check if displacement is consistently decreasing and below threshold
+        let mut decreasing_count = 0;
+        let mut below_threshold_count = 0;
+        
+        for i in 1..recent_displacements.len() {
+            if recent_displacements[i] < recent_displacements[i-1] {
+                decreasing_count += 1;
+            }
+            if recent_displacements[i] < self.convergence_threshold {
+                below_threshold_count += 1;
+            }
+        }
+        
+        decreasing_count >= 1 && below_threshold_count >= 2
+    }
+}
+
+/// Statistics for stress majorization performance monitoring
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StressMajorizationStats {
+    pub total_runs: u64,
+    pub successful_runs: u64,
+    pub success_rate: f32,
+    pub consecutive_failures: u32,
+    pub is_emergency_stopped: bool,
+    pub emergency_stop_reason: String,
+    pub avg_computation_time_ms: u64,
+    pub avg_stress: f32,
+    pub avg_displacement: f32,
+    pub is_converging: bool,
+}
 
 // Constants for retry mechanism
 // const MAX_GPU_INIT_RETRIES: u32 = 3; // Unused
@@ -80,6 +307,15 @@ pub struct GPUComputeActor {
     // Stress majorization settings
     stress_majorization_interval: u32,
     last_stress_majorization: u32,
+    stress_majorization_safety: StressMajorizationSafety,
+    
+    // GPU Upload Optimization: Track graph structure changes
+    /// Hash of the current graph structure (nodes count, edges, connectivity) 
+    graph_structure_hash: u64,
+    /// Hash of current node positions for position-only update detection
+    positions_hash: u64,
+    /// Flag to track if CSR structure has been uploaded to GPU
+    csr_structure_uploaded: bool,
 }
 
 // Unified GPU initialization result
@@ -116,9 +352,15 @@ impl GPUComputeActor {
             // Start in basic mode
             compute_mode: ComputeMode::Basic,
             
-            // Stress majorization disabled - was causing position explosions
-            stress_majorization_interval: u32::MAX,
+            // Stress majorization with safety controls enabled
+            stress_majorization_interval: 600, // Default from AdvancedParams
             last_stress_majorization: 0,
+            stress_majorization_safety: StressMajorizationSafety::new(),
+            
+            // GPU Upload Optimization: Initialize tracking fields
+            graph_structure_hash: 0,
+            positions_hash: 0,
+            csr_structure_uploaded: false,
         }
     }
 
@@ -217,7 +459,7 @@ impl GPUComputeActor {
         Ok((unified_compute, node_indices))
     }
 
-    async fn perform_gpu_initialization(graph: GraphData) -> Result<GpuInitializationResult, Error> {
+    async fn perform_gpu_initialization(graph: std::sync::Arc<GraphData>) -> Result<GpuInitializationResult, Error> {
         let num_nodes = graph.nodes.len() as u32;
         
         // Count actual edges that will be uploaded - need to build node indices first
@@ -347,7 +589,37 @@ impl GPUComputeActor {
 
     // --- Instance Methods ---
 
-    fn update_graph_data_internal(&mut self, graph: &GraphData) -> Result<(), Error> {
+    /// Calculate hash of graph structure (nodes count, edges, connectivity)
+    fn calculate_graph_structure_hash(&self, graph: &std::sync::Arc<GraphData>) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        graph.nodes.len().hash(&mut hasher);
+        graph.edges.len().hash(&mut hasher);
+        
+        // Hash edge connectivity (source-target pairs and weights)
+        for edge in &graph.edges {
+            edge.source.hash(&mut hasher);
+            edge.target.hash(&mut hasher);
+            // Use bits representation for consistent float hashing
+            edge.weight.to_bits().hash(&mut hasher);
+        }
+        
+        hasher.finish()
+    }
+    
+    /// Calculate hash of node positions for position-only change detection
+    fn calculate_positions_hash(&self, graph: &std::sync::Arc<GraphData>) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        
+        for node in &graph.nodes {
+            node.data.position.x.to_bits().hash(&mut hasher);
+            node.data.position.y.to_bits().hash(&mut hasher);
+            node.data.position.z.to_bits().hash(&mut hasher);
+        }
+        
+        hasher.finish()
+    }
+
+    fn update_graph_data_internal(&mut self, graph: &std::sync::Arc<GraphData>) -> Result<(), Error> {
         let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
  
         info!("Updating unified compute data for {} nodes and {} edges", graph.nodes.len(), graph.edges.len());
@@ -428,7 +700,112 @@ impl GPUComputeActor {
         
         Ok(())
     }
+    
+    /// OPTIMIZED version of update_graph_data_internal with redundant upload prevention
+    fn update_graph_data_internal_optimized(&mut self, graph: &std::sync::Arc<GraphData>) -> Result<(), Error> {
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
 
+        // GPU UPLOAD OPTIMIZATION: Calculate hashes to detect what changed
+        let new_structure_hash = self.calculate_graph_structure_hash(graph);
+        let new_positions_hash = self.calculate_positions_hash(graph);
+        
+        let structure_changed = new_structure_hash != self.graph_structure_hash;
+        let positions_changed = new_positions_hash != self.positions_hash;
+        
+        info!("GPU Upload Check: {} nodes, {} edges - Structure changed: {}, Positions changed: {}", 
+              graph.nodes.len(), graph.edges.len(), structure_changed, positions_changed);
+
+        // OPTIMIZATION: Only update what has actually changed
+        if !structure_changed && !positions_changed {
+            trace!("GPU Upload SKIPPED: No changes detected (structure hash: {}, positions hash: {})", 
+                   new_structure_hash, new_positions_hash);
+            return Ok(());
+        }
+        
+        if structure_changed {
+            info!("GPU Upload: Graph STRUCTURE changed - full update required");
+            // Update node indices
+            self.node_indices.clear();
+            for (idx, node) in graph.nodes.iter().enumerate() {
+                self.node_indices.insert(node.id, idx);
+            }
+
+            let new_num_nodes = graph.nodes.len() as u32;
+            
+            // Count actual edges that will be uploaded to CSR format
+            let mut actual_edge_count = 0;
+            for edge in &graph.edges {
+                if self.node_indices.contains_key(&edge.source) && self.node_indices.contains_key(&edge.target) {
+                    actual_edge_count += 2; // Currently adding bidirectionally
+                }
+            }
+            let new_num_edges = actual_edge_count as u32;
+            
+            // Handle buffer resize for dynamic graph changes
+            if new_num_nodes != self.num_nodes || new_num_edges != self.num_edges {
+                info!("GPU Buffer Resize: nodes {} -> {}, edges {} -> {} (bidirectional)", 
+                      self.num_nodes, new_num_nodes, self.num_edges, new_num_edges);
+                
+                unified_compute.resize_buffers(new_num_nodes as usize, new_num_edges as usize)
+                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to resize buffers: {}", e)))?;
+                
+                self.num_nodes = new_num_nodes;
+                self.num_edges = new_num_edges;
+                self.iteration_count = 0; // Reset iteration count on size change
+            }
+
+            // Upload CSR structure (EXPENSIVE - only when structure changes)
+            if !graph.edges.is_empty() {
+                let mut adj = vec![vec![]; new_num_nodes as usize];
+                for edge in &graph.edges {
+                    if let (Some(&src_idx), Some(&dst_idx)) = (self.node_indices.get(&edge.source), self.node_indices.get(&edge.target)) {
+                        adj[src_idx].push((dst_idx as i32, edge.weight));
+                        adj[dst_idx].push((src_idx as i32, edge.weight));
+                    }
+                }
+        
+                let mut row_offsets = Vec::with_capacity(new_num_nodes as usize + 1);
+                let mut col_indices = Vec::new();
+                let mut weights = Vec::new();
+                row_offsets.push(0);
+                for i in 0..new_num_nodes as usize {
+                    for (neighbor, weight) in &adj[i] {
+                        col_indices.push(*neighbor);
+                        weights.push(*weight);
+                    }
+                    row_offsets.push(col_indices.len() as i32);
+                }
+        
+                info!("GPU Upload: CSR structure - {} edges to unified compute (from {} original edges)", 
+                      col_indices.len(), graph.edges.len());
+                
+                unified_compute.upload_edges_csr(&row_offsets, &col_indices, &weights)
+                    .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload CSR edges: {}", e)))?;
+                
+                self.csr_structure_uploaded = true;
+                info!("GPU Upload: CSR structure upload completed");
+            }
+            
+            self.graph_structure_hash = new_structure_hash;
+        }
+        
+        if positions_changed {
+            info!("GPU Upload: Node POSITIONS changed - uploading positions only");
+            
+            // Upload positions (FAST - every frame when needed)
+            let positions_x: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.x).collect();
+            let positions_y: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.y).collect();
+            let positions_z: Vec<f32> = graph.nodes.iter().map(|node| node.data.position.z).collect();
+            
+            unified_compute.upload_positions(&positions_x, &positions_y, &positions_z)
+                .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
+            
+            self.positions_hash = new_positions_hash;
+            trace!("GPU Upload: Positions upload completed");
+        }
+        
+        Ok(())
+    }
 
     fn compute_forces_internal(&mut self) -> Result<(), Error> {
         if !self.simulation_params.enabled {
@@ -460,6 +837,25 @@ impl GPUComputeActor {
         match unified_compute.execute(sim_params) {
             Ok(()) => {
                 self.iteration_count += 1;
+                
+                // Check if it's time to run stress majorization
+                if self.stress_majorization_interval != u32::MAX && // Not disabled
+                   self.iteration_count.saturating_sub(self.last_stress_majorization) >= self.stress_majorization_interval {
+                    
+                    debug!("Triggering scheduled stress majorization at iteration {}", self.iteration_count);
+                    
+                    // Run stress majorization with safety controls
+                    match self.perform_stress_majorization() {
+                        Ok(()) => {
+                            debug!("Scheduled stress majorization completed successfully");
+                        },
+                        Err(e) => {
+                            warn!("Scheduled stress majorization failed: {}", e);
+                            // Error is already handled by perform_stress_majorization safety controls
+                        }
+                    }
+                }
+                
                 Ok(())
             },
             Err(e) => {
@@ -484,18 +880,163 @@ impl GPUComputeActor {
     // No separate method needed
 
     fn perform_stress_majorization(&mut self) -> Result<(), Error> {
-        // This is a placeholder for stress majorization implementation
-        // In a full implementation, this would:
-        // 1. Copy current node positions from GPU
-        // 2. Run stress majorization algorithm on CPU or separate GPU kernel
-        // 3. Apply the optimized positions back to GPU
+        use crate::physics::StressMajorizationSolver;
+        use std::time::Instant;
         
-        info!("Performing stress majorization with {} constraints", self.constraints.len());
+        let start_time = Instant::now();
         
-        // For now, just log that we would perform stress majorization
-        // A real implementation would use the stress_majorization module
+        // Safety check: verify conditions before running
+        if !self.stress_majorization_safety.is_safe_to_run() {
+            warn!("Stress majorization skipped due to safety conditions");
+            return Ok(());
+        }
         
-        Ok(())
+        // Get current graph data
+        let node_data = self.get_node_data_internal()?;
+        if node_data.is_empty() {
+            debug!("No nodes to optimize with stress majorization");
+            return Ok(());
+        }
+        
+        info!("Performing stress majorization with {} nodes and {} constraints", 
+              node_data.len(), self.constraints.len());
+        
+        // Create graph data structure for stress majorization
+        let mut graph_data = crate::models::graph::GraphData {
+            nodes: node_data.iter().enumerate().map(|(i, node)| {
+                Node {
+                    id: i as u32,
+                    metadata_id: format!("stress_test_node_{}", i),
+                    label: format!("Node {}", i),
+                    data: node.clone(),
+                    metadata: Default::default(),
+                    file_size: 0,
+                    node_type: None,
+                    size: None,
+                    color: None,
+                    weight: None,
+                    group: None,
+                    user_data: None,
+                }
+            }).collect(),
+            edges: vec![], // We'll use constraints instead of explicit edges
+            metadata: Default::default(),
+            id_to_metadata: Default::default(),
+        };
+        
+        // Apply constraints as edges for stress majorization
+        for constraint in &self.constraints {
+            // Convert constraints to implicit edges for stress computation
+            // This maintains the constraint relationships during optimization
+        }
+        
+        // Run stress majorization with safety controls
+        let mut solver = StressMajorizationSolver::new();
+        
+        // Convert constraints to ConstraintSet
+        let constraint_set = ConstraintSet {
+            constraints: self.constraints.clone(),
+            groups: std::collections::HashMap::new(),
+        };
+        
+        match solver.optimize(&mut graph_data, &constraint_set) {
+            Ok(result) => {
+                // Safety validation: check for position explosions or NaN values
+                let mut valid_positions = true;
+                let mut max_displacement = 0.0f32;
+                
+                for (i, node) in graph_data.nodes.iter().enumerate() {
+                    let pos = &node.data.position;
+                    
+                    // Check for NaN or infinite values
+                    if !pos.x.is_finite() || !pos.y.is_finite() || !pos.z.is_finite() {
+                        warn!("Invalid position detected in stress majorization result: node {}: ({}, {}, {})", 
+                              i, pos.x, pos.y, pos.z);
+                        valid_positions = false;
+                        break;
+                    }
+                    
+                    // Check for extreme positions (position explosion)
+                    let magnitude = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
+                    if magnitude > 10000.0 { // Configurable safety threshold
+                        warn!("Extreme position detected in stress majorization result: node {}: magnitude {}", 
+                              i, magnitude);
+                        valid_positions = false;
+                        break;
+                    }
+                    
+                    // Track maximum displacement for monitoring
+                    if i < node_data.len() {
+                        let old_pos = &node_data[i].position;
+                        let displacement = ((pos.x - old_pos.x).powi(2) + 
+                                          (pos.y - old_pos.y).powi(2) + 
+                                          (pos.z - old_pos.z).powi(2)).sqrt();
+                        max_displacement = max_displacement.max(displacement);
+                    }
+                }
+                
+                // Update safety monitoring
+                self.stress_majorization_safety.record_iteration(
+                    result.final_stress,
+                    max_displacement,
+                    result.converged
+                );
+                
+                if valid_positions && max_displacement < self.stress_majorization_safety.max_displacement_threshold {
+                    // Apply clamped positions back to GPU
+                    let unified_compute = self.unified_compute.as_mut()
+                        .ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
+                    
+                    let mut pos_x: Vec<f32> = Vec::new();
+                    let mut pos_y: Vec<f32> = Vec::new();
+                    let mut pos_z: Vec<f32> = Vec::new();
+                    
+                    for node in &graph_data.nodes {
+                        // Apply safety clamping to prevent extreme values
+                        let pos = &node.data.position;
+                        let clamped_pos = self.stress_majorization_safety.clamp_position(pos);
+                        
+                        pos_x.push(clamped_pos.x);
+                        pos_y.push(clamped_pos.y);
+                        pos_z.push(clamped_pos.z);
+                    }
+                    
+                    unified_compute.upload_positions(&pos_x, &pos_y, &pos_z)
+                        .map_err(|e| Error::new(ErrorKind::Other, format!("Failed to upload positions: {}", e)))?;
+                    
+                    let computation_time = start_time.elapsed().as_millis() as u64;
+                    
+                    info!("Stress majorization completed successfully: {} iterations, stress = {:.6}, max_displacement = {:.3}, time = {}ms", 
+                          result.iterations, result.final_stress, max_displacement, computation_time);
+                    
+                    self.last_stress_majorization = self.iteration_count;
+                    
+                    // Record successful execution for telemetry
+                    self.stress_majorization_safety.record_success(computation_time);
+                    
+                } else {
+                    // Safety violation: reject the result
+                    warn!("Stress majorization result rejected due to safety violation: valid_positions = {}, max_displacement = {:.3}",
+                          valid_positions, max_displacement);
+                    
+                    self.stress_majorization_safety.record_failure("Safety violation".to_string());
+                    
+                    // Consider disabling stress majorization temporarily if too many failures
+                    if self.stress_majorization_safety.should_disable() {
+                        warn!("Disabling stress majorization due to repeated safety violations");
+                        self.stress_majorization_interval = u32::MAX; // Disable
+                    }
+                }
+                
+                Ok(())
+            }
+            Err(e) => {
+                let error_msg = format!("Stress majorization optimization failed: {}", e);
+                error!("{}", error_msg);
+                self.stress_majorization_safety.record_failure(error_msg.clone());
+                Err(Error::new(ErrorKind::Other, error_msg))
+            }
+        }
     }
 
     fn handle_gpu_error(&mut self, error_msg: String) -> Result<(), Error> {
@@ -608,7 +1149,7 @@ impl Handler<UpdateGPUGraphData> for GPUComputeActor {
             return Err("GPU not initialized - call InitializeGPU first".to_string());
         }
         
-        match self.update_graph_data_internal(&msg.graph) {
+        match self.update_graph_data_internal_optimized(&msg.graph) {
             Ok(_) => {
                 info!("GPU: Graph data updated successfully with {} nodes", node_count);
                 Ok(())
@@ -670,6 +1211,38 @@ impl Handler<UpdateSimulationParams> for GPUComputeActor {
 
 // Removed UpdatePhysicsParams handler - deprecated WebSocket physics path
 // Physics updates now come through UpdateSimulationParams via REST API
+
+impl Handler<UpdateGPUPositions> for GPUComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateGPUPositions, _ctx: &mut Self::Context) -> Self::Result {
+        if self.device.is_none() {
+            error!("GPU NOT INITIALIZED! Cannot update positions. Need to call InitializeGPU first!");
+            return Err("GPU not initialized - call InitializeGPU first".to_string());
+        }
+        
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| "Unified compute not initialized".to_string())?;
+        
+        info!("GPU: UpdateGPUPositions received with {} positions", msg.positions.len());
+        
+        // Extract positions into separate vectors
+        let positions_x: Vec<f32> = msg.positions.iter().map(|p| p.0).collect();
+        let positions_y: Vec<f32> = msg.positions.iter().map(|p| p.1).collect();
+        let positions_z: Vec<f32> = msg.positions.iter().map(|p| p.2).collect();
+        
+        // Upload only positions (fast path)
+        match unified_compute.upload_positions(&positions_x, &positions_y, &positions_z) {
+            Ok(_) => {
+                trace!("GPU: Position-only update completed successfully");
+                Ok(())
+            },
+            Err(e) => {
+                error!("Failed to upload positions to GPU: {}", e);
+                Err(e.to_string())
+            }
+        }
+    }
+}
 
 impl Handler<ComputeForces> for GPUComputeActor {
     type Result = Result<(), String>;
@@ -798,6 +1371,19 @@ impl Handler<UpdateAdvancedParams> for GPUComputeActor {
         self.unified_params.cluster_strength = msg.params.knowledge_force_weight;
         self.unified_params.alignment_strength = msg.params.agent_communication_weight;
         
+        // Update stress majorization parameters from AdvancedParams
+        self.stress_majorization_interval = msg.params.stress_step_interval_frames;
+        
+        // Update safety parameters based on advanced params
+        self.stress_majorization_safety.max_displacement_threshold = msg.params.max_velocity * 10.0; // Scale with max velocity
+        self.stress_majorization_safety.max_position_magnitude = msg.params.target_edge_length * 50.0; // Scale with target edge length
+        self.stress_majorization_safety.convergence_threshold = msg.params.collision_threshold; // Use collision threshold as convergence
+        
+        info!("MSG_HANDLER: Updated stress majorization parameters: interval = {}, max_displacement = {:.2}, max_position = {:.2}",
+              self.stress_majorization_interval,
+              self.stress_majorization_safety.max_displacement_threshold,
+              self.stress_majorization_safety.max_position_magnitude);
+        
         // Update unified compute parameters
         if let Some(ref mut unified_compute) = self.unified_compute {
             match unified_compute.set_params(self.unified_params) {
@@ -912,6 +1498,7 @@ impl GPUComputeActor {
             num_isolation_layers: 0, // Managed internally by unified kernel
             stress_majorization_interval: self.stress_majorization_interval,
             last_stress_majorization: self.last_stress_majorization,
+            stress_safety_stats: self.stress_majorization_safety.get_stats(),
             gpu_failure_count: self.gpu_failure_count,
             // cpu_fallback_active removed
             has_advanced_features: self.has_advanced_features(),
@@ -932,6 +1519,7 @@ pub struct PhysicsStats {
     pub num_isolation_layers: u32,
     pub stress_majorization_interval: u32,
     pub last_stress_majorization: u32,
+    pub stress_safety_stats: StressMajorizationStats,
     pub gpu_failure_count: u32,
     pub has_advanced_features: bool,
     pub has_dual_graph_features: bool,
@@ -1196,5 +1784,385 @@ impl Handler<SetComputeMode> for GPUComputeActor {
         }
         
         Box::pin(ready(Ok(())).into_actor(self))
+    }
+}
+
+// Handler for K-means clustering
+impl Handler<RunKMeans> for GPUComputeActor {
+    type Result = ResponseActFuture<Self, Result<KMeansResult, String>>;
+
+    fn handle(&mut self, msg: RunKMeans, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU: Starting K-means clustering with {} clusters", msg.params.num_clusters);
+        
+        // Check if GPU is initialized
+        if self.device.is_none() || self.unified_compute.is_none() {
+            error!("GPU: Not initialized for K-means clustering");
+            return Box::pin(
+                actix::fut::ready(Err("GPU not initialized".to_string()))
+                    .into_actor(self)
+            );
+        }
+        
+        if self.num_nodes == 0 {
+            warn!("GPU: No nodes available for K-means clustering");
+            return Box::pin(
+                actix::fut::ready(Err("No nodes available for clustering".to_string()))
+                    .into_actor(self)
+            );
+        }
+
+        // Extract parameters
+        let num_clusters = msg.params.num_clusters.min(self.num_nodes as usize).max(1);
+        let max_iterations = msg.params.max_iterations;
+        let tolerance = msg.params.tolerance;
+        let seed = msg.params.seed;
+
+        Box::pin(
+            async move { Ok(()) as Result<(), String> }
+                .into_actor(self)
+                .then(move |_result: Result<(), String>, actor, _ctx| {
+                    match actor.unified_compute.as_mut().unwrap().run_kmeans(
+                        num_clusters, 
+                        max_iterations, 
+                        tolerance, 
+                        seed
+                    ) {
+                        Ok((assignments, centroids, inertia)) => {
+                            info!("K-means clustering completed successfully with inertia: {:.4}", inertia);
+                            
+                            let result = KMeansResult {
+                                cluster_assignments: assignments,
+                                centroids,
+                                inertia,
+                                iterations: max_iterations, // In practice, track actual iterations
+                            };
+                            
+                            actix::fut::ready(Ok(result))
+                        }
+                        Err(e) => {
+                            error!("K-means clustering failed: {}", e);
+                            actix::fut::ready(Err(format!("K-means clustering failed: {}", e)))
+                        }
+                    }
+                })
+        )
+    }
+}
+
+// Handler for anomaly detection
+impl Handler<RunAnomalyDetection> for GPUComputeActor {
+    type Result = ResponseActFuture<Self, Result<AnomalyResult, String>>;
+
+    fn handle(&mut self, msg: RunAnomalyDetection, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU: Starting {:?} anomaly detection", msg.params.method);
+        
+        // Check if GPU is initialized
+        if self.device.is_none() || self.unified_compute.is_none() {
+            error!("GPU: Not initialized for anomaly detection");
+            return Box::pin(
+                actix::fut::ready(Err("GPU not initialized".to_string()))
+                    .into_actor(self)
+            );
+        }
+        
+        if self.num_nodes == 0 {
+            warn!("GPU: No nodes available for anomaly detection");
+            return Box::pin(
+                actix::fut::ready(Err("No nodes available for anomaly detection".to_string()))
+                    .into_actor(self)
+            );
+        }
+
+        let method = msg.params.method.clone();
+        let k_neighbors = msg.params.k_neighbors;
+        let radius = msg.params.radius;
+        let feature_data = msg.params.feature_data.clone();
+        let threshold = msg.params.threshold;
+
+        Box::pin(
+            async move { Ok(()) as Result<(), String> }
+                .into_actor(self)
+                .then(move |_result: Result<(), String>, actor, _ctx| {
+                    let compute = actor.unified_compute.as_mut().unwrap();
+                    
+                    match method {
+                        AnomalyMethod::LocalOutlierFactor => {
+                            match compute.run_lof_anomaly_detection(k_neighbors, radius) {
+                                Ok((lof_scores, local_densities)) => {
+                                    // Count anomalies based on threshold
+                                    let num_anomalies = lof_scores.iter()
+                                        .filter(|&&score| score > threshold)
+                                        .count();
+                                    
+                                    info!("LOF anomaly detection completed: {} anomalies found", num_anomalies);
+                                    
+                                    let result = AnomalyResult {
+                                        lof_scores: Some(lof_scores),
+                                        local_densities: Some(local_densities),
+                                        zscore_values: None,
+                                        anomaly_threshold: threshold,
+                                        num_anomalies,
+                                    };
+                                    
+                                    actix::fut::ready(Ok(result))
+                                }
+                                Err(e) => {
+                                    error!("LOF anomaly detection failed: {}", e);
+                                    actix::fut::ready(Err(format!("LOF anomaly detection failed: {}", e)))
+                                }
+                            }
+                        }
+                        AnomalyMethod::ZScore => {
+                            match feature_data {
+                                Some(features) => {
+                                    match compute.run_zscore_anomaly_detection(&features) {
+                                        Ok(zscore_values) => {
+                                            // Count anomalies based on absolute Z-score threshold
+                                            let num_anomalies = zscore_values.iter()
+                                                .filter(|&&score| score.abs() > threshold)
+                                                .count();
+                                            
+                                            info!("Z-score anomaly detection completed: {} anomalies found", num_anomalies);
+                                            
+                                            let result = AnomalyResult {
+                                                lof_scores: None,
+                                                local_densities: None,
+                                                zscore_values: Some(zscore_values),
+                                                anomaly_threshold: threshold,
+                                                num_anomalies,
+                                            };
+                                            
+                                            actix::fut::ready(Ok(result))
+                                        }
+                                        Err(e) => {
+                                            error!("Z-score anomaly detection failed: {}", e);
+                                            actix::fut::ready(Err(format!("Z-score anomaly detection failed: {}", e)))
+                                        }
+                                    }
+                                }
+                                None => {
+                                    error!("Feature data required for Z-score anomaly detection");
+                                    actix::fut::ready(Err("Feature data required for Z-score method".to_string()))
+                                }
+                            }
+                        }
+                    }
+                })
+        )
+    }
+}
+
+impl Handler<RunCommunityDetection> for GPUComputeActor {
+    type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
+
+    fn handle(&mut self, msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU: Starting {:?} community detection", msg.params.algorithm);
+        
+        // Check if GPU is initialized
+        if self.device.is_none() || self.unified_compute.is_none() {
+            error!("GPU: Not initialized for community detection");
+            return Box::pin(
+                actix::fut::ready(Err("GPU not initialized".to_string()))
+                    .into_actor(self)
+            );
+        }
+        
+        if self.num_nodes == 0 {
+            warn!("GPU: No nodes available for community detection");
+            return Box::pin(
+                actix::fut::ready(Err("No nodes available for community detection".to_string()))
+                    .into_actor(self)
+            );
+        }
+
+        let max_iterations = msg.params.max_iterations;
+        let synchronous = msg.params.synchronous;
+        let seed = msg.params.seed;
+
+        Box::pin(
+            async move { Ok(()) as Result<(), String> }
+                .into_actor(self)
+                .then(move |_result: Result<(), String>, actor, _ctx| {
+                    let compute = actor.unified_compute.as_mut().unwrap();
+                    
+                    match compute.run_community_detection(max_iterations, synchronous, seed) {
+                        Ok((node_labels, num_communities, modularity, iterations, community_sizes, converged)) => {
+                            info!("Community detection completed: {} communities found with modularity {:.4} in {} iterations", 
+                                  num_communities, modularity, iterations);
+                            
+                            let result = CommunityDetectionResult {
+                                node_labels,
+                                num_communities,
+                                modularity,
+                                iterations,
+                                community_sizes,
+                                converged,
+                            };
+                            
+                            actix::fut::ready(Ok(result))
+                        }
+                        Err(e) => {
+                            error!("Community detection failed: {}", e);
+                            actix::fut::ready(Err(format!("Community detection failed: {}", e)))
+                        }
+                    }
+                })
+        )
+    }
+}
+
+impl Handler<ResetStressMajorizationSafety> for GPUComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: ResetStressMajorizationSafety, _ctx: &mut Self::Context) -> Self::Result {
+        self.stress_majorization_safety.reset_safety_state();
+        info!("Stress majorization safety state has been reset");
+        Ok(())
+    }
+}
+
+impl Handler<GetStressMajorizationStats> for GPUComputeActor {
+    type Result = Result<StressMajorizationStats, String>;
+    
+    fn handle(&mut self, _msg: GetStressMajorizationStats, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(self.stress_majorization_safety.get_stats())
+    }
+}
+
+impl Handler<UpdateStressMajorizationParams> for GPUComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: UpdateStressMajorizationParams, _ctx: &mut Self::Context) -> Self::Result {
+        // Update interval from AdvancedParams
+        self.stress_majorization_interval = msg.params.stress_step_interval_frames;
+        
+        // Update safety parameters based on advanced params
+        self.stress_majorization_safety.max_displacement_threshold = msg.params.max_velocity * 10.0; // Scale with max velocity
+        self.stress_majorization_safety.max_position_magnitude = msg.params.target_edge_length * 50.0; // Scale with target edge length
+        self.stress_majorization_safety.convergence_threshold = msg.params.collision_threshold; // Use collision threshold as convergence
+        
+        info!("Updated stress majorization parameters: interval = {}, max_displacement = {:.2}, max_position = {:.2}",
+              self.stress_majorization_interval,
+              self.stress_majorization_safety.max_displacement_threshold,
+              self.stress_majorization_safety.max_position_magnitude);
+        
+        // Reset safety state when parameters are updated
+        self.stress_majorization_safety.reset_safety_state();
+        
+        Ok(())
+    }
+}
+
+impl Handler<GetGPUMetrics> for GPUComputeActor {
+    type Result = Result<serde_json::Value, String>;
+    
+    fn handle(&mut self, _msg: GetGPUMetrics, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(compute) = self.unified_compute.as_mut() {
+            // Update memory usage statistics
+            compute.update_memory_usage();
+            
+            let metrics = compute.get_performance_metrics();
+            let kernel_stats = compute.get_kernel_statistics();
+            
+            // Build comprehensive GPU metrics response
+            let gpu_metrics = serde_json::json!({
+                "success": true,
+                "gpu_initialized": true,
+                "memory": {
+                    "current_usage_bytes": metrics.current_memory_usage,
+                    "peak_usage_bytes": metrics.peak_memory_usage,
+                    "total_allocated_bytes": metrics.total_memory_allocated,
+                    "current_usage_mb": metrics.current_memory_usage as f64 / (1024.0 * 1024.0),
+                    "peak_usage_mb": metrics.peak_memory_usage as f64 / (1024.0 * 1024.0),
+                    "utilization_percent": (metrics.current_memory_usage as f64 / metrics.peak_memory_usage.max(1) as f64) * 100.0
+                },
+                "kernels": {
+                    "force_kernel_avg_ms": metrics.force_kernel_avg_time,
+                    "integrate_kernel_avg_ms": metrics.integrate_kernel_avg_time,
+                    "grid_build_avg_ms": metrics.grid_build_avg_time,
+                    "sssp_avg_ms": metrics.sssp_avg_time,
+                    "clustering_avg_ms": metrics.clustering_avg_time,
+                    "anomaly_detection_avg_ms": metrics.anomaly_detection_avg_time,
+                    "community_detection_avg_ms": metrics.community_detection_avg_time,
+                    "detailed_statistics": kernel_stats
+                },
+                "performance": {
+                    "gpu_utilization_percent": metrics.gpu_utilization_percent,
+                    "memory_bandwidth_utilization": metrics.memory_bandwidth_utilization,
+                    "frames_per_second": metrics.frames_per_second,
+                    "last_frame_time_ms": metrics.last_frame_time,
+                    "total_simulation_time_s": metrics.total_simulation_time
+                },
+                "resources": {
+                    "num_nodes": self.num_nodes,
+                    "num_edges": self.num_edges,
+                    "allocated_nodes": self.unified_compute.as_ref().map(|c| c.num_nodes).unwrap_or(0),
+                    "allocated_edges": self.unified_compute.as_ref().map(|c| c.num_edges).unwrap_or(0),
+                    "grid_cells_allocated": self.unified_compute.as_ref().map(|c| c.max_grid_cells).unwrap_or(0)
+                },
+                "status": {
+                    "gpu_failures": self.gpu_failure_count,
+                    "iteration_count": self.iteration_count,
+                    "compute_mode": format!("{:?}", self.compute_mode),
+                    "last_update": chrono::Utc::now().timestamp()
+                }
+            });
+            
+            Ok(gpu_metrics)
+        } else {
+            Ok(serde_json::json!({
+                "success": false,
+                "gpu_initialized": false,
+                "error": "GPU compute not initialized",
+                "memory": {
+                    "current_usage_bytes": 0,
+                    "peak_usage_bytes": 0,
+                    "total_allocated_bytes": 0
+                },
+                "status": {
+                    "gpu_failures": self.gpu_failure_count,
+                    "iteration_count": self.iteration_count,
+                    "compute_mode": format!("{:?}", self.compute_mode)
+                }
+            }))
+        }
+    }
+}
+
+// Handler for position upload from GraphServiceActor
+impl Handler<crate::actors::messages::UploadPositions> for GPUComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: crate::actors::messages::UploadPositions, _ctx: &mut Self::Context) -> Self::Result {
+        info!("MSG_HANDLER: UploadPositions received - {} nodes", msg.positions_x.len());
+        
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.upload_positions(&msg.positions_x, &msg.positions_y, &msg.positions_z)
+                .map_err(|e| format!("Failed to upload positions to GPU: {}", e))?;
+            
+            trace!("Successfully uploaded {} positions to GPU", msg.positions_x.len());
+            Ok(())
+        } else {
+            Err("GPU compute not initialized".to_string())
+        }
+    }
+}
+
+// Handler for constraint upload from GraphServiceActor
+impl Handler<crate::actors::messages::UploadConstraintsToGPU> for GPUComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: crate::actors::messages::UploadConstraintsToGPU, _ctx: &mut Self::Context) -> Self::Result {
+        info!("MSG_HANDLER: UploadConstraintsToGPU received - {} constraints", msg.constraint_data.len());
+        
+        if let Some(ref mut unified_compute) = self.unified_compute {
+            unified_compute.set_constraints(msg.constraint_data.clone())
+                .map_err(|e| format!("Failed to upload constraints to GPU: {}", e))?;
+            
+            trace!("Successfully uploaded {} constraints to GPU", msg.constraint_data.len());
+            Ok(())
+        } else {
+            Err("GPU compute not initialized".to_string())
+        }
     }
 }

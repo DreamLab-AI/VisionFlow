@@ -700,20 +700,22 @@ mod tests {
                 Edge::new(1, 2, 1.0),
                 Edge::new(2, 3, 1.0),
             ],
+            metadata: crate::models::metadata::MetadataStore::new(),
+            id_to_metadata: std::collections::HashMap::new(),
         };
         
         // Set initial positions
-        graph.nodes[0].data.x = 0.0;
-        graph.nodes[0].data.y = 0.0;
-        graph.nodes[0].data.z = 0.0;
+        graph.nodes[0].data.position.x = 0.0;
+        graph.nodes[0].data.position.y = 0.0;
+        graph.nodes[0].data.position.z = 0.0;
         
-        graph.nodes[1].data.x = 100.0;
-        graph.nodes[1].data.y = 0.0;
-        graph.nodes[1].data.z = 0.0;
+        graph.nodes[1].data.position.x = 100.0;
+        graph.nodes[1].data.position.y = 0.0;
+        graph.nodes[1].data.position.z = 0.0;
         
-        graph.nodes[2].data.x = 50.0;
-        graph.nodes[2].data.y = 100.0;
-        graph.nodes[2].data.z = 0.0;
+        graph.nodes[2].data.position.x = 50.0;
+        graph.nodes[2].data.position.y = 100.0;
+        graph.nodes[2].data.position.z = 0.0;
         
         graph
     }
@@ -759,7 +761,7 @@ mod tests {
         new_positions[(0, 0)] = 50.0;
         
         solver.apply_positions(&mut graph, &new_positions).unwrap();
-        assert_eq!(graph.nodes[0].data.x, 50.0);
+        assert_eq!(graph.nodes[0].data.position.x, 50.0);
     }
 
     #[test]

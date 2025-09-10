@@ -5,6 +5,7 @@ use log::{debug, warn};
 use std::error::Error;
 use std::sync::Arc;
 use serde_json::Value;
+use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
 
 /// Enhanced content API that can detect actual file content changes
 #[derive(Clone)] // Add Clone trait
@@ -18,7 +19,7 @@ impl EnhancedContentAPI {
     }
 
     /// List all markdown files in the repository's base path
-    pub async fn list_markdown_files(&self, path: &str) -> Result<Vec<GitHubFileBasicMetadata>, Box<dyn Error + Send + Sync>> {
+    pub async fn list_markdown_files(&self, path: &str) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
         let contents_url = self.client.get_contents_url(path).await;
         debug!("Listing markdown files from: {}", contents_url);
 
@@ -59,7 +60,7 @@ impl EnhancedContentAPI {
     }
 
     /// Check if a file is public (i.e., its download_url is accessible without authentication)
-    pub async fn check_file_public(&self, download_url: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    pub async fn check_file_public(&self, download_url: &str) -> VisionFlowResult<bool> {
         debug!("Checking if file is public: {}", download_url);
         let client = reqwest::Client::builder()
             .user_agent("github-public-file-checker")
@@ -71,7 +72,7 @@ impl EnhancedContentAPI {
     }
 
     /// Fetch the content of a file from its download URL
-    pub async fn fetch_file_content(&self, download_url: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn fetch_file_content(&self, download_url: &str) -> VisionFlowResult<String> {
         debug!("Fetching file content from: {}", download_url);
         let response = self.client.client()
             .get(download_url)
@@ -92,7 +93,7 @@ impl EnhancedContentAPI {
         &self,
         file_path: &str,
         check_actual_changes: bool,
-    ) -> Result<DateTime<Utc>, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<DateTime<Utc>> {
         let encoded_path = self.client.get_full_path(file_path).await;
         
         // First, get recent commits for this file
@@ -155,7 +156,7 @@ impl EnhancedContentAPI {
         &self,
         commit_sha: &str,
         file_path: &str,
-    ) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<bool> {
         let commit_url = format!(
             "https://api.github.com/repos/{}/{}/commits/{}",
             self.client.owner(),
@@ -209,7 +210,7 @@ impl EnhancedContentAPI {
     }
 
     /// Extract commit date from commit JSON
-    fn extract_commit_date(&self, commit: &Value) -> Result<DateTime<Utc>, Box<dyn Error + Send + Sync>> {
+    fn extract_commit_date(&self, commit: &Value) -> VisionFlowResult<DateTime<Utc>> {
         // Try committer date first, then author date
         let date_str = commit["commit"]["committer"]["date"]
             .as_str()
@@ -225,7 +226,7 @@ impl EnhancedContentAPI {
     pub async fn get_file_metadata_extended(
         &self,
         file_path: &str,
-    ) -> Result<ExtendedFileMetadata, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<ExtendedFileMetadata> {
         let encoded_path = self.client.get_full_path(file_path).await;
         
         // Get file contents metadata

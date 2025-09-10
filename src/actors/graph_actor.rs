@@ -80,17 +80,16 @@ use std::sync::Mutex;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
-    node_map: HashMap<u32, Node>,
+    node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
     gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Re-enable for physics updates
     client_manager: Addr<ClientManagerActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
     next_node_id: AtomicU32,
-    bots_graph_data: GraphData, // Add a new field for the bots graph
+    bots_graph_data: Arc<GraphData>, // Changed to Arc for shared access
     simulation_params: SimulationParams, // Physics simulation parameters
     
-    // Advanced hybrid solver components
-    advanced_gpu_context: Option<UnifiedGPUCompute>,
+    // Advanced hybrid solver components - GPU context removed (now managed by GPUComputeActor)
     gpu_init_in_progress: bool, // Flag to prevent multiple initialization attempts
     constraint_set: ConstraintSet,
     semantic_analyzer: SemanticAnalyzer,
@@ -270,17 +269,16 @@ impl GraphServiceActor {
         
         Self {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
-            node_map: HashMap::new(),
+            node_map: Arc::new(HashMap::new()), // Changed to Arc::new for shared access
             gpu_compute_addr,
             client_manager,
             simulation_running: AtomicBool::new(false),
             shutdown_complete: Arc::new(AtomicBool::new(false)),
             next_node_id: AtomicU32::new(1),
-            bots_graph_data: GraphData::new(),
+            bots_graph_data: Arc::new(GraphData::new()), // Changed to Arc::new for shared access
             simulation_params, // Use logseq physics from settings
             
-            // Initialize advanced components
-            advanced_gpu_context: None,
+            // Initialize advanced components - GPU context removed (now managed by GPUComputeActor)
             gpu_init_in_progress: false,
             constraint_set: ConstraintSet::default(),
             semantic_analyzer,
@@ -325,7 +323,7 @@ impl GraphServiceActor {
         let node_id = node.id; // Store the ID before moving node
         
         // Update node_map
-        self.node_map.insert(node.id, node.clone());
+        Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
         
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         // Add to graph data if not already present
@@ -343,7 +341,7 @@ impl GraphServiceActor {
 
     pub fn remove_node(&mut self, node_id: u32) {
         // Remove from node_map
-        self.node_map.remove(&node_id);
+        Arc::make_mut(&mut self.node_map).remove(&node_id);
         
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         // Remove from graph data
@@ -382,7 +380,7 @@ impl GraphServiceActor {
 
     pub fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
-        self.node_map.clear();
+        Arc::make_mut(&mut self.node_map).clear();
         self.semantic_features_cache.clear();
 
         // Phase 1: Build nodes with semantic analysis
@@ -415,7 +413,7 @@ impl GraphServiceActor {
             let features = self.semantic_analyzer.analyze_metadata(file_meta_data);
             self.semantic_features_cache.insert(metadata_id_val, features);
 
-            self.node_map.insert(node.id, node.clone());
+            Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
             new_graph_data.nodes.push(node);
         }
 
@@ -480,7 +478,7 @@ impl GraphServiceActor {
         
         // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
         // Note: Advanced GPU context initialization will be attempted on first physics step
-        if self.advanced_gpu_context.is_none() {
+        if self.gpu_compute_addr.is_none() {
             trace!("Advanced GPU context will be initialized on first physics step");
         }
         
@@ -492,15 +490,14 @@ impl GraphServiceActor {
               self.graph_data.nodes.len(), self.graph_data.edges.len(), self.constraint_set.constraints.len());
         
         // Send data to appropriate GPU context
-        if self.advanced_gpu_context.is_some() {
+        if self.gpu_compute_addr.is_some() {
             info!("Graph data prepared for advanced GPU physics");
         } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            let graph_data_for_gpu = (*self.graph_data).clone();
             // First initialize GPU
-            gpu_compute_addr.do_send(InitializeGPU { graph: graph_data_for_gpu.clone() });
+            gpu_compute_addr.do_send(InitializeGPU { graph: Arc::clone(&self.graph_data) });
             info!("Sent GPU initialization request to GPU compute actor");
-            // Then update the graph data
-            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: graph_data_for_gpu });
+            // Then update the graph data  
+            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: Arc::clone(&self.graph_data) });
             info!("Sent initial graph data to legacy GPU compute actor");
         }
         
@@ -526,12 +523,12 @@ impl GraphServiceActor {
         }
         
         // Skip stress majorization if GPU compute is not available
-        if self.advanced_gpu_context.is_none() && self.gpu_compute_addr.is_none() {
+        if self.gpu_compute_addr.is_none() {
             trace!("Skipping stress majorization - no GPU context available");
             return;
         }
         
-        let mut graph_data_clone = (*self.graph_data).clone();
+        let mut graph_data_clone = (**self.graph_data).clone(); // Still need to clone here for stress solver which modifies the data
         
         match self.stress_solver.optimize(&mut graph_data_clone, &self.constraint_set) {
             Ok(result) => {
@@ -593,7 +590,7 @@ impl GraphServiceActor {
                     
                     // Update node_map as well with validated positions
                     for node in &graph_data_mut.nodes {
-                        if let Some(node_in_map) = self.node_map.get_mut(&node.id) {
+                        if let Some(node_in_map) = Arc::make_mut(&mut self.node_map).get_mut(&node.id) {
                             // Use the already validated and clamped positions
                             node_in_map.data.position.x = node.data.position.x;
                             node_in_map.data.position.y = node.data.position.y;
@@ -650,7 +647,7 @@ impl GraphServiceActor {
         self.upload_constraints_to_gpu();
     }
     
-    fn generate_initial_semantic_constraints(&mut self, graph_data: &GraphData) {
+    fn generate_initial_semantic_constraints(&mut self, graph_data: &std::sync::Arc<GraphData>) {
         // Generate domain-based clustering constraints from semantic analysis
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
         
@@ -738,21 +735,29 @@ impl GraphServiceActor {
         Ok(constraints)
     }
     
-    /// Upload current constraints to GPU context
+    /// Upload current constraints to GPU via GPUComputeActor
     fn upload_constraints_to_gpu(&mut self) {
-        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            // Convert constraints to GPU format and upload
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            // Convert constraints to GPU format
             let active_constraints = self.constraint_set.active_constraints();
             let constraint_data: Vec<crate::models::constraints::ConstraintData> = 
                 active_constraints.iter().map(|c| c.to_gpu_format()).collect();
                 
-            if let Err(e) = gpu_context.set_constraints(constraint_data.clone()) {
-                error!("Failed to upload constraints to GPU: {}", e);
-            } else {
-                trace!("Successfully uploaded {} constraints to GPU", constraint_data.len());
-            }
+            // Send constraints to GPUComputeActor
+            let upload_msg = crate::actors::messages::UploadConstraintsToGPU {
+                constraint_data: constraint_data.clone(),
+            };
+            
+            let gpu_addr_clone = gpu_addr.clone();
+            actix::spawn(async move {
+                if let Err(e) = gpu_addr_clone.send(upload_msg).await {
+                    error!("Failed to send constraints to GPUComputeActor: {}", e);
+                } else {
+                    trace!("Successfully sent {} constraints to GPUComputeActor", constraint_data.len());
+                }
+            });
         } else {
-            trace!("No advanced GPU context available for constraint upload");
+            trace!("No GPU compute actor available for constraint upload");
         }
     }
     
@@ -909,7 +914,7 @@ impl GraphServiceActor {
         
         for (node_id, position_data) in positions {
             // Update in node_map
-            if let Some(node) = self.node_map.get_mut(&node_id) {
+            if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&node_id) {
                 node.data.position = position_data.position;
                 node.data.velocity = position_data.velocity;
                 updated_count += 1;
@@ -1315,12 +1320,12 @@ impl GraphServiceActor {
         }
         
         // Initialize advanced GPU context if needed
-        if self.advanced_gpu_context.is_none() && !self.gpu_init_in_progress && !self.graph_data.nodes.is_empty() {
+        if self.gpu_compute_addr.is_none() && !self.gpu_init_in_progress && !self.graph_data.nodes.is_empty() {
             // Mark initialization as in progress
             self.gpu_init_in_progress = true;
             
             // Attempt to initialize advanced GPU context
-            let graph_data_clone = (*self.graph_data).clone();
+            let graph_data_clone = Arc::clone(&self.graph_data);
             let self_addr = ctx.address();
             
             actix::spawn(async move {
@@ -1385,7 +1390,7 @@ impl GraphServiceActor {
         }
         
         // Use advanced GPU compute only - legacy path removed
-        if self.advanced_gpu_context.is_some() {
+        if self.gpu_compute_addr.is_some() {
             self.run_advanced_gpu_step(ctx);
         } else {
             warn!("No GPU compute context available for physics simulation");
@@ -1417,214 +1422,41 @@ impl GraphServiceActor {
         
         // Physics parameters loaded
         
-        // Prepare node positions for unified GPU compute
-        let positions = self.prepare_node_positions();
-        
-        // Update GPU with enhanced node data
-        let mut positions_to_update = Vec::new();
-        let active_constraints_count;
-        let iteration_count;
-        
-        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            let positions_x: Vec<f32> = positions.iter().map(|p| p.0).collect();
-            let positions_y: Vec<f32> = positions.iter().map(|p| p.1).collect();
-            let positions_z: Vec<f32> = positions.iter().map(|p| p.2).collect();
+        // Delegate GPU computation to GPUComputeActor
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            // Send ComputeForces message to GPUComputeActor
+            let gpu_addr_clone = gpu_addr.clone();
+            let ctx_addr = Context::address(ctx).recipient();
             
-            // Upload positions to GPU
-            if let Err(e) = gpu_context.upload_positions(&positions_x, &positions_y, &positions_z) {
-                error!("Failed to upload positions to unified GPU: {}", e);
-                return;
-            }
-            
-            let mut row_offsets = vec![0];
-            let mut col_indices = vec![];
-            let mut weights = vec![];
-            let mut adj = vec![vec![]; self.graph_data.nodes.len()];
-            let node_indices: HashMap<u32, usize> = self.graph_data.nodes.iter().enumerate().map(|(i, n)| (n.id, i)).collect();
-
-            for edge in &self.graph_data.edges {
-                if let (Some(&src_idx), Some(&dst_idx)) = (node_indices.get(&edge.source), node_indices.get(&edge.target)) {
-                    adj[src_idx].push((dst_idx as i32, edge.weight));
-                    adj[dst_idx].push((src_idx as i32, edge.weight));
-                }
-            }
-
-            for i in 0..self.graph_data.nodes.len() {
-                for (neighbor, weight) in &adj[i] {
-                    col_indices.push(*neighbor);
-                    weights.push(*weight);
-                }
-                row_offsets.push(col_indices.len() as i32);
-            }
-            
-            // Upload edges to GPU
-            if let Err(e) = gpu_context.upload_edges_csr(&row_offsets, &col_indices, &weights) {
-                error!("Failed to upload edges to unified GPU: {}", e);
-                error!("  row_offsets.len() = {}, col_indices.len() = {}, weights.len() = {}", 
-                       row_offsets.len(), col_indices.len(), weights.len());
-                return;
-            }
-        
-            let sim_params = crate::utils::unified_gpu_compute::SimParams::from(&self.simulation_params);
-            // Set GPU parameters
-            
-            // Execute GPU physics step
-            match gpu_context.execute(sim_params) {
-                Ok(()) => {
-                    let mut host_pos_x = vec![0.0; self.graph_data.nodes.len()];
-                    let mut host_pos_y = vec![0.0; self.graph_data.nodes.len()];
-                    let mut host_pos_z = vec![0.0; self.graph_data.nodes.len()];
-                    let mut host_vel_x = vec![0.0; self.graph_data.nodes.len()];
-                    let mut host_vel_y = vec![0.0; self.graph_data.nodes.len()];
-                    let mut host_vel_z = vec![0.0; self.graph_data.nodes.len()];
-                    
-                    gpu_context.download_positions(&mut host_pos_x, &mut host_pos_y, &mut host_pos_z).unwrap();
-                    gpu_context.download_velocities(&mut host_vel_x, &mut host_vel_y, &mut host_vel_z).unwrap();
-
-                    let node_ids: Vec<u32> = self.graph_data.nodes.iter().map(|n| n.id).collect();
-                    
-                    // Calculate total kinetic energy from GPU velocities
-                    let mut total_ke = 0.0f32;
-                    
-                    for (index, node_id) in node_ids.iter().enumerate() {
-                        // Calculate KE for this node: 0.5 * (vx^2 + vy^2 + vz^2)
-                        let vel_squared = host_vel_x[index] * host_vel_x[index] + 
-                                        host_vel_y[index] * host_vel_y[index] + 
-                                        host_vel_z[index] * host_vel_z[index];
-                        total_ke += 0.5 * vel_squared;
-                        
-                        let new_position = crate::types::vec3::Vec3Data {
-                            x: host_pos_x[index],
-                            y: host_pos_y[index],
-                            z: host_pos_z[index]
-                        };
-                        
-                        // Check if position has changed significantly (threshold of 0.001)
-                        let position_changed = if let Some(prev_pos) = self.previous_positions.get(node_id) {
-                            let dx = new_position.x - prev_pos.x;
-                            let dy = new_position.y - prev_pos.y;
-                            let dz = new_position.z - prev_pos.z;
-                            let distance_squared = dx * dx + dy * dy + dz * dz;
-                            distance_squared > 0.001 * 0.001 // Use squared threshold for efficiency
-                        } else {
-                            true // First time seeing this node, always update
-                        };
-                        
-                        if position_changed {
-                            let binary_node = BinaryNodeData {
-                                position: new_position,
-                                velocity: crate::types::vec3::Vec3Data {
-                                    x: host_vel_x[index],
-                                    y: host_vel_y[index],
-                                    z: host_vel_z[index]
-                                },
-                                mass: 1,
-                                flags: 0,
-                                padding: [0, 0],
-                            };
-                            positions_to_update.push((*node_id, binary_node));
-                            
-                            // Update the previous position for this node
-                            self.previous_positions.insert(*node_id, new_position);
-                        }
-                    }
-                    
-                    // Update kinetic energy history
-                    let avg_ke = if !self.graph_data.nodes.is_empty() {
-                        total_ke / self.graph_data.nodes.len() as f32
-                    } else {
-                        0.0
-                    };
-                    
-                    self.kinetic_energy_history.push(avg_ke);
-                    if self.kinetic_energy_history.len() > 60 {
-                        self.kinetic_energy_history.remove(0);
-                    }
-                    
-                    if crate::utils::logging::is_debug_enabled() && self.frames_since_last_broadcast.unwrap_or(0) % 30 == 0 {
-                        info!("[GPU PHYSICS] Average KE: {:.6}, Total KE: {:.6}", avg_ke, total_ke);
-                    }
-                    
-                    // Broadcast positions with smart throttling
-                    // Always send initial positions, then throttle based on physics activity
-                    let should_broadcast = if !self.initial_positions_sent {
-                        // ALWAYS send the first update to ensure clients get initial positions
-                        self.initial_positions_sent = true;
-                        self.frames_since_last_broadcast = Some(0);
-                        info!("[BROADCAST] Sending initial positions to clients");
-                        true
-                    } else {
-                        // FIXED: Use time-based broadcast logic instead of frame-based to prevent 10-second delays
-                        // With physics running at ~3 FPS, 30 frames = 10 seconds (too slow)
-                        let now = std::time::Instant::now();
-                        let time_since_last = if let Some(last_time) = self.last_broadcast_time {
-                            now.duration_since(last_time)
-                        } else {
-                            std::time::Duration::from_secs(999) // Force first broadcast
-                        };
-                        
-                        // Get current kinetic energy
-                        let current_ke = self.kinetic_energy_history.last().copied().unwrap_or(1.0);
-                        
-                        // Determine if we should send based on activity and elapsed time (not frames)
-                        let should_send = if current_ke > 0.1 {
-                            // High activity - send every frame (no time limit)
-                            true
-                        } else if current_ke > 0.01 {
-                            // Medium activity - send every 200ms minimum
-                            time_since_last >= std::time::Duration::from_millis(200)
-                        } else {
-                            // Low/no activity - send every 2 seconds to keep connection alive
-                            // This fixes the 10-second delay issue caused by frame-based logic
-                            time_since_last >= std::time::Duration::from_secs(2)
-                        };
-                        
-                        if should_send {
-                            self.last_broadcast_time = Some(now);
-                            // Keep legacy frame counter for compatibility but don't rely on it for timing
-                            self.frames_since_last_broadcast = Some(0);
-                            if crate::utils::logging::is_debug_enabled() && time_since_last.as_millis() > 1000 {
-                                info!("[BROADCAST] Sending positions (KE: {:.4}, time since last: {}ms)", 
-                                      current_ke, time_since_last.as_millis());
+            actix::spawn(async move {
+                match gpu_addr_clone.send(crate::actors::messages::ComputeForces).await {
+                    Ok(Ok(())) => {
+                        // GPU computation successful, now get the updated node data
+                        match gpu_addr_clone.send(crate::actors::messages::GetNodeData).await {
+                            Ok(Ok(node_data)) => {
+                                // Send positions back to GraphServiceActor for processing
+                                let update_msg = crate::actors::messages::UpdateNodePositions {
+                                    positions: node_data.iter().enumerate()
+                                        .map(|(i, data)| (i as u32, data.clone()))
+                                        .collect(),
+                                };
+                                let _ = ctx_addr.do_send(update_msg);
                             }
-                        } else {
-                            // Update frame counter for compatibility (but don't use for timing decisions)
-                            let frames_since_last = self.frames_since_last_broadcast.unwrap_or(0);
-                            self.frames_since_last_broadcast = Some(frames_since_last + 1);
+                            Ok(Err(e)) => error!("Failed to get node data from GPU: {}", e),
+                            Err(e) => error!("Failed to send GetNodeData message: {}", e),
                         }
-                        
-                        should_send
-                    };
-                    
-                    if !positions_to_update.is_empty() && should_broadcast {
-                        // Broadcast to clients
-                        let binary_data = binary_protocol::encode_node_data(&positions_to_update);
-                        self.client_manager.do_send(BroadcastNodePositions {
-                            positions: binary_data
-                        });
                     }
+                    Ok(Err(e)) => error!("GPU force computation failed: {}", e),
+                    Err(e) => error!("Failed to send ComputeForces message: {}", e),
                 }
-                Err(e) => {
-                    error!("Unified GPU physics step failed: {}", e);
-                }
-            }
-            active_constraints_count = 0;
+            });
             
-            iteration_count = self.stress_step_counter;
-            
-            // Log progress periodically
-            if iteration_count % 60 == 0 {
-                trace!("Advanced physics step completed (iteration {}, {} constraints active)", 
-                      iteration_count, active_constraints_count);
-            }
-        } else {
+            // Return early - the async block will handle position updates
             return;
         }
         
-        // Update local positions after GPU context is released
-        if !positions_to_update.is_empty() {
-            self.update_node_positions(positions_to_update);
-        }
+        // No GPU compute actor available - skip GPU computation
+        trace!("No GPU compute actor available for physics simulation");
     }
     // Legacy GPU step removed - only advanced GPU compute is supported
     // All physics computation uses the unified GPU kernel
@@ -1634,13 +1466,12 @@ impl GraphServiceActor {
         self.advanced_params = params.clone();
         self.stress_solver = StressMajorizationSolver::from_advanced_params(&params);
         
-        // Update advanced GPU context if available
-        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            let sim_params = SimParams::from(&self.simulation_params);
-            if let Err(e) = gpu_context.set_params(sim_params) {
-                error!("Failed to update GPU parameters: {}", e);
-                return Err(format!("GPU parameter update failed: {}", e));
-            }
+        // Update GPU parameters via GPUComputeActor
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            let update_msg = crate::actors::messages::UpdateSimulationParams {
+                params: self.simulation_params.clone(),
+            };
+            gpu_addr.do_send(update_msg);
         }
         
         info!("Updated advanced physics parameters via public API");
@@ -1661,7 +1492,7 @@ impl GraphServiceActor {
     
     /// Check if advanced GPU context is available
     pub fn has_advanced_gpu(&self) -> bool {
-        self.advanced_gpu_context.is_some()
+        self.gpu_compute_addr.is_some()
     }
     
     /// Get semantic analysis status
@@ -1756,11 +1587,11 @@ impl Actor for GraphServiceActor {
 
 // Message handlers
 impl Handler<GetGraphData> for GraphServiceActor {
-    type Result = Result<GraphData, String>; // Result type changed from Arc<GraphData>
+    type Result = Result<std::sync::Arc<GraphData>, String>;
  
     fn handle(&mut self, _msg: GetGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        info!("DEBUG_VERIFICATION: GraphServiceActor handling GetGraphData with OWNED data clone strategy.");
-        Ok((*self.graph_data).clone()) // Clones the GraphData itself
+        info!("DEBUG_VERIFICATION: GraphServiceActor handling GetGraphData with Arc reference (NO CLONE!).");
+        Ok(std::sync::Arc::clone(&self.graph_data)) // Returns Arc reference, no data cloning!
     }
 }
 
@@ -1810,10 +1641,10 @@ impl Handler<RemoveEdge> for GraphServiceActor {
 }
 
 impl Handler<GetNodeMap> for GraphServiceActor {
-    type Result = Result<HashMap<u32, Node>, String>;
+    type Result = Result<std::sync::Arc<HashMap<u32, Node>>, String>;
 
     fn handle(&mut self, _msg: GetNodeMap, _ctx: &mut Self::Context) -> Self::Result {
-        Ok(self.node_map.clone())
+        Ok(Arc::clone(&self.node_map)) // Return Arc reference, no cloning of HashMap data!
     }
 }
 
@@ -1848,7 +1679,7 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
 
     fn handle(&mut self, msg: UpdateNodePosition, _ctx: &mut Self::Context) -> Self::Result {
         // Update node in the node map
-        if let Some(node) = self.node_map.get_mut(&msg.node_id) {
+        if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&msg.node_id) {
             // Preserve existing mass and flags
             let original_mass = node.data.mass;
             let original_flags = node.data.flags;
@@ -1924,19 +1755,18 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
         info!("Updating graph data with {} nodes, {} edges",
               msg.graph_data.nodes.len(), msg.graph_data.edges.len());
         
-        // Update graph data by creating a new Arc
-        self.graph_data = Arc::new(msg.graph_data);
+        // Update graph data with the provided Arc
+        self.graph_data = msg.graph_data;
         
         // Rebuild node map
-        self.node_map.clear();
+        Arc::make_mut(&mut self.node_map).clear();
         for node in &self.graph_data.nodes { // Dereferences Arc for iteration
-            self.node_map.insert(node.id, node.clone());
+            Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
         }
         
         // Generate initial semantic constraints for the new graph data
-        // Generate initial semantic constraints with graph data
-        let graph_data_clone = self.graph_data.clone();
-        self.generate_initial_semantic_constraints(&graph_data_clone);
+        // No cloning needed for reading operations
+        self.generate_initial_semantic_constraints(&self.graph_data);
         
         info!("Graph data updated successfully with constraint generation");
         Ok(())
@@ -2031,9 +1861,10 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             }
         }
         
-        // Update the bots graph data
-        self.bots_graph_data.nodes = nodes;
-        self.bots_graph_data.edges = edges;
+        // Update the bots graph data  
+        let bots_graph_data_mut = Arc::make_mut(&mut self.bots_graph_data);
+        bots_graph_data_mut.nodes = nodes;
+        bots_graph_data_mut.edges = edges;
         
         info!("Updated bots graph with {} agents and {} communication edges", 
              msg.agents.len(), self.bots_graph_data.edges.len());
@@ -2105,10 +1936,10 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
 }
 
 impl Handler<GetBotsGraphData> for GraphServiceActor {
-    type Result = Result<GraphData, String>;
+    type Result = Result<std::sync::Arc<GraphData>, String>;
 
     fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
-        Ok(self.bots_graph_data.clone())
+        Ok(Arc::clone(&self.bots_graph_data)) // Return Arc reference, no cloning of GraphData!
     }
 }
 
@@ -2158,20 +1989,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
                   self.simulation_params.repel_k, self.simulation_params.damping);
         }
         
-        // Update the advanced GPU context if available
-        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            let sim_params = SimParams::from(&self.simulation_params);
-            if crate::utils::logging::is_debug_enabled() {
-                info!("Updating advanced_gpu_context with new params");
-            }
-            if let Err(e) = gpu_context.set_params(sim_params) {
-                error!("Failed to update GPU parameters during simulation step: {}", e);
-                warn!("GPU parameter update failed, continuing with CPU fallback for simulation step");
-                // Don't return error here as simulation can continue with CPU
-            }
-        }
-        
-        // Also update GPU compute actor if available
+        // Update GPU compute actor if available
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if crate::utils::logging::is_debug_enabled() {
                 info!("Forwarding params to GPUComputeActor");
@@ -2248,13 +2066,12 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
         self.stress_solver = crate::physics::stress_majorization::StressMajorizationSolver::from_advanced_params(&msg.params);
         
         // Update advanced GPU context if available
-        if let Some(ref mut gpu_context) = self.advanced_gpu_context {
-            let sim_params = SimParams::from(&self.simulation_params);
-            if let Err(e) = gpu_context.set_params(sim_params) {
-                error!("Failed to update GPU parameters after advanced params update: {}", e);
-                warn!("GPU context parameter update failed, physics simulation may be degraded but continuing");
-                // Don't return error here as the system can continue with CPU fallback
-            }
+        // Update GPU parameters via GPUComputeActor
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            let update_msg = crate::actors::messages::UpdateAdvancedParams {
+                params: params.clone(),
+            };
+            gpu_addr.do_send(update_msg);
         }
         
         info!("Updated advanced physics parameters");
@@ -2297,9 +2114,9 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         self.constraint_set.set_group_active("domain_clustering", false);
         self.constraint_set.set_group_active("clustering_dynamic", false);
         
-        // Regenerate initial semantic constraints
-        let graph_data_clone = self.graph_data.clone();
-        self.generate_initial_semantic_constraints(&graph_data_clone);
+        // Regenerate initial semantic constraints  
+        // No cloning needed for reading operations
+        self.generate_initial_semantic_constraints(&self.graph_data);
         
         // Regenerate dynamic constraints if semantic analysis is available
         if self.last_semantic_analysis.is_some() {
@@ -2323,19 +2140,7 @@ impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
     }
 }
 
-impl Handler<StoreAdvancedGPUContext> for GraphServiceActor {
-    type Result = ();
-    
-    fn handle(&mut self, msg: StoreAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
-        // Store the GPU context that was created in the async block
-        self.advanced_gpu_context = Some(msg.context);
-        self.gpu_init_in_progress = false;
-        info!("Advanced GPU context stored successfully and ready for physics simulation");
-        
-        // Upload constraints to the newly initialized GPU
-        self.upload_constraints_to_gpu();
-    }
-}
+// StoreAdvancedGPUContext handler removed - GPU context now managed by GPUComputeActor
 
 impl Handler<ResetGPUInitFlag> for GraphServiceActor {
     type Result = ();
@@ -2349,39 +2154,10 @@ impl Handler<ResetGPUInitFlag> for GraphServiceActor {
 impl Handler<ComputeShortestPaths> for GraphServiceActor {
     type Result = Result<std::collections::HashMap<u32, Option<f32>>, String>;
     
-    fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
-        let gpu = self.advanced_gpu_context.as_mut()
-            .ok_or("GPU not initialized")?;
-        
-        // Build ID mapping
-        let node_indices: std::collections::HashMap<u32, usize> = self.graph_data.nodes
-            .iter()
-            .enumerate()
-            .map(|(i, n)| (n.id, i))
-            .collect();
-        
-        let src_idx = *node_indices.get(&msg.source_node_id)
-            .ok_or("Source node not found")?;
-        
-        // Run SSSP computation
-        let distances = gpu.run_sssp(src_idx)
-            .map_err(|e| format!("SSSP failed: {}", e))?;
-        
-        // Map back to public IDs, filtering unreachable nodes
-        let mut result = std::collections::HashMap::with_capacity(self.graph_data.nodes.len());
-        for (i, node) in self.graph_data.nodes.iter().enumerate() {
-            let dist = distances[i];
-            result.insert(
-                node.id,
-                if dist.is_finite() {
-                    Some(dist)
-                } else {
-                    None // Unreachable node
-                }
-            );
-        }
-        
-        Ok(result)
+    fn handle(&mut self, _msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        // SSSP computation now requires GPUComputeActor support
+        // This functionality has been moved to unified GPU control
+        Err("SSSP computation not yet implemented in unified GPU architecture - use GPUComputeActor".to_string())
     }
 }
 

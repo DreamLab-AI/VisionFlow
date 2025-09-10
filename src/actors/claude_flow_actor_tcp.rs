@@ -662,6 +662,39 @@ impl Actor for ClaudeFlowActorTcp {
         info!("ClaudeFlowActorTcp stopping - cleaning up resources");
         info!("Connection statistics: {:?}", self.connection_stats);
         
+        // Move TCP connection cleanup to the async-aware stopped() method
+        if let Some(writer_arc) = self.tcp_writer.take() {
+            tokio::spawn(async move {
+                // Properly close the TCP writer without blocking
+                if let Ok(mut writer) = writer_arc.try_write() {
+                    let _ = writer.shutdown().await;
+                }
+            });
+        }
+        
+        // Clear TCP reader (will be dropped automatically)
+        if let Some(_reader_arc) = self.tcp_reader.take() {
+            // Reader will be dropped automatically, closing the connection
+        }
+        
+        // Clear pending requests with proper error responses
+        let pending_requests = self.pending_requests.clone();
+        tokio::spawn(async move {
+            let mut requests = pending_requests.write().await;
+            // Send error responses to pending requests before clearing
+            for (id, sender) in requests.drain() {
+                let error_response = serde_json::json!({
+                    "jsonrpc": "2.0",
+                    "id": id,
+                    "error": {
+                        "code": -1,
+                        "message": "Actor stopped"
+                    }
+                });
+                let _ = sender.send(error_response);
+            }
+        });
+        
         // Cleanup connections and pools
         if let Some(pool) = self.connection_pool.take() {
             tokio::spawn(async move {
@@ -948,10 +981,9 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
             }
         }
         
-        // DISABLED: ClaudeFlowActor TCP polling is broken due to persistent connection issues
-        // The MCP server closes connections after each request, but this actor expects persistent connections
-        // BotsClient handles agent fetching correctly with fresh connections
-        debug!("ClaudeFlowActor polling DISABLED - using BotsClient instead");
+        // Re-enabled: ClaudeFlowActor TCP polling for MCP connection
+        // This provides the critical link to the Claude Flow agent system
+        debug!("ClaudeFlowActor polling via TCP MCP connection");
         
         // Update system metrics even when polling is disabled
         self.system_metrics.active_agents = self.agent_cache.len() as u32;
@@ -959,11 +991,11 @@ impl Handler<PollAgentStatuses> for ClaudeFlowActorTcp {
         // Process any pending updates in the queues
         self.process_pending_queues();
         
-        return;
+        // FIX: Remove the early return that was making the code unreachable
+        // The polling should continue to work via TCP
         
-        // Unreachable code below - kept for reference but commented out
-        // debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
-        //        self.consecutive_poll_failures);
+        debug!("Polling agent statuses via TCP (100ms cycle) - {} consecutive failures", 
+               self.consecutive_poll_failures);
         
         // Call the agent_list tool to get current agent statuses
         if let Some(writer) = &self.tcp_writer {
@@ -1189,23 +1221,6 @@ impl Handler<GetSwarmStatus> for ClaudeFlowActorTcp {
     }
 }
 
-// Implement Drop to ensure proper cleanup of resources
-impl Drop for ClaudeFlowActorTcp {
-    fn drop(&mut self) {
-        info!("Dropping ClaudeFlowActorTcp - performing emergency cleanup");
-        
-        // Forcibly close any remaining connections
-        if let Some(writer_arc) = self.tcp_writer.take() {
-            if let Ok(mut writer) = writer_arc.try_write() {
-                let _ = futures::executor::block_on(writer.shutdown());
-            }
-        }
-        
-        // Clear connection tracking
-        if let Ok(mut connections) = self.active_connections.try_write() {
-            connections.clear();
-        }
-        
-        info!("ClaudeFlowActorTcp drop completed - connections cleaned up");
-    }
-}
+// Drop implementation removed - cleanup now handled in stopped() method
+// This prevents "Cannot start a runtime from within a runtime" panics
+// that occur when using futures::executor::block_on in Drop.

@@ -4,6 +4,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use log::{error, info};
 use std::error::Error;
 use chrono::Utc;
+use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
 
 /// Handles GitHub Pull Request operations
 use std::sync::Arc;
@@ -24,7 +25,7 @@ impl PullRequestAPI {
         file_name: &str,
         content: &str,
         original_sha: &str,
-    ) -> Result<String, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<String> {
         let timestamp = Utc::now().timestamp();
         let branch_name = format!("update-{}-{}", file_name.replace(".md", ""), timestamp);
         
@@ -69,7 +70,7 @@ impl PullRequestAPI {
     }
 
     /// Get the SHA of the main branch
-    async fn get_main_branch_sha(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
+    async fn get_main_branch_sha(&self) -> VisionFlowResult<String> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/ref/heads/main",
             self.client.owner(), self.client.repo()
@@ -96,7 +97,7 @@ impl PullRequestAPI {
     }
 
     /// Create a new branch
-    async fn create_branch(&self, branch_name: &str, sha: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn create_branch(&self, branch_name: &str, sha: &str) -> VisionFlowResult<()> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/refs",
             self.client.owner(), self.client.repo()
@@ -131,7 +132,7 @@ impl PullRequestAPI {
         content: &str,
         branch_name: &str,
         original_sha: &str,
-    ) -> Result<String, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<String> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/contents/{}",
             self.client.owner(), self.client.repo(), file_path

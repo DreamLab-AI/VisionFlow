@@ -18,9 +18,80 @@ use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::actors::gpu_compute_actor::ComputeMode;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 
+// K-means clustering results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KMeansResult {
+    pub cluster_assignments: Vec<i32>,
+    pub centroids: Vec<(f32, f32, f32)>,
+    pub inertia: f32,
+    pub iterations: u32,
+}
+
+// Anomaly detection results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnomalyResult {
+    pub lof_scores: Option<Vec<f32>>,
+    pub local_densities: Option<Vec<f32>>,
+    pub zscore_values: Option<Vec<f32>>,
+    pub anomaly_threshold: f32,
+    pub num_anomalies: usize,
+}
+
+// Community detection results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommunityDetectionResult {
+    pub node_labels: Vec<i32>,        // Community assignment for each node
+    pub num_communities: usize,        // Total number of communities found
+    pub modularity: f32,               // Quality metric (higher is better)
+    pub iterations: u32,               // Number of iterations until convergence
+    pub community_sizes: Vec<i32>,     // Size of each community
+    pub converged: bool,               // Whether algorithm converged
+}
+
+// K-means clustering parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KMeansParams {
+    pub num_clusters: usize,
+    pub max_iterations: u32,
+    pub tolerance: f32,
+    pub seed: u32,
+}
+
+// Anomaly detection parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnomalyParams {
+    pub method: AnomalyMethod,
+    pub k_neighbors: i32,
+    pub radius: f32,
+    pub feature_data: Option<Vec<f32>>,
+    pub threshold: f32,
+}
+
+// Community detection parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommunityDetectionParams {
+    pub algorithm: CommunityDetectionAlgorithm,
+    pub max_iterations: u32,
+    pub convergence_tolerance: f32,
+    pub synchronous: bool,     // True for sync, false for async propagation
+    pub seed: u32,            // Random seed for tie-breaking
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AnomalyMethod {
+    LocalOutlierFactor,
+    ZScore,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CommunityDetectionAlgorithm {
+    LabelPropagation,
+    // Future algorithms: Louvain, Leiden, etc.
+}
+
 // Graph Service Actor Messages
 #[derive(Message)]
-#[rtype(result = "Result<ServiceGraphData, String>")]
+#[rtype(result = "Result<std::sync::Arc<ServiceGraphData>, String>")]
 pub struct GetGraphData;
 
 #[derive(Message)]
@@ -54,7 +125,7 @@ pub struct RemoveEdge {
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<HashMap<u32, Node>, String>")]
+#[rtype(result = "Result<std::sync::Arc<HashMap<u32, Node>>, String>")]
 pub struct GetNodeMap;
 
 #[derive(Message)]
@@ -86,7 +157,7 @@ pub struct StopSimulation;
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGraphData {
-    pub graph_data: ServiceGraphData,
+    pub graph_data: std::sync::Arc<ServiceGraphData>,
 }
 
 // Advanced Physics and Constraint Messages
@@ -109,6 +180,20 @@ pub struct GetConstraints;
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct TriggerStressMajorization;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ResetStressMajorizationSafety;
+
+#[derive(Message)]
+#[rtype(result = "Result<crate::actors::gpu_compute_actor::StressMajorizationStats, String>")]
+pub struct GetStressMajorizationStats;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateStressMajorizationParams {
+    pub params: AdvancedParams,
+}
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
@@ -160,6 +245,25 @@ pub struct RemoveIsolationLayer {
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]
 pub struct GetKernelMode;
+
+// GPU K-means and Anomaly Detection Messages
+#[derive(Message)]
+#[rtype(result = "Result<KMeansResult, String>")]
+pub struct RunKMeans {
+    pub params: KMeansParams,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<AnomalyResult, String>")]
+pub struct RunAnomalyDetection {
+    pub params: AnomalyParams,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<CommunityDetectionResult, String>")]
+pub struct RunCommunityDetection {
+    pub params: CommunityDetectionParams,
+}
 
 // Settings Actor Messages
 #[derive(Message)]
@@ -393,7 +497,7 @@ pub struct UpdateBotsGraph {
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<GraphData, String>")]
+#[rtype(result = "Result<std::sync::Arc<GraphData>, String>")]
 pub struct GetBotsGraphData;
 
 #[derive(Message)]
@@ -641,13 +745,19 @@ pub struct SystemMetrics {
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeGPU {
-    pub graph: ModelsGraphData,
+    pub graph: std::sync::Arc<ModelsGraphData>,
 }
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUGraphData {
-    pub graph: ModelsGraphData,
+    pub graph: std::sync::Arc<ModelsGraphData>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateGPUPositions {
+    pub positions: Vec<(f32, f32, f32)>, // (x, y, z) positions
 }
 
 #[derive(Message, Clone)]
@@ -721,6 +831,10 @@ pub struct SetComputeMode {
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::gpu_compute_actor::PhysicsStats, String>")]
 pub struct GetPhysicsStats;
+
+#[derive(Message)]
+#[rtype(result = "Result<serde_json::Value, String>")]
+pub struct GetGPUMetrics;
 
 // GPU Force Parameters
 #[derive(Message)]
@@ -800,10 +914,47 @@ pub struct RemoveConstraints {
 #[rtype(result = "Result<Vec<Value>, String>")]
 pub struct GetActiveConstraints;
 
+// GPU Position Upload Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UploadPositions {
+    pub positions_x: Vec<f32>,
+    pub positions_y: Vec<f32>, 
+    pub positions_z: Vec<f32>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UploadConstraintsToGPU {
+    pub constraint_data: Vec<crate::models::constraints::ConstraintData>,
+}
+
 // Auto-balance messages
 #[derive(Message)]
 #[rtype(result = "Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>")]
 pub struct GetAutoBalanceNotifications {
     pub since_timestamp: Option<i64>, // Only get notifications after this timestamp
 }
+
+// TCP Connection Actor Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct EstablishTcpConnection;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct CloseTcpConnection;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct RecordPollSuccess;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct RecordPollFailure;
+
+// JSON-RPC Client Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct InitializeJsonRpc;
 

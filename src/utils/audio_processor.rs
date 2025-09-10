@@ -123,18 +123,8 @@ mod tests {
     use serde_json::json;
     use tokio::runtime::Runtime;
 
-    fn create_test_settings() -> Arc<RwLock<Settings>> {
-        let settings = Settings {
-            debug_mode: false,
-            debug: crate::config::DebugSettings {
-                enable_websocket_debug: false,
-                enable_data_debug: false,
-                log_binary_headers: false,
-                log_full_json: false,
-            },
-            // Add other required fields with default values
-            ..Default::default()
-        };
+    fn create_test_settings() -> Arc<RwLock<AppFullSettings>> {
+        let settings = AppFullSettings::default();
         Arc::new(RwLock::new(settings))
     }
 

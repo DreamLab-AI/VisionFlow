@@ -5,6 +5,7 @@ use actix::prelude::*;
 use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance};
 use crate::config::path_access::PathAccessible;
+use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError, ActorError, ErrorContext};
 use std::collections::HashMap;
 use serde_json::Value;
 use log::{info, error, debug, warn};
@@ -117,12 +118,15 @@ const EXPECTED_FULL_SETTINGS_SIZE: u64 = 50_000; // ~50KB
 const EXPECTED_PATH_SIZE: u64 = 500; // ~500B
 
 impl OptimizedSettingsActor {
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> VisionFlowResult<Self> {
         // Load settings from file or use defaults
         let settings = AppFullSettings::new()
             .map_err(|e| {
                 error!("Failed to load settings from file: {}", e);
-                format!("Failed to create AppFullSettings: {}", e)
+                VisionFlowError::Settings(SettingsError::ParseError {
+                    file_path: "settings".to_string(),
+                    reason: e.to_string(),
+                })
             })?;
         
         // Initialize Redis client (optional)
@@ -349,7 +353,7 @@ impl OptimizedSettingsActor {
         hasher.finalize().to_hex().to_string()
     }
     
-    async fn decompress_data(&self, compressed: &[u8]) -> Result<String, String> {
+    async fn decompress_data(&self, compressed: &[u8]) -> VisionFlowResult<String> {
         let mut decompressor = self.decompressor.write().await;
         let mut output = Vec::new();
         
@@ -366,10 +370,10 @@ impl OptimizedSettingsActor {
             output.extend(buffer);
         }
         
-        String::from_utf8(output).map_err(|e| format!("UTF-8 conversion error: {}", e))
+        String::from_utf8(output).map_err(|e| VisionFlowError::Serialization(format!("UTF-8 conversion error: {}", e)))
     }
     
-    async fn get_optimized_path_value(&self, path: &str) -> Result<Value, String> {
+    async fn get_optimized_path_value(&self, path: &str) -> VisionFlowResult<Value> {
         let start_time = Instant::now();
         
         // Try cache first
@@ -399,7 +403,10 @@ impl OptimizedSettingsActor {
             for part in parts {
                 match value.get(part) {
                     Some(v) => value = v,
-                    None => return Err(format!("Path not found: {}", path)),
+                    None => return Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: path.to_string(),
+                        reason: "Path not found".to_string(),
+                    })),
                 }
             }
             
@@ -414,7 +421,7 @@ impl OptimizedSettingsActor {
         result
     }
     
-    fn traverse_compiled_path(&self, settings: &AppFullSettings, compiled_path: &[String]) -> Result<Value, String> {
+    fn traverse_compiled_path(&self, settings: &AppFullSettings, compiled_path: &[String]) -> VisionFlowResult<Value> {
         // Highly optimized path traversal for known patterns
         if compiled_path.len() == 4 && compiled_path[0] == "visualisation" 
             && compiled_path[1] == "graphs" && compiled_path[2] == "logseq" 
@@ -443,7 +450,10 @@ impl OptimizedSettingsActor {
                 "bounds_size" => serde_json::Value::Number(serde_json::Number::from_f64(physics.bounds_size as f64).unwrap()),
                 "iterations" => serde_json::Value::Number(serde_json::Number::from(physics.iterations)),
                 "enabled" => serde_json::Value::Bool(physics.enabled),
-                _ => return Err(format!("Unknown physics field: {}", field)),
+                _ => return Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                    setting_path: format!("physics.{}", field),
+                    reason: "Unknown physics field".to_string(),
+                })),
             };
             
             return Ok(value);
@@ -452,7 +462,7 @@ impl OptimizedSettingsActor {
         Err("Path pattern not optimized".to_string())
     }
     
-    pub async fn update_settings(&self, new_settings: AppFullSettings) -> Result<(), String> {
+    pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlowResult<()> {
         let mut settings = self.settings.write().await;
         *settings = new_settings;
         
@@ -463,10 +473,13 @@ impl OptimizedSettingsActor {
         }
         
         // Persist to file
-        if let Err(e) = settings.save() {
+        settings.save().map_err(|e| {
             error!("Failed to save settings to file: {}", e);
-            return Err(format!("Failed to persist settings: {}", e));
-        }
+            VisionFlowError::Settings(SettingsError::SaveFailed {
+                file_path: "settings".to_string(),
+                reason: e,
+            })
+        })?;
         
         info!("Settings updated, caches cleared, and saved successfully");
         Ok(())
@@ -539,18 +552,24 @@ impl OptimizedSettingsActor {
               warmed_count, start_time.elapsed());
     }
     
-    fn validate_value_with_pattern(value: &Value, pattern: &PathPattern) -> Result<(), String> {
+    fn validate_value_with_pattern(value: &Value, pattern: &PathPattern) -> VisionFlowResult<()> {
         match (&pattern.field_type, value) {
             (FieldType::Float32 | FieldType::Float64, Value::Number(n)) => {
                 if let Some(f) = n.as_f64() {
                     if let Some(min) = pattern.validation_rules.min {
                         if f < min {
-                            return Err(format!("Value {} below minimum {}", f, min));
+                            return Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                                setting_path: "value".to_string(),
+                                reason: format!("Value {} below minimum {}", f, min),
+                            }));
                         }
                     }
                     if let Some(max) = pattern.validation_rules.max {
                         if f > max {
-                            return Err(format!("Value {} above maximum {}", f, max));
+                            return Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                                setting_path: "value".to_string(),
+                                reason: format!("Value {} above maximum {}", f, max),
+                            }));
                         }
                     }
                 }
@@ -609,7 +628,7 @@ impl Handler<WarmCacheMessage> for OptimizedSettingsActor {
 
 // Handle GetSettings message
 impl Handler<GetSettings> for OptimizedSettingsActor {
-    type Result = ResponseFuture<Result<AppFullSettings, String>>;
+    type Result = ResponseFuture<VisionFlowResult<AppFullSettings>>;
     
     fn handle(&mut self, _msg: GetSettings, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -637,7 +656,7 @@ impl Handler<GetSettings> for OptimizedSettingsActor {
 
 // Handle UpdateSettings message  
 impl Handler<UpdateSettings> for OptimizedSettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
     
     fn handle(&mut self, msg: UpdateSettings, _ctx: &mut Self::Context) -> Self::Result {
         let actor = self.clone();
@@ -650,7 +669,7 @@ impl Handler<UpdateSettings> for OptimizedSettingsActor {
 
 // Optimized handler for getting settings by path
 impl Handler<GetSettingByPath> for OptimizedSettingsActor {
-    type Result = ResponseFuture<Result<serde_json::Value, String>>;
+    type Result = ResponseFuture<VisionFlowResult<serde_json::Value>>;
     
     fn handle(&mut self, msg: GetSettingByPath, _ctx: &mut Self::Context) -> Self::Result {
         let actor = self.clone();
@@ -680,7 +699,7 @@ impl Clone for OptimizedSettingsActor {
 
 // Optimized batch handler for getting multiple settings by path
 impl Handler<GetSettingsByPaths> for OptimizedSettingsActor {
-    type Result = ResponseFuture<Result<HashMap<String, Value>, String>>;
+    type Result = ResponseFuture<VisionFlowResult<HashMap<String, Value>>>;
     
     fn handle(&mut self, msg: GetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
         let actor = self.clone();
@@ -734,7 +753,7 @@ impl Handler<GetSettingsByPaths> for OptimizedSettingsActor {
 
 // Ultra-optimized batch handler for setting multiple values
 impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
     
     fn handle(&mut self, msg: SetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -756,9 +775,12 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
                 let lookup = path_lookup.read().await;
                 for (path, value) in &updates {
                     if let Some(pattern) = lookup.get(path) {
-                        if let Err(e) = Self::validate_value_with_pattern(value, pattern) {
-                            return Err(format!("Validation failed for {}: {}", path, e));
-                        }
+                        Self::validate_value_with_pattern(value, pattern).map_err(|e| {
+                            VisionFlowError::Settings(SettingsError::ValidationFailed {
+                                setting_path: path.clone(),
+                                reason: format!("Validation failed: {}", e),
+                            })
+                        })?;
                     }
                 }
             }
@@ -865,17 +887,23 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
             
             // Single validation for all batch updates
             if validation_needed {
-                if let Err(e) = current.validate_config_camel_case() {
+                current.validate_config_camel_case().map_err(|e| {
                     error!("Validation failed after batch update: {:?}", e);
-                    return Err(format!("Batch validation failed: {:?}", e));
-                }
+                    VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: "batch_update".to_string(),
+                        reason: format!("Batch validation failed: {:?}", e),
+                    })
+                })?;
                 
                 // Save to file if persistence is enabled
                 if current.system.persist_settings {
-                    if let Err(e) = current.save() {
+                    current.save().map_err(|e| {
                         error!("Failed to save settings after batch update: {}", e);
-                        return Err(format!("Failed to save batch settings: {}", e));
-                    }
+                        VisionFlowError::Settings(SettingsError::SaveFailed {
+                            file_path: "batch_settings".to_string(),
+                            reason: e,
+                        })
+                    })?;
                 }
             }
             

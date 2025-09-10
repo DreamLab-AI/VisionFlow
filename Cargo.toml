@@ -12,6 +12,7 @@ actix-web = { version = "4.11.0", features = ["compress-gzip", "compress-zstd", 
 actix-cors = "0.7.1"
 actix-files = "0.6"
 actix = "0.13"
+crossbeam-channel = "0.5"
 actix-web-actors = "4.3"
 tungstenite = "0.21.0"
 tokio-tungstenite = { version = "0.21.0" }
