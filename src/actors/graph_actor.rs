@@ -474,7 +474,8 @@ impl GraphServiceActor {
         self.graph_data = Arc::new(new_graph_data.clone());
         
         // Generate constraints based on semantic analysis
-        self.generate_initial_semantic_constraints(&new_graph_data);
+        let graph_data_clone = Arc::clone(&self.graph_data);
+        self.generate_initial_semantic_constraints(&graph_data_clone);
         
         // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
         // Note: Advanced GPU context initialization will be attempted on first physics step
@@ -528,7 +529,7 @@ impl GraphServiceActor {
             return;
         }
         
-        let mut graph_data_clone = (**self.graph_data).clone(); // Still need to clone here for stress solver which modifies the data
+        let mut graph_data_clone = self.graph_data.as_ref().clone(); // Still need to clone here for stress solver which modifies the data
         
         match self.stress_solver.optimize(&mut graph_data_clone, &self.constraint_set) {
             Ok(result) => {
@@ -1363,8 +1364,7 @@ impl GraphServiceActor {
                         info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges", 
                               graph_data_clone.nodes.len(), num_directed_edges);
                         info!("GPU physics simulation is now active for knowledge graph");
-                        // Send the context back to the actor to store it
-                        self_addr.do_send(StoreAdvancedGPUContext { context });
+                        // GPU context now managed by GPUComputeActor, no need to store locally
                     }
                     Err(e) => {
                         error!("❌ Failed to initialize advanced GPU context: {}", e);
@@ -1397,7 +1397,7 @@ impl GraphServiceActor {
         }
     }
     
-    fn run_advanced_gpu_step(&mut self, _ctx: &mut Context<Self>) {
+    fn run_advanced_gpu_step(&mut self, ctx: &mut Context<Self>) {
         // Only log physics step execution when debug is enabled
         if crate::utils::logging::is_debug_enabled() {
             info!("[GPU STEP] === Starting physics simulation step ===");
@@ -1765,8 +1765,8 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
         }
         
         // Generate initial semantic constraints for the new graph data
-        // No cloning needed for reading operations
-        self.generate_initial_semantic_constraints(&self.graph_data);
+        let graph_data_clone = Arc::clone(&self.graph_data);
+        self.generate_initial_semantic_constraints(&graph_data_clone);
         
         info!("Graph data updated successfully with constraint generation");
         Ok(())
@@ -2069,7 +2069,7 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
         // Update GPU parameters via GPUComputeActor
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             let update_msg = crate::actors::messages::UpdateAdvancedParams {
-                params: params.clone(),
+                params: msg.params.clone(),
             };
             gpu_addr.do_send(update_msg);
         }
@@ -2115,8 +2115,8 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         self.constraint_set.set_group_active("clustering_dynamic", false);
         
         // Regenerate initial semantic constraints  
-        // No cloning needed for reading operations
-        self.generate_initial_semantic_constraints(&self.graph_data);
+        let graph_data_clone = Arc::clone(&self.graph_data);
+        self.generate_initial_semantic_constraints(&graph_data_clone);
         
         // Regenerate dynamic constraints if semantic analysis is available
         if self.last_semantic_analysis.is_some() {

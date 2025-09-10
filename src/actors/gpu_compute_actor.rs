@@ -703,11 +703,11 @@ impl GPUComputeActor {
     
     /// OPTIMIZED version of update_graph_data_internal with redundant upload prevention
     fn update_graph_data_internal_optimized(&mut self, graph: &std::sync::Arc<GraphData>) -> Result<(), Error> {
-        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
-
-        // GPU UPLOAD OPTIMIZATION: Calculate hashes to detect what changed
+        // GPU UPLOAD OPTIMIZATION: Calculate hashes to detect what changed BEFORE borrowing unified_compute
         let new_structure_hash = self.calculate_graph_structure_hash(graph);
         let new_positions_hash = self.calculate_positions_hash(graph);
+        
+        let unified_compute = self.unified_compute.as_mut().ok_or_else(|| Error::new(ErrorKind::Other, "Unified compute not initialized"))?;
         
         let structure_changed = new_structure_hash != self.graph_structure_hash;
         let positions_changed = new_positions_hash != self.positions_hash;

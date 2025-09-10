@@ -4,9 +4,18 @@
 //! all panic! and unwrap() calls with proper error propagation.
 
 use std::fmt;
+use serde::ser::{Serialize, Serializer};
+
+/// Serialize std::io::Error as a string since it's not directly serializable
+fn serialize_io_error<S>(error: &std::sync::Arc<std::io::Error>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    error.to_string().serialize(serializer)
+}
 
 /// Top-level error type for the VisionFlow system
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum VisionFlowError {
     /// Actor system related errors
     Actor(ActorError),
@@ -17,6 +26,7 @@ pub enum VisionFlowError {
     /// Network and communication errors
     Network(NetworkError),
     /// File system and I/O errors
+    #[serde(serialize_with = "serialize_io_error")]
     IO(std::sync::Arc<std::io::Error>),
     /// Serialization/Deserialization errors
     Serialization(String),
@@ -35,12 +45,13 @@ pub enum VisionFlowError {
     /// Generic error with context
     Generic { 
         message: String,
+        #[serde(skip)]
         source: Option<std::sync::Arc<dyn std::error::Error + Send + Sync + 'static>>
     },
 }
 
 /// Actor system specific errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum ActorError {
     /// Actor failed to start
     StartupFailed { actor_name: String, reason: String },
@@ -55,7 +66,7 @@ pub enum ActorError {
 }
 
 /// GPU computation specific errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum GPUError {
     /// CUDA device initialization failed
     DeviceInitializationFailed(String),
@@ -71,14 +82,14 @@ pub enum GPUError {
     DriverError(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum DataTransferDirection {
     CPUToGPU,
     GPUToCPU,
 }
 
 /// Settings and configuration errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum SettingsError {
     /// Settings file not found or inaccessible
     FileNotFound(String),
@@ -93,7 +104,7 @@ pub enum SettingsError {
 }
 
 /// Network and communication errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum NetworkError {
     /// TCP connection failed
     ConnectionFailed { host: String, port: u16, reason: String },
@@ -103,12 +114,14 @@ pub enum NetworkError {
     MCPError { method: String, reason: String },
     /// HTTP request/response errors
     HTTPError { url: String, status: Option<u16>, reason: String },
+    /// HTTP request failed
+    RequestFailed { url: String, reason: String },
     /// Timeout errors
     Timeout { operation: String, timeout_ms: u64 },
 }
 
 /// Speech and voice processing errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum SpeechError {
     /// Speech service initialization failed
     InitializationFailed(String),
@@ -123,7 +136,7 @@ pub enum SpeechError {
 }
 
 /// GitHub integration errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum GitHubError {
     /// API request failed
     APIRequestFailed { url: String, status: Option<u16>, reason: String },
@@ -138,7 +151,7 @@ pub enum GitHubError {
 }
 
 /// Audio processing errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum AudioError {
     /// Audio format validation failed
     FormatValidationFailed { format: String, reason: String },
@@ -151,7 +164,7 @@ pub enum AudioError {
 }
 
 /// Resource management errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum ResourceError {
     /// Resource monitoring failed
     MonitoringFailed(String),
@@ -166,7 +179,7 @@ pub enum ResourceError {
 }
 
 /// Performance benchmarking errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum PerformanceError {
     /// Benchmark execution failed
     BenchmarkFailed { benchmark_name: String, reason: String },
@@ -179,7 +192,7 @@ pub enum PerformanceError {
 }
 
 /// Binary protocol errors
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub enum ProtocolError {
     /// Data encoding failed
     EncodingFailed { data_type: String, reason: String },
@@ -277,6 +290,8 @@ impl fmt::Display for NetworkError {
                 write!(f, "HTTP error for '{}' (status: {:?}): {}", url, status, reason),
             NetworkError::Timeout { operation, timeout_ms } => 
                 write!(f, "Timeout after {}ms for operation: {}", timeout_ms, operation),
+            NetworkError::RequestFailed { url, reason } => 
+                write!(f, "Request to '{}' failed: {}", url, reason),
         }
     }
 }
@@ -461,6 +476,33 @@ impl From<PerformanceError> for VisionFlowError {
 impl From<ProtocolError> for VisionFlowError {
     fn from(e: ProtocolError) -> Self {
         VisionFlowError::Protocol(e)
+    }
+}
+
+impl From<reqwest::Error> for VisionFlowError {
+    fn from(e: reqwest::Error) -> Self {
+        VisionFlowError::Network(NetworkError::RequestFailed {
+            url: e.url().map(|u| u.to_string()).unwrap_or_default(),
+            reason: e.to_string(),
+        })
+    }
+}
+
+impl From<String> for VisionFlowError {
+    fn from(s: String) -> Self {
+        VisionFlowError::Generic {
+            message: s,
+            source: None,
+        }
+    }
+}
+
+impl From<&str> for VisionFlowError {
+    fn from(s: &str) -> Self {
+        VisionFlowError::Generic {
+            message: s.to_string(),
+            source: None,
+        }
     }
 }
 

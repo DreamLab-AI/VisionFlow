@@ -17,6 +17,7 @@ use serde::{Serialize, Deserialize};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::actors::gpu_compute_actor::ComputeMode;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
+use crate::errors::VisionFlowError;
 
 // K-means clustering results
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -267,11 +268,11 @@ pub struct RunCommunityDetection {
 
 // Settings Actor Messages
 #[derive(Message)]
-#[rtype(result = "Result<AppFullSettings, String>")]
+#[rtype(result = "Result<AppFullSettings, VisionFlowError>")]
 pub struct GetSettings;
 
 #[derive(Message)]
-#[rtype(result = "Result<(), String>")]
+#[rtype(result = "Result<(), VisionFlowError>")]
 pub struct UpdateSettings {
     pub settings: AppFullSettings,
 }
@@ -283,13 +284,13 @@ pub struct UpdatePhysicsFromAutoBalance {
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<Value, String>")]
+#[rtype(result = "Result<Value, VisionFlowError>")]
 pub struct GetSettingByPath {
     pub path: String,
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<(), String>")]
+#[rtype(result = "Result<(), VisionFlowError>")]
 pub struct SetSettingByPath {
     pub path: String,
     pub value: Value,
@@ -297,13 +298,13 @@ pub struct SetSettingByPath {
 
 // Batch path-based settings messages for performance
 #[derive(Message)]
-#[rtype(result = "Result<HashMap<String, Value>, String>")]
+#[rtype(result = "Result<HashMap<String, Value>, VisionFlowError>")]
 pub struct GetSettingsByPaths {
     pub paths: Vec<String>,
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<(), String>")]
+#[rtype(result = "Result<(), VisionFlowError>")]
 pub struct SetSettingsByPaths {
     pub updates: HashMap<String, Value>,
 }
@@ -396,7 +397,7 @@ impl PriorityUpdate {
 
 // Batched update message for handling concurrent updates efficiently
 #[derive(Message)]
-#[rtype(result = "Result<(), String>")]
+#[rtype(result = "Result<(), VisionFlowError>")]
 pub struct BatchedUpdate {
     pub updates: Vec<PriorityUpdate>,
     pub max_batch_size: usize,

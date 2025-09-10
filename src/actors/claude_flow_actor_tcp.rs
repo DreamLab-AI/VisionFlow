@@ -771,8 +771,8 @@ struct ProcessTcpMessage {
 
 #[derive(Message)]
 #[rtype(result = "()")]
-struct UpdateAgentCache {
-    agents: Vec<AgentStatus>,
+pub struct UpdateAgentCache {
+    pub agents: Vec<AgentStatus>,
 }
 
 #[derive(Message)]

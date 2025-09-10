@@ -67,7 +67,7 @@ struct ConnectionStats {
 }
 
 /// Connection events that subscribers can listen to
-#[derive(Message)]
+#[derive(Message, Clone)]
 #[rtype(result = "()")]
 pub struct TcpConnectionEvent {
     pub event_type: TcpConnectionEventType,
@@ -122,16 +122,7 @@ struct ConnectionEstablished {
 #[rtype(result = "()")]
 struct ConnectionLost;
 
-/// Make Box<dyn Error> retryable for network operations
-impl RetryableError for Box<dyn std::error::Error + Send + Sync> {
-    fn is_retryable(&self) -> bool {
-        if let Some(io_error) = self.downcast_ref::<std::io::Error>() {
-            io_error.is_retryable()
-        } else {
-            true
-        }
-    }
-}
+// RetryableError implementation for Box<dyn Error> is defined in claude_flow_actor_tcp.rs to avoid conflicts
 
 impl TcpConnectionActor {
     pub fn new(host: String, port: u16) -> Self {
