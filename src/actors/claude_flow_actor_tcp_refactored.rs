@@ -515,11 +515,14 @@ impl Actor for ClaudeFlowActorTcp {
         // Initialize sub-actors
         self.initialize_sub_actors(ctx);
         
-        // Schedule periodic status updates
-        ctx.run_interval(self.polling_interval, |act, ctx| {
-            if act.is_connected && act.is_initialized {
-                act.poll_agent_statuses(ctx);
-            }
+        // Schedule periodic status updates using run_later to ensure proper runtime context
+        ctx.run_later(Duration::from_millis(100), |act, ctx| {
+            // Now schedule the interval from within the actor's execution context
+            ctx.run_interval(act.polling_interval, |act, ctx| {
+                if act.is_connected && act.is_initialized {
+                    act.poll_agent_statuses(ctx);
+                }
+            });
         });
     }
     
