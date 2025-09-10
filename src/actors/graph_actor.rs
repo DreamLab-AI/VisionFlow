@@ -1337,13 +1337,16 @@ impl GraphServiceActor {
             info!("Starting physics simulation loop");
         }
 
-        // Start the simulation interval
-        ctx.run_interval(Duration::from_millis(16), |actor, ctx| {
-            if !actor.simulation_running.load(Ordering::SeqCst) {
-                return;
-            }
+        // Defer interval scheduling to ensure proper runtime context
+        ctx.run_later(Duration::from_millis(100), |actor, ctx| {
+            // Now start the simulation interval from within the actor's execution context
+            ctx.run_interval(Duration::from_millis(16), |actor, ctx| {
+                if !actor.simulation_running.load(Ordering::SeqCst) {
+                    return;
+                }
 
-            actor.run_simulation_step(ctx);
+                actor.run_simulation_step(ctx);
+            });
         });
     }
 
