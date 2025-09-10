@@ -98,21 +98,46 @@ visualisation:
         showMetadata: true
         maxLabelWidth: 5.0
       physics:
-        autoBalance: false
+        # Enable auto-balance to help find equilibrium automatically
+        autoBalance: true
         autoBalanceIntervalMs: 500
         autoBalanceConfig:
+          # Core stability thresholds
           stabilityVarianceThreshold: 100.0
           stabilityFrameCount: 180
+          
+          # Distance thresholds with hysteresis bands
           clusteringDistanceThreshold: 20.0
+          clusteringHysteresisBuffer: 5.0           # NEW: Prevents rapid clustering/expanding transitions
+          spreadingDistanceThreshold: 500.0
+          spreadingHysteresisBuffer: 50.0           # NEW: Prevents rapid spreading/contracting transitions
+          
+          # Boundary and extreme detection
           bouncingNodePercentage: 0.33
           boundaryMinDistance: 90.0
           boundaryMaxDistance: 100.0
           extremeDistanceThreshold: 1000.0
           explosionDistanceThreshold: 10000.0
-          spreadingDistanceThreshold: 500.0
-          oscillationDetectionFrames: 10
-          oscillationChangeThreshold: 5.0
-          minOscillationChanges: 5
+          
+          # Oscillation detection with tuned parameters
+          oscillationDetectionFrames: 20             # Increased from 10 for better detection
+          oscillationChangeThreshold: 10.0           # Increased from 5.0 to be less sensitive  
+          minOscillationChanges: 8                   # Increased from 5 to require more evidence
+          
+          # Parameter adjustment rates - gradual instead of aggressive
+          parameterAdjustmentRate: 0.1               # NEW: 10% maximum change per adjustment
+          maxAdjustmentFactor: 0.2                   # NEW: Maximum 20% change from baseline
+          minAdjustmentFactor: -0.2                  # NEW: Maximum 20% reduction from baseline
+          
+          # Cooldown periods to prevent rapid adjustments
+          adjustmentCooldownMs: 2000                 # NEW: 2 second cooldown between adjustments
+          stateChangeCooldownMs: 1000                # NEW: 1 second cooldown for state changes
+          
+          # Dampening factors for smooth transitions
+          parameterDampeningFactor: 0.05             # NEW: 5% per frame smooth transitions
+          hysteresisDelayFrames: 30                  # NEW: Frames to wait before state change
+          
+          # Spatial hashing parameters
           gridCellSizeMin: 1.0
           gridCellSizeMax: 50.0
           repulsionCutoffMin: 5.0
@@ -127,14 +152,18 @@ visualisation:
         attractionK: 0.6819533
         boundsSize: 1000.0
         separationRadius: 2.1155233
-        damping: 0.8584477
+        # Increased damping for better stability and settling (was 0.8584477)
+        damping: 0.96
         enableBounds: false
         enabled: true
+        # Keep iterations per frame reasonable
         iterations: 50
         maxVelocity: 9.570835
         maxForce: 100.0
-        repelK: 179.98889
-        springK: 3.8596027
+        # Drastically reduced repulsion strength (was 179.98889) - prevents violent node repulsion
+        repelK: 35.0
+        # Adjusted spring strength to balance with new repulsion (was 3.8596027)
+        springK: 1.5
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
@@ -150,7 +179,8 @@ visualisation:
         restLength: 50.0
         repulsionCutoff: 50.0
         repulsionSofteningEpsilon: 0.0001
-        centerGravityK: 0.0
+        # Added center gravity to prevent drift and help nodes settle toward center
+        centerGravityK: 0.005
         gridCellSize: 28.543957
         warmupIterations: 100
         coolingRate: 0.001
@@ -167,6 +197,14 @@ visualisation:
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50
+        # Auto-pause configuration for equilibrium detection
+        autoPause:
+          enabled: true
+          equilibriumVelocityThreshold: 0.1  # Average velocity below this triggers equilibrium
+          equilibriumCheckFrames: 30         # Must be stable for this many frames
+          equilibriumEnergyThreshold: 0.01   # Total kinetic energy threshold
+          pauseOnEquilibrium: true           # Actually pause physics when equilibrium reached
+          resumeOnInteraction: true          # Resume physics on user interaction
     visionflow:
       nodes:
         baseColor: '#40ff00'
@@ -270,6 +308,14 @@ visualisation:
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50
+        # Auto-pause configuration for equilibrium detection
+        autoPause:
+          enabled: false                    # Disabled for visionflow by default
+          equilibriumVelocityThreshold: 0.05
+          equilibriumCheckFrames: 60
+          equilibriumEnergyThreshold: 0.005
+          pauseOnEquilibrium: false
+          resumeOnInteraction: true
   camera:
     fov: 75.0
     near: 0.1

@@ -489,6 +489,13 @@ pub struct SendToClientText(pub String);
 
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
 use crate::types::claude_flow::AgentStatus;
+
+/// Message to update the agent cache in ClaudeFlowActorTcp
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct UpdateAgentCache {
+    pub agents: Vec<AgentStatus>,
+}
 use crate::models::graph::GraphData;
 
 #[derive(Message)]
@@ -685,6 +692,39 @@ pub struct SwarmMonitorData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Auto-pause related messages for equilibrium detection and interaction handling
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), VisionFlowError>")]
+pub struct PhysicsPauseMessage {
+    pub pause: bool,  // true to pause, false to resume
+    pub reason: String,  // reason for pause/resume
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), VisionFlowError>")]
+pub struct NodeInteractionMessage {
+    pub node_id: u32,
+    pub interaction_type: NodeInteractionType,
+    pub position: Option<Vec3>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum NodeInteractionType {
+    Dragged,   // Node is being dragged
+    Selected,  // Node was selected
+    Released,  // Node drag ended
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), VisionFlowError>")]
+pub struct ForceResumePhysics {
+    pub reason: String,
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<bool, VisionFlowError>")]
+pub struct GetEquilibriumStatus;
+
 pub struct MessageFlowEvent {
     pub id: String,
     pub from_agent: String,

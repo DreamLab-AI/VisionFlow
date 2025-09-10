@@ -111,6 +111,8 @@ pub struct GraphServiceActor {
     stable_count: u32, // Count stable frames to detect settling
     auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
     kinetic_energy_history: Vec<f32>, // Track kinetic energy for stability detection
+    last_adjustment_time: std::time::Instant, // Cooldown tracking
+    current_state: AutoBalanceState, // Track current auto-balance state for hysteresis
     frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast (deprecated - use time-based instead)
     last_broadcast_time: Option<std::time::Instant>, // Time-based broadcast tracking to fix 10-second delay issue
     initial_positions_sent: bool, // Track if initial positions have been sent to clients
@@ -121,6 +123,17 @@ pub struct GraphServiceActor {
     
     // Position change tracking to avoid unnecessary updates
     previous_positions: HashMap<u32, crate::types::vec3::Vec3Data>, // Track previous positions for change detection
+}
+
+/// Auto-balance state tracking for hysteresis prevention
+#[derive(Debug, Clone, PartialEq)]
+enum AutoBalanceState {
+    Stable,         // System is in equilibrium
+    Spreading,      // Nodes are spreading out
+    Clustering,     // Nodes are clustering together
+    Bouncing,       // Nodes are bouncing off boundaries
+    Oscillating,    // System is oscillating between states
+    Adjusting,      // Currently making parameter adjustments
 }
 
 // Auto-balance notification structure
@@ -170,6 +183,171 @@ impl GraphServiceActor {
     }
     
     
+    /// Determines auto-balance state with hysteresis bands to prevent rapid switching
+    fn determine_auto_balance_state(
+        &self,
+        max_distance: f32,
+        boundary_nodes: u32,
+        total_nodes: usize,
+        has_numerical_instability: bool,
+        has_spatial_issues: bool,
+        config: &crate::config::AutoBalanceConfig,
+    ) -> AutoBalanceState {
+        // Priority 1: Critical issues
+        if has_numerical_instability {
+            return AutoBalanceState::Adjusting;
+        }
+        
+        // Priority 2: Bouncing nodes (at boundaries)
+        if boundary_nodes as f32 > (total_nodes as f32 * config.bouncing_node_percentage) {
+            return AutoBalanceState::Bouncing;
+        }
+        
+        // Priority 3: Oscillation detection
+        if self.auto_balance_history.len() >= config.oscillation_detection_frames {
+            let recent = &self.auto_balance_history[self.auto_balance_history.len() - config.oscillation_detection_frames..];
+            let changes = recent.windows(2)
+                .filter(|w| (w[0] - w[1]).abs() > config.oscillation_change_threshold)
+                .count();
+            if changes > config.min_oscillation_changes {
+                return AutoBalanceState::Oscillating;
+            }
+        }
+        
+        // Priority 4: Distance-based states with hysteresis
+        match self.current_state {
+            AutoBalanceState::Spreading => {
+                // When spreading, require going below threshold minus hysteresis to switch
+                if max_distance < (config.spreading_distance_threshold - config.spreading_hysteresis_buffer) {
+                    if max_distance < (config.clustering_distance_threshold + config.clustering_hysteresis_buffer) {
+                        AutoBalanceState::Clustering
+                    } else {
+                        AutoBalanceState::Stable
+                    }
+                } else {
+                    AutoBalanceState::Spreading // Stay in spreading state
+                }
+            },
+            AutoBalanceState::Clustering => {
+                // When clustering, require going above threshold plus hysteresis to switch
+                if max_distance > (config.clustering_distance_threshold + config.clustering_hysteresis_buffer) {
+                    if max_distance > (config.spreading_distance_threshold - config.spreading_hysteresis_buffer) {
+                        AutoBalanceState::Spreading
+                    } else {
+                        AutoBalanceState::Stable
+                    }
+                } else {
+                    AutoBalanceState::Clustering // Stay in clustering state
+                }
+            },
+            _ => {
+                // From stable or other states, use normal thresholds
+                if max_distance > config.spreading_distance_threshold {
+                    AutoBalanceState::Spreading
+                } else if max_distance < config.clustering_distance_threshold {
+                    AutoBalanceState::Clustering
+                } else {
+                    AutoBalanceState::Stable
+                }
+            }
+        }
+    }
+    
+    /// Applies gradual parameter adjustments based on state
+    fn apply_gradual_adjustment(&mut self, state: AutoBalanceState, config: &crate::config::AutoBalanceConfig) -> bool {
+        let mut adjustment_made = false;
+        let adjustment_rate = config.parameter_adjustment_rate;
+        
+        match state {
+            AutoBalanceState::Spreading => {
+                // Gradually increase attraction and center gravity
+                let mut new_target = self.target_params.clone();
+                
+                let attraction_factor = 1.0 + adjustment_rate;
+                new_target.attraction_k = (self.simulation_params.attraction_k * attraction_factor)
+                    .max(self.simulation_params.attraction_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.attraction_k * (1.0 + config.max_adjustment_factor));
+                
+                let spring_factor = 1.0 + adjustment_rate * 0.5; // Smaller spring adjustment
+                new_target.spring_k = (self.simulation_params.spring_k * spring_factor)
+                    .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.spring_k * (1.0 + config.max_adjustment_factor));
+                
+                self.set_target_params(new_target);
+                self.send_auto_balance_notification("Gradual adjustment: Increasing attraction to counter spreading");
+                adjustment_made = true;
+            },
+            AutoBalanceState::Clustering => {
+                // Gradually increase repulsion
+                let mut new_target = self.target_params.clone();
+                
+                let repulsion_factor = 1.0 + adjustment_rate;
+                new_target.repel_k = (self.simulation_params.repel_k * repulsion_factor)
+                    .max(self.simulation_params.repel_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.repel_k * (1.0 + config.max_adjustment_factor));
+                
+                // Slightly reduce attraction
+                let attraction_factor = 1.0 - adjustment_rate * 0.5;
+                new_target.attraction_k = (self.simulation_params.attraction_k * attraction_factor)
+                    .max(self.simulation_params.attraction_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.attraction_k * (1.0 + config.max_adjustment_factor));
+                
+                self.set_target_params(new_target);
+                self.send_auto_balance_notification("Gradual adjustment: Increasing repulsion to counter clustering");
+                adjustment_made = true;
+            },
+            AutoBalanceState::Bouncing => {
+                // Gradual damping increase and velocity reduction
+                let mut new_target = self.target_params.clone();
+                
+                let damping_factor = 1.0 + adjustment_rate * 0.5;
+                new_target.damping = (self.simulation_params.damping * damping_factor).min(0.99);
+                
+                let velocity_factor = 1.0 - adjustment_rate * 0.5;
+                new_target.max_velocity = (self.simulation_params.max_velocity * velocity_factor).max(1.0);
+                
+                self.set_target_params(new_target);
+                self.send_auto_balance_notification("Gradual adjustment: Increasing damping to reduce bouncing");
+                adjustment_made = true;
+            },
+            AutoBalanceState::Oscillating => {
+                // Aggressive damping to stop oscillation
+                let mut new_target = self.target_params.clone();
+                new_target.damping = (self.simulation_params.damping * 1.2).min(0.98);
+                new_target.max_velocity = self.simulation_params.max_velocity * 0.7;
+                
+                // Also slow down the parameter transition rate temporarily
+                self.param_transition_rate = config.parameter_dampening_factor;
+                
+                self.set_target_params(new_target);
+                self.send_auto_balance_notification("Emergency adjustment: Stopping oscillation with increased damping");
+                adjustment_made = true;
+            },
+            AutoBalanceState::Adjusting => {
+                // Handle numerical instability with conservative parameters
+                let mut new_target = self.target_params.clone();
+                new_target.dt = (self.simulation_params.dt * 0.8).max(0.001);
+                new_target.damping = (self.simulation_params.damping * 1.1).min(0.99);
+                
+                self.set_target_params(new_target);
+                self.send_auto_balance_notification("Emergency adjustment: Fixing numerical instability");
+                adjustment_made = true;
+            },
+            AutoBalanceState::Stable => {
+                // Gradually return to baseline parameters
+                self.param_transition_rate = config.parameter_dampening_factor;
+                // No immediate adjustment needed
+            }
+        }
+        
+        if adjustment_made {
+            self.last_adjustment_time = std::time::Instant::now();
+            self.current_state = state;
+        }
+        
+        adjustment_made
+    }
+
     fn send_auto_balance_notification(&self, message: &str) {
         info!("[AUTO-BALANCE NOTIFICATION] {}", message);
         
@@ -298,6 +476,8 @@ impl GraphServiceActor {
             stable_count: 0,
             auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
             kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
+            last_adjustment_time: std::time::Instant::now(), // Initialize cooldown tracking
+            current_state: AutoBalanceState::Stable, // Start in stable state
             frames_since_last_broadcast: None,
             last_broadcast_time: None, // Initialize time-based broadcast tracking
             initial_positions_sent: false,
@@ -378,8 +558,37 @@ impl GraphServiceActor {
         debug!("Removed edge: {}", edge_id);
     }
 
+    /// Build graph from metadata while preserving existing node positions
+    /// 
+    /// This method addresses a critical issue where node positions were reset every time
+    /// BuildGraphFromMetadata was called (e.g., when clients connected). The fix ensures
+    /// that existing nodes maintain their positions across rebuilds, while new nodes
+    /// still get proper initial positions.
+    /// 
+    /// # Position Preservation Strategy
+    /// 1. Save existing positions before clearing the node_map
+    /// 2. Create new nodes with generated positions 
+    /// 3. Restore saved positions for nodes that existed before
+    /// 4. Allow physics simulation to continue from preserved positions
+    /// 
+    /// # Args
+    /// * `metadata` - The metadata store containing file information
+    /// 
+    /// # Returns
+    /// * `Ok(())` if the graph was built successfully
+    /// * `Err(String)` if there was an error during graph construction
     pub fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
+        
+        // BREADCRUMB: Save existing node positions before clearing node_map
+        // This preserves positions across rebuilds, preventing position reset on client connections
+        let mut existing_positions: HashMap<String, (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data)> = HashMap::new();
+        
+        // Save positions from existing nodes indexed by metadata_id
+        for node in self.node_map.values() {
+            existing_positions.insert(node.metadata_id.clone(), (node.data.position, node.data.velocity));
+        }
+        
         Arc::make_mut(&mut self.node_map).clear();
         self.semantic_features_cache.clear();
 
@@ -393,6 +602,18 @@ impl GraphServiceActor {
             node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(file_meta_data.file_size as u64);
             node.data.flags = 1;
+
+            // BREADCRUMB: Restore existing position if this node was previously created
+            // This ensures positions persist across BuildGraphFromMetadata calls
+            if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata_id_val) {
+                node.data.position = *saved_position;
+                node.data.velocity = *saved_velocity;
+                debug!("Restored position for node '{}': ({}, {}, {})", 
+                       metadata_id_val, saved_position.x, saved_position.y, saved_position.z);
+            } else {
+                debug!("New node '{}' will use generated position: ({}, {}, {})", 
+                       metadata_id_val, node.data.position.x, node.data.position.y, node.data.position.z);
+            }
 
             // Enhanced metadata with semantic features
             node.metadata.insert("fileName".to_string(), file_meta_data.file_name.clone());
@@ -973,11 +1194,11 @@ impl GraphServiceActor {
             0.0
         };
         
-        // TEMPORARILY DISABLED: Auto-balance system causing oscillation every 10-12 seconds
-        // The system was aggressively overcorrecting between spread/clustered states
-        // Re-enable after tuning thresholds to be less aggressive
-        /*
-        // Auto-tune physics if enabled
+        // Auto-pause equilibrium detection
+        self.check_and_handle_equilibrium(total_kinetic_energy, self.node_map.len(), ctx);
+        
+        // IMPROVED Auto-balance system with hysteresis, cooldown, and gradual adjustments
+        // Fixed oscillation issues with dampening and state tracking
         if self.simulation_params.auto_balance {
             // Normalize kinetic energy by number of nodes
             let avg_kinetic_energy = if !self.node_map.is_empty() {
@@ -1004,270 +1225,101 @@ impl GraphServiceActor {
                 self.kinetic_energy_history.remove(0);
             }
             
-            // Check if enough time has passed since last auto-balance
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64;
+            // Check cooldown periods to prevent rapid adjustments
+            let now = std::time::Instant::now();
+            let config = &self.simulation_params.auto_balance_config;
             
-            static mut LAST_AUTO_BALANCE: u64 = 0;
-            let interval = self.simulation_params.auto_balance_interval_ms as u64;
+            // Check if enough time has passed since last adjustment
+            let adjustment_cooldown_duration = std::time::Duration::from_millis(config.adjustment_cooldown_ms);
+            let time_since_last_adjustment = now.duration_since(self.last_adjustment_time);
             
-            unsafe {
-                if now - LAST_AUTO_BALANCE >= interval {
-                    LAST_AUTO_BALANCE = now;
+            if time_since_last_adjustment >= adjustment_cooldown_duration {
                     
-                    // Prepare position data for advanced analysis
-                    let position_data: Vec<(f32, f32, f32)> = self.node_map.values()
-                        .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
-                        .collect();
+                // Prepare position data for advanced analysis
+                let position_data: Vec<(f32, f32, f32)> = self.node_map.values()
+                    .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+                    .collect();
+                
+                // Detect spatial hashing issues and numerical instability
+                let (has_spatial_issues, efficiency_score) = self.detect_spatial_hashing_issues(&position_data, config);
+                let has_numerical_instability = self.detect_numerical_instability(&position_data, config);
+                
+                // Determine current state with hysteresis bands to prevent rapid switching
+                let new_state = self.determine_auto_balance_state(
+                    max_distance, 
+                    boundary_nodes, 
+                    self.node_map.len(),
+                    has_numerical_instability,
+                    has_spatial_issues,
+                    config
+                );
+                
+                // Check for stability (equilibrium detection)
+                let is_stable = if self.auto_balance_history.len() >= 30 && self.kinetic_energy_history.len() >= 30 {
+                    // Check position variance
+                    let recent_avg = self.auto_balance_history[self.auto_balance_history.len()-30..]
+                        .iter().sum::<f32>() / 30.0;
+                    let position_variance = self.auto_balance_history[self.auto_balance_history.len()-30..]
+                        .iter()
+                        .map(|x| (x - recent_avg).powi(2))
+                        .sum::<f32>() / 30.0;
                     
-                    // Detect spatial hashing issues
-                    let config = &self.simulation_params.auto_balance_config;
-                    let (has_spatial_issues, efficiency_score) = self.detect_spatial_hashing_issues(&position_data, config);
-                    let has_numerical_instability = self.detect_numerical_instability(&position_data, config);
+                    // Check kinetic energy (should be low for stable state)
+                    let recent_ke = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
+                        .iter().sum::<f32>() / 30.0;
+                    let ke_variance = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
+                        .iter()
+                        .map(|x| (x - recent_ke).powi(2))
+                        .sum::<f32>() / 30.0;
                     
-                    // Detect if we've found a minima (stable state) using both position and kinetic energy
-                    let is_stable = if self.auto_balance_history.len() >= 30 && self.kinetic_energy_history.len() >= 30 {
-                        // Check position variance
-                        let recent_avg = self.auto_balance_history[self.auto_balance_history.len()-30..]
-                            .iter().sum::<f32>() / 30.0;
-                        let position_variance = self.auto_balance_history[self.auto_balance_history.len()-30..]
-                            .iter()
-                            .map(|x| (x - recent_avg).powi(2))
-                            .sum::<f32>() / 30.0;
-                        
-                        // Check kinetic energy (should be low for stable state)
-                        let recent_ke = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
-                            .iter().sum::<f32>() / 30.0;
-                        let ke_variance = self.kinetic_energy_history[self.kinetic_energy_history.len()-30..]
-                            .iter()
-                            .map(|x| (x - recent_ke).powi(2))
-                            .sum::<f32>() / 30.0;
-                        
-                        // System is stable if both position variance is low AND kinetic energy is low
-                        // Use hardcoded thresholds for now, can be moved to config later
-                        let ke_threshold = 0.01; // Low kinetic energy threshold  
-                        let ke_variance_threshold = 0.001; // Very low KE variance threshold
-                        position_variance < config.stability_variance_threshold && 
-                        recent_ke < ke_threshold && 
-                        ke_variance < ke_variance_threshold
-                    } else {
-                        false
-                    };
+                    // System is stable if both position variance is low AND kinetic energy is low
+                    let ke_threshold = 0.01; // Low kinetic energy threshold  
+                    let ke_variance_threshold = 0.001; // Very low KE variance threshold
+                    position_variance < config.stability_variance_threshold && 
+                    recent_ke < ke_threshold && 
+                    ke_variance < ke_variance_threshold
+                } else {
+                    false
+                };
+                
+                // Apply gradual adjustments based on current state
+                if new_state != self.current_state || new_state != AutoBalanceState::Stable {
+                    let adjustment_made = self.apply_gradual_adjustment(new_state, config);
                     
-                    // Detect bouncing: many nodes at boundary OR oscillating history
-                    let is_bouncing = boundary_nodes as f32 > (self.node_map.len() as f32 * config.bouncing_node_percentage) || 
-                                     (self.auto_balance_history.len() >= config.oscillation_detection_frames && {
-                                         // Check for oscillation in recent history
-                                         let recent = &self.auto_balance_history[self.auto_balance_history.len()-config.oscillation_detection_frames..];
-                                         let changes = recent.windows(2)
-                                             .filter(|w| (w[0] - w[1]).abs() > config.oscillation_change_threshold)
-                                             .count();
-                                         changes > config.min_oscillation_changes  // Too many changes means oscillating
-                                     });
-                    
-                    if is_bouncing {
-                        info!("[AUTO-BALANCE] Bouncing detected! Boundary nodes: {}/{}, max distance: {:.0}", 
-                              boundary_nodes, self.node_map.len(), max_distance);
-                        self.stable_count = 0;
-                        
-                        // Check for complete deadlock (all nodes stuck with no movement)
-                        let is_deadlocked = boundary_nodes == self.node_map.len() && avg_kinetic_energy < 0.001;
-                        
-                        info!("[DEADLOCK-CHECK] Boundary nodes: {}/{}, Kinetic energy: {:.6}, Deadlocked: {}", 
-                              boundary_nodes, self.node_map.len(), avg_kinetic_energy, is_deadlocked);
-                        
-                        if is_deadlocked {
-                            // Recovery mode: Gradually restore forces to allow movement
-                            info!("[AUTO-BALANCE] DEADLOCK DETECTED! All nodes stuck. Initiating recovery...");
-                            
-                            let mut new_target = self.target_params.clone();
-                            // Use stronger values to break out of boundary stuck state
-                            new_target.repel_k = 2.5;  // Strong repulsion to push nodes apart
-                            new_target.damping = 0.7;  // Lower damping for more movement
-                            new_target.max_velocity = 10.0;  // Higher velocity to escape boundaries
-                            new_target.spring_k = 1.0;  // Strong springs to pull connected nodes
-                            // Keep existing boundary settings from simulation_params
-                            // Don't override enable_bounds or viewport_bounds
-                            
-                            // Use faster transition for deadlock recovery
-                            self.param_transition_rate = 0.5;  // 50% per frame for faster recovery
-                            
-                            self.set_target_params(new_target);
-                            self.send_auto_balance_notification("Adaptive Balancing: Recovering from deadlock");
-                        } else {
-                            // Normal bouncing stabilization - use gentler reduction
-                            let mut new_target = self.target_params.clone();
-                            // CRITICAL: Keep minimum viable values to prevent collapse to zero
-                            new_target.repel_k = (self.simulation_params.repel_k * 0.8).max(10.0);  // Minimum repulsion to prevent overlap
-                            new_target.damping = (self.simulation_params.damping * 1.05).min(0.95);  // Gradual damping increase
-                            new_target.max_velocity = (self.simulation_params.max_velocity * 0.8).max(2.0);  // Keep reasonable velocity
-                            new_target.spring_k = (self.simulation_params.spring_k * 0.9).max(0.5);  // Minimum spring force
-                            // Keep existing boundary settings from simulation_params
-                            // Don't override enable_bounds or viewport_bounds
-                            
-                            self.set_target_params(new_target);
-                            self.send_auto_balance_notification("Adaptive Balancing: Stabilizing bouncing nodes");
-                        }
-                        
-                        info!("[AUTO-BALANCE] Applied parameters - repel_k: {:.3}, damping: {:.3}, max_velocity: {:.3}", 
-                              self.target_params.repel_k, 
-                              self.target_params.damping,
-                              self.target_params.max_velocity);
-                        
-                    } else if extreme_count > 0 || max_distance > config.spreading_distance_threshold {
-                        // Nodes spreading too far - INCREASE ATTRACTION and CENTER GRAVITY
-                        info!("[AUTO-BALANCE] Nodes spreading (max: {:.0}), increasing attractive and centering forces", max_distance);
-                        self.stable_count = 0;
-                        
-                        // Calculate how much to increase attraction based on spread
-                        let spread_ratio = (max_distance / config.spreading_distance_threshold).min(3.0);
-                        let attraction_boost = 1.0 + (spread_ratio - 1.0) * 0.2; // Up to 40% increase
-                        let gravity_boost = 1.0 + (spread_ratio - 1.0) * 0.5; // Up to 100% increase for gravity
-                        
-                        let mut new_target = self.target_params.clone();
-                        // CORRECT: Increase attractive forces to pull nodes together
-                        new_target.spring_k = (self.simulation_params.spring_k * attraction_boost).max(0.5).min(10.0);
-                        new_target.attraction_k = (self.simulation_params.attraction_k * attraction_boost).max(0.01).min(0.5);
-                        
-                        // NEW: Adjust center gravity through cooling_rate proxy (center_gravity_k equivalent)
-                        new_target.cooling_rate = (self.simulation_params.cooling_rate * gravity_boost)
-                            .max(config.center_gravity_min)
-                            .min(config.center_gravity_max);
-                        
-                        // Slightly reduce max velocity to allow settling
-                        new_target.max_velocity = (self.simulation_params.max_velocity * 0.9).max(1.0);
-                        // Keep repulsion stable or slightly increase to maintain structure
-                        new_target.repel_k = (self.simulation_params.repel_k * 1.05).min(100.0);
-                        
-                        // DO NOT force enable boundaries - respect user settings
-                        // Boundaries should only be enabled if explicitly set in config
-                        // Keep existing enable_bounds setting from simulation_params
-                        
-                        info!("[AUTO-BALANCE] Increased containment - spring_k: {:.3}, attraction_k: {:.3}, center_gravity: {:.6}, repel_k: {:.3}", 
-                              new_target.spring_k, new_target.attraction_k, new_target.cooling_rate, new_target.repel_k);
-                        
-                        self.set_target_params(new_target);
-                        
-                        // Send notification to client
-                        self.send_auto_balance_notification("Adaptive Balancing: Increasing containment forces to prevent spreading");
-                    } else if extreme_count == 0 && max_distance < config.clustering_distance_threshold {
-                        // Nodes too clustered - increase repulsion AND reduce attraction
-                        info!("[AUTO-BALANCE] Nodes clustered at {:.1} units, adjusting forces", max_distance);
-                        
-                        let mut new_target = self.target_params.clone();
-                        // Increase repulsion to push nodes apart
-                        new_target.repel_k = (self.simulation_params.repel_k * 1.3).min(100.0);
-                        // ALSO reduce attraction to allow expansion
-                        new_target.spring_k = (self.simulation_params.spring_k * 0.8).max(0.001);
-                        new_target.attraction_k = (self.simulation_params.attraction_k * 0.8).max(0.01);
-                        // Allow higher velocity for expansion
-                        new_target.max_velocity = (self.simulation_params.max_velocity * 1.1).min(10.0);
-                        
-                        info!("[AUTO-BALANCE] Adjusted clustering - repel_k: {:.3}, spring_k: {:.3}, attraction_k: {:.3}", 
-                              new_target.repel_k, new_target.spring_k, new_target.attraction_k);
-                        
-                        self.set_target_params(new_target);
-                        self.stable_count = 0; // Reset stability counter
-                        
-                        // Send notification to client
-                        self.send_auto_balance_notification("Adaptive Balancing: Expanding clustered nodes");
-                    } else if has_numerical_instability {
-                        // Critical: Numerical instability detected - emergency parameter adjustment
-                        info!("[AUTO-BALANCE] NUMERICAL INSTABILITY detected - emergency parameter adjustment");
-                        self.stable_count = 0;
-                        
-                        let mut new_target = self.target_params.clone();
-                        
-                        // Increase repulsion softening to prevent division by zero
-                        new_target.cooling_rate = (self.simulation_params.cooling_rate * 10.0).min(config.repulsion_softening_max);
-                        
-                        // Reduce time step and forces for numerical stability
-                        new_target.dt = (self.simulation_params.dt * 0.5).max(0.001);
-                        new_target.max_force = (self.simulation_params.max_force * 0.8).max(1.0);
-                        new_target.max_velocity = (self.simulation_params.max_velocity * 0.7).max(0.1);
-                        
-                        // Increase damping for stability
-                        new_target.damping = (self.simulation_params.damping * 1.2).min(0.99);
-                        
-                        self.param_transition_rate = 0.3; // Fast emergency transition
-                        self.set_target_params(new_target);
-                        self.send_auto_balance_notification("Adaptive Balancing: Emergency - Fixing numerical instability");
-                        
-                    } else if has_spatial_issues && efficiency_score < config.spatial_hash_efficiency_threshold {
-                        // Spatial hashing is inefficient - adjust grid parameters
-                        info!("[AUTO-BALANCE] Spatial hashing inefficiency detected (score: {:.2})", efficiency_score);
-                        self.stable_count = 0;
-                        
-                        let mut new_target = self.target_params.clone();
-                        
-                        // Adjust grid cell size based on average inter-node distance
-                        let avg_distance = if !position_data.is_empty() {
-                            let mut total_dist = 0.0f32;
-                            let mut count = 0;
-                            for i in 0..std::cmp::min(position_data.len(), 20) {
-                                for j in i+1..std::cmp::min(i+5, position_data.len()) {
-                                    let pos1 = position_data[i];
-                                    let pos2 = position_data[j];
-                                    let dist = ((pos1.0 - pos2.0).powi(2) + (pos1.1 - pos2.1).powi(2) + (pos1.2 - pos2.2).powi(2)).sqrt();
-                                    total_dist += dist;
-                                    count += 1;
-                                }
-                            }
-                            if count > 0 { total_dist / count as f32 } else { 10.0 }
-                        } else { 10.0 };
-                        
-                        // Set grid cell size to approximately 2x average distance for optimal spatial hashing
-                        let optimal_grid_cell_size = (avg_distance * 2.0)
-                            .max(config.grid_cell_size_min)
-                            .min(config.grid_cell_size_max);
-                        
-                        // Update repulsion cutoff to match grid efficiency
-                        new_target.max_repulsion_dist = optimal_grid_cell_size * 1.5; // Slightly larger than grid cell
-                        
-                        // Adjust repulsion softening based on clustering
-                        if efficiency_score < 0.2 {
-                            // Severe clustering - increase softening
-                            new_target.cooling_rate = (self.simulation_params.cooling_rate * 2.0).min(config.repulsion_softening_max);
-                        }
-                        
-                        info!("[AUTO-BALANCE] Adjusted spatial parameters - grid_cell_proxy: {:.1}, repulsion_cutoff: {:.1}", 
-                              optimal_grid_cell_size, new_target.max_repulsion_dist);
-                        
-                        self.set_target_params(new_target);
-                        self.send_auto_balance_notification("Adaptive Balancing: Optimizing spatial hashing efficiency");
-                        
-                    } else if is_stable {
-                        // We've found a stable minima
-                        self.stable_count += 1;
-                        
-                        // After being stable for configured frames, update UI and save
-                        if self.stable_count == config.stability_frame_count {
-                            info!("[AUTO-BALANCE] Stable minima found at {:.1} units - updating UI sliders", max_distance);
-                            
-                            // Send success notification to client
-                            self.send_auto_balance_notification("Adaptive Balancing: Stable configuration found!");
-                            
-                            // Update UI sliders and potentially save to settings.yaml
-                            self.notify_settings_update();
-                            
-                            // Reset stability counter to avoid repeated updates
-                            self.stable_count = 181; // Set to a value that prevents repeated notifications
-                        } else if self.stable_count < 180 {
-                            debug!("[AUTO-BALANCE] Stability detected for {} frames (need 180 for UI update)", self.stable_count);
-                        }
-                    } else {
-                        // Not stable yet, reset counter
-                        if self.stable_count > 0 && self.stable_count < 180 {
-                            debug!("[AUTO-BALANCE] Lost stability after {} frames", self.stable_count);
-                        }
-                        self.stable_count = 0;
+                    if adjustment_made {
+                        info!("[AUTO-BALANCE] State transition: {:?} -> {:?} (max_distance: {:.1}, boundary: {}/{})", 
+                              self.current_state, new_state, max_distance, boundary_nodes, self.node_map.len());
                     }
                 }
+                
+                // Handle stability detection (for UI updates)  
+                if is_stable && new_state == AutoBalanceState::Stable {
+                    // We've found a stable minima
+                    self.stable_count += 1;
+                    
+                    // After being stable for configured frames, update UI and save
+                    if self.stable_count == config.stability_frame_count {
+                        info!("[AUTO-BALANCE] Stable equilibrium found at {:.1} units - updating UI sliders", max_distance);
+                        
+                        // Send success notification to client
+                        self.send_auto_balance_notification("Auto-Balance: Stable equilibrium achieved!");
+                        
+                        // Update UI sliders and potentially save to settings.yaml
+                        self.notify_settings_update();
+                        
+                        // Reset stability counter to avoid repeated updates
+                        self.stable_count = 181; // Set to a value that prevents repeated notifications
+                    } else if self.stable_count < 180 {
+                        debug!("[AUTO-BALANCE] Stability detected for {} frames (need 180 for UI update)", self.stable_count);
+                    }
+                } else {
+                    // Not stable yet, reset counter
+                    if self.stable_count > 0 && self.stable_count < 180 {
+                        debug!("[AUTO-BALANCE] Lost stability after {} frames", self.stable_count);
+                    }
+                    self.stable_count = 0;
             }
         }
-        */
         
         debug!("Updated positions for {} nodes", updated_count);
     }
@@ -1294,15 +1346,11 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
-        // TEMPORARILY DISABLED: Smooth parameter transitions causing oscillation feedback loop
-        // The system was aggressively overcorrecting between spread/clustered states
-        // Re-enable after tuning thresholds to be less aggressive
-        /*
         // Apply smooth parameter transitions if auto-balance is enabled
+        // Fixed oscillation issues with improved dampening
         if self.simulation_params.auto_balance {
             self.smooth_transition_params();
         }
-        */
         
         // Increment counters for periodic operations
         self.stress_step_counter += 1;
@@ -1416,6 +1464,14 @@ impl GraphServiceActor {
         if !self.simulation_params.enabled {
             if crate::utils::logging::is_debug_enabled() {
                 info!("[GPU STEP] Physics disabled - skipping simulation");
+            }
+            return;
+        }
+        
+        // Check if physics is paused due to equilibrium
+        if self.simulation_params.is_physics_paused {
+            if crate::utils::logging::is_debug_enabled() {
+                trace!("[GPU STEP] Physics paused (equilibrium reached) - skipping simulation");
             }
             return;
         }
@@ -1562,6 +1618,86 @@ impl GraphServiceActor {
         
         // Clamp to reasonable range
         final_intensity.min(1.0).max(0.0)
+    }
+    
+    /// Check if the physics simulation has reached equilibrium and handle auto-pause
+    fn check_and_handle_equilibrium(&mut self, total_kinetic_energy: f32, node_count: usize, ctx: &mut Context<Self>) {
+        if !self.simulation_params.auto_pause_config.enabled || node_count == 0 {
+            return;
+        }
+        
+        // Calculate average velocity from kinetic energy
+        // KE = 0.5 * m * v^2, assuming m = 1, so v = sqrt(2 * KE)
+        let avg_kinetic_energy = total_kinetic_energy / node_count as f32;
+        let avg_velocity = (2.0 * avg_kinetic_energy).sqrt();
+        
+        let config = &self.simulation_params.auto_pause_config;
+        
+        // Check if we're in equilibrium state
+        let is_in_equilibrium = avg_velocity < config.equilibrium_velocity_threshold 
+            && avg_kinetic_energy < config.equilibrium_energy_threshold;
+        
+        if is_in_equilibrium {
+            // Increment stability counter
+            self.simulation_params.equilibrium_stability_counter += 1;
+            
+            // Check if we've been stable for enough frames
+            if self.simulation_params.equilibrium_stability_counter >= config.equilibrium_check_frames {
+                if !self.simulation_params.is_physics_paused && config.pause_on_equilibrium {
+                    // Pause physics (not disable it)
+                    self.simulation_params.is_physics_paused = true;
+                    
+                    if crate::utils::logging::is_debug_enabled() {
+                        info!("[AUTO-PAUSE] Physics paused - equilibrium reached (avg_velocity: {:.4}, avg_energy: {:.4})", 
+                              avg_velocity, avg_kinetic_energy);
+                    }
+                    
+                    // Broadcast pause notification to clients
+                    let pause_msg = PhysicsPauseMessage {
+                        pause: true,
+                        reason: format!("Equilibrium reached (vel: {:.4}, energy: {:.4})", avg_velocity, avg_kinetic_energy),
+                    };
+                    
+                    // Send to client manager for broadcast
+                    self.client_manager.do_send(BroadcastMessage {
+                        message: format!("{{\"type\": \"physics_paused\", \"reason\": \"{}\"}}", pause_msg.reason),
+                    });
+                }
+            }
+        } else {
+            // Reset stability counter if not in equilibrium
+            self.simulation_params.equilibrium_stability_counter = 0;
+        }
+        
+        if crate::utils::logging::is_debug_enabled() {
+            trace!("[AUTO-PAUSE] Equilibrium check: velocity={:.4}, energy={:.4}, stable_frames={}/{}, paused={}", 
+                   avg_velocity, avg_kinetic_energy, 
+                   self.simulation_params.equilibrium_stability_counter, 
+                   config.equilibrium_check_frames,
+                   self.simulation_params.is_physics_paused);
+        }
+    }
+    
+    /// Resume physics if paused, usually triggered by user interaction
+    fn resume_physics_if_paused(&mut self, reason: String) {
+        if self.simulation_params.is_physics_paused {
+            self.simulation_params.is_physics_paused = false;
+            self.simulation_params.equilibrium_stability_counter = 0;
+            
+            if crate::utils::logging::is_debug_enabled() {
+                info!("[AUTO-PAUSE] Physics resumed: {}", reason);
+            }
+            
+            // Broadcast resume notification to clients
+            let resume_msg = PhysicsPauseMessage {
+                pause: false,
+                reason: reason.clone(),
+            };
+            
+            self.client_manager.do_send(BroadcastMessage {
+                message: format!("{{\"type\": \"physics_resumed\", \"reason\": \"{}\"}}", reason),
+            });
+        }
     }
 }
 
@@ -2158,6 +2294,220 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
         // SSSP computation now requires GPUComputeActor support
         // This functionality has been moved to unified GPU control
         Err("SSSP computation not yet implemented in unified GPU architecture - use GPUComputeActor".to_string())
+    }
+}
+
+impl Handler<PhysicsPauseMessage> for GraphServiceActor {
+    type Result = Result<(), VisionFlowError>;
+
+    fn handle(&mut self, msg: PhysicsPauseMessage, _ctx: &mut Self::Context) -> Self::Result {
+        if msg.pause {
+            self.simulation_params.is_physics_paused = true;
+            info!("[AUTO-PAUSE] Physics manually paused: {}", msg.reason);
+        } else {
+            self.resume_physics_if_paused(msg.reason);
+        }
+        Ok(())
+    }
+}
+
+impl Handler<NodeInteractionMessage> for GraphServiceActor {
+    type Result = Result<(), VisionFlowError>;
+
+    fn handle(&mut self, msg: NodeInteractionMessage, _ctx: &mut Self::Context) -> Self::Result {
+        // Resume physics on interaction if configured to do so
+        if self.simulation_params.auto_pause_config.resume_on_interaction {
+            let reason = match msg.interaction_type {
+                NodeInteractionType::Dragged => format!("Node {} dragged", msg.node_id),
+                NodeInteractionType::Selected => format!("Node {} selected", msg.node_id),
+                NodeInteractionType::Released => format!("Node {} released", msg.node_id),
+            };
+            self.resume_physics_if_paused(reason);
+        }
+
+        // Update node position if provided (for dragging)
+        if let (Some(position), NodeInteractionType::Dragged) = (msg.position, &msg.interaction_type) {
+            // Update node position in node_map
+            if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&msg.node_id) {
+                node.data.position = crate::utils::socket_flow_messages::glam_to_vec3data(position);
+                // Reset velocity to avoid physics conflicts during drag
+                node.data.velocity = crate::types::vec3::Vec3Data::new(0.0, 0.0, 0.0);
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+impl Handler<ForceResumePhysics> for GraphServiceActor {
+    type Result = Result<(), VisionFlowError>;
+
+    fn handle(&mut self, msg: ForceResumePhysics, _ctx: &mut Self::Context) -> Self::Result {
+        self.resume_physics_if_paused(msg.reason);
+        Ok(())
+    }
+}
+
+impl Handler<GetEquilibriumStatus> for GraphServiceActor {
+    type Result = Result<bool, VisionFlowError>;
+
+    fn handle(&mut self, _msg: GetEquilibriumStatus, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(self.simulation_params.is_physics_paused)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::metadata::{MetadataStore, FileMetadata};
+    use crate::types::vec3::Vec3Data;
+    use std::collections::HashMap;
+    use chrono::Utc;
+
+    /// Test that node positions are preserved across multiple BuildGraphFromMetadata calls
+    /// This addresses the issue where positions were reset every time a client connected
+    #[test]
+    fn test_position_preservation_across_rebuilds() {
+        // Create a test GraphServiceActor
+        let mut actor = GraphServiceActor::new();
+        
+        // Create initial metadata
+        let mut metadata = MetadataStore::new();
+        metadata.insert("file1.md".to_string(), FileMetadata {
+            file_name: "file1.md".to_string(),
+            file_size: 1000,
+            node_size: 100,
+            hyperlink_count: 5,
+            sha1: "abc123".to_string(),
+            last_modified: Utc::now(),
+            perplexity_link: "".to_string(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+        });
+        metadata.insert("file2.md".to_string(), FileMetadata {
+            file_name: "file2.md".to_string(),
+            file_size: 2000,
+            node_size: 200,
+            hyperlink_count: 10,
+            sha1: "def456".to_string(),
+            last_modified: Utc::now(),
+            perplexity_link: "".to_string(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+        });
+
+        // First build - nodes will get initial positions
+        assert!(actor.build_from_metadata(metadata.clone()).is_ok());
+        
+        // Store the positions after first build
+        let initial_positions: HashMap<String, (Vec3Data, Vec3Data)> = actor.node_map
+            .values()
+            .map(|node| (node.metadata_id.clone(), (node.data.position, node.data.velocity)))
+            .collect();
+            
+        assert_eq!(initial_positions.len(), 2, "Should have 2 nodes after first build");
+        
+        // Modify node positions to simulate physics simulation
+        let modified_position = Vec3Data::new(10.0, 20.0, 30.0);
+        let modified_velocity = Vec3Data::new(1.0, 2.0, 3.0);
+        
+        for node in Arc::make_mut(&mut actor.node_map).values_mut() {
+            if node.metadata_id == "file1" {
+                node.data.position = modified_position;
+                node.data.velocity = modified_velocity;
+            }
+        }
+        
+        // Update graph_data to match node_map changes
+        for node in &mut Arc::make_mut(&mut actor.graph_data).nodes {
+            if node.metadata_id == "file1" {
+                node.data.position = modified_position;
+                node.data.velocity = modified_velocity;
+            }
+        }
+
+        // Second build - should preserve modified positions
+        assert!(actor.build_from_metadata(metadata.clone()).is_ok());
+        
+        // Verify positions were preserved
+        let file1_node = actor.node_map.values()
+            .find(|node| node.metadata_id == "file1")
+            .expect("file1 node should exist after rebuild");
+            
+        assert_eq!(file1_node.data.position.x, 10.0, "Position X should be preserved");
+        assert_eq!(file1_node.data.position.y, 20.0, "Position Y should be preserved");
+        assert_eq!(file1_node.data.position.z, 30.0, "Position Z should be preserved");
+        assert_eq!(file1_node.data.velocity.x, 1.0, "Velocity X should be preserved");
+        assert_eq!(file1_node.data.velocity.y, 2.0, "Velocity Y should be preserved");
+        assert_eq!(file1_node.data.velocity.z, 3.0, "Velocity Z should be preserved");
+        
+        // Verify file2 node kept its original position (since we didn't modify it)
+        let file2_node = actor.node_map.values()
+            .find(|node| node.metadata_id == "file2")
+            .expect("file2 node should exist after rebuild");
+            
+        let original_file2_pos = initial_positions.get("file2").unwrap().0;
+        assert_eq!(file2_node.data.position, original_file2_pos, "file2 position should be preserved");
+    }
+    
+    /// Test that new nodes still get proper initial positions
+    #[test]
+    fn test_new_nodes_get_initial_positions() {
+        let mut actor = GraphServiceActor::new();
+        
+        // First build with one file
+        let mut metadata1 = MetadataStore::new();
+        metadata1.insert("file1.md".to_string(), FileMetadata {
+            file_name: "file1.md".to_string(),
+            file_size: 1000,
+            node_size: 100,
+            hyperlink_count: 5,
+            sha1: "abc123".to_string(),
+            last_modified: Utc::now(),
+            perplexity_link: "".to_string(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+        });
+        
+        assert!(actor.build_from_metadata(metadata1).is_ok());
+        assert_eq!(actor.node_map.len(), 1, "Should have 1 node after first build");
+        
+        // Second build with additional file  
+        let mut metadata2 = MetadataStore::new();
+        metadata2.insert("file1.md".to_string(), FileMetadata {
+            file_name: "file1.md".to_string(),
+            file_size: 1000,
+            node_size: 100,
+            hyperlink_count: 5,
+            sha1: "abc123".to_string(),
+            last_modified: Utc::now(),
+            perplexity_link: "".to_string(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+        });
+        metadata2.insert("file2.md".to_string(), FileMetadata {
+            file_name: "file2.md".to_string(),
+            file_size: 2000,
+            node_size: 200,
+            hyperlink_count: 10,
+            sha1: "def456".to_string(),
+            last_modified: Utc::now(),
+            perplexity_link: "".to_string(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+        });
+        
+        assert!(actor.build_from_metadata(metadata2).is_ok());
+        assert_eq!(actor.node_map.len(), 2, "Should have 2 nodes after second build");
+        
+        // Verify the new node has a non-zero position (not at origin)
+        let file2_node = actor.node_map.values()
+            .find(|node| node.metadata_id == "file2")
+            .expect("file2 node should exist");
+            
+        let pos = file2_node.data.position;
+        let distance_from_origin = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
+        assert!(distance_from_origin > 0.1, "New node should not be at origin, distance: {}", distance_from_origin);
     }
 }
 

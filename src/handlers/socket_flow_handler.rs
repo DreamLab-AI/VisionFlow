@@ -761,6 +761,121 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     ctx.text(msg_str);
                                 }
                             }
+                            Some("subscribe_position_updates") => {
+                                info!("Client requested position update subscription");
+
+                                // Parse subscription parameters from the data field
+                                let interval = msg.get("data")
+                                    .and_then(|data| data.get("interval"))
+                                    .and_then(|interval| interval.as_u64())
+                                    .unwrap_or(60); // Default to 60ms if not provided
+
+                                let binary = msg.get("data")
+                                    .and_then(|data| data.get("binary"))
+                                    .and_then(|binary| binary.as_bool())
+                                    .unwrap_or(true); // Default to binary mode
+
+                                info!("Starting position updates with interval: {}ms, binary: {}", interval, binary);
+
+                                // Start position update loop with the specified interval
+                                let update_interval = std::time::Duration::from_millis(interval);
+                                let app_state = self.app_state.clone();
+                                let settings_addr = self.app_state.settings_addr.clone();
+
+                                // Send confirmation response
+                                let response = serde_json::json!({
+                                    "type": "subscription_confirmed",
+                                    "subscription": "position_updates",
+                                    "interval": interval,
+                                    "binary": binary,
+                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                });
+                                if let Ok(msg_str) = serde_json::to_string(&response) {
+                                    ctx.text(msg_str);
+                                }
+
+                                // Start the position update loop
+                                ctx.run_later(update_interval, move |_act, ctx| {
+                                    // Wrap the async function in an actor future
+                                    let fut = fetch_nodes(app_state.clone(), settings_addr.clone());
+                                    let fut = actix::fut::wrap_future::<_, Self>(fut);
+
+                                    ctx.spawn(fut.map(move |result, act, ctx| {
+                                        if let Some((nodes, detailed_debug)) = result {
+                                            // Filter nodes to only include those that have changed significantly
+                                            let mut filtered_nodes = Vec::new();
+                                            for (node_id, node_data) in &nodes {
+                                                let node_id_str = node_id.to_string();
+                                                let position = node_data.position.clone();
+                                                let velocity = node_data.velocity.clone();
+
+                                                // Apply filtering before adding to filtered nodes
+                                                if act.has_node_changed_significantly(
+                                                    &node_id_str,
+                                                    position.clone(),
+                                                    velocity.clone()
+                                                ) {
+                                                    filtered_nodes.push((*node_id, node_data.clone()));
+                                                }
+                                            }
+
+                                            // If no nodes have changed significantly, still continue the loop
+                                            if !filtered_nodes.is_empty() {
+                                                // Encode the nodes that have changed significantly
+                                                let binary_data = binary_protocol::encode_node_data(&filtered_nodes);
+
+                                                // Update motion metrics for dynamic rate adjustment
+                                                act.total_node_count = filtered_nodes.len();
+                                                let moving_nodes = filtered_nodes.iter()
+                                                    .filter(|(_, node_data)| {
+                                                        let vel = &node_data.velocity;
+                                                        vel.x.abs() > 0.001 || vel.y.abs() > 0.001 || vel.z.abs() > 0.001
+                                                    })
+                                                    .count();
+                                                act.nodes_in_motion = moving_nodes;
+
+                                                // Update performance metrics
+                                                act.last_transfer_size = binary_data.len();
+                                                act.total_bytes_sent += binary_data.len();
+                                                act.update_count += 1;
+                                                act.nodes_sent_count += filtered_nodes.len();
+
+                                                if detailed_debug {
+                                                    debug!("[Position Updates] Sending {} nodes, {} bytes", 
+                                                           filtered_nodes.len(), binary_data.len());
+                                                }
+
+                                                ctx.binary(binary_data);
+                                            }
+
+                                            // Schedule the next update with the same interval
+                                            let next_interval = std::time::Duration::from_millis(interval);
+                                            ctx.run_later(next_interval, move |act, ctx| {
+                                                // Recursively continue the subscription loop
+                                                let subscription_msg = format!(
+                                                    "{{\"type\":\"subscribe_position_updates\",\"data\":{{\"interval\":{},\"binary\":{}}}}}",
+                                                    interval, binary
+                                                );
+                                                <SocketFlowServer as StreamHandler<Result<ws::Message, ws::ProtocolError>>>::handle(
+                                                    act, 
+                                                    Ok(ws::Message::Text(subscription_msg.into())), 
+                                                    ctx
+                                                );
+                                            });
+                                        }
+                                    }));
+                                });
+                            }
+                            Some("requestPositionUpdates") => {
+                                info!("Client requested position updates (legacy format)");
+                                // Legacy handler - redirect to new subscription format
+                                let subscription_msg = r#"{"type":"subscribe_position_updates","data":{"interval":60,"binary":true}}"#;
+                                <SocketFlowServer as StreamHandler<Result<ws::Message, ws::ProtocolError>>>::handle(
+                                    self,
+                                    Ok(ws::Message::Text(subscription_msg.to_string().into())),
+                                    ctx
+                                );
+                            }
                             Some("requestSwarmTelemetry") => {
                                 info!("Client requested enhanced swarm telemetry");
 

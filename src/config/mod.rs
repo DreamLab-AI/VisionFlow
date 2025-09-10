@@ -313,6 +313,39 @@ pub struct EdgeSettings {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
+pub struct AutoPauseConfig {
+    #[serde(alias = "enabled")]
+    pub enabled: bool,
+    #[validate(range(min = 0.0, max = 10.0))]
+    #[serde(alias = "equilibrium_velocity_threshold")]
+    pub equilibrium_velocity_threshold: f32,
+    #[validate(range(min = 1, max = 300))]
+    #[serde(alias = "equilibrium_check_frames")]
+    pub equilibrium_check_frames: u32,
+    #[validate(range(min = 0.0, max = 1.0))]
+    #[serde(alias = "equilibrium_energy_threshold")]
+    pub equilibrium_energy_threshold: f32,
+    #[serde(alias = "pause_on_equilibrium")]
+    pub pause_on_equilibrium: bool,
+    #[serde(alias = "resume_on_interaction")]
+    pub resume_on_interaction: bool,
+}
+
+impl AutoPauseConfig {
+    pub fn default() -> Self {
+        Self {
+            enabled: true,
+            equilibrium_velocity_threshold: 0.1,
+            equilibrium_check_frames: 30,
+            equilibrium_energy_threshold: 0.01,
+            pause_on_equilibrium: true,
+            resume_on_interaction: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
 pub struct AutoBalanceConfig {
     #[serde(alias = "stability_variance_threshold")]
     pub stability_variance_threshold: f32,
@@ -320,6 +353,8 @@ pub struct AutoBalanceConfig {
     pub stability_frame_count: u32,
     #[serde(alias = "clustering_distance_threshold")]
     pub clustering_distance_threshold: f32,
+    #[serde(alias = "clustering_hysteresis_buffer")]
+    pub clustering_hysteresis_buffer: f32,
     #[serde(alias = "bouncing_node_percentage")]
     pub bouncing_node_percentage: f32,
     #[serde(alias = "boundary_min_distance")]
@@ -332,12 +367,30 @@ pub struct AutoBalanceConfig {
     pub explosion_distance_threshold: f32,
     #[serde(alias = "spreading_distance_threshold")]
     pub spreading_distance_threshold: f32,
+    #[serde(alias = "spreading_hysteresis_buffer")]
+    pub spreading_hysteresis_buffer: f32,
     #[serde(alias = "oscillation_detection_frames")]
     pub oscillation_detection_frames: usize,
     #[serde(alias = "oscillation_change_threshold")]
     pub oscillation_change_threshold: f32,
     #[serde(alias = "min_oscillation_changes")]
     pub min_oscillation_changes: usize,
+    
+    // Parameter adjustment and cooldown configuration
+    #[serde(alias = "parameter_adjustment_rate")]
+    pub parameter_adjustment_rate: f32,
+    #[serde(alias = "max_adjustment_factor")]
+    pub max_adjustment_factor: f32,
+    #[serde(alias = "min_adjustment_factor")]
+    pub min_adjustment_factor: f32,
+    #[serde(alias = "adjustment_cooldown_ms")]
+    pub adjustment_cooldown_ms: u64,
+    #[serde(alias = "state_change_cooldown_ms")]
+    pub state_change_cooldown_ms: u64,
+    #[serde(alias = "parameter_dampening_factor")]
+    pub parameter_dampening_factor: f32,
+    #[serde(alias = "hysteresis_delay_frames")]
+    pub hysteresis_delay_frames: u32,
     
     // New CUDA kernel parameter tuning thresholds
     #[serde(alias = "grid_cell_size_min")]
@@ -372,15 +425,26 @@ impl AutoBalanceConfig {
             stability_variance_threshold: 100.0,
             stability_frame_count: 180,
             clustering_distance_threshold: 20.0,
+            clustering_hysteresis_buffer: 5.0,
             bouncing_node_percentage: 0.33,
             boundary_min_distance: 90.0,
             boundary_max_distance: 110.0,
             extreme_distance_threshold: 1000.0,
             explosion_distance_threshold: 10000.0,
             spreading_distance_threshold: 500.0,
-            oscillation_detection_frames: 10,
-            oscillation_change_threshold: 5.0,
-            min_oscillation_changes: 5,
+            spreading_hysteresis_buffer: 50.0,
+            oscillation_detection_frames: 20,
+            oscillation_change_threshold: 10.0,
+            min_oscillation_changes: 8,
+            
+            // Parameter adjustment and cooldown defaults
+            parameter_adjustment_rate: 0.1,
+            max_adjustment_factor: 0.2,
+            min_adjustment_factor: -0.2,
+            adjustment_cooldown_ms: 2000,
+            state_change_cooldown_ms: 1000,
+            parameter_dampening_factor: 0.05,
+            hysteresis_delay_frames: 30,
             
             // New CUDA kernel parameter defaults for tuning ranges
             grid_cell_size_min: 1.0,
@@ -410,6 +474,9 @@ pub struct PhysicsSettings {
     #[serde(default, alias = "auto_balance_config")]
     #[validate(nested)]
     pub auto_balance_config: AutoBalanceConfig,
+    #[serde(default, alias = "auto_pause")]
+    #[validate(nested)]
+    pub auto_pause: AutoPauseConfig,
     #[serde(alias = "attraction_k")]
     pub attraction_k: f32,
     #[serde(alias = "bounds_size")]
@@ -516,6 +583,7 @@ impl Default for PhysicsSettings {
             auto_balance: false,
             auto_balance_interval_ms: 500,
             auto_balance_config: AutoBalanceConfig::default(),
+            auto_pause: AutoPauseConfig::default(),
             attraction_k: 0.0001,
             bounds_size: 500.0,
             separation_radius: 2.0,

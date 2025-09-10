@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use bytemuck::{Pod, Zeroable};
-use crate::config::{PhysicsSettings, AutoBalanceConfig};
+use crate::config::{PhysicsSettings, AutoBalanceConfig, AutoPauseConfig};
 use cudarc::driver::DeviceRepr;
 use cust_core;
 
@@ -108,6 +108,11 @@ pub struct SimulationParams {
     pub auto_balance: bool,        // Enable neural auto-balancing
     pub auto_balance_interval_ms: u32, // Interval between auto-balance checks
     pub auto_balance_config: AutoBalanceConfig, // Configuration for auto-balance thresholds
+    
+    // Auto-pause parameters for equilibrium detection
+    pub auto_pause_config: AutoPauseConfig,  // Configuration for auto-pause functionality
+    pub is_physics_paused: bool,             // Current pause state (not enabled/disabled)
+    pub equilibrium_stability_counter: u32,  // Counter for equilibrium detection
     
     // Core iteration parameters
     pub iterations: u32,           // Range: 1-500, Default: varies by phase
@@ -373,6 +378,9 @@ impl From<&PhysicsSettings> for SimulationParams {
             auto_balance: physics.auto_balance,
             auto_balance_interval_ms: physics.auto_balance_interval_ms,
             auto_balance_config: physics.auto_balance_config.clone(),
+            auto_pause_config: physics.auto_pause.clone(),
+            is_physics_paused: false,  // Start unpaused
+            equilibrium_stability_counter: 0,
             iterations: physics.iterations,
             dt: physics.dt,
             spring_k: physics.spring_k,

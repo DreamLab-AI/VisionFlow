@@ -13,7 +13,7 @@ spring_force_clamp_factor = 0.5
 rest_length = 50.0                      # Natural spring rest length
 repulsion_cutoff = 50.0                 # Maximum distance for repulsion calculations  
 repulsion_softening_epsilon = 0.0001   # Prevents division by zero in force calculations
-center_gravity_k = 0.0                 # Gravity toward center (0 = disabled)
+center_gravity_k = 0.005               # Gravity toward center - helps nodes settle and prevents drift
 grid_cell_size = 50.0                  # Spatial grid resolution for neighbor searches
 warmup_iterations = 100                # Number of warmup simulation steps
 cooling_rate = 0.001                   # Rate of cooling during warmup
