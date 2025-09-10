@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 /// A 3D vector type that is compatible with both CUDA and WebSocket binary protocol
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Pod, Zeroable, Serialize, Deserialize)]
 pub struct Vec3Data {
     pub x: f32,
     pub y: f32,

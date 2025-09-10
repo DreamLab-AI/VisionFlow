@@ -1,7 +1,8 @@
 pub use crate::models::simulation_params::SimParams;
 use crate::models::constraints::ConstraintData;
 use anyhow::{anyhow, Result};
-use log::{info, debug};
+use log::{info, debug, warn};
+use crate::utils::advanced_logging::{log_gpu_kernel, log_gpu_error, log_memory_event};
 use cust::context::Context;
 use cust::device::Device;
 use cust::launch;
@@ -9,6 +10,72 @@ use cust::memory::{DeviceBuffer, CopyDestination, DevicePointer};
 use cust_core::DeviceCopy;
 use cust::module::Module;
 use cust::stream::{Stream, StreamFlags};
+use cust::event::{Event, EventFlags};
+use std::collections::HashMap;
+
+// Opaque type for curandState (CUDA random number generator state)
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct curandState {
+    _private: [u8; 48], // curandState is typically 48 bytes
+}
+
+unsafe impl DeviceCopy for curandState {}
+
+// GPU Performance Metrics tracking structure
+#[derive(Debug, Clone)]
+pub struct GPUPerformanceMetrics {
+    // Kernel execution times (in milliseconds)
+    pub kernel_times: HashMap<String, Vec<f32>>,
+    pub total_kernel_calls: HashMap<String, u64>,
+    
+    // Memory usage statistics  
+    pub total_memory_allocated: usize,
+    pub peak_memory_usage: usize,
+    pub current_memory_usage: usize,
+    
+    // Kernel-specific performance
+    pub force_kernel_avg_time: f32,
+    pub integrate_kernel_avg_time: f32,
+    pub grid_build_avg_time: f32,
+    pub sssp_avg_time: f32,
+    pub clustering_avg_time: f32,
+    pub anomaly_detection_avg_time: f32,
+    pub community_detection_avg_time: f32,
+    
+    // GPU utilization metrics
+    pub gpu_utilization_percent: f32,
+    pub memory_bandwidth_utilization: f32,
+    
+    // Performance counters
+    pub frames_per_second: f32,
+    pub total_simulation_time: f32,
+    pub last_frame_time: f32,
+}
+
+impl Default for GPUPerformanceMetrics {
+    fn default() -> Self {
+        Self {
+            kernel_times: HashMap::new(),
+            total_kernel_calls: HashMap::new(),
+            total_memory_allocated: 0,
+            peak_memory_usage: 0,
+            current_memory_usage: 0,
+            force_kernel_avg_time: 0.0,
+            integrate_kernel_avg_time: 0.0,
+            grid_build_avg_time: 0.0,
+            sssp_avg_time: 0.0,
+            clustering_avg_time: 0.0,
+            anomaly_detection_avg_time: 0.0,
+            community_detection_avg_time: 0.0,
+            gpu_utilization_percent: 0.0,
+            memory_bandwidth_utilization: 0.0,
+            frames_per_second: 0.0,
+            total_simulation_time: 0.0,
+            last_frame_time: 0.0,
+        }
+    }
+}
 
 // External CUDA/Thrust function for sorting
 // This is provided by the compiled CUDA object file
@@ -94,15 +161,21 @@ pub struct UnifiedGPUCompute {
     cub_temp_storage: DeviceBuffer<u8>,
 
     // State
-    num_nodes: usize,
-    num_edges: usize,
+    pub num_nodes: usize,
+    pub num_edges: usize,
     allocated_nodes: usize,  // Track allocated buffer size
     allocated_edges: usize,  // Track allocated buffer size
-    max_grid_cells: usize,   // Track allocated grid cell buffer size
+    pub max_grid_cells: usize,   // Track allocated grid cell buffer size
     iteration: i32,
     
     // Reusable host buffer for zeroing grid cells
     zero_buffer: Vec<i32>,
+    
+    // Cell buffer memory management
+    cell_buffer_growth_factor: f32,
+    max_allowed_grid_cells: usize,
+    resize_count: usize,
+    total_memory_allocated: usize,  // Track total GPU memory usage
     
     // SSSP state
     pub dist: DeviceBuffer<f32>,                // [n] distances
@@ -119,6 +192,41 @@ pub struct UnifiedGPUCompute {
     
     // State validity flag
     pub sssp_available: bool,
+    
+    // Performance metrics tracking
+    performance_metrics: GPUPerformanceMetrics,
+    
+    // K-means clustering buffers
+    pub centroids_x: DeviceBuffer<f32>,
+    pub centroids_y: DeviceBuffer<f32>,
+    pub centroids_z: DeviceBuffer<f32>,
+    pub cluster_assignments: DeviceBuffer<i32>,
+    pub distances_to_centroid: DeviceBuffer<f32>,
+    pub cluster_sizes: DeviceBuffer<i32>,
+    pub partial_inertia: DeviceBuffer<f32>,
+    pub min_distances: DeviceBuffer<f32>,
+    pub selected_nodes: DeviceBuffer<i32>,
+    pub max_clusters: usize,
+    
+    // Anomaly detection buffers
+    pub lof_scores: DeviceBuffer<f32>,
+    pub local_densities: DeviceBuffer<f32>,
+    pub zscore_values: DeviceBuffer<f32>,
+    pub feature_values: DeviceBuffer<f32>,
+    pub partial_sums: DeviceBuffer<f32>,
+    pub partial_sq_sums: DeviceBuffer<f32>,
+    
+    // Community detection buffers (Label Propagation)
+    pub labels_current: DeviceBuffer<i32>,     // Current node labels
+    pub labels_next: DeviceBuffer<i32>,        // Next iteration labels (for sync mode)
+    pub label_counts: DeviceBuffer<i32>,       // Label frequency counts
+    pub convergence_flag: DeviceBuffer<i32>,   // Convergence check flag
+    pub node_degrees: DeviceBuffer<f32>,       // Node degrees for modularity
+    pub modularity_contributions: DeviceBuffer<f32>, // Per-node modularity contributions
+    pub community_sizes: DeviceBuffer<i32>,    // Size of each community
+    pub label_mapping: DeviceBuffer<i32>,      // For relabeling communities
+    pub rand_states: DeviceBuffer<curandState>, // curandState buffer for tie-breaking
+    pub max_labels: usize,                     // Maximum number of possible labels
 }
 
 
@@ -191,10 +299,48 @@ impl UnifiedGPUCompute {
         let next_frontier_flags = DeviceBuffer::zeroed(num_nodes)?;
         let sssp_stream = Some(Stream::new(StreamFlags::NON_BLOCKING, None)?);
         
+        // K-means clustering buffers (start with max 50 clusters)
+        let max_clusters = 50;
+        let centroids_x = DeviceBuffer::zeroed(max_clusters)?;
+        let centroids_y = DeviceBuffer::zeroed(max_clusters)?;
+        let centroids_z = DeviceBuffer::zeroed(max_clusters)?;
+        let cluster_assignments = DeviceBuffer::zeroed(num_nodes)?;
+        let distances_to_centroid = DeviceBuffer::zeroed(num_nodes)?;
+        let cluster_sizes = DeviceBuffer::zeroed(max_clusters)?;
+        // For inertia computation, we need one partial sum per block
+        let num_blocks = (num_nodes + 255) / 256;
+        let partial_inertia = DeviceBuffer::zeroed(num_blocks)?;
+        let min_distances = DeviceBuffer::zeroed(num_nodes)?;
+        let selected_nodes = DeviceBuffer::zeroed(max_clusters)?;
+        
+        // Anomaly detection buffers
+        let lof_scores = DeviceBuffer::zeroed(num_nodes)?;
+        let local_densities = DeviceBuffer::zeroed(num_nodes)?;
+        let zscore_values = DeviceBuffer::zeroed(num_nodes)?;
+        let feature_values = DeviceBuffer::zeroed(num_nodes)?;
+        let partial_sums = DeviceBuffer::zeroed(num_blocks)?;
+        let partial_sq_sums = DeviceBuffer::zeroed(num_blocks)?;
+        
+        // Community detection buffers (Label Propagation)
+        let labels_current = DeviceBuffer::zeroed(num_nodes)?;
+        let labels_next = DeviceBuffer::zeroed(num_nodes)?;
+        let label_counts = DeviceBuffer::zeroed(num_nodes)?; // Max possible labels = num_nodes
+        let convergence_flag = DeviceBuffer::from_slice(&[1i32])?; // Start with converged = true
+        let node_degrees = DeviceBuffer::zeroed(num_nodes)?;
+        let modularity_contributions = DeviceBuffer::zeroed(num_nodes)?;
+        let community_sizes = DeviceBuffer::zeroed(num_nodes)?;
+        let label_mapping = DeviceBuffer::zeroed(num_nodes)?;
+        // curandState buffer for random number generation
+        let rand_states = DeviceBuffer::from_slice(&vec![curandState { _private: [0u8; 48] }; num_nodes])?;
+        let max_labels = num_nodes;
+        
         // Store the module for kernel lookup
         let kernel_module = module;
 
 
+        // Calculate initial memory usage
+        let initial_memory = Self::calculate_memory_usage(num_nodes, num_edges, max_grid_cells);
+        
         let gpu_compute = Self {
             _context,
             _module: kernel_module,
@@ -246,6 +392,41 @@ impl UnifiedGPUCompute {
             constraint_data: DeviceBuffer::from_slice(&vec![])?,
             num_constraints: 0,
             sssp_available: false,
+            performance_metrics: GPUPerformanceMetrics::default(),
+            // K-means clustering fields
+            centroids_x,
+            centroids_y,
+            centroids_z,
+            cluster_assignments,
+            distances_to_centroid,
+            cluster_sizes,
+            partial_inertia,
+            min_distances,
+            selected_nodes,
+            max_clusters,
+            // Anomaly detection fields
+            lof_scores,
+            local_densities,
+            zscore_values,
+            feature_values,
+            partial_sums,
+            partial_sq_sums,
+            // Community detection fields
+            labels_current,
+            labels_next,
+            label_counts,
+            convergence_flag,
+            node_degrees,
+            modularity_contributions,
+            community_sizes,
+            label_mapping,
+            rand_states,
+            max_labels,
+            // Cell buffer management fields
+            cell_buffer_growth_factor: 1.5,
+            max_allowed_grid_cells: 128 * 128 * 128,  // Cap at 2M cells (~8MB)
+            resize_count: 0,
+            total_memory_allocated: initial_memory,
         };
         
         // Note: Constant memory initialization would require cust's global symbol API
@@ -358,6 +539,128 @@ impl UnifiedGPUCompute {
         std::mem::swap(&mut self.vel_in_z, &mut self.vel_out_z);
     }
 
+    /// Calculate total memory usage in bytes
+    fn calculate_memory_usage(num_nodes: usize, num_edges: usize, max_grid_cells: usize) -> usize {
+        // Node buffers: pos (6x f32), vel (6x f32), mass (1x f32), graph_id (1x i32)
+        let node_memory = num_nodes * (12 * 4 + 1 * 4 + 1 * 4);
+        // Edge buffers: row_offsets, col_indices, weights
+        let edge_memory = (num_nodes + 1) * 4 + num_edges * (4 + 4);
+        // Grid buffers: cell_start, cell_end, cell_keys, sorted_indices
+        let grid_memory = max_grid_cells * (4 + 4) + num_nodes * (4 + 4);
+        // Force buffers: force_x, force_y, force_z
+        let force_memory = num_nodes * 3 * 4;
+        // Other buffers (SSSP, clustering, etc.)
+        let other_memory = num_nodes * 10 * 4;
+        
+        node_memory + edge_memory + grid_memory + force_memory + other_memory
+    }
+    
+    /// Get memory utilization metrics
+    pub fn get_memory_metrics(&self) -> (usize, f32, usize) {
+        let current_usage = Self::calculate_memory_usage(self.num_nodes, self.num_edges, self.max_grid_cells);
+        let allocated_usage = Self::calculate_memory_usage(self.allocated_nodes, self.allocated_edges, self.max_grid_cells);
+        let utilization = current_usage as f32 / allocated_usage as f32;
+        (current_usage, utilization, self.resize_count)
+    }
+    
+    /// Get grid occupancy metrics
+    pub fn get_grid_occupancy(&self, num_grid_cells: usize) -> f32 {
+        if num_grid_cells == 0 { return 0.0; }
+        let avg_nodes_per_cell = self.num_nodes as f32 / num_grid_cells as f32;
+        // Target is 4-16 nodes per cell, optimal is 8
+        let optimal_occupancy = 8.0;
+        (avg_nodes_per_cell / optimal_occupancy).min(1.0)
+    }
+    
+    /// Resize cell buffers dynamically with safety checks
+    pub fn resize_cell_buffers(&mut self, required_cells: usize) -> Result<()> {
+        if required_cells <= self.max_grid_cells {
+            return Ok(());
+        }
+        
+        // Check against maximum allowed size
+        if required_cells > self.max_allowed_grid_cells {
+            warn!("Grid size {} exceeds maximum allowed {}, capping to maximum", 
+                  required_cells, self.max_allowed_grid_cells);
+            let capped_size = self.max_allowed_grid_cells;
+            return self.resize_cell_buffers_internal(capped_size);
+        }
+        
+        // Apply growth factor to reduce future reallocations
+        let new_size = ((required_cells as f32 * self.cell_buffer_growth_factor) as usize)
+            .min(self.max_allowed_grid_cells);
+        
+        self.resize_cell_buffers_internal(new_size)
+    }
+    
+    /// Internal cell buffer resize implementation
+    fn resize_cell_buffers_internal(&mut self, new_size: usize) -> Result<()> {
+        info!("Resizing cell buffers from {} to {} cells ({}x growth)", 
+              self.max_grid_cells, new_size, self.cell_buffer_growth_factor);
+        
+        // Preserve existing cell data if there was any meaningful data
+        let preserve_data = self.max_grid_cells > 0 && self.iteration > 0;
+        
+        let old_cell_start_data = if preserve_data {
+            let mut data = vec![0i32; self.max_grid_cells];
+            self.cell_start.copy_to(&mut data).unwrap_or_else(|e| {
+                warn!("Failed to preserve cell_start data: {}", e);
+            });
+            Some(data)
+        } else {
+            None
+        };
+        
+        let old_cell_end_data = if preserve_data {
+            let mut data = vec![0i32; self.max_grid_cells];
+            self.cell_end.copy_to(&mut data).unwrap_or_else(|e| {
+                warn!("Failed to preserve cell_end data: {}", e);
+            });
+            Some(data)
+        } else {
+            None
+        };
+        
+        // Create new buffers
+        self.cell_start = DeviceBuffer::zeroed(new_size).map_err(|e| {
+            anyhow!("Failed to allocate cell_start buffer of size {}: {}", new_size, e)
+        })?;
+        self.cell_end = DeviceBuffer::zeroed(new_size).map_err(|e| {
+            anyhow!("Failed to allocate cell_end buffer of size {}: {}", new_size, e)
+        })?;
+        
+        // Restore data if we had any
+        if let (Some(start_data), Some(end_data)) = (old_cell_start_data, old_cell_end_data) {
+            let copy_size = start_data.len().min(new_size);
+            if copy_size > 0 {
+                self.cell_start.copy_from(&start_data[..copy_size])?;
+                self.cell_end.copy_from(&end_data[..copy_size])?;
+                debug!("Preserved {} cells of data during resize", copy_size);
+            }
+        }
+        
+        // Update tracking variables
+        let old_memory = self.total_memory_allocated;
+        self.max_grid_cells = new_size;
+        self.zero_buffer = vec![0i32; new_size];
+        self.resize_count += 1;
+        self.total_memory_allocated = Self::calculate_memory_usage(
+            self.allocated_nodes, self.allocated_edges, self.max_grid_cells
+        );
+        
+        let memory_delta = self.total_memory_allocated as i64 - old_memory as i64;
+        info!("Cell buffer resize complete. Memory change: {:+} bytes, Total: {} MB", 
+              memory_delta, self.total_memory_allocated / 1024 / 1024);
+        
+        // Warn if we're doing too many resizes
+        if self.resize_count > 10 {
+            warn!("High resize frequency detected ({} resizes). Consider increasing initial buffer size.", 
+                  self.resize_count);
+        }
+        
+        Ok(())
+    }
+    
     /// Resize buffers with growth factor while preserving data
     pub fn resize_buffers(&mut self, new_num_nodes: usize, new_num_edges: usize) -> Result<()> {
         // Only resize if we need more capacity
@@ -427,6 +730,26 @@ impl UnifiedGPUCompute {
         self.cell_keys = DeviceBuffer::zeroed(actual_new_nodes)?;
         let sorted_indices: Vec<i32> = (0..actual_new_nodes as i32).collect();
         self.sorted_node_indices = DeviceBuffer::from_slice(&sorted_indices)?;
+        
+        // Update total memory tracking
+        self.total_memory_allocated = Self::calculate_memory_usage(
+            self.allocated_nodes, self.allocated_edges, self.max_grid_cells
+        );
+
+        // Recreate clustering and anomaly detection buffers
+        self.cluster_assignments = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.distances_to_centroid = DeviceBuffer::zeroed(actual_new_nodes)?;
+        let new_num_blocks = (actual_new_nodes + 255) / 256;
+        self.partial_inertia = DeviceBuffer::zeroed(new_num_blocks)?;
+        self.min_distances = DeviceBuffer::zeroed(actual_new_nodes)?;
+        
+        // Anomaly detection buffers
+        self.lof_scores = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.local_densities = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.zscore_values = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.feature_values = DeviceBuffer::zeroed(actual_new_nodes)?;
+        self.partial_sums = DeviceBuffer::zeroed(new_num_blocks)?;
+        self.partial_sq_sums = DeviceBuffer::zeroed(new_num_blocks)?;
 
         // Update sizes
         self.num_nodes = new_num_nodes;
@@ -460,10 +783,20 @@ impl UnifiedGPUCompute {
         // Placeholder for setting compute mode
     }
 
-    pub fn set_constraints(&mut self, constraints: Vec<ConstraintData>) -> Result<()> {
+    pub fn set_constraints(&mut self, mut constraints: Vec<ConstraintData>) -> Result<()> {
+        // Set activation frame for new constraints (those with activation_frame == 0)
+        let current_iteration = self.iteration;
+        for constraint in &mut constraints {
+            if constraint.activation_frame == 0 {
+                constraint.activation_frame = current_iteration as i32;
+                debug!("Setting activation frame {} for constraint type {}", current_iteration, constraint.kind);
+            }
+        }
+        
         // Resize constraint buffers if needed
         if constraints.len() > self.constraint_data.len() {
-            info!("Resizing constraint buffer from {} to {}", self.constraint_data.len(), constraints.len());
+            info!("Resizing constraint buffer from {} to {} with progressive activation", 
+                self.constraint_data.len(), constraints.len());
             // Create new constraint buffer
             let new_constraint_buffer = DeviceBuffer::from_slice(&constraints)?;
             self.constraint_data = new_constraint_buffer;
@@ -475,7 +808,8 @@ impl UnifiedGPUCompute {
         }
         
         self.num_constraints = constraints.len();
-        debug!("Updated GPU constraints: {} active constraints", self.num_constraints);
+        debug!("Updated GPU constraints: {} active constraints with progressive activation support", 
+            self.num_constraints);
         Ok(())
     }
 
@@ -483,6 +817,11 @@ impl UnifiedGPUCompute {
         params.iteration = self.iteration;
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+        
+        // CRITICAL SAFETY CHECK: Ensure num_nodes doesn't exceed allocated buffer sizes
+        if self.num_nodes > self.allocated_nodes {
+            return Err(anyhow!("CRITICAL: num_nodes ({}) exceeds allocated_nodes ({}). This would cause buffer overflow!", self.num_nodes, self.allocated_nodes));
+        }
         
         // Validate kernel launch parameters upfront
         crate::utils::gpu_diagnostics::validate_kernel_launch("unified_gpu_execute", grid_size, block_size, self.num_nodes).map_err(|e| anyhow::anyhow!(e))?;
@@ -538,19 +877,21 @@ impl UnifiedGPUCompute {
         };
         let num_grid_cells = (grid_dims.x * grid_dims.y * grid_dims.z) as usize;
 
-        // Dynamically resize grid buffers if needed
+        // Check for pathological cases
+        let occupancy = self.get_grid_occupancy(num_grid_cells);
+        if occupancy < 0.1 {
+            warn!("Low grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider larger cell size.", 
+                  occupancy * 100.0, self.num_nodes as f32 / num_grid_cells as f32);
+        } else if occupancy > 2.0 {
+            warn!("High grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider smaller cell size.", 
+                  occupancy * 100.0, self.num_nodes as f32 / num_grid_cells as f32);
+        }
+        
+        // Dynamically resize cell buffers if needed
         if num_grid_cells > self.max_grid_cells {
-            info!("Resizing spatial grid buffers from {} to {} cells", self.max_grid_cells, num_grid_cells);
-            
-            // Allocate new larger buffers
-            self.cell_start = DeviceBuffer::zeroed(num_grid_cells)?;
-            self.cell_end = DeviceBuffer::zeroed(num_grid_cells)?;
-            
-            // Update tracking variables
-            self.max_grid_cells = num_grid_cells;
-            self.zero_buffer = vec![0i32; num_grid_cells];
-            
-            info!("Successfully resized spatial grid buffers to {} cells", num_grid_cells);
+            self.resize_cell_buffers(num_grid_cells)?;
+            debug!("Grid buffer resize completed. Current grid: {}x{}x{} = {} cells", 
+                   grid_dims.x, grid_dims.y, grid_dims.z, num_grid_cells);
         }
 
         // 3. Build Grid: Assign cell keys to each node
@@ -562,7 +903,7 @@ impl UnifiedGPUCompute {
         unsafe {
             let stream = &self.stream;
             launch!(
-                build_grid_kernel<<<grid_size, block_size, 0, stream>>>(
+                build_grid_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -589,7 +930,7 @@ impl UnifiedGPUCompute {
                 d_keys_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
                 d_values_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
                 d_values_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
-                self.num_nodes as ::std::os::raw::c_int,
+                self.num_nodes.min(self.allocated_nodes) as ::std::os::raw::c_int, // CRITICAL FIX: Prevent buffer overflow
                 stream_ptr, // Use our custom stream, not default
             );
         }
@@ -633,7 +974,7 @@ impl UnifiedGPUCompute {
         
         unsafe {
             launch!(
-                force_pass_kernel<<<grid_size, block_size, 0, stream>>>(
+                force_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -651,7 +992,11 @@ impl UnifiedGPUCompute {
                 self.num_nodes as i32,
                 d_sssp,
                 self.constraint_data.as_device_ptr(),
-                self.num_constraints as i32
+                self.num_constraints as i32,
+                // FIX: Add the three missing null pointer arguments for telemetry
+                DevicePointer::<f32>::null(), // constraint_violations
+                DevicePointer::<f32>::null(), // constraint_energy  
+                DevicePointer::<f32>::null()  // node_constraint_force
             ))?;
         }
 
@@ -660,7 +1005,7 @@ impl UnifiedGPUCompute {
         let stream = &self.stream;
         unsafe {
             launch!(
-                integrate_pass_kernel<<<grid_size, block_size, 0, stream>>>(
+                integrate_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
                 self.pos_in_x.as_device_ptr(),
                 self.pos_in_y.as_device_ptr(),
                 self.pos_in_z.as_device_ptr(),
@@ -684,6 +1029,15 @@ impl UnifiedGPUCompute {
         self.stream.synchronize()?;
         self.swap_buffers();
         self.iteration += 1;
+        
+        // Log efficiency metrics periodically
+        if self.iteration % 100 == 0 {
+            let (memory_used, utilization, resize_count) = self.get_memory_metrics();
+            let grid_occupancy = self.get_grid_occupancy(num_grid_cells);
+            info!("Performance metrics [iter {}]: Memory: {:.1}MB ({:.1}% utilized), Grid occupancy: {:.1}%, Resizes: {}",
+                  self.iteration, memory_used as f32 / 1024.0 / 1024.0, 
+                  utilization * 100.0, grid_occupancy * 100.0, resize_count);
+        }
 
         Ok(())
     }
@@ -783,6 +1137,625 @@ impl UnifiedGPUCompute {
                 Err(e)
             }
         }
+    }
+    
+    /// Run K-means clustering on node positions
+    pub fn run_kmeans(&mut self, num_clusters: usize, max_iterations: u32, tolerance: f32, seed: u32) -> Result<(Vec<i32>, Vec<(f32, f32, f32)>, f32)> {
+        if num_clusters > self.max_clusters {
+            return Err(anyhow!("Too many clusters requested: {} > {}", num_clusters, self.max_clusters));
+        }
+        
+        let block_size = 256;
+        let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+        
+        // Initialize centroids using K-means++
+        for centroid in 0..num_clusters {
+            let init_kernel = self._module.get_function("init_centroids_kernel")?;
+            let shared_memory_size = block_size * 4; // 4 bytes per float
+            let stream = &self.stream;
+            
+            unsafe {
+                launch!(
+                    init_kernel<<<num_clusters as u32, block_size, shared_memory_size, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.min_distances.as_device_ptr(),
+                    self.selected_nodes.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32,
+                    centroid as i32,
+                    seed
+                ))?;
+            }
+            self.stream.synchronize()?;
+        }
+        
+        let mut prev_inertia = f32::INFINITY;
+        let mut final_inertia = 0.0f32;
+        
+        // Main K-means iteration loop
+        for _iteration in 0..max_iterations {
+            // Step 1: Assign nodes to nearest centroid
+            let assign_kernel = self._module.get_function("assign_clusters_kernel")?;
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    assign_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.distances_to_centroid.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32
+                ))?;
+            }
+            
+            // Step 2: Update centroids
+            let update_kernel = self._module.get_function("update_centroids_kernel")?;
+            let centroid_shared_memory = block_size * (3 * 4 + 4); // 3 floats + 1 int per thread
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    update_kernel<<<num_clusters as u32, block_size, centroid_shared_memory, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_sizes.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32
+                ))?;
+            }
+            
+            // Step 3: Compute inertia for convergence check
+            let inertia_kernel = self._module.get_function("compute_inertia_kernel")?;
+            let inertia_shared_memory = block_size * 4; // One float per thread
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    inertia_kernel<<<grid_size, block_size, inertia_shared_memory, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.partial_inertia.as_device_ptr(),
+                    self.num_nodes as i32
+                ))?;
+            }
+            
+            self.stream.synchronize()?;
+            
+            // Sum partial inertias on CPU
+            let mut partial_inertias = vec![0.0f32; grid_size as usize];
+            self.partial_inertia.copy_to(&mut partial_inertias)?;
+            let current_inertia: f32 = partial_inertias.iter().sum();
+            final_inertia = current_inertia;
+            
+            // Check convergence
+            if (prev_inertia - current_inertia).abs() < tolerance {
+                info!("K-means converged at iteration {} with inertia {:.4}", _iteration, current_inertia);
+                break;
+            }
+            
+            prev_inertia = current_inertia;
+        }
+        
+        // Download results
+        let mut assignments = vec![0i32; self.num_nodes];
+        self.cluster_assignments.copy_to(&mut assignments)?;
+        
+        let mut centroids_x = vec![0.0f32; num_clusters];
+        let mut centroids_y = vec![0.0f32; num_clusters];
+        let mut centroids_z = vec![0.0f32; num_clusters];
+        self.centroids_x.copy_to(&mut centroids_x)?;
+        self.centroids_y.copy_to(&mut centroids_y)?;
+        self.centroids_z.copy_to(&mut centroids_z)?;
+        
+        let centroids: Vec<(f32, f32, f32)> = centroids_x.into_iter()
+            .zip(centroids_y.into_iter())
+            .zip(centroids_z.into_iter())
+            .map(|((x, y), z)| (x, y, z))
+            .collect();
+        
+        Ok((assignments, centroids, final_inertia))
+    }
+    
+    /// Run Local Outlier Factor (LOF) anomaly detection
+    pub fn run_lof_anomaly_detection(&mut self, k_neighbors: i32, radius: f32) -> Result<(Vec<f32>, Vec<f32>)> {
+        // First ensure spatial grid is built (reuse existing grid from simulation)
+        let block_size = 256;
+        let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+        
+        // Get current grid dimensions from the last simulation run
+        // For now, use a simple fixed grid - in practice this would be computed
+        let grid_dims = int3 { x: 32, y: 32, z: 32 };
+        
+        let lof_kernel = self._module.get_function("compute_lof_kernel")?;
+        let stream = &self.stream;
+        unsafe {
+            launch!(
+                lof_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                self.pos_in_x.as_device_ptr(),
+                self.pos_in_y.as_device_ptr(),
+                self.pos_in_z.as_device_ptr(),
+                self.sorted_node_indices.as_device_ptr(),
+                self.cell_start.as_device_ptr(),
+                self.cell_end.as_device_ptr(),
+                self.cell_keys.as_device_ptr(),
+                grid_dims,
+                self.lof_scores.as_device_ptr(),
+                self.local_densities.as_device_ptr(),
+                self.num_nodes as i32,
+                k_neighbors,
+                radius
+            ))?;
+        }
+        
+        self.stream.synchronize()?;
+        
+        // Download results
+        let mut lof_scores = vec![0.0f32; self.num_nodes];
+        let mut local_densities = vec![0.0f32; self.num_nodes];
+        self.lof_scores.copy_to(&mut lof_scores)?;
+        self.local_densities.copy_to(&mut local_densities)?;
+        
+        Ok((lof_scores, local_densities))
+    }
+    
+    /// Run Z-score based anomaly detection
+    pub fn run_zscore_anomaly_detection(&mut self, feature_data: &[f32]) -> Result<Vec<f32>> {
+        if feature_data.len() != self.num_nodes {
+            return Err(anyhow!("Feature data size {} doesn't match number of nodes {}", 
+                              feature_data.len(), self.num_nodes));
+        }
+        
+        // Upload feature data
+        self.feature_values.copy_from(feature_data)?;
+        
+        let block_size = 256;
+        let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+        
+        // Step 1: Compute feature statistics
+        let stats_kernel = self._module.get_function("compute_feature_stats_kernel")?;
+        let stats_shared_memory = block_size * 2 * 4; // 2 floats per thread
+        let stream = &self.stream;
+        unsafe {
+            launch!(
+                stats_kernel<<<grid_size, block_size, stats_shared_memory, stream>>>(
+                self.feature_values.as_device_ptr(),
+                self.partial_sums.as_device_ptr(),
+                self.partial_sq_sums.as_device_ptr(),
+                self.num_nodes as i32
+            ))?;
+        }
+        
+        self.stream.synchronize()?;
+        
+        // Sum partial results on CPU
+        let mut partial_sums = vec![0.0f32; grid_size as usize];
+        let mut partial_sq_sums = vec![0.0f32; grid_size as usize];
+        self.partial_sums.copy_to(&mut partial_sums)?;
+        self.partial_sq_sums.copy_to(&mut partial_sq_sums)?;
+        
+        let total_sum: f32 = partial_sums.iter().sum();
+        let total_sq_sum: f32 = partial_sq_sums.iter().sum();
+        
+        let mean = total_sum / self.num_nodes as f32;
+        let variance = (total_sq_sum / self.num_nodes as f32) - (mean * mean);
+        let std_dev = variance.sqrt();
+        
+        // Step 2: Compute Z-scores
+        let zscore_kernel = self._module.get_function("compute_zscore_kernel")?;
+        let stream = &self.stream;
+        unsafe {
+            launch!(
+                zscore_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                self.feature_values.as_device_ptr(),
+                self.zscore_values.as_device_ptr(),
+                mean,
+                std_dev,
+                self.num_nodes as i32
+            ))?;
+        }
+        
+        self.stream.synchronize()?;
+        
+        // Download results
+        let mut zscore_values = vec![0.0f32; self.num_nodes];
+        self.zscore_values.copy_to(&mut zscore_values)?;
+        
+        Ok(zscore_values)
+    }
+
+    /// Run community detection using label propagation algorithm
+    pub fn run_community_detection(
+        &mut self, 
+        max_iterations: u32, 
+        synchronous: bool, 
+        seed: u32
+    ) -> Result<(Vec<i32>, usize, f32, u32, Vec<i32>, bool)> {
+        let block_size = 256;
+        let grid_size = (self.num_nodes + block_size - 1) / block_size;
+        let stream = &self.stream;
+
+        // Step 1: Initialize random states for tie-breaking
+        let init_random_kernel = self._module.get_function("init_random_states_kernel")?;
+        unsafe {
+            launch!(
+                init_random_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.rand_states.as_device_ptr().as_raw(),
+                    self.num_nodes as i32,
+                    seed
+                )
+            )?;
+        }
+
+        // Step 2: Initialize labels (each node starts with unique label)
+        let init_labels_kernel = self._module.get_function("init_labels_kernel")?;
+        unsafe {
+            launch!(
+                init_labels_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.labels_current.as_device_ptr(),
+                    self.num_nodes as i32
+                )
+            )?;
+        }
+
+        // Step 3: Compute node degrees for modularity calculation
+        let compute_degrees_kernel = self._module.get_function("compute_node_degrees_kernel")?;
+        unsafe {
+            launch!(
+                compute_degrees_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.edge_row_offsets.as_device_ptr(),
+                    self.edge_weights.as_device_ptr(),
+                    self.node_degrees.as_device_ptr(),
+                    self.num_nodes as i32
+                )
+            )?;
+        }
+
+        // Calculate total edge weight for modularity
+        self.stream.synchronize()?;
+        let mut node_degrees_host = vec![0.0f32; self.num_nodes];
+        self.node_degrees.copy_to(&mut node_degrees_host)?;
+        let total_weight: f32 = node_degrees_host.iter().sum::<f32>() / 2.0; // Divide by 2 for undirected
+
+        // Step 4: Label propagation iterations
+        let mut iterations = 0;
+        let mut converged = false;
+
+        // Choose kernel based on synchronous/asynchronous mode
+        let propagate_kernel = if synchronous {
+            self._module.get_function("propagate_labels_sync_kernel")?
+        } else {
+            self._module.get_function("propagate_labels_async_kernel")?
+        };
+
+        let check_convergence_kernel = self._module.get_function("check_convergence_kernel")?;
+
+        // Calculate shared memory size for label counting
+        let shared_mem_size = block_size * (self.max_labels + 1) * 4; // 4 bytes per int
+
+        for iter in 0..max_iterations {
+            iterations = iter + 1;
+
+            // Reset convergence flag to 1 (converged)
+            let convergence_flag_host = vec![1i32];
+            self.convergence_flag.copy_from(&convergence_flag_host)?;
+
+            if synchronous {
+                // Synchronous mode: read from current, write to next
+                unsafe {
+                    launch!(
+                        propagate_kernel<<<grid_size as u32, block_size as u32, shared_mem_size as u32, stream>>>(
+                            self.labels_current.as_device_ptr(),
+                            self.labels_next.as_device_ptr(),
+                            self.edge_row_offsets.as_device_ptr(),
+                            self.edge_col_indices.as_device_ptr(),
+                            self.edge_weights.as_device_ptr(),
+                            self.label_counts.as_device_ptr(),
+                            self.num_nodes as i32,
+                            self.max_labels as i32,
+                            self.rand_states.as_device_ptr().as_raw()
+                        )
+                    )?;
+                }
+
+                // Check convergence by comparing current and next labels
+                unsafe {
+                    launch!(
+                        check_convergence_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                            self.labels_current.as_device_ptr(),
+                            self.labels_next.as_device_ptr(),
+                            self.convergence_flag.as_device_ptr(),
+                            self.num_nodes as i32
+                        )
+                    )?;
+                }
+
+                // Swap buffers for next iteration
+                std::mem::swap(&mut self.labels_current, &mut self.labels_next);
+            } else {
+                // Asynchronous mode: update in-place
+                unsafe {
+                    launch!(
+                        propagate_kernel<<<grid_size as u32, block_size as u32, shared_mem_size as u32, stream>>>(
+                            self.labels_current.as_device_ptr(),
+                            self.edge_row_offsets.as_device_ptr(),
+                            self.edge_col_indices.as_device_ptr(),
+                            self.edge_weights.as_device_ptr(),
+                            self.num_nodes as i32,
+                            self.max_labels as i32,
+                            self.rand_states.as_device_ptr().as_raw()
+                        )
+                    )?;
+                }
+
+                // For async mode, convergence check requires comparing with previous iteration
+                // For simplicity, we'll run for a fixed number of iterations or implement
+                // a different convergence check
+            }
+
+            // Check if converged (synchronous mode only)
+            if synchronous {
+                self.stream.synchronize()?;
+                let mut convergence_flag_host = vec![0i32];
+                self.convergence_flag.copy_to(&mut convergence_flag_host)?;
+                
+                if convergence_flag_host[0] == 1 {
+                    converged = true;
+                    break;
+                }
+            }
+        }
+
+        // For async mode, assume convergence after all iterations
+        if !synchronous {
+            converged = true;
+        }
+
+        // Step 5: Compute modularity
+        let modularity_kernel = self._module.get_function("compute_modularity_kernel")?;
+        unsafe {
+            launch!(
+                modularity_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.labels_current.as_device_ptr(),
+                    self.edge_row_offsets.as_device_ptr(),
+                    self.edge_col_indices.as_device_ptr(),
+                    self.edge_weights.as_device_ptr(),
+                    self.node_degrees.as_device_ptr(),
+                    self.modularity_contributions.as_device_ptr(),
+                    self.num_nodes as i32,
+                    total_weight
+                )
+            )?;
+        }
+
+        self.stream.synchronize()?;
+
+        // Download modularity contributions and sum them
+        let mut modularity_contributions = vec![0.0f32; self.num_nodes];
+        self.modularity_contributions.copy_to(&mut modularity_contributions)?;
+        let modularity: f32 = modularity_contributions.iter().sum::<f32>() / (2.0 * total_weight);
+
+        // Step 6: Count community sizes and relabel for compact representation
+        // Clear community sizes
+        let zero_communities = vec![0i32; self.max_labels];
+        self.community_sizes.copy_from(&zero_communities)?;
+
+        let count_communities_kernel = self._module.get_function("count_community_sizes_kernel")?;
+        unsafe {
+            launch!(
+                count_communities_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.labels_current.as_device_ptr(),
+                    self.community_sizes.as_device_ptr(),
+                    self.num_nodes as i32,
+                    self.max_labels as i32
+                )
+            )?;
+        }
+
+        self.stream.synchronize()?;
+
+        // Download results
+        let mut labels = vec![0i32; self.num_nodes];
+        let mut community_sizes_host = vec![0i32; self.max_labels];
+        self.labels_current.copy_to(&mut labels)?;
+        self.community_sizes.copy_to(&mut community_sizes_host)?;
+
+        // Count non-empty communities and create compact labeling
+        let mut label_map = vec![-1i32; self.max_labels];
+        let mut compact_community_sizes = Vec::new();
+        let mut num_communities = 0;
+
+        for (i, &size) in community_sizes_host.iter().enumerate() {
+            if size > 0 {
+                label_map[i] = num_communities as i32;
+                compact_community_sizes.push(size);
+                num_communities += 1;
+            }
+        }
+
+        // Relabel nodes with compact labels
+        if num_communities < self.max_labels {
+            self.label_mapping.copy_from(&label_map)?;
+            
+            let relabel_kernel = self._module.get_function("relabel_communities_kernel")?;
+            unsafe {
+                launch!(
+                    relabel_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                        self.labels_current.as_device_ptr(),
+                        self.label_mapping.as_device_ptr(),
+                        self.num_nodes as i32
+                    )
+                )?;
+            }
+
+            self.stream.synchronize()?;
+            self.labels_current.copy_to(&mut labels)?;
+        }
+
+        Ok((labels, num_communities, modularity, iterations, compact_community_sizes, converged))
+    }
+    
+    /// Record kernel execution time and update metrics
+    pub fn record_kernel_time(&mut self, kernel_name: &str, execution_time_ms: f32) {
+        // Update total calls
+        *self.performance_metrics.total_kernel_calls.entry(kernel_name.to_string()).or_insert(0) += 1;
+        
+        // Record execution time (keep last 100 measurements for average calculation)
+        let times = self.performance_metrics.kernel_times.entry(kernel_name.to_string()).or_insert_with(Vec::new);
+        times.push(execution_time_ms);
+        if times.len() > 100 {
+            times.remove(0);
+        }
+        
+        // Update specialized kernel averages
+        let avg_time = times.iter().sum::<f32>() / times.len() as f32;
+        match kernel_name {
+            "force_pass_kernel" => self.performance_metrics.force_kernel_avg_time = avg_time,
+            "integrate_pass_kernel" => self.performance_metrics.integrate_kernel_avg_time = avg_time,
+            "build_grid_kernel" => self.performance_metrics.grid_build_avg_time = avg_time,
+            "relaxation_step_kernel" | "compact_frontier_kernel" => self.performance_metrics.sssp_avg_time = avg_time,
+            "kmeans_assign_kernel" | "kmeans_update_centroids_kernel" => self.performance_metrics.clustering_avg_time = avg_time,
+            "compute_lof_kernel" | "zscore_kernel" => self.performance_metrics.anomaly_detection_avg_time = avg_time,
+            "label_propagation_kernel" => self.performance_metrics.community_detection_avg_time = avg_time,
+            _ => {}
+        }
+        
+        // Log GPU kernel performance to advanced logging system
+        let execution_time_us = execution_time_ms * 1000.0;
+        let memory_mb = self.performance_metrics.current_memory_usage as f64 / (1024.0 * 1024.0);
+        let peak_memory_mb = self.performance_metrics.peak_memory_usage as f64 / (1024.0 * 1024.0);
+        log_gpu_kernel(kernel_name, execution_time_us as f64, memory_mb, peak_memory_mb);
+    }
+    
+    /// Execute kernel with timing
+    pub fn execute_kernel_with_timing<F>(&mut self, kernel_name: &str, mut kernel_func: F) -> Result<()> 
+    where
+        F: FnMut() -> Result<()>,
+    {
+        let start_event = Event::new(EventFlags::DEFAULT)?;
+        let stop_event = Event::new(EventFlags::DEFAULT)?;
+        
+        // Record start time
+        start_event.record(&self.stream)?;
+        
+        // Execute kernel
+        kernel_func()?;
+        
+        // Record stop time
+        stop_event.record(&self.stream)?;
+        
+        // Synchronize and calculate elapsed time
+        self.stream.synchronize()?;
+        let elapsed_ms = start_event.elapsed_time_f32(&stop_event)?;
+        
+        // Record timing
+        self.record_kernel_time(kernel_name, elapsed_ms);
+        
+        Ok(())
+    }
+    
+    /// Get current GPU performance metrics
+    pub fn get_performance_metrics(&self) -> &GPUPerformanceMetrics {
+        &self.performance_metrics
+    }
+    
+    /// Get mutable reference to performance metrics for external updates
+    pub fn get_performance_metrics_mut(&mut self) -> &mut GPUPerformanceMetrics {
+        &mut self.performance_metrics
+    }
+    
+    /// Update memory usage statistics
+    pub fn update_memory_usage(&mut self) {
+        // Calculate current memory usage from all allocated buffers
+        let node_memory = self.allocated_nodes * std::mem::size_of::<f32>() * 12; // 6 pos + 6 vel buffers
+        let edge_memory = self.allocated_edges * (std::mem::size_of::<i32>() * 2 + std::mem::size_of::<f32>());
+        let grid_memory = self.max_grid_cells * std::mem::size_of::<i32>() * 4;
+        let cluster_memory = self.max_clusters * std::mem::size_of::<f32>() * 3; // centroids
+        let anomaly_memory = self.allocated_nodes * std::mem::size_of::<f32>() * 4; // LOF buffers
+        
+        let current_usage = node_memory + edge_memory + grid_memory + cluster_memory + anomaly_memory;
+        let previous_usage = self.performance_metrics.current_memory_usage;
+        
+        self.performance_metrics.current_memory_usage = current_usage;
+        if current_usage > self.performance_metrics.peak_memory_usage {
+            self.performance_metrics.peak_memory_usage = current_usage;
+        }
+        self.performance_metrics.total_memory_allocated = self.total_memory_allocated;
+        
+        // Log memory events if there was a significant change
+        if (current_usage as f64 - previous_usage as f64).abs() > (1024.0 * 1024.0) { // 1MB threshold
+            let event_type = if current_usage > previous_usage { "allocation" } else { "deallocation" };
+            let allocated_mb = current_usage as f64 / (1024.0 * 1024.0);
+            let peak_mb = self.performance_metrics.peak_memory_usage as f64 / (1024.0 * 1024.0);
+            log_memory_event(event_type, allocated_mb, peak_mb);
+        }
+    }
+    
+    /// Log GPU error with recovery attempt tracking
+    pub fn log_gpu_error(&self, error_msg: &str, recovery_attempted: bool) {
+        log_gpu_error(error_msg, recovery_attempted);
+    }
+    
+    /// Reset performance metrics
+    pub fn reset_performance_metrics(&mut self) {
+        let peak_memory = self.performance_metrics.peak_memory_usage;
+        let total_allocated = self.performance_metrics.total_memory_allocated;
+        
+        self.performance_metrics = GPUPerformanceMetrics::default();
+        self.performance_metrics.peak_memory_usage = peak_memory;
+        self.performance_metrics.total_memory_allocated = total_allocated;
+    }
+    
+    /// Get kernel statistics for dashboard
+    pub fn get_kernel_statistics(&self) -> HashMap<String, serde_json::Value> {
+        let mut stats = HashMap::new();
+        
+        for (kernel_name, times) in &self.performance_metrics.kernel_times {
+            if !times.is_empty() {
+                let avg_time = times.iter().sum::<f32>() / times.len() as f32;
+                let min_time = times.iter().cloned().fold(f32::INFINITY, f32::min);
+                let max_time = times.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+                let total_calls = self.performance_metrics.total_kernel_calls.get(kernel_name).unwrap_or(&0);
+                
+                let mut kernel_stats = HashMap::new();
+                kernel_stats.insert("avg_time_ms".to_string(), serde_json::Value::Number(
+                    serde_json::Number::from_f64(avg_time as f64).unwrap()
+                ));
+                kernel_stats.insert("min_time_ms".to_string(), serde_json::Value::Number(
+                    serde_json::Number::from_f64(min_time as f64).unwrap()
+                ));
+                kernel_stats.insert("max_time_ms".to_string(), serde_json::Value::Number(
+                    serde_json::Number::from_f64(max_time as f64).unwrap()
+                ));
+                kernel_stats.insert("total_calls".to_string(), serde_json::Value::Number(
+                    serde_json::Number::from(*total_calls)
+                ));
+                kernel_stats.insert("recent_samples".to_string(), serde_json::Value::Number(
+                    serde_json::Number::from(times.len())
+                ));
+                
+                stats.insert(kernel_name.clone(), serde_json::Value::Object(kernel_stats.into_iter().collect()));
+            }
+        }
+        
+        stats
     }
 }
 

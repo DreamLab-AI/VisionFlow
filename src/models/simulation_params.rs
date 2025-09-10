@@ -71,6 +71,10 @@ pub struct SimParams {
     pub viewport_bounds: f32,
     pub sssp_alpha: f32,  // SSSP influence on spring forces
     pub boundary_damping: f32, // Damping applied at boundaries
+    
+    // Constraint progressive activation parameters
+    pub constraint_ramp_frames: u32,  // Number of frames to fully activate constraints
+    pub constraint_max_force_per_node: f32,  // Maximum force per node from all constraints
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -147,6 +151,10 @@ pub struct SimulationParams {
     // SSSP (Single-Source Shortest Path) parameters
     pub use_sssp_distances: bool,  // Enable SSSP-based distance computation
     pub sssp_alpha: Option<f32>,   // Weight factor for SSSP distances (0.0-1.0)
+    
+    // Constraint progressive activation parameters
+    pub constraint_ramp_frames: u32,  // Number of frames to fully activate constraints
+    pub constraint_max_force_per_node: f32,  // Maximum constraint force per node
     
     // Simulation state
     pub phase: SimulationPhase,   // Current simulation phase
@@ -229,6 +237,8 @@ impl SimulationParams {
             viewport_bounds: self.viewport_bounds,
             sssp_alpha: self.sssp_alpha.unwrap_or(0.0),
             boundary_damping: self.boundary_damping,
+            constraint_ramp_frames: self.constraint_ramp_frames,
+            constraint_max_force_per_node: self.constraint_max_force_per_node,
         }
     }
 
@@ -289,6 +299,8 @@ impl SimParams {
             cooling_rate: self.cooling_rate,
             use_sssp_distances: false,  // Default to false for backwards compatibility
             sssp_alpha: Some(self.sssp_alpha),
+            constraint_ramp_frames: self.constraint_ramp_frames,
+            constraint_max_force_per_node: self.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }
@@ -347,6 +359,8 @@ impl From<&PhysicsSettings> for SimParams {
             viewport_bounds: physics.bounds_size,
             sssp_alpha: 0.0,  // Default to no SSSP influence
             boundary_damping: physics.boundary_damping,
+            constraint_ramp_frames: physics.constraint_ramp_frames,
+            constraint_max_force_per_node: physics.constraint_max_force_per_node,
         }
     }
 }
@@ -389,6 +403,8 @@ impl From<&PhysicsSettings> for SimulationParams {
             cooling_rate: physics.cooling_rate,
             use_sssp_distances: false,  // Default to disabled
             sssp_alpha: None,  // Default to no SSSP influence
+            constraint_ramp_frames: physics.constraint_ramp_frames,
+            constraint_max_force_per_node: physics.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
         }

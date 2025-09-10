@@ -13,7 +13,7 @@
  * - GET /api/analytics/stats - Get performance statistics
  */
 
-use actix_web::{web, HttpResponse, Result};
+use actix_web::{web, HttpResponse, Result, Error};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use log::{debug, error, info, warn};
@@ -27,14 +27,19 @@ use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode, GetGraphData, ComputeShortestPaths
+    SetComputeMode, GetGraphData, ComputeShortestPaths,
+    TriggerStressMajorization, ResetStressMajorizationSafety,
+    GetStressMajorizationStats, UpdateStressMajorizationParams
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
-use crate::models::constraints::ConstraintSet;
+use crate::models::constraints::{ConstraintSet, AdvancedParams};
 use crate::actors::gpu_compute_actor::PhysicsStats;
 
 // WebSocket integration module
 pub mod websocket_integration;
+
+// Community detection module  
+pub mod community;
 
 /// Response for analytics parameter operations
 #[derive(Debug, Serialize, Deserialize)]
@@ -641,75 +646,6 @@ pub async fn set_kernel_mode(
     }
 }
 
-/// GET /api/analytics/gpu-metrics - Get GPU metrics with enhanced client integration
-pub async fn get_gpu_metrics(
-    app_state: web::Data<AppState>,
-) -> Result<HttpResponse> {
-    info!("Client requesting GPU metrics");
-    
-    // Try to get real GPU metrics from GPU compute actor
-    let gpu_metrics = if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-        match gpu_addr.send(crate::actors::messages::GetPhysicsStats).await {
-            Ok(Ok(stats)) => {
-                serde_json::json!({
-                    "success": true,
-                    "gpu_available": true,
-                    "utilization": 75.0, // Would be from NVIDIA-ML
-                    "memory_used_mb": stats.num_nodes as f32 * 0.5, // Estimate
-                    "memory_total_mb": 8192.0,
-                    "memory_percent": (stats.num_nodes as f32 * 0.5) / 8192.0 * 100.0,
-                    "temperature": 68.0,
-                    "power_watts": 120.0,
-                    "compute_nodes": stats.num_nodes,
-                    "compute_edges": stats.num_edges,
-                    "kernel_mode": "advanced",
-                    "clustering_enabled": true,
-                    "anomaly_detection_enabled": true,
-                    "last_updated": chrono::Utc::now().timestamp_millis()
-                })
-            }
-            Ok(Err(e)) => {
-                warn!("GPU stats error: {}", e);
-                serde_json::json!({
-                    "success": false,
-                    "gpu_available": false,
-                    "error": e,
-                    "fallback_mode": true
-                })
-            }
-            Err(e) => {
-                error!("GPU actor communication error: {}", e);
-                serde_json::json!({
-                    "success": false,
-                    "gpu_available": false,
-                    "error": "GPU service unavailable",
-                    "fallback_mode": true
-                })
-            }
-        }
-    } else {
-        // Fallback mock metrics when GPU not available
-        serde_json::json!({
-            "success": true,
-            "gpu_available": false,
-            "fallback_mode": true,
-            "utilization": 0.0,
-            "memory_used_mb": 0.0,
-            "memory_total_mb": 0.0,
-            "memory_percent": 0.0,
-            "temperature": 0.0,
-            "power_watts": 0.0,
-            "compute_nodes": 0,
-            "compute_edges": 0,
-            "kernel_mode": "cpu_fallback",
-            "clustering_enabled": false,
-            "anomaly_detection_enabled": false,
-            "last_updated": chrono::Utc::now().timestamp_millis()
-        })
-    };
-    
-    Ok(HttpResponse::Ok().json(gpu_metrics))
-}
 
 /// POST /api/analytics/clustering/run - Run clustering analysis
 pub async fn run_clustering(
@@ -1201,6 +1137,14 @@ pub struct SSSPRequest {
     pub source_node_id: u32,
 }
 
+/// Request payload for SSSP toggle
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SSSPToggleRequest {
+    pub enabled: bool,
+    pub alpha: Option<f32>, // Optional: SSSP influence strength (0.0-1.0)
+}
+
 /// Response for shortest path computation
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -1208,6 +1152,18 @@ pub struct SSSPResponse {
     pub success: bool,
     pub distances: Option<std::collections::HashMap<u32, Option<f32>>>,
     pub unreachable_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Response for SSSP toggle operations
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SSSPToggleResponse {
+    pub success: bool,
+    pub enabled: bool,
+    pub alpha: Option<f32>,
+    pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -1256,6 +1212,147 @@ pub async fn compute_sssp(
             }))
         }
     }
+}
+
+/// POST /api/analytics/sssp/toggle - Toggle SSSP spring adjustment
+/// 
+/// Enables or disables Single-Source Shortest Path (SSSP) based spring adjustment
+/// for improved edge length uniformity in force-directed layouts.
+/// 
+/// **Request Body:**
+/// ```json
+/// {
+///   "enabled": true,
+///   "alpha": 0.5  // Optional: influence strength (0.0-1.0)
+/// }
+/// ```
+/// 
+/// **Response:**
+/// ```json
+/// {
+///   "success": true,
+///   "enabled": true,
+///   "alpha": 0.5,
+///   "message": "SSSP spring adjustment enabled with alpha=0.50",
+///   "error": null
+/// }
+/// ```
+/// 
+/// **Effects:**
+/// - When enabled, edge springs are adjusted based on graph-theoretic distances
+/// - Helps achieve more uniform edge lengths in complex graph structures
+/// - Alpha controls the strength of the SSSP influence (default: 0.5)
+/// - Changes are applied immediately to the GPU simulation
+pub async fn toggle_sssp(
+    app_state: web::Data<AppState>,
+    request: web::Json<SSSPToggleRequest>,
+) -> Result<HttpResponse> {
+    info!("Toggling SSSP spring adjustment: enabled={}, alpha={:?}", 
+        request.enabled, request.alpha);
+    
+    // Validate alpha parameter
+    if let Some(alpha) = request.alpha {
+        if alpha < 0.0 || alpha > 1.0 {
+            return Ok(HttpResponse::BadRequest().json(SSSPToggleResponse {
+                success: false,
+                enabled: false,
+                alpha: None,
+                message: "Alpha must be between 0.0 and 1.0".to_string(),
+                error: Some("Invalid alpha parameter".to_string()),
+            }));
+        }
+    }
+    
+    // Update the feature flags
+    let mut flags = FEATURE_FLAGS.lock().await;
+    flags.sssp_integration = request.enabled;
+    drop(flags); // Release lock early
+    
+    // Send update to GPU compute actor to toggle the feature flag
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+        let message = crate::actors::messages::UpdateSimulationParams {
+            params: {
+                let mut params = crate::models::simulation_params::SimulationParams::new();
+                params.use_sssp_distances = request.enabled;
+                params.sssp_alpha = request.alpha;
+                params
+            }
+        };
+        
+        match gpu_addr.send(message).await {
+            Ok(Ok(_)) => {
+                let message = if request.enabled {
+                    format!("SSSP spring adjustment enabled with alpha={:.2}", 
+                        request.alpha.unwrap_or(0.5))
+                } else {
+                    "SSSP spring adjustment disabled".to_string()
+                };
+                
+                info!("Successfully toggled SSSP: {}", message);
+                
+                Ok(HttpResponse::Ok().json(SSSPToggleResponse {
+                    success: true,
+                    enabled: request.enabled,
+                    alpha: request.alpha,
+                    message,
+                    error: None,
+                }))
+            }
+            Ok(Err(e)) => {
+                error!("Failed to update SSSP settings on GPU: {}", e);
+                Ok(HttpResponse::InternalServerError().json(SSSPToggleResponse {
+                    success: false,
+                    enabled: false,
+                    alpha: None,
+                    message: "Failed to update GPU settings".to_string(),
+                    error: Some(format!("GPU update failed: {}", e)),
+                }))
+            }
+            Err(e) => {
+                error!("GPU compute actor mailbox error: {}", e);
+                Ok(HttpResponse::ServiceUnavailable().json(SSSPToggleResponse {
+                    success: false,
+                    enabled: false,
+                    alpha: None,
+                    message: "GPU service unavailable".to_string(),
+                    error: Some("GPU compute actor unavailable".to_string()),
+                }))
+            }
+        }
+    } else {
+        warn!("GPU compute actor not available - SSSP toggle only updated feature flags");
+        Ok(HttpResponse::Ok().json(SSSPToggleResponse {
+            success: true,
+            enabled: request.enabled,
+            alpha: request.alpha,
+            message: "SSSP feature flag updated (GPU not available)".to_string(),
+            error: None,
+        }))
+    }
+}
+
+/// GET /api/analytics/sssp/status - Get current SSSP configuration
+/// 
+/// Returns the current state of SSSP spring adjustment feature.
+/// 
+/// **Response:**
+/// ```json
+/// {
+///   "success": true,
+///   "enabled": false,
+///   "description": "Single-Source Shortest Path spring adjustment for improved edge length uniformity",
+///   "feature_flag": "FeatureFlags::ENABLE_SSSP_SPRING_ADJUST"
+/// }
+/// ```
+pub async fn get_sssp_status() -> Result<HttpResponse> {
+    let flags = FEATURE_FLAGS.lock().await;
+    
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "enabled": flags.sssp_integration,
+        "description": "Single-Source Shortest Path spring adjustment for improved edge length uniformity",
+        "feature_flag": "FeatureFlags::ENABLE_SSSP_SPRING_ADJUST"
+    })))
 }
 
 /// GET /api/analytics/gpu-status - Get comprehensive GPU status for control center
@@ -1694,6 +1791,151 @@ pub async fn update_feature_flags(
     })))
 }
 
+/// Trigger stress majorization optimization manually
+async fn trigger_stress_majorization(
+    data: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    if let Some(gpu_actor) = &data.gpu_compute_addr {
+        match gpu_actor.send(TriggerStressMajorization).await {
+        Ok(Ok(())) => {
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Stress majorization triggered successfully"
+            })))
+        },
+        Ok(Err(e)) => {
+            error!("Stress majorization failed: {}", e);
+            Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "success": false,
+                "error": e
+            })))
+        },
+        Err(e) => {
+            error!("Failed to communicate with GPU actor: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Internal server error"
+            })))
+        }
+        }
+    } else {
+        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "success": false,
+            "error": "GPU compute actor not available"
+        })))
+    }
+}
+
+/// Get current stress majorization statistics and safety status
+async fn get_stress_majorization_stats(
+    data: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    if let Some(gpu_actor) = &data.gpu_compute_addr {
+        match gpu_actor.send(GetStressMajorizationStats).await {
+        Ok(Ok(stats)) => {
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "stats": stats
+            })))
+        },
+        Ok(Err(e)) => {
+            error!("Failed to get stress majorization stats: {}", e);
+            Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "success": false,
+                "error": e
+            })))
+        },
+        Err(e) => {
+            error!("Failed to get stress majorization stats: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Failed to retrieve statistics"
+            })))
+        }
+        }
+    } else {
+        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "success": false,
+            "error": "GPU compute actor not available"
+        })))
+    }
+}
+
+/// Reset stress majorization safety state (emergency stop, failure counters)
+async fn reset_stress_majorization_safety(
+    data: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    if let Some(gpu_actor) = &data.gpu_compute_addr {
+        match gpu_actor.send(ResetStressMajorizationSafety).await {
+        Ok(Ok(())) => {
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Stress majorization safety state reset successfully"
+            })))
+        },
+        Ok(Err(e)) => {
+            error!("Failed to reset stress majorization safety: {}", e);
+            Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "success": false,
+                "error": e
+            })))
+        },
+        Err(e) => {
+            error!("Failed to communicate with GPU actor: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Internal server error"
+            })))
+        }
+        }
+    } else {
+        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "success": false,
+            "error": "GPU compute actor not available"
+        })))
+    }
+}
+
+/// Update stress majorization parameters
+async fn update_stress_majorization_params(
+    params: web::Json<AdvancedParams>,
+    data: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    if let Some(gpu_actor) = &data.gpu_compute_addr {
+        let msg = UpdateStressMajorizationParams {
+            params: params.into_inner(),
+        };
+        
+        match gpu_actor.send(msg).await {
+        Ok(Ok(())) => {
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Stress majorization parameters updated successfully"
+            })))
+        },
+        Ok(Err(e)) => {
+            error!("Failed to update stress majorization parameters: {}", e);
+            Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "success": false,
+                "error": e
+            })))
+        },
+        Err(e) => {
+            error!("Failed to communicate with GPU actor: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Internal server error"
+            })))
+        }
+        }
+    } else {
+        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "success": false,
+            "error": "GPU compute actor not available"
+        })))
+    }
+}
+
 /// Configure analytics API routes with client integration endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -1718,6 +1960,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/clustering/focus", web::post().to(focus_cluster))
             .route("/clustering/cancel", web::post().to(cancel_clustering))
             
+            // Community detection endpoints
+            .route("/community/detect", web::post().to(run_community_detection))
+            .route("/community/statistics", web::get().to(get_community_statistics))
+            
             // Anomaly detection with real-time updates
             .route("/anomaly/toggle", web::post().to(toggle_anomaly_detection))
             .route("/anomaly/current", web::get().to(get_current_anomalies))
@@ -1729,6 +1975,14 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             
             // Advanced graph algorithms
             .route("/shortest-path", web::post().to(compute_sssp))
+            .route("/sssp/toggle", web::post().to(toggle_sssp))
+            .route("/sssp/status", web::get().to(get_sssp_status))
+            
+            // Stress majorization control and monitoring  
+            .route("/stress-majorization/trigger", web::post().to(trigger_stress_majorization))
+            .route("/stress-majorization/stats", web::get().to(get_stress_majorization_stats))
+            .route("/stress-majorization/reset-safety", web::post().to(reset_stress_majorization_safety))
+            .route("/stress-majorization/params", web::post().to(update_stress_majorization_params))
             
             // Control center integration
             .route("/dashboard-status", web::get().to(get_dashboard_status))
@@ -1739,4 +1993,88 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             // WebSocket endpoint for real-time updates
             .route("/ws", web::get().to(websocket_integration::gpu_analytics_websocket))
     );
+}
+
+/// Run GPU-accelerated community detection
+pub async fn run_community_detection(
+    app_state: web::Data<AppState>,
+    request: web::Json<community::CommunityDetectionRequest>,
+) -> Result<HttpResponse, Error> {
+    debug!("Community detection request: {:?}", request);
+    
+    match community::run_gpu_community_detection(&app_state, &request).await {
+        Ok(response) => Ok(HttpResponse::Ok().json(response)),
+        Err(e) => {
+            error!("Community detection failed: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": e,
+                "communities": [],
+                "total_communities": 0,
+                "modularity": 0.0
+            })))
+        }
+    }
+}
+
+/// Get community detection statistics  
+pub async fn get_community_statistics(
+    app_state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    // For now, return basic statistics
+    // In a full implementation, this would retrieve cached community results
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "message": "Use /community/detect to run community detection first",
+        "available_algorithms": ["label_propagation"],
+        "performance_hints": {
+            "label_propagation": "Fast, good for large networks",
+            "recommended_max_iterations": 100,
+            "typical_convergence": "5-20 iterations"
+        }
+    })))
+}
+
+/// Get real-time GPU performance metrics and kernel timing
+pub async fn get_gpu_metrics(
+    app_state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    debug!("Retrieving GPU performance metrics");
+    
+    // Check if GPU compute actor is available
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+        use crate::actors::messages::GetGPUMetrics;
+        
+        match gpu_addr.send(GetGPUMetrics).await {
+            Ok(Ok(metrics)) => {
+                info!("GPU metrics retrieved successfully");
+                Ok(HttpResponse::Ok().json(metrics))
+            }
+            Ok(Err(e)) => {
+                error!("Failed to get GPU metrics: {}", e);
+                Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                    "success": false,
+                    "error": e,
+                    "gpu_initialized": false
+                })))
+            }
+            Err(e) => {
+                error!("GPU actor mailbox error: {}", e);
+                Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                    "success": false,
+                    "error": "GPU compute actor unavailable",
+                    "details": e.to_string(),
+                    "gpu_initialized": false
+                })))
+            }
+        }
+    } else {
+        warn!("GPU compute actor not available");
+        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "success": false,
+            "error": "GPU compute not available",
+            "gpu_initialized": false,
+            "message": "GPU acceleration is not enabled or not available"
+        })))
+    }
 }

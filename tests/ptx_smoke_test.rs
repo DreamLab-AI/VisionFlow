@@ -37,9 +37,9 @@ fn ptx_module_loads_and_kernels_present() {
     }
 
     // 1) Load PTX (build-time path or runtime nvcc fallback)
-    let ptx = match crate::utils::ptx::load_ptx_sync() {
+    let ptx = match webxr::utils::ptx::load_ptx_sync() {
         Ok(s) => {
-            println!("[PTX-SMOKE] PTX loaded ({} bytes), arch=sm_{}", s.len(), crate::utils::ptx::effective_cuda_arch());
+            println!("[PTX-SMOKE] PTX loaded ({} bytes), arch=sm_{}", s.len(), webxr::utils::ptx::effective_cuda_arch());
             s
         }
         Err(e) => {
@@ -63,7 +63,7 @@ fn ptx_module_loads_and_kernels_present() {
         }
         Err(e) => {
             // Surface diagnosis like the runtime does
-            let diag = crate::utils::gpu_diagnostics::diagnose_ptx_error(&format!("Module::from_ptx error: {e}"));
+            let diag = webxr::utils::gpu_diagnostics::diagnose_ptx_error(&format!("Module::from_ptx error: {e}"));
             panic!("[PTX-SMOKE] Module::from_ptx failed: {e}\n{diag}");
         }
     };
@@ -95,7 +95,7 @@ fn unified_gpu_compute_new_smoke() {
     }
 
     // Try building a minimal UnifiedGPUCompute context to catch wiring issues end-to-end.
-    let ptx = match crate::utils::ptx::load_ptx_sync() {
+    let ptx = match webxr::utils::ptx::load_ptx_sync() {
         Ok(s) => s,
         Err(e) => {
             panic!("[PTX-SMOKE] Failed to load PTX: {e}");
@@ -103,7 +103,7 @@ fn unified_gpu_compute_new_smoke() {
     };
 
     // Tiny graph: 16 nodes, 0 edges
-    match crate::utils::unified_gpu_compute::UnifiedGPUCompute::new(16, 0, &ptx) {
+    match webxr::utils::unified_gpu_compute::UnifiedGPUCompute::new(16, 0, &ptx) {
         Ok(_gpu) => {
             println!("[PTX-SMOKE] ✅ UnifiedGPUCompute::new succeeded for tiny graph");
             // Drop to release resources

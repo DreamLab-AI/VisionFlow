@@ -33,6 +33,7 @@ use tokio::time::Duration;
 use dotenvy::dotenv;
 use log::{error, info, debug};
 use webxr::utils::logging::init_logging;
+use webxr::utils::advanced_logging::init_advanced_logging;
 use tokio::signal::unix::{signal, SignalKind};
 
 #[actix_web::main]
@@ -42,6 +43,13 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize logging with env_logger (reads RUST_LOG environment variable)
     init_logging()?;
+    
+    // Initialize advanced logging system
+    if let Err(e) = init_advanced_logging() {
+        error!("Failed to initialize advanced logging: {}", e);
+    } else {
+        info!("Advanced logging system initialized successfully");
+    }
 
     // Load settings
     let settings = match AppFullSettings::new() {

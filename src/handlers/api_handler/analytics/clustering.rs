@@ -30,6 +30,12 @@ pub async fn perform_clustering(
         
         info!("Using GPU-accelerated clustering for method: {}", request.method);
         
+        // Validate clustering parameters
+        if let Err(validation_error) = validate_clustering_params(request) {
+            error!("Clustering parameter validation failed: {}", validation_error);
+            return Err(validation_error);
+        }
+        
         let msg = PerformGPUClustering {
             method: request.method.clone(),
             params: request.params.clone(),
@@ -80,10 +86,7 @@ pub async fn perform_clustering(
     
     debug!("Clustering {} nodes using method: {}", node_count, request.method);
     
-    // Simulate clustering computation time
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-    
-    // Perform clustering based on method
+    // Perform clustering based on method (CPU fallback)
     let clusters = match request.method.as_str() {
         "spectral" => perform_spectral_clustering(&graph_data, &request.params).await,
         "hierarchical" => perform_hierarchical_clustering(&graph_data, &request.params).await,
@@ -436,4 +439,60 @@ fn generate_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3] {
         radius * angle.sin(),
         (cluster_index as f32 - total_clusters as f32 / 2.0) * 5.0,
     ]
+}
+
+/// Validate clustering request parameters
+fn validate_clustering_params(request: &ClusteringRequest) -> Result<(), String> {
+    // Validate method
+    let valid_methods = ["spectral", "hierarchical", "dbscan", "kmeans", "louvain", "affinity"];
+    if !valid_methods.contains(&request.method.as_str()) {
+        return Err(format!("Unsupported clustering method: {}. Valid methods: {:?}", request.method, valid_methods));
+    }
+    
+    // Validate parameters based on method
+    match request.method.as_str() {
+        "kmeans" | "spectral" => {
+            if let Some(num_clusters) = request.params.num_clusters {
+                if num_clusters < 2 || num_clusters > 1000 {
+                    return Err("num_clusters must be between 2 and 1000".to_string());
+                }
+            }
+        }
+        "dbscan" => {
+            if let Some(eps) = request.params.eps {
+                if eps <= 0.0 || eps > 10.0 {
+                    return Err("eps must be between 0.0 and 10.0".to_string());
+                }
+            }
+            if let Some(min_samples) = request.params.min_samples {
+                if min_samples < 1 || min_samples > 1000 {
+                    return Err("min_samples must be between 1 and 1000".to_string());
+                }
+            }
+        }
+        "hierarchical" => {
+            if let Some(threshold) = request.params.distance_threshold {
+                if threshold <= 0.0 || threshold > 1.0 {
+                    return Err("distance_threshold must be between 0.0 and 1.0".to_string());
+                }
+            }
+        }
+        "affinity" => {
+            if let Some(damping) = request.params.damping {
+                if damping <= 0.0 || damping >= 1.0 {
+                    return Err("damping must be between 0.0 and 1.0 (exclusive)".to_string());
+                }
+            }
+        }
+        "louvain" => {
+            if let Some(resolution) = request.params.resolution {
+                if resolution <= 0.0 || resolution > 10.0 {
+                    return Err("resolution must be between 0.0 and 10.0".to_string());
+                }
+            }
+        }
+        _ => {} // Other methods validated above
+    }
+    
+    Ok(())
 }

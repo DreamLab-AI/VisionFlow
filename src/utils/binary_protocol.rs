@@ -45,6 +45,10 @@ pub fn set_knowledge_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | KNOWLEDGE_NODE_FLAG
 }
 
+pub fn clear_agent_flag(node_id: u32) -> u32 {
+    node_id & !AGENT_NODE_FLAG
+}
+
 pub fn clear_all_flags(node_id: u32) -> u32 {
     node_id & NODE_ID_MASK
 }

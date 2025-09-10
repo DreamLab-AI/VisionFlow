@@ -8,6 +8,9 @@ pub mod gpu_compute_actor;
 // gpu_compute_actor_handlers consolidated into gpu_compute_actor.rs
 pub mod protected_settings_actor;
 pub mod claude_flow_actor_tcp;
+pub mod claude_flow_actor_tcp_refactored;
+pub mod tcp_connection_actor;
+pub mod jsonrpc_client;
 pub mod supervisor;
 pub mod voice_commands;
 pub mod supervisor_voice;
@@ -21,7 +24,13 @@ pub use client_manager_actor::ClientManagerActor;
 pub use gpu_compute_actor::GPUComputeActor;
 pub use protected_settings_actor::ProtectedSettingsActor;
 // Export the TCP actor as the ONLY ClaudeFlowActor
-pub use claude_flow_actor_tcp::ClaudeFlowActorTcp as ClaudeFlowActor;
+// Export original and refactored versions
+pub use claude_flow_actor_tcp::ClaudeFlowActorTcp;
+pub use claude_flow_actor_tcp_refactored::ClaudeFlowActorTcp as ClaudeFlowActorRefactored;
+pub use tcp_connection_actor::TcpConnectionActor;
+pub use jsonrpc_client::JsonRpcClient;
+// Default export uses refactored version
+pub use claude_flow_actor_tcp_refactored::ClaudeFlowActorTcp as ClaudeFlowActor;
 pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
 pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePreamble};
 // pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor; // Removed - not implemented

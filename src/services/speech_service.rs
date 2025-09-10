@@ -7,6 +7,7 @@ use tokio::task;
 use tokio::sync::broadcast;
 use crate::config::AppFullSettings;
 // use crate::config::Settings; // AppFullSettings is used from self.settings
+use crate::errors::{VisionFlowError, VisionFlowResult, SpeechError as VisionSpeechError, NetworkError, ErrorContext};
 use log::{info, error, debug};
 use futures::{SinkExt, StreamExt};
 use std::error::Error;
@@ -743,15 +744,18 @@ impl SpeechService {
         });
     }
 
-    pub async fn initialize(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn initialize(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::Initialize;
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::InitializationFailed(e.to_string())))?;
         Ok(())
     }
 
-    pub async fn send_message(&self, message: String) -> Result<(), Box<dyn Error>> {
+    pub async fn send_message(&self, message: String) -> VisionFlowResult<()> {
         let command = SpeechCommand::SendMessage(message);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::TTSFailed { 
+            text: "message".to_string(), 
+            reason: e.to_string() 
+        }))?;
         Ok(())
     }
 
@@ -770,21 +774,27 @@ impl SpeechService {
     /// - Audio output is broadcast to all subscribers via the audio channel
     /// - Supports both streaming and non-streaming audio generation
     /// - Uses Kokoro API by default with fallback error handling
-    pub async fn text_to_speech(&self, text: String, options: SpeechOptions) -> Result<(), Box<dyn Error>> {
-        let command = SpeechCommand::TextToSpeech(text, options);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+    pub async fn text_to_speech(&self, text: String, options: SpeechOptions) -> VisionFlowResult<()> {
+        let command = SpeechCommand::TextToSpeech(text.clone(), options);
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::TTSFailed { 
+            text, 
+            reason: e.to_string() 
+        }))?;
         Ok(())
     }
 
-    pub async fn close(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn close(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::Close;
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::InitializationFailed(format!("Failed to close speech service: {}", e))))?;
         Ok(())
     }
 
-    pub async fn set_tts_provider(&self, provider: TTSProvider) -> Result<(), Box<dyn Error>> {
-        let command = SpeechCommand::SetTTSProvider(provider);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+    pub async fn set_tts_provider(&self, provider: TTSProvider) -> VisionFlowResult<()> {
+        let command = SpeechCommand::SetTTSProvider(provider.clone());
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::ProviderConfigError { 
+            provider: format!("{:?}", provider), 
+            reason: e.to_string() 
+        }))?;
         Ok(())
     }
 
@@ -806,21 +816,28 @@ impl SpeechService {
         self.tts_provider.read().await.clone()
     }
 
-    pub async fn set_stt_provider(&self, provider: STTProvider) -> Result<(), Box<dyn Error>> {
-        let command = SpeechCommand::SetSTTProvider(provider);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+    pub async fn set_stt_provider(&self, provider: STTProvider) -> VisionFlowResult<()> {
+        let command = SpeechCommand::SetSTTProvider(provider.clone());
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::ProviderConfigError { 
+            provider: format!("{:?}", provider), 
+            reason: e.to_string() 
+        }))?;
         Ok(())
     }
 
-    pub async fn start_transcription(&self, options: TranscriptionOptions) -> Result<(), Box<dyn Error>> {
+    pub async fn start_transcription(&self, options: TranscriptionOptions) -> VisionFlowResult<()> {
         let command = SpeechCommand::StartTranscription(options);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::STTFailed { 
+            reason: format!("Failed to start transcription: {}", e) 
+        }))?;
         Ok(())
     }
 
-    pub async fn stop_transcription(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn stop_transcription(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::StopTranscription;
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::STTFailed { 
+            reason: format!("Failed to stop transcription: {}", e) 
+        }))?;
         Ok(())
     }
 
@@ -839,9 +856,11 @@ impl SpeechService {
     /// - Transcription results are broadcast to all subscribers via transcription channel
     /// - Supports configurable Whisper parameters (model, language, temperature, etc.)
     /// - Handles multipart form upload format required by Whisper-WebUI-Backend
-    pub async fn process_audio_chunk(&self, audio_data: Vec<u8>) -> Result<(), Box<dyn Error>> {
+    pub async fn process_audio_chunk(&self, audio_data: Vec<u8>) -> VisionFlowResult<()> {
         let command = SpeechCommand::ProcessAudioChunk(audio_data);
-        self.sender.lock().await.send(command).await.map_err(|e| Box::new(SpeechError::from(e)))?;
+        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::AudioProcessingFailed { 
+            reason: format!("Failed to process audio chunk: {}", e) 
+        }))?;
         Ok(())
     }
 

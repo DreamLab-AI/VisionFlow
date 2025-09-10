@@ -6,6 +6,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use std::error::Error;
 use crate::config::AppFullSettings; // Changed from Settings to AppFullSettings
+use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
 
 // const GITHUB_API_DELAY: Duration = Duration::from_millis(500); // Unused
 // const MAX_RETRIES: u32 = 3; // Unused
@@ -26,7 +27,7 @@ impl GitHubClient {
     pub async fn new(
         config: GitHubConfig,
         settings: Arc<RwLock<AppFullSettings>>, // Changed from Settings to AppFullSettings
-    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    ) -> VisionFlowResult<Self> {
         let debug_enabled = crate::utils::logging::is_debug_enabled();
 
         if debug_enabled {

@@ -218,27 +218,20 @@ impl Handler<ActorFailed> for SupervisorActor {
             state.is_running = false;
             let strategy = state.actor_info.strategy.clone();
             
-            // Extract immutable data needed for should_restart check
+            // FIX: Simplified logic to avoid borrowing issues and incorrect drop
             let should_restart = match &strategy {
                 SupervisionStrategy::Restart | SupervisionStrategy::RestartWithBackoff { .. } => {
-                    // Make a copy of the state data needed for the check
-                    let restart_count = state.restart_count;
-                    let max_restart_count = state.actor_info.max_restart_count;
-                    let restart_window = state.actor_info.restart_window;
-                    let last_restart = state.last_restart;
-                    
-                    // Release the mutable borrow by dropping the reference
-                    drop(state);
-                    
-                    // Now we can call the method that needs immutable access
-                    // But we need to recreate the check logic here since we can't call the method
-                    if restart_count >= max_restart_count {
-                        if let Some(last_restart_time) = last_restart {
-                            if last_restart_time.elapsed() < restart_window {
+                    // Check restart limits directly on the state
+                    if state.restart_count >= state.actor_info.max_restart_count {
+                        if let Some(last_restart) = state.last_restart {
+                            if last_restart.elapsed() < state.actor_info.restart_window {
                                 warn!("Actor '{}' has exceeded max restart count ({}) within window ({:?})", 
-                                      &msg.actor_name, max_restart_count, restart_window);
+                                      &msg.actor_name, state.actor_info.max_restart_count, 
+                                      state.actor_info.restart_window);
                                 false
                             } else {
+                                // Window has passed, reset counter and allow restart
+                                state.restart_count = 0;
                                 true
                             }
                         } else {
@@ -251,10 +244,7 @@ impl Handler<ActorFailed> for SupervisorActor {
                 _ => false,
             };
             
-            // Get the state again since we dropped it above
-            let _state = self.supervised_actors.get_mut(&msg.actor_name).expect("State should still exist");
-            
-            // Now handle the strategy without borrowing issues
+            // Now handle the strategy
             match strategy {
                 SupervisionStrategy::Restart => {
                     if should_restart {
@@ -401,7 +391,7 @@ mod tests {
         let result = supervisor.send(register_msg).await.unwrap();
         assert!(result.is_ok());
         
-        let status = supervisor.send(GetSupervisionStatus).await.unwrap();
+        let status = supervisor.send(GetSupervisionStatus).await.unwrap().unwrap();
         assert_eq!(status.total_actors, 1);
         assert_eq!(status.running_actors, 1);
     }
@@ -434,7 +424,7 @@ mod tests {
         // Give some time for processing
         sleep(Duration::from_millis(100)).await;
         
-        let status = supervisor.send(GetSupervisionStatus).await.unwrap();
+        let status = supervisor.send(GetSupervisionStatus).await.unwrap().unwrap();
         assert_eq!(status.total_actors, 1);
     }
 }

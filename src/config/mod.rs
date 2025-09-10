@@ -159,6 +159,14 @@ fn default_auto_balance_interval() -> u32 {
     500
 }
 
+fn default_constraint_ramp_frames() -> u32 {
+    60  // 1 second at 60 FPS for full activation
+}
+
+fn default_constraint_max_force_per_node() -> f32 {
+    50.0  // Default constraint force limit per node
+}
+
 fn default_glow_color() -> String {
     "#00ffff".to_string()
 }
@@ -484,6 +492,13 @@ pub struct PhysicsSettings {
     pub warmup_curve: String,
     #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: u32,
+    
+    // Constraint progressive activation parameters
+    #[serde(alias = "constraint_ramp_frames", default = "default_constraint_ramp_frames")]
+    pub constraint_ramp_frames: u32,
+    #[serde(alias = "constraint_max_force_per_node", default = "default_constraint_max_force_per_node")]
+    pub constraint_max_force_per_node: f32,
+    
     // Clustering parameters
     #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: String,
@@ -542,6 +557,9 @@ impl Default for PhysicsSettings {
             boundary_force_strength: 2.0,
             warmup_curve: "quadratic".to_string(),
             zero_velocity_iterations: 5,
+            // Constraint progressive activation defaults
+            constraint_ramp_frames: default_constraint_ramp_frames(),
+            constraint_max_force_per_node: default_constraint_max_force_per_node(),
             // Clustering defaults
             clustering_algorithm: "none".to_string(),
             cluster_count: 5,

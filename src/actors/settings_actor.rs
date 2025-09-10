@@ -6,6 +6,7 @@ use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance, UpdateSimulationParams, BatchedUpdate, PriorityUpdate, UpdatePriority};
 use crate::actors::{GraphServiceActor, GPUComputeActor};
 use crate::config::path_access::{PathAccessible, JsonPathAccessible};
+use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError, ActorError, ErrorContext};
 use std::collections::{HashMap, BinaryHeap};
 use serde_json::Value;
 use log::{info, error, debug, warn};
@@ -53,12 +54,15 @@ pub struct SettingsActor {
 }
 
 impl SettingsActor {
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> VisionFlowResult<Self> {
         // Load settings from file or use defaults
         let settings = AppFullSettings::new()
             .map_err(|e| {
                 error!("Failed to load settings from file: {}", e);
-                format!("Failed to create AppFullSettings: {}", e)
+                VisionFlowError::Settings(SettingsError::ParseError {
+                    file_path: "settings".to_string(),
+                    reason: e.to_string(),
+                })
             })?;
         
         info!("Settings actor initialized with configuration");
@@ -82,7 +86,7 @@ impl SettingsActor {
     pub fn with_actors(
         graph_service_addr: Option<Addr<GraphServiceActor>>,
         gpu_compute_addr: Option<Addr<GPUComputeActor>>,
-    ) -> Result<Self, String> {
+    ) -> VisionFlowResult<Self> {
         let mut actor = Self::new()?;
         actor.graph_service_addr = graph_service_addr;
         actor.gpu_compute_addr = gpu_compute_addr;
@@ -94,15 +98,18 @@ impl SettingsActor {
         self.settings.read().await.clone()
     }
     
-    pub async fn update_settings(&self, new_settings: AppFullSettings) -> Result<(), String> {
+    pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlowResult<()> {
         let mut settings = self.settings.write().await;
         *settings = new_settings;
         
         // Persist to file
-        if let Err(e) = settings.save() {
+        settings.save().map_err(|e| {
             error!("Failed to save settings to file: {}", e);
-            return Err(format!("Failed to persist settings: {}", e));
-        }
+            VisionFlowError::Settings(SettingsError::SaveFailed {
+                file_path: "settings".to_string(),
+                reason: e.to_string(),
+            })
+        })?;
         
         // Propagate physics updates after settings update
         self.propagate_physics_updates(&settings, "logseq").await;
@@ -388,7 +395,7 @@ impl Actor for SettingsActor {
 
 // Handle GetSettings message
 impl Handler<GetSettings> for SettingsActor {
-    type Result = ResponseFuture<Result<AppFullSettings, String>>;
+    type Result = ResponseFuture<VisionFlowResult<AppFullSettings>>;
     
     fn handle(&mut self, _msg: GetSettings, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -401,7 +408,7 @@ impl Handler<GetSettings> for SettingsActor {
 
 // Handle UpdateSettings message  
 impl Handler<UpdateSettings> for SettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
     
     fn handle(&mut self, msg: UpdateSettings, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -411,20 +418,23 @@ impl Handler<UpdateSettings> for SettingsActor {
             *current = msg.settings;
             
             // Save to file
-            if let Err(e) = current.save() {
+            current.save().map_err(|e| {
                 error!("Failed to save settings: {}", e);
-                Err(format!("Failed to save settings: {}", e))
-            } else {
-                info!("Settings updated successfully");
-                Ok(())
-            }
+                VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "settings".to_string(),
+                    reason: e,
+                })
+            })?;
+            
+            info!("Settings updated successfully");
+            Ok(())
         })
     }
 }
 
 // Handler for getting settings by path (for socket_flow_handler compatibility)
 impl Handler<GetSettingByPath> for SettingsActor {
-    type Result = ResponseFuture<Result<serde_json::Value, String>>;
+    type Result = ResponseFuture<VisionFlowResult<serde_json::Value>>;
     
     fn handle(&mut self, msg: GetSettingByPath, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -435,7 +445,7 @@ impl Handler<GetSettingByPath> for SettingsActor {
             
             // Convert settings to JSON for path traversal
             let json = serde_json::to_value(&*current)
-                .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+                .map_err(|e| VisionFlowError::Serialization(format!("Failed to serialize settings: {}", e)))?;
             
             // Navigate the path
             let parts: Vec<&str> = path.split('.').collect();
@@ -444,7 +454,10 @@ impl Handler<GetSettingByPath> for SettingsActor {
             for part in parts {
                 match value.get(part) {
                     Some(v) => value = v,
-                    None => return Err(format!("Path not found: {}", path)),
+                    None => return Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: path.clone(),
+                        reason: "Path not found".to_string(),
+                    })),
                 }
             }
             
@@ -532,7 +545,7 @@ impl Handler<UpdatePhysicsFromAutoBalance> for SettingsActor {
 
 // Handler for SetSettingByPath message - Enhanced with concurrent update handling
 impl Handler<SetSettingByPath> for SettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
 
     fn handle(&mut self, msg: SetSettingByPath, ctx: &mut Self::Context) -> Self::Result {
         // Convert single update to priority update and route through batching system
@@ -553,7 +566,7 @@ impl Handler<SetSettingByPath> for SettingsActor {
 
 impl SettingsActor {
     /// Handle immediate update for critical settings (bypasses batching for responsiveness)
-    fn handle_immediate_update(&self, msg: SetSettingByPath) -> ResponseFuture<Result<(), String>> {
+    fn handle_immediate_update(&self, msg: SetSettingByPath) -> ResponseFuture<VisionFlowResult<()>> {
         let settings = self.settings.clone();
         let path = msg.path.clone();
         let value = msg.value;
@@ -564,10 +577,13 @@ impl SettingsActor {
             let mut current = settings.write().await;
 
             // Use the correct trait that respects serde's rename_all attribute
-            if let Err(e) = current.set_json_by_path(&path, value.clone()) {
+            current.set_json_by_path(&path, value.clone()).map_err(|e| {
                 error!("Failed to set setting via JSON path '{}': {}", path, e);
-                return Err(format!("Failed to set setting: {}", e));
-            }
+                VisionFlowError::Settings(SettingsError::ValidationFailed {
+                    setting_path: path.clone(),
+                    reason: e,
+                })
+            })?;
 
             // Check if this is a physics update that needs forwarding
             let is_physics_update = path.starts_with("visualisation.graphs.") && 
@@ -587,7 +603,7 @@ impl SettingsActor {
                                       path.contains(".glow."));
 
             // Validate the updated settings with special handling for bloom/glow errors
-            if let Err(e) = current.validate_config_camel_case() {
+            current.validate_config_camel_case().map_err(|e| {
                 if is_bloom_glow_update {
                     error!("Bloom/Glow validation failed after path update '{}': {:?}", path, e);
                     // Return detailed error message for bloom/glow validation failures
@@ -604,12 +620,18 @@ impl SettingsActor {
                     } else {
                         "Invalid bloom/glow parameter value"
                     };
-                    return Err(format!("Bloom/Glow validation failed for path '{}': {}. This validation prevents GPU kernel crashes.", path, error_details));
+                    VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: path.clone(),
+                        reason: format!("Bloom/Glow validation failed: {}. This validation prevents GPU kernel crashes.", error_details),
+                    })
                 } else {
                     error!("General validation failed after path update: {:?}", e);
-                    return Err(format!("Validation failed: {:?}", e));
+                    VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: path.clone(),
+                        reason: format!("Validation failed: {:?}", e),
+                    })
                 }
-            }
+            })?;
 
             // Log bloom/glow updates for monitoring
             if is_bloom_glow_update {
@@ -652,10 +674,13 @@ impl SettingsActor {
 
             // Save to file if persistence is enabled
             if current.system.persist_settings {
-                if let Err(e) = current.save() {
+                current.save().map_err(|e| {
                     error!("Failed to save settings after immediate update: {}", e);
-                    return Err(format!("Failed to save settings: {}", e));
-                }
+                    VisionFlowError::Settings(SettingsError::SaveFailed {
+                        file_path: "immediate_update".to_string(),
+                        reason: e,
+                    })
+                })?;
             }
 
             info!("[CONCURRENT UPDATES] Successfully processed immediate critical update at path: {} = {:?}", path, value);
@@ -666,7 +691,7 @@ impl SettingsActor {
 
 // Handler for batch path operations - for high-frequency updates like sliders
 impl Handler<GetSettingsByPaths> for SettingsActor {
-    type Result = ResponseFuture<Result<HashMap<String, Value>, String>>;
+    type Result = ResponseFuture<VisionFlowResult<HashMap<String, Value>>>;
     
     fn handle(&mut self, msg: GetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -711,7 +736,7 @@ impl Handler<GetSettingsByPaths> for SettingsActor {
 
 // Handler for batch path updates - critical for slider performance
 impl Handler<SetSettingsByPaths> for SettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
     
     fn handle(&mut self, msg: SetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
@@ -792,15 +817,21 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
             
             // Only validate once for all batch updates
             if validation_needed {
-                if let Err(e) = current.validate_config_camel_case() {
+                current.validate_config_camel_case().map_err(|e| {
                     if bloom_glow_updated {
                         error!("Bloom/Glow batch validation failed: {:?}", e);
-                        return Err(format!("Batch validation failed for bloom/glow settings: {:?}. This validation prevents GPU kernel crashes from invalid values like NaN, negative intensities, or malformed hex colors.", e));
+                        VisionFlowError::Settings(SettingsError::ValidationFailed {
+                            setting_path: "batch_settings".to_string(),
+                            reason: format!("Batch validation failed for bloom/glow settings: {:?}. This validation prevents GPU kernel crashes from invalid values like NaN, negative intensities, or malformed hex colors.", e),
+                        })
                     } else {
                         error!("Validation failed after batch update: {:?}", e);
-                        return Err(format!("Batch validation failed: {:?}", e));
+                        VisionFlowError::Settings(SettingsError::ValidationFailed {
+                            setting_path: "batch_settings".to_string(),
+                            reason: format!("Batch validation failed: {:?}", e),
+                        })
                     }
-                }
+                })?;
             }
             
             // Log successful bloom/glow batch updates
@@ -836,10 +867,13 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
             
             // Save to file if persistence is enabled and validation was needed
             if validation_needed && current.system.persist_settings {
-                if let Err(e) = current.save() {
+                current.save().map_err(|e| {
                     error!("Failed to save settings after batch update: {}", e);
-                    return Err(format!("Failed to save batch settings: {}", e));
-                }
+                    VisionFlowError::Settings(SettingsError::SaveFailed {
+                        file_path: "batch_settings".to_string(),
+                        reason: e,
+                    })
+                })?;
             }
             
             info!("Successfully completed batch settings update");
@@ -850,7 +884,7 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
 
 // Handler for BatchedUpdate message - concurrent update handling
 impl Handler<BatchedUpdate> for SettingsActor {
-    type Result = ResponseFuture<Result<(), String>>;
+    type Result = ResponseFuture<VisionFlowResult<()>>;
 
     fn handle(&mut self, msg: BatchedUpdate, ctx: &mut Self::Context) -> Self::Result {
         // Check for mailbox overflow first

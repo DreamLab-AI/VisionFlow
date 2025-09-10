@@ -13,54 +13,67 @@ use uuid::Uuid;
 use chrono::Utc;
 
 use super::{Anomaly, AnomalyStats, ANOMALY_STATE};
+use crate::AppState;
+use crate::actors::messages::{RunAnomalyDetection, AnomalyParams, AnomalyMethod};
 
-/// Start anomaly detection simulation
-pub async fn start_anomaly_detection() {
-    info!("Starting anomaly detection simulation");
+/// Run real GPU-accelerated anomaly detection
+pub async fn run_gpu_anomaly_detection(
+    app_state: &actix_web::web::Data<AppState>,
+    method: &str,
+    k_neighbors: Option<i32>,
+    radius: Option<f32>,
+    feature_data: Option<Vec<f32>>,
+    threshold: Option<f32>,
+) -> Result<Vec<Anomaly>, String> {
+    info!("Running GPU anomaly detection with method: {}", method);
     
-    // Simulate anomaly generation
-    tokio::spawn(async move {
-        loop {
-            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-            
-            let mut state = ANOMALY_STATE.lock().await;
-            if !state.enabled {
-                break;
-            }
-            
-            // Generate random anomalies based on method and sensitivity
-            let should_generate = rand::thread_rng().gen::<f32>() < state.sensitivity;
-            
-            if should_generate {
-                let anomaly = generate_anomaly(&state.method).await;
-                state.anomalies.push(anomaly.clone());
-                
-                // Update stats
-                match anomaly.severity.as_str() {
-                    "critical" => state.stats.critical += 1,
-                    "high" => state.stats.high += 1,
-                    "medium" => state.stats.medium += 1,
-                    "low" => state.stats.low += 1,
-                    _ => {}
-                }
-                state.stats.total += 1;
-                state.stats.last_updated = Some(Utc::now().timestamp() as u64);
-                
-                // Keep only recent anomalies (last 100)
-                if state.anomalies.len() > 100 {
-                    let removed_anomaly = state.anomalies.remove(0);
-                    match removed_anomaly.severity.as_str() {
-                        "critical" => state.stats.critical = state.stats.critical.saturating_sub(1),
-                        "high" => state.stats.high = state.stats.high.saturating_sub(1),
-                        "medium" => state.stats.medium = state.stats.medium.saturating_sub(1),
-                        "low" => state.stats.low = state.stats.low.saturating_sub(1),
-                        _ => {}
-                    }
-                    state.stats.total = state.stats.total.saturating_sub(1);
-                }
-            }
+    // Check if GPU compute actor is available
+    let gpu_addr = app_state.gpu_compute_addr.as_ref()
+        .ok_or_else(|| "GPU compute actor not available".to_string())?;
+    
+    // Parse method
+    let anomaly_method = match method {
+        "lof" | "local_outlier_factor" => AnomalyMethod::LocalOutlierFactor,
+        "zscore" | "z_score" => AnomalyMethod::ZScore,
+        _ => return Err(format!("Unsupported anomaly detection method: {}", method)),
+    };
+    
+    // Set default parameters based on method
+    let params = AnomalyParams {
+        method: anomaly_method.clone(),
+        k_neighbors: k_neighbors.unwrap_or(20),
+        radius: radius.unwrap_or(1.0),
+        feature_data: feature_data.clone(),
+        threshold: threshold.unwrap_or(match anomaly_method {
+            AnomalyMethod::LocalOutlierFactor => 1.5,
+            AnomalyMethod::ZScore => 2.0,
+        }),
+    };
+    
+    // Validate parameters
+    validate_anomaly_params(&params)?;
+    
+    let msg = RunAnomalyDetection { params };
+    
+    match gpu_addr.send(msg).await {
+        Ok(Ok(result)) => {
+            info!("GPU anomaly detection completed: {} anomalies found", result.num_anomalies);
+            Ok(convert_gpu_anomaly_result_to_anomalies(result, &anomaly_method))
         }
-    });
+        Ok(Err(e)) => {
+            error!("GPU anomaly detection failed: {}", e);
+            Err(e)
+        }
+        Err(e) => {
+            error!("GPU actor mailbox error: {}", e);
+            Err(format!("Failed to communicate with GPU actor: {}", e))
+        }
+    }
+}
+
+/// Start anomaly detection simulation (deprecated - use run_gpu_anomaly_detection)
+pub async fn start_anomaly_detection() {
+    warn!("start_anomaly_detection is deprecated - use run_gpu_anomaly_detection for real GPU processing");
 }
 
 /// Generate a simulated anomaly based on detection method
@@ -258,5 +271,140 @@ pub async fn cleanup_old_anomalies() {
         }
         new_stats.last_updated = state.stats.last_updated;
         state.stats = new_stats;
+    }
+}
+
+/// Validate anomaly detection parameters
+fn validate_anomaly_params(params: &AnomalyParams) -> Result<(), String> {
+    match params.method {
+        AnomalyMethod::LocalOutlierFactor => {
+            if params.k_neighbors < 1 || params.k_neighbors > 1000 {
+                return Err("k_neighbors must be between 1 and 1000".to_string());
+            }
+            if params.radius <= 0.0 || params.radius > 1000.0 {
+                return Err("radius must be between 0.0 and 1000.0".to_string());
+            }
+            if params.threshold <= 0.0 || params.threshold > 10.0 {
+                return Err("LOF threshold must be between 0.0 and 10.0".to_string());
+            }
+        }
+        AnomalyMethod::ZScore => {
+            if params.feature_data.is_none() {
+                return Err("feature_data is required for Z-score anomaly detection".to_string());
+            }
+            if let Some(ref features) = params.feature_data {
+                if features.is_empty() {
+                    return Err("feature_data cannot be empty".to_string());
+                }
+            }
+            if params.threshold <= 0.0 || params.threshold > 10.0 {
+                return Err("Z-score threshold must be between 0.0 and 10.0".to_string());
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Convert GPU anomaly detection results to Anomaly objects
+fn convert_gpu_anomaly_result_to_anomalies(
+    result: crate::actors::messages::AnomalyResult,
+    method: &AnomalyMethod,
+) -> Vec<Anomaly> {
+    let mut anomalies = Vec::new();
+    let current_time = Utc::now().timestamp() as u64;
+    
+    match method {
+        AnomalyMethod::LocalOutlierFactor => {
+            if let Some(lof_scores) = result.lof_scores {
+                for (i, &score) in lof_scores.iter().enumerate() {
+                    if score > result.anomaly_threshold {
+                        let severity = determine_severity_from_lof_score(score);
+                        let mut metadata = HashMap::new();
+                        metadata.insert("lof_score".to_string(), serde_json::Value::Number(
+                            serde_json::Number::from_f64(score as f64).unwrap()
+                        ));
+                        
+                        if let Some(ref densities) = result.local_densities {
+                            if i < densities.len() {
+                                metadata.insert("local_density".to_string(), 
+                                    serde_json::Value::Number(
+                                        serde_json::Number::from_f64(densities[i] as f64).unwrap()
+                                    )
+                                );
+                            }
+                        }
+                        
+                        anomalies.push(Anomaly {
+                            id: Uuid::new_v4().to_string(),
+                            node_id: format!("node_{}", i),
+                            r#type: "local_outlier".to_string(),
+                            severity: severity.to_string(),
+                            score,
+                            description: format!("Node has abnormally {} local density (LOF score: {:.3})", 
+                                                severity, score),
+                            timestamp: current_time,
+                            metadata: Some(serde_json::Value::Object(metadata.into_iter().collect())),
+                        });
+                    }
+                }
+            }
+        }
+        AnomalyMethod::ZScore => {
+            if let Some(zscore_values) = result.zscore_values {
+                for (i, &score) in zscore_values.iter().enumerate() {
+                    let abs_score = score.abs();
+                    if abs_score > result.anomaly_threshold {
+                        let severity = determine_severity_from_zscore(abs_score);
+                        let mut metadata = HashMap::new();
+                        metadata.insert("zscore".to_string(), serde_json::Value::Number(
+                            serde_json::Number::from_f64(score as f64).unwrap()
+                        ));
+                        metadata.insert("abs_zscore".to_string(), serde_json::Value::Number(
+                            serde_json::Number::from_f64(abs_score as f64).unwrap()
+                        ));
+                        
+                        anomalies.push(Anomaly {
+                            id: Uuid::new_v4().to_string(),
+                            node_id: format!("node_{}", i),
+                            r#type: "statistical_outlier".to_string(),
+                            severity: severity.to_string(),
+                            score: abs_score,
+                            description: format!("Statistical outlier with {} significance (Z-score: {:.3})", 
+                                                severity, score),
+                            timestamp: current_time,
+                            metadata: Some(serde_json::Value::Object(metadata.into_iter().collect())),
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    anomalies
+}
+
+/// Determine severity from LOF score
+fn determine_severity_from_lof_score(score: f32) -> &'static str {
+    if score > 3.0 {
+        "critical"
+    } else if score > 2.5 {
+        "high"
+    } else if score > 2.0 {
+        "medium"
+    } else {
+        "low"
+    }
+}
+
+/// Determine severity from Z-score
+fn determine_severity_from_zscore(abs_score: f32) -> &'static str {
+    if abs_score > 4.0 {
+        "critical"
+    } else if abs_score > 3.0 {
+        "high"
+    } else if abs_score > 2.5 {
+        "medium"
+    } else {
+        "low"
     }
 }

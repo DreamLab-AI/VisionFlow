@@ -906,6 +906,8 @@ mod tests {
                 Edge::new(1, 2, 1.0),
                 Edge::new(2, 3, 1.0),
             ],
+            metadata: crate::models::metadata::MetadataStore::new(),
+            id_to_metadata: std::collections::HashMap::new(),
         };
         
         // Set different labels for testing

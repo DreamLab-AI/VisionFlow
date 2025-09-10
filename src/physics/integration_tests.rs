@@ -48,9 +48,9 @@ mod tests {
         
         // Verify nodes have valid positions
         for node in &graph.nodes {
-            assert!(node.data.x.is_finite());
-            assert!(node.data.y.is_finite());
-            assert!(node.data.z.is_finite());
+            assert!(node.data.position.x.is_finite());
+            assert!(node.data.position.y.is_finite());
+            assert!(node.data.position.z.is_finite());
         }
     }
 
@@ -158,7 +158,7 @@ mod tests {
             Edge::new(3, 4, 1.0),
         ];
         
-        GraphData { nodes, edges }
+        GraphData { nodes, edges, metadata: crate::models::metadata::MetadataStore::new(), id_to_metadata: std::collections::HashMap::new() }
     }
 
     fn create_mixed_domain_graph() -> GraphData {
@@ -174,7 +174,7 @@ mod tests {
             Edge::new(3, 4, 1.0), // Non-AI connection
         ];
         
-        GraphData { nodes, edges }
+        GraphData { nodes, edges, metadata: crate::models::metadata::MetadataStore::new(), id_to_metadata: std::collections::HashMap::new() }
     }
 
     fn create_hierarchical_graph() -> GraphData {
@@ -191,7 +191,7 @@ mod tests {
             Edge::new(2, 4, 1.0),
         ];
         
-        GraphData { nodes, edges }
+        GraphData { nodes, edges, metadata: crate::models::metadata::MetadataStore::new(), id_to_metadata: std::collections::HashMap::new() }
     }
 
     fn create_simple_graph() -> GraphData {
@@ -206,7 +206,7 @@ mod tests {
             Edge::new(2, 3, 1.0),
         ];
         
-        GraphData { nodes, edges }
+        GraphData { nodes, edges, metadata: crate::models::metadata::MetadataStore::new(), id_to_metadata: std::collections::HashMap::new() }
     }
 
     fn create_large_graph(node_count: u32) -> GraphData {
@@ -231,7 +231,7 @@ mod tests {
             }
         }
         
-        GraphData { nodes, edges }
+        GraphData { nodes, edges, metadata: crate::models::metadata::MetadataStore::new(), id_to_metadata: std::collections::HashMap::new() }
     }
 
     fn create_test_node(id: u32, label: &str) -> Node {
@@ -241,9 +241,9 @@ mod tests {
         // Set random initial position
         use rand::Rng;
         let mut rng = rand::thread_rng();
-        node.data.x = rng.gen_range(-100.0..100.0);
-        node.data.y = rng.gen_range(-100.0..100.0);
-        node.data.z = rng.gen_range(-100.0..100.0);
+        node.data.position.x = rng.gen_range(-100.0..100.0);
+        node.data.position.y = rng.gen_range(-100.0..100.0);
+        node.data.position.z = rng.gen_range(-100.0..100.0);
         
         node
     }

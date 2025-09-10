@@ -123,7 +123,7 @@ impl Constraint {
             node_idx: [0, 0, 0, 0],
             params: [0.0; 8],
             weight: self.weight,
-            _padding: 0.0,
+            activation_frame: 0, // Will be set when constraint is first applied
         };
 
         // Copy node indices (max 4)
@@ -245,8 +245,8 @@ pub struct ConstraintData {
     pub params: [f32; 8],
     /// Weight of this constraint
     pub weight: f32,
-    /// Padding for alignment
-    pub _padding: f32,
+    /// Frame when this constraint was activated (for progressive activation)
+    pub activation_frame: i32,
 }
 
 // Manual implementation of DeviceCopy for ConstraintData
@@ -271,7 +271,7 @@ impl ConstraintData {
             node_idx,
             params,
             weight: constraint.weight,
-            _padding: 0.0,
+            activation_frame: 0, // Will be set when constraint is first applied
         }
     }
 }
