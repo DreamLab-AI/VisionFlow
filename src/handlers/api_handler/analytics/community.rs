@@ -75,10 +75,10 @@ pub async fn run_gpu_community_detection(
     // Set default parameters
     let params = CommunityDetectionParams {
         algorithm: algorithm.clone(),
-        max_iterations: request.max_iterations.unwrap_or(100),
-        convergence_tolerance: request.convergence_tolerance.unwrap_or(0.001),
-        synchronous: request.synchronous.unwrap_or(true),
-        seed: request.seed.unwrap_or(42),
+        max_iterations: Some(request.max_iterations.unwrap_or(100)),
+        convergence_tolerance: Some(request.convergence_tolerance.unwrap_or(0.001)),
+        synchronous: Some(request.synchronous.unwrap_or(true)),
+        seed: Some(request.seed.unwrap_or(42)),
     };
     
     // Validate parameters
@@ -129,11 +129,11 @@ pub async fn run_gpu_community_detection(
 
 /// Validate community detection parameters
 fn validate_community_params(params: &CommunityDetectionParams) -> Result<(), String> {
-    if params.max_iterations == 0 || params.max_iterations > 10000 {
+    if params.max_iterations.unwrap_or(100) == 0 || params.max_iterations.unwrap_or(100) > 10000 {
         return Err("max_iterations must be between 1 and 10000".to_string());
     }
     
-    if params.convergence_tolerance <= 0.0 || params.convergence_tolerance > 1.0 {
+    if params.convergence_tolerance.unwrap_or(0.001) <= 0.0 || params.convergence_tolerance.unwrap_or(0.001) > 1.0 {
         return Err("convergence_tolerance must be between 0.0 and 1.0".to_string());
     }
     

@@ -323,7 +323,7 @@ impl TcpConnectionActor {
 impl Actor for TcpConnectionActor {
     type Context = Context<Self>;
     
-    fn started(&mut self, ctx: &mut Self::Context) {
+    fn started(&mut self, _ctx: &mut Self::Context) {
         info!("TcpConnectionActor started for {}:{}", self.host, self.port);
         
         // Start resource monitoring

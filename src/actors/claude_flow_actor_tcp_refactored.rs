@@ -17,9 +17,11 @@ use log::{info, error, debug, warn};
 use std::collections::HashMap;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
+use rand::Rng;
 use serde_json::{json, Value};
 
 use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
+use crate::types::mcp_responses::{McpResponse, McpContentResult, AgentListResponse, McpParseError};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents};
@@ -137,10 +139,89 @@ impl ClaudeFlowActorTcp {
             tcp_actor.do_send(EstablishConnection);
         }
     }
+
+    /// Convert Agent struct to AgentStatus (new type-safe method)
+    fn agent_to_status(agent: &crate::services::bots_client::Agent) -> AgentStatus {
+        
+        let agent_type = match agent.agent_type.as_str() {
+            "coordinator" | "task-orchestrator" => AgentType::Coordinator,
+            "researcher" => AgentType::Researcher,
+            "coder" | "worker" => AgentType::Coder,
+            "analyst" | "analyzer" | "code-analyzer" | "specialist" => AgentType::Analyst,
+            "architect" => AgentType::Architect,
+            "tester" => AgentType::Tester,
+            "reviewer" => AgentType::Reviewer,
+            "optimizer" => AgentType::Optimizer,
+            "documenter" => AgentType::Documenter,
+            _ => AgentType::Coordinator,
+        };
+        
+        AgentStatus {
+            agent_id: agent.id.clone(),
+            profile: AgentProfile {
+                name: agent.name.clone(),
+                agent_type,
+                capabilities: Vec::new(),
+            },
+            status: agent.status.clone(),
+            active_tasks_count: 0,
+            completed_tasks_count: 0,
+            failed_tasks_count: 0,
+            success_rate: 100.0,
+            timestamp: Utc::now(),
+            current_task: None,
+            cpu_usage: agent.cpu_usage,
+            memory_usage: agent.memory_usage,
+            health: agent.health,
+            activity: agent.workload,
+            tasks_active: 0,
+            performance_metrics: PerformanceMetrics {
+                tasks_completed: 0,
+                success_rate: 100.0,
+            },
+            token_usage: TokenUsage {
+                total: 1000,
+                token_rate: 0.0,
+            },
+            swarm_id: None,
+            agent_mode: Some("autonomous".to_string()),
+            parent_queen_id: None,
+            processing_logs: None,
+            total_execution_time: 0,
+        }
+    }
+
+    /// Parse legacy response format for backward compatibility
+    fn parse_legacy_response(&self, response: &Value) -> AgentListResponse {
+        if let Some(result) = response.get("result") {
+            if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
+                if let Some(first_content) = content.first() {
+                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
+                        match serde_json::from_str::<Value>(text) {
+                            Ok(parsed) => {
+                                if let Some(agents_array) = parsed.get("agents").and_then(|a| a.as_array()) {
+                                    let mut agents = Vec::new();
+                                    for agent_val in agents_array {
+                                        if let Ok(agent) = serde_json::from_value::<crate::services::bots_client::Agent>(agent_val.clone()) {
+                                            agents.push(agent);
+                                        }
+                                    }
+                                    return AgentListResponse { agents };
+                                }
+                            }
+                            Err(e) => {
+                                warn!("Failed to parse legacy nested JSON: {}", e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        AgentListResponse { agents: Vec::new() }
+    }
     
     /// Convert MCP agent format to VisionFlow AgentStatus (preserved from original)
     fn mcp_agent_to_status(agent_data: &Value) -> Result<AgentStatus, String> {
-        use rand::Rng;
         let mut rng = rand::thread_rng();
         
         let agent_id = agent_data.get("id")
@@ -515,52 +596,48 @@ impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
     type Result = ();
     
     fn handle(&mut self, msg: ProcessAgentListResponse, _ctx: &mut Self::Context) {
-        // Extract the actual content from MCP response format
-        let parsed_response = if let Some(result) = msg.response.get("result") {
-            if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
-                if let Some(first_content) = content.first() {
-                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                        match serde_json::from_str::<Value>(text) {
-                            Ok(parsed) => {
-                                info!("Successfully parsed nested MCP response");
-                                debug!("Parsed content: {:?}", parsed);
-                                parsed
+        // Type-safe MCP response parsing
+        let response_clone = msg.response.clone();
+        let agent_list = match serde_json::from_value::<McpResponse<McpContentResult>>(msg.response) {
+            Ok(mcp_response) => {
+                match mcp_response.into_result() {
+                    Ok(content_result) => {
+                        match content_result.extract_data::<AgentListResponse>() {
+                            Ok(agents) => {
+                                info!("Successfully parsed MCP response with {} agents", agents.agents.len());
+                                agents
                             }
                             Err(e) => {
-                                warn!("Failed to parse nested JSON: {}", e);
-                                json!({"agents": []})
+                                warn!("Failed to extract agent data from MCP response: {}", e);
+                                // Return empty agent list as fallback
+                                AgentListResponse { agents: Vec::new() }
                             }
                         }
-                    } else {
-                        json!({"agents": []})
                     }
-                } else {
-                    json!({"agents": []})
+                    Err(mcp_error) => {
+                        error!("MCP response returned error: {}", mcp_error.message);
+                        AgentListResponse { agents: Vec::new() }
+                    }
                 }
-            } else {
-                json!({"agents": []})
             }
-        } else {
-            json!({"agents": []})
+            Err(e) => {
+                warn!("Failed to parse as MCP response format: {}", e);
+                // Fallback to legacy parsing for backward compatibility
+                self.parse_legacy_response(&response_clone)
+            }
         };
         
         // Process agents and send to graph
-        if let Some(agents) = parsed_response.get("agents").and_then(|a| a.as_array()) {
+        if !agent_list.agents.is_empty() {
             let mut agent_statuses = Vec::new();
             let mut parsing_errors = 0u32;
             
-            for (idx, agent_data) in agents.iter().enumerate() {
-                match Self::mcp_agent_to_status(agent_data) {
-                    Ok(status) => {
-                        info!("Agent [{}] {} - Status: {}, Type: {:?}", 
-                              idx, status.agent_id, status.status, status.profile.agent_type);
-                        agent_statuses.push(status);
-                    }
-                    Err(e) => {
-                        warn!("Failed to parse agent data at index {}: {}", idx, e);
-                        parsing_errors += 1;
-                    }
-                }
+            for (idx, agent) in agent_list.agents.iter().enumerate() {
+                // Convert Agent to AgentStatus
+                let agent_status = Self::agent_to_status(agent);
+                info!("Agent [{}] {} - Status: {}, Type: {:?}", 
+                      idx, agent_status.agent_id, agent_status.status, agent_status.profile.agent_type);
+                agent_statuses.push(agent_status);
             }
             
             // Send graph update

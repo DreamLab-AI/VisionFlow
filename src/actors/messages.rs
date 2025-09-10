@@ -18,6 +18,8 @@ use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::actors::gpu_compute_actor::ComputeMode;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 use crate::errors::VisionFlowError;
+use crate::actors::gpu::force_compute_actor::PhysicsStats;
+use crate::actors::gpu::stress_majorization_actor::StressMajorizationStats;
 
 // K-means clustering results
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +28,10 @@ pub struct KMeansResult {
     pub centroids: Vec<(f32, f32, f32)>,
     pub inertia: f32,
     pub iterations: u32,
+    pub clusters: Vec<crate::handlers::api_handler::analytics::Cluster>,
+    pub stats: crate::actors::gpu::clustering_actor::ClusteringStats,
+    pub converged: bool,
+    pub final_iteration: u32,
 }
 
 // Anomaly detection results
@@ -36,6 +42,23 @@ pub struct AnomalyResult {
     pub zscore_values: Option<Vec<f32>>,
     pub anomaly_threshold: f32,
     pub num_anomalies: usize,
+    pub anomalies: Vec<crate::actors::gpu::anomaly_detection_actor::AnomalyNode>,
+    pub stats: AnomalyDetectionStats,
+    pub method: AnomalyDetectionMethod,
+    pub threshold: f32,
+}
+
+// Anomaly detection statistics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnomalyDetectionStats {
+    pub total_nodes_analyzed: u32,
+    pub anomalies_found: usize,
+    pub detection_threshold: f32,
+    pub computation_time_ms: u64,
+    pub method: AnomalyDetectionMethod,
+    pub average_anomaly_score: f32,
+    pub max_anomaly_score: f32,
+    pub min_anomaly_score: f32,
 }
 
 // Community detection results
@@ -47,15 +70,18 @@ pub struct CommunityDetectionResult {
     pub iterations: u32,               // Number of iterations until convergence
     pub community_sizes: Vec<i32>,     // Size of each community
     pub converged: bool,               // Whether algorithm converged
+    pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
+    pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
+    pub algorithm: CommunityDetectionAlgorithm,
 }
 
 // K-means clustering parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KMeansParams {
     pub num_clusters: usize,
-    pub max_iterations: u32,
-    pub tolerance: f32,
-    pub seed: u32,
+    pub max_iterations: Option<u32>,
+    pub tolerance: Option<f32>,
+    pub seed: Option<u32>,
 }
 
 // Anomaly detection parameters
@@ -68,14 +94,24 @@ pub struct AnomalyParams {
     pub threshold: f32,
 }
 
+// Enhanced anomaly detection parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnomalyDetectionParams {
+    pub method: AnomalyDetectionMethod,
+    pub threshold: Option<f32>,
+    pub k_neighbors: Option<i32>,
+    pub window_size: Option<usize>,
+    pub feature_data: Option<Vec<f32>>,
+}
+
 // Community detection parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionParams {
     pub algorithm: CommunityDetectionAlgorithm,
-    pub max_iterations: u32,
-    pub convergence_tolerance: f32,
-    pub synchronous: bool,     // True for sync, false for async propagation
-    pub seed: u32,            // Random seed for tie-breaking
+    pub max_iterations: Option<u32>,
+    pub convergence_tolerance: Option<f32>,
+    pub synchronous: Option<bool>,     // True for sync, false for async propagation
+    pub seed: Option<u32>,            // Random seed for tie-breaking
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,10 +120,20 @@ pub enum AnomalyMethod {
     ZScore,
 }
 
+// Enhanced anomaly detection method enum
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AnomalyDetectionMethod {
+    LOF,
+    ZScore,
+    IsolationForest,
+    DBSCAN,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CommunityDetectionAlgorithm {
     LabelPropagation,
-    // Future algorithms: Louvain, Leiden, etc.
+    Louvain,
+    // Future algorithms: Leiden, etc.
 }
 
 // Graph Service Actor Messages
@@ -691,7 +737,6 @@ pub struct SwarmMonitorData {
     pub system_metrics: SystemMetrics,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
 // Auto-pause related messages for equilibrium detection and interaction handling
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<(), VisionFlowError>")]
@@ -705,7 +750,7 @@ pub struct PhysicsPauseMessage {
 pub struct NodeInteractionMessage {
     pub node_id: u32,
     pub interaction_type: NodeInteractionType,
-    pub position: Option<Vec3>,
+    pub position: Option<[f32; 3]>, // Changed from Vec3 to simple array for serde compatibility
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -725,6 +770,7 @@ pub struct ForceResumePhysics {
 #[rtype(result = "Result<bool, VisionFlowError>")]
 pub struct GetEquilibriumStatus;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MessageFlowEvent {
     pub id: String,
     pub from_agent: String,
@@ -870,7 +916,7 @@ pub struct SetComputeMode {
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<crate::actors::gpu_compute_actor::PhysicsStats, String>")]
+#[rtype(result = "Result<PhysicsStats, String>")]
 pub struct GetPhysicsStats;
 
 #[derive(Message)]

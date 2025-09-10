@@ -6,7 +6,7 @@ use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance, UpdateSimulationParams, BatchedUpdate, PriorityUpdate, UpdatePriority};
 use crate::actors::{GraphServiceActor, GPUComputeActor};
 use crate::config::path_access::{PathAccessible, JsonPathAccessible};
-use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError, ActorError, ErrorContext};
+use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError};
 use std::collections::{HashMap, BinaryHeap};
 use serde_json::Value;
 use log::{info, error, debug, warn};

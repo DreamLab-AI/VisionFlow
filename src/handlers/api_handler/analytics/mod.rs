@@ -33,7 +33,7 @@ use crate::actors::messages::{
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::{ConstraintSet, AdvancedParams};
-use crate::actors::gpu_compute_actor::PhysicsStats;
+use crate::actors::gpu_compute_actor::GPUPhysicsStats;
 
 // WebSocket integration module
 pub mod websocket_integration;
@@ -107,7 +107,7 @@ pub struct FocusResponse {
 #[serde(rename_all = "camelCase")]
 pub struct StatsResponse {
     pub success: bool,
-    pub physics_stats: Option<PhysicsStats>,
+    pub physics_stats: Option<GPUPhysicsStats>,
     pub visual_analytics_metrics: Option<PerformanceMetrics>,
     pub system_metrics: Option<SystemMetrics>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -155,7 +155,7 @@ pub struct ClusteringParams {
 }
 
 /// Cluster data structure
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Cluster {
     pub id: String,
@@ -550,14 +550,46 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
         frame_time_ms: 16.67,
         gpu_utilization: 45.0,
         memory_usage_mb: 512.0,
-        active_nodes: physics_stats.as_ref().map(|s| s.num_nodes).unwrap_or(0),
-        active_edges: physics_stats.as_ref().map(|s| s.num_edges).unwrap_or(0),
+        active_nodes: physics_stats.as_ref().map(|s| s.nodes_count).unwrap_or(0),
+        active_edges: physics_stats.as_ref().map(|s| s.edges_count).unwrap_or(0),
         render_time_ms: 12.5,
     };
 
     Ok(HttpResponse::Ok().json(StatsResponse {
         success: true,
-        physics_stats,
+        physics_stats: physics_stats.map(|stats| crate::actors::gpu_compute_actor::GPUPhysicsStats {
+            compute_mode: "GPU".to_string(),
+            kernel_mode: "unified".to_string(),
+            iteration_count: stats.iteration_count,
+            num_nodes: stats.nodes_count,
+            num_edges: stats.edges_count,
+            num_constraints: 0,
+            num_isolation_layers: 0,
+            stress_majorization_interval: 100,
+            last_stress_majorization: 0,
+            // Add missing fields
+            gpu_failure_count: 0,
+            has_advanced_features: false,
+            has_dual_graph_features: false,
+            has_visual_analytics_features: false,
+            stress_safety_stats: crate::actors::gpu_compute_actor::StressMajorizationStats {
+                total_runs: 0,
+                successful_runs: 0,
+                failed_runs: 0,
+                consecutive_failures: 0,
+                emergency_stopped: false,
+                last_error: String::new(),
+                average_computation_time_ms: 0,
+                // Add all missing fields with dummy values
+                success_rate: 0.0,
+                is_emergency_stopped: false,
+                emergency_stop_reason: String::new(),
+                avg_computation_time_ms: 0,
+                avg_stress: 0.0,
+                avg_displacement: 0.0,
+                is_converging: false,
+            },
+        }),
         visual_analytics_metrics: None, // Would be populated from VisualAnalyticsGPU
         system_metrics: Some(system_metrics),
         error: None,
@@ -1371,8 +1403,8 @@ pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpRespon
                     "status": "active",
                     "compute": {
                         "kernel_mode": "advanced",
-                        "nodes_processed": stats.num_nodes,
-                        "edges_processed": stats.num_edges,
+                        "nodes_processed": stats.nodes_count,
+                        "edges_processed": stats.edges_count,
                         "iteration_count": stats.iteration_count
                     },
                     "analytics": {

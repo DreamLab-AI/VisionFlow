@@ -2,10 +2,9 @@ use super::api::GitHubClient;
 use super::types::GitHubFileBasicMetadata;
 use chrono::{DateTime, Utc};
 use log::{debug, warn};
-use std::error::Error;
 use std::sync::Arc;
 use serde_json::Value;
-use crate::errors::{VisionFlowError, VisionFlowResult, GitHubError, NetworkError, ErrorContext};
+use crate::errors::VisionFlowResult;
 
 /// Enhanced content API that can detect actual file content changes
 #[derive(Clone)] // Add Clone trait
