@@ -24,6 +24,7 @@ use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents};
 use crate::actors::jsonrpc_client::{JsonRpcClient, ConnectToTcpActor, InitializeMcpSession, CallTool, ClientInfo};
+use crate::actors::claude_flow_actor_tcp::UpdateAgentCache;
 
 /// Refactored ClaudeFlowActorTcp - pure application logic
 pub struct ClaudeFlowActorTcp {

@@ -216,11 +216,11 @@ impl JsonRpcClient {
             return Err("Invalid JSON-RPC version".to_string());
         }
         
-        if !response.contains_key("id") {
+        if response.as_object().map_or(true, |obj| !obj.contains_key("id")) {
             return Err("Response missing ID".to_string());
         }
         
-        if response.contains_key("error") {
+        if response.as_object().map_or(false, |obj| obj.contains_key("error")) {
             if let Some(error) = response.get("error") {
                 let error_message = error.get("message")
                     .and_then(|m| m.as_str())
@@ -237,13 +237,13 @@ impl JsonRpcClient {
         debug!("Processing JSON-RPC message: {:?}", message);
         
         // Check if this is a response to a pending request
-        if let Some(id) = message.get("id").and_then(|v| v.as_str()) {
+        if let Some(id) = message.get("id").and_then(|v| v.as_str()).map(|s| s.to_string()) {
             let pending_requests = self.pending_requests.clone();
             let message_clone = message.clone();
             
             tokio::spawn(async move {
                 let mut requests = pending_requests.write().await;
-                if let Some(sender) = requests.remove(id) {
+                if let Some(sender) = requests.remove(&id) {
                     debug!("Correlating response for request ID: {}", id);
                     let _ = sender.send(message_clone);
                 } else {

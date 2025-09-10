@@ -690,7 +690,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                         // Send graph data as JSON
                                         let response = serde_json::json!({
                                             "type": "botsGraphUpdate",
-                                            "data": graph_data,
+                                            "data": graph_data.as_ref(),
                                             "timestamp": chrono::Utc::now().timestamp_millis()
                                         });
                                         

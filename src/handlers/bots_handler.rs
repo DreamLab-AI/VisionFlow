@@ -480,7 +480,7 @@ pub async fn update_bots_data(
     if let Some(gpu_compute_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::{InitializeGPU, UpdateGPUGraphData, UpdateSimulationParams, ComputeForces, GetNodeData};
 
-        let bots_graph = BOTS_GRAPH.read().await;
+        let bots_graph = Arc::new(BOTS_GRAPH.read().await.clone());
 
         // Get physics settings
         let settings = match state.settings_addr.send(GetSettings).await {
@@ -717,7 +717,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> HttpResponse {
                 graph_data.nodes.len(),
                 graph_data.edges.len()
             );
-            return HttpResponse::Ok().json(graph_data);
+            return HttpResponse::Ok().json(graph_data.as_ref());
         }
         Ok(Err(e)) => {
             warn!("GraphServiceActor returned error: {}", e);
