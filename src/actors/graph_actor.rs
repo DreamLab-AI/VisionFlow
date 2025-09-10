@@ -1362,16 +1362,18 @@ impl GraphServiceActor {
         self.constraint_update_counter += 1;
         
         // Execute periodic stress-majorization projection
-        if self.stress_step_counter >= self.advanced_params.stress_step_interval_frames {
-            self.execute_stress_majorization_step();
-            self.stress_step_counter = 0;
-        }
+        // DISABLED: Causing node jumps every few seconds
+        // if self.stress_step_counter >= self.advanced_params.stress_step_interval_frames {
+        //     self.execute_stress_majorization_step();
+        //     self.stress_step_counter = 0;
+        // }
         
         // Update constraints periodically based on semantic analysis
-        if self.constraint_update_counter >= 120 { // Every 2 seconds at 60 FPS
-            self.update_dynamic_constraints();
-            self.constraint_update_counter = 0;
-        }
+        // DISABLED: Causing node jumps every 2 seconds
+        // if self.constraint_update_counter >= 120 { // Every 2 seconds at 60 FPS
+        //     self.update_dynamic_constraints();
+        //     self.constraint_update_counter = 0;
+        // }
         
         // Initialize advanced GPU context if needed
         if self.gpu_compute_addr.is_none() && !self.gpu_init_in_progress && !self.graph_data.nodes.is_empty() {
@@ -1452,19 +1454,20 @@ impl GraphServiceActor {
     
     fn run_advanced_gpu_step(&mut self, ctx: &mut Context<Self>) {
         // Only log physics step execution when debug is enabled
-        if crate::utils::logging::is_debug_enabled() {
-            info!("[GPU STEP] === Starting physics simulation step ===");
-            info!("[GPU STEP] Current physics parameters:");
-            info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
-            info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
-            info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
-            info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
-            info!("  - attraction_k: {:.3} (unused - for future clustering)", self.simulation_params.attraction_k);
-            info!("  - center_gravity_k: {:.3} (center pull force)", self.simulation_params.center_gravity_k);
-            info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
-            info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
-            info!("  - auto_balance: {} (auto-tuning enabled?)", self.simulation_params.auto_balance);
-        }
+        // DISABLED: This was logging every 16ms causing log flooding and crashes
+        // if crate::utils::logging::is_debug_enabled() {
+        //     info!("[GPU STEP] === Starting physics simulation step ===");
+        //     info!("[GPU STEP] Current physics parameters:");
+        //     info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
+        //     info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
+        //     info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
+        //     info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
+        //     info!("  - attraction_k: {:.3} (unused - for future clustering)", self.simulation_params.attraction_k);
+        //     info!("  - center_gravity_k: {:.3} (center pull force)", self.simulation_params.center_gravity_k);
+        //     info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
+        //     info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
+        //     info!("  - auto_balance: {} (auto-tuning enabled?)", self.simulation_params.auto_balance);
+        // }
         
         if !self.simulation_params.enabled {
             if crate::utils::logging::is_debug_enabled() {

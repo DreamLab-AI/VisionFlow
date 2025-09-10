@@ -185,6 +185,7 @@ impl StressMajorizationSafety {
 }
 
 /// Child actor addresses for the manager
+#[derive(Clone)]
 pub struct ChildActorAddresses {
     pub resource_actor: Addr<super::GPUResourceActor>,
     pub force_compute_actor: Addr<super::ForceComputeActor>,
