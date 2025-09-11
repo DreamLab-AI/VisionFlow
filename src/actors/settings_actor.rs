@@ -118,6 +118,83 @@ impl SettingsActor {
         Ok(())
     }
     
+    /// Deep merge settings updates instead of full replacement
+    /// This prevents overwriting unchanged settings sections
+    pub async fn merge_settings_update(&self, update: serde_json::Value) -> VisionFlowResult<()> {
+        let mut settings = self.settings.write().await;
+        
+        // Use the existing merge_update method from AppFullSettings
+        settings.merge_update(update.clone()).map_err(|e| {
+            error!("Failed to merge settings update: {}", e);
+            VisionFlowError::Settings(SettingsError::SaveFailed {
+                file_path: "merge_update".to_string(),
+                reason: e,
+            })
+        })?;
+        
+        // Validate merged settings
+        settings.validate_config_camel_case().map_err(|e| {
+            error!("Settings validation failed after merge: {:?}", e);
+            VisionFlowError::Settings(SettingsError::ValidationFailed {
+                setting_path: "merged_settings".to_string(),
+                reason: format!("Validation failed after merge: {:?}", e),
+            })
+        })?;
+        
+        // Persist to file if enabled
+        if settings.system.persist_settings {
+            settings.save().map_err(|e| {
+                error!("Failed to save merged settings to file: {}", e);
+                VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "settings".to_string(),
+                    reason: e.to_string(),
+                })
+            })?;
+        }
+        
+        // Propagate physics updates if any physics settings changed
+        if self.contains_physics_updates(&update) {
+            self.propagate_physics_updates(&settings, "logseq").await;
+        }
+        
+        info!("Settings merged successfully with {} top-level fields", 
+              update.as_object().map(|o| o.len()).unwrap_or(0));
+        Ok(())
+    }
+    
+    /// Check if the update contains physics-related changes
+    fn contains_physics_updates(&self, update: &serde_json::Value) -> bool {
+        fn check_object(obj: &serde_json::Value, path: &str) -> bool {
+            match obj {
+                serde_json::Value::Object(map) => {
+                    for (key, value) in map {
+                        let new_path = if path.is_empty() {
+                            key.clone()
+                        } else {
+                            format!("{}.{}", path, key)
+                        };
+                        
+                        if new_path.contains("physics") || 
+                           new_path.contains("repelK") ||
+                           new_path.contains("springK") ||
+                           new_path.contains("damping") ||
+                           new_path.contains("maxVelocity") {
+                            return true;
+                        }
+                        
+                        if check_object(value, &new_path) {
+                            return true;
+                        }
+                    }
+                }
+                _ => {}
+            }
+            false
+        }
+        
+        check_object(update, "")
+    }
+    
     /// Check if mailbox is approaching overflow and take protective action
     fn check_mailbox_overflow(&mut self, ctx: &mut Context<Self>) -> bool {
         if self.update_queue.len() >= MAX_MAILBOX_SIZE {
@@ -235,7 +312,7 @@ impl SettingsActor {
         self.metrics.priority_queue_size = self.update_queue.len();
     }
     
-    /// Process emergency batch for critical updates during overflow
+    /// Process emergency batch for critical updates during overflow using merge strategy
     async fn process_emergency_batch(
         settings: Arc<RwLock<AppFullSettings>>,
         updates: Vec<PriorityUpdate>,
@@ -246,15 +323,43 @@ impl SettingsActor {
         let mut current = settings.write().await;
         let mut physics_updated = false;
         
+        // Use batch merge approach for emergency updates too
+        let mut emergency_update = serde_json::Map::new();
+        
         for update in updates {
-            // Process only critical updates (physics parameters)
-            if let Err(e) = current.set_json_by_path(&update.path, update.value.clone()) {
-                error!("[EMERGENCY BATCH] Failed to set critical path {}: {}", update.path, e);
-                continue;
+            // Build nested JSON structure for critical updates
+            let path_parts: Vec<&str> = update.path.split('.').collect();
+            let mut current_level = &mut emergency_update;
+            
+            for (i, part) in path_parts.iter().enumerate() {
+                if i == path_parts.len() - 1 {
+                    // Last part - set the value
+                    current_level.insert(part.to_string(), update.value.clone());
+                } else {
+                    // Intermediate part - ensure object exists
+                    let entry = current_level.entry(part.to_string()).or_insert_with(|| {
+                        serde_json::Value::Object(serde_json::Map::new())
+                    });
+                    if let serde_json::Value::Object(ref mut obj) = entry {
+                        current_level = obj;
+                    } else {
+                        error!("[EMERGENCY BATCH] Path conflict at {}: existing value is not an object", part);
+                        continue;
+                    }
+                }
             }
             
             if update.path.contains(".physics.") {
                 physics_updated = true;
+            }
+        }
+        
+        // Apply the merged emergency update
+        if !emergency_update.is_empty() {
+            let emergency_json = serde_json::Value::Object(emergency_update);
+            if let Err(e) = current.merge_update(emergency_json) {
+                error!("[EMERGENCY BATCH] Failed to merge emergency updates: {}", e);
+                return;
             }
         }
         
@@ -279,7 +384,7 @@ impl SettingsActor {
         );
     }
     
-    /// Process priority batch with full validation
+    /// Process priority batch with full validation using merge strategy
     async fn process_priority_batch(
         settings: Arc<RwLock<AppFullSettings>>,
         mut updates: Vec<PriorityUpdate>,
@@ -296,18 +401,48 @@ impl SettingsActor {
         let mut bloom_glow_updated = false;
         let mut validation_needed = false;
         
+        // Use batch merge approach - collect all updates into a single JSON object
+        let mut batch_update = serde_json::Map::new();
+        
         for update in updates {
-            if let Err(e) = current.set_json_by_path(&update.path, update.value.clone()) {
-                error!("[PRIORITY BATCH] Failed to set path {}: {}", update.path, e);
-                continue;
+            // Build nested JSON structure for merging
+            let path_parts: Vec<&str> = update.path.split('.').collect();
+            let mut current_level = &mut batch_update;
+            
+            for (i, part) in path_parts.iter().enumerate() {
+                if i == path_parts.len() - 1 {
+                    // Last part - set the value
+                    current_level.insert(part.to_string(), update.value.clone());
+                } else {
+                    // Intermediate part - ensure object exists
+                    let entry = current_level.entry(part.to_string()).or_insert_with(|| {
+                        serde_json::Value::Object(serde_json::Map::new())
+                    });
+                    if let serde_json::Value::Object(ref mut obj) = entry {
+                        current_level = obj;
+                    } else {
+                        error!("[PRIORITY BATCH] Path conflict at {}: existing value is not an object", part);
+                        continue;
+                    }
+                }
             }
             
+            // Check update type for post-processing
             if update.path.contains(".physics.") {
                 physics_updated = true;
                 validation_needed = true;
             } else if update.path.contains(".bloom.") || update.path.contains(".glow.") {
                 bloom_glow_updated = true;
                 validation_needed = true;
+            }
+        }
+        
+        // Apply the merged batch update
+        if !batch_update.is_empty() {
+            let batch_json = serde_json::Value::Object(batch_update);
+            if let Err(e) = current.merge_update(batch_json) {
+                error!("[PRIORITY BATCH] Failed to merge batch updates: {}", e);
+                return;
             }
         }
         
@@ -406,16 +541,42 @@ impl Handler<GetSettings> for SettingsActor {
     }
 }
 
-// Handle UpdateSettings message  
+// Handle UpdateSettings message with merge strategy
 impl Handler<UpdateSettings> for SettingsActor {
     type Result = ResponseFuture<VisionFlowResult<()>>;
     
     fn handle(&mut self, msg: UpdateSettings, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
+        let graph_service_addr = self.graph_service_addr.clone();
+        let gpu_compute_addr = self.gpu_compute_addr.clone();
         
         Box::pin(async move {
             let mut current = settings.write().await;
-            *current = msg.settings;
+            
+            // Convert the full settings to JSON for merging
+            let update_json = serde_json::to_value(&msg.settings)
+                .map_err(|e| {
+                    error!("Failed to serialize settings update: {}", e);
+                    VisionFlowError::Serialization(format!("Failed to serialize settings: {}", e))
+                })?;
+            
+            // Use merge instead of full replacement to preserve unchanged fields
+            current.merge_update(update_json.clone()).map_err(|e| {
+                error!("Failed to merge settings update: {}", e);
+                VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "update_settings".to_string(),
+                    reason: e,
+                })
+            })?;
+            
+            // Validate merged settings
+            current.validate_config_camel_case().map_err(|e| {
+                error!("Settings validation failed after update: {:?}", e);
+                VisionFlowError::Settings(SettingsError::ValidationFailed {
+                    setting_path: "updated_settings".to_string(),
+                    reason: format!("Validation failed after update: {:?}", e),
+                })
+            })?;
             
             // Save to file
             current.save().map_err(|e| {
@@ -426,10 +587,59 @@ impl Handler<UpdateSettings> for SettingsActor {
                 })
             })?;
             
-            info!("Settings updated successfully");
+            // Check if physics updates are needed and propagate them
+            if contains_physics_updates_helper(&update_json) {
+                let physics = current.get_physics("logseq");
+                let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
+                let update_msg = UpdateSimulationParams { params: sim_params };
+                
+                if let Some(graph_addr) = &graph_service_addr {
+                    graph_addr.do_send(update_msg.clone());
+                    info!("Physics updates propagated to GraphServiceActor");
+                }
+                if let Some(gpu_addr) = &gpu_compute_addr {
+                    gpu_addr.do_send(update_msg);
+                    info!("Physics updates propagated to ForceComputeActor");
+                }
+            }
+            
+            info!("Settings updated successfully using merge strategy");
             Ok(())
         })
     }
+}
+
+// Helper function for physics update detection
+fn contains_physics_updates_helper(update: &serde_json::Value) -> bool {
+    fn check_object(obj: &serde_json::Value, path: &str) -> bool {
+        match obj {
+            serde_json::Value::Object(map) => {
+                for (key, value) in map {
+                    let new_path = if path.is_empty() {
+                        key.clone()
+                    } else {
+                        format!("{}.{}", path, key)
+                    };
+                    
+                    if new_path.contains("physics") || 
+                       new_path.contains("repelK") ||
+                       new_path.contains("springK") ||
+                       new_path.contains("damping") ||
+                       new_path.contains("maxVelocity") {
+                        return true;
+                    }
+                    
+                    if check_object(value, &new_path) {
+                        return true;
+                    }
+                }
+            }
+            _ => {}
+        }
+        false
+    }
+    
+    check_object(update, "")
 }
 
 // Handler for getting settings by path (for socket_flow_handler compatibility)
@@ -927,5 +1137,133 @@ impl Handler<BatchedUpdate> for SettingsActor {
         
         let future = async { Ok(()) };
         Box::pin(future)
+    }
+}
+
+// Handler for MergeSettingsUpdate message - direct merge operation
+impl Handler<MergeSettingsUpdate> for SettingsActor {
+    type Result = ResponseFuture<VisionFlowResult<()>>;
+    
+    fn handle(&mut self, msg: MergeSettingsUpdate, _ctx: &mut Self::Context) -> Self::Result {
+        let settings = self.settings.clone();
+        let graph_service_addr = self.graph_service_addr.clone();
+        let gpu_compute_addr = self.gpu_compute_addr.clone();
+        
+        Box::pin(async move {
+            let mut current = settings.write().await;
+            
+            // Use the existing merge_update method from AppFullSettings
+            current.merge_update(msg.update.clone()).map_err(|e| {
+                error!("Failed to merge settings update: {}", e);
+                VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "merge_update".to_string(),
+                    reason: e,
+                })
+            })?;
+            
+            // Validate merged settings
+            current.validate_config_camel_case().map_err(|e| {
+                error!("Settings validation failed after merge: {:?}", e);
+                VisionFlowError::Settings(SettingsError::ValidationFailed {
+                    setting_path: "merged_settings".to_string(),
+                    reason: format!("Validation failed after merge: {:?}", e),
+                })
+            })?;
+            
+            // Persist to file if enabled
+            if current.system.persist_settings {
+                current.save().map_err(|e| {
+                    error!("Failed to save merged settings to file: {}", e);
+                    VisionFlowError::Settings(SettingsError::SaveFailed {
+                        file_path: "settings".to_string(),
+                        reason: e.to_string(),
+                    })
+                })?;
+            }
+            
+            // Propagate physics updates if any physics settings changed
+            if contains_physics_updates_helper(&msg.update) {
+                let physics = current.get_physics("logseq");
+                let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
+                let update_msg = UpdateSimulationParams { params: sim_params };
+                
+                if let Some(graph_addr) = &graph_service_addr {
+                    graph_addr.do_send(update_msg.clone());
+                    info!("Physics updates propagated to GraphServiceActor");
+                }
+                if let Some(gpu_addr) = &gpu_compute_addr {
+                    gpu_addr.do_send(update_msg);
+                    info!("Physics updates propagated to ForceComputeActor");
+                }
+            }
+            
+            info!("Settings merged successfully with {} top-level fields", 
+                  msg.update.as_object().map(|o| o.len()).unwrap_or(0));
+            Ok(())
+        })
+    }
+}
+
+// Handler for PartialSettingsUpdate message - alternative to MergeSettingsUpdate
+impl Handler<PartialSettingsUpdate> for SettingsActor {
+    type Result = ResponseFuture<VisionFlowResult<()>>;
+    
+    fn handle(&mut self, msg: PartialSettingsUpdate, _ctx: &mut Self::Context) -> Self::Result {
+        let settings = self.settings.clone();
+        let graph_service_addr = self.graph_service_addr.clone();
+        let gpu_compute_addr = self.gpu_compute_addr.clone();
+        
+        Box::pin(async move {
+            let mut current = settings.write().await;
+            
+            // Use the existing merge_update method from AppFullSettings
+            current.merge_update(msg.partial_settings.clone()).map_err(|e| {
+                error!("Failed to merge partial settings update: {}", e);
+                VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "partial_update".to_string(),
+                    reason: e,
+                })
+            })?;
+            
+            // Validate merged settings
+            current.validate_config_camel_case().map_err(|e| {
+                error!("Settings validation failed after partial update: {:?}", e);
+                VisionFlowError::Settings(SettingsError::ValidationFailed {
+                    setting_path: "partial_settings".to_string(),
+                    reason: format!("Validation failed after partial update: {:?}", e),
+                })
+            })?;
+            
+            // Persist to file if enabled
+            if current.system.persist_settings {
+                current.save().map_err(|e| {
+                    error!("Failed to save settings after partial update: {}", e);
+                    VisionFlowError::Settings(SettingsError::SaveFailed {
+                        file_path: "settings".to_string(),
+                        reason: e.to_string(),
+                    })
+                })?;
+            }
+            
+            // Propagate physics updates if any physics settings changed
+            if contains_physics_updates_helper(&msg.partial_settings) {
+                let physics = current.get_physics("logseq");
+                let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
+                let update_msg = UpdateSimulationParams { params: sim_params };
+                
+                if let Some(graph_addr) = &graph_service_addr {
+                    graph_addr.do_send(update_msg.clone());
+                    info!("Physics updates propagated to GraphServiceActor from partial update");
+                }
+                if let Some(gpu_addr) = &gpu_compute_addr {
+                    gpu_addr.do_send(update_msg);
+                    info!("Physics updates propagated to ForceComputeActor from partial update");
+                }
+            }
+            
+            info!("Partial settings update merged successfully with {} top-level fields", 
+                  msg.partial_settings.as_object().map(|o| o.len()).unwrap_or(0));
+            Ok(())
+        })
     }
 }

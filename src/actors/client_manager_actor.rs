@@ -11,6 +11,7 @@ use log::{debug, warn};
 pub struct ClientManagerActor {
     clients: HashMap<usize, Addr<SocketFlowServer>>,
     next_id: AtomicUsize,
+    graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
 }
 
 impl ClientManagerActor {
@@ -18,13 +19,31 @@ impl ClientManagerActor {
         Self {
             clients: HashMap::new(),
             next_id: AtomicUsize::new(1),
+            graph_service_addr: None,
         }
+    }
+
+    // WEBSOCKET SETTLING FIX: Method to set graph service address after creation
+    pub fn set_graph_service_addr(&mut self, addr: Addr<crate::actors::graph_actor::GraphServiceActor>) {
+        self.graph_service_addr = Some(addr);
     }
 
     pub fn register_client(&mut self, addr: Addr<SocketFlowServer>) -> usize {
         let client_id = self.next_id.fetch_add(1, Ordering::SeqCst);
         self.clients.insert(client_id, addr);
         debug!("Client {} registered. Total clients: {}", client_id, self.clients.len());
+        
+        // WEBSOCKET SETTLING FIX: Trigger immediate position broadcast for new client
+        // This ensures new clients get graph data immediately, even if the graph is settled
+        if let Some(ref graph_addr) = self.graph_service_addr {
+            debug!("Triggering force broadcast for new client {}", client_id);
+            graph_addr.do_send(crate::actors::messages::ForcePositionBroadcast {
+                reason: format!("new_client_{}", client_id),
+            });
+        } else {
+            warn!("Cannot trigger force broadcast for new client {} - no graph service address", client_id);
+        }
+        
         client_id
     }
 
@@ -117,5 +136,15 @@ impl Handler<GetClientCount> for ClientManagerActor {
 
     fn handle(&mut self, _msg: GetClientCount, _ctx: &mut Self::Context) -> Self::Result {
         Ok(self.get_client_count())
+    }
+}
+
+// WEBSOCKET SETTLING FIX: Handler to set graph service address
+impl Handler<crate::actors::messages::SetGraphServiceAddress> for ClientManagerActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: crate::actors::messages::SetGraphServiceAddress, _ctx: &mut Self::Context) -> Self::Result {
+        debug!("Setting graph service address in client manager");
+        self.graph_service_addr = Some(msg.addr);
     }
 }

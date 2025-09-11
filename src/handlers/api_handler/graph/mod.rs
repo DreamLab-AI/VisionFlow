@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use crate::AppState;
 use serde::{Serialize, Deserialize};
 use log::{info, debug, error, warn};
@@ -9,7 +9,7 @@ use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata, GetAutoBalanceNotifications};
+use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata, AddNodesFromMetadata, UpdateNodeFromMetadata, RemoveNodeByMetadata, GetAutoBalanceNotifications, InitialClientSync};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,7 +40,7 @@ pub struct GraphQuery {
     pub filter: Option<String>,
 }
 
-pub async fn get_graph_data(state: web::Data<AppState>) -> impl Responder {
+pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
     info!("Received request for graph data");
     let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
 
@@ -57,6 +57,28 @@ pub async fn get_graph_data(state: web::Data<AppState>) -> impl Responder {
                 edges: graph_data_owned.edges.clone(),
                 metadata: graph_data_owned.metadata.clone(),
             };
+
+            // UNIFIED INIT: Trigger WebSocket broadcast for initial client synchronization
+            let client_identifier = req.peer_addr()
+                .map(|addr| addr.to_string())
+                .unwrap_or_else(|| "unknown".to_string());
+            
+            debug!("Triggering initial WebSocket sync for client: {}", client_identifier);
+            
+            // Send InitialClientSync message to trigger WebSocket broadcast
+            // This ensures that after REST call returns graph data, WebSocket will broadcast current positions
+            let sync_msg = InitialClientSync {
+                client_identifier: client_identifier.clone(),
+                trigger_source: "rest_api".to_string(),
+            };
+            
+            if let Err(e) = state.graph_service_addr.try_send(sync_msg) {
+                warn!("Failed to trigger initial client sync for {}: {}", client_identifier, e);
+                // Don't fail the request, just log the warning
+            } else {
+                debug!("Successfully triggered initial sync for client: {}", client_identifier);
+            }
+
             HttpResponse::Ok().json(response)
         }
         Ok(Err(e)) => {
@@ -155,57 +177,44 @@ pub async fn get_paginated_graph_data(
 }
 
 pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
-    info!("Received request to refresh graph");
+    info!("Received request to refresh graph - returning current state");
     
-    let metadata_result = state.metadata_addr.send(GetMetadata).await;
+    // Instead of rebuilding, just return the current graph data
+    let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
     
-    match metadata_result {
-        Ok(Ok(metadata_store)) => {
-            debug!("Building graph from {} metadata entries", metadata_store.len());
+    match graph_data_result {
+        Ok(Ok(graph_data_owned)) => {
+            debug!("Returning current graph state with {} nodes and {} edges",
+                graph_data_owned.nodes.len(),
+                graph_data_owned.edges.len()
+            );
             
-            // Send BuildGraphFromMetadata message to GraphServiceActor
-            match state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store }).await {
-                Ok(Ok(())) => {
-                    // Optionally, if we need to preserve old positions, that logic would need to be
-                    // part of the GraphServiceActor's BuildGraphFromMetadata handler or a subsequent message.
-                    // For simplicity here, we assume the actor handles the build correctly.
-                    info!("Graph refreshed successfully via GraphServiceActor");
-                    HttpResponse::Ok().json(serde_json::json!({
-                        "success": true,
-                        "message": "Graph refreshed successfully"
-                    }))
-                }
-                Ok(Err(e)) => {
-                    error!("GraphServiceActor failed to build graph from metadata: {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
-                        "success": false,
-                        "error": format!("Failed to build graph: {}", e)
-                    }))
-                }
-                Err(e) => {
-                    error!("Mailbox error sending BuildGraphFromMetadata: {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
-                        "success": false,
-                        "error": "Graph service unavailable during refresh"
-                    }))
-                }
-            }
+            let response = GraphResponse {
+                nodes: graph_data_owned.nodes.clone(),
+                edges: graph_data_owned.edges.clone(),
+                metadata: graph_data_owned.metadata.clone(),
+            };
+            
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Graph data retrieved successfully",
+                "data": response
+            }))
         }
         Ok(Err(e)) => {
-            error!("Failed to get metadata from MetadataActor: {}", e);
+            error!("Failed to get current graph data: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
-                "error": "Failed to retrieve metadata for graph refresh"
+                "error": "Failed to retrieve current graph data"
             }))
         }
         Err(e) => {
-            error!("Mailbox error getting metadata: {}", e);
+            error!("Mailbox error getting graph data: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
-                "error": "Metadata service unavailable"
+                "error": "Graph service unavailable"
             }))
         }
-// Removed duplicate success block from here
     }
 }
 
@@ -256,8 +265,8 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                 }
             }
             
-            // Send BuildGraphFromMetadata message to GraphServiceActor
-            match state.graph_service_addr.send(BuildGraphFromMetadata { metadata }).await {
+            // Send AddNodesFromMetadata for incremental updates instead of full rebuild
+            match state.graph_service_addr.send(AddNodesFromMetadata { metadata }).await {
                 Ok(Ok(())) => {
                     // Position preservation logic would need to be handled by the actor or subsequent messages.
                     debug!("Graph updated successfully via GraphServiceActor after file processing");

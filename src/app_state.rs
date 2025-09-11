@@ -76,6 +76,12 @@ impl AppState {
             None // SettingsActor address will be set later
         ).start();
         
+        // WEBSOCKET SETTLING FIX: Set graph service address in client manager for force broadcasts
+        info!("[AppState::new] Linking ClientManagerActor to GraphServiceActor for settling fix");
+        client_manager_addr.do_send(crate::actors::messages::SetGraphServiceAddress {
+            addr: graph_service_addr.clone(),
+        });
+        
         // Create the modular GPU manager system
         info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
         let gpu_manager_addr = Some(GPUManagerActor::new().start());

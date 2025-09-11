@@ -46,6 +46,9 @@ fn default_node_id() -> String {
 /// Type alias for metadata storage with camelCase keys
 pub type MetadataStore = HashMap<String, Metadata>;
 
+/// Type alias for file metadata - same as Metadata
+pub type FileMetadata = Metadata;
+
 // Implement helper methods directly on HashMap<String, Metadata>
 pub trait MetadataOps {
     fn validate_files(&self, markdown_dir: &str) -> bool;

@@ -1326,6 +1326,70 @@ impl GraphServiceActor {
             }
         }
         
+        // FIXED: Broadcast position updates to WebSocket clients
+        // This was the critical missing piece causing the settling issue
+        
+        // Check if we should broadcast positions (avoid spam during stable periods)
+        let now = std::time::Instant::now();
+        let should_broadcast = if let Some(last_time) = self.last_broadcast_time {
+            // During stable/settled periods, reduce broadcast frequency to save bandwidth
+            // But still broadcast occasionally to ensure clients stay updated
+            let stable_broadcast_interval = std::time::Duration::from_millis(1000); // 1 second during stable
+            let active_broadcast_interval = std::time::Duration::from_millis(50); // 20Hz during active
+            
+            let is_stable = self.current_state == AutoBalanceState::Stable && self.stable_count > 30;
+            let required_interval = if is_stable { stable_broadcast_interval } else { active_broadcast_interval };
+            
+            now.duration_since(last_time) >= required_interval
+        } else {
+            // First broadcast or no previous broadcast time
+            true
+        };
+        
+        // CRITICAL FIX: Always broadcast if we haven't sent initial positions to clients
+        // This ensures new clients get data immediately regardless of settled state
+        let force_broadcast = !self.initial_positions_sent;
+        
+        if should_broadcast || force_broadcast {
+            // Create binary position data for all nodes
+            let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+            
+            for (node_id, node) in self.node_map.iter() {
+                position_data.push((*node_id, BinaryNodeData {
+                    position: node.data.position,
+                    velocity: node.data.velocity,
+                    mass: node.data.mass,
+                    flags: node.data.flags,
+                    padding: node.data.padding,
+                }));
+            }
+            
+            // Broadcast to all connected clients via client manager
+            if !position_data.is_empty() {
+                let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
+                
+                // Send to client manager for broadcasting
+                self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                    positions: binary_data,
+                });
+                
+                // Update broadcast time and mark initial positions as sent
+                self.last_broadcast_time = Some(now);
+                if !self.initial_positions_sent {
+                    self.initial_positions_sent = true;
+                    info!("Sent initial positions to clients ({} nodes)", position_data.len());
+                } else if force_broadcast {
+                    info!("Force broadcast positions to new clients ({} nodes)", position_data.len());
+                }
+                
+                if crate::utils::logging::is_debug_enabled() && !force_broadcast {
+                    debug!("Broadcast positions: {} nodes, stable: {}", 
+                           position_data.len(), 
+                           self.current_state == AutoBalanceState::Stable);
+                }
+            }
+        }
+        
         debug!("Updated positions for {} nodes", updated_count);
     }
 
@@ -1722,6 +1786,116 @@ impl GraphServiceActor {
             });
         }
     }
+    
+    /// Add new nodes from metadata without rebuilding the entire graph
+    pub fn add_nodes_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
+        debug!("Adding {} new nodes incrementally", metadata.len());
+        
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+        
+        for (filename_with_ext, file_meta_data) in &metadata {
+            let metadata_id_val = filename_with_ext.trim_end_matches(".md").to_string();
+            
+            // Check if node already exists
+            if self.node_map.values().any(|n| n.metadata_id == metadata_id_val) {
+                debug!("Node {} already exists, skipping", metadata_id_val);
+                continue;
+            }
+            
+            let node_id_val = self.next_node_id.fetch_add(1, Ordering::SeqCst);
+            let mut node = Node::new_with_id(metadata_id_val.clone(), Some(node_id_val));
+            node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
+            node.set_file_size(file_meta_data.file_size as u64);
+            node.data.flags = 1;
+            
+            // Enhanced metadata
+            node.metadata.insert("fileName".to_string(), file_meta_data.file_name.clone());
+            node.metadata.insert("fileSize".to_string(), file_meta_data.file_size.to_string());
+            node.metadata.insert("nodeSize".to_string(), file_meta_data.node_size.to_string());
+            node.metadata.insert("hyperlinkCount".to_string(), file_meta_data.hyperlink_count.to_string());
+            node.metadata.insert("sha1".to_string(), file_meta_data.sha1.clone());
+            node.metadata.insert("lastModified".to_string(), file_meta_data.last_modified.to_rfc3339());
+            node.metadata.insert("metadataId".to_string(), metadata_id_val.clone());
+            
+            // Extract semantic features
+            let features = self.semantic_analyzer.analyze_metadata(file_meta_data);
+            self.semantic_features_cache.insert(metadata_id_val, features);
+            
+            Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
+            graph_data_mut.nodes.push(node);
+        }
+        
+        info!("Added {} new nodes incrementally", metadata.len());
+        Ok(())
+    }
+    
+    /// Update a single node from metadata
+    pub fn update_node_from_metadata(&mut self, metadata_id: String, metadata: FileMetadata) -> Result<(), String> {
+        debug!("Updating node {} incrementally", metadata_id);
+        
+        // Find and update node in node_map
+        let mut node_found = false;
+        if let Some(node) = Arc::make_mut(&mut self.node_map).values_mut().find(|n| n.metadata_id == metadata_id) {
+            node.label = metadata.file_name.trim_end_matches(".md").to_string();
+            node.set_file_size(metadata.file_size as u64);
+            
+            // Update metadata
+            node.metadata.insert("fileName".to_string(), metadata.file_name.clone());
+            node.metadata.insert("fileSize".to_string(), metadata.file_size.to_string());
+            node.metadata.insert("nodeSize".to_string(), metadata.node_size.to_string());
+            node.metadata.insert("hyperlinkCount".to_string(), metadata.hyperlink_count.to_string());
+            node.metadata.insert("sha1".to_string(), metadata.sha1.clone());
+            node.metadata.insert("lastModified".to_string(), metadata.last_modified.to_rfc3339());
+            
+            node_found = true;
+        }
+        
+        if !node_found {
+            return Err(format!("Node {} not found for update", metadata_id));
+        }
+        
+        // Update corresponding node in graph_data
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+        if let Some(node) = graph_data_mut.nodes.iter_mut().find(|n| n.metadata_id == metadata_id) {
+            node.label = metadata.file_name.trim_end_matches(".md").to_string();
+            node.set_file_size(metadata.file_size as u64);
+        }
+        
+        // Update semantic features
+        let features = self.semantic_analyzer.analyze_metadata(&metadata);
+        self.semantic_features_cache.insert(metadata_id, features);
+        
+        info!("Updated node {} incrementally", metadata_id);
+        Ok(())
+    }
+    
+    /// Remove a node by metadata ID
+    pub fn remove_node_by_metadata(&mut self, metadata_id: String) -> Result<(), String> {
+        debug!("Removing node {} incrementally", metadata_id);
+        
+        // Find node to remove
+        let node_id = self.node_map.values()
+            .find(|n| n.metadata_id == metadata_id)
+            .map(|n| n.id);
+        
+        if let Some(node_id) = node_id {
+            // Remove from node_map
+            Arc::make_mut(&mut self.node_map).remove(&node_id);
+            
+            // Remove from graph_data
+            let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+            graph_data_mut.nodes.retain(|n| n.id != node_id);
+            graph_data_mut.edges.retain(|e| e.source != node_id && e.target != node_id);
+            
+            // Remove from semantic features cache
+            self.semantic_features_cache.remove(&metadata_id);
+            
+            info!("Removed node {} incrementally", metadata_id);
+            Ok(())
+        } else {
+            Err(format!("Node {} not found for removal", metadata_id))
+        }
+    }
 }
 
 impl Actor for GraphServiceActor {
@@ -1759,6 +1933,89 @@ impl Handler<UpdateNodePositions> for GraphServiceActor {
 
     fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
         self.update_node_positions(msg.positions);
+        Ok(())
+    }
+}
+
+// WEBSOCKET SETTLING FIX: Handler for forced position broadcasts
+impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: crate::actors::messages::ForcePositionBroadcast, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Force broadcasting positions: {}", msg.reason);
+        
+        // Create binary position data for all nodes regardless of settled state
+        let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+        
+        for (node_id, node) in self.node_map.iter() {
+            position_data.push((*node_id, BinaryNodeData {
+                position: node.data.position,
+                velocity: node.data.velocity,
+                mass: node.data.mass,
+                flags: node.data.flags,
+                padding: node.data.padding,
+            }));
+        }
+        
+        // Broadcast to all connected clients via client manager
+        if !position_data.is_empty() {
+            let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
+            
+            // Send to client manager for broadcasting
+            self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                positions: binary_data,
+            });
+            
+            // Update broadcast time and ensure initial positions flag is set
+            self.last_broadcast_time = Some(std::time::Instant::now());
+            self.initial_positions_sent = true;
+            
+            info!("Force broadcast complete: {} nodes sent (reason: {})", position_data.len(), msg.reason);
+        } else {
+            warn!("Force broadcast requested but no position data available (reason: {})", msg.reason);
+        }
+        
+        Ok(())
+    }
+}
+
+impl Handler<InitialClientSync> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: InitialClientSync, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Initial client sync requested by {} from {}", msg.client_identifier, msg.trigger_source);
+        
+        // Force broadcast current positions to ensure new client gets synchronized
+        // This provides immediate feedback after REST endpoint returns graph structure
+        let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+        
+        for (node_id, node) in self.node_map.iter() {
+            position_data.push((*node_id, BinaryNodeData {
+                position: node.data.position,
+                velocity: node.data.velocity,
+                mass: node.data.mass,
+                flags: node.data.flags,
+                padding: node.data.padding,
+            }));
+        }
+        
+        if !position_data.is_empty() {
+            let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
+            
+            // Send to client manager for broadcasting to all clients
+            self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                positions: binary_data,
+            });
+            
+            // Update tracking flags
+            self.last_broadcast_time = Some(std::time::Instant::now());
+            self.initial_positions_sent = true;
+            
+            info!("Initial sync broadcast complete: {} nodes sent for client {}", position_data.len(), msg.client_identifier);
+        } else {
+            warn!("Initial sync requested but no nodes available for client {}", msg.client_identifier);
+        }
+        
         Ok(())
     }
 }
@@ -1812,6 +2069,30 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
 
     fn handle(&mut self, msg: BuildGraphFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
         self.build_from_metadata(msg.metadata)
+    }
+}
+
+impl Handler<AddNodesFromMetadata> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: AddNodesFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
+        self.add_nodes_from_metadata(msg.metadata)
+    }
+}
+
+impl Handler<UpdateNodeFromMetadata> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateNodeFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
+        self.update_node_from_metadata(msg.metadata_id, msg.metadata)
+    }
+}
+
+impl Handler<RemoveNodeByMetadata> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: RemoveNodeByMetadata, _ctx: &mut Self::Context) -> Self::Result {
+        self.remove_node_by_metadata(msg.metadata_id)
     }
 }
 
