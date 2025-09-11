@@ -18,9 +18,12 @@ export default defineConfig({
     
     // HMR configuration for development
     hmr: {
-      // Let Vite automatically use the browser's location host
-      // This fixes WebSocket connections when accessing via IP address
-      path: '/__vite_hmr', // Match nginx config
+      // This is the crucial part for Docker environments.
+      // It tells Vite's HMR client to connect to the Nginx proxy port (3001)
+      // on the host machine, which then forwards the request to Vite's actual HMR port.
+      // The path must match the location block in nginx.dev.conf.
+      clientPort: 3001,
+      path: '/vite-hmr',
     },
     
     // File watching for Docker environments

@@ -133,25 +133,23 @@ class WebSocketService {
   }
 
   private determineWebSocketUrl(): string {
-    // Check if we're in development mode (Vite dev server)
-    if (import.meta.env.DEV) {
-      // In development, connect through the Vite dev server proxy
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.hostname;
-      const port = window.location.port || '3001'; // Default to 3001 if no port
-      const url = `${protocol}//${host}:${port}/wss`;
-      if (debugState.isEnabled()) {
-        logger.info(`Determined WebSocket URL (dev): ${url}`);
-      }
-      return url;
-    } else {
-      // In production, use relative path for proper routing
-      const url = '/wss';
-      if (debugState.isEnabled()) {
-        logger.info(`Determined WebSocket URL (production): ${url}`);
-      }
-      return url;
+    const isDev = import.meta.env.DEV;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.hostname;
+  
+    // In development, the port is explicitly 3001 because that's where Nginx is listening.
+    // In production, the port is the same as the window's port.
+    const port = isDev ? '3001' : window.location.port;
+  
+    // Construct the base URL. If a port is present, include it.
+    const baseUrl = `${protocol}//${host}${port ? `:${port}` : ''}`;
+    const wsUrl = `${baseUrl}/wss`;
+  
+    if (debugState.isEnabled()) {
+      logger.info(`Determined WebSocket URL (${isDev ? 'dev' : 'prod'}): ${wsUrl}`);
     }
+  
+    return wsUrl;
   }
 
   /**
