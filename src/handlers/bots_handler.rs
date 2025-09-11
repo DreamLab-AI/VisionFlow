@@ -522,6 +522,7 @@ pub async fn update_bots_data(
         for attempt in 1..=3 {
             match gpu_compute_addr.send(InitializeGPU {
                 graph: bots_graph.clone(),
+                graph_service_addr: None,  // Not needed for bots handler
             }).await {
                 Ok(_) => {
                     info!("GPU initialized successfully for bots on attempt {}", attempt);

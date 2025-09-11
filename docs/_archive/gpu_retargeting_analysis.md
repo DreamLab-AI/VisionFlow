@@ -7,18 +7,18 @@ The GPU physics system continues to retarget ALL node positions even when kineti
 ## Critical Issues Found
 
 ### 1. **FORCE CALCULATIONS ALWAYS EXECUTE** - Primary Issue
-**Location:** `/workspace/ext/src/utils/visionflow_unified.cu` lines 203-390
+**Location:** `/src/utils/visionflow_unified.cu` lines 203-390
 
 **Problem:** The `force_pass_kernel` ALWAYS calculates forces regardless of system energy:
 - **Repulsion forces** (lines 229-277): Calculated for ALL neighbors within repulsion_cutoff
-- **Spring forces** (lines 279-313): Calculated for ALL connected edges  
+- **Spring forces** (lines 279-313): Calculated for ALL connected edges
 - **Centering forces** (lines 315-317): Always applied if enabled
 - **Constraint forces** (lines 320-385): Always processed if constraints exist
 
 **Impact:** Even when KE=0, forces are still computed and applied, causing micro-movements that accumulate over time.
 
-### 2. **INTEGRATION ALWAYS OCCURS** - Secondary Issue  
-**Location:** `/workspace/ext/src/utils/visionflow_unified.cu` lines 435-538
+### 2. **INTEGRATION ALWAYS OCCURS** - Secondary Issue
+**Location:** `/src/utils/visionflow_unified.cu` lines 435-538
 
 **Problem:** The `integrate_pass_kernel` ALWAYS integrates positions:
 ```cuda
@@ -29,7 +29,7 @@ pos = vec3_add(pos, vec3_scale(vel, c_params.dt));              // Line 483
 **Impact:** Even tiny numerical forces (from floating-point precision limits) get integrated into position changes.
 
 ### 3. **BOUNDARY CLAMPING CAUSES MICRO-DRIFT** - Position Corruption
-**Location:** `/workspace/ext/src/utils/visionflow_unified.cu` lines 485-530
+**Location:** `/src/utils/visionflow_unified.cu` lines 485-530
 
 **Problem:** Boundary enforcement code applies corrections even when positions are valid:
 ```cuda
@@ -41,7 +41,7 @@ vel.x *= c_params.boundary_damping;
 **Impact:** Floating-point rounding during clamping operations introduces micro-drift.
 
 ### 4. **BUFFER SWAPPING WITHOUT STABILITY CHECK** - Architectural Issue
-**Location:** `/workspace/ext/src/utils/unified_gpu_compute.rs` lines 684-685
+**Location:** `/src/utils/unified_gpu_compute.rs` lines 684-685
 
 **Problem:** Buffers are ALWAYS swapped after GPU execution:
 ```rust
@@ -73,7 +73,7 @@ for (index, node_id) in node_ids.iter().enumerate() {
     let binary_node = BinaryNodeData {
         position: Vec3Data {
             x: host_pos_x[index],  // May have micro-changes from GPU
-            y: host_pos_y[index], 
+            y: host_pos_y[index],
             z: host_pos_z[index]
         },
         // ...
@@ -115,21 +115,21 @@ if avg_ke < STABILITY_THRESHOLD && !force_gpu_update {
 }
 ```
 
-### 2. **Add Force Magnitude Check in GPU Kernel** (High Priority)  
+### 2. **Add Force Magnitude Check in GPU Kernel** (High Priority)
 ```cuda
 // In force_pass_kernel after line 385
 float force_magnitude = vec3_length(total_force);
 if (force_magnitude < 1e-6f) {
     // Zero out micro-forces to prevent drift
     force_out_x[idx] = 0.0f;
-    force_out_y[idx] = 0.0f; 
+    force_out_y[idx] = 0.0f;
     force_out_z[idx] = 0.0f;
     return;
 }
 ```
 
 ### 3. **Conditional Integration** (Medium Priority)
-```cuda  
+```cuda
 // In integrate_pass_kernel after line 459
 float force_mag = vec3_length(force);
 if (force_mag < 1e-6f && vec3_length(vel) < 1e-6f) {
@@ -180,7 +180,7 @@ if (fabsf(pos.x) > boundary_margin) {
 
 ### Issues:
 - **Lack of stability gates:** Forces always computed regardless of need
-- **Numerical precision not handled:** Floating-point errors accumulate unchecked  
+- **Numerical precision not handled:** Floating-point errors accumulate unchecked
 - **Inefficient resource usage:** GPU work continues when unnecessary
 - **Missing micro-optimization opportunities:** No force threshold filtering
 

@@ -9,11 +9,11 @@ I have conducted a comprehensive analysis of the two bugs described in the task.
 ## Bug 1 Analysis: Graph Node Positions Reset
 
 ### Root Cause Confirmed
-The issue is **partially addressed** in the current codebase but may still have edge cases. The `build_from_metadata` method in `/workspace/ext/src/actors/graph_actor.rs` (lines 584-731) has been **enhanced with position preservation logic**.
+The issue is **partially addressed** in the current codebase but may still have edge cases. The `build_from_metadata` method in `/src/actors/graph_actor.rs` (lines 584-731) has been **enhanced with position preservation logic**.
 
 ### Key Code Locations
 
-#### Primary Fix Location: `/workspace/ext/src/actors/graph_actor.rs`
+#### Primary Fix Location: `/src/actors/graph_actor.rs`
 
 **Lines 587-620: Position Preservation Logic**
 ```rust
@@ -34,10 +34,10 @@ Arc::make_mut(&mut self.node_map).clear();
 if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata_id_val) {
     node.data.position = *saved_position;
     node.data.velocity = *saved_velocity;
-    debug!("Restored position for node '{}': ({}, {}, {})", 
+    debug!("Restored position for node '{}': ({}, {}, {})",
            metadata_id_val, saved_position.x, saved_position.y, saved_position.z);
 } else {
-    debug!("New node '{}' will use generated position: ({}, {}, {})", 
+    debug!("New node '{}' will use generated position: ({}, {}, {})",
            metadata_id_val, node.data.position.x, node.data.position.y, node.data.position.z);
 }
 ```
@@ -55,9 +55,9 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
 
 #### Trigger Points Where Graph Rebuilds Occur:
 
-1. **Main Application Startup** (`/workspace/ext/src/main.rs` line 231)
-2. **API Graph Refresh** (`/workspace/ext/src/handlers/api_handler/graph/mod.rs` lines 167, 260)
-3. **File Processing** (`/workspace/ext/src/handlers/api_handler/files/mod.rs` lines 65, 147, 270)
+1. **Main Application Startup** (`/src/main.rs` line 231)
+2. **API Graph Refresh** (`/src/handlers/api_handler/graph/mod.rs` lines 167, 260)
+3. **File Processing** (`/src/handlers/api_handler/files/mod.rs` lines 65, 147, 270)
 
 ### Current Status
 **GOOD NEWS**: The bug appears to be **already fixed** in the current codebase. The position preservation logic is implemented correctly and includes comprehensive test coverage (lines 2424-2568 in graph_actor.rs).
@@ -70,18 +70,18 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
 ## Bug 2 Analysis: Settings.yaml Overwriting
 
 ### Root Cause Analysis
-The SettingsActor in `/workspace/ext/src/actors/settings_actor.rs` **does have potential overwrite issues**, but it's more complex than originally described.
+The SettingsActor in `/src/actors/settings_actor.rs` **does have potential overwrite issues**, but it's more complex than originally described.
 
 ### Key Code Locations
 
-#### Primary Issue: `/workspace/ext/src/actors/settings_actor.rs`
+#### Primary Issue: `/src/actors/settings_actor.rs`
 
 **Lines 101-119: Direct Settings Update**
 ```rust
 pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlowResult<()> {
     let mut settings = self.settings.write().await;
     *settings = new_settings;
-    
+
     // Persist to file
     settings.save().map_err(|e| {
         error!("Failed to save settings to file: {}", e);
@@ -90,7 +90,7 @@ pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlow
             reason: e.to_string(),
         })
     })?;
-    
+
     // ... propagate physics updates
     Ok(())
 }
@@ -100,14 +100,14 @@ pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlow
 ```rust
 impl Handler<UpdateSettings> for SettingsActor {
     type Result = ResponseFuture<VisionFlowResult<()>>;
-    
+
     fn handle(&mut self, msg: UpdateSettings, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
-        
+
         Box::pin(async move {
             let mut current = settings.write().await;
             *current = msg.settings;  // POTENTIAL OVERWRITE ISSUE
-            
+
             // Save to file
             current.save().map_err(|e| {
                 error!("Failed to save settings: {}", e);
@@ -116,7 +116,7 @@ impl Handler<UpdateSettings> for SettingsActor {
                     reason: e,
                 })
             })?;
-            
+
             info!("Settings updated successfully");
             Ok(())
         })
@@ -152,11 +152,11 @@ if current.system.persist_settings {
 
 2. **Race Conditions**: Concurrent updates could lead to lost changes despite the batching system.
 
-3. **WebSocket Integration**: The WebSocket settings handler in `/workspace/ext/src/handlers/websocket_settings_handler.rs` has its own caching and delta logic but doesn't directly interface with the SettingsActor.
+3. **WebSocket Integration**: The WebSocket settings handler in `/src/handlers/websocket_settings_handler.rs` has its own caching and delta logic but doesn't directly interface with the SettingsActor.
 
 ### WebSocket Settings Handler Analysis
 
-The WebSocket settings handler (`/workspace/ext/src/handlers/websocket_settings_handler.rs`) is designed for high-performance delta synchronization but appears to be **separate from the main SettingsActor**. This could lead to synchronization issues:
+The WebSocket settings handler (`/src/handlers/websocket_settings_handler.rs`) is designed for high-performance delta synchronization but appears to be **separate from the main SettingsActor**. This could lead to synchronization issues:
 
 - **Lines 207-250**: Delta update handling with local caching
 - **Lines 252-302**: Batch update handling
@@ -177,14 +177,14 @@ The bug appears to be already resolved with comprehensive position preservation 
 ## File Locations Summary
 
 ### Bug 1 - Graph Position Reset (RESOLVED)
-- **Primary Fix**: `/workspace/ext/src/actors/graph_actor.rs` (lines 587-620, 612-620)
-- **Handler**: `/workspace/ext/src/actors/graph_actor.rs` (lines 1810-1815)
+- **Primary Fix**: `/src/actors/graph_actor.rs` (lines 587-620, 612-620)
+- **Handler**: `/src/actors/graph_actor.rs` (lines 1810-1815)
 - **Triggers**: Various API handlers calling `BuildGraphFromMetadata`
-- **Tests**: `/workspace/ext/src/actors/graph_actor.rs` (lines 2424-2568)
+- **Tests**: `/src/actors/graph_actor.rs` (lines 2424-2568)
 
 ### Bug 2 - Settings Overwrite (NEEDS ATTENTION)
-- **Primary Issue**: `/workspace/ext/src/actors/settings_actor.rs` (lines 101-119, 410-432)
-- **WebSocket Handler**: `/workspace/ext/src/handlers/websocket_settings_handler.rs` (potential integration gap)
+- **Primary Issue**: `/src/actors/settings_actor.rs` (lines 101-119, 410-432)
+- **WebSocket Handler**: `/src/handlers/websocket_settings_handler.rs` (potential integration gap)
 - **Safeguards**: Conditional persistence checks throughout SettingsActor
 - **Batching Logic**: Lines 122-349 in SettingsActor
 

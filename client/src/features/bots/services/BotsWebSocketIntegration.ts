@@ -141,12 +141,15 @@ export class BotsWebSocketIntegration {
    * Request initial data for both visualizations
    */
   async requestInitialData() {
-    logger.info('Requesting initial data for graph visualization');
+    logger.info('Requesting initial data for graph visualization - using unified init flow');
 
-    // Request Logseq graph data
-    if (this.logseqConnected) {
-      webSocketService.sendMessage('requestInitialData');
-    }
+    // UNIFIED INIT: Skip the WebSocket requestInitialData message
+    // The REST endpoint /api/graph/data will be called separately and will trigger WebSocket broadcast
+    // This prevents graph rebuilding and ensures proper initialization
+    // Note: Commenting out to prevent duplicate initialization
+    // if (this.logseqConnected) {
+    //   webSocketService.sendMessage('requestInitialData');
+    // }
 
     // Fetch bots data via REST API from the backend
     try {

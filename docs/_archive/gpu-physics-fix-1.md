@@ -25,27 +25,27 @@ The physics simulation was showing only 3 nodes bouncing instead of the full 177
 
 ### 1. Added DOCKER_ENV Variable
 Set `DOCKER_ENV=1` in three places to force runtime PTX compilation:
-- `/workspace/ext/scripts/rust-backend-wrapper.sh`
-- `/workspace/ext/scripts/dev-entrypoint.sh`  
-- `/workspace/ext/supervisord.dev.conf`
+- `/scripts/rust-backend-wrapper.sh`
+- `/scripts/dev-entrypoint.sh`
+- `/supervisord.dev.conf`
 
 This ensures the PTX loader always compiles the CUDA kernel at runtime in containers.
 
 ### 2. Improved Error Handling
-In `/workspace/ext/src/actors/graph_actor.rs`:
+In `/src/actors/graph_actor.rs`:
 - Added error logging for PTX load failures
 - Reset `gpu_init_in_progress` flag on failure via `ResetGPUInitFlag` message
 - Added detailed logging of GPU initialization steps
 
 ### 3. Enhanced Debug Logging
-Added logging to `/workspace/ext/src/utils/ptx.rs`:
+Added logging to `/src/utils/ptx.rs`:
 - Log when entering PTX load functions
 - Log Docker environment detection
 - Log compilation architecture selection
 
 ## How It Works Now
 
-1. **Container Startup**: 
+1. **Container Startup**:
    - DOCKER_ENV=1 is set in the environment
    - Rust backend rebuilds with `cargo build --release --features gpu`
 

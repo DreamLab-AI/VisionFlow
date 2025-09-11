@@ -6,8 +6,8 @@
 - **Framework**: Vitest (v1.6.1) with React Testing Library
 - **Coverage**: V8 provider with 80% threshold requirements
 - **Environment**: jsdom with React support
-- **Configuration**: `/workspace/ext/client/vitest.config.ts`
-- **Setup**: `/workspace/ext/client/src/tests/setup.ts` with comprehensive mocks
+- **Configuration**: `/client/vitest.config.ts`
+- **Setup**: `/client/src/tests/setup.ts` with comprehensive mocks
 
 ### ✅ Available Testing Libraries
 - `@testing-library/jest-dom` - DOM assertion utilities
@@ -220,13 +220,13 @@ cargo run --bin generate_types
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_bloom_settings_api() {
         // Test settings API for bloom/glow configuration
         // Verify proper serialization/deserialization
     }
-    
+
     #[tokio::test]
     async fn test_settings_validation() {
         // Test backend validation of rendering settings
@@ -241,7 +241,7 @@ mod tests {
 
 ### ✅ Layer Independence Validation
 - [ ] **Layer 1 (Graph) Independence**: Bloom effects work with Layer 2 disabled
-- [ ] **Layer 2 (Environment) Independence**: Glow effects work with Layer 1 disabled  
+- [ ] **Layer 2 (Environment) Independence**: Glow effects work with Layer 1 disabled
 - [ ] **No Cross-Layer Interference**: Changes to one layer don't affect the other
 - [ ] **Settings Isolation**: `bloom` settings only affect Layer 1, `glow` only Layer 2
 
@@ -251,7 +251,7 @@ mod tests {
 - [ ] **Frame Rate Maintenance**: Consistent 60fps under normal load
 - [ ] **Resource Cleanup**: Proper WebGL resource disposal
 
-### ✅ Mouse Interaction Restoration  
+### ✅ Mouse Interaction Restoration
 - [ ] **Raycasting Works**: Mouse events reach graph elements
 - [ ] **Click Events Function**: Node selection and interaction restored
 - [ ] **Hover Effects Active**: Mouse-over highlighting functional
@@ -313,13 +313,13 @@ export const createReferenceScreenshots = (): void;
 2. **Material functionality** - BloomStandardMaterial and HologramNodeMaterial
 3. **Settings integration** - Proper parameter propagation
 
-### Phase 2: Integration Tests (Critical)  
+### Phase 2: Integration Tests (Critical)
 1. **Settings → Rendering pipeline** - End-to-end settings flow
 2. **Component integration** - GraphCanvas + DualBloomPipeline
 3. **Mouse interaction restoration** - Critical functionality test
 
 ### Phase 3: Performance Validation (Important)
-1. **Render performance** - Frame rate and optimization verification  
+1. **Render performance** - Frame rate and optimization verification
 2. **Memory management** - Resource leak detection
 3. **Comparative benchmarks** - Old vs new system performance
 
@@ -334,7 +334,7 @@ export const createReferenceScreenshots = (): void;
 
 ### Success Metrics
 - **100% Layer Independence**: Each pipeline works correctly in isolation
-- **≥95% Performance Parity**: New system matches or exceeds old performance  
+- **≥95% Performance Parity**: New system matches or exceeds old performance
 - **Zero Critical Regressions**: Mouse interaction and basic functionality preserved
 - **Improved Visual Quality**: Better separation between graph and environment effects
 

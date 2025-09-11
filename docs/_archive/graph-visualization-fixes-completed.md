@@ -10,18 +10,18 @@ Successfully fixed critical issues preventing the knowledge graph from updating 
 **Solution**: Added handler for `subscribe_position_updates` message type
 **Impact**: Client now receives position updates every 60ms
 
-### 2. ✅ Graph Positions Resetting on Client Connection  
+### 2. ✅ Graph Positions Resetting on Client Connection
 **Problem**: `BuildGraphFromMetadata` recreated all nodes with new positions
 **Solution**: Save and restore existing node positions during rebuilds
 **Impact**: Graph maintains consistent positions across client connections
 
 ### 3. ✅ Physics Parameters Preventing Settling
-**Problem**: 
+**Problem**:
 - repelK: 179.98 (extreme repulsion)
 - damping: 0.858 (insufficient friction)
 - 40,000+ iterations without convergence
 
-**Solution**: Updated `/workspace/ext/data/settings.yaml`:
+**Solution**: Updated `/data/settings.yaml`:
 - repelK: 35.0 (balanced repulsion)
 - damping: 0.96 (high friction for settling)
 - springK: 1.5 (balanced attraction)
@@ -33,8 +33,8 @@ Successfully fixed critical issues preventing the knowledge graph from updating 
 ## Configuration-Based Tuning
 
 As requested, all physics tuning was done through configuration files:
-- `/workspace/ext/data/settings.yaml` - Main physics parameters
-- `/workspace/ext/data/dev_config.toml` - Advanced settings
+- `/data/settings.yaml` - Main physics parameters
+- `/data/dev_config.toml` - Advanced settings
 
 No hardcoded values or magic numbers were used in the code.
 

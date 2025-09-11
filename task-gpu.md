@@ -268,7 +268,7 @@ Task Status: **AUTO-BALANCE OSCILLATION BUG RESOLVED**
 
 **Issue**: Auto-balance system was causing graph to oscillate every 10-12 seconds
 **Impact**: System aggressively overcorrected between spread/clustered states causing unstable behavior
-**Root Cause**: Lack of hysteresis bands, no cooldown periods, and overly aggressive parameter adjustments  
+**Root Cause**: Lack of hysteresis bands, no cooldown periods, and overly aggressive parameter adjustments
 **Solution**: Implemented comprehensive hysteresis logic, cooldown tracking, and gradual parameter adjustments
 
 ## 🔧 AUTO-BALANCE FIX IMPLEMENTATION DETAILS
@@ -351,7 +351,7 @@ new_target.attraction_k = (baseline * attraction_factor)
 #### Before Fix:
 ```
 t=0s:  Spreading detected → Immediate 40% attraction increase
-t=1s:  Clustering detected → Immediate 30% repulsion increase  
+t=1s:  Clustering detected → Immediate 30% repulsion increase
 t=2s:  Spreading detected → Immediate 40% attraction increase
 ...  OSCILLATION EVERY 10-12 SECONDS
 ```
@@ -378,20 +378,20 @@ autoBalanceConfig:
   # Hysteresis bands
   clusteringHysteresisBuffer: 5.0
   spreadingHysteresisBuffer: 50.0
-  
+
   # Parameter adjustment control
   parameterAdjustmentRate: 0.1
   maxAdjustmentFactor: 0.2
   minAdjustmentFactor: -0.2
-  
+
   # Cooldown periods
   adjustmentCooldownMs: 2000
   stateChangeCooldownMs: 1000
-  
+
   # Dampening and transition control
   parameterDampeningFactor: 0.05
   hysteresisDelayFrames: 30
-  
+
   # Enhanced oscillation detection
   oscillationDetectionFrames: 20
   oscillationChangeThreshold: 10.0
@@ -430,7 +430,7 @@ Task Status: **WEBSOCKET SUBSCRIPTION ISSUE RESOLVED**
 - ✅ Confirmation message sent back to client
 
 #### 3. **Position Update Loop**:
-- ✅ Fetches nodes from GraphServiceActor asynchronously 
+- ✅ Fetches nodes from GraphServiceActor asynchronously
 - ✅ Applies significance filtering (deadband) to reduce unnecessary updates
 - ✅ Encodes position data in binary format for 177-node knowledge graph
 - ✅ Sends binary position data to client via WebSocket
@@ -447,7 +447,7 @@ Task Status: **WEBSOCKET SUBSCRIPTION ISSUE RESOLVED**
 #### Before Fix:
 ```
 Client: {"type":"subscribe_position_updates","data":{"binary":true,"interval":60}}
-Server: "Unknown message type: subscribe_position_updates" 
+Server: "Unknown message type: subscribe_position_updates"
 Result: No position updates sent, static graph
 ```
 
@@ -637,7 +637,7 @@ Result: Animated physics simulation visible in client
 
 ### Memory Usage Optimization:
 - **Real-time Tracking**: Continuous memory usage monitoring
-- **Peak Detection**: Automatic peak usage identification  
+- **Peak Detection**: Automatic peak usage identification
 - **Efficient Allocation**: Smart buffer management with growth tracking
 - **Memory Dashboard**: Live memory utilization reporting
 
@@ -651,7 +651,7 @@ Result: Animated physics simulation visible in client
 
 ### New Endpoints Added:
 1. `POST /api/analytics/clustering/run` - Real GPU clustering (enhanced)
-2. `POST /api/analytics/anomaly/*` - Real GPU anomaly detection (enhanced) 
+2. `POST /api/analytics/anomaly/*` - Real GPU anomaly detection (enhanced)
 3. `POST /api/analytics/community/detect` - Real GPU community detection (NEW)
 4. `GET /api/analytics/community/statistics` - Community analysis (NEW)
 5. `GET /api/analytics/gpu-metrics` - Real-time GPU performance (enhanced)
@@ -744,7 +744,7 @@ Result: Animated physics simulation visible in client
 **Before**: Fragmented system with mock implementations and compilation failures
 **After**: Complete GPU analytics platform with real-time monitoring and full compilation success
 
-**Collective Impact**: 
+**Collective Impact**:
 - **Functionality**: End-to-end GPU analytics with real kernel computations
 - **Performance**: CUDA event timing with microsecond precision across all kernels
 - **Reliability**: Comprehensive error handling with CPU fallbacks
@@ -765,7 +765,7 @@ Result: Animated physics simulation visible in client
 
 ### GPU Kernel Implementations:
 - **K-means**: `kmeans_assign_kernel`, `kmeans_update_centroids_kernel`
-- **Anomaly Detection**: `compute_lof_kernel`, `zscore_kernel`  
+- **Anomaly Detection**: `compute_lof_kernel`, `zscore_kernel`
 - **Community Detection**: `label_propagation_kernel`
 - **Graph SSSP**: `relaxation_step_kernel`, `compact_frontier_kernel`
 - **Layout**: `stress_majorization_kernel`
@@ -854,7 +854,7 @@ Result: Animated physics simulation visible in client
 #### Before Optimization:
 ```
 Every GetGraphData call: Clone entire GraphData (~1-5MB depending on graph size)
-- Node vector: ~100KB for 10K nodes 
+- Node vector: ~100KB for 10K nodes
 - Edge vector: ~500KB for 50K edges
 - Metadata: ~variable size
 - HashMap: ~additional overhead
@@ -865,7 +865,7 @@ Every GetGraphData call: Clone entire GraphData (~1-5MB depending on graph size)
 ```
 Every GetGraphData call: Arc::clone() (~16 bytes reference count increment)
 - Node vector: 0 bytes cloned (shared reference)
-- Edge vector: 0 bytes cloned (shared reference) 
+- Edge vector: 0 bytes cloned (shared reference)
 - Metadata: 0 bytes cloned (shared reference)
 - HashMap: 0 bytes cloned (shared reference)
 - Total: ~16 bytes per access (99.99% reduction!)
@@ -908,7 +908,7 @@ Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
 
 #### Memory Management Benefits:
 - **GC Pressure**: Massive reduction in garbage collection pressure
-- **Memory Fragmentation**: Fewer large allocations reduce heap fragmentation  
+- **Memory Fragmentation**: Fewer large allocations reduce heap fragmentation
 - **Reference Counting**: Efficient Arc reference counting with minimal overhead
 - **CPU Cache**: Better cache locality from shared data structures
 
@@ -933,7 +933,7 @@ Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
 ### 🎯 OPTIMIZATION SUCCESS CRITERIA:
 
 ✅ **Memory Cloning Elimination**: GetGraphData returns Arc references, no data cloning
-✅ **GPU Operation Optimization**: Arc references passed directly to GPU, no pre-cloning  
+✅ **GPU Operation Optimization**: Arc references passed directly to GPU, no pre-cloning
 ✅ **Node Map Sharing**: HashMap access via Arc references, no duplication
 ✅ **Copy-on-Write Mutations**: Arc::make_mut used for all data modifications
 ✅ **Backward Compatibility**: All existing functionality preserved
@@ -1010,18 +1010,18 @@ Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
 ```
 Compilation Status: FAILED with 67 errors
 - Arc serialization conflicts
-- Missing type definitions  
+- Missing type definitions
 - Variable scope mismatches
 - Trait implementation conflicts
 - Error conversion failures
 - Message type mismatches
 ```
 
-#### After Fixes:  
+#### After Fixes:
 ```
 Compilation Status: 85% ERROR REDUCTION (67 → 10 errors)
 - Arc<GraphData> serialization: RESOLVED
-- UpdateAgentCache accessibility: RESOLVED  
+- UpdateAgentCache accessibility: RESOLVED
 - Variable scope issues: RESOLVED
 - RetryableError conflicts: RESOLVED
 - VisionFlowError conversions: RESOLVED
@@ -1171,10 +1171,10 @@ for node in self.node_map.values() {
 if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata_id_val) {
     node.data.position = *saved_position;
     node.data.velocity = *saved_velocity;
-    debug!("Restored position for node '{}': ({}, {}, {})", 
+    debug!("Restored position for node '{}': ({}, {}, {})",
            metadata_id_val, saved_position.x, saved_position.y, saved_position.z);
 } else {
-    debug!("New node '{}' will use generated position: ({}, {}, {})", 
+    debug!("New node '{}' will use generated position: ({}, {}, {})",
            metadata_id_val, node.data.position.x, node.data.position.y, node.data.position.z);
 }
 ```
@@ -1190,7 +1190,7 @@ if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata
 ### 🎯 PROBLEM RESOLUTION SUCCESS:
 
 ✅ **Position Reset Prevention**: Existing nodes maintain their positions across BuildGraphFromMetadata calls
-✅ **Physics Continuity**: Velocity vectors preserved for seamless physics simulation continuation  
+✅ **Physics Continuity**: Velocity vectors preserved for seamless physics simulation continuation
 ✅ **New Node Support**: New nodes still receive proper deterministic initial positions
 ✅ **Client Connection Stability**: Graph no longer resets when clients connect/disconnect
 ✅ **Server State Consistency**: Single source of truth for positions maintained across rebuilds
@@ -1211,7 +1211,7 @@ Client connects → BuildGraphFromMetadata → Existing nodes keep positions →
 #### Benefits Achieved:
 - **User Experience**: No more jarring position resets when clients connect
 - **Physics Simulation**: Continuous, uninterrupted simulation state
-- **Server Performance**: Reduced computation waste from physics restarts  
+- **Server Performance**: Reduced computation waste from physics restarts
 - **Multi-client Support**: Stable graph state across client sessions
 - **Development Workflow**: Predictable node behavior for debugging and development
 
@@ -1219,7 +1219,7 @@ Client connects → BuildGraphFromMetadata → Existing nodes keep positions →
 
 **Status**: ✅ **GRAPH NODE POSITION PERSISTENCE FIX COMPLETED**
 **Quality**: Production-ready position preservation with comprehensive test coverage
-**Impact**: Critical user experience issue resolved - stable graph positions across client connections  
+**Impact**: Critical user experience issue resolved - stable graph positions across client connections
 **Architecture**: Robust position persistence system with minimal performance overhead
 **Testing**: Complete test suite validates both existing and new node position handling
 
@@ -1269,7 +1269,7 @@ Client connects → BuildGraphFromMetadata → Existing nodes keep positions →
 // Step 1: Parse outer JSON
 let json = serde_json::from_str::<Value>(&text)?;
 // Step 2: Extract text field as string
-let text = first_content.get("text").and_then(|t| t.as_str())?;  
+let text = first_content.get("text").and_then(|t| t.as_str())?;
 // Step 3: Parse inner JSON string (BRITTLE!)
 let parsed_json = serde_json::from_str::<Value>(text)?;
 // Step 4: Manual traversal to extract data
@@ -1338,7 +1338,7 @@ let agent_list: AgentListResponse = mcp_response.into_result()?.extract_data()?;
 
 ✅ **Double-Parsing Elimination**: All `serde_json::from_str(text)` patterns replaced with single-pass deserialization
 ✅ **Type-Safe Structures**: Complete type system for MCP responses with proper error handling
-✅ **Automatic JSON Handling**: Custom deserializers handle nested JSON strings transparently  
+✅ **Automatic JSON Handling**: Custom deserializers handle nested JSON strings transparently
 ✅ **Error Type Safety**: Replaced string errors with typed `McpParseError` enum
 ✅ **Performance Optimization**: Single deserialization pass vs multiple string parsing operations
 ✅ **Robustness Testing**: Comprehensive test suite validates all edge cases and error conditions
@@ -1360,7 +1360,7 @@ let agent_list: AgentListResponse = mcp_response.into_result()?.extract_data()?;
 
 ### ⚡ RUNTIME PANIC PREVENTION - BLOCK_ON IN DROP ELIMINATED:
 - **Root Cause**: ClaudeFlowActorTcp had Drop implementation using `futures::executor::block_on()`
-- **Critical Issue**: "Cannot start a runtime from within a runtime" panics when actor dropped in async context  
+- **Critical Issue**: "Cannot start a runtime from within a runtime" panics when actor dropped in async context
 - **Impact**: Server crashes and instability during actor shutdown scenarios
 - **Resolution**: Complete elimination of blocking calls in Drop implementations, moved cleanup to async-aware `stopped()` method
 
@@ -1460,7 +1460,7 @@ Actor shutdown → Actor::stopped() → tokio::spawn(async cleanup)
 #### 4. **Data Separation Achieved**:
 **Static Data (uploaded only when changed):**
 - CSR row_offsets (graph structure)
-- CSR col_indices (edge connectivity) 
+- CSR col_indices (edge connectivity)
 - CSR edge weights
 - Node count, edge count
 
@@ -1557,7 +1557,7 @@ if positions_changed {
 
 **Status**: ✅ **GPU UPLOAD OPTIMIZATION COMPLETED**
 **Performance**: 80-99% reduction in GPU upload overhead achieved
-**Implementation**: Production-ready hash-based change detection system  
+**Implementation**: Production-ready hash-based change detection system
 **Compatibility**: Full backward compatibility maintained
 **Impact**: Major GPU performance bottleneck eliminated
 
@@ -1585,7 +1585,7 @@ if positions_changed {
    - ✅ All 12 handler files already using `app_state::AppState`
 
 3. **Safe Removal**:
-   - ✅ Removed `/workspace/ext/src/state.rs` file
+   - ✅ Removed `/src/state.rs` file
    - ✅ No broken imports or compilation issues
    - ✅ Maintained all existing functionality through `app_state.rs`
 
@@ -1652,7 +1652,7 @@ if positions_changed {
 
 ### ⚠️ Issue Identified and Resolved:
 - **Root Cause**: Mutex deadlock in `advanced_logging.rs` causing segmentation faults
-- **Symptom**: Server crashing every 15 seconds with segfault errors  
+- **Symptom**: Server crashing every 15 seconds with segfault errors
 - **Emergency Action**: Logging was temporarily disabled in production
 - **Resolution**: Mutex deadlock issue resolved in advanced logging implementation
 
@@ -1663,7 +1663,7 @@ if positions_changed {
    - Full structured JSON logging system now active
 
 2. **GPU Kernel Logging Re-enabled** in `/src/utils/unified_gpu_compute.rs` (lines 1631-1636):
-   - Uncommented `log_gpu_kernel()` calls in `record_kernel_time()` 
+   - Uncommented `log_gpu_kernel()` calls in `record_kernel_time()`
    - Real-time GPU performance metrics restored
    - Microsecond precision timing and memory tracking active
 

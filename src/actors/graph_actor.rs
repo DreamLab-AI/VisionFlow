@@ -63,7 +63,7 @@ use crate::errors::VisionFlowError;
 use crate::actors::client_manager_actor::ClientManagerActor;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
-use crate::models::metadata::MetadataStore;
+use crate::models::metadata::{MetadataStore, FileMetadata};
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
 // Using the modular GPU system's ForceComputeActor for physics computation
@@ -591,7 +591,10 @@ impl GraphServiceActor {
         // Save positions from existing nodes indexed by metadata_id
         for node in self.node_map.values() {
             existing_positions.insert(node.metadata_id.clone(), (node.data.position, node.data.velocity));
+            debug!("Saved position for existing node '{}': ({}, {}, {})", 
+                   node.metadata_id, node.data.position.x, node.data.position.y, node.data.position.z);
         }
+        debug!("Total existing positions saved: {}", existing_positions.len());
         
         Arc::make_mut(&mut self.node_map).clear();
         self.semantic_features_cache.clear();
@@ -609,6 +612,9 @@ impl GraphServiceActor {
 
             // BREADCRUMB: Restore existing position if this node was previously created
             // This ensures positions persist across BuildGraphFromMetadata calls
+            debug!("Looking for existing position for metadata_id: '{}'", metadata_id_val);
+            debug!("Available keys in existing_positions: {:?}", existing_positions.keys().collect::<Vec<_>>());
+            
             if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata_id_val) {
                 node.data.position = *saved_position;
                 node.data.velocity = *saved_velocity;
@@ -715,17 +721,7 @@ impl GraphServiceActor {
         info!("Built enhanced graph: {} nodes, {} edges, {} constraints",
               self.graph_data.nodes.len(), self.graph_data.edges.len(), self.constraint_set.constraints.len());
         
-        // Send data to appropriate GPU context
-        if self.gpu_compute_addr.is_some() {
-            info!("Graph data prepared for advanced GPU physics");
-        } else if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            // First initialize GPU
-            gpu_compute_addr.do_send(InitializeGPU { graph: Arc::clone(&self.graph_data) });
-            info!("Sent GPU initialization request to GPU compute actor");
-            // Then update the graph data  
-            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: Arc::clone(&self.graph_data) });
-            info!("Sent initial graph data to legacy GPU compute actor");
-        }
+        // Note: GPU initialization will be handled by the message handler that calls this method
         
         Ok(())
     }
@@ -1135,10 +1131,34 @@ impl GraphServiceActor {
     }
 
     pub fn update_node_positions(&mut self, positions: Vec<(u32, BinaryNodeData)>) {
+        // CRITICAL FIX: Skip position updates if physics is paused
+        // This prevents the graph from jumping when it's in a settled/stable state
+        if self.simulation_params.is_physics_paused {
+            debug!("Physics is paused, skipping position update for {} nodes", positions.len());
+            return;
+        }
+        
         let mut updated_count = 0;
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         
-        for (node_id, position_data) in positions {
+        for (node_id, mut position_data) in positions {
+            // CRITICAL FIX: Validate and clamp positions to prevent extreme values
+            // This prevents z-axis from going to -99.99 or other boundary issues
+            const MAX_COORD: f32 = 500.0;
+            const MIN_Z: f32 = -50.0;
+            const MAX_Z: f32 = 50.0;
+            
+            // Clamp positions to reasonable bounds
+            position_data.position.x = position_data.position.x.clamp(-MAX_COORD, MAX_COORD);
+            position_data.position.y = position_data.position.y.clamp(-MAX_COORD, MAX_COORD);
+            position_data.position.z = position_data.position.z.clamp(MIN_Z, MAX_Z);
+            
+            // Detect and warn about extreme positions
+            if position_data.position.z.abs() > 45.0 {
+                debug!("Node {} has extreme z position: {}, clamped to range [{}, {}]", 
+                    node_id, position_data.position.z, MIN_Z, MAX_Z);
+            }
+            
             // Update in node_map
             if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&node_id) {
                 node.data.position = position_data.position;
@@ -1204,6 +1224,13 @@ impl GraphServiceActor {
         // IMPROVED Auto-balance system with hysteresis, cooldown, and gradual adjustments
         // Fixed oscillation issues with dampening and state tracking
         if self.simulation_params.auto_balance {
+            // CRITICAL FIX: Skip auto-balance if graph is already settled/stable
+            // This prevents the graph from jumping after it has settled
+            if self.stable_count > 30 {
+                debug!("Graph is stable (stable_count: {}), skipping auto-balance", self.stable_count);
+                return;
+            }
+            
             // Normalize kinetic energy by number of nodes
             let avg_kinetic_energy = if !self.node_map.is_empty() {
                 total_kinetic_energy / self.node_map.len() as f32
@@ -1752,8 +1779,14 @@ impl GraphServiceActor {
                 }
             }
         } else {
-            // Reset stability counter if not in equilibrium
-            self.simulation_params.equilibrium_stability_counter = 0;
+            // CRITICAL FIX: Only reset stability counter if physics is not already paused
+            // This prevents the graph from un-settling after it has reached equilibrium
+            if !self.simulation_params.is_physics_paused {
+                // Reset stability counter if not in equilibrium and physics is still running
+                self.simulation_params.equilibrium_stability_counter = 0;
+            }
+            // If physics is paused and we're no longer in equilibrium, keep it paused
+            // This prevents auto-resume which could cause the jumping behavior
         }
         
         if crate::utils::logging::is_debug_enabled() {
@@ -1863,7 +1896,7 @@ impl GraphServiceActor {
         
         // Update semantic features
         let features = self.semantic_analyzer.analyze_metadata(&metadata);
-        self.semantic_features_cache.insert(metadata_id, features);
+        self.semantic_features_cache.insert(metadata_id.clone(), features);
         
         info!("Updated node {} incrementally", metadata_id);
         Ok(())
@@ -2067,8 +2100,32 @@ impl Handler<GetNodeMap> for GraphServiceActor {
 impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: BuildGraphFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        self.build_from_metadata(msg.metadata)
+    fn handle(&mut self, msg: BuildGraphFromMetadata, ctx: &mut Self::Context) -> Self::Result {
+        // Build the graph from metadata
+        let result = self.build_from_metadata(msg.metadata);
+        
+        // If successful, handle GPU initialization
+        if result.is_ok() {
+            // Send data to appropriate GPU context
+            if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+                info!("Graph data prepared for GPU physics");
+                
+                // First initialize GPU with GraphServiceActor address for notification
+                gpu_compute_addr.do_send(InitializeGPU { 
+                    graph: Arc::clone(&self.graph_data),
+                    graph_service_addr: Some(ctx.address())
+                });
+                info!("Sent GPU initialization request to GPU compute actor");
+                
+                // Then update the graph data  
+                gpu_compute_addr.do_send(UpdateGPUGraphData { graph: Arc::clone(&self.graph_data) });
+                info!("Sent initial graph data to GPU compute actor");
+            } else {
+                info!("No GPU compute address available - skipping GPU initialization");
+            }
+        }
+        
+        result
     }
 }
 

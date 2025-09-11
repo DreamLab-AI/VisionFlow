@@ -3,7 +3,7 @@
 
 use actix::prelude::*;
 use crate::config::AppFullSettings;
-use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance, UpdateSimulationParams, BatchedUpdate, PriorityUpdate, UpdatePriority};
+use crate::actors::messages::{GetSettings, UpdateSettings, MergeSettingsUpdate, PartialSettingsUpdate, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance, UpdateSimulationParams, BatchedUpdate, PriorityUpdate, UpdatePriority};
 use crate::actors::{GraphServiceActor, gpu::ForceComputeActor};
 use crate::config::path_access::{PathAccessible, JsonPathAccessible};
 use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError};
@@ -327,27 +327,8 @@ impl SettingsActor {
         let mut emergency_update = serde_json::Map::new();
         
         for update in updates {
-            // Build nested JSON structure for critical updates
-            let path_parts: Vec<&str> = update.path.split('.').collect();
-            let mut current_level = &mut emergency_update;
-            
-            for (i, part) in path_parts.iter().enumerate() {
-                if i == path_parts.len() - 1 {
-                    // Last part - set the value
-                    current_level.insert(part.to_string(), update.value.clone());
-                } else {
-                    // Intermediate part - ensure object exists
-                    let entry = current_level.entry(part.to_string()).or_insert_with(|| {
-                        serde_json::Value::Object(serde_json::Map::new())
-                    });
-                    if let serde_json::Value::Object(ref mut obj) = entry {
-                        current_level = obj;
-                    } else {
-                        error!("[EMERGENCY BATCH] Path conflict at {}: existing value is not an object", part);
-                        continue;
-                    }
-                }
-            }
+            // Use a helper function to build nested path
+            Self::insert_nested_value(&mut emergency_update, &update.path, update.value.clone());
             
             if update.path.contains(".physics.") {
                 physics_updated = true;
@@ -405,27 +386,8 @@ impl SettingsActor {
         let mut batch_update = serde_json::Map::new();
         
         for update in updates {
-            // Build nested JSON structure for merging
-            let path_parts: Vec<&str> = update.path.split('.').collect();
-            let mut current_level = &mut batch_update;
-            
-            for (i, part) in path_parts.iter().enumerate() {
-                if i == path_parts.len() - 1 {
-                    // Last part - set the value
-                    current_level.insert(part.to_string(), update.value.clone());
-                } else {
-                    // Intermediate part - ensure object exists
-                    let entry = current_level.entry(part.to_string()).or_insert_with(|| {
-                        serde_json::Value::Object(serde_json::Map::new())
-                    });
-                    if let serde_json::Value::Object(ref mut obj) = entry {
-                        current_level = obj;
-                    } else {
-                        error!("[PRIORITY BATCH] Path conflict at {}: existing value is not an object", part);
-                        continue;
-                    }
-                }
-            }
+            // Use a helper function to build nested path
+            Self::insert_nested_value(&mut batch_update, &update.path, update.value.clone());
             
             // Check update type for post-processing
             if update.path.contains(".physics.") {
@@ -775,6 +737,33 @@ impl Handler<SetSettingByPath> for SettingsActor {
 }
 
 impl SettingsActor {
+    /// Helper function to insert a nested value in a JSON map using dot notation
+    fn insert_nested_value(map: &mut serde_json::Map<String, serde_json::Value>, path: &str, value: serde_json::Value) {
+        let path_parts: Vec<&str> = path.split('.').collect();
+        let mut current_level = map;
+        
+        for (i, part) in path_parts.iter().enumerate() {
+            if i == path_parts.len() - 1 {
+                // Last part - set the value
+                current_level.insert(part.to_string(), value);
+                return;
+            }
+            
+            // Intermediate part - ensure object exists and navigate to it
+            let part_string = part.to_string();
+            if !current_level.contains_key(&part_string) {
+                current_level.insert(part_string.clone(), serde_json::Value::Object(serde_json::Map::new()));
+            }
+            
+            if let Some(serde_json::Value::Object(ref mut obj)) = current_level.get_mut(&part_string) {
+                current_level = obj;
+            } else {
+                error!("Path conflict at {}: existing value is not an object", part);
+                return;
+            }
+        }
+    }
+
     /// Handle immediate update for critical settings (bypasses batching for responsiveness)
     fn handle_immediate_update(&self, msg: SetSettingByPath) -> ResponseFuture<VisionFlowResult<()>> {
         let settings = self.settings.clone();

@@ -2,7 +2,7 @@
 
 ## Understanding the Setup
 Your development environment uses Docker with **volume mounts**, which means:
-- Source code changes in `/workspace/ext/src/` are immediately visible inside the container
+- Source code changes in `/src/` are immediately visible inside the container
 - BUT the Rust backend needs to be recompiled for changes to take effect
 
 ## ❌ What WON'T Work
@@ -72,7 +72,7 @@ docker exec visionflow_container /app/scripts/test-physics-update.sh
 - Added `propagate_physics_to_gpu` calls when physics settings are updated
 - This ensures the GraphServiceActor is notified of changes
 
-### 2. `graph_actor.rs` Changes  
+### 2. `graph_actor.rs` Changes
 - Fixed UpdateSimulationParams to update both `simulation_params` AND `target_params`
 - Prevents the smooth transition function from reverting values
 
@@ -82,10 +82,10 @@ docker exec visionflow_container /app/scripts/test-physics-update.sh
 
 ## Current File Status
 ✅ All code changes have been applied to:
-- `/workspace/ext/src/handlers/settings_handler.rs`
-- `/workspace/ext/src/actors/graph_actor.rs`
-- `/workspace/ext/client/src/store/settingsStore.ts`
-- `/workspace/ext/client/src/features/control-center/components/tabs/PhysicsEngineTab.tsx`
+- `/src/handlers/settings_handler.rs`
+- `/src/actors/graph_actor.rs`
+- `/client/src/store/settingsStore.ts`
+- `/client/src/features/control-center/components/tabs/PhysicsEngineTab.tsx`
 
 ## Summary
 The volume-mounted development setup means your code changes are already in the container, but you need to **recompile the Rust backend** for them to take effect. Use Method 1 or 3 for quick iteration during development.

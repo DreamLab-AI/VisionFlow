@@ -6,31 +6,31 @@ Multiple critical issues causing SIGSEGV crashes every ~15 seconds have been ide
 ## Critical Fixes Applied
 
 ### 1. ✅ Force Pass Kernel Argument Mismatch (PRIMARY CRASH CAUSE)
-**File**: `/workspace/ext/src/utils/unified_gpu_compute.rs` (lines 994-999)
+**File**: `/src/utils/unified_gpu_compute.rs` (lines 994-999)
 **Issue**: Missing three telemetry pointer arguments in kernel launch causing memory corruption
 **Fix**: Added three null pointer arguments for constraint telemetry
 ```rust
 // Added missing arguments:
 DevicePointer::<f32>::null(), // constraint_violations
-DevicePointer::<f32>::null(), // constraint_energy  
+DevicePointer::<f32>::null(), // constraint_energy
 DevicePointer::<f32>::null()  // node_constraint_force
 ```
 **Impact**: This was the PRIMARY cause of SIGSEGV crashes
 
 ### 2. ✅ ClaudeFlowActorTcp Unreachable Code Fixed
-**File**: `/workspace/ext/src/actors/claude_flow_actor_tcp.rs` (line 962)
+**File**: `/src/actors/claude_flow_actor_tcp.rs` (line 962)
 **Issue**: Early return statement made TCP polling code unreachable
 **Fix**: Removed premature return, re-enabled MCP TCP polling functionality
 **Impact**: Restores critical MCP agent communication over TCP port 9500
 
 ### 3. ✅ SupervisorActor Drop Reference Fixed
-**File**: `/workspace/ext/src/actors/supervisor.rs` (lines 221-245)
+**File**: `/src/actors/supervisor.rs` (lines 221-245)
 **Issue**: Incorrect `drop(state)` on mutable reference causing compilation warnings
 **Fix**: Simplified logic to work directly with state without dropping references
 **Impact**: Cleaner code, proper borrow checker compliance
 
 ### 4. ✅ Advanced Logging Mutex Deadlock (Previously Fixed)
-**File**: `/workspace/ext/src/utils/advanced_logging.rs`
+**File**: `/src/utils/advanced_logging.rs`
 **Issue**: Multiple mutex acquisitions causing deadlocks
 **Fix**: Single mutex acquisition pattern, added `detect_performance_anomaly_with_metrics`
 **Impact**: Prevents logging-related crashes

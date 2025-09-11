@@ -278,20 +278,44 @@ impl Handler<InitializeGPU> for GPUResourceActor {
         info!("GPUResourceActor: InitializeGPU received with {} nodes", msg.graph.nodes.len());
         
         let graph_data = msg.graph;
-        let graph_clone = graph_data.clone();
+        let graph_service_addr = msg.graph_service_addr;
         
-        // Perform async initialization
+        // Perform GPU initialization
         Box::pin(async move { 
-            Ok::<(), String>(())
-        }.into_actor(self).map(move |_result, _actor, _ctx| {
-            // Use the actor's method for initialization
-            let _graph_clone = graph_clone;
-            actix::spawn(async move {
-                // This would need to be refactored to work with the actor context
-                // For now, returning a placeholder
-                let _result: Result<(), Box<dyn std::error::Error>> = Ok(());
-            });
-            Ok(())
+            // This will call our async initialization method
+            Ok::<(), ()>(())
+        }.into_actor(self).map(move |result, actor, _ctx| {
+            match result {
+                Ok(_) => {
+                    // Perform the actual GPU initialization
+                    let initialization_result = futures::executor::block_on(
+                        actor.perform_gpu_initialization(graph_data)
+                    );
+                    
+                    match initialization_result {
+                        Ok(_) => {
+                            info!("GPU initialization completed successfully - notifying GraphServiceActor");
+                            
+                            // Send GPUInitialized message to GraphServiceActor if address provided
+                            if let Some(addr) = graph_service_addr {
+                                if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {
+                                    error!("Failed to send GPUInitialized message: {}", e);
+                                    return Err("Failed to notify GraphServiceActor of GPU initialization".to_string());
+                                }
+                                info!("GPUInitialized message sent successfully");
+                            } else {
+                                info!("No GraphServiceActor address provided, skipping notification");
+                            }
+                            Ok(())
+                        },
+                        Err(e) => {
+                            error!("GPU initialization failed: {}", e);
+                            Err(e)
+                        }
+                    }
+                },
+                Err(e) => Err(format!("Failed to start GPU initialization: {}", e))
+            }
         }))
     }
 }

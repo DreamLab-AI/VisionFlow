@@ -221,6 +221,31 @@ impl FileService {
             Ok(empty_store)
         }}
     }
+    
+    /// Load pre-computed graph data with positions from graph.json
+    pub fn load_graph_data() -> Result<Option<GraphData>, String> {
+        let graph_path = "/app/data/metadata/graph.json";
+        
+        match File::open(graph_path) {
+            Ok(file) => {
+                info!("Loading existing graph data from {}", graph_path);
+                match serde_json::from_reader(file) {
+                    Ok(graph) => {
+                        info!("Successfully loaded graph data with positions");
+                        Ok(Some(graph))
+                    }
+                    Err(e) => {
+                        error!("Failed to parse graph.json: {}", e);
+                        Ok(None)
+                    }
+                }
+            }
+            Err(e) => {
+                info!("No existing graph.json found: {}. Will generate positions.", e);
+                Ok(None)
+            }
+        }
+    }
 
     /// Calculate node size based on file size
     fn calculate_node_size(file_size: usize) -> f64 {

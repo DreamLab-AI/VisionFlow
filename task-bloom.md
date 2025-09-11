@@ -119,7 +119,7 @@ The hive mind collective has successfully orchestrated the complete refactoring 
 
 2. **Competing Systems Deleted** ✅
    - ❌ SelectiveBloomPostProcessing.tsx - DELETED
-   - ❌ MultiLayerPostProcessing.tsx - DELETED  
+   - ❌ MultiLayerPostProcessing.tsx - DELETED
    - ❌ CustomEffectsRenderer.tsx - DELETED
    - ❌ DiffuseEffectsIntegration.tsx - DELETED
    - ❌ DiffuseWireframeMaterial.tsx - DELETED
@@ -197,7 +197,7 @@ The system is now production-ready with a clean, performant dual-pipeline archit
 
 ### Cleanup Actions Taken:
 
-1. **Removed DualBloomPipeline References**: 
+1. **Removed DualBloomPipeline References**:
    - Updated all imports to use `SelectiveBloom` from the rendering system
    - Cleaned up documentation and comments referencing non-existent DualBloomPipeline
    - Fixed material documentation to reference correct component
@@ -230,7 +230,7 @@ The system is now production-ready with a clean, performant dual-pipeline archit
 
 ### Performance & Architectural Benefits:
 
-- **Simplified Architecture**: All components now use `SelectiveBloom` with `BloomStandardMaterial` 
+- **Simplified Architecture**: All components now use `SelectiveBloom` with `BloomStandardMaterial`
 - **Eliminated Fake Glow Effects**: Removed 5-layer mesh systems that created performance overhead
 - **Consistent Material Usage**: All hologram elements use optimized materials designed for post-processing
 - **Reduced Complexity**: Component interfaces simplified, fewer conditional paths
@@ -374,7 +374,7 @@ This migration guide provides a comprehensive plan to transition from the curren
 
 **DELETE (Conflicting Systems):**
 - `src/features/graph/components/SelectiveBloomPostProcessing.tsx` - Complex triple-composer system
-- `src/features/graph/components/MultiLayerPostProcessing.tsx` - Duplicate dual-composer approach  
+- `src/features/graph/components/MultiLayerPostProcessing.tsx` - Duplicate dual-composer approach
 - `src/features/graph/components/PostProcessingEffects.tsx` - Legacy implementation
 - `src/rendering/CustomEffectsRenderer.tsx` - Blocks mouse interaction
 - `src/rendering/DiffuseEffectsIntegration.tsx` - Disabled wrapper
@@ -406,7 +406,7 @@ This migration guide provides a comprehensive plan to transition from the curren
 **Layer Assignment Changes:**
 ```typescript
 // All environment objects must assign to Layer 2:
-obj.layers.set(0);        // Base layer for rendering  
+obj.layers.set(0);        // Base layer for rendering
 obj.layers.enable(2);     // Layer 2 for environment glow pipeline
 ```
 
@@ -461,7 +461,7 @@ obj.layers.enable(1);     // Layer 1 for graph bloom pipeline
 
 #### Phase 1: Remove Conflicting Systems
 - [ ] Delete `SelectiveBloomPostProcessing.tsx`
-- [ ] Delete `MultiLayerPostProcessing.tsx`  
+- [ ] Delete `MultiLayerPostProcessing.tsx`
 - [ ] Delete `PostProcessingEffects.tsx`
 - [ ] Delete `CustomEffectsRenderer.tsx`
 - [ ] Delete `DiffuseEffectsIntegration.tsx`
@@ -531,7 +531,7 @@ export const HologramEnvironment: React.FC<{
   color?: string;
 }> = ({ enabled = true, position = [0, 0, 0], color = '#00ffff' }) => {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   // Layer 2 assignment for environment glow pipeline
   useEffect(() => {
     const group = groupRef.current;
@@ -548,18 +548,18 @@ export const HologramEnvironment: React.FC<{
       if (group) unregisterEnvObject(group);
     };
   }, [enabled]);
-  
+
   if (!enabled) return null;
-  
+
   return (
     <group ref={groupRef} position={position}>
       {/* Hologram rings using BloomStandardMaterial */}
       <HologramRings color={color} />
-      
+
       {/* Particle systems */}
       <HologramMotes color={color} />
       <EnergyFieldParticles color={color} />
-      
+
       {/* Simple geometric elements */}
       <HologramSpheres color={color} />
     </group>
@@ -588,7 +588,7 @@ material.toneMapped = false;
 
 **Shader Cleanup:**
 - Remove 280+ lines of EtherealDiffuseCloudMaterial
-- Remove 200+ lines of WireframeWithBloomCloudMaterial  
+- Remove 200+ lines of WireframeWithBloomCloudMaterial
 - Replace with ~20 lines of BloomStandardMaterial configuration
 
 ### Step 4: Settings Pipeline Integration
@@ -601,7 +601,7 @@ visualisation:
     strength: 1.5
     radius: 0.4
     threshold: 0.85
-  glow:           # Environment elements (Layer 2)  
+  glow:           # Environment elements (Layer 2)
     enabled: true
     intensity: 2.0
     radius: 0.6
@@ -649,7 +649,7 @@ settings.visualisation.glow.enabled = true;
 #### 1. Mouse Interaction Restoration (Critical)
 **Risk:** CustomEffectsRenderer blocks mouse interaction (line 427)
 **Impact:** Users cannot click on graph nodes after migration
-**Mitigation:** 
+**Mitigation:**
 - Test mouse interaction immediately after CustomEffectsRenderer removal
 - Validate raycasting works through DualBloomPipeline
 - Implement interaction testing in automated test suite
@@ -768,7 +768,7 @@ The migration represents a significant architectural improvement that will enhan
 
 ## Hive Mind Analysis - Architecture Review
 
-As the code analyzer agent, I have completed a comprehensive audit of the rendering architecture in `/workspace/ext/`. The findings reveal a complex web of conflicting post-processing systems that are fighting for control and creating significant performance overhead.
+As the code analyzer agent, I have completed a comprehensive audit of the rendering architecture in `/`. The findings reveal a complex web of conflicting post-processing systems that are fighting for control and creating significant performance overhead.
 
 ### 🚨 Critical Architecture Problems Identified
 
@@ -823,12 +823,12 @@ GraphCanvas.tsx
 ### 🎯 Layer Usage Analysis
 
 **Layer 0 (Default)**: Base geometry, background elements
-**Layer 1 (Graph)**: Nodes and edges - correctly assigned in GraphManager.tsx and FlowingEdges.tsx  
+**Layer 1 (Graph)**: Nodes and edges - correctly assigned in GraphManager.tsx and FlowingEdges.tsx
 **Layer 2 (Hologram)**: Environmental effects - **CONFLICT ZONE**
 
 **Multiple components fighting for Layer 2:**
 - WorldClassHologram: ✅ Correctly assigns layer 2
-- WireframeWithExtendedGlow: ✅ Correctly assigns layer 2  
+- WireframeWithExtendedGlow: ✅ Correctly assigns layer 2
 - HologramEnvironment: ✅ Correctly assigns layer 2
 - But they're all creating overlapping visual effects!
 
@@ -849,7 +849,7 @@ GraphCanvas.tsx
 ```bash
 # Legacy post-processing (conflicts with modern approach)
 src/rendering/CustomEffectsRenderer.tsx
-src/rendering/DiffuseEffectsIntegration.tsx  
+src/rendering/DiffuseEffectsIntegration.tsx
 src/rendering/DiffuseWireframeMaterial.tsx
 
 # Competing post-processing implementations
@@ -861,7 +861,7 @@ src/features/visualisation/effects/AtmosphericGlow.tsx
 
 # Complex hologram components (replace with simple ones)
 src/features/visualisation/components/WorldClassHologram.tsx
-src/features/visualisation/components/WireframeWithExtendedGlow.tsx  
+src/features/visualisation/components/WireframeWithExtendedGlow.tsx
 src/features/visualisation/components/WireframeCloudMesh.tsx
 
 # Redundant shader materials
@@ -882,7 +882,7 @@ src/features/graph/shaders/HologramNodeMaterial.ts ✅
 # Bloom registry system
 src/features/visualisation/hooks/bloomRegistry.ts ✅
 
-# Simple environment particles  
+# Simple environment particles
 src/features/visualisation/components/HologramMotes.tsx ✅
 ```
 
@@ -978,7 +978,7 @@ As the tester agent, I have completed a comprehensive analysis of the testing in
 
 **Current Setup:**
 - **Framework**: Vitest (v1.6.1) with React Testing Library and jsdom environment
-- **Coverage**: V8 provider with 80% threshold requirements for branches, functions, lines, and statements  
+- **Coverage**: V8 provider with 80% threshold requirements for branches, functions, lines, and statements
 - **R3F Support**: @react-three/fiber, @react-three/drei, and @react-three/postprocessing available for testing
 - **Mocks**: Comprehensive mock setup in `/client/src/tests/setup.ts` including WebSocket, localStorage, ResizeObserver, and performance APIs
 
@@ -993,7 +993,7 @@ As the tester agent, I have completed a comprehensive analysis of the testing in
 
 **Layer Separation Logic Tests:**
 - Layer 1 (Graph) isolation with Layer 2 disabled
-- Layer 2 (Environment) isolation with Layer 1 disabled  
+- Layer 2 (Environment) isolation with Layer 1 disabled
 - Visibility restoration after selective rendering
 - Settings mapping validation (bloom → Layer 1, glow → Layer 2)
 - Graceful handling of missing/invalid settings
@@ -1044,7 +1044,7 @@ As the tester agent, I have completed a comprehensive analysis of the testing in
 - [ ] No cross-layer interference when changing settings
 - [ ] Settings isolation: `bloom` only affects Layer 1, `glow` only affects Layer 2
 
-#### ✅ Performance Validation  
+#### ✅ Performance Validation
 - [ ] No performance regressions vs old PostProcessingEffects
 - [ ] Memory stability during extended rendering
 - [ ] Consistent 60fps under normal load
@@ -1071,21 +1071,21 @@ renderThreeComponent(), createMockWebGLContext(), assertShaderUniform()
 ```
 
 **Performance Testing Infrastructure:**
-```typescript  
+```typescript
 // Performance profiling utilities
 PerformanceProfiler.measureRenderTime(), measureMemoryUsage(), profileFrameRate()
 ```
 
 **Visual Testing Setup:**
 ```typescript
-// Visual regression testing utilities  
+// Visual regression testing utilities
 captureCanvasImage(), compareImages(), createReferenceScreenshots()
 ```
 
 ### 📋 Test Execution Priority
 
 1. **Phase 1 (Essential)**: Unit tests for DualBloomPipeline core logic and material functionality
-2. **Phase 2 (Critical)**: Integration tests for settings pipeline and **mouse interaction restoration**  
+2. **Phase 2 (Critical)**: Integration tests for settings pipeline and **mouse interaction restoration**
 3. **Phase 3 (Important)**: Performance validation and memory management tests
 4. **Phase 4 (Quality)**: Visual regression and cross-browser compatibility tests
 
@@ -1107,7 +1107,7 @@ captureCanvasImage(), compareImages(), createReferenceScreenshots()
 **Success Metrics:**
 - **100% Layer Independence**: Each pipeline works correctly in isolation
 - **≥95% Performance Parity**: New system matches or exceeds old performance
-- **Zero Critical Regressions**: Mouse interaction and basic functionality preserved  
+- **Zero Critical Regressions**: Mouse interaction and basic functionality preserved
 - **Improved Visual Quality**: Better separation between sharp graph effects and soft environment glow
 
-The comprehensive testing strategy has been documented in `/workspace/ext/docs/testing-strategy.md` with detailed test specifications, performance benchmarks, and validation checklists. This strategy ensures the DualBloomPipeline refactoring delivers on its architectural goals while maintaining system stability and performance.
+The comprehensive testing strategy has been documented in `/docs/testing-strategy.md` with detailed test specifications, performance benchmarks, and validation checklists. This strategy ensures the DualBloomPipeline refactoring delivers on its architectural goals while maintaining system stability and performance.

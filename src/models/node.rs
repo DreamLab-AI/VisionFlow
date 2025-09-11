@@ -64,7 +64,11 @@ impl Node {
         
         // Use golden ratio for even distribution in 3D space
         let theta = 2.0 * std::f32::consts::PI * ((id_hash * physics.golden_ratio) % 1.0);
-        let phi = ((2.0 * id_hash / 200.0) - 1.0).acos(); // Reasonable estimate for node count
+        
+        // FIXED: Better phi calculation to avoid extreme z-coordinates
+        // Map id_hash to [0, 1] range then to [0, PI] for uniform sphere distribution
+        let normalized_id = (id_hash * 0.1618) % 1.0; // Use golden ratio fragment for better distribution
+        let phi = normalized_id * std::f32::consts::PI; // Maps to [0, PI]
         
         // Spread nodes using configured radius range
         let radius = physics.initial_radius_min + (id_hash % physics.initial_radius_range);

@@ -6,12 +6,12 @@ The physics controls in the UI were updating the settings.yaml file but not affe
 ## Root Cause Analysis
 
 ### 1. Missing Physics Propagation in Settings Handlers
-**File:** `/workspace/ext/src/handlers/settings_handler.rs`
+**File:** `/src/handlers/settings_handler.rs`
 
 The `update_setting_by_path` and `batch_update_settings` functions were updating the settings.yaml file but **NOT** calling `propagate_physics_to_gpu` to notify the GraphServiceActor.
 
 ### 2. Target Parameters Not Updated
-**File:** `/workspace/ext/src/actors/graph_actor.rs`
+**File:** `/src/actors/graph_actor.rs`
 
 The `UpdateSimulationParams` message handler was only updating `simulation_params` but not `target_params`. This caused the `smooth_transition_params` function to revert values back to the old target parameters.
 
@@ -79,17 +79,17 @@ self.target_params = msg.params.clone();
 
 1. **Check if settings are being saved:**
    ```bash
-   grep "repelK\|springK" /workspace/ext/data/settings.yaml
+   grep "repelK\|springK" /data/settings.yaml
    ```
 
 2. **Check if propagation is happening (after rebuild):**
    ```bash
-   tail -f /workspace/ext/logs/rust-error.log | grep "propagating to GPU"
+   tail -f /logs/rust-error.log | grep "propagating to GPU"
    ```
 
 3. **Check if UpdateSimulationParams is sent:**
    ```bash
-   tail -f /workspace/ext/logs/rust-error.log | grep "UpdateSimulationParams"
+   tail -f /logs/rust-error.log | grep "UpdateSimulationParams"
    ```
 
 ## Current Status
