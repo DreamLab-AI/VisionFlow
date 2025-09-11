@@ -57,16 +57,16 @@ Addressed the most critical issues identified in the code review, removing dange
 ## Files Modified/Deleted
 
 ### Deleted Files
-- `/workspace/ext/src/bin/test_tcp_connection.rs` (buggy)
-- `/workspace/ext/src/bin/generate-types.rs` (stub)
+- `/src/bin/test_tcp_connection.rs` (buggy)
+- `/src/bin/generate-types.rs` (stub)
 - `claude_flow_actor_tcp.rs` (already removed)
 
 ### Modified Files
-- `/workspace/ext/src/actors/mod.rs` - Cleaned exports
-- `/workspace/ext/src/actors/claude_flow_actor_tcp_refactored.rs` - Fixed imports
-- `/workspace/ext/src/actors/messages.rs` - Added UpdateAgentCache
-- `/workspace/ext/src/actors/graph_actor.rs` - Fixed auto-balance
-- `/workspace/ext/data/settings.yaml` - Added auto-balance config
+- `/src/actors/mod.rs` - Cleaned exports
+- `/src/actors/claude_flow_actor_tcp_refactored.rs` - Fixed imports
+- `/src/actors/messages.rs` - Added UpdateAgentCache
+- `/src/actors/graph_actor.rs` - Fixed auto-balance
+- `/data/settings.yaml` - Added auto-balance config
 
 ## Compilation Status
 Some syntax issues remain in graph_actor.rs test module that need cleanup, but the main functionality is intact and the critical issues have been resolved.

@@ -14,23 +14,23 @@ When you run `./launch.sh up` or restart the container:
 
 ### 2. What Was Changed
 
-#### `/workspace/ext/Dockerfile.dev`
+#### `/Dockerfile.dev`
 - Added Rust toolchain installation to the final image
 - Added build dependencies (build-essential, pkg-config, libssl-dev)
 - Copies source code and Cargo files for rebuilding
 - Includes the wrapper script and supervisord config
 
-#### `/workspace/ext/scripts/dev-entrypoint.sh`
+#### `/scripts/dev-entrypoint.sh`
 - Added automatic rebuild step before starting Rust server
 - Builds from `/app/target/release/webxr` after compilation
 - Can be skipped with `SKIP_RUST_REBUILD=true` if needed
 
-#### `/workspace/ext/scripts/rust-backend-wrapper.sh` (NEW)
+#### `/scripts/rust-backend-wrapper.sh` (NEW)
 - Wrapper script used by supervisord
 - Ensures rebuild happens even when supervisord manages the process
 - Provides clear logging of rebuild process
 
-#### `/workspace/ext/supervisord.dev.conf`
+#### `/supervisord.dev.conf`
 - Updated to use `rust-backend-wrapper.sh` instead of direct binary
 - Ensures rebuild happens on every supervisord restart
 

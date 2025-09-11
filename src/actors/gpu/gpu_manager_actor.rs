@@ -278,5 +278,15 @@ impl Handler<GetGPUStatus> for GPUManagerActor {
     }
 }
 
+/// Get ForceComputeActor address - return the ForceComputeActor from child actors
+impl Handler<GetForceComputeActor> for GPUManagerActor {
+    type Result = Result<Addr<ForceComputeActor>, String>;
+    
+    fn handle(&mut self, _msg: GetForceComputeActor, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = self.get_child_actors(ctx)?;
+        Ok(child_actors.force_compute_actor.clone())
+    }
+}
+
 // TODO: Add more handlers as needed for complete delegation
 // This covers the main message types that need routing

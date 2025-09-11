@@ -1,7 +1,7 @@
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
-use log::{info};
+use log::{info, warn, error};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor};
 use crate::actors::gpu;
@@ -86,14 +86,43 @@ impl AppState {
         info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
         let gpu_manager_addr = Some(GPUManagerActor::new().start());
         
-        // Store the GPU manager address in the graph service actor for physics
-        // Note: We'll need to update GraphServiceActor to use GPUManagerActor instead
-        use crate::actors::messages::StoreGPUComputeAddress;
-        // TODO: Update this message type to StoreGPUManagerAddress
-        // For now, passing None since graph actor needs updating
-        graph_service_addr.do_send(StoreGPUComputeAddress {
-            addr: None,
-        });
+        // Get the ForceComputeActor address from the GPU manager and store it in GraphServiceActor
+        use crate::actors::messages::{StoreGPUComputeAddress, GetForceComputeActor};
+        if let Some(ref gpu_manager) = gpu_manager_addr {
+            let gpu_manager_clone = gpu_manager.clone();
+            let graph_service_clone = graph_service_addr.clone();
+            
+            tokio::spawn(async move {
+                // Small delay to let the GPU manager finish initialization
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                
+                match gpu_manager_clone.send(GetForceComputeActor).await {
+                    Ok(Ok(force_compute_addr)) => {
+                        info!("[AppState] Successfully got ForceComputeActor address from GPUManager");
+                        graph_service_clone.do_send(StoreGPUComputeAddress {
+                            addr: Some(force_compute_addr),
+                        });
+                    }
+                    Ok(Err(e)) => {
+                        error!("[AppState] Failed to get ForceComputeActor from GPUManager: {}", e);
+                        graph_service_clone.do_send(StoreGPUComputeAddress {
+                            addr: None,
+                        });
+                    }
+                    Err(e) => {
+                        error!("[AppState] Failed to communicate with GPUManager: {}", e);
+                        graph_service_clone.do_send(StoreGPUComputeAddress {
+                            addr: None,
+                        });
+                    }
+                }
+            });
+        } else {
+            warn!("[AppState] No GPU manager available, setting ForceComputeActor to None");
+            graph_service_addr.do_send(StoreGPUComputeAddress {
+                addr: None,
+            });
+        }
 
         info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
         let settings_actor = SettingsActor::with_actors(

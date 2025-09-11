@@ -8,9 +8,9 @@
 
 **ACTUAL ROOT CAUSE**: GPU Buffer Overflow in Thrust Sort Operation
 
-**Location**: `/workspace/ext/src/utils/unified_gpu_compute.rs` line 928
+**Location**: `/src/utils/unified_gpu_compute.rs` line 928
 
-**Critical Issue**: 
+**Critical Issue**:
 ```rust
 thrust_sort_key_value(
     ...,
@@ -20,17 +20,17 @@ thrust_sort_key_value(
 ```
 
 **Buffer Overflow Pattern**:
-1. Buffers allocated with size `self.allocated_nodes` 
+1. Buffers allocated with size `self.allocated_nodes`
 2. Thrust sort told to process `self.num_nodes` items
 3. When `num_nodes > allocated_nodes` → **BUFFER OVERFLOW** → **SIGSEGV**
 
 **Previous Issues Fixed** (but were not the main cause):
-- Mutex deadlock in `/workspace/ext/src/utils/advanced_logging.rs`
+- Mutex deadlock in `/src/utils/advanced_logging.rs`
 - Multiple mutex acquisitions in the same function
 - Re-acquiring already held mutexes causing deadlocks
 
 ## Fix Status
-✅ **CRITICAL GPU BUFFER OVERFLOW FIX COMPLETED** in `/workspace/ext/src/utils/unified_gpu_compute.rs`
+✅ **CRITICAL GPU BUFFER OVERFLOW FIX COMPLETED** in `/src/utils/unified_gpu_compute.rs`
 
 ### Primary Fix Applied (Line 928):
 ```rust
@@ -49,7 +49,7 @@ if self.num_nodes > self.allocated_nodes {
 }
 ```
 
-✅ **Previous Mutex Fix Also Completed** in `/workspace/ext/src/utils/advanced_logging.rs`
+✅ **Previous Mutex Fix Also Completed** in `/src/utils/advanced_logging.rs`
 
 ### Key Changes Made:
 1. **Fixed `log_gpu_kernel()` method** (lines 147-210):
@@ -72,7 +72,7 @@ if self.num_nodes > self.allocated_nodes {
 ## Docker Container Status
 ⚠️ **Docker container is still running OLD code without the fix**
 
-The container needs to rebuild to pick up the fixes from `/workspace/ext/`.
+The container needs to rebuild to pick up the fixes from `/`.
 
 ## Required Actions
 1. **Rebuild the Docker container** to include the fixed code
@@ -123,13 +123,13 @@ fn detect_performance_anomaly_with_metrics(..., metrics: &HashMap<...>) {
 
 ## Files Modified
 **Primary Fix:**
-- `/workspace/ext/src/utils/unified_gpu_compute.rs` - **CRITICAL GPU buffer overflow fixes**
+- `/src/utils/unified_gpu_compute.rs` - **CRITICAL GPU buffer overflow fixes**
   - Line 928: Fixed Thrust sort buffer bounds to prevent overflow
   - Line 822: Added safety check preventing num_nodes > allocated_nodes
 
 **Secondary Fixes:**
-- `/workspace/ext/src/utils/advanced_logging.rs` - Mutex deadlock fixes
-- `/workspace/ext/src/main.rs` - Re-enabled advanced logging initialization
+- `/src/utils/advanced_logging.rs` - Mutex deadlock fixes
+- `/src/main.rs` - Re-enabled advanced logging initialization
 
 ## Testing
 The fix has been validated with `cargo check` - compiles successfully with only warnings.

@@ -6,7 +6,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
-use crate::models::metadata::MetadataStore;
+use crate::models::metadata::{MetadataStore, FileMetadata};
 use crate::config::AppFullSettings;
 use crate::models::graph::GraphData as ServiceGraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
@@ -886,6 +886,7 @@ pub struct SystemMetrics {
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
+    pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
 }
 
 // Message to notify GraphServiceActor that GPU is ready
@@ -900,6 +901,11 @@ pub struct StoreGPUComputeAddress {
     // TODO: Refactor to use GPUManagerActor
     pub addr: Option<Addr<crate::actors::gpu::ForceComputeActor>>,
 }
+
+// Message to get the ForceComputeActor address from GPUManagerActor
+#[derive(Message)]
+#[rtype(result = "Result<Addr<crate::actors::gpu::ForceComputeActor>, String>")]
+pub struct GetForceComputeActor;
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]

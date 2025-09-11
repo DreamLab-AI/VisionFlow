@@ -26,8 +26,8 @@
 
 ## 🔧 Solution Status
 The code fixes have been applied to:
-1. `/workspace/ext/src/handlers/settings_handler.rs` - Added propagate_physics_to_gpu calls
-2. `/workspace/ext/src/actors/graph_actor.rs` - Fixed target_params update
+1. `/src/handlers/settings_handler.rs` - Added propagate_physics_to_gpu calls
+2. `/src/actors/graph_actor.rs` - Fixed target_params update
 3. Client-side paths corrected
 
 **Next Step**: Server needs to be rebuilt and deployed with the fixed code
