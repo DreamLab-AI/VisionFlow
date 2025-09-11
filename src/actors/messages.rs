@@ -15,7 +15,7 @@ use crate::models::graph::GraphData as ModelsGraphData;
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
-use crate::actors::gpu_compute_actor::ComputeMode;
+use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 use crate::errors::VisionFlowError;
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
@@ -233,7 +233,7 @@ pub struct TriggerStressMajorization;
 pub struct ResetStressMajorizationSafety;
 
 #[derive(Message)]
-#[rtype(result = "Result<crate::actors::gpu_compute_actor::StressMajorizationStats, String>")]
+#[rtype(result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>")]
 pub struct GetStressMajorizationStats;
 
 #[derive(Message)]
@@ -835,6 +835,19 @@ pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
 }
 
+// Message to notify GraphServiceActor that GPU is ready
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct GPUInitialized;
+
+// Message to store GPU compute actor address in GraphServiceActor
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct StoreGPUComputeAddress {
+    // TODO: Refactor to use GPUManagerActor
+    pub addr: Option<Addr<crate::actors::gpu::ForceComputeActor>>,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUGraphData {
@@ -865,7 +878,7 @@ pub struct GetNodeData;
 #[rtype(result = "GPUStatus")]
 pub struct GetGPUStatus;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, MessageResponse)]
 pub struct GPUStatus {
     pub is_initialized: bool,
     pub failure_count: u32,

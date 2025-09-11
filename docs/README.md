@@ -1,58 +1,79 @@
-# Project Documentation
+# VisionFlow Documentation Hub
 
-This directory contains all project documentation organised by category.
+Comprehensive documentation for the VisionFlow AI agent swarm visualisation and knowledge graph platform.
 
-## Documentation Structure
+## 📚 Documentation Structure
 
-### 📖 [Guides](./guides/)
-User and developer guides, tutorials, and how-to documentation.
-
-### 🔧 [Technical](./technical/)
-Technical specifications, implementation details, and system documentation.
-
-### 📚 [Reference](./reference/)
-API documentation, configuration references, and lookup materials.
+### 🚀 [Getting Started](./getting-started/)
+- [Installation](./getting-started/installation.md) - System requirements and setup
+- [Quick Start](./getting-started/quickstart.md) - Get running in 5 minutes
+- [Configuration](./getting-started/configuration.md) - Environment setup
 
 ### 🏗️ [Architecture](./architecture/)
-System design documents, architectural decisions, and design patterns.
+- [System Overview](./architecture/system-overview.md) - High-level design
+- [GPU Modular System](./architecture/gpu-modular-system.md) - GPU compute architecture
+- [Actor Model](./architecture/actor-model.md) - Actix actor system
+- [Binary Protocol](./architecture/binary-protocol.md) - WebSocket communication
 
-### 📦 [Archive](./archive/)
-Historical content, legacy documentation, and archived materials.
+### 🔧 [Technical Reference](./technical/)
+- [API Documentation](./technical/api-reference.md) - REST and WebSocket APIs
+- [MCP Integration](./technical/mcp_tool_usage.md) - Claude Flow MCP tools
+- [Decoupled Architecture](./technical/decoupled-graph-architecture.md) - Graph separation
 
-## Quick Navigation
+### 📖 [User Guides](./guides/)
+- Interface navigation and features
+- Agent swarm management
+- Graph visualisation tools
+- Analytics and insights
 
-- **New to the project?** Start with [Getting Started](./getting-started/) or [Guides](./guides/)
-- **Looking for API docs?** Check [API Documentation](./api/) or [Reference](./reference/)
-- **Need technical details?** See [Technical](./technical/) or [Server Docs](./server/)
-- **Understanding the system?** Review [Architecture](./architecture/) or [System Overview](./architecture/system-overview.md)
-- **Historical context?** Browse [Archive](./archive/)
+### 🔒 [Security](./security/)
+- [Authentication](./security/authentication.md) - Nostr integration
+- API security and data privacy
 
-## Navigation Aids
+## 🔍 Quick Links
 
-### 📋 [Complete Documentation Index](./DOCUMENTATION_INDEX.md)
-Comprehensive catalog of all 385+ documents organized by category with search capabilities.
+- **New Users**: Start with [Quick Start Guide](./getting-started/quickstart.md)
+- **Developers**: See [API Reference](./technical/api-reference.md) and [Architecture](./architecture/)
+- **System Admins**: Check [Deployment Guide](./deployment/) and [Configuration](./getting-started/configuration.md)
+- **Contributors**: Read [Contributing Guide](./development/contributing.md)
 
-### 🗺️ [Documentation Sitemap](./SITEMAP.md)
-Visual tree structure of the entire documentation hierarchy.
+## 🎯 Key Features Documentation
 
-### 📊 [Cross-Reference Report](./CROSS_REFERENCE_REPORT.md)
-Detailed analysis of documentation links, references, and connectivity.
+### AI Agent Orchestration
+- **Swarm Topologies**: Mesh, hierarchical, ring, star configurations
+- **70+ MCP Tools**: Task orchestration, memory management, neural training
+- **Real-time Monitoring**: Performance metrics and task tracking
 
-### 📈 [Enhancement Summary](./CROSS_REFERENCE_ENHANCEMENT_SUMMARY.md)
-Summary of recent cross-referencing improvements and navigation enhancements.
+### GPU Acceleration
+- **CUDA Compute**: Physics simulation for 200+ agents at 60 FPS
+- **Modular Architecture**: 6 specialised GPU actors
+- **Binary Protocol**: 85% bandwidth reduction
 
-## Contributing to Documentation
+### Knowledge Graphs
+- **Dual Graph System**: Logseq + AI agents
+- **3D Visualisation**: Three.js WebGL rendering
+- **Analytics Suite**: Clustering, anomaly detection, insights
 
-When adding new documentation:
+## 📊 Performance Metrics
 
-1. Choose the appropriate subdirectory based on content type
-2. Follow existing naming conventions
-3. Update the relevant index file
-4. Keep content focused and well-structured
-5. Include cross-references where helpful
+| Metric | Performance |
+|--------|-------------|
+| Max Agents (60 FPS) | 200+ |
+| Position Update Latency | < 5ms |
+| Binary Protocol Size | 28 bytes/agent |
+| Network Bandwidth | 168 KB/s (100 agents) |
+| GPU Acceleration | 2.8-4.4x speed boost |
 
-For questions about documentation organisation, refer to the project maintainers.
+## 🤝 Support & Community
 
-## Related Topics
+- **GitHub Issues**: Bug reports and feature requests
+- **Discord**: Community discussions (coming soon)
+- **Email**: support@visionflow.ai
 
-- [VisionFlow Documentation](index.md)
+## 📄 Licence
+
+VisionFlow is licensed under the MIT Licence. See [LICENSE](../LICENSE) for details.
+
+---
+
+*VisionFlow - Visualising the future of AI multi-agent systems* 🚀

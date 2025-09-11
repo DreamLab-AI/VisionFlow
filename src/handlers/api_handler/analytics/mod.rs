@@ -33,7 +33,49 @@ use crate::actors::messages::{
 };
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::{ConstraintSet, AdvancedParams};
-use crate::actors::gpu_compute_actor::GPUPhysicsStats;
+// GPUPhysicsStats - using mock data for now until GPU actors provide this
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GPUPhysicsStats {
+    pub iteration_count: u32,
+    pub nodes_count: u32,
+    pub edges_count: u32,
+    pub kinetic_energy: f32,
+    pub total_forces: f32,
+    pub gpu_enabled: bool,
+    // Additional fields for compatibility
+    pub compute_mode: String,
+    pub kernel_mode: String,
+    pub num_nodes: u32,
+    pub num_edges: u32,
+    pub num_constraints: u32,
+    pub num_isolation_layers: u32,
+    pub stress_majorization_interval: u32,
+    pub last_stress_majorization: u32,
+    pub gpu_failure_count: u32,
+    pub has_advanced_features: bool,
+    pub has_dual_graph_features: bool,
+    pub has_visual_analytics_features: bool,
+    pub stress_safety_stats: StressMajorizationStats,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StressMajorizationStats {
+    pub total_runs: u32,
+    pub successful_runs: u32,
+    pub failed_runs: u32,
+    pub consecutive_failures: u32,
+    pub emergency_stopped: bool,
+    pub last_error: String,
+    pub average_computation_time_ms: u64,
+    pub success_rate: f32,
+    pub is_emergency_stopped: bool,
+    pub emergency_stop_reason: String,
+    pub avg_computation_time_ms: u64,
+    pub avg_stress: f32,
+    pub avg_displacement: f32,
+    pub is_converging: bool,
+}
 
 // WebSocket integration module
 pub mod websocket_integration;
@@ -557,22 +599,28 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
 
     Ok(HttpResponse::Ok().json(StatsResponse {
         success: true,
-        physics_stats: physics_stats.map(|stats| crate::actors::gpu_compute_actor::GPUPhysicsStats {
+        physics_stats: physics_stats.map(|stats| GPUPhysicsStats {
+            // Core fields from actual stats
+            iteration_count: stats.iteration_count,
+            nodes_count: stats.nodes_count,
+            edges_count: stats.edges_count,
+            kinetic_energy: stats.kinetic_energy,
+            total_forces: stats.total_forces,
+            gpu_enabled: true,
+            // Additional compatibility fields
             compute_mode: "GPU".to_string(),
             kernel_mode: "unified".to_string(),
-            iteration_count: stats.iteration_count,
             num_nodes: stats.nodes_count,
             num_edges: stats.edges_count,
             num_constraints: 0,
             num_isolation_layers: 0,
             stress_majorization_interval: 100,
             last_stress_majorization: 0,
-            // Add missing fields
             gpu_failure_count: 0,
             has_advanced_features: false,
             has_dual_graph_features: false,
             has_visual_analytics_features: false,
-            stress_safety_stats: crate::actors::gpu_compute_actor::StressMajorizationStats {
+            stress_safety_stats: StressMajorizationStats {
                 total_runs: 0,
                 successful_runs: 0,
                 failed_runs: 0,
@@ -618,14 +666,14 @@ pub async fn set_kernel_mode(
     if let Some(mode) = request.get("mode").and_then(|m| m.as_str()) {
         // Convert string mode to ComputeMode enum
         let compute_mode = match mode {
-            "legacy" => crate::actors::gpu_compute_actor::ComputeMode::Basic,
-            "dual_graph" => crate::actors::gpu_compute_actor::ComputeMode::DualGraph,
-            "advanced" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
+            "legacy" => crate::utils::unified_gpu_compute::ComputeMode::Basic,
+            "dual_graph" => crate::utils::unified_gpu_compute::ComputeMode::DualGraph,
+            "advanced" => crate::utils::unified_gpu_compute::ComputeMode::Advanced,
             // Accept alternate names for compatibility
-            "standard" => crate::actors::gpu_compute_actor::ComputeMode::Basic,
+            "standard" => crate::utils::unified_gpu_compute::ComputeMode::Basic,
             // Note: "visual_analytics" maps to Advanced ComputeMode, which triggers
             // automatic selection of KernelMode::VisualAnalytics when appropriate
-            "visual_analytics" => crate::actors::gpu_compute_actor::ComputeMode::Advanced,
+            "visual_analytics" => crate::utils::unified_gpu_compute::ComputeMode::Advanced,
             _ => {
                 return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                     "success": false,

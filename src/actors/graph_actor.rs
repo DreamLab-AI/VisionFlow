@@ -66,7 +66,8 @@ use crate::models::edge::Edge;
 use crate::models::metadata::MetadataStore;
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
-use crate::actors::gpu_compute_actor::GPUComputeActor;
+// Using the modular GPU system's ForceComputeActor for physics computation
+use crate::actors::gpu::ForceComputeActor as GPUComputeActor;
 use crate::models::simulation_params::SimulationParams;
 use crate::config::AutoBalanceConfig;
 
@@ -82,7 +83,7 @@ use std::sync::Mutex;
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
     node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
-    gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Re-enable for physics updates
+    gpu_compute_addr: Option<Addr<GPUComputeActor>>, // ForceComputeActor for physics updates
     client_manager: Addr<ClientManagerActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
@@ -90,8 +91,9 @@ pub struct GraphServiceActor {
     bots_graph_data: Arc<GraphData>, // Changed to Arc for shared access
     simulation_params: SimulationParams, // Physics simulation parameters
     
-    // Advanced hybrid solver components - GPU context removed (now managed by GPUComputeActor)
+    // Advanced hybrid solver components - GPU context managed by ForceComputeActor
     gpu_init_in_progress: bool, // Flag to prevent multiple initialization attempts
+    gpu_initialized: bool,  // Track if GPU has been successfully initialized
     constraint_set: ConstraintSet,
     semantic_analyzer: SemanticAnalyzer,
     edge_generator: AdvancedEdgeGenerator,
@@ -457,8 +459,9 @@ impl GraphServiceActor {
             bots_graph_data: Arc::new(GraphData::new()), // Changed to Arc::new for shared access
             simulation_params, // Use logseq physics from settings
             
-            // Initialize advanced components - GPU context removed (now managed by GPUComputeActor)
+            // Initialize advanced components - GPU context managed by ForceComputeActor
             gpu_init_in_progress: false,
+            gpu_initialized: false,  // GPU not yet initialized
             constraint_set: ConstraintSet::default(),
             semantic_analyzer,
             edge_generator,
@@ -958,7 +961,7 @@ impl GraphServiceActor {
         Ok(constraints)
     }
     
-    /// Upload current constraints to GPU via GPUComputeActor
+    /// Upload current constraints to GPU via ForceComputeActor
     fn upload_constraints_to_gpu(&mut self) {
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             // Convert constraints to GPU format
@@ -966,7 +969,7 @@ impl GraphServiceActor {
             let constraint_data: Vec<crate::models::constraints::ConstraintData> = 
                 active_constraints.iter().map(|c| c.to_gpu_format()).collect();
                 
-            // Send constraints to GPUComputeActor
+            // Send constraints to ForceComputeActor
             let upload_msg = crate::actors::messages::UploadConstraintsToGPU {
                 constraint_data: constraint_data.clone(),
             };
@@ -974,9 +977,9 @@ impl GraphServiceActor {
             let gpu_addr_clone = gpu_addr.clone();
             actix::spawn(async move {
                 if let Err(e) = gpu_addr_clone.send(upload_msg).await {
-                    error!("Failed to send constraints to GPUComputeActor: {}", e);
+                    error!("Failed to send constraints to ForceComputeActor: {}", e);
                 } else {
-                    trace!("Successfully sent {} constraints to GPUComputeActor", constraint_data.len());
+                    trace!("Successfully sent {} constraints to ForceComputeActor", constraint_data.len());
                 }
             });
         } else {
@@ -1351,6 +1354,17 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
+        // Check if GPU is ready before running physics
+        if !self.gpu_initialized && self.gpu_compute_addr.is_some() {
+            // GPU is expected but not yet initialized - skip physics
+            if self.gpu_init_in_progress {
+                // Silently skip - we're already waiting for initialization
+                return;
+            }
+            warn!("Skipping physics simulation - waiting for GPU initialization");
+            return;
+        }
+        
         // Apply smooth parameter transitions if auto-balance is enabled
         // Fixed oscillation issues with improved dampening
         if self.simulation_params.auto_balance {
@@ -1419,7 +1433,7 @@ impl GraphServiceActor {
                         info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges", 
                               graph_data_clone.nodes.len(), num_directed_edges);
                         info!("GPU physics simulation is now active for knowledge graph");
-                        // GPU context now managed by GPUComputeActor, no need to store locally
+                        // GPU context now managed by ForceComputeActor, no need to store locally
                     }
                     Err(e) => {
                         error!("❌ Failed to initialize advanced GPU context: {}", e);
@@ -1445,11 +1459,12 @@ impl GraphServiceActor {
         }
         
         // Use advanced GPU compute only - legacy path removed
-        if self.gpu_compute_addr.is_some() {
+        if self.gpu_compute_addr.is_some() && self.gpu_initialized {
             self.run_advanced_gpu_step(ctx);
-        } else {
+        } else if self.gpu_compute_addr.is_none() {
             warn!("No GPU compute context available for physics simulation");
         }
+        // If GPU is expected but not initialized, we already returned above
     }
     
     fn run_advanced_gpu_step(&mut self, ctx: &mut Context<Self>) {
@@ -1486,9 +1501,9 @@ impl GraphServiceActor {
         
         // Physics parameters loaded
         
-        // Delegate GPU computation to GPUComputeActor
+        // Delegate GPU computation to ForceComputeActor
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            // Send ComputeForces message to GPUComputeActor
+            // Send ComputeForces message to ForceComputeActor
             let gpu_addr_clone = gpu_addr.clone();
             let ctx_addr = Context::address(ctx).recipient();
             
@@ -1530,7 +1545,7 @@ impl GraphServiceActor {
         self.advanced_params = params.clone();
         self.stress_solver = StressMajorizationSolver::from_advanced_params(&params);
         
-        // Update GPU parameters via GPUComputeActor
+        // Update GPU parameters via ForceComputeActor
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             let update_msg = crate::actors::messages::UpdateSimulationParams {
                 params: self.simulation_params.clone(),
@@ -2087,6 +2102,39 @@ impl Handler<GetBotsGraphData> for GraphServiceActor {
     }
 }
 
+// Handler for storing GPU compute actor address
+impl Handler<StoreGPUComputeAddress> for GraphServiceActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: StoreGPUComputeAddress, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Storing GPU compute actor address in GraphServiceActor");
+        self.gpu_compute_addr = msg.addr;
+        if self.gpu_compute_addr.is_some() {
+            info!("GPU compute actor address stored - waiting for GPU initialization");
+        } else {
+            warn!("GPU compute actor address is None - physics will not be available");
+        }
+    }
+}
+
+// Handler for GPU initialization notification
+impl Handler<GPUInitialized> for GraphServiceActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: GPUInitialized, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU has been successfully initialized - enabling physics simulation");
+        self.gpu_initialized = true;
+        self.gpu_init_in_progress = false;
+        
+        // Log current state
+        info!("Physics simulation is now ready:");
+        info!("  - GPU initialized: {}", self.gpu_initialized);
+        info!("  - Physics enabled: {}", self.simulation_params.enabled);
+        info!("  - Node count: {}", self.graph_data.nodes.len());
+        info!("  - Edge count: {}", self.graph_data.edges.len());
+    }
+}
+
 impl Handler<UpdateSimulationParams> for GraphServiceActor {
     type Result = Result<(), String>;
 
@@ -2136,7 +2184,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
         // Update GPU compute actor if available
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if crate::utils::logging::is_debug_enabled() {
-                info!("Forwarding params to GPUComputeActor");
+                info!("Forwarding params to ForceComputeActor");
             }
             gpu_addr.do_send(msg);
         }
@@ -2210,7 +2258,7 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
         self.stress_solver = crate::physics::stress_majorization::StressMajorizationSolver::from_advanced_params(&msg.params);
         
         // Update advanced GPU context if available
-        // Update GPU parameters via GPUComputeActor
+        // Update GPU parameters via ForceComputeActor
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             let update_msg = crate::actors::messages::UpdateAdvancedParams {
                 params: msg.params.clone(),
@@ -2284,7 +2332,7 @@ impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
     }
 }
 
-// StoreAdvancedGPUContext handler removed - GPU context now managed by GPUComputeActor
+// StoreAdvancedGPUContext handler removed - GPU context now managed by ForceComputeActor
 
 impl Handler<ResetGPUInitFlag> for GraphServiceActor {
     type Result = ();
@@ -2299,9 +2347,9 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
     type Result = Result<std::collections::HashMap<u32, Option<f32>>, String>;
     
     fn handle(&mut self, _msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
-        // SSSP computation now requires GPUComputeActor support
+        // SSSP computation now requires ForceComputeActor support
         // This functionality has been moved to unified GPU control
-        Err("SSSP computation not yet implemented in unified GPU architecture - use GPUComputeActor".to_string())
+        Err("SSSP computation not yet implemented in unified GPU architecture - use ForceComputeActor".to_string())
     }
 }
 

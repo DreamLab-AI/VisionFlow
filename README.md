@@ -35,20 +35,16 @@ open http://localhost:3001
 
 ---
 
-## 🎯 Project Overview
+## Overview
 
-VisionFlow is a groundbreaking platform that bridges the gap between knowledge management and AI agent orchestration. This high-performance, GPU-accelerated system provides real-time 3D visualisation of multi-agent AI systems, enabling unprecedented insights into swarm behaviour and coordination patterns.
+VisionFlow bridges knowledge management and AI agent orchestration through:
 
-### 🚀 Technical Excellence
-
-VisionFlow combines cutting-edge technologies to deliver unparalleled performance:
-
-- **Rust + Actix Backend**: High-performance actor-based architecture
-- **TypeScript + React + Three.js Frontend**: Immersive 3D visualisations
-- **GPU Acceleration**: CUDA-powered computation for massive agent swarms
-- **Real-time Binary Protocol**: Ultra-low latency WebSocket communication
-- **Distributed Consensus**: Advanced algorithms including Raft, Byzantine fault tolerance, and CRDTs
-- **AI Orchestration**: Comprehensive swarm intelligence with neural pattern recognition
+- **High-Performance Backend**: Rust + Actix actor system
+- **3D Visualisation**: React + Three.js with WebGL/WebXR
+- **GPU Acceleration**: CUDA physics for 200+ agents at 60 FPS
+- **Binary Protocol**: 85% bandwidth reduction vs JSON
+- **Distributed Consensus**: Raft, Byzantine, CRDT protocols
+- **AI Integration**: Claude Flow MCP with 70+ orchestration tools
 
 ---
 

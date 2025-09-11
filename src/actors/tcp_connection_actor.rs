@@ -340,7 +340,8 @@ impl Actor for TcpConnectionActor {
         
         // Cleanup connections
         if let Some(pool) = self.connection_pool.take() {
-            tokio::spawn(async move {
+            // Use actix::spawn instead of tokio::spawn to avoid runtime panic
+            actix::spawn(async move {
                 let mut pool_guard = pool.lock().await;
                 pool_guard.shutdown().await;
             });
