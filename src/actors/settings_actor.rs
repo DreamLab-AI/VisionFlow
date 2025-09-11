@@ -4,7 +4,7 @@
 use actix::prelude::*;
 use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance, UpdateSimulationParams, BatchedUpdate, PriorityUpdate, UpdatePriority};
-use crate::actors::{GraphServiceActor, GPUComputeActor};
+use crate::actors::{GraphServiceActor, gpu::ForceComputeActor};
 use crate::config::path_access::{PathAccessible, JsonPathAccessible};
 use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError};
 use std::collections::{HashMap, BinaryHeap};
@@ -45,7 +45,7 @@ impl Default for MailboxMetrics {
 pub struct SettingsActor {
     settings: Arc<RwLock<AppFullSettings>>,
     graph_service_addr: Option<Addr<GraphServiceActor>>,
-    gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+    gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     // Batching and concurrent update handling
     update_queue: BinaryHeap<Reverse<PriorityUpdate>>,
     batch_timer: Option<actix::SpawnHandle>,
@@ -85,7 +85,7 @@ impl SettingsActor {
     
     pub fn with_actors(
         graph_service_addr: Option<Addr<GraphServiceActor>>,
-        gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) -> VisionFlowResult<Self> {
         let mut actor = Self::new()?;
         actor.graph_service_addr = graph_service_addr;
@@ -240,7 +240,7 @@ impl SettingsActor {
         settings: Arc<RwLock<AppFullSettings>>,
         updates: Vec<PriorityUpdate>,
         graph_service_addr: Option<Addr<GraphServiceActor>>,
-        gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) {
         let start = Instant::now();
         let mut current = settings.write().await;
@@ -284,7 +284,7 @@ impl SettingsActor {
         settings: Arc<RwLock<AppFullSettings>>,
         mut updates: Vec<PriorityUpdate>,
         graph_service_addr: Option<Addr<GraphServiceActor>>,
-        gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) {
         let start = Instant::now();
         let mut current = settings.write().await;
@@ -331,7 +331,7 @@ impl SettingsActor {
             }
             if let Some(gpu_addr) = &gpu_compute_addr {
                 gpu_addr.do_send(update_msg);
-                info!("[PRIORITY BATCH] Physics updates forwarded to GPUComputeActor");
+                info!("[PRIORITY BATCH] Physics updates forwarded to ForceComputeActor");
             }
         }
         
@@ -348,7 +348,7 @@ impl SettingsActor {
         );
     }
     
-    /// Propagate physics updates to GraphServiceActor and GPUComputeActor
+    /// Propagate physics updates to GraphServiceActor and ForceComputeActor
     async fn propagate_physics_updates(&self, settings: &AppFullSettings, graph_name: &str) {
         let physics = settings.get_physics(graph_name);
         
@@ -371,12 +371,12 @@ impl SettingsActor {
             debug!("[SETTINGS ACTOR] GraphServiceActor not available for physics forwarding");
         }
         
-        // Send to GPUComputeActor if available
+        // Send to ForceComputeActor if available
         if let Some(gpu_addr) = &self.gpu_compute_addr {
             gpu_addr.do_send(update_msg);
-            info!("[SETTINGS ACTOR] Physics parameters sent to GPUComputeActor");
+            info!("[SETTINGS ACTOR] Physics parameters sent to ForceComputeActor");
         } else {
-            debug!("[SETTINGS ACTOR] GPUComputeActor not available for physics forwarding");
+            debug!("[SETTINGS ACTOR] ForceComputeActor not available for physics forwarding");
         }
     }
 }
@@ -520,12 +520,12 @@ impl Handler<UpdatePhysicsFromAutoBalance> for SettingsActor {
                 error!("[AUTO-BALANCE] GraphServiceActor not available - GPU will not receive physics updates!");
             }
             
-            // Send to GPUComputeActor
+            // Send to ForceComputeActor
             if let Some(gpu_addr) = &gpu_compute_addr {
                 gpu_addr.do_send(update_msg);
-                info!("[AUTO-BALANCE] Physics forwarded to GPUComputeActor");
+                info!("[AUTO-BALANCE] Physics forwarded to ForceComputeActor");
             } else {
-                error!("[AUTO-BALANCE] GPUComputeActor not available - GPU will not receive physics updates!");
+                error!("[AUTO-BALANCE] ForceComputeActor not available - GPU will not receive physics updates!");
             }
             
             // Save to file if persistence is enabled and user is authenticated
@@ -663,12 +663,12 @@ impl SettingsActor {
                     error!("[SETTINGS ACTOR] GraphServiceActor not available - GPU will not receive physics updates!");
                 }
                 
-                // Send to GPUComputeActor
+                // Send to ForceComputeActor
                 if let Some(gpu_addr) = &gpu_compute_addr {
                     gpu_addr.do_send(update_msg);
-                    info!("[SETTINGS ACTOR] Critical physics update forwarded immediately to GPUComputeActor for {}", graph_name);
+                    info!("[SETTINGS ACTOR] Critical physics update forwarded immediately to ForceComputeActor for {}", graph_name);
                 } else {
-                    error!("[SETTINGS ACTOR] GPUComputeActor not available - GPU will not receive physics updates!");
+                    error!("[SETTINGS ACTOR] ForceComputeActor not available - GPU will not receive physics updates!");
                 }
             }
 
@@ -856,12 +856,12 @@ impl Handler<SetSettingsByPaths> for SettingsActor {
                     error!("[SETTINGS ACTOR] GraphServiceActor not available - GPU will not receive batch physics updates!");
                 }
                 
-                // Send to GPUComputeActor
+                // Send to ForceComputeActor
                 if let Some(gpu_addr) = &gpu_compute_addr {
                     gpu_addr.do_send(update_msg);
-                    info!("[SETTINGS ACTOR] Batch physics updates forwarded to GPUComputeActor");
+                    info!("[SETTINGS ACTOR] Batch physics updates forwarded to ForceComputeActor");
                 } else {
-                    error!("[SETTINGS ACTOR] GPUComputeActor not available - GPU will not receive batch physics updates!");
+                    error!("[SETTINGS ACTOR] ForceComputeActor not available - GPU will not receive batch physics updates!");
                 }
             }
             

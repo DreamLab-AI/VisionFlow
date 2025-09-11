@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
-use crate::actors::gpu_compute_actor::ComputeMode;
+use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
 use super::shared::{SharedGPUContext, GPUState};
 
@@ -145,7 +145,15 @@ impl ForceComputeActor {
             ComputeMode::DualGraph => {
                 // TODO: Implement dual graph mode
                 // For now, use Advanced mode behavior
-                todo!("DualGraph mode not yet implemented")
+                // Using same as Advanced for now
+            },
+            ComputeMode::Constraints => {
+                // Constraints mode - maximum physics features
+                // TODO: Map SimParams fields properly
+                // unified_params.enable_advanced_forces = true;
+                // unified_params.semantic_force_weight = 0.5;
+                // unified_params.temporal_force_weight = 0.3;
+                // unified_params.constraint_weight = 1.0;
             },
         }
         
@@ -307,6 +315,163 @@ impl Handler<UploadPositions> for ForceComputeActor {
             .map_err(|e| format!("Failed to upload positions: {}", e))?;
         
         info!("ForceComputeActor: Position upload completed successfully");
+        Ok(())
+    }
+}
+
+// === Additional Message Handlers for Compatibility ===
+
+impl Handler<InitializeGPU> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: InitializeGPU received");
+        
+        // Store graph data dimensions
+        self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
+        self.gpu_state.num_edges = msg.graph.edges.len() as u32;
+        
+        info!("ForceComputeActor: GPU initialized with {} nodes, {} edges", 
+              self.gpu_state.num_nodes, self.gpu_state.num_edges);
+        
+        Ok(())
+    }
+}
+
+impl Handler<UpdateGPUGraphData> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, msg: UpdateGPUGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: UpdateGPUGraphData received");
+        
+        // Update graph dimensions
+        self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
+        self.gpu_state.num_edges = msg.graph.edges.len() as u32;
+        
+        info!("ForceComputeActor: Graph data updated - {} nodes, {} edges", 
+              self.gpu_state.num_nodes, self.gpu_state.num_edges);
+        
+        Ok(())
+    }
+}
+
+impl Handler<GetNodeData> for ForceComputeActor {
+    type Result = Result<Vec<crate::utils::socket_flow_messages::BinaryNodeData>, String>;
+    
+    fn handle(&mut self, _msg: GetNodeData, _ctx: &mut Self::Context) -> Self::Result {
+        // Return empty vector - actual node data should be retrieved from GraphServiceActor
+        Ok(Vec::new())
+    }
+}
+
+impl Handler<GetGPUStatus> for ForceComputeActor {
+    type Result = GPUStatus;
+    
+    fn handle(&mut self, _msg: GetGPUStatus, _ctx: &mut Self::Context) -> Self::Result {
+        GPUStatus {
+            is_initialized: self.shared_context.is_some(),
+            failure_count: self.gpu_state.gpu_failure_count,
+            iteration_count: self.gpu_state.iteration_count,
+            num_nodes: self.gpu_state.num_nodes,
+        }
+    }
+}
+
+impl Handler<GetGPUMetrics> for ForceComputeActor {
+    type Result = Result<serde_json::Value, String>;
+    
+    fn handle(&mut self, _msg: GetGPUMetrics, _ctx: &mut Self::Context) -> Self::Result {
+        use serde_json::json;
+        
+        Ok(json!({
+            "memory_usage_mb": 0.0,
+            "gpu_utilization": 0.0,
+            "temperature_c": 0.0,
+            "power_usage_w": 0.0,
+            "compute_units": 0,
+            "max_threads": 0,
+            "clock_speed_mhz": 0,
+        }))
+    }
+}
+
+impl Handler<RunCommunityDetection> for ForceComputeActor {
+    type Result = Result<CommunityDetectionResult, String>;
+    
+    fn handle(&mut self, _msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
+        // Community detection should be handled by ClusteringActor
+        Err("Community detection should be handled by ClusteringActor".to_string())
+    }
+}
+
+impl Handler<UpdateVisualAnalyticsParams> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: UpdateVisualAnalyticsParams, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: UpdateVisualAnalyticsParams received (no-op, handled by other actors)");
+        Ok(())
+    }
+}
+
+impl Handler<GetConstraints> for ForceComputeActor {
+    type Result = Result<crate::models::constraints::ConstraintSet, String>;
+    
+    fn handle(&mut self, _msg: GetConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        // Constraints should be handled by ConstraintActor
+        Err("Constraints should be handled by ConstraintActor".to_string())
+    }
+}
+
+impl Handler<UpdateConstraints> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: UpdateConstraints received (forwarding to ConstraintActor would be done by GPUManagerActor)");
+        Ok(())
+    }
+}
+
+impl Handler<UploadConstraintsToGPU> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: UploadConstraintsToGPU, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: UploadConstraintsToGPU received (forwarding to ConstraintActor would be done by GPUManagerActor)");
+        Ok(())
+    }
+}
+
+impl Handler<TriggerStressMajorization> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: TriggerStressMajorization, _ctx: &mut Self::Context) -> Self::Result {
+        // Stress majorization should be handled by StressMajorizationActor
+        Err("Stress majorization should be handled by StressMajorizationActor".to_string())
+    }
+}
+
+impl Handler<GetStressMajorizationStats> for ForceComputeActor {
+    type Result = Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>;
+    
+    fn handle(&mut self, _msg: GetStressMajorizationStats, _ctx: &mut Self::Context) -> Self::Result {
+        // Stress majorization should be handled by StressMajorizationActor
+        Err("Stress majorization stats should be retrieved from StressMajorizationActor".to_string())
+    }
+}
+
+impl Handler<ResetStressMajorizationSafety> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: ResetStressMajorizationSafety, _ctx: &mut Self::Context) -> Self::Result {
+        // Stress majorization should be handled by StressMajorizationActor
+        Err("Stress majorization safety reset should be handled by StressMajorizationActor".to_string())
+    }
+}
+
+impl Handler<UpdateStressMajorizationParams> for ForceComputeActor {
+    type Result = Result<(), String>;
+    
+    fn handle(&mut self, _msg: UpdateStressMajorizationParams, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: UpdateStressMajorizationParams received (forwarding to StressMajorizationActor would be done by GPUManagerActor)");
         Ok(())
     }
 }

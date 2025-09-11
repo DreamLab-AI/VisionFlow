@@ -3,7 +3,8 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUComputeActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor};
+use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor};
+use crate::actors::gpu;
 use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
 use tokio::time::Duration;
@@ -20,8 +21,8 @@ use crate::services::bots_client::BotsClient;
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceActor>,
-    pub gpu_compute_addr: Option<Addr<GPUComputeActor>>, // Legacy - kept for backward compatibility
-    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // New modular GPU manager
+    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
+    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
     pub settings_addr: Addr<SettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
@@ -63,12 +64,7 @@ impl AppState {
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        info!("[AppState::new] Starting GPUComputeActor (legacy)");
-        let gpu_compute_addr = Some(GPUComputeActor::new().start());
-        
-        info!("[AppState::new] Starting GPUManagerActor (new modular architecture)");
-        let gpu_manager_addr = Some(GPUManagerActor::new().start());
-
+        // Create GraphServiceActor first, but without GPU compute address initially
         info!("[AppState::new] Starting GraphServiceActor");
         let _device = CudaDevice::new(0).map_err(|e| {
             log::error!("Failed to create CUDA device: {}", e);
@@ -76,14 +72,27 @@ impl AppState {
         })?;
         let graph_service_addr = GraphServiceActor::new(
             client_manager_addr.clone(),
-            gpu_compute_addr.clone(),
+            None, // GPU compute actor will be created and linked later
             None // SettingsActor address will be set later
         ).start();
+        
+        // Create the modular GPU manager system
+        info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
+        let gpu_manager_addr = Some(GPUManagerActor::new().start());
+        
+        // Store the GPU manager address in the graph service actor for physics
+        // Note: We'll need to update GraphServiceActor to use GPUManagerActor instead
+        use crate::actors::messages::StoreGPUComputeAddress;
+        // TODO: Update this message type to StoreGPUManagerAddress
+        // For now, passing None since graph actor needs updating
+        graph_service_addr.do_send(StoreGPUComputeAddress {
+            addr: None,
+        });
 
         info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
         let settings_actor = SettingsActor::with_actors(
             Some(graph_service_addr.clone()),
-            gpu_compute_addr.clone(),
+            None, // Legacy GPU compute actor removed
         ).map_err(|e| {
             log::error!("Failed to create SettingsActor: {}", e);
             e
@@ -123,9 +132,10 @@ impl AppState {
         // Send to GraphServiceActor
         graph_service_addr.do_send(update_msg.clone());
         
-        // Send to GPUComputeActor if available
-        if let Some(ref gpu_addr) = gpu_compute_addr {
-            gpu_addr.do_send(update_msg);
+        // Send to GPUManagerActor if available
+        if let Some(ref gpu_addr) = gpu_manager_addr {
+            // TODO: GPUManagerActor needs to handle UpdateSimulationParams
+            // gpu_addr.do_send(update_msg);
         }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
@@ -135,7 +145,7 @@ impl AppState {
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
         // Initialize GPU with delay to ensure graph data is ready
-        if let Some(ref gpu_addr) = gpu_compute_addr {
+        if let Some(ref gpu_addr) = gpu_manager_addr {
             let gpu_addr_clone = gpu_addr.clone();
             let graph_addr_clone = graph_service_addr.clone();
             
@@ -144,14 +154,15 @@ impl AppState {
                 // Wait for graph service to be ready and data to be loaded
                 tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                 
-                log::info!("[AppState] Initializing GPU compute actor with graph data");
+                log::info!("[AppState] Initializing GPU manager with graph data");
                 
                 // Get initial graph data
-                use crate::actors::messages::{GetGraphData, InitializeGPU};
+                use crate::actors::messages::{GetGraphData};
                 match graph_addr_clone.send(GetGraphData).await {
                     Ok(Ok(graph_data)) => {
-                        log::info!("[AppState] Got graph data with {} nodes, initializing GPU", graph_data.nodes.len());
-                        gpu_addr_clone.do_send(InitializeGPU { graph: graph_data });
+                        log::info!("[AppState] Got graph data with {} nodes for GPU manager", graph_data.nodes.len());
+                        // TODO: Send initialization to GPU manager
+                        // gpu_addr_clone.do_send(InitializeGPUManager { graph: graph_data });
                     }
                     Ok(Err(e)) => {
                         log::error!("[AppState] Failed to get graph data for GPU init: {}", e);
@@ -172,8 +183,8 @@ impl AppState {
 
         Ok(Self {
             graph_service_addr,
-            gpu_compute_addr,
             gpu_manager_addr,
+            gpu_compute_addr: None, // Will be set by GPUManagerActor
             settings_addr,
             protected_settings_addr,
             metadata_addr,

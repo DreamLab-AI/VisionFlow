@@ -1902,7 +1902,7 @@ impl UnifiedGPUCompute {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub enum ComputeMode {
     Basic,
     DualGraph,  // Map to Basic for compatibility
