@@ -519,139 +519,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 }));
                             }
                             Some("requestInitialData") => {
-                                info!("Client requested initial data - sending authoritative server state");
+                                info!("Client requested initial data - unified init flow expects REST call first");
 
-                                // Use a smaller initial interval to start updates quickly
-                                let initial_interval = std::time::Duration::from_millis(10);
-                                let app_state = self.app_state.clone();
-                                let settings_addr = self.app_state.settings_addr.clone();
-
-                                // First check if we should log this update
-                                let should_log = self.should_log_update();
-
-                                ctx.run_later(initial_interval, move |_act, ctx| {
-                                    // Wrap the async function in an actor future
-                                    let fut = fetch_nodes(app_state.clone(), settings_addr.clone());
-                                    let fut = actix::fut::wrap_future::<_, Self>(fut);
-
-                                    ctx.spawn(fut.map(move |result, act, ctx| {
-                                        if let Some((nodes, detailed_debug)) = result {
-                                            // Now that we're back in the actor context, we can filter the nodes
-                                            // Filter nodes to only include those that have changed significantly
-                                            let mut filtered_nodes = Vec::new();
-                                            for (node_id, node_data) in &nodes {
-                                                let node_id_str = node_id.to_string();
-                                                let position = node_data.position.clone();
-                                                let velocity = node_data.velocity.clone();
-
-                                                // Apply filtering before adding to filtered nodes
-                                                if act.has_node_changed_significantly(
-                                                    &node_id_str,
-                                                    position.clone(),
-                                                    velocity.clone()
-                                                ) {
-                                                    filtered_nodes.push((*node_id, node_data.clone()));
-                                                }
-
-                                                if detailed_debug && filtered_nodes.len() <= 5 {
-                                                    debug!("Including node {} in update", node_id_str);
-                                                }
-                                            }
-
-                                            // If no nodes have changed significantly, don't send an update
-                                            if filtered_nodes.is_empty() {
-                                                return;
-                                            }
-
-                                            // Encode only the nodes that have changed significantly
-                                            let binary_data = binary_protocol::encode_node_data(&filtered_nodes);
-
-                                            // Update motion metrics for dynamic rate adjustment
-                                            act.total_node_count = filtered_nodes.len();
-
-                                            // Count nodes in motion (with non-zero velocity)
-                                            let moving_nodes = filtered_nodes.iter()
-                                                .filter(|(_, node_data)| {
-                                                    let vel = &node_data.velocity;
-                                                    vel.x.abs() > 0.001 || vel.y.abs() > 0.001 || vel.z.abs() > 0.001
-                                                })
-                                                .count();
-
-                                            act.nodes_in_motion = moving_nodes;
-
-                                            // Update the dynamic rate based on current motion
-                                            act.update_dynamic_rate();
-
-                                            // Get the current update interval for the next update
-                                            let update_interval = act.get_current_update_interval();
-
-                                            if detailed_debug && should_log {
-                                                debug!("[WebSocket] Motion: {}/{} nodes, Rate: {} updates/sec, Interval: {:?}",
-                                                    moving_nodes, filtered_nodes.len(), act.current_update_rate, update_interval);
-                                            }
-
-                                            if detailed_debug && should_log && !binary_data.is_empty() {
-                                                trace!("[WebSocket] Encoded binary data: {} bytes for {} nodes", binary_data.len(), filtered_nodes.len());
-
-                                                // Log details about a sample node to track position changes
-                                                if !filtered_nodes.is_empty() {
-                                                    let node = &filtered_nodes[0];
-                                                    debug!(
-                                                        "Sample node: id={}, pos=[{:.2},{:.2},{:.2}], vel=[{:.2},{:.2},{:.2}]",
-                                                        node.0,
-                                                        node.1.position.x, node.1.position.y, node.1.position.z,
-                                                        node.1.velocity.x, node.1.velocity.y, node.1.velocity.z
-                                                    );
-                                                }
-                                            }
-
-                                            // Only send data if we have nodes to update
-                                            if !filtered_nodes.is_empty() {
-                                                // Send binary data directly (permessage-deflate handles compression)
-
-                                                // Update performance metrics
-                                                act.last_transfer_size = binary_data.len();
-                                                act.total_bytes_sent += binary_data.len();
-                                                act.update_count += 1;
-                                                act.nodes_sent_count += filtered_nodes.len();
-                                                let now = Instant::now();
-                                                let elapsed = now.duration_since(act.last_transfer_time);
-                                                act.last_transfer_time = now;
-
-                                                // Schedule the next update using the dynamic rate
-                                                let next_interval = act.get_current_update_interval();
-
-                                                // Use a simple recursive approach to restart the cycle
-                                                let _app_state = act.app_state.clone();
-                                                let _settings_addr = act.app_state.settings_addr.clone();
-                                                                ctx.run_later(next_interval, move |act, ctx| {
-                                                                    // Recursively call the handler to restart the cycle
-                                                                    <SocketFlowServer as StreamHandler<Result<ws::Message, ws::ProtocolError>>>::handle(act, Ok(ws::Message::Text("{\"type\":\"requestPositionUpdates\"}".to_string().into())), ctx);
-                                                                });
-
-                                                // Log performance metrics periodically
-                                                if detailed_debug && should_log {
-                                                    let avg_bytes_per_update = if act.update_count > 0 {
-                                                        act.total_bytes_sent / act.update_count
-                                                    } else { 0 };
-
-                                                    debug!("[WebSocket] Transfer: {} bytes, {} nodes, {:?} since last, avg {} bytes/update",
-                                                        binary_data.len(), filtered_nodes.len(), elapsed, avg_bytes_per_update);
-                                                }
-
-                                                ctx.binary(binary_data);
-                                            } else if detailed_debug && should_log {
-                                                // Log keepalive
-                                                debug!("[WebSocket] Sending keepalive (no position changes)");
-                                            }
-                                        }
-                                    }));
-                                });
-
+                                // UNIFIED INIT: Since REST endpoint now handles graph data + triggers WebSocket broadcast,
+                                // this handler becomes much simpler. We just acknowledge the request but don't 
+                                // send any data - the client should call REST /api/graph/data first.
                                 let response = serde_json::json!({
-                                    "type": "updatesStarted",
+                                    "type": "initialDataInfo",
+                                    "message": "Please call REST endpoint /api/graph/data first, which will trigger WebSocket sync",
+                                    "flow": "unified_init",
                                     "timestamp": chrono::Utc::now().timestamp_millis()
                                 });
+                                
                                 if let Ok(msg_str) = serde_json::to_string(&response) {
                                     self.last_activity = std::time::Instant::now();
                                     ctx.text(msg_str);

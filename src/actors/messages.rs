@@ -183,6 +183,25 @@ pub struct BuildGraphFromMetadata {
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
+pub struct AddNodesFromMetadata {
+    pub metadata: MetadataStore,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateNodeFromMetadata {
+    pub metadata_id: String,
+    pub metadata: FileMetadata,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct RemoveNodeByMetadata {
+    pub metadata_id: String,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
 pub struct StartSimulation;
 
 #[derive(Message)]
@@ -321,6 +340,18 @@ pub struct GetSettings;
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct UpdateSettings {
     pub settings: AppFullSettings,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), VisionFlowError>")]
+pub struct MergeSettingsUpdate {
+    pub update: serde_json::Value,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), VisionFlowError>")]
+pub struct PartialSettingsUpdate {
+    pub partial_settings: serde_json::Value,
 }
 
 #[derive(Message)]
@@ -523,6 +554,28 @@ pub struct BroadcastMessage {
 #[derive(Message)]
 #[rtype(result = "Result<usize, String>")]
 pub struct GetClientCount;
+
+// WEBSOCKET SETTLING FIX: Message to force immediate position broadcast for new clients
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ForcePositionBroadcast {
+    pub reason: String, // For debugging: "new_client", "settled_override", etc.
+}
+
+// UNIFIED INIT: Message to coordinate REST-triggered broadcasts
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct InitialClientSync {
+    pub client_identifier: String, // Can be IP, session ID, or other identifier
+    pub trigger_source: String,    // "rest_api", "websocket", etc.
+}
+
+// WEBSOCKET SETTLING FIX: Message to set graph service address in client manager
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetGraphServiceAddress {
+    pub addr: actix::Addr<crate::actors::graph_actor::GraphServiceActor>,
+}
 
 // Messages for ClientManagerActor to send to individual SocketFlowServer clients
 #[derive(Message)]
