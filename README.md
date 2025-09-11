@@ -374,7 +374,7 @@ cargo bench
 
 ## 📄 Licence
 
-This project is licenced under the MIT Licence. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Mozilla Public License 2.0. See the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -409,6 +409,6 @@ We welcome contributions! Please see our [Contributing Guide](/workspace/docs/de
 
 ## 📄 Licence
 
-This project is licensed under the MIT Licence - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
