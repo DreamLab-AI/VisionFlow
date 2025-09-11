@@ -1,4 +1,5 @@
-# VisionFlow Valuation Synthesis (Code‑Verified)
+# Junkie Jarvis Valuation of the project by AI models (Code‑Verified)
+# [a synthesis across appraisals, across sonoma-sky-alpha, Gemini 2.5 Pro high thinking, OpenAI ChatGPT5 high thinking]
 
 Date: 2025-09-11 (Europe/London)
 
