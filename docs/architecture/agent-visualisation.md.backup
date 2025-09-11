@@ -1,0 +1,253 @@
+# Agent Visualisation Architecture
+
+## Overview
+
+The agent visualisation system provides real-time, GPU-accelerated rendering of MCP Multi Agents with rich metadata and visual feedback. It uses a JSON initialisation followed by high-frequency WebSocket position updates for optimal performance.
+
+## Architecture Components
+
+### 1. Server-Side (Rust)
+
+#### Data Flow Pipeline
+1. **MCP Data Source** → BotsClient fetches agent status via fresh TCP connections
+2. **Agent Parser** → BotsClient parses MCP responses and extracts agent data
+3. **Graph Update** → BotsClient sends UpdateBotsGraph messages to GraphServiceActor
+4. **WebSocket Handler** → GraphServiceActor broadcasts updates to connected clients
+
+#### Key Components:
+- `/src/services/bots_client.rs` - Primary MCP client with fresh TCP connections
+- `/src/actors/graph_actor.rs` - Manages graph state and WebSocket broadcasts
+- `/src/handlers/socket_flow_handler.rs` - WebSocket endpoint for real-time updates
+- `/src/actors/claude_flow_actor_tcp.rs` - DEPRECATED: Has connection issues, disabled
+
+#### Important Notes:
+- **BotsClient** uses fresh TCP connections per request (works reliably)
+- **ClaudeFlowActor** attempted persistent connections (broken, now disabled)
+- All agent data flows through BotsClient → GraphServiceActor → WebSocket
+
+### 2. Client-Side (TypeScript/Three.js)
+
+#### Rendering Pipeline
+1. **WebSocket Connection** → Receives JSON init and position updates
+2. **Agent Visualisation Client** → Processes messages and maintains state
+3. **GPU Physics Solver** → Shared with knowledge graph for unified space
+4. **Three.js Renderer** → GPU-accelerated visualisation with effects
+
+#### Key Files:
+- `/client/src/features/bots/services/AgentVisualizationClient.ts` - Client protocol handler
+- `/client/src/features/bots/components/AgentVisualizationGPU.tsx` - GPU rendering
+- `/client/src/features/bots/workers/BotsPhysicsWorker.ts` - Shared physics engine
+
+## Protocol Design
+
+### Initial JSON Message
+```json
+{
+  "type": "init",
+  "timestamp": 1234567890,
+  "multi-agent_id": "multi-agent-001",
+  "topology": "hierarchical",
+  "agents": [
+    {
+      "id": "agent-123",
+      "name": "Coordinator Alpha",
+      "type": "coordinator",
+      "status": "active",
+      "colour": "#00FFFF",
+      "shape": "octahedron",
+      "size": 1.5,
+      "health": 0.95,
+      "cpu": 0.45,
+      "memory": 0.30,
+      "activity": 0.8,
+      "tasks_active": 3,
+      "tasks_completed": 47,
+      "success_rate": 0.92,
+      "tokens": 15420,
+      "token_rate": 125.5,
+      "capabilities": ["orchestration", "planning"],
+      "created_at": 1234567890
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-456",
+      "source": "agent-123",
+      "target": "agent-789",
+      "strength": 0.7,
+      "flow_rate": 0.5,
+      "colour": "#4444FF",
+      "active": true
+    }
+  ],
+  "visual_config": {
+    "colours": { ... },
+    "effects": { ... }
+  },
+  "physics_config": {
+    "spring_strength": 0.3,
+    "link_distance": 25,
+    "damping": 0.92
+  }
+}
+```
+
+### Position Updates (60Hz)
+```json
+{
+  "type": "positions",
+  "timestamp": 1234567891000,
+  "positions": [
+    {
+      "id": "agent-123",
+      "x": 12.5,
+      "y": -3.2,
+      "z": 8.7,
+      "vx": 0.1,
+      "vy": -0.05,
+      "vz": 0.02
+    }
+  ]
+}
+```
+
+## Visual Features
+
+### Agent Representation
+- **Shape by Type**: Coordinators (octahedron), Coders (cube), Architects (cone), etc.
+- **Colour by Function**: Each agent type has a distinct colour palette
+- **Size by Workload**: Visual scaling based on active tasks and resource usage
+- **Glow by Activity**: Intensity indicates current activity level
+- **Health Rings**: Coloured rings show agent health status
+
+### Connection Visualisation
+- **Flowing Particles**: Show data flow direction and volume
+- **Line Thickness**: Represents connection strength
+- **Colour Coding**: Different colours for different communication types
+- **Pulse Effects**: Active connections pulse with activity
+
+### Metadata Display
+- **Interactive Labels**: Click to expand detailed agent information
+- **Performance Metrics**: Real-time CPU, memory, token usage
+- **Task Information**: Current task, completed count, success rate
+- **Capability Tags**: Visual badges for agent capabilities
+
+## GPU Optimisation
+
+### Shared Physics Engine
+The visualisation shares the same GPU-accelerated spring physics solver as the knowledge graph, ensuring:
+- Unified coordinate space
+- Consistent physics behaviour
+- Optimal GPU utilization
+- Single source of truth for positions
+
+### Rendering Optimizations
+- **Instanced Rendering**: For large agent counts (>50)
+- **LOD System**: Level of detail based on camera distance
+- **Frustum Culling**: Only render visible agents
+- **Batch Updates**: Position updates batched at 60Hz
+
+## Integration Points
+
+### With Knowledge Graph
+- Shares same 3D space and origin point
+- Uses same GPU physics solver
+- Compatible visual styles (different colour schemes)
+- Can show relationships between agents and knowledge nodes
+
+### With MCP
+- Real-time polling of agent status
+- Automatic multi-agent discovery
+- Token usage tracking
+- Task assignment visualisation
+
+## Performance Considerations
+
+### Network Efficiency
+- JSON initialisation: ~5-50KB (depending on agent count)
+- Position updates: ~50-200 bytes per agent per frame
+- State updates: Sent only on changes
+- WebSocket compression enabled
+
+### Rendering Performance
+- 60 FPS with up to 500 agents
+- GPU instancing for large multi-agents
+- Adaptive quality based on performance
+- Mobile-optimised fallbacks
+
+## Future Enhancements
+
+1. **multi-agent Patterns**: Visualise emergent multi-agent behaviours
+2. **Historical Playback**: Record and replay multi-agent activity
+3. **3D Heatmaps**: Show activity hotspots in the multi-agent
+4. **Voice Integration**: Audio cues for agent states
+5. **AR/VR Support**: Immersive multi-agent visualisation
+
+## Usage Example
+
+```typescript
+// Client-side initialization
+const vizClient = new AgentVisualizationClient();
+
+// Set up callbacks
+vizClient.onInit((agents, connections) => {
+  console.log(`Initialized with ${agents.length} agents`);
+  // Create Three.js meshes
+});
+
+vizClient.onPositionChange((agentId, position) => {
+  // Update mesh position
+});
+
+// Connect to WebSocket
+const ws = new WebSocket('ws://localhost:3000/api/visualisation/agents/ws');
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  vizClient.processMessage(message);
+};
+
+// In render loop
+function animate() {
+  vizClient.updatePositions(deltaTime);
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+```
+
+## Testing
+
+1. Start MCP WebSocket relay in powerdev
+2. Ensure Claude Flow is connected and has active agents
+3. Open visualisation endpoint in browser
+4. Monitor WebSocket messages in DevTools
+5. Check GPU performance metrics
+
+The system provides a comprehensive, performant solution for visualising complex Multi Agents with rich real-time data.
+
+## Related Topics
+
+- [Architecture Documentation](architecture/README.md)
+- [Architecture Migration Guide](architecture/migration-guide.md)
+- [Bots Visualisation Architecture](architecture/bots-visualization.md)
+- [Bots/VisionFlow System Architecture](architecture/bots-visionflow-system.md)
+- [Case Conversion Architecture](architecture/case-conversion.md)
+- [ClaudeFlowActor Architecture](architecture/claude-flow-actor.md)
+- [Client Architecture](client/architecture.md)
+- [Decoupled Graph Architecture](technical/decoupled-graph-architecture.md)
+- [Dynamic Agent Architecture (DAA) Setup Guide](architecture/daa-setup-guide.md)
+- [GPU Compute Improvements & Troubleshooting Guide](architecture/gpu-compute-improvements.md)
+- [MCP Connection Architecture](architecture/mcp-connection.md)
+- [MCP Integration Architecture](architecture/mcp-integration.md)
+- [MCP WebSocket Relay Architecture](architecture/mcp-websocket-relay.md)
+- [Managing the Claude-Flow System](architecture/managing-claude-flow.md)
+- [Parallel Graph Architecture](architecture/parallel-graphs.md)
+- [Server Architecture](server/architecture.md)
+- [Settings Architecture Analysis Report](architecture_analysis_report.md)
+- [VisionFlow Component Architecture](architecture/components.md)
+- [VisionFlow Data Flow Architecture](architecture/data-flow.md)
+- [VisionFlow GPU Compute Integration](architecture/gpu-compute.md)
+- [VisionFlow GPU Migration Architecture](architecture/visionflow-gpu-migration.md)
+- [VisionFlow System Architecture Overview](architecture/index.md)
+- [VisionFlow System Architecture](architecture/system-overview.md)
+- [arch-system-design](reference/agents/architecture/system-design/arch-system-design.md)
+- [architecture](reference/agents/sparc/architecture.md)
