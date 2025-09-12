@@ -94,7 +94,7 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
                     Some(PageInfo {
                         id,
                         title: meta.file_name.clone(),
-                        path: format!("/app/data/markdown/{}", meta.file_name),
+                        path: format!("/workspace/ext/data/markdown/{}", meta.file_name),
                         parent: None,
                         modified,
                     })

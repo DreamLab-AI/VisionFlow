@@ -167,35 +167,21 @@ async fn main() -> std::io::Result<()> {
     let bots_url = std::env::var("BOTS_ORCHESTRATOR_URL")
         .unwrap_or_else(|_| "ws://multi-agent-container:3002/ws".to_string());
 
+    // Connect to bots orchestrator synchronously during startup
+    // to avoid tokio::spawn outside of Actix runtime
     let bots_client = app_state.bots_client.clone();
-    tokio::spawn(async move {
-        // Retry connection with exponential backoff
-        let mut retry_count = 0;
-        let max_retries = 5;
-        
-        while retry_count < max_retries {
-            match bots_client.connect(&bots_url).await {
-                Ok(()) => {
-                    info!("Successfully connected to bots orchestrator at {}", bots_url);
-                    break;
-                }
-                Err(e) => {
-                    retry_count += 1;
-                    let delay = std::cmp::min(1000 * (1 << retry_count), 30000); // Max 30s
-                    error!("Failed to connect to bots orchestrator (attempt {}): {}. Retrying in {}ms", 
-                           retry_count, e, delay);
-                    
-                    if retry_count < max_retries {
-                        tokio::time::sleep(Duration::from_millis(delay)).await;
-                    }
-                }
-            }
+    info!("Connecting to bots orchestrator at {}...", bots_url);
+    
+    // Try to connect once without spawning
+    match bots_client.connect(&bots_url).await {
+        Ok(()) => {
+            info!("Successfully connected to bots orchestrator at {}", bots_url);
         }
-        
-        if retry_count >= max_retries {
-            error!("Failed to connect to bots orchestrator after {} attempts. Will use fallback mode.", max_retries);
+        Err(e) => {
+            // Log the error but don't fail startup - connection can be retried later
+            error!("Failed to connect to bots orchestrator: {}. Will use fallback mode.", e);
         }
-    });
+    }
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");
@@ -208,9 +194,8 @@ async fn main() -> std::io::Result<()> {
     info!("Note: Background GitHub data fetch is disabled to resolve compilation issues");
 
     if metadata_store.is_empty() {
-        error!("No metadata found and could not create empty store");
-        return Err(std::io::Error::new(std::io::ErrorKind::Other,
-            "No metadata found and could not create empty store".to_string()));
+        warn!("No metadata found, starting with empty metadata store");
+        // Continue with empty metadata - the app can still function
     }
 
     info!("Loaded {} items from metadata store", metadata_store.len());
@@ -226,19 +211,70 @@ async fn main() -> std::io::Result<()> {
     // Build initial graph from metadata and initialize GPU compute
     info!("Building initial graph from existing metadata for physics simulation");
 
-    // Use GraphServiceActor to build the graph from metadata
-    use webxr::actors::messages::BuildGraphFromMetadata;
-    match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
-        Ok(Ok(())) => {
-            info!("Graph built successfully using GraphServiceActor - GPU initialization is handled automatically by the actor");
-        },
-        Ok(Err(e)) => {
-            error!("Failed to build graph from metadata using actor: {}", e);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
-        },
+    // First, try to load pre-computed graph data with positions
+    let graph_data_option = match FileService::load_graph_data() {
+        Ok(graph_data) => {
+            if let Some(graph) = graph_data {
+                info!("Loaded pre-computed graph data with {} nodes and {} edges", 
+                      graph.nodes.len(), graph.edges.len());
+                Some(graph)
+            } else {
+                info!("No pre-computed graph data found, will build from metadata");
+                None
+            }
+        }
         Err(e) => {
-            error!("Graph service actor communication error: {}", e);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+            error!("Error loading graph data: {}", e);
+            None
+        }
+    };
+
+    // Use GraphServiceActor to build or update the graph
+    use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
+    use std::sync::Arc as StdArc;
+    
+    if let Some(graph_data) = graph_data_option {
+        // If we have pre-computed graph data, send it directly to the GraphServiceActor
+        match app_state.graph_service_addr.send(UpdateGraphData { graph_data: StdArc::new(graph_data) }).await {
+            Ok(Ok(())) => {
+                info!("Pre-computed graph data loaded successfully into GraphServiceActor");
+            },
+            Ok(Err(e)) => {
+                error!("Failed to load pre-computed graph data into actor: {}", e);
+                // Fall back to building from metadata
+                match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+                    Ok(Ok(())) => {
+                        info!("Fallback: Graph built from metadata successfully");
+                    },
+                    Ok(Err(e)) => {
+                        error!("Failed to build graph from metadata: {}", e);
+                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
+                    },
+                    Err(e) => {
+                        error!("Graph service actor communication error: {}", e);
+                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+                    }
+                }
+            },
+            Err(e) => {
+                error!("Graph service actor communication error: {}", e);
+                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+            }
+        }
+    } else {
+        // No pre-computed graph data, build from metadata
+        match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+            Ok(Ok(())) => {
+                info!("Graph built successfully using GraphServiceActor - GPU initialization is handled automatically by the actor");
+            },
+            Ok(Err(e)) => {
+                error!("Failed to build graph from metadata using actor: {}", e);
+                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
+            },
+            Err(e) => {
+                error!("Graph service actor communication error: {}", e);
+                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+            }
         }
     }
 

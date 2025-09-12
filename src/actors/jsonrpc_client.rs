@@ -270,10 +270,8 @@ impl Actor for JsonRpcClient {
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("JsonRpcClient stopped - cleaning up pending requests");
         
-        // Clear pending requests with error responses
-        let pending_requests = self.pending_requests.clone();
-        tokio::spawn(async move {
-            let mut requests = pending_requests.write().await;
+        // Clear pending requests synchronously to avoid tokio::spawn during shutdown
+        if let Ok(mut requests) = self.pending_requests.try_write() {
             for (id, sender) in requests.drain() {
                 let error_response = json!({
                     "jsonrpc": "2.0",
@@ -285,7 +283,10 @@ impl Actor for JsonRpcClient {
                 });
                 let _ = sender.send(error_response);
             }
-        });
+        } else {
+            // If we can't get the lock, just log and continue shutdown
+            warn!("Could not acquire lock to clear pending requests during shutdown");
+        }
     }
 }
 

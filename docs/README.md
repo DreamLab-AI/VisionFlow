@@ -1,79 +1,40 @@
-# VisionFlow Documentation Hub
+# VisionFlow Documentation
 
-Comprehensive documentation for the VisionFlow AI agent swarm visualisation and knowledge graph platform.
+Welcome to the VisionFlow documentation. This directory contains comprehensive technical documentation for the VisionFlow WebXR system.
 
 ## 📚 Documentation Structure
 
-### 🚀 [Getting Started](./getting-started/)
-- [Installation](./getting-started/installation.md) - System requirements and setup
-- [Quick Start](./getting-started/quickstart.md) - Get running in 5 minutes
-- [Configuration](./getting-started/configuration.md) - Environment setup
+### Core Documentation
 
-### 🏗️ [Architecture](./architecture/)
-- [System Overview](./architecture/system-overview.md) - High-level design
-- [GPU Modular System](./architecture/gpu-modular-system.md) - GPU compute architecture
-- [Actor Model](./architecture/actor-model.md) - Actix actor system
-- [Binary Protocol](./architecture/binary-protocol.md) - WebSocket communication
+- **[System Architecture Diagrams](diagrams.md)** - Complete system architecture with detailed data flow diagrams
+- **[API Reference](api/README.md)** - REST and WebSocket API documentation
+- **[Developer Guide](development/README.md)** - Development setup and best practices
+- **[Configuration Guide](configuration/README.md)** - System configuration and settings
 
-### 🔧 [Technical Reference](./technical/)
-- [API Documentation](./technical/api-reference.md) - REST and WebSocket APIs
-- [MCP Integration](./technical/mcp-tool-usage.md) - Claude Flow MCP tools
-- [Decoupled Architecture](./technical/decoupled-graph-architecture.md) - Graph separation
+### Architecture & Design
 
-### 📖 [User Guides](./guides/)
-- Interface navigation and features
-- Agent swarm management
-- Graph visualisation tools
-- Analytics and insights
+- **[System Overview](architecture/overview.md)** - High-level system architecture
+- **[Actor System](architecture/actors.md)** - Actix actor-based architecture
+- **[GPU Compute](architecture/gpu.md)** - CUDA acceleration and physics simulation
+- **[Real-time Communication](architecture/websockets.md)** - WebSocket protocols and binary formats
 
-### 🔒 [Security](./security/)
-- [Authentication](./security/authentication.md) - Nostr integration
-- API security and data privacy
+### Component Documentation
+
+- **[Frontend Components](components/frontend.md)** - React, Three.js, and XR components
+- **[Backend Services](components/backend.md)** - Rust services and actors
+- **[External Integrations](components/integrations.md)** - GitHub, OpenAI, RAGFlow, etc.
 
 ## 🔍 Quick Links
 
-- **New Users**: Start with [Quick Start Guide](./getting-started/quickstart.md)
-- **Developers**: See [API Reference](./technical/api-reference.md) and [Architecture](./architecture/)
-- **System Admins**: Check [Deployment Guide](./deployment/) and [Configuration](./getting-started/configuration.md)
-- **Contributors**: Read [Contributing Guide](./development/contributing.md)
+- [System Diagrams](diagrams.md) - Visual architecture documentation
+- [Getting Started](../README.md#quick-start) - Quick start guide
+- [API Documentation](api/README.md) - API reference
+- [Configuration](configuration/README.md) - Configuration options
 
-## 🎯 Key Features Documentation
+## 📊 Key Diagrams
 
-### AI Agent Orchestration
-- **Swarm Topologies**: Mesh, hierarchical, ring, star configurations
-- **70+ MCP Tools**: Task orchestration, memory management, neural training
-- **Real-time Monitoring**: Performance metrics and task tracking
-
-### GPU Acceleration
-- **CUDA Compute**: Physics simulation for 200+ agents at 60 FPS
-- **Modular Architecture**: 6 specialised GPU actors
-- **Binary Protocol**: 85% bandwidth reduction
-
-### Knowledge Graphs
-- **Dual Graph System**: Logseq + AI agents
-- **3D Visualisation**: Three.js WebGL rendering
-- **Analytics Suite**: Clustering, anomaly detection, insights
-
-## 📊 Performance Metrics
-
-| Metric | Performance |
-|--------|-------------|
-| Max Agents (60 FPS) | 200+ |
-| Position Update Latency | < 5ms |
-| Binary Protocol Size | 28 bytes/agent |
-| Network Bandwidth | 168 KB/s (100 agents) |
-| GPU Acceleration | 2.8-4.4x speed boost |
-
-## 🤝 Support & Community
-
-- **GitHub Issues**: Bug reports and feature requests
-- **Discord**: Community discussions (coming soon)
-- **Email**: support@visionflow.ai
-
-## 📄 Licence
-
-VisionFlow is licensed under the MIT Licence. See [LICENSE](../LICENSE) for details.
+The [System Architecture Diagrams](diagrams.md) document contains comprehensive visualizations of all system components and data flows.
 
 ---
 
-*VisionFlow - Visualising the future of AI multi-agent systems* 🚀
+*For the most up-to-date documentation, please refer to the main repository.*

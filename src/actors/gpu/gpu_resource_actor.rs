@@ -314,7 +314,7 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                         }
                     }
                 },
-                Err(e) => Err(format!("Failed to start GPU initialization: {}", e))
+                Err(_) => Err("Failed to start GPU initialization".to_string())
             }
         }))
     }

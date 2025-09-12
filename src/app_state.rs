@@ -87,42 +87,13 @@ impl AppState {
         let gpu_manager_addr = Some(GPUManagerActor::new().start());
         
         // Get the ForceComputeActor address from the GPU manager and store it in GraphServiceActor
-        use crate::actors::messages::{StoreGPUComputeAddress, GetForceComputeActor};
-        if let Some(ref gpu_manager) = gpu_manager_addr {
-            let gpu_manager_clone = gpu_manager.clone();
-            let graph_service_clone = graph_service_addr.clone();
-            
-            tokio::spawn(async move {
-                // Small delay to let the GPU manager finish initialization
-                tokio::time::sleep(Duration::from_millis(100)).await;
-                
-                match gpu_manager_clone.send(GetForceComputeActor).await {
-                    Ok(Ok(force_compute_addr)) => {
-                        info!("[AppState] Successfully got ForceComputeActor address from GPUManager");
-                        graph_service_clone.do_send(StoreGPUComputeAddress {
-                            addr: Some(force_compute_addr),
-                        });
-                    }
-                    Ok(Err(e)) => {
-                        error!("[AppState] Failed to get ForceComputeActor from GPUManager: {}", e);
-                        graph_service_clone.do_send(StoreGPUComputeAddress {
-                            addr: None,
-                        });
-                    }
-                    Err(e) => {
-                        error!("[AppState] Failed to communicate with GPUManager: {}", e);
-                        graph_service_clone.do_send(StoreGPUComputeAddress {
-                            addr: None,
-                        });
-                    }
-                }
-            });
-        } else {
-            warn!("[AppState] No GPU manager available, setting ForceComputeActor to None");
-            graph_service_addr.do_send(StoreGPUComputeAddress {
-                addr: None,
-            });
-        }
+        use crate::actors::messages::{StoreGPUComputeAddress};
+        // For now, we'll set the GPU compute address to None and let it be initialized later
+        // This avoids the tokio runtime panic during initialization
+        info!("[AppState] Deferring GPU compute actor initialization to avoid runtime issues");
+        graph_service_addr.do_send(StoreGPUComputeAddress {
+            addr: None,
+        });
 
         info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
         let settings_actor = SettingsActor::with_actors(
@@ -179,34 +150,18 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
-        // Initialize GPU with delay to ensure graph data is ready
-        if let Some(ref gpu_addr) = gpu_manager_addr {
-            let gpu_addr_clone = gpu_addr.clone();
-            let graph_addr_clone = graph_service_addr.clone();
-            
-            // Spawn a task to initialize GPU after a delay
-            tokio::spawn(async move {
-                // Wait for graph service to be ready and data to be loaded
-                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                
-                log::info!("[AppState] Initializing GPU manager with graph data");
-                
-                // Get initial graph data
-                use crate::actors::messages::{GetGraphData};
-                match graph_addr_clone.send(GetGraphData).await {
-                    Ok(Ok(graph_data)) => {
-                        log::info!("[AppState] Got graph data with {} nodes for GPU manager", graph_data.nodes.len());
-                        // TODO: Send initialization to GPU manager
-                        // gpu_addr_clone.do_send(InitializeGPUManager { graph: graph_data });
-                    }
-                    Ok(Err(e)) => {
-                        log::error!("[AppState] Failed to get graph data for GPU init: {}", e);
-                    }
-                    Err(e) => {
-                        log::error!("[AppState] Failed to send GetGraphData message: {}", e);
-                    }
-                }
-            });
+        // GPU initialization will be handled later by the actors themselves
+        // This avoids the tokio runtime panic during initialization
+        info!("[AppState] GPU manager will self-initialize when needed");
+
+        // Schedule GPU initialization to happen after actor system is ready
+        if let Some(ref gpu_manager) = gpu_manager_addr {
+            use crate::actors::messages::InitializeGPUConnection;
+            let init_msg = InitializeGPUConnection {
+                gpu_manager: Some(gpu_manager.clone()),
+            };
+            graph_service_addr.do_send(init_msg);
+            info!("[AppState] Sent GPU initialization message to GraphServiceActor");
         }
 
         info!("[AppState::new] Actor system initialization complete");
