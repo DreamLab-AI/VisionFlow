@@ -20,8 +20,8 @@ use std::io::Error;
 use super::github::{GitHubClient, ContentAPI, GitHubConfig};
 
 // Constants
-const METADATA_PATH: &str = "/app/data/metadata/metadata.json";
-pub const MARKDOWN_DIR: &str = "/app/data/markdown";
+const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
+pub const MARKDOWN_DIR: &str = "/workspace/ext/data/markdown";
 const GITHUB_API_DELAY: Duration = Duration::from_millis(500);
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -192,10 +192,10 @@ impl FileService {
     /// Load metadata from file or create new if not exists
     pub fn load_or_create_metadata() -> Result<MetadataStore, String> {
         // Ensure metadata directory exists
-        std::fs::create_dir_all("/app/data/metadata")
+        std::fs::create_dir_all("/workspace/ext/data/metadata")
             .map_err(|e| format!("Failed to create metadata directory: {}", e))?;
         
-        let metadata_path = "/app/data/metadata/metadata.json";
+        let metadata_path = "/workspace/ext/data/metadata/metadata.json";
         
         match File::open(metadata_path) { Ok(file) => {
             info!("Loading existing metadata from {}", metadata_path);
@@ -224,7 +224,7 @@ impl FileService {
     
     /// Load pre-computed graph data with positions from graph.json
     pub fn load_graph_data() -> Result<Option<GraphData>, String> {
-        let graph_path = "/app/data/metadata/graph.json";
+        let graph_path = "/workspace/ext/data/metadata/graph.json";
         
         match File::open(graph_path) {
             Ok(file) => {

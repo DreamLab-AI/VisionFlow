@@ -907,6 +907,13 @@ pub struct StoreGPUComputeAddress {
 #[rtype(result = "Result<Addr<crate::actors::gpu::ForceComputeActor>, String>")]
 pub struct GetForceComputeActor;
 
+// Message to initialize GPU connection after system startup
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct InitializeGPUConnection {
+    pub gpu_manager: Option<Addr<crate::actors::GPUManagerActor>>,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUGraphData {

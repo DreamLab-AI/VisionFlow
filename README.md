@@ -35,6 +35,19 @@ open http://localhost:3001
 
 ---
 
+## 📊 System Architecture Documentation
+
+**[🔍 Complete System Diagrams](docs/diagrams.md)** - Comprehensive architecture diagrams covering all data flows from user input to GPU rendering, including:
+- System overview and component architecture
+- Client-server real-time communication flows
+- Actor system message passing
+- GPU compute pipeline details
+- Authentication and authorization flows
+- External services integration
+- And much more...
+
+---
+
 ## Overview
 
 VisionFlow bridges knowledge management and AI agent orchestration through:

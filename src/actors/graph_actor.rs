@@ -2248,7 +2248,7 @@ impl Handler<GetAutoBalanceNotifications> for GraphServiceActor {
 impl Handler<UpdateGraphData> for GraphServiceActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: UpdateGraphData, ctx: &mut Self::Context) -> Self::Result {
         info!("Updating graph data with {} nodes, {} edges",
               msg.graph_data.nodes.len(), msg.graph_data.edges.len());
         
@@ -2265,7 +2265,25 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
         let graph_data_clone = Arc::clone(&self.graph_data);
         self.generate_initial_semantic_constraints(&graph_data_clone);
         
-        info!("Graph data updated successfully with constraint generation");
+        // Send data to GPU compute if available
+        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+            info!("Sending loaded graph data to GPU physics");
+            
+            // First initialize GPU with GraphServiceActor address for notification
+            gpu_compute_addr.do_send(InitializeGPU { 
+                graph: Arc::clone(&self.graph_data),
+                graph_service_addr: Some(ctx.address())
+            });
+            info!("Sent GPU initialization request to GPU compute actor");
+            
+            // Then update the graph data  
+            gpu_compute_addr.do_send(UpdateGPUGraphData { graph: Arc::clone(&self.graph_data) });
+            info!("Sent loaded graph data to GPU compute actor");
+        } else {
+            warn!("GPU compute actor not available, physics simulation won't be initialized");
+        }
+        
+        info!("Graph data updated successfully with constraint generation and GPU initialization");
         Ok(())
     }
 }
@@ -2451,6 +2469,49 @@ impl Handler<StoreGPUComputeAddress> for GraphServiceActor {
             info!("GPU compute actor address stored - waiting for GPU initialization");
         } else {
             warn!("GPU compute actor address is None - physics will not be available");
+        }
+    }
+}
+
+// Handler for initializing GPU connection after system startup
+impl Handler<InitializeGPUConnection> for GraphServiceActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: InitializeGPUConnection, ctx: &mut Self::Context) -> Self::Result {
+        info!("Initializing GPU connection after system startup");
+        
+        if let Some(gpu_manager) = msg.gpu_manager {
+            let gpu_manager_clone = gpu_manager.clone();
+            let self_addr = ctx.address();
+            
+            // Use the actor's context to spawn the async task
+            ctx.spawn(async move {
+                // Small delay to ensure GPU manager is ready
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                
+                match gpu_manager_clone.send(GetForceComputeActor).await {
+                    Ok(Ok(force_compute_addr)) => {
+                        info!("[GraphServiceActor] Successfully got ForceComputeActor address from GPUManager");
+                        self_addr.do_send(StoreGPUComputeAddress {
+                            addr: Some(force_compute_addr),
+                        });
+                    }
+                    Ok(Err(e)) => {
+                        error!("[GraphServiceActor] Failed to get ForceComputeActor from GPUManager: {}", e);
+                        self_addr.do_send(StoreGPUComputeAddress {
+                            addr: None,
+                        });
+                    }
+                    Err(e) => {
+                        error!("[GraphServiceActor] Failed to communicate with GPUManager: {}", e);
+                        self_addr.do_send(StoreGPUComputeAddress {
+                            addr: None,
+                        });
+                    }
+                }
+            }.into_actor(self));
+        } else {
+            warn!("No GPU manager provided for initialization");
         }
     }
 }
