@@ -121,20 +121,13 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
           } catch (fetchError) {
             console.error('[AppInitializer] Failed to fetch initial graph data:', fetchError);
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            // Initialize with sample data as fallback to ensure something renders
-            const fallbackData = {
-              nodes: [
-                { id: 'init1', label: 'Initialization Node 1', position: { x: -10, y: 0, z: 0 } },
-                { id: 'init2', label: 'Initialization Node 2', position: { x: 10, y: 0, z: 0 } },
-                { id: 'init3', label: 'Initialization Node 3', position: { x: 0, y: 10, z: 0 } }
-              ],
-              edges: [
-                { id: 'init_edge1', source: 'init1', target: 'init2' },
-                { id: 'init_edge2', source: 'init2', target: 'init3' }
-              ]
+            // Initialize with empty graph when fetch fails
+            const emptyGraph = {
+              nodes: [],
+              edges: []
             };
-            console.log('[AppInitializer] Using fallback sample data');
-            await graphDataManager.setGraphData(fallbackData);
+            console.log('[AppInitializer] Initializing with empty graph due to fetch failure');
+            await graphDataManager.setGraphData(emptyGraph);
           }
 
           if (debugState.isEnabled()) {

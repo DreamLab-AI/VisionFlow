@@ -539,7 +539,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         console.log('GraphManager: Graph data updated', {
           nodeCount: data.nodes.length,
           edgeCount: data.edges.length,
-          firstNode: data.nodes[0],
+          firstNode: data.nodes.length > 0 ? data.nodes[0] : null,
           hasValidData: data && Array.isArray(data.nodes) && Array.isArray(data.edges)
         });
       }
@@ -548,7 +548,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         logger.info('Graph data updated', { 
           nodeCount: data.nodes.length, 
           edgeCount: data.edges.length,
-          firstNode: data.nodes[0]
+          firstNode: data.nodes.length > 0 ? data.nodes[0] : null
         })
       }
 

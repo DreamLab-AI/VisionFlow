@@ -31,7 +31,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::time::Duration;
 use dotenvy::dotenv;
-use log::{error, info, debug};
+use log::{error, info, debug, warn};
 use webxr::utils::logging::init_logging;
 use webxr::utils::advanced_logging::init_advanced_logging;
 use tokio::signal::unix::{signal, SignalKind};
@@ -93,6 +93,7 @@ async fn main() -> std::io::Result<()> {
     debug!("Successfully loaded AppFullSettings"); // Updated log message
 
     info!("Starting WebXR application...");
+    debug!("main: Beginning application startup sequence.");
 
     // Create web::Data instances first
     // This now holds Data<Arc<RwLock<AppFullSettings>>>
@@ -185,13 +186,11 @@ async fn main() -> std::io::Result<()> {
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");
-    let metadata_store = FileService::load_or_create_metadata()
+    let mut metadata_store = FileService::load_or_create_metadata()
         .map_err(|e| {
             error!("Failed to load existing metadata: {}", e);
             std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
         })?;
-
-    info!("Note: Background GitHub data fetch is disabled to resolve compilation issues");
 
     if metadata_store.is_empty() {
         warn!("No metadata found, starting with empty metadata store");
@@ -199,6 +198,90 @@ async fn main() -> std::io::Result<()> {
     }
 
     info!("Loaded {} items from metadata store", metadata_store.len());
+    
+    // Spawn background task to fetch GitHub data after server starts
+    info!("Spawning background task to fetch and process GitHub markdown files");
+    let content_api_clone = content_api.clone();
+    let settings_clone = settings.clone();
+    let metadata_addr_clone = app_state.metadata_addr.clone();
+    let graph_service_addr_clone = app_state.graph_service_addr.clone();
+    
+    tokio::spawn(async move {
+        // Wait a bit for the server to fully initialize
+        info!("Background GitHub sync: Waiting 5 seconds for server initialization...");
+        tokio::time::sleep(Duration::from_secs(5)).await;
+        
+        info!("Background GitHub sync: Starting markdown synchronization process");
+        
+        // Get settings for FileService
+        let file_service = FileService::new(settings_clone.clone());
+        info!("Background GitHub sync: FileService created");
+        
+        // Create a mutable copy for the fetch operation
+        let mut metadata_store_copy = match FileService::load_or_create_metadata() {
+            Ok(store) => {
+                info!("Background GitHub sync: Loaded metadata store with {} existing entries", store.len());
+                store
+            }
+            Err(e) => {
+                error!("Background GitHub sync: Failed to load metadata: {}", e);
+                return;
+            }
+        };
+        
+        info!("Background GitHub sync: Starting fetch_and_process_files...");
+        match file_service.fetch_and_process_files(content_api_clone, settings_clone.clone(), &mut metadata_store_copy).await {
+            Ok(processed_files) => {
+                info!("Background GitHub sync: Successfully processed {} markdown files", processed_files.len());
+                
+                if processed_files.is_empty() {
+                    warn!("Background GitHub sync: No files were processed - check GitHub configuration");
+                } else {
+                    let file_names: Vec<String> = processed_files.iter()
+                        .map(|pf| pf.file_name.clone())
+                        .collect();
+                    info!("Background GitHub sync: Processed files: {:?}", file_names);
+                }
+                
+                // Update metadata actor
+                info!("Background GitHub sync: Updating metadata actor...");
+                if let Err(e) = metadata_addr_clone.send(UpdateMetadata { metadata: metadata_store_copy.clone() }).await {
+                    error!("Background GitHub sync: Failed to update metadata actor: {}", e);
+                } else {
+                    info!("Background GitHub sync: Metadata actor updated successfully");
+                }
+                
+                // Save metadata to disk
+                info!("Background GitHub sync: Saving metadata to disk...");
+                if let Err(e) = FileService::save_metadata(&metadata_store_copy) {
+                    error!("Background GitHub sync: Failed to save metadata: {}", e);
+                } else {
+                    info!("Background GitHub sync: Metadata saved successfully");
+                }
+                
+                // Update graph with new data
+                use webxr::actors::messages::AddNodesFromMetadata;
+                info!("Background GitHub sync: Updating graph with new data...");
+                match graph_service_addr_clone.send(AddNodesFromMetadata { metadata: metadata_store_copy }).await {
+                    Ok(Ok(())) => {
+                        info!("Background GitHub sync: Graph updated successfully with new GitHub data");
+                    }
+                    Ok(Err(e)) => {
+                        error!("Background GitHub sync: Failed to update graph: {}", e);
+                    }
+                    Err(e) => {
+                        error!("Background GitHub sync: Actor communication error: {}", e);
+                    }
+                }
+            }
+            Err(e) => {
+                error!("Background GitHub sync: Error processing files: {}", e);
+                error!("Background GitHub sync: Check GitHub token and repository configuration");
+            }
+        }
+        
+        info!("Background GitHub sync: Process completed");
+    });
 
     // Update metadata in app state using actor
     use webxr::actors::messages::UpdateMetadata;
@@ -317,6 +400,7 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting HTTP server on {}", bind_address);
 
+    info!("main: All services and actors initialized. Configuring HTTP server.");
     let server = HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
@@ -348,12 +432,12 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
-                    .service(web::scope("/health").configure(health_handler::config)) // This will now serve /api/health
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(bots_handler::config)) // This will now serve /api/bots/data and /api/bots/update
                     .service(web::scope("/mcp").configure(mcp_health_handler::configure_routes)) // MCP health and control endpoints
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
-            );
+            )
+            .service(web::scope("/health").configure(health_handler::config));
 
         app
     })
@@ -380,6 +464,7 @@ async fn main() -> std::io::Result<()> {
         server_handle.stop(true).await;
     });
 
+    info!("main: HTTP server startup sequence complete. Server is now running.");
     server.await?;
 
     info!("HTTP server stopped");

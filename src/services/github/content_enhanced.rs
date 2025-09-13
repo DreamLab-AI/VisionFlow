@@ -1,7 +1,7 @@
 use super::api::GitHubClient;
 use super::types::GitHubFileBasicMetadata;
 use chrono::{DateTime, Utc};
-use log::{debug, warn};
+use log::{debug, warn, info, error};
 use std::sync::Arc;
 use serde_json::Value;
 use crate::errors::VisionFlowResult;
@@ -20,7 +20,7 @@ impl EnhancedContentAPI {
     /// List all markdown files in the repository's base path
     pub async fn list_markdown_files(&self, path: &str) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
         let contents_url = self.client.get_contents_url(path).await;
-        debug!("Listing markdown files from: {}", contents_url);
+        info!("list_markdown_files: Fetching from GitHub API: {}", contents_url);
 
         let response = self.client.client()
             .get(&contents_url)
@@ -29,32 +29,44 @@ impl EnhancedContentAPI {
             .send()
             .await?;
 
-        if !response.status().is_success() {
+        let status = response.status();
+        info!("list_markdown_files: GitHub API response status: {}", status);
+
+        if !status.is_success() {
             let error_text = response.text().await?;
-            return Err(format!("GitHub API error listing files: {}", error_text).into());
+            error!("list_markdown_files: GitHub API error ({}): {}", status, error_text);
+            return Err(format!("GitHub API error listing files ({}): {}", status, error_text).into());
         }
 
         let files: Vec<Value> = response.json().await?;
+        info!("list_markdown_files: Received {} items from GitHub", files.len());
+        
         let mut markdown_files = Vec::new();
 
         for file in files {
-            if file["type"].as_str() == Some("file") {
-                if let Some(name) = file["name"].as_str() {
-                    if name.ends_with(".md") {
-                        markdown_files.push(GitHubFileBasicMetadata {
-                            name: name.to_string(),
-                            path: file["path"].as_str().unwrap_or("").to_string(),
-                            sha: file["sha"].as_str().unwrap_or("").to_string(),
-                            size: file["size"].as_u64().unwrap_or(0),
-                            download_url: file["download_url"].as_str().unwrap_or("").to_string(),
-                        });
-                    }
+            let file_type = file["type"].as_str().unwrap_or("unknown");
+            let file_name = file["name"].as_str().unwrap_or("unnamed");
+            debug!("list_markdown_files: Processing item: {} (type: {})", file_name, file_type);
+            
+            if file_type == "file" {
+                if file_name.ends_with(".md") {
+                    info!("list_markdown_files: Found markdown file: {}", file_name);
+                    markdown_files.push(GitHubFileBasicMetadata {
+                        name: file_name.to_string(),
+                        path: file["path"].as_str().unwrap_or("").to_string(),
+                        sha: file["sha"].as_str().unwrap_or("").to_string(),
+                        size: file["size"].as_u64().unwrap_or(0),
+                        download_url: file["download_url"].as_str().unwrap_or("").to_string(),
+                    });
                 }
-            } else if file["type"].as_str() == Some("dir") {
+            } else if file_type == "dir" {
+                debug!("list_markdown_files: Skipping directory: {}", file_name);
                 // Recursively list files in subdirectories if needed, but for now, just top-level
                 // For this task, we only need top-level markdown files.
             }
         }
+        
+        info!("list_markdown_files: Found {} markdown files total", markdown_files.len());
         Ok(markdown_files)
     }
 
