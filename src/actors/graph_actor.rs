@@ -601,7 +601,15 @@ impl GraphServiceActor {
 
         // Phase 1: Build nodes with semantic analysis
         info!("Phase 1: Building nodes with semantic analysis");
+        info!("Metadata contains {} entries", metadata.len());
+        
+        if metadata.is_empty() {
+            warn!("Metadata is empty! No nodes will be created.");
+        }
+        
+        let mut node_count = 0;
         for (filename_with_ext, file_meta_data) in &metadata {
+            node_count += 1;
             let node_id_val = self.next_node_id.fetch_add(1, Ordering::SeqCst);
             let metadata_id_val = filename_with_ext.trim_end_matches(".md").to_string();
             
@@ -647,6 +655,10 @@ impl GraphServiceActor {
             Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
             new_graph_data.nodes.push(node);
         }
+        
+        info!("Phase 1 complete: Processed {} nodes from metadata", node_count);
+        info!("new_graph_data now contains {} nodes", new_graph_data.nodes.len());
+        info!("node_map now contains {} entries", self.node_map.len());
 
         // Phase 2: Generate enhanced edges with multi-modal similarities  
         info!("Phase 2: Generating enhanced edges with multi-modal similarities");
@@ -2101,6 +2113,7 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: BuildGraphFromMetadata, ctx: &mut Self::Context) -> Self::Result {
+        info!("BuildGraphFromMetadata handler called with {} metadata entries", msg.metadata.len());
         // Build the graph from metadata
         let result = self.build_from_metadata(msg.metadata);
         

@@ -2,7 +2,7 @@ use crate::models::metadata::{Metadata, MetadataStore, MetadataOps};
 use crate::models::graph::GraphData;
 use crate::config::AppFullSettings; // Use AppFullSettings, ClientFacingSettings removed
 use serde::{Deserialize, Serialize};
-use log::{info, debug, error};
+use log::{info, debug, error, warn};
 use std::sync::atomic::{AtomicU32, Ordering};
 use regex::Regex;
 use std::fs;
@@ -20,8 +20,8 @@ use std::io::Error;
 use super::github::{GitHubClient, ContentAPI, GitHubConfig};
 
 // Constants
-const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
-pub const MARKDOWN_DIR: &str = "/workspace/ext/data/markdown";
+const METADATA_PATH: &str = "/app/data/metadata/metadata.json";
+pub const MARKDOWN_DIR: &str = "/app/data/markdown";
 const GITHUB_API_DELAY: Duration = Duration::from_millis(500);
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -192,10 +192,10 @@ impl FileService {
     /// Load metadata from file or create new if not exists
     pub fn load_or_create_metadata() -> Result<MetadataStore, String> {
         // Ensure metadata directory exists
-        std::fs::create_dir_all("/workspace/ext/data/metadata")
+        std::fs::create_dir_all("/app/data/metadata")
             .map_err(|e| format!("Failed to create metadata directory: {}", e))?;
         
-        let metadata_path = "/workspace/ext/data/metadata/metadata.json";
+        let metadata_path = "/app/data/metadata/metadata.json";
         
         match File::open(metadata_path) { Ok(file) => {
             info!("Loading existing metadata from {}", metadata_path);
@@ -224,7 +224,7 @@ impl FileService {
     
     /// Load pre-computed graph data with positions from graph.json
     pub fn load_graph_data() -> Result<Option<GraphData>, String> {
-        let graph_path = "/workspace/ext/data/metadata/graph.json";
+        let graph_path = "/app/data/metadata/graph.json";
         
         match File::open(graph_path) {
             Ok(file) => {
@@ -544,29 +544,53 @@ impl FileService {
         _settings: Arc<RwLock<AppFullSettings>>, // Changed to AppFullSettings (though unused)
         metadata_store: &mut MetadataStore,
     ) -> Result<Vec<ProcessedFile>, Box<dyn StdError + Send + Sync>> {
+        info!("fetch_and_process_files: Starting GitHub file fetch process");
+        debug!("Attempting to fetch and process files from GitHub repository.");
         let mut processed_files = Vec::new();
 
         // Get all markdown files from GitHub
-        let basic_github_files = content_api.list_markdown_files("").await?;
-        info!("Found {} markdown files in GitHub", basic_github_files.len());
+        info!("fetch_and_process_files: Calling list_markdown_files...");
+        let basic_github_files = match content_api.list_markdown_files("").await {
+            Ok(files) => {
+                info!("fetch_and_process_files: Successfully retrieved {} file entries from GitHub", files.len());
+                debug!("GitHub API returned {} potential markdown files.", files.len());
+                if files.is_empty() {
+                    warn!("fetch_and_process_files: No markdown files found in GitHub repository");
+                    warn!("fetch_and_process_files: Check GITHUB_OWNER, GITHUB_REPO, and GITHUB_BASE_PATH in .env");
+                }
+                files
+            }
+            Err(e) => {
+                error!("fetch_and_process_files: Failed to list markdown files from GitHub: {}", e);
+                return Err(Box::new(e));
+            }
+        };
+        
+        info!("fetch_and_process_files: Processing {} markdown files from GitHub", basic_github_files.len());
 
         // Process files in batches to prevent timeouts
         const BATCH_SIZE: usize = 5;
-        for chunk in basic_github_files.chunks(BATCH_SIZE) {
+        let total_batches = (basic_github_files.len() + BATCH_SIZE - 1) / BATCH_SIZE;
+        info!("fetch_and_process_files: Processing files in {} batches of up to {} files each", total_batches, BATCH_SIZE);
+        
+        for (batch_idx, chunk) in basic_github_files.chunks(BATCH_SIZE).enumerate() {
+            info!("fetch_and_process_files: Processing batch {}/{} with {} files", batch_idx + 1, total_batches, chunk.len());
             let mut futures = Vec::new();
             
             for file_basic_meta in chunk {
                 let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
+                debug!("fetch_and_process_files: Processing file: {}", file_basic_meta.name);
                 
                 futures.push(async move {
                     // First check if file is public
                     match content_api.check_file_public(&file_basic_meta.download_url).await {
                         Ok(is_public) => {
                             if !is_public {
-                                debug!("Skipping non-public file: {}", file_basic_meta.name);
+                                info!("fetch_and_process_files: Skipping non-public file: {}", file_basic_meta.name);
                                 return Ok(None);
                             }
+                            debug!("fetch_and_process_files: File {} is public, fetching content", file_basic_meta.name);
 
                             // Fetch extended metadata for the file
                             let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {

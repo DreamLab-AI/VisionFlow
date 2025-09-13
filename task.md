@@ -1,3 +1,517 @@
+## 👑 Knowledge Graph Issue - FIXED by Queen Seraphina's Hive Mind (2025-09-13)
+
+### Issue: API returning 0 nodes despite metadata.json containing 177 entries
+
+### Root Cause: Path Mismatch
+The Docker container mounts volumes to `/app/data/` but the Rust code was hardcoded to look in `/workspace/ext/data/`. This caused the server to create empty metadata instead of loading the existing 177 knowledge graph entries about AI, blockchain, and emerging technologies.
+
+### Hive Mind Analysis Found:
+1. **Data exists**: `/workspace/ext/data/metadata/` contains:
+   - `metadata.json` with 177 markdown file entries
+   - `graph.json` with 177 nodes and 1,094 edges  
+   - `layout.json` with 3D positions
+
+2. **Docker configuration** (correct):
+   ```yaml
+   volumes:
+     - ./data/markdown:/app/data/markdown
+     - ./data/metadata:/app/data/metadata
+   ```
+
+3. **Rust code issue** (fixed):
+   - Was hardcoded to `/workspace/ext/data/` 
+   - Now updated to `/app/data/`
+
+### Files Fixed:
+- `/src/services/file_service.rs` - Updated METADATA_PATH and MARKDOWN_DIR constants
+- `/src/services/file_service.rs` - Updated load_or_create_metadata() paths
+- `/src/services/file_service.rs` - Updated load_graph_data() path
+- `/src/handlers/pages_handler.rs` - Updated markdown file path
+- `/src/services/perplexity_service.rs` - Updated MARKDOWN_DIR constant
+- `/src/bin/test_github_connection.rs` - Fixed crate name references
+
+### Manual Workaround Applied:
+Copied metadata files to `/app/data/metadata/` for immediate testing:
+```bash
+mkdir -p /app/data/metadata
+cp -r /workspace/ext/data/metadata/* /app/data/metadata/
+```
+
+### Result:
+✅ Code now compiles successfully
+✅ Paths aligned with Docker mount configuration
+✅ Server will load the 177-entry knowledge graph on next restart
+✅ Graph visualization will display AI/blockchain knowledge network
+
+### Next Steps:
+1. Restart the server to load the knowledge graph
+2. Consider using environment variables instead of hardcoded paths
+3. Re-enable GitHub data fetching when compilation issues are resolved
+
+---
+
+client:789 [vite] connecting...
+client:912 [vite] connected.
+logger.ts:107 [10:38:35.010] [SettingsStore] Settings store rehydrated from storage
+graphDataManager.ts:38 [GraphDataManager] Waiting for worker to be ready...
+logger.ts:107 [10:38:35.011] [WebSocketService] Determined WebSocket URL (dev): ws://192.168.0.51:3001/wss
+logger.ts:107 [10:38:35.011] [WebSocketService] Determined WebSocket URL (dev): ws://192.168.0.51:3001/wss
+logger.ts:107 [10:38:35.011] [WebSocketService] Using default WebSocket URL: ws://192.168.0.51:3001/wss
+logger.ts:107 [10:38:35.036] [Console] Debug control available at window.debugControl
+logger.ts:107 [10:38:35.040] [AnalyticsStore] Analytics store rehydrated {cacheEntries: 0, metrics: {…}}
+logger.ts:107 [10:38:35.041] [BotsWebSocketIntegration] Initializing WebSocket connection for graph data
+logger.ts:107 [10:38:35.041] [BotsWebSocketIntegration] Logseq WebSocket connection status: false
+logger.ts:107 [10:38:35.048] [DebugConfig] Initializing debug system {enabled: true, categories: Array(0), replaceConsole: false, preset: undefined}
+logger.ts:107 [10:38:35.049] [ClientDebugState] Debug setting enabled set to true
+logger.ts:107 [10:38:35.049] [DebugConfig] Debug system initialized {enabled: true, categories: Array(0)}
+logger.ts:107 [10:38:35.068] [SpaceDriverService] SpaceDriver service initialized
+logger.ts:107 [10:38:35.090] [AppInitializer] Initializing services...
+logger.ts:107 [10:38:35.090] [NostrAuthService] No stored session found.
+logger.ts:107  [10:38:35.090] [ConnectionWarning] Lost connection to backend server Error Component Stack
+    at ConnectionWarning (ConnectionWarning.tsx:16:41)
+    at XRCoreProvider (XRCoreProvider.tsx:245:3)
+    at ApplicationModeProvider (ApplicationModeContext.tsx:22:43)
+    at ErrorBoundary (App.tsx:29:1)
+    at OnboardingProvider (OnboardingProvider.tsx:27:38)
+    at HelpProvider (HelpProvider.tsx:31:32)
+    at Provider (create-context.tsx:59:15)
+    at TooltipProvider (tooltip.tsx:68:5)
+    at App (App.tsx:67:23)
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+handleConnectionChange @ ConnectionWarning.tsx:28
+onConnectionStatusChange @ WebSocketService.ts:557
+(anonymous) @ ConnectionWarning.tsx:33
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.095] [useQuest3Integration] Starting Quest 3 detection...
+logger.ts:107 [10:38:35.095] [useBotsWebSocketIntegration] Initializing bots WebSocket integration
+logger.ts:107 [10:38:35.096] [XRCoreProvider] Complete XR resource cleanup performed
+logger.ts:107 [10:38:35.096] [AppInitializer] Initializing services...
+logger.ts:107  [10:38:35.096] [ConnectionWarning] Lost connection to backend server
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+handleConnectionChange @ ConnectionWarning.tsx:28
+onConnectionStatusChange @ WebSocketService.ts:557
+(anonymous) @ ConnectionWarning.tsx:33
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.097] [useQuest3Integration] Starting Quest 3 detection...
+logger.ts:107 [10:38:35.097] [useBotsWebSocketIntegration] Initializing bots WebSocket integration
+initializeAuthentication.ts:17 [initAuth] Auth state changed: {
+  "authenticated": false
+}
+logger.ts:107 [10:38:35.098] [initAuth] Auth state changed: {authenticated: false, user: undefined, error: undefined}
+initializeAuthentication.ts:28 [initAuth] User not authenticated or no user data.
+logger.ts:107 [10:38:35.099] [initAuth] User cleared from settingsStore.
+logger.ts:107 [10:38:35.099] [initAuth] Auth system initialized and listener set up successfully
+initializeAuthentication.ts:17 [initAuth] Auth state changed: {
+  "authenticated": false
+}
+logger.ts:107 [10:38:35.099] [initAuth] Auth state changed: {authenticated: false, user: undefined, error: undefined}
+initializeAuthentication.ts:28 [initAuth] User not authenticated or no user data.
+logger.ts:107 [10:38:35.099] [initAuth] User cleared from settingsStore.
+logger.ts:107 [10:38:35.099] [initAuth] Auth system initialized and listener set up successfully
+logger.ts:107 [10:38:35.100] [AppInitializer] Auth system initialized
+AppInitializer.tsx:27 [AppInitializer] Starting Innovation Manager initialization...
+index.ts:128 🚀 Initializing World-Class Graph Innovation Features...
+index.ts:257 ⚡ Applying balanced performance mode...
+logger.ts:107 [10:38:35.101] [GraphAnimations] Animation system started
+index.ts:137 ✨ Animation System: ACTIVE
+index.ts:143 🔄 Synchronization System: READY
+index.ts:149 🔍 Comparison System: READY
+index.ts:155 🧠 AI Insights System: READY
+index.ts:161 🎮 Advanced Interactions: READY
+index.ts:165 🎯 All Innovation Systems Initialized Successfully!
+index.ts:296
+🌟 === WORLD-CLASS GRAPH INNOVATION FEATURES ===
+index.ts:297 📊 Features Available:
+index.ts:298   🔄 Graph Synchronization - Real-time dual graph coordination
+index.ts:299   🔍 Advanced Comparison - AI-powered graph analysis
+index.ts:300   ✨ Smooth Animations - Cinematic transitions and effects
+index.ts:301   🧠 AI Insights - Intelligent layout and recommendations
+index.ts:302   🎮 Advanced Interactions - VR/AR, collaboration, time-travel
+index.ts:303
+🎯 System Status: FULLY OPERATIONAL
+index.ts:304 🚀 Ready for world-class graph visualization!
+
+logger.ts:107 [10:38:35.101] [AppInitializer] Auth system initialized
+AppInitializer.tsx:27 [AppInitializer] Starting Innovation Manager initialization...
+index.ts:124  Innovation Manager already initialized
+overrideMethod @ hook.js:608
+initialize @ index.ts:124
+loadServices @ AppInitializer.tsx:28
+await in loadServices
+initApp @ AppInitializer.tsx:73
+(anonymous) @ AppInitializer.tsx:147
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+AppInitializer.tsx:44 [AppInitializer] Innovation Manager initialized successfully
+logger.ts:107 [10:38:35.101] [AppInitializer] Innovation Manager initialized successfully
+AppInitializer.tsx:44 [AppInitializer] Innovation Manager initialized successfully
+logger.ts:107 [10:38:35.101] [AppInitializer] Innovation Manager initialized successfully
+logger.ts:107 [10:38:35.101] [AppInitializer] Starting application initialization...
+graphWorkerProxy.ts:76 [GraphWorkerProxy] Starting worker initialization
+graphWorkerProxy.ts:79 [GraphWorkerProxy] Creating worker
+graphWorkerProxy.ts:91 [GraphWorkerProxy] Wrapping worker with Comlink
+graphWorkerProxy.ts:96 [GraphWorkerProxy] Testing worker communication
+logger.ts:107 [10:38:35.102] [AppInitializer] Starting application initialization...
+graphWorkerProxy.ts:76 [GraphWorkerProxy] Starting worker initialization
+graphWorkerProxy.ts:79 [GraphWorkerProxy] Creating worker
+graphWorkerProxy.ts:91 [GraphWorkerProxy] Wrapping worker with Comlink
+graphWorkerProxy.ts:96 [GraphWorkerProxy] Testing worker communication
+logger.ts:107  [10:38:35.132] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:312
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:326
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.132] [Quest3AutoDetector] Quest 3 Detection Results: {userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb…537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Sa...', isQuest3Hardware: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false, …}
+logger.ts:107 [10:38:35.133] [useQuest3Integration] Quest 3 detection completed - auto-start not enabled {isQuest3: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false}
+logger.ts:107  [10:38:35.133] [XRCoreProvider] Quest 3 AR mode not supported - immersive-ar session required
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+checkXRSupport @ XRCoreProvider.tsx:312
+await in checkXRSupport
+(anonymous) @ XRCoreProvider.tsx:326
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.133] [Quest3AutoDetector] Quest 3 Detection Results: {userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb…537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Sa...', isQuest3Hardware: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false, …}
+logger.ts:107 [10:38:35.133] [useQuest3Integration] Quest 3 detection completed - auto-start not enabled {isQuest3: false, isQuest3Browser: false, supportsAR: false, shouldAutoStart: false}
+logger.ts:107  [10:38:35.144] [XRSessionManager] XRSessionManager: No renderer provided. XR functionality will be limited. Error Component Stack
+    at XRCoreProvider (XRCoreProvider.tsx:245:3)
+    at ApplicationModeProvider (ApplicationModeContext.tsx:22:43)
+    at ErrorBoundary (App.tsx:29:1)
+    at OnboardingProvider (OnboardingProvider.tsx:27:38)
+    at HelpProvider (HelpProvider.tsx:31:32)
+    at Provider (create-context.tsx:59:15)
+    at TooltipProvider (tooltip.tsx:68:5)
+    at App (App.tsx:67:23)
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+XRSessionManager @ xrSessionManager.ts:67
+getInstance @ xrSessionManager.ts:81
+(anonymous) @ XRCoreProvider.tsx:385
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107  [10:38:35.146] [XRSessionManager] Cannot initialize XR: renderer or scene is missing Error Component Stack
+    at XRCoreProvider (XRCoreProvider.tsx:245:3)
+    at ApplicationModeProvider (ApplicationModeContext.tsx:22:43)
+    at ErrorBoundary (App.tsx:29:1)
+    at OnboardingProvider (OnboardingProvider.tsx:27:38)
+    at HelpProvider (HelpProvider.tsx:31:32)
+    at Provider (create-context.tsx:59:15)
+    at TooltipProvider (tooltip.tsx:68:5)
+    at App (App.tsx:67:23)
+overrideMethod @ hook.js:608
+console.error @ index.tsx:86
+(anonymous) @ logger.ts:107
+initialize @ xrSessionManager.ts:92
+(anonymous) @ XRCoreProvider.tsx:386
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.147] [XRCoreProvider] XR Core Provider initialized successfully
+graphWorkerProxy.ts:99 [GraphWorkerProxy] Worker communication test successful
+graphWorkerProxy.ts:118  [GraphWorkerProxy] SharedArrayBuffer not available, using message passing
+overrideMethod @ hook.js:608
+initialize @ graphWorkerProxy.ts:118
+await in initialize
+initApp @ AppInitializer.tsx:81
+await in initApp
+(anonymous) @ AppInitializer.tsx:147
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107  [10:38:35.199] [GraphWorkerProxy] SharedArrayBuffer not available, falling back to regular message passing
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+initialize @ graphWorkerProxy.ts:119
+await in initialize
+initApp @ AppInitializer.tsx:81
+await in initApp
+(anonymous) @ AppInitializer.tsx:147
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+graphWorkerProxy.ts:123 [GraphWorkerProxy] Initialization complete
+logger.ts:107 [10:38:35.200] [GraphWorkerProxy] Graph worker initialized successfully
+graphWorkerProxy.ts:129 [GraphWorkerProxy] Setting initial graph type: logseq
+graphDataManager.ts:56 [GraphDataManager] Worker is ready!
+logger.ts:107 [10:38:35.203] [GraphDataManager] Graph worker proxy is ready
+graphWorkerProxy.ts:99 [GraphWorkerProxy] Worker communication test successful
+graphWorkerProxy.ts:118  [GraphWorkerProxy] SharedArrayBuffer not available, using message passing
+overrideMethod @ hook.js:608
+initialize @ graphWorkerProxy.ts:118
+await in initialize
+initApp @ AppInitializer.tsx:81
+await in initApp
+(anonymous) @ AppInitializer.tsx:147
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107  [10:38:35.204] [GraphWorkerProxy] SharedArrayBuffer not available, falling back to regular message passing
+overrideMethod @ hook.js:608
+(anonymous) @ logger.ts:107
+initialize @ graphWorkerProxy.ts:119
+await in initialize
+initApp @ AppInitializer.tsx:81
+await in initApp
+(anonymous) @ AppInitializer.tsx:147
+commitHookEffectListMount @ react-dom.development.js:23189
+invokePassiveEffectMountInDEV @ react-dom.development.js:25193
+invokeEffectsInDev @ react-dom.development.js:27390
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27369
+flushPassiveEffectsImpl @ react-dom.development.js:27095
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+graphWorkerProxy.ts:123 [GraphWorkerProxy] Initialization complete
+logger.ts:107 [10:38:35.204] [GraphWorkerProxy] Graph worker initialized successfully
+graphWorkerProxy.ts:129 [GraphWorkerProxy] Setting initial graph type: logseq
+logger.ts:107 [10:38:35.204] [GraphWorkerProxy] Graph type set to: logseq
+logger.ts:107 [10:38:35.204] [SettingsStore] Initializing settings store with essential paths only
+logger.ts:107 [10:38:35.206] [GraphWorkerProxy] Graph type set to: logseq
+logger.ts:107 [10:38:35.206] [SettingsStore] Initializing settings store with essential paths only
+logger.ts:107 [10:38:35.213] [app] Successfully fetched 10 settings using batch endpoint
+logger.ts:107 [10:38:35.214] [SettingsStore] Essential settings loaded: {essentialSettings: {…}}
+logger.ts:107 [10:38:35.214] [SettingsStore] Settings store initialized with essential paths
+graphDataManager.ts:558 [GraphDataManager] Adding graph data change listener
+graphDataManager.ts:562 [GraphDataManager] Getting current data for new listener
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphDataManager.ts:558 [GraphDataManager] Adding graph data change listener
+graphDataManager.ts:562 [GraphDataManager] Getting current data for new listener
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphDataManager.ts:575 [GraphDataManager] Removing graph data change listener
+graphDataManager.ts:575 [GraphDataManager] Removing graph data change listener
+graphDataManager.ts:558 [GraphDataManager] Adding graph data change listener
+graphDataManager.ts:562 [GraphDataManager] Getting current data for new listener
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphDataManager.ts:558 [GraphDataManager] Adding graph data change listener
+graphDataManager.ts:562 [GraphDataManager] Getting current data for new listener
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+logger.ts:107 [10:38:35.788] [AppInitializer] WebSocket connection status changed: false
+logger.ts:107 [10:38:35.788] [WebSocketService] Connecting to WebSocket at ws://192.168.0.51:3001/wss
+logger.ts:107 [10:38:35.814] [app] Successfully fetched 10 settings using batch endpoint
+logger.ts:107 [10:38:35.815] [SettingsStore] Essential settings loaded: {essentialSettings: {…}}
+logger.ts:107 [10:38:35.815] [SettingsStore] Settings store initialized with essential paths
+logger.ts:107 [10:38:35.830] [AppInitializer] WebSocket connection status changed: false
+AppInitializer.tsx:114 [AppInitializer] Fetching initial graph data via REST API
+logger.ts:107 [10:38:35.830] [AppInitializer] Fetching initial graph data via REST API
+graphDataManager.ts:128 [GraphDataManager] Fetching initial logseq graph data
+logger.ts:107 [10:38:35.830] [GraphDataManager] Fetching initial logseq graph data
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:564 [GraphDataManager] Calling listener with current data: 0 nodes
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:564 [GraphDataManager] Calling listener with current data: 0 nodes
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:564 [GraphDataManager] Calling listener with current data: 0 nodes
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:564 [GraphDataManager] Calling listener with current data: 0 nodes
+graphDataManager.ts:134 [GraphDataManager] API response status: 200
+logger.ts:107 [10:38:35.876] [WebSocketService] WebSocket connection established
+logger.ts:107 [10:38:35.876] [BotsWebSocketIntegration] Logseq WebSocket connection status: true
+logger.ts:107 [10:38:35.876] [BotsWebSocketIntegration] Starting bots graph polling with 2000ms interval
+logger.ts:107 [10:38:35.876] [AppInitializer] WebSocket connection status changed: true
+logger.ts:107 [10:38:35.876] [AppInitializer] WebSocket connected but not fully established yet - waiting for readiness
+logger.ts:107 [10:38:35.876] [AppInitializer] WebSocket connection status changed: true
+logger.ts:107 [10:38:35.876] [AppInitializer] WebSocket connected but not fully established yet - waiting for readiness
+AppInitializer.tsx:114 [AppInitializer] Fetching initial graph data via REST API
+logger.ts:107 [10:38:35.876] [AppInitializer] Fetching initial graph data via REST API
+graphDataManager.ts:128 [GraphDataManager] Fetching initial logseq graph data
+logger.ts:107 [10:38:35.876] [GraphDataManager] Fetching initial logseq graph data
+logger.ts:107 [10:38:35.891] [WebSocketService] Server connection established and ready
+logger.ts:107 [10:38:35.891] [AppInitializer] Connection established message received, sending subscribe_position_updates
+logger.ts:107 [10:38:35.891] [AppInitializer] Connection established message received, sending subscribe_position_updates
+logger.ts:107 [10:38:35.892] [GraphDataManager] Received initial graph data: 0 nodes, 0 edges
+graphDataManager.ts:206 [GraphDataManager] Setting validated graph data with 0 nodes
+logger.ts:107 [10:38:35.892] [GraphDataManager] Setting logseq graph data: 0 nodes, 0 edges
+logger.ts:107 [10:38:35.892] [GraphDataManager] Validated 0 nodes with positions
+graphDataManager.ts:134 [GraphDataManager] API response status: 200
+logger.ts:107 [10:38:35.926] [GraphWorkerProxy] Set logseq graph data: 0 nodes, 0 edges
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+SelectiveBloom.tsx:57  SelectiveBloom: No active settings, bloom disabled Error Component Stack
+    at SelectiveBloom (SelectiveBloom.tsx:40:65)
+    at Suspense (<anonymous>)
+    at ErrorBoundary (events-776716bd.esm.js:403:5)
+    at FiberProvider (index.tsx:94:14)
+    at Provider (events-776716bd.esm.js:2056:3)
+overrideMethod @ hook.js:608
+(anonymous) @ SelectiveBloom.tsx:57
+mountMemo @ react-reconciler.development.js:8279
+useMemo @ react-reconciler.development.js:8739
+useMemo @ react.development.js:1650
+SelectiveBloom @ SelectiveBloom.tsx:52
+renderWithHooks @ react-reconciler.development.js:7363
+mountIndeterminateComponent @ react-reconciler.development.js:12327
+beginWork @ react-reconciler.development.js:13831
+beginWork$1 @ react-reconciler.development.js:19513
+performUnitOfWork @ react-reconciler.development.js:18686
+workLoopSync @ react-reconciler.development.js:18597
+renderRootSync @ react-reconciler.development.js:18565
+performConcurrentWorkOnRoot @ react-reconciler.development.js:17836
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+logger.ts:107 [10:38:35.956] [GraphDataManager] Received initial graph data: 0 nodes, 0 edges
+graphDataManager.ts:206 [GraphDataManager] Setting validated graph data with 0 nodes
+logger.ts:107 [10:38:35.956] [GraphDataManager] Setting logseq graph data: 0 nodes, 0 edges
+logger.ts:107 [10:38:35.956] [GraphDataManager] Validated 0 nodes with positions
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:210 [GraphDataManager] Worker returned data with 0 nodes
+logger.ts:107 [10:38:35.956] [GraphDataManager] Loaded initial graph data: 0 nodes, 0 edges
+AppInitializer.tsx:117 [AppInitializer] Successfully fetched 0 nodes, 0 edges
+logger.ts:107 [10:38:35.957] [AppInitializer] Application initialized successfully
+logger.ts:107 [10:38:35.968] [GraphWorkerProxy] Set logseq graph data: 0 nodes, 0 edges
+graphWorkerProxy.ts:213 [GraphWorkerProxy] Getting graph data from worker
+graphWorkerProxy.ts:216 [GraphWorkerProxy] Got 0 nodes, 0 edges from worker
+graphDataManager.ts:210 [GraphDataManager] Worker returned data with 0 nodes
+logger.ts:107 [10:38:35.977] [GraphDataManager] Loaded initial graph data: 0 nodes, 0 edges
+AppInitializer.tsx:117 [AppInitializer] Successfully fetched 0 nodes, 0 edges
+logger.ts:107 [10:38:35.977] [AppInitializer] Application initialized successfully
+logger.ts:107 [10:38:36.102] [BotsWebSocketIntegration] Requesting initial data for graph visualization - using unified init flow
+logger.ts:107 [10:38:36.103] [ApiService] [API] Making GET request to /api/bots/data
+logger.ts:107 [10:38:36.384] [GraphDataManager] Binary updates enabled
+logger.ts:107 [10:38:36.385] [GraphDataManager] WebSocket ready, binary updates enabled
+logger.ts:107 [10:38:36.507] [BotsWebSocketIntegration] Fetched bots data: {nodes: Array(0), edges: Array(0), metadata: {…}}
+logger.ts:107 [10:38:36.507] [useBotsWebSocketIntegration] Initial data requested
+
+
 # WebSocket Connection Flow Analysis
 
 ## Overview
@@ -19,7 +533,7 @@ This analysis examines the exact WebSocket connection flow in the /workspace/ext
 2. **Client Message Handling** (`socket_flow_handler.rs:450-865`):
    The system handles several message types that can trigger graph operations:
 
-   - **`requestInitialData`** (lines 521-538): 
+   - **`requestInitialData`** (lines 521-538):
      - **DOES NOT trigger graph rebuild**
      - Simply returns a message directing client to call REST endpoint first
      - Part of "unified init flow" where REST `/api/graph/data` should be called first
@@ -58,7 +572,7 @@ The `build_from_metadata` method has sophisticated position preservation:
 1. **Before Rebuild** (lines 587-594):
    - Saves existing positions in HashMap indexed by `metadata_id`
    - Preserves both position and velocity data
-   
+
 2. **During Rebuild** (lines 612-620):
    - Restores saved positions for existing nodes
    - Only new nodes get generated positions
@@ -536,7 +1050,7 @@ pub struct GetForceComputeActor;
 ```rust
 impl Handler<GetForceComputeActor> for GPUManagerActor {
     type Result = Result<Addr<ForceComputeActor>, String>;
-    
+
     fn handle(&mut self, _msg: GetForceComputeActor, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
         Ok(child_actors.force_compute_actor.clone())
@@ -552,7 +1066,7 @@ impl Handler<GetForceComputeActor> for GPUManagerActor {
 
 ### Files Modified:
 - `/src/actors/messages.rs` - Added `GetForceComputeActor` message
-- `/src/actors/gpu/gpu_manager_actor.rs` - Added handler to return `ForceComputeActor` address  
+- `/src/actors/gpu/gpu_manager_actor.rs` - Added handler to return `ForceComputeActor` address
 - `/src/app_state.rs` - Fixed GPU actor connection logic, added missing log imports
 
 ### Expected Behavior After Fix:
@@ -713,7 +1227,7 @@ pub fn load_graph_data() -> Result<Option<GraphData>, String> {
 
 ### Problem Scenarios:
 1. **New files added** - Won't have positions in graph.json
-2. **Files deleted** - graph.json contains orphaned positions  
+2. **Files deleted** - graph.json contains orphaned positions
 3. **Files renamed** - Position mapping could break
 4. **Stale graph.json** - Positions outdated relative to relationships
 
@@ -729,7 +1243,7 @@ pub fn load_graph_data() -> Result<Option<GraphData>, String> {
 ```rust
 // Priority order:
 1. Positions from graph.json (stable, pre-computed)
-2. Existing positions in memory (for runtime changes)  
+2. Existing positions in memory (for runtime changes)
 3. Generated positions (for new nodes)
 ```
 

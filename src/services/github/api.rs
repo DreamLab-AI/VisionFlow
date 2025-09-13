@@ -1,6 +1,6 @@
 use reqwest::Client;
 use std::time::Duration;
-use log::debug;
+use log::{debug, info};
 use super::config::GitHubConfig;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -151,10 +151,15 @@ impl GitHubClient {
                 decoded_base, decoded_path);
         }
         
-        let full_path = if !decoded_base.is_empty() {
+        let full_path = if decoded_base.is_empty() {
+            if debug_enabled {
+                log::debug!("Base path is empty, using decoded path only: '{}'", decoded_path);
+            }
+            decoded_path
+        } else {
             if decoded_path.is_empty() {
                 if debug_enabled {
-                    log::debug!("Using base path only: '{}'", decoded_base);
+                    log::debug!("Path is empty, using base path only: '{}'", decoded_base);
                 }
                 decoded_base
             } else {
@@ -164,11 +169,6 @@ impl GitHubClient {
                 }
                 combined
             }
-        } else {
-            if debug_enabled {
-                log::debug!("Using decoded path only: '{}'", decoded_path);
-            }
-            decoded_path
         };
 
         let encoded = url::form_urlencoded::byte_serialize(full_path.as_bytes())
@@ -187,16 +187,12 @@ impl GitHubClient {
         let debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
-        if debug_enabled {
-            debug!("Constructing contents URL - Owner: '{}', Repo: '{}', Path: '{}'",
-                self.owner, self.repo, path);
-        }
+        info!("get_contents_url: Building GitHub API URL - Owner: '{}', Repo: '{}', Base path: '{}', Input path: '{}'",
+            self.owner, self.repo, self.base_path, path);
 
         let full_path = self.get_full_path(path).await;
         
-        if debug_enabled {
-            debug!("Encoded full path: '{}'", full_path);
-        }
+        info!("get_contents_url: Full path after encoding: '{}'", full_path);
 
         let url = format!(
             "https://api.github.com/repos/{}/{}/contents/{}",
@@ -205,9 +201,7 @@ impl GitHubClient {
             full_path
         );
 
-        if debug_enabled {
-            debug!("Final contents URL: '{}'", url);
-        }
+        info!("get_contents_url: Final GitHub API URL: '{}'", url);
 
         url
     }

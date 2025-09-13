@@ -36,5 +36,5 @@ if [ ! -f "${RUST_BINARY}" ]; then
     exit 1
 fi
 
-log "Starting Rust backend from ${RUST_BINARY}..."
-exec ${RUST_BINARY} --gpu-debug
+log "Starting Rust backend from ${RUST_BINARY} with strace..."
+exec strace -o /app/logs/rust-strace.log ${RUST_BINARY}

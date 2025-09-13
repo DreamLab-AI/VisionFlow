@@ -12,7 +12,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use std::collections::HashMap;
 
-const MARKDOWN_DIR: &str = "data/markdown";
+const MARKDOWN_DIR: &str = "/app/data/markdown";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct PerplexityResponse {
