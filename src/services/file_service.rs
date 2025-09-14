@@ -331,42 +331,42 @@ impl FileService {
                 let content_api = content_api.clone();
                 
                 futures.push(async move {
-                    // First check if file is public
-                    match content_api.check_file_public(&file_basic_meta.download_url).await {
-                        Ok(is_public) => {
+                    // Fetch extended metadata for the file
+                    let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
+                        Ok(meta) => meta,
+                        Err(e) => {
+                            error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
+                            return Err(e);
+                        }
+                    };
+
+                    // Fetch content to check "public:: true"
+                    match content_api.fetch_file_content(&file_extended_meta.download_url).await {
+                        Ok(content) => {
+                            // Check if first line contains "public:: true"
+                            let is_public = if let Some(first_line) = content.lines().next() {
+                                first_line.trim() == "public:: true"
+                            } else {
+                                false
+                            };
+
                             if !is_public {
-                                debug!("Skipping non-public file: {}", file_basic_meta.name);
+                                debug!("Skipping file without 'public:: true': {}", file_basic_meta.name);
                                 return Ok(None);
                             }
 
-                            // Fetch extended metadata for the file
-                            let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
-                                Ok(meta) => meta,
-                                Err(e) => {
-                                    error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
-                                    return Err(e);
-                                }
-                            };
-
-                            // Only fetch full content for public files
-                            match content_api.fetch_file_content(&file_extended_meta.download_url).await {
-                                Ok(content) => {
-                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
-                                    if let Err(e) = fs::write(&file_path, &content) {
-                                        error!("Failed to write file {}: {}", file_path, e);
-                                        return Err(e.into());
-                                    }
-
-                                    Ok(Some((file_extended_meta, content)))
-                                }
-                                Err(e) => {
-                                    error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
-                                    Err(e)
-                                }
+                            let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
+                            if let Err(e) = fs::write(&file_path, &content) {
+                                error!("Failed to write file {}: {}", file_path, e);
+                                return Err(e.into());
                             }
+                            
+                            info!("fetch_and_process_files: Successfully wrote {} to {}", file_extended_meta.name, file_path);
+
+                            Ok(Some((file_extended_meta, content)))
                         }
                         Err(e) => {
-                            error!("Failed to check public status for {}: {}", file_basic_meta.name, e);
+                            error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
                             Err(e)
                         }
                     }
@@ -537,6 +537,58 @@ impl FileService {
         re.find_iter(content).count()
     }
 
+    /// Check if a file should be processed based on SHA comparison and "public:: true" check
+    async fn should_process_file(
+        &self,
+        file_name: &str,
+        github_blob_sha: &str,
+        content_api: &ContentAPI,
+        download_url: &str,
+        metadata_store: &MetadataStore,
+    ) -> Result<bool, Box<dyn StdError + Send + Sync>> {
+        // Check if file exists in metadata
+        if let Some(existing_metadata) = metadata_store.get(file_name) {
+            // Compare GitHub blob SHA with stored SHA
+            if let Some(stored_sha) = &existing_metadata.file_blob_sha {
+                if stored_sha == github_blob_sha {
+                    info!("should_process_file: File {} has unchanged SHA, skipping", file_name);
+                    return Ok(false);
+                } else {
+                    info!("should_process_file: File {} SHA changed (old: {}, new: {})", file_name, stored_sha, github_blob_sha);
+                }
+            } else {
+                info!("should_process_file: File {} has no stored SHA, will check content", file_name);
+            }
+        } else {
+            info!("should_process_file: File {} is new, will check content", file_name);
+        }
+
+        // File is new or changed, download content to check first line
+        info!("should_process_file: Downloading content for {} to check public tag", file_name);
+        match content_api.fetch_file_content(download_url).await {
+            Ok(content) => {
+                // Check if first line contains "public:: true"
+                if let Some(first_line) = content.lines().next() {
+                    let is_public = first_line.trim().to_lowercase() == "public:: true";
+                    if !is_public {
+                        info!("should_process_file: File {} does not have 'public:: true' on first line (found: '{}'), skipping", file_name, first_line.trim());
+                    } else {
+                        info!("should_process_file: File {} has 'public:: true' tag, will process", file_name);
+                    }
+                    Ok(is_public)
+                } else {
+                    // Empty file, consider as non-public
+                    info!("should_process_file: File {} is empty, skipping", file_name);
+                    Ok(false)
+                }
+            }
+            Err(e) => {
+                error!("Failed to fetch content for {}: {}", file_name, e);
+                Err(Box::new(e))
+            }
+        }
+    }
+
     /// Fetch and process files from GitHub
     pub async fn fetch_and_process_files(
         &self,
@@ -580,71 +632,96 @@ impl FileService {
             for file_basic_meta in chunk {
                 let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
-                debug!("fetch_and_process_files: Processing file: {}", file_basic_meta.name);
+                let metadata_store_clone = metadata_store.clone();
+                
+                info!("fetch_and_process_files: Checking file: {}", file_basic_meta.name);
                 
                 futures.push(async move {
-                    // First check if file is public
-                    match content_api.check_file_public(&file_basic_meta.download_url).await {
-                        Ok(is_public) => {
+                    // Fetch extended metadata for the file first
+                    let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
+                        Ok(meta) => meta,
+                        Err(e) => {
+                            error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
+                            return Err(e);
+                        }
+                    };
+
+                    // Check if file exists in metadata and compare SHA
+                    let needs_download = if let Some(existing_metadata) = metadata_store_clone.get(&file_extended_meta.name) {
+                        if let Some(stored_sha) = &existing_metadata.file_blob_sha {
+                            if stored_sha == &file_extended_meta.sha {
+                                info!("fetch_and_process_files: File {} has unchanged SHA, skipping download", file_extended_meta.name);
+                                false
+                            } else {
+                                info!("fetch_and_process_files: File {} SHA changed (old: {}, new: {})", 
+                                     file_extended_meta.name, stored_sha, file_extended_meta.sha);
+                                true
+                            }
+                        } else {
+                            info!("fetch_and_process_files: File {} has no stored SHA, will download", file_extended_meta.name);
+                            true
+                        }
+                    } else {
+                        info!("fetch_and_process_files: File {} is new, will download", file_extended_meta.name);
+                        true
+                    };
+
+                    if !needs_download {
+                        return Ok(None);
+                    }
+
+                    // Download content to check first line for "public:: true"
+                    match content_api.fetch_file_content(&file_extended_meta.download_url).await {
+                        Ok(content) => {
+                            // Check if first line contains "public:: true"
+                            let first_line = content.lines().next().unwrap_or("");
+                            let is_public = first_line.trim().to_lowercase() == "public:: true";
+                            
                             if !is_public {
-                                info!("fetch_and_process_files: Skipping non-public file: {}", file_basic_meta.name);
+                                info!("fetch_and_process_files: File {} does not have 'public:: true' on first line (found: '{}')", 
+                                     file_extended_meta.name, first_line.trim());
                                 return Ok(None);
                             }
-                            debug!("fetch_and_process_files: File {} is public, fetching content", file_basic_meta.name);
+                            
+                            info!("fetch_and_process_files: File {} is marked as public, writing to disk", file_extended_meta.name);
 
-                            // Fetch extended metadata for the file
-                            let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
-                                Ok(meta) => meta,
-                                Err(e) => {
-                                    error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
-                                    return Err(e);
-                                }
+                            let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
+                            if let Err(e) = fs::write(&file_path, &content) {
+                                error!("Failed to write file {}: {}", file_path, e);
+                                return Err(e.into());
+                            }
+                            
+                            info!("fetch_and_process_files: Successfully wrote {} to {}", file_extended_meta.name, file_path);
+
+                            let file_size = content.len();
+                            let node_size = Self::calculate_node_size(file_size);
+
+                            let metadata = Metadata {
+                                file_name: file_extended_meta.name.clone(),
+                                file_size,
+                                node_size,
+                                node_id: "0".to_string(), // Will be assigned properly later
+                                hyperlink_count: Self::count_hyperlinks(&content),
+                                sha1: Self::calculate_sha1(&content),
+                                last_modified: file_extended_meta.last_content_modified, // Use last_content_modified from extended metadata
+                                last_content_change: Some(file_extended_meta.last_content_modified),
+                                last_commit: Some(file_extended_meta.last_content_modified), // Assuming last_commit is same as last_content_modified for simplicity
+                                change_count: None, // Could be populated with API calls to get commit count
+                                file_blob_sha: Some(file_extended_meta.sha.clone()), // Use SHA from extended metadata as file_blob_sha
+                                perplexity_link: String::new(),
+                                last_perplexity_process: None,
+                                topic_counts: HashMap::new(), // Will be updated later
                             };
 
-                            // Only fetch full content for public files
-                            match content_api.fetch_file_content(&file_extended_meta.download_url).await {
-                                Ok(content) => {
-                                    let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
-                                    if let Err(e) = fs::write(&file_path, &content) {
-                                        error!("Failed to write file {}: {}", file_path, e);
-                                        return Err(e.into());
-                                    }
-
-                                    let file_size = content.len();
-                                    let node_size = Self::calculate_node_size(file_size);
-
-                                    let metadata = Metadata {
-                                        file_name: file_extended_meta.name.clone(),
-                                        file_size,
-                                        node_size,
-                                        node_id: "0".to_string(), // Will be assigned properly later
-                                        hyperlink_count: Self::count_hyperlinks(&content),
-                                        sha1: Self::calculate_sha1(&content),
-                                        last_modified: file_extended_meta.last_content_modified, // Use last_content_modified from extended metadata
-                                        last_content_change: Some(file_extended_meta.last_content_modified),
-                                        last_commit: Some(file_extended_meta.last_content_modified), // Assuming last_commit is same as last_content_modified for simplicity
-                                        change_count: None, // Could be populated with API calls to get commit count
-                                        file_blob_sha: Some(file_extended_meta.sha.clone()), // Use SHA from extended metadata as file_blob_sha
-                                        perplexity_link: String::new(),
-                                        last_perplexity_process: None,
-                                        topic_counts: HashMap::new(), // Will be updated later
-                                    };
-
-                                    Ok(Some(ProcessedFile {
-                                        file_name: file_extended_meta.name.clone(),
-                                        content,
-                                        is_public: true,
-                                        metadata,
-                                    }))
-                                }
-                                Err(e) => {
-                                    error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
-                                    Err(e)
-                                }
-                            }
+                            Ok(Some(ProcessedFile {
+                                file_name: file_extended_meta.name.clone(),
+                                content,
+                                is_public: true,
+                                metadata,
+                            }))
                         }
                         Err(e) => {
-                            error!("Failed to check public status for {}: {}", file_basic_meta.name, e);
+                            error!("Failed to fetch content for {}: {}", file_basic_meta.name, e);
                             Err(e)
                         }
                     }
@@ -671,6 +748,11 @@ impl FileService {
 
         // Assign node IDs to any new files
         self.update_node_ids(&mut processed_files);
+
+        // Update metadata store with processed files
+        for processed_file in &processed_files {
+            metadata_store.insert(processed_file.file_name.clone(), processed_file.metadata.clone());
+        }
 
         // Update topic counts after all files are processed
         Self::update_topic_counts(metadata_store)?;

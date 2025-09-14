@@ -162,6 +162,12 @@ impl GitHubClient {
                     log::debug!("Path is empty, using base path only: '{}'", decoded_base);
                 }
                 decoded_base
+            } else if decoded_path.starts_with(&decoded_base) {
+                // Path already contains base path, don't duplicate it
+                if debug_enabled {
+                    log::debug!("Path already contains base path, using as-is: '{}'", decoded_path);
+                }
+                decoded_path
             } else {
                 let combined = format!("{}/{}", decoded_base, decoded_path);
                 if debug_enabled {
