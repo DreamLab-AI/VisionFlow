@@ -662,13 +662,22 @@ impl GraphServiceActor {
 
         // Phase 2: Generate enhanced edges with multi-modal similarities  
         info!("Phase 2: Generating enhanced edges with multi-modal similarities");
+        info!("Semantic features cache contains {} entries", self.semantic_features_cache.len());
+        for (id, features) in &self.semantic_features_cache {
+            debug!("Semantic feature ID: '{}' (topics: {})", id, features.topics.len());
+        }
+        
         let enhanced_edges = self.edge_generator.generate(&self.semantic_features_cache);
+        info!("Generated {} enhanced edges", enhanced_edges.len());
         
         // Convert enhanced edges to basic edges and add topic-based edges
         let mut edge_map: HashMap<(u32, u32), f32> = HashMap::new();
         
         // Add semantic similarity edges
-        for enhanced_edge in enhanced_edges {
+        for enhanced_edge in &enhanced_edges {
+            debug!("Processing enhanced edge: {} -> {} (weight: {})", 
+                enhanced_edge.source, enhanced_edge.target, enhanced_edge.weight);
+            
             // Find node IDs from metadata IDs
             if let (Some(source_node), Some(target_node)) = (
                 self.node_map.values().find(|n| n.metadata_id == enhanced_edge.source),
