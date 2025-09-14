@@ -217,7 +217,8 @@ impl SemanticAnalyzer {
 
     /// Analyze metadata to extract semantic features
     pub fn analyze_metadata(&mut self, metadata: &Metadata) -> SemanticFeatures {
-        let id = metadata.file_name.clone();
+        // Use filename without .md extension to match node metadata IDs
+        let id = metadata.file_name.trim_end_matches(".md").to_string();
         
         // Check cache
         if self.config.enable_caching {

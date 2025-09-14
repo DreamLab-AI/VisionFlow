@@ -51,7 +51,7 @@ impl Default for SimilarityWeights {
 impl Default for EdgeGenerationConfig {
     fn default() -> Self {
         Self {
-            similarity_threshold: 0.3,
+            similarity_threshold: 0.1,  // Lowered from 0.3 to ensure edge generation
             weights: SimilarityWeights::default(),
             max_edges_per_node: 20,
             enable_semantic: true,
