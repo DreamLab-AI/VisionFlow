@@ -16,15 +16,15 @@ if [ "${SKIP_RUST_REBUILD:-false}" != "true" ]; then
     log "Rebuilding Rust backend with GPU support to apply code changes..."
     cd /app
     
-    # Build with GPU features
-    if cargo build --release --features gpu; then
-        log "✓ Rust backend rebuilt successfully"
+    # Build with GPU features (debug build for development)
+    if cargo build --features gpu; then
+        log "✓ Rust backend rebuilt successfully (debug build)"
     else
         log "ERROR: Failed to rebuild Rust backend"
         exit 1
     fi
     
-    RUST_BINARY="/app/target/release/webxr"
+    RUST_BINARY="/app/target/debug/webxr"
 else
     log "Skipping Rust rebuild (SKIP_RUST_REBUILD=true)"
     RUST_BINARY="/app/webxr"
@@ -36,5 +36,5 @@ if [ ! -f "${RUST_BINARY}" ]; then
     exit 1
 fi
 
-log "Starting Rust backend from ${RUST_BINARY} with strace..."
-exec strace -o /app/logs/rust-strace.log ${RUST_BINARY}
+log "Starting Rust backend from ${RUST_BINARY}..."
+exec ${RUST_BINARY}

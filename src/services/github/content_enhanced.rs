@@ -70,17 +70,6 @@ impl EnhancedContentAPI {
         Ok(markdown_files)
     }
 
-    /// Check if a file is public (i.e., its download_url is accessible without authentication)
-    pub async fn check_file_public(&self, download_url: &str) -> VisionFlowResult<bool> {
-        debug!("Checking if file is public: {}", download_url);
-        let client = reqwest::Client::builder()
-            .user_agent("github-public-file-checker")
-            .timeout(std::time::Duration::from_secs(10))
-            .build()?;
-
-        let response = client.get(download_url).send().await?;
-        Ok(response.status().is_success())
-    }
 
     /// Fetch the content of a file from its download URL
     pub async fn fetch_file_content(&self, download_url: &str) -> VisionFlowResult<String> {
@@ -262,10 +251,17 @@ impl EnhancedContentAPI {
 
         let content_data: Value = response.json().await?;
         
-        // Get last content modification date
-        let last_content_modified = self
+        // Get last content modification date, fallback to current time if no commit history
+        let last_content_modified = match self
             .get_file_content_last_modified(file_path, true)
-            .await?;
+            .await {
+                Ok(date) => date,
+                Err(e) => {
+                    // Log the error but continue with current time
+                    debug!("Could not get commit history for {}: {}. Using current time.", file_path, e);
+                    Utc::now()
+                }
+            };
 
         Ok(ExtendedFileMetadata {
             name: content_data["name"].as_str().unwrap_or("").to_string(),

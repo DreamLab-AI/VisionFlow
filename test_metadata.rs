@@ -29,8 +29,8 @@ pub struct Metadata {
 type MetadataStore = HashMap<String, Metadata>;
 
 fn main() {
-    let metadata_path = "/workspace/ext/data/metadata/metadata.json";
-    
+    let metadata_path = "/app/data/metadata/metadata.json";
+
     match File::open(metadata_path) {
         Ok(file) => {
             println!("Loading metadata from {}", metadata_path);
