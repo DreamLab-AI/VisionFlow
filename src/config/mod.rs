@@ -290,10 +290,10 @@ pub struct NodeSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
-    #[validate(range(min = 0.1, max = 10.0))]
+    #[validate(range(min = 0.01, max = 5.0))]
     #[serde(alias = "arrow_size")]
     pub arrow_size: f32,
-    #[validate(range(min = 0.1, max = 10.0))]
+    #[validate(range(min = 0.01, max = 5.0))]
     #[serde(alias = "base_width")]
     pub base_width: f32,
     #[validate(custom(function = "validate_hex_color"))]

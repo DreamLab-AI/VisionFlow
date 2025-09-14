@@ -68,7 +68,7 @@ visualisation:
       nodes:
         baseColor: '#db3939'
         metalness: 0.20965025
-        opacity: 0.23711348
+        opacity: 0.33048844
         roughness: 0.25633773
         nodeSize: 0.68118143
         quality: high
@@ -455,3 +455,4 @@ whisper:
   returnTimestamps: false
   vadFilter: true
   wordTimestamps: false
+version: 1.0.0

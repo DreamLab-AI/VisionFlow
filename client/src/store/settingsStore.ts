@@ -582,6 +582,20 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.featureFlags = Math.max(0, Math.min(255, Math.floor(validatedParams.featureFlags)));
         }
         
+        // Validate edge/arrow settings to prevent server validation errors
+        if (validatedParams.arrow_size !== undefined) {
+          validatedParams.arrow_size = Math.max(0.01, Math.min(5.0, validatedParams.arrow_size));
+        }
+        if (validatedParams.arrowSize !== undefined) {
+          validatedParams.arrowSize = Math.max(0.01, Math.min(5.0, validatedParams.arrowSize));
+        }
+        if (validatedParams.base_width !== undefined) {
+          validatedParams.base_width = Math.max(0.01, Math.min(5.0, validatedParams.base_width));
+        }
+        if (validatedParams.baseWidth !== undefined) {
+          validatedParams.baseWidth = Math.max(0.01, Math.min(5.0, validatedParams.baseWidth));
+        }
+        
         // Validate existing parameters with updated ranges
         if (validatedParams.springK !== undefined) {
           validatedParams.springK = Math.max(0.001, Math.min(10.0, validatedParams.springK));
