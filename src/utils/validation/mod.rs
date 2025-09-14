@@ -3,6 +3,7 @@ pub mod sanitization;
 pub mod rate_limit;
 pub mod middleware;
 pub mod errors;
+pub mod position_validator;
 
 use errors::DetailedValidationError;
 

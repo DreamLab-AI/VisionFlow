@@ -2,7 +2,9 @@ import { createLogger, createErrorMetadata } from '../utils/logger';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore'; // Keep alias here for now, fix later if needed
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
-import { parseBinaryNodeData, isAgentNode, createBinaryNodeData } from '../types/binaryProtocol';
+import { parseBinaryNodeData, isAgentNode, createBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
+import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/BatchQueue';
+import { validateNodePositions, createValidationMiddleware } from '../utils/validation';
 
 const logger = createLogger('WebSocketService');
 
@@ -14,6 +16,18 @@ export interface WebSocketAdapter {
 export interface WebSocketMessage {
   type: string;
   data?: any;
+  error?: WebSocketErrorFrame;
+}
+
+export interface WebSocketErrorFrame {
+  code: string;
+  message: string;
+  category: 'validation' | 'server' | 'protocol' | 'auth' | 'rate_limit';
+  details?: any;
+  retryable: boolean;
+  retryAfter?: number; // milliseconds
+  affectedPaths?: string[]; // For settings errors
+  timestamp: number;
 }
 
 export interface QueuedMessage {
@@ -62,6 +76,8 @@ class WebSocketService {
     reconnectAttempts: 0
   };
   private connectionStateHandlers: ConnectionStateHandler[] = [];
+  private positionBatchQueue: NodePositionBatchQueue | null = null;
+  private binaryMessageCount: number = 0;
 
   private constructor() {
     // Default WebSocket URL
@@ -242,6 +258,9 @@ class WebSocketService {
       logger.info('WebSocket connection established');
     }
     
+    // Initialize the batch queue for position updates
+    this.initializeBatchQueue();
+    
     this.notifyConnectionStatusHandlers(true);
     this.startHeartbeat();
     this.processMessageQueue();
@@ -310,6 +329,12 @@ class WebSocketService {
         if (debugState.isEnabled()) {
           logger.info('Server connection established and ready');
         }
+      }
+      
+      // Handle error frames
+      if (message.type === 'error' && message.error) {
+        this.handleErrorFrame(message.error);
+        return;
       }
 
       // BREADCRUMB: Physics settings are updated via REST API, not WebSocket
@@ -507,34 +532,121 @@ class WebSocketService {
   }
 
   /**
+   * Initialize the batch queue for position updates
+   */
+  private initializeBatchQueue(): void {
+    if (this.positionBatchQueue) {
+      this.positionBatchQueue.destroy();
+    }
+
+    // Create validation middleware
+    const validationMiddleware = createValidationMiddleware({
+      maxNodes: 10000,
+      maxCoordinate: 10000,
+      minCoordinate: -10000,
+      maxVelocity: 1000
+    });
+
+    // Create batch processor with validation
+    const batchProcessor = createWebSocketBatchProcessor((data: ArrayBuffer) => {
+      if (!this.isConnected || !this.socket) {
+        logger.warn('Cannot send batch: WebSocket not connected');
+        return;
+      }
+      
+      try {
+        this.socket.send(data);
+        
+        if (debugState.isDataDebugEnabled()) {
+          logger.debug(`Sent binary batch: ${data.byteLength} bytes`);
+        }
+      } catch (error) {
+        logger.error('Error sending batch:', createErrorMetadata(error));
+        throw error; // Re-throw to trigger retry logic
+      }
+    });
+
+    // Create position batch queue
+    this.positionBatchQueue = new NodePositionBatchQueue({
+      processBatch: async (batch: BinaryNodeData[]) => {
+        // Validate batch before sending
+        const validatedBatch = validationMiddleware(batch);
+        
+        if (validatedBatch.length === 0) {
+          logger.warn('All nodes in batch failed validation');
+          return;
+        }
+
+        await batchProcessor.processBatch(validatedBatch);
+      },
+      onError: batchProcessor.onError,
+      onSuccess: batchProcessor.onSuccess
+    });
+
+    logger.info('Position batch queue initialized');
+  }
+
+  /**
    * Send position updates for nodes that have been moved by user interaction
+   * Updates are now batched for better performance
    * @param updates Array of node position updates
    */
   public sendNodePositionUpdates(updates: Array<{nodeId: number, position: {x: number, y: number, z: number}, velocity?: {x: number, y: number, z: number}}>): void {
-    if (!this.isConnected || !this.socket) {
-      logger.warn('Cannot send position updates: WebSocket not connected');
+    if (!this.positionBatchQueue) {
+      logger.warn('Position batch queue not initialized');
       return;
     }
 
     try {
-      // Convert updates to binary format
-      const binaryNodes = updates.map(update => ({
+      // Pre-validate updates
+      const binaryNodes: BinaryNodeData[] = updates.map(update => ({
         nodeId: update.nodeId,
         position: update.position,
         velocity: update.velocity || {x: 0, y: 0, z: 0}
       }));
-      
-      const binaryData = createBinaryNodeData(binaryNodes);
-      
-      // Send as binary message
-      this.socket.send(binaryData);
+
+      // Quick validation check
+      const validation = validateNodePositions(binaryNodes, {
+        maxNodes: updates.length + 100 // Allow some buffer
+      });
+
+      if (!validation.valid) {
+        logger.error('Position updates failed validation:', validation.errors);
+        return;
+      }
+
+      // Enqueue updates with priority based on node type
+      binaryNodes.forEach(node => {
+        const priority = isAgentNode(node.nodeId) ? 10 : 0; // Agent nodes get higher priority
+        this.positionBatchQueue!.enqueuePositionUpdate(node, priority);
+      });
       
       if (debugState.isDataDebugEnabled()) {
-        logger.debug(`Sent position updates for ${updates.length} nodes`);
+        logger.debug(`Queued ${updates.length} position updates for batching`);
       }
     } catch (error) {
-      logger.error('Error sending position updates:', createErrorMetadata(error));
+      logger.error('Error queuing position updates:', createErrorMetadata(error));
     }
+  }
+
+  /**
+   * Force immediate flush of pending position updates
+   */
+  public flushPositionUpdates(): Promise<void> {
+    if (this.positionBatchQueue) {
+      return this.positionBatchQueue.flush();
+    }
+    return Promise.resolve();
+  }
+
+  /**
+   * Get position batch queue metrics
+   */
+  public getPositionQueueMetrics() {
+    if (this.positionBatchQueue) {
+      return this.positionBatchQueue.getMetrics();
+    }
+    return null;
   }
 
   public onMessage(handler: MessageHandler): () => void {
@@ -655,6 +767,12 @@ class WebSocketService {
       }
 
       this.stopHeartbeat();
+
+      // Clean up batch queue
+      if (this.positionBatchQueue) {
+        this.positionBatchQueue.destroy();
+        this.positionBatchQueue = null;
+      }
 
       try {
         // Close the socket with a normal closure
@@ -850,6 +968,77 @@ class WebSocketService {
     if (queueSize > 0) {
       logger.info(`Cleared ${queueSize} messages from queue`);
     }
+  }
+  
+  // Handle structured error frames from server
+  private handleErrorFrame(error: WebSocketErrorFrame): void {
+    logger.error('Received error frame from server:', error);
+    
+    // Emit error event for components to handle
+    this.emit('error-frame', error);
+    
+    // Handle specific error categories
+    switch (error.category) {
+      case 'validation':
+        // Validation errors usually mean client sent bad data
+        if (error.affectedPaths && error.affectedPaths.length > 0) {
+          this.emit('validation-error', {
+            paths: error.affectedPaths,
+            message: error.message
+          });
+        }
+        break;
+        
+      case 'rate_limit':
+        // Rate limit errors - back off and retry
+        if (error.retryAfter) {
+          logger.warn(`Rate limited. Retry after ${error.retryAfter}ms`);
+          this.emit('rate-limit', {
+            retryAfter: error.retryAfter,
+            message: error.message
+          });
+        }
+        break;
+        
+      case 'auth':
+        // Authentication errors - might need to re-authenticate
+        this.emit('auth-error', {
+          code: error.code,
+          message: error.message
+        });
+        break;
+        
+      case 'server':
+        // Server errors - might be temporary
+        if (error.retryable && error.retryAfter) {
+          setTimeout(() => {
+            this.processMessageQueue();
+          }, error.retryAfter);
+        }
+        break;
+        
+      case 'protocol':
+        // Protocol errors - might need to reconnect
+        logger.error('Protocol error - considering reconnection');
+        if (error.code === 'PROTOCOL_VERSION_MISMATCH') {
+          this.forceReconnect();
+        }
+        break;
+    }
+  }
+  
+  // Send error frame to server (for client-side errors)
+  public sendErrorFrame(error: Partial<WebSocketErrorFrame>): void {
+    const errorFrame: WebSocketErrorFrame = {
+      code: error.code || 'CLIENT_ERROR',
+      message: error.message || 'Unknown client error',
+      category: error.category || 'protocol',
+      retryable: error.retryable ?? false,
+      timestamp: Date.now(),
+      ...error
+    };
+    
+    this.sendMessage('error', { error: errorFrame });
   }
 }
 

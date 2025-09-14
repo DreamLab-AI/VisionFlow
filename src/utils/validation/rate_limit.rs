@@ -364,6 +364,17 @@ impl EndpointRateLimits {
         }
     }
 
+    /// Rate limit for WebSocket position updates (5Hz updates)
+    pub fn socket_flow_updates() -> RateLimitConfig {
+        RateLimitConfig {
+            requests_per_minute: 300,  // 5Hz * 60s = 300/min
+            burst_size: 50,           // Allow burst of 50 updates
+            cleanup_interval: Duration::from_secs(600), // Cleanup every 10 minutes
+            ban_duration: Duration::from_secs(600),     // Shorter ban for real-time updates
+            max_violations: 10,       // More lenient for real-time data
+        }
+    }
+
     /// Default rate limit for all other endpoints
     pub fn default() -> RateLimitConfig {
         RateLimitConfig::default()

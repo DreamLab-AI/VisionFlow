@@ -16,7 +16,7 @@ use glam::Vec3;
 /// - padding: [u8; 2] (2 bytes) - Server-side only, not transmitted over wire
 ///
 /// **Wire format (26 bytes) is handled separately by `WireNodeDataItem` in `binary_protocol.rs`:**
-/// - id: u16 (2 bytes)
+/// - id: u16 (2 bytes) - With node type flags in high bits
 /// - position: Vec3Data (12 bytes)
 /// - velocity: Vec3Data (12 bytes)
 ///

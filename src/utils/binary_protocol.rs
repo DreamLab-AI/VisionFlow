@@ -1,39 +1,53 @@
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::types::vec3::Vec3Data;
 use crate::models::constraints::{Constraint, AdvancedParams};
-use bytemuck::{Pod, Zeroable};
 use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 use serde_json;
 
-// Node type flag constants
+// Node type flag constants for u32 (server-side)
 const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
 const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
 const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
+// Node type flag constants for u16 (wire format)
+const WIRE_AGENT_FLAG: u16 = 0x8000;         // Bit 15 indicates agent node
+const WIRE_KNOWLEDGE_FLAG: u16 = 0x4000;     // Bit 14 indicates knowledge graph node
+const WIRE_NODE_ID_MASK: u16 = 0x3FFF;       // Mask to extract actual node ID (bits 0-13)
+
 /// Explicit wire format struct for WebSocket binary protocol
 /// This struct represents exactly what is sent over the wire
-#[repr(C)]
-#[derive(Debug, Clone, Copy, Pod, Zeroable)]
+/// Note: We use manual serialization to ensure exactly 26 bytes
 pub struct WireNodeDataItem {
-    pub id: u32,           // 4 bytes (changed from u16)
+    pub id: u16,            // 2 bytes - Client expects u16 for bandwidth optimization
     pub position: Vec3Data, // 12 bytes
     pub velocity: Vec3Data, // 12 bytes
-    // Total: 28 bytes
+    // Total: 26 bytes
 }
 
-// Compile-time assertion to ensure wire format is exactly 28 bytes
-static_assertions::const_assert_eq!(std::mem::size_of::<WireNodeDataItem>(), 28);
+// Constants for wire format sizes
+const WIRE_ID_SIZE: usize = 2;  // u16
+const WIRE_VEC3_SIZE: usize = 12; // 3 * f32
+const WIRE_ITEM_SIZE: usize = WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE; // 26 bytes
 
 // Binary format (explicit):
-// - For each node (28 bytes total):
-//   - Node Index: 4 bytes (u32) - High bit indicates agent node (0x80000000)
+// - Wire format sent to client (26 bytes total):
+//   - Node Index: 2 bytes (u16) - High bit (0x8000) indicates agent node
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
+// Total: 26 bytes per node
+//
+// - Server format (BinaryNodeData - 28 bytes total):
+//   - Position: 3 × 4 bytes = 12 bytes
+//   - Velocity: 3 × 4 bytes = 12 bytes
+//   - Mass: 1 byte
+//   - Flags: 1 byte
+//   - Padding: 2 bytes
 // Total: 28 bytes per node
 //
-// Agent Node Flag: The high bit (0x80000000) of the node ID is used to indicate
-// that this node represents an agent rather than a document/metadata node.
+// Node Type Flags: For wire format, we use the high bits of the u16 ID:
+// - Bit 15 (0x8000): Agent node
+// - Bit 14 (0x4000): Knowledge node
 // This allows the client to distinguish between different node types for visualization.
 
 /// Utility functions for node type flag manipulation
@@ -82,6 +96,47 @@ pub fn get_node_type(node_id: u32) -> NodeType {
     }
 }
 
+/// Convert u32 node ID with flags to u16 wire format
+/// Preserves node type flags and truncates ID to fit in 14 bits
+pub fn to_wire_id(node_id: u32) -> u16 {
+    let actual_id = get_actual_node_id(node_id);
+    let wire_id = (actual_id & 0x3FFF) as u16; // Truncate to 14 bits
+    
+    // Preserve node type flags
+    if is_agent_node(node_id) {
+        wire_id | WIRE_AGENT_FLAG
+    } else if is_knowledge_node(node_id) {
+        wire_id | WIRE_KNOWLEDGE_FLAG
+    } else {
+        wire_id
+    }
+}
+
+/// Convert u16 wire ID back to u32 preserving flags
+pub fn from_wire_id(wire_id: u16) -> u32 {
+    let actual_id = (wire_id & WIRE_NODE_ID_MASK) as u32;
+    
+    // Restore node type flags
+    if (wire_id & WIRE_AGENT_FLAG) != 0 {
+        actual_id | AGENT_NODE_FLAG
+    } else if (wire_id & WIRE_KNOWLEDGE_FLAG) != 0 {
+        actual_id | KNOWLEDGE_NODE_FLAG
+    } else {
+        actual_id
+    }
+}
+
+/// Convert BinaryNodeData to wire format
+impl BinaryNodeData {
+    pub fn to_wire_format(&self, node_id: u32) -> WireNodeDataItem {
+        WireNodeDataItem {
+            id: to_wire_id(node_id),
+            position: self.position,
+            velocity: self.velocity,
+        }
+    }
+}
+
 /// Enhanced encoding function that accepts metadata about node types
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)], 
@@ -93,7 +148,7 @@ pub fn encode_node_data_with_types(
         trace!("Encoding {} nodes with agent flags for binary transmission", nodes.len());
     }
     
-    let mut buffer = Vec::with_capacity(nodes.len() * std::mem::size_of::<WireNodeDataItem>());
+    let mut buffer = Vec::with_capacity(nodes.len() * WIRE_ITEM_SIZE);
     
     // Log some samples of the encoded data
     let sample_size = std::cmp::min(3, nodes.len());
@@ -120,16 +175,21 @@ pub fn encode_node_data_with_types(
                 agent_node_ids.contains(node_id));
         }
         
-        // Create explicit wire format item with potentially flagged ID
-        let wire_item = WireNodeDataItem {
-            id: flagged_id,
-            position: node.position,
-            velocity: node.velocity,
-        };
+        // Manual serialization to ensure exactly 26 bytes
+        let wire_id = to_wire_id(flagged_id);
         
-        // Use bytemuck for safe, direct memory layout conversion
-        let item_bytes = bytemuck::bytes_of(&wire_item);
-        buffer.extend_from_slice(item_bytes);
+        // Write u16 ID (2 bytes)
+        buffer.extend_from_slice(&wire_id.to_le_bytes());
+        
+        // Write position (12 bytes = 3 * f32)
+        buffer.extend_from_slice(&node.position.x.to_le_bytes());
+        buffer.extend_from_slice(&node.position.y.to_le_bytes());
+        buffer.extend_from_slice(&node.position.z.to_le_bytes());
+        
+        // Write velocity (12 bytes = 3 * f32)
+        buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
+        buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
+        buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
     }
 
     // Only log non-empty node transmissions to reduce spam
@@ -150,7 +210,7 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
         trace!("Encoding {} nodes for binary transmission", nodes.len());
     }
     
-    let mut buffer = Vec::with_capacity(nodes.len() * std::mem::size_of::<WireNodeDataItem>());
+    let mut buffer = Vec::with_capacity(nodes.len() * WIRE_ITEM_SIZE);
     
     // Log some samples of the encoded data
     let sample_size = std::cmp::min(3, nodes.len());
@@ -167,16 +227,21 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
                 node.velocity.x, node.velocity.y, node.velocity.z);
         }
         
-        // Create explicit wire format item
-        let wire_item = WireNodeDataItem {
-            id: *node_id,
-            position: node.position,
-            velocity: node.velocity,
-        };
+        // Manual serialization to ensure exactly 26 bytes
+        let wire_id = to_wire_id(*node_id);
         
-        // Use bytemuck for safe, direct memory layout conversion
-        let item_bytes = bytemuck::bytes_of(&wire_item);
-        buffer.extend_from_slice(item_bytes);
+        // Write u16 ID (2 bytes)
+        buffer.extend_from_slice(&wire_id.to_le_bytes());
+        
+        // Write position (12 bytes = 3 * f32)
+        buffer.extend_from_slice(&node.position.x.to_le_bytes());
+        buffer.extend_from_slice(&node.position.y.to_le_bytes());
+        buffer.extend_from_slice(&node.position.z.to_le_bytes());
+        
+        // Write velocity (12 bytes = 3 * f32)
+        buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
+        buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
+        buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
         
         // Mass, flags, and padding are server-side only and not transmitted over wire
     }
@@ -189,8 +254,6 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 }
 
 pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-    const WIRE_ITEM_SIZE: usize = std::mem::size_of::<WireNodeDataItem>();
-    
     // Check if data is properly sized
     if data.len() % WIRE_ITEM_SIZE != 0 {
         return Err(format!(
@@ -221,27 +284,40 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     
     // Process data in chunks of WIRE_ITEM_SIZE bytes
     for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
-        // Use bytemuck for safe deserialization from bytes
-        // Note: We need to handle potential alignment issues
-        let wire_item: WireNodeDataItem = if chunk.as_ptr() as usize % std::mem::align_of::<WireNodeDataItem>() == 0 {
-            // Data is aligned, can use from_bytes directly
-            *bytemuck::from_bytes(chunk)
-        } else {
-            // Data is not aligned, need to copy to an aligned buffer
-            let mut aligned_buffer = [0u8; WIRE_ITEM_SIZE];
-            aligned_buffer.copy_from_slice(chunk);
-            *bytemuck::from_bytes(&aligned_buffer)
-        };
+        // Manual deserialization to handle exactly 26 bytes
+        let mut cursor = 0;
+        
+        // Read u16 ID (2 bytes)
+        let wire_id = u16::from_le_bytes([chunk[cursor], chunk[cursor + 1]]);
+        cursor += 2;
+        
+        // Read position (12 bytes = 3 * f32)
+        let pos_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let pos_y = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let pos_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        
+        // Read velocity (12 bytes = 3 * f32)
+        let vel_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let vel_y = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let vel_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        
+        // Convert wire ID back to u32 with flags
+        let full_node_id = from_wire_id(wire_id);
         
         // Log the first few decoded items as samples
         if samples_logged < max_samples {
-            let is_agent = is_agent_node(wire_item.id);
-            let actual_id = get_actual_node_id(wire_item.id);
+            let is_agent = is_agent_node(full_node_id);
+            let actual_id = get_actual_node_id(full_node_id);
             debug!(
-                "Decoded node {} (actual_id={}, is_agent={}): pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
-                wire_item.id, actual_id, is_agent,
-                wire_item.position.x, wire_item.position.y, wire_item.position.z,
-                wire_item.velocity.x, wire_item.velocity.y, wire_item.velocity.z
+                "Decoded node wire_id={} -> full_id={} (actual_id={}, is_agent={}): pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
+                wire_id, full_node_id, actual_id, is_agent,
+                pos_x, pos_y, pos_z,
+                vel_x, vel_y, vel_z
             );
             samples_logged += 1;
         }
@@ -249,15 +325,15 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         // Convert wire format to server format (BinaryNodeData)
         // Server-side fields (mass, flags, padding) get default values
         let server_node_data = BinaryNodeData {
-            position: wire_item.position,
-            velocity: wire_item.velocity,
+            position: Vec3Data::new(pos_x, pos_y, pos_z),
+            velocity: Vec3Data::new(vel_x, vel_y, vel_z),
             mass: 100u8,     // Default mass - will be replaced with actual value from node_map
             flags: 0u8,      // Default flags - will be replaced with actual value from node_map
             padding: [0u8, 0u8], // Default padding
         };
         
         // Use the actual node ID (with agent flag stripped) for server-side processing
-        let actual_id = get_actual_node_id(wire_item.id);
+        let actual_id = get_actual_node_id(full_node_id);
         updates.push((actual_id, server_node_data));
     }
     
@@ -266,8 +342,8 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
 }
 
 pub fn calculate_message_size(updates: &[(u32, BinaryNodeData)]) -> usize {
-    // Each update uses WireNodeDataItem size
-    updates.len() * std::mem::size_of::<WireNodeDataItem>()
+    // Each update uses WIRE_ITEM_SIZE (26 bytes)
+    updates.len() * WIRE_ITEM_SIZE
 }
 
 #[cfg(test)]
@@ -276,8 +352,9 @@ mod tests {
 
     #[test]
     fn test_wire_format_size() {
-        // Verify that WireNodeDataItem is exactly 28 bytes
-        assert_eq!(std::mem::size_of::<WireNodeDataItem>(), 28);
+        // Verify that WIRE_ITEM_SIZE is exactly 26 bytes
+        assert_eq!(WIRE_ITEM_SIZE, 26);
+        assert_eq!(WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE, 26);
     }
 
     #[test]
@@ -302,8 +379,8 @@ mod tests {
         let encoded = encode_node_data(&nodes);
         
         // Verify encoded size matches expected wire format
-        assert_eq!(encoded.len(), nodes.len() * std::mem::size_of::<WireNodeDataItem>());
-        assert_eq!(encoded.len(), nodes.len() * 28);
+        assert_eq!(encoded.len(), nodes.len() * WIRE_ITEM_SIZE);
+        assert_eq!(encoded.len(), nodes.len() * 26);
         
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
@@ -322,8 +399,8 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_data() {
-        // Test with data that's not a multiple of wire item size (28 bytes)
-        let result = decode_node_data(&[0u8; 27]);
+        // Test with data that's not a multiple of wire item size (26 bytes)
+        let result = decode_node_data(&[0u8; 25]);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not a multiple of wire item size"));
         
@@ -346,7 +423,7 @@ mod tests {
         ];
 
         let size = calculate_message_size(&nodes);
-        assert_eq!(size, 28);
+        assert_eq!(size, 26);
         
         let encoded = encode_node_data(&nodes);
         assert_eq!(encoded.len(), size);
@@ -375,6 +452,34 @@ mod tests {
     }
 
     #[test]
+    fn test_wire_id_conversion() {
+        // Test basic conversion
+        let node_id = 42u32;
+        let wire_id = to_wire_id(node_id);
+        assert_eq!(wire_id, 42u16);
+        assert_eq!(from_wire_id(wire_id), node_id);
+        
+        // Test agent flag preservation
+        let agent_id = set_agent_flag(node_id);
+        let agent_wire_id = to_wire_id(agent_id);
+        assert_eq!(agent_wire_id & WIRE_NODE_ID_MASK, 42u16);
+        assert!((agent_wire_id & WIRE_AGENT_FLAG) != 0);
+        assert_eq!(from_wire_id(agent_wire_id), agent_id);
+        
+        // Test knowledge flag preservation
+        let knowledge_id = set_knowledge_flag(node_id);
+        let knowledge_wire_id = to_wire_id(knowledge_id);
+        assert_eq!(knowledge_wire_id & WIRE_NODE_ID_MASK, 42u16);
+        assert!((knowledge_wire_id & WIRE_KNOWLEDGE_FLAG) != 0);
+        assert_eq!(from_wire_id(knowledge_wire_id), knowledge_id);
+        
+        // Test large node ID truncation
+        let large_id = 0x5432u32; // Larger than 14 bits
+        let truncated_wire_id = to_wire_id(large_id);
+        assert_eq!(truncated_wire_id, 0x1432u16); // Truncated to 14 bits
+    }
+
+    #[test]
     fn test_encode_with_agent_flags() {
         let nodes = vec![
             (1u32, BinaryNodeData {
@@ -398,7 +503,7 @@ mod tests {
         let encoded = encode_node_data_with_flags(&nodes, &agent_ids);
         
         // Verify encoded size
-        assert_eq!(encoded.len(), nodes.len() * 28);
+        assert_eq!(encoded.len(), nodes.len() * 26);
         
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());

@@ -8,6 +8,39 @@ use regex::Regex;
 pub struct Sanitizer;
 
 impl Sanitizer {
+    /// Validate numeric values (more lenient for legitimate data)
+    pub fn validate_numeric(value: &Value, field: &str) -> ValidationResult<()> {
+        match value {
+            Value::Number(n) => {
+                // Already a valid number
+                if let Some(f) = n.as_f64() {
+                    // Check for special values that might cause issues
+                    if f.is_nan() || f.is_infinite() {
+                        return Err(ValidationError::new(field, "Invalid numeric value (NaN or Infinity)", "INVALID_NUMBER").into());
+                    }
+                }
+                Ok(())
+            }
+            Value::String(s) => {
+                // Try to parse string as number
+                match s.parse::<f64>() {
+                    Ok(f) => {
+                        // Check for special values
+                        if f.is_nan() || f.is_infinite() {
+                            return Err(ValidationError::new(field, "Invalid numeric value (NaN or Infinity)", "INVALID_NUMBER").into());
+                        }
+                        Ok(())
+                    }
+                    Err(_) => {
+                        // Only reject if it's truly not a valid number
+                        Err(ValidationError::new(field, "Invalid numeric format", "INVALID_NUMBER").into())
+                    }
+                }
+            }
+            _ => Err(ValidationError::new(field, "Expected number or numeric string", "INVALID_TYPE").into())
+        }
+    }
+
     /// Sanitize a JSON value recursively
     pub fn sanitize_json(value: &mut Value) -> ValidationResult<()> {
         match value {
