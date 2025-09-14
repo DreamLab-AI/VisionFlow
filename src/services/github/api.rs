@@ -177,8 +177,8 @@ impl GitHubClient {
             }
         };
 
-        let encoded = url::form_urlencoded::byte_serialize(full_path.as_bytes())
-            .collect::<String>();
+        // Use percent encoding instead of form encoding to properly handle spaces as %20
+        let encoded = urlencoding::encode(&full_path).into_owned();
 
         if debug_enabled {
             log::debug!("Final encoded full path: '{}'", encoded);
