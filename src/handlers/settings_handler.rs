@@ -8,6 +8,18 @@ use crate::handlers::validation_handler::ValidationService;
 use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, EndpointRateLimits, extract_client_id};
 use crate::utils::validation::MAX_REQUEST_SIZE;
 use log::{info, warn, error, debug};
+
+/// Get a human-readable name for a JSON value type
+fn value_type_name(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "null",
+        Value::Bool(_) => "boolean",
+        Value::Number(_) => "number",
+        Value::String(_) => "string",
+        Value::Array(_) => "array",
+        Value::Object(_) => "object",
+    }
+}
 use serde_json::{json, Value};
 use serde::{Serialize, Deserialize};
 use std::sync::Arc;
@@ -1553,10 +1565,12 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 .route("/batch", web::post().to(batch_get_settings))
                 .route("/batch", web::put().to(batch_update_settings))
                 .route("/schema", web::get().to(get_settings_schema))
+                .route("/current", web::get().to(get_current_settings))
                 // Legacy endpoints (kept for compatibility but deprecated)
                 .route("", web::get().to(get_settings))
                 .route("", web::post().to(update_settings))
                 .route("/reset", web::post().to(reset_settings))
+                .route("/save", web::post().to(save_settings))
                 .route("/validation/stats", web::get().to(|req, handler: web::Data<EnhancedSettingsHandler>| async move {
                     handler.get_validation_stats(req).await
                 }))
@@ -1854,12 +1868,27 @@ async fn batch_update_settings(
                 }));
             }
             Err(e) => {
+                // Enhanced error logging with more context
                 error!("Failed to update path '{}' with value {:?}: {}", path, value, e);
+                
+                // Try to provide more specific error information
+                let error_detail = if e.contains("does not exist") {
+                    format!("Path '{}' does not exist in settings structure", path)
+                } else if e.contains("Type mismatch") {
+                    format!("Type mismatch: {}", e)
+                } else if e.contains("not found") {
+                    format!("Field not found: {}", e)
+                } else {
+                    e.clone()
+                };
+                
                 results.push(json!({
                     "path": path,
                     "success": false,
-                    "error": "Invalid path or value",
-                    "message": e
+                    "error": error_detail,
+                    "message": e,
+                    "providedValue": value,
+                    "expectedType": previous_value.as_ref().map(|v| value_type_name(v))
                 }));
             }
         }
@@ -1971,6 +2000,41 @@ async fn get_settings(
     let response_dto: SettingsResponseDTO = (&app_settings).into();
     
     Ok(HttpResponse::Ok().json(response_dto))
+}
+
+/// Get current settings with version information
+async fn get_current_settings(
+    _req: HttpRequest,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    let app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
+        Ok(Err(e)) => {
+            error!("Failed to get settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve settings"
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })));
+        }
+    };
+    
+    // Convert to DTO with camelCase serialization for client
+    let response_dto: SettingsResponseDTO = (&app_settings).into();
+    
+    // Wrap with version info
+    Ok(HttpResponse::Ok().json(json!({
+        "settings": response_dto,
+        "version": app_settings.version,
+        "timestamp": std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+    })))
 }
 
 /// Update settings with validation - accepts camelCase JSON
@@ -2186,6 +2250,96 @@ async fn reset_settings(
             error!("Settings actor error: {}", e);
             Ok(HttpResponse::ServiceUnavailable().json(json!({
                 "error": "Settings service unavailable"
+            })))
+        }
+    }
+}
+
+/// Explicitly save current settings to file
+async fn save_settings(
+    _req: HttpRequest,
+    state: web::Data<AppState>,
+    payload: Option<web::Json<Value>>,
+) -> Result<HttpResponse, Error> {
+    // Get current settings
+    let mut app_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(s)) => s,
+        Ok(Err(e)) => {
+            error!("Failed to get current settings: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to get current settings"
+            })));
+        }
+        Err(e) => {
+            error!("Settings actor error: {}", e);
+            return Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
+            })));
+        }
+    };
+
+    // If payload is provided, merge it with current settings first
+    if let Some(update) = payload {
+        let update_value = update.into_inner();
+        
+        // Validate the update
+        if let Err(e) = validate_settings_update(&update_value) {
+            error!("Settings validation failed: {}", e);
+            return Ok(HttpResponse::BadRequest().json(json!({
+                "error": format!("Invalid settings: {}", e)
+            })));
+        }
+        
+        // Merge the update
+        if let Err(e) = app_settings.merge_update(update_value) {
+            error!("Failed to merge settings update: {}", e);
+            return Ok(HttpResponse::BadRequest().json(json!({
+                "error": format!("Failed to merge settings: {}", e)
+            })));
+        }
+    }
+
+    // Check if persist_settings is enabled
+    if !app_settings.system.persist_settings {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": "Settings persistence is disabled. Enable 'system.persist_settings' to save settings."
+        })));
+    }
+
+    // Save the settings to file
+    match app_settings.save() {
+        Ok(()) => {
+            info!("Settings successfully saved to file");
+            
+            // Update the settings in the actor to ensure consistency
+            match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
+                Ok(Ok(())) => {
+                    let response_dto: SettingsResponseDTO = (&app_settings).into();
+                    Ok(HttpResponse::Ok().json(json!({
+                        "message": "Settings saved successfully",
+                        "settings": response_dto
+                    })))
+                }
+                Ok(Err(e)) => {
+                    error!("Failed to update settings in actor after save: {}", e);
+                    Ok(HttpResponse::InternalServerError().json(json!({
+                        "error": "Settings saved to file but failed to update in memory",
+                        "details": e.to_string()
+                    })))
+                }
+                Err(e) => {
+                    error!("Settings actor communication error: {}", e);
+                    Ok(HttpResponse::ServiceUnavailable().json(json!({
+                        "error": "Settings saved to file but service is unavailable"
+                    })))
+                }
+            }
+        }
+        Err(e) => {
+            error!("Failed to save settings to file: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to save settings to file",
+                "details": e
             })))
         }
     }
@@ -3473,4 +3627,3 @@ fn validate_constraints(constraints: &Value) -> Result<(), String> {
     
     Ok(())
 }
-

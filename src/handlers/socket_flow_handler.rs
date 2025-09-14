@@ -10,6 +10,7 @@ use crate::app_state::AppState;
 use crate::utils::binary_protocol;
 use crate::types::vec3::Vec3Data;
 use crate::utils::socket_flow_messages::{BinaryNodeData, PingMessage, PongMessage};
+use crate::utils::validation::rate_limit::{RateLimiter, EndpointRateLimits, extract_client_id, create_rate_limit_response};
 
 // Constants for throttling debug logs
 const DEBUG_LOG_SAMPLE_RATE: usize = 10; // Only log 1 in 10 updates
@@ -19,6 +20,13 @@ const DEFAULT_POSITION_DEADBAND: f32 = 0.01; // 1cm deadband
 const DEFAULT_VELOCITY_DEADBAND: f32 = 0.005; // 5mm/s deadband
 // Default values for dynamic update rate
 const BATCH_UPDATE_WINDOW_MS: u64 = 200;  // Check motion every 200ms
+
+// Create a global rate limiter for WebSocket position updates
+lazy_static::lazy_static! {
+    static ref WEBSOCKET_RATE_LIMITER: Arc<RateLimiter> = {
+        Arc::new(RateLimiter::new(EndpointRateLimits::socket_flow_updates()))
+    };
+}
 
 // Note: Now using u32 node IDs throughout the system
 
@@ -127,10 +135,15 @@ pub struct SocketFlowServer {
     nodes_in_motion: usize,    // Counter for nodes currently in motion
     total_node_count: usize,   // Total node count for percentage calculation
     last_motion_check: Instant, // Last time we checked motion percentage,
+    
+    // Rate limiting and reconnection tracking
+    client_ip: String,         // Client IP for rate limiting
+    is_reconnection: bool,     // Track if this is a reconnection
+    state_synced: bool,        // Track if full state has been synced
 }
 
 impl SocketFlowServer {
-    pub fn new(app_state: Arc<AppState>, pre_read_settings: PreReadSocketSettings, client_manager_addr: actix::Addr<crate::actors::client_manager_actor::ClientManagerActor>) -> Self {
+    pub fn new(app_state: Arc<AppState>, pre_read_settings: PreReadSocketSettings, client_manager_addr: actix::Addr<crate::actors::client_manager_actor::ClientManagerActor>, client_ip: String) -> Self {
         let min_update_rate = pre_read_settings.min_update_rate;
         let max_update_rate = pre_read_settings.max_update_rate;
         let motion_threshold = pre_read_settings.motion_threshold;
@@ -173,8 +186,72 @@ impl SocketFlowServer {
             // heartbeat_timeout_ms, // Unused
             nodes_in_motion: 0,
             total_node_count: 0,
-            last_motion_check: Instant::now()
+            last_motion_check: Instant::now(),
+            client_ip,
+            is_reconnection: false,
+            state_synced: false,
         }
+    }
+
+    /// Send full state sync including graph state and settings
+    fn send_full_state_sync(&self, ctx: &mut <Self as Actor>::Context) {
+        let app_state = self.app_state.clone();
+        let addr = ctx.address();
+        
+        // Spawn async task to fetch and send state
+        actix::spawn(async move {
+            // Get graph state
+            if let Ok(Ok(graph_data)) = app_state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+                // Get settings with version
+                if let Ok(Ok(settings)) = app_state.settings_addr.send(crate::actors::messages::GetSettings).await {
+                    // Prepare state sync message
+                    let state_sync = serde_json::json!({
+                        "type": "state_sync",
+                        "data": {
+                            "graph": {
+                                "nodes_count": graph_data.nodes.len(),
+                                "edges_count": graph_data.edges.len(),
+                                "metadata_count": graph_data.metadata.len(),
+                            },
+                            "settings": {
+                                "version": settings.version,
+                            },
+                            "timestamp": std::time::SystemTime::now()
+                                .duration_since(std::time::UNIX_EPOCH)
+                                .unwrap_or_default()
+                                .as_secs(),
+                        }
+                    });
+                    
+                    // Send state sync as text message through the actor
+                    if let Ok(msg_str) = serde_json::to_string(&state_sync) {
+                        addr.do_send(SendToClientText(msg_str));
+                        info!("Sent state sync: {} nodes, {} edges, version: {}", 
+                            graph_data.nodes.len(), 
+                            graph_data.edges.len(),
+                            settings.version
+                        );
+                    }
+                    
+                    // Send initial positions as binary data
+                    if !graph_data.nodes.is_empty() {
+                        let node_data: Vec<(u32, BinaryNodeData)> = graph_data.nodes.iter()
+                            .map(|node| (node.id, BinaryNodeData {
+                                position: node.data.position.clone(),
+                                velocity: node.data.velocity.clone(),
+                                mass: node.data.mass,
+                                flags: 0,
+                                padding: [0, 0],
+                            }))
+                            .collect();
+                        
+                        // Send position update through the actor
+                        addr.do_send(BroadcastPositionUpdate(node_data));
+                        debug!("Sent initial node positions for state sync");
+                    }
+                }
+            }
+        });
     }
 
     fn handle_ping(&mut self, msg: PingMessage) -> PongMessage {
@@ -299,12 +376,18 @@ impl Actor for SocketFlowServer {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        // Register this client with the client manager actor
+        // Check if this client is reconnecting by looking for existing sessions from same IP
+        let client_ip = self.client_ip.clone();
+        let cm_addr = self.client_manager_addr.clone();
         let addr = ctx.address();
+        
+        // Check for reconnection - if same IP had a recent session
+        let is_reconnection = self.is_reconnection;
+        
+        // Register this client with the client manager actor
         let addr_clone = addr.clone();
 
         // Use actix's runtime to avoid blocking in the actor's started method
-        let cm_addr = self.client_manager_addr.clone();
         actix::spawn(async move {
             use crate::actors::messages::RegisterClient;
             match cm_addr.send(RegisterClient { addr: addr_clone }).await {
@@ -321,7 +404,10 @@ impl Actor for SocketFlowServer {
             }
         });
 
-        info!("[WebSocket] New client connected");
+        info!("[WebSocket] {} client connected from {}", 
+            if is_reconnection { "Reconnecting" } else { "New" }, 
+            client_ip
+        );
         self.last_activity = std::time::Instant::now();
 
         // We'll retrieve client ID asynchronously via message
@@ -337,12 +423,19 @@ impl Actor for SocketFlowServer {
                 // Update last activity timestamp to prevent client-side timeout
                 act.last_activity = std::time::Instant::now();
             });
+            self.heartbeat_timer_set = true;
         }
+        
+        // Always send full state sync on connection (new or reconnection)
+        self.send_full_state_sync(ctx);
+        self.state_synced = true;
 
-        // Send simple connection established message
+        // Send connection established message with reconnection status
         let response = serde_json::json!({
             "type": "connection_established",
-            "timestamp": chrono::Utc::now().timestamp_millis()
+            "timestamp": chrono::Utc::now().timestamp_millis(),
+            "is_reconnection": is_reconnection,
+            "state_sync_sent": true
         });
 
         if let Ok(msg_str) = serde_json::to_string(&response) {
@@ -353,7 +446,7 @@ impl Actor for SocketFlowServer {
         // Send a "loading" message to indicate the client should display a loading indicator
         let loading_msg = serde_json::json!({
             "type": "loading",
-            "message": "Calculating initial layout..."
+            "message": if is_reconnection { "Restoring state..." } else { "Calculating initial layout..." }
         });
         ctx.text(serde_json::to_string(&loading_msg).unwrap_or_default());
         self.last_activity = std::time::Instant::now();
@@ -654,10 +747,19 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     .and_then(|binary| binary.as_bool())
                                     .unwrap_or(true); // Default to binary mode
 
-                                info!("Starting position updates with interval: {}ms, binary: {}", interval, binary);
+                                // Validate interval against rate limits
+                                let min_allowed_interval = 1000 / (EndpointRateLimits::socket_flow_updates().requests_per_minute / 60);
+                                let actual_interval = interval.max(min_allowed_interval as u64);
+                                
+                                if actual_interval != interval {
+                                    info!("Adjusted position update interval from {}ms to {}ms to comply with rate limits", 
+                                        interval, actual_interval);
+                                }
+
+                                info!("Starting position updates with interval: {}ms, binary: {}", actual_interval, binary);
 
                                 // Start position update loop with the specified interval
-                                let update_interval = std::time::Duration::from_millis(interval);
+                                let update_interval = std::time::Duration::from_millis(actual_interval);
                                 let app_state = self.app_state.clone();
                                 let settings_addr = self.app_state.settings_addr.clone();
 
@@ -665,9 +767,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 let response = serde_json::json!({
                                     "type": "subscription_confirmed",
                                     "subscription": "position_updates",
-                                    "interval": interval,
+                                    "interval": actual_interval,
                                     "binary": binary,
-                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                    "timestamp": chrono::Utc::now().timestamp_millis(),
+                                    "rate_limit": {
+                                        "requests_per_minute": EndpointRateLimits::socket_flow_updates().requests_per_minute,
+                                        "min_interval_ms": min_allowed_interval
+                                    }
                                 });
                                 if let Ok(msg_str) = serde_json::to_string(&response) {
                                     ctx.text(msg_str);
@@ -728,12 +834,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                             }
 
                                             // Schedule the next update with the same interval
-                                            let next_interval = std::time::Duration::from_millis(interval);
+                                            let next_interval = std::time::Duration::from_millis(actual_interval);
                                             ctx.run_later(next_interval, move |act, ctx| {
                                                 // Recursively continue the subscription loop
                                                 let subscription_msg = format!(
                                                     "{{\"type\":\"subscribe_position_updates\",\"data\":{{\"interval\":{},\"binary\":{}}}}}",
-                                                    interval, binary
+                                                    actual_interval, binary
                                                 );
                                                 <SocketFlowServer as StreamHandler<Result<ws::Message, ws::ProtocolError>>>::handle(
                                                     act, 
@@ -864,16 +970,31 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                 }
             }
             Ok(ws::Message::Binary(data)) => {
+                // Check rate limit for position updates
+                if !WEBSOCKET_RATE_LIMITER.is_allowed(&self.client_ip) {
+                    warn!("Position update rate limit exceeded for client: {}", self.client_ip);
+                    let error_msg = serde_json::json!({
+                        "type": "rate_limit_warning",
+                        "message": "Update rate too high, some updates may be dropped",
+                        "retry_after": WEBSOCKET_RATE_LIMITER.reset_time(&self.client_ip).as_secs()
+                    });
+                    if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                        ctx.text(msg_str);
+                    }
+                    // Don't close connection, just skip this update
+                    return;
+                }
+                
                 // Enhanced logging for binary message reception
                 info!("Received binary message, length: {}", data.len());
                 self.last_activity = std::time::Instant::now();
 
-                // Enhanced logging for binary messages (28 bytes per node now with u32 IDs)
-                if data.len() % 28 != 0 {
+                // Enhanced logging for binary messages (26 bytes per node with u16 IDs)
+                if data.len() % 26 != 0 {
                     warn!(
-                        "Binary message size mismatch: {} bytes (not a multiple of 28, remainder: {})",
+                        "Binary message size mismatch: {} bytes (not a multiple of 26, remainder: {})",
                         data.len(),
-                        data.len() % 28
+                        data.len() % 26
                     );
                 }
 
@@ -964,11 +1085,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                         error!("Failed to decode binary message: {}", e);
                         let error_msg = serde_json::json!({
                             "type": "error",
-                            "message": format!("Failed to decode binary message: {}", e)
+                            "message": format!("Failed to decode binary message: {}", e),
+                            "recoverable": true,
+                            "details": {
+                                "data_length": data.len(),
+                                "expected_item_size": 26,
+                                "remainder": data.len() % 26
+                            }
                         });
                         if let Ok(msg_str) = serde_json::to_string(&error_msg) {
                             ctx.text(msg_str);
                         }
+                        // Don't close connection - allow client to retry
                     }
                 }
             }
@@ -985,8 +1113,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
             }
             Err(e) => {
                 error!("[WebSocket] Error in WebSocket connection: {}", e);
-                // Close with protocol error status code before stopping
-                ctx.close(Some(ws::CloseReason::from(ws::CloseCode::Protocol)));
+                // Send error frame instead of closing connection
+                let error_msg = serde_json::json!({
+                    "type": "error",
+                    "message": format!("WebSocket error: {}", e),
+                    "recoverable": true
+                });
+                if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                    ctx.text(msg_str);
+                }
+                // Don't close the connection for recoverable errors
             }
         }
     }
@@ -998,6 +1134,15 @@ pub async fn socket_flow_handler(
     app_state_data: web::Data<AppState>, // Renamed for clarity
     pre_read_ws_settings: web::Data<PreReadSocketSettings>, // New data
 ) -> Result<HttpResponse, Error> {
+    // Extract client IP for rate limiting
+    let client_ip = extract_client_id(&req);
+    
+    // Check rate limit for WebSocket connections
+    if !WEBSOCKET_RATE_LIMITER.is_allowed(&client_ip) {
+        warn!("WebSocket rate limit exceeded for client: {}", client_ip);
+        return create_rate_limit_response(&client_ip, &WEBSOCKET_RATE_LIMITER);
+    }
+    
     let app_state_arc = app_state_data.into_inner(); // Get the Arc<AppState>
 
     // Get ClientManagerActor address from AppState
@@ -1026,8 +1171,22 @@ pub async fn socket_flow_handler(
         return Ok(HttpResponse::BadRequest().body("WebSocket upgrade required"));
     }
 
-    // Pass the ClientManagerActor address to SocketFlowServer::new
-    let ws = SocketFlowServer::new(app_state_arc, pre_read_ws_settings.get_ref().clone(), client_manager_addr);
+    // Check if this is a reconnection (based on cookies or headers)
+    let is_reconnection = req.headers()
+        .get("X-Client-Session")
+        .and_then(|h| h.to_str().ok())
+        .is_some();
+
+    // Pass the ClientManagerActor address and client IP to SocketFlowServer::new
+    let mut ws = SocketFlowServer::new(
+        app_state_arc, 
+        pre_read_ws_settings.get_ref().clone(), 
+        client_manager_addr,
+        client_ip.clone()
+    );
+    
+    // Set reconnection status
+    ws.is_reconnection = is_reconnection;
 
     // Start WebSocket with compression enabled (permessage-deflate)
     // Prefer WsResponseBuilder for setting protocols
@@ -1036,11 +1195,11 @@ pub async fn socket_flow_handler(
         .start()
     {
         Ok(response) => {
-            info!("[WebSocket] Client connected successfully with compression support");
+            info!("[WebSocket] Client {} connected successfully with compression support", client_ip);
             Ok(response)
         }
         Err(e) => {
-            error!("[WebSocket] Failed to start WebSocket: {}", e);
+            error!("[WebSocket] Failed to start WebSocket for client {}: {}", client_ip, e);
             Err(e)
         }
     }

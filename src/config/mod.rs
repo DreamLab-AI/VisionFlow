@@ -1514,6 +1514,12 @@ pub struct AppFullSettings {
     pub kokoro: Option<KokoroSettings>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "whisper")]
     pub whisper: Option<WhisperSettings>,
+    #[serde(default = "default_version", alias = "version")]
+    pub version: String,
+}
+
+fn default_version() -> String {
+    "1.0.0".to_string()
 }
 
 impl Default for AppFullSettings {
@@ -1528,6 +1534,7 @@ impl Default for AppFullSettings {
             openai: None,
             kokoro: None,
             whisper: None,
+            version: default_version(),
         }
     }
 }
@@ -1619,6 +1626,12 @@ impl AppFullSettings {
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
         info!("Saving AppFullSettings to YAML file: {:?}", settings_path);
+
+        // Create parent directory if it doesn't exist
+        if let Some(parent) = settings_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create directory {:?}: {}", parent, e))?;
+        }
 
         let yaml = serde_yaml::to_string(&self)
             .map_err(|e| format!("Failed to serialize AppFullSettings to YAML: {}", e))?;

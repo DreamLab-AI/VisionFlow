@@ -29,6 +29,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("") // Removed redundant /api prefix
             .configure(files::config)
             .configure(graph::config)
+            .configure(crate::handlers::graph_state_handler::config) // Add graph state endpoint
             .configure(visualisation::config)
             .configure(bots::config)
             .configure(analytics::config)

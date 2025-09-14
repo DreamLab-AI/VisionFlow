@@ -16,3 +16,4 @@ pub mod mcp_health_handler;
 pub mod clustering_handler;
 pub mod constraints_handler;
 pub mod validation_handler;
+pub mod graph_state_handler;
