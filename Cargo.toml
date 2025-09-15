@@ -6,6 +6,9 @@ description = "A WebXR graph visualisation server with GPU-accelerated physics"
 authors = ["Your Name <your.email@example.com>"]
 license = "MIT"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 # Web framework and WebSocket
 actix-web = { version = "4.11.0", features = ["compress-gzip", "compress-zstd", "macros"] }
@@ -97,6 +100,13 @@ rayon = "1.11.0"
 tokio-test = "0.4"
 mockall = "0.13"
 pretty_assertions = "1.4"
+
+# WASM Support for hybrid CPU-WASM/GPU SSSP
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
+js-sys = "0.3"
 
 [build-dependencies]
 tempfile = "3.14"
