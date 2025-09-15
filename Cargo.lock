@@ -4225,6 +4225,7 @@ dependencies = [
  "futures-util",
  "glam 0.30.5",
  "heck",
+ "js-sys",
  "lazy_static",
  "log",
  "mockall",
@@ -4260,6 +4261,9 @@ dependencies = [
  "urlencoding",
  "uuid",
  "validator",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
