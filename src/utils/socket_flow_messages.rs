@@ -4,46 +4,112 @@ use crate::types::vec3::Vec3Data;
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
 
+// ===== CLIENT-SIDE BINARY DATA (28 bytes) =====
+// Optimized for network transmission - contains only what clients need
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
-/// Binary node data structure for server-side processing and GPU computation
-///
-/// **Server format (36 bytes):**
-/// - position: Vec3Data (12 bytes)
-/// - velocity: Vec3Data (12 bytes)
-/// - sssp_distance: f32 (4 bytes) - Server-computed shortest path distance
-/// - sssp_parent: i32 (4 bytes) - Parent node for path reconstruction
-/// - mass: u8 (1 byte) - Server-side only
-/// - flags: u8 (1 byte) - Server-side only
-/// - padding: [u8; 2] (2 bytes) - Server-side only
-///
-/// **Wire format (34 bytes) is handled separately by `WireNodeDataItem` in `binary_protocol.rs`:**
-/// - id: u16 (2 bytes) - With node type flags in high bits
-/// - position: Vec3Data (12 bytes)
-/// - velocity: Vec3Data (12 bytes)
-/// - sssp_distance: f32 (4 bytes)
-/// - sssp_parent: i32 (4 bytes)
-///
-/// The wire and server formats are distinct to optimize bandwidth while preserving
-/// server-side physics properties (mass, flags) that are not needed on the client.
-pub struct BinaryNodeData {
-    pub position: Vec3Data,
-    pub velocity: Vec3Data,
-    pub sssp_distance: f32,    // Server-computed SSSP distance
-    pub sssp_parent: i32,      // Parent node ID (-1 if none/unreachable)
-    pub mass: u8,              // Server-side only
-    pub flags: u8,             // Server-side only
-    pub padding: [u8; 2],      // Server-side only
+/// Binary node data for client communication (28 bytes)
+/// Contains only position and velocity for real-time updates.
+/// SSSP and other algorithm results are sent via REST/JSON when needed.
+pub struct BinaryNodeDataClient {
+    pub node_id: u32,      // 4 bytes - Node identifier
+    pub x: f32,            // 4 bytes - X position
+    pub y: f32,            // 4 bytes - Y position
+    pub z: f32,            // 4 bytes - Z position
+    pub vx: f32,           // 4 bytes - X velocity
+    pub vy: f32,           // 4 bytes - Y velocity
+    pub vz: f32,           // 4 bytes - Z velocity
 }
 
-// Compile-time assertion to ensure server format is exactly 36 bytes
-static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 36);
+// Compile-time assertion to ensure client format is exactly 28 bytes
+static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeDataClient>(), 28);
 
-// Implement DeviceRepr for BinaryNodeData
-unsafe impl DeviceRepr for BinaryNodeData {}
+// Backwards compatibility alias - will be deprecated
+pub type BinaryNodeData = BinaryNodeDataClient;
 
-// Implement ValidAsZeroBits for BinaryNodeData
-unsafe impl ValidAsZeroBits for BinaryNodeData {}
+// ===== GPU COMPUTE BINARY DATA (48 bytes) =====
+// Extended format for server-side GPU computations
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
+/// Binary node data for GPU computation (48 bytes)
+/// Includes all client fields plus algorithm-specific data that stays server-side.
+pub struct BinaryNodeDataGPU {
+    pub node_id: u32,      // 4 bytes - Node identifier
+    pub x: f32,            // 4 bytes - X position
+    pub y: f32,            // 4 bytes - Y position
+    pub z: f32,            // 4 bytes - Z position
+    pub vx: f32,           // 4 bytes - X velocity
+    pub vy: f32,           // 4 bytes - Y velocity
+    pub vz: f32,           // 4 bytes - Z velocity
+    pub sssp_distance: f32,// 4 bytes - Shortest path distance
+    pub sssp_parent: i32,  // 4 bytes - Parent node for path reconstruction
+    pub cluster_id: i32,   // 4 bytes - Cluster assignment
+    pub centrality: f32,   // 4 bytes - Node centrality score
+    pub mass: f32,         // 4 bytes - Node mass for physics
+}
+
+// Compile-time assertion to ensure GPU format is exactly 48 bytes
+static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeDataGPU>(), 48);
+
+// Implement DeviceRepr for GPU data
+unsafe impl DeviceRepr for BinaryNodeDataGPU {}
+unsafe impl ValidAsZeroBits for BinaryNodeDataGPU {}
+
+// Helper conversion functions
+impl BinaryNodeDataClient {
+    pub fn new(node_id: u32, position: Vec3Data, velocity: Vec3Data) -> Self {
+        Self {
+            node_id,
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            vx: velocity.x,
+            vy: velocity.y,
+            vz: velocity.z,
+        }
+    }
+
+    pub fn position(&self) -> Vec3Data {
+        Vec3Data::new(self.x, self.y, self.z)
+    }
+
+    pub fn velocity(&self) -> Vec3Data {
+        Vec3Data::new(self.vx, self.vy, self.vz)
+    }
+}
+
+impl BinaryNodeDataGPU {
+    pub fn to_client(&self) -> BinaryNodeDataClient {
+        BinaryNodeDataClient {
+            node_id: self.node_id,
+            x: self.x,
+            y: self.y,
+            z: self.z,
+            vx: self.vx,
+            vy: self.vy,
+            vz: self.vz,
+        }
+    }
+
+    pub fn from_client(client: &BinaryNodeDataClient) -> Self {
+        Self {
+            node_id: client.node_id,
+            x: client.x,
+            y: client.y,
+            z: client.z,
+            vx: client.vx,
+            vy: client.vy,
+            vz: client.vz,
+            sssp_distance: f32::INFINITY,
+            sssp_parent: -1,
+            cluster_id: -1,
+            centrality: 0.0,
+            mass: 1.0,
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PingMessage {

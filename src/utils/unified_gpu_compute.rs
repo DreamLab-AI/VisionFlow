@@ -1273,7 +1273,153 @@ impl UnifiedGPUCompute {
         
         Ok((assignments, centroids, final_inertia))
     }
-    
+
+    /// Run K-means clustering with enhanced metrics tracking (convergence, iterations)
+    pub fn run_kmeans_clustering_with_metrics(
+        &mut self,
+        num_clusters: usize,
+        max_iterations: u32,
+        tolerance: f32,
+        seed: u32,
+    ) -> Result<(Vec<i32>, Vec<(f32, f32, f32)>, f32, u32, bool)> {
+        if num_clusters > self.max_clusters {
+            return Err(anyhow!("Too many clusters requested: {} > {}", num_clusters, self.max_clusters));
+        }
+
+        let block_size = 256;
+        let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
+
+        // Initialize centroids using K-means++
+        for centroid in 0..num_clusters {
+            let init_kernel = self._module.get_function("init_centroids_kernel")?;
+            let shared_memory_size = block_size * 4; // 4 bytes per float
+            let stream = &self.stream;
+
+            unsafe {
+                launch!(
+                    init_kernel<<<num_clusters as u32, block_size, shared_memory_size, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.min_distances.as_device_ptr(),
+                    self.selected_nodes.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32,
+                    centroid as i32,
+                    seed
+                ))?;
+            }
+            self.stream.synchronize()?;
+        }
+
+        let mut prev_inertia = f32::INFINITY;
+        let mut final_inertia = 0.0f32;
+        let mut converged = false;
+        let mut actual_iterations = 0u32;
+
+        // Main K-means iteration loop with convergence tracking
+        for iteration in 0..max_iterations {
+            actual_iterations = iteration + 1;
+
+            // Step 1: Assign nodes to nearest centroid
+            let assign_kernel = self._module.get_function("assign_clusters_kernel")?;
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    assign_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.distances_to_centroid.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32
+                ))?;
+            }
+
+            // Step 2: Update centroids
+            let update_kernel = self._module.get_function("update_centroids_kernel")?;
+            let centroid_shared_memory = block_size * (3 * 4 + 4); // 3 floats + 1 int per thread
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    update_kernel<<<num_clusters as u32, block_size, centroid_shared_memory, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_sizes.as_device_ptr(),
+                    self.num_nodes as i32,
+                    num_clusters as i32
+                ))?;
+            }
+
+            // Step 3: Compute inertia for convergence check
+            let inertia_kernel = self._module.get_function("compute_inertia_kernel")?;
+            let inertia_shared_memory = block_size * 4; // One float per thread
+            let stream = &self.stream;
+            unsafe {
+                launch!(
+                    inertia_kernel<<<grid_size, block_size, inertia_shared_memory, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.centroids_x.as_device_ptr(),
+                    self.centroids_y.as_device_ptr(),
+                    self.centroids_z.as_device_ptr(),
+                    self.cluster_assignments.as_device_ptr(),
+                    self.partial_inertia.as_device_ptr(),
+                    self.num_nodes as i32
+                ))?;
+            }
+
+            self.stream.synchronize()?;
+
+            // Sum partial inertias on CPU
+            let mut partial_inertias = vec![0.0f32; grid_size as usize];
+            self.partial_inertia.copy_to(&mut partial_inertias)?;
+            let current_inertia: f32 = partial_inertias.iter().sum();
+            final_inertia = current_inertia;
+
+            // Check convergence
+            if (prev_inertia - current_inertia).abs() < tolerance {
+                info!("K-means converged at iteration {} with inertia {:.4}", iteration, current_inertia);
+                converged = true;
+                break;
+            }
+
+            prev_inertia = current_inertia;
+        }
+
+        // Download results
+        let mut assignments = vec![0i32; self.num_nodes];
+        self.cluster_assignments.copy_to(&mut assignments)?;
+
+        let mut centroids_x = vec![0.0f32; num_clusters];
+        let mut centroids_y = vec![0.0f32; num_clusters];
+        let mut centroids_z = vec![0.0f32; num_clusters];
+        self.centroids_x.copy_to(&mut centroids_x)?;
+        self.centroids_y.copy_to(&mut centroids_y)?;
+        self.centroids_z.copy_to(&mut centroids_z)?;
+
+        let centroids: Vec<(f32, f32, f32)> = centroids_x.into_iter()
+            .zip(centroids_y.into_iter())
+            .zip(centroids_z.into_iter())
+            .map(|((x, y), z)| (x, y, z))
+            .collect();
+
+        Ok((assignments, centroids, final_inertia, actual_iterations, converged))
+    }
+
     /// Run Local Outlier Factor (LOF) anomaly detection
     pub fn run_lof_anomaly_detection(&mut self, k_neighbors: i32, radius: f32) -> Result<(Vec<f32>, Vec<f32>)> {
         // First ensure spatial grid is built (reuse existing grid from simulation)

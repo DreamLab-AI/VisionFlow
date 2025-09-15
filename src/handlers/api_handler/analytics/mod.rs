@@ -1021,15 +1021,15 @@ fn generate_mock_clusters(
         let centroid = if !cluster_nodes.is_empty() {
             let sum_x: f32 = cluster_nodes.iter()
                 .filter_map(|&id| graph_data.nodes.get(id as usize))
-                .map(|n| n.data.position.x)
+                .map(|n| n.data.x)
                 .sum();
             let sum_y: f32 = cluster_nodes.iter()
                 .filter_map(|&id| graph_data.nodes.get(id as usize))
-                .map(|n| n.data.position.y)
+                .map(|n| n.data.y)
                 .sum();
             let sum_z: f32 = cluster_nodes.iter()
                 .filter_map(|&id| graph_data.nodes.get(id as usize))
-                .map(|n| n.data.position.z)
+                .map(|n| n.data.z)
                 .sum();
             let count = cluster_nodes.len() as f32;
             Some([sum_x / count, sum_y / count, sum_z / count])

@@ -379,8 +379,8 @@ impl SemanticConstraintGenerator {
     fn compute_structural_similarity(&self, node_a: &Node, node_b: &Node) -> f32 {
         // For now, return a placeholder - in a full implementation this would
         // analyze the graph structure around each node
-        let pos_a = (node_a.data.position.x, node_a.data.position.y, node_a.data.position.z);
-        let pos_b = (node_b.data.position.x, node_b.data.position.y, node_b.data.position.z);
+        let pos_a = (node_a.data.x, node_a.data.y, node_a.data.z);
+        let pos_b = (node_b.data.x, node_b.data.y, node_b.data.z);
         
         let distance = ((pos_a.0 - pos_b.0).powi(2) + 
                        (pos_a.1 - pos_b.1).powi(2) + 

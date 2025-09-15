@@ -139,10 +139,10 @@ impl BinaryNodeData {
     pub fn to_wire_format(&self, node_id: u32) -> WireNodeDataItem {
         WireNodeDataItem {
             id: to_wire_id(node_id),
-            position: self.position,
-            velocity: self.velocity,
-            sssp_distance: self.sssp_distance,
-            sssp_parent: self.sssp_parent,
+            position: self.position(),
+            velocity: self.velocity(),
+            sssp_distance: f32::INFINITY,  // Default for client data
+            sssp_parent: -1,               // Default for client data
         }
     }
 }
@@ -180,8 +180,8 @@ pub fn encode_node_data_with_types(
         if sample_size > 0 && *node_id < sample_size as u32 {
             trace!("Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}], is_agent={}",
                 node_id,
-                node.position.x, node.position.y, node.position.z,
-                node.velocity.x, node.velocity.y, node.velocity.z,
+                node.x, node.y, node.z,
+                node.vx, node.vy, node.vz,
                 agent_node_ids.contains(node_id));
         }
         
@@ -192,20 +192,17 @@ pub fn encode_node_data_with_types(
         buffer.extend_from_slice(&wire_id.to_le_bytes());
 
         // Write position (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.position.x.to_le_bytes());
-        buffer.extend_from_slice(&node.position.y.to_le_bytes());
-        buffer.extend_from_slice(&node.position.z.to_le_bytes());
+        buffer.extend_from_slice(&node.x.to_le_bytes());
+        buffer.extend_from_slice(&node.y.to_le_bytes());
+        buffer.extend_from_slice(&node.z.to_le_bytes());
 
         // Write velocity (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
-        buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
-        buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
+        buffer.extend_from_slice(&node.vx.to_le_bytes());
+        buffer.extend_from_slice(&node.vy.to_le_bytes());
+        buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // Write SSSP distance (4 bytes)
-        buffer.extend_from_slice(&node.sssp_distance.to_le_bytes());
-
-        // Write SSSP parent (4 bytes)
-        buffer.extend_from_slice(&node.sssp_parent.to_le_bytes());
+        // SSSP fields not available in BinaryNodeDataClient
+        // These fields are only in BinaryNodeDataGPU for server-side computation
     }
 
     // Only log non-empty node transmissions to reduce spam
@@ -239,8 +236,8 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
         if sample_size > 0 && *node_id < sample_size as u32 {
             trace!("Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
                 node_id,
-                node.position.x, node.position.y, node.position.z,
-                node.velocity.x, node.velocity.y, node.velocity.z);
+                node.x, node.y, node.z,
+                node.vx, node.vy, node.vz);
         }
         
         // Manual serialization to ensure exactly 34 bytes
@@ -250,20 +247,17 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
         buffer.extend_from_slice(&wire_id.to_le_bytes());
 
         // Write position (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.position.x.to_le_bytes());
-        buffer.extend_from_slice(&node.position.y.to_le_bytes());
-        buffer.extend_from_slice(&node.position.z.to_le_bytes());
+        buffer.extend_from_slice(&node.x.to_le_bytes());
+        buffer.extend_from_slice(&node.y.to_le_bytes());
+        buffer.extend_from_slice(&node.z.to_le_bytes());
 
         // Write velocity (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
-        buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
-        buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
+        buffer.extend_from_slice(&node.vx.to_le_bytes());
+        buffer.extend_from_slice(&node.vy.to_le_bytes());
+        buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // Write SSSP distance (4 bytes)
-        buffer.extend_from_slice(&node.sssp_distance.to_le_bytes());
-
-        // Write SSSP parent (4 bytes)
-        buffer.extend_from_slice(&node.sssp_parent.to_le_bytes());
+        // SSSP fields not available in BinaryNodeDataClient
+        // These fields are only in BinaryNodeDataGPU for server-side computation
 
         // Mass, flags, and padding are server-side only and not transmitted over wire
     }
@@ -343,19 +337,21 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
             );
             samples_logged += 1;
         }
-        
-        // Convert wire format to server format (BinaryNodeData)
-        // Server-side fields (mass, flags, padding) get default values
-        let server_node_data = BinaryNodeData {
-            position: Vec3Data::new(pos_x, pos_y, pos_z),
-            velocity: Vec3Data::new(vel_x, vel_y, vel_z),
-            mass: 100u8,     // Default mass - will be replaced with actual value from node_map
-            flags: 0u8,      // Default flags - will be replaced with actual value from node_map
-            padding: [0u8, 0u8], // Default padding
-        };
-        
+
         // Use the actual node ID (with agent flag stripped) for server-side processing
         let actual_id = get_actual_node_id(full_node_id);
+
+        // Convert wire format to server format (BinaryNodeData)
+        let server_node_data = BinaryNodeData {
+            node_id: actual_id,
+            x: pos_x,
+            y: pos_y,
+            z: pos_z,
+            vx: vel_x,
+            vy: vel_y,
+            vz: vel_z,
+        };
+
         updates.push((actual_id, server_node_data));
     }
     
@@ -385,6 +381,8 @@ mod tests {
             (1u32, BinaryNodeData {
                 position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
                 velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
+                sssp_distance: f32::INFINITY,
+                sssp_parent: -1,
                 mass: 100,
                 flags: 1,
                 padding: [0, 0],
@@ -438,6 +436,8 @@ mod tests {
             (1u32, BinaryNodeData {
                 position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
                 velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
+                sssp_distance: f32::INFINITY,
+                sssp_parent: -1,
                 mass: 100,
                 flags: 1,
                 padding: [0, 0],
@@ -507,6 +507,8 @@ mod tests {
             (1u32, BinaryNodeData {
                 position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
                 velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
+                sssp_distance: f32::INFINITY,
+                sssp_parent: -1,
                 mass: 100,
                 flags: 1,
                 padding: [0, 0],

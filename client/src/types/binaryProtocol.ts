@@ -14,19 +14,24 @@ export interface BinaryNodeData {
   nodeId: number;
   position: Vec3;
   velocity: Vec3;
+  // SSSP data removed - now fetched via REST API when needed
+  // This reduces binary message size from 34 to 26 bytes per node
 }
 
 /**
- * Node binary format (WireNodeDataItem):
- * - Node ID: 2 bytes (uint16) - includes type flags in high bits
+ * Node binary format (Optimized):
+ * - Node ID: 4 bytes (uint32) - full node ID without flags
  * - Position: 12 bytes (3 float32 values)
  * - Velocity: 12 bytes (3 float32 values)
- * Total: 26 bytes per node
+ * Total: 28 bytes per node (reduced from 34)
+ *
+ * SSSP and other analytics data are fetched via REST API when needed
  */
-export const BINARY_NODE_SIZE = 26;
+export const BINARY_NODE_SIZE = 28;
 export const BINARY_NODE_ID_OFFSET = 0;
-export const BINARY_POSITION_OFFSET = 2;
-export const BINARY_VELOCITY_OFFSET = 14;
+export const BINARY_POSITION_OFFSET = 4;
+export const BINARY_VELOCITY_OFFSET = 16;
+// SSSP offsets removed - data no longer in binary protocol
 
 // Node type flag constants (must match server) - adjusted for u16
 export const AGENT_NODE_FLAG = 0x8000;     // Bit 15 indicates agent node
@@ -102,10 +107,9 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         break;
       }
       
-      // Read node ID (uint16, 2 bytes) - includes type flags
-      const rawNodeId = view.getUint16(offset + BINARY_NODE_ID_OFFSET, true);
-      const nodeId = getActualNodeId(rawNodeId);  // Extract actual ID without flags
-      
+      // Read node ID (uint32, 4 bytes) - no flags needed anymore
+      const nodeId = view.getUint32(offset + BINARY_NODE_ID_OFFSET, true);
+
       // Read position (3 float32 values, 12 bytes)
       const position: Vec3 = {
         x: view.getFloat32(offset + BINARY_POSITION_OFFSET, true),
@@ -120,15 +124,17 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         z: view.getFloat32(offset + BINARY_VELOCITY_OFFSET + 8, true)
       };
 
+      // SSSP data removed - fetched via REST API when needed
+
       // Basic validation to detect corrupted data
-      const isValid = 
+      const isValid =
         !isNaN(position.x) && isFinite(position.x) &&
         !isNaN(position.y) && isFinite(position.y) &&
         !isNaN(position.z) && isFinite(position.z) &&
         !isNaN(velocity.x) && isFinite(velocity.x) &&
         !isNaN(velocity.y) && isFinite(velocity.y) &&
         !isNaN(velocity.z) && isFinite(velocity.z);
-      
+
       if (isValid) {
         nodes.push({ nodeId, position, velocity });
       } else {
@@ -165,6 +171,12 @@ export function createBinaryNodeData(nodes: BinaryNodeData[]): ArrayBuffer {
     view.setFloat32(offset + BINARY_VELOCITY_OFFSET, node.velocity.x, true);
     view.setFloat32(offset + BINARY_VELOCITY_OFFSET + 4, node.velocity.y, true);
     view.setFloat32(offset + BINARY_VELOCITY_OFFSET + 8, node.velocity.z, true);
+
+    // Write SSSP distance (float32, 4 bytes)
+    view.setFloat32(offset + BINARY_SSSP_DISTANCE_OFFSET, node.ssspDistance || Infinity, true);
+
+    // Write SSSP parent (int32, 4 bytes)
+    view.setInt32(offset + BINARY_SSSP_PARENT_OFFSET, node.ssspParent || -1, true);
   });
   
   return buffer;

@@ -4,7 +4,7 @@ use actix::prelude::*;
 use log::{debug, error, info, warn};
 
 use crate::actors::messages::*;
-use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData};
+use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData, ConstraintKind};
 use super::shared::{SharedGPUContext, GPUState};
 
 /// Constraint Actor - handles constraint management and GPU uploads
@@ -84,145 +84,30 @@ impl ConstraintActor {
     /// Convert constraints to GPU-compatible format
     fn convert_constraints_to_gpu_format(&self) -> Result<Vec<ConstraintData>, String> {
         let mut constraint_data = Vec::new();
-        
-        for (_constraint_idx, _constraint) in self.constraints.iter().enumerate() {
-            // TODO: Fix constraint enum definitions - all constraint processing disabled for now
-            /*
-            match constraint {
-                Constraint::Distance { node1_id, node2_id, target_distance, strength } => {
-                    // Find node indices from IDs
-                    let node1_idx = self.gpu_state.node_indices.get(node1_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node1_id))? as u32;
-                    
-                    let node2_idx = self.gpu_state.node_indices.get(node2_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node2_id))? as u32;
-                    
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 0, // Distance constraint type
-                        node1_idx,
-                        node2_idx,
-                        target_value: *target_distance,
-                        strength: *strength,
-                        active: true,
-                    });
-                },
-                
-                Constraint::Angle { node1_id, node2_id, node3_id, target_angle, strength } => {
-                    // Find node indices from IDs
-                    let node1_idx = self.gpu_state.node_indices.get(node1_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node1_id))? as u32;
-                    
-                    let node2_idx = self.gpu_state.node_indices.get(node2_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node2_id))? as u32;
-                    
-                    let node3_idx = self.gpu_state.node_indices.get(node3_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node3_id))? as u32;
-                    
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 1, // Angle constraint type
-                        node1_idx,
-                        node2_idx, // Center node for angle
-                        target_value: target_angle.to_radians(), // Convert to radians for GPU
-                        strength: *strength,
-                        active: true,
-                    });
-                    
-                    // For angle constraints, we also need the third node information
-                    // This could be encoded as additional constraint data or handled differently
-                    // For now, we'll create a second entry for the third node
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 1, // Angle constraint type continuation
-                        node1_idx: node3_idx,
-                        node2_idx: constraint_idx as u32, // Link back to main constraint
-                        target_value: 0.0, // Unused for continuation entry
-                        strength: 0.0, // Unused for continuation entry
-                        active: true,
-                    });
-                },
-                
-                Constraint::Position { node_id, target_position, strength } => {
-                    // Find node index from ID
-                    let node_idx = self.gpu_state.node_indices.get(node_id)
-                        .copied()
-                        .ok_or_else(|| format!("Node {} not found in node indices", node_id))? as u32;
-                    
-                    // Create three constraint entries for x, y, z components
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 2, // Position X constraint type
-                        node1_idx: node_idx,
-                        node2_idx: 0, // Unused for position constraints
-                        target_value: target_position.x,
-                        strength: *strength,
-                        active: true,
-                    });
-                    
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 3, // Position Y constraint type
-                        node1_idx: node_idx,
-                        node2_idx: 0, // Unused for position constraints
-                        target_value: target_position.y,
-                        strength: *strength,
-                        active: true,
-                    });
-                    
-                    constraint_data.push(ConstraintData {
-                        constraint_type: 4, // Position Z constraint type
-                        node1_idx: node_idx,
-                        node2_idx: 0, // Unused for position constraints
-                        target_value: target_position.z,
-                        strength: *strength,
-                        active: true,
-                    });
-                },
-                
-                Constraint::Cluster { node_ids, center_position, strength } => {
-                    // For cluster constraints, create a center attraction for each node
-                    for node_id in node_ids {
-                        let node_idx = self.gpu_state.node_indices.get(node_id)
-                            .copied()
-                            .ok_or_else(|| format!("Node {} not found in node indices", node_id))? as u32;
-                        
-                        // Create three constraint entries for x, y, z components of cluster center attraction
-                        constraint_data.push(ConstraintData {
-                            constraint_type: 5, // Cluster X attraction type
-                            node1_idx: node_idx,
-                            node2_idx: 0, // Unused for cluster constraints
-                            target_value: center_position.x,
-                            strength: *strength,
-                            active: true,
-                        });
-                        
-                        constraint_data.push(ConstraintData {
-                            constraint_type: 6, // Cluster Y attraction type
-                            node1_idx: node_idx,
-                            node2_idx: 0, // Unused for cluster constraints
-                            target_value: center_position.y,
-                            strength: *strength,
-                            active: true,
-                        });
-                        
-                        constraint_data.push(ConstraintData {
-                            constraint_type: 7, // Cluster Z attraction type
-                            node1_idx: node_idx,
-                            node2_idx: 0, // Unused for cluster constraints
-                            target_value: center_position.z,
-                            strength: *strength,
-                            active: true,
-                        });
+
+        // Use the ConstraintData::from_constraint method for each constraint
+        for constraint in self.constraints.iter() {
+            // Only process active constraints
+            if constraint.active {
+                // Validate that node indices exist in our GPU state
+                for &node_idx in &constraint.node_indices {
+                    if node_idx >= self.gpu_state.num_nodes {
+                        error!("ConstraintActor: Node index {} out of range (max: {})",
+                               node_idx, self.gpu_state.num_nodes - 1);
+                        continue;
                     }
-                },
+                }
+
+                // Convert to GPU-compatible format
+                let gpu_constraint = ConstraintData::from_constraint(constraint);
+                constraint_data.push(gpu_constraint);
             }
-            */
         }
-        
-        info!("ConstraintActor: Converted {} constraints to {} GPU constraint entries", 
-              self.constraints.len(), constraint_data.len());
-        
+
+        info!("ConstraintActor: Converted {} active constraints to {} GPU constraint entries",
+              self.constraints.iter().filter(|c| c.active).count(),
+              constraint_data.len());
+
         Ok(constraint_data)
     }
     
@@ -257,7 +142,7 @@ impl ConstraintActor {
     
     /// Get constraint statistics
     fn get_constraint_statistics(&self) -> ConstraintStatistics {
-        let stats = ConstraintStatistics {
+        let mut stats = ConstraintStatistics {
             total_constraints: self.constraints.len(),
             distance_constraints: 0,
             angle_constraints: 0,
@@ -266,21 +151,24 @@ impl ConstraintActor {
             active_constraints: self.constraints.len(), // All are active by default
         };
         
-        // TODO: Fix constraint enum definitions
-        /*
+        // Count constraints by type
         for constraint in &self.constraints {
-            match constraint {
-                Constraint::Distance { .. } => stats.distance_constraints += 1,
-                Constraint::Angle { .. } => stats.angle_constraints += 1,
-                Constraint::Position { .. } => stats.position_constraints += 1,
-                Constraint::Cluster { node_ids, .. } => {
-                    stats.cluster_constraints += 1;
-                    // Each cluster constraint affects multiple nodes
-                    stats.total_constraints += node_ids.len().saturating_sub(1);
-                },
+            if constraint.active {
+                match constraint.kind {
+                    ConstraintKind::Separation => stats.distance_constraints += 1,
+                    ConstraintKind::FixedPosition => stats.position_constraints += 1,
+                    ConstraintKind::Clustering => {
+                        stats.cluster_constraints += 1;
+                        // Each cluster constraint affects multiple nodes
+                        stats.total_constraints += constraint.node_indices.len().saturating_sub(1);
+                    },
+                    ConstraintKind::AlignmentHorizontal |
+                    ConstraintKind::AlignmentVertical |
+                    ConstraintKind::AlignmentDepth => stats.angle_constraints += 1, // Using angle_constraints for alignment
+                    _ => {} // Other constraint types not tracked in current stats
+                }
             }
         }
-        */
         
         stats
     }
@@ -302,11 +190,25 @@ impl Actor for ConstraintActor {
 
 impl Handler<UpdateConstraints> for ConstraintActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
         info!("ConstraintActor: UpdateConstraints received");
-        // Convert Value to Vec<Constraint> - placeholder implementation
-        let constraints: Vec<Constraint> = Vec::new(); // TODO: Parse from msg.constraint_data
+
+        // Parse constraint_data from JSON Value
+        let constraints = match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data.clone()) {
+            Ok(constraints) => constraints,
+            Err(e) => {
+                // Try parsing as ConstraintSet if direct Vec<Constraint> fails
+                match serde_json::from_value::<ConstraintSet>(msg.constraint_data) {
+                    Ok(constraint_set) => constraint_set.constraints,
+                    Err(_) => {
+                        error!("ConstraintActor: Failed to parse constraint_data: {}", e);
+                        return Err(format!("Failed to parse constraints: {}", e));
+                    }
+                }
+            }
+        };
+
         self.update_constraints(constraints)
     }
 }

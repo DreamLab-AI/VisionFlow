@@ -1,0 +1,131 @@
+diff --git a/src/services/bots_client.rs b/src/services/bots_client.rs
+index 1234567..8901234 100644
+--- a/src/services/bots_client.rs
++++ b/src/services/bots_client.rs
+@@ -45,8 +45,11 @@ impl BotsClient {
+     pub async fn connect(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+         if self.stream.is_none() {
+-            // OLD: Trying to connect to localhost (wrong - that's inside logseq container)
+-            // let host = "localhost";
+-            let host = "multi-agent-container"; // FIX: Connect to multi-agent-container
++            // CRITICAL: We're in logseq container, MCP server is in multi-agent-container
++            // Use container name for Docker network resolution
++            let host = std::env::var("MCP_HOST")
++                .unwrap_or_else(|_| "multi-agent-container".to_string());
++
+             let port = 9500;
+
+             info!("Connecting to MCP server at {}:{}", host, port);
+@@ -78,7 +81,7 @@ impl BotsClient {
+                 "clientInfo": {
+                     "name": "webxr-bots-client",
+                     "version": "1.0.0"
+                 }
+             });
+
+diff --git a/src/actors/claude_flow_actor.rs b/src/actors/claude_flow_actor.rs
+index 2345678..9012345 100644
+--- a/src/actors/claude_flow_actor.rs
++++ b/src/actors/claude_flow_actor.rs
+@@ -125,10 +125,13 @@ impl ClaudeFlowActorTcp {
+     /// Establishes TCP connection to MCP server
+     async fn connect(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+         if self.tcp_actor.is_none() {
+-            // OLD: let host = "localhost"; // Wrong - looks in logseq container
+-            let host = std::env::var("CLAUDE_FLOW_HOST")
+-                .unwrap_or_else(|_| "multi-agent-container".to_string()); // FIX
++            // CRITICAL: We're running in logseq container
++            // MCP server is in multi-agent-container on port 9500
++            let host = std::env::var("MCP_HOST")
++                .unwrap_or_else(|_| "multi-agent-container".to_string());
++
+             let port = 9500;
++
+             info!("ClaudeFlowActor connecting to MCP at {}:{}", host, port);
+
+             // Create TCP connection actor
+@@ -280,6 +283,41 @@ impl ClaudeFlowActorTcp {
+             Err(e) => error!("Failed to send agent_list request: {}", e),
+         }
+     }
++
++    /// Process agent data and send UpdateBotsGraph message
++    async fn process_agent_updates(&mut self, agents: Vec<AgentData>) {
++        // Convert MCP agents to graph nodes with positions
++        let mut nodes = Vec::new();
++
++        for (index, agent) in agents.iter().enumerate() {
++            // Generate positions in a grid layout
++            let grid_size = (agents.len() as f32).sqrt().ceil() as i32;
++            let x = (index as i32 % grid_size) as f32 * 100.0 - (grid_size as f32 * 50.0);
++            let y = (index as i32 / grid_size) as f32 * 100.0 - (grid_size as f32 * 50.0);
++            let z = 0.0;
++
++            nodes.push(BotNode {
++                id: agent.id.clone(),
++                name: agent.name.clone().unwrap_or(agent.type_.clone()),
++                type_: agent.type_.clone(),
++                status: agent.status.clone(),
++                position: (x, y, z),
++                capabilities: agent.capabilities.clone(),
++            });
++        }
++
++        // Send UpdateBotsGraph message to GraphServiceActor
++        let update_msg = UpdateBotsGraph {
++            nodes,
++            edges: Vec::new(), // TODO: Add agent relationships
++            timestamp: chrono::Utc::now().timestamp_millis(),
++        };
++
++        if let Some(graph_actor) = self.graph_actor.as_ref() {
++            graph_actor.do_send(update_msg);
++            info!("Sent UpdateBotsGraph with {} agents", agents.len());
++        }
++    }
+ }
+
+ impl Actor for ClaudeFlowActorTcp {
+diff --git a/src/actors/agent_visualization_processor.rs b/src/actors/agent_visualization_processor.rs
+index 3456789..4567890 100644
+--- a/src/actors/agent_visualization_processor.rs
++++ b/src/actors/agent_visualization_processor.rs
+@@ -45,25 +45,8 @@ impl AgentVisualizationProcessor {
+     }
+
+     pub fn process_agent_update(&mut self, update: UpdateBotsGraph) {
+-        // REMOVE: Mock data generation
+-        // if update.nodes.is_empty() {
+-        //     // Generate mock agents for testing
+-        //     let mock_agents = vec![
+-        //         ("coordinator", "Agent Coordinator", (0.0, 0.0, 0.0)),
+-        //         ("researcher", "Research Agent", (100.0, 0.0, 0.0)),
+-        //         ("coder", "Code Agent", (-100.0, 0.0, 0.0)),
+-        //         ("tester", "Test Agent", (0.0, 100.0, 0.0)),
+-        //     ];
+-        //
+-        //     for (type_, name, pos) in mock_agents {
+-        //         self.agents.insert(
+-        //             format!("mock_{}", type_),
+-        //             AgentNode::new(name, type_, pos)
+-        //         );
+-        //     }
+-        //     return;
+-        // }
+-
++        // Process real agent data from MCP server
++        info!("Processing {} agents from MCP", update.nodes.len());
+
+         // Update agent positions and data
+         for node in update.nodes {
+@@ -75,6 +58,10 @@ impl AgentVisualizationProcessor {
+             );
+         }
+
++        // Update edges (agent relationships)
++        for edge in update.edges {
++            self.add_edge(edge.from, edge.to, edge.weight);
++        }
+
+         // Send to WebSocket clients
+         self.broadcast_update();

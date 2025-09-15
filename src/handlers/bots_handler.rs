@@ -303,11 +303,13 @@ fn convert_agents_to_nodes(agents: Vec<BotsAgent>) -> Vec<Node> {
             metadata_id: agent.id.clone(),
             label: agent.name,
             data: BinaryNodeData {
-                position,
-                velocity: Vec3Data::zero(),
-                mass,
-                flags: if agent.status == "active" { 1 } else { 0 },
-                padding: [0, 0],
+                node_id,
+                x: position.x,
+                y: position.y,
+                z: position.z,
+                vx: 0.0,
+                vy: 0.0,
+                vz: 0.0,
             },
             metadata: {
                 let mut meta = HashMap::new();

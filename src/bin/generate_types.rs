@@ -135,7 +135,7 @@ export interface PhysicsSettings {
   auto_balance: boolean;
   auto_balance_interval_ms: number;
   auto_balance_config: AutoBalanceConfig;
-  attraction_k: number;
+  spring_k: number;
   bounds_size: number;
   separation_radius: number;
   damping: number;
@@ -519,7 +519,7 @@ export interface PhysicsUpdate {
   max_velocity?: number;
   max_force?: number;
   separation_radius?: number;
-  attraction_k?: number;
+  spring_k?: number;
   mass_scale?: number;
   boundary_damping?: number;
   dt?: number;

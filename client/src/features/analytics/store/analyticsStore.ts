@@ -219,64 +219,125 @@ export const useAnalyticsStore = create<AnalyticsState>()(
 
       computeSSSP: async (nodes, edges, sourceNodeId, algorithm = 'dijkstra') => {
         const startTime = performance.now()
-        
+
         set({ loading: true, error: null })
-        
+
         try {
           // Validate input
           if (!nodes.length || !sourceNodeId) {
             throw new Error('Invalid input: nodes array is empty or sourceNodeId is missing')
           }
-          
+
           const sourceNode = nodes.find(n => n.id === sourceNodeId)
           if (!sourceNode) {
             throw new Error(`Source node with id ${sourceNodeId} not found`)
           }
-          
+
           // Generate graph hash for caching
           const graphHash = hashGraph(nodes, edges)
-          
+
           // Check cache first
           const cachedResult = get().getCachedResult(sourceNodeId, graphHash)
           if (cachedResult) {
             const computationTime = performance.now() - startTime
             get().updateMetrics(computationTime, true)
-            
-            set({ 
-              currentResult: cachedResult, 
+
+            set({
+              currentResult: cachedResult,
               loading: false,
               lastGraphHash: graphHash
             })
-            
+
             if (debugState.isEnabled()) {
               logger.info('SSSP result retrieved from cache', { sourceNodeId, algorithm })
             }
-            
+
             return cachedResult
           }
-          
-          // Compute SSSP based on algorithm
-          let baseResult: Omit<SSSPResult, 'timestamp' | 'computationTime' | 'algorithm'>
-          
-          switch (algorithm) {
-            case 'bellman-ford':
-              baseResult = bellmanFord(nodes, edges, sourceNodeId)
-              break
-            case 'dijkstra':
-            default:
-              baseResult = dijkstra(nodes, edges, sourceNodeId)
-              break
+
+          // Declare result variable outside try-catch
+          let result: SSSPResult
+
+          // Try server API first
+          try {
+            const response = await fetch('/api/analytics/shortest-path', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                source_node_id: parseInt(sourceNodeId), // Convert to number for server
+              }),
+            })
+
+            if (!response.ok) {
+              throw new Error(`Server error: ${response.statusText}`)
+            }
+
+            const data = await response.json()
+
+            if (!data.success) {
+              throw new Error(data.error || 'SSSP computation failed on server')
+            }
+
+            // Convert server response to our format
+            const distances: Record<string, number> = {}
+            const predecessors: Record<string, string | null> = {}
+
+            for (const [nodeId, distance] of Object.entries(data.distances || {})) {
+              distances[nodeId] = distance === null ? Infinity : distance as number
+              // Server doesn't return predecessors yet, so we set them to null
+              predecessors[nodeId] = null
+            }
+
+            const computationTime = performance.now() - startTime
+
+            result = {
+              sourceNodeId,
+              distances,
+              predecessors,
+              unreachableCount: data.unreachable_count || 0,
+              algorithm,
+              computationTime,
+              timestamp: Date.now()
+            }
+
+            if (debugState.isEnabled()) {
+              logger.info('SSSP computed on server', {
+                sourceNodeId,
+                algorithm,
+                unreachableCount: result.unreachableCount,
+                computationTime
+              })
+            }
+
+          } catch (apiError) {
+            // If server fails, fall back to local computation
+            logger.warn('Server SSSP failed, falling back to local computation', apiError)
+
+            // Compute SSSP locally as fallback
+            let baseResult: Omit<SSSPResult, 'timestamp' | 'computationTime' | 'algorithm'>
+
+            switch (algorithm) {
+              case 'bellman-ford':
+                baseResult = bellmanFord(nodes, edges, sourceNodeId)
+                break
+              case 'dijkstra':
+              default:
+                baseResult = dijkstra(nodes, edges, sourceNodeId)
+                break
+            }
+
+            const computationTime = performance.now() - startTime
+
+            result = {
+              ...baseResult,
+              algorithm,
+              computationTime,
+              timestamp: Date.now()
+            }
           }
-          
-          const computationTime = performance.now() - startTime
-          
-          const result: SSSPResult = {
-            ...baseResult,
-            algorithm,
-            computationTime,
-            timestamp: Date.now()
-          }
-          
+
           // Update state with result and cache
           set(state => produce(state, draft => {
             draft.currentResult = result
