@@ -30,78 +30,10 @@ if (typeof document !== 'undefined' && !document.querySelector('#bots-visualizat
   document.head.appendChild(style);
 }
 
-// Generate mock processing logs for visualization
-const generateMockProcessingLogs = (agentType: string, status: string): string[] => {
-  const logs: string[] = [];
-
-  const activityTemplates = {
-    coordinator: [
-      'Analyzing multi-agent topology and agent distribution patterns...',
-      'Coordinating task allocation across 7 active agents...',
-      'Optimizing communication channels for minimal latency...',
-      'Monitoring agent health metrics and workload balance...',
-      'Synchronizing distributed memory across multi-agent nodes...'
-    ],
-    researcher: [
-      'Scanning knowledge base for relevant documentation...',
-      'Analyzing code patterns in /src/components/*.tsx files...',
-      'Extracting semantic relationships from API endpoints...',
-      'Cross-referencing implementation with best practices...',
-      'Compiling research findings into actionable insights...'
-    ],
-    coder: [
-      'Implementing authentication middleware with JWT tokens...',
-      'Refactoring database connection pool for performance...',
-      'Writing unit tests for UserService.createUser() method...',
-      'Optimizing React component render cycles in Dashboard...',
-      'Debugging WebSocket connection timeout issues...'
-    ],
-    analyst: [
-      'Profiling application performance bottlenecks...',
-      'Analyzing database query execution plans...',
-      'Evaluating code complexity metrics across modules...',
-      'Identifying potential security vulnerabilities...',
-      'Generating performance optimization recommendations...'
-    ],
-    architect: [
-      'Designing microservice communication patterns...',
-      'Evaluating architectural trade-offs for scalability...',
-      'Creating domain model for user management system...',
-      'Planning database schema migrations strategy...',
-      'Documenting API contract specifications...'
-    ],
-    tester: [
-      'Executing integration test suite for API endpoints...',
-      'Running load tests with 1000 concurrent users...',
-      'Validating edge cases in payment processing flow...',
-      'Checking accessibility compliance for UI components...',
-      'Generating code coverage reports for modules...'
-    ],
-    queen: [
-      'Orchestrating hive mind collective intelligence...',
-      'Distributing tasks across specialized worker agents...',
-      'Optimizing multi-agent topology for maximum efficiency...',
-      'Monitoring collective progress towards objectives...',
-      'Synchronizing knowledge base across all agents...'
-    ],
-    default: [
-      'Processing task queue items sequentially...',
-      'Analyzing incoming data streams for patterns...',
-      'Executing scheduled maintenance operations...',
-      'Monitoring system resources and performance...',
-      'Updating internal state and synchronizing...'
-    ]
-  };
-
-  const templates = activityTemplates[agentType] || activityTemplates.default;
-
-  // Generate 3 random logs
-  for (let i = 0; i < 3; i++) {
-    const template = templates[Math.floor(Math.random() * templates.length)];
-    logs.push(template);
-  }
-
-  return logs;
+// Helper to format processing logs (no mock generation)
+const formatProcessingLogs = (logs: string[] | undefined): string[] => {
+  // Return actual logs if provided, otherwise empty array
+  return logs || [];
 };
 
 // Get VisionFlow colors from settings or use defaults
@@ -494,8 +426,8 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     }
   });
 
-  // Generate mock logs if not provided
-  const mockLogs = agent.processingLogs || generateMockProcessingLogs(agent.type, agent.status);
+  // Use actual logs or empty array
+  const processingLogs = formatProcessingLogs(agent.processingLogs);
 
   return (
     <group ref={groupRef}>
@@ -540,7 +472,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
             left: '0',
           }}
         >
-          <AgentStatusBadges agent={agent} logs={mockLogs} />
+          <AgentStatusBadges agent={agent} logs={processingLogs} />
         </Html>
       )}
 

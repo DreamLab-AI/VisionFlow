@@ -2340,17 +2340,28 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             // Create a node for each agent
             let mut node = Node::new_with_id(agent.agent_id.clone(), Some(node_id));
             
-            // Override position to be near origin like regular nodes
-            // Use the index (i) instead of the high node_id for position calculation
+            // Generate random initial positions for agents
+            // Use spherical coordinates with proper bounds
             let physics = crate::config::dev_config::physics();
-            let theta = 2.0 * std::f32::consts::PI * ((i as f32 * physics.golden_ratio) % 1.0);
-            let phi = ((2.0 * i as f32 / 20.0) - 1.0).acos(); // Reasonable estimate for agent count
-            let radius = physics.initial_radius_min + ((i as f32) % physics.initial_radius_range);
-            
-            // Set position directly on the x, y, z fields
+
+            // Generate random positions using a better distribution
+            use rand::Rng;
+            let mut rng = rand::thread_rng();
+
+            // Random spherical coordinates
+            let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
+            let phi = rng.gen::<f32>() * std::f32::consts::PI;
+            let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
+
+            // Convert to Cartesian coordinates
             node.data.x = radius * phi.sin() * theta.cos();
             node.data.y = radius * phi.sin() * theta.sin();
             node.data.z = radius * phi.cos();
+
+            // Add some initial velocity for better physics simulation
+            node.data.vx = rng.gen_range(-0.5..0.5);
+            node.data.vy = rng.gen_range(-0.5..0.5);
+            node.data.vz = rng.gen_range(-0.5..0.5);
             
             // Set node properties based on agent status
             node.color = Some(match agent.profile.agent_type {

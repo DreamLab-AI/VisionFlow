@@ -1104,7 +1104,7 @@ pub async fn initialize_swarm(
             info!("Spawning {} agents for {} topology", agent_types.len(), request.topology);
             
             for agent_type in agent_types {
-                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type).await {
+                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type, &swarm_id).await {
                     Ok(spawn_result) => {
                         info!("✅ Spawned {} agent: {:?}", agent_type, spawn_result);
                     }
@@ -1410,7 +1410,7 @@ pub async fn initialize_multi_agent(
             info!("Spawning {} agents for {} topology", agent_types.len(), topology);
             
             for agent_type in agent_types {
-                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type).await {
+                match call_agent_spawn(&claude_flow_host, &claude_flow_port, agent_type, &swarm_id).await {
                     Ok(spawn_result) => {
                         info!("✅ Spawned {} agent: {:?}", agent_type, spawn_result);
                     }
@@ -2110,4 +2110,53 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .route("/disconnect-multi-agent",
             web::post().to(disconnect_multi_agent)
         );
+}
+
+/// Spawn a single agent in an existing swarm
+pub async fn spawn_agent(
+    _state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> impl Responder {
+    info!("=== SPAWN AGENT ENDPOINT CALLED ===");
+    info!("Received spawn agent request: {:?}", request);
+
+    // Extract parameters
+    let agent_type = request.get("agentType").and_then(|t| t.as_str()).unwrap_or("coder");
+    let swarm_id = request.get("swarmId").and_then(|s| s.as_str()).unwrap_or("default");
+
+    info!("Spawning {} agent in swarm {}", agent_type, swarm_id);
+
+    // Use the MCP connection to spawn the agent
+    use crate::utils::mcp_connection::call_agent_spawn;
+
+    let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
+        .or_else(|_| std::env::var("MCP_HOST"))
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
+    let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
+
+    // Call agent_spawn
+    match call_agent_spawn(
+        &claude_flow_host,
+        &claude_flow_port,
+        agent_type,
+        swarm_id,
+    ).await {
+        Ok(result) => {
+            info!("Successfully spawned {} agent: {:?}", agent_type, result);
+
+            HttpResponse::Ok().json(json!({
+                "success": true,
+                "message": format!("Successfully spawned {} agent", agent_type),
+                "agentId": result.get("agentId").and_then(|s| s.as_str()).unwrap_or("unknown"),
+                "swarmId": swarm_id
+            }))
+        }
+        Err(e) => {
+            error!("Failed to spawn agent: {}", e);
+            HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("Failed to spawn agent: {}", e)
+            }))
+        }
+    }
 }

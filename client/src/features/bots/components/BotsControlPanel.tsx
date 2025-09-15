@@ -47,10 +47,25 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
     configurationMapper.applyPreset(preset);
   };
 
-  const handleAddAgent = (type: BotsAgent['type']) => {
-    // TODO: Implement live agent addition via MCP service
-    console.warn('Agent addition not yet implemented for live data');
-    setAgentCount(prev => prev + 1);
+  const handleAddAgent = async (type: BotsAgent['type']) => {
+    // Call the API to spawn a new agent via MCP
+    try {
+      const { apiService } = await import('../../../services/apiService');
+      const response = await apiService.post('/bots/spawn-agent', {
+        agentType: type,
+        swarmId: 'default', // Use default swarm or get from context
+      });
+
+      if (response.success) {
+        console.log(`Successfully spawned ${type} agent`);
+        setAgentCount(prev => prev + 1);
+        // The new agent will appear via WebSocket updates
+      } else {
+        console.error(`Failed to spawn ${type} agent:`, response.error);
+      }
+    } catch (error) {
+      console.error(`Error spawning ${type} agent:`, error);
+    }
   };
 
   const handleExportConfig = () => {

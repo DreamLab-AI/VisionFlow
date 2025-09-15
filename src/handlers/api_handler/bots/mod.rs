@@ -14,6 +14,7 @@ pub use crate::handlers::bots_handler::{
     initialize_multi_agent,
     check_mcp_connection,
     disconnect_multi_agent as disconnect_handler,
+    spawn_agent,
 };
 
 // Configure bots API routes
@@ -27,5 +28,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/initialize-multi-agent", web::post().to(initialize_multi_agent))
             .route("/mcp-status", web::get().to(check_mcp_connection))
             .route("/disconnect-multi-agent", web::post().to(disconnect_multi_agent))
+            .route("/spawn-agent", web::post().to(spawn_agent))
     );
 }
