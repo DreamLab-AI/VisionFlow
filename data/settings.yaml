@@ -1,26 +1,26 @@
 visualisation:
   rendering:
-    ambientLightIntensity: 1.2
-    backgroundColor: '#0a0e1a'
-    directionalLightIntensity: 0.12637363
+    ambientLightIntensity: 0.5
+    backgroundColor: '#000000'
+    directionalLightIntensity: 0.01263736
     enableAmbientOcclusion: false
     enableAntialiasing: true
-    enableShadows: true
-    environmentIntensity: 0.7
+    enableShadows: false
+    environmentIntensity: 0.3
     shadowMapSize: '2048'
     shadowBias: 0.0001
     context: desktop
   animations:
-    enableMotionBlur: false
+    enableMotionBlur: true
     enableNodeAnimations: true
-    motionBlurStrength: 0.2
-    selectionWaveEnabled: true
+    motionBlurStrength: 0.1
+    selectionWaveEnabled: false
     pulseEnabled: true
     pulseSpeed: 1.2
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: false
+    enabled: true
     intensity: 0.8010822
     radius: 0.7598874
     threshold: 0.1300069
@@ -29,15 +29,15 @@ visualisation:
     volumetricIntensity: 1.2
     baseColor: '#00ffff'
     emissionColor: '#00e5ff'
-    opacity: 0.95
+    opacity: 0.6
     pulseSpeed: 1.2
     flowSpeed: 0.5
     nodeGlowStrength: 0.053478915
     edgeGlowStrength: 0.9127068
     environmentGlowStrength: 0.96262044
   bloom:
-    enabled: false
-    intensity: 1.0
+    enabled: true
+    intensity: 0.5
     radius: 0.105289996
     threshold: 0.097051024
     color: '#ffffff'
@@ -46,21 +46,21 @@ visualisation:
     blurPasses: 0.0
     knee: 0.0
   hologram:
-    ringCount: 5
+    ringCount: 3
     ringColor: '#555700'
     ringOpacity: 0.14099218
     sphereSizes:
-    - 40.0
     - 80.0
-    ringRotationSpeed: 0.16942804
+    - 180.0
+    ringRotationSpeed: 0.01694280
     enableBuckminster: true
-    buckminsterSize: 50.0
+    buckminsterSize: 250.0
     buckminsterOpacity: 0.3
     enableGeodesic: true
-    geodesicSize: 60.0
+    geodesicSize: 600.0
     geodesicOpacity: 0.25
     enableTriangleSphere: true
-    triangleSphereSize: 70.0
+    triangleSphereSize: 1000.0
     triangleSphereOpacity: 0.4
     globalRotationSpeed: 0.5
   graphs:
@@ -93,7 +93,7 @@ visualisation:
         textOutlineColor: '#ff0000'
         textOutlineWidth: 0.00239011
         textResolution: 32
-        textPadding: 0.6
+        textPadding: 0.3
         billboardMode: camera
         showMetadata: true
         maxLabelWidth: 5.0
@@ -193,7 +193,7 @@ visualisation:
         roughness: 0.15
         nodeSize: 1.2
         quality: high
-        enableInstancing: true
+        enableInstancing: false
         enableHologram: true
         enableMetadataShape: true
         enableMetadataVisualisation: true
@@ -214,7 +214,7 @@ visualisation:
         textOutlineColor: '#0a1a0a'
         textOutlineWidth: 0.005
         textResolution: 32
-        textPadding: 0.6
+        textPadding: 0.3
         billboardMode: camera
         showMetadata: true
         maxLabelWidth: 5.0
