@@ -17,33 +17,41 @@ const WIRE_NODE_ID_MASK: u16 = 0x3FFF;       // Mask to extract actual node ID (
 
 /// Explicit wire format struct for WebSocket binary protocol
 /// This struct represents exactly what is sent over the wire
-/// Note: We use manual serialization to ensure exactly 26 bytes
+/// Note: We use manual serialization to ensure exactly 34 bytes
 pub struct WireNodeDataItem {
-    pub id: u16,            // 2 bytes - Client expects u16 for bandwidth optimization
-    pub position: Vec3Data, // 12 bytes
-    pub velocity: Vec3Data, // 12 bytes
-    // Total: 26 bytes
+    pub id: u16,                // 2 bytes - Client expects u16 for bandwidth optimization
+    pub position: Vec3Data,     // 12 bytes
+    pub velocity: Vec3Data,     // 12 bytes
+    pub sssp_distance: f32,     // 4 bytes - SSSP distance from source
+    pub sssp_parent: i32,       // 4 bytes - Parent node for path reconstruction
+    // Total: 34 bytes
 }
 
 // Constants for wire format sizes
 const WIRE_ID_SIZE: usize = 2;  // u16
 const WIRE_VEC3_SIZE: usize = 12; // 3 * f32
-const WIRE_ITEM_SIZE: usize = WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE; // 26 bytes
+const WIRE_F32_SIZE: usize = 4; // f32
+const WIRE_I32_SIZE: usize = 4; // i32
+const WIRE_ITEM_SIZE: usize = WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes
 
 // Binary format (explicit):
-// - Wire format sent to client (26 bytes total):
+// - Wire format sent to client (34 bytes total):
 //   - Node Index: 2 bytes (u16) - High bit (0x8000) indicates agent node
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
-// Total: 26 bytes per node
+//   - SSSP Distance: 4 bytes (f32)
+//   - SSSP Parent: 4 bytes (i32)
+// Total: 34 bytes per node
 //
-// - Server format (BinaryNodeData - 28 bytes total):
+// - Server format (BinaryNodeData - 36 bytes total):
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
+//   - SSSP Distance: 4 bytes
+//   - SSSP Parent: 4 bytes
 //   - Mass: 1 byte
 //   - Flags: 1 byte
 //   - Padding: 2 bytes
-// Total: 28 bytes per node
+// Total: 36 bytes per node
 //
 // Node Type Flags: For wire format, we use the high bits of the u16 ID:
 // - Bit 15 (0x8000): Agent node
@@ -133,6 +141,8 @@ impl BinaryNodeData {
             id: to_wire_id(node_id),
             position: self.position,
             velocity: self.velocity,
+            sssp_distance: self.sssp_distance,
+            sssp_parent: self.sssp_parent,
         }
     }
 }
@@ -175,21 +185,27 @@ pub fn encode_node_data_with_types(
                 agent_node_ids.contains(node_id));
         }
         
-        // Manual serialization to ensure exactly 26 bytes
+        // Manual serialization to ensure exactly 34 bytes
         let wire_id = to_wire_id(flagged_id);
-        
+
         // Write u16 ID (2 bytes)
         buffer.extend_from_slice(&wire_id.to_le_bytes());
-        
+
         // Write position (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.position.x.to_le_bytes());
         buffer.extend_from_slice(&node.position.y.to_le_bytes());
         buffer.extend_from_slice(&node.position.z.to_le_bytes());
-        
+
         // Write velocity (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
         buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
         buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
+
+        // Write SSSP distance (4 bytes)
+        buffer.extend_from_slice(&node.sssp_distance.to_le_bytes());
+
+        // Write SSSP parent (4 bytes)
+        buffer.extend_from_slice(&node.sssp_parent.to_le_bytes());
     }
 
     // Only log non-empty node transmissions to reduce spam
@@ -227,22 +243,28 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
                 node.velocity.x, node.velocity.y, node.velocity.z);
         }
         
-        // Manual serialization to ensure exactly 26 bytes
+        // Manual serialization to ensure exactly 34 bytes
         let wire_id = to_wire_id(*node_id);
-        
+
         // Write u16 ID (2 bytes)
         buffer.extend_from_slice(&wire_id.to_le_bytes());
-        
+
         // Write position (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.position.x.to_le_bytes());
         buffer.extend_from_slice(&node.position.y.to_le_bytes());
         buffer.extend_from_slice(&node.position.z.to_le_bytes());
-        
+
         // Write velocity (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.velocity.x.to_le_bytes());
         buffer.extend_from_slice(&node.velocity.y.to_le_bytes());
         buffer.extend_from_slice(&node.velocity.z.to_le_bytes());
-        
+
+        // Write SSSP distance (4 bytes)
+        buffer.extend_from_slice(&node.sssp_distance.to_le_bytes());
+
+        // Write SSSP parent (4 bytes)
+        buffer.extend_from_slice(&node.sssp_parent.to_le_bytes());
+
         // Mass, flags, and padding are server-side only and not transmitted over wire
     }
 

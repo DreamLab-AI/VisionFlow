@@ -2,8 +2,9 @@
 
 pub mod shared;
 pub mod gpu_manager_actor;
-pub mod gpu_resource_actor; 
+pub mod gpu_resource_actor;
 pub mod force_compute_actor;
+pub mod force_compute_actor_sssp;
 pub mod clustering_actor;
 pub mod anomaly_detection_actor;
 pub mod stress_majorization_actor;

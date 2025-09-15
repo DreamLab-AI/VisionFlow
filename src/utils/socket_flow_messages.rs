@@ -8,30 +8,36 @@ use glam::Vec3;
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
 /// Binary node data structure for server-side processing and GPU computation
 ///
-/// **Server format (28 bytes):**
+/// **Server format (36 bytes):**
 /// - position: Vec3Data (12 bytes)
 /// - velocity: Vec3Data (12 bytes)
-/// - mass: u8 (1 byte) - Server-side only, not transmitted over wire
-/// - flags: u8 (1 byte) - Server-side only, not transmitted over wire
-/// - padding: [u8; 2] (2 bytes) - Server-side only, not transmitted over wire
+/// - sssp_distance: f32 (4 bytes) - Server-computed shortest path distance
+/// - sssp_parent: i32 (4 bytes) - Parent node for path reconstruction
+/// - mass: u8 (1 byte) - Server-side only
+/// - flags: u8 (1 byte) - Server-side only
+/// - padding: [u8; 2] (2 bytes) - Server-side only
 ///
-/// **Wire format (26 bytes) is handled separately by `WireNodeDataItem` in `binary_protocol.rs`:**
+/// **Wire format (34 bytes) is handled separately by `WireNodeDataItem` in `binary_protocol.rs`:**
 /// - id: u16 (2 bytes) - With node type flags in high bits
 /// - position: Vec3Data (12 bytes)
 /// - velocity: Vec3Data (12 bytes)
+/// - sssp_distance: f32 (4 bytes)
+/// - sssp_parent: i32 (4 bytes)
 ///
 /// The wire and server formats are distinct to optimize bandwidth while preserving
 /// server-side physics properties (mass, flags) that are not needed on the client.
 pub struct BinaryNodeData {
     pub position: Vec3Data,
     pub velocity: Vec3Data,
-    pub mass: u8,      // Server-side only, not transmitted over wire
-    pub flags: u8,     // Server-side only, not transmitted over wire
-    pub padding: [u8; 2], // Server-side only, not transmitted over wire
+    pub sssp_distance: f32,    // Server-computed SSSP distance
+    pub sssp_parent: i32,      // Parent node ID (-1 if none/unreachable)
+    pub mass: u8,              // Server-side only
+    pub flags: u8,             // Server-side only
+    pub padding: [u8; 2],      // Server-side only
 }
 
-// Compile-time assertion to ensure server format is exactly 28 bytes
-static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 28);
+// Compile-time assertion to ensure server format is exactly 36 bytes
+static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 36);
 
 // Implement DeviceRepr for BinaryNodeData
 unsafe impl DeviceRepr for BinaryNodeData {}
