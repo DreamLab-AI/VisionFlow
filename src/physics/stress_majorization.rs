@@ -305,19 +305,19 @@ impl StressMajorizationSolver {
         
         for node in &mut graph_data.nodes {
             // Only initialize if position is at origin (likely uninitialized)
-            if node.data.position.x.abs() < f32::EPSILON && 
-               node.data.position.y.abs() < f32::EPSILON && 
-               node.data.position.z.abs() < f32::EPSILON {
-                
+            if node.data.x.abs() < f32::EPSILON &&
+               node.data.y.abs() < f32::EPSILON &&
+               node.data.z.abs() < f32::EPSILON {
+
                 // Random initial position in a sphere
                 use rand::Rng;
                 let theta = rng.gen_range(0.0..2.0 * std::f32::consts::PI);
                 let phi = rng.gen_range(0.0..std::f32::consts::PI);
                 let radius = rng.gen_range(50.0..200.0);
-                
-                node.data.position.x = radius * phi.sin() * theta.cos();
-                node.data.position.y = radius * phi.sin() * theta.sin();
-                node.data.position.z = radius * phi.cos();
+
+                node.data.x = radius * phi.sin() * theta.cos();
+                node.data.y = radius * phi.sin() * theta.sin();
+                node.data.z = radius * phi.cos();
             }
         }
         
@@ -331,9 +331,9 @@ impl StressMajorizationSolver {
         let mut positions = DMatrix::zeros(n, 3);
         
         for (i, node) in graph_data.nodes.iter().enumerate() {
-            positions[(i, 0)] = node.data.position.x;
-            positions[(i, 1)] = node.data.position.y;
-            positions[(i, 2)] = node.data.position.z;
+            positions[(i, 0)] = node.data.x;
+            positions[(i, 1)] = node.data.y;
+            positions[(i, 2)] = node.data.z;
         }
         
         positions
@@ -346,9 +346,9 @@ impl StressMajorizationSolver {
         }
         
         for (i, node) in graph_data.nodes.iter_mut().enumerate() {
-            node.data.position.x = positions[(i, 0)];
-            node.data.position.y = positions[(i, 1)];
-            node.data.position.z = positions[(i, 2)];
+            node.data.x = positions[(i, 0)];
+            node.data.y = positions[(i, 1)];
+            node.data.z = positions[(i, 2)];
         }
         
         Ok(())
@@ -705,17 +705,17 @@ mod tests {
         };
         
         // Set initial positions
-        graph.nodes[0].data.position.x = 0.0;
-        graph.nodes[0].data.position.y = 0.0;
-        graph.nodes[0].data.position.z = 0.0;
-        
-        graph.nodes[1].data.position.x = 100.0;
-        graph.nodes[1].data.position.y = 0.0;
-        graph.nodes[1].data.position.z = 0.0;
-        
-        graph.nodes[2].data.position.x = 50.0;
-        graph.nodes[2].data.position.y = 100.0;
-        graph.nodes[2].data.position.z = 0.0;
+        graph.nodes[0].data.x = 0.0;
+        graph.nodes[0].data.y = 0.0;
+        graph.nodes[0].data.z = 0.0;
+
+        graph.nodes[1].data.x = 100.0;
+        graph.nodes[1].data.y = 0.0;
+        graph.nodes[1].data.z = 0.0;
+
+        graph.nodes[2].data.x = 50.0;
+        graph.nodes[2].data.y = 100.0;
+        graph.nodes[2].data.z = 0.0;
         
         graph
     }
@@ -761,7 +761,7 @@ mod tests {
         new_positions[(0, 0)] = 50.0;
         
         solver.apply_positions(&mut graph, &new_positions).unwrap();
-        assert_eq!(graph.nodes[0].data.position.x, 50.0);
+        assert_eq!(graph.nodes[0].data.x, 50.0);
     }
 
     #[test]

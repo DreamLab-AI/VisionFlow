@@ -9,7 +9,7 @@ use std::time::Instant;
 use crate::app_state::AppState;
 use crate::utils::binary_protocol;
 use crate::types::vec3::Vec3Data;
-use crate::utils::socket_flow_messages::{BinaryNodeData, PingMessage, PongMessage};
+use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, PingMessage, PongMessage};
 use crate::utils::validation::rate_limit::{RateLimiter, EndpointRateLimits, extract_client_id, create_rate_limit_response};
 
 // Constants for throttling debug logs
@@ -237,11 +237,13 @@ impl SocketFlowServer {
                     if !graph_data.nodes.is_empty() {
                         let node_data: Vec<(u32, BinaryNodeData)> = graph_data.nodes.iter()
                             .map(|node| (node.id, BinaryNodeData {
-                                position: node.data.position.clone(),
-                                velocity: node.data.velocity.clone(),
-                                mass: node.data.mass,
-                                flags: 0,
-                                padding: [0, 0],
+                                node_id: node.id,
+                                x: node.data.x,
+                                y: node.data.y,
+                                z: node.data.z,
+                                vx: node.data.vx,
+                                vy: node.data.vy,
+                                vz: node.data.vz,
                             }))
                             .collect();
                         
@@ -509,13 +511,11 @@ async fn fetch_nodes(
     for node in &graph_data.nodes { // Iterate over a slice
         // node.id is already a u32, no need to parse
         let node_id = node.id;
-        let node_data = BinaryNodeData {
-            position: node.data.position,
-            velocity: node.data.velocity,
-            mass: node.data.mass,
-            flags: node.data.flags,
-            padding: node.data.padding,
-        };
+        let node_data = BinaryNodeDataClient::new(
+            node_id,
+            node.data.position(),
+            node.data.velocity(),
+        );
         nodes.push((node_id, node_data));
     }
 
@@ -702,11 +702,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     let mut nodes_data = Vec::new();
                                     for node in bots_nodes {
                                         let node_data = BinaryNodeData {
-                                            position: node.data.position.clone(),
-                                            velocity: node.data.velocity.clone(),
-                                            mass: node.data.mass,
-                                            flags: node.data.flags | 0x80, // Set high bit to indicate bots node
-                                            padding: node.data.padding,
+                                            node_id: node.id,
+                                            x: node.data.x,
+                                            y: node.data.y,
+                                            z: node.data.z,
+                                            vx: node.data.vx,
+                                            vy: node.data.vy,
+                                            vz: node.data.vz,
                                         };
                                         nodes_data.push((node.id, node_data));
                                     }
@@ -791,8 +793,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                             let mut filtered_nodes = Vec::new();
                                             for (node_id, node_data) in &nodes {
                                                 let node_id_str = node_id.to_string();
-                                                let position = node_data.position.clone();
-                                                let velocity = node_data.velocity.clone();
+                                                let position = node_data.position();
+                                                let velocity = node_data.velocity();
 
                                                 // Apply filtering before adding to filtered nodes
                                                 if act.has_node_changed_significantly(
@@ -813,7 +815,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                                 act.total_node_count = filtered_nodes.len();
                                                 let moving_nodes = filtered_nodes.iter()
                                                     .filter(|(_, node_data)| {
-                                                        let vel = &node_data.velocity;
+                                                        let vel = node_data.velocity();
                                                         vel.x.abs() > 0.001 || vel.y.abs() > 0.001 || vel.z.abs() > 0.001
                                                     })
                                                     .count();
@@ -908,11 +910,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                                 );
 
                                                 let node_data = BinaryNodeData {
-                                                    position,
-                                                    velocity: Vec3Data::zero(),
-                                                    mass: ((agent.health / 20.0) as u8).max(1), // Mass based on health
-                                                    flags: if agent.status == "active" { 0x81 } else { 0x80 }, // Active bot flag
-                                                    padding: [agent.cpu_usage as u8, agent.workload as u8],
+                                                    node_id: (1000 + idx) as u32,
+                                                    x: position.x,
+                                                    y: position.y,
+                                                    z: position.z,
+                                                    vx: 0.0,
+                                                    vy: 0.0,
+                                                    vz: 0.0,
                                                 };
                                                 nodes_data.push(((1000 + idx) as u32, node_data));
                                             }
@@ -1015,7 +1019,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     if *node_id < 5 {
                                         debug!(
                                             "Processing binary update for node ID: {} with position [{:.3}, {:.3}, {:.3}]",
-                                            node_id, node_data.position.x, node_data.position.y, node_data.position.z
+                                            node_id, node_data.x, node_data.y, node_data.z
                                         );
                                     }
                                 }
@@ -1035,14 +1039,14 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 /*
                                 for (node_id, node_data) in nodes_vec {
                                     debug!("Updated position for node ID {} to [{:.3}, {:.3}, {:.3}]",
-                                         node_id, node_data.position.x, node_data.position.y, node_data.position.z);
+                                         node_id, node_data.x, node_data.y, node_data.z);
 
                                     // Send update message to GraphServiceActor (now uses u32 directly)
                                     use crate::actors::messages::UpdateNodePosition;
                                     if let Err(e) = app_state.graph_service_addr.send(UpdateNodePosition {
                                         node_id: node_id,
-                                        position: node_data.position.into(),
-                                        velocity: node_data.velocity.into(),
+                                        position: node_data.position().into(),
+                                        velocity: node_data.velocity().into(),
                                     }).await {
                                         error!("Failed to update node position in GraphServiceActor: {}", e);
                                     }

@@ -94,21 +94,22 @@ impl ClaudeFlowActorTcp {
     /// Initialize sub-actors and establish connections
     fn initialize_sub_actors(&mut self, ctx: &mut Context<Self>) {
         info!("Initializing sub-actors for TCP connection and JSON-RPC handling");
-        
-        // Determine host from environment (preserving existing logic)
-        let host = std::env::var("CLAUDE_FLOW_HOST")
-            .or_else(|_| std::env::var("MCP_HOST"))
+
+        // CRITICAL FIX: We're in logseq container, MCP is in multi-agent-container
+        // Always use multi-agent-container when running in Docker
+        let host = std::env::var("MCP_HOST")
             .unwrap_or_else(|_| {
-                if std::env::var("DOCKER_ENV").is_ok() {
-                    "multi-agent-container".to_string()
-                } else {
-                    "localhost".to_string()
-                }
+                // We are ALWAYS in Docker when WebXR is running
+                // The MCP server is ALWAYS in multi-agent-container
+                warn!("MCP_HOST not set, using multi-agent-container as default");
+                "multi-agent-container".to_string()
             });
         let port = std::env::var("MCP_TCP_PORT")
             .unwrap_or_else(|_| "9500".to_string())
             .parse::<u16>()
             .unwrap_or(9500);
+
+        info!("Connecting to MCP server at {}:{} (from logseq container)", host, port);
         
         // Create TCP connection actor
         let tcp_actor = TcpConnectionActor::new(host, port).start();

@@ -84,13 +84,19 @@ graph TB
         end
     end
 
+    subgraph "Multi-Agent Container (THIS)"
+        MCPServer[MCP TCP Server :9500]
+        MCPWrapper[mcp-tcp-server.js]
+        MCPProcess[claude-flow processes]
+        AgentStore[SQLite DB]
+    end
+
     subgraph "External Services"
         GitHub[GitHub API]
         OpenAI[OpenAI API]
         RAGFlow[RAGFlow API]
         Perplexity[Perplexity AI]
         NostrRelays[Nostr Relays]
-        MCPServer[Claude Flow MCP TCP:9500]
     end
 
     %% Client connections
@@ -702,6 +708,234 @@ graph TB
 
 ---
 
+## Docker Container & MCP Process Architecture
+
+```mermaid
+graph TB
+    subgraph "Docker Network: docker_ragflow (172.18.0.0/16)"
+        subgraph "Logseq Container (172.18.0.10)"
+            WebXR[WebXR Application]
+            Rust[Rust Backend - Actix]
+            ClaudeActor[ClaudeFlowActor]
+            TCPActor[TcpConnectionActor]
+            JSONRPCActor[JsonRpcClient]
+        end
+
+        subgraph "Multi-Agent Container (172.18.0.3) - WE ARE HERE"
+            subgraph "MCP TCP Server Wrapper"
+                TCPServer[mcp-tcp-server.js :9500]
+                Note1[CRITICAL: Spawns NEW process per connection]
+            end
+
+            subgraph "Per-Connection MCP Process"
+                MCPProcess1[claude-flow mcp --stdio #1]
+                MCPProcess2[claude-flow mcp --stdio #2]
+                MCPProcessN[claude-flow mcp --stdio #N]
+                Note2[Each connection gets FRESH process]
+                Note3[No shared state between connections]
+            end
+
+            subgraph "Persistent Storage"
+                SQLite[/workspace/.swarm/memory.db]
+                Memory[In-memory fallback]
+            end
+        end
+    end
+
+    %% WebXR to MCP connections
+    ClaudeActor --> TCPActor
+    TCPActor --> JSONRPCActor
+    JSONRPCActor -.->|TCP multi-agent-container:9500| TCPServer
+
+    %% MCP process spawning
+    TCPServer -->|spawn per connection| MCPProcess1
+    TCPServer -->|spawn per connection| MCPProcess2
+    TCPServer -->|spawn per connection| MCPProcessN
+
+    %% Storage
+    MCPProcess1 --> SQLite
+    MCPProcess2 --> SQLite
+    MCPProcessN --> SQLite
+    SQLite -.->|fallback| Memory
+
+    style WebXR fill:#ffe0b2
+    style TCPServer fill:#ffccbc
+    style MCPProcess1 fill:#c8e6c9
+    style MCPProcess2 fill:#c8e6c9
+    style MCPProcessN fill:#c8e6c9
+    style SQLite fill:#e1f5fe
+    style Note1 fill:#ff5252,color:#fff
+    style Note2 fill:#ff5252,color:#fff
+    style Note3 fill:#ff5252,color:#fff
+```
+
+### MCP Connection Lifecycle & Swarm Addressing
+
+```mermaid
+sequenceDiagram
+    participant WebXR as WebXR (Logseq)
+    participant TCP as TCP Connection
+    participant Wrapper as mcp-tcp-server.js
+    participant MCP as MCP Process (Persistent)
+    participant DB as SQLite/Memory
+
+    Note over WebXR,DB: UPDATE: Persistent MCP process (was per-connection bug)
+
+    WebXR->>TCP: Connect to multi-agent-container:9500
+    TCP->>Wrapper: New TCP connection
+
+    rect rgb(200, 255, 200)
+        Note over Wrapper,MCP: Persistent Process (Fixed)
+        Wrapper->>Wrapper: Accept connection
+        Wrapper->>Wrapper: Check if MCP running
+        alt MCP not running
+            Wrapper->>MCP: spawn('claude-flow mcp --stdio')
+            MCP->>MCP: Initialize persistent instance
+        else MCP already running
+            Wrapper->>Wrapper: Use existing MCP
+        end
+        MCP->>DB: Shared storage access
+    end
+
+    WebXR->>TCP: {"method": "initialize"}
+    TCP->>Wrapper: Forward JSON-RPC
+    Wrapper->>MCP: Pipe to stdin
+    MCP->>MCP: Process initialize
+    MCP-->>Wrapper: Response to stdout
+    Wrapper-->>TCP: Forward response
+    TCP-->>WebXR: Initialized
+
+    loop Tool Calls
+        WebXR->>TCP: {"method": "tools/call"}
+        TCP->>Wrapper: Forward
+        Wrapper->>MCP: Pipe to stdin
+        MCP->>DB: Read/Write state
+        DB-->>MCP: Data
+        MCP-->>Wrapper: Response
+        Wrapper-->>TCP: Forward
+        TCP-->>WebXR: Result
+    end
+
+    WebXR->>TCP: Close connection
+    TCP->>Wrapper: Connection closed
+
+    rect rgb(200, 200, 255)
+        Note over Wrapper,MCP: Process Cleanup
+        Wrapper->>MCP: SIGTERM
+        MCP->>MCP: Cleanup
+        MCP->>DB: Final save
+        MCP-->>Wrapper: Exit
+        Wrapper->>Wrapper: Process terminated
+    end
+```
+
+---
+
+## Swarm Addressing Protocol
+
+```mermaid
+graph TB
+    subgraph "Swarm Identification & Addressing"
+        SwarmRegistry[Swarm Registry]
+
+        subgraph "Swarm Instance #1"
+            SwarmID1[swarm_1757880683494_yl81sece5]
+            Agents1[Agent Pool 1]
+            Topology1[Topology: mesh]
+        end
+
+        subgraph "Swarm Instance #2"
+            SwarmID2[swarm_1757967065850_dv2zg7x]
+            Agents2[Agent Pool 2]
+            Topology2[Topology: hierarchical]
+        end
+
+        subgraph "Addressing Protocol"
+            Direct[Direct: swarmId.agentId]
+            Broadcast[Broadcast: swarmId.*]
+            Pattern[Pattern: swarm*.researcher]
+            Cross[Cross-swarm: *.coordinator]
+        end
+    end
+
+    subgraph "Message Routing"
+        Router[MCP Message Router]
+        Selector[Swarm Selector]
+        AgentSelector[Agent Selector]
+    end
+
+    subgraph "Protocol Extensions Needed"
+        Extension1[Add swarmId to all tool calls]
+        Extension2[Support swarm context switching]
+        Extension3[Enable cross-swarm messaging]
+        Extension4[Implement swarm lifecycle hooks]
+    end
+
+    SwarmRegistry --> SwarmID1
+    SwarmRegistry --> SwarmID2
+
+    Router --> Selector
+    Selector --> Direct
+    Selector --> Broadcast
+    Selector --> Pattern
+    Selector --> Cross
+
+    Direct --> Agents1
+    Direct --> Agents2
+
+    style SwarmID1 fill:#e3f2fd
+    style SwarmID2 fill:#e8f5e9
+    style Router fill:#fff3e0
+    style Extension1 fill:#ffccbc
+    style Extension2 fill:#ffccbc
+    style Extension3 fill:#ffccbc
+    style Extension4 fill:#ffccbc
+```
+
+### Swarm Addressing Examples
+
+```json
+// Direct agent addressing within swarm
+{
+  "method": "tools/call",
+  "params": {
+    "name": "agent_task",
+    "arguments": {
+      "swarmId": "swarm_1757880683494_yl81sece5",
+      "agentId": "agent_1757967065850_dv2zg7",
+      "task": "analyze_code"
+    }
+  }
+}
+
+// Broadcast to all agents in swarm
+{
+  "method": "tools/call",
+  "params": {
+    "name": "swarm_broadcast",
+    "arguments": {
+      "swarmId": "swarm_1757880683494_yl81sece5",
+      "message": "synchronize_state"
+    }
+  }
+}
+
+// Pattern-based addressing
+{
+  "method": "tools/call",
+  "params": {
+    "name": "agent_query",
+    "arguments": {
+      "swarmId": "*",
+      "agentType": "researcher",
+      "query": "find_implementations"
+    }
+  }
+}
+```
+
+---
+
 ## Component Class Diagrams
 
 ```mermaid
@@ -941,63 +1175,75 @@ The system demonstrates sophisticated engineering for real-time 3D graph visuali
 
 ```mermaid
 sequenceDiagram
-    participant Client as VisionFlow Client
+    participant Logseq as Logseq Container (WebXR)
     participant ClaudeFlow as ClaudeFlowActor
-    participant TCP as TCP Connection (9500)
-    participant MCP as Claude Flow MCP Server
-    participant Container as Multi-Agent Container
+    participant TCP as TCP Connection
+    participant MultiAgent as Multi-Agent Container (US)
+    participant MCP as MCP TCP Server (:9500)
     participant Agents as Agent Swarm
 
-    Note over Client,Agents: Multi-Agent Initialization
+    Note over Logseq,Agents: CRITICAL: WebXR runs in Logseq, MCP runs in Multi-Agent
 
-    Client->>API: POST /api/bots/initialize-multi-agent
+    rect rgb(255, 240, 245)
+        Note right of Logseq: Logseq Container<br/>IP: 172.18.0.10<br/>Contains: WebXR App
+    end
+
+    rect rgb(240, 248, 255)
+        Note right of MultiAgent: Multi-Agent Container<br/>IP: 172.18.0.3<br/>Contains: MCP Server<br/>We are HERE
+    end
+
+    Note over Logseq,Agents: Multi-Agent Initialization
+
+    Logseq->>API: POST /api/bots/initialize-multi-agent
     API->>ClaudeFlow: InitializeMultiAgent
-    ClaudeFlow->>ClaudeFlow: Generate request_id
-    ClaudeFlow->>TCP: Connect to localhost:9500
+    ClaudeFlow->>ClaudeFlow: Set host="multi-agent-container"
+    ClaudeFlow->>TCP: Connect to multi-agent-container:9500
 
-    TCP->>MCP: JSON-RPC: multi-agent.initialize
-    MCP->>Container: Spawn container
-    Container->>Agents: Create agent swarm
-    Agents-->>Container: Swarm initialized
-    Container-->>MCP: { swarmId, agents[] }
-    MCP-->>TCP: Response
+    TCP->>MultiAgent: Cross-container TCP connection
+    MultiAgent->>MCP: Local forward to :9500
+    MCP->>MCP: JSON-RPC: initialize
+    MCP->>Agents: Create agent swarm
+    Agents-->>MCP: { swarmId, agents[] }
+    MCP-->>MultiAgent: Response
+    MultiAgent-->>TCP: TCP Response
     TCP-->>ClaudeFlow: Parse response
     ClaudeFlow-->>API: Success
 
-    Note over Client,Agents: Agent Task Orchestration
+    Note over Logseq,Agents: Agent Task Orchestration
 
     loop Task Execution
-        Client->>API: POST /api/bots/orchestrate-task
+        Logseq->>API: POST /api/bots/orchestrate-task
         API->>ClaudeFlow: OrchestrateTask
-        ClaudeFlow->>TCP: JSON-RPC: task.orchestrate
-        TCP->>MCP: Forward request
-        MCP->>Container: Distribute task
-        Container->>Agents: Assign to agents
+        ClaudeFlow->>TCP: JSON-RPC: tools/call
+        TCP->>MultiAgent: TCP to multi-agent-container:9500
+        MultiAgent->>MCP: Forward to local MCP
+        MCP->>Agents: task_orchestrate tool
 
         par Agent Processing
             Agents->>Agents: Execute task
             and
-            Agents->>Container: Report progress
+            Agents->>MCP: Report progress
             and
-            Container->>MCP: Stream updates
+            MCP->>MCP: Store in SQLite
         end
 
-        MCP-->>TCP: Task updates
+        MCP-->>MultiAgent: Task updates
+        MultiAgent-->>TCP: Send response
         TCP-->>ClaudeFlow: Parse updates
-        ClaudeFlow->>GraphActor: UpdateAgentNodes
+        ClaudeFlow->>GraphActor: UpdateBotsGraph
         GraphActor->>ClientMgr: BroadcastAgentPositions
-        ClientMgr-->>Client: Agent visualization updates
+        ClientMgr-->>Logseq: WebSocket binary updates
     end
 
-    Note over Client,Agents: Agent Communication
+    Note over Logseq,Agents: Agent Communication & Storage
 
-    Agents->>Agents: Peer-to-peer messages
-    Agents->>Container: Consensus request
-    Container->>Container: Vote aggregation
-    Container->>Agents: Consensus result
-    Agents->>MCP: Knowledge sharing
-    MCP->>ClaudeFlow: Knowledge update
-    ClaudeFlow->>MetadataActor: Store knowledge
+    Agents->>Agents: In-memory coordination
+    Agents->>MCP: Store state
+    MCP->>MCP: SQLite persistence
+    MCP->>MultiAgent: Status updates
+    MultiAgent->>TCP: Stream to WebXR
+    TCP->>ClaudeFlow: Parse agent data
+    ClaudeFlow->>MetadataActor: Cache locally
 ```
 
 ---

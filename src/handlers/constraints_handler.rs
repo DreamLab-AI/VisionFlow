@@ -3,7 +3,9 @@ use crate::app_state::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use log::{info, error, debug};
 use serde_json::{json, Value};
-use crate::config::{ConstraintData, ConstraintSystem};
+use crate::config::{ConstraintSystem, LegacyConstraintData};
+use crate::models::constraints::{Constraint, ConstraintSet, ConstraintKind};
+use crate::handlers::settings_validation_fix::validate_constraint;
 
 /// Configure constraint-specific routes
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -223,13 +225,13 @@ async fn list_constraints(
 async fn validate_constraint_definition(
     _req: HttpRequest,
     _state: web::Data<AppState>,
-    payload: web::Json<ConstraintData>,
+    payload: web::Json<LegacyConstraintData>,
 ) -> Result<HttpResponse, Error> {
     let constraint = payload.into_inner();
-    
+
     info!("Constraint validation request received");
     debug!("Constraint to validate: {:?}", constraint);
-    
+
     match validate_single_constraint(&constraint) {
         Ok(()) => {
             Ok(HttpResponse::Ok().json(json!({
@@ -257,12 +259,17 @@ fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
 }
 
 /// Validate a single constraint
-fn validate_single_constraint(constraint: &ConstraintData) -> Result<(), String> {
+fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), String> {
+    // Use comprehensive validation that prevents GPU errors
+    let constraint_json = serde_json::to_value(constraint).map_err(|e| e.to_string())?;
+    validate_constraint(&constraint_json)?;
+
+    // Additional type-specific validation
     // Validate constraint type
     if constraint.constraint_type < 0 || constraint.constraint_type > 4 {
         return Err("constraint_type must be between 0 and 4".to_string());
     }
-    
+
     // Validate strength
     if constraint.strength < 0.0 || constraint.strength > 10.0 {
         return Err("strength must be between 0.0 and 10.0".to_string());

@@ -47,9 +47,9 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
             let positions: Vec<NodePosition> = graph_data.nodes.iter()
                 .map(|node| NodePosition {
                     id: node.id,
-                    x: node.data.position.x,
-                    y: node.data.position.y,
-                    z: node.data.position.z,
+                    x: node.data.x,
+                    y: node.data.y,
+                    z: node.data.z,
                 })
                 .collect();
             

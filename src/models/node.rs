@@ -78,20 +78,14 @@ impl Node {
             metadata_id: metadata_id.clone(),
             label: String::new(), // Initialize as empty string, will be set from metadata later
             data: BinaryNodeData {
+                node_id: id,
                 // Use spherical coordinates for better 3D distribution
-                position: Vec3Data::new(
-                    radius * phi.sin() * theta.cos(),
-                    radius * phi.sin() * theta.sin(),
-                    radius * phi.cos(),
-                ),
-                velocity: Vec3Data::new(
-                    0.0,  // Start with zero velocity
-                    0.0,  // Physics will handle the movement
-                    0.0,
-                ),
-                mass: 0,
-                flags: 1, // Active by default
-                padding: [0, 0],
+                x: radius * phi.sin() * theta.cos(),
+                y: radius * phi.sin() * theta.sin(),
+                z: radius * phi.cos(),
+                vx: 0.0,  // Start with zero velocity
+                vy: 0.0,  // Physics will handle the movement
+                vz: 0.0,
             },
             metadata: HashMap::new(),
             file_size: 0,
@@ -106,8 +100,7 @@ impl Node {
 
     pub fn set_file_size(&mut self, size: u64) {
         self.file_size = size;
-        // Update mass based on new file size using the centralized calculation
-        self.data.mass = Self::calculate_mass(size);
+        // Note: Mass is no longer stored in BinaryNodeDataClient - handled separately
         
         // Add the file_size to the metadata HashMap so it gets serialized to the client
         // This is our workaround since we can't directly serialize the file_size field
@@ -117,12 +110,16 @@ impl Node {
     }
 
     pub fn with_position(mut self, x: f32, y: f32, z: f32) -> Self {
-        self.data.position = Vec3Data::new(x, y, z);
+        self.data.x = x;
+        self.data.y = y;
+        self.data.z = z;
         self
     }
 
     pub fn with_velocity(mut self, vx: f32, vy: f32, vz: f32) -> Self {
-        self.data.velocity = Vec3Data::new(vx, vy, vz);
+        self.data.vx = vx;
+        self.data.vy = vy;
+        self.data.vz = vz;
         self
     }
 
@@ -179,15 +176,13 @@ impl Node {
             metadata_id: metadata_id.clone(),
             label: metadata_id,
             data: BinaryNodeData {
-                position: Vec3Data::new(
-                    radius * angle.cos() * 2.0,
-                    radius * angle.sin() * 2.0,
-                    (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
-                ),
-                velocity: Vec3Data::new(0.0, 0.0, 0.0),
-                mass: 0,
-                flags: 1, // Active by default
-                padding: [0, 0],
+                node_id: id,
+                x: radius * angle.cos() * 2.0,
+                y: radius * angle.sin() * 2.0,
+                z: (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
+                vx: 0.0,
+                vy: 0.0,
+                vz: 0.0,
             },
             metadata: HashMap::new(),
             file_size: 0,
@@ -210,19 +205,19 @@ impl Node {
     }
 
     // Convenience getters/setters for position and velocity
-    pub fn x(&self) -> f32 { self.data.position.x }
-    pub fn y(&self) -> f32 { self.data.position.y }
-    pub fn z(&self) -> f32 { self.data.position.z }
-    pub fn vx(&self) -> f32 { self.data.velocity.x }
-    pub fn vy(&self) -> f32 { self.data.velocity.y }
-    pub fn vz(&self) -> f32 { self.data.velocity.z }
+    pub fn x(&self) -> f32 { self.data.x }
+    pub fn y(&self) -> f32 { self.data.y }
+    pub fn z(&self) -> f32 { self.data.z }
+    pub fn vx(&self) -> f32 { self.data.vx }
+    pub fn vy(&self) -> f32 { self.data.vy }
+    pub fn vz(&self) -> f32 { self.data.vz }
     
-    pub fn set_x(&mut self, val: f32) { self.data.position.x = val; }
-    pub fn set_y(&mut self, val: f32) { self.data.position.y = val; }
-    pub fn set_z(&mut self, val: f32) { self.data.position.z = val; }
-    pub fn set_vx(&mut self, val: f32) { self.data.velocity.x = val; }
-    pub fn set_vy(&mut self, val: f32) { self.data.velocity.y = val; }
-    pub fn set_vz(&mut self, val: f32) { self.data.velocity.z = val; }
+    pub fn set_x(&mut self, val: f32) { self.data.x = val; }
+    pub fn set_y(&mut self, val: f32) { self.data.y = val; }
+    pub fn set_z(&mut self, val: f32) { self.data.z = val; }
+    pub fn set_vx(&mut self, val: f32) { self.data.vx = val; }
+    pub fn set_vy(&mut self, val: f32) { self.data.vy = val; }
+    pub fn set_vz(&mut self, val: f32) { self.data.vz = val; }
 
     /// Get the node ID as a string for socket/wire protocol compatibility
     pub fn id_as_string(&self) -> String {
@@ -281,12 +276,12 @@ mod tests {
         assert!(node.id > 0, "ID should be positive, got: {}", node.id);
         assert_eq!(node.metadata_id, "test");
         assert_eq!(node.label, "Test Node");
-        assert_eq!(node.data.position.x, 1.0);
-        assert_eq!(node.data.position.y, 2.0);
-        assert_eq!(node.data.position.z, 3.0);
-        assert_eq!(node.data.velocity.x, 0.1);
-        assert_eq!(node.data.velocity.y, 0.2);
-        assert_eq!(node.data.velocity.z, 0.3);
+        assert_eq!(node.data.x, 1.0);
+        assert_eq!(node.data.y, 2.0);
+        assert_eq!(node.data.z, 3.0);
+        assert_eq!(node.data.vx, 0.1);
+        assert_eq!(node.data.vy, 0.2);
+        assert_eq!(node.data.vz, 0.3);
         assert_eq!(node.node_type, Some("test_type".to_string()));
         assert_eq!(node.size, Some(1.5));
         assert_eq!(node.color, Some("#FF0000".to_string()));
@@ -313,16 +308,11 @@ mod tests {
         assert_eq!(node.vz(), 0.3);
     }
 
-    #[test]
-    fn test_mass_calculation() {
-        let mut node = Node::new("test".to_string());
-        
-        // Test small file
-        node.set_file_size(100);  // 100 bytes
-        assert!(node.data.mass > 0 && node.data.mass < 128);
-
-        // Test large file
-        node.set_file_size(1_000_000);  // 1MB
-        assert!(node.data.mass > 128 && node.data.mass < 255);
-    }
+    // #[test]
+    // fn test_mass_calculation() {
+    //     // NOTE: Mass field not available in BinaryNodeDataClient
+    //     // This test has been disabled as the client-side binary format
+    //     // only includes position and velocity data (28 bytes total)
+    //     // Mass calculation is handled server-side in BinaryNodeDataGPU
+    // }
 }

@@ -11,9 +11,11 @@ export const IFRAME_COMMUNICATION_CONFIG = {
     // Add other trusted origins here
   ],
   
-  // Target origin for sending messages (use specific origin in production)
-  // Currently using '*' for development, but should be updated
-  targetOrigin: '*', // TODO: Change to 'https://narrativegoldmine.com' in production
+  // Target origin for sending messages - SECURITY FIX: Use specific origin
+  // In development, use current origin; in production, use specific domain
+  targetOrigin: process.env.NODE_ENV === 'production'
+    ? 'https://narrativegoldmine.com'
+    : window.location.origin, // Safe same-origin in development
   
   // Message action types
   messageActions: {

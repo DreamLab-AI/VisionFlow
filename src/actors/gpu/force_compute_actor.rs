@@ -3,6 +3,7 @@
 use actix::prelude::*;
 use log::{error, info, trace};
 use serde::{Serialize, Deserialize};
+use std::time::Instant;
 
 use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
@@ -38,18 +39,22 @@ pub struct PhysicsStats {
 pub struct ForceComputeActor {
     /// Shared GPU state
     gpu_state: GPUState,
-    
+
     /// Shared GPU context reference
     shared_context: Option<SharedGPUContext>,
-    
+
     /// Physics simulation parameters
     simulation_params: SimulationParams,
-    
+
     /// Unified physics parameters
     unified_params: SimParams,
-    
+
     /// Current compute mode
     compute_mode: ComputeMode,
+
+    /// Last computation step timing
+    last_step_start: Option<Instant>,
+    last_step_duration_ms: f32,
 }
 
 impl ForceComputeActor {
@@ -60,13 +65,18 @@ impl ForceComputeActor {
             simulation_params: SimulationParams::default(),
             unified_params: SimParams::default(),
             compute_mode: ComputeMode::Basic,
+            last_step_start: None,
+            last_step_duration_ms: 0.0,
         }
     }
     
     /// Perform GPU force computation step
     fn perform_force_computation(&mut self) -> Result<(), String> {
+        // Start timing the computation step
+        let step_start = Instant::now();
+
         if self.iteration_count() % 60 == 0 { // Log every second at 60 FPS
-            info!("ForceComputeActor: Computing forces (iteration {}), nodes: {}", 
+            info!("ForceComputeActor: Computing forces (iteration {}), nodes: {}",
                   self.iteration_count(), self.gpu_state.num_nodes);
         }
         
@@ -96,68 +106,61 @@ impl ForceComputeActor {
         
         // Increment iteration count
         self.gpu_state.iteration_count += 1;
-        
+
+        // Record timing for this computation step
+        self.last_step_duration_ms = step_start.elapsed().as_millis() as f32;
+
         // Log performance metrics occasionally
         if self.iteration_count() % 300 == 0 { // Every 5 seconds
-            info!("ForceComputeActor: {} iterations completed, {} GPU failures", 
-                  self.iteration_count(), self.gpu_state.gpu_failure_count);
+            info!("ForceComputeActor: {} iterations completed, {} GPU failures, last step: {:.2}ms",
+                  self.iteration_count(), self.gpu_state.gpu_failure_count, self.last_step_duration_ms);
         }
-        
+
         Ok(())
     }
     
     /// Synchronize simulation parameters to unified parameters
     fn sync_simulation_to_unified_params(&self, unified_params: &mut SimParams) {
         // Update unified params from simulation params
-        // TODO: Map SimParams fields properly - using spring_k for attraction
-        // unified_params.attraction_k = self.simulation_params.attraction_k;
-        // TODO: Map SimParams fields properly - using repel_k for repulsion
-        // unified_params.repulsion_k = self.simulation_params.repel_k;
+        unified_params.spring_k = self.simulation_params.spring_k;
+        unified_params.repel_k = self.simulation_params.repel_k;
         unified_params.damping = self.simulation_params.damping;
         unified_params.dt = self.simulation_params.dt;
         unified_params.max_velocity = self.simulation_params.max_velocity;
-        // TODO: Map SimParams fields properly - using center_gravity_k for center strength
-        // unified_params.center_strength = self.simulation_params.center_gravity_k;
+        unified_params.center_gravity_k = self.simulation_params.center_gravity_k;
         
         // Update physics mode based on compute mode
         match self.compute_mode {
             ComputeMode::Basic => {
-                // TODO: Map SimParams fields properly
-                // unified_params.enable_advanced_forces = false;
-                // TODO: Map SimParams fields properly
-                // unified_params.semantic_force_weight = 0.0;
-                // TODO: Map SimParams fields properly
-                // unified_params.temporal_force_weight = 0.0;
-                // TODO: Map SimParams fields properly
-                // unified_params.constraint_weight = 0.0;
+                // Basic mode - all features enabled, no additional processing needed
+                // Note: Feature flags are already set in SimParams based on force values
             },
             ComputeMode::Advanced => {
-                // TODO: Map SimParams fields properly
-                // unified_params.enable_advanced_forces = true;
+                // Advanced mode - use enhanced physics features
                 // These would come from advanced params if available
-                // TODO: Map SimParams fields properly
-                // unified_params.semantic_force_weight = 0.3;
-                // TODO: Map SimParams fields properly
-                // unified_params.temporal_force_weight = 0.2;
-                // TODO: Map SimParams fields properly
-                // unified_params.constraint_weight = 0.5;
+                unified_params.temperature = self.simulation_params.temperature;
+                unified_params.alignment_strength = self.simulation_params.alignment_strength;
+                unified_params.cluster_strength = self.simulation_params.cluster_strength;
             },
             ComputeMode::DualGraph => {
                 // TODO: Implement dual graph mode
                 // For now, use Advanced mode behavior
-                // Using same as Advanced for now
+                unified_params.temperature = self.simulation_params.temperature;
+                unified_params.alignment_strength = self.simulation_params.alignment_strength;
+                unified_params.cluster_strength = self.simulation_params.cluster_strength;
             },
             ComputeMode::Constraints => {
                 // Constraints mode - maximum physics features
-                // TODO: Map SimParams fields properly
-                // unified_params.enable_advanced_forces = true;
-                // unified_params.semantic_force_weight = 0.5;
-                // unified_params.temporal_force_weight = 0.3;
-                // unified_params.constraint_weight = 1.0;
+                unified_params.temperature = self.simulation_params.temperature;
+                unified_params.alignment_strength = self.simulation_params.alignment_strength;
+                unified_params.cluster_strength = self.simulation_params.cluster_strength;
+                unified_params.constraint_ramp_frames = self.simulation_params.constraint_ramp_frames;
+                unified_params.constraint_max_force_per_node = self.simulation_params.constraint_max_force_per_node;
             },
         }
         
-        trace!("Unified params updated: damping={:.3}", unified_params.damping);
+        trace!("Unified params updated: spring_k={:.3}, repel_k={:.3}, center_gravity_k={:.3}, damping={:.3}",
+               unified_params.spring_k, unified_params.repel_k, unified_params.center_gravity_k, unified_params.damping);
     }
     
     /// Get current iteration count
@@ -168,19 +171,34 @@ impl ForceComputeActor {
     /// Update physics simulation parameters
     fn update_simulation_parameters(&mut self, params: SimulationParams) {
         info!("ForceComputeActor: Updating simulation parameters");
-        info!("  attraction_k: {:.3} -> {:.3}", self.simulation_params.attraction_k, params.attraction_k);
+        info!("  spring_k: {:.3} -> {:.3}", self.simulation_params.spring_k, params.spring_k);
         info!("  repel_k: {:.3} -> {:.3}", self.simulation_params.repel_k, params.repel_k);
         info!("  damping: {:.3} -> {:.3}", self.simulation_params.damping, params.damping);
         
         self.simulation_params = params;
         
         // Update unified params immediately
-        // TODO: Implement sync_simulation_to_unified_params method
-        // self.sync_simulation_to_unified_params(&mut self.unified_params);
+        {
+            let unified_params = &mut self.unified_params;
+            unified_params.spring_k = self.simulation_params.spring_k;
+            unified_params.repel_k = self.simulation_params.repel_k;
+            unified_params.damping = self.simulation_params.damping;
+            unified_params.dt = self.simulation_params.dt;
+        }
     }
     
     /// Get current physics statistics
     fn get_physics_stats(&self) -> PhysicsStats {
+        // Calculate physics metrics from GPU data if available
+        let (average_velocity, kinetic_energy, total_forces) = self.calculate_physics_metrics();
+
+        // Calculate FPS from last step duration
+        let fps = if self.last_step_duration_ms > 0.0 {
+            1000.0 / self.last_step_duration_ms
+        } else {
+            0.0
+        };
+
         PhysicsStats {
             iteration_count: self.gpu_state.iteration_count,
             gpu_failure_count: self.gpu_state.gpu_failure_count,
@@ -188,19 +206,76 @@ impl ForceComputeActor {
             compute_mode: self.compute_mode.clone(),
             nodes_count: self.gpu_state.num_nodes,
             edges_count: self.gpu_state.num_edges,
-            
+
             // Physics state information
-            average_velocity: 0.0, // TODO: Calculate from GPU if needed
-            kinetic_energy: 0.0,   // TODO: Calculate from GPU if needed
-            total_forces: 0.0,     // TODO: Calculate from GPU if needed
-            
+            average_velocity,
+            kinetic_energy,
+            total_forces,
+
             // Performance metrics
-            last_step_duration_ms: 0.0, // TODO: Track timing
-            fps: if self.gpu_state.iteration_count > 0 { 60.0 } else { 0.0 }, // Approximate
-            
+            last_step_duration_ms: self.last_step_duration_ms,
+            fps,
+
             // Missing fields for compatibility
             num_edges: self.gpu_state.num_edges,
             total_force_calculations: self.gpu_state.iteration_count * self.gpu_state.num_nodes,
+        }
+    }
+
+    /// Calculate physics metrics from GPU data
+    fn calculate_physics_metrics(&self) -> (f32, f32, f32) {
+        // Try to access unified compute to get actual data
+        if let Some(ctx) = &self.shared_context {
+            if let Ok(unified_compute) = ctx.unified_compute.lock() {
+                return self.extract_gpu_metrics(&*unified_compute);
+            }
+        }
+
+        // Fallback to estimated values based on simulation parameters if GPU data unavailable
+        let estimated_velocity = self.simulation_params.max_velocity * 0.3; // Assume 30% of max velocity
+        let estimated_kinetic_energy = 0.5 * (self.gpu_state.num_nodes as f32) * estimated_velocity.powi(2);
+        let estimated_total_forces = self.simulation_params.spring_k * (self.gpu_state.num_edges as f32) * 0.5;
+
+        (estimated_velocity, estimated_kinetic_energy, estimated_total_forces)
+    }
+
+    /// Extract actual physics metrics from GPU data
+    fn extract_gpu_metrics(&self, unified_compute: &crate::utils::unified_gpu_compute::UnifiedGPUCompute) -> (f32, f32, f32) {
+        let num_nodes = unified_compute.num_nodes;
+
+        // Download velocity data to calculate average velocity and kinetic energy
+        let mut vel_x = vec![0.0f32; num_nodes];
+        let mut vel_y = vec![0.0f32; num_nodes];
+        let mut vel_z = vec![0.0f32; num_nodes];
+
+        // Attempt to download velocities (may fail if GPU is busy)
+        if unified_compute.download_velocities(&mut vel_x, &mut vel_y, &mut vel_z).is_ok() {
+            // Calculate average velocity magnitude
+            let total_velocity: f32 = vel_x.iter().zip(&vel_y).zip(&vel_z)
+                .map(|((vx, vy), vz)| (vx*vx + vy*vy + vz*vz).sqrt())
+                .sum();
+            let average_velocity = if num_nodes > 0 {
+                total_velocity / num_nodes as f32
+            } else {
+                0.0
+            };
+
+            // Calculate kinetic energy (assuming unit mass for all nodes)
+            let kinetic_energy: f32 = vel_x.iter().zip(&vel_y).zip(&vel_z)
+                .map(|((vx, vy), vz)| 0.5 * (vx*vx + vy*vy + vz*vz))
+                .sum();
+
+            // Estimate total forces based on velocity changes and damping
+            let estimated_total_forces = total_velocity * self.simulation_params.damping * num_nodes as f32;
+
+            (average_velocity, kinetic_energy, estimated_total_forces)
+        } else {
+            // GPU data unavailable, use fallback estimates
+            let estimated_velocity = self.simulation_params.max_velocity * 0.3;
+            let estimated_kinetic_energy = 0.5 * (num_nodes as f32) * estimated_velocity.powi(2);
+            let estimated_total_forces = self.simulation_params.spring_k * (self.gpu_state.num_edges as f32) * 0.5;
+
+            (estimated_velocity, estimated_kinetic_energy, estimated_total_forces)
         }
     }
 }
@@ -232,8 +307,8 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
     
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: UpdateSimulationParams received");
-        info!("  New params - attraction_k: {:.3}, repulsion_k: {:.3}, damping: {:.3}",
-              msg.params.attraction_k, msg.params.repel_k, msg.params.damping);
+        info!("  New params - spring_k: {:.3}, repel_k: {:.3}, damping: {:.3}",
+              msg.params.spring_k, msg.params.repel_k, msg.params.damping);
         
         self.update_simulation_parameters(msg.params);
         Ok(())

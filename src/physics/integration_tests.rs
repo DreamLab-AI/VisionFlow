@@ -48,9 +48,9 @@ mod tests {
         
         // Verify nodes have valid positions
         for node in &graph.nodes {
-            assert!(node.data.position.x.is_finite());
-            assert!(node.data.position.y.is_finite());
-            assert!(node.data.position.z.is_finite());
+            assert!(node.data.x.is_finite());
+            assert!(node.data.y.is_finite());
+            assert!(node.data.z.is_finite());
         }
     }
 
@@ -241,9 +241,9 @@ mod tests {
         // Set random initial position
         use rand::Rng;
         let mut rng = rand::thread_rng();
-        node.data.position.x = rng.gen_range(-100.0..100.0);
-        node.data.position.y = rng.gen_range(-100.0..100.0);
-        node.data.position.z = rng.gen_range(-100.0..100.0);
+        node.data.x = rng.gen_range(-100.0..100.0);
+        node.data.y = rng.gen_range(-100.0..100.0);
+        node.data.z = rng.gen_range(-100.0..100.0);
         
         node
     }

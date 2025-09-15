@@ -9,6 +9,9 @@ use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, Endpoin
 use crate::utils::validation::MAX_REQUEST_SIZE;
 use log::{info, warn, error, debug};
 
+// Import comprehensive validation for GPU parameters
+use crate::handlers::settings_validation_fix::{validate_physics_settings_complete, validate_constraint, convert_to_snake_case_recursive, get_complete_field_mappings, apply_field_mappings};
+
 /// Get a human-readable name for a JSON value type
 fn value_type_name(value: &Value) -> &'static str {
     match value {
@@ -239,7 +242,7 @@ pub struct PhysicsSettingsDTO {
     pub auto_balance: bool,
     pub auto_balance_interval_ms: u32,
     pub auto_balance_config: AutoBalanceConfigDTO,
-    pub attraction_k: f32,
+    pub spring_k: f32,
     pub bounds_size: f32,
     pub separation_radius: f32,
     pub damping: f32,
@@ -249,7 +252,6 @@ pub struct PhysicsSettingsDTO {
     pub max_velocity: f32,
     pub max_force: f32,
     pub repel_k: f32,
-    pub spring_k: f32,
     pub mass_scale: f32,
     pub boundary_damping: f32,
     pub update_threshold: f32,
@@ -791,7 +793,7 @@ impl From<&crate::config::PhysicsSettings> for PhysicsSettingsDTO {
             auto_balance: settings.auto_balance,
             auto_balance_interval_ms: settings.auto_balance_interval_ms,
             auto_balance_config: (&settings.auto_balance_config).into(),
-            attraction_k: settings.attraction_k,
+            spring_k: settings.spring_k,
             bounds_size: settings.bounds_size,
             separation_radius: settings.separation_radius,
             damping: settings.damping,
@@ -801,7 +803,6 @@ impl From<&crate::config::PhysicsSettings> for PhysicsSettingsDTO {
             max_velocity: settings.max_velocity,
             max_force: settings.max_force,
             repel_k: settings.repel_k,
-            spring_k: settings.spring_k,
             mass_scale: settings.mass_scale,
             boundary_damping: settings.boundary_damping,
             update_threshold: settings.update_threshold,
@@ -2043,7 +2044,10 @@ async fn update_settings(
     state: web::Data<AppState>,
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
-    let update = payload.into_inner();
+    let mut update = payload.into_inner();
+
+    // Apply comprehensive case conversion from camelCase to snake_case
+    convert_to_snake_case_recursive(&mut update);
     
     debug!("Settings update received: {:?}", update);
     
@@ -2393,257 +2397,26 @@ fn validate_settings_update(update: &Value) -> Result<(), String> {
 }
 
 fn validate_physics_settings(physics: &Value) -> Result<(), String> {
-    // Log what fields are actually being sent
+    // Use comprehensive validation with proper GPU bounds to prevent NaN and explosions
+    validate_physics_settings_complete(physics)?;
+
+    // Log what fields are actually being sent for debugging
     if let Some(obj) = physics.as_object() {
         debug!("Physics settings fields received: {:?}", obj.keys().collect::<Vec<_>>());
     }
-    
-    // Check if auto-balance is enabled - if so, be more lenient with validation
-    let auto_balance_enabled = physics.get("autoBalance")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(false);
-    
-    
-    // Validate damping - MUST be high for stability
-    // Allow up to 0.999 for auto-balance aggressive damping
-    if let Some(damping) = physics.get("damping") {
-        let val = damping.as_f64().ok_or("damping must be a number")?;
-        // Round to 3 decimal places to handle floating point precision issues
-        let rounded_val = (val * 1000.0).round() / 1000.0;
-        
-        // Be more lenient with auto-balance enabled
-        let _max_damping = if auto_balance_enabled { 1.0 } else { 0.999 };
-        
-        if rounded_val < 0.0 || rounded_val > 1.0 {
-            return Err("damping must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    // Validate iterations - LIMIT FOR PERFORMANCE
+
+    // Additional validations for iterations (accept both int and float from JS)
     if let Some(iterations) = physics.get("iterations") {
-        // Accept both integer and float values (JavaScript sends 100.0 as float)
         let val = iterations.as_f64()
-            .map(|f| f.round() as u64)  // Round and cast float to u64
-            .or_else(|| iterations.as_u64())  // Also accept direct integer
+            .map(|f| f.round() as u64)
+            .or_else(|| iterations.as_u64())
             .ok_or("iterations must be a positive number")?;
-        if val == 0 || val > 1000 {  // Allow more iterations
+        if val == 0 || val > 1000 {
             return Err("iterations must be between 1 and 1000".to_string());
         }
     }
-    
-    // Spring strength validation
-    // Allow lower values for auto-balance fine-tuning
-    if let Some(spring_k) = physics.get("springK") {
-        let val = spring_k.as_f64().ok_or("springK must be a number")?;
-        if !(0.0001..=10.0).contains(&val) {
-            return Err("springK must be between 0.0001 and 10.0".to_string());
-        }
-    }
-    
-    // Repulsion strength validation - SAFE RANGE
-    // Allow lower values (down to 0.001) for auto-balance stabilization
-    if let Some(repel_k) = physics.get("repelK") {
-        let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val < 0.0001 || val > 10000.0 {
-            return Err("repelK must be between 0.0001 and 10000.0".to_string());
-        }
-    }
-    
-    // Attraction strength validation
-    if let Some(attraction_k) = physics.get("attractionK") {
-        let val = attraction_k.as_f64().ok_or("attractionK must be a number")?;
-        if !(0.0..=10.0).contains(&val) {
-            return Err("attractionK must be between 0.0 and 10.0".to_string());
-        }
-    }
-    
-    // Bounds size validation
-    if let Some(bounds) = physics.get("boundsSize") {
-        let val = bounds.as_f64().ok_or("boundsSize must be a number")?;
-        if val < 1.0 || val > 100000.0 {  // Very generous range
-            return Err("boundsSize must be between 1.0 and 100000.0".to_string());
-        }
-    }
-    
-    // Separation radius validation
-    if let Some(separation_radius) = physics.get("separationRadius") {
-        let val = separation_radius.as_f64().ok_or("separationRadius must be a number")?;
-        if val < 0.01 || val > 100.0 {
-            return Err("separationRadius must be between 0.01 and 100.0".to_string());
-        }
-    }
-    
-    // Max velocity validation - PREVENT EXPLOSION
-    // Allow lower values (down to 0.05) for auto-balance aggressive stabilization
-    if let Some(max_vel) = physics.get("maxVelocity") {
-        let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
-        if val < 0.001 || val > 1000.0 {  // Very generous range
-            return Err("maxVelocity must be between 0.001 and 1000.0".to_string());
-        }
-    }
-    
-    // Mass scale validation
-    if let Some(mass) = physics.get("massScale") {
-        let val = mass.as_f64().ok_or("massScale must be a number")?;
-        if val < 0.01 || val > 100.0 {  // Generous range
-            return Err("massScale must be between 0.01 and 100.0".to_string());
-        }
-    }
-    
-    // Boundary damping validation
-    if let Some(boundary) = physics.get("boundaryDamping") {
-        let val = boundary.as_f64().ok_or("boundaryDamping must be a number")?;
-        if !(0.0..=1.0).contains(&val) {
-            return Err("boundaryDamping must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    // Time step validation - NUMERICAL STABILITY
-    // Check both timeStep and dt (client might send either)
-    let time_step = physics.get("timeStep").or_else(|| physics.get("dt"));
-    if let Some(time_step) = time_step {
-        let val = time_step.as_f64().ok_or("timeStep/dt must be a number")?;
-        if val <= 0.0 || val > 1.0 {  // Generous range
-            return Err("timeStep/dt must be between 0.001 and 1.0".to_string());
-        }
-    }
-    
-    // Temperature validation
-    if let Some(temp) = physics.get("temperature") {
-        let val = temp.as_f64().ok_or("temperature must be a number")?;
-        if val < 0.0 || val > 100.0 {  // Generous range
-            return Err("temperature must be between 0.0 and 100.0".to_string());
-        }
-    }
-    
-    // Gravity validation
-    if let Some(gravity) = physics.get("gravity") {
-        let val = gravity.as_f64().ok_or("gravity must be a number")?;
-        if val < -100.0 || val > 100.0 {  // Generous range
-            return Err("gravity must be between -100.0 and 100.0".to_string());
-        }
-    }
-    
-    // Update threshold validation
-    if let Some(threshold) = physics.get("updateThreshold") {
-        let val = threshold.as_f64().ok_or("updateThreshold must be a number")?;
-        if val < 0.0 || val > 10.0 {
-            return Err("updateThreshold must be between 0.0 and 10.0".to_string());
-        }
-    }
-    
-    // NEW GPU-ALIGNED PARAMETERS
-    
-    // Stress weight validation
-    if let Some(stress_weight) = physics.get("stressWeight") {
-        let val = stress_weight.as_f64().ok_or("stressWeight must be a number")?;
-        if !(0.0..=1.0).contains(&val) {
-            return Err("stressWeight must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    // Stress alpha validation
-    if let Some(stress_alpha) = physics.get("stressAlpha") {
-        let val = stress_alpha.as_f64().ok_or("stressAlpha must be a number")?;
-        if !(0.0..=1.0).contains(&val) {
-            return Err("stressAlpha must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    // Alignment strength validation
-    if let Some(alignment_strength) = physics.get("alignmentStrength") {
-        let val = alignment_strength.as_f64().ok_or("alignmentStrength must be a number")?;
-        if !(0.0..=10.0).contains(&val) {
-            return Err("alignmentStrength must be between 0.0 and 10.0".to_string());
-        }
-    }
-    
-    // Cluster strength validation
-    if let Some(cluster_strength) = physics.get("clusterStrength") {
-        let val = cluster_strength.as_f64().ok_or("clusterStrength must be a number")?;
-        if !(0.0..=10.0).contains(&val) {
-            return Err("clusterStrength must be between 0.0 and 10.0".to_string());
-        }
-    }
-    
-    // Compute mode validation (0=Basic, 1=Dual Graph, 2=Constraints, 3=Visual Analytics)
-    if let Some(compute_mode) = physics.get("computeMode") {
-        let val = compute_mode.as_u64()
-            .or_else(|| compute_mode.as_f64().map(|f| f.round() as u64))
-            .ok_or("computeMode must be an integer")?;
-        if val > 3 {
-            return Err("computeMode must be between 0 and 3".to_string());
-        }
-    }
-    
-    // Additional GPU parameters validation
-    if let Some(min_distance) = physics.get("minDistance") {
-        let val = min_distance.as_f64().ok_or("minDistance must be a number")?;
-        if val < 0.001 || val > 10.0 {
-            return Err("minDistance must be between 0.001 and 10.0".to_string());
-        }
-    }
-    
-    if let Some(max_repulsion_dist) = physics.get("maxRepulsionDist") {
-        let val = max_repulsion_dist.as_f64().ok_or("maxRepulsionDist must be a number")?;
-        if val < 1.0 || val > 10000.0 {
-            return Err("maxRepulsionDist must be between 1.0 and 10000.0".to_string());
-        }
-    }
-    
-    if let Some(boundary_margin) = physics.get("boundaryMargin") {
-        let val = boundary_margin.as_f64().ok_or("boundaryMargin must be a number")?;
-        if val < 0.0 || val > 1.0 {
-            return Err("boundaryMargin must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    if let Some(boundary_force_strength) = physics.get("boundaryForceStrength") {
-        let val = boundary_force_strength.as_f64().ok_or("boundaryForceStrength must be a number")?;
-        if val < 0.0 || val > 100.0 {
-            return Err("boundaryForceStrength must be between 0.0 and 100.0".to_string());
-        }
-    }
-    
-    if let Some(warmup_iterations) = physics.get("warmupIterations") {
-        let val = warmup_iterations.as_u64()
-            .or_else(|| warmup_iterations.as_f64().map(|f| f.round() as u64))
-            .ok_or("warmupIterations must be an integer")?;
-        if val > 10000 {
-            return Err("warmupIterations must be between 0 and 10000".to_string());
-        }
-    }
-    
-    if let Some(warmup_curve) = physics.get("warmupCurve") {
-        let val = warmup_curve.as_str().ok_or("warmupCurve must be a string")?;
-        if !["linear", "quadratic", "cubic"].contains(&val) {
-            return Err("warmupCurve must be 'linear', 'quadratic', or 'cubic'".to_string());
-        }
-    }
-    
-    if let Some(zero_velocity_iterations) = physics.get("zeroVelocityIterations") {
-        let val = zero_velocity_iterations.as_u64()
-            .or_else(|| zero_velocity_iterations.as_f64().map(|f| f.round() as u64))
-            .ok_or("zeroVelocityIterations must be an integer")?;
-        if val > 1000 {
-            return Err("zeroVelocityIterations must be between 0 and 1000".to_string());
-        }
-    }
-    
-    if let Some(cooling_rate) = physics.get("coolingRate") {
-        let val = cooling_rate.as_f64().ok_or("coolingRate must be a number")?;
-        if val < 0.0 || val > 1.0 {
-            return Err("coolingRate must be between 0.0 and 1.0".to_string());
-        }
-    }
-    
-    // Auto-balance validation
-    if let Some(auto_balance) = physics.get("autoBalance") {
-        if !auto_balance.is_boolean() {
-            return Err("autoBalance must be a boolean".to_string());
-        }
-    }
-    
+
+    // Auto-balance interval validation
     if let Some(auto_balance_interval) = physics.get("autoBalanceIntervalMs") {
         let val = auto_balance_interval.as_u64()
             .or_else(|| auto_balance_interval.as_f64().map(|f| f.round() as u64))
@@ -2652,56 +2425,23 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
             return Err("autoBalanceIntervalMs must be between 10 and 60000 ms".to_string());
         }
     }
-    
-    // Clustering parameters validation
-    if let Some(clustering_algorithm) = physics.get("clusteringAlgorithm") {
-        let val = clustering_algorithm.as_str().ok_or("clusteringAlgorithm must be a string")?;
-        if !["none", "kmeans", "spectral", "louvain"].contains(&val) {
-            return Err("clusteringAlgorithm must be 'none', 'kmeans', 'spectral', or 'louvain'".to_string());
-        }
-    }
-    
-    if let Some(cluster_count) = physics.get("clusterCount") {
-        let val = cluster_count.as_u64()
-            .or_else(|| cluster_count.as_f64().map(|f| f.round() as u64))
-            .ok_or("clusterCount must be an integer")?;
-        if val < 1 || val > 1000 {
-            return Err("clusterCount must be between 1 and 1000".to_string());
-        }
-    }
-    
-    if let Some(clustering_resolution) = physics.get("clusteringResolution") {
-        let val = clustering_resolution.as_f64().ok_or("clusteringResolution must be a number")?;
-        if val < 0.001 || val > 100.0 {
-            return Err("clusteringResolution must be between 0.001 and 100.0".to_string());
-        }
-    }
-    
-    if let Some(clustering_iterations) = physics.get("clusteringIterations") {
-        let val = clustering_iterations.as_u64()
-            .or_else(|| clustering_iterations.as_f64().map(|f| f.round() as u64))
-            .ok_or("clusteringIterations must be an integer")?;
-        if val < 1 || val > 10000 {
-            return Err("clusteringIterations must be between 1 and 10000".to_string());
-        }
-    }
-    
+
     // Boundary limit validation (should be ~98% of boundsSize)
     if let Some(boundary_limit) = physics.get("boundaryLimit") {
         let val = boundary_limit.as_f64().ok_or("boundaryLimit must be a number")?;
-        if val < 0.1 || val > 100000.0 {  // Very generous range
+        if val < 0.1 || val > 100000.0 {
             return Err("boundaryLimit must be between 0.1 and 100000.0".to_string());
         }
-        
+
         // If boundsSize is also present, validate the relationship
         if let Some(bounds_size) = physics.get("boundsSize").and_then(|b| b.as_f64()) {
-            let max_boundary = bounds_size * 0.99;  // Allow up to 99% for safety
+            let max_boundary = bounds_size * 0.99;
             if val > max_boundary {
                 return Err(format!("boundaryLimit ({:.1}) must be less than 99% of boundsSize ({:.1})", val, bounds_size));
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -3011,8 +2751,8 @@ async fn propagate_physics_to_gpu(
         physics.spring_k
     );
     info!(
-        "  - attraction_k: {:.3} (affects clustering)",
-        physics.attraction_k
+        "  - spring_k: {:.3} (affects clustering)",
+        physics.spring_k
     );
     info!(
         "  - damping: {:.3} (affects settling, 1.0 = no movement)",

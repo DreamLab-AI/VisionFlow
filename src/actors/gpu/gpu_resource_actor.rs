@@ -161,9 +161,9 @@ impl GPUResourceActor {
         let mut edge_weights = Vec::new();
         
         // Extract positions
-        let positions_x: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.x).collect();
-        let positions_y: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.y).collect();
-        let positions_z: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.z).collect();
+        let positions_x: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.x).collect();
+        let positions_y: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.y).collect();
+        let positions_z: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.z).collect();
         
         // Build adjacency lists for CSR conversion
         let mut adjacency_lists: Vec<Vec<(u32, f32)>> = vec![Vec::new(); num_nodes as usize];
@@ -235,9 +235,9 @@ impl GPUResourceActor {
         
         for node in &graph_data.nodes {
             // Use to_bits() for consistent float hashing across runs
-            node.data.position.x.to_bits().hash(&mut hasher);
-            node.data.position.y.to_bits().hash(&mut hasher);
-            node.data.position.z.to_bits().hash(&mut hasher);
+            node.data.x.to_bits().hash(&mut hasher);
+            node.data.y.to_bits().hash(&mut hasher);
+            node.data.z.to_bits().hash(&mut hasher);
         }
         
         hasher.finish()
@@ -345,15 +345,13 @@ impl Handler<GetNodeData> for GPUResourceActor {
                     
                     for i in 0..positions_x.len().min(positions_y.len()).min(positions_z.len()) {
                         node_data.push(BinaryNodeData {
-                            position: crate::types::vec3::Vec3Data {
-                                x: positions_x[i],
-                                y: positions_y[i],
-                                z: positions_z[i],
-                            },
-                            velocity: crate::types::vec3::Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                            mass: 1,
-                            flags: 0,
-                            padding: [0, 0],
+                            node_id: i as u32,
+                            x: positions_x[i],
+                            y: positions_y[i],
+                            z: positions_z[i],
+                            vx: 0.0,
+                            vy: 0.0,
+                            vz: 0.0,
                         });
                     }
                     
@@ -420,9 +418,9 @@ impl GPUResourceActor {
             // Position-only update
             info!("GPU: Position-only update");
             
-            let positions_x: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.x).collect();
-            let positions_y: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.y).collect();
-            let positions_z: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.position.z).collect();
+            let positions_x: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.x).collect();
+            let positions_y: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.y).collect();
+            let positions_z: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.z).collect();
             
             let unified_compute = self.unified_compute.as_mut()
                 .ok_or_else(|| "Unified compute not initialized".to_string())?;

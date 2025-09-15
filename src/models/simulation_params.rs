@@ -134,7 +134,6 @@ pub struct SimulationParams {
     // Additional physics parameters
     pub max_velocity: f32,        // Maximum velocity for nodes
     pub max_force: f32,           // Maximum force magnitude to prevent instability
-    pub attraction_k: f32,        // Attraction between connected nodes
     pub separation_radius: f32,   // Minimum separation between nodes
     pub temperature: f32,          // System temperature for simulated annealing
     pub center_gravity_k: f32,    // Center gravity force constant
@@ -280,7 +279,6 @@ impl SimParams {
             is_physics_paused: false,
             iterations: 100,
             dt: self.dt,
-            spring_k: self.spring_k,
             repel_k: self.repel_k,
             mass_scale: 1.0,
             damping: self.damping,
@@ -289,7 +287,7 @@ impl SimParams {
             enable_bounds: true,
             max_velocity: self.max_velocity,
             max_force: self.max_force,
-            attraction_k: 0.0, // Attraction between connected nodes (separate from center_gravity)
+            spring_k: 0.0, // Spring force constant for connected nodes (separate from center_gravity)
             separation_radius: self.separation_radius,
             center_gravity_k: self.center_gravity_k, // Preserve center gravity
             temperature: self.temperature,
@@ -395,7 +393,6 @@ impl From<&PhysicsSettings> for SimulationParams {
             enable_bounds: physics.enable_bounds,
             max_velocity: physics.max_velocity,
             max_force: physics.max_force,  // Use from settings
-            attraction_k: physics.attraction_k,
             separation_radius: physics.separation_radius,
             temperature: physics.temperature,
             center_gravity_k: physics.center_gravity_k,

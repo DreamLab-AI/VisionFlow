@@ -56,6 +56,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
 use log::{debug, info, warn, error, trace};
+use crate::types::Vec3Data;
  
 use crate::actors::messages::*;
 use crate::errors::VisionFlowError;
@@ -65,7 +66,7 @@ use crate::models::node::Node;
 use crate::models::edge::Edge;
 use crate::models::metadata::{MetadataStore, FileMetadata};
 use crate::models::graph::GraphData;
-use crate::utils::socket_flow_messages::{BinaryNodeData, glam_to_vec3data}; // Added glam_to_vec3data
+use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, glam_to_vec3data}; // Added glam_to_vec3data
 // Using the modular GPU system's ForceComputeActor for physics computation
 use crate::actors::gpu::ForceComputeActor as GPUComputeActor;
 use crate::models::simulation_params::SimulationParams;
@@ -163,7 +164,7 @@ impl GraphServiceActor {
         self.simulation_params.max_repulsion_dist = self.simulation_params.max_repulsion_dist * (1.0 - rate) + self.target_params.max_repulsion_dist * rate;
         self.simulation_params.boundary_force_strength = self.simulation_params.boundary_force_strength * (1.0 - rate) + self.target_params.boundary_force_strength * rate;
         self.simulation_params.cooling_rate = self.simulation_params.cooling_rate * (1.0 - rate) + self.target_params.cooling_rate * rate;
-        self.simulation_params.attraction_k = self.simulation_params.attraction_k * (1.0 - rate) + self.target_params.attraction_k * rate;
+        self.simulation_params.spring_k = self.simulation_params.spring_k * (1.0 - rate) + self.target_params.spring_k * rate;
         
         // For boolean values, switch immediately when more than halfway
         if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32).abs() > 0 {
@@ -267,9 +268,9 @@ impl GraphServiceActor {
                 let mut new_target = self.target_params.clone();
                 
                 let attraction_factor = 1.0 + adjustment_rate;
-                new_target.attraction_k = (self.simulation_params.attraction_k * attraction_factor)
-                    .max(self.simulation_params.attraction_k * (1.0 + config.min_adjustment_factor))
-                    .min(self.simulation_params.attraction_k * (1.0 + config.max_adjustment_factor));
+                new_target.spring_k = (self.simulation_params.spring_k * attraction_factor)
+                    .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.spring_k * (1.0 + config.max_adjustment_factor));
                 
                 let spring_factor = 1.0 + adjustment_rate * 0.5; // Smaller spring adjustment
                 new_target.spring_k = (self.simulation_params.spring_k * spring_factor)
@@ -291,9 +292,9 @@ impl GraphServiceActor {
                 
                 // Slightly reduce attraction
                 let attraction_factor = 1.0 - adjustment_rate * 0.5;
-                new_target.attraction_k = (self.simulation_params.attraction_k * attraction_factor)
-                    .max(self.simulation_params.attraction_k * (1.0 + config.min_adjustment_factor))
-                    .min(self.simulation_params.attraction_k * (1.0 + config.max_adjustment_factor));
+                new_target.spring_k = (self.simulation_params.spring_k * attraction_factor)
+                    .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
+                    .min(self.simulation_params.spring_k * (1.0 + config.max_adjustment_factor));
                 
                 self.set_target_params(new_target);
                 self.send_auto_balance_notification("Gradual adjustment: Increasing repulsion to counter clustering");
@@ -590,9 +591,9 @@ impl GraphServiceActor {
         
         // Save positions from existing nodes indexed by metadata_id
         for node in self.node_map.values() {
-            existing_positions.insert(node.metadata_id.clone(), (node.data.position, node.data.velocity));
+            existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
             debug!("Saved position for existing node '{}': ({}, {}, {})", 
-                   node.metadata_id, node.data.position.x, node.data.position.y, node.data.position.z);
+                   node.metadata_id, node.data.x, node.data.y, node.data.z);
         }
         debug!("Total existing positions saved: {}", existing_positions.len());
         
@@ -616,7 +617,8 @@ impl GraphServiceActor {
             let mut node = Node::new_with_id(metadata_id_val.clone(), Some(node_id_val));
             node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(file_meta_data.file_size as u64);
-            node.data.flags = 1;
+            // Note: flags field not available in BinaryNodeDataClient
+            // Using node_id low bit as flag if needed: node.data.node_id |= 1;
 
             // BREADCRUMB: Restore existing position if this node was previously created
             // This ensures positions persist across BuildGraphFromMetadata calls
@@ -624,13 +626,17 @@ impl GraphServiceActor {
             debug!("Available keys in existing_positions: {:?}", existing_positions.keys().collect::<Vec<_>>());
             
             if let Some((saved_position, saved_velocity)) = existing_positions.get(&metadata_id_val) {
-                node.data.position = *saved_position;
-                node.data.velocity = *saved_velocity;
+                node.data.x = saved_position.x;
+                node.data.y = saved_position.y;
+                node.data.z = saved_position.z;
+                node.data.vx = saved_velocity.x;
+                node.data.vy = saved_velocity.y;
+                node.data.vz = saved_velocity.z;
                 debug!("Restored position for node '{}': ({}, {}, {})", 
                        metadata_id_val, saved_position.x, saved_position.y, saved_position.z);
             } else {
-                debug!("New node '{}' will use generated position: ({}, {}, {})", 
-                       metadata_id_val, node.data.position.x, node.data.position.y, node.data.position.z);
+                debug!("New node '{}' will use generated position: ({}, {}, {})",
+                       metadata_id_val, node.data.x, node.data.y, node.data.z);
             }
 
             // Enhanced metadata with semantic features
@@ -752,9 +758,9 @@ impl GraphServiceActor {
     fn prepare_node_positions(&self) -> Vec<(f32, f32, f32)> {
         self.graph_data.nodes.iter().map(|node| {
             (
-                node.data.position.x,
-                node.data.position.y,
-                node.data.position.z,
+                node.data.x,
+                node.data.y,
+                node.data.z,
             )
         }).collect()
     }
@@ -781,13 +787,13 @@ impl GraphServiceActor {
                     for (i, node) in graph_data_mut.nodes.iter_mut().enumerate() {
                         if let Some(optimized_node) = graph_data_clone.nodes.get(i) {
                             // Validate positions before applying
-                            let new_x = optimized_node.data.position.x;
-                            let new_y = optimized_node.data.position.y;
-                            let new_z = optimized_node.data.position.z;
+                            let new_x = optimized_node.data.x;
+                            let new_y = optimized_node.data.y;
+                            let new_z = optimized_node.data.z;
                             
                             if new_x.is_finite() && new_y.is_finite() && new_z.is_finite() {
                                 // Calculate displacement for safety clamping
-                                let old_pos = node.data.position;
+                                let old_pos = Vec3Data::new(node.data.x, node.data.y, node.data.z);
                                 let displacement_x = new_x - old_pos.x;
                                 let displacement_y = new_y - old_pos.y;
                                 let displacement_z = new_z - old_pos.z;
@@ -814,15 +820,15 @@ impl GraphServiceActor {
                                 // Apply boundary constraints with bounded AABB domain
                                 if self.simulation_params.enable_bounds && self.simulation_params.viewport_bounds > 0.0 {
                                     let boundary_limit = self.simulation_params.viewport_bounds;
-                                    node.data.position.x = final_x.clamp(-boundary_limit, boundary_limit);
-                                    node.data.position.y = final_y.clamp(-boundary_limit, boundary_limit);
-                                    node.data.position.z = final_z.clamp(-boundary_limit, boundary_limit);
+                                    node.data.x = final_x.clamp(-boundary_limit, boundary_limit);
+                                    node.data.y = final_y.clamp(-boundary_limit, boundary_limit);
+                                    node.data.z = final_z.clamp(-boundary_limit, boundary_limit);
                                 } else {
                                     // Apply default AABB bounds to prevent position explosions
                                     let default_bound = 10000.0;
-                                    node.data.position.x = final_x.clamp(-default_bound, default_bound);
-                                    node.data.position.y = final_y.clamp(-default_bound, default_bound);
-                                    node.data.position.z = final_z.clamp(-default_bound, default_bound);
+                                    node.data.x = final_x.clamp(-default_bound, default_bound);
+                                    node.data.y = final_y.clamp(-default_bound, default_bound);
+                                    node.data.z = final_z.clamp(-default_bound, default_bound);
                                 }
                             } else {
                                 warn!("Skipping invalid position from stress majorization for node {}: ({}, {}, {})", 
@@ -835,9 +841,9 @@ impl GraphServiceActor {
                     for node in &graph_data_mut.nodes {
                         if let Some(node_in_map) = Arc::make_mut(&mut self.node_map).get_mut(&node.id) {
                             // Use the already validated and clamped positions
-                            node_in_map.data.position.x = node.data.position.x;
-                            node_in_map.data.position.y = node.data.position.y;
-                            node_in_map.data.position.z = node.data.position.z;
+                            node_in_map.data.x = node.data.x;
+                            node_in_map.data.y = node.data.y;
+                            node_in_map.data.z = node.data.z;
                         }
                     }
                     
@@ -1170,27 +1176,35 @@ impl GraphServiceActor {
             const MAX_Z: f32 = 50.0;
             
             // Clamp positions to reasonable bounds
-            position_data.position.x = position_data.position.x.clamp(-MAX_COORD, MAX_COORD);
-            position_data.position.y = position_data.position.y.clamp(-MAX_COORD, MAX_COORD);
-            position_data.position.z = position_data.position.z.clamp(MIN_Z, MAX_Z);
+            position_data.x = position_data.x.clamp(-MAX_COORD, MAX_COORD);
+            position_data.y = position_data.y.clamp(-MAX_COORD, MAX_COORD);
+            position_data.z = position_data.z.clamp(MIN_Z, MAX_Z);
             
             // Detect and warn about extreme positions
-            if position_data.position.z.abs() > 45.0 {
+            if position_data.z.abs() > 45.0 {
                 debug!("Node {} has extreme z position: {}, clamped to range [{}, {}]", 
-                    node_id, position_data.position.z, MIN_Z, MAX_Z);
+                    node_id, position_data.z, MIN_Z, MAX_Z);
             }
             
             // Update in node_map
             if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&node_id) {
-                node.data.position = position_data.position;
-                node.data.velocity = position_data.velocity;
+                node.data.x = position_data.x;
+                node.data.y = position_data.y;
+                node.data.z = position_data.z;
+                node.data.vx = position_data.vx;
+                node.data.vy = position_data.vy;
+                node.data.vz = position_data.vz;
                 updated_count += 1;
             }
             
             // Update in graph_data.nodes
             if let Some(node) = graph_data_mut.nodes.iter_mut().find(|n| n.id == node_id) {
-                node.data.position = position_data.position;
-                node.data.velocity = position_data.velocity;
+                node.data.x = position_data.x;
+                node.data.y = position_data.y;
+                node.data.z = position_data.z;
+                node.data.vx = position_data.vx;
+                node.data.vy = position_data.vy;
+                node.data.vz = position_data.vz;
             }
         }
         
@@ -1206,18 +1220,18 @@ impl GraphServiceActor {
         let mut total_kinetic_energy = 0.0f32;
         
         for (_, node) in self.node_map.iter() {
-            let dist = node.data.position.x.abs()
-                .max(node.data.position.y.abs())
-                .max(node.data.position.z.abs());
+            let dist = node.data.x.abs()
+                .max(node.data.y.abs())
+                .max(node.data.z.abs());
             max_distance = max_distance.max(dist);
             total_distance += dist;
             positions.push(dist);
             
             // Calculate kinetic energy: KE = 0.5 * mass * velocity^2
             // Assuming unit mass for simplicity (mass = 1)
-            let velocity_squared = node.data.velocity.x * node.data.velocity.x + 
-                                  node.data.velocity.y * node.data.velocity.y + 
-                                  node.data.velocity.z * node.data.velocity.z;
+            let velocity_squared = node.data.vx * node.data.vx +
+                                  node.data.vy * node.data.vy +
+                                  node.data.vz * node.data.vz;
             total_kinetic_energy += 0.5 * velocity_squared;
             
             // FIXED: Percentage-based boundary detection relative to viewport_bounds
@@ -1289,7 +1303,7 @@ impl GraphServiceActor {
                     
                 // Prepare position data for advanced analysis
                 let position_data: Vec<(f32, f32, f32)> = self.node_map.values()
-                    .map(|node| (node.data.position.x, node.data.position.y, node.data.position.z))
+                    .map(|node| (node.data.x, node.data.y, node.data.z))
                     .collect();
                 
                 // Detect spatial hashing issues and numerical instability
@@ -1403,13 +1417,11 @@ impl GraphServiceActor {
             let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
             
             for (node_id, node) in self.node_map.iter() {
-                position_data.push((*node_id, BinaryNodeData {
-                    position: node.data.position,
-                    velocity: node.data.velocity,
-                    mass: node.data.mass,
-                    flags: node.data.flags,
-                    padding: node.data.padding,
-                }));
+                position_data.push((*node_id, BinaryNodeDataClient::new(
+                    *node_id,
+                    node.data.position(),
+                    node.data.velocity(),
+                )));
             }
             
             // Broadcast to all connected clients via client manager
@@ -1589,7 +1601,7 @@ impl GraphServiceActor {
         //     info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
         //     info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
         //     info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
-        //     info!("  - attraction_k: {:.3} (unused - for future clustering)", self.simulation_params.attraction_k);
+        //     info!("  - spring_k: {:.3} (unused - for future clustering)", self.simulation_params.spring_k);
         //     info!("  - center_gravity_k: {:.3} (center pull force)", self.simulation_params.center_gravity_k);
         //     info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
         //     info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
@@ -1860,8 +1872,9 @@ impl GraphServiceActor {
             let mut node = Node::new_with_id(metadata_id_val.clone(), Some(node_id_val));
             node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(file_meta_data.file_size as u64);
-            node.data.flags = 1;
-            
+            // Note: flags field not available in BinaryNodeDataClient
+            // Using node_id low bit as flag if needed: node.data.node_id |= 1;
+
             // Enhanced metadata
             node.metadata.insert("fileName".to_string(), file_meta_data.file_name.clone());
             node.metadata.insert("fileSize".to_string(), file_meta_data.file_size.to_string());
@@ -2002,13 +2015,11 @@ impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceAc
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
         
         for (node_id, node) in self.node_map.iter() {
-            position_data.push((*node_id, BinaryNodeData {
-                position: node.data.position,
-                velocity: node.data.velocity,
-                mass: node.data.mass,
-                flags: node.data.flags,
-                padding: node.data.padding,
-            }));
+            position_data.push((*node_id, BinaryNodeDataClient::new(
+                *node_id,
+                node.data.position(),
+                node.data.velocity(),
+            )));
         }
         
         // Broadcast to all connected clients via client manager
@@ -2044,13 +2055,11 @@ impl Handler<InitialClientSync> for GraphServiceActor {
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
         
         for (node_id, node) in self.node_map.iter() {
-            position_data.push((*node_id, BinaryNodeData {
-                position: node.data.position,
-                velocity: node.data.velocity,
-                mass: node.data.mass,
-                flags: node.data.flags,
-                padding: node.data.padding,
-            }));
+            position_data.push((*node_id, BinaryNodeDataClient::new(
+                *node_id,
+                node.data.position(),
+                node.data.velocity(),
+            )));
         }
         
         if !position_data.is_empty() {
@@ -2199,16 +2208,18 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateNodePosition, _ctx: &mut Self::Context) -> Self::Result {
         // Update node in the node map
         if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&msg.node_id) {
-            // Preserve existing mass and flags
-            let original_mass = node.data.mass;
-            let original_flags = node.data.flags;
-            
-            node.data.position = glam_to_vec3data(msg.position);
-            node.data.velocity = glam_to_vec3data(msg.velocity);
-            
-            // Restore mass and flags
-            node.data.mass = original_mass;
-            node.data.flags = original_flags;
+            // Update position and velocity using direct field access
+            let new_position = glam_to_vec3data(msg.position);
+            let new_velocity = glam_to_vec3data(msg.velocity);
+
+            node.data.x = new_position.x;
+            node.data.y = new_position.y;
+            node.data.z = new_position.z;
+            node.data.vx = new_velocity.x;
+            node.data.vy = new_velocity.y;
+            node.data.vz = new_velocity.z;
+
+            // Note: mass and flags fields not available in BinaryNodeDataClient
         } else {
             debug!("Received update for unknown node ID: {}", msg.node_id);
             return Err(format!("Unknown node ID: {}", msg.node_id));
@@ -2218,16 +2229,17 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         for node_in_graph_data in &mut graph_data_mut.nodes { // Iterate over mutable graph_data
             if node_in_graph_data.id == msg.node_id {
-                // Preserve mass and flags
-                let original_mass = node_in_graph_data.data.mass;
-                let original_flags = node_in_graph_data.data.flags;
-                
-                node_in_graph_data.data.position = glam_to_vec3data(msg.position);
-                node_in_graph_data.data.velocity = glam_to_vec3data(msg.velocity);
-                
-                // Restore mass and flags
-                node_in_graph_data.data.mass = original_mass;
-                node_in_graph_data.data.flags = original_flags;
+                // Update position components directly
+                let pos = glam_to_vec3data(msg.position);
+                node_in_graph_data.data.x = pos.x;
+                node_in_graph_data.data.y = pos.y;
+                node_in_graph_data.data.z = pos.z;
+
+                // Update velocity components directly
+                let vel = glam_to_vec3data(msg.velocity);
+                node_in_graph_data.data.vx = vel.x;
+                node_in_graph_data.data.vy = vel.y;
+                node_in_graph_data.data.vz = vel.z;
                 break;
             }
         }
@@ -2335,11 +2347,10 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             let phi = ((2.0 * i as f32 / 20.0) - 1.0).acos(); // Reasonable estimate for agent count
             let radius = physics.initial_radius_min + ((i as f32) % physics.initial_radius_range);
             
-            node.data.position = crate::types::vec3::Vec3Data::new(
-                radius * phi.sin() * theta.cos(),
-                radius * phi.sin() * theta.sin(),
-                radius * phi.cos(),
-            );
+            // Set position directly on the x, y, z fields
+            node.data.x = radius * phi.sin() * theta.cos();
+            node.data.y = radius * phi.sin() * theta.sin();
+            node.data.z = radius * phi.cos();
             
             // Set node properties based on agent status
             node.color = Some(match agent.profile.agent_type {
@@ -2567,7 +2578,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             info!("  - damping: {:.3} (was)", self.simulation_params.damping);
             info!("  - dt: {:.3} (was)", self.simulation_params.dt);
             info!("  - spring_k: {:.3} (was)", self.simulation_params.spring_k);
-            info!("  - attraction_k: {:.3} (was)", self.simulation_params.attraction_k);
+            info!("  - spring_k: {:.3} (was)", self.simulation_params.spring_k);
             info!("  - max_velocity: {:.3} (was)", self.simulation_params.max_velocity);
             info!("  - enabled: {} (was)", self.simulation_params.enabled);
             info!("  - auto_balance: {} (was)", self.simulation_params.auto_balance);
@@ -2577,7 +2588,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             info!("  - damping: {:.3} (new)", msg.params.damping);
             info!("  - dt: {:.3} (new)", msg.params.dt);
             info!("  - spring_k: {:.3} (new)", msg.params.spring_k);
-            info!("  - attraction_k: {:.3} (new)", msg.params.attraction_k);
+            info!("  - spring_k: {:.3} (new)", msg.params.spring_k);
             info!("  - max_velocity: {:.3} (new)", msg.params.max_velocity);
             info!("  - enabled: {} (new)", msg.params.enabled);
             info!("  - auto_balance: {} (new)", msg.params.auto_balance);
@@ -2631,14 +2642,12 @@ impl Handler<RequestPositionSnapshot> for GraphServiceActor {
                 if node.metadata.get("is_agent").map_or(false, |v| v == "true") {
                     continue;
                 }
-                
-                let node_data = BinaryNodeData {
-                    position: node.data.position.clone(),
-                    velocity: node.data.velocity.clone(),
-                    mass: node.data.mass,
-                    flags: node.data.flags | 0x40, // Set knowledge graph flag
-                    padding: node.data.padding,
-                };
+
+                let node_data = BinaryNodeDataClient::new(
+                    node.id,
+                    node.data.position(),
+                    node.data.velocity(),
+                );
                 
                 knowledge_nodes.push((node.id, node_data));
             }
@@ -2647,13 +2656,11 @@ impl Handler<RequestPositionSnapshot> for GraphServiceActor {
         // Collect agent graph positions if requested
         if msg.include_agent_graph {
             for node in &self.bots_graph_data.nodes {
-                let node_data = BinaryNodeData {
-                    position: node.data.position.clone(),
-                    velocity: node.data.velocity.clone(),
-                    mass: node.data.mass,
-                    flags: node.data.flags | 0x80, // Set agent flag
-                    padding: node.data.padding,
-                };
+                let node_data = BinaryNodeDataClient::new(
+                    node.id,
+                    node.data.position(),
+                    node.data.velocity(),
+                );
                 
                 agent_nodes.push((node.id, node_data));
             }
@@ -2766,11 +2773,71 @@ impl Handler<ResetGPUInitFlag> for GraphServiceActor {
 
 impl Handler<ComputeShortestPaths> for GraphServiceActor {
     type Result = Result<std::collections::HashMap<u32, Option<f32>>, String>;
-    
-    fn handle(&mut self, _msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
-        // SSSP computation now requires ForceComputeActor support
-        // This functionality has been moved to unified GPU control
-        Err("SSSP computation not yet implemented in unified GPU architecture - use ForceComputeActor".to_string())
+
+    fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        // Implement Dijkstra's algorithm for SSSP computation
+        let source_id = msg.source_node_id;
+
+        // Check if source node exists
+        if !self.node_map.contains_key(&source_id) {
+            return Err(format!("Source node {} not found", source_id));
+        }
+
+        // Initialize distances
+        let mut distances = std::collections::HashMap::new();
+        let mut visited = std::collections::HashSet::new();
+        let mut priority_queue = std::collections::BinaryHeap::new();
+
+        // Set all distances to infinity initially
+        for node_id in self.node_map.keys() {
+            distances.insert(*node_id, None);
+        }
+
+        // Source node has distance 0
+        distances.insert(source_id, Some(0.0));
+        priority_queue.push(std::cmp::Reverse((ordered_float::OrderedFloat(0.0_f32), source_id)));
+
+        // Build adjacency list from edges
+        let mut adjacency: std::collections::HashMap<u32, Vec<(u32, f32)>> = std::collections::HashMap::new();
+        for edge in &self.graph_data.edges {
+            // For undirected graph, add both directions
+            adjacency.entry(edge.source).or_insert_with(Vec::new).push((edge.target, edge.weight));
+            adjacency.entry(edge.target).or_insert_with(Vec::new).push((edge.source, edge.weight));
+        }
+
+        // Dijkstra's algorithm
+        while let Some(std::cmp::Reverse((current_dist, current_node))) = priority_queue.pop() {
+            let current_dist = current_dist.into_inner();
+            if visited.contains(&current_node) {
+                continue;
+            }
+
+            visited.insert(current_node);
+
+            // Check neighbors
+            if let Some(neighbors) = adjacency.get(&current_node) {
+                for &(neighbor_id, edge_weight) in neighbors {
+                    if visited.contains(&neighbor_id) {
+                        continue;
+                    }
+
+                    let new_dist = current_dist + edge_weight;
+                    let current_neighbor_dist = distances.get(&neighbor_id).and_then(|d| *d);
+
+                    if current_neighbor_dist.is_none() || new_dist < current_neighbor_dist.unwrap() {
+                        distances.insert(neighbor_id, Some(new_dist));
+                        priority_queue.push(std::cmp::Reverse((ordered_float::OrderedFloat(new_dist), neighbor_id)));
+                    }
+                }
+            }
+        }
+
+        info!("SSSP computed from node {}: {} reachable nodes out of {}",
+              source_id,
+              distances.values().filter(|d| d.is_some()).count(),
+              distances.len());
+
+        Ok(distances)
     }
 }
 
@@ -2809,7 +2876,9 @@ impl Handler<NodeInteractionMessage> for GraphServiceActor {
                 // FIXME: Type mismatch - commented for compilation
                 // node.data.position = crate::utils::socket_flow_messages::glam_to_vec3data(position);
                 // Reset velocity to avoid physics conflicts during drag
-                node.data.velocity = crate::types::vec3::Vec3Data::new(0.0, 0.0, 0.0);
+                node.data.vx = 0.0;
+                node.data.vy = 0.0;
+                node.data.vz = 0.0;
             }
         }
         
@@ -2880,7 +2949,7 @@ mod tests {
         // Store the positions after first build
         let initial_positions: HashMap<String, (Vec3Data, Vec3Data)> = actor.node_map
             .values()
-            .map(|node| (node.metadata_id.clone(), (node.data.position, node.data.velocity)))
+            .map(|node| (node.metadata_id.clone(), (node.data.position(), node.data.velocity())))
             .collect();
             
         assert_eq!(initial_positions.len(), 2, "Should have 2 nodes after first build");
@@ -2891,16 +2960,24 @@ mod tests {
         
         for node in Arc::make_mut(&mut actor.node_map).values_mut() {
             if node.metadata_id == "file1" {
-                node.data.position = modified_position;
-                node.data.velocity = modified_velocity;
+                node.data.x = modified_position.x;
+                node.data.y = modified_position.y;
+                node.data.z = modified_position.z;
+                node.data.vx = modified_velocity.x;
+                node.data.vy = modified_velocity.y;
+                node.data.vz = modified_velocity.z;
             }
         }
         
         // Update graph_data to match node_map changes
         for node in &mut Arc::make_mut(&mut actor.graph_data).nodes {
             if node.metadata_id == "file1" {
-                node.data.position = modified_position;
-                node.data.velocity = modified_velocity;
+                node.data.x = modified_position.x;
+                node.data.y = modified_position.y;
+                node.data.z = modified_position.z;
+                node.data.vx = modified_velocity.x;
+                node.data.vy = modified_velocity.y;
+                node.data.vz = modified_velocity.z;
             }
         }
 
@@ -2912,12 +2989,12 @@ mod tests {
             .find(|node| node.metadata_id == "file1")
             .expect("file1 node should exist after rebuild");
             
-        assert_eq!(file1_node.data.position.x, 10.0, "Position X should be preserved");
-        assert_eq!(file1_node.data.position.y, 20.0, "Position Y should be preserved");
-        assert_eq!(file1_node.data.position.z, 30.0, "Position Z should be preserved");
-        assert_eq!(file1_node.data.velocity.x, 1.0, "Velocity X should be preserved");
-        assert_eq!(file1_node.data.velocity.y, 2.0, "Velocity Y should be preserved");
-        assert_eq!(file1_node.data.velocity.z, 3.0, "Velocity Z should be preserved");
+        assert_eq!(file1_node.data.x, 10.0, "Position X should be preserved");
+        assert_eq!(file1_node.data.y, 20.0, "Position Y should be preserved");
+        assert_eq!(file1_node.data.z, 30.0, "Position Z should be preserved");
+        assert_eq!(file1_node.data.vx, 1.0, "Velocity X should be preserved");
+        assert_eq!(file1_node.data.vy, 2.0, "Velocity Y should be preserved");
+        assert_eq!(file1_node.data.vz, 3.0, "Velocity Z should be preserved");
         
         // Verify file2 node kept its original position (since we didn't modify it)
         let file2_node = actor.node_map.values()
@@ -2925,7 +3002,7 @@ mod tests {
             .expect("file2 node should exist after rebuild");
             
         let original_file2_pos = initial_positions.get("file2").unwrap().0;
-        assert_eq!(file2_node.data.position, original_file2_pos, "file2 position should be preserved");
+        assert_eq!(file2_node.data.position(), original_file2_pos, "file2 position should be preserved");
     }
     
     /// Test that new nodes still get proper initial positions
@@ -2983,7 +3060,7 @@ mod tests {
             .find(|node| node.metadata_id == "file2")
             .expect("file2 node should exist");
             
-        let pos = file2_node.data.position;
+        let pos = file2_node.data.position();
         let distance_from_origin = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
         assert!(distance_from_origin > 0.1, "New node should not be at origin, distance: {}", distance_from_origin);
     }

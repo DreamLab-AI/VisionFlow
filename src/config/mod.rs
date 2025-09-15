@@ -477,8 +477,6 @@ pub struct PhysicsSettings {
     #[serde(default, alias = "auto_pause")]
     #[validate(nested)]
     pub auto_pause: AutoPauseConfig,
-    #[serde(alias = "attraction_k")]
-    pub attraction_k: f32,
     #[serde(alias = "bounds_size")]
     pub bounds_size: f32,
     #[serde(alias = "separation_radius")]
@@ -584,7 +582,6 @@ impl Default for PhysicsSettings {
             auto_balance_interval_ms: 500,
             auto_balance_config: AutoBalanceConfig::default(),
             auto_pause: AutoPauseConfig::default(),
-            attraction_k: 0.0001,
             bounds_size: 500.0,
             separation_radius: 2.0,
             damping: 0.95,
@@ -1340,9 +1337,13 @@ pub struct WhisperSettings {
 }
 
 // Constraint system structures
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
+// Note: ConstraintData has been moved to models/constraints.rs for GPU compatibility
+// The old simple structure has been replaced with a GPU-optimized version
+
+// Legacy constraint system for web API compatibility
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
-pub struct ConstraintData {
+pub struct LegacyConstraintData {
     #[serde(alias = "constraint_type")]
     pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
     #[serde(alias = "strength")]
@@ -1357,30 +1358,17 @@ pub struct ConstraintData {
     pub enabled: bool,
 }
 
-impl Default for ConstraintData {
-    fn default() -> Self {
-        Self {
-            constraint_type: 0,
-            strength: 1.0,
-            param1: 0.0,
-            param2: 0.0,
-            node_mask: 0,
-            enabled: false,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintSystem {
     #[serde(alias = "separation")]
-    pub separation: ConstraintData,
+    pub separation: LegacyConstraintData,
     #[serde(alias = "boundary")]
-    pub boundary: ConstraintData,
+    pub boundary: LegacyConstraintData,
     #[serde(alias = "alignment")]
-    pub alignment: ConstraintData,
+    pub alignment: LegacyConstraintData,
     #[serde(alias = "cluster")]
-    pub cluster: ConstraintData,
+    pub cluster: LegacyConstraintData,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
@@ -1424,8 +1412,6 @@ pub struct PhysicsUpdate {
     pub max_force: Option<f32>,
     #[serde(alias = "separation_radius")]
     pub separation_radius: Option<f32>,
-    #[serde(alias = "attraction_k")]
-    pub attraction_k: Option<f32>,
     #[serde(alias = "mass_scale")]
     pub mass_scale: Option<f32>,
     #[serde(alias = "boundary_damping")]
