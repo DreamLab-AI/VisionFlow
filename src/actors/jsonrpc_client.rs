@@ -89,6 +89,10 @@ pub struct ProcessIncomingMessage {
     pub message: Value,
 }
 
+#[derive(Message)]
+#[rtype(result = "()")]
+struct SetInitialized(bool);
+
 impl JsonRpcClient {
     pub fn new() -> Self {
         Self {
@@ -97,7 +101,7 @@ impl JsonRpcClient {
             is_initialized: false,
             session_id: None,
             client_info: ClientInfo::default(),
-            protocol_version: "1.0.0".to_string(),
+            protocol_version: "2024-11-05".to_string(),
         }
     }
     
@@ -139,9 +143,9 @@ impl JsonRpcClient {
             "params": {
                 "protocolVersion": protocol_version,
                 "capabilities": {
-                    "roots": true,
-                    "sampling": true,
-                    "tools": true
+                    "tools": {
+                        "listChanged": true
+                    }
                 },
                 "clientInfo": {
                     "name": client_info.name,
@@ -308,25 +312,26 @@ impl Handler<ConnectToTcpActor> for JsonRpcClient {
 
 impl Handler<InitializeMcpSession> for JsonRpcClient {
     type Result = ResponseFuture<Result<(), String>>;
-    
-    fn handle(&mut self, _: InitializeMcpSession, _ctx: &mut Self::Context) -> Self::Result {
+
+    fn handle(&mut self, _: InitializeMcpSession, ctx: &mut Self::Context) -> Self::Result {
         if self.is_initialized {
             return Box::pin(async move { Ok(()) });
         }
-        
+
         let tcp_actor = match self.tcp_actor.clone() {
             Some(actor) => actor,
             None => return Box::pin(async move { Err("No TCP connection available".to_string()) }),
         };
-        
+
         let pending_requests = self.pending_requests.clone();
         let client_info = self.client_info.clone();
         let protocol_version = self.protocol_version.clone();
-        
+        let addr = ctx.address();
+
         Box::pin(async move {
             let request_id = Self::generate_request_id();
             let request = Self::create_initialize_request(request_id.clone(), &client_info, &protocol_version);
-            
+
             match Self::send_request_internal(
                 &tcp_actor,
                 pending_requests,
@@ -336,6 +341,8 @@ impl Handler<InitializeMcpSession> for JsonRpcClient {
             ).await {
                 Ok(response) => {
                     info!("MCP session initialized successfully: {:?}", response);
+                    // Mark session as initialized
+                    addr.do_send(SetInitialized(true));
                     Ok(())
                 }
                 Err(e) => {
@@ -463,9 +470,20 @@ impl Handler<TcpConnectionEvent> for JsonRpcClient {
     }
 }
 
+impl Handler<SetInitialized> for JsonRpcClient {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetInitialized, _ctx: &mut Self::Context) -> Self::Result {
+        self.is_initialized = msg.0;
+        if msg.0 {
+            info!("JsonRpcClient marked as initialized");
+        }
+    }
+}
+
 impl Handler<ProcessIncomingMessage> for JsonRpcClient {
     type Result = ();
-    
+
     fn handle(&mut self, msg: ProcessIncomingMessage, ctx: &mut Self::Context) {
         self.process_message(ctx, msg.message);
     }
