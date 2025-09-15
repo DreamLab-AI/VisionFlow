@@ -421,18 +421,20 @@ pub async fn call_agent_spawn(
     host: &str,
     port: &str,
     agent_type: &str,
+    swarm_id: &str,
 ) -> Result<Value, Box<dyn std::error::Error>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
-    
-    info!("Spawning agent of type: {}", agent_type);
-    
+
+    info!("Spawning agent of type: {} in swarm: {}", agent_type, swarm_id);
+
     let params = json!({
         "name": "agent_spawn",
         "arguments": {
-            "type": agent_type
+            "type": agent_type,
+            "swarmId": swarm_id
         }
     });
-    
+
     pool.execute_command("agent_spawn", "tools/call", params).await
 }
 
