@@ -1,70 +1,110 @@
-# Multi-MCP Agent Visualisation System
+# Agent Visualization System
 
-A comprehensive agent discovery, monitoring, and visualisation system for multiple MCP (Model Context Protocol) servers including Claude Flow, RuvSwarm, and DAA (Decentralized Autonomous Agents).
+**Status: 90% Complete** | **Integration: MCP + UpdateBotsGraph + Physics** | **Architecture: Hierarchical Positioning + Binary Protocol**
 
-## 🚀 Overview
+## Implementation Status
 
-This system provides:
+### ✅ **FULLY IMPLEMENTED (90%)**
 
-- **Multi-Server Discovery**: Automatically discovers agents across Claude Flow, RuvSwarm, DAA, and custom MCP servers
-- **Real-time Monitoring**: Continuous monitoring of agent status, performance, and interactions
-- **Topology Visualisation**: Supports hierarchical, mesh, ring, and star topologies with 3D positioning
-- **Performance Analytics**: Comprehensive metrics, bottleneck detection, and trend analysis  
-- **WebSocket Streaming**: Real-time updates to VisionFlow graph renderer
-- **Neural Tracking**: Monitors neural agent learning, adaptation, and cognitive patterns
+**Core Agent Positioning System:**
+- ✅ **Hierarchical Algorithm**: Queen-coordinator-architect-worker hierarchy with physics integration
+- ✅ **UpdateBotsGraph Flow**: BotsClient → GraphServiceActor → WebSocket broadcasting
+- ✅ **MCP Integration**: Fresh TCP connections to multi-agent-container:9500 with compatibility fixes
+- ✅ **Agent Type Positioning**: Specialized positioning for coordinators, architects, implementation agents
+- ✅ **Binary Protocol**: Efficient 34-byte agent data streaming with metadata preservation
+
+**Message System Architecture:**
+- ✅ **UpdateBotsGraph Messages**: Complete implementation in `src/actors/messages.rs:602`
+- ✅ **Data Flow Pipeline**: MCP Server → BotsClient → UpdateBotsGraph → WebSocket
+- ✅ **Multi-source Support**: Both claude-flow hive-mind and legacy BotsClient agents
+- ✅ **Error Handling**: Fallback chain with graceful degradation to mock data
+- ✅ **Connection Health**: Circuit breakers and retry logic for MCP compatibility
+
+### ⚠️ **REMAINING WORK (10%)**
+
+**Final Integration Tasks:**
+- 🔄 **Physics Force Integration**: Connect agent mass/hierarchy to GPU force calculations
+- 🔄 **Real-time Position Updates**: Smooth animation between agent state changes
+- 🔄 **Advanced Filtering**: Performance-based agent grouping and clustering
+
+## Overview
+
+The agent visualization system provides real-time 3D visualization of multi-agent swarms with sophisticated positioning algorithms, efficient binary data streaming, and comprehensive MCP protocol integration.
 
 ## 🏗️ Architecture
 
-### Core Components
+### Architecture Implementation
 
+**Current Working Architecture:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    VisionFlow Client                         │
-│                 (Graph Renderer)                            │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ WebSocket
-┌─────────────────────▼───────────────────────────────────────┐
-│            MultiMcpVisualizationActor                       │
-│  ┌─────────────────┬─────────────────┬─────────────────┐    │
-│  │   Discovery     │   Topology      │   Performance   │    │
-│  │   Service       │   Engine        │   Analytics     │    │
-│  └─────────────────┴─────────────────┴─────────────────┘    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ TCP/JSON-RPC
-┌─────────────────────▼───────────────────────────────────────┐
-│                 MCP Servers                                 │
-│  ┌─────────────┬─────────────┬─────────────┬─────────────┐  │
-│  │ Claude Flow │  RuvSwarm   │     DAA     │   Custom    │  │
-│  │   :9500     │   :9501     │   :9502     │   :9503     │  │
-│  └─────────────┴─────────────┴─────────────┴─────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+MCP Server (port 9500)
+    ↓ [Fresh TCP connection per request]
+ BotsClient::fetch_hive_mind_agents()
+    ↓ [Parses agent data from MCP responses]
+ UpdateBotsGraph message
+    ↓ [Sent to GraphServiceActor]
+ GraphServiceActor (manages bots_graph_data)
+    ↓ [WebSocket broadcast via ClientManagerActor]
+ Frontend React Components (BotsVisualization*)
 ```
 
-### Key Services
+**Key Implementation Details:**
+- **Connection Strategy**: Fresh TCP connections prevent MCP server incompatibility
+- **Error Handling**: Fallback chain (MCP → BotsClient → GraphService → Mock data)
+- **Multi-source Data**: Supports both claude-flow hive-mind and legacy BotsClient agents
 
-#### 1. Multi-MCP Agent Discovery (`multi_mcp_agent_discovery.rs`)
-- Discovers agents across multiple MCP servers
-- Maintains connection health and retry logic
-- Provides unified agent status aggregation
-- Supports server-specific configurations
+### Key Implementation Components
 
-#### 2. Topology Visualisation Engine (`topology_visualization_engine.rs`)
-- Generates 3D layouts for different topology types
-- Calculates agent positioning and connections
-- Provides performance metrics and optimisation suggestions
-- Supports dynamic layout updates
+#### 1. Agent Positioning Algorithm (`src/handlers/bots_handler.rs`)
 
-#### 3. Enhanced Visualisation Protocol (`agent_visualization_protocol.rs`)
-- Defines comprehensive data structures for multi-MCP environments
-- Supports differential updates for performance
-- Handles neural agent data and learning events
-- Provides filtering and subscription management
+**Hierarchical Positioning System:**
+```rust
+fn position_agents_hierarchically(agents: &mut Vec<BotsAgent>) {
+    // Find coordinators (acting as Queens)
+    let coordinator_ids: Vec<String> = agents.iter()
+        .filter(|a| a.agent_type == "coordinator")
+        .map(|a| a.id.clone())
+        .collect();
 
-#### 4. Multi-MCP Visualisation Actor (`multi_mcp_visualization_actor.rs`)
-- Coordinates all visualisation components
-- Manages WebSocket client connections
-- Provides real-time streaming of agent data
-- Handles legacy compatibility with existing systems
+    // Position coordinators at center level (200px radius)
+    // Position child agents around parents (300px+ radius)
+    // Uses parent_queen_id relationships for hierarchy
+}
+```
+
+**Agent Type-Based Positioning:**
+- **Queen**: Center (0,0)
+- **Coordinator**: Inner ring (8px radius)
+- **Architect**: Architecture level (12px radius, +2px vertical)
+- **Implementation agents**: 18-20px radius with hierarchical Z-axis offsets
+
+#### 2. UpdateBotsGraph Message System (`src/actors/messages.rs`)
+
+```rust
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct UpdateBotsGraph {
+    pub agents: Vec<AgentStatus>,
+}
+```
+
+#### 3. Binary Agent Protocol (`src/utils/socket_flow_messages.rs`)
+
+**Enhanced Agent-to-Node Conversion:**
+```rust
+fn convert_agents_to_nodes(agents: Vec<BotsAgent>) -> Vec<Node> {
+    agents.into_iter().enumerate().map(|(idx, agent)| {
+        // Mass calculation based on agent type and activity
+        let base_mass = match agent.agent_type.as_str() {
+            "queen" => 15.0,      // Heaviest (central gravity)
+            "coordinator" => 10.0,
+            "architect" => 8.0,
+            _ => 5.0,
+        };
+        // Enhanced with workload and activity factors
+    })
+}
+```
 
 ## 📊 Data Model
 

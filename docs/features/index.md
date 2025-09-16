@@ -22,15 +22,15 @@ Advanced rendering features including bloom effects, holographic nodes, edge flo
 #### [Multi-Agent Visualisation](agent-orchestration.md)
 Real-time visualisation of AI agent networks with Claude Flow MCP integration, showing agent relationships, token usage, and task execution flow.
 
-#### [🔊 Voice Interaction](../voice-system.md)
+#### [🔊 Voice Interaction](../client/features/voice-system.md)
 Natural language interface for graph manipulation, supporting voice commands for navigation, search, and modification operations.
 
 ### 📊 Analytics & Performance
 
-#### [GPU-Accelerated Analytics](analytics.md)
+#### [GPU-Accelerated Analytics](../client/features/gpu-analytics.md)
 High-performance clustering, anomaly detection, and graph metrics computation using CUDA acceleration.
 
-#### [Real-time Streaming](streaming.md)
+#### [Real-time Streaming](../api/websocket-streams.md)
 Binary WebSocket protocol providing 85% bandwidth reduction with sub-millisecond latency for 60 FPS position updates.
 
 ## Feature Comparison

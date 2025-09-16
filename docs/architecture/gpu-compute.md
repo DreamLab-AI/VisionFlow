@@ -974,6 +974,107 @@ impl GPUComputeActor {
 }
 ```
 
+## Known Issues and Current Limitations
+
+### Critical Issue: GPU Retargeting When KE=0
+
+**Problem**: The unified CUDA kernel continues to execute force calculations and position updates even when the system kinetic energy (KE) = 0, indicating the physics simulation should be stable.
+
+**Impact**:
+- 100% GPU utilization during stable states
+- Unnecessary power consumption
+- Micro-movements due to floating-point precision errors
+- Reduced battery life on mobile devices
+- Heat generation when system should be idle
+
+**Technical Root Cause**:
+The `visionflow_unified_kernel` in `visionflow_unified.cu` lacks stability gates:
+
+```cuda
+// Current implementation - ALWAYS executes forces
+__global__ void visionflow_unified_kernel(
+    float* pos_x, float* pos_y, float* pos_z,
+    // ... parameters
+) {
+    uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= node_count) return;
+
+    // Forces ALWAYS calculated regardless of system energy
+    float3 force = compute_forces(...); // Always runs
+    // Integration ALWAYS occurs
+    update_position_and_velocity(...);  // Always runs
+}
+```
+
+**Required Fix** (Not Yet Implemented):
+```cuda
+// Proposed stability gate implementation
+__global__ void visionflow_unified_kernel(...) {
+    uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= node_count) return;
+
+    // Add stability check
+    float3 force = compute_forces(...);
+    float force_magnitude = length(force);
+
+    if (force_magnitude < 1e-6f) {
+        // Skip integration for stable nodes
+        return; // No position/velocity updates
+    }
+
+    update_position_and_velocity(...);
+}
+```
+
+**Temporary Workarounds**:
+1. **Manual Physics Pause**: Use UI controls to pause physics when stable
+2. **Increased Damping**: Higher damping values reach stability faster
+3. **Energy Monitoring**: Watch for sustained KE=0 states and pause manually
+4. **GPU Monitoring**: Use `nvidia-smi` to detect unnecessary 100% utilization
+
+**Detection Commands**:
+```bash
+# Monitor GPU utilization
+nvidia-smi -l 1 | grep -E "[0-9]+%"
+
+# Check system logs for KE=0 states
+docker logs visionflow-backend 2>&1 | grep "KE=0"
+
+# Monitor power consumption (Linux)
+cat /sys/class/power_supply/BAT*/power_now
+```
+
+### Secondary Issues
+
+#### Floating-Point Precision Drift
+- **Issue**: Micro-movements occur due to GPU floating-point precision limits
+- **Mitigation**: Position change filtering with configurable threshold
+- **Status**: Partially addressed with position update filtering
+
+#### Memory Allocation During Resize
+- **Issue**: Cell buffer resizing may cause temporary memory spikes
+- **Status**: Addressed with growth factor limits and memory monitoring
+
+#### PTX Compilation in Docker
+- **Issue**: Runtime PTX compilation can be slow on first launch
+- **Status**: Resolved with fallback compilation and pre-compiled PTX caching
+
+## Performance Optimization Status
+
+### ✅ Implemented Optimizations
+- **Unified Kernel Architecture**: Single CUDA kernel handles all physics modes
+- **Structure of Arrays**: Optimal GPU memory layout (SoA)
+- **Dynamic Cell Buffers**: Automatic scaling with safety limits
+- **Four Compute Modes**: Basic, Dual Graph, Constraints, Analytics
+- **Memory Bandwidth**: Optimized for maximum GPU memory throughput
+- **Progressive Warmup**: Stable initialization with quadratic warmup curve
+
+### ❌ Pending Optimizations
+- **Stability Gates**: KE-based kernel execution control
+- **Force Magnitude Thresholding**: Micro-force filtering in GPU kernels
+- **Adaptive Time Stepping**: Variable dt based on system energy
+- **Kernel Occupancy Analysis**: CUDA occupancy optimization
+
 ## Related Documentation
 
 - [System Architecture Overview](index.md) - High-level system design
@@ -983,13 +1084,15 @@ impl GPUComputeActor {
 - [GPU Features to Expose](../GPU_FEATURES_TO_EXPOSE.md) - Feature implementation plan
 - [Control Centre Integration](../CONTROL_CENTER_GPU_INTEGRATION_PLAN.md) - UI integration
 - [Server GPU Compute](../server/gpu-compute.md) - Server-side implementation
+- [GPU Compute Improvements](gpu-compute-improvements.md) - Issue tracking and solutions
 
 ---
 
-*Last updated: January 2025*  
-*GPU Utilisation: 100% of capabilities exposed*  
-*Performance: 60-120 FPS for 100K+ nodes*  
-*Status: Production Ready*
+*Last updated: January 2025*
+*GPU Utilisation: 100% of capabilities exposed*
+*Performance: 60-120 FPS for 100K+ nodes*
+*Status: Production Ready (with known stability issues)*
+*Critical Issue: GPU continues work when KE=0 - requires stability gate implementation*
 
 ## See Also
 
