@@ -1,4 +1,4 @@
-import { useEffect, Component, ReactNode, useCallback } from 'react'
+import { useEffect, Component, ReactNode, useCallback, useState } from 'react'
 import AppInitializer from './AppInitializer'
 import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
 import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
@@ -64,7 +64,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, { hasError: boolean; e
 }
 
 function App() {
-  const initialized = useSettingsStore(state => state.initialized)
+  const [initializationState, setInitializationState] = useState<'loading' | 'initialized' | 'error'>('loading');
+  const [initializationError, setInitializationError] = useState<Error | null>(null);
+  const initialized = useSettingsStore(state => state.initialized);
+
   const { shouldUseQuest3Layout, isQuest3Detected, autoStartSuccessful } = useQuest3Integration({
     enableAutoStart: false
   });
@@ -109,13 +112,36 @@ function App() {
   }, [initialized])
 
   const handleInitialized = useCallback(() => {
+    setInitializationState('initialized');
     const settings = useSettingsStore.getState().settings;
     const debugEnabled = settings?.system?.debug?.enabled === true;
     if (debugEnabled) {
       logger.debug('Application initialized');
       logger.debug('Bots WebSocket connection status:', botsConnectionStatus);
     }
-  }, [botsConnectionStatus])
+  }, [botsConnectionStatus]);
+
+  const handleInitializationError = useCallback((error: Error) => {
+    setInitializationError(error);
+    setInitializationState('error');
+  }, []);
+
+  const renderContent = () => {
+    switch (initializationState) {
+      case 'loading':
+        return <div>Connecting to server...</div>;
+      case 'error':
+        return (
+          <div>
+            <h2>Error Initializing Application</h2>
+            <p>{initializationError?.message || 'An unknown error occurred.'}</p>
+            <button onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        );
+      case 'initialized':
+        return shouldUseQuest3AR() ? <Quest3AR /> : <MainLayout />;
+    }
+  };
 
   return (
     <TooltipProvider delayDuration={300} skipDelayDuration={100}>
@@ -124,26 +150,24 @@ function App() {
           <ErrorBoundary>
             <ApplicationModeProvider>
               <XRCoreProvider>
-                {initialized ? (
-                  shouldUseQuest3AR() ? (
-                    <Quest3AR />
-                  ) : (
-                    <MainLayout />
-                  )
-                ) : (
-                  <div>Loading application...</div>
+                {renderContent()}
+                {initializationState === 'loading' && (
+                  <AppInitializer onInitialized={handleInitialized} onError={handleInitializationError} />
                 )}
-                {!initialized && <AppInitializer onInitialized={handleInitialized} /> }
-                <ConnectionWarning />
-                <CommandPalette />
-                <DebugControlPanel />
+                {initializationState === 'initialized' && (
+                  <>
+                    <ConnectionWarning />
+                    <CommandPalette />
+                    <DebugControlPanel />
+                  </>
+                )}
               </XRCoreProvider>
             </ApplicationModeProvider>
           </ErrorBoundary>
         </OnboardingProvider>
       </HelpProvider>
     </TooltipProvider>
-  )
+  );
 }
 
 export default App

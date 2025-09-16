@@ -122,108 +122,78 @@ class GraphDataManager {
     return this.graphType;
   }
 
-  // Fetch initial graph data from the API
+  // Fetch initial graph data from the API with retry logic
   public async fetchInitialData(): Promise<GraphData> {
-    try {
-      console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data`);
-      if (debugState.isEnabled()) {
-        logger.info(`Fetching initial ${this.graphType} graph data`);
-      }
+    const maxRetries = 5;
+    const initialDelay = 1000; // 1 second
 
-      const response = await fetch('/api/graph/data');
-      console.log(`[GraphDataManager] API response status: ${response.status}`);
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const data = await response.json();
-        
-        // Validate that the response has the expected structure
-        if (!data || typeof data !== 'object') {
-          throw new Error('Invalid graph data format: data is not an object');
-        }
-        
-        // Extract nodes, edges, and metadata from response
-        const nodes = Array.isArray(data.nodes) ? data.nodes : [];
-        const edges = Array.isArray(data.edges) ? data.edges : [];
-        const metadata = data.metadata || {};
-        
-        // Merge metadata into nodes based on metadata_id (filename)
-        const enrichedNodes = nodes.map(node => {
-          // Look up metadata by the node's metadata_id (which is the filename)
-          const nodeMetadata = metadata[node.metadata_id || node.metadataId];
-          if (nodeMetadata) {
-            // Merge the rich metadata from server into the node
-            return {
-              ...node,
-              metadata: {
-                ...node.metadata,
-                ...nodeMetadata
-              }
-            };
-          }
-          return node;
-        });
-        
-        const validatedData = {
-          nodes: enrichedNodes,
-          edges: edges
-        };
-        
+        console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
         if (debugState.isEnabled()) {
-          logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges`);
-          logger.debug('Metadata entries received:', Object.keys(metadata).length);
-          if (validatedData.nodes.length > 0) {
-            logger.debug('Sample node data:', {
-              id: validatedData.nodes[0].id,
-              label: validatedData.nodes[0].label,
-              position: validatedData.nodes[0].position,
-              metadata: validatedData.nodes[0].metadata,
-              metadataId: validatedData.nodes[0].metadata_id || validatedData.nodes[0].metadataId
-            });
-            // Log a few nodes to check metadata enrichment
-            const sampleNodes = validatedData.nodes.slice(0, 3);
-            sampleNodes.forEach((node, idx) => {
-              logger.debug(`Node ${idx} metadata:`, {
-                id: node.id,
-                metadataId: node.metadata_id || node.metadataId,
-                hasMetadata: !!node.metadata,
-                lastModified: node.metadata?.lastModified,
-                fileSize: node.metadata?.fileSize
-              });
-            });
-          }
-          if (validatedData.edges.length > 0) {
-            logger.debug('Sample edge data:', {
-              id: validatedData.edges[0].id,
-              source: validatedData.edges[0].source,
-              target: validatedData.edges[0].target
-            });
-          }
+          logger.info(`Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
         }
-        
-        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
-        await this.setGraphData(validatedData);
-        
-        const currentData = await graphWorkerProxy.getGraphData();
-        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
-        if (debugState.isEnabled()) {
-          logger.info(`Loaded initial graph data: ${currentData.nodes.length} nodes, ${currentData.edges.length} edges`);
-          logger.debug('Node ID mappings created:', {
-            numericIds: Array.from(this.nodeIdMap.entries()).slice(0, 5),
-            totalMappings: this.nodeIdMap.size
+
+        const response = await fetch('/api/graph/data');
+        console.log(`[GraphDataManager] API response status: ${response.status}`);
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (!data || typeof data !== 'object') {
+            throw new Error('Invalid graph data format: data is not an object');
+          }
+
+          const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+          const edges = Array.isArray(data.edges) ? data.edges : [];
+          const metadata = data.metadata || {};
+
+          const enrichedNodes = nodes.map(node => {
+            const nodeMetadata = metadata[node.metadata_id || node.metadataId];
+            if (nodeMetadata) {
+              return { ...node, metadata: { ...node.metadata, ...nodeMetadata } };
+            }
+            return node;
           });
+
+          const validatedData = { nodes: enrichedNodes, edges };
+
+          if (debugState.isEnabled()) {
+            logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges`);
+          }
+
+          console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
+          await this.setGraphData(validatedData);
+
+          const currentData = await graphWorkerProxy.getGraphData();
+          console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
+          return currentData;
         }
-        
-        return currentData;
-      } catch (parseError) {
-        throw new Error(`Failed to parse graph data: ${parseError}`);
+
+        if (response.status === 502 || response.status >= 500) {
+          // Retry on server errors
+          throw new Error(`API request failed with status ${response.status}`);
+        } else {
+          // Don't retry on client errors (4xx)
+          logger.error(`Failed to fetch initial graph data with status ${response.status}. Not retrying.`);
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+      } catch (error) {
+        logger.error(`Attempt ${attempt} failed to fetch initial graph data:`, createErrorMetadata(error));
+        if (attempt === maxRetries) {
+          logger.error('All attempts to fetch initial graph data failed.');
+          throw error; // Re-throw the last error
+        }
+
+        const delay = initialDelay * Math.pow(2, attempt - 1);
+        console.log(`[GraphDataManager] Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
-    } catch (error) {
-      logger.error('Failed to fetch initial graph data:', createErrorMetadata(error));
-      throw error;
     }
+
+    // This part should be unreachable, but as a fallback return empty graph
+    return { nodes: [], edges: [] };
   }
 
   // Set graph data and notify listeners

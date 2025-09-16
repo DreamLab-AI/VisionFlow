@@ -62,9 +62,10 @@ const logger = createLogger('AppInitializer');
 
 interface AppInitializerProps {
   onInitialized: () => void;
+  onError: (error: Error) => void;
 }
 
-const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
+const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError }) => {
   const { settings, initialize } = useSettingsStore();
 
   useEffect(() => {
@@ -138,9 +139,8 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized }) => {
           onInitialized();
 
       } catch (error) {
-          logger.error('Failed to initialize application components:', createErrorMetadata(error));
-          // Even if initialization fails, try to signal completion to show UI
-          onInitialized();
+          logger.error('Failed to initialize application components:', createErrorMetadata(error as Error));
+          onError(error as Error);
       }
     };
 
