@@ -27,7 +27,7 @@ use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams, 
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode, GetGraphData, ComputeShortestPaths,
+    SetComputeMode, GetGraphData, ComputeSSSP,
     TriggerStressMajorization, ResetStressMajorizationSafety,
     GetStressMajorizationStats, UpdateStressMajorizationParams
 };
@@ -1248,51 +1248,6 @@ pub struct SSSPToggleResponse {
     pub error: Option<String>,
 }
 
-/// POST /api/analytics/shortest-path - Compute Single-Source Shortest Path
-pub async fn compute_sssp(
-    app_state: web::Data<AppState>,
-    request: web::Json<SSSPRequest>,
-) -> Result<HttpResponse> {
-    info!("Computing shortest paths from source node: {}", request.source_node_id);
-    
-    match app_state.graph_service_addr.send(ComputeShortestPaths {
-        source_node_id: request.source_node_id,
-    }).await {
-        Ok(Ok(distances)) => {
-            // Count unreachable nodes (nodes with None distance)
-            let unreachable_count = distances.values()
-                .filter(|&&dist| dist.is_none())
-                .count() as u32;
-            
-            info!("Shortest path computation completed. {} unreachable nodes", unreachable_count);
-            
-            Ok(HttpResponse::Ok().json(SSSPResponse {
-                success: true,
-                distances: Some(distances),
-                unreachable_count: Some(unreachable_count),
-                error: None,
-            }))
-        }
-        Ok(Err(e)) => {
-            error!("Failed to compute shortest paths: {}", e);
-            Ok(HttpResponse::InternalServerError().json(SSSPResponse {
-                success: false,
-                distances: None,
-                unreachable_count: None,
-                error: Some(format!("Computation failed: {}", e)),
-            }))
-        }
-        Err(e) => {
-            error!("Graph service actor mailbox error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(SSSPResponse {
-                success: false,
-                distances: None,
-                unreachable_count: None,
-                error: Some("Graph service unavailable".to_string()),
-            }))
-        }
-    }
-}
 
 /// POST /api/analytics/sssp/toggle - Toggle SSSP spring adjustment
 /// 
@@ -2053,8 +2008,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/insights", web::get().to(get_ai_insights))
             .route("/insights/realtime", web::get().to(get_realtime_insights))
             
-            // Advanced graph algorithms
-            .route("/shortest-path", web::post().to(compute_sssp))
+            // SSSP (Single-Source Shortest Path) integration
+            .route("/sssp/params", web::get().to(get_sssp_params))
+            .route("/sssp/params", web::post().to(update_sssp_params))
+            .route("/sssp/compute", web::post().to(compute_sssp))
             .route("/sssp/toggle", web::post().to(toggle_sssp))
             .route("/sssp/status", web::get().to(get_sssp_status))
             
@@ -2113,6 +2070,90 @@ pub async fn get_community_statistics(
             "typical_convergence": "5-20 iterations"
         }
     })))
+}
+
+/// Update SSSP (Single-Source Shortest Path) parameters
+pub async fn update_sssp_params(
+    _app_state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> Result<HttpResponse, Error> {
+    info!("Updating SSSP parameters");
+
+    let use_sssp = request.get("useSsspDistances").and_then(|v| v.as_bool()).unwrap_or(false);
+    let sssp_alpha = request.get("ssspAlpha").and_then(|v| v.as_f64()).map(|v| v as f32);
+
+    // For now, just return success as SSSP is handled in GPU kernels
+    // The actual parameters are passed through SimulationParams
+    info!("SSSP parameters update requested: enabled={}, alpha={:?}", use_sssp, sssp_alpha);
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "params": {
+            "useSsspDistances": use_sssp,
+            "ssspAlpha": sssp_alpha,
+        },
+        "note": "SSSP parameters are managed in GPU kernel simulation"
+    })))
+}
+
+/// Get current SSSP parameters
+pub async fn get_sssp_params(
+    _app_state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    debug!("Retrieving SSSP parameters");
+
+    // Return default SSSP parameters
+    // These would be retrieved from SimulationParams in actual implementation
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "success": true,
+        "params": {
+            "useSsspDistances": false,  // Default: disabled
+            "ssspAlpha": 0.5,           // Default: 0.5 influence factor
+        },
+        "note": "SSSP parameters are managed in GPU kernel simulation"
+    })))
+}
+
+/// Trigger SSSP computation for a source node
+pub async fn compute_sssp(
+    app_state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> Result<HttpResponse, Error> {
+    info!("Computing SSSP from source node");
+
+    let source_node = request.get("sourceNode")
+        .and_then(|v| v.as_u64())
+        .map(|v| v as u32)
+        .unwrap_or(0);
+
+    // Send SSSP computation request to graph service
+    use crate::actors::messages::ComputeShortestPaths;
+    match app_state.graph_service_addr.send(ComputeShortestPaths {
+        source_node_id: source_node,
+    }).await {
+        Ok(Ok(_)) => {
+            info!("SSSP computation triggered for source node {}", source_node);
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "sourceNode": source_node,
+                "message": "SSSP computation started",
+            })))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to compute SSSP: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": format!("Failed to compute SSSP: {}", e),
+            })))
+        }
+        Err(e) => {
+            error!("Graph service communication error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": "Failed to communicate with graph service",
+            })))
+        }
+    }
 }
 
 /// Get real-time GPU performance metrics and kernel timing

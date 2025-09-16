@@ -75,6 +75,10 @@ pub struct SimParams {
     // Constraint progressive activation parameters
     pub constraint_ramp_frames: u32,  // Number of frames to fully activate constraints
     pub constraint_max_force_per_node: f32,  // Maximum force per node from all constraints
+
+    // GPU Stability Gates - Fix for KE=0 bug
+    pub stability_threshold: f32,  // Kinetic energy threshold below which physics is skipped
+    pub min_velocity_threshold: f32,  // Minimum node velocity to consider for physics
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -243,6 +247,9 @@ impl SimulationParams {
             boundary_damping: self.boundary_damping,
             constraint_ramp_frames: self.constraint_ramp_frames,
             constraint_max_force_per_node: self.constraint_max_force_per_node,
+            // GPU Stability Gates
+            stability_threshold: 1e-6,
+            min_velocity_threshold: 1e-4,
         }
     }
 
@@ -367,6 +374,9 @@ impl From<&PhysicsSettings> for SimParams {
             boundary_damping: physics.boundary_damping,
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
+            // GPU Stability Gates - sensible defaults
+            stability_threshold: 1e-6,
+            min_velocity_threshold: 1e-4,
         }
     }
 }

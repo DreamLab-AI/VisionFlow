@@ -251,6 +251,22 @@ pub struct TriggerStressMajorization;
 #[rtype(result = "Result<(), String>")]
 pub struct ResetStressMajorizationSafety;
 
+// SSSP (Single-Source Shortest Path) Messages
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ComputeSSSP {
+    pub source_node: u32,
+}
+
+// Voice Command and Agent Spawning Messages
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct SpawnAgentCommand {
+    pub agent_type: String,
+    pub capabilities: Vec<String>,
+    pub session_id: String,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>")]
 pub struct GetStressMajorizationStats;

@@ -14,24 +14,27 @@ export interface BinaryNodeData {
   nodeId: number;
   position: Vec3;
   velocity: Vec3;
-  // SSSP data removed - now fetched via REST API when needed
-  // This reduces binary message size from 34 to 26 bytes per node
+  ssspDistance: number;  // Shortest path distance from source
+  ssspParent: number;    // Parent node for path reconstruction
 }
 
 /**
- * Node binary format (Optimized):
- * - Node ID: 4 bytes (uint32) - full node ID without flags
+ * Node binary format (Updated to match server):
+ * - Node ID: 2 bytes (uint16) - optimized size
  * - Position: 12 bytes (3 float32 values)
  * - Velocity: 12 bytes (3 float32 values)
- * Total: 28 bytes per node (reduced from 34)
+ * - SSSP Distance: 4 bytes (float32)
+ * - SSSP Parent: 4 bytes (int32)
+ * Total: 34 bytes per node
  *
- * SSSP and other analytics data are fetched via REST API when needed
+ * SSSP data is included for real-time path visualization
  */
-export const BINARY_NODE_SIZE = 28;
+export const BINARY_NODE_SIZE = 34;
 export const BINARY_NODE_ID_OFFSET = 0;
-export const BINARY_POSITION_OFFSET = 4;
-export const BINARY_VELOCITY_OFFSET = 16;
-// SSSP offsets removed - data no longer in binary protocol
+export const BINARY_POSITION_OFFSET = 2;  // After uint16 node ID
+export const BINARY_VELOCITY_OFFSET = 14; // After position (2 + 12)
+export const BINARY_SSSP_DISTANCE_OFFSET = 26; // After velocity (14 + 12)
+export const BINARY_SSSP_PARENT_OFFSET = 30;   // After distance (26 + 4)
 
 // Node type flag constants (must match server) - adjusted for u16
 export const AGENT_NODE_FLAG = 0x8000;     // Bit 15 indicates agent node
@@ -107,8 +110,8 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         break;
       }
       
-      // Read node ID (uint32, 4 bytes) - no flags needed anymore
-      const nodeId = view.getUint32(offset + BINARY_NODE_ID_OFFSET, true);
+      // Read node ID (uint16, 2 bytes)
+      const nodeId = view.getUint16(offset + BINARY_NODE_ID_OFFSET, true);
 
       // Read position (3 float32 values, 12 bytes)
       const position: Vec3 = {
@@ -116,7 +119,7 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         y: view.getFloat32(offset + BINARY_POSITION_OFFSET + 4, true),
         z: view.getFloat32(offset + BINARY_POSITION_OFFSET + 8, true)
       };
-      
+
       // Read velocity (3 float32 values, 12 bytes)
       const velocity: Vec3 = {
         x: view.getFloat32(offset + BINARY_VELOCITY_OFFSET, true),
@@ -124,7 +127,11 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         z: view.getFloat32(offset + BINARY_VELOCITY_OFFSET + 8, true)
       };
 
-      // SSSP data removed - fetched via REST API when needed
+      // Read SSSP distance (float32, 4 bytes)
+      const ssspDistance = view.getFloat32(offset + BINARY_SSSP_DISTANCE_OFFSET, true);
+
+      // Read SSSP parent (int32, 4 bytes)
+      const ssspParent = view.getInt32(offset + BINARY_SSSP_PARENT_OFFSET, true);
 
       // Basic validation to detect corrupted data
       const isValid =
@@ -136,7 +143,7 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         !isNaN(velocity.z) && isFinite(velocity.z);
 
       if (isValid) {
-        nodes.push({ nodeId, position, velocity });
+        nodes.push({ nodeId, position, velocity, ssspDistance, ssspParent });
       } else {
         console.warn(`Skipping corrupted node data at offset ${offset} (nodeId: ${nodeId})`);
       }
@@ -158,15 +165,15 @@ export function createBinaryNodeData(nodes: BinaryNodeData[]): ArrayBuffer {
   
   nodes.forEach((node, i) => {
     const offset = i * BINARY_NODE_SIZE;
-    
+
     // Write node ID (uint16, 2 bytes)
     view.setUint16(offset + BINARY_NODE_ID_OFFSET, node.nodeId, true);
-    
+
     // Write position (3 float32 values, 12 bytes)
     view.setFloat32(offset + BINARY_POSITION_OFFSET, node.position.x, true);
     view.setFloat32(offset + BINARY_POSITION_OFFSET + 4, node.position.y, true);
     view.setFloat32(offset + BINARY_POSITION_OFFSET + 8, node.position.z, true);
-    
+
     // Write velocity (3 float32 values, 12 bytes)
     view.setFloat32(offset + BINARY_VELOCITY_OFFSET, node.velocity.x, true);
     view.setFloat32(offset + BINARY_VELOCITY_OFFSET + 4, node.velocity.y, true);
