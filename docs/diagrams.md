@@ -936,6 +936,84 @@ graph TB
 
 ---
 
+## Agent Spawn & UpdateBotsGraph Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as BotsControlPanel
+    participant API as /bots/spawn-agent
+    participant Handler as spawn_agent handler
+    participant MCP as call_agent_spawn
+    participant Server as MCP TCP Server :9500
+    participant Graph as GraphServiceActor
+    participant Client as ClientManagerActor
+    participant WebXR as WebXR Client
+
+    Note over UI,WebXR: Real Agent Spawning (Fixed Implementation)
+
+    UI->>API: POST /bots/spawn-agent
+    Note right of UI: {
+      "agentType": "researcher",
+      "swarmId": "default"
+    }
+
+    API->>Handler: spawn_agent(request)
+    Handler->>Handler: Extract agentType & swarmId
+    Handler->>MCP: call_agent_spawn(host, port, type, swarm_id)
+
+    Note over MCP,Server: MCP Connection Pool
+    MCP->>Server: TCP connect to multi-agent-container:9500
+    MCP->>Server: JSON-RPC initialize session
+    Server-->>MCP: Session initialized
+
+    MCP->>Server: JSON-RPC tools/call
+    Note right of MCP: {
+      "method": "tools/call",
+      "params": {
+        "name": "agent_spawn",
+        "arguments": {
+          "type": "researcher",
+          "swarmId": "default"
+        }
+      }
+    }
+
+    Server->>Server: Spawn agent in swarm
+    Server-->>MCP: { "agentId": "agent_123", "status": "active" }
+    MCP-->>Handler: Success result
+
+    Handler-->>API: JSON response
+    Note right of Handler: {
+      "success": true,
+      "message": "Successfully spawned researcher agent",
+      "agentId": "agent_123"
+    }
+
+    API-->>UI: HTTP 200 OK
+    UI->>UI: setAgentCount(prev => prev + 1)
+    UI->>UI: Console log success
+
+    Note over UI,WebXR: UpdateBotsGraph Message Flow
+
+    rect rgb(240, 248, 255)
+        Note over Graph,WebXR: Periodic agent status updates
+        loop Every 5 seconds
+            Graph->>MCP: Query agent status
+            MCP->>Server: Get swarm status
+            Server-->>MCP: Agent positions & metadata
+            MCP-->>Graph: Parse agent data
+
+            Graph->>Graph: Create UpdateBotsGraph message
+            Graph->>Client: UpdateBotsGraph(agent_data)
+            Client->>Client: Serialize to binary (28 bytes/agent)
+            Client-->>WebXR: WebSocket binary stream
+            WebXR->>WebXR: Update 3D visualization
+        end
+    end
+```
+
+---
+
 ## Component Class Diagrams
 
 ```mermaid
@@ -1154,6 +1232,117 @@ flowchart TB
 
 ---
 
+## Random Agent Position Generation Fix
+
+```mermaid
+flowchart TB
+    subgraph "Original Bug (Fixed)"
+        OldCode["let phi = ((2.0 * i as f32 / 20.0) - 1.0).acos()"]
+        Problem["❌ Could produce NaN when value outside [-1,1]"]
+        Result["All agents spawn at origin (0,0,0)"]
+    end
+
+    subgraph "Fixed Implementation"
+        NewCode["Random spherical coordinates with rand crate"]
+
+        subgraph "Proper Random Generation"
+            Theta["theta = rng.gen() * 2π"]
+            Phi["phi = rng.gen() * π"]
+            Radius["radius = min + rng.gen() * range"]
+        end
+
+        subgraph "Cartesian Conversion"
+            PosX["x = radius * sin(phi) * cos(theta)"]
+            PosY["y = radius * sin(phi) * sin(theta)"]
+            PosZ["z = radius * cos(phi)"]
+        end
+
+        subgraph "Initial Velocity"
+            VelX["vx = rng.gen_range(-0.5..0.5)"]
+            VelY["vy = rng.gen_range(-0.5..0.5)"]
+            VelZ["vz = rng.gen_range(-0.5..0.5)"]
+        end
+    end
+
+    OldCode --> Problem
+    Problem --> Result
+
+    NewCode --> Theta
+    NewCode --> Phi
+    NewCode --> Radius
+
+    Theta --> PosX
+    Phi --> PosX
+    Radius --> PosX
+
+    Theta --> PosY
+    Phi --> PosY
+    Radius --> PosY
+
+    Phi --> PosZ
+    Radius --> PosZ
+
+    NewCode --> VelX
+    NewCode --> VelY
+    NewCode --> VelZ
+
+    style OldCode fill:#ffcdd2
+    style Problem fill:#ffcdd2
+    style Result fill:#ffcdd2
+    style NewCode fill:#c8e6c9
+    style PosX fill:#e3f2fd
+    style PosY fill:#e3f2fd
+    style PosZ fill:#e3f2fd
+```
+
+---
+
+## Troubleshooting & Debug Commands
+
+```bash
+# Check MCP server status
+netstat -tlnp | grep 9500
+ss -tlnp | grep 9500
+
+# Test MCP connection from WebXR container
+telnet multi-agent-container 9500
+nc -zv multi-agent-container 9500
+
+# Check agent node positions in logs
+grep "Agent node position" /var/log/visionflow.log
+grep "UpdateBotsGraph" /var/log/visionflow.log
+
+# Monitor WebSocket binary messages
+grep "Binary message" /var/log/visionflow.log
+grep "28 bytes" /var/log/visionflow.log
+
+# Check for NaN position bugs (should be fixed)
+grep "NaN" /var/log/visionflow.log
+grep "position.*0.*0.*0" /var/log/visionflow.log
+
+# Validate random position generation
+cargo test test_random_positions
+
+# Check MCP process spawning
+ps aux | grep "claude-flow mcp"
+lsof -i :9500
+
+# Monitor agent spawn requests
+curl -X POST http://localhost:8080/api/bots/spawn-agent \
+  -H "Content-Type: application/json" \
+  -d '{"agentType":"researcher","swarmId":"default"}'
+
+# Check Docker network connectivity
+docker exec logseq ping multi-agent-container
+docker exec multi-agent-container netstat -tlnp
+
+# Validate physics simulation
+grep "Force computation" /var/log/visionflow.log
+grep "Physics update" /var/log/visionflow.log
+```
+
+---
+
 ## Data Flow Summary
 
 This comprehensive diagram set maps all critical data flows in the VisionFlow WebXR system:
@@ -1166,6 +1355,8 @@ This comprehensive diagram set maps all critical data flows in the VisionFlow We
 6. **External Services**: Integrated AI services, GitHub API, and multi-agent orchestration
 7. **Error Recovery**: Comprehensive fallback mechanisms and graceful degradation
 8. **Performance Optimization**: Binary protocols, compression, batching, and caching
+9. **Agent Management**: Real agent spawning via MCP with fixed random positioning
+10. **Bug Fixes**: Resolved NaN position generation causing agents to cluster at origin
 
 The system demonstrates sophisticated engineering for real-time 3D graph visualization with XR support, GPU acceleration, and distributed agent coordination.
 
