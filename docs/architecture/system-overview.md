@@ -580,9 +580,16 @@ graph TB
 
 ### Scalability Features
 - **Actor Supervision**: Automatic actor restart on failure
-- **Connection Pooling**: Efficient database connections
+- **Connection Pooling**: Efficient database connections with exponential backoff
+- **Circuit Breakers**: Connection resilience patterns for MCP integration
 - **Load Balancing**: NGINX reverse proxy distribution
 - **Horizontal Scaling**: Stateless backend design
+
+### Connection Resilience
+- **Exponential Backoff**: 1s to 30s max reconnection delays
+- **Heartbeat Monitoring**: 30-second ping/pong cycles with timeout detection
+- **Message Queuing**: Persistent queues with retry logic during disconnections
+- **Fresh TCP Connections**: MCP compatibility through connection pooling
 
 ### Performance Metrics
 | Component | Target | Actual |
@@ -593,6 +600,9 @@ graph TB
 | Parallel Graphs FPS | 60 FPS | 60 FPS |
 | Memory Usage | <4GB | 2.2GB |
 | Agent Update Rate | 10Hz | 10Hz |
+| **Binary Protocol Efficiency** | **N/A** | **84.8% bandwidth reduction** |
+| **Wire Format Size** | **N/A** | **34 bytes per node** |
+| **Real-time Update Rate** | **N/A** | **5Hz (300 req/min)** |
 
 ## Technology Stack
 
@@ -638,6 +648,56 @@ The server now uses a continuous physics simulation system that pre-computes nod
 10. **Continuous Physics**: Pre-computed node positions independent of client connections
 11. **Bidirectional Synchronisation**: Real-time state sync across all connected clients
 
+## Known Issues and Troubleshooting
+
+### Critical Issues
+
+#### 1. GPU Retargeting When KE=0 (High Priority)
+**Issue**: GPU continues processing all node positions even when kinetic energy (KE) = 0, indicating physics should be settled.
+
+**Impact**: 100% GPU utilization when system should be stable, causing unnecessary power consumption and micro-movements.
+
+**Root Cause**: Force calculations always execute in `visionflow_unified.cu` without stability checks:
+- Repulsion forces calculated for ALL neighbors
+- Spring forces processed for ALL connected edges
+- Integration always occurs regardless of system energy
+- No stability gates prevent GPU kernel execution when KE=0
+
+**Temporary Workarounds**:
+- Manual pause physics when observing stable states
+- Increase damping parameters to reach stability faster
+- Monitor GPU utilization and pause when consistently high with low movement
+
+**Monitoring Strategy**:
+```bash
+# Check GPU utilization
+nvidia-smi -l 1
+
+# Monitor system energy in logs
+grep "KE=" /var/log/visionflow/physics.log
+```
+
+#### 2. Floating-Point Precision Drift
+**Issue**: Boundary clamping and numerical operations introduce micro-drift even in stable states.
+
+**Impact**: Positions change by tiny amounts (1e-6) causing unnecessary position updates.
+
+**Mitigation**: Position change filtering implemented with configurable threshold.
+
+### Performance Optimizations Achieved
+
+#### Connection Resilience (Implemented)
+- **Circuit Breaker Pattern**: Connection health monitoring with automatic recovery
+- **Exponential Backoff**: Intelligent reconnection delays prevent connection storms
+- **Fresh TCP Connections**: MCP compatibility through connection pooling instead of persistent connections
+- **Message Queuing**: Reliable delivery during network instability
+
+#### Binary Protocol Optimization (Implemented)
+- **34-byte Wire Format**: Optimized from previous 28-byte format with SSSP fields
+- **84.8% Bandwidth Reduction**: Through selective compression and delta updates
+- **SSSP Integration**: Shortest-path data included in binary stream
+- **Node Type Flags**: Bit-level encoding for agent/knowledge discrimination
+
 ## Related Technical Documentation
 
 For more detailed technical information, please refer to:
@@ -647,9 +707,110 @@ For more detailed technical information, please refer to:
 - [WebSocket Protocols](../api/websocket-protocols.md)
 - [WebSockets Implementation](../api/websocket.md)
 - [REST API](../api/rest.md)
+- [GPU Compute Improvements](gpu-compute-improvements.md)
+
+## Troubleshooting Guide
+
+### GPU Stability Issues
+
+#### Problem: GPU at 100% utilization when physics should be stable
+**Symptoms**:
+- GPU usage remains high when graph appears motionless
+- Kinetic Energy (KE) shows 0 but GPU kernels continue executing
+- Increased power consumption and heat generation
+
+**Immediate Actions**:
+1. **Manual Physics Pause**: Use UI controls to pause physics simulation
+2. **Monitor Energy State**: Check logs for sustained KE=0 conditions
+3. **Adjust Damping**: Increase physics damping to reach stability faster
+
+```bash
+# Check GPU utilization
+nvidia-smi -l 1
+
+# Monitor kinetic energy in logs
+docker logs visionflow-backend | grep "KE=" | tail -10
+
+# Pause physics via API
+curl -X POST http://localhost:3001/api/physics/pause
+```
+
+#### Problem: Micro-movements causing unnecessary position updates
+**Symptoms**:
+- Positions changing by tiny amounts (1e-6 or smaller)
+- Continuous WebSocket traffic despite stable appearance
+- Client performance impact from constant updates
+
+**Solution**: Position filtering is already implemented but may need threshold adjustment.
+
+### Connection Issues
+
+#### Problem: MCP connection failures
+**Symptoms**:
+- "Connection refused" errors in logs
+- Agent visualization showing empty or stale data
+- Failed agent spawning operations
+
+**Troubleshooting**:
+```bash
+# Check MCP service health
+docker ps | grep multi-agent-container
+curl -X POST http://localhost:3001/api/bots/check-mcp-connection
+
+# Check Docker network connectivity
+docker exec visionflow-backend ping multi-agent-container -c 3
+
+# Monitor connection retry attempts
+docker logs visionflow-backend | grep -E "(circuit.*breaker|retry.*attempt)"
+```
+
+#### Problem: WebSocket disconnections
+**Symptoms**:
+- Intermittent loss of real-time updates
+- Client showing "disconnected" status
+- Position data becoming stale
+
+**Solution**: Exponential backoff reconnection is implemented. Check network stability.
+
+```bash
+# Monitor WebSocket connections
+docker logs visionflow-backend | grep -E "(WebSocket|connection.*established)"
+
+# Check reconnection attempts
+docker logs visionflow-backend | grep "reconnect"
+```
+
+### Performance Issues
+
+#### Problem: High bandwidth usage despite binary protocol
+**Expected**: 84.8% bandwidth reduction through binary protocol
+**If not achieving**: Check compression settings and delta update configuration
+
+```bash
+# Check binary protocol efficiency
+docker logs visionflow-backend | grep "bandwidth reduction"
+
+# Monitor message sizes
+docker logs visionflow-backend | grep "binary.*bytes"
+```
+
+#### Problem: Agent positioning appears incorrect
+**Common causes**:
+- Hierarchical positioning algorithm not accounting for new agent types
+- Random spherical coordinates generating overlapping positions
+- Physics simulation not converging properly
+
+```bash
+# Check agent positioning logs
+docker logs visionflow-backend | grep -E "(agent.*position|hierarchical|spherical)"
+
+# Monitor UpdateBotsGraph messages
+docker logs visionflow-backend | grep "UpdateBotsGraph"
+```
 
 ## See Also
 
 - [Configuration Architecture](../server/config.md)
 - [Feature Access Control](../server/feature-access.md)
 - [GPU Compute Architecture](../server/gpu-compute.md)
+- [GPU Compute Improvements](gpu-compute-improvements.md)

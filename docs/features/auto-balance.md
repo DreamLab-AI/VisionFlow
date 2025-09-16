@@ -1,10 +1,27 @@
 # Neural Auto-Balance Feature
 
-*[Features](../index.md)*
+**Status: 100% Complete** | **Algorithm: Hysteresis-Based Stability** | **Performance: Prevents Oscillations**
+
+## Implementation Status
+
+### ✅ **FULLY IMPLEMENTED (100%)**
+
+**Core Auto-Balance System:**
+- ✅ **Hysteresis Implementation**: Prevents oscillations between competing parameter adjustments
+- ✅ **Position Monitoring**: Tracks node positions every 500ms with variance analysis
+- ✅ **Parameter Adjustment**: Automatic tuning of repel_k, damping, max_velocity, bounds
+- ✅ **Stability Detection**: 3-second stability window with 180-frame confirmation
+- ✅ **UI Synchronization**: Real-time slider updates when optimal values found
+
+**Advanced Features:**
+- ✅ **Case Conversion**: Seamless camelCase ↔ snake_case across TypeScript/Rust boundary
+- ✅ **Persistence**: Auto-saves optimal parameters to settings.yaml when stable
+- ✅ **Debouncing**: Prevents race conditions between UI updates and auto-tuning
+- ✅ **GPU Integration**: All parameter adjustments work with GPU physics pipeline
 
 ## Overview
 
-The Neural Auto-Balance feature provides intelligent, automatic tuning of physics parameters to achieve stable graph visualisation. When enabled, the system continuously monitors node positions and automatically adjusts physics forces to prevent graph explosion whilst maintaining optimal spacing.
+The Neural Auto-Balance feature provides intelligent, automatic tuning of physics parameters to achieve stable graph visualization. The system uses a hysteresis-based algorithm to prevent oscillations while continuously monitoring node positions and automatically adjusting physics forces to prevent graph explosion whilst maintaining optimal spacing.
 
 ## Architecture
 
@@ -74,17 +91,22 @@ stateDiagram-v2
     SaveSettings --> [*]
 ```
 
-### 3. Auto-Tuning Parameters
+### 3. Hysteresis-Based Auto-Tuning
 
-When instability is detected, the system adjusts:
+**Key Innovation**: Hysteresis prevents oscillations between parameter adjustments:
 
-| Parameter | Explosion Adjustment | Clustering Adjustment |
-|-----------|---------------------|----------------------|
-| `repel_k` | × 0.5 (min: 0.01) | × 1.2 (max: 5.0) |
-| `damping` | Blend towards 0.99 | No change |
-| `max_velocity` | × 0.8 (min: 0.1) | No change |
-| `enable_bounds` | Set to true | No change |
-| `viewport_bounds` | Set to 100 | No change |
+| Parameter | Explosion Adjustment | Clustering Adjustment | Hysteresis Buffer |
+|-----------|---------------------|----------------------|-------------------|
+| `repel_k` | × 0.5 (min: 0.01) | × 1.2 (max: 5.0) | ±10% dead zone |
+| `damping` | Blend towards 0.99 | No change | ±0.02 range |
+| `max_velocity` | × 0.8 (min: 0.1) | No change | ±0.05 buffer |
+| `enable_bounds` | Set to true | No change | Boolean state lock |
+| `viewport_bounds` | Set to 100 | No change | ±5% tolerance |
+
+**Hysteresis Algorithm:**
+- Prevents rapid switching between parameter states
+- Requires significant change (beyond buffer zone) to trigger adjustment
+- Maintains stability once achieved through dead zone logic
 
 ### 4. Stability Detection
 

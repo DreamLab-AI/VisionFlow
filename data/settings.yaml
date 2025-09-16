@@ -20,7 +20,7 @@ visualisation:
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: true
+    enabled: false
     intensity: 0.8010822
     radius: 0.7598874
     threshold: 0.1300069
@@ -36,23 +36,23 @@ visualisation:
     edgeGlowStrength: 0.9127068
     environmentGlowStrength: 0.96262044
   bloom:
-    enabled: true
-    intensity: 0.5
-    radius: 0.105289996
-    threshold: 0.097051024
+    enabled: false
+    intensity: 1.0
+    radius: 0.8
+    threshold: 0.15
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 0.4577919
+    strength: 0.0
     blurPasses: 0.0
     knee: 0.0
   hologram:
     ringCount: 3
-    ringColor: '#555700'
+    ringColor: '#f0e800'
     ringOpacity: 0.14099218
     sphereSizes:
     - 80.0
     - 180.0
-    ringRotationSpeed: 0.01694280
+    ringRotationSpeed: 0.0169428
     enableBuckminster: true
     buckminsterSize: 250.0
     buckminsterOpacity: 0.3
@@ -66,14 +66,14 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#db3939'
+        baseColor: '#d22d2d'
         metalness: 0.20965025
         opacity: 0.33048844
         roughness: 0.25633773
-        nodeSize: 0.68118143
+        nodeSize: 0.28876713
         quality: high
         enableInstancing: false
-        enableHologram: true
+        enableHologram: false
         enableMetadataShape: false
         enableMetadataVisualisation: true
       edges:
@@ -81,7 +81,7 @@ visualisation:
         baseWidth: 1.671978
         color: '#7d1717'
         enableArrows: false
-        opacity: 0.27006936
+        opacity: 0.07945205
         widthRange:
         - 0.3
         - 1.5
@@ -140,7 +140,6 @@ visualisation:
           equilibriumEnergyThreshold: 0.01
           pauseOnEquilibrium: true
           resumeOnInteraction: true
-        attractionK: 0.6819533
         boundsSize: 1000.0
         separationRadius: 2.1155233
         damping: 0.96
@@ -261,7 +260,6 @@ visualisation:
           equilibriumEnergyThreshold: 0.005
           pauseOnEquilibrium: false
           resumeOnInteraction: true
-        attractionK: 0.01
         boundsSize: 1000.0
         separationRadius: 2.0
         damping: 0.85

@@ -187,11 +187,60 @@ The actor integrates with the main application's REST API to expose bot manageme
 2.  **Polling Intervals**: Agent polling (5s) and health checks (30s) are asynchronous and non-blocking.
 3.  **Resource Usage**: As a client, the actor's resource footprint is minimal. The `powerdev` container manages the resource-intensive MCP process.
 
+## Recent Improvements (Based on Archive Analysis)
+
+### Connection Resilience Enhancements ✅ IMPLEMENTED
+
+1. **Circuit Breaker Pattern**: Automatic connection health monitoring with recovery
+   - Connection failure detection and automatic retry logic
+   - Exponential backoff: 1s to 30s max reconnection delays
+   - Health check monitoring every 30 seconds
+
+2. **Fresh TCP Connections**: MCP compatibility through connection pooling
+   - Replaced persistent connections with fresh TCP connections per request
+   - Prevents MCP server incompatibility issues
+   - Improved connection reliability and resource management
+
+3. **Message Queuing and Retry Logic**: Persistent queues during disconnections
+   - Messages queued during network instability
+   - Automatic retry with exponential backoff
+   - Prevents data loss during connection issues
+
+### Actor System Refactoring ✅ IMPLEMENTED
+
+The ClaudeFlowActor has been split into three focused components:
+
+#### 1. **ClaudeFlowConnectionActor**
+- Manages TCP connections to MCP server (port 9500)
+- Implements circuit breaker pattern for connection health
+- Handles connection pooling and fresh connection strategy
+- Monitors connection metrics and performance
+
+#### 2. **ClaudeFlowMessageActor**
+- Processes MCP protocol messages and responses
+- Implements message queuing and retry logic
+- Handles JSON-RPC 2.0 protocol compliance
+- Manages message priority and batching
+
+#### 3. **ClaudeFlowAgentActor**
+- Manages agent lifecycle (spawn, monitor, destroy)
+- Handles swarm initialization and topology management
+- Processes agent status updates and telemetry
+- Coordinates with GraphServiceActor for visualization
+
+### Performance Optimizations ✅ IMPLEMENTED
+
+1. **Binary Protocol Integration**: 84.8% bandwidth reduction achieved
+2. **Agent Position Optimization**: Hierarchical positioning with physics integration
+3. **Priority Queuing**: Agent nodes receive preferential processing
+4. **Connection Pooling**: Efficient resource utilization with automatic cleanup
+
 ## Future Enhancements
 
-1.  **Event Streaming**: Replace polling with a full event-driven model for real-time updates.
-2.  **Dynamic Reconnection**: Implement more robust logic to automatically re-establish lost WebSocket connections.
-3.  **Metrics Collection**: Integrate with Prometheus or a similar tool for detailed performance monitoring.
+1. **Event Streaming**: Replace polling with full event-driven model for real-time updates
+2. **Advanced Analytics**: Integration with monitoring systems (Prometheus, Grafana)
+3. **Multi-MCP Support**: Connect to multiple MCP servers simultaneously
+4. **GPU Stability Gates**: Implement KE-based processing to reduce unnecessary GPU work
 
 ## Troubleshooting
 
@@ -210,11 +259,36 @@ The actor integrates with the main application's REST API to expose bot manageme
 
 ```bash
 # Check container logs for errors
-docker logs <backend_container_id>
-docker logs <powerdev_container_id>
+docker logs visionflow-backend | grep -E "(ClaudeFlow|MCP|Circuit)"
+docker logs multi-agent-container | grep -E "(agent|swarm|error)"
 
-# Check actor-specific logs
-RUST_LOG=logseq_spring_thing::actors::claude_flow_actor=debug ./target/release/visionflow
+# Check connection health
+curl -X POST http://localhost:3000/api/bots/check-mcp-connection
+
+# Monitor actor system performance
+RUST_LOG=visionflow::actors::claude_flow=debug docker logs visionflow-backend
+
+# Check binary protocol efficiency
+docker logs visionflow-backend | grep -E "(bandwidth.*reduction|binary.*bytes)"
+
+# Monitor agent positioning
+docker logs visionflow-backend | grep -E "(agent.*position|UpdateBotsGraph)"
+
+# Check GPU stability issues
+docker logs visionflow-backend | grep -E "(KE=0|GPU.*utilization|force.*magnitude)"
+```
+
+### Performance Monitoring
+
+```bash
+# Monitor MCP connection metrics
+docker logs visionflow-backend | grep -E "(connection.*established|retry.*attempt|circuit.*breaker)"
+
+# Check message queue health
+docker logs visionflow-backend | grep -E "(message.*queued|retry.*logic|batch.*processing)"
+
+# Monitor actor refactoring benefits
+docker logs visionflow-backend | grep -E "(ClaudeFlowConnection|ClaudeFlowMessage|ClaudeFlowAgent)"
 ```
 
 

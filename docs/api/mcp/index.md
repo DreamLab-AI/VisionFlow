@@ -4,88 +4,154 @@
 
 ## Overview
 
-The Model Context Protocol (MCP) integration enables VisionFlow to communicate seamlessly with Claude-based AI agents, facilitating intelligent graph analysis, automated optimisation, and collaborative development workflows. This integration provides bidirectional communication between VisionFlow's visualisation engine and external AI systems.
+The Model Context Protocol (MCP) integration enables VisionFlow to communicate seamlessly with Claude-based AI agents, facilitating intelligent graph analysis, automated optimization, and collaborative development workflows. The system runs a **TCP server on port 9500** using **JSON-RPC 2.0 protocol** for direct agent communication, with WebSocket relay capabilities for web clients.
+
+### Current Implementation Status
+- **MCP Server**: ✅ Running on TCP port 9500 in multi-agent-container
+- **Protocol**: JSON-RPC 2.0 with persistent connections
+- **Storage**: SQLite database at `/workspace/.swarm/memory.db`
+- **WebSocket Relay**: Available at `/ws/mcp-relay` for browser clients
+- **Multi-Swarm Support**: Unique addressing with `swarm_[timestamp]_[random]` IDs
 
 ## Architecture
 
-### MCP Integration Flow
+### MCP Architecture Diagram
 ```mermaid
 graph TB
-    subgraph "VisionFlow System"
-        VF[VisionFlow Core]
-        WS[WebSocket Handler]
-        MR[MCP Relay Manager]
-        GA[Graph Analytics]
+    subgraph "Container: multi-agent-container (172.18.0.3)"
+        MCP[MCP TCP Server<br/>Port 9500]
+        DB[SQLite DB<br/>/workspace/.swarm/memory.db]
+        SW[Swarm Manager<br/>swarm_[timestamp]_[id]]
     end
 
-    subgraph "MCP Layer"
-        MP[MCP Protocol]
-        MS[MCP Server]
-        MC[MCP Client]
+    subgraph "Container: logseq (172.18.0.10)"
+        VF[VisionFlow WebXR]
+        CF[ClaudeFlowActor]
+        WS[WebSocket Relay<br/>/ws/mcp-relay]
     end
 
-    subgraph "AI Agents"
-        CF[Claude Flow]
-        CA[Custom Agents]
-        AS[Agent Swarms]
+    subgraph "External Clients"
+        Web[Web Browsers]
+        CLI[CLI Tools]
+        Agent[AI Agents]
     end
 
-    VF < --> WS
-    WS < --> MR
-    MR < --> MP
-    MP < --> MS
-    MS < --> CF
-    MS < --> CA
-    CF < --> AS
+    subgraph "Claude Flow System"
+        Agents[Agent Swarms]
+        Tools[MCP Tools]
+        Memory[Persistent Memory]
+    end
 
-    VF --> GA
-    GA --> MR
+    VF --> CF
+    CF --> |TCP Connection| MCP
+    WS --> |JSON-RPC 2.0| MCP
+
+    Web --> WS
+    CLI --> MCP
+    Agent --> MCP
+
+    MCP --> SW
+    SW --> DB
+    MCP --> Agents
+    Agents --> Tools
+    Tools --> Memory
 ```
 
 ### Core Components
 
-#### 1. MCP Relay Manager
-**Location**: `//src/services/mcp_relay_manager.rs`
+#### 1. MCP TCP Server (Port 9500)
+**Location**: `/app/core-assets/scripts/mcp-tcp-server.js`
+**Container**: multi-agent-container (172.18.0.3:9500)
 
-Manages communication between VisionFlow and MCP servers:
-- Protocol translation and message routing
-- Connection pooling and health monitoring
-- Authentication and session management
-- Error handling and retry logic
+Direct TCP server for AI agent communication:
+- **JSON-RPC 2.0 protocol** over persistent TCP connections
+- Swarm lifecycle management with unique addressing
+- SQLite-based persistent memory storage
+- Multi-swarm coordination and messaging
 
-#### 2. WebSocket MCP Bridge
+**Connection Test:**
+```bash
+# From within multi-agent-container
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}' | nc localhost 9500
+
+# Response:
+# {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"claude-flow","version":"2.0.0-alpha.101"}}}
+```
+
+#### 2. WebSocket MCP Relay
 **Location**: `//src/handlers/mcp_relay_handler.rs`
+**Endpoint**: `/ws/mcp-relay`
 
-Provides real-time MCP communication:
-- WebSocket endpoint for MCP message relay
-- Bidirectional message streaming
-- Event filtering and subscription management
-- Performance monitoring and metrics
+WebSocket bridge for browser-based MCP communication:
+- Relays JSON-RPC messages to TCP server
+- Browser-compatible WebSocket interface
+- Real-time bidirectional message streaming
+- Connection health monitoring
 
-#### 3. Graph Analytics Service
-**Location**: `//src/services/semantic_analyzer.rs`
+#### 3. ClaudeFlowActor Integration
+**Location**: `/workspace/ext/src/actors/claude_flow_actor.rs`
 
-Analyses graph data for AI consumption:
-- Semantic relationship extraction
-- Node clustering and community detection
-- Temporal pattern analysis
-- Performance bottleneck identification
+VisionFlow's MCP client integration:
+- Establishes TCP connection to multi-agent-container:9500
+- Handles swarm initialization and agent communication
+- Manages connection health and reconnection logic
+- Environment variable configuration (`MCP_HOST`)
 
 ## MCP Protocol Implementation
 
-### Message Structure
+### Connection Initialization
 ```json
 {
   "jsonrpc": "2.0",
-  "id": "unique_request_id",
-  "method": "visionflow/graph_analysis",
+  "id": 1,
+  "method": "initialize",
   "params": {
-    "graphId": "logseq",
-    "analysisType": "semantic_clustering",
-    "options": {
-      "includeMetrics": true,
-      "timeRange": "24h",
-      "minClusterSize": 5
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "tools": {
+        "listChanged": true
+      },
+      "resources": {
+        "subscribe": true,
+        "listChanged": true
+      }
+    }
+  }
+}
+```
+
+**Server Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "serverInfo": {
+      "name": "claude-flow",
+      "version": "2.0.0-alpha.101"
+    },
+    "capabilities": {
+      "tools": {
+        "listChanged": true
+      }
+    }
+  }
+}
+```
+
+### Swarm Addressing Protocol
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "swarm_init",
+    "arguments": {
+      "topology": "hierarchical",
+      "maxAgents": 10,
+      "swarmId": "swarm_1757880683494_yl81sece5"
     }
   }
 }
