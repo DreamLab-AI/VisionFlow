@@ -2333,6 +2333,12 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         // Use a high ID range (starting at 10000) to avoid conflicts with main graph
         let bot_id_offset = 10000;
         
+        // Preserve existing agent positions to prevent re-randomization on every update
+        let mut existing_positions: HashMap<String, (Vec3Data, Vec3Data)> = HashMap::new();
+        for node in &self.bots_graph_data.nodes {
+            existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
+        }
+
         // Create nodes for each agent
         for (i, agent) in msg.agents.iter().enumerate() {
             let node_id = bot_id_offset + i as u32;
@@ -2340,28 +2346,33 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             // Create a node for each agent
             let mut node = Node::new_with_id(agent.agent_id.clone(), Some(node_id));
             
-            // Generate random initial positions for agents
-            // Use spherical coordinates with proper bounds
-            let physics = crate::config::dev_config::physics();
+            if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.agent_id) {
+                // Restore existing position
+                node.data.x = saved_position.x;
+                node.data.y = saved_position.y;
+                node.data.z = saved_position.z;
+                node.data.vx = saved_velocity.x;
+                node.data.vy = saved_velocity.y;
+                node.data.vz = saved_velocity.z;
+            } else {
+                // Generate random initial positions for new agents
+                let physics = crate::config::dev_config::physics();
+                use rand::{Rng, SeedableRng};
+                use rand::rngs::{StdRng, OsRng};
+                let mut rng = StdRng::from_seed(OsRng.gen());
 
-            // Generate random positions using a better distribution
-            use rand::Rng;
-            let mut rng = rand::thread_rng();
+                let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
+                let phi = rng.gen::<f32>() * std::f32::consts::PI;
+                let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
 
-            // Random spherical coordinates
-            let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
-            let phi = rng.gen::<f32>() * std::f32::consts::PI;
-            let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
+                node.data.x = radius * phi.sin() * theta.cos();
+                node.data.y = radius * phi.sin() * theta.sin();
+                node.data.z = radius * phi.cos();
 
-            // Convert to Cartesian coordinates
-            node.data.x = radius * phi.sin() * theta.cos();
-            node.data.y = radius * phi.sin() * theta.sin();
-            node.data.z = radius * phi.cos();
-
-            // Add some initial velocity for better physics simulation
-            node.data.vx = rng.gen_range(-0.5..0.5);
-            node.data.vy = rng.gen_range(-0.5..0.5);
-            node.data.vz = rng.gen_range(-0.5..0.5);
+                node.data.vx = rng.gen_range(-0.5..0.5);
+                node.data.vy = rng.gen_range(-0.5..0.5);
+                node.data.vz = rng.gen_range(-0.5..0.5);
+            }
             
             // Set node properties based on agent status
             node.color = Some(match agent.profile.agent_type {
