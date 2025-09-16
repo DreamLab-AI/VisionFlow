@@ -817,12 +817,63 @@ impl UnifiedGPUCompute {
         params.iteration = self.iteration;
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
-        
+
         // CRITICAL SAFETY CHECK: Ensure num_nodes doesn't exceed allocated buffer sizes
         if self.num_nodes > self.allocated_nodes {
             return Err(anyhow!("CRITICAL: num_nodes ({}) exceeds allocated_nodes ({}). This would cause buffer overflow!", self.num_nodes, self.allocated_nodes));
         }
-        
+
+        // STABILITY GATE: Check if system has reached equilibrium
+        // Calculate total kinetic energy to determine if physics should be skipped
+        if self.num_nodes > 0 {
+            // Copy velocities from GPU to calculate kinetic energy
+            let mut host_vel_x = vec![0.0; self.num_nodes];
+            let mut host_vel_y = vec![0.0; self.num_nodes];
+            let mut host_vel_z = vec![0.0; self.num_nodes];
+
+            // Only copy if we have valid velocity buffers
+            if self.allocated_nodes > 0 {
+                self.vel_in_x.copy_to(&mut host_vel_x)?;
+                self.vel_in_y.copy_to(&mut host_vel_y)?;
+                self.vel_in_z.copy_to(&mut host_vel_z)?;
+
+                // Calculate total kinetic energy (KE = 0.5 * m * v^2, assuming m = 1)
+                let mut total_kinetic_energy = 0.0f32;
+                for i in 0..self.num_nodes {
+                    let velocity_squared = host_vel_x[i] * host_vel_x[i] +
+                                         host_vel_y[i] * host_vel_y[i] +
+                                         host_vel_z[i] * host_vel_z[i];
+                    total_kinetic_energy += 0.5 * velocity_squared;
+                }
+
+                let avg_kinetic_energy = total_kinetic_energy / self.num_nodes as f32;
+
+                // Use configurable stability thresholds from params
+                let stability_threshold = if params.stability_threshold > 0.0 {
+                    params.stability_threshold
+                } else {
+                    1e-6  // Default fallback
+                };
+
+                // Skip physics computation if system is stable
+                if avg_kinetic_energy < stability_threshold {
+                    // System is at equilibrium - skip expensive GPU computations
+                    if self.iteration % 600 == 0 { // Log every 10 seconds at 60 FPS
+                        info!("GPU STABILITY GATE: Skipping physics computation - system at equilibrium (avg_KE={:.8})", avg_kinetic_energy);
+                    }
+
+                    // Still increment iteration counter for consistency
+                    self.iteration += 1;
+
+                    // Early return - no physics computation needed
+                    return Ok(());
+                }
+
+                // Additional per-node velocity check could be added here for finer control
+                // but would add overhead - leaving as comment for future optimization
+            }
+        }
+
         // Validate kernel launch parameters upfront
         crate::utils::gpu_diagnostics::validate_kernel_launch("unified_gpu_execute", grid_size, block_size, self.num_nodes).map_err(|e| anyhow::anyhow!(e))?;
 
@@ -2019,6 +2070,9 @@ impl UnifiedGPUCompute {
             boundary_damping: 0.9,
             constraint_ramp_frames: 60,
             constraint_max_force_per_node: 100.0,
+            // GPU Stability Gates
+            stability_threshold: 1e-6,
+            min_velocity_threshold: 1e-4,
         };
         self.execute(sim_params)
     }

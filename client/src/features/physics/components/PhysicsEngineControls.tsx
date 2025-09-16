@@ -683,6 +683,74 @@ export function PhysicsEngineControls() {
               </div>
             </CardContent>
           </Card>
+
+          {/* SSSP Integration Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GitBranch className="h-5 w-5" />
+                SSSP Path Integration
+              </CardTitle>
+              <CardDescription>
+                Single-Source Shortest Path influence on spring forces
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="useSsspDistances">Enable SSSP Integration</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Modulate spring forces based on shortest path distances
+                  </p>
+                </div>
+                <Switch
+                  id="useSsspDistances"
+                  checked={physicsSettings?.useSsspDistances || false}
+                  onCheckedChange={(checked) => updatePhysics({ useSsspDistances: checked })}
+                />
+              </div>
+
+              {physicsSettings?.useSsspDistances && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Label htmlFor="ssspAlpha" className="flex items-center gap-1">
+                            SSSP Influence
+                            <Info className="h-3 w-3 text-muted-foreground" />
+                          </Label>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Weight factor for SSSP distances (0.0 = no effect, 1.0 = full effect)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <span className="text-sm text-muted-foreground">
+                      {(physicsSettings?.ssspAlpha || 0.5).toFixed(2)}
+                    </span>
+                  </div>
+                  <Slider
+                    id="ssspAlpha"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={[physicsSettings?.ssspAlpha || 0.5]}
+                    onValueChange={([v]) => updatePhysics({ ssspAlpha: v })}
+                  />
+
+                  <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                    <p className="text-xs text-muted-foreground">
+                      SSSP integration adjusts rest length of springs based on shortest path distance between nodes:
+                    </p>
+                    <code className="text-xs mt-1 block">
+                      ideal_length = rest_length + alpha * |d[u] - d[v]|
+                    </code>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Constraints Tab */}
