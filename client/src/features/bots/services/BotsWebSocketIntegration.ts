@@ -1,4 +1,5 @@
 import { createLogger } from '../../../utils/logger';
+import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { webSocketService } from '../../../services/WebSocketService';
 import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes';
 
@@ -38,6 +39,9 @@ export class BotsWebSocketIntegration {
       logger.info(`Logseq WebSocket connection status: ${connected}`);
       this.logseqConnected = connected;
       this.emit('logseq-connected', { connected });
+
+      // Log connection status changes
+      agentTelemetry.logWebSocketMessage('connection_status_change', 'incoming', { connected });
       
       // Start or stop polling based on connection status
       if (connected) {
@@ -49,19 +53,45 @@ export class BotsWebSocketIntegration {
 
     // Listen for Logseq graph messages
     webSocketService.onMessage((message) => {
+      // Log all incoming WebSocket messages
+      agentTelemetry.logWebSocketMessage(message.type || 'unknown', 'incoming', message.data);
+
       if (message.type === 'graph-update') {
         logger.debug('Received Logseq graph update', message.data);
         this.emit('logseq-graph-update', message.data);
       } else if (message.type === 'botsGraphUpdate') {
         // NEW: Handle full graph data with nodes and edges
-        logger.debug('Received bots graph update with', message.data?.nodes?.length || 0, 'nodes and', message.data?.edges?.length || 0, 'edges');
+        const nodeCount = message.data?.nodes?.length || 0;
+        const edgeCount = message.data?.edges?.length || 0;
+        logger.debug('Received bots graph update with', nodeCount, 'nodes and', edgeCount, 'edges');
+
+        // Enhanced telemetry logging
+        agentTelemetry.logWebSocketMessage('botsGraphUpdate', 'incoming', {
+          nodeCount,
+          edgeCount,
+          hasData: !!message.data
+        });
+
+        // Log node positions for debugging
+        if (message.data?.nodes) {
+          logger.debug(`[NODES] Received ${message.data.nodes.length} nodes with positions`);
+        }
+
         // Add debug logging
         if (!message.data) {
           logger.warn('botsGraphUpdate message has no data field:', message);
         }
         this.emit('bots-graph-update', message.data);
       } else if (message.type === 'bots-full-update') {
-        logger.debug('Received bots full update with', message.agents?.length || 0, 'agents');
+        const agentCount = message.agents?.length || 0;
+        logger.debug('Received bots full update with', agentCount, 'agents');
+
+        // Log full update telemetry
+        agentTelemetry.logWebSocketMessage('bots-full-update', 'incoming', {
+          agentCount,
+          hasMultiAgentMetrics: !!message.multiAgentMetrics
+        });
+
         this.emit('bots-full-update', message);
         // Also emit individual updates for backward compatibility
         this.processBotsUpdate({
@@ -75,6 +105,10 @@ export class BotsWebSocketIntegration {
     // Listen for binary updates (node positions from Logseq)
     webSocketService.onBinaryMessage((data) => {
       logger.debug(`Received Logseq binary update: ${data.byteLength} bytes`);
+
+      // Log binary message telemetry
+      agentTelemetry.logWebSocketMessage('binary_position_update', 'incoming', undefined, data.byteLength);
+
       this.emit('logseq-binary-update', data);
     });
   }
@@ -113,6 +147,9 @@ export class BotsWebSocketIntegration {
     
     this.botsGraphInterval = setInterval(() => {
       if (webSocketService.isReady()) {
+        // Log outgoing request
+        agentTelemetry.logWebSocketMessage('requestBotsGraph', 'outgoing');
+
         // Request full graph data with nodes and edges
         webSocketService.sendMessage('requestBotsGraph');
       }
@@ -120,6 +157,7 @@ export class BotsWebSocketIntegration {
     
     // Initial request
     if (webSocketService.isReady()) {
+      agentTelemetry.logWebSocketMessage('requestBotsGraph', 'outgoing', { reason: 'initial_request' });
       webSocketService.sendMessage('requestBotsGraph');
     }
   }
@@ -157,8 +195,19 @@ export class BotsWebSocketIntegration {
       const botsData = await apiService.get('/bots/data');
       logger.info('Fetched bots data:', botsData);
 
+      // Log REST API call telemetry
+      agentTelemetry.logWebSocketMessage('rest_api_call', 'outgoing', {
+        endpoint: '/bots/data',
+        hasResponse: !!botsData,
+        nodeCount: botsData?.nodes?.length || 0
+      });
+
       // Emit the data for components to use
       if (botsData && botsData.nodes) {
+        agentTelemetry.logAgentAction('websocket', 'service', 'rest_data_received', {
+          nodeCount: botsData.nodes.length,
+          hasEdges: !!botsData.edges
+        });
         this.emit('bots-data', botsData);
       }
     } catch (error) {

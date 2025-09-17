@@ -1,17 +1,16 @@
 //! GPU Manager Actor - Supervisor for specialized GPU computation actors
 
 use actix::prelude::*;
-use log::{error, info}; // debug, warn unused
-// use std::sync::Arc; // Unused
-// use std::collections::HashMap; // Unused
+use log::{error, info, debug, warn};
+use std::sync::Arc;
+use std::collections::HashMap;
 
 use crate::actors::messages::*;
-// use crate::models::graph::GraphData;
-// use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
-// use crate::actors::gpu_compute_actor::ComputeMode;
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState, ChildActorAddresses};
-use super::{GPUResourceActor, ForceComputeActor, ClusteringActor, 
+use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
+use serde_json;
 
 /// GPU Manager Actor - coordinates all specialized GPU actors
 pub struct GPUManagerActor {
@@ -81,10 +80,24 @@ impl GPUManagerActor {
 
 impl Actor for GPUManagerActor {
     type Context = Context<Self>;
-    
+
     fn started(&mut self, _ctx: &mut Self::Context) {
         info!("GPU Manager Actor started");
-        
+
+        // Enhanced telemetry for GPU manager startup
+        if let Some(logger) = get_telemetry_logger() {
+            let correlation_id = CorrelationId::new();
+            let event = TelemetryEvent::new(
+                correlation_id,
+                LogLevel::INFO,
+                "gpu_system",
+                "manager_startup",
+                "GPU Manager Actor started - child actors will be spawned on first message",
+                "gpu_manager_actor"
+            );
+            logger.log_event(event);
+        }
+
         // Don't spawn children immediately - wait for first message
         // This prevents resource allocation until actually needed
     }

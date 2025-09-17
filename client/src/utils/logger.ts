@@ -178,3 +178,140 @@ export function createDataMetadata(data: Record<string, any>): Record<string, an
 
 // Default logger instance for backward compatibility
 export const logger = createLogger('app');
+
+// Agent-specific telemetry types
+export interface AgentTelemetryData {
+  agentId: string;
+  agentType: string;
+  action: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+  position?: { x: number; y: number; z: number };
+  performance?: {
+    renderTime?: number;
+    frameRate?: number;
+    meshCount?: number;
+    triangleCount?: number;
+  };
+}
+
+export interface WebSocketTelemetryData {
+  messageType: string;
+  direction: 'incoming' | 'outgoing';
+  timestamp: Date;
+  size?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface ThreeJSTelemetryData {
+  action: 'position_update' | 'mesh_create' | 'animation_frame' | 'force_applied';
+  objectId: string;
+  position?: { x: number; y: number; z: number };
+  rotation?: { x: number; y: number; z: number };
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+// Enhanced logger with telemetry capabilities
+export function createAgentLogger(namespace: string, options: LoggerOptions = {}) {
+  const baseLogger = createLogger(namespace, options);
+
+  const agentTelemetry: AgentTelemetryData[] = [];
+  const webSocketTelemetry: WebSocketTelemetryData[] = [];
+  const threeJSTelemetry: ThreeJSTelemetryData[] = [];
+  const MAX_TELEMETRY_ENTRIES = 1000;
+
+  function trimTelemetryArray<T>(array: T[]) {
+    if (array.length > MAX_TELEMETRY_ENTRIES) {
+      array.splice(0, array.length - MAX_TELEMETRY_ENTRIES);
+    }
+  }
+
+  return {
+    ...baseLogger,
+
+    // Agent-specific telemetry
+    logAgentAction(agentId: string, agentType: string, action: string, metadata?: Record<string, any>, position?: { x: number; y: number; z: number }) {
+      const telemetryData: AgentTelemetryData = {
+        agentId,
+        agentType,
+        action,
+        timestamp: new Date(),
+        metadata,
+        position
+      };
+
+      agentTelemetry.push(telemetryData);
+      trimTelemetryArray(agentTelemetry);
+
+      baseLogger.debug(`[AGENT:${agentType}:${agentId}] ${action}`, { metadata, position });
+
+      // Store in localStorage for offline access
+      try {
+        const storedTelemetry = JSON.parse(localStorage.getItem('agent-telemetry') || '[]');
+        storedTelemetry.push(telemetryData);
+        if (storedTelemetry.length > MAX_TELEMETRY_ENTRIES) {
+          storedTelemetry.splice(0, storedTelemetry.length - MAX_TELEMETRY_ENTRIES);
+        }
+        localStorage.setItem('agent-telemetry', JSON.stringify(storedTelemetry));
+      } catch (e) {
+        baseLogger.warn('Failed to store agent telemetry in localStorage:', e);
+      }
+    },
+
+    // WebSocket message telemetry
+    logWebSocketMessage(messageType: string, direction: 'incoming' | 'outgoing', metadata?: Record<string, any>, size?: number) {
+      const telemetryData: WebSocketTelemetryData = {
+        messageType,
+        direction,
+        timestamp: new Date(),
+        size,
+        metadata
+      };
+
+      webSocketTelemetry.push(telemetryData);
+      trimTelemetryArray(webSocketTelemetry);
+
+      baseLogger.debug(`[WS:${direction.toUpperCase()}:${messageType}] ${size ? `${size} bytes` : 'no size'}`, metadata);
+    },
+
+    // Three.js telemetry
+    logThreeJSAction(action: ThreeJSTelemetryData['action'], objectId: string, position?: { x: number; y: number; z: number }, rotation?: { x: number; y: number; z: number }, metadata?: Record<string, any>) {
+      const telemetryData: ThreeJSTelemetryData = {
+        action,
+        objectId,
+        position,
+        rotation,
+        timestamp: new Date(),
+        metadata
+      };
+
+      threeJSTelemetry.push(telemetryData);
+      trimTelemetryArray(threeJSTelemetry);
+
+      baseLogger.debug(`[THREE.JS:${action.toUpperCase()}:${objectId}]`, { position, rotation, metadata });
+    },
+
+    // Performance telemetry
+    logPerformance(operation: string, duration: number, metadata?: Record<string, any>) {
+      baseLogger.info(`[PERF:${operation}] ${duration.toFixed(2)}ms`, metadata);
+    },
+
+    // Get telemetry data
+    getAgentTelemetry: () => [...agentTelemetry],
+    getWebSocketTelemetry: () => [...webSocketTelemetry],
+    getThreeJSTelemetry: () => [...threeJSTelemetry],
+
+    // Clear telemetry
+    clearTelemetry() {
+      agentTelemetry.length = 0;
+      webSocketTelemetry.length = 0;
+      threeJSTelemetry.length = 0;
+      localStorage.removeItem('agent-telemetry');
+      baseLogger.info('Telemetry data cleared');
+    }
+  };
+}
+
+// Agent telemetry logger for system-wide telemetry
+export const agentTelemetryLogger = createAgentLogger('agent-telemetry', { level: 'debug' });

@@ -553,7 +553,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     if let Ok(response) = serde_json::to_string(&pong) {
                                         ctx.text(response);
                                     }
-                                } else if let Ok(text_ping) = msg.as_str() {
+                                } else if let Some(text_ping) = msg.as_str() {
                                     if text_ping == "ping" {
                                         self.last_activity = std::time::Instant::now();
                                         ctx.text("pong");
@@ -648,13 +648,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 }
                             }
                             Some("requestBotsGraph") => {
-                                info!("Client requested full bots graph data");
-                                
-                                // Send complete graph structure (nodes + edges)
+                                info!("Client requested bots graph - returning optimized position data only");
+
+                                // Send position-only graph structure + REST API references
                                 let graph_addr = self.app_state.graph_service_addr.clone();
-                                
+
                                 ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
-                                    // Get full graph data from GraphServiceActor
+                                    // Get minimal graph data from GraphServiceActor
                                     use crate::actors::messages::GetBotsGraphData;
                                     match graph_addr.send(GetBotsGraphData).await {
                                         Ok(Ok(graph_data)) => Some(graph_data),
@@ -662,16 +662,53 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     }
                                 }).map(|graph_data_opt, _act, ctx| {
                                     if let Some(graph_data) = graph_data_opt {
-                                        // Send graph data as JSON
+                                        // Send minimal graph data with only positions + API references
+                                        let minimal_nodes: Vec<serde_json::Value> = graph_data.nodes.iter().map(|node| {
+                                            serde_json::json!({
+                                                "id": node.id,
+                                                "metadata_id": node.metadata_id,
+                                                "x": node.data.x,
+                                                "y": node.data.y,
+                                                "z": node.data.z,
+                                                "vx": node.data.vx,
+                                                "vy": node.data.vy,
+                                                "vz": node.data.vz
+                                            })
+                                        }).collect();
+
+                                        let minimal_edges: Vec<serde_json::Value> = graph_data.edges.iter().map(|edge| {
+                                            serde_json::json!({
+                                                "id": edge.id,
+                                                "source": edge.source,
+                                                "target": edge.target,
+                                                "weight": edge.weight
+                                            })
+                                        }).collect();
+
                                         let response = serde_json::json!({
                                             "type": "botsGraphUpdate",
-                                            "data": graph_data.as_ref(),
+                                            "data": {
+                                                "nodes": minimal_nodes,
+                                                "edges": minimal_edges,
+                                            },
+                                            "meta": {
+                                                "optimized": true,
+                                                "message": "This response contains only position data. For full agent details:",
+                                                "api_endpoints": {
+                                                    "full_agent_data": "/api/bots/data",
+                                                    "agent_status": "/api/bots/status",
+                                                    "individual_agent": "/api/agents/{id}"
+                                                }
+                                            },
                                             "timestamp": chrono::Utc::now().timestamp_millis()
                                         });
-                                        
+
                                         if let Ok(msg_str) = serde_json::to_string(&response) {
-                                            info!("Sending bots graph: {} nodes, {} edges",
-                                                graph_data.nodes.len(), graph_data.edges.len());
+                                            let original_size = graph_data.nodes.len() * 500; // Estimate original size
+                                            let optimized_size = msg_str.len();
+                                            info!("Sending optimized bots graph: {} nodes, {} edges ({} bytes, est. {}% reduction)",
+                                                minimal_nodes.len(), minimal_edges.len(), optimized_size,
+                                                if original_size > 0 { 100 - (optimized_size * 100 / original_size) } else { 0 });
                                             ctx.text(msg_str);
                                         }
                                     } else {
@@ -679,6 +716,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                         let response = serde_json::json!({
                                             "type": "botsGraphUpdate",
                                             "error": "No data available",
+                                            "meta": {
+                                                "api_endpoints": {
+                                                    "full_agent_data": "/api/bots/data",
+                                                    "agent_status": "/api/bots/status"
+                                                }
+                                            },
                                             "timestamp": chrono::Utc::now().timestamp_millis()
                                         });
                                         if let Ok(msg_str) = serde_json::to_string(&response) {

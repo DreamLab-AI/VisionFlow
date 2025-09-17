@@ -118,7 +118,8 @@ impl RetryableError for std::io::Error {
             | std::io::ErrorKind::TimedOut
             | std::io::ErrorKind::Interrupted
             | std::io::ErrorKind::WouldBlock
-            | std::io::ErrorKind::UnexpectedEof => true,
+            | std::io::ErrorKind::UnexpectedEof
+            | std::io::ErrorKind::BrokenPipe => true, // Broken pipe is retryable for TCP connections
             _ => false,
         }
     }

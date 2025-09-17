@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/logger';
+import { useTelemetry, useThreeJSTelemetry } from '../../../telemetry/useTelemetry';
+import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
@@ -366,6 +368,9 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
+  const telemetry = useTelemetry(`BotsNode-${agent.id}`);
+  const threeJSTelemetry = useThreeJSTelemetry(agent.id);
+  const lastPositionRef = useRef<THREE.Vector3>();
 
   // Health-based glow color
   const glowColor = useMemo(() => {
@@ -396,6 +401,17 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   useFrame((state) => {
     if (!groupRef.current || !meshRef.current || !glowRef.current) return;
 
+    telemetry.startRender();
+
+    // Log position updates for debugging clustering
+    if (!lastPositionRef.current || !lastPositionRef.current.equals(position)) {
+      threeJSTelemetry.logPositionUpdate(
+        { x: position.x, y: position.y, z: position.z },
+        { agentType: agent.type, agentStatus: agent.status }
+      );
+      lastPositionRef.current = position.clone();
+    }
+
     // Update group position (this moves everything including labels)
     groupRef.current.position.copy(position);
 
@@ -424,6 +440,14 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       const vibration = Math.sin(state.clock.elapsedTime * 20) * 0.02;
       meshRef.current.position.y += vibration;
     }
+
+    telemetry.endRender();
+
+    // Log animation frame for telemetry
+    threeJSTelemetry.logAnimationFrame(
+      { x: position.x, y: position.y, z: position.z },
+      { x: meshRef.current.rotation.x, y: meshRef.current.rotation.y, z: meshRef.current.rotation.z }
+    );
   });
 
   // Use actual logs or empty array
@@ -446,8 +470,17 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       <mesh
         ref={meshRef}
         geometry={geometry}
-        onPointerOver={() => setHover(true)}
-        onPointerOut={() => setHover(false)}
+        onPointerOver={() => {
+          setHover(true);
+          telemetry.logInteraction('hover_start', { agentId: agent.id, agentType: agent.type });
+        }}
+        onPointerOut={() => {
+          setHover(false);
+          telemetry.logInteraction('hover_end', { agentId: agent.id, agentType: agent.type });
+        }}
+        onClick={() => {
+          telemetry.logInteraction('click', { agentId: agent.id, agentType: agent.type, position });
+        }}
       >
         <meshStandardMaterial
           color={color}
@@ -595,6 +628,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
 export const BotsVisualization: React.FC = () => {
   const settings = useSettingsStore(state => state.settings);
   const { botsData: contextBotsData } = useBotsData();
+  const telemetry = useTelemetry('BotsVisualization');
 
   // Component state
   const [botsData, setBotsData] = useState<BotsState>({
@@ -632,6 +666,14 @@ export const BotsVisualization: React.FC = () => {
     const agentMap = new Map<string, BotsAgent>();
     agents.forEach((agent, index) => {
       agentMap.set(agent.id, agent);
+
+      // Log agent state changes
+      agentTelemetry.logAgentAction(agent.id, agent.type, 'state_update', {
+        status: agent.status,
+        health: agent.health,
+        cpuUsage: agent.cpuUsage,
+        tokenRate: agent.tokenRate
+      });
       
       // Check if agent has server-provided position data
       if (agent.position && (agent.position.x !== undefined || agent.position.y !== undefined || agent.position.z !== undefined)) {
@@ -653,6 +695,18 @@ export const BotsVisualization: React.FC = () => {
           Math.sin(angle) * radius
         );
         positionsRef.current.set(agent.id, newPosition);
+
+        // Log initial position calculation - check for clustering
+        agentTelemetry.logThreeJSOperation('position_update', agent.id, {
+          x: newPosition.x,
+          y: newPosition.y,
+          z: newPosition.z
+        }, undefined, {
+          reason: 'initial_calculation',
+          agentType: agent.type,
+          index,
+          totalAgents: agents.length
+        });
       }
     });
 
@@ -672,6 +726,13 @@ export const BotsVisualization: React.FC = () => {
     });
 
     setMcpConnected(agentMap.size > 0);
+
+    // Log visualization update
+    agentTelemetry.logAgentAction('visualization', 'system', 'data_update', {
+      agentCount: agentMap.size,
+      edgeCount: edgeMap.size,
+      hasContextData: !!contextBotsData
+    });
   }, [contextBotsData]);
 
   // Request server position updates periodically

@@ -7,6 +7,7 @@ pub mod handlers;
 pub mod models;
 pub mod physics;
 pub mod services;
+pub mod telemetry;
 pub mod types;
 pub mod utils;
 

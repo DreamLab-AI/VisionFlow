@@ -2436,70 +2436,80 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         bots_graph_data_mut.nodes = nodes;
         bots_graph_data_mut.edges = edges;
         
-        info!("Updated bots graph with {} agents and {} communication edges", 
+        info!("Updated bots graph with {} agents and {} edges - sending optimized position updates to WebSocket clients",
              msg.agents.len(), self.bots_graph_data.edges.len());
         
-        // Send bots-full-update WebSocket message with complete agent data
-        let bots_full_update = serde_json::json!({
-            "type": "bots-full-update",
-            "agents": msg.agents.iter().map(|agent| {
-                serde_json::json!({
-                    "id": agent.agent_id,
-                    "type": format!("{:?}", agent.profile.agent_type),
-                    "status": agent.status,
-                    "name": agent.profile.name,
-                    "cpuUsage": agent.cpu_usage,
-                    "memoryUsage": agent.memory_usage,
-                    "health": agent.health,
-                    "workload": agent.activity,
-                    "capabilities": agent.profile.capabilities,
-                    "currentTask": agent.current_task.as_ref().map(|t| t.description.clone()),
-                    "tasksActive": agent.tasks_active,
-                    "tasksCompleted": agent.completed_tasks_count,
-                    "successRate": agent.success_rate,
-                    "tokens": agent.token_usage.total,
-                    "tokenRate": agent.token_usage.token_rate,
-                    "activity": agent.activity,
-                    "swarmId": agent.swarm_id,
-                    "agentMode": agent.agent_mode,
-                    "parentQueenId": agent.parent_queen_id,
-                    "processingLogs": agent.processing_logs,
-                    "createdAt": agent.timestamp.to_rfc3339(),
-                    "age": chrono::Utc::now().timestamp_millis() - agent.timestamp.timestamp_millis(),
-                })
-            }).collect::<Vec<_>>(),
-            "swarmMetrics": {
-                "totalAgents": msg.agents.len(),
-                "activeAgents": msg.agents.iter().filter(|a| a.status == "active").count(),
-                "totalTasks": msg.agents.iter().map(|a| a.tasks_active).sum::<u32>(),
-                "completedTasks": msg.agents.iter().map(|a| a.completed_tasks_count).sum::<u32>(),
-                "avgSuccessRate": msg.agents.iter().map(|a| a.success_rate).sum::<f32>() as f64 / msg.agents.len().max(1) as f64,
-                "totalTokens": msg.agents.iter().map(|a| a.token_usage.total).sum::<u64>(),
-            },
-            "timestamp": chrono::Utc::now().to_rfc3339(),
-        });
-        
-        // Broadcast the full update to all connected clients
-        self.client_manager.do_send(BroadcastMessage {
-            message: bots_full_update.to_string(),
-        });
-        
-        // Also send the graph update message with nodes and edges
-        // Note: Using camelCase "botsGraphUpdate" to match frontend expectations
-        let bots_graph_update = serde_json::json!({
-            "type": "botsGraphUpdate",
-            "data": {
-                "nodes": self.bots_graph_data.nodes,
-                "edges": self.bots_graph_data.edges,
-            },
-            "timestamp": chrono::Utc::now().to_rfc3339(),
-        });
-        
-        // Broadcast the graph update to all connected clients
-        self.client_manager.do_send(BroadcastMessage {
-            message: bots_graph_update.to_string(),
-        });
-        
+        // Send BINARY WebSocket updates for agents (position, velocity, SSSP, control bits)
+        // This is the HIGH-SPEED data path - metadata goes via REST
+        let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+        let mut agent_node_ids: Vec<u32> = Vec::new();
+
+        // Collect agent positions for binary protocol (34 bytes per node)
+        for node in &self.bots_graph_data.nodes {
+            // Create binary node data with position, velocity, SSSP
+            let mut binary_node = BinaryNodeDataClient::new(
+                node.id,
+                glam_to_vec3data(Vec3::new(node.data.x, node.data.y, node.data.z)),
+                glam_to_vec3data(Vec3::new(node.data.vx, node.data.vy, node.data.vz)),
+            );
+
+            position_data.push((node.id, binary_node));
+
+            // Track agent IDs for control bit encoding
+            agent_node_ids.push(node.id);
+        }
+
+        if !position_data.is_empty() {
+            // Use binary protocol with control bits for agent identification
+            // This encodes: node_id (2 bytes with flags), position (12 bytes),
+            // velocity (12 bytes), SSSP distance (4 bytes), SSSP parent (4 bytes)
+            let binary_data = crate::utils::binary_protocol::encode_node_data_with_flags(
+                &position_data,
+                &agent_node_ids  // These will have the agent control bit set
+            );
+
+            // Send via BINARY WebSocket protocol
+            self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                positions: binary_data.clone(),
+            });
+
+            // Log metrics
+            let binary_size = binary_data.len();
+            let nodes_sent = position_data.len();
+            info!("Sent BINARY agent update: {} nodes, {} bytes total, {} bytes/node",
+                  nodes_sent, binary_size, binary_size / nodes_sent);
+        }
+
+        // DO NOT send graph structure over WebSocket - this belongs in REST!
+        // WebSocket is ONLY for high-speed variable data:
+        // - Position/Velocity (sent above via binary)
+        // - SSSP data (included in binary)
+        // - Voice/Audio streams
+        // - Control bits for node types
+        //
+        // Everything else (edges, metadata, agent details) goes via REST:
+        // - GET /api/bots/data - Full agent list with metadata
+        // - GET /api/bots/status - Agent telemetry
+        // - POST /api/bots/submit-task - Submit tasks
+        // - GET /api/bots/task-status/{id} - Task status
+
+        debug!("Agent binary positions sent. Graph structure available via REST /api/bots/data");
+
+        info!("Sent optimized graph update: {} nodes, {} edges ({} bytes)",
+              minimal_nodes.len(),
+              self.bots_graph_data.edges.len(),
+              bots_graph_update.to_string().len());
+
+        // Send the updated bots graph data to GPU for force-directed positioning
+        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+            gpu_compute_addr.do_send(UpdateGPUGraphData {
+                graph: Arc::clone(&self.bots_graph_data)
+            });
+            info!("Sent updated bots graph data to GPU compute actor");
+        } else {
+            warn!("No GPU compute address available - bots will remain at initial positions");
+        }
+
         // Remove CPU physics calculations for agent graph - delegate to GPU
         // The GPU will use the edge weights (communication intensity) for spring forces
     }

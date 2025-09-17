@@ -1,7 +1,7 @@
 //! Force Compute Actor - Handles physics force computation and simulation
 
 use actix::prelude::*;
-use log::{error, info, trace};
+use log::{error, info, trace, debug, warn};
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
 
@@ -9,7 +9,10 @@ use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState};
+use serde_json;
+use std::collections::HashMap;
 
 /// Physics statistics for reporting
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,30 +77,151 @@ impl ForceComputeActor {
     fn perform_force_computation(&mut self) -> Result<(), String> {
         // Start timing the computation step
         let step_start = Instant::now();
+        let correlation_id = CorrelationId::new();
+        let iteration = self.iteration_count();
 
-        if self.iteration_count() % 60 == 0 { // Log every second at 60 FPS
+        if iteration % 60 == 0 { // Log every second at 60 FPS
             info!("ForceComputeActor: Computing forces (iteration {}), nodes: {}",
-                  self.iteration_count(), self.gpu_state.num_nodes);
+                  iteration, self.gpu_state.num_nodes);
         }
-        
+
+        // Enhanced telemetry for GPU kernel execution start
+        if let Some(logger) = get_telemetry_logger() {
+            let event = TelemetryEvent::new(
+                correlation_id.clone(),
+                LogLevel::DEBUG,
+                "gpu_compute",
+                "force_computation_start",
+                &format!("Starting force computation iteration {} for {} nodes",
+                         iteration, self.gpu_state.num_nodes),
+                "force_compute_actor"
+            )
+            .with_metadata("iteration", serde_json::json!(iteration))
+            .with_metadata("node_count", serde_json::json!(self.gpu_state.num_nodes))
+            .with_metadata("edge_count", serde_json::json!(self.gpu_state.num_edges))
+            .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)));
+
+            logger.log_event(event);
+        }
+
         let mut unified_compute = match &self.shared_context {
             Some(ctx) => {
                 ctx.unified_compute.lock()
-                    .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?
+                    .map_err(|e| {
+                        let error_msg = format!("Failed to acquire GPU compute lock: {}", e);
+
+                        // Log GPU lock acquisition failure
+                        if let Some(logger) = get_telemetry_logger() {
+                            let event = TelemetryEvent::new(
+                                correlation_id.clone(),
+                                LogLevel::ERROR,
+                                "gpu_compute",
+                                "lock_acquisition_failed",
+                                &error_msg,
+                                "force_compute_actor"
+                            )
+                            .with_metadata("error_type", serde_json::json!("mutex_lock_failed"))
+                            .with_metadata("iteration", serde_json::json!(iteration));
+
+                            logger.log_event(event);
+                        }
+
+                        error_msg
+                    })?
             },
             None => {
-                return Err("GPU context not initialized".to_string());
+                let error_msg = "GPU context not initialized".to_string();
+
+                // Log missing GPU context
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id.clone(),
+                        LogLevel::ERROR,
+                        "gpu_compute",
+                        "context_not_initialized",
+                        &error_msg,
+                        "force_compute_actor"
+                    )
+                    .with_metadata("iteration", serde_json::json!(iteration));
+
+                    logger.log_event(event);
+                }
+
+                return Err(error_msg);
             }
         };
-        
+
         // Update unified parameters from simulation params
         let mut current_unified_params = self.unified_params.clone();
         self.sync_simulation_to_unified_params(&mut current_unified_params);
-        
+
         // Execute force computation on GPU
-        // Convert SimParams to SimulationParams
         let sim_params = &self.simulation_params;
-        unified_compute.execute_physics_step(sim_params)
+        let gpu_result = unified_compute.execute_physics_step(sim_params);
+
+        let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0; // Convert to milliseconds
+        self.last_step_duration_ms = execution_duration as f32;
+
+        match gpu_result {
+            Ok(_) => {
+                // Log successful GPU kernel execution
+                if let Some(logger) = get_telemetry_logger() {
+                    // Calculate GPU memory usage estimate (rough)
+                    let gpu_memory_mb = (self.gpu_state.num_nodes as f32 * 48.0 +
+                                        self.gpu_state.num_edges as f32 * 24.0) / (1024.0 * 1024.0);
+
+                    logger.log_gpu_execution(
+                        "force_computation_kernel",
+                        self.gpu_state.num_nodes,
+                        execution_duration,
+                        gpu_memory_mb
+                    );
+
+                    // Also log positions if we can access them (for origin position debugging)
+                    if iteration % 300 == 0 { // Every 5 seconds at 60fps - less frequent for position traces
+                        let event = TelemetryEvent::new(
+                            correlation_id,
+                            LogLevel::TRACE,
+                            "position_tracking",
+                            "gpu_position_update",
+                            &format!("GPU force computation completed for {} nodes at iteration {}",
+                                   self.gpu_state.num_nodes, iteration),
+                            "force_compute_actor"
+                        )
+                        .with_metadata("execution_time_ms", serde_json::json!(execution_duration))
+                        .with_metadata("nodes_processed", serde_json::json!(self.gpu_state.num_nodes))
+                        .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)));
+
+                        logger.log_event(event);
+                    }
+                }
+
+                Ok(())
+            },
+            Err(e) => {
+                let error_msg = format!("GPU force computation failed: {}", e);
+
+                // Log GPU computation failure
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id,
+                        LogLevel::ERROR,
+                        "gpu_compute",
+                        "force_computation_failed",
+                        &error_msg,
+                        "force_compute_actor"
+                    )
+                    .with_gpu_info("force_computation_kernel", execution_duration, 0.0)
+                    .with_metadata("iteration", serde_json::json!(iteration))
+                    .with_metadata("node_count", serde_json::json!(self.gpu_state.num_nodes))
+                    .with_metadata("error_message", serde_json::json!(e.to_string()));
+
+                    logger.log_event(event);
+                }
+
+                Err(error_msg)
+            }
+        }
             .map_err(|e| {
                 error!("GPU force computation failed: {}", e);
                 self.gpu_state.gpu_failure_count += 1;
