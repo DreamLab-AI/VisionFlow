@@ -455,3 +455,59 @@ pub async fn call_agent_list(
     
     pool.execute_command("agent_list", "tools/call", params).await
 }
+
+/// Simplified function to orchestrate a task
+pub async fn call_task_orchestrate(
+    host: &str,
+    port: &str,
+    task: &str,
+    priority: Option<&str>,
+    strategy: Option<&str>,
+) -> Result<Value, Box<dyn std::error::Error>> {
+    let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
+
+    info!("Orchestrating task: {}", task);
+
+    let mut args = json!({
+        "task": task
+    });
+
+    if let Some(p) = priority {
+        args["priority"] = json!(p);
+    }
+
+    if let Some(s) = strategy {
+        args["strategy"] = json!(s);
+    }
+
+    let params = json!({
+        "name": "task_orchestrate",
+        "arguments": args
+    });
+
+    pool.execute_command("task_orchestrate", "tools/call", params).await
+}
+
+/// Simplified function to get task status
+pub async fn call_task_status(
+    host: &str,
+    port: &str,
+    task_id: Option<&str>,
+) -> Result<Value, Box<dyn std::error::Error>> {
+    let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
+
+    info!("Getting task status for: {:?}", task_id);
+
+    let mut args = json!({});
+
+    if let Some(id) = task_id {
+        args["taskId"] = json!(id);
+    }
+
+    let params = json!({
+        "name": "task_status",
+        "arguments": args
+    });
+
+    pool.execute_command("task_status", "tools/call", params).await
+}

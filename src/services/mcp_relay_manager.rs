@@ -5,6 +5,9 @@ use crate::utils::network::{
     CircuitBreaker, CircuitBreakerConfig, RetryableError,
     HealthCheckManager, TimeoutConfig
 };
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
+use serde_json;
+use std::time::Instant;
 
 /// Manages the MCP WebSocket relay in the multi-agent-container with resilience patterns
 pub struct McpRelayManager {
@@ -79,24 +82,93 @@ impl McpRelayManager {
 
     /// Internal method for checking relay status
     async fn check_relay_status_internal() -> Result<bool, McpRelayError> {
+        let start_time = Instant::now();
+        let correlation_id = CorrelationId::new();
+
         info!("Checking MCP relay status in multi-agent-container...");
-        
+
+        // Log MCP bridge operation start
+        if let Some(logger) = get_telemetry_logger() {
+            logger.log_mcp_message(
+                "status_check",
+                "outbound",
+                0,
+                "initiated"
+            );
+        }
+
         let output = Command::new("docker")
             .args(&["exec", "multi-agent-container", "pgrep", "-f", "mcp-server"])
             .output();
-            
+
+        let duration_ms = start_time.elapsed().as_millis() as f64;
+
         match output {
             Ok(result) => {
                 let is_running = result.status.success();
+                let status = if is_running { "running" } else { "stopped" };
+
                 if is_running {
                     info!("MCP relay is running in multi-agent-container");
                 } else {
                     warn!("MCP relay is not running in multi-agent-container");
                 }
+
+                // Enhanced telemetry logging for MCP bridge status
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id,
+                        if is_running { LogLevel::INFO } else { LogLevel::WARN },
+                        "mcp_bridge",
+                        "status_check_result",
+                        &format!("MCP relay status check completed: {}", status),
+                        "mcp_relay_manager"
+                    )
+                    .with_duration(duration_ms)
+                    .with_metadata("container_status", serde_json::json!(status))
+                    .with_metadata("container_name", serde_json::json!("multi-agent-container"))
+                    .with_metadata("check_method", serde_json::json!("docker_exec_pgrep"));
+
+                    logger.log_event(event);
+
+                    // Also log as MCP message flow
+                    logger.log_mcp_message(
+                        "status_check",
+                        "inbound",
+                        result.stdout.len(),
+                        status
+                    );
+                }
+
                 Ok(is_running)
             }
             Err(e) => {
                 error!("Failed to check MCP relay status: {}", e);
+
+                // Log MCP bridge error
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id,
+                        LogLevel::ERROR,
+                        "mcp_bridge",
+                        "status_check_error",
+                        &format!("MCP relay status check failed: {}", e),
+                        "mcp_relay_manager"
+                    )
+                    .with_duration(duration_ms)
+                    .with_metadata("error_type", serde_json::json!("docker_command_failed"))
+                    .with_metadata("error_message", serde_json::json!(e.to_string()));
+
+                    logger.log_event(event);
+
+                    logger.log_mcp_message(
+                        "status_check",
+                        "error",
+                        0,
+                        "failed"
+                    );
+                }
+
                 Ok(false)
             }
         }

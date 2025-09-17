@@ -34,6 +34,7 @@ use dotenvy::dotenv;
 use log::{error, info, debug, warn};
 use webxr::utils::logging::init_logging;
 use webxr::utils::advanced_logging::init_advanced_logging;
+use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use tokio::signal::unix::{signal, SignalKind};
 
 #[actix_web::main]
@@ -49,6 +50,25 @@ async fn main() -> std::io::Result<()> {
         error!("Failed to initialize advanced logging: {}", e);
     } else {
         info!("Advanced logging system initialized successfully");
+    }
+
+    // Initialize telemetry logger
+    // Check if we're in Docker or local development
+    let log_dir = if std::path::Path::new("/app/logs").exists() {
+        "/app/logs".to_string()
+    } else if std::path::Path::new("/workspace/ext/logs").exists() {
+        "/workspace/ext/logs".to_string()
+    } else {
+        // Fallback to temp directory for development
+        std::env::temp_dir().join("webxr_telemetry").to_string_lossy().to_string()
+    };
+
+    let log_dir = std::env::var("TELEMETRY_LOG_DIR").unwrap_or(log_dir);
+
+    if let Err(e) = init_telemetry_logger(&log_dir, 100) {
+        error!("Failed to initialize telemetry logger: {}", e);
+    } else {
+        info!("Telemetry logger initialized with directory: {}", log_dir);
     }
 
     // Load settings

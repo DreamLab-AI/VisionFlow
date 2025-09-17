@@ -5,8 +5,11 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::actors::messages::*;
 use crate::handlers::socket_flow_handler::SocketFlowServer;
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D};
 // WsMessage is no longer needed here as we use custom messages
-use log::{debug, warn};
+use log::{debug, warn, info};
+use serde_json;
+use std::collections::HashMap as TelemetryHashMap;
 
 pub struct ClientManagerActor {
     clients: HashMap<usize, Addr<SocketFlowServer>>,
@@ -31,8 +34,26 @@ impl ClientManagerActor {
     pub fn register_client(&mut self, addr: Addr<SocketFlowServer>) -> usize {
         let client_id = self.next_id.fetch_add(1, Ordering::SeqCst);
         self.clients.insert(client_id, addr);
+
+        // Generate initial position for this agent (DEBUG: Check for origin position bug)
+        let initial_position = self.generate_initial_position(client_id);
+
         debug!("Client {} registered. Total clients: {}", client_id, self.clients.len());
-        
+
+        // Enhanced telemetry logging for agent spawn
+        if let Some(logger) = get_telemetry_logger() {
+            let mut metadata = TelemetryHashMap::new();
+            metadata.insert("client_id".to_string(), serde_json::json!(client_id));
+            metadata.insert("total_clients".to_string(), serde_json::json!(self.clients.len()));
+            metadata.insert("position_generation_method".to_string(), serde_json::json!("random_spherical"));
+
+            logger.log_agent_spawn(
+                &format!("client_{}", client_id),
+                initial_position.clone(),
+                metadata
+            );
+        }
+
         // WEBSOCKET SETTLING FIX: Trigger immediate position broadcast for new client
         // This ensures new clients get graph data immediately, even if the graph is settled
         if let Some(ref graph_addr) = self.graph_service_addr {
@@ -40,10 +61,42 @@ impl ClientManagerActor {
             graph_addr.do_send(crate::actors::messages::ForcePositionBroadcast {
                 reason: format!("new_client_{}", client_id),
             });
+
+            // Log position broadcast trigger
+            if let Some(logger) = get_telemetry_logger() {
+                let correlation_id = CorrelationId::from_agent_id(&format!("client_{}", client_id));
+                logger.log_event(
+                    crate::telemetry::agent_telemetry::TelemetryEvent::new(
+                        correlation_id,
+                        crate::telemetry::agent_telemetry::LogLevel::DEBUG,
+                        "agent_lifecycle",
+                        "position_broadcast_trigger",
+                        &format!("Triggered position broadcast for new client {}", client_id),
+                        "client_manager_actor"
+                    ).with_agent_id(&format!("client_{}", client_id))
+                     .with_position(initial_position)
+                );
+            }
         } else {
             warn!("Cannot trigger force broadcast for new client {} - no graph service address", client_id);
+
+            // Log the missing graph service issue
+            if let Some(logger) = get_telemetry_logger() {
+                let correlation_id = CorrelationId::from_agent_id(&format!("client_{}", client_id));
+                logger.log_event(
+                    crate::telemetry::agent_telemetry::TelemetryEvent::new(
+                        correlation_id,
+                        crate::telemetry::agent_telemetry::LogLevel::WARN,
+                        "agent_lifecycle",
+                        "missing_graph_service",
+                        &format!("Cannot trigger broadcast for client {} - graph service not available", client_id),
+                        "client_manager_actor"
+                    ).with_agent_id(&format!("client_{}", client_id))
+                     .with_metadata("issue", serde_json::json!("graph_service_addr_not_set"))
+                );
+            }
         }
-        
+
         client_id
     }
 
@@ -81,6 +134,37 @@ impl ClientManagerActor {
 
     pub fn get_client_count(&self) -> usize {
         self.clients.len()
+    }
+
+    /// Generate initial position for agent (DEBUG: Position generation debugging)
+    fn generate_initial_position(&self, client_id: usize) -> Position3D {
+        use rand::prelude::*;
+
+        // ORIGIN POSITION BUG DEBUG: Detailed position generation with logging
+        let mut rng = thread_rng();
+
+        // Generate random position in spherical coordinates to avoid clustering
+        let radius = rng.gen_range(50.0..200.0); // Distance from center
+        let theta = rng.gen_range(0.0..std::f32::consts::PI * 2.0); // Azimuthal angle
+        let phi = rng.gen_range(0.0..std::f32::consts::PI); // Polar angle
+
+        let x = radius * phi.sin() * theta.cos();
+        let y = radius * phi.sin() * theta.sin();
+        let z = radius * phi.cos();
+
+        let position = Position3D::new(x, y, z);
+
+        // DEBUG: Log position generation details
+        info!("Generated position for client {}: ({:.2}, {:.2}, {:.2}), magnitude: {:.2}, radius: {:.2}",
+              client_id, position.x, position.y, position.z, position.magnitude, radius);
+
+        // Check for potential origin bug
+        if position.is_origin() {
+            warn!("ORIGIN POSITION BUG DETECTED: Client {} generated at origin despite non-zero parameters (r={:.2}, θ={:.2}, φ={:.2})",
+                  client_id, radius, theta, phi);
+        }
+
+        position
     }
 }
 

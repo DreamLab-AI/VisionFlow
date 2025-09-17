@@ -218,6 +218,8 @@ impl ClaudeFlowActorTcp {
                 }
             }
         }
+        // Return empty list instead of mock data
+        warn!("No valid agent data found in response, returning empty agent list");
         AgentListResponse { agents: Vec::new() }
     }
     
@@ -666,7 +668,7 @@ impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
             self.consecutive_poll_failures = 0;
             self.last_successful_poll = Some(Utc::now());
         } else {
-            warn!("Invalid response format - missing 'agents' array");
+            info!("No agent data available - sending empty update to graph service");
             self.graph_service_addr.do_send(UpdateBotsGraph {
                 agents: Vec::new()
             });

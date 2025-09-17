@@ -738,165 +738,18 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> HttpResponse {
         bots_graph.edges.len()
     );
 
-    // If no data exists, return some test data for visualization
+    // If no data exists, return empty graph data
     if bots_graph.nodes.is_empty() {
-        info!("No bots data available, returning test data");
+        info!("No bots data available, returning empty graph");
 
-        // Create test agents
-        let test_agents = vec![
-            BotsAgent {
-                id: "agent-1".to_string(),
-                agent_type: "coordinator".to_string(),
-                status: "active".to_string(),
-                name: "Coordinator Alpha".to_string(),
-                cpu_usage: 45.0,
-                memory_usage: 35.0,
-                health: 95.0,
-                workload: 0.7,
-                position: Vec3::ZERO,
-                velocity: Vec3::ZERO,
-                force: Vec3::ZERO,
-                connections: vec![],
-                capabilities: None,
-                current_task: None,
-                tasks_active: None,
-                tasks_completed: None,
-                success_rate: None,
-                tokens: None,
-                token_rate: None,
-                activity: None,
-                swarm_id: None,
-                agent_mode: None,
-                parent_queen_id: None,
-                processing_logs: None,
-                created_at: Some(chrono::Utc::now().to_rfc3339()),
-                age: Some(0),
-            },
-            BotsAgent {
-                id: "agent-2".to_string(),
-                agent_type: "coder".to_string(),
-                status: "active".to_string(),
-                name: "Coder Beta".to_string(),
-                cpu_usage: 78.0,
-                memory_usage: 65.0,
-                health: 88.0,
-                workload: 0.9,
-                position: Vec3::ZERO,
-                velocity: Vec3::ZERO,
-                force: Vec3::ZERO,
-                connections: vec![],
-                capabilities: None,
-                current_task: None,
-                tasks_active: None,
-                tasks_completed: None,
-                success_rate: None,
-                tokens: None,
-                token_rate: None,
-                activity: None,
-                swarm_id: None,
-                agent_mode: None,
-                parent_queen_id: None,
-                processing_logs: None,
-                created_at: Some(chrono::Utc::now().to_rfc3339()),
-                age: Some(0),
-            },
-            BotsAgent {
-                id: "agent-3".to_string(),
-                agent_type: "tester".to_string(),
-                status: "active".to_string(),
-                name: "Tester Gamma".to_string(),
-                cpu_usage: 32.0,
-                memory_usage: 25.0,
-                health: 92.0,
-                workload: 0.5,
-                position: Vec3::ZERO,
-                velocity: Vec3::ZERO,
-                force: Vec3::ZERO,
-                connections: vec![],
-                capabilities: None,
-                current_task: None,
-                tasks_active: None,
-                tasks_completed: None,
-                success_rate: None,
-                tokens: None,
-                token_rate: None,
-                activity: None,
-                swarm_id: None,
-                agent_mode: None,
-                parent_queen_id: None,
-                processing_logs: None,
-                created_at: Some(chrono::Utc::now().to_rfc3339()),
-                age: Some(0),
-            },
-            BotsAgent {
-                id: "agent-4".to_string(),
-                agent_type: "analyst".to_string(),
-                status: "active".to_string(),
-                name: "Analyst Delta".to_string(),
-                cpu_usage: 56.0,
-                memory_usage: 45.0,
-                health: 90.0,
-                workload: 0.6,
-                position: Vec3::ZERO,
-                velocity: Vec3::ZERO,
-                force: Vec3::ZERO,
-                connections: vec![],
-                capabilities: None,
-                current_task: None,
-                tasks_active: None,
-                tasks_completed: None,
-                success_rate: None,
-                tokens: None,
-                token_rate: None,
-                activity: None,
-                swarm_id: None,
-                agent_mode: None,
-                parent_queen_id: None,
-                processing_logs: None,
-                created_at: Some(chrono::Utc::now().to_rfc3339()),
-                age: Some(0),
-            },
-        ];
-
-        let test_edges = vec![
-            BotsEdge {
-                id: "edge-1".to_string(),
-                source: "agent-1".to_string(),
-                target: "agent-2".to_string(),
-                data_volume: 1024.0,
-                message_count: 15,
-            },
-            BotsEdge {
-                id: "edge-2".to_string(),
-                source: "agent-1".to_string(),
-                target: "agent-3".to_string(),
-                data_volume: 512.0,
-                message_count: 8,
-            },
-            BotsEdge {
-                id: "edge-3".to_string(),
-                source: "agent-2".to_string(),
-                target: "agent-4".to_string(),
-                data_volume: 2048.0,
-                message_count: 22,
-            },
-        ];
-
-        // Convert to graph format
-        let nodes = convert_agents_to_nodes(test_agents);
-        let node_map: HashMap<String, u32> = nodes.iter()
-            .map(|node| (node.metadata_id.clone(), node.id))
-            .collect();
-        let edges = convert_bots_edges(test_edges, &node_map);
-
-        let test_graph = GraphData {
-            nodes,
-            edges,
+        let empty_graph = GraphData {
+            nodes: Vec::new(),
+            edges: Vec::new(),
             metadata: HashMap::new(),
             id_to_metadata: HashMap::new(),
         };
 
-        return HttpResponse::Ok().json(test_graph);
+        return HttpResponse::Ok().json(empty_graph);
     }
 
     HttpResponse::Ok().json(&*bots_graph)
@@ -1142,56 +995,25 @@ pub async fn initialize_swarm(
                 "max_agents": request.max_agents,
                 "strategy": request.strategy.clone(),
                 "enable_neural": request.enable_neural,
-                "mock_mode": false
+                "service_available": true
             }));
         }
         Err(e) => {
             error!("Failed to initialize swarm via MCP: {}", e);
-            // Fall through to mock response if configured
-            if std::env::var("MCP_FALLBACK_TO_MOCK").unwrap_or_else(|_| "true".to_string()) == "true" {
-                warn!("Falling back to mock response due to MCP error");
-                // Continue to mock response below
-            } else {
-                return HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": format!("Failed to connect to Claude Flow: {}", e)
-                }));
-            }
+            return HttpResponse::InternalServerError().json(serde_json::json!({
+                "success": false,
+                "error": format!("Failed to connect to Claude Flow: {}", e)
+            }));
         }
     }
 
-    // Fallback to mock response if Claude Flow actor not available
-    warn!("Claude Flow actor not available - using mock response");
+    // If Claude Flow actor not available, return error
+    error!("Claude Flow actor not available - cannot initialize swarm");
 
-    let mock_agents = vec![
-        json!({
-            "id": format!("agent-{}", uuid::Uuid::new_v4()),
-            "type": "coordinator",
-            "name": "Swarm Coordinator",
-            "status": "initializing"
-        }),
-        json!({
-            "id": format!("agent-{}", uuid::Uuid::new_v4()),
-            "type": "researcher",
-            "name": "Research Agent",
-            "status": "initializing"
-        }),
-        json!({
-            "id": format!("agent-{}", uuid::Uuid::new_v4()),
-            "type": "coder",
-            "name": "Code Agent",
-            "status": "initializing"
-        }),
-    ];
-
-    HttpResponse::Ok().json(serde_json::json!({
-        "success": true,
-        "message": "Swarm initialization started (mock mode)",
-        "swarm_id": format!("swarm-{}", uuid::Uuid::new_v4()),
-        "agents": mock_agents,
-        "topology": request.topology.clone(),
-        "max_agents": request.max_agents,
-        "mock_mode": true
+    HttpResponse::ServiceUnavailable().json(serde_json::json!({
+        "success": false,
+        "error": "Claude Flow service not available",
+        "message": "Cannot initialize swarm without Claude Flow service"
     }))
 }
 
@@ -2039,6 +1861,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     info!("  - /bots/status (GET) - Real-time agent status");
     info!("  - /bots/update (POST) - Update agent positions");
     info!("  - /bots/initialize-swarm (POST) - Initialize new swarm");
+    info!("  - /bots/submit-task (POST) - Submit task to agents");
+    info!("  - /bots/task-status/{{id}} (GET) - Get task status");
 
     let handler = web::Data::new(EnhancedBotsHandler::new());
 
@@ -2109,6 +1933,15 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         )
         .route("/disconnect-multi-agent",
             web::post().to(disconnect_multi_agent)
+        )
+        .route("/submit-task",
+            web::post().to(submit_task)
+        )
+        .route("/task-status/{id}",
+            web::get().to(get_task_status)
+        )
+        .route("/task-status",
+            web::get().to(get_task_status)
         );
 }
 
@@ -2156,6 +1989,100 @@ pub async fn spawn_agent(
             HttpResponse::InternalServerError().json(json!({
                 "success": false,
                 "error": format!("Failed to spawn agent: {}", e)
+            }))
+        }
+    }
+}
+
+pub async fn submit_task(
+    _state: web::Data<AppState>,
+    request: web::Json<serde_json::Value>,
+) -> impl Responder {
+    info!("=== SUBMIT TASK ENDPOINT CALLED ===");
+    info!("Received task submission request: {:?}", request);
+
+    // Extract parameters
+    let task = request.get("task").and_then(|t| t.as_str()).unwrap_or("");
+    let priority = request.get("priority").and_then(|p| p.as_str());
+    let strategy = request.get("strategy").and_then(|s| s.as_str());
+
+    if task.is_empty() {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "Task description is required"
+        }));
+    }
+
+    info!("Submitting task: {}", task);
+
+    // Use the MCP connection to orchestrate the task
+    use crate::utils::mcp_connection::call_task_orchestrate;
+
+    let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
+        .or_else(|_| std::env::var("MCP_HOST"))
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
+    let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
+
+    // Call task_orchestrate
+    match call_task_orchestrate(
+        &claude_flow_host,
+        &claude_flow_port,
+        task,
+        priority,
+        strategy,
+    ).await {
+        Ok(result) => {
+            info!("Successfully submitted task: {:?}", result);
+
+            HttpResponse::Ok().json(json!({
+                "success": true,
+                "message": "Task submitted successfully",
+                "taskId": result.get("taskId").and_then(|s| s.as_str()).unwrap_or("unknown"),
+                "status": result.get("status").and_then(|s| s.as_str()).unwrap_or("pending")
+            }))
+        }
+        Err(e) => {
+            error!("Failed to submit task: {}", e);
+            HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("Failed to submit task: {}", e)
+            }))
+        }
+    }
+}
+
+pub async fn get_task_status(
+    _state: web::Data<AppState>,
+    task_id: web::Path<String>,
+) -> impl Responder {
+    info!("=== GET TASK STATUS ENDPOINT CALLED ===");
+
+    let task_id_str = task_id.as_str();
+    info!("Getting status for task: {}", task_id_str);
+
+    // Use the MCP connection to get task status
+    use crate::utils::mcp_connection::call_task_status;
+
+    let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
+        .or_else(|_| std::env::var("MCP_HOST"))
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
+    let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
+
+    // Call task_status
+    match call_task_status(
+        &claude_flow_host,
+        &claude_flow_port,
+        Some(task_id_str),
+    ).await {
+        Ok(result) => {
+            info!("Successfully retrieved task status: {:?}", result);
+            HttpResponse::Ok().json(result)
+        }
+        Err(e) => {
+            error!("Failed to get task status: {}", e);
+            HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("Failed to get task status: {}", e)
             }))
         }
     }
