@@ -46,9 +46,9 @@ Agents → TCP → Rust → Cache → REST API ← Client (poll 30s)
 
 ---
 
-## 🚨 CRITICAL ISSUE DISCOVERED (2025-09-17 18:59)
+## ✅ CRITICAL ISSUE RESOLVED (2025-09-17 19:49)
 
-### Problem: Agent System Not Rendering Despite Working MCP
+### Problem: Agent System Not Rendering Despite Working MCP [FIXED]
 
 **Symptoms Observed**:
 1. Client gets 404 errors on `/api/bots/status` and `/api/bots/data`
@@ -103,7 +103,7 @@ let mut reader = BufReader::new(stream);
 # Always 1-2ms between connect and disconnect
 ```
 
-### ✅ FIXES APPLIED (2025-09-17 19:10)
+### ✅ FIXES APPLIED AND VERIFIED (2025-09-17 19:49)
 
 1. **Fixed Stream Ownership in mcp_connection.rs** ✅:
    - Created new `PersistentMCPConnection` class that maintains the stream
@@ -116,16 +116,29 @@ let mut reader = BufReader::new(stream);
    - MCP server runs in multi-agent-container at 172.18.0.4:9500
    - VisionFlow container (172.18.0.10) now correctly connects to MCP
 
-3. **Architecture Clarification** ✅:
+3. **Fixed TCP Handler Race Condition** ✅:
+   - Original TCP handler had a race condition where it waited for MCP initialization AFTER client connected
+   - Clients would send data before the handler was ready, causing immediate disconnection
+   - Fixed by setting up data handler immediately and queueing early data
+   - Now processes buffered requests once MCP is ready
+   - File: `/app/core-assets/scripts/mcp-tcp-server.js`
+
+4. **Architecture Clarification** ✅:
    - MCP TCP server runs in multi-agent-container (172.18.0.4) on port 9500
    - VisionFlow container (172.18.0.10) connects to it via TCP
    - WebSocket bridge at port 3002 for browser connections
    - All containers on same docker_ragflow network (172.18.0.0/16)
 
+**Connection Status**: ✅ VERIFIED WORKING
+- TCP connection from VisionFlow (172.18.0.10) to MCP (172.18.0.4:9500) now stays connected
+- Agents can be spawned successfully via MCP commands
+- Health check shows: `{"status": "healthy", "mcpProcess": "running", "clients": 1}`
+
 ---
 
-##
-### 2. Agent → Client (Display on Nodes) ⚠️ NEEDS CLIENT VISUALIZATION
+## Next Steps
+
+### 1. Agent → Client (Display on Nodes) ⚠️ NEEDS CLIENT VISUALIZATION
 
 **Current Status**:
 - Binary position data flows correctly via WebSocket
@@ -328,3 +341,27 @@ curl http://localhost:3001/api/bots/status
 ---
 
 *Last Updated: 2025-09-17 16:45 UTC*
+# Agent Visualization Debugging Report
+
+## 1. Problem Description
+
+The primary issue is the failure to render agent telemetry in the client-side force-directed graph. Although agents are successfully spawned and managed by the MCP server, they do not appear in the visualization. This indicates a breakdown in the data flow between the backend services and the frontend client.
+
+## 2. Root Cause Analysis
+
+The root cause of this problem is a missing communication link between the `BotsClient` service and the `GraphServiceActor`. The `BotsClient` is responsible for fetching agent data from the MCP server, but it fails to forward this data to the `GraphServiceActor`, which manages the graph data used for rendering.
+
+The data flow is as follows:
+
+1.  The `BotsClient` connects to the MCP server via WebSocket and requests the agent list.
+2.  The MCP server responds with the agent data, which is successfully received and parsed by the `BotsClient`.
+3.  **Failure Point:** The `BotsClient` does not send the received agent data to the `GraphServiceActor`.
+4.  As a result, the `GraphServiceActor` remains unaware of the agents and provides an empty or outdated graph to the client.
+
+## 3. The Solution: `consolidated_agent_graph_fix.patch`
+
+The `consolidated_agent_graph_fix.patch` directly addresses this issue by adding the necessary code to forward the agent data. The patch modifies `src/services/bots_client.rs` to send an `UpdateBotsGraph` message to the `GraphServiceActor` after receiving the agent list from the MCP server.
+
+This ensures that the `GraphServiceActor` is always aware of the active agents, allowing it to provide the correct graph data to the client for rendering.
+
+---

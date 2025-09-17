@@ -226,68 +226,21 @@ impl BotsClient {
                                                         for agent in &update.agents {
                                                             debug!("Agent: {} ({}) - status: {}", agent.name, agent.agent_type, agent.status);
                                                         }
-                                                            
+
                                                         // CRITICAL FIX: Send agents to graph
-                                                        if let Some(ref graph_addr) = graph_service_addr {
+                                                        if let Some(graph_addr) = graph_service_addr {
                                                             info!("📨 BotsClient sending {} agents to graph", update.agents.len());
-                                                            
-                                                            // Convert Agent to AgentStatus for UpdateBotsGraph
-                                                            let agent_statuses: Vec<AgentStatus> = update.agents.clone()
-                                                                .into_iter()
-                                                                .map(|agent| AgentStatus {
-                                                                    agent_id: agent.id.clone(),
-                                                                    profile: AgentProfile {
-                                                                        name: agent.name,
-                                                                        agent_type: match agent.agent_type.as_str() {
-                                                                            "coordinator" => AgentType::Coordinator,
-                                                                            "researcher" => AgentType::Researcher,
-                                                                            "coder" => AgentType::Coder,
-                                                                            "tester" => AgentType::Tester,
-                                                                            "reviewer" => AgentType::Reviewer,
-                                                                            "analyst" => AgentType::Analyst,
-                                                                            "architect" => AgentType::Architect,
-                                                                            "optimizer" => AgentType::Optimizer,
-                                                                            "documenter" => AgentType::Documenter,
-                                                                            _ => AgentType::Coder, // Default to Coder
-                                                                        },
-                                                                        capabilities: vec![],
-                                                                    },
-                                                                    status: agent.status,
-                                                                    active_tasks_count: 0,
-                                                                    completed_tasks_count: 0,
-                                                                    failed_tasks_count: 0,
-                                                                    success_rate: 100.0,
-                                                                    timestamp: chrono::Utc::now(),
-                                                                    current_task: None,
-                                                                    cpu_usage: 0.0,
-                                                                    memory_usage: 0.0,
-                                                                    health: 100.0,
-                                                                    activity: 0.0,
-                                                                    tasks_active: 0,
-                                                                    performance_metrics: PerformanceMetrics {
-                                                                        tasks_completed: 0,
-                                                                        success_rate: 100.0,
-                                                                    },
-                                                                    token_usage: TokenUsage {
-                                                                        total: 0,
-                                                                        token_rate: 0.0,
-                                                                    },
-                                                                    swarm_id: None,
-                                                                    agent_mode: None,
-                                                                    parent_queen_id: None,
-                                                                    processing_logs: None,
-                                                                    total_execution_time: 0,
-                                                                })
-                                                                .collect();
-                                                            
                                                             graph_addr.do_send(UpdateBotsGraph {
-                                                                agents: agent_statuses
+                                                                agents: update.agents.clone()
+                                                                    .into_iter()
+                                                                    .map(|a| a.into())
+                                                                    .collect()
                                                             });
                                                         }
                                                         
                                                         let mut lock = updates.write().await;
                                                         *lock = Some(update);
-                                                        continue; // Skip the rest of the parsing
+                                                        continue;
                                                     }
                                                 }
                                                 Err(e) => {
