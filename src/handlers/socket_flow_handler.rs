@@ -531,9 +531,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         match msg {
             Ok(ws::Message::Ping(msg)) => {
-                debug!("[WebSocket] Received ping");
-                ctx.pong(&msg);
+                debug!("[WebSocket] Received standard ping");
                 self.last_activity = std::time::Instant::now();
+                ctx.pong(&msg);
             }
             Ok(ws::Message::Pong(_)) => {
                 // Logging every pong creates too much noise, only log in detailed debug mode
@@ -547,13 +547,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                     Ok(msg) => {
                         match msg.get("type").and_then(|t| t.as_str()) {
                             Some("ping") => {
-                                if let Ok(ping_msg) =
-                                    serde_json::from_value::<PingMessage>(msg.clone())
-                                {
+                                if let Ok(ping_msg) = serde_json::from_value::<PingMessage>(msg.clone()) {
                                     let pong = self.handle_ping(ping_msg);
                                     self.last_activity = std::time::Instant::now();
                                     if let Ok(response) = serde_json::to_string(&pong) {
                                         ctx.text(response);
+                                    }
+                                } else if let Ok(text_ping) = msg.as_str() {
+                                    if text_ping == "ping" {
+                                        self.last_activity = std::time::Instant::now();
+                                        ctx.text("pong");
                                     }
                                 }
                             }

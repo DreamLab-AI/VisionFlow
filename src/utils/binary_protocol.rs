@@ -203,6 +203,9 @@ pub fn encode_node_data_with_types(
 
         // SSSP fields not available in BinaryNodeDataClient
         // These fields are only in BinaryNodeDataGPU for server-side computation
+        // For now, we'll send default values.
+        buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
+        buffer.extend_from_slice(&(-1i32).to_le_bytes());
     }
 
     // Only log non-empty node transmissions to reduce spam
@@ -258,6 +261,9 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 
         // SSSP fields not available in BinaryNodeDataClient
         // These fields are only in BinaryNodeDataGPU for server-side computation
+        // For now, we'll send default values.
+        buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
+        buffer.extend_from_slice(&(-1i32).to_le_bytes());
 
         // Mass, flags, and padding are server-side only and not transmitted over wire
     }
@@ -300,7 +306,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     
     // Process data in chunks of WIRE_ITEM_SIZE bytes
     for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
-        // Manual deserialization to handle exactly 26 bytes
+        // Manual deserialization to handle exactly 34 bytes
         let mut cursor = 0;
         
         // Read u16 ID (2 bytes)
@@ -321,6 +327,12 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         let vel_y = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         cursor += 4;
         let vel_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+
+        // Read SSSP data (8 bytes)
+        let _sssp_distance = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let _sssp_parent = i32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         
         // Convert wire ID back to u32 with flags
         let full_node_id = from_wire_id(wire_id);
@@ -360,7 +372,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
 }
 
 pub fn calculate_message_size(updates: &[(u32, BinaryNodeData)]) -> usize {
-    // Each update uses WIRE_ITEM_SIZE (26 bytes)
+    // Each update uses WIRE_ITEM_SIZE (34 bytes)
     updates.len() * WIRE_ITEM_SIZE
 }
 
@@ -370,9 +382,9 @@ mod tests {
 
     #[test]
     fn test_wire_format_size() {
-        // Verify that WIRE_ITEM_SIZE is exactly 26 bytes
-        assert_eq!(WIRE_ITEM_SIZE, 26);
-        assert_eq!(WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE, 26);
+        // Verify that WIRE_ITEM_SIZE is exactly 34 bytes
+        assert_eq!(WIRE_ITEM_SIZE, 34);
+        assert_eq!(WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE, 34);
     }
 
     #[test]
@@ -400,7 +412,7 @@ mod tests {
         
         // Verify encoded size matches expected wire format
         assert_eq!(encoded.len(), nodes.len() * WIRE_ITEM_SIZE);
-        assert_eq!(encoded.len(), nodes.len() * 26);
+        assert_eq!(encoded.len(), nodes.len() * 34);
         
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
@@ -419,8 +431,8 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_data() {
-        // Test with data that's not a multiple of wire item size (26 bytes)
-        let result = decode_node_data(&[0u8; 25]);
+        // Test with data that's not a multiple of wire item size (34 bytes)
+        let result = decode_node_data(&[0u8; 33]);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not a multiple of wire item size"));
         
@@ -445,7 +457,7 @@ mod tests {
         ];
 
         let size = calculate_message_size(&nodes);
-        assert_eq!(size, 26);
+        assert_eq!(size, 34);
         
         let encoded = encode_node_data(&nodes);
         assert_eq!(encoded.len(), size);
@@ -527,7 +539,7 @@ mod tests {
         let encoded = encode_node_data_with_flags(&nodes, &agent_ids);
         
         // Verify encoded size
-        assert_eq!(encoded.len(), nodes.len() * 26);
+        assert_eq!(encoded.len(), nodes.len() * 34);
         
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());

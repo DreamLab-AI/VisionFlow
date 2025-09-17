@@ -20,8 +20,8 @@ use std::io::Error;
 use super::github::{GitHubClient, ContentAPI, GitHubConfig};
 
 // Constants
-const METADATA_PATH: &str = "/app/data/metadata/metadata.json";
-pub const MARKDOWN_DIR: &str = "/app/data/markdown";
+const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
+pub const MARKDOWN_DIR: &str = "/workspace/ext/data/markdown";
 const GITHUB_API_DELAY: Duration = Duration::from_millis(500);
 
 #[derive(Serialize, Deserialize, Clone)]
