@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useBotsData } from '../contexts/BotsDataContext';
 import { Card } from '../../design-system/components/Card';
 import { Select } from '../../design-system/components/Select';
+import { Button } from '../../design-system/components/Button';
+import { Input } from '../../design-system/components/Input';
 import type { BotsAgent } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/logger';
+import { apiService } from '../../../services/apiService';
 
 const logger = createLogger('AgentDetailPanel');
 
@@ -20,6 +23,14 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
 }) => {
   const { botsData } = useBotsData();
   const [selectedAgent, setSelectedAgent] = useState<BotsAgent | null>(null);
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskStatus, setTaskStatus] = useState<{
+    id?: string;
+    status: 'idle' | 'submitting' | 'running' | 'completed' | 'error';
+    message?: string;
+    progress?: number;
+  }>({ status: 'idle' });
+  const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
 
   // Update selected agent when ID changes or data updates
   useEffect(() => {
@@ -212,6 +223,151 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Task Submission Section */}
+            <div className="pt-3 border-t border-gray-200">
+              <h5 className="font-semibold text-sm mb-2">Submit Task to Swarm</h5>
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-gray-600">Task Description</label>
+                  <textarea
+                    className="w-full mt-1 p-2 text-sm border rounded resize-none"
+                    rows={3}
+                    placeholder="Enter task description..."
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                    disabled={taskStatus.status === 'submitting' || taskStatus.status === 'running'}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Priority</label>
+                  <select
+                    className="w-full mt-1 p-2 text-sm border rounded"
+                    value={taskPriority}
+                    onChange={(e) => setTaskPriority(e.target.value as 'low' | 'medium' | 'high' | 'critical')}
+                    disabled={taskStatus.status === 'submitting' || taskStatus.status === 'running'}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+                <Button
+                  className="w-full"
+                  variant={taskStatus.status === 'error' ? 'destructive' : 'default'}
+                  disabled={!taskDescription.trim() || taskStatus.status === 'submitting' || taskStatus.status === 'running'}
+                  onClick={async () => {
+                    try {
+                      setTaskStatus({ status: 'submitting', message: 'Submitting task to swarm...' });
+
+                      const response = await apiService.post('/bots/submit-task', {
+                        task: taskDescription,
+                        priority: taskPriority,
+                        strategy: 'adaptive',
+                        swarmId: selectedAgent.swarmId || 'default'
+                      });
+
+                      if (response.taskId) {
+                        setTaskStatus({
+                          id: response.taskId,
+                          status: 'running',
+                          message: `Task ${response.taskId} submitted successfully`,
+                          progress: 0
+                        });
+
+                        // Start polling for task status
+                        const pollInterval = setInterval(async () => {
+                          try {
+                            const statusRes = await apiService.get(`/bots/task-status/${response.taskId}`);
+
+                            if (statusRes.status === 'completed') {
+                              setTaskStatus({
+                                id: response.taskId,
+                                status: 'completed',
+                                message: 'Task completed successfully',
+                                progress: 100
+                              });
+                              clearInterval(pollInterval);
+                              // Clear task input after completion
+                              setTimeout(() => {
+                                setTaskDescription('');
+                                setTaskStatus({ status: 'idle' });
+                              }, 3000);
+                            } else if (statusRes.status === 'error' || statusRes.status === 'failed') {
+                              setTaskStatus({
+                                id: response.taskId,
+                                status: 'error',
+                                message: statusRes.error || 'Task failed',
+                                progress: statusRes.progress || 0
+                              });
+                              clearInterval(pollInterval);
+                            } else {
+                              setTaskStatus({
+                                id: response.taskId,
+                                status: 'running',
+                                message: statusRes.message || 'Task in progress...',
+                                progress: statusRes.progress || 0
+                              });
+                            }
+                          } catch (error) {
+                            logger.error('Failed to poll task status:', error);
+                            clearInterval(pollInterval);
+                          }
+                        }, 2000); // Poll every 2 seconds
+
+                        // Stop polling after 5 minutes
+                        setTimeout(() => clearInterval(pollInterval), 300000);
+                      } else {
+                        setTaskStatus({
+                          status: 'error',
+                          message: response.error || 'Failed to submit task'
+                        });
+                      }
+                    } catch (error) {
+                      logger.error('Failed to submit task:', error);
+                      setTaskStatus({
+                        status: 'error',
+                        message: 'Failed to submit task to swarm'
+                      });
+                    }
+                  }}
+                >
+                  {taskStatus.status === 'submitting' ? 'Submitting...' :
+                   taskStatus.status === 'running' ? `Running... ${taskStatus.progress || 0}%` :
+                   taskStatus.status === 'completed' ? 'Completed!' :
+                   taskStatus.status === 'error' ? 'Retry Task' :
+                   'Submit Task'}
+                </Button>
+
+                {/* Task Status Display */}
+                {taskStatus.message && (
+                  <div className={`p-2 rounded text-xs ${
+                    taskStatus.status === 'error' ? 'bg-red-50 text-red-600' :
+                    taskStatus.status === 'completed' ? 'bg-green-50 text-green-600' :
+                    taskStatus.status === 'running' || taskStatus.status === 'submitting' ? 'bg-blue-50 text-blue-600' :
+                    'bg-gray-50 text-gray-600'
+                  }`}>
+                    {taskStatus.message}
+                    {taskStatus.id && (
+                      <div className="font-mono text-xs opacity-75 mt-1">
+                        Task ID: {taskStatus.id}
+                      </div>
+                    )}
+                    {taskStatus.status === 'running' && taskStatus.progress !== undefined && (
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                            style={{ width: `${taskStatus.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Agent Age */}
             <div className="pt-3 border-t border-gray-200 text-xs text-gray-500">

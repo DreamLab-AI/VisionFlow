@@ -111,6 +111,17 @@ export class BotsWebSocketIntegration {
 
       this.emit('logseq-binary-update', data);
     });
+
+    // Listen for bots position updates (agent nodes from binary protocol)
+    webSocketService.on('bots-position-update', (data: ArrayBuffer) => {
+      logger.debug(`Received bots binary position update: ${data.byteLength} bytes`);
+
+      // Log agent position update telemetry
+      agentTelemetry.logWebSocketMessage('bots_binary_position_update', 'incoming', undefined, data.byteLength);
+
+      // Emit for bots visualization to consume
+      this.emit('bots-binary-position-update', data);
+    });
   }
 
   private processBotsUpdate(data: any) {

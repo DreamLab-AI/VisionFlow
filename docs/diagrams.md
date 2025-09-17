@@ -179,7 +179,7 @@ sequenceDiagram
 
     Note over Client,GPU: Real-time Updates (60 FPS)
 
-    loop Every 16.67ms
+    loop Graph Data Request Every 2000ms (Client Poll)
         GPU->>GPU: Physics simulation
         GPU->>ClientMgr: PositionUpdate
         ClientMgr->>Server: BatchUpdate
@@ -1240,7 +1240,7 @@ sequenceDiagram
 
     %% High-Speed Binary Data (WebSocket)
     Note over WS: BINARY PROTOCOL (34 bytes/node)
-    loop Every 60ms (16.67 FPS)
+    loop Graph Data Polling Every 2000ms (2 seconds)
         GPU->>Backend: Compute positions
         Backend->>Backend: Encode binary:<br/>ID(2) + Pos(12) + Vel(12) + SSSP(8)
         Backend->>WS: Binary frame
@@ -1309,7 +1309,8 @@ sequenceDiagram
 - **REST**: ALL metadata, telemetry, configuration, task management
 - **Binary**: 34 bytes/node vs ~500-1000 bytes JSON (95%+ reduction)
 - **Polling**: Client fetches metadata every 10 seconds via REST
-- **Streaming**: Position updates at 60ms via WebSocket binary
+- **Streaming**: Graph data polling at 2000ms via WebSocket
+- **Binary Protocol**: 34-byte format for efficient data transfer
 
 ---
 
@@ -1320,7 +1321,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph "Data Sources"
-        WS[WebSocket Binary<br/>60ms Updates]
+        WS[WebSocket Binary<br/>2s Graph Polling]
         REST[REST API<br/>10s Polling]
         User[User Input]
     end
@@ -1606,7 +1607,8 @@ flowchart TB
 - Swarm topology management
 
 ### 📊 Data Flow Architecture
-- **High-Speed (60ms)**: Position, velocity, SSSP via WebSocket binary
+- **Graph Data (2000ms)**: Full graph with positions via 'requestBotsGraph'
+- **Binary Format**: 34-byte encoding for position/velocity/SSSP data
 - **Metadata (10s)**: Agent details, telemetry via REST polling
 - **Voice**: Binary audio streams via WebSocket
 - **Tasks**: REST API for submission and status

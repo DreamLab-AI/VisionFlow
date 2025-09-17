@@ -36,6 +36,11 @@ export interface BotsAgent {
     z: number;
   };
 
+  // SSSP (Single Source Shortest Path) data from binary protocol
+  ssspDistance?: number; // Shortest path distance from source node
+  ssspParent?: number;   // Parent node ID for path reconstruction
+  lastPositionUpdate?: number; // Timestamp of last binary position update
+
   // UPDATED: multi-agent and hive-mind metadata
   swarmId?: string; // Changed from multiAgentId for consistency
   agentMode?: 'centralized' | 'distributed' | 'strategic';

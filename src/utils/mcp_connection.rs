@@ -1,117 +1,31 @@
 use std::sync::Arc;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, Mutex};
 use tokio::net::TcpStream;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, AsyncReadExt};
 use serde_json::{json, Value};
 use uuid::Uuid;
 use log::{info, warn, error, debug};
 use std::time::Duration;
 use std::collections::HashMap;
 
-/// MCP Connection Pool for stable connections
-pub struct MCPConnectionPool {
-    connections: Arc<RwLock<HashMap<String, MCPConnection>>>,
-    host: String,
-    port: String,
-    max_retries: u32,
-    retry_delay: Duration,
-    session_state: Arc<RwLock<HashMap<String, SessionState>>>,
-}
-
-#[derive(Debug, Clone)]
-struct SessionState {
-    session_id: String,
-    purpose: String,
-    created_at: std::time::Instant,
-    last_used: std::time::Instant,
-    command_count: u64,
-}
-
-struct MCPConnection {
-    stream: Option<TcpStream>,
+/// Persistent MCP Connection that maintains the stream
+pub struct PersistentMCPConnection {
+    stream: Arc<Mutex<TcpStream>>,
     session_id: String,
     initialized: bool,
-    last_used: std::time::Instant,
 }
 
-impl MCPConnectionPool {
-    pub fn new(host: String, port: String) -> Self {
-        Self {
-            connections: Arc::new(RwLock::new(HashMap::new())),
-            host,
-            port,
-            max_retries: 3,
-            retry_delay: Duration::from_millis(500),
-            session_state: Arc::new(RwLock::new(HashMap::new())),
-        }
-    }
+impl PersistentMCPConnection {
+    /// Create and initialize a new MCP connection
+    pub async fn new(host: &str, port: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let addr = format!("{}:{}", host, port);
+        info!("Connecting to MCP server at {}", addr);
 
-    /// Get or create a connection for a specific purpose
-    pub async fn get_connection(&self, purpose: &str) -> Result<TcpStream, Box<dyn std::error::Error>> {
-        let mut connections = self.connections.write().await;
-        
-        // Check if we have an existing connection
-        if let Some(conn) = connections.get_mut(purpose) {
-            if conn.initialized && conn.stream.is_some() {
-                debug!("Reusing existing MCP connection for {}", purpose);
-                conn.last_used = std::time::Instant::now();
-                
-                // Clone the stream for use
-                if let Some(_stream) = &conn.stream {
-                    // For now, create a new connection since TcpStream can't be cloned
-                    // In production, we'd use a connection pool with Arc<Mutex<>>
-                    return self.create_new_connection(purpose).await;
-                }
-            }
-        }
-        
-        // Create new connection
-        self.create_new_connection(purpose).await
-    }
+        let mut stream = TcpStream::connect(&addr).await?;
+        info!("TCP connection established to MCP server");
 
-    async fn create_new_connection(&self, purpose: &str) -> Result<TcpStream, Box<dyn std::error::Error>> {
-        let addr = format!("{}:{}", self.host, self.port);
-        
-        for attempt in 1..=self.max_retries {
-            info!("MCP connection attempt {}/{} to {} for {}", attempt, self.max_retries, addr, purpose);
-            
-            match TcpStream::connect(&addr).await {
-                Ok(mut stream) => {
-                    info!("TCP connection established to MCP server at {}", addr);
-                    
-                    // Initialize MCP session
-                    match self.initialize_mcp_session(&mut stream).await {
-                        Ok(session_id) => {
-                            info!("MCP session initialized successfully: {}", session_id);
-                            return Ok(stream);
-                        }
-                        Err(e) => {
-                            warn!("Failed to initialize MCP session (attempt {}): {}", attempt, e);
-                            if attempt < self.max_retries {
-                                tokio::time::sleep(self.retry_delay).await;
-                                continue;
-                            }
-                            return Err(e);
-                        }
-                    }
-                }
-                Err(e) => {
-                    warn!("Failed to connect to MCP server (attempt {}): {}", attempt, e);
-                    if attempt < self.max_retries {
-                        tokio::time::sleep(self.retry_delay).await;
-                        continue;
-                    }
-                    return Err(Box::new(e));
-                }
-            }
-        }
-        
-        Err("Failed to establish MCP connection after all retries".into())
-    }
-
-    async fn initialize_mcp_session(&self, stream: &mut TcpStream) -> Result<String, Box<dyn std::error::Error>> {
         let session_id = Uuid::new_v4().to_string();
-        
+
         // Send initialization request
         let init_request = json!({
             "jsonrpc": "2.0",
@@ -130,214 +44,145 @@ impl MCPConnectionPool {
                 }
             }
         });
-        
+
         let msg = format!("{}\n", init_request.to_string());
         debug!("Sending MCP init: {}", msg.trim());
         stream.write_all(msg.as_bytes()).await?;
         stream.flush().await?;
-        
-        // Read response with timeout
-        let mut reader = BufReader::new(stream);
-        let mut response_line = String::new();
-        
-        // Read and skip server.initialized notifications
+
+        // Read response directly without BufReader
+        let mut buffer = Vec::new();
+        let mut byte = [0u8; 1];
+
+        // Read until we get our initialization response
         loop {
-            response_line.clear();
-            match tokio::time::timeout(
-                Duration::from_secs(5),
-                reader.read_line(&mut response_line)
-            ).await {
-                Ok(Ok(n)) if n > 0 => {
-                    debug!("MCP response: {}", response_line.trim());
-                    
-                    // Skip server.initialized messages
-                    if response_line.contains("server.initialized") {
-                        continue;
-                    }
-                    
-                    // Parse actual response
-                    if let Ok(response) = serde_json::from_str::<Value>(&response_line) {
-                        if response.get("id").and_then(|id| id.as_str()) == Some(&session_id) {
-                            if response.get("result").is_some() {
-                                info!("MCP session initialized: {}", session_id);
-                                return Ok(session_id);
-                            } else if let Some(error) = response.get("error") {
-                                error!("MCP init error: {:?}", error);
-                                return Err(format!("MCP initialization failed: {:?}", error).into());
-                            }
+            buffer.clear();
+
+            // Read line byte by byte
+            loop {
+                match tokio::time::timeout(Duration::from_secs(5), stream.read_exact(&mut byte)).await {
+                    Ok(Ok(_)) => {
+                        if byte[0] == b'\n' {
+                            break;
                         }
+                        buffer.push(byte[0]);
+                    }
+                    Ok(Err(e)) => {
+                        error!("Error reading from stream: {}", e);
+                        return Err(Box::new(e));
+                    }
+                    Err(_) => {
+                        error!("Timeout reading MCP initialization response");
+                        return Err("MCP initialization timeout".into());
                     }
                 }
-                Ok(Ok(_)) => {
-                    warn!("Empty response from MCP server");
-                    return Err("Empty response from MCP server".into());
-                }
-                Ok(Err(e)) => {
-                    error!("Error reading MCP response: {}", e);
-                    return Err(Box::new(e));
-                }
-                Err(_) => {
-                    error!("Timeout waiting for MCP initialization response");
-                    return Err("MCP initialization timeout".into());
+            }
+
+            let response_line = String::from_utf8_lossy(&buffer);
+            debug!("MCP response: {}", response_line.trim());
+
+            // Skip server.initialized messages
+            if response_line.contains("server.initialized") {
+                continue;
+            }
+
+            // Parse actual response
+            if let Ok(response) = serde_json::from_str::<Value>(&response_line) {
+                if response.get("id").and_then(|id| id.as_str()) == Some(&session_id) {
+                    if response.get("result").is_some() {
+                        info!("MCP session initialized: {}", session_id);
+
+                        return Ok(PersistentMCPConnection {
+                            stream: Arc::new(Mutex::new(stream)),
+                            session_id,
+                            initialized: true,
+                        });
+                    } else if let Some(error) = response.get("error") {
+                        error!("MCP init error: {:?}", error);
+                        return Err(format!("MCP initialization failed: {:?}", error).into());
+                    }
                 }
             }
         }
     }
 
-    /// Execute an MCP command with retry logic and session state tracking
+    /// Execute a command on the persistent connection
     pub async fn execute_command(
         &self,
-        purpose: &str,
         method: &str,
         params: Value,
     ) -> Result<Value, Box<dyn std::error::Error>> {
-        let addr = format!("{}:{}", self.host, self.port);
-        
-        for attempt in 1..=self.max_retries {
-            info!("Executing MCP command '{}' (attempt {}/{})", method, attempt, self.max_retries);
-            
-            // Get fresh connection for each attempt
-            match TcpStream::connect(&addr).await {
-                Ok(mut stream) => {
-                    // Initialize session and get session_id
-                    let session_id = match self.initialize_mcp_session(&mut stream).await {
-                        Ok(session_id) => {
-                            info!("Initialized MCP session: {} for purpose: {}", session_id, purpose);
-                            
-                            // Track session state
-                            let mut session_state = self.session_state.write().await;
-                            session_state.insert(session_id.clone(), SessionState {
-                                session_id: session_id.clone(),
-                                purpose: purpose.to_string(),
-                                created_at: std::time::Instant::now(),
-                                last_used: std::time::Instant::now(),
-                                command_count: 0,
-                            });
-                            
-                            session_id
+        if !self.initialized {
+            return Err("Connection not initialized".into());
+        }
+
+        let request_id = Uuid::new_v4().to_string();
+        let request = json!({
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "method": method,
+            "params": params
+        });
+
+        let msg = format!("{}\n", request.to_string());
+        debug!("Sending MCP command: {}", msg.trim());
+
+        // Lock the stream and send command
+        let mut stream = self.stream.lock().await;
+        stream.write_all(msg.as_bytes()).await?;
+        stream.flush().await?;
+
+        // Read response
+        let mut buffer = Vec::new();
+        let mut byte = [0u8; 1];
+
+        // Read until we get our response
+        loop {
+            buffer.clear();
+
+            // Read line byte by byte
+            loop {
+                match tokio::time::timeout(Duration::from_secs(10), stream.read_exact(&mut byte)).await {
+                    Ok(Ok(_)) => {
+                        if byte[0] == b'\n' {
+                            break;
                         }
-                        Err(e) => {
-                            warn!("Failed to initialize MCP session: {}", e);
-                            if attempt < self.max_retries {
-                                tokio::time::sleep(self.retry_delay).await;
-                                continue;
-                            }
-                            return Err(e);
-                        }
-                    };
-                    
-                    // Update session state before sending command
-                    {
-                        let mut session_state = self.session_state.write().await;
-                        if let Some(state) = session_state.get_mut(&session_id) {
-                            state.last_used = std::time::Instant::now();
-                            state.command_count += 1;
-                            debug!("Session {} command count: {}", session_id, state.command_count);
-                        }
+                        buffer.push(byte[0]);
                     }
-                    
-                    // Send command
-                    let request_id = Uuid::new_v4().to_string();
-                    let request = json!({
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "method": method,
-                        "params": params
-                    });
-                    
-                    let msg = format!("{}\n", request.to_string());
-                    debug!("Sending MCP command: {} (session: {})", msg.trim(), session_id);
-                    
-                    if let Err(e) = stream.write_all(msg.as_bytes()).await {
-                        warn!("Failed to send command: {}", e);
-                        if attempt < self.max_retries {
-                            tokio::time::sleep(self.retry_delay).await;
-                            continue;
-                        }
+                    Ok(Err(e)) => {
+                        error!("Error reading from stream: {}", e);
                         return Err(Box::new(e));
                     }
-                    
-                    stream.flush().await?;
-                    
-                    // Read response
-                    let mut reader = BufReader::new(stream);
-                    let _response_line = String::new();
-                    
-                    // Read with timeout
-                    match tokio::time::timeout(
-                        Duration::from_secs(10),
-                        Self::read_response(&mut reader, &request_id)
-                    ).await {
-                        Ok(Ok(result)) => {
-                            info!("MCP command '{}' executed successfully", method);
-                            return Ok(result);
-                        }
-                        Ok(Err(e)) => {
-                            warn!("Failed to read response: {}", e);
-                            if attempt < self.max_retries {
-                                tokio::time::sleep(self.retry_delay).await;
-                                continue;
-                            }
-                            return Err(e);
-                        }
-                        Err(_) => {
-                            warn!("Timeout waiting for response");
-                            if attempt < self.max_retries {
-                                tokio::time::sleep(self.retry_delay).await;
-                                continue;
-                            }
-                            return Err("Command execution timeout".into());
-                        }
+                    Err(_) => {
+                        error!("Timeout reading MCP response");
+                        return Err("MCP response timeout".into());
                     }
-                }
-                Err(e) => {
-                    warn!("Failed to connect for command execution: {}", e);
-                    if attempt < self.max_retries {
-                        tokio::time::sleep(self.retry_delay).await;
-                        continue;
-                    }
-                    return Err(Box::new(e));
                 }
             }
-        }
-        
-        Err("Failed to execute command after all retries".into())
-    }
 
-    async fn read_response(
-        reader: &mut BufReader<TcpStream>,
-        request_id: &str,
-    ) -> Result<Value, Box<dyn std::error::Error>> {
-        let mut response_line = String::new();
-        
-        // Read until we get our response (skip notifications)
-        loop {
-            response_line.clear();
-            let n = reader.read_line(&mut response_line).await?;
-            
-            if n == 0 {
-                return Err("Connection closed while reading response".into());
-            }
-            
+            let response_line = String::from_utf8_lossy(&buffer);
             let trimmed = response_line.trim();
+
             if trimmed.is_empty() {
                 continue;
             }
-            
-            debug!("MCP response line: {}", trimmed);
-            
+
+            debug!("MCP response: {}", trimmed);
+
             // Skip notifications
             if trimmed.contains("server.initialized") {
                 continue;
             }
-            
+
             // Parse response
             if let Ok(response) = serde_json::from_str::<Value>(trimmed) {
                 // Check if this is our response
-                if response.get("id").and_then(|id| id.as_str()) == Some(request_id) {
+                if response.get("id").and_then(|id| id.as_str()) == Some(&request_id) {
                     if let Some(result) = response.get("result") {
+                        info!("MCP command '{}' executed successfully", method);
                         return Ok(result.clone());
                     } else if let Some(error) = response.get("error") {
+                        error!("MCP command error: {:?}", error);
                         return Err(format!("MCP error: {:?}", error).into());
                     }
                 } else if response.get("method").is_some() {
@@ -347,30 +192,87 @@ impl MCPConnectionPool {
             }
         }
     }
-    
-    /// Clean up old session states to prevent memory leaks
-    pub async fn cleanup_old_sessions(&self) {
-        let mut session_state = self.session_state.write().await;
-        let now = std::time::Instant::now();
-        let session_timeout = Duration::from_secs(300); // 5 minutes
-        
-        session_state.retain(|session_id, state| {
-            if now.duration_since(state.last_used) > session_timeout {
-                info!("Cleaning up expired session: {} (purpose: {}, commands: {})", 
-                      session_id, state.purpose, state.command_count);
-                false
-            } else {
-                true
-            }
-        });
+}
+
+/// MCP Connection Pool for managing multiple persistent connections
+pub struct MCPConnectionPool {
+    connections: Arc<RwLock<HashMap<String, Arc<PersistentMCPConnection>>>>,
+    host: String,
+    port: String,
+    max_retries: u32,
+    retry_delay: Duration,
+}
+
+impl MCPConnectionPool {
+    pub fn new(host: String, port: String) -> Self {
+        Self {
+            connections: Arc::new(RwLock::new(HashMap::new())),
+            host,
+            port,
+            max_retries: 3,
+            retry_delay: Duration::from_millis(500),
+        }
     }
-    
-    /// Get session statistics
-    pub async fn get_session_stats(&self) -> (usize, u64) {
-        let session_state = self.session_state.read().await;
-        let active_sessions = session_state.len();
-        let total_commands = session_state.values().map(|s| s.command_count).sum();
-        (active_sessions, total_commands)
+
+    /// Get or create a connection for a specific purpose
+    pub async fn get_connection(&self, purpose: &str) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error>> {
+        // Check if we have an existing connection
+        {
+            let connections = self.connections.read().await;
+            if let Some(conn) = connections.get(purpose) {
+                debug!("Reusing existing MCP connection for {}", purpose);
+                return Ok(Arc::clone(conn));
+            }
+        }
+
+        // Create new connection
+        info!("Creating new MCP connection for {}", purpose);
+
+        for attempt in 1..=self.max_retries {
+            info!("Connection attempt {}/{}", attempt, self.max_retries);
+
+            match PersistentMCPConnection::new(&self.host, &self.port).await {
+                Ok(conn) => {
+                    let conn = Arc::new(conn);
+
+                    // Store in pool
+                    let mut connections = self.connections.write().await;
+                    connections.insert(purpose.to_string(), Arc::clone(&conn));
+
+                    info!("MCP connection established for {}", purpose);
+                    return Ok(conn);
+                }
+                Err(e) => {
+                    warn!("Failed to create connection (attempt {}): {}", attempt, e);
+                    if attempt < self.max_retries {
+                        tokio::time::sleep(self.retry_delay).await;
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        Err("Failed to establish MCP connection after all retries".into())
+    }
+
+    /// Execute a command using the connection pool
+    pub async fn execute_command(
+        &self,
+        purpose: &str,
+        method: &str,
+        params: Value,
+    ) -> Result<Value, Box<dyn std::error::Error>> {
+        let conn = self.get_connection(purpose).await?;
+        conn.execute_command(method, params).await
+    }
+
+    /// Remove a connection from the pool
+    pub async fn remove_connection(&self, purpose: &str) {
+        let mut connections = self.connections.write().await;
+        if connections.remove(purpose).is_some() {
+            info!("Removed MCP connection for {}", purpose);
+        }
     }
 }
 
@@ -383,7 +285,7 @@ pub async fn call_swarm_init(
     strategy: &str,
 ) -> Result<Value, Box<dyn std::error::Error>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
-    
+
     let params = json!({
         "name": "swarm_init",
         "arguments": {
@@ -392,8 +294,26 @@ pub async fn call_swarm_init(
             "strategy": strategy
         }
     });
-    
+
     pool.execute_command("swarm_init", "tools/call", params).await
+}
+
+/// Simplified function to list agents
+pub async fn call_agent_list(
+    host: &str,
+    port: &str,
+    filter: &str,
+) -> Result<Value, Box<dyn std::error::Error>> {
+    let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
+
+    let params = json!({
+        "name": "agent_list",
+        "arguments": {
+            "filter": filter
+        }
+    });
+
+    pool.execute_command("agent_list", "tools/call", params).await
 }
 
 /// Simplified function to destroy a swarm
@@ -403,16 +323,16 @@ pub async fn call_swarm_destroy(
     swarm_id: &str,
 ) -> Result<Value, Box<dyn std::error::Error>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
-    
+
     info!("Calling swarm_destroy for swarm_id: {}", swarm_id);
-    
+
     let params = json!({
-        "name": "swarm_destroy", 
+        "name": "swarm_destroy",
         "arguments": {
             "swarmId": swarm_id
         }
     });
-    
+
     pool.execute_command("swarm_destroy", "tools/call", params).await
 }
 
@@ -436,24 +356,6 @@ pub async fn call_agent_spawn(
     });
 
     pool.execute_command("agent_spawn", "tools/call", params).await
-}
-
-/// Simplified function to list agents
-pub async fn call_agent_list(
-    host: &str,
-    port: &str,
-    filter: &str,
-) -> Result<Value, Box<dyn std::error::Error>> {
-    let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
-    
-    let params = json!({
-        "name": "agent_list",
-        "arguments": {
-            "filter": filter
-        }
-    });
-    
-    pool.execute_command("agent_list", "tools/call", params).await
 }
 
 /// Simplified function to orchestrate a task

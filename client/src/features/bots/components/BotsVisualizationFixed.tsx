@@ -368,35 +368,64 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
+  const [displayMode, setDisplayMode] = useState<'overview' | 'performance' | 'tasks' | 'network' | 'resources'>('overview');
   const telemetry = useTelemetry(`BotsNode-${agent.id}`);
   const threeJSTelemetry = useThreeJSTelemetry(agent.id);
   const lastPositionRef = useRef<THREE.Vector3>();
 
-  // Health-based glow color
+  // Enhanced health-based glow color with more precise mapping
   const glowColor = useMemo(() => {
-    if (agent.health > 80) return '#2ECC71';
-    if (agent.health > 50) return '#F39C12';
-    return '#E74C3C';
+    const health = agent.health || 0;
+    if (health >= 95) return '#00FF00'; // Bright green for excellent health
+    if (health >= 80) return '#2ECC71'; // Green for good health
+    if (health >= 65) return '#F1C40F'; // Yellow for moderate health
+    if (health >= 50) return '#F39C12'; // Orange for poor health
+    if (health >= 25) return '#E67E22'; // Dark orange for bad health
+    return '#E74C3C'; // Red for critical health
   }, [agent.health]);
 
-  // Size based on workload
-  const size = 1 + (agent.cpuUsage / 100) * 0.5;
+  // Enhanced size calculation based on workload with multiple factors
+  const baseSize = 1.0;
+  const cpuScale = agent.cpuUsage ? (agent.cpuUsage / 100) * 0.8 : 0;
+  const workloadScale = agent.workload ? agent.workload * 0.6 : 0;
+  const activityScale = agent.activity ? agent.activity * 0.4 : 0;
+  const tokenScale = agent.tokenRate ? Math.min(agent.tokenRate / 50, 0.5) : 0;
 
-  // Shape based on status
+  const size = baseSize + cpuScale + workloadScale + activityScale + tokenScale;
+  const clampedSize = Math.max(0.5, Math.min(size, 3.0)); // Clamp between 0.5 and 3.0
+
+  // Enhanced shape based on status and agent type
   const geometry = useMemo(() => {
+    const radius = clampedSize;
+
     switch (agent.status) {
       case 'error':
+        return new THREE.TetrahedronGeometry(radius * 1.2); // Sharp edges for error
       case 'terminating':
-        return new THREE.TetrahedronGeometry(size);
+        return new THREE.OctahedronGeometry(radius); // Diamond shape for terminating
       case 'initializing':
-        return new THREE.BoxGeometry(size, size, size);
+        return new THREE.BoxGeometry(radius, radius, radius); // Cube for initializing
       case 'idle':
-        return new THREE.SphereGeometry(size * 0.8, 16, 16);
+        return new THREE.SphereGeometry(radius * 0.8, 12, 12); // Smaller sphere, lower poly for idle
+      case 'offline':
+        return new THREE.CylinderGeometry(radius * 0.5, radius * 0.5, radius); // Flat cylinder for offline
       case 'busy':
+        // Different shapes for different agent types when busy
+        switch (agent.type) {
+          case 'queen':
+            return new THREE.IcosahedronGeometry(radius * 1.3, 1); // Large complex shape for queen
+          case 'coordinator':
+            return new THREE.DodecahedronGeometry(radius * 1.1); // 12-sided for coordinators
+          case 'architect':
+            return new THREE.ConeGeometry(radius, radius * 1.5, 8); // Pyramid for architects
+          default:
+            return new THREE.SphereGeometry(radius, 32, 32); // High-poly sphere for active agents
+        }
+      case 'active':
       default:
-        return new THREE.SphereGeometry(size, 32, 32);
+        return new THREE.SphereGeometry(radius, 24, 24); // Medium-poly sphere for active
     }
-  }, [agent.status, size]);
+  }, [agent.status, agent.type, clampedSize]);
 
   useFrame((state) => {
     if (!groupRef.current || !meshRef.current || !glowRef.current) return;
@@ -415,18 +444,28 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     // Update group position (this moves everything including labels)
     groupRef.current.position.copy(position);
 
-    // Enhanced pulse animation based on token rate and status
+    // Enhanced pulse animation based on token rate, health, and status
     if (agent.status === 'active' || agent.status === 'busy') {
-      // Base pulse speed influenced by token rate
+      // Base pulse speed influenced by token rate and health
       const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1;
-      const pulseSpeed = 2 * tokenMultiplier;
-      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.1 + 1;
-      
-      meshRef.current.scale.setScalar(pulse);
-      
-      // Glow intensity based on token rate
-      const glowIntensity = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 1;
+      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1;
+      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier;
+      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1;
+
+      meshRef.current.scale.setScalar(pulse * clampedSize);
+
+      // Dynamic glow intensity based on multiple factors
+      const tokenGlow = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 1;
+      const healthGlow = agent.health ? (agent.health / 100) : 0.5;
+      const statusGlow = agent.status === 'busy' ? 1.5 : 1.0;
+      const glowIntensity = tokenGlow * healthGlow * statusGlow;
+
       glowRef.current.scale.setScalar(pulse * 1.5 * glowIntensity);
+    } else if (agent.status === 'error') {
+      // Error state: rapid red pulsing
+      const errorPulse = Math.sin(state.clock.elapsedTime * 8 + index) * 0.3 + 1;
+      meshRef.current.scale.setScalar(errorPulse * clampedSize);
+      glowRef.current.scale.setScalar(errorPulse * 2.0);
     }
 
     // Enhanced rotation for busy agents (faster with higher token rate)
@@ -435,10 +474,25 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       meshRef.current.rotation.y += rotationSpeed;
     }
 
-    // Special high-activity animation for high token rate agents
+    // Enhanced high-activity animations
     if (agent.tokenRate && agent.tokenRate > 30) {
-      const vibration = Math.sin(state.clock.elapsedTime * 20) * 0.02;
-      meshRef.current.position.y += vibration;
+      // Gentle floating motion for high-activity agents
+      const vibration = Math.sin(state.clock.elapsedTime * 15 + index) * 0.03;
+      const float = Math.cos(state.clock.elapsedTime * 3 + index) * 0.1;
+      meshRef.current.position.y += vibration + float;
+    }
+
+    // Memory pressure indicator - slight shake if memory usage is high
+    if (agent.memoryUsage && agent.memoryUsage > 80) {
+      const shake = Math.sin(state.clock.elapsedTime * 25) * 0.01;
+      meshRef.current.position.x += shake;
+      meshRef.current.position.z += shake * 0.7;
+    }
+
+    // Critical health warning - dramatic pulsing
+    if (agent.health && agent.health < 25) {
+      const criticalPulse = Math.sin(state.clock.elapsedTime * 12) * 0.5 + 1;
+      meshRef.current.scale.multiplyScalar(criticalPulse);
     }
 
     telemetry.endRender();
@@ -457,12 +511,13 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     <group ref={groupRef}>
       {/* Glow effect */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[size * 1.5, 16, 16]} />
+        <sphereGeometry args={[clampedSize * 1.5, 16, 16]} />
         <meshBasicMaterial
           color={glowColor}
           transparent
-          opacity={0.15 + (hover ? 0.1 : 0)}
+          opacity={0.15 + (hover ? 0.1 : 0) + (agent.tokenRate ? Math.min(agent.tokenRate / 100, 0.2) : 0)}
           depthWrite={false}
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
 
@@ -472,52 +527,134 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         geometry={geometry}
         onPointerOver={() => {
           setHover(true);
-          telemetry.logInteraction('hover_start', { agentId: agent.id, agentType: agent.type });
+          telemetry.logInteraction('hover_start', {
+            agentId: agent.id,
+            agentType: agent.type,
+            health: agent.health,
+            cpuUsage: agent.cpuUsage,
+            tokenRate: agent.tokenRate,
+            status: agent.status,
+            nodeSize: clampedSize
+          });
         }}
         onPointerOut={() => {
           setHover(false);
-          telemetry.logInteraction('hover_end', { agentId: agent.id, agentType: agent.type });
+          telemetry.logInteraction('hover_end', {
+            agentId: agent.id,
+            agentType: agent.type,
+            hoverDuration: 'hover_ended'
+          });
         }}
         onClick={() => {
-          telemetry.logInteraction('click', { agentId: agent.id, agentType: agent.type, position });
+          // Cycle through display modes on click
+          const modes: Array<'overview' | 'performance' | 'tasks' | 'network' | 'resources'> =
+            ['overview', 'performance', 'tasks', 'network', 'resources'];
+          const currentIndex = modes.indexOf(displayMode);
+          const nextMode = modes[(currentIndex + 1) % modes.length];
+          setDisplayMode(nextMode);
+
+          telemetry.logInteraction('click', {
+            agentId: agent.id,
+            agentType: agent.type,
+            displayMode: nextMode,
+            position: { x: position.x, y: position.y, z: position.z },
+            health: agent.health,
+            status: agent.status,
+            currentTask: agent.currentTask,
+            capabilities: agent.capabilities?.slice(0, 3)
+          });
         }}
       >
         <meshStandardMaterial
           color={color}
-          emissive={color}
-          emissiveIntensity={0.3}
+          emissive={glowColor}
+          emissiveIntensity={agent.status === 'active' || agent.status === 'busy' ? 0.5 : 0.2}
           metalness={0.3}
           roughness={0.7}
+          transparent={agent.status === 'error' || agent.status === 'terminating'}
+          opacity={agent.status === 'error' || agent.status === 'terminating' ? 0.7 : 1.0}
         />
       </mesh>
 
-      {/* Agent info on hover or when active */}
+      {/* Enhanced agent info display */}
       {(hover || agent.status === 'active' || agent.status === 'busy') && (
         <Html
           center
-          distanceFactor={10}
+          distanceFactor={8}
           style={{
-            transition: 'all 0.2s',
-            opacity: hover ? 1 : 0.8,
+            transition: 'all 0.3s ease-in-out',
+            opacity: hover ? 1 : 0.85,
             pointerEvents: 'none',
             position: 'absolute',
-            top: `${-size * 20}px`, // Adjust positioning relative to the node
+            top: `${-clampedSize * 25}px`,
             left: '0',
+            transform: hover ? 'scale(1.05)' : 'scale(1)',
+            filter: hover ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' : 'none'
           }}
         >
           <AgentStatusBadges agent={agent} logs={processingLogs} />
         </Html>
       )}
 
-      {/* 3D Text label */}
+      {/* Performance indicators for high-performance agents */}
+      {(agent.tokenRate > 30 || agent.cpuUsage > 80) && (
+        <group>
+          {/* CPU usage ring */}
+          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, clampedSize + 0.2, 0]}>
+            <ringGeometry args={[clampedSize * 1.1, clampedSize * 1.3, 16]} />
+            <meshBasicMaterial
+              color={agent.cpuUsage > 90 ? '#E74C3C' : agent.cpuUsage > 70 ? '#F39C12' : '#2ECC71'}
+              transparent
+              opacity={0.6}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+
+          {/* Token rate indicator particles */}
+          {agent.tokenRate > 50 && [
+            ...Array(Math.min(Math.floor(agent.tokenRate / 10), 8))
+          ].map((_, i) => {
+            const angle = (i / 8) * Math.PI * 2;
+            const radius = clampedSize * 2;
+            const x = Math.cos(angle + Date.now() * 0.001) * radius;
+            const z = Math.sin(angle + Date.now() * 0.001) * radius;
+            return (
+              <mesh key={i} position={[x, 0, z]}>
+                <sphereGeometry args={[0.03, 6, 6]} />
+                <meshBasicMaterial
+                  color="#F39C12"
+                  transparent
+                  opacity={0.8}
+                />
+              </mesh>
+            );
+          })}
+        </group>
+      )}
+
+      {/* Enhanced 3D Text labels - content changes based on display mode */}
       <Billboard
         follow={true}
         lockX={false}
         lockY={false}
         lockZ={false}
       >
+        {/* Mode indicator */}
         <Text
-          position={[0, -size - 0.5, 0]}
+          position={[0, clampedSize + 0.8, 0]}
+          fontSize={0.18}
+          color="#3498DB"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="black"
+        >
+          [{displayMode.toUpperCase()}]
+        </Text>
+
+        {/* Agent name/ID always shown */}
+        <Text
+          position={[0, -clampedSize - 0.7, 0]}
           fontSize={0.4}
           color="white"
           anchorX="center"
@@ -527,6 +664,247 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         >
           {agent.name || String(agent.id).slice(0, 8)}
         </Text>
+
+        {/* Dynamic content based on display mode */}
+        {displayMode === 'overview' && (
+          <>
+            <Text
+              position={[0, -clampedSize - 1.1, 0]}
+              fontSize={0.25}
+              color={colors[agent.type] || '#FFFFFF'}
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.03}
+              outlineColor="black"
+            >
+              {agent.type.toUpperCase()}
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.4, 0]}
+              fontSize={0.2}
+              color={glowColor}
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Health: {agent.health ? `${agent.health.toFixed(0)}%` : 'N/A'}
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.7, 0]}
+              fontSize={0.15}
+              color="#95A5A6"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Status: {agent.status}
+            </Text>
+          </>
+        )}
+
+        {displayMode === 'performance' && (
+          <>
+            <Text
+              position={[0, -clampedSize - 1.1, 0]}
+              fontSize={0.2}
+              color={agent.cpuUsage > 80 ? '#E74C3C' : agent.cpuUsage > 50 ? '#F39C12' : '#2ECC71'}
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              CPU: {agent.cpuUsage?.toFixed(0) || 0}%
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.4, 0]}
+              fontSize={0.2}
+              color="#9B59B6"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              MEM: {agent.memoryUsage?.toFixed(0) || 0}%
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.7, 0]}
+              fontSize={0.18}
+              color={agent.tokenRate > 20 ? '#E67E22' : '#3498DB'}
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Tokens: {agent.tokenRate?.toFixed(1) || 0}/min
+            </Text>
+            <Text
+              position={[0, -clampedSize - 2.0, 0]}
+              fontSize={0.15}
+              color="#F39C12"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Total: {agent.tokens?.toLocaleString() || 0}
+            </Text>
+          </>
+        )}
+
+        {displayMode === 'tasks' && (
+          <>
+            <Text
+              position={[0, -clampedSize - 1.1, 0]}
+              fontSize={0.2}
+              color="#2ECC71"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Active: {agent.tasksActive || 0}
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.4, 0]}
+              fontSize={0.2}
+              color="#3498DB"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Done: {agent.tasksCompleted || 0}
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.7, 0]}
+              fontSize={0.15}
+              color="#95A5A6"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              {agent.currentTask ? agent.currentTask.substring(0, 20) + '...' : 'Idle'}
+            </Text>
+            {agent.successRate !== undefined && (
+              <Text
+                position={[0, -clampedSize - 2.0, 0]}
+                fontSize={0.15}
+                color={agent.successRate > 0.8 ? '#27AE60' : agent.successRate > 0.6 ? '#F39C12' : '#E74C3C'}
+                anchorX="center"
+                anchorY="middle"
+                outlineWidth={0.02}
+                outlineColor="black"
+              >
+                Success: {(agent.successRate * 100).toFixed(0)}%
+              </Text>
+            )}
+          </>
+        )}
+
+        {displayMode === 'network' && (
+          <>
+            <Text
+              position={[0, -clampedSize - 1.1, 0]}
+              fontSize={0.18}
+              color="#E67E22"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Swarm: {agent.swarmId?.substring(0, 8) || 'None'}
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.4, 0]}
+              fontSize={0.18}
+              color="#F39C12"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Mode: {agent.agentMode || 'Default'}
+            </Text>
+            {agent.parentQueenId && (
+              <Text
+                position={[0, -clampedSize - 1.7, 0]}
+                fontSize={0.15}
+                color="#FFD700"
+                anchorX="center"
+                anchorY="middle"
+                outlineWidth={0.02}
+                outlineColor="black"
+              >
+                Queen: {agent.parentQueenId.substring(0, 8)}
+              </Text>
+            )}
+            <Text
+              position={[0, -clampedSize - 2.0, 0]}
+              fontSize={0.15}
+              color="#95A5A6"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Age: {agent.age ? Math.floor(agent.age / 1000 / 60) : 0}m
+            </Text>
+          </>
+        )}
+
+        {displayMode === 'resources' && (
+          <>
+            <Text
+              position={[0, -clampedSize - 1.1, 0]}
+              fontSize={0.18}
+              color="#3498DB"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Workload: {(agent.workload * 100 || 0).toFixed(0)}%
+            </Text>
+            <Text
+              position={[0, -clampedSize - 1.4, 0]}
+              fontSize={0.18}
+              color="#2ECC71"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              Activity: {(agent.activity * 100 || 0).toFixed(0)}%
+            </Text>
+            {agent.capabilities && agent.capabilities.length > 0 && (
+              <Text
+                position={[0, -clampedSize - 1.7, 0]}
+                fontSize={0.15}
+                color="#9B59B6"
+                anchorX="center"
+                anchorY="middle"
+                outlineWidth={0.02}
+                outlineColor="black"
+              >
+                Caps: {agent.capabilities.length} total
+              </Text>
+            )}
+            <Text
+              position={[0, -clampedSize - 2.0, 0]}
+              fontSize={0.13}
+              color="#95A5A6"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.02}
+              outlineColor="black"
+            >
+              {agent.capabilities?.[0]?.replace(/_/g, ' ') || 'None'}
+            </Text>
+          </>
+        )}
       </Billboard>
     </group>
   );
@@ -568,10 +946,11 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
   const targetTokenRate = targetAgent?.tokenRate || 0;
   const avgTokenRate = (sourceTokenRate + targetTokenRate) / 2;
   
-  // Enhanced visual properties based on data flow
-  const baseWidth = Math.max(1, edge.dataVolume / 1000); // Base width from data volume
-  const tokenWidth = avgTokenRate > 0 ? Math.min(avgTokenRate / 10, 3) : 0; // Additional width from token rate
-  const lineWidth = isActive ? Math.max(2, baseWidth + tokenWidth) : Math.max(1, baseWidth);
+  // Enhanced visual properties based on data flow and communication intensity
+  const baseWidth = Math.max(0.5, edge.dataVolume / 1000); // Base width from data volume
+  const tokenWidth = avgTokenRate > 0 ? Math.min(avgTokenRate / 10, 2) : 0; // Additional width from token rate
+  const messageWidth = edge.messageCount > 0 ? Math.min(edge.messageCount / 100, 1.5) : 0; // Width from message frequency
+  const lineWidth = isActive ? Math.max(1.5, baseWidth + tokenWidth + messageWidth) : Math.max(0.5, baseWidth * 0.5);
   
   // Opacity and color intensity based on activity
   const baseOpacity = isActive ? 0.8 : 0.3;
@@ -585,9 +964,14 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
      '#2980B9') : // Dark blue for low activity
     color;
 
-  // Animation properties for high-bandwidth connections
-  const shouldAnimate = isActive && avgTokenRate > 15;
-  const dashOffset = shouldAnimate ? -Date.now() * 0.001 : 0;
+  // Enhanced animation properties for different communication types
+  const shouldAnimate = isActive && (avgTokenRate > 15 || edge.messageCount > 50);
+  const animationSpeed = Math.min(avgTokenRate / 10, 3) + Math.min(edge.messageCount / 100, 2);
+  const dashOffset = shouldAnimate ? -Date.now() * 0.001 * animationSpeed : 0;
+
+  // Pulse effect for very high activity connections
+  const shouldPulse = avgTokenRate > 40 || edge.messageCount > 200;
+  const pulseIntensity = shouldPulse ? Math.sin(Date.now() * 0.005) * 0.3 + 1 : 1;
 
   return (
     <>
@@ -595,8 +979,8 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
       <DreiLine
         points={[sourcePos, targetPos]}
         color={edgeColor}
-        lineWidth={lineWidth}
-        opacity={opacity}
+        lineWidth={lineWidth * pulseIntensity}
+        opacity={opacity * pulseIntensity}
         transparent
         dashed={!isActive || shouldAnimate}
         dashScale={shouldAnimate ? 10 : 5}
@@ -609,14 +993,48 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         <DreiLine
           points={[sourcePos, targetPos]}
           color="#F39C12"
-          lineWidth={lineWidth * 0.5}
-          opacity={0.4}
+          lineWidth={lineWidth * 0.5 * pulseIntensity}
+          opacity={0.4 * pulseIntensity}
           transparent
           dashed={true}
           dashScale={15}
           dashSize={3}
           dashOffset={-dashOffset * 1.5}
         />
+      )}
+
+      {/* Ultra-high activity indicator - third layer for extreme communication */}
+      {avgTokenRate > 50 && edge.messageCount > 300 && isActive && (
+        <DreiLine
+          points={[sourcePos, targetPos]}
+          color="#E74C3C"
+          lineWidth={lineWidth * 0.3 * pulseIntensity}
+          opacity={0.6 * pulseIntensity}
+          transparent
+          dashed={true}
+          dashScale={20}
+          dashSize={5}
+          dashOffset={-dashOffset * 2}
+        />
+      )}
+
+      {/* Communication direction indicator - small particles */}
+      {isActive && shouldAnimate && (
+        <group>
+          {[0.2, 0.5, 0.8].map((t, i) => {
+            const particlePos = new THREE.Vector3().lerpVectors(sourcePos, targetPos, t + (Date.now() * 0.001 * animationSpeed) % 1);
+            return (
+              <mesh key={i} position={particlePos}>
+                <sphereGeometry args={[0.05, 8, 8]} />
+                <meshBasicMaterial
+                  color={avgTokenRate > 30 ? '#F39C12' : '#3498DB'}
+                  transparent
+                  opacity={0.8 * pulseIntensity}
+                />
+              </mesh>
+            );
+          })}
+        </group>
       )}
     </>
   );
