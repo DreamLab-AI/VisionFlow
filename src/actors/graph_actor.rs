@@ -56,6 +56,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use tokio::time::Duration;
 use log::{debug, info, warn, error, trace};
+use glam::Vec3;
 use crate::types::Vec3Data;
  
 use crate::actors::messages::*;
@@ -2459,7 +2460,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             agent_node_ids.push(node.id);
         }
 
-        if !position_data.is_empty() {
+        let binary_size = if !position_data.is_empty() {
             // Use binary protocol with control bits for agent identification
             // This encodes: node_id (2 bytes with flags), position (12 bytes),
             // velocity (12 bytes), SSSP distance (4 bytes), SSSP parent (4 bytes)
@@ -2478,7 +2479,11 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             let nodes_sent = position_data.len();
             info!("Sent BINARY agent update: {} nodes, {} bytes total, {} bytes/node",
                   nodes_sent, binary_size, binary_size / nodes_sent);
-        }
+
+            binary_size
+        } else {
+            0
+        };
 
         // DO NOT send graph structure over WebSocket - this belongs in REST!
         // WebSocket is ONLY for high-speed variable data:
@@ -2496,9 +2501,9 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         debug!("Agent binary positions sent. Graph structure available via REST /api/bots/data");
 
         info!("Sent optimized graph update: {} nodes, {} edges ({} bytes)",
-              minimal_nodes.len(),
+              position_data.len(),
               self.bots_graph_data.edges.len(),
-              bots_graph_update.to_string().len());
+              binary_size);
 
         // Send the updated bots graph data to GPU for force-directed positioning
         if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {

@@ -16,10 +16,10 @@
 - **Control Bits**: Node type flags in ID (2 bytes)
 - **Voice/Audio**: Binary audio streams for TTS/STT
 
-#### REST API (JSON - Metadata and Telemetry)
-**Purpose**: Agent metadata, telemetry, configuration
+#### REST API FOR AGENT AND KNOWLEDGE GRAPH (JSON - Metadata and Telemetry)
+**Purpose**: Agent and knowledge graph metadata, telemetry, configuration
 **Protocol**: JSON over HTTPS
-**Update Rate**: Client polls every 10 seconds
+**Update Rate**: Client polls every 30s for agent data, leave the knowledge graph working as is
 
 **Endpoints**:
 - `GET /api/bots/data` - Full agent list with all metadata
@@ -39,45 +39,92 @@ Agents → TCP → Rust → GPU → Binary Encode → WebSocket → Client
                     (60ms cycle)
 
 Metadata/Telemetry (REST):
-Agents → TCP → Rust → Cache → REST API ← Client (poll 10s)
+Agents → TCP → Rust → Cache → REST API ← Client (poll 30s)
                          ↓
                     Persistent Store
 ```
 
 ---
 
-## 🚧 REMAINING WORK - Client-Agent Integration
+## 🚨 CRITICAL ISSUE DISCOVERED (2025-09-17 18:59)
 
-### 1. Client → Agent (Task Submission) ⚠️ NEEDS CLIENT IMPLEMENTATION
-**Current Status**: Backend endpoints exist and work
-**What's Missing**: Client UI/UX for task submission
+### Problem: Agent System Not Rendering Despite Working MCP
 
-**Required Client Work**:
-```javascript
-// Client needs to implement:
-async function submitTask(taskDescription, priority = 'medium') {
-  const response = await fetch('/api/bots/submit-task', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      task: taskDescription,
-      priority: priority,
-      strategy: 'adaptive'
-    })
-  });
-  const { taskId } = await response.json();
-  // Start polling for task status
-  pollTaskStatus(taskId);
-}
+**Symptoms Observed**:
+1. Client gets 404 errors on `/api/bots/status` and `/api/bots/data`
+2. No agents render in the visualization despite spawn attempts
+3. MCP server is running and accessible
+4. WebSocket connects but gets "subscription_confirmed" messages instead of binary data
+5. Other REST endpoints work, but `/bots` endpoints return 404
+6. Client telemetry fetches fail with status=404
+7. VisionFlow container (172.18.0.10) repeatedly connects/disconnects from MCP (1-2ms duration)
+
+**Two Parallel Systems Discovery**:
+We have parallel systems that aren't fully integrated:
+
+- **System A**: Direct MCP control via TCP (works ✅)
+  - Can initialize swarms directly via `nc localhost 9500`
+  - Can spawn agents directly
+  - TCP protocol works correctly
+  - MCP server fully functional
+
+- **System B**: UI → Rust Backend → MCP (broken ❌)
+  - UI sends commands to Rust backend
+  - Rust backend can't maintain connection to MCP (immediate disconnect)
+  - 404 errors on /api/bots endpoints
+  - WebSocket sends wrong protocol (JSON instead of binary)
+
+### ✅ ROOT CAUSE FIXED: BufReader Ownership Issue [SOLVED]
+
+**Location**: `/workspace/ext/src/utils/mcp_connection.rs:140`
+
+**Problem Details**:
+The `initialize_mcp_session` function creates a `BufReader` that takes ownership of the `TcpStream`. After reading the initialization response, the function tries to return the session ID, but the original stream can't be used anymore because the `BufReader` has taken ownership.
+
+```rust
+// Line 140 - BufReader takes ownership of stream
+let mut reader = BufReader::new(stream);
+// After this point, 'stream' is moved and can't be used
 ```
 
-**UI Elements Needed**:
-- Task input field/textarea
-- Priority selector (low/medium/high/critical)
-- Submit button
-- Task status display panel
-- Progress indicators
+**This causes the following sequence**:
+1. TCP connection establishes successfully (172.18.0.10 → 172.18.0.3:9500)
+2. Initialization request is sent to MCP
+3. BufReader takes ownership of stream for reading response
+4. Function returns session_id, but stream is now unusable
+5. Connection immediately closes (total duration: 1-2ms)
+6. Rust backend can't send any commands to MCP
+7. All /api/bots endpoints fail with 404 because no data available
 
+**Pattern in logs**:
+```
+[PMCP-INFO] Client connected: 172.18.0.10:xxxxx-timestamp
+[PMCP-INFO] Client disconnected: 172.18.0.10:xxxxx-timestamp
+# Always 1-2ms between connect and disconnect
+```
+
+### ✅ FIXES APPLIED (2025-09-17 19:10)
+
+1. **Fixed Stream Ownership in mcp_connection.rs** ✅:
+   - Created new `PersistentMCPConnection` class that maintains the stream
+   - Used `Arc<Mutex<TcpStream>>` to allow shared access
+   - Read responses byte-by-byte to avoid consuming the stream
+   - Connection pool maintains persistent connections per purpose
+
+2. **Fixed Network Configuration** ✅:
+   - Updated all references from `multi-agent-container` hostname to IP `172.18.0.4`
+   - MCP server runs in multi-agent-container at 172.18.0.4:9500
+   - VisionFlow container (172.18.0.10) now correctly connects to MCP
+
+3. **Architecture Clarification** ✅:
+   - MCP TCP server runs in multi-agent-container (172.18.0.4) on port 9500
+   - VisionFlow container (172.18.0.10) connects to it via TCP
+   - WebSocket bridge at port 3002 for browser connections
+   - All containers on same docker_ragflow network (172.18.0.0/16)
+
+---
+
+##
 ### 2. Agent → Client (Display on Nodes) ⚠️ NEEDS CLIENT VISUALIZATION
 
 **Current Status**:

@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
+import { parseBinaryNodeData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
+import { createLogger } from '../../../utils/logger';
+
+const logger = createLogger('BotsDataContext');
 
 interface BotsData {
   nodeCount: number;
@@ -144,18 +148,77 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   };
 
+  // Handler for binary position updates
+  const updateFromBinaryPositions = (binaryData: ArrayBuffer) => {
+    try {
+      // Parse binary data to get agent positions
+      const nodeUpdates = parseBinaryNodeData(binaryData);
+
+      // Filter for agent nodes only
+      const agentUpdates = nodeUpdates.filter(node => isAgentNode(node.nodeId));
+
+      if (agentUpdates.length === 0) {
+        return; // No agent data to process
+      }
+
+      logger.debug(`Processing ${agentUpdates.length} agent position updates from binary data`);
+
+      setBotsData(prev => {
+        if (!prev) return prev;
+
+        // Create updated agents array with new positions
+        const updatedAgents = prev.agents.map(agent => {
+          // Find matching position update by node ID
+          const positionUpdate = agentUpdates.find(update => {
+            const actualNodeId = getActualNodeId(update.nodeId);
+            // Try to match by ID conversion (numeric to string)
+            return String(actualNodeId) === agent.id || actualNodeId.toString() === agent.id;
+          });
+
+          if (positionUpdate) {
+            // Merge binary position/velocity data with existing agent metadata
+            return {
+              ...agent,
+              position: positionUpdate.position,
+              velocity: positionUpdate.velocity,
+              // Store additional SSSP data for path visualization
+              ssspDistance: positionUpdate.ssspDistance,
+              ssspParent: positionUpdate.ssspParent,
+              // Update timestamp to indicate fresh data
+              lastPositionUpdate: Date.now()
+            };
+          }
+
+          return agent;
+        });
+
+        return {
+          ...prev,
+          agents: updatedAgents,
+          lastUpdate: new Date().toISOString()
+        };
+      });
+    } catch (error) {
+      logger.error('Error processing binary position updates:', error);
+    }
+  };
+
   // Subscribe to WebSocket updates
   useEffect(() => {
     const unsubscribe1 = botsWebSocketIntegration.on('bots-full-update', (update: BotsFullUpdateMessage) => {
       updateFromFullUpdate(update);
     });
-    
+
     // Subscribe to new graph update event
     const unsubscribe2 = botsWebSocketIntegration.on('bots-graph-update', updateFromGraphData);
+
+    // Subscribe to binary position updates for real-time agent movement
+    const unsubscribe3 = botsWebSocketIntegration.on('bots-binary-position-update', updateFromBinaryPositions);
 
     return () => {
       unsubscribe1();
       unsubscribe2();
+      unsubscribe3();
     };
   }, []);
 

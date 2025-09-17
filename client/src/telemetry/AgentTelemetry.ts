@@ -87,14 +87,14 @@ export class AgentTelemetryService {
   }
 
   private startAutoUpload() {
-    // Poll REST endpoint for all agent telemetry/metadata every 10 seconds
+    // Poll REST endpoint for all agent telemetry/metadata every 30 seconds
     // WebSocket handles high-speed position/velocity/SSSP data
     // REST handles metadata, telemetry, and agent details
     this.uploadInterval = setInterval(() => {
       this.fetchAgentTelemetry().catch(error => {
         this.logger.error('Failed to fetch agent telemetry:', error);
       });
-    }, 10000); // Poll every 10 seconds for telemetry updates
+    }, 30000); // Poll every 30 seconds for telemetry updates
   }
 
   // Public telemetry methods
