@@ -22,8 +22,10 @@ multi-agent-docker/gui-based-tools-docker/blender-4.5.1-linux-x64.tar.xz
 multi-agent-docker/mcp-logs/
 multi-agent-docker/.venv/
 multi-agent-docker/pbr_outputs/
+multi-agent-docker/workspace/
 #multi-agent-docker/gui-based-tools-docker/tessellating-pbr-generator/src/
 client/src/vircadia-web/
+multi-agent-docker/.git
 
 # .claude
 .npm
