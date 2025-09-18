@@ -80,6 +80,15 @@ else
     log_info "Directory /home/ubuntu already exists, skipping symlink."
 fi
 
+# Ensure claude is accessible globally
+if [ -f "/home/ubuntu/.local/bin/claude" ] && [ ! -f "/usr/local/bin/claude" ]; then
+    if dry_run_log "Would create global claude symlink"; then :; else
+        ln -sf /home/ubuntu/.local/bin/claude /usr/local/bin/claude
+        chmod +x /usr/local/bin/claude 2>/dev/null || true
+        log_success "Created global claude symlink"
+    fi
+fi
+
 # --- Helper Functions for File Operations ---
 copy_if_missing() {
     local src="$1"

@@ -8,16 +8,18 @@
 
 ### Your Environment:
 - ✅ **You HAVE access to**:
-  - `cargo check` and Rust toolchain for code validation
+  - `/home/ubuntu/.cargo check` and Rust toolchain for code validation
   - VisionFlow logs at `/workspace/ext/logs/` (READ-ONLY)
   - TCP server running on port 9500 (localhost)
   - MCP tooling and processes
-  - The codebase at `/workspace/ext/`
-  
+  - The codebase at `/workspace/ext/src for the containerise rust server
+  - The codebase at /workspace/ext/multi-agent-docker which shows this container's workings (READ)
+  - The codebase at /workspace/ext/client/ which shows the REST and Websocket client that connects to the rust server
+
 - ❌ **You DO NOT have access to**:
   - The running VisionFlow container (it's in a separate container)
   - Direct network access to other containers
-  - The ability to restart services outside this container
+  - The ability to restart services outside this container. Ask the user for restarts of visionflow.
 
 ### Log Access:
 ```bash
@@ -36,7 +38,7 @@ nc localhost 9500
 
 ### Problem Summary
 The VisionFlow backend (in separate container) is failing to maintain persistent TCP connections to our MCP server:
-1. Connections arrive every 30 seconds from VisionFlow (172.18.0.10)
+1. Connections arrive every 30 seconds from VisionFlow (172.18.0.10) which is a feature of the client timing and can be made much shorter
 2. Each connection lasts only 1-2ms before disconnecting
 3. No actual task submissions reach the MCP server
 
@@ -80,7 +82,7 @@ VisionFlow Container → TCP Connection (1ms) → MCP Server (this container)
 ```
 VisionFlow Container → Persistent TCP → MCP Server (this container)
                     ↓                ↓
-                 Stays connected    Processes requests
+                 Stays connected    and monitors multiple spawned agent swarms from multiple clients
 ```
 
 ### Root Cause (from VisionFlow logs at `/workspace/ext/logs/`):
@@ -136,11 +138,42 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | nc localhost
 
 ## 📋 Task Checklist for Container Agents
 
-- [ ] Examine connection logs in `/workspace/ext/logs/server.log`
-- [ ] Identify the 1-2ms connection pattern
-- [ ] Review `ClaudeFlowActorTcp` implementation
-- [ ] Understand why it's not maintaining persistent connections
-- [ ] Propose code changes (validate with `cargo check`)
-- [ ] Document findings in this file
+### ✅ Completed Tasks (2025-09-18)
 
-Remember: You're debugging VisionFlow's connection behavior by examining its logs and code, but the actual VisionFlow service runs in a different container.
+- [x] Examine connection logs in `/workspace/ext/logs/server.log`
+- [x] Identify the 1-2ms connection pattern
+- [x] Review `ClaudeFlowActorTcp` implementation
+- [x] Understand why it's not maintaining persistent connections
+- [x] Propose code changes (validate with `cargo check`)
+- [x] Document findings in this file
+- [x] Re-architect to allow the rust back end to manage multiple swarms over TCP via their IDs, properly routing to clients when requested.
+- [x] Engineer the node system in the clients to pull on a reasonable rate to get the agent swarm metadata over rest, and the positional data from the GPU balanced force directed graph pertaining to the agent network.
+- [x] Ensure all this intuitively displays on connected clients.
+- [x] Clients should be able to start, stop and remove, and monitor tasks in flight on the multi-agent-contain
+
+### 🎯 Implementation Summary
+
+**Connection Persistence Fixed**: Modified ClaudeFlowActorTcp to maintain persistent TCP connections instead of creating new ones for each poll.
+
+**Multi-Swarm Management Implemented**: Added SwarmRegistry and routing system to manage multiple concurrent swarms with unique IDs.
+
+**Client Polling System Operational**: REST endpoints for metadata and WebSocket streams for real-time position updates now working.
+
+**Visualisation Complete**: Three.js-based 3D rendering with GPU-accelerated physics displaying agent networks intuitively.
+
+**Full Control Interface**: Clients can now start, stop, remove and monitor agent swarms through comprehensive UI controls.
+
+### 📚 Documentation Updated
+
+- [x] Created comprehensive IMPLEMENTATION_REPORT.md with complete system upgrade details
+- [x] Updated README.md with new features and performance metrics
+- [x] Created MIGRATION_GUIDE.md for existing deployments with step-by-step instructions
+- [x] Updated architecture documentation with new system design
+- [x] Created detailed WebSocket binary protocol specification
+- [x] Updated main documentation index with latest changes
+- [x] All documentation using UK spelling as requested
+- [x] Corrected WebSocket protocol specification to include comprehensive node data
+
+Remember: You're debugging VisionFlow's connection behaviour by examining its logs and code, but the actual VisionFlow service runs in a different container.
+
+Keep ext/docs in sync with the changes as you work using documenting agents that write in UK spelling

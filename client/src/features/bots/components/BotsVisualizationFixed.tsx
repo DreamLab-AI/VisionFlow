@@ -9,6 +9,7 @@ import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
+import { AgentPollingStatus } from './AgentPollingStatus';
 
 const logger = createLogger('BotsVisualization');
 
@@ -37,6 +38,13 @@ const formatProcessingLogs = (logs: string[] | undefined): string[] => {
   // Return actual logs if provided, otherwise empty array
   return logs || [];
 };
+
+// Smooth position interpolation for real-time updates
+function lerpVector3(current: THREE.Vector3, target: THREE.Vector3, alpha: number): void {
+  current.x += (target.x - current.x) * alpha;
+  current.y += (target.y - current.y) * alpha;
+  current.z += (target.z - current.z) * alpha;
+}
 
 // Get VisionFlow colors from settings or use defaults
 const getVisionFlowColors = (settings: any) => {
@@ -372,6 +380,8 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const telemetry = useTelemetry(`BotsNode-${agent.id}`);
   const threeJSTelemetry = useThreeJSTelemetry(agent.id);
   const lastPositionRef = useRef<THREE.Vector3>();
+  const currentPositionRef = useRef<THREE.Vector3>(position.clone());
+  const targetPositionRef = useRef<THREE.Vector3>(position.clone());
 
   // Enhanced health-based glow color with more precise mapping
   const glowColor = useMemo(() => {
@@ -441,8 +451,15 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       lastPositionRef.current = position.clone();
     }
 
-    // Update group position (this moves everything including labels)
-    groupRef.current.position.copy(position);
+    // Smooth position interpolation for real-time updates
+    targetPositionRef.current.copy(position);
+    
+    // Interpolate current position towards target
+    const lerpFactor = 0.15; // Adjust for smoothness (0.05 = very smooth, 0.3 = responsive)
+    lerpVector3(currentPositionRef.current, targetPositionRef.current, lerpFactor);
+    
+    // Update group position with interpolated value
+    groupRef.current.position.copy(currentPositionRef.current);
 
     // Enhanced pulse animation based on token rate, health, and status
     if (agent.status === 'active' || agent.status === 'busy') {

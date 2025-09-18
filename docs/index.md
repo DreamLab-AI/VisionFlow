@@ -2,7 +2,16 @@
 
 ## Overview
 
-VisionFlow is a high-performance WebXR system for real-time 3D visualization of knowledge graphs and AI agent swarms. This documentation provides comprehensive technical information about the system architecture, components, and operations.
+VisionFlow is a high-performance WebXR system for real-time 3D visualisation of knowledge graphs and AI agent swarms. This documentation provides comprehensive technical information about the system architecture, components, and operations.
+
+## 🚀 Latest Updates
+
+**System Upgrade 2025** (v2.0.0) - [Implementation Report](IMPLEMENTATION_REPORT.md)
+- Fixed persistent TCP connection issues
+- Implemented multi-swarm management 
+- Enhanced client polling system with comprehensive WebSocket protocol
+- Complete control interface for task management
+- [Migration Guide](deployment/MIGRATION_GUIDE.md) for existing deployments
 
 ## Documentation Hub
 

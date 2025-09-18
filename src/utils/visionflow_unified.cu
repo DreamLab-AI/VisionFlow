@@ -47,6 +47,9 @@ struct SimParams {
     // Constraint progressive activation parameters
     unsigned int constraint_ramp_frames;  // Number of frames to fully activate constraints
     float constraint_max_force_per_node;  // Maximum force per node from all constraints
+    // GPU Stability Gates
+    float stability_threshold;  // Kinetic energy threshold below which physics is skipped
+    float min_velocity_threshold;  // Minimum node velocity to consider for physics
 };
 
 // Global constant memory for simulation parameters
@@ -1491,6 +1494,338 @@ __global__ void relabel_communities_kernel(
     if (old_label >= 0) {
         labels[idx] = label_mapping[old_label];
     }
+}
+
+// =============================================================================
+// GPU Stability Gates - Kinetic Energy Monitoring and Early Exit
+// =============================================================================
+
+/**
+ * Calculate total kinetic energy across all nodes with block-level reduction
+ * Returns partial sums that need final reduction
+ * Grid: (ceil(num_nodes/256), 1, 1), Block: (256, 1, 1)
+ */
+__global__ void calculate_kinetic_energy_kernel(
+    const float* __restrict__ vel_x,
+    const float* __restrict__ vel_y,
+    const float* __restrict__ vel_z,
+    const float* __restrict__ mass,
+    float* __restrict__ partial_kinetic_energy,
+    int* __restrict__ active_node_count,
+    const int num_nodes,
+    const float min_velocity_threshold)
+{
+    const int tid = threadIdx.x;
+    const int idx = blockIdx.x * blockDim.x + tid;
+    
+    // Shared memory for block-level reduction
+    extern __shared__ float shared_data[];
+    float* shared_ke = shared_data;
+    int* shared_active = (int*)&shared_data[blockDim.x];
+    
+    // Initialize shared memory
+    shared_ke[tid] = 0.0f;
+    shared_active[tid] = 0;
+    
+    // Calculate kinetic energy for this thread's node
+    if (idx < num_nodes) {
+        float vx = vel_x[idx];
+        float vy = vel_y[idx];
+        float vz = vel_z[idx];
+        float vel_sq = vx * vx + vy * vy + vz * vz;
+        
+        // Use stability threshold from parameter
+        float min_vel_sq = min_velocity_threshold * min_velocity_threshold;
+        
+        // Check if node is actively moving
+        if (vel_sq > min_vel_sq) {
+            float node_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
+            shared_ke[tid] = 0.5f * node_mass * vel_sq;
+            shared_active[tid] = 1;
+        }
+    }
+    
+    __syncthreads();
+    
+    // Block-level reduction
+    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+        if (tid < s) {
+            shared_ke[tid] += shared_ke[tid + s];
+            shared_active[tid] += shared_active[tid + s];
+        }
+        __syncthreads();
+    }
+    
+    // Store block results
+    if (tid == 0) {
+        partial_kinetic_energy[blockIdx.x] = shared_ke[0];
+        atomicAdd(active_node_count, shared_active[0]);
+    }
+}
+
+/**
+ * Final reduction kernel to check system stability
+ * Grid: (1, 1, 1), Block: (min(num_blocks, 256), 1, 1)
+ */
+__global__ void check_system_stability_kernel(
+    const float* __restrict__ partial_kinetic_energy,
+    const int* __restrict__ active_node_count,
+    int* __restrict__ should_skip_physics,
+    float* __restrict__ system_kinetic_energy,
+    const int num_blocks,
+    const int num_nodes,
+    const float stability_threshold,
+    const int iteration)
+{
+    extern __shared__ float shared_ke[];
+    const int tid = threadIdx.x;
+    
+    // Load and sum partial kinetic energies
+    float sum = 0.0f;
+    for (int i = tid; i < num_blocks; i += blockDim.x) {
+        sum += partial_kinetic_energy[i];
+    }
+    shared_ke[tid] = sum;
+    
+    __syncthreads();
+    
+    // Final reduction
+    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+        if (tid < s) {
+            shared_ke[tid] += shared_ke[tid + s];
+        }
+        __syncthreads();
+    }
+    
+    // Check stability conditions
+    if (tid == 0) {
+        float total_ke = shared_ke[0];
+        int active_nodes = *active_node_count;
+        
+        // Store system kinetic energy for monitoring
+        *system_kinetic_energy = total_ke;
+        
+        // Calculate average KE per active node
+        float avg_ke = (active_nodes > 0) ? (total_ke / active_nodes) : 0.0f;
+        
+        // System is stable if:
+        // 1. Average KE is below threshold, OR
+        // 2. Very few nodes are moving (< 1% of total)
+        bool energy_stable = avg_ke < stability_threshold;
+        bool motion_stable = active_nodes < max(1, num_nodes / 100);
+        
+        *should_skip_physics = (energy_stable || motion_stable) ? 1 : 0;
+        
+        // Debug output periodically
+        if (iteration % 600 == 0 && *should_skip_physics) {
+            printf("[GPU Stability Gate] System stable: avg_KE=%.8f, active=%d/%d\n", 
+                   avg_ke, active_nodes, num_nodes);
+        }
+    }
+}
+
+/**
+ * Optimized force kernel with integrated stability checking
+ * Adds early exit for stable nodes to reduce computation
+ */
+__global__ void force_pass_with_stability_kernel(
+    const float* __restrict__ pos_in_x,
+    const float* __restrict__ pos_in_y,
+    const float* __restrict__ pos_in_z,
+    const float* __restrict__ vel_in_x,
+    const float* __restrict__ vel_in_y,
+    const float* __restrict__ vel_in_z,
+    float* __restrict__ force_out_x,
+    float* __restrict__ force_out_y,
+    float* __restrict__ force_out_z,
+    const int* __restrict__ cell_start,
+    const int* __restrict__ cell_end,
+    const int* __restrict__ sorted_node_indices,
+    const int* __restrict__ cell_keys,
+    const int3 grid_dims,
+    const int* __restrict__ edge_row_offsets,
+    const int* __restrict__ edge_col_indices,
+    const float* __restrict__ edge_weights,
+    const int num_nodes,
+    const float* __restrict__ d_sssp_dist,
+    const ConstraintData* __restrict__ constraints,
+    const int num_constraints,
+    const int* __restrict__ should_skip_all_physics)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+    
+    // Global stability check - skip all physics if system is stable
+    if (*should_skip_all_physics) {
+        force_out_x[idx] = 0.0f;
+        force_out_y[idx] = 0.0f;
+        force_out_z[idx] = 0.0f;
+        return;
+    }
+    
+    // Per-node stability check
+    float vx = vel_in_x[idx];
+    float vy = vel_in_y[idx];
+    float vz = vel_in_z[idx];
+    float vel_sq = vx * vx + vy * vy + vz * vz;
+    float min_vel_sq = c_params.min_velocity_threshold * c_params.min_velocity_threshold;
+    
+    // Skip force calculation for nearly stationary nodes
+    if (vel_sq < min_vel_sq) {
+        force_out_x[idx] = 0.0f;
+        force_out_y[idx] = 0.0f;
+        force_out_z[idx] = 0.0f;
+        return;
+    }
+    
+    // Continue with normal force calculation for moving nodes
+    float3 my_pos = make_vec3(pos_in_x[idx], pos_in_y[idx], pos_in_z[idx]);
+    float3 total_force = make_vec3(0.0f, 0.0f, 0.0f);
+    
+    // Repulsion forces (spatial grid)
+    if (c_params.feature_flags & FeatureFlags::ENABLE_REPULSION) {
+        int my_cell_key = cell_keys[idx];
+        int grid_x = my_cell_key % grid_dims.x;
+        int grid_y = (my_cell_key / grid_dims.x) % grid_dims.y;
+        int grid_z = my_cell_key / (grid_dims.x * grid_dims.y);
+
+        for (int z = -1; z <= 1; ++z) {
+            for (int y = -1; y <= 1; ++y) {
+                for (int x = -1; x <= 1; ++x) {
+                    int neighbor_grid_x = grid_x + x;
+                    int neighbor_grid_y = grid_y + y;
+                    int neighbor_grid_z = grid_z + z;
+
+                    if (neighbor_grid_x >= 0 && neighbor_grid_x < grid_dims.x &&
+                        neighbor_grid_y >= 0 && neighbor_grid_y < grid_dims.y &&
+                        neighbor_grid_z >= 0 && neighbor_grid_z < grid_dims.z) {
+                        
+                        int neighbor_cell_key = neighbor_grid_z * grid_dims.y * grid_dims.x + 
+                                              neighbor_grid_y * grid_dims.x + neighbor_grid_x;
+                        int start = cell_start[neighbor_cell_key];
+                        int end = cell_end[neighbor_cell_key];
+
+                        for (int j = start; j < end; ++j) {
+                            int neighbor_idx = sorted_node_indices[j];
+                            if (idx == neighbor_idx) continue;
+
+                            float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], 
+                                                          pos_in_y[neighbor_idx], 
+                                                          pos_in_z[neighbor_idx]);
+                            float3 diff = vec3_sub(my_pos, neighbor_pos);
+                            float dist_sq = vec3_length_sq(diff);
+
+                            if (dist_sq < c_params.repulsion_cutoff * c_params.repulsion_cutoff && 
+                                dist_sq > 1e-6f) {
+                                float dist = sqrtf(dist_sq);
+                                float repulsion = c_params.repel_k / 
+                                    (dist_sq + c_params.repulsion_softening_epsilon);
+                                float max_repulsion = c_params.max_force;
+                                repulsion = fminf(repulsion, max_repulsion);
+                                
+                                if (isfinite(repulsion) && isfinite(dist) && dist > 0.0f) {
+                                    total_force = vec3_add(total_force, vec3_scale(diff, repulsion / dist));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Spring forces
+    if (c_params.feature_flags & FeatureFlags::ENABLE_SPRINGS) {
+        int start_edge = edge_row_offsets[idx];
+        int end_edge = edge_row_offsets[idx + 1];
+        
+        float du = 0.0f;
+        bool use_sssp = (d_sssp_dist != nullptr) &&
+                       (c_params.feature_flags & FeatureFlags::ENABLE_SSSP_SPRING_ADJUST);
+        if (use_sssp) {
+            du = d_sssp_dist[idx];
+        }
+        
+        for (int i = start_edge; i < end_edge; ++i) {
+            int neighbor_idx = edge_col_indices[i];
+            float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], 
+                                          pos_in_y[neighbor_idx], 
+                                          pos_in_z[neighbor_idx]);
+            
+            float3 diff = vec3_sub(neighbor_pos, my_pos);
+            float dist = vec3_length(diff);
+            
+            if (dist > 1e-6f) {
+                float ideal = c_params.rest_length;
+                if (use_sssp) {
+                    float dv = d_sssp_dist[neighbor_idx];
+                    if (isfinite(du) && isfinite(dv)) {
+                        float delta = fabsf(du - dv);
+                        float norm_delta = fminf(delta, 1000.0f);
+                        ideal = c_params.rest_length + c_params.sssp_alpha * norm_delta;
+                    }
+                }
+                float displacement = dist - ideal;
+                float spring_force_mag = c_params.spring_k * displacement * edge_weights[i];
+                total_force = vec3_add(total_force, vec3_scale(diff, spring_force_mag / dist));
+            }
+        }
+    }
+    
+    // Centering force
+    if (c_params.feature_flags & FeatureFlags::ENABLE_CENTERING) {
+        total_force = vec3_sub(total_force, vec3_scale(my_pos, c_params.center_gravity_k));
+    }
+
+    // Constraints processing (if enabled)
+    if ((c_params.feature_flags & FeatureFlags::ENABLE_CONSTRAINTS) && constraints != nullptr) {
+        for (int c = 0; c < num_constraints; c++) {
+            const ConstraintData& constraint = constraints[c];
+            
+            // Check if this node is involved
+            bool is_involved = false;
+            int node_role = -1;
+            for (int n = 0; n < constraint.count && n < 4; n++) {
+                if (constraint.node_idx[n] == idx) {
+                    is_involved = true;
+                    node_role = n;
+                    break;
+                }
+            }
+            
+            if (!is_involved) continue;
+            
+            // Apply constraint forces (simplified for stability example)
+            if (constraint.kind == ConstraintKind::DISTANCE && constraint.count >= 2) {
+                int other_idx = (node_role == 0) ? constraint.node_idx[1] : constraint.node_idx[0];
+                if (other_idx >= 0 && other_idx < num_nodes) {
+                    float3 other_pos = make_vec3(pos_in_x[other_idx], 
+                                                pos_in_y[other_idx], 
+                                                pos_in_z[other_idx]);
+                    float3 diff = vec3_sub(my_pos, other_pos);
+                    float current_dist = vec3_length(diff);
+                    float target_dist = constraint.params[0];
+                    
+                    if (current_dist > 1e-6f && isfinite(current_dist) && target_dist > 0.0f) {
+                        float error = current_dist - target_dist;
+                        float force_magnitude = -constraint.weight * error;
+                        force_magnitude = fmaxf(-c_params.constraint_max_force_per_node, 
+                                              fminf(c_params.constraint_max_force_per_node, force_magnitude));
+                        
+                        float3 constraint_force = vec3_scale(diff, force_magnitude / current_dist);
+                        if (isfinite(constraint_force.x) && isfinite(constraint_force.y) && 
+                            isfinite(constraint_force.z)) {
+                            total_force = vec3_add(total_force, constraint_force);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    force_out_x[idx] = total_force.x;
+    force_out_y[idx] = total_force.y;
+    force_out_z[idx] = total_force.z;
 }
 
 } // extern "C"

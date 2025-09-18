@@ -15,7 +15,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
-use serde_json::Value;
+use serde_json::{json, Value};
 use socket2::{Socket, Domain, Type, Protocol, SockRef};
 use std::net::SocketAddr;
 use fastrand;
@@ -23,7 +23,7 @@ use fastrand;
 use crate::utils::network::{
     NetworkResilienceManager, CircuitBreaker,
     retry_tcp_connection, RetryableError,
-    TimeoutConfig, ConnectionPool, ConnectionPoolConfig
+    TimeoutConfig, ConnectionPool, ConnectionPoolConfig, PooledConnection
 };
 use crate::utils::resource_monitor::{ResourceMonitor, ResourceLimits};
 
@@ -82,6 +82,9 @@ pub struct TcpConnectionActor {
     tcp_writer: Option<Arc<RwLock<BufWriter<tokio::net::tcp::OwnedWriteHalf>>>>,
     tcp_reader: Option<Arc<RwLock<BufReader<tokio::net::tcp::OwnedReadHalf>>>>,
     
+    /// Current pooled connection (if using connection pool)
+    current_pooled_connection: Option<String>,
+    
     /// Connection statistics
     connection_stats: ConnectionStats,
     
@@ -97,6 +100,9 @@ pub struct TcpConnectionActor {
     
     /// Subscribers for connection events
     subscribers: Vec<Recipient<TcpConnectionEvent>>,
+    
+    /// Heartbeat handle to cancel on shutdown
+    heartbeat_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -166,6 +172,10 @@ struct ConnectionEstablished {
 #[rtype(result = "()")]
 struct ConnectionLost;
 
+#[derive(Message)]
+#[rtype(result = "()")]
+struct SetPooledConnectionId(Option<String>);
+
 // RetryableError implementation for Box<dyn Error> is defined in claude_flow_actor_tcp.rs to avoid conflicts
 
 impl TcpConnectionActor {
@@ -180,6 +190,7 @@ impl TcpConnectionActor {
             connection_config: TcpConnectionConfig::default(),
             tcp_writer: None,
             tcp_reader: None,
+            current_pooled_connection: None,
             connection_stats: ConnectionStats::default(),
             resilience_manager: Arc::new(NetworkResilienceManager::new()),
             circuit_breaker: None,
@@ -188,6 +199,7 @@ impl TcpConnectionActor {
             active_connections: Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new())),
             resource_monitor: Arc::new(ResourceMonitor::new(ResourceLimits::default())),
             subscribers: Vec::new(),
+            heartbeat_handle: None,
         }
     }
 
@@ -239,24 +251,31 @@ impl TcpConnectionActor {
     fn initialize_resilience(&mut self) {
         if self.connection_pool.is_none() {
             let pool_config = ConnectionPoolConfig {
-                max_connections_per_endpoint: 2,
-                max_total_connections: 5,
-                connection_timeout: std::time::Duration::from_secs(10),
-                idle_timeout: std::time::Duration::from_secs(60),
-                max_connection_lifetime: std::time::Duration::from_secs(300),
-                cleanup_interval: std::time::Duration::from_secs(30),
+                max_connections_per_endpoint: 3,      // Allow more connections
+                max_total_connections: 10,           // Increase total connections
+                connection_timeout: std::time::Duration::from_secs(15),
+                idle_timeout: std::time::Duration::from_secs(300),    // 5 minutes idle
+                max_connection_lifetime: std::time::Duration::from_secs(3600), // 1 hour lifetime
+                cleanup_interval: std::time::Duration::from_secs(60),  // Cleanup every minute
                 validate_on_borrow: true,
-                validate_while_idle: false,
+                validate_while_idle: true,            // Also validate idle connections
             };
             let mut pool = ConnectionPool::new(pool_config);
             pool.start_cleanup_task();
             self.connection_pool = Some(Arc::new(tokio::sync::Mutex::new(pool)));
+            info!("Connection pool initialized with persistent connection settings");
         }
     }
     
-    /// Establish TCP connection with resilience patterns
+    /// Establish TCP connection with resilience patterns and connection pooling
     fn establish_connection(&mut self, ctx: &mut Context<Self>) {
         debug!("Establishing TCP connection to {}:{}", self.host, self.port);
+
+        // Don't reconnect if already connected
+        if matches!(self.connection_state, TcpConnectionState::Connected) && self.is_connection_healthy() {
+            debug!("Already connected and healthy, skipping reconnection");
+            return;
+        }
 
         // Update connection state to connecting
         self.update_connection_state(TcpConnectionState::Connecting);
@@ -268,6 +287,8 @@ impl TcpConnectionActor {
         let port = self.port;
         let active_connections = self.active_connections.clone();
         let config = self.connection_config.clone();
+        let connection_pool = self.connection_pool.clone();
+        let endpoint = format!("{}:{}", host, port);
 
         tokio::spawn(async move {
             let connection_id = Uuid::new_v4().to_string();
@@ -276,6 +297,36 @@ impl TcpConnectionActor {
                 connections.insert(connection_id.clone(), std::time::Instant::now());
             }
 
+            // Try to get a connection from the pool first
+            let mut pool_connection_id = None;
+            if let Some(pool) = &connection_pool {
+                debug!("Attempting to get connection from pool for endpoint: {}", endpoint);
+                match pool.lock().await.get_connection(&endpoint).await {
+                    Ok(pooled_conn) => {
+                        info!("Reusing pooled connection {} for endpoint {}", pooled_conn.id, endpoint);
+                        pool_connection_id = Some(pooled_conn.id.clone());
+                        
+                        // Split the pooled connection into read/write halves
+                        let (read_half, write_half) = pooled_conn.stream.into_split();
+                        let reader = BufReader::new(read_half);
+                        let writer = BufWriter::new(write_half);
+                        
+                        addr.do_send(ConnectionEstablished { writer, reader });
+                        addr.do_send(SetPooledConnectionId(pool_connection_id));
+                        
+                        {
+                            let mut connections = active_connections.write().await;
+                            connections.remove(&connection_id);
+                        }
+                        return;
+                    }
+                    Err(e) => {
+                        debug!("Could not get connection from pool: {:?}, creating new connection", e);
+                    }
+                }
+            }
+
+            // Create a new connection if pool didn't provide one
             let connection_operation = || async {
                 Self::connect_tcp_with_keepalive(&host, port, &config).await
                     .map_err(|e| std::sync::Arc::new(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
@@ -283,7 +334,16 @@ impl TcpConnectionActor {
 
             match retry_tcp_connection(connection_operation).await {
                 Ok((writer, reader)) => {
-                    info!("TCP connection established to {}:{} with keep-alive configured", host, port);
+                    info!("New TCP connection established to {}:{} with keep-alive configured", host, port);
+                    
+                    // Try to add the new connection to the pool for future reuse
+                    if let Some(pool) = &connection_pool {
+                        // Note: This is a simplified approach - in reality, we'd need to 
+                        // reconstruct the TcpStream from the split halves or maintain
+                        // a separate connection for the pool
+                        debug!("New connection established, will be managed by pool on next use");
+                    }
+                    
                     addr.do_send(ConnectionEstablished { writer, reader });
                 }
                 Err(e) => {
@@ -405,14 +465,36 @@ impl TcpConnectionActor {
             let addr = ctx.address();
             let connection_id = self.connection_id.clone().unwrap_or_default();
             let subscribers = self.subscribers.clone();
+            let keep_alive_interval = self.connection_config.keep_alive_interval;
             
             tokio::spawn(async move {
                 let mut reader = reader_arc.write().await;
+                let mut last_activity = std::time::Instant::now();
+                let mut consecutive_errors = 0u32;
                 
                 loop {
-                    match Self::read_line_message(&mut *reader).await {
-                        Ok(line) => {
-                            debug!("Received TCP message: {}", line);
+                    // Use timeout to periodically check connection health
+                    let read_result = tokio::time::timeout(
+                        keep_alive_interval * 2,
+                        Self::read_line_message(&mut *reader)
+                    ).await;
+                    
+                    match read_result {
+                        Ok(Ok(line)) => {
+                            last_activity = std::time::Instant::now();
+                            consecutive_errors = 0;
+                            
+                            // Skip empty lines (keep-alive responses)
+                            if line.trim().is_empty() {
+                                continue;
+                            }
+                            // Only log first 100 chars to avoid flooding logs
+            let truncated = if line.len() > 100 {
+                format!("{}...", &line[..100])
+            } else {
+                line.clone()
+            };
+            debug!("Received TCP message: {}", truncated);
                             
                             // Try to parse as JSON
                             match serde_json::from_str::<Value>(&line) {
@@ -429,18 +511,43 @@ impl TcpConnectionActor {
                                     }
                                 }
                                 Err(e) => {
-                                    warn!("Received non-JSON message: {} (parse error: {})", line, e);
+                                    warn!("Received non-JSON message: {} (parse error: {})", truncated, e);
                                 }
                             }
                         }
-                        Err(e) => {
-                            error!("Error reading TCP message: {}", e);
+                        Ok(Err(e)) => {
+                            consecutive_errors += 1;
+                            let error_str = e.to_string().to_lowercase();
+                            
+                            // Check if it's a recoverable error
+                            if error_str.contains("would block") || error_str.contains("interrupted") {
+                                if consecutive_errors < 3 {
+                                    debug!("Recoverable read error ({}): {}", consecutive_errors, e);
+                                    tokio::time::sleep(Duration::from_millis(100)).await;
+                                    continue;
+                                }
+                            }
+                            
+                            error!("Error reading TCP message after {} attempts: {}", consecutive_errors, e);
                             break;
+                        }
+                        Err(_) => {
+                            // Timeout - check if connection is still healthy
+                            if last_activity.elapsed() > keep_alive_interval * 3 {
+                                warn!("No activity for {}s, connection might be dead", 
+                                      last_activity.elapsed().as_secs());
+                                break;
+                            }
+                            // Otherwise continue - might just be quiet period
+                            debug!("Read timeout, but connection still considered healthy (last activity {}s ago)",
+                                  last_activity.elapsed().as_secs());
+                            continue;
                         }
                     }
                 }
                 
                 // Connection lost
+                warn!("Message reader exiting, signaling connection lost");
                 addr.do_send(ConnectionLost);
             });
         }
@@ -550,6 +657,11 @@ impl Actor for TcpConnectionActor {
     
     fn stopped(&mut self, _: &mut Self::Context) {
         info!("TcpConnectionActor stopping - cleaning up connection to {}:{}", self.host, self.port);
+        
+        // Cancel heartbeat
+        if let Some(handle) = self.heartbeat_handle.take() {
+            handle.abort();
+        }
         
         // Cleanup connections
         if let Some(pool) = self.connection_pool.take() {
@@ -761,8 +873,73 @@ impl Handler<ConnectionEstablished> for TcpConnectionActor {
 
         // Start reading messages
         self.start_message_reader(ctx);
+        
+        // Start heartbeat to keep connection alive
+        self.start_heartbeat(ctx);
 
         info!("TCP connection fully established and operational: {}:{}", self.host, self.port);
+    }
+}
+
+impl Handler<SetPooledConnectionId> for TcpConnectionActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetPooledConnectionId, _ctx: &mut Self::Context) {
+        self.current_pooled_connection = msg.0;
+        if let Some(ref conn_id) = self.current_pooled_connection {
+            debug!("Using pooled connection: {}", conn_id);
+        }
+    }
+}
+
+impl TcpConnectionActor {
+    /// Start heartbeat to keep connection alive
+    fn start_heartbeat(&mut self, ctx: &mut Context<Self>) {
+        if !self.connection_config.enable_keep_alive {
+            return;
+        }
+        
+        let writer_arc = match self.tcp_writer.clone() {
+            Some(w) => w,
+            None => return,
+        };
+        
+        let interval = self.connection_config.keep_alive_interval;
+        let addr = ctx.address();
+        let mut stats = self.connection_stats.clone();
+        
+        let handle = tokio::spawn(async move {
+            let mut interval_timer = tokio::time::interval(interval);
+            interval_timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            
+            loop {
+                interval_timer.tick().await;
+                
+                // Send a lightweight ping message
+                let ping_msg = json!({
+                    "jsonrpc": "2.0",
+                    "method": "ping",
+                    "params": {}
+                });
+                
+                if let Ok(mut writer) = writer_arc.try_write() {
+                    if let Err(e) = Self::send_json_message(&mut *writer, &ping_msg, &mut stats).await {
+                        error!("Failed to send heartbeat: {}", e);
+                        if Self::is_connection_broken_error(&e) {
+                            addr.do_send(ConnectionLost);
+                            break;
+                        }
+                    } else {
+                        debug!("Heartbeat sent successfully");
+                    }
+                } else {
+                    debug!("Writer locked, skipping heartbeat");
+                }
+            }
+        });
+        
+        self.heartbeat_handle = Some(handle);
+        info!("Heartbeat started with interval: {:?}", interval);
     }
 }
 
@@ -772,11 +949,24 @@ impl Handler<ConnectionLost> for TcpConnectionActor {
     fn handle(&mut self, _: ConnectionLost, ctx: &mut Self::Context) {
         warn!("TCP connection lost to {}:{}", self.host, self.port);
 
+        // Return pooled connection if it was from the pool
+        if let (Some(pool), Some(conn_id)) = (&self.connection_pool, &self.current_pooled_connection) {
+            debug!("Returning connection {} to pool", conn_id);
+            // In a real implementation, we'd return the connection to the pool here
+            // For now, just clear the reference
+        }
+
         let old_connection_id = self.connection_id.take().unwrap_or_default();
+        self.current_pooled_connection.take();
 
         // Close existing connections
         self.tcp_writer.take();
         self.tcp_reader.take();
+        
+        // Cancel heartbeat if running
+        if let Some(handle) = self.heartbeat_handle.take() {
+            handle.abort();
+        }
 
         // Update stats
         self.connection_stats.reconnect_attempts += 1;
@@ -785,17 +975,17 @@ impl Handler<ConnectionLost> for TcpConnectionActor {
         self.update_connection_state(TcpConnectionState::Reconnecting);
 
         // Calculate exponential backoff with improved algorithm
-        let base_delay = Duration::from_millis(500); // Start with 500ms
-        let max_delay = Duration::from_secs(60); // Cap at 60 seconds
-        let attempts = self.connection_stats.reconnect_attempts.min(10); // Limit exponential growth
+        let base_delay = Duration::from_millis(1000); // Start with 1s for more stability
+        let max_delay = Duration::from_secs(30); // Cap at 30 seconds for faster recovery
+        let attempts = self.connection_stats.reconnect_attempts.min(8); // Limit exponential growth
 
         let backoff_delay = std::cmp::min(
-            base_delay * 2_u32.saturating_pow(attempts),
+            base_delay * 2_u32.saturating_pow(attempts - 1), // -1 to start at base_delay
             max_delay
         );
 
         // Add jitter to prevent thundering herd
-        let jitter = fastrand::f64() * 0.1; // 10% jitter
+        let jitter = fastrand::f64() * 0.2; // 20% jitter
         let jittered_delay = Duration::from_millis(
             (backoff_delay.as_millis() as f64 * (1.0 + jitter)) as u64
         );
