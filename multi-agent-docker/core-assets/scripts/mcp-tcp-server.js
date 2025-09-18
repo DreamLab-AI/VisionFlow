@@ -125,8 +125,8 @@ class PersistentMCPServer {
     const clientId = `${socket.remoteAddress}:${socket.remotePort}-${Date.now()}`;
     const clientIp = socket.remoteAddress;
     
-    // Check if IP is blocked
-    if (this.auth.isIPBlocked(clientIp)) {
+    // Check if IP is blocked (only if auto-blocking is enabled)
+    if (process.env.AUTO_BLOCK_ENABLED === 'true' && this.auth.isIPBlocked(clientIp)) {
         this.auth.logSecurityEvent('tcp_blocked_connection', { ip: clientIp });
         socket.write(JSON.stringify({ error: 'Forbidden' }) + '\n');
         socket.end();
@@ -141,8 +141,8 @@ class PersistentMCPServer {
         return;
     }
     
-    // Check rate limiting
-    if (!this.auth.checkRateLimit(clientIp)) {
+    // Check rate limiting (only if rate limiting is enabled)
+    if (process.env.RATE_LIMIT_ENABLED === 'true' && !this.auth.checkRateLimit(clientIp)) {
         this.auth.logSecurityEvent('tcp_rate_limit_exceeded', { ip: clientIp });
         this.auth.blockIP(clientIp, 300000); // Block for 5 minutes
         socket.write(JSON.stringify({ error: 'Rate limit exceeded' }) + '\n');
@@ -198,8 +198,8 @@ class PersistentMCPServer {
             continue;
           }
           
-          // Rate limit check for individual messages
-          if (!this.auth.checkRateLimit(clientIp)) {
+          // Rate limit check for individual messages (only if rate limiting is enabled)
+          if (process.env.RATE_LIMIT_ENABLED === 'true' && !this.auth.checkRateLimit(clientIp)) {
             socket.write(JSON.stringify({
               jsonrpc: '2.0',
               error: {
