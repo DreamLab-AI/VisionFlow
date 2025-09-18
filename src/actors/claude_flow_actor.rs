@@ -95,14 +95,14 @@ impl ClaudeFlowActorTcp {
     fn initialize_sub_actors(&mut self, ctx: &mut Context<Self>) {
         info!("Initializing sub-actors for TCP connection and JSON-RPC handling");
 
-        // CRITICAL FIX: We're in visionflow container, MCP is in multi-agent-container at 172.18.0.4
-        // Always use the IP address for reliable connection
+        // CRITICAL FIX: We're in visionflow container, MCP is in multi-agent-container
+        // Use container hostname for better resilience in the docker_ragflow network
         let host = std::env::var("MCP_HOST")
             .unwrap_or_else(|_| {
                 // We are ALWAYS in Docker when WebXR is running
-                // The MCP server is ALWAYS in multi-agent-container at 172.18.0.4
-                warn!("MCP_HOST not set, using 172.18.0.4 as default");
-                "172.18.0.4".to_string()
+                // The MCP server is ALWAYS in multi-agent-container
+                warn!("MCP_HOST not set, using multi-agent-container as default");
+                "multi-agent-container".to_string()
             });
         let port = std::env::var("MCP_TCP_PORT")
             .unwrap_or_else(|_| "9500".to_string())

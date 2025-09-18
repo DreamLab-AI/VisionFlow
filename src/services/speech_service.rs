@@ -346,7 +346,7 @@ impl SpeechService {
                                         _ => {
                                             // Use default Kokoro URL on Docker network
                                             info!("Using default Kokoro API URL on Docker network");
-                                            "http://172.18.0.9:8880"
+                                            "http://kokoro-tts-container:8880"
                                         }
                                     };
                                     let api_url = format!("{}/v1/audio/speech", api_url_base.trim_end_matches('/'));
@@ -445,7 +445,7 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url = config.api_url.as_deref().unwrap_or("http://172.18.0.5:8000");
+                                    let api_url = config.api_url.as_deref().unwrap_or("http://whisper-webui-backend:8000");
                                     info!("Whisper STT initialized with API URL: {}", api_url);
 
                                     let _ = transcription_tx.send("Whisper STT ready".to_string());
@@ -493,7 +493,7 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url_base = config.api_url.as_deref().unwrap_or("http://172.18.0.5:8000");
+                                    let api_url_base = config.api_url.as_deref().unwrap_or("http://whisper-webui-backend:8000");
                                     let api_url = format!("{}/transcription/", api_url_base.trim_end_matches('/'));
 
                                     // Detect audio format from the data
@@ -852,7 +852,7 @@ impl SpeechService {
     ///
     /// # Behavior
     /// - Queues audio data for async STT processing by the service task
-    /// - Sends audio to Whisper API at configured endpoint (default: http://172.18.0.4:8000)
+    /// - Sends audio to Whisper API at configured endpoint (default: http://whisper-webui-backend:8000)
     /// - Transcription results are broadcast to all subscribers via transcription channel
     /// - Supports configurable Whisper parameters (model, language, temperature, etc.)
     /// - Handles multipart form upload format required by Whisper-WebUI-Backend

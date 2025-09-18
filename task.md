@@ -19,6 +19,24 @@
 - ✅ MCP initialization: Returns proper JSON-RPC response with protocol version
 - ✅ Agent list query: Returns empty agent list from real database (no more mock data)
 
+### Hardcoded IP Replacement for Better Resilience:
+1. ✅ **Replaced all hardcoded IPs with container hostnames** in the docker_ragflow network:
+   - `172.18.0.4` → `multi-agent-container` (MCP TCP Server)
+   - `172.18.0.5` → `kokoro-tts-container` (Kokoro Text-to-Speech) 
+   - `172.18.0.9` → `whisper-webui-backend` (Whisper Speech-to-Text)
+
+2. ✅ **Files Updated**:
+   - `src/actors/claude_flow_actor.rs` - MCP host default
+   - `src/app_state.rs` - Claude Flow host configuration
+   - `src/services/speech_service.rs` - Voice service endpoints
+   - `src/handlers/bots_handler.rs` - All handler MCP references
+   - `data/settings.yaml` - Kokoro API URL
+   - `scripts/test_mcp_direct.sh` - Test script hostnames
+   - `scripts/test_mcp_connection.rs` - Rust test script
+   - `scripts/voice_pipeline_test.sh` - Voice pipeline endpoints
+
+3. ✅ **Verified Working**: Hostname resolution confirmed via ping tests
+
 ---
 
 ## 🎉 Agent Communication Code Fixed (2025-09-18)

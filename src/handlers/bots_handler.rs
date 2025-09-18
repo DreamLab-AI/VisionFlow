@@ -116,10 +116,10 @@ pub async fn fetch_hive_mind_agents(_state: &AppState) -> Result<Vec<BotsAgent>,
     use uuid::Uuid;
 
     // Use IP address as fallback since container name resolution might not work across different Docker containers
-    // The multi-agent-container is at 172.18.0.4 on the docker_ragflow network
+    // The multi-agent-container is accessible by hostname on the docker_ragflow network
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
     let addr = format!("{}:{}", claude_flow_host, claude_flow_port);
 
@@ -919,7 +919,7 @@ pub async fn initialize_swarm(
     
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
     
     info!("Connecting to MCP server at {}:{}", claude_flow_host, claude_flow_port);
@@ -1094,7 +1094,7 @@ pub async fn check_mcp_connection(
 
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
     let addr = format!("{}:{}", claude_flow_host, claude_flow_port);
 
@@ -1194,7 +1194,7 @@ pub async fn initialize_multi_agent(
     
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
     
     info!("Connecting to MCP server at {}:{} for multi-agent", claude_flow_host, claude_flow_port);
@@ -1964,7 +1964,7 @@ pub async fn spawn_agent(
 
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
     // Call agent_spawn
@@ -2020,7 +2020,7 @@ pub async fn submit_task(
 
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
     // Call task_orchestrate
@@ -2065,7 +2065,7 @@ pub async fn get_task_status(
 
     let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
         .or_else(|_| std::env::var("MCP_HOST"))
-        .unwrap_or_else(|_| "172.18.0.4".to_string());
+        .unwrap_or_else(|_| "multi-agent-container".to_string());
     let claude_flow_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
     // Call task_status
