@@ -4,8 +4,8 @@
 # Tests: Kokoro TTS → WAV file → Whisper STT
 
 echo "=== Voice Pipeline Test ==="
-echo "Kokoro TTS: 172.18.0.9:8880"
-echo "Whisper STT: 172.18.0.5:8000"
+echo "Kokoro TTS: kokoro-tts-container:8880"
+echo "Whisper STT: whisper-webui-backend:8000"
 echo ""
 
 # Test phrases
@@ -22,7 +22,7 @@ for i in "${!PHRASES[@]}"; do
 
     # Step 1: Generate audio with Kokoro
     echo "1. Generating audio with Kokoro TTS..."
-    HTTP_STATUS=$(curl -X POST "http://172.18.0.9:8880/v1/audio/speech" \
+    HTTP_STATUS=$(curl -X POST "http://kokoro-tts-container:8880/v1/audio/speech" \
         -H "Content-Type: application/json" \
         -d "{
             \"model\": \"kokoro\",
@@ -42,7 +42,7 @@ for i in "${!PHRASES[@]}"; do
 
         # Step 2: Send to Whisper
         echo "2. Sending to Whisper STT..."
-        RESPONSE=$(curl -X POST "http://172.18.0.5:8000/transcription/" \
+        RESPONSE=$(curl -X POST "http://whisper-webui-backend:8000/transcription/" \
             -F "file=@/tmp/voice_test_$i.wav" \
             -F "model_size=base" \
             -F "lang=en" \
@@ -57,7 +57,7 @@ for i in "${!PHRASES[@]}"; do
             echo "3. Waiting for transcription..."
             for j in {1..20}; do
                 sleep 0.5
-                TASK_RESPONSE=$(curl -s "http://172.18.0.5:8000/task/$TASK_ID")
+                TASK_RESPONSE=$(curl -s "http://whisper-webui-backend:8000/task/$TASK_ID")
                 STATUS=$(echo "$TASK_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
 
                 if [ "$STATUS" = "completed" ]; then

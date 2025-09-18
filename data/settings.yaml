@@ -436,7 +436,7 @@ openai:
   timeout: 30
   rateLimit: 100
 kokoro:
-  apiUrl: http://172.18.0.9:8880
+  apiUrl: http://kokoro-tts-container:8880
   defaultVoice: af_heart
   defaultFormat: mp3
   defaultSpeed: 1.0
