@@ -228,7 +228,7 @@ impl BotsClient {
                                                         }
 
                                                         // CRITICAL FIX: Send agents to graph
-                                                        if let Some(graph_addr) = graph_service_addr {
+                                                        if let Some(ref graph_addr) = graph_service_addr {
                                                             info!("📨 BotsClient sending {} agents to graph", update.agents.len());
                                                             graph_addr.do_send(UpdateBotsGraph {
                                                                 agents: update.agents.clone()
@@ -466,6 +466,70 @@ impl BotsClient {
 
     pub async fn get_latest_update(&self) -> Option<BotsUpdate> {
         self.updates.read().await.clone()
+    }
+}
+
+// Implement conversion from Agent to AgentStatus
+impl From<Agent> for AgentStatus {
+    fn from(agent: Agent) -> Self {
+        use chrono::Utc;
+        
+        // Parse agent type
+        let agent_type = match agent.agent_type.as_str() {
+            "coordinator" => AgentType::Coordinator,
+            "researcher" => AgentType::Researcher,
+            "coder" => AgentType::Coder,
+            "analyst" => AgentType::Analyst,
+            "architect" => AgentType::Architect,
+            "tester" => AgentType::Tester,
+            "reviewer" => AgentType::Reviewer,
+            "optimizer" => AgentType::Optimizer,
+            "documenter" => AgentType::Documenter,
+            _ => AgentType::Coder, // Default
+        };
+        
+        // Create agent profile
+        let profile = AgentProfile {
+            name: agent.name.clone(),
+            agent_type,
+            capabilities: vec![], // Could be populated from agent data if available
+        };
+        
+        // Calculate performance metrics
+        let performance_metrics = PerformanceMetrics {
+            tasks_completed: 0, // Would need to be tracked
+            success_rate: agent.health / 100.0, // Use health as a proxy for success rate
+        };
+        
+        // Calculate token usage (placeholder)
+        let token_usage = TokenUsage {
+            total: 0,
+            token_rate: 0.0,
+        };
+        
+        AgentStatus {
+            agent_id: agent.id.clone(),
+            profile,
+            status: agent.status.clone(),
+            active_tasks_count: (agent.workload * 10.0) as u32, // Estimate from workload
+            completed_tasks_count: 0,
+            failed_tasks_count: 0,
+            success_rate: agent.health / 100.0,
+            timestamp: Utc::now(),
+            current_task: None,
+            cpu_usage: agent.cpu_usage,
+            memory_usage: agent.memory_usage,
+            health: agent.health,
+            activity: agent.workload,
+            tasks_active: (agent.workload * 10.0) as u32,
+            performance_metrics,
+            token_usage,
+            swarm_id: None,
+            agent_mode: Some("active".to_string()),
+            parent_queen_id: None,
+            processing_logs: None,
+            total_execution_time: 0,
+        }
     }
 }
 
