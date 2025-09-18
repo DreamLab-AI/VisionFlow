@@ -24,7 +24,7 @@ use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, Age
 use crate::types::mcp_responses::{McpResponse, McpContentResult, AgentListResponse, McpParseError};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
-use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents};
+use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents, TcpConnectionConfig};
 use crate::actors::jsonrpc_client::{JsonRpcClient, ConnectToTcpActor, InitializeMcpSession, CallTool, ClientInfo};
 use crate::actors::messages::UpdateAgentCache;
 
@@ -76,7 +76,7 @@ impl ClaudeFlowActorTcp {
             swarm_topology: None,
             tcp_actor: None,
             jsonrpc_client: None,
-            polling_interval: Duration::from_millis(1000),
+            polling_interval: Duration::from_millis(2000), // Increased to 2s to reduce connection churn
             last_poll: Utc::now(),
             agent_cache: HashMap::new(),
             pending_additions: Vec::new(),
@@ -111,8 +111,21 @@ impl ClaudeFlowActorTcp {
 
         info!("Connecting to MCP server at {}:{} (from logseq container)", host, port);
         
-        // Create TCP connection actor
-        let tcp_actor = TcpConnectionActor::new(host, port).start();
+        // Configure TCP connection with persistent settings
+        let tcp_config = TcpConnectionConfig {
+            connect_timeout: Duration::from_secs(10),
+            read_timeout: Duration::from_secs(30),
+            write_timeout: Duration::from_secs(10),
+            keep_alive_timeout: Duration::from_secs(60),  // Keep connection alive for 60s
+            keep_alive_interval: Duration::from_secs(10), // Send keep-alive every 10s
+            keep_alive_retries: 5,                        // Retry keep-alive 5 times
+            max_retry_attempts: 10,                        // More retry attempts
+            enable_nodelay: true,                          // Low latency
+            enable_keep_alive: true,                       // Enable TCP keep-alive
+        };
+        
+        // Create TCP connection actor with persistent connection config
+        let tcp_actor = TcpConnectionActor::with_config(host, port, tcp_config).start();
         
         // Subscribe to TCP connection events
         let subscriber = ctx.address().recipient::<TcpConnectionEvent>();

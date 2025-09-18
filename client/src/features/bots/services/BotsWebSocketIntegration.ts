@@ -1,6 +1,7 @@
 import { createLogger } from '../../../utils/logger';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { webSocketService } from '../../../services/WebSocketService';
+import { agentPollingService } from './AgentPollingService';
 import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes';
 
 const logger = createLogger('BotsWebSocketIntegration');
@@ -14,6 +15,7 @@ export class BotsWebSocketIntegration {
   private logseqConnected = false;
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
   private botsGraphInterval: NodeJS.Timeout | null = null;
+  private useRestPolling: boolean = true; // Use REST polling instead of WebSocket polling
 
   private constructor() {
     this.initializeConnections();
@@ -45,9 +47,21 @@ export class BotsWebSocketIntegration {
       
       // Start or stop polling based on connection status
       if (connected) {
-        this.startBotsGraphPolling();
+        if (this.useRestPolling) {
+          // Start REST-based polling service
+          agentPollingService.start();
+          logger.info('Started REST-based agent polling');
+        } else {
+          // Legacy WebSocket polling
+          this.startBotsGraphPolling();
+        }
       } else {
-        this.stopBotsGraphPolling();
+        if (this.useRestPolling) {
+          agentPollingService.stop();
+          logger.info('Stopped REST-based agent polling');
+        } else {
+          this.stopBotsGraphPolling();
+        }
       }
     });
 
@@ -147,7 +161,27 @@ export class BotsWebSocketIntegration {
   }
 
   /**
-   * Start polling for full bots graph data
+   * Configure polling mode (REST vs WebSocket)
+   */
+  public setPollingMode(useRest: boolean): void {
+    const wasUsingRest = this.useRestPolling;
+    this.useRestPolling = useRest;
+    
+    if (wasUsingRest !== useRest && this.logseqConnected) {
+      // Switch polling mode
+      if (useRest) {
+        this.stopBotsGraphPolling();
+        agentPollingService.start();
+      } else {
+        agentPollingService.stop();
+        this.startBotsGraphPolling();
+      }
+      logger.info(`Switched polling mode to ${useRest ? 'REST' : 'WebSocket'}`);
+    }
+  }
+
+  /**
+   * Start polling for full bots graph data (legacy WebSocket polling)
    */
   public startBotsGraphPolling(interval: number = 2000): void {
     if (this.botsGraphInterval) {
@@ -279,9 +313,9 @@ export class BotsWebSocketIntegration {
   clearAgents() {
     logger.info('Clearing all agents data');
     // Stop polling for bots graph
-    if (this.botsPollingInterval) {
-      clearInterval(this.botsPollingInterval);
-      this.botsPollingInterval = null;
+    if (this.botsGraphInterval) {
+      clearInterval(this.botsGraphInterval);
+      this.botsGraphInterval = null;
     }
     // Emit cleared state via the proper event
     this.emit('bots-graph-update', {
@@ -309,6 +343,12 @@ export class BotsWebSocketIntegration {
   disconnect() {
     logger.info('Disconnecting WebSocket services');
     this.clearAgents();
+    
+    // Stop polling services
+    if (this.useRestPolling) {
+      agentPollingService.stop();
+    }
+    
     webSocketService.close();
     this.logseqConnected = false;
   }

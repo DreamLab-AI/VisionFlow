@@ -227,6 +227,12 @@ pub struct UnifiedGPUCompute {
     pub label_mapping: DeviceBuffer<i32>,      // For relabeling communities
     pub rand_states: DeviceBuffer<curandState>, // curandState buffer for tie-breaking
     pub max_labels: usize,                     // Maximum number of possible labels
+    
+    // GPU Stability Gate buffers
+    pub partial_kinetic_energy: DeviceBuffer<f32>,  // Per-block kinetic energy sums
+    pub active_node_count: DeviceBuffer<i32>,        // Count of actively moving nodes
+    pub should_skip_physics: DeviceBuffer<i32>,      // Flag to skip physics computation
+    pub system_kinetic_energy: DeviceBuffer<f32>,    // Total system kinetic energy
 }
 
 
@@ -427,6 +433,11 @@ impl UnifiedGPUCompute {
             max_allowed_grid_cells: 128 * 128 * 128,  // Cap at 2M cells (~8MB)
             resize_count: 0,
             total_memory_allocated: initial_memory,
+            // GPU Stability Gate fields
+            partial_kinetic_energy: DeviceBuffer::zeroed((num_nodes + 255) / 256)?,  // One per block
+            active_node_count: DeviceBuffer::zeroed(1)?,
+            should_skip_physics: DeviceBuffer::zeroed(1)?,
+            system_kinetic_energy: DeviceBuffer::zeroed(1)?,
         };
         
         // Note: Constant memory initialization would require cust's global symbol API
@@ -823,54 +834,66 @@ impl UnifiedGPUCompute {
             return Err(anyhow!("CRITICAL: num_nodes ({}) exceeds allocated_nodes ({}). This would cause buffer overflow!", self.num_nodes, self.allocated_nodes));
         }
 
-        // STABILITY GATE: Check if system has reached equilibrium
-        // Calculate total kinetic energy to determine if physics should be skipped
-        if self.num_nodes > 0 {
-            // Copy velocities from GPU to calculate kinetic energy
-            let mut host_vel_x = vec![0.0; self.num_nodes];
-            let mut host_vel_y = vec![0.0; self.num_nodes];
-            let mut host_vel_z = vec![0.0; self.num_nodes];
+        // Update constant memory with simulation parameters (including stability thresholds)
+        // Note: cust doesn't provide direct constant memory access, so we'd need to use
+        // a workaround like a device buffer or pass params to each kernel
+        self.params = params;
 
-            // Only copy if we have valid velocity buffers
-            if self.allocated_nodes > 0 {
-                self.vel_in_x.copy_to(&mut host_vel_x)?;
-                self.vel_in_y.copy_to(&mut host_vel_y)?;
-                self.vel_in_z.copy_to(&mut host_vel_z)?;
-
-                // Calculate total kinetic energy (KE = 0.5 * m * v^2, assuming m = 1)
-                let mut total_kinetic_energy = 0.0f32;
-                for i in 0..self.num_nodes {
-                    let velocity_squared = host_vel_x[i] * host_vel_x[i] +
-                                         host_vel_y[i] * host_vel_y[i] +
-                                         host_vel_z[i] * host_vel_z[i];
-                    total_kinetic_energy += 0.5 * velocity_squared;
-                }
-
-                let avg_kinetic_energy = total_kinetic_energy / self.num_nodes as f32;
-
-                // Use configurable stability thresholds from params
-                let stability_threshold = if params.stability_threshold > 0.0 {
-                    params.stability_threshold
-                } else {
-                    1e-6  // Default fallback
-                };
-
-                // Skip physics computation if system is stable
-                if avg_kinetic_energy < stability_threshold {
-                    // System is at equilibrium - skip expensive GPU computations
-                    if self.iteration % 600 == 0 { // Log every 10 seconds at 60 FPS
-                        info!("GPU STABILITY GATE: Skipping physics computation - system at equilibrium (avg_KE={:.8})", avg_kinetic_energy);
-                    }
-
-                    // Still increment iteration counter for consistency
-                    self.iteration += 1;
-
-                    // Early return - no physics computation needed
-                    return Ok(());
-                }
-
-                // Additional per-node velocity check could be added here for finer control
-                // but would add overhead - leaving as comment for future optimization
+        // GPU STABILITY GATE: Check if system has reached equilibrium using GPU kernels
+        // This is much more efficient than copying velocities to CPU
+        if self.num_nodes > 0 && params.stability_threshold > 0.0 {
+            let num_blocks = (self.num_nodes + block_size as usize - 1) / block_size as usize;
+            let shared_mem_size = block_size * (std::mem::size_of::<f32>() + std::mem::size_of::<i32>()) as u32;
+            
+            // Reset counters
+            self.active_node_count.copy_from(&[0i32])?;
+            self.should_skip_physics.copy_from(&[0i32])?;
+            
+            // Step 1: Calculate kinetic energy with block reduction
+            let ke_kernel = self._module.get_function("calculate_kinetic_energy_kernel")?;
+            unsafe {
+                let stream = &self.stream;
+                launch!(
+                    ke_kernel<<<num_blocks as u32, block_size, shared_mem_size, stream>>>(
+                        self.vel_in_x.as_device_ptr(),
+                        self.vel_in_y.as_device_ptr(),
+                        self.vel_in_z.as_device_ptr(),
+                        self.mass.as_device_ptr(),
+                        self.partial_kinetic_energy.as_device_ptr(),
+                        self.active_node_count.as_device_ptr(),
+                        self.num_nodes as i32,
+                        params.min_velocity_threshold
+                    )
+                )?;
+            }
+            
+            // Step 2: Check system stability with final reduction
+            let stability_kernel = self._module.get_function("check_system_stability_kernel")?;
+            let reduction_blocks = (num_blocks as u32).min(256);
+            unsafe {
+                let stream = &self.stream;
+                launch!(
+                    stability_kernel<<<1, reduction_blocks, reduction_blocks * 4, stream>>>(
+                        self.partial_kinetic_energy.as_device_ptr(),
+                        self.active_node_count.as_device_ptr(),
+                        self.should_skip_physics.as_device_ptr(),
+                        self.system_kinetic_energy.as_device_ptr(),
+                        num_blocks as i32,
+                        self.num_nodes as i32,
+                        params.stability_threshold,
+                        self.iteration
+                    )
+                )?;
+            }
+            
+            // Check if we should skip physics
+            let mut skip_physics = vec![0i32; 1];
+            self.should_skip_physics.copy_to(&mut skip_physics)?;
+            
+            if skip_physics[0] != 0 {
+                // System is stable - skip physics computation
+                self.iteration += 1;
+                return Ok(());
             }
         }
 
@@ -1012,7 +1035,13 @@ impl UnifiedGPUCompute {
         }
 
         // 6. Force Pass Kernel
-        let force_pass_kernel = self._module.get_function(self.force_pass_kernel_name)?;
+        // Use optimized kernel with stability checking if available
+        let force_kernel_name = if params.stability_threshold > 0.0 {
+            "force_pass_with_stability_kernel"
+        } else {
+            self.force_pass_kernel_name
+        };
+        let force_pass_kernel = self._module.get_function(force_kernel_name)?;
         let stream = &self.stream;
         
         // Get SSSP distances pointer if available
@@ -1024,31 +1053,60 @@ impl UnifiedGPUCompute {
         };
         
         unsafe {
-            launch!(
-                force_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
-                self.pos_in_x.as_device_ptr(),
-                self.pos_in_y.as_device_ptr(),
-                self.pos_in_z.as_device_ptr(),
-                self.force_x.as_device_ptr(),
-                self.force_y.as_device_ptr(),
-                self.force_z.as_device_ptr(),
-                self.cell_start.as_device_ptr(),
-                self.cell_end.as_device_ptr(),
-                self.sorted_node_indices.as_device_ptr(),
-                self.cell_keys.as_device_ptr(), // Unsorted keys, but matches original node indices
-                grid_dims,
-                self.edge_row_offsets.as_device_ptr(),
-                self.edge_col_indices.as_device_ptr(),
-                self.edge_weights.as_device_ptr(),
-                self.num_nodes as i32,
-                d_sssp,
-                self.constraint_data.as_device_ptr(),
-                self.num_constraints as i32,
-                // FIX: Add the three missing null pointer arguments for telemetry
-                DevicePointer::<f32>::null(), // constraint_violations
-                DevicePointer::<f32>::null(), // constraint_energy  
-                DevicePointer::<f32>::null()  // node_constraint_force
-            ))?;
+            if params.stability_threshold > 0.0 {
+                // Use optimized kernel with velocity inputs and stability flag
+                launch!(
+                    force_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.vel_in_x.as_device_ptr(),  // Additional velocity inputs
+                    self.vel_in_y.as_device_ptr(),
+                    self.vel_in_z.as_device_ptr(),
+                    self.force_x.as_device_ptr(),
+                    self.force_y.as_device_ptr(),
+                    self.force_z.as_device_ptr(),
+                    self.cell_start.as_device_ptr(),
+                    self.cell_end.as_device_ptr(),
+                    self.sorted_node_indices.as_device_ptr(),
+                    self.cell_keys.as_device_ptr(),
+                    grid_dims,
+                    self.edge_row_offsets.as_device_ptr(),
+                    self.edge_col_indices.as_device_ptr(),
+                    self.edge_weights.as_device_ptr(),
+                    self.num_nodes as i32,
+                    d_sssp,
+                    self.constraint_data.as_device_ptr(),
+                    self.num_constraints as i32,
+                    self.should_skip_physics.as_device_ptr()  // Stability flag
+                ))?;
+            } else {
+                // Use standard kernel without stability checking
+                launch!(
+                    force_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.force_x.as_device_ptr(),
+                    self.force_y.as_device_ptr(),
+                    self.force_z.as_device_ptr(),
+                    self.cell_start.as_device_ptr(),
+                    self.cell_end.as_device_ptr(),
+                    self.sorted_node_indices.as_device_ptr(),
+                    self.cell_keys.as_device_ptr(),
+                    grid_dims,
+                    self.edge_row_offsets.as_device_ptr(),
+                    self.edge_col_indices.as_device_ptr(),
+                    self.edge_weights.as_device_ptr(),
+                    self.num_nodes as i32,
+                    d_sssp,
+                    self.constraint_data.as_device_ptr(),
+                    self.num_constraints as i32,
+                    DevicePointer::<f32>::null(), // constraint_violations
+                    DevicePointer::<f32>::null(), // constraint_energy  
+                    DevicePointer::<f32>::null()  // node_constraint_force
+                ))?;
+            }
         }
 
         // 7. Integration Pass Kernel

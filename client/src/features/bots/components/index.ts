@@ -11,6 +11,7 @@ export { MultiAgentInitializationPrompt } from './MultiAgentInitializationPrompt
 export { SystemHealthPanel } from './SystemHealthPanel';
 export { ActivityLogPanel } from './ActivityLogPanel';
 export { AgentDetailPanel } from './AgentDetailPanel';
+export { AgentPollingStatus } from './AgentPollingStatus';
 
 // Services
 export { configurationMapper } from '../services/ConfigurationMapper';

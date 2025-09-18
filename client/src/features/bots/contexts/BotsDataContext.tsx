@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 import { parseBinaryNodeData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
+import { useAgentPolling } from '../hooks/useAgentPolling';
+import { agentPollingService } from '../services/AgentPollingService';
 import { createLogger } from '../../../utils/logger';
 
 const logger = createLogger('BotsDataContext');
@@ -30,11 +32,32 @@ interface BotsDataContextType {
   botsData: BotsData | null;
   updateBotsData: (data: BotsData) => void;
   updateFromFullUpdate: (update: BotsFullUpdateMessage) => void;
+  pollingStatus?: {
+    isPolling: boolean;
+    activityLevel: 'active' | 'idle';
+    lastUpdate: number;
+    error: Error | null;
+  };
+  pollNow?: () => Promise<void>;
+  configurePolling?: (config: any) => void;
 }
 
 const BotsDataContext = createContext<BotsDataContextType | undefined>(undefined);
 
 export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Use the new polling hook for REST-based updates
+  const pollingData = useAgentPolling({
+    enabled: true,
+    config: {
+      activePollingInterval: 1000,  // 1s for active
+      idlePollingInterval: 5000,    // 5s for idle
+      enableSmartPolling: true
+    },
+    onError: (error) => {
+      logger.error('Polling error:', error);
+    }
+  });
+
   const [botsData, setBotsData] = useState<BotsData | null>({
     nodeCount: 0,
     edgeCount: 0,
@@ -203,27 +226,59 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Subscribe to WebSocket updates
+  // Update botsData when polling data changes
   useEffect(() => {
-    const unsubscribe1 = botsWebSocketIntegration.on('bots-full-update', (update: BotsFullUpdateMessage) => {
-      updateFromFullUpdate(update);
+    if (pollingData.agents.length > 0 || pollingData.edges.length > 0) {
+      setBotsData({
+        nodeCount: pollingData.agents.length,
+        edgeCount: pollingData.edges.length,
+        tokenCount: pollingData.metadata?.totalTokens || 0,
+        mcpConnected: pollingData.isPolling,
+        dataSource: 'live',
+        agents: pollingData.agents,
+        edges: pollingData.edges,
+        multiAgentMetrics: pollingData.metadata,
+        lastUpdate: new Date(pollingData.lastUpdate).toISOString()
+      });
+    }
+  }, [pollingData]);
+
+  // Subscribe to WebSocket updates for real-time position data
+  useEffect(() => {
+    // Subscribe to binary position updates for real-time agent movement
+    const unsubscribe = botsWebSocketIntegration.on('bots-binary-position-update', (binaryData: ArrayBuffer) => {
+      updateFromBinaryPositions(binaryData);
     });
 
-    // Subscribe to new graph update event
-    const unsubscribe2 = botsWebSocketIntegration.on('bots-graph-update', updateFromGraphData);
-
-    // Subscribe to binary position updates for real-time agent movement
-    const unsubscribe3 = botsWebSocketIntegration.on('bots-binary-position-update', updateFromBinaryPositions);
+    // Also subscribe to the REST polling service for metadata updates
+    const unsubscribePolling = agentPollingService.subscribe((data) => {
+      updateFromGraphData(data);
+    });
 
     return () => {
-      unsubscribe1();
-      unsubscribe2();
-      unsubscribe3();
+      unsubscribe();
+      unsubscribePolling();
     };
   }, []);
 
+  // Provide both polling data and traditional botsData
+  const contextValue = useMemo(() => ({
+    botsData,
+    updateBotsData,
+    updateFromFullUpdate,
+    // Additional polling controls
+    pollingStatus: {
+      isPolling: pollingData.isPolling,
+      activityLevel: pollingData.activityLevel,
+      lastUpdate: pollingData.lastUpdate,
+      error: pollingData.error
+    },
+    pollNow: pollingData.pollNow,
+    configurePolling: pollingData.configure
+  }), [botsData, pollingData]);
+
   return (
-    <BotsDataContext.Provider value={{ botsData, updateBotsData, updateFromFullUpdate }}>
+    <BotsDataContext.Provider value={contextValue}>
       {children}
     </BotsDataContext.Provider>
   );
