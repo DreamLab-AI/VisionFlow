@@ -1,20 +1,32 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useXRCore } from '../providers/XRCoreProvider'
 import HandInteractionSystem, { GestureRecognitionResult } from '../systems/HandInteractionSystem'
+import VircadiaXRIntegration from './VircadiaXRIntegration'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { createLogger } from '../../../utils/logger'
 
 const logger = createLogger('XRController')
 
+interface XRControllerProps {
+  graphData?: any
+  onNodeSelect?: (nodeId: string) => void
+  onNodeHover?: (nodeId: string | null) => void
+}
+
 /**
  * XRController component manages Quest 3 AR functionality and hand tracking.
- * Uses the enhanced XRCoreProvider for robust session management.
+ * Supports both Three.js XR and Vircadia/Babylon.js XR modes.
  */
-const XRController: React.FC = () => {
+const XRController: React.FC<XRControllerProps> = ({ graphData, onNodeSelect, onNodeHover }) => {
   const { isSessionActive, sessionType, controllers } = useXRCore()
   const settings = useSettingsStore(state => state.settings)
   const [handsVisible, setHandsVisible] = useState(false)
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(settings?.xr?.enableHandTracking !== false)
+  
+  // Determine which XR mode to use
+  const xrMode = useMemo(() => {
+    return settings?.xr?.mode || 'threejs' // 'threejs' or 'vircadia'
+  }, [settings?.xr?.mode])
   
   // Log session state changes (Quest 3 AR focused)
   React.useEffect(() => {
@@ -63,6 +75,18 @@ const XRController: React.FC = () => {
   // Prioritize Quest 3 AR mode
   const isQuest3AR = isSessionActive && sessionType === 'immersive-ar'
   
+  // Render Vircadia mode if selected
+  if (xrMode === 'vircadia') {
+    return (
+      <VircadiaXRIntegration
+        graphData={graphData}
+        onNodeSelect={onNodeSelect}
+        onNodeHover={onNodeHover}
+      />
+    )
+  }
+  
+  // Default Three.js XR mode
   return (
     <group name="quest3-ar-controller-root">
       <HandInteractionSystem

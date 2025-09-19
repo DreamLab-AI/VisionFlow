@@ -1,0 +1,24 @@
+{
+    "extends": "@quasar/app-vite/tsconfig-preset",
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "target": "ES2020",
+        "lib": ["ES2020", "DOM"],
+        "paths": {
+            // Path aliases to reduce number of dot-dot relative paths.
+            // Need to add here and in quasar.config.js
+            "@Base/*": ["./src/*"],
+            "@Components/*": ["./src/components/*"],
+            "@Modules/*": ["./src/modules/*"],
+            "@Public/*": ["./public/*"],
+            "@Stores/*": ["./src/stores/*"],
+            "@World/*": ["./src/vircadia-world/src/*"]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "src/vircadia-world/src/**/*",
+        "src/vircadia-world/src/shared/modules/vircadia-world-meta/**/*"
+    ]
+}

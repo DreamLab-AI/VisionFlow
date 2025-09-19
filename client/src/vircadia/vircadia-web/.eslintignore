@@ -1,0 +1,15 @@
+.eslintrc.js
+postcss.config.js
+quasar.config.js
+/.quasar
+/build_scripts
+/dist
+/node_modules
+/public/assets
+/src/*.d.ts
+/src-bex/www
+/src-capacitor
+/src-cordova
+/src-ssr
+/src/libs
+vircadia-web-sdk
