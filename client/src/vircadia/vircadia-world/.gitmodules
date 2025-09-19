@@ -1,0 +1,6 @@
+[submodule "sdk/vircadia-world-sdk-ts"]
+    path = sdk/vircadia-world-sdk-ts
+    url = https://github.com/vircadia/vircadia-world-sdk-ts.git
+[submodule "sdk/vircadia-world-sdk-py"]
+    path = sdk/vircadia-world-sdk-py
+    url = https://github.com/vircadia/vircadia-world-sdk-py.git

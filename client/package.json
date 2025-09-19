@@ -19,6 +19,9 @@
     "security:check": "node scripts/block-test-packages.js && npm audit"
   },
   "dependencies": {
+    "@babylonjs/core": "8.28.0",
+    "@babylonjs/loaders": "8.28.0",
+    "@babylonjs/materials": "8.28.0",
     "@getalby/sdk": "^4.1.1",
     "@radix-ui/react-collapsible": "^1.1.4",
     "@radix-ui/react-dialog": "^1.1.7",
