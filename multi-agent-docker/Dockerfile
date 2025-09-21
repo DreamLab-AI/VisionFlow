@@ -97,6 +97,10 @@ RUN \
     usermod -aG sudo dev && \
     echo "dev ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     \
+    # Fix sudo permissions
+    chown root:root /usr/bin/sudo && \
+    chmod 4755 /usr/bin/sudo && \
+    \
     # Set up permissions for log directory.
     mkdir -p /app/mcp-logs && \
     chown -R dev:dev /app/mcp-logs

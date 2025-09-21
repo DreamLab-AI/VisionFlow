@@ -25,8 +25,8 @@ mkdir -p /app/mcp-logs/security
 chown -R dev:dev /app/mcp-logs
 
 # Set secure permissions on scripts
-chmod 750 /app/core-assets/scripts/*.js
-chown dev:dev /app/core-assets/scripts/*.js
+chmod 750 /app/core-assets/scripts/*.js 2>/dev/null || true
+chown dev:dev /app/core-assets/scripts/*.js 2>/dev/null || true
 
 echo "✅ Security initialization complete"
 
@@ -135,9 +135,12 @@ mkdir -p /workspace/.supervisor
 mkdir -p /workspace/.swarm
 mkdir -p /app/mcp-logs/security
 chown -R dev:dev /workspace/.supervisor /workspace/.swarm /app/mcp-logs
+
 # Create helpful aliases if .bashrc exists for the user
 if [ -f "/home/dev/.bashrc" ]; then
-    cat >> /home/dev/.bashrc << 'EOF'
+    # Check if aliases already exist to avoid duplicates
+    if ! grep -q "MCP Server Management" /home/dev/.bashrc; then
+        cat >> /home/dev/.bashrc << 'EOF'
 
 # MCP Server Management
 alias mcp-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status'
@@ -179,6 +182,7 @@ alias setup-status='/app/core-assets/scripts/check-setup-status.sh'
 alias setup-logs='tail -f /app/mcp-logs/automated-setup.log'
 alias rerun-setup='/app/core-assets/scripts/automated-setup.sh'
 EOF
+    fi
 fi
 
 echo ""

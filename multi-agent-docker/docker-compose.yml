@@ -129,6 +129,9 @@ services:
       - SESSION_TIMEOUT=${SESSION_TIMEOUT:-1800000}
       - SESSION_CLEANUP_INTERVAL=${SESSION_CLEANUP_INTERVAL:-300000}
       - MAX_CONCURRENT_SESSIONS=${MAX_CONCURRENT_SESSIONS:-10}
+      # Claude Code Authentication
+      - CLAUDE_CODE_ACCESS=${CLAUDE_CODE_ACCESS}
+      - CLAUDE_CODE_REFRESH=${CLAUDE_CODE_REFRESH}
       # IP Blocking
       - AUTO_BLOCK_ENABLED=${AUTO_BLOCK_ENABLED:-true}
       - BLOCK_DURATION=${BLOCK_DURATION:-3600000}
@@ -156,8 +159,11 @@ services:
       - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext
       # For Unix socket support (optional)
       - mcp-sockets:/var/run/mcp
+      # Mount the corrected entrypoint
+      - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
 
-    # Run in interactive mode by default
+    # Override entrypoint and run in interactive mode by default
+    entrypoint: ["/entrypoint-wrapper.sh"]
     command: ["--interactive"]
 
     # Keep stdin open and allocate a pseudo-TTY
@@ -177,11 +183,11 @@ services:
 
     # Health check for both WebSocket and TCP
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9501/health || curl -f http://localhost:3002/health || exit 1"]
+      test: ["CMD-SHELL", "/app/core-assets/scripts/health-check.sh || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 90s
 
 
     # Restart policy

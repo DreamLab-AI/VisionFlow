@@ -396,6 +396,27 @@ Powerful browser automation and testing capabilities:
 - **Execution Environment**: Claude operates within this Docker container. It cannot build external Docker images or see services running on your host machine.
 - **Available Toolchains**: You can validate your code using tools inside this container, such as `cargo check`, `npm test`, or `python -m py_compile`.
 
+### 🤖 Automated Setup
+This environment features comprehensive automated setup that runs on container startup:
+
+#### What's Automated
+- **Claude Authentication**: Credentials from .env are automatically configured
+- **Workspace Configuration**: Claude project settings and MCP alignment
+- **AI Agents**: Goal Planner and SAFLA Neural agents are initialized
+- **Service Management**: All MCP services start automatically with health monitoring
+- **Development Tools**: Git configuration, shortcuts, and example projects
+
+#### Monitoring Automation
+- **Check Status**: Run `setup-status` to see automation progress
+- **View Logs**: Run `setup-logs` to watch setup in real-time
+- **Re-run Setup**: Run `rerun-setup` if needed
+
+#### Automation Markers
+The system tracks setup progress with these markers:
+- `/workspace/.claude_configured` - Claude workspace is set up
+- `/workspace/.swarm/.agents_initialized` - AI agents are ready
+- `/workspace/.full_setup_completed` - Full automation completed
+
 ### Quick Commands
 ```bash
 # Check code without a full build
@@ -899,11 +920,68 @@ initialize_claude_flow_agents() {
     fi
 }
 
+# --- Service Startup Verification ---
+verify_services_startup() {
+    log_info "🚀 Verifying MCP services startup..."
+    
+    if [ "$DRY_RUN" = true ]; then
+        dry_run_log "Would verify services startup"
+        return 0
+    fi
+    
+    # Restart supervisor services to apply all changes
+    log_info "Restarting MCP services..."
+    supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart mcp-core:* 2>/dev/null || {
+        log_warning "Could not restart services via supervisor, attempting manual start..."
+        
+        # Kill any existing processes
+        pkill -f "mcp-tcp-server.js" 2>/dev/null || true
+        pkill -f "mcp-ws-relay.js" 2>/dev/null || true
+        
+        # Wait for processes to die
+        sleep 2
+        
+        # Start services manually if supervisor fails
+        cd /workspace
+        nohup node /workspace/scripts/mcp-tcp-server.js > /app/mcp-logs/mcp-tcp-server.log 2>&1 &
+        nohup node /workspace/scripts/mcp-ws-relay.js > /app/mcp-logs/mcp-ws-bridge.log 2>&1 &
+        
+        log_info "Started services manually"
+    }
+    
+    # Wait for services to be ready
+    log_info "Waiting for services to be ready..."
+    local max_attempts=10
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if curl -sf http://localhost:9501/health >/dev/null 2>&1; then
+            log_success "✅ MCP services are healthy!"
+            
+            # Run the health check script if available
+            if [ -x /app/core-assets/scripts/health-check.sh ]; then
+                echo ""
+                /app/core-assets/scripts/health-check.sh || true
+            fi
+            return 0
+        fi
+        
+        log_info "  Attempt $attempt/$max_attempts - waiting 3 seconds..."
+        sleep 3
+        attempt=$((attempt + 1))
+    done
+    
+    log_warning "⚠️  MCP services did not become healthy within expected time"
+    log_info "    You may need to check logs: mcp-tcp-logs, mcp-ws-logs"
+    return 1
+}
+
 # --- Main Execution ---
 show_setup_summary
 
 # Run verification if not in dry-run mode
 if [ "$DRY_RUN" = false ]; then
+    verify_services_startup
     verify_agent_tracking
     initialize_playwright_mcp
     initialize_claude_flow_agents
