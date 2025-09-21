@@ -31,6 +31,9 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa && \
     add-apt-repository -y ppa:kicad/kicad-9.0-releases
 # Add NodeSource repository for up-to-date NodeJS (v22+)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+# Add Google Cloud SDK repository
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 # Install all packages including network utilities
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -47,6 +50,7 @@ RUN apt-get update && \
       python3.12 python3.12-venv python3.12-dev \
       nodejs \
       jq \
+      google-cloud-sdk \
       libvulkan1 vulkan-tools ocl-icd-libopencl1 && \
     rm -rf /var/lib/apt/lists/* && \
     wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 && \
@@ -149,19 +153,15 @@ RUN chmod +x /app/core-assets/scripts/*.js
 
 # Log directory is now created during user setup
 
-# 9. Install Node.js packages
-# Clear npm cache and install fresh versions of critical packages
-RUN npm cache clean --force && \
-    npm install -g \
-    gltf-pipeline \
-    sqlite3 --unsafe-perm
+# 9. Install Node.js packages using centralized package.json
+# Copy package files first for better layer caching
+COPY package.json package-lock.json* ./
 
-# Install critical packages with cache busting to ensure latest versions
+# Install all dependencies at once
 RUN npm cache clean --force && \
-    npm install -g --no-cache claude-flow@alpha && \
-    npm install -g ruv-swarm@latest \
-    @google/gemini-cli@latest \
-    @openai/codex@latest
+    npm install --production && \
+    npm install -g . && \
+    npm cache clean --force
 
 # Install claude via install script as dev user
 USER dev
@@ -179,13 +179,11 @@ RUN if [ -f /home/ubuntu/.local/bin/claude ]; then \
     fi && \
     chmod +x /usr/local/bin/claude 2>/dev/null || true
 
+# Playwright dependencies are installed via postinstall script
+
 # Grant dev user permissions to update global npm packages
 RUN chown -R dev:dev "$(npm config get prefix)/lib/node_modules" && \
-    chown dev:dev "$(npm config get prefix)/bin/gltf-pipeline" \
-                   "$(npm config get prefix)/bin/claude-flow" \
-                   "$(npm config get prefix)/bin/ruv-swarm" \
-                   "$(npm config get prefix)/bin/gemini" \
-                   "$(npm config get prefix)/bin/codex"
+    chown -R dev:dev "$(npm config get prefix)/bin" || true
 
 # ---------- Install Python ML & AI libraries into the 3.12 venv ----------
 # Copy requirements file and install dependencies to leverage Docker layer caching.
@@ -236,12 +234,21 @@ RUN cd /app/core-assets/scripts && npm install && chown -R dev:dev /app/core-ass
 # Copy MCP patches
 COPY core-assets/patches /app/patches
 
+# Apply patches if they exist
+RUN if [ -d /app/patches ]; then \
+        for patch in /app/patches/*.patch; do \
+            if [ -f "$patch" ]; then \
+                echo "Applying patch: $patch"; \
+                patch -p1 < "$patch" || echo "Warning: Patch $patch failed to apply"; \
+            fi; \
+        done; \
+    fi
+
 # Create necessary directories for MCP
 RUN mkdir -p /var/run/mcp /app/mcp-logs && \
     chown -R dev:dev /var/run/mcp /app/mcp-logs
 
-# Install Node.js dependencies for TCP server
-RUN cd /app && npm init -y && npm install ws
+# Node.js dependencies are now handled by the main package.json
 USER dev
 
 # Copy documentation and configuration files
@@ -283,13 +290,19 @@ export PATH="$DENO_INSTALL/bin:$PATH"\n\
 # Add local user bin to PATH for claude (both dev and ubuntu paths)\n\
 export PATH="/home/dev/.local/bin:/home/ubuntu/.local/bin:$PATH"\n\
 \n\
+# Add core-assets scripts and mcp-tools to PATH\n\
+export PATH="/app/core-assets/scripts:/app/core-assets/mcp-tools:$PATH"\n\
+\n\
 # Add global npm packages to PATH\n\
 if [ -d "$(npm config get prefix)/bin" ]; then\n\
     export PATH="$(npm config get prefix)/bin:$PATH"\n\
 fi\n\
 \n\
 # Claude shortcuts\n\
-alias dsp="claude --dangerously-skip-permissions"\n' >> /home/dev/.bashrc
+alias dsp="claude --dangerously-skip-permissions"\n\
+\n\
+# Activate Python virtual environment\n\
+source /opt/venv312/bin/activate\n' >> /home/dev/.bashrc
 
 # Switch to dev user for remaining operations
 USER dev

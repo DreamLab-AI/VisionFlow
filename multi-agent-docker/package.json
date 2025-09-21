@@ -1,0 +1,40 @@
+{
+  "name": "multi-agent-docker",
+  "version": "1.0.0",
+  "description": "A multi-agent Docker environment with Claude-Flow and other tools.",
+  "private": true,
+  "dependencies": {
+    "claude-flow": "^2.0.0-alpha.110",
+    "@google/gemini-cli": "latest",
+    "openai": "latest",
+    "@playwright/test": "latest",
+    "@executeautomation/playwright-mcp-server": "latest",
+    "@clduab11/gemini-flow": "latest",
+    "gltf-pipeline": "^4.1.0",
+    "sqlite3": "^5.1.7",
+    "ws": "^8.18.0",
+    "ruv-swarm": "latest"
+  },
+  "scripts": {
+    "postinstall": "npx playwright install --with-deps",
+    "start-mcp-tcp": "node /app/core-assets/scripts/mcp-tcp-server.js",
+    "start-mcp-ws": "node /app/core-assets/scripts/mcp-ws-relay.js",
+    "start-gemini-flow": "gemini-flow serve --port 8080 --host 0.0.0.0",
+    "start-claude-flow": "claude-flow serve --port 8081 --host 0.0.0.0",
+    "start-playwright-mcp": "npx @executeautomation/playwright-mcp-server",
+    "health-check": "node /app/core-assets/scripts/health-check.js",
+    "init-agents": "bash /app/core-assets/scripts/init-claude-flow-agents.sh",
+    "goal-init": "npx claude-flow@alpha goal init --force",
+    "neural-init": "npx claude-flow@alpha neural init --force",
+    "cf-status": "npx claude-flow@alpha status",
+    "playwright-demo": "node /app/core-assets/scripts/playwright-demo.js",
+    "playwright-install": "npx playwright install --with-deps",
+    "playwright-browsers": "npx playwright install --list",
+    "pw-test": "npx playwright test",
+    "pw-ui": "npx playwright test --ui",
+    "pw-report": "npx playwright show-report"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

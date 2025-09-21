@@ -1,8 +1,27 @@
 #!/bin/sh
 # This script is sourced by /etc/bash.bashrc to display a welcome message.
 
+# Skip welcome message if setup has been completed
+if [ -f /workspace/.setup_completed ]; then
+    return 0 2>/dev/null || exit 0
+fi
+
 echo ""
-echo "--- 🚀 Welcome to the Multi-Agent Docker Environment ---"
+echo "╔═══════════════════════════════════════════════════════════════════════╗"
+echo "║           🚀 Multi-Agent Docker Environment v2.0                      ║"
+echo "║           Enhanced with Claude-Flow v110                              ║"
+echo "╚═══════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "🤖 AI Agents & Services Available:"
+echo "   • 🎯 Goal Planner    - Adaptive task planning with A* pathfinding"
+echo "   • 🧠 SAFLA Neural    - Persistent AI memory & pattern learning"
+echo "   • 🔄 MCP Services    - TCP & WebSocket bridges for integration"
+echo ""
+echo "🎭 Playwright Browser Automation:"
+echo "   • Cross-browser testing (Chromium, Firefox, WebKit)"
+echo "   • MCP Server with automation tools"
+echo "   • Visual debugging & screenshot capture"
+echo "   • Network interception & mobile emulation"
 echo ""
 echo "To complete your one-time setup, please run the following commands in order:"
 echo ""
@@ -15,6 +34,11 @@ echo "   /app/setup-workspace.sh"
 echo ""
 echo "3. Reload your shell to activate all aliases and settings:"
 echo "   source /home/dev/.bashrc"
+echo ""
+echo "💡 New in Claude-Flow v110:"
+echo "   • Goal-Oriented Action Planning for complex workflows"
+echo "   • Four-tier memory architecture for AI persistence"
+echo "   • Self-improving code assistants that learn your style"
 echo ""
 echo "This message will disappear after you run the setup script."
 echo "--------------------------------------------------------"

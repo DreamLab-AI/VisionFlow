@@ -235,6 +235,20 @@ alias mcp-ws-logs='tail -f /app/mcp-logs/mcp-ws-bridge.log'
 # Claude Code Aliases
 alias dsp='claude --dangerously-skip-permissions'
 
+# Claude-Flow v110 Agent Commands
+alias claude-flow-init-agents='npx claude-flow@alpha goal init --force && npx claude-flow@alpha neural init --force'
+alias cf-goal='npx claude-flow@alpha goal'
+alias cf-neural='npx claude-flow@alpha neural'
+alias cf-status='npx claude-flow@alpha status'
+
+# Playwright MCP Commands
+alias playwright-server='npx @executeautomation/playwright-mcp-server'
+alias playwright-test='npx playwright test'
+alias playwright-codegen='npx playwright codegen'
+alias playwright-show-report='npx playwright show-report'
+alias playwright-demo='node /app/core-assets/scripts/playwright-demo.js'
+alias pw-install='npx playwright install --with-deps'
+
 # Quick MCP testing functions
 mcp-test-tcp() {
     local port=${1:-9500}
@@ -259,7 +273,14 @@ validate-toolchains() {
     if command -v deno >/dev/null; then deno --version | head -n 1; else echo "Not found"; fi
     printf "JQ: "
     if command -v jq >/dev/null; then jq --version; else echo "Not found"; fi
+    printf "Playwright: "
+    if command -v npx >/dev/null && npx playwright --version >/dev/null 2>&1; then npx playwright --version; else echo "Not found"; fi
 }
+
+# Load Playwright helpers if available
+if [ -f /app/core-assets/scripts/playwright-mcp-helpers.sh ]; then
+    source /app/core-assets/scripts/playwright-mcp-helpers.sh
+fi
 EOF
 
     sudo -u dev bash -c "echo \"\$1\" >> \"\$2\"" -- "$BASHRC_ADDITIONS" "$bashrc_file"
@@ -335,6 +356,39 @@ This environment is enhanced with several services and a specific development wo
 - **Health Check**: `localhost:9501/health` for service monitoring.
 - **GUI Tools**: via `gui-tools-service` (Blender:9876, QGIS:9877, PBR:9878).
 
+### Claude-Flow v110 Features
+This environment includes Claude-Flow v110 with advanced AI capabilities:
+
+#### 🎯 Goal Planner Agent
+- Applies Goal-Oriented Action Planning (GOAP) with A* pathfinding
+- Evaluates current state and calculates optimal action sequences
+- Adapts dynamically when conditions change or steps fail
+- Perfect for deployments, migrations, and complex workflows
+
+#### 🧠 SAFLA Neural Agent
+- Four-tier memory architecture: vector, episodic, semantic, and working memory
+- Accumulates knowledge and recognizes patterns across sessions
+- Creates self-improving code assistants that learn your style
+- Enables distributed swarms with collective intelligence
+
+### 🎭 Playwright MCP Integration
+Powerful browser automation and testing capabilities:
+
+#### Browser Automation Features
+- **Cross-browser testing**: Chromium, Firefox, and WebKit support
+- **Headless and headed modes**: Visual debugging or CI/CD automation
+- **Mobile emulation**: Test responsive designs on various devices
+- **Network interception**: Mock APIs and test offline scenarios
+- **Auto-waiting**: Smart element detection reduces flaky tests
+
+#### MCP Server Capabilities
+- **Page navigation**: `playwright_navigate`, `playwright_click`, `playwright_fill`
+- **Screenshot capture**: `playwright_screenshot` with full page support
+- **Element interaction**: Forms, buttons, dropdowns, file uploads
+- **Script evaluation**: Execute JavaScript in page context
+- **Selector strategies**: CSS, XPath, text, and accessibility selectors
+- **Session management**: Persistent browser contexts for complex workflows
+
 ### Development Context
 - **Project Root**: Your project is mounted at `ext/`.
 - **Always read the current state of ext/task.md**
@@ -352,6 +406,14 @@ npm run test        # For Node.js projects in ext/
 mcp-tcp-status
 mcp-test-health
 validate-toolchains
+
+# Initialize Claude-Flow v110 agents
+claude-flow-init-agents  # Initialize Goal Planner and Neural agents
+
+# Playwright MCP commands
+playwright-test         # Run Playwright tests
+playwright-server       # Start Playwright MCP server
+playwright-demo         # Run interactive demo
 ```
 EOF
     log_success "Appended service and context info to CLAUDE.md"
@@ -716,15 +778,140 @@ verify_agent_tracking() {
 # Removed: Patch creation was inappropriate for a setup script
 # This should be handled as part of the actual project development, not environment setup
 
+# 10. Initialize Playwright MCP Server
+initialize_playwright_mcp() {
+    log_info "🎭 Setting up Playwright MCP Server..."
+    
+    if [ "$DRY_RUN" = true ]; then
+        dry_run_log "Would initialize Playwright MCP Server"
+        return 0
+    fi
+    
+    # Ensure Playwright browsers are installed
+    log_info "Installing Playwright browsers..."
+    if ! npx playwright install --with-deps 2>/dev/null; then
+        log_warning "Playwright browser installation may require manual intervention"
+    else
+        log_success "Playwright browsers installed"
+    fi
+    
+    # Create Playwright example test
+    if [ ! -f "/workspace/playwright-example.spec.js" ]; then
+        cat > /workspace/playwright-example.spec.js << 'EOF'
+// Example Playwright test
+const { test, expect } = require('@playwright/test');
+
+test('basic test example', async ({ page }) => {
+  await page.goto('https://playwright.dev/');
+  await expect(page).toHaveTitle(/Playwright/);
+  
+  // Take a screenshot
+  await page.screenshot({ path: 'playwright-homepage.png' });
+});
+
+test('search functionality', async ({ page }) => {
+  await page.goto('https://playwright.dev/');
+  await page.click('button[aria-label="Search"]');
+  await page.fill('input[type="search"]', 'locators');
+  await page.press('input[type="search"]', 'Enter');
+  
+  // Verify search results
+  await expect(page.locator('.DocSearch-Hit')).toBeVisible();
+});
+EOF
+        log_success "Created Playwright example test"
+    fi
+    
+    # Create Playwright configuration
+    if [ ! -f "/workspace/playwright.config.js" ]; then
+        cat > /workspace/playwright.config.js << 'EOF'
+// Playwright configuration
+module.exports = {
+  testDir: './',
+  timeout: 30000,
+  use: {
+    headless: true,
+    viewport: { width: 1280, height: 720 },
+    actionTimeout: 15000,
+    ignoreHTTPSErrors: true,
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ],
+};
+
+const { devices } = require('@playwright/test');
+EOF
+        log_success "Created Playwright configuration"
+    fi
+    
+    # Verify Playwright installation
+    if npx playwright --version >/dev/null 2>&1; then
+        log_success "Playwright is ready: $(npx playwright --version)"
+    else
+        log_warning "Playwright installation needs verification"
+    fi
+}
+
+# 11. Initialize Claude-Flow v110 agents
+initialize_claude_flow_agents() {
+    log_info "🤖 Initializing Claude-Flow v110 agents..."
+    
+    if [ "$DRY_RUN" = true ]; then
+        dry_run_log "Would initialize Goal Planner and Neural agents"
+        return 0
+    fi
+    
+    # Check if claude-flow is available
+    if ! command -v claude-flow >/dev/null 2>&1 && ! npm list -g claude-flow@alpha >/dev/null 2>&1; then
+        log_warning "claude-flow not found, skipping agent initialization"
+        return 1
+    fi
+    
+    # Initialize Goal Planner
+    log_info "Initializing Goal Planner agent..."
+    if npx claude-flow@alpha goal init --force 2>&1 | grep -q "initialized"; then
+        log_success "Goal Planner agent initialized"
+    else
+        log_info "Goal Planner may already be initialized"
+    fi
+    
+    # Initialize SAFLA Neural agent
+    log_info "Initializing SAFLA Neural agent..."
+    if npx claude-flow@alpha neural init --force 2>&1 | grep -q "initialized"; then
+        log_success "SAFLA Neural agent initialized"
+    else
+        log_info "SAFLA Neural agent may already be initialized"
+    fi
+    
+    # Verify agents are available
+    if npx claude-flow@alpha status 2>&1 | grep -q "goal\|neural"; then
+        log_success "Claude-Flow v110 agents are ready"
+    else
+        log_warning "Could not verify agent status - they may need manual initialization"
+    fi
+}
+
 # --- Main Execution ---
 show_setup_summary
 
 # Run verification if not in dry-run mode
 if [ "$DRY_RUN" = false ]; then
     verify_agent_tracking
+    initialize_playwright_mcp
+    initialize_claude_flow_agents
 fi
 
 echo ""
 echo "🎉 Multi-Agent environment ready for development!"
 echo "🔧 Agent tracking fixed - using shared database at /workspace/.swarm/memory.db"
+echo "🤖 Claude-Flow v110 with Goal Planner and SAFLA Neural agents available"
+echo "🎭 Playwright MCP server ready for browser automation"
 echo ""
