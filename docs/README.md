@@ -1,129 +1,97 @@
-# 📚 VisionFlow Documentation Hub
+# 📚 AR-AI Knowledge Graph Documentation
 
-Welcome to VisionFlow, a high-performance WebXR system for real-time 3D visualization of knowledge graphs and AI agent swarms. This comprehensive documentation provides everything you need to understand, deploy, and develop with VisionFlow.
+Welcome to the AR-AI Knowledge Graph documentation. This unified system combines high-performance 3D visualisation with intelligent multi-agent orchestration for real-time knowledge graph exploration and AI-driven analytics.
 
 ## 🚀 Quick Start Paths
 
 | I want to... | Start here | Time needed |
 |--------------|------------|-------------|
-| **Get up and running fast** | [Quick Start Guide](getting-started/quickstart.md) | 5 minutes |
-| **Understand the system** | [System Overview](architecture/index.md) | 15 minutes |
-| **Integrate via API** | [API Documentation](api/README.md) | 10 minutes |
-| **Deploy in production** | [Deployment Guide](deployment/README.md) | 30 minutes |
-| **Contribute code** | [Development Guide](development/README.md) | 20 minutes |
+| **Get up and running fast** | [Quick Start Guide](getting-started/02-quick-start.md) | 5 minutes |
+| **Understand the system** | [System Overview](concepts/01-system-overview.md) | 15 minutes |
+| **Integrate via API** | [API Documentation](reference/api/index.md) | 10 minutes |
+| **Deploy in production** | [Deployment Guide](guides/01-deployment.md) | 30 minutes |
+| **Contribute code** | [Development Guide](guides/02-development-workflow.md) | 20 minutes |
 
-## 📖 Documentation Sections
+## 📖 Documentation Structure
 
-### 🎯 For New Users
+Our documentation follows the [Diátaxis framework](https://diataxis.fr/) for optimal learning paths:
 
-#### [Getting Started](getting-started/index.md)
-Complete setup and configuration guides
-- [Installation Guide](getting-started/installation.md) - System requirements and setup
-- [Quick Start](getting-started/quickstart.md) - 5-minute demo
-- [Configuration](getting-started/configuration.md) - Environment and settings
+### 🎯 [Getting Started](getting-started/00-index.md)
+**Learning-oriented** - Start here if you're new
+- [Installation Guide](getting-started/01-installation.md) - System requirements and setup
+- [Quick Start](getting-started/02-quick-start.md) - 5-minute hands-on introduction
+- [Configuration](getting-started/configuration.md) - Basic settings
 
-#### [Features Overview](features/index.md)
-Key capabilities and how to use them
-- [3D Visualization](features/visualization.md) - GPU-accelerated rendering
-- [AI Agent Integration](features/agent-orchestration.md) - Multi-agent systems
-- [WebXR Support](client/features/xr-integration.md) - VR/AR capabilities
+### 📋 [How-to Guides](guides/index.md)
+**Task-oriented** - Practical step-by-step guides
+- [Deployment](guides/01-deployment.md) - Production deployment strategies
+- [Development Workflow](guides/02-development-workflow.md) - Best practices
+- [GUI Sandbox](guides/03-using-the-gui-sandbox.md) - Visual tools
+- [Agent Orchestration](guides/04-orchestrating-agents.md) - Multi-agent management
+- [System Extension](guides/05-extending-the-system.md) - Customisation
+- [Troubleshooting](guides/06-troubleshooting.md) - Common issues
 
-### 🏗️ For Architects & Developers
+### 🧠 [Concepts](concepts/index.md)
+**Understanding-oriented** - Architecture and theory
+- [System Overview](concepts/01-system-overview.md) - High-level architecture
+- [Agentic Workers](concepts/02-agentic-workers.md) - AI agent system
+- [GPU Compute](concepts/03-gpu-compute.md) - CUDA acceleration
+- [Networking](concepts/04-networking.md) - WebSocket protocols
+- [Security](concepts/05-security.md) - Authentication and authorisation
+- [Data Flow](concepts/06-data-flow.md) - Processing pipeline
 
-#### [System Architecture](architecture/index.md)
-Comprehensive technical architecture
-- [System Overview](architecture/system-overview.md) - High-level design
-- [Component Architecture](architecture/components.md) - Detailed component breakdown
-- [Data Flow](architecture/data-flow.md) - Information processing pipeline
-- [GPU Compute](architecture/gpu-compute.md) - CUDA acceleration details
-
-#### [API Reference](api/README.md)
-Complete API documentation
-- [REST Endpoints](api/rest-endpoints.md) - HTTP API reference
-- [WebSocket Streams](api/websocket-streams.md) - Real-time communication
-- [Binary Protocol](api/binary-protocol.md) - Optimized data format
-- [MCP Integration](api/mcp/index.md) - AI agent connectivity
-
-### 🔧 For Operators & DevOps
-
-#### [Deployment](deployment/README.md)
-Production deployment guides
-- [Docker Setup](deployment/docker.md) - Container deployment
-- [Configuration](deployment/configuration.md) - Production settings
-- [Monitoring](deployment/monitoring.md) - System observability
-
-#### [Server Documentation](server/index.md)
-Server-side components and configuration
-- [Architecture](server/architecture.md) - Server design patterns
-- [Configuration](server/config.md) - Server settings
-- [Services](server/services.md) - Core services overview
-
-### 🎨 For Frontend Developers
-
-#### [Client Documentation](client/index.md)
-Frontend architecture and integration
-- [Architecture](client/architecture.md) - Client-side design
-- [WebSocket Integration](client/websocket.md) - Real-time connectivity
-- [3D Rendering](client/rendering.md) - Three.js integration
+### 📚 [Reference](reference/index.md)
+**Information-oriented** - Technical specifications
+- [Configuration](reference/configuration.md) - All settings explained
+- [API Reference](reference/api/index.md) - Complete API documentation
+  - [REST API](reference/api/rest-api.md)
+  - [WebSocket API](reference/api/websocket-api.md)
+  - [Binary Protocol](reference/api/binary-protocol.md)
+  - [MCP Protocol](reference/api/mcp-protocol.md)
+- [Agent Reference](reference/agents/README.md) - Agent specifications
+- [Glossary](reference/glossary.md) - Technical terms
 
 ## 🔍 Quick Reference
 
-### Essential Links
-- [📊 System Diagrams](diagrams.md) - Visual architecture overview
-- [🔗 Index of All Pages](index.md) - Complete site map
-- [❓ Troubleshooting](troubleshooting/README.md) - Common issues and solutions
-- [🐛 FAQ](faq.md) - Frequently asked questions
-
-### External Resources
-- [GitHub Repository](https://github.com/your-org/visionflow)
-- [Issue Tracker](https://github.com/your-org/visionflow/issues)
-- [Discussion Forum](https://github.com/your-org/visionflow/discussions)
-
-## 🎯 By Use Case
-
-### Research & Development
-- [AI Agent Visualization](features/agent-orchestration.md)
-- [Knowledge Graph Processing](server/features/semantic-analysis.md)
-- [Performance Analytics](features/analytics.md)
-
-### Enterprise Deployment
-- [Security Features](security/index.md)
-- [Scale Configuration](deployment/scaling.md)
-- [Integration Guides](guides/integration.md)
-
-### Customization & Extension
-- [Plugin Development](development/plugins.md)
-- [Custom Agents](reference/agents/README.md)
-- [API Extensions](development/api-extensions.md)
-
-## 📊 System Capabilities
-
+### System Capabilities
 | Feature | Performance | Description |
 |---------|-------------|-------------|
-| **3D Rendering** | 60 FPS | GPU-accelerated visualization |
-| **Node Capacity** | 100,000+ | Large-scale graph support |
+| **3D Rendering** | 60 FPS @ 100k+ nodes | GPU-accelerated visualisation |
+| **Agent System** | 50+ concurrent agents | Multi-agent orchestration |
 | **Real-time Updates** | <10ms latency | Binary WebSocket protocol |
-| **AI Agents** | 50+ types | Multi-agent orchestration |
-| **WebXR Support** | Full VR/AR | Quest 3 integration |
-| **API Throughput** | 1000+ req/min | High-performance REST/WS APIs |
+| **API Throughput** | 1000+ req/min | High-performance endpoints |
+| **GPU Compute** | 100x speedup | CUDA-accelerated algorithms |
+
+### Key Technologies
+- **Frontend**: React, Three.js, WebXR
+- **Backend**: Node.js, Rust (GPU kernels)
+- **Protocols**: WebSocket, MCP, Binary
+- **Infrastructure**: Docker, Kubernetes
+- **AI Integration**: Anthropic Claude, OpenAI
 
 ## 🗺️ Navigation Tips
 
-1. **First time?** Start with [Getting Started](getting-started/index.md)
-2. **Need specific API info?** Check [API Reference](api/README.md)
-3. **Architecture questions?** See [System Architecture](architecture/index.md)
-4. **Having issues?** Try [Troubleshooting](troubleshooting/README.md)
-5. **Want to contribute?** Read [Development Guide](development/README.md)
+1. **New to the system?** → [Getting Started](getting-started/00-index.md)
+2. **Need to accomplish a task?** → [Guides](guides/index.md)
+3. **Want to understand how it works?** → [Concepts](concepts/index.md)
+4. **Looking up specific details?** → [Reference](reference/index.md)
 
-## 📈 Documentation Statistics
+## 📈 Documentation Features
 
-- **210 documentation files** covering every aspect of the system
-- **7,000+ internal links** providing comprehensive cross-references
-- **Multi-layered architecture** from high-level overviews to implementation details
-- **Production-ready** with deployment and operational guides
+- **Comprehensive Coverage**: 50+ documentation pages
+- **Cross-referenced**: Extensive internal linking
+- **Code Examples**: Practical implementation samples
+- **Visual Diagrams**: Mermaid architecture diagrams
+- **UK English**: Consistent British spelling throughout
+
+## 🚦 Getting Help
+
+- **Common Issues**: See [Troubleshooting Guide](guides/06-troubleshooting.md)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/ar-ai-knowledge-graph/issues)
+- **Discussions**: [Community forum](https://github.com/your-org/ar-ai-knowledge-graph/discussions)
 
 ---
 
-**Ready to get started?** Choose your path above, or dive into the [Quick Start Guide](getting-started/quickstart.md) to see VisionFlow in action within 5 minutes.
+**Ready to begin?** Start with our [installation guide](getting-started/01-installation.md) to set up your environment, then follow the [quick-start tutorial](getting-started/02-quick-start.md) to see the system in action.
 
-*Documentation last updated: 2025-09-16*
+*Documentation Version: 2.0.0 | Last Updated: 2025-09-22*

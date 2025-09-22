@@ -1,10 +1,14 @@
 # Glossary
 
-This glossary defines key terms used throughout the LogseqSpringThing documentation to ensure consistency.
+This comprehensive glossary defines key terms used throughout the VisionFlow documentation.
 
 ## A
 
 **Actor** - In the context of this project, refers to Actix actors used for concurrent, message-based processing in the Rust backend.
+
+**Agent** - An autonomous AI-powered entity within the multi-agent system that can perform specific tasks, communicate with other agents, and participate in swarm coordination.
+
+**API** - Application Programming Interface. VisionFlow provides REST, WebSocket, Binary, and MCP APIs for different use cases.
 
 **Settings** - The complete application settings structure containing all configuration options for both server and client components.
 
@@ -12,9 +16,9 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 ## B
 
-**Binary Protocol** - The efficient 28-byte per node wire format used for real-time position updates over WebSocket connections.
+**Binary Protocol** - The efficient 34-byte per node wire format used for real-time position updates over WebSocket connections, providing 95% bandwidth reduction compared to JSON.
 
-**BinaryNodeData** - Server-side data structure containing node position, velocity, and physics properties (mass, flags).
+**BinaryNodeData** - Data structure containing node position, velocity, and SSSP (Single Source Shortest Path) information transmitted via the binary protocol.
 
 ## C
 
@@ -108,9 +112,27 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 
 **Zustand** - Lightweight state management library used for client-side state management.
 
+## Additional Terms
+
+**Control Bits** - Special bits in the binary protocol node ID used to indicate node type (agent or knowledge node).
+
+**CORS** - Cross-Origin Resource Sharing. Security feature that controls which domains can access the API.
+
+**CUDA** - NVIDIA's Compute Unified Device Architecture for GPU acceleration.
+
+**Docker Compose** - Tool for defining and running multi-container Docker applications, used for VisionFlow deployment.
+
+**FPS (Frames Per Second)** - Update rate for physics simulation and rendering, typically 60 FPS.
+
 **Inference** - The process of deriving new, implicit facts from existing data and a set of logical axioms in an ontology.
 
+**JSON-RPC** - Remote procedure call protocol used by the MCP server for agent communication.
+
+**JWT (JSON Web Token)** - Authentication token format used for securing API access.
+
 **Louvain Method** - A fast, greedy algorithm for community detection in large networks, used in graph clustering.
+
+**Multi-Agent System** - A system composed of multiple autonomous agents that can communicate and coordinate to solve complex tasks.
 
 **Ontology** - A formal specification of a set of concepts and the relationships between them. In this project, it is used to define the logical rules for the knowledge graph.
 
@@ -127,6 +149,18 @@ This glossary defines key terms used throughout the LogseqSpringThing documentat
 **Spectral Clustering** - A clustering technique that uses the eigenvalues of the graph's Laplacian matrix to identify communities.
 
 **Stress Majorization** - A global layout optimisation algorithm that aims to minimise the difference between the geometric distances and the graph-theoretic distances of nodes.
+
+**Swarm** - A collection of agents working together with a specific topology (mesh, hierarchical, etc.) to accomplish complex tasks.
+
+**Swarm ID** - Unique identifier for an agent swarm following the pattern `swarm_[timestamp]_[random]`.
+
+**Task Orchestration** - The process of distributing and coordinating tasks across multiple agents in a swarm.
+
+**Three.js** - JavaScript 3D library used for rendering the knowledge graph visualization in the browser.
+
+**VisionFlow** - The main application name, a knowledge graph visualization system with multi-agent AI integration.
+
+**WebSocket** - Protocol providing full-duplex communication channels over a single TCP connection, used for real-time updates.
 
 ## Related Topics
 

@@ -1,4 +1,4 @@
-# VisionFlow Quick Start Guide
+# Quick Start Guide
 
 *[Getting-Started](../index.md)*
 
@@ -25,7 +25,7 @@ Before starting, ensure you have:
 
 ```bash
 # 1. Clone the repository (if not already done)
-git clone https://github.com/yourusername/visionflow.git
+git clone https://github.com/visionflow/visionflow.git
 cd visionflow
 
 # 2. Configure environment
@@ -50,7 +50,7 @@ docker-compose ps
 Expected output:
 ```
 NAME                    COMMAND                  SERVICE             STATUS
-visionflow_container    "/app/scripts/start.sh"  webxr          Up
+visionflow_container    "/app/scripts/start.sh"  webxr              Up
 multi-agent-container   "python3 -m claude..."   claude-flow        Up
 postgres                "docker-entrypoint..."   postgres           Up
 redis                   "docker-entrypoint..."   redis              Up
@@ -115,17 +115,17 @@ There are several ways to quickly get started:
 Multi-agent systems in VisionFlow are intelligent AI agents that work together to solve complex problems. Each agent has specialised capabilities:
 
 - **Coordinator**: Orchestrates tasks and manages workflow
-- **Researcher**: Gathers information and analyses requirements
+- **Researcher**: Gathers information and analyzes requirements
 - **Coder**: Implements solutions and writes code
 - **Architect**: Designs system structure and patterns
 - **Tester**: Creates tests and validates implementations
 - **Reviewer**: Ensures code quality and best practices
 
-### Initialise Your First Multi-Agent System
+### Initialize Your First Multi-Agent System
 
 #### Step 1: Access the Multi-Agent Panel
 1. Look for the **"VisionFlow (MCP)"** section in the left control panel
-2. You should see an **"Initialise multi-agent"** button if no agents are active
+2. You should see an **"Initialize multi-agent"** button if no agents are active
 3. Click this button to open the configuration dialogue
 
 #### Step 2: Configure Your Agents
@@ -200,7 +200,7 @@ Max Agents: 4
 ```
 
 Expected outcome:
-- Researcher analyses requirements
+- Researcher analyzes requirements
 - Coder implements the API
 - Tester creates validation tests
 - Coordinator ensures everything works together
@@ -221,17 +221,17 @@ Expected outcome:
 
 #### Code Analysis Task (15-20 minutes)
 ```
-Task: "Analyse this codebase and suggest improvements"
+Task: "Analyze this codebase and suggest improvements"
 Topology: star
-Agents: coordinator, analyst, optimiser, documenter
+Agents: coordinator, analyst, optimizer, documenter
 Max Agents: 5
 ```
 
 Expected outcome:
 - Analyst examines code structure and patterns
-- Optimiser identifies performance improvements
+- Optimizer identifies performance improvements
 - Documenter creates improvement recommendations
-- Coordinator synthesises all findings
+- Coordinator synthesizes all findings
 
 ## Understanding the Interface
 
@@ -244,7 +244,7 @@ Expected outcome:
 - **Load Graph**: Restore previously saved graph
 
 #### Multi-Agent Systems
-- **Initialise Multi-Agent**: Configure and deploy AI agents
+- **Initialize Multi-Agent**: Configure and deploy AI agents
 - **Agent Status**: Monitor active agents and their states
 - **Task Management**: View and control ongoing tasks
 - **Performance Metrics**: Real-time system performance data
@@ -434,7 +434,6 @@ Now that you've mastered the basics, explore these advanced features:
 
 ## Related Topics
 
-- [Configuration Guide](../getting-started/configuration.md)
-- [Getting Started with VisionFlow](../getting-started.md)
-- [Getting Started with VisionFlow](../getting-started/index.md)
-- [Installation Guide](../getting-started/installation.md)
+- [Configuration Guide](configuration.md)
+- [Getting Started with VisionFlow](00-index.md)
+- [Installation Guide](01-installation.md)

@@ -8,6 +8,7 @@ workspace/
 mcp-logs/
 .venv/
 pbr_outputs/
+docs/_archive
 
 # IDE/Editor specific files
 .vscode/

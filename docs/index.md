@@ -1,72 +1,89 @@
-# VisionFlow Documentation Index
+# AR-AI Knowledge Graph Documentation
 
-## Overview
+Welcome to the AR-AI Knowledge Graph system documentation. This unified platform combines high-performance 3D visualisation with intelligent multi-agent orchestration to create a comprehensive solution for real-time knowledge graph exploration and AI-driven analytics.
 
-VisionFlow is a high-performance WebXR system for real-time 3D visualisation of knowledge graphs and AI agent swarms. This documentation provides comprehensive technical information about the system architecture, components, and operations.
+## 🚀 Quick Navigation
 
-## 🚀 Latest Updates
+### [Getting Started](getting-started/00-index.md)
+New to the system? Start here for installation and your first steps.
+- Installation guide
+- Quick-start tutorial
+- Basic configuration
 
-**System Upgrade 2025** (v2.0.0) - [Implementation Report](IMPLEMENTATION_REPORT.md)
-- Fixed persistent TCP connection issues
-- Implemented multi-swarm management 
-- Enhanced client polling system with comprehensive WebSocket protocol
-- Complete control interface for task management
-- [Migration Guide](deployment/MIGRATION_GUIDE.md) for existing deployments
+### [Guides](guides/index.md)
+Practical, task-oriented documentation for common workflows.
+- Deployment strategies
+- Development workflow
+- Using the GUI sandbox
+- Agent orchestration
+- System extension
 
-## Documentation Hub
+### [Concepts](concepts/index.md)
+Understand the architecture and design principles.
+- System overview
+- Agentic workers
+- GPU compute architecture
+- Networking protocols
+- Security model
 
-### 📊 [System Architecture Diagrams](diagrams.md)
-Comprehensive visual documentation of all system components and data flows, including:
-- System overview architecture
-- Client-server communication patterns
-- Actor system message passing
-- GPU compute pipeline
-- Authentication and authorization
-- External service integrations
-- Error handling and recovery
-- Performance optimization strategies
+### [Reference](reference/index.md)
+Detailed technical specifications and API documentation.
+- Configuration options
+- API specifications
+- Agent reference
+- Glossary
 
-### 📖 [Documentation README](README.md)
-Main documentation entry point with complete navigation structure.
+## 🎯 Common Tasks
 
-## Quick Navigation
+| I want to... | Start here |
+|--------------|------------|
+| **Get up and running quickly** | [Quick Start](getting-started/02-quick-start.md) |
+| **Deploy the system** | [Deployment Guide](guides/01-deployment.md) |
+| **Understand the architecture** | [System Overview](concepts/01-system-overview.md) |
+| **Work with AI agents** | [Agent Orchestration](guides/04-orchestrating-agents.md) |
+| **Integrate via API** | [API Reference](reference/api/index.md) |
+| **Troubleshoot issues** | [Troubleshooting Guide](guides/06-troubleshooting.md) |
 
-### Getting Started
-- [Quick Start Guide](../README.md#quick-start)
-- [Installation](installation.md)
-- [Configuration](configuration/README.md)
+## 🏗️ System Capabilities
 
-### Architecture
-- [System Diagrams](diagrams.md)
-- [Actor System](architecture/actors.md)
-- [GPU Compute](architecture/gpu.md)
-- [WebSocket Protocols](architecture/websockets.md)
+The AR-AI Knowledge Graph system provides:
 
-### Development
-- [Developer Guide](development/README.md)
-- [API Reference](api/README.md)
-- [Testing](development/testing.md)
+- **3D Visualisation**: GPU-accelerated rendering of complex knowledge graphs with WebXR support
+- **Multi-Agent Intelligence**: Orchestrated AI agents for analysis, processing, and insights
+- **Real-time Processing**: Binary WebSocket protocols for sub-10ms latency updates
+- **Scalable Architecture**: Distributed computing with Docker containerisation
+- **Extensible Platform**: MCP protocol support for custom tool integration
 
-### Operations
-- [Deployment](deployment/README.md)
-- [Monitoring](operations/monitoring.md)
-- [Performance Tuning](operations/performance.md)
+## 📊 Key Features
 
-## Key Features
+| Component | Capability | Performance |
+|-----------|------------|-------------|
+| 3D Rendering | GPU-accelerated visualisation | 60 FPS @ 100k+ nodes |
+| Agent System | Multi-agent orchestration | 50+ concurrent agents |
+| Data Processing | Real-time graph updates | <10ms latency |
+| API Throughput | REST/WebSocket endpoints | 1000+ requests/min |
+| GPU Compute | CUDA-accelerated algorithms | 100x speedup |
 
-- **Real-time 3D Visualization**: GPU-accelerated rendering at 60 FPS
-- **AI Agent Orchestration**: Multi-agent swarm coordination
-- **Binary WebSocket Protocol**: 85% bandwidth reduction
-- **Actor-Based Architecture**: Scalable message passing system
-- **XR Support**: Full WebXR integration for VR/AR devices
-- **External Integrations**: GitHub, OpenAI, RAGFlow, Nostr
+## 🔧 For Developers
 
-## Support
+- [Development Workflow](guides/02-development-workflow.md) - Set up your development environment
+- [Extending the System](guides/05-extending-the-system.md) - Add new capabilities
+- [API Documentation](reference/api/index.md) - Complete API reference
 
-- [Troubleshooting](troubleshooting/README.md)
-- [FAQ](faq.md)
-- [GitHub Issues](https://github.com/your-org/visionflow/issues)
+## 🚦 System Status
+
+- **Documentation Version**: 2.0.0
+- **Platform Version**: 1.5.0
+- **Last Updated**: 2025-09-22
+
+## 📚 Additional Resources
+
+- [Security Policy](concepts/05-security.md)
+- [Configuration Reference](reference/configuration.md)
+- [Known Issues](guides/06-troubleshooting.md#known-issues)
 
 ---
 
-*Last Updated: 2025-09-12*
+**Ready to begin?** Start with our [installation guide](getting-started/01-installation.md) to set up your environment, then follow the [quick-start tutorial](getting-started/02-quick-start.md) to see the system in action.
+
+*This documentation follows the Diátaxis framework for optimal learning paths.*
