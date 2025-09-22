@@ -40,8 +40,8 @@ gh --version            # GitHub CLI
 1. **Clone and Configure Repository**
 ```bash
 # Clone with submodules
-git clone --recursive https://github.com/your-org/AR-AI-Knowledge-Graph.git
-cd AR-AI-Knowledge-Graph
+git clone --recursive https://github.com/your-org/VisionsFlow.git
+cd VisionsFlow
 
 # Set up Git hooks
 ./scripts/setup-git-hooks.sh
@@ -106,7 +106,7 @@ docker-compose --profile dev up
 ### Directory Organization
 
 ```
-AR-AI-Knowledge-Graph/
+VisionsFlow/
 ├── client/                    # React frontend
 │   ├── src/
 │   │   ├── components/       # React components
@@ -141,16 +141,16 @@ AR-AI-Knowledge-Graph/
 pub mod agent_manager {
     use crate::models::Agent;
     use crate::utils::Result;
-    
+
     pub struct AgentManager {
         agents: Vec<Agent>,
     }
-    
+
     impl AgentManager {
         pub fn new() -> Self {
             Self { agents: Vec::new() }
         }
-        
+
         pub fn spawn_agent(&mut self, config: AgentConfig) -> Result<Agent> {
             // Implementation
         }
@@ -171,17 +171,17 @@ interface AgentGraphProps {
   onNodeClick?: (nodeId: string) => void;
 }
 
-export const AgentGraph: React.FC<AgentGraphProps> = ({ 
-  className, 
-  onNodeClick 
+export const AgentGraph: React.FC<AgentGraphProps> = ({
+  className,
+  onNodeClick
 }) => {
   const agents = useAgentStore(state => state.agents);
-  
+
   return (
     <GraphCanvas className={className}>
       {agents.map(agent => (
-        <AgentNode 
-          key={agent.id} 
+        <AgentNode
+          key={agent.id}
           agent={agent}
           onClick={onNodeClick}
         />
@@ -297,11 +297,11 @@ gh pr create --template .github/pull_request_template.md
 export const MyComponent: React.FC<Props> = ({ prop1, prop2 }) => {
   // Use custom hooks for logic
   const { data, loading } = useCustomHook();
-  
+
   // Early returns for conditionals
   if (loading) return <Loading />;
   if (!data) return null;
-  
+
   return <div>{/* Component JSX */}</div>;
 };
 
@@ -333,7 +333,7 @@ pub fn process_task(&mut self, task: Task) -> Result<(), ProcessError> {
     let agent = self.active_agents
         .get_mut(&task.agent_id)
         .ok_or(ProcessError::AgentNotFound)?;
-    
+
     agent.execute(task)?;
     Ok(())
 }
@@ -346,10 +346,10 @@ pub fn process_task(&mut self, task: Task) -> Result<(), ProcessError> {
 pub enum AgentError {
     #[error("Agent not found: {0}")]
     NotFound(String),
-    
+
     #[error("Task execution failed")]
     ExecutionFailed(#[from] ExecutionError),
-    
+
     #[error("Network error")]
     Network(#[from] reqwest::Error),
 }
@@ -369,21 +369,21 @@ from typing import Dict, Any, Optional
 
 class MCPTool:
     """Base class for MCP tools."""
-    
+
     def __init__(self, name: str):
         self.name = name
-    
+
     def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Process an MCP request."""
         method = request.get('method')
         params = request.get('params', {})
-        
+
         try:
             result = self._execute(method, params)
             return {'result': result}
         except Exception as e:
             return {'error': str(e)}
-    
+
     def _execute(self, method: str, params: Dict[str, Any]) -> Any:
         """Execute the requested method."""
         raise NotImplementedError
@@ -403,18 +403,18 @@ describe('AgentNode', () => {
   it('renders agent information', () => {
     const agent = { id: '1', name: 'Test Agent', status: 'active' };
     const { getByText } = render(<AgentNode agent={agent} />);
-    
+
     expect(getByText('Test Agent')).toBeInTheDocument();
     expect(getByText('active')).toBeInTheDocument();
   });
-  
+
   it('calls onClick when clicked', () => {
     const onClick = jest.fn();
     const agent = { id: '1', name: 'Test Agent' };
     const { container } = render(
       <AgentNode agent={agent} onClick={onClick} />
     );
-    
+
     fireEvent.click(container.firstChild);
     expect(onClick).toHaveBeenCalledWith('1');
   });
@@ -427,22 +427,22 @@ describe('AgentNode', () => {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_agent_spawn() {
         let mut manager = AgentManager::new();
         let config = AgentConfig::default();
-        
+
         let agent = manager.spawn_agent(config).await.unwrap();
         assert_eq!(agent.status, AgentStatus::Active);
         assert_eq!(manager.agent_count(), 1);
     }
-    
+
     #[tokio::test]
     async fn test_concurrent_agents() {
         let manager = Arc::new(Mutex::new(AgentManager::new()));
         let mut handles = vec![];
-        
+
         for i in 0..10 {
             let mgr = manager.clone();
             handles.push(tokio::spawn(async move {
@@ -450,7 +450,7 @@ mod tests {
                 mgr.spawn_agent(AgentConfig::default()).await
             }));
         }
-        
+
         let results: Vec<_> = futures::future::join_all(handles).await;
         assert_eq!(results.len(), 10);
     }
@@ -467,15 +467,15 @@ use reqwest::StatusCode;
 #[tokio::test]
 async fn test_health_endpoint() {
     let app = spawn_app().await;
-    
+
     let response = app.client
         .get(&format!("{}/health", app.address))
         .send()
         .await
         .unwrap();
-    
+
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let health: HealthResponse = response.json().await.unwrap();
     assert_eq!(health.status, "healthy");
 }
@@ -489,19 +489,19 @@ import { test, expect } from '@playwright/test';
 test('complete agent workflow', async ({ page }) => {
   // Navigate to app
   await page.goto('http://localhost:3002');
-  
+
   // Create new agent
   await page.click('button[aria-label="Create Agent"]');
   await page.fill('input[name="agentName"]', 'Test Agent');
   await page.click('button[type="submit"]');
-  
+
   // Verify agent appears
   await expect(page.locator('text=Test Agent')).toBeVisible();
-  
+
   // Execute task
   await page.click('text=Test Agent');
   await page.click('button[aria-label="Execute Task"]');
-  
+
   // Verify task completion
   await expect(page.locator('text=Task completed')).toBeVisible();
 });
@@ -638,14 +638,14 @@ gh pr list --search "keyword"
 1. **Fork and Clone**
 ```bash
 # Fork repository on GitHub
-gh repo fork your-org/AR-AI-Knowledge-Graph
+gh repo fork your-org/VisionsFlow
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/AR-AI-Knowledge-Graph.git
-cd AR-AI-Knowledge-Graph
+git clone https://github.com/YOUR_USERNAME/VisionsFlow.git
+cd VisionsFlow
 
 # Add upstream remote
-git remote add upstream https://github.com/your-org/AR-AI-Knowledge-Graph.git
+git remote add upstream https://github.com/your-org/VisionsFlow.git
 ```
 
 2. **Create Feature Branch**
@@ -751,18 +751,18 @@ use tokio::task::JoinSet;
 
 pub async fn process_agents(agents: Vec<Agent>) -> Vec<Result<ProcessedAgent>> {
     let mut set = JoinSet::new();
-    
+
     for agent in agents {
         set.spawn(async move {
             process_single_agent(agent).await
         });
     }
-    
+
     let mut results = Vec::new();
     while let Some(result) = set.join_next().await {
         results.push(result?);
     }
-    
+
     results
 }
 ```
