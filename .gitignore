@@ -26,6 +26,7 @@ multi-agent-docker/workspace/
 #multi-agent-docker/gui-based-tools-docker/tessellating-pbr-generator/src/
 client/src/vircadia-web/
 multi-agent-docker/.git
+docs/archive
 
 # .claude
 .npm
