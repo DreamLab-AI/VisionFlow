@@ -128,11 +128,13 @@ RUN npx playwright@latest install-deps chromium firefox webkit && \
     npx playwright@latest install chromium firefox webkit && \
     chmod -R 755 /opt/playwright-browsers
 
-# Create Playwright MCP script
-RUN mkdir -p /opt/playwright-mcp
+# Create MCP scripts
+RUN mkdir -p /opt/playwright-mcp /opt/qgis-mcp
 COPY playwright-mcp-server.js /opt/playwright-mcp/server.js
-RUN chmod +x /opt/playwright-mcp/server.js
-RUN chown -R blender:blender /opt/playwright-mcp
+COPY qgis-mcp-server.js /opt/qgis-mcp-server.js
+COPY pbr-mcp-simple.py /opt/pbr-mcp-simple.py
+RUN chmod +x /opt/playwright-mcp/server.js /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py
+RUN chown -R blender:blender /opt/playwright-mcp /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py
 
 USER blender
 
