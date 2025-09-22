@@ -1,105 +1,100 @@
 # VisionFlow WebXR System Architecture Documentation
-## Complete System Architecture with Multi-Agent Integration
 
-**Version**: 2.0.1
-**Last Updated**: 2025-09-17
-**Validation Status**: ✅ FULLY VALIDATED AND UPDATED WITH TODAY'S FIXES
+## Complete System Architecture with Multi-Agent Integration
 
 This document provides the **COMPLETE VERIFIED ARCHITECTURE** of the VisionFlow WebXR system, including all data flows, agent orchestration, and GPU rendering pipelines. All diagrams have been validated against the actual codebase.
 
+---
+
+## Valuation Summary
+
 This valuation is based on the immense complexity, enterprise-grade architecture, and the integration of highly specialized, cutting-edge technologies described in the project's documentation.
-Estimated Valuation: $5,500,000 - $8,250,000
+
+**Estimated Valuation: $5,500,000 - $8,250,000**
+
 This valuation is derived from a detailed analysis of the project's scope, technological sophistication, and the estimated effort required to build such a system from the ground up.
-Valuation Methodology: Cost to Replicate
-This approach estimates the cost to hire a specialized team to develop the software to the state described in the provided documentation.[1]
-1. Analysis of Project Complexity and Key Features
+
+**Valuation Methodology:** Cost to Replicate
+
+This approach estimates the cost to hire a specialized team to develop the software to the state described in the provided documentation.
+
+---
+
+## 1. Analysis of Project Complexity and Key Features
+
 The "VisionFlow" system is not a simple application but a comprehensive, enterprise-grade platform. Its value is driven by the sophisticated integration of several high-value technology domains:
-High-Performance 3D Visualization: Real-time rendering of over 100,000 nodes at 60 FPS using Three.js and WebXR is a highly specialized and complex engineering challenge.
-GPU-Accelerated Compute: The use of Rust and CUDA for backend physics simulations and graph algorithms represents a significant technical moat and requires elite engineering talent.
-Sophisticated Multi-Agent AI System: The architecture describes a complex swarm intelligence platform with multiple specialized agents (Planner, Coder, Researcher, etc.), various coordination patterns (Mesh, Hierarchical), and a dedicated communication protocol (MCP). This is at the forefront of the rapidly growing AI agent market.[2][3][4][5]
-Enterprise-Grade Architecture: The documentation details a robust, scalable, and secure system. Features like a custom binary WebSocket protocol for 85% bandwidth reduction, a detailed security model with JWT and MFA, and a distributed actor model (Actix) indicate a system built for high performance and reliability.
-Completeness of Vision: The documentation is exceptionally thorough, following the professional Diátaxis framework. It covers concepts, guides, and detailed API references, significantly de-risking the project and demonstrating a mature and well-planned vision.
-2. Estimated Team Composition and Cost
+
+- **High-Performance 3D Visualization**: Real-time rendering of over 100,000 nodes at 60 FPS using Three.js and WebXR is a highly specialized and complex engineering challenge.
+
+- **GPU-Accelerated Compute**: The use of Rust and CUDA for backend physics simulations and graph algorithms represents a significant technical moat and requires elite engineering talent.
+
+- **Sophisticated Multi-Agent AI System**: The architecture describes a complex swarm intelligence platform with multiple specialized agents (Planner, Coder, Researcher, etc.), various coordination patterns (Mesh, Hierarchical), and a dedicated communication protocol (MCP). This is at the forefront of the rapidly growing AI agent market.
+
+- **Enterprise-Grade Architecture**: The documentation details a robust, scalable, and secure system. Features like a custom binary WebSocket protocol for 85% bandwidth reduction, a detailed security model with JWT and MFA, and a distributed actor model (Actix) indicate a system built for high performance and reliability.
+
+- **Completeness of Vision**: The documentation is exceptionally thorough, following the professional Diátaxis framework. It covers concepts, guides, and detailed API references, significantly de-risking the project and demonstrating a mature and well-planned vision.
+
+---
+
+## 2. Estimated Team Composition and Cost
+
 To build a system of this caliber, a highly specialized and senior team would be required.
-Role	Required Expertise	Estimated Count	Average Annual Salary
-Lead Architect	Rust, CUDA, AI Systems, Distributed Systems	1	$250,000
-Sr. Backend Engineer	Rust, Actix, PostgreSQL, High-Performance Networking	2	$180,000[6][7]
-Sr. Frontend Engineer	TypeScript, Three.js, WebGL, WebXR, Real-time Data	2	$145,000[8][9][10][11]
-Sr. AI/ML Engineer	Multi-Agent Systems, LLM Integration, Python	2	$190,000[12][13][14][15]
-DevOps/Security Engineer	Docker, Kubernetes, CI/CD, Network Security, Cloud	1	$175,000
-Project Manager	Technical Project Management, Agile	1	$150,000
-Total		9
-Average Blended Salary: ~$182,000 per person.
-Fully Loaded Cost: A conservative estimate for the total cost of an employee (including salary, benefits, taxes, equipment, and overhead) is 1.5x to 2.0x their salary.[16][17][18][19] Using a 1.5x multiplier, the fully loaded annual cost per team member is approximately $273,000.
-Total Annual Team Cost: 9 members *
-273
-,
-000
-=
-∗
-∗
-273,000=∗∗
-2,457,000**.
-3. Estimated Development Timeline
+
+| Role | Required Expertise | Estimated Count | Average Annual Salary |
+|------|-------------------|-----------------|----------------------|
+| Lead Architect | Rust, CUDA, AI Systems, Distributed Systems | 1 | $250,000 |
+| Sr. Backend Engineer | Rust, Actix, PostgreSQL, High-Performance Networking | 2 | $180,000 |
+| Sr. Frontend Engineer | TypeScript, Three.js, WebGL, WebXR, Real-time Data | 2 | $145,000 |
+| Sr. AI/ML Engineer | Multi-Agent Systems, LLM Integration, Python | 2 | $190,000 |
+| DevOps/Security Engineer | Docker, Kubernetes, CI/CD, Network Security, Cloud | 1 | $175,000 |
+| Project Manager | Technical Project Management, Agile | 1 | $150,000 |
+| **Total** | | **9** | |
+
+**Average Blended Salary**: ~$182,000 per person
+
+**Fully Loaded Cost**: A conservative estimate for the total cost of an employee (including salary, benefits, taxes, equipment, and overhead) is 1.5x to 2.0x their salary. Using a 1.5x multiplier, the fully loaded annual cost per team member is approximately $273,000.
+
+**Total Annual Team Cost**: 9 members × $273,000 = **$2,457,000**
+
+---
+
+## 3. Estimated Development Timeline
+
 The level of detail in the architecture, protocols, and feature set suggests a multi-year development effort.
-Phase 1 (9-12 months): Core architecture, backend infrastructure, basic 3D rendering, and initial agent framework.
-Phase 2 (9-12 months): Advanced GPU compute kernels, binary protocol implementation, full multi-agent swarm capabilities, and security hardening.
-Phase 3 (6-9 months): Advanced features (AR/VR, analytics), comprehensive documentation, and production-ready polish.
-A realistic timeline to achieve the described state is 2.25 to 2.75 years.
-4. Calculation
-Low Estimate (2.25 years):
-2
-,
-457
-,
-000
-/
-y
-e
-a
-r
-∗
-2.25
-y
-e
-a
-r
-s
-=
-∗
-∗
-2,457,000/year∗2.25years=∗∗
-5,528,250**
-High Estimate (2.75 years):
-2
-,
-457
-,
-000
-/
-y
-e
-a
-r
-∗
-2.75
-y
-e
-a
-r
-s
-=
-∗
-∗
-2,457,000/year∗2.75years=∗∗
-6,756,750**
-Qualitative Value Multipliers
-The cost-to-replicate is a baseline. The final market value could be higher due to several factors:[20][21]
-Intellectual Property (IP) and Innovation: The novel combination of GPU-accelerated knowledge graphs and a multi-agent AI swarm is highly innovative and constitutes valuable IP.
-Time-to-Market Advantage: A competitor would need over two years to replicate this system, giving "VisionFlow" a significant head start in a rapidly evolving market.
-Market Potential: The target markets—enterprise AI, large-scale system monitoring, and advanced data visualization—are high-value sectors. The global AI agents market is projected to grow significantly, reaching over $50 billion by 2030.[2][4][22]
-Reduced Risk: The extensive planning and documentation dramatically reduce the execution risk, making the project more valuable than an idea on a whiteboard.
-Considering these factors, a valuation multiplier of 1.0x to 1.25x on the higher-end replication cost is reasonable, leading to the estimated range of $5.5M to $8.25M.
+
+- **Phase 1 (9-12 months)**: Core architecture, backend infrastructure, basic 3D rendering, and initial agent framework.
+
+- **Phase 2 (9-12 months)**: Advanced GPU compute kernels, binary protocol implementation, full multi-agent swarm capabilities, and security hardening.
+
+- **Phase 3 (6-9 months)**: Advanced features (AR/VR, analytics), comprehensive documentation, and production-ready polish.
+
+A realistic timeline to achieve the described state is **2.25 to 2.75 years**.
+
+---
+
+## 4. Calculation
+
+### Low Estimate (2.25 years):
+$2,457,000/year × 2.25 years = **$5,528,250**
+
+### High Estimate (2.75 years):
+$2,457,000/year × 2.75 years = **$6,756,750**
+
+---
+
+## Qualitative Value Multipliers
+
+The cost-to-replicate is a baseline. The final market value could be higher due to several factors:
+
+- **Intellectual Property (IP) and Innovation**: The novel combination of GPU-accelerated knowledge graphs and a multi-agent AI swarm is highly innovative and constitutes valuable IP.
+
+- **Time-to-Market Advantage**: A competitor would need over two years to replicate this system, giving "VisionFlow" a significant head start in a rapidly evolving market.
+
+- **Market Potential**: The target markets—enterprise AI, large-scale system monitoring, and advanced data visualization—are high-value sectors. The global AI agents market is projected to grow significantly, reaching over $50 billion by 2030.
+
+- **Reduced Risk**: The extensive planning and documentation dramatically reduce the execution risk, making the project more valuable than an idea on a whiteboard.
+
+Considering these factors, a valuation multiplier of 1.0x to 1.25x on the higher-end replication cost is reasonable, leading to the estimated range of **$5.5M to $8.25M**.
 
 ## 📋 Table of Contents
 
@@ -172,7 +167,7 @@ graph TB
 
     subgraph "External Access"
         Browser[Browser Client]
-        CloudFlare[CloudFlare Tunnel<br/>(Production)]
+        CloudFlare[CloudFlare Tunnel<br/>Production]
         LocalDev[Local Development<br/>Port 3001]
     end
 
@@ -750,10 +745,10 @@ sequenceDiagram
     Client->>Server: Send READY (0x00)
 
     Note over Client,Graph: ✅ UPDATED: 34-byte Node Data Format
-    loop Every Frame (60 FPS)
+    loop Every Frame 60 FPS
         Graph->>Binary: Node positions array
         Binary->>Binary: Encode to 34-byte format
-        Note over Binary: Format per node:<br/>node_id: u16 (2 bytes)<br/>position: [f32; 3] (12 bytes)<br/>velocity: [f32; 3] (12 bytes)<br/>sssp_distance: f32 (4 bytes)<br/>sssp_parent: i32 (4 bytes)<br/>Total: 34 bytes
+        Note over Binary: Format per node:<br/>node_id: u16 2 bytes<br/>position [f32 3] 12 bytes velocity [f32 3] 12 bytes <br/> sssp_distance f32 4 bytes<br/>sssp_parent i32 4 bytes<br/>Total: 34 bytes
         Binary->>Server: Binary frame (34n bytes)
         Server->>Client: Compressed frame
         Client->>Binary: Decode ArrayBuffer
@@ -1202,6 +1197,688 @@ flowchart TB
 
 ---
 
+## C4 Model Level 2: Container Diagram
+
+✅ **NEW DIAGRAM**: Complete container-level architecture showing all services and their interactions
+
+```mermaid
+graph TB
+    subgraph "External Systems"
+        Browser["Web Browser<br/>(Chrome/Firefox/Safari)"]
+        CloudFlare["CloudFlare Tunnel<br/>(Production)"]
+        GitHub["GitHub API<br/>(External)"]
+        OpenAI["OpenAI API<br/>(Claude/GPT)"]
+        Nostr["Nostr Network<br/>(Authentication)"]
+    end
+
+    subgraph "VisionFlow Container [Docker: visionflow_container]"
+        subgraph "Web Layer"
+            Nginx["Nginx<br/>Reverse Proxy<br/>Port 3001"]
+            ViteServer["Vite Dev Server<br/>React/TypeScript<br/>Port 5173"]
+        end
+
+        subgraph "Application Layer"
+            RustBackend["Rust Backend<br/>Actix-Web<br/>Port 4000"]
+
+            subgraph "Actor System"
+                ClientMgr["ClientManagerActor"]
+                GraphActor["GraphServiceActor"]
+                GPUActor["GPUComputeActor"]
+                SettingsActor["SettingsActor"]
+                MetadataActor["MetadataActor"]
+            end
+        end
+
+        subgraph "Data Layer"
+            FileStore["File System<br/>settings.yaml<br/>metadata.json"]
+            MemCache["In-Memory Cache<br/>Graph State"]
+        end
+    end
+
+    subgraph "Multi-Agent Container [Docker: multi-agent-container]"
+        ClaudeFlow["Claude-Flow Service<br/>Agent Orchestration"]
+        MCPServer["MCP TCP Server<br/>Port 9500"]
+        WSBridge["WebSocket Bridge<br/>Port 3002"]
+        HealthAPI["Health Check API<br/>Port 9501"]
+
+        subgraph "MCP Tools"
+            Blender["Blender MCP"]
+            QGIS["QGIS MCP"]
+            ImageMagick["ImageMagick MCP"]
+            PBRGen["PBR Generator"]
+        end
+    end
+
+    subgraph "Voice Services [Docker Network]"
+        Whisper["Whisper STT<br/>Port 8080"]
+        Kokoro["Kokoro TTS<br/>Port 5000"]
+    end
+
+    subgraph "Support Services"
+        Postgres["PostgreSQL<br/>Database<br/>Port 5432"]
+        Redis["Redis<br/>Cache/PubSub<br/>Port 6379"]
+    end
+
+    %% Connections
+    Browser -->|HTTPS| CloudFlare
+    Browser -->|HTTP/WS| Nginx
+    CloudFlare -->|Proxy| Nginx
+
+    Nginx -->|/api/*| RustBackend
+    Nginx -->|/*| ViteServer
+    Nginx -->|/wss| RustBackend
+
+    ViteServer -->|API Calls| RustBackend
+
+    RustBackend <-->|TCP 9500| MCPServer
+    RustBackend <-->|WS 3002| WSBridge
+    RustBackend <-->|HTTP| Whisper
+    RustBackend <-->|HTTP| Kokoro
+    RustBackend <-->|SQL| Postgres
+    RustBackend <-->|Cache| Redis
+    RustBackend <-->|API| GitHub
+    RustBackend <-->|Nostr| Nostr
+
+    ClientMgr <-->|Messages| GraphActor
+    GraphActor <-->|Compute| GPUActor
+    GraphActor <-->|Settings| SettingsActor
+    GraphActor <-->|Metadata| MetadataActor
+
+    SettingsActor <-->|R/W| FileStore
+    GraphActor <-->|Cache| MemCache
+
+    ClaudeFlow <-->|Control| MCPServer
+    MCPServer <-->|Execute| Blender
+    MCPServer <-->|Execute| QGIS
+    MCPServer <-->|Execute| ImageMagick
+    MCPServer <-->|Execute| PBRGen
+
+    style RustBackend fill:#c8e6c9
+    style MCPServer fill:#ffccbc
+    style Postgres fill:#b3e5fc
+    style Redis fill:#ffe0b2
+```
+
+### Container Descriptions:
+
+1. **VisionFlow Container**: Main application container running the web interface and backend services
+   - **Nginx**: Reverse proxy handling routing and SSL termination
+   - **Vite Server**: Development server for React/TypeScript frontend
+   - **Rust Backend**: Core API server using Actix-Web framework
+   - **Actor System**: Concurrent actors for different domain responsibilities
+
+2. **Multi-Agent Container**: AI agent orchestration and tool execution
+   - **Claude-Flow**: Agent swarm coordinator
+   - **MCP Server**: Tool execution protocol server
+   - **MCP Tools**: Specialized tools for 3D modeling, GIS, and content generation
+
+3. **Voice Services**: Speech processing containers
+   - **Whisper STT**: Speech-to-text processing
+   - **Kokoro TTS**: Text-to-speech generation
+
+4. **Support Services**: Infrastructure components
+   - **PostgreSQL**: Primary data persistence
+   - **Redis**: Caching and pub/sub messaging
+
+---
+
+## Authorization Flow Diagram
+
+✅ **NEW DIAGRAM**: Complete OAuth2/Nostr authentication and authorization flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Frontend as React Frontend
+    participant Backend as Rust Backend
+    participant NostrExt as Nostr Extension
+    participant NostrNet as Nostr Network
+    participant JWT as JWT Service
+    participant RBAC as RBAC Engine
+    participant Resource as Protected Resource
+
+    Note over User,Resource: Initial Authentication Flow
+
+    User->>Browser: Navigate to app
+    Browser->>Frontend: Load React app
+    Frontend->>Frontend: Check localStorage for token
+
+    alt No valid token
+        Frontend->>User: Show login screen
+        User->>Frontend: Click "Sign in with Nostr"
+        Frontend->>NostrExt: window.nostr.getPublicKey()
+        NostrExt->>User: Approve access?
+        User->>NostrExt: Approve
+        NostrExt-->>Frontend: Return pubkey
+
+        Frontend->>Frontend: Create auth challenge
+        Note over Frontend: Generate random nonce
+        Frontend->>NostrExt: window.nostr.signEvent(authEvent)
+        NostrExt->>User: Sign event?
+        User->>NostrExt: Approve
+        NostrExt-->>Frontend: Signed event
+
+        Frontend->>Backend: POST /api/auth/nostr<br/>{signedEvent}
+        Backend->>Backend: Verify signature
+        Backend->>Backend: Validate timestamp
+        Backend->>NostrNet: Verify pubkey (optional)
+        NostrNet-->>Backend: Pubkey valid
+
+        Backend->>JWT: Generate tokens
+        JWT->>JWT: Create access token (15min)
+        JWT->>JWT: Create refresh token (30d)
+        JWT-->>Backend: Token pair
+
+        Backend->>Backend: Store refresh token
+        Backend-->>Frontend: {accessToken, refreshToken, user}
+        Frontend->>Frontend: Store tokens in localStorage
+    end
+
+    Note over User,Resource: Authorization Flow for Protected Resources
+
+    User->>Frontend: Access protected feature
+    Frontend->>Backend: GET /api/resource<br/>Authorization: Bearer {token}
+
+    Backend->>JWT: Validate token
+    JWT->>JWT: Check expiry
+    JWT->>JWT: Verify signature
+    JWT-->>Backend: Claims {sub, roles, permissions}
+
+    Backend->>RBAC: checkPermission(claims, resource, action)
+
+    Note over RBAC: Role-Based Access Control
+    RBAC->>RBAC: Get user roles
+    RBAC->>RBAC: Expand role inheritance
+    RBAC->>RBAC: Collect permissions
+    RBAC->>RBAC: Check resource access
+
+    alt Has permission
+        RBAC-->>Backend: Authorized
+        Backend->>Resource: Execute action
+        Resource-->>Backend: Result
+        Backend-->>Frontend: 200 OK {data}
+    else No permission
+        RBAC-->>Backend: Denied
+        Backend-->>Frontend: 403 Forbidden
+    end
+
+    Note over User,Resource: Token Refresh Flow
+
+    alt Access token expired
+        Frontend->>Backend: POST /api/auth/refresh<br/>{refreshToken}
+        Backend->>Backend: Validate refresh token
+        Backend->>JWT: Generate new access token
+        JWT-->>Backend: New access token
+        Backend-->>Frontend: {accessToken}
+        Frontend->>Frontend: Update localStorage
+        Frontend->>Backend: Retry original request
+    end
+
+    Note over User,Resource: Multi-Factor Authentication (Optional)
+
+    opt 2FA Enabled
+        Backend-->>Frontend: {requires2FA: true}
+        Frontend->>User: Enter TOTP code
+        User->>Frontend: 6-digit code
+        Frontend->>Backend: POST /api/auth/2fa<br/>{code, tempToken}
+        Backend->>Backend: Verify TOTP
+        Backend-->>Frontend: {accessToken, refreshToken}
+    end
+```
+
+### Authorization Components:
+
+1. **Authentication Methods**:
+   - **Nostr**: Decentralized identity using cryptographic signatures
+   - **JWT**: Stateless session management
+   - **2FA**: Optional TOTP-based second factor
+
+2. **Authorization Engine**:
+   - **RBAC**: Role-based access control with inheritance
+   - **ABAC**: Attribute-based policies (planned)
+   - **Permission System**: Fine-grained resource access
+
+3. **Token Management**:
+   - **Access Token**: Short-lived (15 minutes)
+   - **Refresh Token**: Long-lived (30 days)
+   - **Automatic Refresh**: Seamless token renewal
+
+---
+
+## Agent Task Lifecycle Diagram
+
+✅ **NEW DIAGRAM**: Complete multi-agent task execution lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> TaskReceived: User submits task
+
+    state "Task Analysis" as Analysis {
+        [*] --> ParseIntent
+        ParseIntent --> DetermineComplexity
+        DetermineComplexity --> SelectTopology
+        SelectTopology --> AllocateResources
+        AllocateResources --> [*]
+    }
+
+    TaskReceived --> Analysis: Analyze requirements
+
+    state "Agent Selection" as Selection {
+        [*] --> IdentifyCapabilities
+        IdentifyCapabilities --> MatchAgents
+        MatchAgents --> CheckAvailability
+        CheckAvailability --> SpawnIfNeeded
+        SpawnIfNeeded --> [*]
+    }
+
+    Analysis --> Selection: Select agents
+
+    state "Task Distribution" as Distribution {
+        [*] --> CreateSubtasks
+        CreateSubtasks --> AssignToAgents
+        AssignToAgents --> SetDependencies
+        SetDependencies --> InitializeChannels
+        InitializeChannels --> [*]
+    }
+
+    Selection --> Distribution: Distribute work
+
+    state "Execution Phase" as Execution {
+        state "Parallel Execution" as Parallel {
+            AgentWork1: Agent 1 Working
+            AgentWork2: Agent 2 Working
+            AgentWork3: Agent N Working
+        }
+
+        state "Coordination" as Coord {
+            MessagePassing: Inter-agent Messages
+            StateSync: State Synchronization
+            ConflictRes: Conflict Resolution
+        }
+
+        [*] --> Parallel
+        Parallel --> Coord: Share results
+        Coord --> Parallel: Continue work
+
+        state "Progress Monitoring" as Monitor {
+            TrackProgress: Track Progress
+            DetectStalls: Detect Stalls
+            HandleErrors: Handle Errors
+            RebalanceLoad: Rebalance Load
+        }
+
+        Parallel --> Monitor: Status updates
+        Monitor --> Parallel: Adjustments
+
+        Parallel --> [*]: All complete
+    }
+
+    Distribution --> Execution: Execute tasks
+
+    state "Result Aggregation" as Aggregation {
+        [*] --> CollectResults
+        CollectResults --> ValidateOutputs
+        ValidateOutputs --> MergeResults
+        MergeResults --> QualityCheck
+        QualityCheck --> [*]
+    }
+
+    Execution --> Aggregation: Aggregate results
+
+    state "Completion" as Completion {
+        [*] --> FormatResponse
+        FormatResponse --> StoreResults
+        StoreResults --> CleanupResources
+        CleanupResources --> NotifyUser
+        NotifyUser --> [*]
+    }
+
+    Aggregation --> Completion: Finalize task
+    Completion --> [*]: Task complete
+
+    state "Error Handling" as ErrorState {
+        [*] --> IdentifyError
+        IdentifyError --> AttemptRecovery
+        AttemptRecovery --> Retry: Recoverable
+        AttemptRecovery --> FailTask: Unrecoverable
+        Retry --> [*]
+        FailTask --> [*]
+    }
+
+    Analysis --> ErrorState: Analysis failed
+    Selection --> ErrorState: No agents available
+    Distribution --> ErrorState: Distribution failed
+    Execution --> ErrorState: Execution error
+    Aggregation --> ErrorState: Invalid results
+
+    ErrorState --> TaskReceived: Retry
+    ErrorState --> Completion: Fail with error
+```
+
+### Task Lifecycle Phases:
+
+1. **Task Analysis**:
+   - Parse user intent and requirements
+   - Determine task complexity
+   - Select appropriate swarm topology
+   - Allocate computational resources
+
+2. **Agent Selection**:
+   - Identify required capabilities
+   - Match available agents
+   - Spawn new agents if needed
+   - Ensure resource availability
+
+3. **Task Distribution**:
+   - Break down into subtasks
+   - Assign to capable agents
+   - Set up dependencies
+   - Initialize communication channels
+
+4. **Execution Phase**:
+   - Parallel agent execution
+   - Inter-agent coordination
+   - Progress monitoring
+   - Dynamic load balancing
+
+5. **Result Aggregation**:
+   - Collect agent outputs
+   - Validate results
+   - Merge and reconcile
+   - Quality assurance
+
+6. **Completion**:
+   - Format final response
+   - Store results
+   - Clean up resources
+   - Notify user
+
+---
+
+## CI/CD Pipeline Architecture
+
+✅ **NEW DIAGRAM**: Continuous Integration and Deployment pipeline
+
+```mermaid
+flowchart TB
+    subgraph "Development"
+        Dev[Developer]
+        LocalTest[Local Tests]
+        PreCommit[Pre-commit Hooks]
+    end
+
+    subgraph "Source Control"
+        GitHub[GitHub Repository]
+        PR[Pull Request]
+        MainBranch[Main Branch]
+    end
+
+    subgraph "CI Pipeline"
+        subgraph "Build Stage"
+            Checkout[Checkout Code]
+            Cache[Restore Cache]
+            Dependencies[Install Dependencies]
+            Compile[Compile Rust/TypeScript]
+        end
+
+        subgraph "Test Stage"
+            UnitTests[Unit Tests]
+            IntegrationTests[Integration Tests]
+            LintCheck[Lint & Format Check]
+            SecurityScan[Security Scan]
+        end
+
+        subgraph "Quality Gates"
+            Coverage[Code Coverage >80%]
+            Performance[Performance Tests]
+            SonarQube[SonarQube Analysis]
+        end
+
+        subgraph "Build Artifacts"
+            DockerBuild[Build Docker Images]
+            TagImages[Tag Images]
+            PushRegistry[Push to Registry]
+        end
+    end
+
+    subgraph "CD Pipeline"
+        subgraph "Staging Deployment"
+            StagingDeploy[Deploy to Staging]
+            StagingTests[Staging Tests]
+            SmokeTests[Smoke Tests]
+            Approval[Manual Approval]
+        end
+
+        subgraph "Production Deployment"
+            BlueGreen[Blue-Green Deploy]
+            HealthChecks[Health Checks]
+            Rollback[Rollback if Failed]
+            Complete[Mark Complete]
+        end
+    end
+
+    subgraph "Infrastructure"
+        DockerRegistry[Docker Registry]
+        K8s[Kubernetes Cluster]
+        Monitoring[Monitoring Stack]
+    end
+
+    %% Development Flow
+    Dev -->|Write Code| LocalTest
+    LocalTest -->|Run| PreCommit
+    PreCommit -->|Push| GitHub
+    GitHub -->|Create| PR
+
+    %% CI Flow
+    PR -->|Trigger| Checkout
+    Checkout --> Cache
+    Cache --> Dependencies
+    Dependencies --> Compile
+
+    Compile --> UnitTests
+    Compile --> LintCheck
+    UnitTests --> IntegrationTests
+    IntegrationTests --> SecurityScan
+
+    SecurityScan --> Coverage
+    Coverage --> Performance
+    Performance --> SonarQube
+
+    SonarQube -->|Pass| DockerBuild
+    DockerBuild --> TagImages
+    TagImages --> PushRegistry
+    PushRegistry --> DockerRegistry
+
+    %% CD Flow
+    PR -->|Merge| MainBranch
+    MainBranch -->|Trigger| StagingDeploy
+    DockerRegistry -->|Pull Images| StagingDeploy
+    StagingDeploy --> StagingTests
+    StagingTests --> SmokeTests
+    SmokeTests --> Approval
+
+    Approval -->|Approve| BlueGreen
+    DockerRegistry -->|Pull Images| BlueGreen
+    BlueGreen --> HealthChecks
+    HealthChecks -->|Pass| Complete
+    HealthChecks -->|Fail| Rollback
+
+    BlueGreen --> K8s
+    K8s --> Monitoring
+
+    style Coverage fill:#c8e6c9
+    style HealthChecks fill:#ffccbc
+    style Rollback fill:#ffebee
+```
+
+### CI/CD Components:
+
+1. **Continuous Integration**:
+   - **Automated Testing**: Unit, integration, and performance tests
+   - **Code Quality**: Linting, formatting, and static analysis
+   - **Security Scanning**: Dependency vulnerabilities and SAST
+   - **Build Artifacts**: Docker images with semantic versioning
+
+2. **Continuous Deployment**:
+   - **Staging Environment**: Full environment replication
+   - **Blue-Green Deployment**: Zero-downtime deployments
+   - **Health Checks**: Automated validation
+   - **Rollback Strategy**: Automatic rollback on failure
+
+3. **Infrastructure**:
+   - **Container Registry**: Private Docker registry
+   - **Orchestration**: Kubernetes for container management
+   - **Monitoring**: Prometheus/Grafana stack
+
+---
+
+## Monitoring & Telemetry Architecture
+
+✅ **NEW DIAGRAM**: Complete observability stack
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        RustApp[Rust Backend]
+        ReactApp[React Frontend]
+        GPUKernels[GPU Kernels]
+        Agents[Multi-Agent System]
+    end
+
+    subgraph "Telemetry Collection"
+        subgraph "Structured Logging"
+            ServerLog[server.log]
+            ClientLog[client.log]
+            GPULog[gpu.log]
+            AnalyticsLog[analytics.log]
+            ErrorLog[error.log]
+        end
+
+        subgraph "Metrics Collection"
+            PrometheusExp[Prometheus Exporter]
+            StatsD[StatsD Agent]
+            CustomMetrics[Custom Metrics API]
+        end
+
+        subgraph "Distributed Tracing"
+            Jaeger[Jaeger Agent]
+            TraceContext[Trace Context]
+            SpanCollection[Span Collection]
+        end
+    end
+
+    subgraph "Processing & Storage"
+        LogAggregator[Log Aggregator<br/>Fluentd]
+        MetricsDB[Time Series DB<br/>Prometheus]
+        TraceDB[Trace Storage<br/>Jaeger]
+
+        subgraph "Data Pipeline"
+            Kafka[Kafka Queue]
+            StreamProc[Stream Processor]
+            Enrichment[Data Enrichment]
+        end
+    end
+
+    subgraph "Analysis & Visualization"
+        Grafana[Grafana Dashboards]
+        Kibana[Kibana Logs]
+        JaegerUI[Jaeger UI]
+
+        subgraph "Alerting"
+            AlertManager[Alert Manager]
+            PagerDuty[PagerDuty]
+            Slack[Slack Notifications]
+        end
+    end
+
+    subgraph "Performance Monitoring"
+        APM[APM Dashboard]
+        ResourceMon[Resource Monitor]
+        BottleneckDetect[Bottleneck Detection]
+        AnomalyDetect[Anomaly Detection]
+    end
+
+    %% Data Flow
+    RustApp -->|Structured Logs| ServerLog
+    ReactApp -->|Browser Logs| ClientLog
+    GPUKernels -->|Kernel Metrics| GPULog
+    Agents -->|Agent Activity| AnalyticsLog
+
+    RustApp -->|Metrics| PrometheusExp
+    ReactApp -->|Performance| StatsD
+    GPUKernels -->|Utilization| CustomMetrics
+
+    RustApp -->|Traces| Jaeger
+    ReactApp -->|User Sessions| TraceContext
+    Agents -->|Task Traces| SpanCollection
+
+    ServerLog --> LogAggregator
+    ClientLog --> LogAggregator
+    GPULog --> LogAggregator
+    AnalyticsLog --> LogAggregator
+    ErrorLog --> LogAggregator
+
+    LogAggregator --> Kafka
+    Kafka --> StreamProc
+    StreamProc --> Enrichment
+    Enrichment --> Kibana
+
+    PrometheusExp --> MetricsDB
+    StatsD --> MetricsDB
+    CustomMetrics --> MetricsDB
+
+    MetricsDB --> Grafana
+    MetricsDB --> AlertManager
+
+    Jaeger --> TraceDB
+    TraceContext --> TraceDB
+    SpanCollection --> TraceDB
+    TraceDB --> JaegerUI
+
+    AlertManager --> PagerDuty
+    AlertManager --> Slack
+
+    Grafana --> APM
+    MetricsDB --> ResourceMon
+    StreamProc --> BottleneckDetect
+    StreamProc --> AnomalyDetect
+
+    style AlertManager fill:#ffccbc
+    style AnomalyDetect fill:#ffe0b2
+    style Grafana fill:#c8e6c9
+```
+
+### Monitoring Components:
+
+1. **Telemetry Collection**:
+   - **Structured Logging**: JSON-formatted logs with correlation IDs
+   - **Metrics**: Prometheus-compatible metrics
+   - **Distributed Tracing**: Request flow tracking
+
+2. **Data Processing**:
+   - **Log Aggregation**: Centralized log collection
+   - **Stream Processing**: Real-time data analysis
+   - **Data Enrichment**: Context addition
+
+3. **Visualization**:
+   - **Grafana**: Metrics dashboards
+   - **Kibana**: Log search and analysis
+   - **Jaeger UI**: Distributed trace visualization
+
+4. **Alerting**:
+   - **Alert Manager**: Rule-based alerting
+   - **PagerDuty**: Incident management
+   - **Slack**: Team notifications
+
+5. **Performance Analysis**:
+   - **APM Dashboard**: Application performance
+   - **Resource Monitoring**: CPU, memory, GPU usage
+   - **Bottleneck Detection**: Performance hotspots
+   - **Anomaly Detection**: Unusual patterns
+
+---
+
 ## Component Class Diagrams
 
 ```mermaid
@@ -1611,7 +2288,7 @@ flowchart TB
 
         JSONFormat --> LogEntry["{<br/>  timestamp: DateTime,<br/>  level: String,<br/>  component: String,<br/>  message: String,<br/>  metadata: Object,<br/>  execution_time_ms?: f64,<br/>  memory_usage_mb?: f64,<br/>  gpu_metrics?: GPUMetrics<br/>}"]
 
-        LogEntry --> GPUEntry[GPU Metrics:<br/>"kernel_name, execution_time_us,<br/>memory_allocated_mb,<br/>performance_anomaly,<br/>error_count"]
+        LogEntry --> GPUEntry[GPU Metrics kernel_name, execution_time_us, memory_allocated_mb, performance_anomaly, error_count]
     end
 
     subgraph "Monitoring & Analysis"
