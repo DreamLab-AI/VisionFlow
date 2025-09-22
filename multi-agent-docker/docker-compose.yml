@@ -23,16 +23,19 @@ services:
       - QGIS_MCP_PORT=9877
       - PBR_MCP_HOST=0.0.0.0
       - PBR_MCP_PORT=9878
+      - PLAYWRIGHT_MCP_HOST=0.0.0.0
+      - PLAYWRIGHT_MCP_PORT=9879
 
     ports:
       - "5901:5901"   # VNC port
       - "9876:9876"   # MCP Blender port
       - "9877:9877"   # MCP QGIS port
       - "9878:9878"   # MCP PBR Generator port
+      - "9879:9879"   # MCP Playwright port
 
-    # Health check ensures all three services are ready
+    # Health check ensures all services are ready
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878"]
+      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -129,9 +132,10 @@ services:
       - SESSION_TIMEOUT=${SESSION_TIMEOUT:-1800000}
       - SESSION_CLEANUP_INTERVAL=${SESSION_CLEANUP_INTERVAL:-300000}
       - MAX_CONCURRENT_SESSIONS=${MAX_CONCURRENT_SESSIONS:-10}
-      # Claude Code Authentication
-      - CLAUDE_CODE_ACCESS=${CLAUDE_CODE_ACCESS}
-      - CLAUDE_CODE_REFRESH=${CLAUDE_CODE_REFRESH}
+      # Claude Configuration (see docs/claude-auth.md)
+      - CLAUDE_CONFIG_DIR=/home/dev/.claude
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       # IP Blocking
       - AUTO_BLOCK_ENABLED=${AUTO_BLOCK_ENABLED:-true}
       - BLOCK_DURATION=${BLOCK_DURATION:-3600000}
@@ -148,8 +152,10 @@ services:
     ports:
       - "3000:3000"    # Claude Flow UI
       - "3002:3002"    # WebSocket Bridge (existing)
-      - "9500:9500"    # MCP TCP Server (NEW)
-      - "9501:9501"    # MCP Health Check (NEW)
+      - "9500:9500"    # MCP TCP Server (shared claude-flow)
+      - "9501:9501"    # MCP Health Check
+      - "9502:9502"    # Claude-Flow TCP (isolated sessions)
+      - "9503:9503"    # Claude-Flow TCP health
 
     volumes:
       - ./workspace:/workspace
@@ -161,10 +167,13 @@ services:
       - mcp-sockets:/var/run/mcp
       # Mount the corrected entrypoint
       - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
+      # Mount Claude configuration directory and credentials
+      - ~/.claude:/home/dev/.claude
+      - ~/.claude.json:/home/dev/.claude.json:ro
 
     # Override entrypoint and run in interactive mode by default
     entrypoint: ["/entrypoint-wrapper.sh"]
-    command: ["--interactive"]
+    command: ["/bin/bash", "-l"]
 
     # Keep stdin open and allocate a pseudo-TTY
     stdin_open: true

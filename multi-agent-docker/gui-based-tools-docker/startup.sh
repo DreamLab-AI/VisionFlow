@@ -44,6 +44,21 @@ echo "--- Starting PBR Generator MCP Server ---"
 python3 /opt/tessellating-pbr-generator/pbr_mcp_server.py &
 sleep 3
 
+echo "--- Starting Playwright MCP Server ---"
+export PLAYWRIGHT_MCP_PORT=${PLAYWRIGHT_MCP_PORT:-9879}
+export PLAYWRIGHT_MCP_HOST=${PLAYWRIGHT_MCP_HOST:-0.0.0.0}
+export PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
+node /opt/playwright-mcp/server.js &
+PLAYWRIGHT_PID=$!
+sleep 3
+
+echo "--- Checking if Playwright MCP started ---"
+if ps -p $PLAYWRIGHT_PID > /dev/null; then
+    echo "Playwright MCP started successfully (PID: $PLAYWRIGHT_PID)"
+else
+    echo "ERROR: Playwright MCP failed to start"
+fi
+
 echo "--- Starting x11vnc ---"
 x11vnc -display :1 -nopw -forever -xkb -listen 0.0.0.0 -rfbport 5901 -verbose &
 VNC_PID=$!
@@ -58,7 +73,7 @@ else
 fi
 
 echo "--- Checking all processes ---"
-ps aux | grep -E "(Xvfb|startxfce4|blender|qgis|x11vnc)" | grep -v grep
+ps aux | grep -E "(Xvfb|startxfce4|blender|qgis|x11vnc|playwright)" | grep -v grep
 
 echo "--- Checking network listeners ---"
 netstat -tuln

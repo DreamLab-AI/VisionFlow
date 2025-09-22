@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# Don't exit on errors during initialization
+set +e
 
 echo "=== MCP 3D Environment Starting ==="
 echo "Container IP: $(hostname -I)"
@@ -32,54 +33,31 @@ echo "✅ Security initialization complete"
 
 # Ensure the dev user owns their home directory to prevent permission
 # issues with npx, cargo, etc. This is safe to run on every start.
-chown -R dev:dev /home/dev
+# Skip .claude directory as it's mounted read-only from host
+chown dev:dev /home/dev
+find /home/dev -maxdepth 1 -not -path "/home/dev/.claude*" -not -path "/home/dev" -exec chown -R dev:dev {} \; 2>/dev/null || true
 
-# Set up Claude Code authentication if credentials are provided
-if [ -n "$CLAUDE_CODE_ACCESS" ] && [ -n "$CLAUDE_CODE_REFRESH" ]; then
-    echo "=== Setting up Claude Code Authentication ==="
-    
-    # Create .claude directory for both dev and ubuntu users
-    for user_home in /home/dev /home/ubuntu; do
-        mkdir -p "$user_home/.claude"
-        
-        # Calculate expiry time (30 days from now)
-        EXPIRES_AT=$(($(date +%s) * 1000 + 2592000000))
-        
-        # Create credentials file with proper format
-        cat > "$user_home/.claude/.credentials.json" << EOF
-{
-  "claudeAiOauth": {
-    "accessToken": "$CLAUDE_CODE_ACCESS",
-    "refreshToken": "$CLAUDE_CODE_REFRESH",
-    "expiresAt": $EXPIRES_AT,
-    "scopes": ["user:inference", "user:profile"],
-    "subscriptionType": "max"
-  }
-}
-EOF
-        
-        # Set proper permissions
-        chmod 600 "$user_home/.claude/.credentials.json"
-        
-        # Set ownership based on user
-        if [ "$user_home" = "/home/dev" ]; then
-            chown -R dev:dev "$user_home/.claude"
-        else
-            chown -R dev:dev "$user_home/.claude"  # Ubuntu home is symlinked to dev
-        fi
-    done
-    
-    echo "✅ Claude Code authentication configured"
+# Fix sudo permissions (critical for setup scripts)
+echo "Fixing sudo permissions..."
+chown root:root /usr/bin/sudo
+chmod 4755 /usr/bin/sudo
+
+# Claude authentication setup
+echo "=== Claude Authentication ==="
+if [ -d /home/dev/.claude ] && [ -r /home/dev/.claude/.credentials.json ]; then
+    echo "✅ Claude configuration directory mounted from host"
+    # Check if OAuth token is also provided via environment
+    if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+        echo "✅ Claude OAuth token also provided via environment"
+    fi
+elif [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    echo "✅ Claude OAuth token provided via environment"
+elif [ -n "$ANTHROPIC_API_KEY" ]; then
+    echo "✅ Anthropic API key provided via environment"
 else
-    echo "ℹ️  Claude Code credentials not provided. Skipping authentication setup."
-    echo "    Set CLAUDE_CODE_ACCESS and CLAUDE_CODE_REFRESH in .env to enable."
-fi
-
-# Fix claude installation path issue - installer may use /home/ubuntu
-if [ -f /home/ubuntu/.local/bin/claude ] && [ ! -f /usr/local/bin/claude ]; then
-    ln -sf /home/ubuntu/.local/bin/claude /usr/local/bin/claude
-    chmod +x /usr/local/bin/claude 2>/dev/null || true
-    echo "✅ Created claude symlink from ubuntu home"
+    echo "ℹ️  No Claude authentication detected. See docs/claude-auth.md for setup instructions."
+    echo "    For local development: Run 'claude login' on your host machine first."
+    echo "    For CI/CD: Set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY in your .env file."
 fi
 
 # Create multi-agent symlink for easy access to workspace tools
@@ -133,8 +111,16 @@ fi
 # Ensure required directories exist
 mkdir -p /workspace/.supervisor
 mkdir -p /workspace/.swarm
+mkdir -p /workspace/.swarm/sessions
+mkdir -p /workspace/.hive-mind
 mkdir -p /app/mcp-logs/security
-chown -R dev:dev /workspace/.supervisor /workspace/.swarm /app/mcp-logs
+chown -R dev:dev /workspace/.supervisor /workspace/.swarm /workspace/.hive-mind /app/mcp-logs
+
+# Ensure Rust is available for the dev user
+if [ -f "/home/dev/.cargo/env" ]; then
+    # Set default toolchain if not set
+    sudo -u dev bash -c "source /home/dev/.cargo/env && rustup default stable 2>/dev/null || true"
+fi
 
 # Create helpful aliases if .bashrc exists for the user
 if [ -f "/home/dev/.bashrc" ]; then
@@ -171,7 +157,6 @@ alias mcp-secure-client='node /app/core-assets/scripts/secure-client-example.js'
 
 # Claude shortcuts
 alias dsp='claude --dangerously-skip-permissions'
-alias update-claude-auth='/app/core-assets/scripts/update-claude-auth.sh'
 
 # Performance monitoring
 alias mcp-performance='top -p $(pgrep -f "node.*mcp")'

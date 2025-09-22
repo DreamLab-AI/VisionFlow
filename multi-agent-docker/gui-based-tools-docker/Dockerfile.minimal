@@ -1,0 +1,10 @@
+# Minimal version without Playwright if build fails
+# Use the main Dockerfile but comment out Playwright sections
+
+# To use this instead:
+# 1. In docker-compose.yml, change:
+#    dockerfile: Dockerfile.minimal
+# 2. Playwright will not be available in GUI container
+# 3. You can still use other GUI tools (Blender, QGIS, etc.)
+
+# Copy the main Dockerfile and comment out lines 117-132 (Playwright section)

@@ -39,6 +39,15 @@
       "command": "python3",
       "args": ["-u", "./mcp-tools/pbr_mcp_client.py"],
       "type": "stdio"
+    },
+    "playwright": {
+      "command": "node",
+      "args": ["./scripts/playwright-mcp-client.js"],
+      "type": "stdio",
+      "env": {
+        "PLAYWRIGHT_PROXY_HOST": "127.0.0.1",
+        "PLAYWRIGHT_PROXY_PORT": "9879"
+      }
     }
   }
 }

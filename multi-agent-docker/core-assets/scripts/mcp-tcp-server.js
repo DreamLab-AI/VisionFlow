@@ -34,11 +34,21 @@ class PersistentMCPServer {
     if (this.mcpProcess) return;
 
     this.log('info', 'Starting persistent MCP process...');
-    this.mcpProcess = spawn('/usr/bin/claude-flow', ['mcp', 'start', '--stdio'], {
+    
+    // Check if we should use the generic relay mode
+    const mcpCommand = process.env.MCP_TCP_COMMAND || 'npx';
+    const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['claude-flow@alpha', 'mcp', 'start'];
+    
+    this.log('info', `Starting MCP: ${mcpCommand} ${mcpArgs.join(' ')}`);
+    
+    this.mcpProcess = spawn(mcpCommand, mcpArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: '/workspace',
       env: {
-          CLAUDE_FLOW_GLOBAL: '/usr/bin/claude-flow', ...process.env, CLAUDE_FLOW_DIRECT_MODE: 'true' }
+          ...process.env,
+          CLAUDE_FLOW_DIRECT_MODE: 'true',
+          CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/memory.db'
+      }
     });
 
     this.mcpInterface = readline.createInterface({

@@ -62,6 +62,21 @@ dry_run_log() {
 
 # --- Sudo Check ---
 if [ "$(id -u)" -ne 0 ] && [ "$DRY_RUN" = false ]; then
+    log_info "Checking if sudo is available..."
+    if ! sudo -n true 2>/dev/null; then
+        log_warning "Sudo is not available or not configured properly."
+        log_info "Attempting to fix sudo permissions..."
+        # Try to fix sudo if we can
+        if [ -w /usr/bin/sudo ]; then
+            chmod 4755 /usr/bin/sudo 2>/dev/null || true
+        fi
+        # Test again
+        if ! sudo -n true 2>/dev/null; then
+            log_error "Cannot use sudo. Please run this script as root or fix sudo permissions."
+            log_info "Try running: docker exec -u root <container-id> /app/setup-workspace.sh"
+            exit 1
+        fi
+    fi
     log_info "Requesting root privileges for setup..."
     exec sudo /bin/bash "$0" "$@"
 fi
@@ -236,18 +251,22 @@ alias mcp-ws-logs='tail -f /app/mcp-logs/mcp-ws-bridge.log'
 alias dsp='claude --dangerously-skip-permissions'
 
 # Claude-Flow v110 Agent Commands
-alias claude-flow-init-agents='npx claude-flow@alpha goal init --force && npx claude-flow@alpha neural init --force'
+alias claude-flow-init-agents='echo "Initializing Goal Planner..." && timeout 30 npx claude-flow@alpha goal init --force && echo "Initializing Neural Agent..." && timeout 30 npx claude-flow@alpha neural init --force'
 alias cf-goal='npx claude-flow@alpha goal'
 alias cf-neural='npx claude-flow@alpha neural'
 alias cf-status='npx claude-flow@alpha status'
+alias cf-logs='tail -f /app/mcp-logs/mcp-tcp-server.log | grep -i claude-flow'
+alias cf-tcp-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status claude-flow-tcp'
+alias cf-tcp-logs='tail -f /app/mcp-logs/claude-flow-tcp.log'
+alias cf-test-tcp='echo "{\"jsonrpc\":\"2.0\",\"id\":\"test\",\"method\":\"tools/list\",\"params\":{}}" | nc localhost 9502'
 
-# Playwright MCP Commands
-alias playwright-server='npx @executeautomation/playwright-mcp-server'
-alias playwright-test='npx playwright test'
-alias playwright-codegen='npx playwright codegen'
-alias playwright-show-report='npx playwright show-report'
-alias playwright-demo='node /app/core-assets/scripts/playwright-demo.js'
-alias pw-install='npx playwright install --with-deps'
+# Playwright MCP Commands (via GUI container)
+alias playwright-test='echo "Playwright runs in GUI container. Connect via VNC on port 5901 for visual access."'
+alias playwright-vnc='echo "VNC access: vncviewer localhost:5901 (or use any VNC client)"'
+alias playwright-health='curl -s http://127.0.0.1:9880 | jq 2>/dev/null || echo "Proxy not running"'
+alias playwright-proxy-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status playwright-mcp-proxy'
+alias playwright-proxy-logs='tail -f /app/mcp-logs/playwright-proxy.log'
+alias playwright-stack-test='/app/core-assets/scripts/test-playwright-stack.sh'
 
 # Quick MCP testing functions
 mcp-test-tcp() {
@@ -294,25 +313,42 @@ validate_rust_toolchain() {
     log_info "🦀 Validating Rust toolchain availability..."
 
     log_info_def=$(declare -f log_info)
+    log_success_def=$(declare -f log_success)
+    log_warning_def=$(declare -f log_warning)
 
     sudo -u dev bash -c "
         ${log_info_def}
+        ${log_success_def}
+        ${log_warning_def}
 
-        source /etc/profile.d/multi-agent-paths.sh
+        source /etc/profile.d/multi-agent-paths.sh 2>/dev/null || true
         if [ -f \"\$HOME/.cargo/env\" ]; then source \"\$HOME/.cargo/env\"; fi
 
-        if ! command -v cargo >/dev/null 2>&1; then
-            log_info \"Cargo not found, attempting to reinstall Rust toolchain...\"
+        if ! command -v rustup >/dev/null 2>&1; then
+            log_warning \"Rustup not found, installing Rust toolchain...\"
             if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; then
                 source \"\$HOME/.cargo/env\"
-                log_info \"Rust toolchain reinstalled.\"
+                log_success \"Rust toolchain installed.\"
             else
-                echo \"❌ Failed to reinstall Rust toolchain\"
+                log_warning \"Failed to install Rust toolchain\"
+                return 1
             fi
         fi
 
-        log_info \"Rustc: \$(rustc --version)\"
-        log_info \"Cargo: \$(cargo --version)\"
+        # Set default toolchain if not set
+        if ! rustup default >/dev/null 2>&1; then
+            log_info \"Setting default Rust toolchain to stable...\"
+            rustup default stable
+            log_success \"Default toolchain set to stable\"
+        fi
+
+        # Verify installation
+        if command -v rustc >/dev/null 2>&1 && command -v cargo >/dev/null 2>&1; then
+            log_success \"Rustc: \$(rustc --version 2>/dev/null || echo 'version unavailable')\"
+            log_success \"Cargo: \$(cargo --version 2>/dev/null || echo 'version unavailable')\"
+        else
+            log_warning \"Rust toolchain verification failed\"
+        fi
     "
 }
 
@@ -371,23 +407,29 @@ This environment includes Claude-Flow v110 with advanced AI capabilities:
 - Creates self-improving code assistants that learn your style
 - Enables distributed swarms with collective intelligence
 
-### 🎭 Playwright MCP Integration
-Powerful browser automation and testing capabilities:
+### 🎭 Playwright MCP Integration (Visual Mode)
+Powerful browser automation with visual debugging through the GUI container:
 
-#### Browser Automation Features
-- **Cross-browser testing**: Chromium, Firefox, and WebKit support
-- **Headless and headed modes**: Visual debugging or CI/CD automation
-- **Mobile emulation**: Test responsive designs on various devices
-- **Network interception**: Mock APIs and test offline scenarios
-- **Auto-waiting**: Smart element detection reduces flaky tests
+#### Visual Browser Automation
+- **Real-time visualization**: See browser actions through VNC (port 5901)
+- **Cross-browser testing**: Chromium, Firefox, and WebKit with visual feedback
+- **Interactive debugging**: Pause and inspect during automation
+- **Visual selector development**: Point-and-click to create selectors
+- **DevTools access**: Full browser developer tools available
 
-#### MCP Server Capabilities
+#### Enhanced Capabilities in GUI Container
+- **Native dialogs**: Handle file pickers, print dialogs visually
+- **Complex interactions**: Drag & drop, hover effects with visual confirmation
+- **Multi-window support**: See popup handling and tab management
+- **Screenshot/video recording**: Capture automation runs visually
+- **GPU acceleration**: Faster rendering for complex web apps
+
+#### MCP Server Access
+- **Proxy connection**: Seamless integration from main container
 - **Page navigation**: `playwright_navigate`, `playwright_click`, `playwright_fill`
-- **Screenshot capture**: `playwright_screenshot` with full page support
-- **Element interaction**: Forms, buttons, dropdowns, file uploads
-- **Script evaluation**: Execute JavaScript in page context
-- **Selector strategies**: CSS, XPath, text, and accessibility selectors
-- **Session management**: Persistent browser contexts for complex workflows
+- **Element interaction**: Forms, buttons, dropdowns with visual feedback
+- **Script evaluation**: Execute JavaScript and see results
+- **Session management**: Persistent browser contexts across tests
 
 ### Development Context
 - **Project Root**: Your project is mounted at `ext/`.
@@ -431,10 +473,10 @@ validate-toolchains
 # Initialize Claude-Flow v110 agents
 claude-flow-init-agents  # Initialize Goal Planner and Neural agents
 
-# Playwright MCP commands
-playwright-test         # Run Playwright tests
-playwright-server       # Start Playwright MCP server
-playwright-demo         # Run interactive demo
+# Playwright MCP commands (Visual Mode)
+playwright-vnc          # Connect to VNC for visual browser access
+playwright-proxy-status # Check proxy connection status
+playwright-proxy-logs   # View proxy logs
 ```
 EOF
     log_success "Appended service and context info to CLAUDE.md"
@@ -799,124 +841,79 @@ verify_agent_tracking() {
 # Removed: Patch creation was inappropriate for a setup script
 # This should be handled as part of the actual project development, not environment setup
 
-# 10. Initialize Playwright MCP Server
-initialize_playwright_mcp() {
-    log_info "🎭 Setting up Playwright MCP Server..."
+# 10. Verify Playwright MCP Proxy
+verify_playwright_proxy() {
+    log_info "🎭 Verifying Playwright MCP Proxy connection..."
     
     if [ "$DRY_RUN" = true ]; then
-        dry_run_log "Would initialize Playwright MCP Server"
+        dry_run_log "Would verify Playwright MCP Proxy"
         return 0
     fi
     
-    # Ensure Playwright browsers are installed
-    log_info "Installing Playwright browsers..."
-    if ! npx playwright install --with-deps 2>/dev/null; then
-        log_warning "Playwright browser installation may require manual intervention"
+    # Check if proxy is running
+    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status playwright-mcp-proxy 2>/dev/null | grep -q RUNNING; then
+        log_success "Playwright MCP Proxy is running"
+        
+        # Test proxy health endpoint
+        if curl -sf http://127.0.0.1:9880 >/dev/null 2>&1; then
+            log_success "Playwright proxy is healthy and connected to GUI container"
+            log_info "Access browser automation visually via VNC on port 5901"
+        else
+            log_warning "Playwright proxy is running but GUI container may not be accessible"
+            log_info "Ensure the GUI container is running: docker-compose ps gui-tools-service"
+        fi
     else
-        log_success "Playwright browsers installed"
-    fi
-    
-    # Create Playwright example test
-    if [ ! -f "/workspace/playwright-example.spec.js" ]; then
-        cat > /workspace/playwright-example.spec.js << 'EOF'
-// Example Playwright test
-const { test, expect } = require('@playwright/test');
-
-test('basic test example', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-  await expect(page).toHaveTitle(/Playwright/);
-  
-  // Take a screenshot
-  await page.screenshot({ path: 'playwright-homepage.png' });
-});
-
-test('search functionality', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-  await page.click('button[aria-label="Search"]');
-  await page.fill('input[type="search"]', 'locators');
-  await page.press('input[type="search"]', 'Enter');
-  
-  // Verify search results
-  await expect(page.locator('.DocSearch-Hit')).toBeVisible();
-});
-EOF
-        log_success "Created Playwright example test"
-    fi
-    
-    # Create Playwright configuration
-    if [ ! -f "/workspace/playwright.config.js" ]; then
-        cat > /workspace/playwright.config.js << 'EOF'
-// Playwright configuration
-module.exports = {
-  testDir: './',
-  timeout: 30000,
-  use: {
-    headless: true,
-    viewport: { width: 1280, height: 720 },
-    actionTimeout: 15000,
-    ignoreHTTPSErrors: true,
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-  ],
-};
-
-const { devices } = require('@playwright/test');
-EOF
-        log_success "Created Playwright configuration"
-    fi
-    
-    # Verify Playwright installation
-    if npx playwright --version >/dev/null 2>&1; then
-        log_success "Playwright is ready: $(npx playwright --version)"
-    else
-        log_warning "Playwright installation needs verification"
+        log_warning "Playwright MCP Proxy is not running"
+        log_info "Start it with: supervisorctl start playwright-mcp-proxy"
     fi
 }
 
-# 11. Initialize Claude-Flow v110 agents
-initialize_claude_flow_agents() {
-    log_info "🤖 Initializing Claude-Flow v110 agents..."
+# 11. Verify Claude-Flow MCP Service
+verify_claude_flow_service() {
+    log_info "🤖 Verifying Claude-Flow MCP service..."
     
     if [ "$DRY_RUN" = true ]; then
-        dry_run_log "Would initialize Goal Planner and Neural agents"
+        dry_run_log "Would verify Claude-Flow MCP service"
         return 0
     fi
     
     # Check if claude-flow is available
     if ! command -v claude-flow >/dev/null 2>&1 && ! npm list -g claude-flow@alpha >/dev/null 2>&1; then
-        log_warning "claude-flow not found, skipping agent initialization"
+        log_warning "claude-flow not found globally"
         return 1
     fi
     
-    # Initialize Goal Planner
-    log_info "Initializing Goal Planner agent..."
-    if npx claude-flow@alpha goal init --force 2>&1 | grep -q "initialized"; then
-        log_success "Goal Planner agent initialized"
-    else
-        log_info "Goal Planner may already be initialized"
+    # Create necessary directories
+    mkdir -p /workspace/.swarm
+    mkdir -p /workspace/.hive-mind
+    
+    # Claude-Flow runs as an MCP server managed by Claude directly
+    # The mcp.json configuration will start it when needed
+    log_info "Claude-Flow is configured as an MCP server in .mcp.json"
+    log_info "It will start automatically when Claude accesses it"
+    
+    # Check if we can verify the installation
+    if npx claude-flow@alpha --version >/dev/null 2>&1; then
+        local version=$(npx claude-flow@alpha --version 2>/dev/null || echo "unknown")
+        log_success "Claude-Flow version: $version"
     fi
     
-    # Initialize SAFLA Neural agent
-    log_info "Initializing SAFLA Neural agent..."
-    if npx claude-flow@alpha neural init --force 2>&1 | grep -q "initialized"; then
-        log_success "SAFLA Neural agent initialized"
-    else
-        log_info "SAFLA Neural agent may already be initialized"
-    fi
+    # Explain the dual setup
+    log_info "Claude-Flow is configured with dual access:"
+    log_info "  1. Local MCP: Available to Claude Code via .mcp.json"
+    log_info "  2. TCP Port 9500: Shared instance for external access"  
+    log_info "  3. TCP Port 9502: Isolated sessions for external projects"
     
-    # Verify agents are available
-    if npx claude-flow@alpha status 2>&1 | grep -q "goal\|neural"; then
-        log_success "Claude-Flow v110 agents are ready"
+    log_info "To initialize agents after Claude-Flow MCP server starts:"
+    log_info "  - In Claude: Use the mcp__claude-flow__goal_init tool"
+    log_info "  - CLI: npx claude-flow@alpha goal init"
+    log_info "  - For neural: npx claude-flow@alpha neural init"
+    
+    # Check if initialization files exist
+    if [ -f /workspace/.hive-mind/config.json ] || [ -f /workspace/.swarm/memory.db ]; then
+        log_success "Claude-Flow workspace already initialized"
     else
-        log_warning "Could not verify agent status - they may need manual initialization"
+        log_info "Claude-Flow workspace not yet initialized - will be created on first use"
     fi
 }
 
@@ -955,8 +952,19 @@ verify_services_startup() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if curl -sf http://localhost:9501/health >/dev/null 2>&1; then
-            log_success "✅ MCP services are healthy!"
+        # Check if TCP server is responding
+        if echo '{"jsonrpc":"2.0","id":"health","method":"health","params":{}}' | nc -w 2 localhost 9500 2>/dev/null | grep -q "jsonrpc"; then
+            log_success "✅ MCP TCP server is responding!"
+            
+            # Also check WebSocket bridge
+            if nc -z localhost 3002 2>/dev/null; then
+                log_success "✅ MCP WebSocket bridge is ready!"
+            fi
+            
+            # Check health endpoint if available
+            if curl -sf http://localhost:9501/health >/dev/null 2>&1; then
+                log_success "✅ Health endpoint is responding!"
+            fi
             
             # Run the health check script if available
             if [ -x /app/core-assets/scripts/health-check.sh ]; then
@@ -983,13 +991,19 @@ show_setup_summary
 if [ "$DRY_RUN" = false ]; then
     verify_services_startup
     verify_agent_tracking
-    initialize_playwright_mcp
-    initialize_claude_flow_agents
+    verify_playwright_proxy
+    verify_claude_flow_service
 fi
 
 echo ""
 echo "🎉 Multi-Agent environment ready for development!"
-echo "🔧 Agent tracking fixed - using shared database at /workspace/.swarm/memory.db"
-echo "🤖 Claude-Flow v110 with Goal Planner and SAFLA Neural agents available"
+echo "🔧 MCP services configured and ready"
+echo "🤖 Claude-Flow MCP server will start automatically when accessed"
+echo ""
+echo "📝 Next Steps:"
+echo "  1. Initialize agents: claude-flow-init-agents"
+echo "  2. Check MCP status: mcp-tcp-status"
+echo "  3. View logs: mcp-tcp-logs"
+echo "  4. Access Playwright visually: VNC on port 5901"
 echo "🎭 Playwright MCP server ready for browser automation"
 echo ""

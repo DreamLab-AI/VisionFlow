@@ -25,6 +25,43 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 18+ (required for Playwright - needs modern JS syntax support)
+# Using NodeSource repository for consistent version across Ubuntu releases
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    node --version && npm --version && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install browser dependencies for Playwright
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libatspi2.0-0 \
+    libx11-6 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libxcb1 \
+    libxkbcommon0 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    fonts-liberation \
+    fonts-noto-color-emoji \
+    ffmpeg \
+    --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Add QGIS repository and install QGIS
 RUN mkdir -p /etc/apt/keyrings/
 RUN wget -O /etc/apt/keyrings/qgis-archive-keyring.gpg https://download.qgis.org/downloads/qgis-archive-keyring.gpg
@@ -78,6 +115,25 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install PBR Generator Python dependencies (switch to root for system-wide installation)
 USER root
 RUN /home/blender/.local/bin/uv pip install --system -r /opt/tessellating-pbr-generator/requirements.txt
+
+# Install Playwright and MCP server globally
+RUN npm install -g playwright@latest @executeautomation/playwright-mcp-server@latest
+
+# Set Playwright browser path
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
+
+# Install Playwright browsers with dependencies
+# Note: We install system dependencies first, then browsers
+RUN npx playwright@latest install-deps chromium firefox webkit && \
+    npx playwright@latest install chromium firefox webkit && \
+    chmod -R 755 /opt/playwright-browsers
+
+# Create Playwright MCP script
+RUN mkdir -p /opt/playwright-mcp
+COPY playwright-mcp-server.js /opt/playwright-mcp/server.js
+RUN chmod +x /opt/playwright-mcp/server.js
+RUN chown -R blender:blender /opt/playwright-mcp
+
 USER blender
 
 # Set environment variables for X server, uv, and Blender
