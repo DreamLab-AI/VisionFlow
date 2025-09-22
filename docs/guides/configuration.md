@@ -201,7 +201,7 @@ visualisation:
         iterations: 200
       
       nodes:
-        base_color: '#a06522'
+        base_colour: '#a06522'
         node_size: 1.8
         enable_hologram: true
       

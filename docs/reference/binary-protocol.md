@@ -50,7 +50,7 @@ ws://localhost:8080/ws/positions
 
 1. **Client Connection**: WebSocket handshake
 2. **Server Stream**: Continuous binary frames at 60fps
-3. **Frame Processing**: Client deserializes 28-byte packets
+3. **Frame Processing**: Client deserialises 28-byte packets
 4. **Position Updates**: Real-time node position synchronisation
 
 ### Error Handling
@@ -79,10 +79,10 @@ interface PositionUpdate {
 }
 ```
 
-### Binary Deserialization
+### Binary Deserialisation
 
 ```typescript
-function deserializePositionUpdate(buffer: ArrayBuffer): PositionUpdate {
+function deserialisePositionUpdate(buffer: ArrayBuffer): PositionUpdate {
   const view = new DataView(buffer);
   
   return {
@@ -108,7 +108,7 @@ function deserializePositionUpdate(buffer: ArrayBuffer): PositionUpdate {
 export class WebSocketService {
   private handleBinaryMessage(event: MessageEvent) {
     if (event.data instanceof ArrayBuffer && event.data.byteLength === 28) {
-      const update = deserializePositionUpdate(event.data);
+      const update = deserialisePositionUpdate(event.data);
       this.graphDataManager.updateNodePosition(update);
     }
   }
@@ -117,7 +117,7 @@ export class WebSocketService {
 
 ## Server Implementation
 
-### Rust Serialization
+### Rust Serialisation
 
 ```rust
 // server/src/graph/binary_protocol.rs
@@ -171,8 +171,8 @@ for node in &updated_nodes {
 
 ### Latency
 
-- **Serialization**: <0.1ms (server-side)
-- **Deserialization**: <0.05ms (client-side)
+- **Serialisation**: <0.1ms (server-side)
+- **Deserialisation**: <0.05ms (client-side)
 - **Total Overhead**: <0.2ms per frame
 
 ### Throughput
@@ -259,7 +259,7 @@ xxd -l 28 position_frame.bin
 ### Migration Steps
 
 1. Update client WebSocket handlers to process binary messages
-2. Replace JSON parsing with binary deserialization
+2. Replace JSON parsing with binary deserialisation
 3. Update position update interfaces to match binary format
 4. Test with both formats during transition period
 
