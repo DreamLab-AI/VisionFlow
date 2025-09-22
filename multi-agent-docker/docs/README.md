@@ -1,65 +1,111 @@
 # Multi-Agent Docker Documentation
 
-Welcome to the comprehensive documentation for the Multi-Agent Docker environment. This documentation covers everything you need to know to use, extend, and maintain this powerful AI-assisted development platform.
+Welcome to the Multi-Agent Docker environment - a comprehensive AI-assisted development platform with visual tools, browser automation, and advanced agent orchestration.
+
+## 🚀 Quick Start
+
+```bash
+# Clone and start the environment
+git clone <repository>
+cd multi-agent-docker
+./multi-agent.sh start
+
+# Run setup inside container
+/app/setup-workspace.sh
+
+# Initialize AI agents
+claude-flow-init-agents
+```
 
 ## 📚 Documentation Structure
 
 ### Getting Started
-- [Quick Start Guide](getting-started/01-quick-start.md) - Get up and running in minutes
-- [Configuration](getting-started/02-configuration.md) - Environment setup and customization
+- **[Quick Start Guide](getting-started/01-quick-start.md)** - Get up and running in 5 minutes
+- **[Configuration](getting-started/02-configuration.md)** - Environment variables and settings
 
-### Architecture
-- [System Overview](architecture/01-overview.md) - High-level architecture and components
-- [Networking](architecture/02-networking.md) - Port mappings and network configuration
-- [Security](architecture/03-security.md) - Authentication, tokens, and security best practices
+### Architecture & Design
+- **[System Overview](architecture/01-overview.md)** - Components and architecture
+- **[Networking](architecture/02-networking.md)** - Ports, services, and connectivity
+- **[Security](architecture/03-security.md)** - Authentication and security features
 
-### User Guides
-- [Agent Briefing](guides/01-agent-briefing.md) - Understanding AI agents and their capabilities
-- [Using MCP Tools](guides/02-using-mcp-tools.md) - Working with Model Context Protocol tools
-- [Extending the System](guides/03-extending-the-system.md) - Adding new features and tools
-- [Troubleshooting](guides/04-troubleshooting.md) - Common issues and solutions
-- [Extending MCP Tools](guides/05-extending-mcp-tools.md) - Adding additional MCP integrations
+### Core Features
+- **[Claude Authentication](features/01-claude-authentication.md)** - Setting up Claude Code access
+- **[MCP Tools](features/02-mcp-tools.md)** - Using Model Context Protocol tools
+- **[Visual Browser Automation](features/03-playwright-visual.md)** - Playwright with VNC access
+- **[AI Agents](features/04-ai-agents.md)** - Claude-Flow Goal Planner and Neural agents
+- **[GUI Tools](features/05-gui-tools.md)** - Blender, QGIS, and PBR Generator
 
 ### Reference
-- [Environment Variables](reference/01-environment-variables.md) - Complete .env configuration reference
-- [MCP Tools API](reference/02-mcp-tools-api.md) - Detailed API documentation for all MCP tools
-- [Helper Scripts](reference/03-helper-scripts.md) - Utility scripts and their usage
-- [Docker Internals](reference/04-docker-internals.md) - Dockerfile and build process details
-
-### Additional Resources
-- [Claude Authentication](claude-auth.md) - Detailed Claude Code authentication guide
-- [Automated Setup](automated-setup.md) - Understanding the automated initialization process
-
-## 🚀 Quick Links
-
-- **Start Here**: [Quick Start Guide](getting-started/01-quick-start.md)
-- **Having Issues?**: [Troubleshooting Guide](guides/04-troubleshooting.md)
-- **Want to Extend?**: [Extending MCP Tools](guides/05-extending-mcp-tools.md)
-- **Security Setup**: [Security Architecture](architecture/03-security.md)
+- **[Environment Variables](reference/01-environment-variables.md)** - Complete configuration reference
+- **[API Reference](reference/02-api-reference.md)** - MCP protocols and endpoints
+- **[CLI Commands](reference/03-cli-commands.md)** - Available commands and aliases
+- **[Troubleshooting](reference/04-troubleshooting.md)** - Common issues and solutions
 
 ## 🔧 Key Features
 
-- **Multi-Agent AI System**: Claude-Flow v110 with Goal Planner and SAFLA Neural agents
-- **MCP Tool Integration**: Comprehensive set of Model Context Protocol tools
-- **3D and CAD Tools**: Blender, QGIS, KiCad, and ngspice integration
-- **Browser Automation**: Playwright MCP for web testing and automation
-- **Secure Architecture**: JWT authentication, token-based security, and isolated environments
-- **Automated Setup**: Zero-configuration startup with intelligent initialization
+### Multi-Container Architecture
+- **Main Container**: Development environment with Claude Code and MCP tools
+- **GUI Container**: Visual tools with VNC access (Blender, QGIS, Playwright)
+- **Shared Network**: Seamless communication between containers
 
-## 📖 How to Use This Documentation
+### AI Capabilities
+- **Claude-Flow v110**: Advanced agent orchestration
+- **Goal Planner**: GOAP-based task planning
+- **Neural Agent**: Self-aware learning system
+- **MCP Integration**: 87+ tools for development
 
-1. **New Users**: Start with the [Quick Start Guide](getting-started/01-quick-start.md)
-2. **Developers**: Review the [MCP Tools API](reference/02-mcp-tools-api.md) and [Extending MCP Tools](guides/05-extending-mcp-tools.md)
-3. **System Administrators**: Focus on [Configuration](getting-started/02-configuration.md) and [Security](architecture/03-security.md)
-4. **Troubleshooting**: Check the [Troubleshooting Guide](guides/04-troubleshooting.md) first
+### Visual Tools
+- **Browser Automation**: Playwright with real-time visual debugging
+- **3D Modeling**: Blender with MCP integration
+- **GIS Tools**: QGIS for geographic data
+- **VNC Access**: Port 5901 for visual interaction
 
-## 🤝 Contributing
+## 📡 Service Ports
 
-Contributions to both the codebase and documentation are welcome! Please ensure any new features are properly documented and follow the existing documentation structure.
+| Service | Port | Description |
+|---------|------|-------------|
+| Claude Flow UI | 3000 | Web interface |
+| WebSocket Bridge | 3002 | Real-time communication |
+| VNC | 5901 | Visual access to GUI tools |
+| MCP TCP (Shared) | 9500 | Shared Claude-Flow instance |
+| Claude-Flow TCP | 9502 | Isolated sessions |
+| Blender MCP | 9876 | 3D modeling tools |
+| QGIS MCP | 9877 | GIS tools |
+| PBR MCP | 9878 | Material generation |
+| Playwright MCP | 9879 | Browser automation |
+
+## 🛠️ Common Tasks
+
+### Check Service Status
+```bash
+mcp-status          # All MCP services
+cf-tcp-status       # Claude-Flow TCP
+playwright-proxy-status  # Playwright proxy
+```
+
+### View Logs
+```bash
+mcp-tcp-logs        # MCP TCP server
+cf-logs             # Claude-Flow logs
+playwright-proxy-logs  # Playwright proxy
+```
+
+### Test Connections
+```bash
+playwright-stack-test  # Test Playwright stack
+cf-test-tcp         # Test Claude-Flow TCP
+mcp-test-health     # Test MCP health
+```
+
+## 🐛 Quick Troubleshooting
+
+- **Services not starting?** Run `mcp-restart`
+- **Can't connect to GUI tools?** Check with `docker-compose ps gui-tools-service`
+- **Authentication issues?** See [Claude Authentication](features/01-claude-authentication.md)
+- **Browser automation failing?** Run `playwright-stack-test`
 
 ## 📞 Support
 
-If you encounter issues not covered in the documentation:
-1. Check the [Troubleshooting Guide](guides/04-troubleshooting.md)
-2. Review the [GitHub Issues](https://github.com/your-org/multi-agent-docker/issues)
-3. Join our [Community Discord](https://discord.gg/your-invite)
+- Check [Troubleshooting Guide](reference/04-troubleshooting.md)
+- Review logs with the commands above
+- Ensure both containers are running: `docker-compose ps`
