@@ -1,6 +1,6 @@
-# 📚 AR-AI Knowledge Graph Documentation
+# 📚 VisionFlow Documentation
 
-Welcome to the AR-AI Knowledge Graph documentation. This unified system combines high-performance 3D visualisation with intelligent multi-agent orchestration for real-time knowledge graph exploration and AI-driven analytics.
+Welcome to the VisionFlow documentation. This unified system combines high-performance 3D visualisation with intelligent multi-agent orchestration for real-time knowledge graph exploration and AI-driven analytics.
 
 ## 🚀 Quick Start Paths
 

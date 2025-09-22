@@ -1,6 +1,6 @@
 # VisionFlow Guides
 
-Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the AR-AI Knowledge Graph system effectively.
+Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.
 
 ## Quick Navigation
 

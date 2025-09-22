@@ -1,6 +1,6 @@
-# AR-AI Knowledge Graph: Real-time 3D Visualisation with Multi-Agent Intelligence
+# VisionFlow: Real-time 3D Visualisation with Multi-Agent Intelligence
 
-<img src="./visionflow.gif" alt="AR-AI Knowledge Graph Visualisation" style="width:100%; display:block; margin:0 auto;">
+<img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:100%; display:block; margin:0 auto;">
 
 ![Runtime Old Screenshot](./jarvisOld.png)
 
@@ -61,7 +61,7 @@ Our documentation follows the [Diátaxis framework](https://diataxis.fr/) for op
 
 ## 🎯 Project Overview
 
-The AR-AI Knowledge Graph system represents a breakthrough in knowledge visualisation and AI-driven analytics:
+The VisionFlow system represents a breakthrough in knowledge visualisation and AI-driven analytics:
 
 ### Core Capabilities
 
@@ -416,11 +416,11 @@ This project is licensed under the Mozilla Public License 2.0. See the [LICENSE]
 
 **Built using AI-driven development**
 
-*AR-AI Knowledge Graph - Unifying 3D visualisation with multi-agent intelligence* 🚀
+*VisionFlow - Unifying 3D visualisation with multi-agent intelligence* 🚀
 
 ## 🛠️ Development Status
 
-The AR-AI Knowledge Graph is in active development with continuous improvements to both core functionality and documentation. This project represents a cutting-edge fusion of GPU-accelerated visualisation and AI agent orchestration.
+The VisionFlow is in active development with continuous improvements to both core functionality and documentation. This project represents a cutting-edge fusion of GPU-accelerated visualisation and AI agent orchestration.
 
 ### Recent Achievements
 

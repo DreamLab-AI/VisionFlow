@@ -1,6 +1,6 @@
 # Configuration Reference
 
-This comprehensive reference covers all configuration options for the AR-AI Knowledge Graph system, including environment variables, configuration files, and runtime settings.
+This comprehensive reference covers all configuration options for the VisionFlow system, including environment variables, configuration files, and runtime settings.
 
 ## Table of Contents
 
@@ -123,7 +123,7 @@ This comprehensive reference covers all configuration options for the AR-AI Know
 ```json
 {
   "app": {
-    "name": "AR-AI Knowledge Graph",
+    "name": "VisionFlow",
     "version": "2.0.0",
     "environment": "development"
   },
@@ -242,7 +242,7 @@ gpu:
   compute_capability: 7.0
   max_threads_per_block: 1024
   shared_memory_size: 49152
-  
+
   kernels:
     force_directed:
       block_size: 256
@@ -250,11 +250,11 @@ gpu:
       repulsion: 50.0
       spring_constant: 0.01
       damping: 0.95
-      
+
     sssp:
       block_size: 512
       max_iterations: 1000
-      
+
     collision_detection:
       block_size: 128
       cell_size: 100.0
@@ -274,7 +274,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - ENABLE_GPU=true
       - JWT_SECRET=${JWT_SECRET}
-      
+
   multi-agent:
     environment:
       - MCP_SERVER_PORT=3001

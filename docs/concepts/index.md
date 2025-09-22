@@ -1,6 +1,6 @@
 # VisionFlow Concepts Documentation
 
-Welcome to the VisionFlow conceptual documentation. This section provides in-depth explanations of the core concepts, architectures, and design patterns that power the VisionFlow AR-AI Knowledge Graph system.
+Welcome to the VisionFlow conceptual documentation. This section provides in-depth explanations of the core concepts, architectures, and design patterns that power the VisionFlow VisionFlow system.
 
 ## Overview
 
