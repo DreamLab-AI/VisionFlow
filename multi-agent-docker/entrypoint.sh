@@ -32,47 +32,36 @@ echo "✅ Security initialization complete"
 
 # Ensure the dev user owns their home directory to prevent permission
 # issues with npx, cargo, etc. This is safe to run on every start.
-chown -R dev:dev /home/dev
+# Skip .claude directory as it's mounted read-only from host
+find /home/dev -maxdepth 1 -not -name ".claude" -exec chown -R dev:dev {} \;
 
-# Set up Claude Code authentication if credentials are provided
-if [ -n "$CLAUDE_CODE_ACCESS" ] && [ -n "$CLAUDE_CODE_REFRESH" ]; then
-    echo "=== Setting up Claude Code Authentication ==="
+# Claude configuration is now mounted from host
+# The entire ~/.claude directory is mounted, so we don't need to create structure
+# Also check for ~/.claude.json file
+if [ -d /home/dev/.claude ] && [ -r /home/dev/.claude/.credentials.json ]; then
+    echo "✅ Claude configuration directory mounted from host"
     
-    # Create .claude directory for both dev and ubuntu users
-    for user_home in /home/dev /home/ubuntu; do
-        mkdir -p "$user_home/.claude"
-        
-        # Calculate expiry time (30 days from now)
-        EXPIRES_AT=$(($(date +%s) * 1000 + 2592000000))
-        
-        # Create credentials file with proper format
-        cat > "$user_home/.claude/.credentials.json" << EOF
-{
-  "claudeAiOauth": {
-    "accessToken": "$CLAUDE_CODE_ACCESS",
-    "refreshToken": "$CLAUDE_CODE_REFRESH",
-    "expiresAt": $EXPIRES_AT,
-    "scopes": ["user:inference", "user:profile"],
-    "subscriptionType": "max"
-  }
-}
-EOF
-        
-        # Set proper permissions
-        chmod 600 "$user_home/.claude/.credentials.json"
-        
-        # Set ownership based on user
-        if [ "$user_home" = "/home/dev" ]; then
-            chown -R dev:dev "$user_home/.claude"
-        else
-            chown -R dev:dev "$user_home/.claude"  # Ubuntu home is symlinked to dev
+    # Create symlink for ubuntu home if needed
+    if [ ! -e /home/ubuntu/.claude ]; then
+        ln -s /home/dev/.claude /home/ubuntu/.claude 2>/dev/null || true
+    fi
+    
+    # Check if .claude.json exists at home level
+    if [ -r /home/dev/.claude.json ]; then
+        echo "✅ Claude JSON config file mounted"
+        if [ ! -e /home/ubuntu/.claude.json ]; then
+            ln -s /home/dev/.claude.json /home/ubuntu/.claude.json 2>/dev/null || true
         fi
-    done
+    fi
     
-    echo "✅ Claude Code authentication configured"
+    # If CLAUDE_CODE_OAUTH_TOKEN is set, it will be used automatically
+    if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+        echo "✅ Claude OAuth token provided via environment"
+    fi
 else
-    echo "ℹ️  Claude Code credentials not provided. Skipping authentication setup."
-    echo "    Set CLAUDE_CODE_ACCESS and CLAUDE_CODE_REFRESH in .env to enable."
+    echo "⚠️  Claude configuration not found. Make sure you have authenticated Claude on the host."
+    echo "    Run 'claude login' on your host machine to authenticate."
+    echo "    The host ~/.claude directory will be mounted to the container."
 fi
 
 # Fix claude installation path issue - installer may use /home/ubuntu

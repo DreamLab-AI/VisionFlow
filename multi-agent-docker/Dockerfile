@@ -172,18 +172,15 @@ USER dev
 WORKDIR /home/dev
 # Set HOME explicitly to avoid confusion with ubuntu symlink
 ENV HOME=/home/dev
-RUN curl -fsSL https://claude.ai/install.sh | bash -s 1.0.42 || true
-# The installer might install to /home/ubuntu due to symlink detection
-# Create symlinks to handle both cases
-USER root
-RUN if [ -f /home/ubuntu/.local/bin/claude ]; then \
-        ln -sf /home/ubuntu/.local/bin/claude /usr/local/bin/claude; \
-    elif [ -f /home/dev/.local/bin/claude ]; then \
-        ln -sf /home/dev/.local/bin/claude /usr/local/bin/claude; \
-    fi && \
-    chmod +x /usr/local/bin/claude 2>/dev/null || true
+RUN curl -fsSL https://claude.ai/install.sh | bash
+# Note: Pinning to 1.0.42 didn't resolve the interactive auth issue
 
-# Playwright dependencies are installed via postinstall script
+USER root
+# Create symlink to make claude available globally
+RUN ln -s /home/dev/.local/bin/claude /usr/local/bin/claude
+
+# Note: Playwright has been moved to the GUI container for visual debugging
+# Access it via the proxy on port 9879
 
 # Grant dev user permissions to update global npm packages
 RUN chown -R dev:dev "$(npm config get prefix)/lib/node_modules" && \

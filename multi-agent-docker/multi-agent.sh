@@ -214,7 +214,7 @@ logs() {
 # ---- Shell command ---------------------
 shell() {
   echo "Entering multi-agent container as 'dev' user..."
-  docker exec -it -u dev "$CONTAINER_NAME" /bin/bash
+  docker exec -it -u dev "$CONTAINER_NAME" /bin/bash -l
 }
 
 

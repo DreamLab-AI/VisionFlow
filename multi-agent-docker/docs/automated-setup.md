@@ -7,10 +7,10 @@ The Multi-Agent Docker environment now features comprehensive automated setup th
 ## What Gets Automated
 
 ### 1. Claude Code Authentication
-- Reads `CLAUDE_CODE_ACCESS` and `CLAUDE_CODE_REFRESH` from environment
-- Creates properly formatted `.claude/.credentials.json`
-- Sets correct permissions and ownership
-- Validates authentication is working
+- Mounts host `~/.claude` directory directly into container
+- No manual configuration required
+- Credentials are read-only and secure
+- Authentication persists across container restarts
 
 ### 2. Workspace Configuration
 - Initializes Claude project configuration
@@ -40,14 +40,16 @@ The Multi-Agent Docker environment now features comprehensive automated setup th
 
 ### Initial Configuration
 
-1. **Create `.env` file** with your Claude credentials:
+1. **Authenticate Claude on your host system**:
+```bash
+# On your host machine (not in Docker)
+claude login
+```
+
+2. **Create `.env` file** for other configurations:
 ```bash
 cd multi-agent-docker
 cp .env.example .env
-
-# Edit .env and add:
-CLAUDE_CODE_ACCESS=sk-ant-oat01-your-access-token
-CLAUDE_CODE_REFRESH=sk-ant-ort01-your-refresh-token
 ```
 
 2. **Start the container**:
