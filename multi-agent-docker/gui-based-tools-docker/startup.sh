@@ -8,6 +8,10 @@ echo "DISPLAY=$DISPLAY"
 echo "MCP_HOST=$MCP_HOST"
 
 echo "--- Starting virtual framebuffer ---"
+# Clean up any stale lock files
+rm -f /tmp/.X1-lock
+rm -f /tmp/.X11-unix/X1
+
 Xvfb :1 -screen 0 1920x1080x24 &
 XVFB_PID=$!
 sleep 3
@@ -38,11 +42,19 @@ sleep 3
 
 echo "--- Starting QGIS ---"
 qgis &
+QGIS_PID=$!
 sleep 3
 
+echo "--- Starting QGIS MCP Server ---"
+node /opt/qgis-mcp-server.js &
+QGIS_MCP_PID=$!
+sleep 2
+
 echo "--- Starting PBR Generator MCP Server ---"
-python3 /opt/tessellating-pbr-generator/pbr_mcp_server.py &
-sleep 3
+# Use simple PBR server until the full PBR generator dependencies are fixed
+python3 /opt/pbr-mcp-simple.py &
+PBR_PID=$!
+sleep 2
 
 echo "--- Starting Playwright MCP Server ---"
 export PLAYWRIGHT_MCP_PORT=${PLAYWRIGHT_MCP_PORT:-9879}

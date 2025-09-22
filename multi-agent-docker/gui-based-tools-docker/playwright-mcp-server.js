@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 // Environment variables
-const PORT = process.env.PLAYWRIGHT_MCP_PORT || 9879;
+const PORT = parseInt(process.env.PLAYWRIGHT_MCP_PORT || '9879', 10);
 const HOST = process.env.PLAYWRIGHT_MCP_HOST || '0.0.0.0';
 const DISPLAY = process.env.DISPLAY || ':1';
 
