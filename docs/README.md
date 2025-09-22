@@ -87,8 +87,8 @@ Our documentation follows the [Diátaxis framework](https://diataxis.fr/) for op
 ## 🚦 Getting Help
 
 - **Common Issues**: See [Troubleshooting Guide](guides/06-troubleshooting.md)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/ar-ai-knowledge-graph/issues)
-- **Discussions**: [Community forum](https://github.com/your-org/ar-ai-knowledge-graph/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/VisionsFlow/issues)
+- **Discussions**: [Community forum](https://github.com/your-org/VisionsFlow/discussions)
 
 ---
 

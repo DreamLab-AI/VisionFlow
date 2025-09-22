@@ -60,8 +60,8 @@ The fastest way to get VisionFlow running locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/AR-AI-Knowledge-Graph.git
-cd AR-AI-Knowledge-Graph
+git clone https://github.com/your-org/VisionsFlow.git
+cd VisionsFlow
 
 # Copy environment template
 cp .env.example .env
@@ -428,7 +428,7 @@ graph TB
         SUPERVISOR[Supervisord]
         WS_BRIDGE[WebSocket Bridge<br/>Port 3002]
         CLAUDE_FLOW[Claude Flow]
-        
+
         subgraph "MCP Tools"
             BLENDER[Blender MCP]
             QGIS[QGIS MCP]
@@ -438,13 +438,13 @@ graph TB
             PBR[PBR Generator]
         end
     end
-    
+
     subgraph "GUI Tools Container"
         EXT_BLENDER[Blender GUI]
         EXT_QGIS[QGIS GUI]
         EXT_PBR[PBR Service]
     end
-    
+
     CLAUDE_FLOW --> BLENDER
     BLENDER -.-> EXT_BLENDER
     QGIS -.-> EXT_QGIS
