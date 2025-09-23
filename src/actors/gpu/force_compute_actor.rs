@@ -668,9 +668,31 @@ impl Handler<ResetStressMajorizationSafety> for ForceComputeActor {
 
 impl Handler<UpdateStressMajorizationParams> for ForceComputeActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, _msg: UpdateStressMajorizationParams, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: UpdateStressMajorizationParams received (forwarding to StressMajorizationActor would be done by GPUManagerActor)");
         Ok(())
+    }
+}
+
+impl Handler<PerformGPUClustering> for ForceComputeActor {
+    type Result = Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>;
+
+    fn handle(&mut self, _msg: PerformGPUClustering, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: PerformGPUClustering received - forwarding to ClusteringActor would be done by GPUManagerActor");
+        // For now, return empty result since clustering should be handled by ClusteringActor
+        // This is a temporary implementation to resolve compilation errors
+        Err("Clustering should be handled by ClusteringActor, not ForceComputeActor".to_string())
+    }
+}
+
+impl Handler<GetClusteringResults> for ForceComputeActor {
+    type Result = Result<serde_json::Value, String>;
+
+    fn handle(&mut self, _msg: GetClusteringResults, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: GetClusteringResults received - forwarding to ClusteringActor would be done by GPUManagerActor");
+        // For now, return empty result since clustering should be handled by ClusteringActor
+        // This is a temporary implementation to resolve compilation errors
+        Err("Clustering results should be retrieved from ClusteringActor, not ForceComputeActor".to_string())
     }
 }

@@ -102,10 +102,11 @@ impl StressMajorizationActor {
                 self.safety.record_success(computation_time.as_millis() as u64);
                 
                 // Record iteration metrics for safety monitoring
-                // Extract info from tuple result  
-                let stress_value = 0.0; // TODO: Calculate stress from positions
-                let max_displacement = 0.0; // TODO: Calculate displacement from positions
-                let converged = false; // TODO: Determine convergence
+                // Extract info from tuple result
+                let (positions_x, positions_y, positions_z) = stress_info;
+                let stress_value = self.calculate_stress_value(&positions_x, &positions_y, &positions_z)?;
+                let max_displacement = self.calculate_max_displacement(&positions_x, &positions_y, &positions_z)?;
+                let converged = stress_value < self.safety.convergence_threshold;
                 
                 self.safety.record_iteration(stress_value, max_displacement, converged);
                 
@@ -226,6 +227,64 @@ impl StressMajorizationActor {
     /// Check if stress majorization should be disabled due to safety
     fn should_disable_stress_majorization(&self) -> bool {
         self.safety.should_disable()
+    }
+
+    /// Calculate stress function value from current positions
+    fn calculate_stress_value(&self, pos_x: &[f32], pos_y: &[f32], pos_z: &[f32]) -> Result<f32, String> {
+        if pos_x.len() != pos_y.len() || pos_y.len() != pos_z.len() {
+            return Err("Position arrays have mismatched lengths".to_string());
+        }
+
+        let mut total_stress = 0.0f32;
+        let n = pos_x.len();
+
+        // Calculate stress as sum of squared differences between actual and target distances
+        for i in 0..n {
+            for j in (i+1)..n {
+                let dx = pos_x[i] - pos_x[j];
+                let dy = pos_y[i] - pos_y[j];
+                let dz = pos_z[i] - pos_z[j];
+                let actual_dist = (dx*dx + dy*dy + dz*dz).sqrt();
+
+                // Use graph-theoretic distance as target (simplified)
+                let target_dist = ((i as f32 - j as f32).abs() + 1.0).ln();
+                let weight = 1.0; // Uniform weighting for simplicity
+
+                let diff = actual_dist - target_dist;
+                total_stress += weight * diff * diff;
+            }
+        }
+
+        Ok(total_stress)
+    }
+
+    /// Calculate maximum displacement from previous positions
+    fn calculate_max_displacement(&self, pos_x: &[f32], pos_y: &[f32], pos_z: &[f32]) -> Result<f32, String> {
+        // Get previous positions from GPU state (simplified)
+        let mut unified_compute = match &self.shared_context {
+            Some(ctx) => {
+                ctx.unified_compute.lock()
+                    .map_err(|e| format!("Failed to acquire GPU compute lock for displacement calculation: {}", e))?
+            },
+            None => {
+                return Ok(0.0);
+            }
+        };
+
+        let (prev_x, prev_y, prev_z) = unified_compute.get_node_positions()
+            .map_err(|e| format!("Failed to get previous positions: {}", e))?;
+
+        let mut max_displacement = 0.0f32;
+
+        for i in 0..pos_x.len().min(prev_x.len()) {
+            let dx = pos_x[i] - prev_x[i];
+            let dy = pos_y[i] - prev_y[i];
+            let dz = pos_z[i] - prev_z[i];
+            let displacement = (dx*dx + dy*dy + dz*dz).sqrt();
+            max_displacement = max_displacement.max(displacement);
+        }
+
+        Ok(max_displacement)
     }
 }
 

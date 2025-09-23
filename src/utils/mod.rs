@@ -9,6 +9,7 @@ pub mod logging;
 pub mod advanced_logging;
 pub mod memory_bounds;
 pub mod mcp_connection;
+pub mod mcp_tcp_client;
 pub mod network;
 pub mod resource_monitor;
 pub mod socket_flow_constants;
