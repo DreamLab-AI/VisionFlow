@@ -9,6 +9,7 @@ use serde_json::json;
 use crate::app_state::AppState;
 use crate::actors::messages::GetSettings;
 use crate::types::speech::SpeechOptions;
+use crate::actors::voice_commands::VoiceCommand;
 use tokio::sync::broadcast;
 use futures::FutureExt;
 
@@ -38,6 +39,14 @@ struct STTActionRequest {
     action: String, // "start" or "stop"
     language: Option<String>,
     model: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct VoiceCommandRequest {
+    text: String,
+    session_id: Option<String>,
+    respond_via_voice: Option<bool>,
 }
 
 pub struct SpeechSocket {
@@ -90,7 +99,10 @@ impl SpeechSocket {
             let kokoro_config = settings.kokoro.as_ref(); // Get Option<&KokoroSettings>
 
             // Provide defaults if Kokoro config or specific fields are None
-            let default_voice = kokoro_config.and_then(|k| k.default_voice.clone()).unwrap_or_else(|| "default_voice_placeholder".to_string()); // Provide a sensible default
+            let default_voice = kokoro_config.and_then(|k| k.default_voice.clone()).unwrap_or_else(|| {
+                // Use actual Kokoro voice IDs instead of placeholder
+                "af_sarah".to_string() // Default to Sarah voice which is standard in Kokoro TTS
+            });
             let default_speed = kokoro_config.and_then(|k| k.default_speed).unwrap_or(1.0);
             let default_stream = kokoro_config.and_then(|k| k.stream).unwrap_or(true); // Default to streaming?
 
@@ -326,6 +338,45 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                     }
                                 } else {
                                     ctx.text(json!({"type": "error", "message": "Invalid STT request format"}).to_string());
+                                }
+                            }
+                            Some("voice_command") => {
+                                // Handle direct voice command execution
+                                if let Ok(voice_req) = serde_json::from_value::<VoiceCommandRequest>(msg) {
+                                    if let Some(speech_service) = &self.app_state.speech_service {
+                                        let speech_service = speech_service.clone();
+                                        let addr = ctx.address();
+                                        let fut = async move {
+                                            match speech_service.process_voice_command(voice_req.text).await {
+                                                Ok(response) => {
+                                                    let msg = json!({
+                                                        "type": "voice_response",
+                                                        "data": {
+                                                            "text": response,
+                                                            "isFinal": true,
+                                                            "timestamp": std::time::SystemTime::now()
+                                                                .duration_since(std::time::UNIX_EPOCH)
+                                                                .unwrap_or_default()
+                                                                .as_millis()
+                                                        }
+                                                    }).to_string();
+                                                    let _ = addr.try_send(ErrorMessage(msg));
+                                                },
+                                                Err(e) => {
+                                                    let msg = json!({
+                                                        "type": "error",
+                                                        "message": format!("Voice command failed: {}", e)
+                                                    }).to_string();
+                                                    let _ = addr.try_send(ErrorMessage(msg));
+                                                }
+                                            }
+                                        };
+                                        ctx.spawn(fut.into_actor(self));
+                                    } else {
+                                        ctx.text(json!({"type": "error", "message": "Speech service not available"}).to_string());
+                                    }
+                                } else {
+                                    ctx.text(json!({"type": "error", "message": "Invalid voice command format"}).to_string());
                                 }
                             }
                             _ => {

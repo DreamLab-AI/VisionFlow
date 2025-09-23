@@ -19,6 +19,7 @@ use crate::services::agent_visualization_protocol::{
     SwarmTopologyData,
     GlobalPerformanceMetrics
 };
+use crate::utils::mcp_tcp_client::create_mcp_client;
 
 /// Configuration for MCP server discovery
 #[derive(Debug, Clone)]
@@ -271,32 +272,73 @@ impl MultiMcpAgentDiscovery {
     async fn discover_claude_flow_agents(
         config: &McpServerConfig,
     ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        // This would use the existing TCP connection to Claude Flow MCP
-        // For now, return mock data
-        debug!("Discovering Claude Flow agents...");
+        debug!("Discovering Claude Flow agents from real MCP server at {}:{}", config.host, config.port);
 
-        let server_info = McpServerInfo {
-            server_id: config.server_id.clone(),
-            server_type: config.server_type.clone(),
-            host: config.host.clone(),
-            port: config.port,
-            is_connected: true,
-            last_heartbeat: Utc::now().timestamp(),
-            supported_tools: vec![
-                "swarm_init".to_string(),
-                "agent_spawn".to_string(),
-                "agent_list".to_string(),
-                "task_orchestrate".to_string(),
-                "swarm_status".to_string(),
-                "neural_status".to_string(),
-            ],
-            agent_count: 0, // Will be updated with actual count
+        let client = create_mcp_client(&config.server_type, &config.host, config.port);
+
+        // Test connection first
+        let is_connected = client.test_connection().await.unwrap_or(false);
+        if !is_connected {
+            return Err(format!("Cannot connect to Claude Flow MCP server at {}:{}", config.host, config.port).into());
+        }
+
+        // Initialize MCP session
+        if let Err(e) = client.initialize_session().await {
+            warn!("Failed to initialize MCP session: {}", e);
+        }
+
+        // Query server information
+        let mut server_info = match client.query_server_info().await {
+            Ok(info) => info,
+            Err(e) => {
+                warn!("Failed to get server info, using defaults: {}", e);
+                McpServerInfo {
+                    server_id: config.server_id.clone(),
+                    server_type: config.server_type.clone(),
+                    host: config.host.clone(),
+                    port: config.port,
+                    is_connected,
+                    last_heartbeat: Utc::now().timestamp(),
+                    supported_tools: vec![
+                        "agent_list".to_string(),
+                        "swarm_status".to_string(),
+                        "server_info".to_string(),
+                    ],
+                    agent_count: 0,
+                }
+            }
         };
 
-        // In real implementation, this would call the actual MCP tools
-        // For now, return empty results
-        let agents = vec![];
-        let topology = None;
+        // Query agents from real MCP server
+        let agents = match client.query_agent_list().await {
+            Ok(agent_list) => {
+                info!("Retrieved {} agents from Claude Flow MCP server", agent_list.len());
+                // Update server source for all agents
+                agent_list.into_iter().map(|mut agent| {
+                    agent.server_source = McpServerType::ClaudeFlow;
+                    agent
+                }).collect()
+            }
+            Err(e) => {
+                error!("Failed to query agent list from Claude Flow MCP: {}", e);
+                Vec::new()
+            }
+        };
+
+        // Update server info with actual agent count
+        server_info.agent_count = agents.len() as u32;
+
+        // Query topology data
+        let topology = match client.query_swarm_status().await {
+            Ok(topology_data) => {
+                info!("Retrieved topology data from Claude Flow MCP server");
+                Some(topology_data)
+            }
+            Err(e) => {
+                warn!("Failed to query swarm topology from Claude Flow MCP: {}", e);
+                None
+            }
+        };
 
         Ok((server_info, agents, topology))
     }
@@ -305,27 +347,78 @@ impl MultiMcpAgentDiscovery {
     async fn discover_ruv_swarm_agents(
         config: &McpServerConfig,
     ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Discovering RuvSwarm agents...");
+        debug!("Discovering RuvSwarm agents from real MCP server at {}:{}", config.host, config.port);
 
-        let server_info = McpServerInfo {
-            server_id: config.server_id.clone(),
-            server_type: config.server_type.clone(),
-            host: config.host.clone(),
-            port: config.port,
-            is_connected: true,
-            last_heartbeat: Utc::now().timestamp(),
-            supported_tools: vec![
-                "swarm_init".to_string(),
-                "agent_spawn".to_string(),
-                "daa_init".to_string(),
-                "neural_train".to_string(),
-                "benchmark_run".to_string(),
-            ],
-            agent_count: 0,
+        let client = create_mcp_client(&config.server_type, &config.host, config.port);
+
+        // Test connection first
+        let is_connected = client.test_connection().await.unwrap_or(false);
+        if !is_connected {
+            return Err(format!("Cannot connect to RuvSwarm MCP server at {}:{}", config.host, config.port).into());
+        }
+
+        // Initialize MCP session
+        if let Err(e) = client.initialize_session().await {
+            warn!("Failed to initialize MCP session: {}", e);
+        }
+
+        // Query server information
+        let mut server_info = match client.query_server_info().await {
+            Ok(mut info) => {
+                info.server_type = McpServerType::RuvSwarm;
+                info
+            }
+            Err(e) => {
+                warn!("Failed to get server info, using defaults: {}", e);
+                McpServerInfo {
+                    server_id: config.server_id.clone(),
+                    server_type: config.server_type.clone(),
+                    host: config.host.clone(),
+                    port: config.port,
+                    is_connected,
+                    last_heartbeat: Utc::now().timestamp(),
+                    supported_tools: vec![
+                        "swarm_init".to_string(),
+                        "agent_spawn".to_string(),
+                        "daa_init".to_string(),
+                        "neural_train".to_string(),
+                        "benchmark_run".to_string(),
+                    ],
+                    agent_count: 0,
+                }
+            }
         };
 
-        let agents = vec![];
-        let topology = None;
+        // Query agents from real MCP server
+        let agents = match client.query_agent_list().await {
+            Ok(agent_list) => {
+                info!("Retrieved {} agents from RuvSwarm MCP server", agent_list.len());
+                // Update server source for all agents
+                agent_list.into_iter().map(|mut agent| {
+                    agent.server_source = McpServerType::RuvSwarm;
+                    agent
+                }).collect()
+            }
+            Err(e) => {
+                error!("Failed to query agent list from RuvSwarm MCP: {}", e);
+                Vec::new()
+            }
+        };
+
+        // Update server info with actual agent count
+        server_info.agent_count = agents.len() as u32;
+
+        // Query topology data
+        let topology = match client.query_swarm_status().await {
+            Ok(topology_data) => {
+                info!("Retrieved topology data from RuvSwarm MCP server");
+                Some(topology_data)
+            }
+            Err(e) => {
+                warn!("Failed to query swarm topology from RuvSwarm MCP: {}", e);
+                None
+            }
+        };
 
         Ok((server_info, agents, topology))
     }
@@ -334,26 +427,77 @@ impl MultiMcpAgentDiscovery {
     async fn discover_daa_agents(
         config: &McpServerConfig,
     ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Discovering DAA agents...");
+        debug!("Discovering DAA agents from real MCP server at {}:{}", config.host, config.port);
 
-        let server_info = McpServerInfo {
-            server_id: config.server_id.clone(),
-            server_type: config.server_type.clone(),
-            host: config.host.clone(),
-            port: config.port,
-            is_connected: true,
-            last_heartbeat: Utc::now().timestamp(),
-            supported_tools: vec![
-                "daa_agent_create".to_string(),
-                "daa_workflow_create".to_string(),
-                "daa_knowledge_share".to_string(),
-                "daa_learning_status".to_string(),
-            ],
-            agent_count: 0,
+        let client = create_mcp_client(&config.server_type, &config.host, config.port);
+
+        // Test connection first
+        let is_connected = client.test_connection().await.unwrap_or(false);
+        if !is_connected {
+            return Err(format!("Cannot connect to DAA MCP server at {}:{}", config.host, config.port).into());
+        }
+
+        // Initialize MCP session
+        if let Err(e) = client.initialize_session().await {
+            warn!("Failed to initialize MCP session: {}", e);
+        }
+
+        // Query server information
+        let mut server_info = match client.query_server_info().await {
+            Ok(mut info) => {
+                info.server_type = McpServerType::Daa;
+                info
+            }
+            Err(e) => {
+                warn!("Failed to get server info, using defaults: {}", e);
+                McpServerInfo {
+                    server_id: config.server_id.clone(),
+                    server_type: config.server_type.clone(),
+                    host: config.host.clone(),
+                    port: config.port,
+                    is_connected,
+                    last_heartbeat: Utc::now().timestamp(),
+                    supported_tools: vec![
+                        "daa_agent_create".to_string(),
+                        "daa_workflow_create".to_string(),
+                        "daa_knowledge_share".to_string(),
+                        "daa_learning_status".to_string(),
+                    ],
+                    agent_count: 0,
+                }
+            }
         };
 
-        let agents = vec![];
-        let topology = None;
+        // Query agents from real MCP server
+        let agents = match client.query_agent_list().await {
+            Ok(agent_list) => {
+                info!("Retrieved {} agents from DAA MCP server", agent_list.len());
+                // Update server source for all agents
+                agent_list.into_iter().map(|mut agent| {
+                    agent.server_source = McpServerType::Daa;
+                    agent
+                }).collect()
+            }
+            Err(e) => {
+                error!("Failed to query agent list from DAA MCP: {}", e);
+                Vec::new()
+            }
+        };
+
+        // Update server info with actual agent count
+        server_info.agent_count = agents.len() as u32;
+
+        // Query topology data
+        let topology = match client.query_swarm_status().await {
+            Ok(topology_data) => {
+                info!("Retrieved topology data from DAA MCP server");
+                Some(topology_data)
+            }
+            Err(e) => {
+                warn!("Failed to query swarm topology from DAA MCP: {}", e);
+                None
+            }
+        };
 
         Ok((server_info, agents, topology))
     }
@@ -417,8 +561,47 @@ impl MultiMcpAgentDiscovery {
             system_efficiency: (total_throughput / agent_list.len() as f32).min(1.0),
             resource_utilization,
             error_rate,
-            coordination_overhead: 0.15, // TODO: Calculate from actual coordination metrics
+            coordination_overhead: self.calculate_coordination_overhead(&agent_list),
         }
+    }
+
+    /// Calculate coordination overhead based on agent interactions
+    fn calculate_coordination_overhead(&self, agents: &[&MultiMcpAgentStatus]) -> f32 {
+        if agents.is_empty() {
+            return 0.0;
+        }
+
+        // Calculate overhead based on:
+        // 1. Number of agents (more agents = more coordination)
+        // 2. Average task queue size (larger queues = more coordination overhead)
+        // 3. Agent distribution across servers (cross-server coordination is more expensive)
+
+        let agent_count = agents.len() as f32;
+        let avg_queue_size = agents.iter()
+            .map(|a| a.metadata.task_queue_size as f32)
+            .sum::<f32>() / agent_count;
+
+        // Count unique server types
+        let mut server_types = std::collections::HashSet::new();
+        for agent in agents {
+            server_types.insert(std::mem::discriminant(&agent.server_source));
+        }
+        let server_diversity = server_types.len() as f32;
+
+        // Base overhead increases with agent count (logarithmically)
+        let base_overhead = (agent_count.ln() / 10.0).min(0.3);
+
+        // Queue overhead (normalized)
+        let queue_overhead = (avg_queue_size / 10.0).min(0.2);
+
+        // Cross-server overhead
+        let cross_server_overhead = if server_diversity > 1.0 {
+            (server_diversity - 1.0) * 0.05
+        } else {
+            0.0
+        };
+
+        (base_overhead + queue_overhead + cross_server_overhead).min(0.8)
     }
 
     /// Check if any server is online

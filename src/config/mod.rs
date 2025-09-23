@@ -2043,24 +2043,113 @@ impl PathAccessible for PhysicsSettings {
     }
 }
 
-// Placeholder implementations for other structures
+// Implementation for SystemSettings path access
 impl PathAccessible for SystemSettings {
-    fn get_by_path(&self, _path: &str) -> Result<Box<dyn std::any::Any>, String> {
-        Err("SystemSettings path access not yet implemented".to_string())
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        match path {
+            "network" => Ok(Box::new(self.network.clone())),
+            "websocket" => Ok(Box::new(self.websocket.clone())),
+            "security" => Ok(Box::new(self.security.clone())),
+            "debug" => Ok(Box::new(self.debug.clone())),
+            "persist_settings" => Ok(Box::new(self.persist_settings)),
+            "custom_backend_url" => Ok(Box::new(self.custom_backend_url.clone())),
+            _ => Err(format!("Unknown SystemSettings field: {}", path))
+        }
     }
-    
-    fn set_by_path(&mut self, _path: &str, _value: Box<dyn std::any::Any>) -> Result<(), String> {
-        Err("SystemSettings path modification not yet implemented".to_string())
+
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        match path {
+            "persist_settings" => {
+                if let Some(val) = value.downcast_ref::<bool>() {
+                    self.persist_settings = *val;
+                    Ok(())
+                } else {
+                    Err("Invalid type for persist_settings, expected bool".to_string())
+                }
+            }
+            "custom_backend_url" => {
+                if let Some(val) = value.downcast_ref::<Option<String>>() {
+                    self.custom_backend_url = val.clone();
+                    Ok(())
+                } else {
+                    Err("Invalid type for custom_backend_url, expected Option<String>".to_string())
+                }
+            }
+            _ => Err(format!("Setting {} not supported for SystemSettings", path))
+        }
     }
 }
 
 impl PathAccessible for XRSettings {
-    fn get_by_path(&self, _path: &str) -> Result<Box<dyn std::any::Any>, String> {
-        Err("XRSettings path access not yet implemented".to_string())
+    fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
+        match path {
+            "enabled" => Ok(Box::new(self.enabled.clone())),
+            "client_side_enable_xr" => Ok(Box::new(self.client_side_enable_xr.clone())),
+            "mode" => Ok(Box::new(self.mode.clone())),
+            "room_scale" => Ok(Box::new(self.room_scale)),
+            "space_type" => Ok(Box::new(self.space_type.clone())),
+            "quality" => Ok(Box::new(self.quality.clone())),
+            "render_scale" => Ok(Box::new(self.render_scale.clone())),
+            "interaction_distance" => Ok(Box::new(self.interaction_distance)),
+            "locomotion_method" => Ok(Box::new(self.locomotion_method.clone())),
+            "teleport_ray_color" => Ok(Box::new(self.teleport_ray_color.clone())),
+            "controller_ray_color" => Ok(Box::new(self.controller_ray_color.clone())),
+            _ => Err(format!("Unknown XRSettings field: {}", path))
+        }
     }
-    
-    fn set_by_path(&mut self, _path: &str, _value: Box<dyn std::any::Any>) -> Result<(), String> {
-        Err("XRSettings path modification not yet implemented".to_string())
+
+    fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
+        match path {
+            "enabled" => {
+                if let Some(val) = value.downcast_ref::<Option<bool>>() {
+                    self.enabled = val.clone();
+                    Ok(())
+                } else {
+                    Err("Invalid type for enabled, expected Option<bool>".to_string())
+                }
+            }
+            "room_scale" => {
+                if let Some(val) = value.downcast_ref::<f32>() {
+                    self.room_scale = *val;
+                    Ok(())
+                } else {
+                    Err("Invalid type for room_scale, expected f32".to_string())
+                }
+            }
+            "space_type" => {
+                if let Some(val) = value.downcast_ref::<String>() {
+                    self.space_type = val.clone();
+                    Ok(())
+                } else {
+                    Err("Invalid type for space_type, expected String".to_string())
+                }
+            }
+            "quality" => {
+                if let Some(val) = value.downcast_ref::<String>() {
+                    self.quality = val.clone();
+                    Ok(())
+                } else {
+                    Err("Invalid type for quality, expected String".to_string())
+                }
+            }
+            "interaction_distance" => {
+                if let Some(val) = value.downcast_ref::<f32>() {
+                    self.interaction_distance = *val;
+                    Ok(())
+                } else {
+                    Err("Invalid type for interaction_distance, expected f32".to_string())
+                }
+            }
+            "locomotion_method" => {
+                if let Some(val) = value.downcast_ref::<String>() {
+                    self.locomotion_method = val.clone();
+                    Ok(())
+                } else {
+                    Err("Invalid type for locomotion_method, expected String".to_string())
+                }
+            }
+            _ => Err(format!("Setting {} not supported for XRSettings", path))
+        }
     }
 }
 

@@ -7,19 +7,20 @@ use tokio::task;
 use tokio::sync::broadcast;
 use crate::config::AppFullSettings;
 // use crate::config::Settings; // AppFullSettings is used from self.settings
-use crate::errors::{VisionFlowError, VisionFlowResult, SpeechError as VisionSpeechError, NetworkError, ErrorContext};
+use crate::errors::{VisionFlowError, VisionFlowResult, SpeechError as VisionSpeechError};
 use log::{info, error, debug};
 use futures::{SinkExt, StreamExt};
-use std::error::Error;
 use tokio::net::TcpStream;
 use url::Url;
 use base64::Engine as _;
 use base64::engine::general_purpose::{STANDARD as BASE64};
-use crate::types::speech::{SpeechError, SpeechCommand, TTSProvider, STTProvider, SpeechOptions, TranscriptionOptions};
+use crate::types::speech::{SpeechCommand, TTSProvider, STTProvider, SpeechOptions, TranscriptionOptions};
 use crate::actors::voice_commands::VoiceCommand;
-// use crate::actors::supervisor::SupervisorActor; // For future integration
+use crate::utils::mcp_connection::{call_task_orchestrate, call_agent_list, call_swarm_init, call_agent_spawn};
+use crate::services::voice_context_manager::VoiceContextManager;
 use reqwest::Client;
 use uuid::Uuid;
+use chrono;
 
 
 /// Centralized speech service managing both Text-to-Speech (TTS) and Speech-to-Text (STT) operations
@@ -50,6 +51,8 @@ pub struct SpeechService {
     /// Shared HTTP client for making API requests to external services (Kokoro, Whisper)
     /// Reused across all requests for connection pooling and efficiency
     http_client: Arc<Client>,
+    /// Voice conversation context manager for multi-turn interactions
+    context_manager: Arc<VoiceContextManager>,
 }
 
 impl SpeechService {
@@ -97,6 +100,7 @@ impl SpeechService {
             audio_tx,
             transcription_tx,
             http_client,
+            context_manager: Arc::new(VoiceContextManager::new()),
         };
 
         // Start the internal service task for async command processing
@@ -478,7 +482,19 @@ impl SpeechService {
                     },
                     SpeechCommand::StopTranscription => {
                         info!("Stopping transcription");
-                        // TODO: Implement stop logic
+
+                        // Notify subscribers that transcription has stopped
+                        let _ = transcription_tx.send("Transcription stopped".to_string());
+
+                        // Additional cleanup could be added here for specific providers
+                        match stt_provider.read().await.clone() {
+                            STTProvider::Whisper => {
+                                debug!("Whisper transcription stopped");
+                            },
+                            STTProvider::OpenAI => {
+                                debug!("OpenAI transcription stopped");
+                            }
+                        }
                     },
                     SpeechCommand::ProcessAudioChunk(audio_data) => {
                         debug!("Processing audio chunk of size: {} bytes", audio_data.len());
@@ -518,17 +534,18 @@ impl SpeechService {
 
                                     info!("Detected audio format: {} for upload to Whisper", mime_type);
 
-                                    let form = reqwest::multipart::Form::new()
+                                    // Build the form with all required fields
+                                    let mut form = reqwest::multipart::Form::new()
                                         .part("file", reqwest::multipart::Part::bytes(audio_data)
                                             .file_name(file_ext)
                                             .mime_str(mime_type).unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/webm").unwrap()));
 
-                                    let mut form = form;
-                                    if let Some(model) = &config.default_model {
-                                        form = form.text("model_size", model.clone());
+                                    // Add optional parameters
+                                    if let Some(model) = config.default_model.clone() {
+                                        form = form.text("model_size", model);
                                     }
-                                    if let Some(language) = &config.default_language {
-                                        form = form.text("lang", language.clone());
+                                    if let Some(language) = config.default_language.clone() {
+                                        form = form.text("lang", language);
                                     }
                                     if let Some(temperature) = config.temperature {
                                         form = form.text("temperature", temperature.to_string());
@@ -539,17 +556,20 @@ impl SpeechService {
                                     if let Some(word_timestamps) = config.word_timestamps {
                                         form = form.text("word_timestamps", word_timestamps.to_string());
                                     }
-                                    if let Some(initial_prompt) = &config.initial_prompt {
-                                        form = form.text("initial_prompt", initial_prompt.clone());
+                                    if let Some(initial_prompt) = config.initial_prompt.clone() {
+                                        form = form.text("initial_prompt", initial_prompt);
                                     }
 
+                                    // Process Whisper transcription directly without spawning
                                     let http_client_clone = Arc::clone(&http_client);
                                     let transcription_broadcaster = transcription_tx.clone();
+                                    let api_url_clone = api_url.clone();
 
-                                    tokio::spawn(async move {
+                                    // Process inline to avoid Send issues
+                                    {
                                         // Submit audio to Whisper API
                                         match http_client_clone
-                                            .post(&api_url)
+                                            .post(&api_url_clone)
                                             .multipart(form)
                                             .send()
                                             .await
@@ -563,7 +583,7 @@ impl SpeechService {
                                                                 info!("Whisper task queued with ID: {}", identifier);
                                                                 
                                                                 // Poll for task completion
-                                                                let task_url = format!("{}/task/{}", api_url.trim_end_matches("/transcription/"), identifier);
+                                                                let task_url = format!("{}/task/{}", api_url_clone.trim_end_matches("/transcription/"), identifier);
                                                                 let mut attempts = 0;
                                                                 const MAX_ATTEMPTS: u32 = 30;
                                                                 const POLL_DELAY_MS: u64 = 200;
@@ -603,22 +623,15 @@ impl SpeechService {
                                                                                                         if Self::is_voice_command(&transcription_text) {
                                                                                                             let session_id = Uuid::new_v4().to_string();
                                                                                                             debug!("Processing as voice command: {}", transcription_text);
-                                                                                                            
-                                                                                                            // Parse and send to supervisor
+
+                                                                                                            // Parse and execute voice command
                                                                                                             if let Ok(voice_cmd) = VoiceCommand::parse(&transcription_text, session_id) {
-                                                                                                                debug!("Would process voice command: {:?}", voice_cmd.parsed_intent);
-                                                                                                                
-                                                                                                                // Simulate a response for testing
-                                                                                                                let response_text = match voice_cmd.parsed_intent {
-                                                                                                                    crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
-                                                                                                                        "I've spawned the agent for you.".to_string()
-                                                                                                                    },
-                                                                                                                    crate::actors::voice_commands::SwarmIntent::QueryStatus { .. } => {
-                                                                                                                        "All systems are operational.".to_string()
-                                                                                                                    },
-                                                                                                                    _ => "Command received and processing.".to_string()
-                                                                                                                };
-                                                                                                                
+                                                                                                                debug!("Executing voice command: {:?}", voice_cmd.parsed_intent);
+
+                                                                                                                // Execute actual agent commands via MCP with context
+                                                                                                                let context_manager = Arc::new(VoiceContextManager::new());
+                                                                                                                let response_text = Self::execute_voice_command_with_context(voice_cmd, context_manager).await;
+
                                                                                                                 // Broadcast the response text
                                                                                                                 let _ = transcription_broadcaster.send(format!("Response: {}", response_text));
                                                                                                             }
@@ -667,7 +680,7 @@ impl SpeechService {
                                                 error!("Failed to connect to Whisper API: {}", e);
                                             }
                                         }
-                                    });
+                                    }
                                 } else {
                                     error!("Whisper configuration not found for audio processing");
                                 }
@@ -876,16 +889,225 @@ impl SpeechService {
     pub fn subscribe_to_transcriptions(&self) -> broadcast::Receiver<String> {
         self.transcription_tx.subscribe()
     }
+
+    /// Execute voice command and return response for TTS
+    pub async fn process_voice_command(&self, text: String) -> VisionFlowResult<String> {
+        let session_id = Uuid::new_v4().to_string();
+
+        if Self::is_voice_command(&text) {
+            if let Ok(voice_cmd) = VoiceCommand::parse(&text, session_id) {
+                let response = Self::execute_voice_command_with_context(
+                    voice_cmd.clone(),
+                    Arc::clone(&self.context_manager),
+                ).await;
+
+                // Add conversation turn to context
+                let _ = self.context_manager.add_conversation_turn(
+                    &voice_cmd.session_id,
+                    text,
+                    response.clone(),
+                    Some(voice_cmd.parsed_intent),
+                ).await;
+
+                // Generate contextual response
+                let contextual_response = self.context_manager.generate_contextual_response(
+                    &voice_cmd.session_id,
+                    &response,
+                ).await;
+
+                Ok(contextual_response)
+            } else {
+                Ok("Sorry, I couldn't understand that command.".to_string())
+            }
+        } else {
+            Ok("That doesn't appear to be a voice command.".to_string())
+        }
+    }
+
+    /// Get conversation context for a session
+    pub async fn get_conversation_context(&self, session_id: &str) -> Option<crate::actors::voice_commands::ConversationContext> {
+        self.context_manager.get_context(session_id).await
+    }
+
+    /// Check if a session needs follow-up
+    pub async fn session_needs_follow_up(&self, session_id: &str) -> bool {
+        self.context_manager.needs_follow_up(session_id).await
+    }
     
     /// Check if text looks like a voice command for the swarm
     fn is_voice_command(text: &str) -> bool {
         let command_keywords = [
-            "spawn", "agent", "status", "list", "stop", "add", "remove", 
+            "spawn", "agent", "status", "list", "stop", "add", "remove",
             "help", "show", "create", "delete", "query", "execute", "run",
             "node", "graph", "connect", "researcher", "coder", "analyst"
         ];
-        
+
         let lower = text.to_lowercase();
         command_keywords.iter().any(|keyword| lower.contains(keyword))
+    }
+
+    /// Execute voice command via MCP task orchestration with context management
+    async fn execute_voice_command_with_context(
+        voice_cmd: VoiceCommand,
+        context_manager: Arc<VoiceContextManager>,
+    ) -> String {
+        let mcp_host = std::env::var("MCP_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+        let mcp_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
+
+        // Get or create session for context
+        let session_id = context_manager.get_or_create_session(
+            Some(voice_cmd.session_id.clone()),
+            None,
+        ).await;
+
+        match voice_cmd.parsed_intent {
+            crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {
+                info!("Executing spawn agent command for type: {}", agent_type);
+
+                // First ensure we have a swarm initialized
+                match call_swarm_init(&mcp_host, &mcp_port, "mesh", 10, "balanced").await {
+                    Ok(swarm_result) => {
+                        let swarm_id = swarm_result.get("swarmId")
+                            .and_then(|s| s.as_str())
+                            .unwrap_or("default-swarm");
+
+                        // Spawn the agent
+                        match call_agent_spawn(&mcp_host, &mcp_port, &agent_type, swarm_id).await {
+                            Ok(_) => {
+                                // Track the operation in context
+                                let mut params = std::collections::HashMap::new();
+                                params.insert("agent_type".to_string(), agent_type.clone());
+                                params.insert("swarm_id".to_string(), swarm_id.to_string());
+
+                                let _ = context_manager.add_pending_operation(
+                                    &session_id,
+                                    "spawn_agent".to_string(),
+                                    params,
+                                    None,
+                                ).await;
+
+                                format!("Successfully spawned {} agent in swarm {}.", agent_type, swarm_id)
+                            }
+                            Err(e) => {
+                                error!("Failed to spawn agent: {}", e);
+                                format!("Failed to spawn {} agent. Error: {}", agent_type, e)
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to initialize swarm: {}", e);
+                        format!("Failed to initialize swarm for agent spawning. Error: {}", e)
+                    }
+                }
+            },
+
+            crate::actors::voice_commands::SwarmIntent::QueryStatus { target } => {
+                info!("Executing status query for target: {:?}", target);
+
+                match call_agent_list(&mcp_host, &mcp_port, "all").await {
+                    Ok(agent_result) => {
+                        // Parse agent count from result
+                        let agent_count = agent_result.get("content")
+                            .and_then(|c| c.as_array())
+                            .map(|arr| arr.len())
+                            .unwrap_or(0);
+
+                        if agent_count > 0 {
+                            format!("System status: {} agents active and operational.", agent_count)
+                        } else {
+                            "System status: No active agents found.".to_string()
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to query agent status: {}", e);
+                        format!("Failed to query system status. Error: {}", e)
+                    }
+                }
+            },
+
+            crate::actors::voice_commands::SwarmIntent::ListAgents => {
+                info!("Executing list agents command");
+
+                match call_agent_list(&mcp_host, &mcp_port, "all").await {
+                    Ok(agent_result) => {
+                        // Parse agents from result
+                        if let Some(content) = agent_result.get("content").and_then(|c| c.as_array()) {
+                            let mut agent_names: Vec<String> = Vec::new();
+                            for agent in content.iter() {
+                                if let Some(text) = agent.get("text").and_then(|t| t.as_str()) {
+                                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(text) {
+                                        if let Some(agents) = parsed.get("agents").and_then(|a| a.as_array()) {
+                                            for a in agents {
+                                                if let Some(name) = a.get("name").and_then(|n| n.as_str()) {
+                                                    agent_names.push(name.to_string());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if agent_names.is_empty() {
+                                "No agents are currently active.".to_string()
+                            } else {
+                                format!("Active agents: {}.", agent_names.join(", "))
+                            }
+                        } else {
+                            "No agents found in the system.".to_string()
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to list agents: {}", e);
+                        format!("Failed to list agents. Error: {}", e)
+                    }
+                }
+            },
+
+            crate::actors::voice_commands::SwarmIntent::ExecuteTask { description, priority } => {
+                info!("Executing task: {} with priority: {:?}", description, priority);
+
+                let priority_str = match priority {
+                    crate::actors::voice_commands::TaskPriority::Critical => "critical",
+                    crate::actors::voice_commands::TaskPriority::High => "high",
+                    crate::actors::voice_commands::TaskPriority::Medium => "medium",
+                    crate::actors::voice_commands::TaskPriority::Low => "low",
+                };
+
+                match call_task_orchestrate(&mcp_host, &mcp_port, &description, Some(priority_str), Some("balanced")).await {
+                    Ok(task_result) => {
+                        let task_id = task_result.get("taskId")
+                            .and_then(|id| id.as_str())
+                            .unwrap_or("unknown");
+
+                        // Track the task in context
+                        let mut params = std::collections::HashMap::new();
+                        params.insert("task_id".to_string(), task_id.to_string());
+                        params.insert("description".to_string(), description.clone());
+                        params.insert("priority".to_string(), priority_str.to_string());
+
+                        let _ = context_manager.add_pending_operation(
+                            &session_id,
+                            "execute_task".to_string(),
+                            params,
+                            Some(chrono::Utc::now() + chrono::Duration::minutes(30)), // Expected completion
+                        ).await;
+
+                        format!("Task '{}' has been assigned to the swarm with ID: {}.", description, task_id)
+                    }
+                    Err(e) => {
+                        error!("Failed to orchestrate task: {}", e);
+                        format!("Failed to execute task '{}'. Error: {}", description, e)
+                    }
+                }
+            },
+
+            crate::actors::voice_commands::SwarmIntent::Help => {
+                "You can ask me to spawn agents, check status, list agents, or execute tasks. Just speak naturally!".to_string()
+            },
+
+            _ => {
+                "Command received but not yet implemented.".to_string()
+            }
+        }
     }
 }

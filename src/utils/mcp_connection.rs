@@ -17,7 +17,7 @@ pub struct PersistentMCPConnection {
 
 impl PersistentMCPConnection {
     /// Create and initialize a new MCP connection
-    pub async fn new(host: &str, port: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new(host: &str, port: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let addr = format!("{}:{}", host, port);
         info!("Connecting to MCP server at {}", addr);
 
@@ -111,7 +111,7 @@ impl PersistentMCPConnection {
         &self,
         method: &str,
         params: Value,
-    ) -> Result<Value, Box<dyn std::error::Error>> {
+    ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         if !self.initialized {
             return Err("Connection not initialized".into());
         }
@@ -215,7 +215,7 @@ impl MCPConnectionPool {
     }
 
     /// Get or create a connection for a specific purpose
-    pub async fn get_connection(&self, purpose: &str) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error>> {
+    pub async fn get_connection(&self, purpose: &str) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error + Send + Sync>> {
         // Check if we have an existing connection
         {
             let connections = self.connections.read().await;
@@ -262,7 +262,7 @@ impl MCPConnectionPool {
         purpose: &str,
         method: &str,
         params: Value,
-    ) -> Result<Value, Box<dyn std::error::Error>> {
+    ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let conn = self.get_connection(purpose).await?;
         conn.execute_command(method, params).await
     }
@@ -283,7 +283,7 @@ pub async fn call_swarm_init(
     topology: &str,
     max_agents: u32,
     strategy: &str,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     let params = json!({
@@ -303,7 +303,7 @@ pub async fn call_agent_list(
     host: &str,
     port: &str,
     filter: &str,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     let params = json!({
@@ -321,7 +321,7 @@ pub async fn call_swarm_destroy(
     host: &str,
     port: &str,
     swarm_id: &str,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     info!("Calling swarm_destroy for swarm_id: {}", swarm_id);
@@ -342,7 +342,7 @@ pub async fn call_agent_spawn(
     port: &str,
     agent_type: &str,
     swarm_id: &str,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     info!("Spawning agent of type: {} in swarm: {}", agent_type, swarm_id);
@@ -365,7 +365,7 @@ pub async fn call_task_orchestrate(
     task: &str,
     priority: Option<&str>,
     strategy: Option<&str>,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     info!("Orchestrating task: {}", task);
@@ -395,7 +395,7 @@ pub async fn call_task_status(
     host: &str,
     port: &str,
     task_id: Option<&str>,
-) -> Result<Value, Box<dyn std::error::Error>> {
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
     info!("Getting task status for: {:?}", task_id);

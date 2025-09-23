@@ -12,7 +12,7 @@ pub mod jsonrpc_client;
 pub mod supervisor;
 pub mod voice_commands;
 pub mod supervisor_voice;
-// pub mod multi_mcp_visualization_actor; // Removed - file not implemented
+pub mod multi_mcp_visualization_actor;
 pub mod messages;
 
 pub use graph_actor::GraphServiceActor;
@@ -26,5 +26,5 @@ pub use tcp_connection_actor::TcpConnectionActor;
 pub use jsonrpc_client::JsonRpcClient;
 pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
 pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePreamble};
-// pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor; // Removed - not implemented
+pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor;
 pub use messages::*;

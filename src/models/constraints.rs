@@ -249,6 +249,19 @@ pub struct ConstraintData {
     pub activation_frame: i32,
 }
 
+impl Default for ConstraintData {
+    fn default() -> Self {
+        Self {
+            kind: 0,
+            count: 0,
+            node_idx: [0; 4],
+            params: [0.0; 8],
+            weight: 0.0,
+            activation_frame: 0,
+        }
+    }
+}
+
 // Manual implementation of DeviceCopy for ConstraintData
 unsafe impl cust::memory::DeviceCopy for ConstraintData {}
 

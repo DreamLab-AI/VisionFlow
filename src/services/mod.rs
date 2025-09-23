@@ -1,8 +1,8 @@
 pub mod agent_visualization_processor;
 pub mod agent_visualization_protocol;
 pub mod multi_mcp_agent_discovery;
-// pub mod topology_visualization_engine; // Removed - file not implemented
-// pub mod real_mcp_integration_bridge; // Removed - file not implemented
+pub mod topology_visualization_engine;
+pub mod real_mcp_integration_bridge;
 pub mod bots_client;
 pub mod edge_generation;
 pub mod file_service;
@@ -14,3 +14,4 @@ pub mod perplexity_service;
 pub mod ragflow_service;
 pub mod semantic_analyzer;
 pub mod speech_service;
+pub mod voice_context_manager;

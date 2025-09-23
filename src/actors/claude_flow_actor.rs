@@ -27,6 +27,8 @@ use crate::actors::GraphServiceActor;
 use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents, TcpConnectionConfig};
 use crate::actors::jsonrpc_client::{JsonRpcClient, ConnectToTcpActor, InitializeMcpSession, CallTool, ClientInfo};
 use crate::actors::messages::UpdateAgentCache;
+use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
+use crate::services::agent_visualization_protocol::McpServerType;
 
 /// Refactored ClaudeFlowActorTcp - pure application logic
 pub struct ClaudeFlowActorTcp {
@@ -174,8 +176,11 @@ impl ClaudeFlowActorTcp {
             agent_id: agent.id.clone(),
             profile: AgentProfile {
                 name: agent.name.clone(),
-                agent_type,
+                agent_type: agent_type.clone(),
                 capabilities: Vec::new(),
+                description: Some(format!("Claude Flow agent of type {:?}", agent_type)),
+                version: "1.0.0".to_string(),
+                tags: vec!["claude-flow".to_string(), agent_type.to_string()],
             },
             status: agent.status.clone(),
             active_tasks_count: 0,
@@ -281,8 +286,11 @@ impl ClaudeFlowActorTcp {
             agent_id: agent_id.clone(),
             profile: AgentProfile {
                 name,
-                agent_type,
+                agent_type: agent_type.clone(),
                 capabilities: Vec::new(),
+                description: Some(format!("Claude Flow agent of type {:?}", agent_type)),
+                version: "1.0.0".to_string(),
+                tags: vec!["claude-flow".to_string(), agent_type.to_string()],
             },
             status,
             active_tasks_count: 0,
@@ -458,13 +466,13 @@ impl ClaudeFlowActorTcp {
         }
     }
     
-    /// Poll agent statuses using JSON-RPC client
+    /// Poll agent statuses using both JSON-RPC client and direct MCP TCP
     fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
         if !self.is_connected || !self.is_initialized {
             debug!("Skipping agent status poll - not connected or initialized");
             return;
         }
-        
+
         if self.consecutive_poll_failures > 10 {
             if let Some(last_success) = self.last_successful_poll {
                 let time_since_success = Utc::now().signed_duration_since(last_success);
@@ -474,44 +482,110 @@ impl ClaudeFlowActorTcp {
                 }
             }
         }
-        
-        debug!("Polling agent statuses via JSON-RPC client");
-        
+
+        debug!("Polling agent statuses via MCP TCP client");
+
         self.system_metrics.active_agents = self.agent_cache.len() as u32;
         self.process_pending_queues();
-        
-        if let Some(ref jsonrpc_client) = self.jsonrpc_client {
-            let params = json!({
-                "filter": "all"
-            });
-            
-            let graph_addr = self.graph_service_addr.clone();
-            let ctx_addr = ctx.address();
-            let client = jsonrpc_client.clone();
-            
-            tokio::spawn(async move {
-                match client.send(CallTool {
-                    tool_name: "agent_list".to_string(),
-                    params,
-                    timeout: Some(Duration::from_secs(10)),
-                }).await {
-                    Ok(Ok(response)) => {
-                        debug!("Received agent list response: {:?}", response);
-                        ctx_addr.do_send(ProcessAgentListResponse { response });
-                    }
-                    Ok(Err(e)) => {
-                        error!("Tool call failed: {}", e);
-                        ctx_addr.do_send(RecordPollFailure);
-                    }
-                    Err(e) => {
-                        error!("Actor communication error: {}", e);
-                        ctx_addr.do_send(RecordPollFailure);
-                    }
+
+        // Try direct MCP TCP first, fallback to JSON-RPC
+        let host = std::env::var("MCP_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+        let port = std::env::var("MCP_TCP_PORT")
+            .unwrap_or_else(|_| "9500".to_string())
+            .parse::<u16>()
+            .unwrap_or(9500);
+
+        let ctx_addr = ctx.address();
+
+        tokio::spawn(async move {
+            // Create MCP TCP client for direct communication
+            let mcp_client = create_mcp_client(&McpServerType::ClaudeFlow, &host, port);
+
+            match mcp_client.query_agent_list().await {
+                Ok(agents) => {
+                    info!("Retrieved {} agents from MCP TCP server", agents.len());
+
+                    // Convert MultiMcpAgentStatus to AgentStatus for compatibility
+                    let agent_statuses: Vec<AgentStatus> = agents.into_iter().map(|mcp_agent| {
+                        AgentStatus {
+                            agent_id: mcp_agent.agent_id,
+                            profile: AgentProfile {
+                                name: mcp_agent.name,
+                                agent_type: match mcp_agent.agent_type.as_str() {
+                                    "coordinator" => AgentType::Coordinator,
+                                    "researcher" => AgentType::Researcher,
+                                    "coder" => AgentType::Coder,
+                                    "analyst" => AgentType::Analyst,
+                                    "architect" => AgentType::Architect,
+                                    "tester" => AgentType::Tester,
+                                    "reviewer" => AgentType::Reviewer,
+                                    "optimizer" => AgentType::Optimizer,
+                                    "documenter" => AgentType::Documenter,
+                                    _ => AgentType::Coordinator,
+                                },
+                                capabilities: mcp_agent.capabilities,
+                                description: Some("MCP agent retrieved via TCP connection".to_string()),
+                                version: "1.0.0".to_string(),
+                                tags: vec!["mcp".to_string(), mcp_agent.agent_type],
+                            },
+                            status: mcp_agent.status,
+                            active_tasks_count: mcp_agent.performance.tasks_active,
+                            completed_tasks_count: mcp_agent.performance.tasks_completed,
+                            failed_tasks_count: mcp_agent.performance.tasks_failed,
+                            success_rate: mcp_agent.performance.success_rate,
+                            timestamp: Utc::now(),
+                            current_task: None,
+                            cpu_usage: mcp_agent.performance.cpu_usage,
+                            memory_usage: mcp_agent.performance.memory_usage,
+                            health: mcp_agent.performance.health_score,
+                            activity: mcp_agent.performance.activity_level,
+                            tasks_active: mcp_agent.performance.tasks_active,
+                            performance_metrics: PerformanceMetrics {
+                                tasks_completed: mcp_agent.performance.tasks_completed,
+                                success_rate: mcp_agent.performance.success_rate,
+                            },
+                            token_usage: TokenUsage {
+                                total: mcp_agent.performance.token_usage,
+                                token_rate: mcp_agent.performance.token_rate,
+                            },
+                            swarm_id: Some(mcp_agent.swarm_id),
+                            agent_mode: Some("autonomous".to_string()),
+                            parent_queen_id: mcp_agent.metadata.parent_id,
+                            processing_logs: None,
+                            total_execution_time: 0,
+                        }
+                    }).collect();
+
+                    // Create mock JSON response for compatibility with existing parser
+                    let mock_response = json!({
+                        "result": {
+                            "content": [{
+                                "text": serde_json::to_string(&json!({
+                                    "agents": agent_statuses.iter().map(|agent| {
+                                        json!({
+                                            "id": agent.agent_id,
+                                            "name": agent.profile.name,
+                                            "agent_type": format!("{:?}", agent.profile.agent_type).to_lowercase(),
+                                            "status": agent.status,
+                                            "cpu_usage": agent.cpu_usage,
+                                            "memory_usage": agent.memory_usage,
+                                            "health": agent.health,
+                                            "workload": agent.activity
+                                        })
+                                    }).collect::<Vec<_>>()
+                                })).unwrap_or_default()
+                            }]
+                        }
+                    });
+
+                    ctx_addr.do_send(ProcessAgentListResponse { response: mock_response });
                 }
-            });
-        } else {
-            warn!("No JSON-RPC client available for polling");
-        }
+                Err(e) => {
+                    error!("MCP TCP query failed, falling back to JSON-RPC: {}", e);
+                    ctx_addr.do_send(RecordPollFailure);
+                }
+            }
+        });
     }
 }
 

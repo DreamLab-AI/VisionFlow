@@ -48,6 +48,9 @@ pub struct AgentProfile {
     pub name: String,
     pub agent_type: AgentType,
     pub capabilities: Vec<String>,
+    pub description: Option<String>,
+    pub version: String,
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,6 +65,7 @@ pub enum AgentType {
     Reviewer,
     Optimizer,
     Documenter,
+    Generic,
 }
 
 impl ToString for AgentType {
@@ -76,15 +80,24 @@ impl ToString for AgentType {
             AgentType::Reviewer => "reviewer".to_string(),
             AgentType::Optimizer => "optimizer".to_string(),
             AgentType::Documenter => "documenter".to_string(),
+            AgentType::Generic => "generic".to_string(),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TaskPriority {
+    Low,
+    Medium,
+    High,
+    Critical,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskReference {
     pub task_id: String,
     pub description: String,
-    pub priority: u8,
+    pub priority: TaskPriority,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
