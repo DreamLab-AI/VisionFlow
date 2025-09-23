@@ -1,4 +1,4 @@
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { toast } from '../features/design-system/components/Toast';
 import { settingsApi, BatchOperation } from '../api/settingsApi';
 

@@ -1,4 +1,4 @@
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { apiService } from '../../../services/apiService';
 import type { BotsAgent, BotsEdge } from '../types/BotsTypes';
 import { PollingPerformanceMonitor } from '../utils/pollingPerformance';
@@ -96,7 +96,7 @@ export class AgentPollingService {
    */
   public configure(config: Partial<PollingConfig>): void {
     this.config = { ...this.config, ...config };
-    logger.info('Polling configuration updated:', this.config);
+    logger.debug('Polling configuration updated:', this.config);
     
     // Restart polling with new config if active
     if (this.isPolling) {
@@ -114,7 +114,7 @@ export class AgentPollingService {
       return;
     }
 
-    logger.info('Starting agent swarm polling');
+    logger.debug('Starting agent swarm polling');
     this.isPolling = true;
     this.poll();
   }
@@ -128,7 +128,7 @@ export class AgentPollingService {
       this.pollingTimer = null;
     }
     this.isPolling = false;
-    logger.info('Agent swarm polling stopped');
+    logger.debug('Agent swarm polling stopped');
   }
 
   /**

@@ -1,5 +1,6 @@
 import { apiService } from './apiService';
-import { createLogger, createErrorMetadata } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
+import { createErrorMetadata } from '../utils/logger';
 import { Event, UnsignedEvent, nip19 } from 'nostr-tools';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid
 import type {} from '../types/nip07'; // Import the types to ensure Window augmentation

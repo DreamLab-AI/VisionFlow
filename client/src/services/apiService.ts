@@ -1,4 +1,5 @@
-import { createLogger, createErrorMetadata } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
+import { createErrorMetadata } from '../utils/logger';
 import { debugState } from '../utils/clientDebugState';
 import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '../types/ragflowTypes';
 
@@ -48,9 +49,8 @@ class ApiService {
     try {
       const url = `${this.baseUrl}${endpoint}`;
 
-      logger.info(`[API] Making GET request to ${url}`);
       if (debugState.isEnabled()) {
-        logger.debug(`Making GET request to ${url}`);
+        logger.debug(`[API] Making GET request to ${url}`);
       }
 
       const response = await fetch(url, {
