@@ -616,7 +616,7 @@ use crate::models::graph::GraphData;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateBotsGraph {
-    pub agents: Vec<AgentStatus>,
+    pub agents: Vec<crate::services::bots_client::Agent>,
 }
 
 #[derive(Message)]

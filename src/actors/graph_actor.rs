@@ -2327,7 +2327,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
-        // This logic converts `AgentStatus` objects into `Node` and `Edge` objects
+        // This logic converts `Agent` objects into `Node` and `Edge` objects
         let mut nodes = vec![];
         let mut edges = vec![];
         
@@ -2345,9 +2345,9 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             let node_id = bot_id_offset + i as u32;
             
             // Create a node for each agent
-            let mut node = Node::new_with_id(agent.agent_id.clone(), Some(node_id));
+            let mut node = Node::new_with_id(agent.id.clone(), Some(node_id));
             
-            if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.agent_id) {
+            if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.id) {
                 // Restore existing position
                 node.data.x = saved_position.x;
                 node.data.y = saved_position.y;
@@ -2375,46 +2375,46 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                 node.data.vz = rng.gen_range(-0.5..0.5);
             }
             
-            // Set node properties based on agent status
-            node.color = Some(match agent.profile.agent_type {
-                crate::types::claude_flow::AgentType::Coordinator => "#FF6B6B".to_string(),
-                crate::types::claude_flow::AgentType::Researcher => "#4ECDC4".to_string(),
-                crate::types::claude_flow::AgentType::Coder => "#45B7D1".to_string(),
-                crate::types::claude_flow::AgentType::Analyst => "#FFA07A".to_string(),
-                crate::types::claude_flow::AgentType::Architect => "#98D8C8".to_string(),
-                crate::types::claude_flow::AgentType::Tester => "#F7DC6F".to_string(),
+            // Set node properties based on agent type
+            node.color = Some(match agent.agent_type.as_str() {
+                "coordinator" => "#FF6B6B".to_string(),
+                "researcher" => "#4ECDC4".to_string(),
+                "coder" => "#45B7D1".to_string(),
+                "analyst" => "#FFA07A".to_string(),
+                "architect" => "#98D8C8".to_string(),
+                "tester" => "#F7DC6F".to_string(),
                 _ => "#95A5A6".to_string(),
             });
             
-            node.label = agent.profile.name.clone();
-            node.size = Some(20.0 + (agent.active_tasks_count as f32 * 5.0)); // Size based on activity
+            node.label = agent.name.clone();
+            node.size = Some(20.0 + (agent.workload * 25.0)); // Size based on workload
             
             // Add metadata including agent flag for GPU physics
-            node.metadata.insert("agent_type".to_string(), format!("{:?}", agent.profile.agent_type));
+            node.metadata.insert("agent_type".to_string(), agent.agent_type.clone());
             node.metadata.insert("status".to_string(), agent.status.clone());
-            node.metadata.insert("active_tasks".to_string(), agent.active_tasks_count.to_string());
-            node.metadata.insert("completed_tasks".to_string(), agent.completed_tasks_count.to_string());
+            node.metadata.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
+            node.metadata.insert("memory_usage".to_string(), agent.memory_usage.to_string());
+            node.metadata.insert("health".to_string(), agent.health.to_string());
             node.metadata.insert("is_agent".to_string(), "true".to_string()); // Agent node flag
             
             nodes.push(node);
         }
         
-        // Create edges based on communication intensity
+        // Create edges based on agent types and status
         for (i, source_agent) in msg.agents.iter().enumerate() {
             for (j, target_agent) in msg.agents.iter().enumerate() {
                 if i != j {
                     let source_node_id = bot_id_offset + i as u32;
                     let target_node_id = bot_id_offset + j as u32;
                     
-                    // Calculate Communication Intensity
-                    let communication_intensity = self.calculate_communication_intensity(
-                        &source_agent.profile.agent_type,
-                        &target_agent.profile.agent_type,
-                        source_agent.active_tasks_count,
-                        target_agent.active_tasks_count,
-                        source_agent.success_rate,
-                        target_agent.success_rate,
-                    );
+                    // Simple communication intensity based on agent types
+                    let communication_intensity = if source_agent.agent_type == "coordinator" || target_agent.agent_type == "coordinator" {
+                        0.8 // Coordinators have strong connections
+                    } else if source_agent.status == "active" && target_agent.status == "active" {
+                        0.5 // Active agents communicate
+                    } else {
+                        0.2 // Default weak connection
+                    };
                     
                     // Only create edges for significant communication
                     if communication_intensity > 0.1 {
