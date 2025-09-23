@@ -162,40 +162,8 @@ impl BotsClient {
                             if let Some(ref graph_addr) = graph_service_addr {
                                 info!("📨 BotsClient sending {} agents to graph", converted_agents.len());
                                 
-                                // Convert to AgentStatus for graph
-                                let agent_statuses = converted_agents
-                                    .iter()
-                                    .map(|a| crate::types::claude_flow::AgentStatus {
-                                        id: a.id.clone(),
-                                        name: a.name.clone(),
-                                        status: a.status.clone(),
-                                        agent_type: a.agent_type.parse().unwrap_or(crate::types::claude_flow::AgentType::Other),
-                                        capabilities: vec![],
-                                        performance_metrics: crate::types::claude_flow::PerformanceMetrics {
-                                            cpu: a.cpu_usage,
-                                            memory: a.memory_usage,
-                                            latency: 0.0,
-                                            success_rate: 0.95,
-                                        },
-                                        profile: crate::types::claude_flow::AgentProfile {
-                                            created_at: a.created_at.clone().unwrap_or_default(),
-                                            last_active: chrono::Utc::now().to_rfc3339(),
-                                            total_tasks: 0,
-                                            specialization: vec![],
-                                        },
-                                        token_usage: crate::types::claude_flow::TokenUsage {
-                                            total: 0,
-                                            token_rate: 0.0,
-                                        },
-                                        swarm_id: None,
-                                        agent_mode: None,
-                                        parent_queen_id: None,
-                                        processing_logs: None,
-                                        total_execution_time: 0,
-                                    })
-                                    .collect();
-
-                                graph_addr.do_send(UpdateBotsGraph { agents: agent_statuses });
+                                // Send agents directly without conversion
+                                graph_addr.do_send(UpdateBotsGraph { agents: converted_agents.clone() });
                             }
                         }
                     }
