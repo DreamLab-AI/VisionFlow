@@ -4,7 +4,6 @@
 //! and executing agent discovery queries. It replaces mock data with real TCP connections.
 
 use std::collections::HashMap;
-use std::net::SocketAddr;
 use std::time::Duration;
 use std::sync::Arc;
 use serde_json::{json, Value};
@@ -96,13 +95,13 @@ impl McpTcpClient {
 
     /// Establish async TCP connection to MCP server with retry logic
     async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
-        let addr: SocketAddr = format!("{}:{}", self.host, self.port).parse()?;
-        debug!("Connecting to MCP server at {} with {} retries", addr, self.max_retries);
+        let addr_str = format!("{}:{}", self.host, self.port);
+        debug!("Connecting to MCP server at {} with {} retries", addr_str, self.max_retries);
 
         let mut last_error = None;
 
         for attempt in 0..=self.max_retries {
-            match tokio::time::timeout(self.timeout, TcpStream::connect(&addr)).await {
+            match tokio::time::timeout(self.timeout, TcpStream::connect(&addr_str)).await {
                 Ok(Ok(stream)) => {
                     // Configure TCP options
                     if let Err(e) = stream.set_nodelay(true) {
@@ -158,6 +157,43 @@ impl McpTcpClient {
 
         Err(format!("Request failed after {} attempts: {}", self.max_retries + 1,
                    last_error.unwrap_or_else(|| "Unknown error".into())).into())
+    }
+
+    /// Send MCP tool call through tools/call wrapper
+    async fn send_tool_call(&self, tool_name: &str, arguments: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+        // Wrap the tool call in the MCP tools/call format
+        let wrapped_params = json!({
+            "name": tool_name,
+            "arguments": arguments
+        });
+        
+        debug!("Sending tool call '{}' with arguments: {}", tool_name, arguments);
+        
+        // Send through tools/call method
+        let response = self.send_request("tools/call", wrapped_params).await?;
+        
+        // Extract the content from the response
+        if let Some(content) = response.get("content") {
+            if let Some(content_array) = content.as_array() {
+                if let Some(first_content) = content_array.first() {
+                    if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
+                        // Parse the nested JSON response
+                        match serde_json::from_str::<Value>(text) {
+                            Ok(parsed) => {
+                                debug!("Parsed tool response: {}", parsed);
+                                return Ok(parsed);
+                            }
+                            Err(e) => {
+                                warn!("Failed to parse tool response JSON: {}", e);
+                                return Err(format!("Failed to parse tool response: {}", e).into());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        Err("Invalid tool call response format".into())
     }
 
     /// Internal method to try sending a request once
@@ -231,7 +267,7 @@ impl McpTcpClient {
             "include_metadata": true
         });
 
-        let result = self.send_request("agent_list", params).await?;
+        let result = self.send_tool_call("agent_list", params).await?;
         debug!("Agent list response: {}", result);
 
         // Parse agent data from MCP response
@@ -250,7 +286,7 @@ impl McpTcpClient {
             "include_performance": true
         });
 
-        let result = self.send_request("swarm_status", params).await?;
+        let result = self.send_tool_call("swarm_status", params).await?;
         debug!("Swarm status response: {}", result);
 
         // Parse topology data from MCP response
@@ -266,7 +302,7 @@ impl McpTcpClient {
 
         let params = json!({});
 
-        let result = self.send_request("server_info", params).await?;
+        let result = self.send_tool_call("server_info", params).await?;
         debug!("Server info response: {}", result);
 
         // Parse server info from MCP response

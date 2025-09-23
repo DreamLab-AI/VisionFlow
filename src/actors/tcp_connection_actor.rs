@@ -17,7 +17,6 @@ use chrono::{Utc, DateTime};
 use uuid::Uuid;
 use serde_json::{json, Value};
 use socket2::{Socket, Domain, Type, Protocol, SockRef};
-use std::net::SocketAddr;
 use fastrand;
 
 use crate::utils::network::{
@@ -365,11 +364,25 @@ impl TcpConnectionActor {
         port: u16,
         config: &TcpConnectionConfig,
     ) -> Result<(BufWriter<tokio::net::tcp::OwnedWriteHalf>, BufReader<tokio::net::tcp::OwnedReadHalf>), Box<dyn std::error::Error + Send + Sync>> {
-        let addr: SocketAddr = format!("{}:{}", host, port).parse()?;
-        debug!("Connecting to TCP address: {} with keep-alive configuration", addr);
+        // Use tokio's TcpStream::connect which handles DNS resolution
+        let addr_str = format!("{}:{}", host, port);
+        debug!("Connecting to TCP address: {} with keep-alive configuration", addr_str);
 
-        // Create socket with socket2 for advanced options
-        let socket = Socket::new(Domain::IPV4, Type::STREAM, Some(Protocol::TCP))?;
+        // First, establish connection using tokio which handles DNS resolution
+        let stream = tokio::time::timeout(
+            config.connect_timeout,
+            TcpStream::connect(&addr_str)
+        ).await
+        .map_err(|_| std::io::Error::new(
+            std::io::ErrorKind::TimedOut,
+            format!("Connection timeout after {:?}", config.connect_timeout)
+        ))??;
+
+        // Get the socket from the established stream for advanced configuration
+        let std_stream: std::net::TcpStream = stream.into_std()?;
+        
+        // Create socket2::Socket from std stream for advanced configuration
+        let socket = Socket::from(std_stream);
 
         // Configure TCP keep-alive
         if config.enable_keep_alive {
@@ -413,32 +426,7 @@ impl TcpConnectionActor {
         socket.set_read_timeout(Some(config.read_timeout))?;
         socket.set_write_timeout(Some(config.write_timeout))?;
 
-        // Connect with timeout - socket2's connect returns Result<(), Error>, not a Future
-        // We need to wrap it in an async block to make it awaitable
-        let connect_future = async {
-            socket.connect(&addr.into())
-        };
-
-        let connect_result = tokio::time::timeout(config.connect_timeout, connect_future).await;
-
-        match connect_result {
-            Ok(Ok(())) => {
-                debug!("TCP socket connected successfully with advanced options");
-            }
-            Ok(Err(e)) => {
-                error!("TCP socket connection failed: {}", e);
-                return Err(Box::new(e));
-            }
-            Err(_) => {
-                error!("TCP connection timeout after {:?}", config.connect_timeout);
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::TimedOut,
-                    "Connection timeout"
-                )));
-            }
-        }
-
-        // Convert socket2::Socket to tokio::net::TcpStream
+        // Convert socket2::Socket back to std::net::TcpStream and then to tokio::net::TcpStream
         let std_stream: std::net::TcpStream = socket.into();
         std_stream.set_nonblocking(true)?;
         let stream = TcpStream::from_std(std_stream)?;
