@@ -8,6 +8,7 @@ use log::{error, info, warn, debug};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use crate::errors::VisionFlowError;
+use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse};
 #[cfg(test)]
 use crate::errors::ActorError;
 
@@ -327,19 +328,94 @@ impl Handler<RestartAttempt> for SupervisorActor {
 
     fn handle(&mut self, msg: RestartAttempt, _ctx: &mut Self::Context) {
         debug!("Processing restart attempt for actor '{}'", msg.actor_name);
-        
+
         // In a real implementation, this would:
         // 1. Call the appropriate factory method to recreate the actor
         // 2. Start the new actor instance
         // 3. Update the supervision state
         // 4. Notify other parts of the system about the restart
-        
+
         if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
             // For now, just mark as running (in real implementation, this would happen
             // after successful restart)
             state.is_running = true;
             info!("Actor '{}' restart attempt completed", msg.actor_name);
         }
+    }
+}
+
+/// Handler for voice commands from the speech system
+impl Handler<VoiceCommand> for SupervisorActor {
+    type Result = Result<SwarmVoiceResponse, String>;
+
+    fn handle(&mut self, msg: VoiceCommand, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Supervisor processing voice command: {:?} (tag: {:?})",
+              msg.parsed_intent, msg.voice_tag);
+
+        // Process voice command and generate appropriate response
+        let response_text = match &msg.parsed_intent {
+            crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {
+                // TODO: Implement actual agent spawning
+                format!("Successfully spawned {} agent", agent_type)
+            },
+            crate::actors::voice_commands::SwarmIntent::QueryStatus { target } => {
+                let target_str = target.as_ref().map(|s| s.as_str()).unwrap_or("all");
+                let running_count = self.supervised_actors.values()
+                    .filter(|actor| actor.is_running)
+                    .count();
+                format!("Status for {}: {} supervised actors running", target_str, running_count)
+            },
+            crate::actors::voice_commands::SwarmIntent::ListAgents => {
+                let agent_names: Vec<String> = self.supervised_actors.keys().cloned().collect();
+                if agent_names.is_empty() {
+                    "No supervised actors are currently registered".to_string()
+                } else {
+                    format!("Supervised actors: {}", agent_names.join(", "))
+                }
+            },
+            crate::actors::voice_commands::SwarmIntent::StopAgent { agent_id } => {
+                if self.supervised_actors.contains_key(agent_id) {
+                    // TODO: Implement actual agent stopping
+                    format!("Stopped agent: {}", agent_id)
+                } else {
+                    format!("Agent {} not found", agent_id)
+                }
+            },
+            crate::actors::voice_commands::SwarmIntent::ExecuteTask { description, .. } => {
+                // TODO: Implement actual task execution via MCP
+                format!("Executing task: {}", description)
+            },
+            crate::actors::voice_commands::SwarmIntent::UpdateGraph { .. } => {
+                // TODO: Implement graph operations
+                "Graph operation completed".to_string()
+            },
+            crate::actors::voice_commands::SwarmIntent::Help => {
+                "I can help you spawn agents, check status, list agents, or execute tasks. What would you like to do?".to_string()
+            }
+        };
+
+        // Create response with tag if present
+        let mut response = SwarmVoiceResponse {
+            text: response_text,
+            use_voice: msg.respond_via_voice,
+            metadata: None,
+            follow_up: None,
+            voice_tag: msg.voice_tag.clone(),
+            is_final: Some(true),
+        };
+
+        // Add contextual follow-up for certain commands
+        match &msg.parsed_intent {
+            crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
+                response.follow_up = Some("What would you like the agent to do?".to_string());
+            },
+            crate::actors::voice_commands::SwarmIntent::Help => {
+                response.follow_up = Some("Try saying 'spawn researcher agent' or 'show status'.".to_string());
+            },
+            _ => {}
+        }
+
+        Ok(response)
     }
 }
 

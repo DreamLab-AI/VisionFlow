@@ -1,7 +1,7 @@
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
-use log::{info, error, debug};
+use log::{info, error, debug, warn};
 use serde_json::{json, Value};
 use crate::config::{ConstraintSystem, LegacyConstraintData};
 use crate::models::constraints::{Constraint, ConstraintSet, ConstraintKind};
@@ -84,11 +84,33 @@ async fn define_constraints(
         Ok(Ok(())) => {
             info!("Constraints defined successfully");
             
-            // TODO: Send constraints to GPU when GPU constraint system is implemented
-            if state.gpu_compute_addr.is_some() {
-                info!("GPU available for future constraint processing");
+            // Send constraints to GPU compute actor if available
+            if let Some(gpu_addr) = &state.gpu_compute_addr {
+                info!("Sending constraints to GPU compute actor");
+
+                // Convert constraint system to GPU format
+                use crate::actors::messages::UpdateConstraints;
+                let gpu_constraints_json = serde_json::to_value(&constraints)
+                    .unwrap_or_else(|e| {
+                        error!("Failed to serialize constraints: {}", e);
+                        json!({})
+                    });
+
+                match gpu_addr.send(UpdateConstraints { constraint_data: gpu_constraints_json }).await {
+                    Ok(Ok(())) => {
+                        info!("Successfully sent constraints to GPU compute actor");
+                    }
+                    Ok(Err(e)) => {
+                        warn!("GPU compute actor failed to update constraints: {}", e);
+                        // Continue anyway - constraints are still saved in settings
+                    }
+                    Err(e) => {
+                        warn!("Failed to communicate with GPU compute actor: {}", e);
+                        // Continue anyway - constraints are still saved in settings
+                    }
+                }
             } else {
-                info!("GPU constraints will be available when GPU actor is ready");
+                info!("GPU compute actor not available - constraints saved to settings only");
             }
             
             Ok(HttpResponse::Ok().json(json!({
@@ -211,14 +233,75 @@ async fn list_constraints(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     info!("Constraint list request received");
-    
-    // Return empty constraints list for now - ready for GPU integration
-    Ok(HttpResponse::Ok().json(json!({
-        "constraints": [],
-        "count": 0,
-        "gpuAvailable": state.gpu_compute_addr.is_some(),
-        "note": "Ready for GPU constraint system integration"
-    })))
+
+    // Try to get constraints from GPU compute actor first
+    if let Some(gpu_addr) = &state.gpu_compute_addr {
+        use crate::actors::messages::GetConstraints;
+        match gpu_addr.send(GetConstraints).await {
+            Ok(Ok(gpu_constraints)) => {
+                info!("Retrieved {} constraints from GPU compute actor", gpu_constraints.constraints.len());
+                return Ok(HttpResponse::Ok().json(json!({
+                    "constraints": gpu_constraints,
+                    "count": gpu_constraints.constraints.len(),
+                    "data_source": "gpu_compute_actor",
+                    "gpu_available": true
+                })));
+            }
+            Ok(Err(e)) => {
+                warn!("Failed to get constraints from GPU: {}", e);
+            }
+            Err(e) => {
+                warn!("Failed to communicate with GPU compute actor: {}", e);
+            }
+        }
+    }
+
+    // Fallback: get constraints from settings
+    match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => {
+            // Extract constraint information from settings
+            let mut constraints_list = Vec::new();
+
+            // Check if constraints mode is enabled
+            let logseq_mode = settings.visualisation.graphs.logseq.physics.compute_mode;
+            let visionflow_mode = settings.visualisation.graphs.visionflow.physics.compute_mode;
+
+            if logseq_mode == 2 || visionflow_mode == 2 {
+                constraints_list.push(json!({
+                    "type": "physics_constraints",
+                    "enabled": true,
+                    "mode": "compute_mode_2",
+                    "target_graphs": if logseq_mode == 2 && visionflow_mode == 2 {
+                        vec!["logseq", "visionflow"]
+                    } else if logseq_mode == 2 {
+                        vec!["logseq"]
+                    } else {
+                        vec!["visionflow"]
+                    }
+                }));
+            }
+
+            Ok(HttpResponse::Ok().json(json!({
+                "constraints": constraints_list,
+                "count": constraints_list.len(),
+                "data_source": "settings",
+                "gpu_available": state.gpu_compute_addr.is_some(),
+                "modes": {
+                    "logseq_compute_mode": logseq_mode,
+                    "visionflow_compute_mode": visionflow_mode
+                }
+            })))
+        }
+        _ => {
+            error!("Failed to get settings for constraint listing");
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve constraint information",
+                "constraints": [],
+                "count": 0,
+                "gpu_available": state.gpu_compute_addr.is_some()
+            })))
+        }
+    }
 }
 
 /// Validate constraint definition
@@ -299,6 +382,7 @@ fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), S
         }
         _ => {} // Type 0 (none) requires no validation
     }
-    
+
     Ok(())
 }
+

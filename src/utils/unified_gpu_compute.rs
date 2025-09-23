@@ -1556,7 +1556,11 @@ impl UnifiedGPUCompute {
                 self.local_densities.as_device_ptr(),
                 self.num_nodes as i32,
                 k_neighbors,
-                radius
+                radius,
+                crate::config::dev_config::physics().world_bounds_min,
+                crate::config::dev_config::physics().world_bounds_max,
+                crate::config::dev_config::physics().cell_size_lod,
+                crate::config::dev_config::physics().k_neighbors_max as i32
             ))?;
         }
         
@@ -2085,7 +2089,7 @@ impl UnifiedGPUCompute {
 
         // Perform multiple stress majorization iterations
         let max_iterations = 50;
-        let learning_rate = 0.1f32;
+        let learning_rate = self.params.learning_rate_default;
 
         for _iter in 0..max_iterations {
             // Load the stress majorization kernel
@@ -2104,7 +2108,8 @@ impl UnifiedGPUCompute {
                         d_target_distances.as_device_ptr(),
                         d_weights.as_device_ptr(),
                         learning_rate,
-                        self.num_nodes as i32
+                        self.num_nodes as i32,
+                        crate::config::dev_config::physics().force_epsilon
                     ))?;
             }
 
@@ -2346,6 +2351,19 @@ impl UnifiedGPUCompute {
             // GPU Stability Gates
             stability_threshold: 1e-6,
             min_velocity_threshold: 1e-4,
+            // GPU clustering and analytics parameters
+            world_bounds_min: -1000.0,
+            world_bounds_max: 1000.0,
+            cell_size_lod: 50.0,
+            k_neighbors_max: 20,
+            anomaly_detection_radius: 50.0,
+            learning_rate_default: 0.01,
+            // Additional kernel constants
+            norm_delta_cap: 10.0,
+            position_constraint_attraction: 0.1,
+            lof_score_min: 0.0,
+            lof_score_max: 10.0,
+            weight_precision_multiplier: 1000.0,
         };
         self.execute(sim_params)
     }

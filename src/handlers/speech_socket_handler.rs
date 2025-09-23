@@ -347,7 +347,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                         let speech_service = speech_service.clone();
                                         let addr = ctx.address();
                                         let fut = async move {
-                                            match speech_service.process_voice_command(voice_req.text).await {
+                                            // Try to use tagged voice command processing first
+                                            let session_id = voice_req.session_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+
+                                            match speech_service.process_voice_command_with_tags(voice_req.text.clone(), session_id).await {
                                                 Ok(response) => {
                                                     let msg = json!({
                                                         "type": "voice_response",
@@ -362,12 +365,31 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                                     }).to_string();
                                                     let _ = addr.try_send(ErrorMessage(msg));
                                                 },
-                                                Err(e) => {
-                                                    let msg = json!({
-                                                        "type": "error",
-                                                        "message": format!("Voice command failed: {}", e)
-                                                    }).to_string();
-                                                    let _ = addr.try_send(ErrorMessage(msg));
+                                                Err(_) => {
+                                                    // Fallback to legacy voice command processing
+                                                    match speech_service.process_voice_command(voice_req.text).await {
+                                                        Ok(response) => {
+                                                            let msg = json!({
+                                                                "type": "voice_response",
+                                                                "data": {
+                                                                    "text": response,
+                                                                    "isFinal": true,
+                                                                    "timestamp": std::time::SystemTime::now()
+                                                                        .duration_since(std::time::UNIX_EPOCH)
+                                                                        .unwrap_or_default()
+                                                                        .as_millis()
+                                                                }
+                                                            }).to_string();
+                                                            let _ = addr.try_send(ErrorMessage(msg));
+                                                        },
+                                                        Err(e) => {
+                                                            let msg = json!({
+                                                                "type": "error",
+                                                                "message": format!("Voice command failed: {}", e)
+                                                            }).to_string();
+                                                            let _ = addr.try_send(ErrorMessage(msg));
+                                                        }
+                                                    }
                                                 }
                                             }
                                         };

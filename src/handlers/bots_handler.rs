@@ -738,18 +738,40 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> HttpResponse {
         bots_graph.edges.len()
     );
 
-    // If no data exists, return empty graph data
+    // If no data exists, return informative response instead of empty graph
     if bots_graph.nodes.is_empty() {
-        info!("No bots data available, returning empty graph");
+        info!("No bots data available - attempting to connect to agents");
 
-        let empty_graph = GraphData {
-            nodes: Vec::new(),
-            edges: Vec::new(),
-            metadata: HashMap::new(),
-            id_to_metadata: HashMap::new(),
-        };
+        // Try one more time to fetch agents before giving up
+        if let Ok(fresh_agents) = fetch_hive_mind_agents(&**state).await {
+            if !fresh_agents.is_empty() {
+                info!("Found {} fresh agents on retry", fresh_agents.len());
+                let nodes = convert_agents_to_nodes(fresh_agents);
+                let graph_data = GraphData {
+                    nodes,
+                    edges: Vec::new(),
+                    metadata: MetadataStore::new(),
+                    id_to_metadata: HashMap::new(),
+                };
+                return HttpResponse::Ok().json(graph_data);
+            }
+        }
 
-        return HttpResponse::Ok().json(empty_graph);
+        // Return structured empty response with connection status
+        return HttpResponse::Ok().json(json!({
+            "nodes": [],
+            "edges": [],
+            "metadata": {},
+            "id_to_metadata": {},
+            "status": "no_agents_available",
+            "message": "No bot agents are currently active. Try initializing a swarm first.",
+            "suggestions": [
+                "POST /bots/initialize-swarm to create new agents",
+                "Check MCP connection status at /bots/check-connection",
+                "Verify multi-agent-container is running"
+            ],
+            "mcp_connection_available": state.bots_client.get_latest_update().await.is_some()
+        }));
     }
 
     HttpResponse::Ok().json(&*bots_graph)
@@ -897,12 +919,167 @@ pub async fn get_bots_positions(bots_client: &BotsClient) -> Vec<Node> {
 
 // Initialize swarm endpoint
 pub async fn get_agent_telemetry(
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
 ) -> HttpResponse {
-    HttpResponse::ServiceUnavailable().json(json!({
-        "success": false,
-        "error": "Claude Flow service not available"
-    }))
+    info!("Getting agent telemetry data");
+
+    // Try to fetch real agent data from hive-mind system
+    match fetch_hive_mind_agents(&**state).await {
+        Ok(agents) => {
+            // Calculate comprehensive telemetry metrics
+            let total_agents = agents.len();
+            let active_agents = agents.iter().filter(|a| a.status == "active").count();
+            let idle_agents = agents.iter().filter(|a| a.status == "idle").count();
+            let error_agents = agents.iter().filter(|a| a.status == "error").count();
+
+            // Performance metrics
+            let avg_health = if !agents.is_empty() {
+                agents.iter().map(|a| a.health).sum::<f32>() / agents.len() as f32
+            } else { 100.0 };
+
+            let avg_cpu = if !agents.is_empty() {
+                agents.iter().map(|a| a.cpu_usage).sum::<f32>() / agents.len() as f32
+            } else { 0.0 };
+
+            let avg_memory = if !agents.is_empty() {
+                agents.iter().map(|a| a.memory_usage).sum::<f32>() / agents.len() as f32
+            } else { 0.0 };
+
+            let total_workload = agents.iter().map(|a| a.workload).sum::<f32>();
+
+            // Task metrics
+            let total_active_tasks = agents.iter()
+                .filter_map(|a| a.tasks_active)
+                .sum::<u32>();
+
+            let total_completed_tasks = agents.iter()
+                .filter_map(|a| a.tasks_completed)
+                .sum::<u32>();
+
+            let avg_success_rate = if !agents.is_empty() {
+                agents.iter()
+                    .filter_map(|a| a.success_rate)
+                    .sum::<f32>() / agents.iter().filter_map(|a| a.success_rate).count() as f32
+            } else { 0.0 };
+
+            // Token metrics
+            let total_tokens = agents.iter()
+                .filter_map(|a| a.tokens)
+                .sum::<u64>();
+
+            let avg_token_rate = if !agents.is_empty() {
+                agents.iter()
+                    .filter_map(|a| a.token_rate)
+                    .sum::<f32>() / agents.iter().filter_map(|a| a.token_rate).count() as f32
+            } else { 0.0 };
+
+            // Agent type distribution
+            let mut agent_types = HashMap::new();
+            for agent in &agents {
+                *agent_types.entry(agent.agent_type.clone()).or_insert(0) += 1;
+            }
+
+            // Swarm information
+            let swarms: std::collections::HashSet<String> = agents.iter()
+                .filter_map(|a| a.swarm_id.as_ref())
+                .cloned()
+                .collect();
+
+            HttpResponse::Ok().json(json!({
+                "success": true,
+                "telemetry": {
+                    "agent_counts": {
+                        "total": total_agents,
+                        "active": active_agents,
+                        "idle": idle_agents,
+                        "error": error_agents
+                    },
+                    "performance": {
+                        "avg_health": avg_health,
+                        "avg_cpu_usage": avg_cpu,
+                        "avg_memory_usage": avg_memory,
+                        "total_workload": total_workload
+                    },
+                    "tasks": {
+                        "active_tasks": total_active_tasks,
+                        "completed_tasks": total_completed_tasks,
+                        "avg_success_rate": avg_success_rate
+                    },
+                    "tokens": {
+                        "total_tokens": total_tokens,
+                        "avg_token_rate": avg_token_rate
+                    },
+                    "swarms": {
+                        "count": swarms.len(),
+                        "ids": swarms.into_iter().collect::<Vec<_>>()
+                    },
+                    "agent_types": agent_types,
+                    "system_health": if avg_health > 80.0 && active_agents > 0 {
+                        "healthy"
+                    } else if avg_health > 50.0 {
+                        "degraded"
+                    } else {
+                        "critical"
+                    }
+                },
+                "timestamp": chrono::Utc::now().to_rfc3339(),
+                "data_source": "hive_mind_tcp"
+            }))
+        }
+        Err(e) => {
+            warn!("Failed to fetch hive-mind agents for telemetry: {}", e);
+
+            // Try fallback to BotsClient
+            if let Some(bots_update) = state.bots_client.get_latest_update().await {
+                info!("Using fallback BotsClient data for telemetry");
+
+                let agents = &bots_update.agents;
+                let total_agents = agents.len();
+                let active_agents = agents.iter().filter(|a| a.status == "active").count();
+
+                let avg_health = if !agents.is_empty() {
+                    agents.iter().map(|a| a.health).sum::<f32>() / agents.len() as f32
+                } else { 0.0 };
+
+                let avg_cpu = if !agents.is_empty() {
+                    agents.iter().map(|a| a.cpu_usage).sum::<f32>() / agents.len() as f32
+                } else { 0.0 };
+
+                HttpResponse::Ok().json(json!({
+                    "success": true,
+                    "telemetry": {
+                        "agent_counts": {
+                            "total": total_agents,
+                            "active": active_agents,
+                            "idle": 0,
+                            "error": 0
+                        },
+                        "performance": {
+                            "avg_health": avg_health,
+                            "avg_cpu_usage": avg_cpu,
+                            "avg_memory_usage": 0.0,
+                            "total_workload": 0.0
+                        },
+                        "system_health": if avg_health > 80.0 && active_agents > 0 {
+                            "healthy"
+                        } else {
+                            "degraded"
+                        }
+                    },
+                    "timestamp": chrono::Utc::now().to_rfc3339(),
+                    "data_source": "bots_client_fallback"
+                }))
+            } else {
+                error!("No agent data available from any source");
+                HttpResponse::ServiceUnavailable().json(json!({
+                    "success": false,
+                    "error": "No agent telemetry data available",
+                    "details": e.to_string(),
+                    "timestamp": chrono::Utc::now().to_rfc3339()
+                }))
+            }
+        }
+    }
 }
 
 pub async fn initialize_swarm(

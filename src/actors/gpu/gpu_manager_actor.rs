@@ -1,6 +1,7 @@
 //! GPU Manager Actor - Supervisor for specialized GPU computation actors
 
 use actix::prelude::*;
+use actix::ActorFuture;
 use log::{error, info, debug, warn};
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -243,6 +244,88 @@ impl Handler<RunAnomalyDetection> for GPUManagerActor {
             });
         
         Box::pin(fut)
+    }
+}
+
+/// GPU Clustering - delegate to ClusteringActor based on method
+impl Handler<PerformGPUClustering> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>>;
+
+    fn handle(&mut self, msg: PerformGPUClustering, ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU Manager: PerformGPUClustering received with method: {}", msg.method);
+
+        let child_actors = match self.get_child_actors(ctx) {
+            Ok(actors) => actors.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self))
+        };
+
+        // Convert to appropriate message based on method
+        match msg.method.as_str() {
+            "kmeans" => {
+                let kmeans_msg = RunKMeans {
+                    params: KMeansParams {
+                        num_clusters: msg.params.num_clusters.unwrap_or(8) as usize,
+                        max_iterations: Some(msg.params.max_iterations.unwrap_or(100)),
+                        tolerance: Some(msg.params.tolerance.unwrap_or(0.001) as f32),
+                        seed: msg.params.seed.map(|s| s as u32),
+                    },
+                };
+
+                Box::pin(child_actors.clustering_actor.send(kmeans_msg)
+                    .into_actor(self)
+                    .map(|res, _actor, _ctx| {
+                        match res {
+                            Ok(Ok(kmeans_result)) => Ok(kmeans_result.clusters),
+                            Ok(Err(e)) => Err(format!("K-means clustering failed: {}", e)),
+                            Err(e) => Err(format!("ClusteringActor communication failed: {}", e))
+                        }
+                    }))
+            },
+            "spectral" | "louvain" | _ => {
+                // For now, fall back to community detection for other methods
+                let community_msg = RunCommunityDetection {
+                    params: CommunityDetectionParams {
+                        algorithm: if msg.method == "louvain" {
+                            CommunityDetectionAlgorithm::Louvain
+                        } else {
+                            CommunityDetectionAlgorithm::LabelPropagation
+                        },
+                        max_iterations: Some(msg.params.max_iterations.unwrap_or(100)),
+                        convergence_tolerance: Some(0.001), // Default tolerance
+                        synchronous: Some(true), // Default to synchronous
+                        seed: None, // No specific seed
+                    },
+                };
+
+                Box::pin(child_actors.clustering_actor.send(community_msg)
+                    .into_actor(self)
+                    .map(|res, _actor, _ctx| {
+                        match res {
+                            Ok(Ok(community_result)) => {
+                                // Convert communities to clusters
+                                let clusters = community_result.communities.into_iter().map(|c| {
+                                    let node_count = c.nodes.len() as u32;
+                                    let label = format!("Community {}", c.id);
+                                    crate::handlers::api_handler::analytics::Cluster {
+                                        id: c.id,
+                                        nodes: c.nodes,
+                                        label,
+                                        node_count,
+                                        coherence: 0.8, // Default coherence value
+                                        color: "#4ECDC4".to_string(),
+                                        keywords: vec![],
+                                        centroid: None,
+                                    }
+                                }).collect();
+
+                                Ok(clusters)
+                            },
+                            Ok(Err(e)) => Err(format!("Community detection failed: {}", e)),
+                            Err(e) => Err(format!("ClusteringActor communication failed: {}", e))
+                        }
+                    }))
+            }
+        }
     }
 }
 

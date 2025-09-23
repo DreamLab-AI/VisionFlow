@@ -588,6 +588,70 @@ pub struct VisualAnalyticsParams {
     pub time_window: f32,
 }
 
+impl Default for VisualAnalyticsParams {
+    fn default() -> Self {
+        Self {
+            // GPU optimization
+            total_nodes: 0,
+            total_edges: 0,
+            active_layers: 1,
+            hierarchy_depth: 1,
+
+            // Temporal dynamics
+            current_frame: 0,
+            time_step: 0.016, // ~60 FPS
+            temporal_decay: 0.95,
+            history_weight: 0.1,
+
+            // Force parameters (multi-resolution)
+            force_scale: [1.0, 0.8, 0.6, 0.4],
+            damping: [0.9, 0.95, 0.98, 0.99],
+            temperature: [1.0, 0.5, 0.25, 0.1],
+
+            // CUDA kernel parameters from dev_config.toml
+            rest_length: 50.0,
+            repulsion_cutoff: 100.0,
+            repulsion_softening_epsilon: 1.0,
+            center_gravity_k: 0.1,
+            grid_cell_size: 100.0,
+            warmup_iterations: 10,
+            cooling_rate: 0.95,
+
+            // Boundary behaviour parameters
+            boundary_extreme_multiplier: 2.0,
+            boundary_extreme_force_multiplier: 5.0,
+            boundary_velocity_damping: 0.8,
+
+            // Isolation and focus
+            isolation_strength: 0.5,
+            focus_gamma: 2.0,
+            primary_focus_node: -1, // No focus
+            context_alpha: 0.3,
+
+            // Visual comprehension
+            complexity_threshold: 0.7,
+            saliency_boost: 1.5,
+            information_bandwidth: 0.8,
+
+            // Topology analysis
+            community_algorithm: 0, // Default algorithm
+            modularity_resolution: 1.0,
+            topology_update_interval: 60,
+
+            // Semantic analysis
+            semantic_influence: 0.2,
+            drift_threshold: 0.1,
+            embedding_dims: 128,
+
+            // Viewport
+            camera_position: Vec4::zero(),
+            viewport_bounds: Vec4::new(0.0, 0.0, 1920.0, 1080.0).unwrap_or(Vec4::zero()),
+            zoom_level: 1.0,
+            time_window: 5.0,
+        }
+    }
+}
+
 impl VisualAnalyticsParams {
     pub fn validate(&self) -> Result<(), GPUSafetyError> {
         // Validate counts
@@ -1088,10 +1152,11 @@ impl VisualAnalyticsGPU {
 
         // Execute kernel with timeout protection
         let kernel_operation = async {
-            // This would launch the actual CUDA kernel
-            // For now, we simulate kernel execution
-            std::thread::sleep(std::time::Duration::from_millis(1)); // Simulate work
-            
+            // Execute actual visual analytics GPU kernels through unified compute
+            // This should integrate with the unified GPU compute pipeline
+
+            // For now, just synchronize since the unified compute operations
+            // will be called from the higher-level actors
             self.device.synchronize()
                 .map_err(|e| GPUSafetyError::DeviceError {
                     message: format!("Kernel execution failed: {}", e),

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize, Deserializer};
 use serde_json::Value;
 use std::fmt;
+use chrono::{DateTime, Utc};
 
 /// Type-safe MCP (Model Context Protocol) response structures
 /// This eliminates brittle double-parsing of nested JSON strings
@@ -73,6 +74,19 @@ pub struct McpContentResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentListResponse {
     pub agents: Vec<crate::services::bots_client::Agent>,
+}
+
+/// Request history entry for completed MCP requests
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestHistoryEntry {
+    pub id: u64,
+    pub server_id: String,
+    pub method: String,
+    pub started_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub duration_ms: Option<u64>,
+    pub success: bool,
+    pub error_message: Option<String>,
 }
 
 // Re-export for convenience

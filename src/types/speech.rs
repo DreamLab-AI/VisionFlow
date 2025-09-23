@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use tokio::sync::mpsc;
 use std::error::Error;
 use std::fmt;
@@ -61,13 +62,13 @@ impl From<base64::DecodeError> for SpeechError {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TTSProvider {
     OpenAI,
     Kokoro,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum STTProvider {
     Whisper,
     OpenAI,
@@ -86,7 +87,7 @@ pub enum SpeechCommand {
     ProcessAudioChunk(Vec<u8>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpeechOptions {
     pub voice: String,
     pub speed: f32,
@@ -103,7 +104,7 @@ impl Default for SpeechOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TranscriptionOptions {
     pub language: Option<String>,
     pub model: Option<String>,

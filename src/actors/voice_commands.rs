@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Voice command message for swarm orchestration
-#[derive(Message, Debug, Clone)]
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<SwarmVoiceResponse, String>")]
 pub struct VoiceCommand {
     /// Raw transcribed text from STT
@@ -22,6 +22,8 @@ pub struct VoiceCommand {
     pub respond_via_voice: bool,
     /// Session ID for tracking
     pub session_id: String,
+    /// Optional voice tag for tracking through hive mind
+    pub voice_tag: Option<String>,
 }
 
 /// Swarm response formatted for voice output
@@ -35,6 +37,10 @@ pub struct SwarmVoiceResponse {
     pub metadata: Option<HashMap<String, String>>,
     /// Follow-up prompt if needed
     pub follow_up: Option<String>,
+    /// Optional voice tag for routing response back to TTS
+    pub voice_tag: Option<String>,
+    /// Whether this is the final response for the tag
+    pub is_final: Option<bool>,
 }
 
 /// Parsed intent from voice commands
@@ -162,6 +168,7 @@ impl VoiceCommand {
             context: None,
             respond_via_voice: true,
             session_id,
+            voice_tag: None,
         })
     }
     
@@ -246,6 +253,8 @@ impl VoiceCommand {
             use_voice: true,
             metadata: None,
             follow_up: None,
+            voice_tag: None,
+            is_final: Some(true),
         }
     }
 }
