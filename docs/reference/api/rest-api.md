@@ -20,7 +20,7 @@ X-Nostr-Pubkey: <public_key>
 ### Agent Management
 
 #### Get Agent Data
-Retrieves the complete list of agents with their metadata and current state.
+Retrieves the complete list of agents with their metadata and current state from the real agent swarm via MCP protocol.
 
 ```http
 GET /api/bots/data
@@ -31,24 +31,35 @@ GET /api/bots/data
 {
   "nodes": [
     {
-      "id": "agent_123",
+      "id": "agent_1757967065850_dv2zg7",
       "name": "Coder Agent",
       "type": "agent",
       "position": { "x": 10.5, "y": 20.3, "z": 0 },
       "metadata": {
-        "swarmId": "swarm_456",
-        "capabilities": ["code", "review"],
-        "status": "active"
+        "swarmId": "swarm_1757880683494_yl81sece5",
+        "capabilities": ["code", "review", "rust", "python"],
+        "status": "active",
+        "model": "claude-3-opus",
+        "temperature": 0.7,
+        "lastActive": "2025-01-22T10:00:00Z",
+        "mcpConnected": true
       }
     }
   ],
   "edges": [
     {
-      "source": "agent_123",
-      "target": "agent_456",
-      "weight": 0.8
+      "source": "agent_1757967065850_dv2zg7",
+      "target": "agent_1757967065851_abc123",
+      "weight": 0.8,
+      "type": "coordination"
     }
-  ]
+  ],
+  "mcpStatus": {
+    "connected": true,
+    "host": "multi-agent-container",
+    "port": 9500,
+    "activeConnections": 3
+  }
 }
 ```
 
@@ -83,7 +94,7 @@ GET /api/bots/status
 ```
 
 #### Submit Task
-Submits a new task to the agent swarm for processing.
+Submits a new task to the agent swarm for processing via MCP task orchestration protocol.
 
 ```http
 POST /api/bots/submit-task
@@ -93,17 +104,31 @@ Content-Type: application/json
   "task": "Analyze the authentication module for security vulnerabilities",
   "priority": "high",
   "strategy": "adaptive",
-  "swarmId": "swarm_456"
+  "swarmId": "swarm_1757880683494_yl81sece5",
+  "timeout": 300,
+  "requiredCapabilities": ["code", "security", "review"]
 }
 ```
 
 **Response:**
 ```json
 {
-  "taskId": "task_789",
+  "taskId": "task_1757967065850_abc123",
   "status": "queued",
   "estimatedDuration": 300,
-  "assignedAgents": ["agent_123", "agent_456"]
+  "assignedAgents": [
+    "agent_1757967065850_dv2zg7",
+    "agent_1757967065851_def456"
+  ],
+  "mcpTaskId": "mcp_task_1757967065850_xyz789",
+  "swarmId": "swarm_1757880683494_yl81sece5",
+  "queuePosition": 2,
+  "orchestrationMethod": "consensus",
+  "agentRequirements": {
+    "minAgents": 2,
+    "maxAgents": 5,
+    "consensusThreshold": 0.7
+  }
 }
 ```
 
