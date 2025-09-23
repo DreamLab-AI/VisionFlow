@@ -4,14 +4,15 @@
 //! and executing agent discovery queries. It replaces mock data with real TCP connections.
 
 use std::collections::HashMap;
-use std::io::{Read, Write};
-use std::net::{TcpStream, SocketAddr};
+use std::net::SocketAddr;
 use std::time::Duration;
 use std::sync::Arc;
 use serde_json::{json, Value};
 use log::{debug, error, info, warn};
 use chrono::{DateTime, Utc};
 use tokio::sync::Mutex;
+use tokio::net::TcpStream;
+use tokio::io::{AsyncReadExt, AsyncWriteExt, AsyncBufReadExt, BufReader};
 use once_cell::sync::Lazy;
 
 use crate::services::agent_visualization_protocol::{
@@ -93,19 +94,20 @@ impl McpTcpClient {
         self
     }
 
-    /// Establish TCP connection to MCP server with retry logic
-    fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+    /// Establish async TCP connection to MCP server with retry logic
+    async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
         let addr: SocketAddr = format!("{}:{}", self.host, self.port).parse()?;
         debug!("Connecting to MCP server at {} with {} retries", addr, self.max_retries);
 
         let mut last_error = None;
 
         for attempt in 0..=self.max_retries {
-            match TcpStream::connect_timeout(&addr, self.timeout) {
-                Ok(stream) => {
-                    stream.set_read_timeout(Some(self.timeout))?;
-                    stream.set_write_timeout(Some(self.timeout))?;
-                    stream.set_nodelay(true)?; // Disable Nagle's algorithm for low latency
+            match tokio::time::timeout(self.timeout, TcpStream::connect(&addr)).await {
+                Ok(Ok(stream)) => {
+                    // Configure TCP options
+                    if let Err(e) = stream.set_nodelay(true) {
+                        warn!("Failed to set TCP_NODELAY: {}", e);
+                    }
 
                     if attempt > 0 {
                         info!("Successfully connected to MCP server at {}:{} on attempt {}", self.host, self.port, attempt + 1);
@@ -114,26 +116,30 @@ impl McpTcpClient {
                     }
                     return Ok(stream);
                 }
-                Err(e) => {
-                    last_error = Some(e);
-                    if attempt < self.max_retries {
-                        warn!("Connection attempt {} failed, retrying in {:?}: {}", attempt + 1, self.retry_delay, last_error.as_ref().unwrap());
-                        std::thread::sleep(self.retry_delay);
-                    }
+                Ok(Err(e)) => {
+                    last_error = Some(format!("Connection error: {}", e));
                 }
+                Err(_) => {
+                    last_error = Some("Connection timeout".to_string());
+                }
+            }
+
+            if attempt < self.max_retries {
+                warn!("Connection attempt {} failed, retrying in {:?}: {}", attempt + 1, self.retry_delay, last_error.as_ref().unwrap());
+                tokio::time::sleep(self.retry_delay).await;
             }
         }
 
         Err(format!("Failed to connect after {} attempts: {}", self.max_retries + 1,
-                   last_error.unwrap_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Unknown error"))).into())
+                   last_error.unwrap_or_else(|| "Unknown error".to_string())).into())
     }
 
     /// Send MCP JSON-RPC request and receive response with improved error handling
-    fn send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    async fn send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut last_error = None;
 
         for attempt in 0..=self.max_retries {
-            match self.try_send_request(method, params.clone()) {
+            match self.try_send_request(method, params.clone()).await {
                 Ok(result) => {
                     if attempt > 0 {
                         info!("Request succeeded on attempt {}", attempt + 1);
@@ -144,7 +150,7 @@ impl McpTcpClient {
                     last_error = Some(e);
                     if attempt < self.max_retries {
                         warn!("Request attempt {} failed, retrying: {}", attempt + 1, last_error.as_ref().unwrap());
-                        std::thread::sleep(self.retry_delay);
+                        tokio::time::sleep(self.retry_delay).await;
                     }
                 }
             }
@@ -155,8 +161,8 @@ impl McpTcpClient {
     }
 
     /// Internal method to try sending a request once
-    fn try_send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-        let mut stream = self.connect()?;
+    async fn try_send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+        let mut stream = self.connect().await?;
 
         // Create JSON-RPC request with unique ID
         let request = McpRequest {
@@ -173,13 +179,13 @@ impl McpTcpClient {
 
         // MCP protocol sends newline-delimited JSON
         let request_data = format!("{}\n", request_json);
-        stream.write_all(request_data.as_bytes())
+        stream.write_all(request_data.as_bytes()).await
             .map_err(|e| format!("Failed to send request: {}", e))?;
-        stream.flush()
+        stream.flush().await
             .map_err(|e| format!("Failed to flush stream: {}", e))?;
 
         // Read response with timeout handling
-        let response_str = self.read_response(&mut stream)?;
+        let response_str = self.read_response(&mut stream).await?;
         debug!("Received MCP response: {}", response_str.trim());
 
         // Parse JSON-RPC response
@@ -194,46 +200,26 @@ impl McpTcpClient {
     }
 
     /// Read response from stream with proper timeout handling
-    fn read_response(&self, stream: &mut TcpStream) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        let mut buffer = Vec::new();
-        let mut temp_buffer = [0u8; 4096];
-        let mut total_read = 0;
-        const MAX_RESPONSE_SIZE: usize = 10_000_000; // 10MB limit
+    async fn read_response(&self, stream: &mut TcpStream) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        let mut reader = BufReader::new(stream);
+        let mut response_line = String::new();
 
-        loop {
-            match stream.read(&mut temp_buffer) {
-                Ok(0) => {
-                    // Connection closed
-                    if buffer.is_empty() {
-                        return Err("Connection closed without response".into());
-                    }
-                    break;
+        // Read a single line (JSON-RPC response) with timeout
+        match tokio::time::timeout(self.timeout, reader.read_line(&mut response_line)).await {
+            Ok(Ok(bytes_read)) => {
+                if bytes_read == 0 {
+                    return Err("Connection closed without response".into());
                 }
-                Ok(n) => {
-                    total_read += n;
-                    if total_read > MAX_RESPONSE_SIZE {
-                        return Err("Response too large".into());
-                    }
-
-                    buffer.extend_from_slice(&temp_buffer[..n]);
-
-                    // Check if we have a complete line (JSON-RPC response)
-                    if buffer.ends_with(b"\n") {
-                        break;
-                    }
-                }
-                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    // Timeout occurred
-                    return Err("Read timeout".into());
-                }
-                Err(e) => {
-                    return Err(format!("Read error: {}", e).into());
-                }
+                debug!("Read {} bytes from MCP server", bytes_read);
+                Ok(response_line)
+            }
+            Ok(Err(e)) => {
+                Err(format!("Read error: {}", e).into())
+            }
+            Err(_) => {
+                Err("Read timeout".into())
             }
         }
-
-        String::from_utf8(buffer)
-            .map_err(|e| format!("Invalid UTF-8 in response: {}", e).into())
     }
 
     /// Query agent list from MCP server
@@ -245,7 +231,7 @@ impl McpTcpClient {
             "include_metadata": true
         });
 
-        let result = self.send_request("agent_list", params)?;
+        let result = self.send_request("agent_list", params).await?;
         debug!("Agent list response: {}", result);
 
         // Parse agent data from MCP response
@@ -264,7 +250,7 @@ impl McpTcpClient {
             "include_performance": true
         });
 
-        let result = self.send_request("swarm_status", params)?;
+        let result = self.send_request("swarm_status", params).await?;
         debug!("Swarm status response: {}", result);
 
         // Parse topology data from MCP response
@@ -280,7 +266,7 @@ impl McpTcpClient {
 
         let params = json!({});
 
-        let result = self.send_request("server_info", params)?;
+        let result = self.send_request("server_info", params).await?;
         debug!("Server info response: {}", result);
 
         // Parse server info from MCP response
@@ -517,7 +503,7 @@ impl McpTcpClient {
 
     /// Test connection to MCP server
     pub async fn test_connection(&self) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-        match self.connect() {
+        match self.connect().await {
             Ok(_) => {
                 info!("MCP TCP connection test successful");
                 Ok(true)
@@ -547,7 +533,7 @@ impl McpTcpClient {
             }
         });
 
-        let result = self.send_request("initialize", params)?;
+        let result = self.send_request("initialize", params).await?;
         debug!("MCP session initialized: {}", result);
 
         Ok(())

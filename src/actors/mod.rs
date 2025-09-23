@@ -11,7 +11,7 @@ pub mod tcp_connection_actor;
 pub mod jsonrpc_client;
 pub mod supervisor;
 pub mod voice_commands;
-pub mod supervisor_voice;
+// pub mod supervisor_voice; // Removed - duplicate handlers in supervisor.rs
 pub mod multi_mcp_visualization_actor;
 pub mod messages;
 

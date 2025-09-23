@@ -79,6 +79,21 @@ pub struct SimParams {
     // GPU Stability Gates - Fix for KE=0 bug
     pub stability_threshold: f32,  // Kinetic energy threshold below which physics is skipped
     pub min_velocity_threshold: f32,  // Minimum node velocity to consider for physics
+
+    // GPU clustering and analytics parameters
+    pub world_bounds_min: f32,      // Minimum world coordinate
+    pub world_bounds_max: f32,      // Maximum world coordinate
+    pub cell_size_lod: f32,         // Level of detail cell size
+    pub k_neighbors_max: u32,       // Maximum k-neighbors for LOF
+    pub anomaly_detection_radius: f32, // Default radius for anomaly detection
+    pub learning_rate_default: f32, // Default learning rate for GPU algorithms
+
+    // Additional kernel constants for fine-tuning
+    pub norm_delta_cap: f32,                   // Cap for SSSP delta normalization
+    pub position_constraint_attraction: f32,   // Gentle attraction factor for position constraints
+    pub lof_score_min: f32,                    // Minimum LOF score clamp
+    pub lof_score_max: f32,                    // Maximum LOF score clamp
+    pub weight_precision_multiplier: f32,      // Weight precision multiplier for integer operations
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -247,9 +262,24 @@ impl SimulationParams {
             boundary_damping: self.boundary_damping,
             constraint_ramp_frames: self.constraint_ramp_frames,
             constraint_max_force_per_node: self.constraint_max_force_per_node,
-            // GPU Stability Gates
-            stability_threshold: 1e-6,
-            min_velocity_threshold: 1e-4,
+            // GPU Stability Gates - use dev_config values
+            stability_threshold: crate::config::dev_config::physics().stability_threshold,
+            min_velocity_threshold: crate::config::dev_config::physics().min_velocity_threshold,
+
+            // GPU clustering and analytics parameters - use dev_config values
+            world_bounds_min: crate::config::dev_config::physics().world_bounds_min,
+            world_bounds_max: crate::config::dev_config::physics().world_bounds_max,
+            cell_size_lod: crate::config::dev_config::physics().cell_size_lod,
+            k_neighbors_max: crate::config::dev_config::physics().k_neighbors_max,
+            anomaly_detection_radius: crate::config::dev_config::physics().anomaly_detection_radius,
+            learning_rate_default: crate::config::dev_config::physics().learning_rate_default,
+
+            // Additional kernel constants for fine-tuning
+            norm_delta_cap: crate::config::dev_config::physics().norm_delta_cap,
+            position_constraint_attraction: crate::config::dev_config::physics().position_constraint_attraction,
+            lof_score_min: crate::config::dev_config::physics().lof_score_min,
+            lof_score_max: crate::config::dev_config::physics().lof_score_max,
+            weight_precision_multiplier: crate::config::dev_config::physics().weight_precision_multiplier,
         }
     }
 
@@ -374,9 +404,24 @@ impl From<&PhysicsSettings> for SimParams {
             boundary_damping: physics.boundary_damping,
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
-            // GPU Stability Gates - sensible defaults
-            stability_threshold: 1e-6,
-            min_velocity_threshold: 1e-4,
+            // GPU Stability Gates - use dev_config values
+            stability_threshold: crate::config::dev_config::physics().stability_threshold,
+            min_velocity_threshold: crate::config::dev_config::physics().min_velocity_threshold,
+
+            // GPU clustering and analytics parameters - use dev_config values
+            world_bounds_min: crate::config::dev_config::physics().world_bounds_min,
+            world_bounds_max: crate::config::dev_config::physics().world_bounds_max,
+            cell_size_lod: crate::config::dev_config::physics().cell_size_lod,
+            k_neighbors_max: crate::config::dev_config::physics().k_neighbors_max,
+            anomaly_detection_radius: crate::config::dev_config::physics().anomaly_detection_radius,
+            learning_rate_default: crate::config::dev_config::physics().learning_rate_default,
+
+            // Additional kernel constants for fine-tuning
+            norm_delta_cap: crate::config::dev_config::physics().norm_delta_cap,
+            position_constraint_attraction: crate::config::dev_config::physics().position_constraint_attraction,
+            lof_score_min: crate::config::dev_config::physics().lof_score_min,
+            lof_score_max: crate::config::dev_config::physics().lof_score_max,
+            weight_precision_multiplier: crate::config::dev_config::physics().weight_precision_multiplier,
         }
     }
 }

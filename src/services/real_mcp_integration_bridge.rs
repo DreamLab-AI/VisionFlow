@@ -280,9 +280,10 @@ pub struct AuthToken {
 #[derive(Debug, Default)]
 pub struct RequestTracker {
     pub active_requests: HashMap<u64, TrackedRequest>,
-    pub request_history: Vec<RequestHistoryEntry>,
+    pub request_history: Vec<crate::types::mcp_responses::RequestHistoryEntry>,
     pub max_history_size: usize,
 }
+
 
 #[derive(Debug, Clone)]
 pub struct TrackedRequest {
@@ -294,17 +295,6 @@ pub struct TrackedRequest {
     pub retry_count: u32,
 }
 
-#[derive(Debug, Clone)]
-pub struct RequestHistoryEntry {
-    pub id: u64,
-    pub server_id: String,
-    pub method: String,
-    pub started_at: DateTime<Utc>,
-    pub completed_at: Option<DateTime<Utc>>,
-    pub duration_ms: Option<u64>,
-    pub success: bool,
-    pub error_message: Option<String>,
-}
 
 /// Integration performance statistics
 #[derive(Debug, Default, Clone)]
@@ -910,33 +900,189 @@ impl RealMcpIntegrationBridge {
     }
 
     async fn wait_for_response(&self, server_id: &str, request_id: u64) -> Result<Value, String> {
-        // Simplified response waiting - in practice would use channels or callbacks
-        // This is a basic implementation that would need proper async handling
+        debug!("Waiting for response to request {} from server {}", request_id, server_id);
 
         let timeout_duration = tokio::time::Duration::from_millis(self.pool_config.connection_timeout_ms);
-        let start_time = std::time::Instant::now();
+        let start_time = tokio::time::Instant::now();
 
-        while start_time.elapsed() < timeout_duration {
-            // Check if we have a response
-            let connections = self.connections.read().await;
-            if let Some(connection) = connections.get(server_id) {
-                if !connection.pending_requests.contains_key(&request_id) {
-                    // Request was removed, likely due to response
-                    // In practice, the response would be stored somewhere accessible
+        // Create a channel for receiving the response
+        let (tx, mut rx) = tokio::sync::mpsc::channel::<Result<Value, String>>(1);
+
+        // Spawn a task to read from the connection
+        let connections = self.connections.clone();
+        let server_id_clone = server_id.to_string();
+        let stats = self.stats.clone();
+        let request_tracker = self.request_tracker.clone();
+
+        tokio::spawn(async move {
+            let mut response_received = false;
+
+            while start_time.elapsed() < timeout_duration && !response_received {
+                let mut connections_guard = connections.write().await;
+
+                if let Some(connection) = connections_guard.get_mut(&server_id_clone) {
+                    if let Some(ref mut reader) = connection.reader {
+                        // Try to read a response line
+                        let mut response_line = String::new();
+
+                        match tokio::time::timeout(
+                            tokio::time::Duration::from_millis(100),
+                            reader.read_line(&mut response_line)
+                        ).await {
+                            Ok(Ok(bytes_read)) => {
+                                if bytes_read > 0 {
+                                    debug!("Received response line: {}", response_line.trim());
+
+                                    // Parse JSON-RPC response
+                                    match serde_json::from_str::<McpResponse<Value>>(&response_line) {
+                                        Ok(response) => {
+                                            match response {
+                                                McpResponse::Success(success_response) => {
+                                                    // Check if this is our response
+                                                    if let Some(id_val) = &success_response.id {
+                                                        if let Some(id_num) = id_val.as_u64() {
+                                                            if id_num == request_id {
+                                                                // Remove from pending requests
+                                                                connection.pending_requests.remove(&request_id);
+
+                                                                // Update statistics
+                                                                let mut stats_guard = stats.write().await;
+                                                                stats_guard.successful_requests += 1;
+                                                                stats_guard.bytes_received += response_line.len() as u64;
+
+                                                                // Update request tracker
+                                                                let mut tracker = request_tracker.write().await;
+                                                                if let Some(tracked_request) = tracker.active_requests.remove(&request_id) {
+                                                                    let duration = Utc::now().signed_duration_since(tracked_request.started_at);
+                                                                    let history_entry = crate::types::mcp_responses::RequestHistoryEntry {
+                                                                        id: request_id,
+                                                                        server_id: server_id_clone.clone(),
+                                                                        method: tracked_request.method,
+                                                                        started_at: tracked_request.started_at,
+                                                                        completed_at: Some(Utc::now()),
+                                                                        duration_ms: Some(duration.num_milliseconds() as u64),
+                                                                        success: true,
+                                                                        error_message: None,
+                                                                    };
+                                                                    tracker.request_history.push(history_entry);
+
+                                                                    // Limit history size
+                                                                    if tracker.request_history.len() > tracker.max_history_size {
+                                                                        tracker.request_history.remove(0);
+                                                                    }
+                                                                }
+
+                                                                info!("Successfully received response for request {}", request_id);
+                                                                let _ = tx.send(Ok(success_response.result)).await;
+                                                                response_received = true;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                McpResponse::Error(error_response) => {
+                                                    // Check if this is our error response
+                                                    if let Some(id_val) = &error_response.id {
+                                                        if let Some(id_num) = id_val.as_u64() {
+                                                            if id_num == request_id {
+                                                                // Remove from pending requests
+                                                                connection.pending_requests.remove(&request_id);
+
+                                                                // Update statistics
+                                                                let mut stats_guard = stats.write().await;
+                                                                stats_guard.failed_requests += 1;
+
+                                                                // Update request tracker
+                                                                let mut tracker = request_tracker.write().await;
+                                                                if let Some(tracked_request) = tracker.active_requests.remove(&request_id) {
+                                                                    let duration = Utc::now().signed_duration_since(tracked_request.started_at);
+                                                                    let history_entry = crate::types::mcp_responses::RequestHistoryEntry {
+                                                                        id: request_id,
+                                                                        server_id: server_id_clone.clone(),
+                                                                        method: tracked_request.method,
+                                                                        started_at: tracked_request.started_at,
+                                                                        completed_at: Some(Utc::now()),
+                                                                        duration_ms: Some(duration.num_milliseconds() as u64),
+                                                                        success: false,
+                                                                        error_message: Some(error_response.error.message.clone()),
+                                                                    };
+                                                                    tracker.request_history.push(history_entry);
+                                                                }
+
+                                                                error!("Received error response for request {}: {}", request_id, error_response.error.message);
+                                                                let _ = tx.send(Err(format!("MCP Error {}: {}", error_response.error.code, error_response.error.message))).await;
+                                                                response_received = true;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Err(e) => {
+                                            warn!("Failed to parse JSON-RPC response: {} - Raw: {}", e, response_line.trim());
+                                        }
+                                    }
+                                }
+                            }
+                            Ok(Err(e)) => {
+                                error!("Error reading from connection: {}", e);
+                                break;
+                            }
+                            Err(_) => {
+                                // Timeout - continue to next iteration
+                            }
+                        }
+                    } else {
+                        error!("No reader available for connection to {}", server_id_clone);
+                        break;
+                    }
+                } else {
+                    error!("Connection not found for server {}", server_id_clone);
                     break;
                 }
+
+                drop(connections_guard);
+
+                // Small delay to prevent tight loop
+                tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
             }
 
-            // Wait a bit before checking again
-            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+            // If we haven't received a response, send timeout error
+            if !response_received {
+                warn!("Request {} to {} timed out after {:?}", request_id, server_id_clone, timeout_duration);
+
+                // Clean up pending request and update stats
+                let mut connections_guard = connections.write().await;
+                if let Some(connection) = connections_guard.get_mut(&server_id_clone) {
+                    connection.pending_requests.remove(&request_id);
+                }
+
+                let mut stats_guard = stats.write().await;
+                stats_guard.failed_requests += 1;
+
+                let mut tracker = request_tracker.write().await;
+                if let Some(tracked_request) = tracker.active_requests.remove(&request_id) {
+                    let history_entry = crate::types::mcp_responses::RequestHistoryEntry {
+                        id: request_id,
+                        server_id: server_id_clone,
+                        method: tracked_request.method,
+                        started_at: tracked_request.started_at,
+                        completed_at: Some(Utc::now()),
+                        duration_ms: Some(timeout_duration.as_millis() as u64),
+                        success: false,
+                        error_message: Some("Request timeout".to_string()),
+                    };
+                    tracker.request_history.push(history_entry);
+                }
+
+                let _ = tx.send(Err(format!("Request timeout after {:?}", timeout_duration))).await;
+            }
+        });
+
+        // Wait for the response or timeout
+        match rx.recv().await {
+            Some(result) => result,
+            None => Err("Internal error: response channel closed".to_string()),
         }
-
-        // For this simplified implementation, return a placeholder success response
-        // In practice, the actual response would be parsed and returned
-        let mut stats = self.stats.write().await;
-        stats.successful_requests += 1;
-
-        Ok(json!({"status": "success", "message": "Request completed"}))
     }
 
     async fn start_background_tasks(&self) {

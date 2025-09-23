@@ -556,29 +556,8 @@ impl ClaudeFlowActorTcp {
                         }
                     }).collect();
 
-                    // Create mock JSON response for compatibility with existing parser
-                    let mock_response = json!({
-                        "result": {
-                            "content": [{
-                                "text": serde_json::to_string(&json!({
-                                    "agents": agent_statuses.iter().map(|agent| {
-                                        json!({
-                                            "id": agent.agent_id,
-                                            "name": agent.profile.name,
-                                            "agent_type": format!("{:?}", agent.profile.agent_type).to_lowercase(),
-                                            "status": agent.status,
-                                            "cpu_usage": agent.cpu_usage,
-                                            "memory_usage": agent.memory_usage,
-                                            "health": agent.health,
-                                            "workload": agent.activity
-                                        })
-                                    }).collect::<Vec<_>>()
-                                })).unwrap_or_default()
-                            }]
-                        }
-                    });
-
-                    ctx_addr.do_send(ProcessAgentListResponse { response: mock_response });
+                    // Send agent statuses directly without mock wrapper
+                    ctx_addr.do_send(ProcessAgentStatuses { agents: agent_statuses });
                 }
                 Err(e) => {
                     error!("MCP TCP query failed, falling back to JSON-RPC: {}", e);
@@ -590,6 +569,12 @@ impl ClaudeFlowActorTcp {
 }
 
 /// New message types for refactored actor
+#[derive(Message)]
+#[rtype(result = "()")]
+struct ProcessAgentStatuses {
+    agents: Vec<AgentStatus>,
+}
+
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ProcessAgentListResponse {
@@ -685,11 +670,39 @@ impl Handler<MCPSessionReady> for ClaudeFlowActorTcp {
     }
 }
 
+impl Handler<ProcessAgentStatuses> for ClaudeFlowActorTcp {
+    type Result = ();
+
+    fn handle(&mut self, msg: ProcessAgentStatuses, _ctx: &mut Self::Context) {
+        info!("Processing {} agent statuses directly from MCP", msg.agents.len());
+
+        // Send graph update directly with parsed agents
+        let message = UpdateBotsGraph {
+            agents: msg.agents.clone()
+        };
+
+        info!("🔄 Sending graph update: {} agents from real MCP data", msg.agents.len());
+        self.graph_service_addr.do_send(message);
+
+        // Update cache
+        if !msg.agents.is_empty() {
+            self.agent_cache.clear();
+            for agent in msg.agents {
+                self.agent_cache.insert(agent.agent_id.clone(), agent);
+            }
+        }
+
+        // Mark poll as successful
+        self.consecutive_poll_failures = 0;
+        self.last_successful_poll = Some(Utc::now());
+    }
+}
+
 impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
     type Result = ();
-    
+
     fn handle(&mut self, msg: ProcessAgentListResponse, _ctx: &mut Self::Context) {
-        // Type-safe MCP response parsing
+        // Type-safe MCP response parsing for legacy compatibility
         let response_clone = msg.response.clone();
         let agent_list = match serde_json::from_value::<McpResponse<McpContentResult>>(msg.response) {
             Ok(mcp_response) => {
@@ -719,30 +732,28 @@ impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
                 self.parse_legacy_response(&response_clone)
             }
         };
-        
+
         // Process agents and send to graph
         if !agent_list.agents.is_empty() {
             let mut agent_statuses = Vec::new();
-            let mut parsing_errors = 0u32;
-            
+
             for (idx, agent) in agent_list.agents.iter().enumerate() {
                 // Convert Agent to AgentStatus
                 let agent_status = Self::agent_to_status(agent);
-                info!("Agent [{}] {} - Status: {}, Type: {:?}", 
+                info!("Agent [{}] {} - Status: {}, Type: {:?}",
                       idx, agent_status.agent_id, agent_status.status, agent_status.profile.agent_type);
                 agent_statuses.push(agent_status);
             }
-            
+
             // Send graph update
             let message = UpdateBotsGraph {
                 agents: agent_statuses.clone()
             };
-            
-            info!("🔄 Sending graph update: {} agents parsed ({} errors)", 
-                  agent_statuses.len(), parsing_errors);
-            
+
+            info!("🔄 Sending graph update: {} agents parsed (legacy mode)", agent_statuses.len());
+
             self.graph_service_addr.do_send(message);
-            
+
             // Update cache
             if !agent_statuses.is_empty() {
                 self.agent_cache.clear();
@@ -750,7 +761,7 @@ impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
                     self.agent_cache.insert(agent.agent_id.clone(), agent);
                 }
             }
-            
+
             // Mark poll as successful
             self.consecutive_poll_failures = 0;
             self.last_successful_poll = Some(Utc::now());

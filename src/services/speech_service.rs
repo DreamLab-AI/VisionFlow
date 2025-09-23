@@ -18,6 +18,7 @@ use crate::types::speech::{SpeechCommand, TTSProvider, STTProvider, SpeechOption
 use crate::actors::voice_commands::VoiceCommand;
 use crate::utils::mcp_connection::{call_task_orchestrate, call_agent_list, call_swarm_init, call_agent_spawn};
 use crate::services::voice_context_manager::VoiceContextManager;
+use crate::services::voice_tag_manager::{VoiceTagManager, TaggedVoiceResponse};
 use reqwest::Client;
 use uuid::Uuid;
 use chrono;
@@ -53,6 +54,10 @@ pub struct SpeechService {
     http_client: Arc<Client>,
     /// Voice conversation context manager for multi-turn interactions
     context_manager: Arc<VoiceContextManager>,
+    /// Voice tag manager for tracking commands through hive mind
+    tag_manager: Arc<VoiceTagManager>,
+    /// TTS response receiver for tagged responses
+    tts_response_rx: Option<Arc<Mutex<mpsc::Receiver<TaggedVoiceResponse>>>>,
 }
 
 impl SpeechService {
@@ -92,6 +97,14 @@ impl SpeechService {
         // Multiple clients can subscribe to receive transcription text
         let (transcription_tx, _) = broadcast::channel(100);
 
+        // Create TTS response channel for tagged responses
+        let (tts_response_tx, tts_response_rx) = mpsc::channel(100);
+
+        // Create voice tag manager and configure TTS sender
+        let mut tag_manager = VoiceTagManager::new();
+        tag_manager.set_tts_sender(tts_response_tx);
+        let tag_manager = Arc::new(tag_manager);
+
         let service = SpeechService {
             sender,
             settings,
@@ -101,10 +114,16 @@ impl SpeechService {
             transcription_tx,
             http_client,
             context_manager: Arc::new(VoiceContextManager::new()),
+            tag_manager,
+            tts_response_rx: Some(Arc::new(Mutex::new(tts_response_rx))),
         };
 
         // Start the internal service task for async command processing
         service.start(rx);
+
+        // Start the tagged TTS response handler
+        service.start_tagged_tts_handler();
+
         service
     }
 
@@ -757,6 +776,43 @@ impl SpeechService {
         });
     }
 
+    /// Start background task to handle tagged TTS responses
+    fn start_tagged_tts_handler(&self) {
+        if let Some(rx) = &self.tts_response_rx {
+            let rx = Arc::clone(rx);
+            let sender = Arc::clone(&self.sender);
+            let tag_manager = Arc::clone(&self.tag_manager);
+
+            task::spawn(async move {
+                let mut receiver = rx.lock().await;
+
+                while let Some(tagged_response) = receiver.recv().await {
+                    info!("Processing tagged TTS response: {} (tag: {})",
+                          tagged_response.response.text, tagged_response.tag.short_id());
+
+                    // Convert tagged response to regular TTS command
+                    let tts_command = SpeechCommand::TextToSpeech(
+                        tagged_response.response.text.clone(),
+                        SpeechOptions::default(),
+                    );
+
+                    // Send to TTS processing
+                    if let Err(e) = sender.lock().await.send(tts_command).await {
+                        error!("Failed to send tagged response to TTS: {}", e);
+                    } else {
+                        debug!("Successfully routed tagged response {} to TTS",
+                               tagged_response.tag.short_id());
+                    }
+
+                    // Clean up expired tags periodically
+                    tag_manager.cleanup_expired_commands().await;
+                }
+
+                info!("Tagged TTS response handler terminated");
+            });
+        }
+    }
+
     pub async fn initialize(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::Initialize;
         self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::InitializationFailed(e.to_string())))?;
@@ -932,6 +988,33 @@ impl SpeechService {
     /// Check if a session needs follow-up
     pub async fn session_needs_follow_up(&self, session_id: &str) -> bool {
         self.context_manager.needs_follow_up(session_id).await
+    }
+
+    /// Get access to the voice tag manager
+    pub fn get_tag_manager(&self) -> Arc<VoiceTagManager> {
+        Arc::clone(&self.tag_manager)
+    }
+
+    /// Get access to the transcription sender for broadcasting text
+    pub fn get_transcription_sender(&self) -> broadcast::Sender<String> {
+        self.transcription_tx.clone()
+    }
+
+    /// Process voice command with tag tracking through hive mind
+    pub async fn process_voice_command_with_tags(&self, text: String, session_id: String) -> VisionFlowResult<String> {
+        use crate::services::speech_voice_integration::VoiceSwarmIntegration;
+
+        match VoiceSwarmIntegration::process_voice_command_with_tags(self, text, session_id, Arc::clone(&self.tag_manager)).await {
+            Ok(tag) => {
+                Ok(format!("Voice command processed with tag: {}", tag.short_id()))
+            }
+            Err(e) => {
+                error!("Failed to process tagged voice command: {}", e);
+                Err(VisionFlowError::Speech(VisionSpeechError::AudioProcessingFailed {
+                    reason: format!("Tagged voice command failed: {}", e)
+                }))
+            }
+        }
     }
     
     /// Check if text looks like a voice command for the swarm

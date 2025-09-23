@@ -11,12 +11,31 @@ spring_force_clamp_factor = 0.5
 
 # New CUDA kernel parameters
 rest_length = 50.0                      # Natural spring rest length
-repulsion_cutoff = 50.0                 # Maximum distance for repulsion calculations  
+repulsion_cutoff = 50.0                 # Maximum distance for repulsion calculations
 repulsion_softening_epsilon = 0.0001   # Prevents division by zero in force calculations
 center_gravity_k = 0.005               # Gravity toward center - helps nodes settle and prevents drift
 grid_cell_size = 50.0                  # Spatial grid resolution for neighbor searches
 warmup_iterations = 100                # Number of warmup simulation steps
 cooling_rate = 0.001                   # Rate of cooling during warmup
+
+# GPU kernel-specific physics parameters
+max_force = 15.0                       # Maximum force magnitude for clamping
+max_velocity = 50.0                    # Maximum velocity magnitude for clamping
+world_bounds_min = -1000.0             # Minimum world coordinate
+world_bounds_max = 1000.0              # Maximum world coordinate
+cell_size_lod = 100.0                  # Level of detail cell size
+k_neighbors_max = 32                   # Maximum k-neighbors for LOF
+anomaly_detection_radius = 150.0       # Default radius for anomaly detection
+learning_rate_default = 0.1           # Default learning rate for GPU algorithms
+min_velocity_threshold = 0.01          # Minimum velocity threshold for stability gates
+stability_threshold = 1e-6             # System stability threshold for early exit
+
+# Additional kernel constants for fine-tuning
+norm_delta_cap = 1000.0                # Cap for SSSP delta normalization
+position_constraint_attraction = 0.1   # Gentle attraction factor for position constraints
+lof_score_min = 0.1                    # Minimum LOF score clamp
+lof_score_max = 10.0                   # Maximum LOF score clamp
+weight_precision_multiplier = 1000.0   # Weight precision multiplier for integer operations
 
 # Boundary behavior  
 boundary_extreme_multiplier = 2.0        # Nodes beyond viewport * this are extreme

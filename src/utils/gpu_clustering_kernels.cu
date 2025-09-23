@@ -258,7 +258,11 @@ __global__ void compute_lof_kernel(
     float* __restrict__ local_densities,
     const int num_nodes,
     const int k_neighbors,
-    const float radius)
+    const float radius,
+    const float world_bounds_min,
+    const float world_bounds_max,
+    const float cell_size_lod,
+    const int max_k)
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
@@ -271,9 +275,9 @@ __global__ void compute_lof_kernel(
 
     // Search in neighboring cells
     int3 cell = make_int3(
-        (int)((pos.x + 1000.0f) / 100.0f), // Assuming world bounds [-1000, 1000]
-        (int)((pos.y + 1000.0f) / 100.0f),
-        (int)((pos.z + 1000.0f) / 100.0f)
+        (int)((pos.x - world_bounds_min) / cell_size_lod),
+        (int)((pos.y - world_bounds_min) / cell_size_lod),
+        (int)((pos.z - world_bounds_min) / cell_size_lod)
     );
 
     for (int dz = -1; dz <= 1; dz++) {
@@ -293,7 +297,7 @@ __global__ void compute_lof_kernel(
                     int start = cell_start[cell_idx];
                     int end = cell_end[cell_idx];
 
-                    for (int i = start; i < end && neighbor_count < k_neighbors; i++) {
+                    for (int i = start; i < end && neighbor_count < min(k_neighbors, max_k); i++) {
                         int neighbor_idx = sorted_indices[i];
                         if (neighbor_idx == idx) continue;
 
@@ -326,9 +330,9 @@ __global__ void compute_lof_kernel(
                                 }
                             }
 
-                            if (insert_pos < k_neighbors) {
+                            if (insert_pos < min(k_neighbors, max_k)) {
                                 neighbor_distances[insert_pos] = dist;
-                                if (neighbor_count < k_neighbors) neighbor_count++;
+                                if (neighbor_count < min(k_neighbors, max_k)) neighbor_count++;
                             }
                         }
                     }
@@ -338,7 +342,7 @@ __global__ void compute_lof_kernel(
     }
 
     // Compute local reachability density
-    float k_distance = (neighbor_count > 0) ? neighbor_distances[min(neighbor_count-1, k_neighbors-1)] : radius;
+    float k_distance = (neighbor_count > 0) ? neighbor_distances[min(neighbor_count-1, min(k_neighbors, max_k)-1)] : radius;
     float reach_dist_sum = 0.0f;
 
     for (int i = 0; i < neighbor_count; i++) {
@@ -573,7 +577,8 @@ __global__ void stress_majorization_step_kernel(
     const float* __restrict__ target_distances,
     const float* __restrict__ weights,
     const float learning_rate,
-    const int num_nodes)
+    const int num_nodes,
+    const float force_epsilon)
 {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= num_nodes) return;
@@ -598,7 +603,7 @@ __global__ void stress_majorization_step_kernel(
 
                 float actual_dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 
-                if (actual_dist > 1e-8f) {
+                if (actual_dist > force_epsilon) {
                     float scale = target_dist / actual_dist;
                     float3 target_pos = make_float3(
                         pos_i.x - diff.x * (1.0f - scale),

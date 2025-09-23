@@ -4,6 +4,7 @@ use crate::actors::messages::{GetSettings, UpdateSettings};
 use log::{info, error, debug, warn};
 use serde_json::{json, Value};
 use crate::config::ClusteringConfiguration;
+use std::collections::HashMap;
 
 /// Configure clustering-specific routes
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -151,6 +152,10 @@ async fn start_clustering(
                 random_state: None,
                 damping: None,
                 preference: None,
+                tolerance: Some(0.001),
+                seed: None,
+                sigma: Some(1.0),
+                min_modularity_gain: Some(0.01),
             },
             task_id: format!("{}_{}", algorithm, chrono::Utc::now().timestamp_millis()),
         };
@@ -412,22 +417,209 @@ async fn export_cluster_assignments(
         })));
     }
     
-    // Return empty export - ready for GPU integration
-    let empty_export = match format {
-        "csv" => "node_id,cluster_id\n".to_string(),
-        "graphml" => "<?xml version=\"1.0\"?><graphml></graphml>".to_string(),
-        _ => json!({"clusters": [], "nodes": [], "gpuAvailable": state.gpu_compute_addr.is_some()}).to_string(),
+    // Get real clustering data from GPU compute actor if available
+    if let Some(gpu_addr) = &state.gpu_compute_addr {
+        info!("Attempting to get clustering data from GPU compute actor");
+
+        // Try to get clustering results from GPU
+        match gpu_addr.send(crate::actors::messages::GetClusteringResults).await {
+            Ok(Ok(clustering_results)) => {
+                info!("Successfully retrieved clustering results from GPU");
+
+                let export_data = match format {
+                    "csv" => {
+                        let mut csv_content = "node_id,cluster_id,x,y,z\n".to_string();
+                        if let Some(clusters_array) = clustering_results.get("clusters").and_then(|v| v.as_array()) {
+                        for cluster in clusters_array {
+                            if let Some(node_ids) = cluster.get("node_ids").and_then(|v| v.as_array()) {
+                                let cluster_id = cluster.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
+                                for node_id in node_ids {
+                                    if let Some(id) = node_id.as_u64() {
+                                        // Include position data if available
+                                        let position = cluster.get("centroid").and_then(|v| v.as_array())
+                                            .map(|arr| (
+                                                arr.get(0).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                                                arr.get(1).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                                                arr.get(2).and_then(|v| v.as_f64()).unwrap_or(0.0)
+                                            )).unwrap_or((0.0, 0.0, 0.0));
+
+                                        csv_content.push_str(&format!("{},{},{},{},{}\n",
+                                            id, cluster_id, position.0, position.1, position.2));
+                                    }
+                                }
+                            }
+                        }
+                        } // Close clusters_array if
+                        csv_content
+                    },
+                    "graphml" => {
+                        let mut graphml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".to_string();
+                        graphml.push_str("<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n");
+                        graphml.push_str("  <key id=\"cluster\" for=\"node\" attr.name=\"cluster\" attr.type=\"int\"/>\n");
+                        graphml.push_str("  <graph id=\"clusters\" edgedefault=\"undirected\">\n");
+
+                        if let Some(clusters_array) = clustering_results.get("clusters").and_then(|v| v.as_array()) {
+                        for cluster in clusters_array {
+                            if let Some(node_ids) = cluster.get("node_ids").and_then(|v| v.as_array()) {
+                                let cluster_id = cluster.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
+                                for node_id in node_ids {
+                                    if let Some(id) = node_id.as_u64() {
+                                        graphml.push_str(&format!("    <node id=\"{}\">\n", id));
+                                        graphml.push_str(&format!("      <data key=\"cluster\">{}</data>\n", cluster_id));
+                                        graphml.push_str("    </node>\n");
+                                    }
+                                }
+                            }
+                        }
+                        } // Close clusters_array if
+
+                        graphml.push_str("  </graph>\n</graphml>\n");
+                        graphml
+                    },
+                    _ => {
+                        json!({
+                            "clusters": clustering_results.get("clusters").unwrap_or(&serde_json::Value::Array(vec![])),
+                            "algorithm": clustering_results.get("algorithm").unwrap_or(&serde_json::Value::String("unknown".to_string())),
+                            "parameters": clustering_results.get("parameters").unwrap_or(&serde_json::Value::Object(serde_json::Map::new())),
+                            "performance": clustering_results.get("performance_metrics").unwrap_or(&serde_json::Value::Object(serde_json::Map::new())),
+                            "timestamp": chrono::Utc::now().to_rfc3339(),
+                            "data_source": "gpu_compute_actor"
+                        }).to_string()
+                    }
+                };
+
+                let content_type = match format {
+                    "csv" => "text/csv",
+                    "graphml" => "application/xml",
+                    _ => "application/json",
+                };
+
+                return Ok(HttpResponse::Ok()
+                    .content_type(content_type)
+                    .insert_header(("Content-Disposition",
+                        format!("attachment; filename=\"clusters.{}\"", format)))
+                    .body(export_data));
+            },
+            Ok(Err(e)) => {
+                warn!("GPU compute actor failed to get clustering results: {}", e);
+            },
+            Err(e) => {
+                warn!("Failed to communicate with GPU compute actor: {}", e);
+            }
+        }
+    }
+
+    // Fallback: try to get data from graph service
+    match state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+        Ok(Ok(graph_data)) => {
+            if !graph_data.nodes.is_empty() {
+                info!("Using graph data for clustering export with {} nodes", graph_data.nodes.len());
+
+                // Generate basic clustering based on node metadata
+                let mut clusters = HashMap::new();
+                for node in &graph_data.nodes {
+                    // Simple clustering by node type or group
+                    let cluster_key = node.node_type.as_ref()
+                        .or(node.group.as_ref())
+                        .cloned()
+                        .unwrap_or_else(|| "default".to_string());
+
+                    clusters.entry(cluster_key).or_insert_with(Vec::new).push(node.id);
+                }
+
+                let export_data = match format {
+                    "csv" => {
+                        let mut csv_content = "node_id,cluster_id\n".to_string();
+                        for (cluster_name, node_ids) in clusters {
+                            let cluster_id = cluster_name.chars().map(|c| c as u32).sum::<u32>() % 100;
+                            for node_id in node_ids {
+                                csv_content.push_str(&format!("{},{}\n", node_id, cluster_id));
+                            }
+                        }
+                        csv_content
+                    },
+                    "graphml" => {
+                        let mut graphml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".to_string();
+                        graphml.push_str("<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n");
+                        graphml.push_str("  <key id=\"cluster\" for=\"node\" attr.name=\"cluster\" attr.type=\"string\"/>\n");
+                        graphml.push_str("  <graph id=\"clusters\" edgedefault=\"undirected\">\n");
+
+                        for (cluster_name, node_ids) in clusters {
+                            for node_id in node_ids {
+                                graphml.push_str(&format!("    <node id=\"{}\">\n", node_id));
+                                graphml.push_str(&format!("      <data key=\"cluster\">{}</data>\n", cluster_name));
+                                graphml.push_str("    </node>\n");
+                            }
+                        }
+
+                        graphml.push_str("  </graph>\n</graphml>\n");
+                        graphml
+                    },
+                    _ => {
+                        let cluster_objects: Vec<serde_json::Value> = clusters.into_iter().enumerate()
+                            .map(|(idx, (name, nodes))| json!({
+                                "id": idx,
+                                "name": name,
+                                "node_ids": nodes,
+                                "size": nodes.len()
+                            })).collect();
+
+                        json!({
+                            "clusters": cluster_objects,
+                            "algorithm": "metadata_based",
+                            "node_count": graph_data.nodes.len(),
+                            "timestamp": chrono::Utc::now().to_rfc3339(),
+                            "data_source": "graph_service_metadata"
+                        }).to_string()
+                    }
+                };
+
+                let content_type = match format {
+                    "csv" => "text/csv",
+                    "graphml" => "application/xml",
+                    _ => "application/json",
+                };
+
+                return Ok(HttpResponse::Ok()
+                    .content_type(content_type)
+                    .insert_header(("Content-Disposition",
+                        format!("attachment; filename=\"clusters.{}\"", format)))
+                    .body(export_data));
+            }
+        },
+        _ => {
+            warn!("Failed to get graph data for clustering export");
+        }
+    }
+
+    // Final fallback: return informative empty response
+    let empty_response = match format {
+        "csv" => "# No clustering data available\n# Try running clustering analysis first\nnode_id,cluster_id\n".to_string(),
+        "graphml" => format!(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- No clustering data available. Try running clustering analysis first. -->\n<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n  <graph id=\"empty\" edgedefault=\"undirected\">\n  </graph>\n</graphml>\n"
+        ),
+        _ => json!({
+            "clusters": [],
+            "message": "No clustering data available",
+            "suggestions": [
+                "Run clustering analysis first with POST /clustering/analyze",
+                "Ensure graph data is loaded",
+                "Check GPU compute actor status"
+            ],
+            "gpu_available": state.gpu_compute_addr.is_some(),
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        }).to_string(),
     };
-    
+
     let content_type = match format {
         "csv" => "text/csv",
         "graphml" => "application/xml",
         _ => "application/json",
     };
-    
+
     Ok(HttpResponse::Ok()
         .content_type(content_type)
-        .body(empty_export))
+        .body(empty_response))
 }
 
 /// Validate clustering configuration

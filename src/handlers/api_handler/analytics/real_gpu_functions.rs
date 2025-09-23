@@ -113,14 +113,37 @@ pub async fn perform_gpu_spectral_clustering(
     info!("Performing GPU spectral clustering on {} nodes", graph_data.nodes.len());
 
     // Check if GPU manager is available (clustering handled by GPU manager)
-    if let Some(_gpu_manager) = &app_state.gpu_manager_addr {
-        info!("GPU manager available, but clustering via manager not yet implemented");
-        // TODO: Implement GPU clustering via GPU manager
-        // For now, fall back to CPU clustering
+    if let Some(gpu_manager) = &app_state.gpu_manager_addr {
+        info!("GPU manager available, executing spectral clustering on GPU");
+
+        // Use simple clustering message for GPU execution
+        use crate::actors::messages::PerformGPUClustering;
+
+        let clustering_msg = PerformGPUClustering {
+            method: "spectral".to_string(),
+            params: params.clone(),
+            task_id: format!("spectral_{}", uuid::Uuid::new_v4()),
+        };
+
+        // Send to GPU manager for clustering
+        match gpu_manager.send(clustering_msg).await {
+            Ok(Ok(gpu_result)) => {
+                info!("GPU spectral clustering succeeded with {} clusters", gpu_result.len());
+                return gpu_result;
+            }
+            Ok(Err(e)) => {
+                error!("GPU spectral clustering failed: {}", e);
+                // Fall through to CPU fallback
+            }
+            Err(e) => {
+                error!("Failed to communicate with GPU manager: {}", e);
+                // Fall through to CPU fallback
+            }
+        }
     }
 
-    // Fallback to CPU-based clustering if GPU fails
-    warn!("Falling back to CPU spectral clustering");
+    // Fallback to CPU-based clustering only if GPU actually fails
+    warn!("GPU clustering failed, falling back to CPU spectral clustering");
     generate_cpu_fallback_clustering(graph_data, agents, params.num_clusters.unwrap_or(5), "spectral")
 }
 
@@ -134,14 +157,37 @@ pub async fn perform_gpu_kmeans_clustering(
     info!("Performing GPU K-means clustering on {} nodes", graph_data.nodes.len());
 
     // Check if GPU manager is available (clustering handled by GPU manager)
-    if let Some(_gpu_manager) = &app_state.gpu_manager_addr {
-        info!("GPU manager available, but K-means clustering via manager not yet implemented");
-        // TODO: Implement GPU K-means clustering via GPU manager
-        // For now, fall back to CPU clustering
+    if let Some(gpu_manager) = &app_state.gpu_manager_addr {
+        info!("GPU manager available, executing K-means clustering on GPU");
+
+        // Create K-means params for GPU execution
+        use crate::actors::messages::PerformGPUClustering;
+
+        let clustering_msg = PerformGPUClustering {
+            method: "kmeans".to_string(),
+            params: params.clone(),
+            task_id: format!("kmeans_{}", uuid::Uuid::new_v4()),
+        };
+
+        // Send to GPU manager for clustering
+        match gpu_manager.send(clustering_msg).await {
+            Ok(Ok(gpu_result)) => {
+                info!("GPU K-means clustering succeeded with {} clusters", gpu_result.len());
+                return gpu_result;
+            }
+            Ok(Err(e)) => {
+                error!("GPU K-means clustering failed: {}", e);
+                // Fall through to CPU fallback
+            }
+            Err(e) => {
+                error!("Failed to communicate with GPU manager: {}", e);
+                // Fall through to CPU fallback
+            }
+        }
     }
 
-    // Fallback to CPU-based clustering if GPU fails
-    warn!("Falling back to CPU K-means clustering");
+    // Fallback to CPU-based clustering only if GPU actually fails
+    warn!("GPU clustering failed, falling back to CPU K-means clustering");
     generate_cpu_fallback_clustering(graph_data, agents, params.num_clusters.unwrap_or(8), "kmeans")
 }
 
@@ -155,14 +201,37 @@ pub async fn perform_gpu_louvain_clustering(
     info!("Performing GPU Louvain clustering on {} nodes", graph_data.nodes.len());
 
     // Check if GPU manager is available (clustering handled by GPU manager)
-    if let Some(_gpu_manager) = &app_state.gpu_manager_addr {
-        info!("GPU manager available, but Louvain clustering via manager not yet implemented");
-        // TODO: Implement GPU Louvain clustering via GPU manager
-        // For now, fall back to CPU clustering
+    if let Some(gpu_manager) = &app_state.gpu_manager_addr {
+        info!("GPU manager available, executing Louvain clustering on GPU");
+
+        // Create Louvain params for GPU execution
+        use crate::actors::messages::PerformGPUClustering;
+
+        let clustering_msg = PerformGPUClustering {
+            method: "louvain".to_string(),
+            params: params.clone(),
+            task_id: format!("louvain_{}", uuid::Uuid::new_v4()),
+        };
+
+        // Send to GPU manager for clustering
+        match gpu_manager.send(clustering_msg).await {
+            Ok(Ok(gpu_result)) => {
+                info!("GPU Louvain clustering succeeded with {} clusters", gpu_result.len());
+                return gpu_result;
+            }
+            Ok(Err(e)) => {
+                error!("GPU Louvain clustering failed: {}", e);
+                // Fall through to CPU fallback
+            }
+            Err(e) => {
+                error!("Failed to communicate with GPU manager: {}", e);
+                // Fall through to CPU fallback
+            }
+        }
     }
 
-    // Fallback to CPU-based clustering if GPU fails
-    warn!("Falling back to CPU Louvain clustering");
+    // Fallback to CPU-based clustering only if GPU actually fails
+    warn!("GPU clustering failed, falling back to CPU Louvain clustering");
     generate_cpu_fallback_clustering(graph_data, agents, (5.0 / params.resolution.unwrap_or(1.0)) as u32, "louvain")
 }
 

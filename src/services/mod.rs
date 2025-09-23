@@ -15,3 +15,5 @@ pub mod ragflow_service;
 pub mod semantic_analyzer;
 pub mod speech_service;
 pub mod voice_context_manager;
+pub mod voice_tag_manager;
+pub mod speech_voice_integration;

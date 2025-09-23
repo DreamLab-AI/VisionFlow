@@ -50,6 +50,21 @@ struct SimParams {
     // GPU Stability Gates
     float stability_threshold;  // Kinetic energy threshold below which physics is skipped
     float min_velocity_threshold;  // Minimum node velocity to consider for physics
+
+    // GPU clustering and analytics parameters
+    float world_bounds_min;      // Minimum world coordinate
+    float world_bounds_max;      // Maximum world coordinate
+    float cell_size_lod;         // Level of detail cell size
+    unsigned int k_neighbors_max;       // Maximum k-neighbors for LOF
+    float anomaly_detection_radius; // Default radius for anomaly detection
+    float learning_rate_default; // Default learning rate for GPU algorithms
+
+    // Additional kernel constants for fine-tuning
+    float norm_delta_cap;                   // Cap for SSSP delta normalization
+    float position_constraint_attraction;   // Gentle attraction factor for position constraints
+    float lof_score_min;                    // Minimum LOF score clamp
+    float lof_score_max;                    // Maximum LOF score clamp
+    float weight_precision_multiplier;      // Weight precision multiplier for integer operations
 };
 
 // Global constant memory for simulation parameters
@@ -314,7 +329,7 @@ __global__ void force_pass_kernel(
                     // Handle disconnected components gracefully
                     if (isfinite(du) && isfinite(dv)) {
                         float delta = fabsf(du - dv);
-                        float norm_delta = fminf(delta, 1000.0f); // Cap for stability
+                        float norm_delta = fminf(delta, c_params.norm_delta_cap); // Cap for stability
                         ideal = c_params.rest_length + c_params.sssp_alpha * norm_delta;
                     }
                 }
@@ -394,7 +409,7 @@ __global__ void force_pass_kernel(
                 if (distance > 1e-6f && isfinite(distance)) {
                     // Apply progressive activation multiplier to constraint weight
                     float effective_weight = constraint.weight * progressive_multiplier;
-                    float force_magnitude = effective_weight * distance * 0.1f; // Gentle attraction
+                    float force_magnitude = effective_weight * distance * c_params.position_constraint_attraction; // Gentle attraction
                     
                     // Cap constraint forces using per-node force limit
                     float max_constraint_force = c_params.constraint_max_force_per_node;
@@ -1080,7 +1095,7 @@ __global__ void compute_lof_kernel(
     }
     
     // Clamp LOF score for numerical stability
-    lof_scores[idx] = fminf(fmaxf(lof, 0.1f), 10.0f);
+    lof_scores[idx] = fminf(fmaxf(lof, c_params.lof_score_min), c_params.lof_score_max);
 }
 
 /**
@@ -1228,7 +1243,7 @@ __global__ void propagate_labels_sync_kernel(
         
         if (neighbor_label >= 0 && neighbor_label <= max_label) {
             // Use weighted voting (multiply by 1000 for integer precision)
-            local_label_counts[neighbor_label] += (int)(weight * 1000.0f);
+            local_label_counts[neighbor_label] += (int)(weight * c_params.weight_precision_multiplier);
             total_weight += weight;
         }
     }
@@ -1309,7 +1324,7 @@ __global__ void propagate_labels_async_kernel(
         float weight = edge_weights[i];
         
         if (neighbor_label >= 0 && neighbor_label <= max_label) {
-            local_label_counts[neighbor_label] += (int)(weight * 1000.0f);
+            local_label_counts[neighbor_label] += (int)(weight * c_params.weight_precision_multiplier);
         }
     }
     
@@ -1761,7 +1776,7 @@ __global__ void force_pass_with_stability_kernel(
                     float dv = d_sssp_dist[neighbor_idx];
                     if (isfinite(du) && isfinite(dv)) {
                         float delta = fabsf(du - dv);
-                        float norm_delta = fminf(delta, 1000.0f);
+                        float norm_delta = fminf(delta, c_params.norm_delta_cap);
                         ideal = c_params.rest_length + c_params.sssp_alpha * norm_delta;
                     }
                 }

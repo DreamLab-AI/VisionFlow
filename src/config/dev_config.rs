@@ -24,25 +24,53 @@ pub struct PhysicsInternals {
     pub spring_length_multiplier: f32,         // Natural spring length = separation_radius * this
     pub spring_length_max: f32,                // Maximum natural spring length
     pub spring_force_clamp_factor: f32,        // Clamp spring forces to max_force * this
-    
+
+    // CUDA kernel parameters
+    pub rest_length: f32,                      // Natural spring rest length
+    pub repulsion_cutoff: f32,                 // Maximum distance for repulsion calculations
+    pub repulsion_softening_epsilon: f32,      // Prevents division by zero in force calculations
+    pub center_gravity_k: f32,                 // Gravity toward center
+    pub grid_cell_size: f32,                   // Spatial grid resolution for neighbor searches
+    pub warmup_iterations: u32,                // Number of warmup simulation steps
+    pub cooling_rate: f32,                     // Rate of cooling during warmup
+
+    // GPU kernel-specific physics parameters
+    pub max_force: f32,                        // Maximum force magnitude for clamping
+    pub max_velocity: f32,                     // Maximum velocity magnitude for clamping
+    pub world_bounds_min: f32,                 // Minimum world coordinate
+    pub world_bounds_max: f32,                 // Maximum world coordinate
+    pub cell_size_lod: f32,                    // Level of detail cell size
+    pub k_neighbors_max: u32,                  // Maximum k-neighbors for LOF
+    pub anomaly_detection_radius: f32,         // Default radius for anomaly detection
+    pub learning_rate_default: f32,            // Default learning rate for GPU algorithms
+    pub min_velocity_threshold: f32,           // Minimum velocity threshold for stability gates
+    pub stability_threshold: f32,              // System stability threshold for early exit
+
+    // Additional kernel constants for fine-tuning
+    pub norm_delta_cap: f32,                   // Cap for SSSP delta normalization
+    pub position_constraint_attraction: f32,   // Gentle attraction factor for position constraints
+    pub lof_score_min: f32,                    // Minimum LOF score clamp
+    pub lof_score_max: f32,                    // Maximum LOF score clamp
+    pub weight_precision_multiplier: f32,      // Weight precision multiplier for integer operations
+
     // Boundary behavior
     pub boundary_extreme_multiplier: f32,      // Position is extreme if > viewport_bounds * this
     pub boundary_extreme_force_multiplier: f32,// Force multiplier for extreme positions
     pub boundary_velocity_damping: f32,        // Velocity reduction on boundary hit
-    
+
     // Node distribution
     pub golden_ratio: f32,                     // For initial node positioning
     pub initial_radius_min: f32,               // Minimum initial node radius
     pub initial_radius_range: f32,             // Range for initial radius variation
-    
+
     // Graph-based scaling
     pub cross_graph_repulsion_scale: f32,      // Repulsion between different graphs
     pub cross_graph_spring_scale: f32,         // Spring force between different graphs
-    
+
     // Clustering
     pub cluster_repulsion_scale: f32,          // Repulsion within same cluster
     pub importance_scale_factor: f32,          // Scale based on node importance
-    
+
     // Distance thresholds
     pub repulsion_distance_squared_min: f32,   // Minimum distance squared for repulsion
     pub stress_majorization_epsilon: f32,      // Small value for stress calculations
@@ -178,6 +206,35 @@ impl Default for DevConfig {
                 spring_length_multiplier: 5.0,
                 spring_length_max: 10.0,
                 spring_force_clamp_factor: 0.5,
+
+                // CUDA kernel parameters
+                rest_length: 50.0,
+                repulsion_cutoff: 50.0,
+                repulsion_softening_epsilon: 0.0001,
+                center_gravity_k: 0.005,
+                grid_cell_size: 50.0,
+                warmup_iterations: 100,
+                cooling_rate: 0.001,
+
+                // GPU kernel-specific physics parameters
+                max_force: 15.0,
+                max_velocity: 50.0,
+                world_bounds_min: -1000.0,
+                world_bounds_max: 1000.0,
+                cell_size_lod: 100.0,
+                k_neighbors_max: 32,
+                anomaly_detection_radius: 150.0,
+                learning_rate_default: 0.1,
+                min_velocity_threshold: 0.01,
+                stability_threshold: 1e-6,
+
+                // Additional kernel constants for fine-tuning
+                norm_delta_cap: 1000.0,
+                position_constraint_attraction: 0.1,
+                lof_score_min: 0.1,
+                lof_score_max: 10.0,
+                weight_precision_multiplier: 1000.0,
+
                 boundary_extreme_multiplier: 2.0,
                 boundary_extreme_force_multiplier: 10.0,
                 boundary_velocity_damping: 0.5,

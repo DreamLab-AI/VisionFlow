@@ -205,6 +205,10 @@ pub struct ClusteringParams {
     pub random_state: Option<u32>,
     pub damping: Option<f32>,
     pub preference: Option<f32>,
+    pub tolerance: Option<f64>,
+    pub seed: Option<u64>,
+    pub sigma: Option<f64>,
+    pub min_modularity_gain: Option<f64>,
 }
 
 /// Cluster data structure
@@ -533,26 +537,26 @@ pub async fn update_constraints(
 
 /// POST /api/analytics/focus - Set focus node/region
 pub async fn set_focus(
-    _app_state: web::Data<AppState>,
+    app_state: web::Data<AppState>,
     request: web::Json<SetFocusRequest>,
 ) -> Result<HttpResponse> {
     info!("Setting focus node/region");
 
-    let focus_response = if let Some(node_id) = request.node_id {
+    let mut focus_response = if let Some(node_id) = request.node_id {
         // Focus on specific node
         debug!("Setting focus on node {}", node_id);
         FocusResponse {
-            success: true,
+            success: false, // Will be set to true if GPU update succeeds
             focus_node: Some(node_id),
             focus_region: None,
             error: None,
         }
     } else if let Some(region) = &request.region {
         // Focus on specific region
-        debug!("Setting focus on region center: ({}, {}, {}), radius: {}", 
+        debug!("Setting focus on region center: ({}, {}, {}), radius: {}",
                region.center_x, region.center_y, region.center_z, region.radius);
         FocusResponse {
-            success: true,
+            success: false, // Will be set to true if GPU update succeeds
             focus_node: None,
             focus_region: Some(FocusRegion {
                 center_x: region.center_x,
@@ -571,8 +575,95 @@ pub async fn set_focus(
         }));
     };
 
-    // TODO: Implement actual focus logic with GPU compute actor
-    // This would involve updating visual analytics parameters with the focus information
+    // Get current visual analytics parameters
+    let current_params = VisualAnalyticsParams::default(); // Use default for now
+
+    // Create focus request enum for easier handling
+    #[derive(Debug)]
+    enum FocusRequest {
+        Node { node_id: u32 },
+        Region { x: f32, y: f32, radius: f32 },
+    }
+
+    let focus_request = if let Some(node_id) = request.node_id {
+        FocusRequest::Node { node_id: node_id as u32 }
+    } else if let Some(region) = &request.region {
+        FocusRequest::Region {
+            x: region.center_x,
+            y: region.center_y,
+            radius: region.radius
+        }
+    } else {
+        return Ok(HttpResponse::BadRequest().json(FocusResponse {
+            success: false,
+            focus_node: None,
+            focus_region: None,
+            error: Some("Either node_id or region must be specified".to_string()),
+        }));
+    };
+
+    // Implement actual focus logic with GPU compute actor
+    if let Some(gpu_addr) = &app_state.gpu_compute_addr {
+        info!("Setting focus on GPU compute actor");
+
+        // Update visual analytics parameters with focus information
+        let mut updated_params = current_params.clone();
+        match focus_request {
+            FocusRequest::Node { node_id } => {
+                updated_params.primary_focus_node = node_id as i32;
+                info!("Setting focus on node: {}", node_id);
+                focus_response.focus_node = Some(node_id as i32);
+            }
+            FocusRequest::Region { x, y, radius } => {
+                updated_params.camera_position = crate::gpu::visual_analytics::Vec4::new(x, y, 0.0, 0.0).unwrap_or_default();
+                updated_params.zoom_level = 1.0 / radius.max(1.0); // Inverse relationship
+                info!("Setting focus on region: ({}, {}) radius {}", x, y, radius);
+                focus_response.focus_region = Some(FocusRegion {
+                    center_x: x,
+                    center_y: y,
+                    center_z: 0.0,
+                    radius
+                });
+            }
+        }
+
+        // Send updated parameters to GPU
+        use crate::actors::messages::UpdateVisualAnalyticsParams;
+        match gpu_addr.send(UpdateVisualAnalyticsParams { params: updated_params }).await {
+            Ok(Ok(())) => {
+                info!("Successfully updated visual analytics parameters with focus settings");
+                focus_response.success = true;
+            }
+            Ok(Err(e)) => {
+                warn!("Failed to update visual analytics parameters: {}", e);
+                focus_response.error = Some(format!("GPU parameter update failed: {}", e));
+            }
+            Err(e) => {
+                error!("Failed to communicate with GPU for parameter update: {}", e);
+                focus_response.error = Some(format!("GPU communication failed: {}", e));
+            }
+        }
+    } else {
+        warn!("GPU compute actor not available for focus setting");
+
+        // Store focus settings in response for client-side handling
+        match focus_request {
+            FocusRequest::Node { node_id } => {
+                focus_response.focus_node = Some(node_id as i32);
+                info!("Focus parameters stored for node {} (GPU not available)", node_id);
+            }
+            FocusRequest::Region { x, y, radius } => {
+                focus_response.focus_region = Some(FocusRegion {
+                    center_x: x,
+                    center_y: y,
+                    center_z: 0.0,
+                    radius
+                });
+                info!("Focus parameters stored for region ({}, {}) radius {} (GPU not available)", x, y, radius);
+            }
+        }
+        focus_response.success = true; // Still successful even without GPU
+    }
 
     Ok(HttpResponse::Ok().json(focus_response))
 }
