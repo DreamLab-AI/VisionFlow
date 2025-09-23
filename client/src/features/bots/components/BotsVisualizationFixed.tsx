@@ -46,30 +46,66 @@ function lerpVector3(current: THREE.Vector3, target: THREE.Vector3, alpha: numbe
   current.z += (target.z - current.z) * alpha;
 }
 
-// Get VisionFlow colors from settings or use defaults
+// Dynamic color generation based on agent type hash
+const generateAgentTypeColor = (agentType: string): string => {
+  // Create a simple hash function for consistent colors per agent type
+  let hash = 0;
+  for (let i = 0; i < agentType.length; i++) {
+    const char = agentType.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+
+  // Use predefined color palettes based on agent category
+  const coordColors = ['#F1C40F', '#F39C12', '#E67E22', '#D68910', '#B7950B']; // Golds/oranges for coordination
+  const devColors = ['#2ECC71', '#27AE60', '#1ABC9C', '#16A085', '#229954']; // Greens for development
+  const specialColors = ['#9B59B6', '#8E44AD', '#E74C3C', '#C0392B', '#3498DB']; // Various for special roles
+
+  // Categorize agent types
+  const coordTypes = ['queen', 'coordinator', 'architect', 'monitor', 'manager'];
+  const devTypes = ['coder', 'tester', 'reviewer', 'documenter', 'developer'];
+
+  let colorPalette = specialColors; // Default
+  if (coordTypes.some(type => agentType.toLowerCase().includes(type))) {
+    colorPalette = coordColors;
+  } else if (devTypes.some(type => agentType.toLowerCase().includes(type))) {
+    colorPalette = devColors;
+  }
+
+  // Select color based on hash
+  const colorIndex = Math.abs(hash) % colorPalette.length;
+  return colorPalette[colorIndex];
+};
+
+// Get VisionFlow colors from settings with dynamic fallback
 const getVisionFlowColors = (settings: any) => {
   const visionflowSettings = settings?.visualisation?.graphs?.visionflow;
   const baseColor = visionflowSettings?.nodes?.baseColor || '#F1C40F';
-  
+
   // Get agent colors from server settings (provided via dev_config.toml)
   const agentColors = settings?.visualisation?.rendering?.agentColors;
-  
-  if (agentColors) {
-    // Use server-provided colors
+
+  if (agentColors && Object.keys(agentColors).length > 0) {
+    // Use server-provided colors with dynamic fallback for missing types
     return {
-      // Agent types from server
-      coder: agentColors.coder || '#2ECC71',
-      tester: agentColors.tester || '#27AE60',
-      researcher: agentColors.researcher || '#1ABC9C',
-      reviewer: agentColors.reviewer || '#16A085',
-      documenter: agentColors.documenter || '#229954',
-      specialist: agentColors.default || '#239B56',
-      queen: agentColors.queen || '#FFD700',
+      // Create a function to get colors dynamically
+      getAgentColor: (agentType: string) => {
+        return agentColors[agentType] || generateAgentTypeColor(agentType);
+      },
+
+      // Predefined server colors (if available)
+      coder: agentColors.coder || generateAgentTypeColor('coder'),
+      tester: agentColors.tester || generateAgentTypeColor('tester'),
+      researcher: agentColors.researcher || generateAgentTypeColor('researcher'),
+      reviewer: agentColors.reviewer || generateAgentTypeColor('reviewer'),
+      documenter: agentColors.documenter || generateAgentTypeColor('documenter'),
+      specialist: agentColors.default || generateAgentTypeColor('specialist'),
+      queen: agentColors.queen || generateAgentTypeColor('queen'),
       coordinator: agentColors.coordinator || baseColor,
-      architect: agentColors.architect || '#F1C40F',
-      monitor: agentColors.default || '#E67E22',
-      analyst: agentColors.analyst || '#D68910',
-      optimizer: agentColors.optimizer || '#B7950B',
+      architect: agentColors.architect || generateAgentTypeColor('architect'),
+      monitor: agentColors.default || generateAgentTypeColor('monitor'),
+      analyst: agentColors.analyst || generateAgentTypeColor('analyst'),
+      optimizer: agentColors.optimizer || generateAgentTypeColor('optimizer'),
 
       // Connections (not in server config, use defaults)
       edge: '#3498DB',        // Bright blue
@@ -83,23 +119,24 @@ const getVisionFlowColors = (settings: any) => {
     };
   }
 
-  // Fallback to hardcoded colors if server doesn't provide them
+  // Dynamic color generation when no server colors available
   return {
-    // Primary agent types - Greens for roles
-    coder: '#2ECC71',       // Emerald green
-    tester: '#27AE60',      // Nephritis green
-    researcher: '#1ABC9C',  // Turquoise
-    reviewer: '#16A085',    // Green sea
-    documenter: '#229954',  // Forest green
-    specialist: '#239B56',  // Emerald dark
+    // Create a function to get colors dynamically
+    getAgentColor: (agentType: string) => generateAgentTypeColor(agentType),
 
-    // Meta roles - Golds for coordination
-    queen: '#F39C12',       // Orange gold (leader)
-    coordinator: baseColor,  // Primary gold
-    architect: '#F1C40F',   // Sunflower gold
-    monitor: '#E67E22',     // Carrot orange
-    analyst: '#D68910',     // Dark gold
-    optimizer: '#B7950B',   // Dark gold variant
+    // Generate colors for common agent types
+    coder: generateAgentTypeColor('coder'),
+    tester: generateAgentTypeColor('tester'),
+    researcher: generateAgentTypeColor('researcher'),
+    reviewer: generateAgentTypeColor('reviewer'),
+    documenter: generateAgentTypeColor('documenter'),
+    specialist: generateAgentTypeColor('specialist'),
+    queen: generateAgentTypeColor('queen'),
+    coordinator: baseColor,
+    architect: generateAgentTypeColor('architect'),
+    monitor: generateAgentTypeColor('monitor'),
+    analyst: generateAgentTypeColor('analyst'),
+    optimizer: generateAgentTypeColor('optimizer'),
 
     // Connections
     edge: '#3498DB',        // Bright blue
@@ -688,7 +725,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
             <Text
               position={[0, -clampedSize - 1.1, 0]}
               fontSize={0.25}
-              color={colors[agent.type] || '#FFFFFF'}
+              color={color} // Use the passed color prop instead of looking up in colors array
               anchorX="center"
               anchorY="middle"
               outlineWidth={0.03}
@@ -1239,7 +1276,8 @@ export const BotsVisualization: React.FC = () => {
         const position = positionsRef.current.get(node.id);
         if (!position) return null; // Wait for server position data
 
-        const nodeColor = colors[node.type] || colors.coordinator;
+        // Use dynamic color generation or server-provided colors
+        const nodeColor = colors.getAgentColor ? colors.getAgentColor(node.type) : (colors[node.type] || colors.coordinator);
 
         return (
           <BotsNode

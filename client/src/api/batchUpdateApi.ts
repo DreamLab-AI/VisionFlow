@@ -39,7 +39,9 @@ export const batchUpdateApi = {
       const binaryNodes: BinaryNodeData[] = updates.map(u => ({
         nodeId: u.nodeId,
         position: u.position,
-        velocity: u.velocity || { x: 0, y: 0, z: 0 }
+        velocity: u.velocity || { x: 0, y: 0, z: 0 },
+        ssspDistance: Infinity, // Default SSSP distance for client-generated updates
+        ssspParent: -1 // Default SSSP parent for client-generated updates
       }));
 
       const validation = validateNodePositions(binaryNodes);

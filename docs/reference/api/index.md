@@ -6,6 +6,8 @@ VisionFlow provides multiple API interfaces for different use cases:
 
 - **[REST API](rest-api.md)** - Traditional HTTP endpoints for data management and control
 - **[WebSocket API](websocket-api.md)** - Real-time bidirectional communication
+- **[Voice API](voice-api.md)** - Speech-to-agent integration with real MCP orchestration
+- **[GPU Algorithms](gpu-algorithms.md)** - CUDA-accelerated clustering and anomaly detection
 - **[Binary Protocol](binary-protocol.md)** - High-performance position updates
 - **[MCP Protocol](mcp-protocol.md)** - Multi-agent system integration
 
@@ -44,11 +46,11 @@ ws.onmessage = (event) => {
 - Swarm coordination
 - Status monitoring
 
-### 2. Graph Data APIs
-- Node and edge management
-- Physics simulation parameters
-- Clustering and constraints
-- Visualization settings
+### 2. GPU-Accelerated Analytics APIs
+- **Real CUDA clustering** - K-means, Louvain, DBSCAN with actual computations
+- **Anomaly detection** - LOF, Isolation Forest, Z-Score with GPU acceleration
+- **Graph analysis** - Stress majorization with real iterative optimization
+- **Performance monitoring** - Live GPU utilization and kernel metrics
 
 ### 3. System APIs
 - Authentication and sessions
@@ -57,10 +59,11 @@ ws.onmessage = (event) => {
 - Telemetry and metrics
 
 ### 4. Integration APIs
-- GitHub integration
-- RAGFlow knowledge base
-- Voice services (TTS/STT)
-- External AI services
+- **Real MCP Integration** - Live agent spawning and orchestration
+- **GPU-Accelerated Analytics** - CUDA clustering and anomaly detection
+- **Voice Command System** - Whisper STT + Kokoro TTS with agent execution
+- **GitHub Integration** - Repository analysis and PR management
+- **RAGFlow Knowledge Base** - Document processing and retrieval
 
 ## Protocol Overview
 
@@ -91,9 +94,10 @@ ws.onmessage = (event) => {
    - Task management
 
 3. **Agent Communication** (Event-driven)
-   - MCP TCP protocol
-   - Inter-agent messaging
-   - Swarm coordination
+   - **Real MCP TCP connections** to `multi-agent-container:9500`
+   - **Connection pooling** with retry logic and health checking
+   - **Live swarm coordination** with consensus algorithms
+   - **Voice-triggered agent execution** via speech commands
 
 ## Authentication
 

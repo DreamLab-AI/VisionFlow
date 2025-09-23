@@ -119,10 +119,9 @@ class WebSocketService {
       this.maxReconnectAttempts = settings.system.websocket.reconnectAttempts || 10;
     }
 
-    // Only use custom backend URL if it's not the problematic hardcoded IP
-    if (settings?.system?.customBackendUrl && 
-        settings.system.customBackendUrl.trim() !== '' &&
-        !settings.system.customBackendUrl.includes('192.168.0.51')) {
+    // Use custom backend URL if provided
+    if (settings?.system?.customBackendUrl &&
+        settings.system.customBackendUrl.trim() !== '') {
       const customUrl = settings.system.customBackendUrl.trim();
       const protocol = customUrl.startsWith('https://') ? 'wss://' : 'ws://';
       const hostAndPath = customUrl.replace(/^(https?:\/\/)?/, '');
@@ -132,9 +131,6 @@ class WebSocketService {
       }
     } else {
       if (debugState.isEnabled()) {
-        if (settings?.system?.customBackendUrl?.includes('192.168.0.51')) {
-          logger.warn('Ignoring problematic hardcoded IP address 192.168.0.51, using default URL instead');
-        }
         logger.info(`Using default WebSocket URL: ${newUrl}`);
       }
     }

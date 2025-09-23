@@ -20,22 +20,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ searchQuery = '' }) 
   const { nodes, edges, isConnected } = useGraphStore();
   const [activeTab, setActiveTab] = useState('clustering');
   
-  // Mock data if graph store is not available
-  const mockNodes: GraphNode[] = [
-    { id: '1', label: 'Node 1', x: 0, y: 0, vx: 0, vy: 0 },
-    { id: '2', label: 'Node 2', x: 10, y: 10, vx: 0, vy: 0 },
-    { id: '3', label: 'Node 3', x: 20, y: 5, vx: 0, vy: 0 },
-  ];
-  
-  const mockEdges: GraphEdge[] = [
-    { id: 'e1', source: '1', target: '2', weight: 1.0 },
-    { id: 'e2', source: '2', target: '3', weight: 1.5 },
-    { id: 'e3', source: '1', target: '3', weight: 2.0 },
-  ];
-  
-  // Use actual graph data if available, otherwise use mock data
-  const graphNodes = nodes.length > 0 ? nodes : mockNodes;
-  const graphEdges = edges.length > 0 ? edges : mockEdges;
+  // Use actual graph data from store
+  const graphNodes = nodes;
+  const graphEdges = edges;
   
   useEffect(() => {
     if (graphNodes.length === 0) {

@@ -185,30 +185,127 @@ Content-Type: application/json
 ```
 
 #### Spawn Agent
-Spawns a new agent within an existing swarm.
+Creates a new agent via MCP TCP protocol with real agent execution.
 
 ```http
-POST /api/bots/spawn-agent
+POST /api/bots/spawn
 Content-Type: application/json
 
 {
-  "agentType": "coder",
-  "swarmId": "swarm_456",
-  "capabilities": ["python", "rust"],
+  "type": "coder",
+  "instructions": "Implement REST API endpoints with error handling",
+  "capabilities": ["python", "rust", "javascript"],
   "config": {
-    "model": "gpt-4",
-    "temperature": 0.7
-  }
+    "model": "claude-3-opus",
+    "temperature": 0.7,
+    "maxTokens": 4096
+  },
+  "swarmId": "swarm_1757880683494_yl81sece5"
 }
 ```
 
 **Response:**
 ```json
 {
-  "agentId": "agent_999",
-  "swarmId": "swarm_456",
-  "status": "spawning",
-  "estimatedReadyTime": "2025-01-22T10:00:30Z"
+  "agentId": "agent_1757967065850_xyz789",
+  "status": "active",
+  "mcpTaskId": "mcp_task_1757967065850_abc123",
+  "swarmId": "swarm_1757880683494_yl81sece5",
+  "capabilities": ["python", "rust", "javascript"],
+  "tcpConnection": {
+    "host": "multi-agent-container",
+    "port": 9500,
+    "connected": true
+  },
+  "createdAt": "2025-01-22T10:00:00Z"
+}
+```
+
+#### List Agents
+Retrieves all currently running agents from MCP.
+
+```http
+GET /api/bots/list
+```
+
+**Response:**
+```json
+{
+  "agents": [
+    {
+      "id": "agent_1757967065850_abc123",
+      "type": "coder",
+      "status": "active",
+      "uptime": 3600,
+      "tasksCompleted": 15,
+      "currentTask": "Implementing authentication middleware",
+      "mcpConnected": true
+    },
+    {
+      "id": "agent_1757967065851_def456",
+      "type": "reviewer",
+      "status": "idle",
+      "uptime": 2400,
+      "tasksCompleted": 8,
+      "currentTask": null,
+      "mcpConnected": true
+    }
+  ],
+  "totalAgents": 2,
+  "activeAgents": 1,
+  "mcpStatus": {
+    "connected": true,
+    "host": "multi-agent-container",
+    "port": 9500,
+    "activeConnections": 2
+  }
+}
+```
+
+#### Orchestrate Tasks
+Distributes tasks across multiple agents using real MCP orchestration.
+
+```http
+POST /api/bots/orchestrate
+Content-Type: application/json
+
+{
+  "tasks": [
+    {
+      "description": "Implement user authentication",
+      "priority": "high",
+      "requiredCapabilities": ["security", "backend"]
+    },
+    {
+      "description": "Write comprehensive tests",
+      "priority": "medium",
+      "requiredCapabilities": ["testing", "python"]
+    }
+  ],
+  "strategy": "consensus",
+  "swarmId": "swarm_1757880683494_yl81sece5"
+}
+```
+
+**Response:**
+```json
+{
+  "orchestrationId": "orch_1757967065850_xyz789",
+  "tasksDistributed": 2,
+  "assignments": [
+    {
+      "taskId": "task_1757967065850_abc123",
+      "agentId": "agent_1757967065850_def456",
+      "estimatedDuration": 1800
+    },
+    {
+      "taskId": "task_1757967065851_ghi789",
+      "agentId": "agent_1757967065851_jkl012",
+      "estimatedDuration": 900
+    }
+  ],
+  "mcpOrchestrationActive": true,
+  "consensusRequired": true
 }
 ```
 
@@ -236,6 +333,313 @@ Content-Type: application/json
       "weight": 0.5
     }
   ]
+}
+```
+
+### GPU-Accelerated Analytics
+
+#### GPU Clustering Analysis
+Executes real GPU-accelerated clustering using K-means, Louvain, and DBSCAN algorithms with CUDA kernels.
+
+```http
+GET /api/analytics/clustering
+```
+
+**Response:**
+```json
+{
+  "kmeans": {
+    "clusters": [
+      {
+        "id": 0,
+        "centroid": [125.4, 89.2, 156.7],
+        "nodeCount": 23,
+        "inertia": 0.156,
+        "nodes": ["node_1", "node_5", "node_12"]
+      },
+      {
+        "id": 1,
+        "centroid": [220.1, 145.8, 78.3],
+        "nodeCount": 18,
+        "inertia": 0.142,
+        "nodes": ["node_2", "node_7", "node_9"]
+      }
+    ],
+    "totalInertia": 0.298,
+    "iterations": 12,
+    "converged": true,
+    "computationTimeMs": 89,
+    "gpuAccelerated": true
+  },
+  "louvain": {
+    "communities": [
+      {
+        "id": 0,
+        "nodes": ["node_1", "node_3", "node_8", "node_15"],
+        "modularity": 0.234,
+        "size": 4
+      },
+      {
+        "id": 1,
+        "nodes": ["node_2", "node_6", "node_11"],
+        "modularity": 0.189,
+        "size": 3
+      }
+    ],
+    "totalModularity": 0.847,
+    "iterations": 23,
+    "computationTimeMs": 156,
+    "gpuAccelerated": true
+  },
+  "dbscan": {
+    "clusters": [
+      {
+        "id": 0,
+        "corePoints": ["node_1", "node_4", "node_7"],
+        "borderPoints": ["node_2", "node_5"],
+        "totalPoints": 5,
+        "density": 0.83
+      }
+    ],
+    "outliers": ["node_20", "node_35"],
+    "epsilon": 0.5,
+    "minSamples": 3,
+    "computationTimeMs": 67,
+    "gpuAccelerated": true
+  },
+  "gpuStatus": {
+    "device": "NVIDIA GeForce RTX 4090",
+    "memoryUsed": "2.8 GB",
+    "utilization": 92,
+    "kernelExecutions": 234
+  },
+  "lastUpdated": "2025-01-22T10:15:30Z"
+}
+```
+
+#### GPU Status
+Returns real-time GPU utilization and performance metrics.
+
+```http
+GET /api/gpu/status
+```
+
+**Response:**
+```json
+{
+  "gpus": [
+    {
+      "id": 0,
+      "name": "NVIDIA GeForce RTX 4090",
+      "utilization": 87,
+      "memory": {
+        "total": "24 GB",
+        "used": "18.2 GB",
+        "free": "5.8 GB",
+        "utilization": 76
+      },
+      "temperature": 72,
+      "powerDraw": 385,
+      "fanSpeed": 68,
+      "clockSpeeds": {
+        "core": 2520,
+        "memory": 10500
+      }
+    }
+  ],
+  "clustering": {
+    "active": true,
+    "algorithm": "louvain",
+    "progress": 0.89,
+    "eta": 45
+  },
+  "kernelStats": {
+    "totalExecutions": 1547,
+    "avgExecutionTime": 12.4,
+    "failedExecutions": 0
+  },
+  "lastUpdated": "2025-01-22T10:15:30Z"
+}
+```
+
+#### GPU Anomaly Detection
+Executes real anomaly detection using LOF, Z-Score, and Isolation Forest algorithms.
+
+```http
+GET /api/gpu/anomalies
+```
+
+**Response:**
+```json
+{
+  "lof": {
+    "anomalies": [
+      {
+        "nodeId": "node_47",
+        "score": 2.34,
+        "position": [245.7, 189.3, 67.1],
+        "neighbors": 8,
+        "distance": 23.7
+      },
+      {
+        "nodeId": "node_82",
+        "score": 1.89,
+        "position": [78.2, 345.9, 123.4],
+        "neighbors": 12,
+        "distance": 19.2
+      }
+    ],
+    "threshold": 1.5,
+    "totalAnomalies": 2,
+    "computationTimeMs": 87
+  },
+  "zscore": {
+    "anomalies": [
+      {
+        "nodeId": "node_23",
+        "score": 3.45,
+        "feature": "degree_centrality",
+        "value": 0.89,
+        "mean": 0.23,
+        "stddev": 0.19
+      }
+    ],
+    "threshold": 3.0,
+    "totalAnomalies": 1,
+    "computationTimeMs": 34
+  },
+  "isolationForest": {
+    "anomalies": [
+      {
+        "nodeId": "node_156",
+        "score": -0.67,
+        "pathLength": 4.2,
+        "features": {
+          "betweenness": 0.78,
+          "closeness": 0.45,
+          "eigenvector": 0.23
+        }
+      }
+    ],
+    "threshold": -0.5,
+    "treeCount": 100,
+    "totalAnomalies": 1,
+    "computationTimeMs": 156
+  },
+  "gpuAccelerated": true,
+  "totalComputationTimeMs": 277,
+  "lastUpdated": "2025-01-22T10:15:30Z"
+}
+```
+
+### Voice Processing
+
+#### Speech-to-Text Transcription
+Transcribes audio using real Whisper models with GPU acceleration.
+
+```http
+POST /api/voice/transcribe
+Content-Type: multipart/form-data
+
+Form data:
+- audio: [audio file - WAV, MP3, or OGG]
+- model: "whisper-large-v3" (optional)
+- language: "en" (optional)
+```
+
+**Response:**
+```json
+{
+  "text": "Create a new REST API endpoint for user authentication with JWT tokens",
+  "confidence": 0.94,
+  "duration": 4.7,
+  "language": "en",
+  "model": "whisper-large-v3",
+  "processingTimeMs": 890,
+  "gpuAccelerated": true,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 2.3,
+      "text": "Create a new REST API endpoint",
+      "confidence": 0.96
+    },
+    {
+      "start": 2.3,
+      "end": 4.7,
+      "text": "for user authentication with JWT tokens",
+      "confidence": 0.92
+    }
+  ]
+}
+```
+
+#### Text-to-Speech Synthesis
+Synthesizes speech using real Kokoro TTS models.
+
+```http
+POST /api/voice/synthesize
+Content-Type: application/json
+
+{
+  "text": "The clustering analysis has completed successfully with 7 communities detected.",
+  "voice": "nova",
+  "speed": 1.0,
+  "format": "wav"
+}
+```
+
+**Response:**
+```json
+{
+  "audioUrl": "/api/voice/audio/synthesis_1757967065850_abc123.wav",
+  "duration": 3.8,
+  "sampleRate": 22050,
+  "format": "wav",
+  "voice": "nova",
+  "processingTimeMs": 1240,
+  "fileSize": 167834,
+  "checksum": "sha256:a7b9c3d4e5f6789..."
+}
+```
+
+#### Voice Command Execution
+Processes voice commands and executes them via agent orchestration.
+
+```http
+POST /api/voice/execute
+Content-Type: multipart/form-data
+
+Form data:
+- audio: [audio file]
+- executeImmediately: true (optional)
+```
+
+**Response:**
+```json
+{
+  "transcription": {
+    "text": "Run clustering analysis on the current graph data",
+    "confidence": 0.91
+  },
+  "interpretation": {
+    "action": "clustering",
+    "parameters": {
+      "algorithm": "louvain",
+      "resolution": 1.0
+    },
+    "confidence": 0.87
+  },
+  "execution": {
+    "taskId": "voice_task_1757967065850_xyz789",
+    "agentId": "agent_1757967065850_abc123",
+    "status": "executing",
+    "estimatedDuration": 180
+  },
+  "response": {
+    "text": "Starting Louvain clustering analysis on the current graph data. This should take approximately 3 minutes.",
+    "audioUrl": "/api/voice/audio/response_1757967065850_def456.wav"
+  }
 }
 ```
 
