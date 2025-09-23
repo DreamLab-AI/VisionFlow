@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Settings, SettingsPath, DeepPartial } from '../features/settings/config/settings'
-import { createLogger, createErrorMetadata } from '../utils/logger'
+import { createLogger } from '../utils/loggerConfig'
+import { createErrorMetadata } from '../utils/logger'
 import { debugState } from '../utils/clientDebugState'
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';

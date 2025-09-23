@@ -38,11 +38,30 @@ const DEFAULT_MAX_LOG_ENTRIES = 1000;
 
 export function createLogger(namespace: string, options: LoggerOptions = {}) {
   const { disabled = false, level = 'info', maxLogEntries = DEFAULT_MAX_LOG_ENTRIES } = options;
-  const levelPriority = LOG_LEVEL_PRIORITY[level];
+  let currentDisabled = disabled;
+  let currentLevel = level;
+  let levelPriority = LOG_LEVEL_PRIORITY[level];
 
   function shouldLog(msgLevel: LogLevel): boolean {
-    if (disabled) return false;
+    if (currentDisabled) return false;
     return LOG_LEVEL_PRIORITY[msgLevel] >= levelPriority;
+  }
+
+  // Dynamic configuration update methods
+  function updateLevel(newLevel: LogLevel): void {
+    currentLevel = newLevel;
+    levelPriority = LOG_LEVEL_PRIORITY[newLevel];
+  }
+
+  function setEnabled(enabled: boolean): void {
+    currentDisabled = !enabled;
+  }
+
+  function getCurrentConfig(): { level: LogLevel; enabled: boolean } {
+    return {
+      level: currentLevel,
+      enabled: !currentDisabled
+    };
   }
 
   function formatMessage(message: any): string {
@@ -124,6 +143,13 @@ export function createLogger(namespace: string, options: LoggerOptions = {}) {
     warn: createLogMethod('warn'),
     error: createLogMethod('error'),
     getLogs, // Expose the getLogs method
+
+    // Dynamic configuration methods
+    updateLevel,
+    setEnabled,
+    getCurrentConfig,
+    isEnabled: () => !currentDisabled,
+    namespace,
   };
 }
 
@@ -176,8 +202,22 @@ export function createDataMetadata(data: Record<string, any>): Record<string, an
   };
 }
 
+// Note: For centralized log level configuration based on environment variables,
+// import from './loggerConfig' instead of this file directly
 // Default logger instance for backward compatibility
 export const logger = createLogger('app');
+
+/**
+ * @deprecated Import createLogger from './loggerConfig' instead for dynamic configuration support
+ * This export is maintained for backward compatibility but does not respect Control Center settings
+ */
+export { createLogger as createStaticLogger };
+
+/**
+ * @deprecated Import createAgentLogger from './loggerConfig' instead for dynamic configuration support
+ * This export is maintained for backward compatibility but does not respect Control Center settings
+ */
+export { createAgentLogger as createStaticAgentLogger };
 
 // Agent-specific telemetry types
 export interface AgentTelemetryData {
@@ -314,4 +354,5 @@ export function createAgentLogger(namespace: string, options: LoggerOptions = {}
 }
 
 // Agent telemetry logger for system-wide telemetry
-export const agentTelemetryLogger = createAgentLogger('agent-telemetry', { level: 'debug' });
+// Note: Now respects Control Center settings via loggerConfig if imported from there
+export const agentTelemetryLogger = createAgentLogger('agent-telemetry');

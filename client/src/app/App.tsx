@@ -3,7 +3,8 @@ import AppInitializer from './AppInitializer'
 import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
 import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
 import { useSettingsStore } from '../store/settingsStore';
-import { createLogger, createErrorMetadata } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
+import { createErrorMetadata } from '../utils/logger';
 import Quest3AR from './Quest3AR';
 import MainLayout from './MainLayout';
 import { useQuest3Integration } from '../hooks/useQuest3Integration';

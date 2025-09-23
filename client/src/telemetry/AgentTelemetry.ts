@@ -1,4 +1,5 @@
-import { createAgentLogger, AgentTelemetryData, WebSocketTelemetryData, ThreeJSTelemetryData } from '../utils/logger';
+import { createAgentLogger } from '../utils/loggerConfig';
+import { AgentTelemetryData, WebSocketTelemetryData, ThreeJSTelemetryData } from '../utils/logger';
 
 export interface TelemetryMetrics {
   agentSpawns: number;
