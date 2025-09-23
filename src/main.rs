@@ -453,7 +453,7 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
                     .service(web::scope("/pages").configure(pages_handler::config))
-                    .service(web::scope("/bots").configure(bots_handler::config)) // This will now serve /api/bots/data and /api/bots/update
+                    .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .service(web::scope("/mcp").configure(mcp_health_handler::configure_routes)) // MCP health and control endpoints
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
             )

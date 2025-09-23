@@ -77,6 +77,7 @@ impl BotsClient {
             .or_else(|_| std::env::var("MCP_HOST"))
             .unwrap_or_else(|_| "multi-agent-container".to_string());
         let port = std::env::var("MCP_TCP_PORT")
+            .ok()
             .and_then(|p| p.parse::<u16>().ok())
             .unwrap_or(9500);
 
@@ -201,6 +202,9 @@ impl BotsClient {
     }
 
     pub async fn test_connection(&self) -> Result<bool> {
-        self.mcp_client.test_connection().await
+        match self.mcp_client.test_connection().await {
+            Ok(result) => Ok(result),
+            Err(e) => Err(anyhow::anyhow!("Connection test failed: {}", e))
+        }
     }
 }

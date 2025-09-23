@@ -676,10 +676,27 @@ impl Handler<ProcessAgentStatuses> for ClaudeFlowActorTcp {
     fn handle(&mut self, msg: ProcessAgentStatuses, _ctx: &mut Self::Context) {
         info!("Processing {} agent statuses directly from MCP", msg.agents.len());
 
-        // Send graph update directly with parsed agents
-        let message = UpdateBotsGraph {
-            agents: msg.agents.clone()
-        };
+        // Convert AgentStatus to Agent for UpdateBotsGraph
+        let agents: Vec<crate::services::bots_client::Agent> = msg.agents.iter().map(|status| {
+            crate::services::bots_client::Agent {
+                id: status.agent_id.clone(),
+                name: status.profile.name.clone(),
+                agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
+                status: status.status.clone(),
+                x: 0.0, // Positions will be set by GPU physics
+                y: 0.0,
+                z: 0.0,
+                cpu_usage: status.cpu_usage,
+                memory_usage: status.memory_usage,
+                health: status.health,
+                workload: status.activity / 100.0,
+                created_at: Some(status.timestamp.to_rfc3339()),
+                age: Some((chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000),
+            }
+        }).collect();
+
+        // Send graph update with converted agents
+        let message = UpdateBotsGraph { agents };
 
         info!("🔄 Sending graph update: {} agents from real MCP data", msg.agents.len());
         self.graph_service_addr.do_send(message);
@@ -745,10 +762,27 @@ impl Handler<ProcessAgentListResponse> for ClaudeFlowActorTcp {
                 agent_statuses.push(agent_status);
             }
 
+            // Convert AgentStatus back to Agent for UpdateBotsGraph
+            let agents: Vec<crate::services::bots_client::Agent> = agent_statuses.iter().map(|status| {
+                crate::services::bots_client::Agent {
+                    id: status.agent_id.clone(),
+                    name: status.profile.name.clone(),
+                    agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
+                    status: status.status.clone(),
+                    x: 0.0, // Positions will be set by GPU physics
+                    y: 0.0,
+                    z: 0.0,
+                    cpu_usage: status.cpu_usage,
+                    memory_usage: status.memory_usage,
+                    health: status.health,
+                    workload: status.activity / 100.0,
+                    created_at: Some(status.timestamp.to_rfc3339()),
+                    age: Some((chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000),
+                }
+            }).collect();
+
             // Send graph update
-            let message = UpdateBotsGraph {
-                agents: agent_statuses.clone()
-            };
+            let message = UpdateBotsGraph { agents };
 
             info!("🔄 Sending graph update: {} agents parsed (legacy mode)", agent_statuses.len());
 

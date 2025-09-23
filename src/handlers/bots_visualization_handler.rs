@@ -330,8 +330,8 @@ async fn get_real_agents_from_app_state(
     app_state: &AppState,
 ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {
     // Try to get agents from bots client first
-    if let Some(bots_update) = app_state.bots_client.get_latest_update().await {
-        return bots_update.agents.into_iter().map(|agent| {
+    if let Ok(agents) = app_state.bots_client.get_agents_snapshot().await {
+        return agents.into_iter().map(|agent| {
             crate::services::agent_visualization_protocol::AgentStateUpdate {
                 id: agent.id,
                 status: Some(agent.status),
