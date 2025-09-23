@@ -101,41 +101,38 @@ fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
 
         Node {
             id: node_id,
-            hash: agent.id.clone(),
-            name: agent.name.clone(),
+            metadata_id: agent.id.clone(),
             label: format!("{} ({})", agent.name, agent.agent_type),
-            label_url: None,
-            color: color.to_string(),
-            size,
-            size3d: Vec3::new(size, size, size),
-            position: Vec3::new(agent.x, agent.y + vertical_offset, agent.z),
-            velocity: Vec3::ZERO,
-            acceleration: Vec3::ZERO,
-            force: Vec3::ZERO,
-            spring_force: Vec3::ZERO,
-            charge_force: Vec3::ZERO,
-            mass: 1.0,
-            edges: vec![],
-            metadata: None,
-            cluster_id: Some(agent.agent_type.clone()),
-            importance_score: None,
-            embedding: None,
-            block_properties: None,
-            created_at: agent.created_at.as_ref()
-                .and_then(|ts| chrono::DateTime::parse_from_rfc3339(ts).ok())
-                .map(|dt| dt.timestamp_millis() as u64),
-            updated_at: Some(chrono::Utc::now().timestamp_millis() as u64),
-            ai_generated: true,
-            content_preview: Some(format!("Status: {}", agent.status)),
-            status: Some(agent.status.clone()),
-            properties: Some(json!({
-                "agent_type": agent.agent_type,
-                "cpu_usage": agent.cpu_usage,
-                "memory_usage": agent.memory_usage,
-                "health": agent.health,
-                "workload": agent.workload,
-                "age": agent.age,
-            })),
+            data: BinaryNodeData {
+                node_id,
+                x: agent.x,
+                y: agent.y + vertical_offset,
+                z: agent.z,
+                vx: 0.0,
+                vy: 0.0,
+                vz: 0.0,
+            },
+            metadata: {
+                let mut meta = HashMap::new();
+                meta.insert("agent_type".to_string(), agent.agent_type.clone());
+                meta.insert("name".to_string(), agent.name.clone());
+                meta.insert("status".to_string(), agent.status.clone());
+                meta.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
+                meta.insert("memory_usage".to_string(), agent.memory_usage.to_string());
+                meta.insert("health".to_string(), agent.health.to_string());
+                meta.insert("workload".to_string(), agent.workload.to_string());
+                if let Some(age) = agent.age {
+                    meta.insert("age".to_string(), age.to_string());
+                }
+                meta
+            },
+            file_size: 0,
+            node_type: Some("agent".to_string()),
+            size: Some(size),
+            color: Some(color.to_string()),
+            group: None,
+            user_data: None,
+            weight: Some(1.0),
         }
     }).collect()
 }

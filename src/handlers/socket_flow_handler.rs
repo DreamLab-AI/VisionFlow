@@ -934,7 +934,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                             let mut total_cpu = 0.0;
                                             let mut total_workload = 0.0;
                                             let mut total_tokens = 0;
-                                            let mut swarm_ids = std::collections::HashSet::new();
+                                            let mut swarm_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
 
                                             for (idx, agent) in agents.iter().enumerate() {
                                                 if agent.status == "active" {
@@ -943,10 +943,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                                 total_health += agent.health;
                                                 total_cpu += agent.cpu_usage;
                                                 total_workload += agent.workload;
-                                                total_tokens += agent.tokens.unwrap_or(0);
-                                                if let Some(swarm_id) = &agent.swarm_id {
-                                                    swarm_ids.insert(swarm_id.clone());
-                                                }
+                                                // Note: tokens and swarm_id not available in current Agent struct
+                                                // total_tokens += agent.tokens.unwrap_or(0);
+                                                // if let Some(swarm_id) = &agent.swarm_id {
+                                                //     swarm_ids.insert(swarm_id.clone());
+                                                // }
 
                                                 // Create node with enhanced metadata
                                                 let position = Vec3Data::new(
