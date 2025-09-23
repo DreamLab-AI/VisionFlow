@@ -33,7 +33,8 @@ const ARGraphRenderer: React.FC = () => {
         nodeId: parseInt(node.id, 10) || 0,
         position: node.position,
         velocity: (node as any).velocity || { x: 0, y: 0, z: 0 },
-        flags: 0 // Default flags
+        ssspDistance: Infinity, // Default SSSP distance
+        ssspParent: -1 // Default SSSP parent
       }));
       setNodeData(nodeArray);
     });

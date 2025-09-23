@@ -5,8 +5,8 @@
 
 use log::{info, error};
 use std::collections::HashMap;
-use visionflow::utils::mcp_tcp_client::{create_mcp_client, test_mcp_connectivity};
-use visionflow::services::agent_visualization_protocol::McpServerType;
+use webxr::utils::mcp_tcp_client::{create_mcp_client, test_mcp_connectivity};
+use webxr::services::agent_visualization_protocol::McpServerType;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test detailed MCP functionality with the first available server
     for (server_id, (host, port)) in &servers {
-        if connectivity_results.get(server_id).unwrap_or(&false) {
+        if *connectivity_results.get(server_id).unwrap_or(&false) {
             info!("Testing detailed MCP functionality with {}:{}", host, port);
 
             let client = create_mcp_client(&McpServerType::ClaudeFlow, host, *port);

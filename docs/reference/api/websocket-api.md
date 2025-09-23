@@ -4,7 +4,11 @@
 
 VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the server. The WebSocket API handles high-frequency position updates, real-time graph changes, and live system events.
 
-**WebSocket Endpoint**: `ws://localhost:3001/ws`
+**WebSocket Endpoints**:
+- General: `ws://localhost:3001/ws` - Binary position updates + JSON messages
+- Voice Commands: `ws://localhost:3001/ws/voice` - Voice command streaming
+- Agent Visualization: `ws://localhost:3001/ws/agents` - Agent status updates
+- Real-time Analytics: `ws://localhost:3001/ws/analytics` - GPU computation results
 
 ## Connection
 
@@ -51,19 +55,27 @@ ws.onopen = () => {
 
 ### Binary Messages
 
-High-frequency position updates use the binary protocol (34 bytes per node):
+Real-time node position updates are streamed at 60 FPS using a compact binary protocol. Each node is encoded as a 34-byte frame:
+
+**Binary Frame Format (34 bytes per node)**:
+- `node_id`: u16 (2 bytes) - Node identifier with control bits
+- `position`: Vec3 (12 bytes) - X, Y, Z coordinates as f32
+- `velocity`: Vec3 (12 bytes) - Velocity vector as f32
+- `sssp_distance`: f32 (4 bytes) - Shortest path distance
+- `sssp_parent`: i32 (4 bytes) - Parent node in shortest path tree
 
 ```javascript
 ws.onmessage = (event) => {
   if (event.data instanceof ArrayBuffer) {
-    // Binary position update
-    const updates = parseBinaryNodeData(event.data);
-    // Process position updates...
+    // Real-time binary position updates from backend physics
+    const nodeUpdates = parseBinaryNodeData(event.data);
+    // Apply updates directly to visualization (no client-side physics)
+    updateVisualization(nodeUpdates);
   }
 };
 ```
 
-See [Binary Protocol Specification](binary-protocol.md) for detailed format.
+The backend sends continuous streams of these binary frames at 60 FPS. Client-side physics simulation is not required - only position smoothing for display.
 
 ### JSON Messages
 
@@ -103,14 +115,40 @@ Notifies server of user interactions with the graph.
 }
 ```
 
-### Voice Command
-Sends voice commands for processing.
+### Voice Commands
+Streams voice commands through WebSocket for real-time agent coordination.
 
 ```json
 {
   "type": "voice_command",
-  "command": "show me all agents",
-  "confidence": 0.95
+  "command": "spawn a researcher agent",
+  "sessionId": "session_123",
+  "userId": "user_456",
+  "audioData": "base64_encoded_audio",
+  "format": "wav",
+  "timestamp": 1706006400000
+}
+```
+
+**Real-time Voice Response:**
+```json
+{
+  "type": "voice_response",
+  "sessionId": "session_123",
+  "response": {
+    "intent": "SpawnAgent",
+    "success": true,
+    "message": "Successfully spawned researcher agent in swarm swarm_1757880683494_yl81sece5",
+    "data": {
+      "agentId": "agent_1757967065850_dv2zg7",
+      "swarmId": "swarm_1757880683494_yl81sece5",
+      "mcpTaskId": "mcp_task_1757967065850_xyz789"
+    }
+  },
+  "audioResponse": {
+    "available": true,
+    "url": "/api/voice/tts/audio_1757967065850.wav"
+  }
 }
 ```
 
@@ -155,14 +193,16 @@ Manages event subscriptions.
 ## Server → Client Messages
 
 ### Binary Position Updates
-Continuous stream of node positions at 60 FPS.
+Real-time physics simulation results streamed at 60 FPS from the backend.
 
-**Format**: 34-byte binary frames containing:
-- Node ID with control bits (2 bytes)
-- Position XYZ (12 bytes)
-- Velocity XYZ (12 bytes)
-- SSSP distance (4 bytes)
-- SSSP parent (4 bytes)
+**Binary Protocol (34 bytes per node)**:
+- `node_id`: u16 (2 bytes) - Node identifier (bit 15: agent flag, bits 14-0: node ID)
+- `position`: Vec3 (12 bytes) - Current world position (x, y, z as f32)
+- `velocity`: Vec3 (12 bytes) - Current velocity vector (x, y, z as f32)
+- `sssp_distance`: f32 (4 bytes) - Distance in shortest path computation
+- `sssp_parent`: i32 (4 bytes) - Parent node ID in shortest path tree (-1 if root)
+
+The server computes physics on the backend and streams position updates continuously. Clients receive authoritative position data without needing local physics simulation.
 
 ### Settings Confirmation
 Confirms settings updates.
@@ -176,18 +216,33 @@ Confirms settings updates.
 }
 ```
 
-### Agent Status Updates
-Real-time agent status changes.
+### Agent Status Updates (Real MCP Data)
+Real-time agent status changes from live MCP swarms.
 
 ```json
 {
   "type": "agent_status",
-  "agentId": "agent_123",
+  "agentId": "agent_1757967065850_dv2zg7",
   "status": "active",
+  "swarmId": "swarm_1757880683494_yl81sece5",
   "health": {
     "cpu": 45.2,
     "memory": 1024,
-    "taskQueue": 3
+    "taskQueue": 3,
+    "mcpConnected": true,
+    "lastPing": "2025-01-22T10:15:30Z"
+  },
+  "capabilities": ["code", "review", "rust", "python"],
+  "currentTask": {
+    "taskId": "task_1757967065850_abc123",
+    "description": "Analyzing authentication module",
+    "progress": 65,
+    "estimatedCompletion": "2025-01-22T10:20:00Z"
+  },
+  "mcpMetrics": {
+    "messagesProcessed": 847,
+    "responsesGenerated": 234,
+    "errorRate": 0.02
   },
   "timestamp": 1706006400000
 }
@@ -207,17 +262,80 @@ Live task execution updates.
 }
 ```
 
-### System Events
-Important system-wide events.
+### GPU Analytics Streaming
+Real-time GPU computation results and progress updates.
+
+```json
+{
+  "type": "gpu_analytics",
+  "operation": "clustering",
+  "algorithm": "louvain",
+  "status": "in_progress",
+  "progress": 0.65,
+  "data": {
+    "clustersFound": 5,
+    "currentIteration": 12,
+    "maxIterations": 100,
+    "modularity": 0.743,
+    "gpuUtilization": 89,
+    "memoryUsage": "2.4 GB",
+    "estimatedCompletion": "2025-01-22T10:16:30Z"
+  },
+  "performance": {
+    "kernelExecutions": 89,
+    "avgKernelTime": 3.2,
+    "throughput": "1.2M nodes/sec"
+  }
+}
+```
+
+### Real-time Anomaly Detection
+Live anomaly detection results as they're computed.
+
+```json
+{
+  "type": "anomaly_detected",
+  "method": "isolation_forest",
+  "anomaly": {
+    "nodeId": "node_1247",
+    "score": 0.78,
+    "confidence": 0.94,
+    "features": {
+      "x": 156.3,
+      "y": 287.1,
+      "connectivity": 12
+    },
+    "severity": "high"
+  },
+  "context": {
+    "totalNodes": 1500,
+    "anomaliesFound": 8,
+    "detectionTime": 167
+  }
+}
+```
+
+### System Events (Real MCP Integration)
+Important system-wide events from actual swarm operations.
 
 ```json
 {
   "type": "system_event",
   "event": "swarm_initialized",
   "data": {
-    "swarmId": "swarm_789",
+    "swarmId": "swarm_1757880683494_yl81sece5",
     "agentCount": 5,
-    "topology": "mesh"
+    "topology": "mesh",
+    "mcpConnected": true,
+    "agents": [
+      {
+        "id": "agent_1757967065850_dv2zg7",
+        "type": "coordinator",
+        "status": "active"
+      }
+    ],
+    "consensusThreshold": 0.7,
+    "initializationTime": 2847
   }
 }
 ```
@@ -392,16 +510,18 @@ ws.send(JSON.stringify({
 
 ### Binary vs JSON
 
-Use binary protocol for:
-- Position updates (95% bandwidth reduction)
-- High-frequency data (>10 Hz)
-- Large numeric arrays
+**Binary Protocol (34-byte format)** for:
+- Real-time position updates at 60 FPS
+- Physics simulation results from backend
+- High-frequency numeric data (>10 Hz)
+- Bandwidth-critical applications (95% size reduction vs JSON)
 
-Use JSON for:
-- Control messages
-- Configuration updates
-- Event notifications
-- Human-readable data
+**JSON Messages** for:
+- Voice command streaming
+- Agent status updates
+- Control messages and configuration
+- Event notifications and errors
+- Human-readable data and debugging
 
 ## Integration Examples
 
@@ -439,7 +559,9 @@ function useWebSocket(url) {
 }
 ```
 
-### Binary Data Parser
+### Binary Protocol Parser
+
+Parser for the 34-byte binary protocol used for real-time position updates:
 
 ```javascript
 function parseBinaryNodeData(buffer) {
@@ -449,31 +571,46 @@ function parseBinaryNodeData(buffer) {
 
   for (let i = 0; i < nodeCount; i++) {
     const offset = i * 34;
-    
+
+    // Parse node ID with control bits
     const nodeId = view.getUint16(offset, true);
-    const isAgent = (nodeId & 0x8000) !== 0;
-    const actualId = nodeId & 0x3FFF;
-    
+    const isAgent = (nodeId & 0x8000) !== 0;  // Bit 15: agent flag
+    const actualId = nodeId & 0x7FFF;         // Bits 14-0: node ID
+
     nodes.push({
       id: actualId,
       isAgent,
       position: {
-        x: view.getFloat32(offset + 2, true),
-        y: view.getFloat32(offset + 6, true),
-        z: view.getFloat32(offset + 10, true)
+        x: view.getFloat32(offset + 2, true),   // Position X
+        y: view.getFloat32(offset + 6, true),   // Position Y
+        z: view.getFloat32(offset + 10, true)   // Position Z
       },
       velocity: {
-        x: view.getFloat32(offset + 14, true),
-        y: view.getFloat32(offset + 18, true),
-        z: view.getFloat32(offset + 22, true)
+        x: view.getFloat32(offset + 14, true),  // Velocity X
+        y: view.getFloat32(offset + 18, true),  // Velocity Y
+        z: view.getFloat32(offset + 22, true)   // Velocity Z
       },
-      ssspDistance: view.getFloat32(offset + 26, true),
-      ssspParent: view.getInt32(offset + 30, true)
+      ssspDistance: view.getFloat32(offset + 26, true),  // SSSP distance
+      ssspParent: view.getInt32(offset + 30, true)       // SSSP parent (-1 = root)
     });
   }
 
   return nodes;
 }
+
+// Usage: Apply updates directly to visualization
+ws.onmessage = (event) => {
+  if (event.data instanceof ArrayBuffer) {
+    const nodeUpdates = parseBinaryNodeData(event.data);
+    // No client-side physics - just apply positions
+    nodeUpdates.forEach(node => {
+      updateNodePosition(node.id, node.position);
+      if (node.isAgent) {
+        updateAgentVisualization(node.id, node);
+      }
+    });
+  }
+};
 ```
 
 ## Testing
