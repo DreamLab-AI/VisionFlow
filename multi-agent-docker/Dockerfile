@@ -165,6 +165,7 @@ COPY package.json package-lock.json* ./
 RUN npm cache clean --force && \
     npm install --production && \
     npm install -g . && \
+    npm install -g @clduab11/gemini-flow && \
     npm cache clean --force
 
 # Install claude via install script as dev user
@@ -172,12 +173,12 @@ USER dev
 WORKDIR /home/dev
 # Set HOME explicitly to avoid confusion with ubuntu symlink
 ENV HOME=/home/dev
-RUN curl -fsSL https://claude.ai/install.sh | bash
+RUN curl -fsSL https://claude.ai/install.sh | bash || echo "Claude installation failed, continuing..."
 # Note: Pinning to 1.0.42 didn't resolve the interactive auth issue
 
 USER root
 # Create symlink to make claude available globally
-RUN ln -s /home/dev/.local/bin/claude /usr/local/bin/claude
+RUN if [ -f /home/dev/.local/bin/claude ]; then ln -s /home/dev/.local/bin/claude /usr/local/bin/claude; fi
 
 # Note: Playwright has been moved to the GUI container for visual debugging
 # Access it via the proxy on port 9879

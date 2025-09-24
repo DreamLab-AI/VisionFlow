@@ -241,6 +241,8 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 | **kicad-mcp** | Electronic design | Design PCBs, create schematics |
 | **ngspice-mcp** | Circuit simulation | Simulate electronic circuits |
 | **pbr-generator-mcp** | PBR texture creation | Generate realistic material textures |
+| **playwright-mcp** | Browser automation | Automate web tasks, run tests |
+| **chrome-devtools-mcp** | Web debugging | Inspect and debug web pages |
 
 ---
 

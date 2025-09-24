@@ -44,8 +44,14 @@ services:
     # Restart policy
     restart: unless-stopped
 
+    # Resource limits
+    mem_limit: ${DOCKER_MEMORY:-16g}
+    cpus: "${DOCKER_CPUS:-4}"
+
     networks:
-      - docker_ragflow
+      docker_ragflow:
+        aliases:
+          - visionflow_container
 
   multi-agent:
     build:
