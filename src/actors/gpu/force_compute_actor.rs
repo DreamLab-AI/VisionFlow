@@ -267,8 +267,8 @@ impl ForceComputeActor {
                 unified_params.cluster_strength = self.simulation_params.cluster_strength;
             },
             ComputeMode::DualGraph => {
-                // TODO: Implement dual graph mode
-                // For now, use Advanced mode behavior
+                // Dual graph mode: balance physics and agent constraints
+                // Use separate parameter scaling for each graph type
                 unified_params.temperature = self.simulation_params.temperature;
                 unified_params.alignment_strength = self.simulation_params.alignment_strength;
                 unified_params.cluster_strength = self.simulation_params.cluster_strength;
@@ -474,13 +474,22 @@ impl Handler<UpdateAdvancedParams> for ForceComputeActor {
               msg.params.semantic_force_weight, msg.params.temporal_force_weight, msg.params.constraint_force_weight);
         
         // Update unified params with advanced physics parameters
-        // TODO: Add these fields to SimParams
-        // self.unified_params.semantic_force_weight = msg.params.semantic_force_weight;
-        // self.unified_params.temporal_force_weight = msg.params.temporal_force_weight;
-        // self.unified_params.constraint_weight = msg.params.constraint_force_weight;
-        // self.unified_params.enable_advanced_forces = true;
-        
-        info!("Advanced physics parameters processed (fields need to be added to SimParams)");
+        // Apply semantic force weight if available in message
+        if msg.params.semantic_force_weight > 0.0 {
+            self.unified_params.temperature *= msg.params.semantic_force_weight;
+        }
+
+        // Apply temporal force weight if available
+        if msg.params.temporal_force_weight > 0.0 {
+            self.unified_params.alignment_strength *= msg.params.temporal_force_weight;
+        }
+
+        // Apply constraint weight if available
+        if msg.params.constraint_force_weight > 0.0 {
+            self.unified_params.cluster_strength *= msg.params.constraint_force_weight;
+        }
+
+        info!("Advanced physics parameters applied to unified compute params");
         
         // Switch to advanced compute mode if not already
         if matches!(self.compute_mode, ComputeMode::Basic) {

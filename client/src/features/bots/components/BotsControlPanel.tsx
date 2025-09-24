@@ -48,24 +48,97 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   };
 
   const handleAddAgent = async (type: BotsAgent['type']) => {
-    // Call the API to spawn a new agent via MCP
+    // Enhanced agent spawning with hybrid Docker/MCP backend
     try {
       const { apiService } = await import('../../../services/apiService');
-      const response = await apiService.post('/bots/spawn-agent', {
+
+      // First attempt: Use new hybrid Docker endpoint
+      let response;
+      try {
+        response = await apiService.post('/bots/spawn-agent-hybrid', {
+          agentType: type,
+          swarmId: 'default',
+          method: 'docker', // Primary method
+          priority: 'medium',
+          strategy: 'hive-mind',
+          config: {
+            autoScale: true,
+            monitor: true,
+            maxWorkers: 8
+          }
+        });
+
+        if (response.success) {
+          console.log(`Successfully spawned ${type} agent via Docker:`, response.swarmId);
+          setAgentCount(prev => prev + 1);
+
+          // Start real-time monitoring for this swarm
+          if (response.swarmId) {
+            startSwarmMonitoring(response.swarmId);
+          }
+
+          return;
+        }
+      } catch (dockerError) {
+        console.warn(`Docker spawn failed for ${type} agent, trying MCP fallback:`, dockerError);
+      }
+
+      // Fallback: Use traditional MCP endpoint
+      response = await apiService.post('/bots/spawn-agent', {
         agentType: type,
-        swarmId: 'default', // Use default swarm or get from context
+        swarmId: 'default',
+        method: 'mcp-fallback'
       });
 
       if (response.success) {
-        console.log(`Successfully spawned ${type} agent`);
+        console.log(`Successfully spawned ${type} agent via MCP fallback`);
         setAgentCount(prev => prev + 1);
-        // The new agent will appear via WebSocket updates
       } else {
-        console.error(`Failed to spawn ${type} agent:`, response.error);
+        console.error(`Both Docker and MCP failed for ${type} agent:`, response.error);
+        // Show user-friendly error
+        showSpawnError(type, 'Both primary and fallback methods failed');
       }
     } catch (error) {
-      console.error(`Error spawning ${type} agent:`, error);
+      console.error(`Critical error spawning ${type} agent:`, error);
+      showSpawnError(type, 'Network or system error occurred');
     }
+  };
+
+  const startSwarmMonitoring = (swarmId: string) => {
+    // Start WebSocket monitoring for the new swarm
+    const ws = new WebSocket(`/ws/swarm-status/${swarmId}`);
+
+    ws.onmessage = (event) => {
+      const statusUpdate = JSON.parse(event.data);
+      console.log('Swarm status update:', statusUpdate);
+
+      // Update UI based on swarm status
+      if (statusUpdate.status === 'active') {
+        // Swarm is now active and ready
+        console.log(`Swarm ${swarmId} is now active with ${statusUpdate.activeWorkers} workers`);
+      } else if (statusUpdate.status === 'failed') {
+        console.error(`Swarm ${swarmId} failed:`, statusUpdate.error);
+        showSpawnError('swarm', statusUpdate.error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('Swarm monitoring WebSocket error:', error);
+    };
+
+    // Store WebSocket reference for cleanup
+    // (In a real implementation, you'd store this in component state or context)
+    setTimeout(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    }, 60000); // Close after 1 minute
+  };
+
+  const showSpawnError = (type: string, message: string) => {
+    // In a real implementation, this would use a toast/notification system
+    console.error(`Spawn Error - ${type}: ${message}`);
+    // You could also update UI state to show error indicators
   };
 
   const handleExportConfig = () => {

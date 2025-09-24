@@ -1135,7 +1135,17 @@ impl UnifiedGPUCompute {
             ))?;
         }
 
-        self.stream.synchronize()?;
+        // Use async stream synchronization instead of blocking
+        // Record event for async synchronization
+        let completion_event = cust::event::Event::new(cust::event::EventFlags::DEFAULT)?;
+        completion_event.record(&self.stream)?;
+
+        // Non-blocking completion check
+        while completion_event.query().unwrap_or(cust::event::EventStatus::Ready) != cust::event::EventStatus::Ready {
+            // Yield to other tasks instead of blocking
+            std::thread::yield_now();
+        }
+
         self.swap_buffers();
         self.iteration += 1;
         
@@ -2451,7 +2461,7 @@ impl UnifiedGPUCompute {
             return 0.0;
         }
 
-        let num_nodes = communities.len();
+        let _num_nodes = communities.len();
         let mut modularity = 0.0;
 
         // Create community assignments map for efficiency

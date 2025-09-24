@@ -1,0 +1,417 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+export interface HybridSystemStatus {
+  dockerHealth: 'healthy' | 'degraded' | 'unavailable' | 'unknown';
+  mcpHealth: 'connected' | 'reconnecting' | 'disconnected' | 'unknown';
+  activeSessions: SessionInfo[];
+  telemetryDelay: number;
+  networkLatency: number;
+  containerHealth?: ContainerHealth;
+  lastUpdated: string;
+  systemStatus: 'healthy' | 'degraded' | 'critical' | 'unknown';
+  failoverActive: boolean;
+  performance: PerformanceMetrics;
+}
+
+export interface SessionInfo {
+  sessionId: string;
+  taskDescription: string;
+  status: 'spawning' | 'active' | 'paused' | 'completed' | 'failed' | 'unknown';
+  createdAt: string;
+  lastActivity: string;
+  activeWorkers: number;
+  method: 'docker' | 'mcp' | 'hybrid';
+}
+
+export interface ContainerHealth {
+  isRunning: boolean;
+  cpuUsage: number;
+  memoryUsage: number;
+  networkHealthy: boolean;
+  diskSpaceGb: number;
+  lastResponseMs: number;
+  timestamp: string;
+}
+
+export interface PerformanceMetrics {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  averageResponseTimeMs: number;
+  cacheHitRatio: number;
+  connectionPoolUtilization: number;
+  memoryUsageMb: number;
+  activeOptimizations: string[];
+}
+
+export interface UseHybridSystemStatusOptions {
+  pollingInterval?: number;
+  enableWebSocket?: boolean;
+  enablePerformanceMetrics?: boolean;
+  enableHealthChecks?: bool;
+  autoReconnect?: boolean;
+  reconnectDelay?: number;
+  maxReconnectAttempts?: number;
+}
+
+const defaultOptions: UseHybridSystemStatusOptions = {
+  pollingInterval: 30000, // 30 seconds
+  enableWebSocket: true,
+  enablePerformanceMetrics: true,
+  enableHealthChecks: true,
+  autoReconnect: true,
+  reconnectDelay: 5000,
+  maxReconnectAttempts: 5,
+};
+
+export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}) => {
+  const opts = { ...defaultOptions, ...options };
+
+  const [status, setStatus] = useState<HybridSystemStatus>({
+    dockerHealth: 'unknown',
+    mcpHealth: 'unknown',
+    activeSessions: [],
+    telemetryDelay: 0,
+    networkLatency: 0,
+    lastUpdated: new Date().toISOString(),
+    systemStatus: 'unknown',
+    failoverActive: false,
+    performance: {
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTimeMs: 0,
+      cacheHitRatio: 0,
+      connectionPoolUtilization: 0,
+      memoryUsageMb: 0,
+      activeOptimizations: [],
+    },
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch status from HTTP API
+  const fetchStatus = useCallback(async (): Promise<HybridSystemStatus | null> => {
+    try {
+      const startTime = Date.now();
+
+      const response = await fetch('/api/hybrid/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const networkLatency = Date.now() - startTime;
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Add network latency to the response
+      return {
+        ...data,
+        networkLatency,
+        lastUpdated: new Date().toISOString(),
+      };
+    } catch (err) {
+      console.error('Failed to fetch hybrid system status:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      return null;
+    }
+  }, []);
+
+  // Initialize WebSocket connection
+  const initializeWebSocket = useCallback(() => {
+    if (!opts.enableWebSocket) return;
+
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/hybrid-status`;
+
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log('Hybrid system status WebSocket connected');
+        setError(null);
+        setReconnectAttempts(0);
+
+        // Request immediate status update
+        ws.send(JSON.stringify({ type: 'request_status' }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'status_update') {
+            setStatus(prevStatus => ({
+              ...prevStatus,
+              ...data.payload,
+              lastUpdated: new Date().toISOString(),
+            }));
+            setIsLoading(false);
+          } else if (data.type === 'performance_update') {
+            setStatus(prevStatus => ({
+              ...prevStatus,
+              performance: {
+                ...prevStatus.performance,
+                ...data.payload,
+              },
+              lastUpdated: new Date().toISOString(),
+            }));
+          } else if (data.type === 'session_update') {
+            setStatus(prevStatus => ({
+              ...prevStatus,
+              activeSessions: data.payload.sessions || [],
+              lastUpdated: new Date().toISOString(),
+            }));
+          } else if (data.type === 'health_update') {
+            setStatus(prevStatus => ({
+              ...prevStatus,
+              dockerHealth: data.payload.dockerHealth || prevStatus.dockerHealth,
+              mcpHealth: data.payload.mcpHealth || prevStatus.mcpHealth,
+              containerHealth: data.payload.containerHealth,
+              systemStatus: data.payload.systemStatus || prevStatus.systemStatus,
+              lastUpdated: new Date().toISOString(),
+            }));
+          }
+        } catch (parseError) {
+          console.error('Failed to parse WebSocket message:', parseError);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('Hybrid system status WebSocket error:', error);
+        setError('WebSocket connection error');
+      };
+
+      ws.onclose = (event) => {
+        console.log('Hybrid system status WebSocket closed:', event.code, event.reason);
+        wsRef.current = null;
+
+        if (opts.autoReconnect && reconnectAttempts < (opts.maxReconnectAttempts || 5)) {
+          setReconnectAttempts(prev => prev + 1);
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log(`Attempting WebSocket reconnection (${reconnectAttempts + 1}/${opts.maxReconnectAttempts})`);
+            initializeWebSocket();
+          }, opts.reconnectDelay || 5000);
+        } else {
+          setError('WebSocket connection lost and max reconnect attempts reached');
+        }
+      };
+
+    } catch (err) {
+      console.error('Failed to initialize WebSocket:', err);
+      setError('Failed to initialize WebSocket connection');
+    }
+  }, [opts.enableWebSocket, opts.autoReconnect, opts.reconnectDelay, opts.maxReconnectAttempts, reconnectAttempts]);
+
+  // Start polling if WebSocket is not enabled
+  const startPolling = useCallback(() => {
+    if (opts.enableWebSocket) return; // Don't poll if WebSocket is enabled
+
+    const poll = async () => {
+      const newStatus = await fetchStatus();
+      if (newStatus) {
+        setStatus(newStatus);
+        setIsLoading(false);
+      }
+    };
+
+    // Initial fetch
+    poll();
+
+    // Set up polling interval
+    pollingRef.current = setInterval(poll, opts.pollingInterval || 30000);
+  }, [opts.enableWebSocket, opts.pollingInterval, fetchStatus]);
+
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    // Close WebSocket
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+
+    // Clear polling interval
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    // Clear reconnect timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Manual refresh function
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const newStatus = await fetchStatus();
+    if (newStatus) {
+      setStatus(newStatus);
+    }
+    setIsLoading(false);
+  }, [fetchStatus]);
+
+  // Force reconnect WebSocket
+  const reconnect = useCallback(() => {
+    cleanup();
+    setReconnectAttempts(0);
+    setError(null);
+
+    if (opts.enableWebSocket) {
+      initializeWebSocket();
+    } else {
+      startPolling();
+    }
+  }, [cleanup, opts.enableWebSocket, initializeWebSocket, startPolling]);
+
+  // Spawn new swarm function
+  const spawnSwarm = useCallback(async (
+    taskDescription: string,
+    config?: {
+      priority?: 'low' | 'medium' | 'high' | 'critical';
+      strategy?: 'strategic' | 'tactical' | 'adaptive' | 'hive-mind';
+      method?: 'docker' | 'mcp' | 'hybrid';
+      maxWorkers?: number;
+      autoScale?: boolean;
+    }
+  ) => {
+    try {
+      const response = await fetch('/api/hybrid/spawn-swarm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          task: taskDescription,
+          ...config,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      // Refresh status to get updated session list
+      setTimeout(refresh, 1000);
+
+      return result;
+    } catch (err) {
+      console.error('Failed to spawn swarm:', err);
+      throw err;
+    }
+  }, [refresh]);
+
+  // Stop swarm function
+  const stopSwarm = useCallback(async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/hybrid/swarm/${sessionId}/stop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Refresh status to get updated session list
+      setTimeout(refresh, 1000);
+
+      return await response.json();
+    } catch (err) {
+      console.error('Failed to stop swarm:', err);
+      throw err;
+    }
+  }, [refresh]);
+
+  // Get performance report
+  const getPerformanceReport = useCallback(async () => {
+    try {
+      const response = await fetch('/api/hybrid/performance-report', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (err) {
+      console.error('Failed to get performance report:', err);
+      throw err;
+    }
+  }, []);
+
+  // Initialize on mount
+  useEffect(() => {
+    if (opts.enableWebSocket) {
+      initializeWebSocket();
+    } else {
+      startPolling();
+    }
+
+    return cleanup;
+  }, [opts.enableWebSocket, initializeWebSocket, startPolling, cleanup]);
+
+  // Health check derived state
+  const isSystemHealthy = status.systemStatus === 'healthy';
+  const isSystemDegraded = status.systemStatus === 'degraded';
+  const isSystemCritical = status.systemStatus === 'critical';
+
+  // Connection status derived state
+  const isDockerAvailable = status.dockerHealth === 'healthy' || status.dockerHealth === 'degraded';
+  const isMcpAvailable = status.mcpHealth === 'connected' || status.mcpHealth === 'reconnecting';
+  const isConnected = opts.enableWebSocket ? wsRef.current?.readyState === WebSocket.OPEN : !error;
+
+  return {
+    // Status data
+    status,
+    isLoading,
+    error,
+    reconnectAttempts,
+
+    // Derived state
+    isSystemHealthy,
+    isSystemDegraded,
+    isSystemCritical,
+    isDockerAvailable,
+    isMcpAvailable,
+    isConnected,
+
+    // Actions
+    refresh,
+    reconnect,
+    spawnSwarm,
+    stopSwarm,
+    getPerformanceReport,
+
+    // WebSocket reference (for advanced usage)
+    wsRef,
+  };
+};
+
+export default useHybridSystemStatus;

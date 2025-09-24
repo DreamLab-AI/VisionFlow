@@ -5,15 +5,14 @@ use webxr::{
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
         api_handler,
-        health_handler,
         pages_handler,
         socket_flow_handler::{socket_flow_handler, PreReadSocketSettings}, // Import PreReadSocketSettings
         speech_socket_handler::speech_socket_handler,
         mcp_relay_handler::mcp_relay_handler,
         nostr_handler,
         bots_handler,
-        mcp_health_handler,
         bots_visualization_handler,
+        hybrid_health_handler,
     },
     services::{
         file_service::FileService,
@@ -22,10 +21,16 @@ use webxr::{
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
     services::speech_service::SpeechService,
+    utils::docker_hive_mind::DockerHiveMind,
+    utils::mcp_connection::MCPConnectionPool,
+    handlers::hybrid_health_handler::HybridHealthManager,
 };
 
-use actix_web::{web, App, HttpServer, middleware};
+use actix_web::{web, App, HttpServer, middleware, Error as ActixError, HttpRequest, HttpResponse};
 use actix_cors::Cors;
+use std::future::{Ready, ready};
+use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
+use futures::future::LocalBoxFuture;
 // use actix_files::Files; // Removed unused import
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -36,6 +41,86 @@ use webxr::utils::logging::init_logging;
 use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use tokio::signal::unix::{signal, SignalKind};
+
+/// Simple error recovery middleware that integrates with NetworkRecoveryManager
+pub struct ErrorRecoveryMiddleware {
+    recovery_manager: Option<Arc<webxr::utils::hybrid_fault_tolerance::NetworkRecoveryManager>>,
+}
+
+impl ErrorRecoveryMiddleware {
+    pub fn new() -> Self {
+        Self {
+            recovery_manager: None,
+        }
+    }
+
+    pub fn with_recovery_manager(recovery_manager: Arc<webxr::utils::hybrid_fault_tolerance::NetworkRecoveryManager>) -> Self {
+        Self {
+            recovery_manager: Some(recovery_manager),
+        }
+    }
+}
+
+impl<S, B> Transform<S, ServiceRequest> for ErrorRecoveryMiddleware
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = ActixError;
+    type InitError = ();
+    type Transform = ErrorRecoveryMiddlewareService<S>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        ready(Ok(ErrorRecoveryMiddlewareService {
+            service,
+            recovery_manager: self.recovery_manager.clone(),
+        }))
+    }
+}
+
+pub struct ErrorRecoveryMiddlewareService<S> {
+    service: S,
+    recovery_manager: Option<Arc<webxr::utils::hybrid_fault_tolerance::NetworkRecoveryManager>>,
+}
+
+impl<S, B> Service<ServiceRequest> for ErrorRecoveryMiddlewareService<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = ActixError;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let fut = self.service.call(req);
+        let recovery_manager = self.recovery_manager.clone();
+
+        Box::pin(async move {
+            match fut.await {
+                Ok(response) => Ok(response),
+                Err(error) => {
+                    // Log the error
+                    error!("Request failed: {}", error);
+
+                    // If we have a recovery manager, we could trigger recovery here
+                    if let Some(_manager) = recovery_manager {
+                        warn!("Error recovery manager available but not implementing specific recovery for this error type");
+                    }
+
+                    // Return the original error for now
+                    Err(error)
+                }
+            }
+        })
+    }
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -182,6 +267,19 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize Nostr service
     nostr_handler::init_nostr_service(&mut app_state);
+
+    // Initialize HybridHealthManager for Docker/MCP orchestration
+    info!("Initializing Docker Hive Mind and MCP connection pool...");
+    let docker_hive_mind = DockerHiveMind::new("multi-agent-container".to_string());
+
+    // Create MCP connection pool with host and port
+    let mcp_pool = MCPConnectionPool::new("localhost".to_string(), "9500".to_string());
+
+    let hybrid_health_manager = Arc::new(HybridHealthManager::new(docker_hive_mind, mcp_pool));
+
+    // Start background monitoring
+    hybrid_health_manager.start_background_monitoring().await;
+    info!("HybridHealthManager initialized and monitoring started");
 
     // Initialize BotsClient connection with proper WebSocket protocol
     info!("Connecting to bots orchestrator via WebSocket...");
@@ -396,6 +494,7 @@ async fn main() -> std::io::Result<()> {
 
     // Create web::Data after all initialization is complete
     let app_state_data = web::Data::new(app_state);
+    let hybrid_health_manager_data = web::Data::new(hybrid_health_manager.clone());
 
     // Start the server
     let bind_address = {
@@ -433,6 +532,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .wrap(middleware::Compress::default())
+            .wrap(ErrorRecoveryMiddleware::new()) // Add error recovery middleware
             // Pass AppFullSettings wrapped in Data
             .app_data(settings_data.clone())
             .app_data(web::Data::new(github_client.clone()))
@@ -446,18 +546,24 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
+            .app_data(hybrid_health_manager_data.clone()) // Add HybridHealthManager
             .route("/wss", web::get().to(socket_flow_handler)) // Changed from /ws to /wss
             .route("/ws/speech", web::get().to(speech_socket_handler))
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) // Legacy MCP relay endpoint
+            .route("/ws/hybrid-health", web::get().to(hybrid_health_handler::websocket_hybrid_status)) // Hybrid health WebSocket
             .service(
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
-                    .service(web::scope("/mcp").configure(mcp_health_handler::configure_routes)) // MCP health and control endpoints
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
-            )
-            .service(web::scope("/health").configure(health_handler::config));
+                    .service(web::scope("/hybrid")
+                        .route("/status", web::get().to(hybrid_health_handler::get_hybrid_status))
+                        .route("/performance", web::get().to(hybrid_health_handler::get_performance_report))
+                        .route("/spawn", web::post().to(hybrid_health_handler::spawn_swarm_hybrid))
+                        .route("/stop/{session_id}", web::delete().to(hybrid_health_handler::stop_swarm))
+                    ) // Hybrid health and orchestration endpoints
+            );
 
         app
     })

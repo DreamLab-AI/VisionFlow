@@ -1,5 +1,6 @@
 pub mod edge;
 pub mod graph;
+pub mod graph_types;
 pub mod metadata;
 pub mod node;
 pub mod pagination;

@@ -75,8 +75,26 @@ pub fn test_constraint_integration() {
 impl GraphServiceActor {
     /// Create a test instance for unit testing
     pub fn new_test_instance() -> Self {
-        // This would need to be implemented with proper mock setup
-        // For now, this is a placeholder showing the intended usage
-        todo!("Implement test instance creation")
+        use crate::actors::graph_actor::GraphServiceActor;
+        use crate::models::graph_types::GraphType;
+        use std::collections::HashMap;
+        use tokio::sync::RwLock;
+        use std::sync::Arc;
+
+        // Create test instance with minimal viable setup
+        GraphServiceActor {
+            current_graph: Arc::new(RwLock::new(crate::models::graph::Graph {
+                nodes: HashMap::new(),
+                edges: HashMap::new(),
+                constraints: Vec::new(),
+                graph_type: GraphType::Physics,
+                last_updated: chrono::Utc::now(),
+                metadata: HashMap::new(),
+            })),
+            active_simulations: HashMap::new(),
+            telemetry_subscribers: Vec::new(),
+            constraint_solver: None,
+            settings: crate::models::settings::SimulationSettings::default(),
+        }
     }
 }
