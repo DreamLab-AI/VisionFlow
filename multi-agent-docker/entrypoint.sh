@@ -34,6 +34,15 @@ echo "✨ Automatic setup will begin in a few seconds..."
 echo "   (Check progress with: tail -f /workspace/.setup.log)"
 echo ""
 
+# Create symlink for claude-flow from the installed node_modules
+echo "Setting up claude-flow symlink..."
+if [ -f "/app/node_modules/.bin/claude-flow" ]; then
+    ln -sf /app/node_modules/.bin/claude-flow /usr/bin/claude-flow
+    echo "Created claude-flow symlink from node_modules"
+else
+    echo "Warning: claude-flow not found in /app/node_modules/.bin/"
+fi
+
 # Start supervisord in the background for all cases
 echo "Starting supervisord in background..."
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &

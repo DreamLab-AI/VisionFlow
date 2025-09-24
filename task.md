@@ -272,7 +272,7 @@ grep -r "mcp-status" /mnt/mldata/githubs/AR-AI-Knowledge-Graph/src/
 - **Swarm Status**: Active with ID `swarm_1758717360460_2w0daysss`
 - **Connection**: All components verified and operational
 
-## Issue 4: Mock Agents Appearing in UI (RESOLVED)
+## Issue 4: Mock Agents Appearing in UI (RESOLVED ✅)
 
 ### Problem (2025-09-24 13:10)
 The UI shows mock agents (coordinator-1, researcher-1, coder-1) instead of real agents spawned by the MCP server. Investigation revealed:
@@ -308,3 +308,122 @@ This ensures:
 2. Restart mcp-core:mcp-tcp-server via supervisorctl
 3. Test agent_list returns real agents, not mock ones
 4. Verify UI shows actual spawned agents
+
+### Permanent Solution (2025-09-24 13:35)
+To prevent ephemeral npx installations that cannot be patched:
+1. Updated `mcp-tcp-server.js` to use `/app/node_modules/.bin/claude-flow` instead of npx
+2. Updated `entrypoint.sh` to create symlink from node_modules installation
+3. Updated `setup-workspace.sh` to patch `/app/node_modules/claude-flow/src/mcp/mcp-server.js`
+4. This uses the claude-flow already installed via package.json dependencies
+
+Benefits:
+- No more ephemeral npx downloads on each connection
+- Patches can be applied reliably to a known location
+- Consistent version across all usages
+- Faster startup (no download needed)
+
+### Complete Fix Implementation (2025-09-24 13:40)
+Updated ALL npx references across the codebase:
+- **mcp-tcp-server.js**: Uses `/app/node_modules/.bin/claude-flow`
+- **claude-flow-tcp-proxy.js**: Uses `/app/node_modules/.bin/claude-flow`
+- **package.json**: Removed `npx claude-flow@alpha` from all scripts
+- **init-claude-flow-agents.sh**: Replaced all npx calls with direct `claude-flow`
+- **automated-setup.sh**: Replaced all npx calls with direct `claude-flow`
+- **setup-workspace.sh**: Updated all aliases and version checks
+- **entrypoint.sh**: Creates symlink `/usr/bin/claude-flow -> /app/node_modules/.bin/claude-flow`
+
+### Verification Results ✅
+1. **Symlink created**: `/usr/bin/claude-flow -> /app/node_modules/.bin/claude-flow`
+2. **Patches applied successfully**: All mock agents removed from mcp-server.js
+3. **MCP server running**: Using patched node_modules version
+4. **No mock agents**: Returns empty array when no agents spawned
+5. **Real agents work**: Successfully spawned `agent_1758721150001_hgdowu` (system-coordinator)
+6. **API working**: Returns real agent data, no more hardcoded mocks
+
+### Summary
+The multi-agent system now uses a single, patchable installation of claude-flow from node_modules. This eliminates the problem of ephemeral npx installs that download fresh, unpatched versions on every connection. All components now reference the same patched instance, ensuring consistent behavior and real agent data throughout the system.
+
+## Issue 5: MCP Orchestrator Environment Inheritance (IN PROGRESS)
+
+### Problem (2025-09-24 14:00)
+The MCP orchestrator doesn't inherit the dev user's runtime environment, preventing agents from executing tools like LaTeX that are available in the container.
+
+### Symptoms
+- LaTeX is installed and works: `/usr/bin/pdflatex` exists
+- Manual LaTeX compilation works in the container
+- MCP tools like `terminal_execute` return generic success messages without actual output
+- Agents cannot execute real commands or access the dev user's tools
+
+### Investigation
+- MCP TCP server runs as dev user ✓
+- LaTeX tools are in PATH ✓
+- Created LaTeX specialist agent with capabilities ✓
+- But agents cannot actually execute LaTeX commands
+
+### Root Cause
+The MCP server process needs to inherit the full dev user environment including:
+- Proper PATH with all tool directories
+- HOME directory set correctly
+- Access to CLAUDE.md configuration
+- Environment variables for tool access
+
+### Attempted Fix
+Updated `mcp-tcp-server.js` to set explicit environment:
+```javascript
+const devEnv = {
+  ...process.env,
+  HOME: '/home/dev',
+  USER: 'dev',
+  PATH: `/home/dev/.local/bin:/opt/venv312/bin:/home/dev/.cargo/bin:/home/dev/.deno/bin:/app/core-assets/scripts:/app/core-assets/mcp-tools:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin`,
+  CLAUDE_FLOW_DIRECT_MODE: 'true',
+  CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/memory.db',
+  CLAUDE_CONFIG_DIR: '/home/dev/.claude',
+  CLAUDE_PROJECT_ROOT: '/workspace'
+};
+```
+
+### Next Steps
+Need to verify if the MCP tools have actual implementations or if they're returning mock responses, and ensure the orchestrator can execute real commands in the dev user environment.
+
+### Investigation Results (2025-09-24 14:05)
+Found that many MCP tools including `terminal_execute` are NOT actually implemented. In `/app/node_modules/claude-flow/src/mcp/mcp-server.js`, the executeTool function has a default case that returns mock success for any unimplemented tool:
+
+```javascript
+default:
+  return {
+    success: true,
+    tool: name,
+    message: `Tool ${name} executed successfully`,
+    args: args,
+    timestamp: new Date().toISOString(),
+  };
+```
+
+This explains why:
+- `terminal_execute` returns success but no output
+- LaTeX commands can't actually be run
+- The orchestrator can't execute real commands
+
+Implemented tools include:
+- `swarm_init`, `agent_spawn`, `agent_list` (basic swarm management)
+- Some workflow and performance monitoring tools
+- Memory storage operations
+
+NOT implemented (return mock responses):
+- `terminal_execute` - Can't run commands
+- `config_manage` - Can't manage configs
+- Most system interaction tools
+
+### Solution Required
+To enable LaTeX PDF generation and other real command execution, we need to:
+1. Implement `terminal_execute` to actually run commands with proper environment
+2. Or find an alternative way for agents to execute tasks
+3. Or use a different orchestration system that has real execution capabilities
+
+### Implementation Attempt (2025-09-24 14:10)
+Added patch to setup-workspace.sh that implements terminal_execute:
+- Uses Node.js child_process.spawn to execute commands
+- Sets proper environment variables and PATH
+- Returns stdout, stderr, and exit code
+
+The patch was applied successfully but testing shows connection issues with the MCP server. Need to investigate why the server is not responding to requests properly.

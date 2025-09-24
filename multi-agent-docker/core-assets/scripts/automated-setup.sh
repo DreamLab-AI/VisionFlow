@@ -175,7 +175,7 @@ initialize_ai_agents() {
     
     # Initialize Goal Planner agent
     log_info "Initializing Goal Planner agent..."
-    if npx claude-flow@alpha goal init --force 2>&1 | grep -E "(initialized|already exists)"; then
+    if claude-flow goal init --force 2>&1 | grep -E "(initialized|already exists)"; then
         log_success "Goal Planner agent ready"
     else
         log_warning "Goal Planner initialization had issues"
@@ -183,7 +183,7 @@ initialize_ai_agents() {
     
     # Initialize SAFLA Neural agent
     log_info "Initializing SAFLA Neural agent..."
-    if npx claude-flow@alpha neural init --force 2>&1 | grep -E "(initialized|already exists)"; then
+    if claude-flow neural init --force 2>&1 | grep -E "(initialized|already exists)"; then
         log_success "SAFLA Neural agent ready"
     else
         log_warning "SAFLA Neural initialization had issues"
@@ -318,7 +318,7 @@ configure_dev_environment() {
 
 # Quick access to tools
 alias tools='ls -la /workspace/mcp-tools/'
-alias agents='npx claude-flow@alpha status'
+alias agents='claude-flow status'
 alias mcp-test='node /workspace/examples/mcp-example.js'
 
 # Project navigation
