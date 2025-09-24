@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { createLogger, createErrorMetadata } from '../../../utils/logger'
+import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig'
 import { debugState } from '../../../utils/clientDebugState'
 import { produce } from 'immer'
 import type { GraphNode, GraphEdge } from '../../graph/types/graphTypes'

@@ -1,4 +1,4 @@
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { webSocketService } from '../../../services/WebSocketService';
 import { agentPollingService } from './AgentPollingService';

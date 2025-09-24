@@ -4,7 +4,7 @@
  */
 
 import { Vector3, Color, Camera, Raycaster, Object3D } from 'three';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import type { GraphData } from '../managers/graphDataManager';
 
 const logger = createLogger('AdvancedInteractionModes');

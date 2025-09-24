@@ -29,7 +29,7 @@ import { useSettingsStore, settingsSelectors } from '../../../../store/settingsS
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
 import { SettingControlComponent } from '../SettingControlComponent';
 import { toast } from '../../../../utils/toast';
-import { logger } from '../../../../utils/logger';
+import { createLogger } from '../../../../utils/loggerConfig';
 
 interface SettingsPanelRedesignProps {
   isOpen?: boolean;

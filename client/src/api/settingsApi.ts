@@ -1,6 +1,6 @@
 // Settings API Client - Path-based interface for granular settings operations with concurrent update handling
 import { Settings } from '../features/settings/config/settings';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const API_BASE = '/api/settings';
 

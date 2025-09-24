@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SettingsPath } from '@/features/settings/config/settings';
 import { settingsApi } from '@/api/settingsApi';
-import { createLogger } from '@/utils/logger';
+import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('useSelectiveSettingsStore');
 

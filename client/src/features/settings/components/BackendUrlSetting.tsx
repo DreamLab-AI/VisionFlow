@@ -5,7 +5,7 @@ import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/Card';
 import WebSocketService from '@/services/WebSocketService';
-import { createLogger } from '@/utils/logger';
+import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('BackendUrlSetting');
 

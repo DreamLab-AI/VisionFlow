@@ -1,4 +1,4 @@
-import { createLogger, createErrorMetadata } from '../../../utils/logger';
+import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
 import { debugState, clientDebugState } from '../../../utils/clientDebugState';
 import { WebSocketAdapter } from '../../../services/WebSocketService';
 import { useSettingsStore } from '../../../store/settingsStore';

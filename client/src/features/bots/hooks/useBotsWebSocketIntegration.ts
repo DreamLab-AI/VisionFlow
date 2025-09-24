@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { useTelemetry } from '../../../telemetry/useTelemetry';
 

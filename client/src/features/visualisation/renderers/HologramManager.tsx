@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
-import { createLogger } from '@/utils/logger';
+import { createLogger } from '@/utils/loggerConfig';
 import { BloomStandardMaterial } from '../../../rendering/materials/BloomStandardMaterial';
 
 const logger = createLogger('HologramManager');

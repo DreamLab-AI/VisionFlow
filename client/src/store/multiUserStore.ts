@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/loggerConfig'
 import { useRef, useEffect } from 'react'
 
 const logger = createLogger('MultiUserStore')

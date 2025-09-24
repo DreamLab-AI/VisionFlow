@@ -1,5 +1,5 @@
 import React from 'react';
-import { createLogger } from './logger';
+import { createLogger } from './loggerConfig';
 
 const logger = createLogger('PerformanceMonitor');
 

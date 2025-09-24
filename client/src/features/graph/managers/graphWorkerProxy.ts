@@ -5,7 +5,7 @@
 
 import { wrap, Remote } from 'comlink';
 import { GraphWorkerType } from '../workers/graph.worker';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 
 const logger = createLogger('GraphWorkerProxy');

@@ -1,5 +1,5 @@
 import { createLogger } from '../utils/loggerConfig';
-import { createErrorMetadata } from '../utils/logger';
+import { createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '../types/ragflowTypes';
 

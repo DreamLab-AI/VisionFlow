@@ -11,7 +11,7 @@ import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
 import { graphDataManager, type GraphData } from '../features/graph/managers/graphDataManager';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('MainLayout');
 

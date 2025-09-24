@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { webSocketService } from '../services/WebSocketService';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('BatchingExample');
 

@@ -3,7 +3,7 @@ import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 import { useSettingsStore } from '../store/settingsStore'
 import { useMultiUserStore } from '../store/multiUserStore'
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/loggerConfig'
 import { useVircadiaXR } from '../hooks/useVircadiaXR'
 import { VircadiaService } from '../services/vircadia/VircadiaService'
 

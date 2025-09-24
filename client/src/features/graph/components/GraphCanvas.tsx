@@ -21,7 +21,7 @@ import HologramEnvironment from '../../visualisation/components/HologramEnvironm
 // Store and utils
 import { useSettingsStore } from '../../../store/settingsStore';
 import { graphDataManager, type GraphData } from '../managers/graphDataManager';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('GraphCanvas');
 

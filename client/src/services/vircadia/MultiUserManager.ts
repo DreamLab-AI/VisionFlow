@@ -1,5 +1,5 @@
 import * as BABYLON from '@babylonjs/core'
-import { createLogger } from '../../utils/logger'
+import { createLogger } from '../../utils/loggerConfig'
 
 const logger = createLogger('MultiUserManager')
 

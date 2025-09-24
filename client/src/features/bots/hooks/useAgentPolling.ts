@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { agentPollingService, AgentSwarmData, PollingConfig } from '../services/AgentPollingService';
 import type { BotsAgent, BotsEdge } from '../types/BotsTypes';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 
 const logger = createLogger('useAgentPolling');

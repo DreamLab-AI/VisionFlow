@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { apiService } from '../../../services/apiService';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 

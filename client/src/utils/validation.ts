@@ -1,5 +1,5 @@
 import { Vec3, BinaryNodeData } from '../types/binaryProtocol';
-import { createLogger } from './logger';
+import { createLogger } from './loggerConfig';
 
 const logger = createLogger('Validation');
 

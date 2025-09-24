@@ -1,7 +1,7 @@
 import React from 'react';
 import { useBotsData } from '../contexts/BotsDataContext';
 import { Card } from '../../design-system/components/Card';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('SystemHealthPanel');
 

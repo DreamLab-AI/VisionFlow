@@ -4,7 +4,7 @@ import { useThree, useFrame } from '@react-three/fiber';
 // import { Text, Billboard, useTexture } from '@react-three/drei'; // Commented out due to import errors
 import { usePlatform } from '@/services/platformManager';
 import { useSettingsStore } from '@/store/settingsStore';
-import { createLogger } from '@/utils/logger';
+import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('MetadataVisualizer');
 

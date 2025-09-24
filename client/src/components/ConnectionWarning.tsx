@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import WebSocketService from '../services/WebSocketService';
 import { useSettingsStore } from '../store/settingsStore';
 import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';

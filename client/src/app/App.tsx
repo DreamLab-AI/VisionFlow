@@ -1,10 +1,9 @@
-import { useEffect, Component, ReactNode, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import AppInitializer from './AppInitializer'
 import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
 import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
 import { useSettingsStore } from '../store/settingsStore';
 import { createLogger } from '../utils/loggerConfig';
-import { createErrorMetadata } from '../utils/logger';
 import Quest3AR from './Quest3AR';
 import MainLayout from './MainLayout';
 import { useQuest3Integration } from '../hooks/useQuest3Integration';
@@ -19,50 +18,8 @@ import { useBotsWebSocketIntegration } from '../features/bots/hooks/useBotsWebSo
 import { DebugControlPanel } from '../components/DebugControlPanel';
 import { ConnectionWarning } from '../components/ConnectionWarning';
 import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
+import ErrorBoundary from '../components/ErrorBoundary';
 const logger = createLogger('App')
-
-// Error boundary component to catch rendering errors
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-class ErrorBoundary extends Component<ErrorBoundaryProps, { hasError: boolean; error: Error | null; errorInfo: any }> {
-  state = { hasError: false, error: null, errorInfo: null };
-
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    logger.error('React error boundary caught error:', {
-      ...createErrorMetadata(error),
-      component: errorInfo?.componentStack
-        ? errorInfo.componentStack.split('\n')[1]?.trim()
-        : 'Unknown component'
-    });
-    this.setState({ errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="p-4 bg-destructive text-destructive-foreground rounded-md">
-          <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
-          <p className="mb-4">The application encountered an error. Try refreshing the page.</p>
-          {process.env.NODE_ENV === 'development' && (
-            <pre className="bg-muted p-2 rounded text-sm overflow-auto">
-              {this.state.error
-                ? (this.state.error.message || String(this.state.error))
-                : 'No error details available'}
-            </pre>
-          )}
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 function App() {
   const [initializationState, setInitializationState] = useState<'loading' | 'initialized' | 'error'>('loading');

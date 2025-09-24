@@ -8,10 +8,10 @@ import { graphDataManager } from '../managers/graphDataManager';
 import GraphManager from './GraphManager';
 import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { BotsVisualization } from '../../bots/components';
-import { WorldClassHologram, EnergyFieldParticles } from '../../visualisation/components/WorldClassHologram';
+import HologramEnvironment, { EnergyFieldParticles } from '../../visualisation/components/HologramEnvironment';
 
 // Ensure Three.js types are properly loaded if not globally done
 // import '../../../types/react-three-fiber.d.ts';
@@ -264,10 +264,10 @@ const GraphViewport: React.FC = () => {
                 setIsNodeDragging(isDragging);
               }} />
 
-            {/* World-class hologram effects controlled by hologram toggle */}
+            {/* Hologram environment effects controlled by hologram toggle */}
             {hologramEnabled && (
               <>
-                <WorldClassHologram
+                <HologramEnvironment
                   enabled={hologramEnabled}
                   position={graphCenter}
                 />
@@ -275,10 +275,6 @@ const GraphViewport: React.FC = () => {
                   count={1000}
                   bounds={graphSize * 2}
                   color={nodeSettings?.baseColor || '#00ffff'}
-                />
-                <WorldClassHologram
-                  enabled={hologramEnabled}
-                  position={graphCenter}
                 />
               </>
             )}

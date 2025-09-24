@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { graphDataManager } from '../managers/graphDataManager';
 import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { navigateNarrativeGoldmine } from '../../../utils/iframeCommunication';
 
