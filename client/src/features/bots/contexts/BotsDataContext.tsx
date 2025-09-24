@@ -4,7 +4,7 @@ import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 import { parseBinaryNodeData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
 import { useAgentPolling } from '../hooks/useAgentPolling';
 import { agentPollingService } from '../services/AgentPollingService';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('BotsDataContext');
 

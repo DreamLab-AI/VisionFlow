@@ -8,7 +8,7 @@ import { Slider } from '@/features/design-system/components/Slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Input } from '@/features/design-system/components/Input';
 import { clientDebugState } from '@/utils/clientDebugState';
-import { createLogger } from '@/utils/logger';
+import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('LocalStorageSettingControl');
 

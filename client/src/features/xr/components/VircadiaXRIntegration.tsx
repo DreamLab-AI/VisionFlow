@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { useMultiUserStore } from '../../../store/multiUserStore'
 import VircadiaScene from '../../../components/VircadiaScene'
-import { createLogger } from '../../../utils/logger'
+import { createLogger } from '../../../utils/loggerConfig'
 
 const logger = createLogger('VircadiaXRIntegration')
 

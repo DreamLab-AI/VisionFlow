@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useState, useEffect } from 'react';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 const logger = createLogger('ApplicationModeContext');
 const defaultContext = {
     mode: 'desktop',

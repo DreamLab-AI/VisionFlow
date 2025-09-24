@@ -4,7 +4,7 @@
  */
 
 import { Vector3, Color } from 'three';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import type { GraphData, Node as GraphNode } from '../managers/graphDataManager';
 
 const logger = createLogger('AIInsights');

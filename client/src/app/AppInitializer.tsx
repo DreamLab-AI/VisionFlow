@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { createLogger, createErrorMetadata } from '../utils/logger';
+import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore';
 import WebSocketService from '../services/WebSocketService';

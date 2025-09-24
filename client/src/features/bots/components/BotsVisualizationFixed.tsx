@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { useTelemetry, useThreeJSTelemetry } from '../../../telemetry/useTelemetry';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { useSettingsStore } from '../../../store/settingsStore';

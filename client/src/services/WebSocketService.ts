@@ -1,5 +1,5 @@
 import { createLogger } from '../utils/loggerConfig';
-import { createErrorMetadata } from '../utils/logger';
+import { createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore'; // Keep alias here for now, fix later if needed
 import { graphDataManager } from '../features/graph/managers/graphDataManager';

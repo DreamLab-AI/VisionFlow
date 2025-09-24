@@ -3,7 +3,7 @@ import { Object3D, Group, Vector3 } from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Interactive } from '@react-three/xr';
 import { useSettingsStore } from '../../../../store/settingsStore';
-import { createLogger } from '../../../../utils/logger';
+import { createLogger } from '../../../../utils/loggerConfig';
 
 const logger = createLogger('XRControlPanel');
 

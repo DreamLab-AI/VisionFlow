@@ -6,7 +6,7 @@
  * Provides events for translation (x,y,z), rotation (rx,ry,rz), and button presses
  */
 
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('SpaceDriverService');
 

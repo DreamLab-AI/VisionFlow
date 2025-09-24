@@ -1,4 +1,4 @@
-import { createLogger } from './logger';
+import { createLogger } from './loggerConfig';
 import { Vec3, BinaryNodeData } from '../types/binaryProtocol';
 
 const logger = createLogger('BatchQueue');

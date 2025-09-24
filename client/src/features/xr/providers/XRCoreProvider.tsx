@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useCa
 import { useFrame } from '@react-three/fiber';
 import { XRSessionManager } from '../managers/xrSessionManager';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { useSafeThreeContext, useAsyncXRCapability } from '../hooks/useSafeXRHooks';
 import * as THREE from 'three';

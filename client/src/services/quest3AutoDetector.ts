@@ -1,4 +1,4 @@
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { usePlatformStore } from './platformManager';
 import { useSettingsStore } from '../store/settingsStore';
 

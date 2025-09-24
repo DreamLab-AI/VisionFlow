@@ -33,12 +33,12 @@ export type {
   AgentTelemetryData,
   WebSocketTelemetryData,
   ThreeJSTelemetryData
-} from '../utils/logger';
+} from '../utils/loggerConfig';
 
 export {
   createAgentLogger,
   agentTelemetryLogger
-} from '../utils/logger';
+} from '../utils/loggerConfig';
 
 /**
  * Quick setup helper for adding telemetry to any React component

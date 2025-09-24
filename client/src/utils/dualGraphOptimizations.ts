@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { createLogger } from './logger';
+import { createLogger } from './loggerConfig';
 
 const logger = createLogger('DualGraphOptimizations');
 

@@ -1,7 +1,7 @@
 import React, { ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, FileText } from 'lucide-react';
 import { Button } from '../features/design-system/components';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('ErrorBoundary');
 

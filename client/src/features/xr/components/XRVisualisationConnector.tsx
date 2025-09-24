@@ -5,7 +5,7 @@ import { MetadataVisualizer, useTextLabelManager } from '../../visualisation/com
 import { useHandTracking } from '../systems/HandInteractionSystem';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useMultiUserStore, MultiUserConnection } from '../../../store/multiUserStore';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { useSafeThreeContext, useXRConditionalRender, useSafeFrame } from '../hooks/useSafeXRHooks';
 import * as THREE from 'three';
 

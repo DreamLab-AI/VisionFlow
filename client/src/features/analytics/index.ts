@@ -14,4 +14,4 @@ export type {
 } from './store/analyticsStore'
 
 // Components
-export { SSSPAnalysisPanel } from './components/SSSPAnalysisPanel'
+export { ShortestPathControls } from './components/ShortestPathControls'

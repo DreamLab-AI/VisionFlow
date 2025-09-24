@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/core/XR'
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/loggerConfig'
 
 const logger = createLogger('useVircadiaXR')
 

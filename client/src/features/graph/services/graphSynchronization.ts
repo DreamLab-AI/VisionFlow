@@ -4,7 +4,7 @@
  */
 
 import { Camera, Vector3 } from 'three';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('GraphSynchronization');
 

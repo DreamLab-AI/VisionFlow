@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { programmaticMonitor } from '../utils/programmaticMonitor';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { Button } from '../../design-system/components/Button';
 
 const logger = createLogger('ProgrammaticMonitorControl');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { BinaryNodeData } from '../types/binaryProtocol';
 import { validateNodePositions } from '../utils/validation';
 
@@ -20,10 +20,6 @@ export interface NodeUpdate {
   velocity?: { x: number; y: number; z: number };
 }
 
-export interface SettingUpdate {
-  path: string;
-  value: any;
-}
 
 /**
  * Batch update API for efficient server communication
@@ -77,32 +73,6 @@ export const batchUpdateApi = {
     }
   },
 
-  /**
-   * Batch update multiple settings
-   */
-  async updateSettings(updates: SettingUpdate[]): Promise<BatchUpdateResult> {
-    try {
-      const response = await fetch(`${API_BASE}/settings/batch`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ updates })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Settings batch update failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      logger.info(`Settings batch update: ${result.processed} processed`);
-      
-      return result;
-    } catch (error) {
-      logger.error('Settings batch update error:', error);
-      throw error;
-    }
-  },
 
   /**
    * Batch create nodes
@@ -204,20 +174,9 @@ export function useBatchUpdates() {
     }
   }, []);
 
-  const updateSettings = React.useCallback(async (updates: SettingUpdate[]) => {
-    setIsProcessing(true);
-    try {
-      const result = await batchUpdateApi.updateSettings(updates);
-      setLastResult(result);
-      return result;
-    } finally {
-      setIsProcessing(false);
-    }
-  }, []);
 
   return {
     updateNodePositions,
-    updateSettings,
     isProcessing,
     lastResult
   };

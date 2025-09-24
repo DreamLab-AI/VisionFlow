@@ -3,7 +3,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { AuthGatedVoiceButton } from '../components/AuthGatedVoiceButton';
 import { AuthGatedVoiceIndicator } from '../components/AuthGatedVoiceIndicator';
 import GraphViewport from '../features/graph/components/GraphViewport';
-import { createLogger, createErrorMetadata } from '../utils/logger';
+import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
 import { useSettingsStore } from '../store/settingsStore';

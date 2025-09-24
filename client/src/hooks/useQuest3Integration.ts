@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { quest3AutoDetector, Quest3DetectionResult } from '../services/quest3AutoDetector';
 import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('useQuest3Integration');
 

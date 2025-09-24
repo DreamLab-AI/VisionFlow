@@ -5,7 +5,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Interactive } from '@react-three/xr';
 import { usePlatform } from '../../../services/platformManager';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { GestureState, XRInteractionMode, InteractableObject, XRHandJoint } from '../types/xr';
 
 const logger = createLogger('HandInteraction');

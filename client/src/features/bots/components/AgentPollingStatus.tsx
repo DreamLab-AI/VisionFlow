@@ -2,7 +2,7 @@ import React from 'react';
 import { useBotsData } from '../contexts/BotsDataContext';
 import { Badge } from '../../design-system/components/Badge';
 import { Progress } from '../../design-system/components/Progress';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('AgentPollingStatus');
 

@@ -4,7 +4,7 @@
  */
 
 import { apiService } from '../../../services/apiService';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import type { BotsAgent, BotsEdge } from '../types/botsTypes';
 
 const logger = createLogger('ProgrammaticMonitor');

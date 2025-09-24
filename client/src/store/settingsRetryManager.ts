@@ -1,4 +1,4 @@
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { settingsApi, BatchOperation } from '../api/settingsApi';
 import { SettingsPath } from '../features/settings/config/settings';
 

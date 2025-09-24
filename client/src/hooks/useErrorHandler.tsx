@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useToast, ToastAction } from '../features/design-system/components';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { webSocketService } from '../services/WebSocketService';
 
 const logger = createLogger('ErrorHandler');

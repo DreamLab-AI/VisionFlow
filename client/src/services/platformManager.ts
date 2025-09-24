@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 import { XRSessionState } from '../features/xr/types/xr';
 
 const logger = createLogger('PlatformManager');

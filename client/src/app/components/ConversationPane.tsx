@@ -6,7 +6,7 @@ import Send from 'lucide-react/dist/esm/icons/send';
 import { apiService } from '@/services/apiService';
 import { useSettingsStore } from '@/store/settingsStore'; // For auth check
 import { nostrAuth } from '@/services/nostrAuthService'; // For getting token
-import { createLogger, createErrorMetadata } from '@/utils/logger';
+import { createLogger, createErrorMetadata } from '@/utils/loggerConfig';
 import MarkdownRenderer from '@/features/design-system/patterns/MarkdownRenderer'; // For rendering bot responses
 import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '@/types/ragflowTypes'; // Import DTOs
 // import { shallow } from 'zustand/shallow'; // Not needed for this approach

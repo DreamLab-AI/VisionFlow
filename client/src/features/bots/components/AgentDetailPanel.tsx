@@ -5,7 +5,7 @@ import { Select } from '../../design-system/components/Select';
 import { Button } from '../../design-system/components/Button';
 import { Input } from '../../design-system/components/Input';
 import type { BotsAgent } from '../types/BotsTypes';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../utils/loggerConfig';
 import { apiService } from '../../../services/apiService';
 
 const logger = createLogger('AgentDetailPanel');

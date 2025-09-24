@@ -3,7 +3,7 @@
  * Uses localStorage only - no backend synchronization
  */
 
-import { createLogger } from './logger';
+import { createLogger } from './loggerConfig';
 
 const logger = createLogger('ClientDebugState');
 

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { webSocketService, WebSocketErrorFrame } from '../services/WebSocketService';
 import { useErrorHandler } from './useErrorHandler';
 import { useSettingsStore } from '../store/settingsStore';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('WebSocketErrorHandler');
 

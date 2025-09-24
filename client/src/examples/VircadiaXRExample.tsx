@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import VircadiaScene from '../components/VircadiaScene'
 import { useSettingsStore } from '../store/settingsStore'
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/loggerConfig'
 
 const logger = createLogger('VircadiaXRExample')
 
