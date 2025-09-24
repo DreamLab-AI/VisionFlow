@@ -472,3 +472,103 @@ The MCP TCP server needs fundamental redesign:
 4. Add state persistence between connections
 
 Until this is fixed, the multi-agent system cannot function as intended for coordinated task execution.
+
+### Hive-Mind Alternative Approach (2025-09-24 14:47)
+Tested using `claude-flow hive-mind` system as an alternative to MCP:
+- Successfully spawns persistent swarms with Queen and Worker agents
+- Maintains state across sessions (unlike MCP TCP server)
+- Has proper task orchestration capabilities
+- **BUT**: Tasks are created but not executed
+
+Issues discovered:
+1. Hive-mind creates swarms and tasks but no actual execution happens
+2. Worker agents exist but don't execute terminal commands
+3. The `terminal_execute` implementation works but isn't being called by agents
+4. No integration between hive-mind agents and the MCP tool execution layer
+
+The hive-mind system shows promise but needs:
+- Integration between worker agents and terminal_execute
+- Automatic task routing to appropriate workers
+- Execution feedback loop to update task status
+
+
+this is how we should launch claude-flow hive-mind which in theory we can monitor using the same tools
+
+ claude-flow hive-mind
+
+🧠 Claude Flow Hive Mind System
+
+USAGE:
+  claude-flow hive-mind [subcommand] [options]
+
+SUBCOMMANDS:
+  init         Initialize hive mind system
+  spawn        Spawn hive mind swarm for a task
+  status       Show hive mind status
+  resume       Resume a paused hive mind session
+  stop         Stop a running hive mind session
+  sessions     List all hive mind sessions
+  consensus    View consensus decisions
+  memory       Manage collective memory
+  metrics      View performance metrics
+  wizard       Interactive hive mind wizard
+
+EXAMPLES:
+  # Initialize hive mind
+  claude-flow hive-mind init
+
+  # Spawn swarm with interactive wizard
+  claude-flow hive-mind spawn
+
+  # Quick spawn with objective
+  claude-flow hive-mind spawn "Build microservices architecture"
+
+  # View current status
+  claude-flow hive-mind status
+
+  # Interactive wizard
+  claude-flow hive-mind wizard
+
+  # Spawn with Claude Code coordination
+  claude-flow hive-mind spawn "Build REST API" --claude
+
+  # Auto-spawn coordinated Claude Code instances
+  claude-flow hive-mind spawn "Research AI trends" --auto-spawn --verbose
+
+  # List all sessions
+  claude-flow hive-mind sessions
+
+  # Resume a paused session
+  claude-flow hive-mind resume session-1234567890-abc123
+
+KEY FEATURES:
+  🐝 Queen-led coordination with worker specialization
+  🧠 Collective memory and knowledge sharing
+  🤝 Consensus building for critical decisions
+  ⚡ Parallel task execution with auto-scaling
+  🔄 Work stealing and load balancing
+  📊 Real-time metrics and performance tracking
+  🛡️ Fault tolerance and self-healing
+  🔒 Secure communication between agents
+
+OPTIONS:
+  --queen-type <type>    Queen coordinator type (strategic, tactical, adaptive)
+  --max-workers <n>      Maximum worker agents (default: 8)
+  --consensus <type>     Consensus algorithm (majority, weighted, byzantine)
+  --memory-size <mb>     Collective memory size in MB (default: 100)
+  --auto-scale           Enable auto-scaling based on workload
+  --encryption           Enable encrypted communication
+  --monitor              Real-time monitoring dashboard
+  --verbose              Detailed logging
+  --claude               Generate Claude Code spawn commands with coordination
+  --spawn                Alias for --claude
+  --auto-spawn           Automatically spawn Claude Code instances
+  --execute              Execute Claude Code spawn commands immediately
+
+For more information:
+https://github.com/ruvnet/claude-flow/tree/main/docs/hive-mind
+
+so we should use terminal exec
+claude-flow hive-mind spawn "task from the client passed through" --claude
+
+and then use the monitoring tools in the same way. The isolation of the processes might mean the problem needs a new architechture but it's possible this is enough.
