@@ -21,9 +21,9 @@
     "start-playwright-proxy": "node /app/core-assets/scripts/playwright-mcp-proxy.js",
     "health-check": "node /app/core-assets/scripts/health-check.js",
     "init-agents": "bash /app/core-assets/scripts/init-claude-flow-agents.sh",
-    "goal-init": "npx claude-flow@alpha goal init --force",
-    "neural-init": "npx claude-flow@alpha neural init --force",
-    "cf-status": "npx claude-flow@alpha status"
+    "goal-init": "claude-flow goal init --force",
+    "neural-init": "claude-flow neural init --force",
+    "cf-status": "claude-flow status"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -30,7 +30,7 @@ echo "   - Applies GOAP with A* pathfinding"
 echo "   - Calculates optimal action sequences"
 echo "   - Adapts dynamically to changing conditions"
 
-npx claude-flow@alpha goal init --force || {
+claude-flow goal init --force || {
     echo "⚠️  Goal Planner may already be initialized"
 }
 
@@ -41,7 +41,7 @@ echo "   - Four-tier memory architecture"
 echo "   - Pattern recognition and learning"
 echo "   - Persistent knowledge accumulation"
 
-npx claude-flow@alpha neural init --force || {
+claude-flow neural init --force || {
     echo "⚠️  SAFLA Neural may already be initialized"
 }
 
@@ -107,7 +107,7 @@ EOF
 # Verify installation
 echo ""
 echo "✅ Checking agent status..."
-npx claude-flow@alpha status || {
+claude-flow status || {
     echo "⚠️  Could not verify agent status"
 }
 
@@ -120,7 +120,7 @@ cat > /workspace/.claude-flow-helpers.sh << 'EOF'
 cf_plan_deployment() {
     local project="${1:-current}"
     echo "Planning deployment for $project..."
-    npx claude-flow@alpha goal plan \
+    claude-flow goal plan \
         --config .claude-flow-goal-example.yaml \
         --project "$project"
 }
@@ -129,7 +129,7 @@ cf_plan_deployment() {
 cf_learn_project() {
     local context="${1:-.}"
     echo "Starting learning session for $context..."
-    npx claude-flow@alpha neural learn \
+    claude-flow neural learn \
         --config .claude-flow-neural-example.json \
         --context "$context"
 }
@@ -138,16 +138,16 @@ cf_learn_project() {
 cf_recall() {
     local query="$1"
     echo "Querying neural memory: $query"
-    npx claude-flow@alpha neural recall --query "$query"
+    claude-flow neural recall --query "$query"
 }
 
 # Show agent capabilities
 cf_capabilities() {
     echo "=== Goal Planner Capabilities ==="
-    npx claude-flow@alpha goal capabilities
+    claude-flow goal capabilities
     echo ""
     echo "=== Neural Agent Capabilities ==="
-    npx claude-flow@alpha neural capabilities
+    claude-flow neural capabilities
 }
 
 echo "Claude-Flow v110 helpers loaded. Available commands:"

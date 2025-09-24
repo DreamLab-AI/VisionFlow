@@ -351,10 +351,10 @@ alias mcp-ws-logs='tail -f /app/mcp-logs/mcp-ws-bridge.log'
 alias dsp='claude --dangerously-skip-permissions'
 
 # Claude-Flow v110 Agent Commands
-alias claude-flow-init-agents='echo "Initializing Goal Planner..." && npx claude-flow@alpha goal init --force && echo "Initializing Neural Agent..." && npx claude-flow@alpha neural init --force'
-alias cf-goal='npx claude-flow@alpha goal'
-alias cf-neural='npx claude-flow@alpha neural'
-alias cf-status='npx claude-flow@alpha status'
+alias claude-flow-init-agents='echo "Initializing Goal Planner..." && claude-flow goal init --force && echo "Initializing Neural Agent..." && claude-flow neural init --force'
+alias cf-goal='claude-flow goal'
+alias cf-neural='claude-flow neural'
+alias cf-status='claude-flow status'
 alias cf-logs='tail -f /app/mcp-logs/mcp-tcp-server.log | grep -i claude-flow'
 alias cf-tcp-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status claude-flow-tcp'
 alias cf-tcp-logs='tail -f /app/mcp-logs/claude-flow-tcp.log'
@@ -583,12 +583,12 @@ fi
 patch_mcp_server() {
     log_info "🔧 Patching MCP server to fix version, method routing, and agent tracking..."
 
-    # First try global installation, then npm cache
-    local mcp_server_path="/usr/lib/node_modules/claude-flow/src/mcp/mcp-server.js"
+    # Check the node_modules installation
+    local mcp_server_path="/app/node_modules/claude-flow/src/mcp/mcp-server.js"
     
     if [ ! -f "$mcp_server_path" ]; then
-        log_info "Global installation not found, checking npm cache..."
-        mcp_server_path=$(find /home/ubuntu/.npm/_npx -name "mcp-server.js" -path "*/claude-flow/src/mcp/*" 2>/dev/null | head -1)
+        log_info "Node modules installation not found, checking for global installation..."
+        mcp_server_path="/usr/lib/node_modules/claude-flow/src/mcp/mcp-server.js"
     fi
 
     if [ -z "$mcp_server_path" ] || [ ! -f "$mcp_server_path" ]; then
@@ -761,6 +761,97 @@ AGENT_PATCH_EOF
         rm -f /tmp/agent_list_patch.js
     else
         log_info "Agent tracking patch already applied or not needed"
+    fi
+
+    # Patch 4: Implement terminal_execute to actually run commands
+    if ! grep -q "PATCHED: terminal_execute implementation" "$mcp_server_path"; then
+        log_info "Patching terminal_execute to actually execute commands..."
+        
+        # Use a more targeted approach - find the line number of the default case in executeTool
+        local default_line=$(awk '/async executeTool\(name, args\) {/,/^  \}$/ {if (/^      default:$/) print NR}' "$mcp_server_path" | tail -1)
+        
+        if [ -n "$default_line" ]; then
+            log_info "Found default case at line $default_line"
+            
+            # Create the terminal_execute implementation
+            cat > /tmp/terminal_execute_impl.txt << 'EOF'
+      case 'terminal_execute':
+        // PATCHED: terminal_execute implementation
+        console.error(
+          `[${new Date().toISOString()}] INFO [claude-flow-mcp] Executing command: ${args.command} ${(args.args || []).join(' ')}`
+        );
+        
+        try {
+          const { exec } = await import('child_process');
+          const { promisify } = await import('util');
+          const execAsync = promisify(exec);
+          
+          const command = args.command;
+          const commandArgs = args.args || [];
+          const fullCommand = commandArgs.length > 0 ? `${command} ${commandArgs.join(' ')}` : command;
+          
+          const options = {
+            cwd: process.env.CLAUDE_PROJECT_ROOT || '/workspace',
+            env: {
+              ...process.env,
+              PATH: '/home/dev/.local/bin:/opt/venv312/bin:/home/dev/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+              HOME: '/home/dev',
+              USER: 'dev'
+            },
+            shell: true,
+            maxBuffer: 1024 * 1024 * 10 // 10MB buffer
+          };
+          
+          try {
+            const { stdout, stderr } = await execAsync(fullCommand, options);
+            return {
+              success: true,
+              tool: 'terminal_execute',
+              command: command,
+              args: commandArgs,
+              stdout: stdout || '',
+              stderr: stderr || '',
+              exitCode: 0,
+              timestamp: new Date().toISOString()
+            };
+          } catch (error) {
+            return {
+              success: false,
+              tool: 'terminal_execute',
+              command: command,
+              args: commandArgs,
+              stdout: error.stdout || '',
+              stderr: error.stderr || error.message,
+              exitCode: error.code || 1,
+              error: error.message,
+              timestamp: new Date().toISOString()
+            };
+          }
+        } catch (error) {
+          console.error(
+            `[${new Date().toISOString()}] ERROR [claude-flow-mcp] terminal_execute failed:`,
+            error
+          );
+          return {
+            success: false,
+            tool: 'terminal_execute',
+            error: error.message,
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+EOF
+
+            # Insert the implementation before the default case
+            sed -i.bak "${default_line}r /tmp/terminal_execute_impl.txt" "$mcp_server_path"
+            rm -f /tmp/terminal_execute_impl.txt
+            
+            log_success "Patched terminal_execute implementation"
+        else
+            log_error "Could not find default case in executeTool function"
+        fi
+    else
+        log_info "terminal_execute patch already applied"
     fi
 
     log_info "Patches applied. Restart services with 'mcp-tcp-restart' or by restarting the container if needed."
@@ -978,8 +1069,8 @@ verify_claude_flow_service() {
     log_info "It will start automatically when Claude accesses it"
     
     # Check if we can verify the installation
-    if npx claude-flow@alpha --version >/dev/null 2>&1; then
-        local version=$(npx claude-flow@alpha --version 2>/dev/null || echo "unknown")
+    if claude-flow --version >/dev/null 2>&1; then
+        local version=$(claude-flow --version 2>/dev/null || echo "unknown")
         log_success "Claude-Flow version: $version"
     fi
     

@@ -36,19 +36,30 @@ class PersistentMCPServer {
     this.log('info', 'Starting persistent MCP process...');
     
     // Check if we should use the generic relay mode
-    const mcpCommand = process.env.MCP_TCP_COMMAND || '/usr/bin/claude-flow';
+    const mcpCommand = process.env.MCP_TCP_COMMAND || '/app/node_modules/.bin/claude-flow';
     const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['mcp', 'start'];
     
     this.log('info', `Starting MCP: ${mcpCommand} ${mcpArgs.join(' ')}`);
     
+    // Merge with dev user's environment to ensure proper access to tools
+    const devEnv = {
+      ...process.env,
+      HOME: '/home/dev',
+      USER: 'dev',
+      PATH: `/home/dev/.local/bin:/opt/venv312/bin:/home/dev/.cargo/bin:/home/dev/.deno/bin:/app/core-assets/scripts:/app/core-assets/mcp-tools:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin`,
+      CLAUDE_FLOW_DIRECT_MODE: 'true',
+      CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/memory.db',
+      // Ensure access to Claude configuration
+      CLAUDE_CONFIG_DIR: '/home/dev/.claude',
+      CLAUDE_PROJECT_ROOT: '/workspace'
+    };
+    
     this.mcpProcess = spawn(mcpCommand, mcpArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: '/workspace',
-      env: {
-          ...process.env,
-          CLAUDE_FLOW_DIRECT_MODE: 'true',
-          CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/memory.db'
-      }
+      env: devEnv,
+      uid: process.getuid(), // Run as same user
+      gid: process.getgid()
     });
 
     this.mcpInterface = readline.createInterface({
