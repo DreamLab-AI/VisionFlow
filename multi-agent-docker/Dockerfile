@@ -187,6 +187,13 @@ RUN if [ -f /home/dev/.local/bin/claude ]; then ln -s /home/dev/.local/bin/claud
 RUN chown -R dev:dev "$(npm config get prefix)/lib/node_modules" && \
     chown -R dev:dev "$(npm config get prefix)/bin" || true
 
+# Install Rust as the dev user
+USER dev
+WORKDIR /home/dev
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/dev/.cargo/bin:${PATH}"
+USER root
+
 # ---------- Install Python ML & AI libraries into the 3.12 venv ----------
 # Copy requirements file and install dependencies to leverage Docker layer caching.
 # Note: PyTorch is installed separately to ensure the correct CUDA-enabled version is used.
