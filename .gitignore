@@ -11,6 +11,7 @@ claude-flow
 .roomodes
 CLAUDE.md
 workspace
+client/src/vircadia
 
 # Dependencies
 node_modules
