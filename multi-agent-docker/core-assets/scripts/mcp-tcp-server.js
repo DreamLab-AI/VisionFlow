@@ -36,8 +36,8 @@ class PersistentMCPServer {
     this.log('info', 'Starting persistent MCP process...');
     
     // Check if we should use the generic relay mode
-    const mcpCommand = process.env.MCP_TCP_COMMAND || 'npx';
-    const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['claude-flow@alpha', 'mcp', 'start'];
+    const mcpCommand = process.env.MCP_TCP_COMMAND || '/usr/bin/claude-flow';
+    const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['mcp', 'start'];
     
     this.log('info', `Starting MCP: ${mcpCommand} ${mcpArgs.join(' ')}`);
     
