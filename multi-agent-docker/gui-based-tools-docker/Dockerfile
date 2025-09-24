@@ -25,9 +25,9 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 18+ (required for Playwright - needs modern JS syntax support)
+# Install Node.js 22+ for modern JS syntax and module support
 # Using NodeSource repository for consistent version across Ubuntu releases
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     node --version && npm --version && \
     apt-get clean && \
@@ -126,8 +126,11 @@ RUN /home/blender/.local/bin/uv pip install --system -r /opt/tessellating-pbr-ge
 # Install Playwright and MCP server globally
 RUN npm install -g playwright@latest @executeautomation/playwright-mcp-server@latest
 
-# Install Chromium and Chrome DevTools MCP
-RUN apt-get update && apt-get install -y chromium-browser && \
+# Install Google Chrome and Chrome DevTools MCP
+RUN apt-get update && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb && \
     npm install -g chrome-devtools-mcp && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

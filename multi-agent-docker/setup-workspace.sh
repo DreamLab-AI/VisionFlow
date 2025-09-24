@@ -309,54 +309,7 @@ EOF
 add_mcp_aliases
 
 # 5. Validate and fix Rust toolchain availability
-validate_rust_toolchain() {
-    log_info "🦀 Validating Rust toolchain availability..."
-
-    log_info_def=$(declare -f log_info)
-    log_success_def=$(declare -f log_success)
-    log_warning_def=$(declare -f log_warning)
-
-    sudo -u dev bash -c "
-        ${log_info_def}
-        ${log_success_def}
-        ${log_warning_def}
-
-        source /etc/profile.d/multi-agent-paths.sh 2>/dev/null || true
-        if [ -f \"\$HOME/.cargo/env\" ]; then source \"\$HOME/.cargo/env\"; fi
-
-        if ! command -v rustup >/dev/null 2>&1; then
-            log_warning \"Rustup not found, installing Rust toolchain...\"
-            if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; then
-                source \"\$HOME/.cargo/env\"
-                log_success \"Rust toolchain installed.\"
-            else
-                log_warning \"Failed to install Rust toolchain\"
-                return 1
-            fi
-        fi
-
-        # Set default toolchain if not set
-        if ! rustup default >/dev/null 2>&1; then
-            log_info \"Setting default Rust toolchain to stable...\"
-            rustup default stable
-            log_success \"Default toolchain set to stable\"
-        fi
-
-        # Verify installation
-        if command -v rustc >/dev/null 2>&1 && command -v cargo >/dev/null 2>&1; then
-            log_success \"Rustc: \$(rustc --version 2>/dev/null || echo 'version unavailable')\"
-            log_success \"Cargo: \$(cargo --version 2>/dev/null || echo 'version unavailable')\"
-        else
-            log_warning \"Rust toolchain verification failed\"
-        fi
-    "
-}
-
-if [ "$DRY_RUN" = false ]; then
-    validate_rust_toolchain
-else
-    dry_run_log "Would validate Rust toolchain"
-fi
+# This is now handled in the Dockerfile
 
 # 6. Update CLAUDE.md with service and context info
 update_claude_md() {
