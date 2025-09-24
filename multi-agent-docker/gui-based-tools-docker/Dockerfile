@@ -78,6 +78,13 @@ RUN cd /opt && \
 # Create a non-root user for security
 RUN useradd -ms /bin/bash blender
 
+# Add sudo access for the blender user
+RUN apt-get update && apt-get install -y sudo && \
+    adduser blender sudo && \
+    echo "blender ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create directories for Blender as root (use version-agnostic approach)
 RUN mkdir -p /home/blender/.config/blender
 
@@ -119,6 +126,12 @@ RUN /home/blender/.local/bin/uv pip install --system -r /opt/tessellating-pbr-ge
 # Install Playwright and MCP server globally
 RUN npm install -g playwright@latest @executeautomation/playwright-mcp-server@latest
 
+# Install Chromium and Chrome DevTools MCP
+RUN apt-get update && apt-get install -y chromium-browser && \
+    npm install -g chrome-devtools-mcp && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Set Playwright browser path
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
 
@@ -144,6 +157,9 @@ ENV PATH="/opt/blender-4.5/blender:/home/blender/.cargo/bin:${PATH}"
 
 # Expose the VNC port
 EXPOSE 5901
+
+# Expose the Chrome DevTools MCP port
+EXPOSE 9222
 
 # Set the entrypoint to the startup script
 ENTRYPOINT ["/home/blender/startup.sh"]

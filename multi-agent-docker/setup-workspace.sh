@@ -391,6 +391,8 @@ This environment is enhanced with several services and a specific development wo
 - **WebSocket Bridge**: `localhost:3002` for browser-based tools.
 - **Health Check**: `localhost:9501/health` for service monitoring.
 - **GUI Tools**: via `gui-tools-service` (Blender:9876, QGIS:9877, PBR:9878).
+- **Playwright**: via `playwright` (Proxy: 9879).
+- **Chrome DevTools**: via `chrome-devtools-mcp` (Proxy: 9222).
 
 ### Claude-Flow v110 Features
 This environment includes Claude-Flow v110 with advanced AI capabilities:
@@ -430,6 +432,19 @@ Powerful browser automation with visual debugging through the GUI container:
 - **Element interaction**: Forms, buttons, dropdowns with visual feedback
 - **Script evaluation**: Execute JavaScript and see results
 - **Session management**: Persistent browser contexts across tests
+
+### 🕵️ Chrome DevTools MCP Integration (Visual Mode)
+Inspect and debug web pages with the Chrome DevTools Protocol:
+
+#### Features
+- **Live DOM inspection**: View and modify the DOM in real-time.
+- **JavaScript debugging**: Set breakpoints, step through code, and inspect variables.
+- **Network monitoring**: Analyze network requests and performance.
+- **Performance profiling**: Identify and fix performance bottlenecks.
+
+#### MCP Server Access
+- **Proxy connection**: Seamless integration from the main container.
+- **Direct protocol access**: Send raw Chrome DevTools Protocol commands.
 
 ### Development Context
 - **Project Root**: Your project is mounted at `ext/`.
@@ -868,7 +883,34 @@ verify_playwright_proxy() {
     fi
 }
 
-# 11. Verify Claude-Flow MCP Service
+# 11. Verify Chrome DevTools MCP Proxy
+verify_chrome_devtools_proxy() {
+    log_info "🔍 Verifying Chrome DevTools MCP Proxy connection..."
+    
+    if [ "$DRY_RUN" = true ]; then
+        dry_run_log "Would verify Chrome DevTools MCP Proxy"
+        return 0
+    fi
+    
+    # Check if proxy is running
+    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status chrome-devtools-mcp-proxy 2>/dev/null | grep -q RUNNING; then
+        log_success "Chrome DevTools MCP Proxy is running"
+        
+        # Test proxy health endpoint
+        if curl -sf http://127.0.0.1:9222 >/dev/null 2>&1; then
+            log_success "Chrome DevTools proxy is healthy and connected to GUI container"
+            log_info "Access browser automation via VNC on port 5901"
+        else
+            log_warning "Chrome DevTools proxy is running but GUI container may not be accessible"
+            log_info "Ensure the GUI container is running: docker-compose ps gui-tools-service"
+        fi
+    else
+        log_warning "Chrome DevTools MCP Proxy is not running"
+        log_info "Start it with: supervisorctl start chrome-devtools-mcp-proxy"
+    fi
+}
+
+# 12. Verify Claude-Flow MCP Service
 verify_claude_flow_service() {
     log_info "🤖 Verifying Claude-Flow MCP service..."
     
@@ -992,6 +1034,7 @@ if [ "$DRY_RUN" = false ]; then
     verify_services_startup
     verify_agent_tracking
     verify_playwright_proxy
+    verify_chrome_devtools_proxy
     verify_claude_flow_service
 fi
 

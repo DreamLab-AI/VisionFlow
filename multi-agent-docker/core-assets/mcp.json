@@ -48,6 +48,15 @@
         "PLAYWRIGHT_PROXY_HOST": "127.0.0.1",
         "PLAYWRIGHT_PROXY_PORT": "9879"
       }
+    },
+    "chrome-devtools-mcp": {
+      "command": "node",
+      "args": ["./scripts/chrome-devtools-mcp-client.js"],
+      "type": "stdio",
+      "env": {
+        "CHROME_DEVTOOLS_PROXY_HOST": "127.0.0.1",
+        "CHROME_DEVTOOLS_PROXY_PORT": "9222"
+      }
     }
   }
 }
