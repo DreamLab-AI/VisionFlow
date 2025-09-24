@@ -249,9 +249,62 @@ grep -r "mcp-status" /mnt/mldata/githubs/AR-AI-Knowledge-Graph/src/
 8. ✅ MCP TCP client verified (already using correct `tools/call` format)
 9. ✅ Rust code compilation verified with `cargo check`
 10. ✅ Hive mind swarm deployed to coordinate fixes
+11. ✅ Fixed "body stream already read" error in apiService.ts
+12. ✅ Fixed API endpoint mismatch (/bots/initialize-multi-agent → /bots/initialize-swarm)
 
 ### All Issues Resolved
 - Multi-agent container connection working
 - MCP TCP server responding correctly
 - Client UI connecting to correct endpoints
 - MCP protocol compliance verified
+- Client-side API error handling fixed
+- Hive mind spawn endpoint corrected
+
+### Latest Fixes (2025-09-24 12:55)
+- **apiService.ts**: Fixed response body stream error by removing duplicate `response.text()` call after `response.json()`
+- **MultiAgentInitializationPrompt.tsx**: Updated API endpoint from `/bots/initialize-multi-agent` to `/bots/initialize-swarm` to match server route
+
+### MCP Server Status (2025-09-24 13:00)
+- **MCP TCP Server**: Running on port 9500 ✓
+- **WebSocket Bridge**: Running on port 3002 ✓
+- **Task Submission**: Confirmed working with test task
+- **Task ID Format**: `task_[timestamp]_[random]` (e.g., task_1758718778897_xtbo2y3ei)
+- **Swarm Status**: Active with ID `swarm_1758717360460_2w0daysss`
+- **Connection**: All components verified and operational
+
+## Issue 4: Mock Agents Appearing in UI (RESOLVED)
+
+### Problem (2025-09-24 13:10)
+The UI shows mock agents (coordinator-1, researcher-1, coder-1) instead of real agents spawned by the MCP server. Investigation revealed:
+- The MCP TCP server was spawning new `npx claude-flow@alpha` processes on each connection
+- Each npx invocation downloads and installs a fresh, unpatched version of claude-flow
+- The unpatched version contains hardcoded mock agents in the `agent_list` response
+- Multiple MCP server processes were running simultaneously
+
+### Root Cause
+The file `/app/core-assets/scripts/mcp-tcp-server.js` in the container was using:
+```javascript
+const mcpCommand = process.env.MCP_TCP_COMMAND || 'npx';
+const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['claude-flow@alpha', 'mcp', 'start'];
+```
+
+This caused every external connection to download a new unpatched claude-flow package.
+
+### Solution
+Updated `multi-agent-docker/core-assets/scripts/mcp-tcp-server.js` to use the global patched installation:
+```javascript
+const mcpCommand = process.env.MCP_TCP_COMMAND || '/usr/bin/claude-flow';
+const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['mcp', 'start'];
+```
+
+This ensures:
+- The patched global installation is used instead of downloading via npx
+- No mock agents in the response
+- Consistent behavior across all connections
+- Proper agent tracking and real agent data
+
+### Verification Steps
+1. Copy updated mcp-tcp-server.js to container
+2. Restart mcp-core:mcp-tcp-server via supervisorctl
+3. Test agent_list returns real agents, not mock ones
+4. Verify UI shows actual spawned agents

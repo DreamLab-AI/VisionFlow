@@ -113,9 +113,9 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
       logger.info('Spawning hive mind with config:', config);
 
       // Call API to initialize multi-agent
-      const fullUrl = `${apiService.getBaseUrl()}/bots/initialize-multi-agent`;
+      const fullUrl = `${apiService.getBaseUrl()}/bots/initialize-swarm`;
       logger.info('Calling API endpoint:', fullUrl);
-      const response = await apiService.post('/bots/initialize-multi-agent', config);
+      const response = await apiService.post('/bots/initialize-swarm', config);
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);

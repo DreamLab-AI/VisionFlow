@@ -116,8 +116,14 @@ class ApiService {
             requestPayload: data
           });
         } catch (e) {
-          // Response might not be JSON
-          errorDetails = await response.text();
+          // Response body couldn't be parsed as JSON or was already read
+          errorDetails = `Unable to parse error response`;
+          logger.error(`[API ERROR] POST ${url} failed:`, {
+            status: response.status,
+            statusText: response.statusText,
+            parseError: e,
+            requestPayload: data
+          });
         }
         throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Details: ${errorDetails}`);
       }
