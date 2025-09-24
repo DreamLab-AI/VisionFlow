@@ -6,7 +6,8 @@
 # - Argument parsing for --dry-run, --force, --quiet
 # - Additive merging of .mcp.json configurations
 # - Unified toolchain PATH setup (/etc/profile.d)
-# - Rust toolchain validation and repair
+# - Security token validation
+# - Claude authentication verification
 # - Supervisorctl-based aliases for service management
 # - Appends a compact, informative context section to CLAUDE.md
 
@@ -103,6 +104,105 @@ if [ -f "/home/ubuntu/.local/bin/claude" ] && [ ! -f "/usr/local/bin/claude" ]; 
         log_success "Created global claude symlink"
     fi
 fi
+
+# --- Security Token Validation ---
+check_security_tokens() {
+    log_info "🔒 Checking security configuration..."
+    
+    # Check if security tokens are set
+    if [ -z "$WS_AUTH_TOKEN" ] || [ "$WS_AUTH_TOKEN" = "your-secure-websocket-token-change-me" ]; then
+        log_warning "Default WebSocket auth token detected. Please update WS_AUTH_TOKEN in .env"
+    fi
+    
+    if [ -z "$TCP_AUTH_TOKEN" ] || [ "$TCP_AUTH_TOKEN" = "your-secure-tcp-token-change-me" ]; then
+        log_warning "Default TCP auth token detected. Please update TCP_AUTH_TOKEN in .env"
+    fi
+    
+    if [ -z "$JWT_SECRET" ] || [ "$JWT_SECRET" = "your-super-secret-jwt-key-minimum-32-chars" ]; then
+        log_warning "Default JWT secret detected. Please update JWT_SECRET in .env"
+    fi
+}
+
+# --- Claude Authentication Check ---
+check_claude_auth() {
+    log_info "🤖 Checking Claude authentication..."
+    
+    if [ -d /home/dev/.claude ] && [ -r /home/dev/.claude/.credentials.json ]; then
+        log_success "Claude configuration directory mounted from host"
+        
+        # Create symlink for ubuntu home if needed
+        if [ ! -e /home/ubuntu/.claude ]; then
+            ln -s /home/dev/.claude /home/ubuntu/.claude 2>/dev/null || true
+        fi
+        
+        # Check if .claude.json exists at home level
+        if [ -r /home/dev/.claude.json ]; then
+            log_success "Claude JSON config file mounted"
+            if [ ! -e /home/ubuntu/.claude.json ]; then
+                ln -s /home/dev/.claude.json /home/ubuntu/.claude.json 2>/dev/null || true
+            fi
+        fi
+        
+        # If CLAUDE_CODE_OAUTH_TOKEN is set, it will be used automatically
+        if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            log_success "Claude OAuth token also provided via environment"
+        fi
+    elif [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+        log_success "Claude OAuth token provided via environment"
+    elif [ -n "$ANTHROPIC_API_KEY" ]; then
+        log_success "Anthropic API key provided via environment"
+    else
+        log_warning "No Claude authentication detected. Run 'claude login' on your host machine to authenticate."
+        log_info "    The host ~/.claude directory will be mounted to the container."
+    fi
+}
+
+# --- Multi-Agent Helper Script ---
+create_multi_agent_helper() {
+    if [ ! -f /usr/local/bin/multi-agent ]; then
+        if dry_run_log "Would create multi-agent helper script"; then return 0; fi
+        
+        cat > /usr/local/bin/multi-agent << 'EOF'
+#!/bin/bash
+# Multi-agent workspace helper
+
+case "$1" in
+    status)
+        /app/core-assets/scripts/check-setup-status.sh
+        ;;
+    logs)
+        tail -f /app/mcp-logs/automated-setup.log
+        ;;
+    health)
+        /app/core-assets/scripts/health-check.sh
+        ;;
+    services)
+        supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status
+        ;;
+    restart)
+        supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart all
+        ;;
+    test-mcp)
+        echo '{"jsonrpc":"2.0","id":"test","method":"tools/list","params":{}}' | nc localhost 9500
+        ;;
+    *)
+        echo "Multi-Agent Docker Helper"
+        echo "Usage: multi-agent [command]"
+        echo ""
+        echo "Commands:"
+        echo "  status    - Check setup and service status"
+        echo "  logs      - View automated setup logs"
+        echo "  health    - Run health check"
+        echo "  services  - Show supervisor service status"
+        echo "  restart   - Restart all services"
+        echo "  test-mcp  - Test MCP TCP connection"
+        ;;
+esac
+EOF
+        chmod +x /usr/local/bin/multi-agent
+        log_success "Created multi-agent command"
+    fi
+}
 
 # --- Helper Functions for File Operations ---
 copy_if_missing() {
@@ -251,7 +351,7 @@ alias mcp-ws-logs='tail -f /app/mcp-logs/mcp-ws-bridge.log'
 alias dsp='claude --dangerously-skip-permissions'
 
 # Claude-Flow v110 Agent Commands
-alias claude-flow-init-agents='echo "Initializing Goal Planner..." && timeout 30 npx claude-flow@alpha goal init --force && echo "Initializing Neural Agent..." && timeout 30 npx claude-flow@alpha neural init --force'
+alias claude-flow-init-agents='echo "Initializing Goal Planner..." && npx claude-flow@alpha goal init --force && echo "Initializing Neural Agent..." && npx claude-flow@alpha neural init --force'
 alias cf-goal='npx claude-flow@alpha goal'
 alias cf-neural='npx claude-flow@alpha neural'
 alias cf-status='npx claude-flow@alpha status'
@@ -293,7 +393,7 @@ validate-toolchains() {
     printf "JQ: "
     if command -v jq >/dev/null; then jq --version; else echo "Not found"; fi
     printf "Playwright: "
-    if command -v npx >/dev/null && npx playwright --version >/dev/null 2>&1; then npx playwright --version; else echo "Not found"; fi
+    if command -v playwright >/dev/null 2>&1; then playwright --version; else echo "Not found"; fi
 }
 
 # Load Playwright helpers if available
@@ -663,17 +763,7 @@ AGENT_PATCH_EOF
         log_info "Agent tracking patch already applied or not needed"
     fi
 
-    # Restart MCP TCP server to apply patches
-    if command -v supervisorctl >/dev/null 2>&1; then
-        log_info "Restarting MCP TCP server to apply patches..."
-        supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart mcp-tcp-server 2>/dev/null || {
-            # Try killing the process directly if supervisorctl fails
-            local mcp_pid=$(pgrep -f "mcp-tcp-server.js" | head -1)
-            if [ -n "$mcp_pid" ]; then
-                kill -HUP "$mcp_pid" 2>/dev/null && log_success "Sent reload signal to MCP server (PID: $mcp_pid)"
-            fi
-        }
-    fi
+    log_info "Patches applied. Restart services with 'mcp-tcp-restart' or by restarting the container if needed."
 }
 
 if [ "$DRY_RUN" = false ]; then
@@ -901,8 +991,8 @@ verify_claude_flow_service() {
     
     log_info "To initialize agents after Claude-Flow MCP server starts:"
     log_info "  - In Claude: Use the mcp__claude-flow__goal_init tool"
-    log_info "  - CLI: npx claude-flow@alpha goal init"
-    log_info "  - For neural: npx claude-flow@alpha neural init"
+    log_info "  - CLI: claude-flow goal init"
+    log_info "  - For neural: claude-flow neural init"
     
     # Check if initialization files exist
     if [ -f /workspace/.hive-mind/config.json ] || [ -f /workspace/.swarm/memory.db ]; then
@@ -914,73 +1004,64 @@ verify_claude_flow_service() {
 
 # --- Service Startup Verification ---
 verify_services_startup() {
-    log_info "🚀 Verifying MCP services startup..."
+    log_info "🚀 Verifying MCP services status..."
     
     if [ "$DRY_RUN" = true ]; then
-        dry_run_log "Would verify services startup"
+        dry_run_log "Would verify services status"
         return 0
     fi
     
-    # Restart supervisor services to apply all changes
-    log_info "Restarting MCP services..."
-    supervisorctl -c /etc/supervisor/conf.d/supervisord.conf restart mcp-core:* 2>/dev/null || {
-        log_warning "Could not restart services via supervisor, attempting manual start..."
-        
-        # Kill any existing processes
-        pkill -f "mcp-tcp-server.js" 2>/dev/null || true
-        pkill -f "mcp-ws-relay.js" 2>/dev/null || true
-        
-        # Wait for processes to die
-        sleep 2
-        
-        # Start services manually if supervisor fails
-        cd /workspace
-        nohup node /workspace/scripts/mcp-tcp-server.js > /app/mcp-logs/mcp-tcp-server.log 2>&1 &
-        nohup node /workspace/scripts/mcp-ws-relay.js > /app/mcp-logs/mcp-ws-bridge.log 2>&1 &
-        
-        log_info "Started services manually"
-    }
+    # Just check if services are running, don't try to start them
+    log_info "Checking MCP services..."
     
-    # Wait for services to be ready
-    log_info "Waiting for services to be ready..."
-    local max_attempts=10
-    local attempt=1
+    # Check if TCP server is responding
+    if echo '{"jsonrpc":"2.0","id":"health","method":"health","params":{}}' | nc -w 2 localhost 9500 2>/dev/null | grep -q "jsonrpc"; then
+        log_success "✅ MCP TCP server is responding!"
+    else
+        log_warning "⚠️  MCP TCP server not responding on port 9500"
+        log_info "Services will be started by supervisord. Check with 'supervisorctl status'"
+    fi
     
-    while [ $attempt -le $max_attempts ]; do
-        # Check if TCP server is responding
-        if echo '{"jsonrpc":"2.0","id":"health","method":"health","params":{}}' | nc -w 2 localhost 9500 2>/dev/null | grep -q "jsonrpc"; then
-            log_success "✅ MCP TCP server is responding!"
-            
-            # Also check WebSocket bridge
-            if nc -z localhost 3002 2>/dev/null; then
-                log_success "✅ MCP WebSocket bridge is ready!"
-            fi
-            
-            # Check health endpoint if available
-            if curl -sf http://localhost:9501/health >/dev/null 2>&1; then
-                log_success "✅ Health endpoint is responding!"
-            fi
-            
-            # Run the health check script if available
-            if [ -x /app/core-assets/scripts/health-check.sh ]; then
-                echo ""
-                /app/core-assets/scripts/health-check.sh || true
-            fi
-            return 0
-        fi
-        
-        log_info "  Attempt $attempt/$max_attempts - waiting 3 seconds..."
-        sleep 3
-        attempt=$((attempt + 1))
-    done
+    # Check WebSocket bridge
+    if nc -z localhost 3002 2>/dev/null; then
+        log_success "✅ MCP WebSocket bridge is ready!"
+    else
+        log_warning "⚠️  MCP WebSocket bridge not responding on port 3002"
+    fi
     
-    log_warning "⚠️  MCP services did not become healthy within expected time"
-    log_info "    You may need to check logs: mcp-tcp-logs, mcp-ws-logs"
-    return 1
+    # Check health endpoint if available
+    if curl -sf http://localhost:9501/health >/dev/null 2>&1; then
+        log_success "✅ Health endpoint is responding!"
+    else
+        log_info "Health endpoint not available (this is normal if services are still starting)"
+    fi
+    
+    # Run the health check script if available
+    if [ -x /app/core-assets/scripts/health-check.sh ]; then
+        echo ""
+        log_info "Running comprehensive health check..."
+        /app/core-assets/scripts/health-check.sh || true
+    fi
 }
 
 # --- Main Execution ---
 show_setup_summary
+
+# Run security and auth checks
+check_security_tokens
+check_claude_auth
+
+# Create helper utilities
+create_multi_agent_helper
+
+# Verify services will start properly
+log_info "Verifying service prerequisites..."
+if [ ! -f /workspace/scripts/mcp-tcp-server.js ]; then
+    log_warning "MCP scripts not found in workspace. Copying from core assets..."
+    mkdir -p /workspace/scripts
+    cp -r /app/core-assets/scripts/* /workspace/scripts/ 2>/dev/null || true
+    chown -R dev:dev /workspace/scripts
+fi
 
 # Run verification if not in dry-run mode
 if [ "$DRY_RUN" = false ]; then
@@ -989,6 +1070,12 @@ if [ "$DRY_RUN" = false ]; then
     verify_playwright_proxy
     verify_chrome_devtools_proxy
     verify_claude_flow_service
+fi
+
+# Mark setup as completed
+if [ "$DRY_RUN" = false ]; then
+    touch /workspace/.setup_completed
+    log_success "Workspace setup completed successfully!"
 fi
 
 echo ""

@@ -14,7 +14,7 @@ const net = require('net');
 const { spawn } = require('child_process');
 const readline = require('readline');
 
-const TCP_PORT = process.env.CLAUDE_FLOW_TCP_PORT || 9502;
+const TCP_PORT = parseInt(process.env.CLAUDE_FLOW_TCP_PORT || '9502');
 const MAX_SESSIONS = parseInt(process.env.CLAUDE_FLOW_MAX_SESSIONS || '10');
 
 class ClaudeFlowTCPProxy {
