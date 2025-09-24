@@ -13,12 +13,20 @@
     "blender-mcp": {
       "command": "node",
       "args": ["./scripts/mcp-blender-client.js"],
-      "type": "stdio"
+      "type": "stdio",
+      "env": {
+        "BLENDER_HOST": "gui-tools-service",
+        "BLENDER_PORT": "9876"
+      }
     },
     "qgis-mcp": {
       "command": "python3",
       "args": ["-u", "./mcp-tools/qgis_mcp.py"],
-      "type": "stdio"
+      "type": "stdio",
+      "env": {
+        "QGIS_HOST": "gui-tools-service",
+        "QGIS_PORT": "9875"
+      }
     },
     "kicad-mcp": {
       "command": "python3",
@@ -38,24 +46,19 @@
     "pbr-generator-mcp": {
       "command": "python3",
       "args": ["-u", "./mcp-tools/pbr_mcp_client.py"],
-      "type": "stdio"
+      "type": "stdio",
+      "env": {
+        "PBR_HOST": "gui-tools-service",
+        "PBR_PORT": "9878"
+      }
     },
     "playwright": {
       "command": "node",
       "args": ["./scripts/playwright-mcp-client.js"],
       "type": "stdio",
       "env": {
-        "PLAYWRIGHT_PROXY_HOST": "127.0.0.1",
+        "PLAYWRIGHT_PROXY_HOST": "gui-tools-service",
         "PLAYWRIGHT_PROXY_PORT": "9879"
-      }
-    },
-    "chrome-devtools-mcp": {
-      "command": "node",
-      "args": ["./scripts/chrome-devtools-mcp-client.js"],
-      "type": "stdio",
-      "env": {
-        "CHROME_DEVTOOLS_PROXY_HOST": "127.0.0.1",
-        "CHROME_DEVTOOLS_PROXY_PORT": "9222"
       }
     }
   }

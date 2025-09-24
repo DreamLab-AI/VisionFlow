@@ -569,6 +569,7 @@ impl McpTcpClient {
             }
         });
 
+        // Use direct send_request for initialize (this is a protocol-level method, not a tool)
         let result = self.send_request("initialize", params).await?;
         debug!("MCP session initialized: {}", result);
 

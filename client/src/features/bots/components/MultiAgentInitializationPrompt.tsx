@@ -42,7 +42,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const response = await fetch(`${apiService.getBaseUrl()}/bots/mcp-status`);
+        const response = await fetch(`${apiService.getBaseUrl()}/bots/status`);
         const data = await response.json();
         setMcpConnected(data.connected);
       } catch (error) {

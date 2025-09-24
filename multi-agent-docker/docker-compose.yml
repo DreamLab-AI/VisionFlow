@@ -169,16 +169,11 @@ services:
       - ./pbr_outputs:/workspace/pbr_outputs
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext
-      # For Unix socket support (optional)
-      - mcp-sockets:/var/run/mcp
-      # Mount the corrected entrypoint
-      - ./entrypoint-wrapper.sh:/entrypoint-wrapper.sh:ro
       # Mount Claude configuration directory and credentials
       - ~/.claude:/home/dev/.claude
       - ~/.claude.json:/home/dev/.claude.json:ro
 
-    # Override entrypoint and run in interactive mode by default
-    entrypoint: ["/entrypoint-wrapper.sh"]
+    entrypoint: ["/entrypoint.sh"]
     command: ["/bin/bash", "-l"]
 
     # Keep stdin open and allocate a pseudo-TTY
@@ -216,8 +211,4 @@ networks:
     name: docker_ragflow
     external: true
 
-volumes:
-  workspace:
-  blender-files:
-  mcp-sockets:
-    driver: local
+# Volumes section removed - using bind mounts instead
