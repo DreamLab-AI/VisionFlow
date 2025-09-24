@@ -426,4 +426,49 @@ Added patch to setup-workspace.sh that implements terminal_execute:
 - Sets proper environment variables and PATH
 - Returns stdout, stderr, and exit code
 
-The patch was applied successfully but testing shows connection issues with the MCP server. Need to investigate why the server is not responding to requests properly.
+### Terminal Execute Implementation Success (2025-09-24 14:26)
+The patch was applied successfully and terminal_execute now works:
+- Tested with `pdflatex --version` - returns proper output
+- Commands execute with correct dev user environment
+- LaTeX PDF generation confirmed working (test.pdf created)
+
+### Critical Architecture Issue Discovered (2025-09-24 14:30)
+The MCP TCP server has a fundamental design flaw:
+- **Each TCP connection spawns a new isolated MCP process**
+- Tasks submitted through one connection are invisible to other connections
+- No persistence or state sharing between connections
+- Agents spawned in one process don't exist in others
+
+This explains why:
+- The Rust "hello world" task submitted via client UI is not visible via CLI
+- Agent lists show empty when queried from command line
+- Each `nc` command creates a fresh, isolated environment
+- Tasks appear to "disappear" between connections
+
+The current `mcp-tcp-server.js` implementation:
+```javascript
+// Line 57-63: Each connection spawns a new process
+this.mcpProcess = spawn(mcpCommand, mcpArgs, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd: '/workspace',
+    env: devEnv,
+    uid: process.getuid(),
+    gid: process.getgid()
+});
+```
+
+### Impact
+This architecture makes the multi-agent system effectively unusable for persistent tasks:
+- Tasks submitted are isolated to their connection
+- Agents can't collaborate across connections
+- No way to monitor or manage tasks after submission
+- Each API call or CLI command sees a different state
+
+### Required Fix
+The MCP TCP server needs fundamental redesign:
+1. Maintain a single persistent MCP process
+2. Route all TCP connections through this single process
+3. Implement proper connection multiplexing
+4. Add state persistence between connections
+
+Until this is fixed, the multi-agent system cannot function as intended for coordinated task execution.
