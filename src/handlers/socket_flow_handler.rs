@@ -916,7 +916,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
 
                                 ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
                                     // Get enhanced swarm data including telemetry
-                                    match crate::handlers::bots_handler::fetch_hive_mind_agents(&app_state).await {
+                                    match crate::handlers::bots_handler::fetch_hive_mind_agents(&app_state, None).await {
                                         Ok(agents) => {
                                             let mut nodes_data = Vec::new();
                                             let mut swarm_metrics = serde_json::json!({

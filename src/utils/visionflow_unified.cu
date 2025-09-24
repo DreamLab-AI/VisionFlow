@@ -636,9 +636,50 @@ __global__ void compact_frontier_kernel(
     }
 }
 
+} // extern "C"
+
+// =============================================================================
+// GPU Memory Management with RAII-style cleanup (C++ template outside extern "C")
+// =============================================================================
+
+// RAII wrapper for GPU memory to prevent leaks
+template<typename T>
+class GPUMemoryRAII {
+private:
+    T* ptr;
+    size_t size;
+
+public:
+    GPUMemoryRAII(size_t count) : ptr(nullptr), size(count * sizeof(T)) {
+        cudaError_t err = cudaMalloc(&ptr, size);
+        if (err != cudaSuccess) {
+            printf("GPU allocation failed: %s\n", cudaGetErrorString(err));
+            throw std::runtime_error("GPU allocation failed");
+        }
+    }
+
+    ~GPUMemoryRAII() {
+        if (ptr) {
+            cudaFree(ptr);
+            ptr = nullptr;
+        }
+    }
+
+    T* get() { return ptr; }
+    const T* get() const { return ptr; }
+
+    size_t byte_size() const { return size; }
+
+    // Disable copy constructor and assignment
+    GPUMemoryRAII(const GPUMemoryRAII&) = delete;
+    GPUMemoryRAII& operator=(const GPUMemoryRAII&) = delete;
+};
+
 // =============================================================================
 // Thrust Wrapper Functions for Sorting and Scanning
 // =============================================================================
+
+extern "C" {
 
 // Wrapper for thrust sort_by_key operation
 void thrust_sort_key_value(

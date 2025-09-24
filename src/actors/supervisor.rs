@@ -7,6 +7,7 @@ use actix::prelude::*;
 use log::{error, info, warn, debug};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use chrono::{DateTime, Utc};
 use crate::errors::VisionFlowError;
 use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse};
 #[cfg(test)]
@@ -36,6 +37,10 @@ pub struct SupervisedActorInfo {
     pub strategy: SupervisionStrategy,
     pub max_restart_count: u32,
     pub restart_window: Duration,
+    pub actor_type: String,
+    pub is_running: bool,
+    pub session_id: Option<String>,
+    pub last_heartbeat: DateTime<Utc>,
 }
 
 /// Internal state tracking for supervised actors
@@ -46,6 +51,7 @@ struct ActorState {
     last_restart: Option<Instant>,
     current_delay: Duration,
     is_running: bool,
+    session_id: Option<String>,
 }
 
 /// Messages for the supervisor
@@ -188,6 +194,10 @@ impl Handler<RegisterActor> for SupervisorActor {
             strategy: msg.strategy.clone(),
             max_restart_count: msg.max_restart_count,
             restart_window: msg.restart_window,
+            actor_type: "generic".to_string(),
+            is_running: false,
+            session_id: None,
+            last_heartbeat: Utc::now(),
         };
 
         let initial_delay = match &msg.strategy {
@@ -201,6 +211,7 @@ impl Handler<RegisterActor> for SupervisorActor {
             last_restart: None,
             current_delay: initial_delay,
             is_running: true,
+            session_id: None,
         };
 
         self.supervised_actors.insert(msg.actor_name.clone(), state);
@@ -355,8 +366,44 @@ impl Handler<VoiceCommand> for SupervisorActor {
         // Process voice command and generate appropriate response
         let response_text = match &msg.parsed_intent {
             crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {
-                // TODO: Implement actual agent spawning
-                format!("Successfully spawned {} agent", agent_type)
+                // Use DockerHiveMind to spawn real agents
+                let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
+                let task_description = format!("Spawn {} agent for multi-agent coordination", agent_type);
+
+                match tokio::task::block_in_place(|| {
+                    tokio::runtime::Handle::current().block_on(
+                        hive_mind.spawn_swarm(&task_description, crate::utils::docker_hive_mind::SwarmConfig::default())
+                    )
+                }) {
+                    Ok(session_id) => {
+                        // Track the spawned agent
+                        let actor_info = SupervisedActorInfo {
+                            name: format!("{}_{}", agent_type, session_id),
+                            strategy: SupervisionStrategy::Restart,
+                            max_restart_count: 3,
+                            restart_window: Duration::from_secs(60),
+                            actor_type: agent_type.clone(),
+                            is_running: true,
+                            session_id: Some(session_id.clone()),
+                            last_heartbeat: chrono::Utc::now(),
+                        };
+                        let actor_state = ActorState {
+                            actor_info,
+                            restart_count: 0,
+                            last_restart: None,
+                            current_delay: Duration::from_secs(1),
+                            is_running: true,
+                            session_id: Some(session_id.clone()),
+                        };
+                        self.supervised_actors.insert(session_id.clone(), actor_state);
+
+                        format!("Successfully spawned {} agent with session ID: {}", agent_type, session_id)
+                    }
+                    Err(e) => {
+                        error!("Failed to spawn {} agent: {}", agent_type, e);
+                        format!("Failed to spawn {} agent: {}", agent_type, e)
+                    }
+                }
             },
             crate::actors::voice_commands::SwarmIntent::QueryStatus { target } => {
                 let target_str = target.as_ref().map(|s| s.as_str()).unwrap_or("all");
@@ -374,20 +421,81 @@ impl Handler<VoiceCommand> for SupervisorActor {
                 }
             },
             crate::actors::voice_commands::SwarmIntent::StopAgent { agent_id } => {
-                if self.supervised_actors.contains_key(agent_id) {
-                    // TODO: Implement actual agent stopping
-                    format!("Stopped agent: {}", agent_id)
+                if let Some(actor_info) = self.supervised_actors.get_mut(agent_id) {
+                    if let Some(ref session_id) = actor_info.session_id {
+                        // Use DockerHiveMind to terminate the agent
+                        let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
+
+                        match tokio::task::block_in_place(|| {
+                            tokio::runtime::Handle::current().block_on(
+                                hive_mind.terminate_swarm(session_id)
+                            )
+                        }) {
+                            Ok(_) => {
+                                actor_info.is_running = false;
+                                format!("Successfully stopped agent: {}", agent_id)
+                            }
+                            Err(e) => {
+                                error!("Failed to stop agent {}: {}", agent_id, e);
+                                format!("Failed to stop agent {}: {}", agent_id, e)
+                            }
+                        }
+                    } else {
+                        actor_info.is_running = false;
+                        format!("Stopped agent: {} (no active session)", agent_id)
+                    }
                 } else {
                     format!("Agent {} not found", agent_id)
                 }
             },
             crate::actors::voice_commands::SwarmIntent::ExecuteTask { description, .. } => {
-                // TODO: Implement actual task execution via MCP
-                format!("Executing task: {}", description)
+                // Use DockerHiveMind to execute tasks
+                let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
+
+                match tokio::task::block_in_place(|| {
+                    tokio::runtime::Handle::current().block_on(
+                        hive_mind.spawn_swarm(description, crate::utils::docker_hive_mind::SwarmConfig {
+                            priority: crate::utils::docker_hive_mind::SwarmPriority::High,
+                            strategy: crate::utils::docker_hive_mind::SwarmStrategy::Tactical,
+                            ..Default::default()
+                        })
+                    )
+                }) {
+                    Ok(session_id) => {
+                        // Track the task execution session
+                        let task_info = SupervisedActorInfo {
+                            name: format!("task-executor_{}", session_id),
+                            strategy: SupervisionStrategy::Restart,
+                            max_restart_count: 3,
+                            restart_window: Duration::from_secs(60),
+                            actor_type: "task-executor".to_string(),
+                            is_running: true,
+                            session_id: Some(session_id.clone()),
+                            last_heartbeat: chrono::Utc::now(),
+                        };
+                        let actor_state = ActorState {
+                            actor_info: task_info,
+                            restart_count: 0,
+                            last_restart: None,
+                            current_delay: Duration::from_secs(1),
+                            is_running: true,
+                            session_id: Some(session_id.clone()),
+                        };
+                        self.supervised_actors.insert(session_id.clone(), actor_state);
+
+                        format!("Task execution started with session ID: {}", session_id)
+                    }
+                    Err(e) => {
+                        error!("Failed to execute task '{}': {}", description, e);
+                        format!("Failed to execute task: {}", e)
+                    }
+                }
             },
             crate::actors::voice_commands::SwarmIntent::UpdateGraph { .. } => {
-                // TODO: Implement graph operations
-                "Graph operation completed".to_string()
+                // Request graph update from GraphServiceActor
+                // Graph service functionality temporarily disabled for compilation
+                warn!("Graph service temporarily disabled for compilation");
+                "Graph service temporarily disabled - operation skipped".to_string()
             },
             crate::actors::voice_commands::SwarmIntent::Help => {
                 "I can help you spawn agents, check status, list agents, or execute tasks. What would you like to do?".to_string()

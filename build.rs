@@ -27,7 +27,7 @@ fn main() {
              cuda_arch, ptx_output.display(), cuda_src.display());
     
     let nvcc_output = Command::new("nvcc")
-        .args(&[
+        .args([
             "-ptx",
             "-arch", &format!("sm_{}", cuda_arch),
             "-o", ptx_output.to_str().unwrap(),
@@ -49,7 +49,7 @@ fn main() {
     // Compile Thrust wrapper functions to object file
     println!("Compiling Thrust wrapper functions...");
     let obj_status = Command::new("nvcc")
-        .args(&[
+        .args([
             "-c",
             "-arch", &format!("sm_{}", cuda_arch),
             "-o", obj_output.to_str().unwrap(),
@@ -70,7 +70,7 @@ fn main() {
     let dlink_output = PathBuf::from(&out_dir).join("thrust_wrapper_dlink.o");
     println!("Device linking Thrust code...");
     let dlink_status = Command::new("nvcc")
-        .args(&[
+        .args([
             "-dlink",
             "-arch", &format!("sm_{}", cuda_arch),
             obj_output.to_str().unwrap(),
@@ -87,7 +87,7 @@ fn main() {
     let lib_output = PathBuf::from(&out_dir).join("libthrust_wrapper.a");
     println!("Creating static library...");
     let ar_status = Command::new("ar")
-        .args(&[
+        .args([
             "rcs",
             lib_output.to_str().unwrap(),
             obj_output.to_str().unwrap(),

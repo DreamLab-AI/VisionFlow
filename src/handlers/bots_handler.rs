@@ -9,6 +9,8 @@ use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams};
 use crate::actors::messages::{GetSettings, GetBotsGraphData};
 use crate::services::bots_client::{BotsClient, Agent};
+use crate::handlers::hybrid_health_handler::{HybridHealthManager, SpawnSwarmRequest};
+use crate::utils::docker_hive_mind::{DockerHiveMind, SessionInfo, SwarmConfig, SwarmPriority, SwarmStrategy};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -54,8 +56,59 @@ static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
 static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
     Lazy::new(|| Arc::new(RwLock::new(None)));
 
-pub async fn fetch_hive_mind_agents(state: &AppState) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
-    // Use the unified BotsClient which already handles MCP TCP connections
+/// Convert Docker sessions to Agent format for compatibility
+fn convert_sessions_to_agents(sessions: Vec<SessionInfo>) -> Vec<Agent> {
+    sessions.into_iter().enumerate().map(|(idx, session)| {
+        let base_id = idx as f32;
+        Agent {
+            id: session.session_id.clone(),
+            name: format!("Swarm-{}", &session.session_id[..8]),
+            agent_type: match session.config.strategy {
+                SwarmStrategy::Strategic => "queen".to_string(),
+                SwarmStrategy::Tactical => "coordinator".to_string(),
+                SwarmStrategy::Adaptive => "optimizer".to_string(),
+                SwarmStrategy::HiveMind => "worker".to_string(),
+            },
+            status: match session.status {
+                crate::utils::docker_hive_mind::SwarmStatus::Active => "active".to_string(),
+                crate::utils::docker_hive_mind::SwarmStatus::Spawning => "spawning".to_string(),
+                crate::utils::docker_hive_mind::SwarmStatus::Completed => "completed".to_string(),
+                crate::utils::docker_hive_mind::SwarmStatus::Failed => "failed".to_string(),
+                _ => "unknown".to_string(),
+            },
+            x: (base_id * 50.0) % 300.0 - 150.0, // Spread agents in a grid
+            y: (base_id * 30.0) % 200.0 - 100.0,
+            z: 0.0,
+            cpu_usage: session.metrics.cpu_usage_percent as f32,
+            memory_usage: session.metrics.memory_usage_mb as f32,
+            health: if session.metrics.failed_tasks == 0 { 100.0 } else { 50.0 },
+            workload: session.metrics.active_workers as f32,
+            created_at: Some(session.created_at.to_rfc3339()),
+            age: Some((chrono::Utc::now() - session.created_at).num_seconds() as u64),
+        }
+    }).collect()
+}
+
+pub async fn fetch_hive_mind_agents(
+    state: &AppState,
+    hybrid_manager: Option<&Arc<HybridHealthManager>>,
+) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
+    // Try hybrid approach first if available, fallback to BotsClient
+    if let Some(manager) = hybrid_manager {
+        match manager.get_system_status().await {
+            Ok(status) => {
+                info!("Retrieved {} active sessions from DockerHiveMind", status.active_sessions.len());
+                // Convert sessions to agents for compatibility
+                let agents = convert_sessions_to_agents(status.active_sessions);
+                return Ok(agents);
+            }
+            Err(e) => {
+                warn!("Failed to get sessions from DockerHiveMind, falling back to BotsClient: {}", e);
+            }
+        }
+    }
+
+    // Fallback to existing BotsClient
     match state.bots_client.get_agents_snapshot().await {
         Ok(agents) => {
             info!("Retrieved {} agents from BotsClient", agents.len());
@@ -190,6 +243,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 pub async fn initialize_hive_mind_swarm(
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
+    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
 ) -> Result<impl Responder> {
     info!("🐝 Initializing hive mind swarm with topology: {}", request.topology);
     
@@ -225,7 +279,7 @@ pub async fn initialize_hive_mind_swarm(
     info!("🔧 Swarm params: {:?}", swarm_params);
 
     // Initialize swarm via MCP
-    let bots_client = &state.bots_client;
+    let _bots_client = &state.bots_client;
     // For now, we'll return a simple success response since the MCP client is private
     // The actual swarm initialization happens through the periodic polling in BotsClient
     
@@ -240,7 +294,7 @@ pub async fn initialize_hive_mind_swarm(
     info!("Swarm initialization requested: {}", swarm_id);
     
     // Immediately fetch agents to get the initial state
-    match fetch_hive_mind_agents(&state).await {
+    match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
         Ok(agents) => {
             info!("🎯 Initial swarm has {} agents", agents.len());
             
@@ -282,8 +336,11 @@ pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<im
     }
 }
 
-pub async fn get_bots_agents(state: web::Data<AppState>) -> Result<impl Responder> {
-    match fetch_hive_mind_agents(&state).await {
+pub async fn get_bots_agents(
+    state: web::Data<AppState>,
+    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+) -> Result<impl Responder> {
+    match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
         Ok(agents) => Ok(HttpResponse::Ok().json(json!({
             "success": true,
             "agents": agents,

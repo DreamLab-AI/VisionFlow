@@ -1140,3 +1140,11 @@ pub struct RecordPollFailure;
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeJsonRpc;
 
+// Graph update messages for supervision system
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct RequestGraphUpdate {
+    pub graph_type: crate::models::graph_types::GraphType,
+    pub force_refresh: bool,
+}
+

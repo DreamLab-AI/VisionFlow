@@ -566,3 +566,35 @@ pub async fn websocket_settings(
     info!(\"New WebSocket settings connection established\");
     resp
 }
+
+impl WebSocketSettingsHandler {
+    fn send_reliable_message(&mut self, ctx: &mut ws::WebsocketContext<Self>, message: &WebSocketSettingsMessage) {
+        // Direct send without circuit breaker for critical messages like heartbeats
+        let json_str = match serde_json::to_string(message) {
+            Ok(s) => s,
+            Err(e) => {
+                error!("Failed to serialize reliable WebSocket message: {}", e);
+                return;
+            }
+        };
+
+        ctx.text(json_str);
+        self.metrics.messages_sent += 1;
+    }
+
+    fn send_error_response(&mut self, ctx: &mut ws::WebsocketContext<Self>, error_message: &str) {
+        let error_response = WebSocketSettingsMessage {
+            msg_type: "error".to_string(),
+            data: serde_json::json!({
+                "error": error_message,
+                "clientId": self.client_id,
+                "timestamp": Self::current_timestamp()
+            }),
+            timestamp: Self::current_timestamp(),
+            compression: None,
+            checksum: None,
+        };
+
+        self.send_reliable_message(ctx, &error_response);
+    }
+}

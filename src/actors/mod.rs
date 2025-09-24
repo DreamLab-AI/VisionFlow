@@ -14,6 +14,7 @@ pub mod voice_commands;
 // pub mod supervisor_voice; // Removed - duplicate handlers in supervisor.rs
 pub mod multi_mcp_visualization_actor;
 pub mod messages;
+pub mod graph_messages;
 
 pub use graph_actor::GraphServiceActor;
 pub use settings_actor::SettingsActor;

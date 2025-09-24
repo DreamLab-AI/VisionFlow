@@ -57,29 +57,26 @@ impl Node {
             }
         };
         
-        // BREADCRUMB: Use node ID to generate deterministic but spread out initial positions
-        // This prevents all nodes from starting at the origin which causes clustering
-        let id_hash = id as f32;
+        // BREADCRUMB: Use random initial positions for force-directed graph
+        // This ensures truly random starting positions for better force-directed layout
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
         let physics = dev_config::physics();
-        
-        // Use golden ratio for even distribution in 3D space
-        let theta = 2.0 * std::f32::consts::PI * ((id_hash * physics.golden_ratio) % 1.0);
-        
-        // FIXED: Better phi calculation to avoid extreme z-coordinates
-        // Map id_hash to [0, 1] range then to [0, PI] for uniform sphere distribution
-        let normalized_id = (id_hash * 0.1618) % 1.0; // Use golden ratio fragment for better distribution
-        let phi = normalized_id * std::f32::consts::PI; // Maps to [0, PI]
-        
-        // Spread nodes using configured radius range
-        let radius = physics.initial_radius_min + (id_hash % physics.initial_radius_range);
-        
+
+        // Generate random spherical coordinates for even distribution in 3D space
+        let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI; // Random angle [0, 2π]
+        let phi = rng.gen::<f32>() * std::f32::consts::PI; // Random angle [0, π]
+
+        // Spread nodes using configured radius range with random distance
+        let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
+
         Self {
             id,
             metadata_id: metadata_id.clone(),
             label: String::new(), // Initialize as empty string, will be set from metadata later
             data: BinaryNodeData {
                 node_id: id,
-                // Use spherical coordinates for better 3D distribution
+                // Use spherical coordinates for better 3D distribution with random positions
                 x: radius * phi.sin() * theta.cos(),
                 y: radius * phi.sin() * theta.sin(),
                 z: radius * phi.cos(),

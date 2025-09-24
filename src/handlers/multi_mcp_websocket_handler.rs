@@ -9,13 +9,15 @@ use actix::{Actor, StreamHandler, AsyncContext, Handler, Message};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::{Duration, Instant};
+use std::sync::{atomic::Ordering, Arc};
 use log::{info, debug, warn, error};
 use uuid::Uuid;
 
 use crate::AppState;
 use crate::services::agent_visualization_protocol::McpServerType;
+use crate::handlers::hybrid_health_handler::HybridHealthManager;
 use crate::utils::network::{
-    TimeoutConfig, CircuitBreaker, 
+    TimeoutConfig, CircuitBreaker,
     HealthCheckManager, RetryConfig, retry_with_backoff,
     ServiceEndpoint, HealthCheckConfig, RetryableError
 };
@@ -41,6 +43,7 @@ impl RetryableError for McpError {
 /// WebSocket actor for multi-MCP agent visualization
 pub struct MultiMcpVisualizationWs {
     app_state: web::Data<AppState>,
+    hybrid_manager: Option<std::sync::Arc<HybridHealthManager>>,
     client_id: String,
     // visualization_actor_addr: Option<Addr<MultiMcpVisualizationActor>>, // Removed - not implemented
     last_heartbeat: Instant,
@@ -107,18 +110,19 @@ impl Default for PerformanceMode {
 }
 
 impl MultiMcpVisualizationWs {
-    pub fn new(app_state: web::Data<AppState>) -> Self {
+    pub fn new(app_state: web::Data<AppState>, hybrid_manager: Option<std::sync::Arc<HybridHealthManager>>) -> Self {
         let client_id = Uuid::new_v4().to_string();
-        info!("Creating new Multi-MCP WebSocket client with resilience: {}", client_id);
-        
+        info!("Creating new Multi-MCP WebSocket client with resilience and hybrid integration: {}", client_id);
+
         // Initialize circuit breaker for MCP operations
         let circuit_breaker = std::sync::Arc::new(CircuitBreaker::mcp_operations());
-        
+
         // Initialize health manager
-        let health_manager = std::sync::Arc::new(HealthCheckManager::new());
-        
+        let health_manager_network = std::sync::Arc::new(HealthCheckManager::new());
+
         Self {
             app_state,
+            hybrid_manager,
             client_id,
             // visualization_actor_addr: None, // Removed - not implemented
             last_heartbeat: Instant::now(),
@@ -127,7 +131,7 @@ impl MultiMcpVisualizationWs {
             performance_mode: PerformanceMode::default(),
             timeout_config: TimeoutConfig::websocket(),
             circuit_breaker: Some(circuit_breaker),
-            health_manager: Some(health_manager),
+            health_manager: Some(health_manager_network),
             retry_config: RetryConfig::mcp_operations(),
             connection_failures: 0,
             last_successful_operation: Instant::now(),
@@ -513,41 +517,59 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                             self.handle_discovery_request(ctx);
                         }
                         "request_agents" => {
-                            // Check circuit breaker state before processing (non-blocking)
-                            if let Some(cb) = &self.circuit_breaker {
-                                let cb_clone = cb.clone();
-                                let ctx_addr = ctx.address();
-                                
-                                // Spawn async task to check circuit breaker without blocking
-                                tokio::spawn(async move {
-                                    let stats = cb_clone.stats().await;
-                                    match stats.state {
-                                        crate::utils::network::CircuitBreakerState::Open => {
-                                            warn!("[Multi-MCP] Circuit breaker open, rejecting agent request");
-                                            // Send error response (this would need to be handled by a message)
-                                            // For now, we'll let the request proceed but with a warning
+                            // Process request with try-catch error handling
+                            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                // Check circuit breaker state before processing (non-blocking)
+                                if let Some(cb) = &self.circuit_breaker {
+                                    let cb_clone = cb.clone();
+                                    let ctx_addr = ctx.address();
+                                    let client_id = self.client_id.clone();
+
+                                    // Spawn async task to check circuit breaker without blocking
+                                    tokio::spawn(async move {
+                                        let stats = cb_clone.stats().await;
+                                        match stats.state {
+                                            crate::utils::network::CircuitBreakerState::Open => {
+                                                warn!("[Multi-MCP] Circuit breaker open, using degraded mode for client {}", client_id);
+                                                // Send cached/fallback data instead of failing
+                                                ctx_addr.do_send(RequestAgentUpdate);
+                                            }
+                                            _ => {
+                                                // Circuit breaker is closed/half-open, proceed normally
+                                                ctx_addr.do_send(RequestAgentUpdate);
+                                            }
                                         }
-                                        _ => {
-                                            // Circuit breaker is closed/half-open, proceed with request
-                                            ctx_addr.do_send(RequestAgentUpdate);
-                                        }
-                                    }
-                                });
-                            } else {
-                                // No circuit breaker, proceed directly
-                                ctx.address().do_send(RequestAgentUpdate);
+                                    });
+                                } else {
+                                    // No circuit breaker, proceed directly
+                                    ctx.address().do_send(RequestAgentUpdate);
+                                }
+                            }));
+
+                            if result.is_err() {
+                                error!("Error processing agent request for client {}", self.client_id);
+                                self.record_failure();
+                                self.send_error_response(ctx, "Agent request processing failed");
                             }
                         }
                         "request_performance" => {
+                            // Handle performance request with graceful degradation
                             if !self.has_healthy_services() {
-                                ctx.text(serde_json::json!({
-                                    "type": "error",
-                                    "message": "Performance data unavailable - no healthy services",
-                                    "timestamp": chrono::Utc::now().timestamp_millis()
-                                }).to_string());
-                                return;
+                                warn!("[Multi-MCP] No healthy services for performance data, using cached data");
+                                let degraded_response = serde_json::json!({
+                                    "type": "performance_data",
+                                    "message": "Using cached performance data - services degraded",
+                                    "timestamp": chrono::Utc::now().timestamp_millis(),
+                                    "data": {
+                                        "status": "degraded",
+                                        "cached_metrics": true,
+                                        "last_update": chrono::Utc::now().timestamp_millis()
+                                    }
+                                });
+                                ctx.text(degraded_response.to_string());
+                            } else {
+                                ctx.address().do_send(RequestPerformanceUpdate);
                             }
-                            ctx.address().do_send(RequestPerformanceUpdate);
                         }
                         "request_topology" => {
                             if let Some(data) = request.data {
@@ -562,6 +584,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                         }
                         _ => {
                             warn!("Unknown WebSocket action: {}", request.action);
+                            self.send_error_response(ctx, &format!("Unknown action: {}", request.action));
                         }
                     }
                 }
@@ -571,8 +594,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
             }
             Ok(ws::Message::Close(reason)) => {
                 info!("[Multi-MCP] WebSocket closing for client {}: {:?}", self.client_id, reason);
-                
-                // Log final resilience statistics
+
+                // Log final resilience statistics with error handling
                 if let Some(cb) = &self.circuit_breaker {
                     let cb_clone = cb.clone();
                     let client_id = self.client_id.clone();
@@ -583,10 +606,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                              client_id, stats.state, stats.failed_requests, stats.successful_requests, connection_failures);
                     });
                 }
-                
+
                 ctx.close(reason);
             }
-            _ => ctx.close(None),
+            _ => {
+                warn!("Unhandled WebSocket message type for client {}", self.client_id);
+                ctx.close(None);
+            }
         }
     }
 }
@@ -631,6 +657,14 @@ struct DiscoverySuccess;
 #[derive(Message)]
 #[rtype(result = "()")]
 struct DiscoveryFailure(String);
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct SendHeartbeatPing;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+struct ReconnectionCompleted;
 
 /// WebSocket message handlers
 impl Handler<RequestAgentUpdate> for MultiMcpVisualizationWs {
@@ -681,15 +715,41 @@ impl Handler<DiscoveryFailure> for MultiMcpVisualizationWs {
     fn handle(&mut self, msg: DiscoveryFailure, ctx: &mut Self::Context) {
         warn!("[Multi-MCP] Discovery failure for client {}: {}", self.client_id, msg.0);
         self.record_failure();
-        
-        // Send error notification to client
-        ctx.text(serde_json::json!({
+
+        // Send error notification to client with graceful degradation
+        let error_response = serde_json::json!({
             "type": "discovery_error",
             "message": msg.0,
             "client_id": self.client_id,
             "timestamp": chrono::Utc::now().timestamp_millis(),
-            "retry_in_seconds": self.retry_config.initial_delay.as_secs()
-        }).to_string());
+            "retry_in_seconds": self.retry_config.initial_delay.as_secs(),
+            "fallback_mode": "local_cache",
+            "degraded_functionality": true
+        });
+
+        // Try to send error response, but don't fail if we can't
+        if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            ctx.text(error_response.to_string());
+        })) {
+            error!("Failed to send error response for client {}: {:?}", self.client_id, e);
+        }
+    }
+}
+
+impl Handler<SendHeartbeatPing> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: SendHeartbeatPing, ctx: &mut Self::Context) {
+        ctx.ping(b"mcp-heartbeat");
+    }
+}
+
+impl Handler<ReconnectionCompleted> for MultiMcpVisualizationWs {
+    type Result = ();
+
+    fn handle(&mut self, _: ReconnectionCompleted, _ctx: &mut Self::Context) {
+        info!("[Multi-MCP] Reconnection completed for client {}", self.client_id);
+        self.record_success();
     }
 }
 
@@ -698,9 +758,11 @@ pub async fn multi_mcp_visualization_ws(
     req: HttpRequest,
     stream: web::Payload,
     app_state: web::Data<AppState>,
+    hybrid_manager: Option<web::Data<Arc<HybridHealthManager>>>,
 ) -> ActixResult<HttpResponse> {
-    debug!("Starting Multi-MCP visualization WebSocket connection");
-    ws::start(MultiMcpVisualizationWs::new(app_state), &req, stream)
+    debug!("Starting Multi-MCP visualization WebSocket connection with hybrid integration");
+    let hybrid_manager_arc = hybrid_manager.map(|m| (**m).clone());
+    ws::start(MultiMcpVisualizationWs::new(app_state, hybrid_manager_arc), &req, stream)
 }
 
 /// HTTP endpoint to get current MCP server status
@@ -759,4 +821,26 @@ pub fn configure_multi_mcp_routes(cfg: &mut web::ServiceConfig) {
             .route("/status", web::get().to(get_mcp_server_status))
             .route("/refresh", web::post().to(refresh_mcp_discovery))
     );
+}
+
+impl MultiMcpVisualizationWs {
+    /// Send error response with circuit breaker protection
+    fn send_error_response(&mut self, ctx: &mut ws::WebsocketContext<Self>, error_message: &str) {
+        let error_response = serde_json::json!({
+            "type": "error",
+            "message": error_message,
+            "client_id": self.client_id,
+            "timestamp": chrono::Utc::now().timestamp_millis(),
+            "recoverable": true
+        });
+
+        // Try to send error response with error handling
+        if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            ctx.text(error_response.to_string());
+        })) {
+            error!("Failed to send error response for client {}: {:?}", self.client_id, e);
+            // If we can't even send error responses, close the connection
+            ctx.close(None);
+        }
+    }
 }

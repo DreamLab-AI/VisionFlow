@@ -332,7 +332,7 @@ impl ResourceMonitor {
             memory_usage_mb,
             tcp_connections,
             zombie_processes,
-            active_connections: HashMap::new(), // TODO: Implement active connection tracking
+            active_connections: Self::get_active_connections().await.unwrap_or_default()
         })
     }
     
@@ -549,6 +549,46 @@ impl ResourceMonitor {
         // 1. Clear internal caches
         // 2. Compact data structures
         // 3. Release unused memory pools
+    }
+
+    /// Get active network connections grouped by type
+    async fn get_active_connections() -> Result<HashMap<String, usize>, String> {
+        let mut connections = HashMap::new();
+
+        #[cfg(target_os = "linux")]
+        {
+            // Parse /proc/net/tcp for TCP connections
+            if let Ok(tcp_data) = tokio::fs::read_to_string("/proc/net/tcp").await {
+                let tcp_count = tcp_data.lines().skip(1).count();
+                connections.insert("tcp".to_string(), tcp_count);
+            }
+
+            // Parse /proc/net/tcp6 for TCP6 connections
+            if let Ok(tcp6_data) = tokio::fs::read_to_string("/proc/net/tcp6").await {
+                let tcp6_count = tcp6_data.lines().skip(1).count();
+                connections.insert("tcp6".to_string(), tcp6_count);
+            }
+
+            // Parse /proc/net/udp for UDP connections
+            if let Ok(udp_data) = tokio::fs::read_to_string("/proc/net/udp").await {
+                let udp_count = udp_data.lines().skip(1).count();
+                connections.insert("udp".to_string(), udp_count);
+            }
+
+            // Parse /proc/net/unix for Unix domain sockets
+            if let Ok(unix_data) = tokio::fs::read_to_string("/proc/net/unix").await {
+                let unix_count = unix_data.lines().skip(1).count();
+                connections.insert("unix".to_string(), unix_count);
+            }
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        {
+            // Fallback for non-Linux systems
+            connections.insert("total".to_string(), 0);
+        }
+
+        Ok(connections)
     }
 }
 

@@ -22,7 +22,8 @@ use crate::services::agent_visualization_protocol::{
     AgentInit, ConnectionInit, VisualConfig, PhysicsConfig, Position,
     McpServerInfo, McpServerType, MultiMcpAgentStatus,
     SwarmTopologyData, GlobalPerformanceMetrics, PositionUpdate,
-    AgentStateUpdate, SwarmMetrics, AgentMetrics
+    AgentStateUpdate, SwarmMetrics, AgentMetrics,
+    LayerLoad, CriticalPath, Bottleneck
 };
 use crate::types::AgentStatus;
 use crate::services::multi_mcp_agent_discovery::McpServerConfig;
@@ -757,9 +758,9 @@ impl MultiMcpVisualizationActor {
                 // Simple efficiency calculation based on cross-server communication ratio
                 1.0 - (cross_server_connections as f32 / total_connections.max(1) as f32)
             } else { 1.0 },
-            load_distribution: Vec::new(), // TODO: Implement layer load distribution
-            critical_paths: Vec::new(), // TODO: Implement critical path analysis
-            bottlenecks: Vec::new(), // TODO: Implement bottleneck detection
+            load_distribution: self.calculate_load_distribution(),
+            critical_paths: self.analyze_critical_paths(),
+            bottlenecks: self.detect_bottlenecks()
         };
 
         debug!("Topology analysis complete: {} agents, {} connections, {} servers",
@@ -783,11 +784,11 @@ impl MultiMcpVisualizationActor {
 
         self.global_metrics = GlobalPerformanceMetrics {
             total_throughput: total_messages,
-            average_latency: 0.0, // TODO: Implement actual latency measurement
+            average_latency: self.calculate_average_latency() as f32,
             system_efficiency: if server_count > 0.0 { 1.0 - (total_errors / server_count) } else { 1.0 },
             resource_utilization: if server_count > 0.0 { (total_cpu + total_memory) / (2.0 * server_count) } else { 0.0 },
             error_rate: if server_count > 0.0 { total_errors / server_count } else { 0.0 },
-            coordination_overhead: 0.15, // TODO: Calculate actual coordination overhead
+            coordination_overhead: self.calculate_coordination_overhead() as f32
         };
     }
 
@@ -1001,6 +1002,91 @@ impl MultiMcpVisualizationActor {
             warn!("Failed to send message to {} subscribers", failed_subscribers.len());
         }
     }
+
+    /// Calculate load distribution across servers
+    fn calculate_load_distribution(&self) -> Vec<LayerLoad> {
+        self.server_metrics.iter()
+            .enumerate()
+            .map(|(i, (name, metrics))| LayerLoad {
+                layer_id: i as u32,
+                agent_count: 1, // Simplified - each server represents one layer
+                average_load: metrics.cpu_usage + metrics.memory_usage,
+                max_capacity: 100, // Simplified capacity
+                utilization: (metrics.cpu_usage + metrics.memory_usage) / 2.0,
+            })
+            .collect()
+    }
+
+    /// Analyze critical paths in the system
+    fn analyze_critical_paths(&self) -> Vec<CriticalPath> {
+        // Simple implementation - identify servers with high error rates
+        self.server_metrics.iter()
+            .filter(|(_, metrics)| metrics.error_rate > 0.1)
+            .enumerate()
+            .map(|(i, (name, metrics))| CriticalPath {
+                path_id: format!("path_{}", i),
+                agent_sequence: vec![name.clone()],
+                total_latency_ms: metrics.network_latency,
+                bottleneck_agent: Some(name.clone()),
+            })
+            .collect()
+    }
+
+    /// Detect system bottlenecks
+    fn detect_bottlenecks(&self) -> Vec<Bottleneck> {
+        let mut bottlenecks = Vec::new();
+
+        // Check for high CPU usage
+        for (name, metrics) in &self.server_metrics {
+            if metrics.cpu_usage > 0.8 {
+                bottlenecks.push(Bottleneck {
+                    agent_id: name.clone(),
+                    bottleneck_type: "cpu".to_string(),
+                    severity: metrics.cpu_usage,
+                    impact_agents: vec![], // Simplified - no impact calculation
+                    suggested_action: "Scale CPU resources".to_string(),
+                });
+            }
+            if metrics.memory_usage > 0.8 {
+                bottlenecks.push(Bottleneck {
+                    agent_id: name.clone(),
+                    bottleneck_type: "memory".to_string(),
+                    severity: metrics.memory_usage,
+                    impact_agents: vec![], // Simplified - no impact calculation
+                    suggested_action: "Scale memory resources".to_string(),
+                });
+            }
+        }
+
+        bottlenecks
+    }
+
+    /// Calculate average latency across all servers
+    fn calculate_average_latency(&self) -> f64 {
+        if self.server_metrics.is_empty() {
+            return 0.0;
+        }
+
+        let total_latency: f64 = self.server_metrics.values()
+            .map(|metrics| metrics.network_latency as f64) // Use actual network latency
+            .sum();
+
+        total_latency / self.server_metrics.len() as f64
+    }
+
+    /// Calculate coordination overhead
+    fn calculate_coordination_overhead(&self) -> f64 {
+        // Simple calculation based on number of servers and connections
+        let server_count = self.server_metrics.len() as f64;
+        let connection_count = self.connections.len() as f64;
+
+        if server_count <= 1.0 {
+            0.0
+        } else {
+            // Overhead increases with server coordination complexity
+            (connection_count / (server_count * server_count)).min(1.0)
+        }
+    }
 }
 
 
@@ -1030,4 +1116,5 @@ impl Default for GlobalPerformanceMetrics {
         }
     }
 }
+
 

@@ -245,11 +245,47 @@ __host__ bool check_system_stability(
     int* d_active_count;
     int* d_should_skip;
     
-    cudaMalloc(&d_partial_ke, num_blocks * sizeof(float));
-    cudaMalloc(&d_total_ke, sizeof(float));
-    cudaMalloc(&d_avg_ke, sizeof(float));
-    cudaMalloc(&d_active_count, sizeof(int));
-    cudaMalloc(&d_should_skip, sizeof(int));
+    // Allocate GPU memory with error checking
+    cudaError_t err;
+    err = cudaMalloc(&d_partial_ke, num_blocks * sizeof(float));
+    if (err != cudaSuccess) {
+        printf("Failed to allocate d_partial_ke: %s\n", cudaGetErrorString(err));
+        return -1;
+    }
+
+    err = cudaMalloc(&d_total_ke, sizeof(float));
+    if (err != cudaSuccess) {
+        printf("Failed to allocate d_total_ke: %s\n", cudaGetErrorString(err));
+        cudaFree(d_partial_ke);
+        return -1;
+    }
+
+    err = cudaMalloc(&d_avg_ke, sizeof(float));
+    if (err != cudaSuccess) {
+        printf("Failed to allocate d_avg_ke: %s\n", cudaGetErrorString(err));
+        cudaFree(d_partial_ke);
+        cudaFree(d_total_ke);
+        return -1;
+    }
+
+    err = cudaMalloc(&d_active_count, sizeof(int));
+    if (err != cudaSuccess) {
+        printf("Failed to allocate d_active_count: %s\n", cudaGetErrorString(err));
+        cudaFree(d_partial_ke);
+        cudaFree(d_total_ke);
+        cudaFree(d_avg_ke);
+        return -1;
+    }
+
+    err = cudaMalloc(&d_should_skip, sizeof(int));
+    if (err != cudaSuccess) {
+        printf("Failed to allocate d_should_skip: %s\n", cudaGetErrorString(err));
+        cudaFree(d_partial_ke);
+        cudaFree(d_total_ke);
+        cudaFree(d_avg_ke);
+        cudaFree(d_active_count);
+        return -1;
+    }
     
     // Initialize counters
     cudaMemsetAsync(d_active_count, 0, sizeof(int), stream);

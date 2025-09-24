@@ -16,7 +16,7 @@ use base64::Engine as _;
 use base64::engine::general_purpose::{STANDARD as BASE64};
 use crate::types::speech::{SpeechCommand, TTSProvider, STTProvider, SpeechOptions, TranscriptionOptions};
 use crate::actors::voice_commands::VoiceCommand;
-use crate::utils::mcp_connection::{call_task_orchestrate, call_agent_list, call_swarm_init, call_agent_spawn};
+use crate::utils::mcp_connection::{call_task_orchestrate, call_task_orchestrate_docker, call_agent_list, call_swarm_init, call_agent_spawn};
 use crate::services::voice_context_manager::VoiceContextManager;
 use crate::services::voice_tag_manager::{VoiceTagManager, TaggedVoiceResponse};
 use reqwest::Client;

@@ -195,6 +195,7 @@ impl PersistentMCPConnection {
 }
 
 /// MCP Connection Pool for managing multiple persistent connections
+#[derive(Clone)]
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, Arc<PersistentMCPConnection>>>>,
     host: String,
@@ -388,6 +389,210 @@ pub async fn call_task_orchestrate(
     });
 
     pool.execute_command("task_orchestrate", "tools/call", params).await
+}
+
+/// Hybrid task orchestration supporting both Docker exec and MCP fallback
+#[derive(Debug, Clone)]
+pub enum TaskMethod {
+    Docker,     // Primary method via Docker exec
+    MCP,        // Fallback via TCP/MCP
+    Hybrid,     // Try Docker first, fallback to MCP
+}
+
+/// Docker-based task orchestration using hive-mind
+/// This is the PRIMARY method for task creation, replacing TCP MCP spawning
+pub async fn call_task_orchestrate_docker(
+    task: &str,
+    priority: Option<&str>,
+    strategy: Option<&str>,
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    use crate::utils::docker_hive_mind::{create_docker_hive_mind, SwarmConfig, SwarmPriority, SwarmStrategy};
+
+    info!("Orchestrating task via Docker hive-mind: {}", task);
+
+    // Create hive mind instance
+    let hive_mind = create_docker_hive_mind();
+
+    // Convert priority
+    let swarm_priority = match priority {
+        Some("high") | Some("critical") => SwarmPriority::High,
+        Some("medium") => SwarmPriority::Medium,
+        Some("low") => SwarmPriority::Low,
+        _ => SwarmPriority::Medium,
+    };
+
+    // Convert strategy
+    let swarm_strategy = match strategy {
+        Some("tactical") => SwarmStrategy::Tactical,
+        Some("strategic") => SwarmStrategy::Strategic,
+        Some("adaptive") => SwarmStrategy::Adaptive,
+        _ => SwarmStrategy::HiveMind,
+    };
+
+    // Build config
+    let config = SwarmConfig {
+        priority: swarm_priority,
+        strategy: swarm_strategy,
+        auto_scale: true,
+        monitor: true,
+        verbose: false,
+        ..Default::default()
+    };
+
+    // Spawn swarm
+    match hive_mind.spawn_swarm(task, config).await {
+        Ok(session_id) => {
+            info!("Swarm spawned successfully with ID: {}", session_id);
+
+            Ok(json!({
+                "success": true,
+                "taskId": session_id,
+                "swarmId": session_id,
+                "objective": task,
+                "strategy": strategy.unwrap_or("hive-mind"),
+                "priority": priority.unwrap_or("medium"),
+                "status": "spawning",
+                "method": "docker-exec",
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            }))
+        },
+        Err(e) => {
+            error!("Failed to spawn swarm via Docker: {}", e);
+            Err(format!("Docker swarm spawn failed: {}", e).into())
+        }
+    }
+}
+
+/// Hybrid task orchestration - tries Docker first, falls back to MCP
+pub async fn call_task_orchestrate_hybrid(
+    task: &str,
+    priority: Option<&str>,
+    strategy: Option<&str>,
+    host: &str,
+    port: &str,
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    info!("Attempting hybrid task orchestration for: {}", task);
+
+    // Try Docker first
+    match call_task_orchestrate_docker(task, priority, strategy).await {
+        Ok(result) => {
+            info!("Docker orchestration successful");
+            Ok(result)
+        },
+        Err(docker_err) => {
+            warn!("Docker orchestration failed: {}, trying MCP fallback", docker_err);
+
+            // Fallback to MCP
+            match call_task_orchestrate(host, port, task, priority, strategy).await {
+                Ok(mut result) => {
+                    // Mark as MCP fallback
+                    if let Some(obj) = result.as_object_mut() {
+                        obj.insert("method".to_string(), json!("mcp-fallback"));
+                        obj.insert("docker_error".to_string(), json!(docker_err.to_string()));
+                    }
+                    info!("MCP fallback successful");
+                    Ok(result)
+                },
+                Err(mcp_err) => {
+                    error!("Both Docker and MCP failed. Docker: {}, MCP: {}", docker_err, mcp_err);
+                    Err(format!("Hybrid orchestration failed - Docker: {}, MCP: {}", docker_err, mcp_err).into())
+                }
+            }
+        }
+    }
+}
+
+/// Get Docker swarm status with MCP fallback for telemetry
+pub async fn get_swarm_status_hybrid(
+    swarm_id: &str,
+    host: &str,
+    port: &str,
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    use crate::utils::docker_hive_mind::create_docker_hive_mind;
+
+    let hive_mind = create_docker_hive_mind();
+
+    // Get primary status from Docker
+    let docker_status = match hive_mind.get_swarm_status(swarm_id).await {
+        Ok(status) => Some(status),
+        Err(e) => {
+            warn!("Failed to get Docker swarm status: {}", e);
+            None
+        }
+    };
+
+    // Get telemetry from MCP (non-blocking)
+    let mcp_telemetry = match call_task_status(host, port, Some(swarm_id)).await {
+        Ok(telemetry) => Some(telemetry),
+        Err(e) => {
+            debug!("MCP telemetry unavailable: {}", e);
+            None
+        }
+    };
+
+    // Combine results
+    let mut result = json!({
+        "swarmId": swarm_id,
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "sources": {
+            "docker": docker_status.is_some(),
+            "mcp": mcp_telemetry.is_some()
+        }
+    });
+
+    if let Some(ref status) = docker_status {
+        result["status"] = json!(format!("{:?}", status));
+        result["primary_source"] = json!("docker");
+    }
+
+    if let Some(ref telemetry) = mcp_telemetry {
+        result["telemetry"] = telemetry.clone();
+        result["telemetry_source"] = json!("mcp");
+    }
+
+    if docker_status.is_none() && mcp_telemetry.is_none() {
+        result["status"] = json!("unknown");
+        result["error"] = json!("No data sources available");
+    }
+
+    Ok(result)
+}
+
+/// Get all swarms from both Docker and MCP sources
+pub async fn get_all_swarms_hybrid(
+    host: &str,
+    port: &str,
+) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    use crate::utils::docker_hive_mind::create_docker_hive_mind;
+
+    let hive_mind = create_docker_hive_mind();
+
+    // Get Docker sessions
+    let docker_sessions = match hive_mind.get_sessions().await {
+        Ok(sessions) => sessions,
+        Err(e) => {
+            warn!("Failed to get Docker sessions: {}", e);
+            Vec::new()
+        }
+    };
+
+    // Get MCP agent list (for telemetry context)
+    let mcp_agents = match call_agent_list(host, port, "active").await {
+        Ok(agents) => Some(agents),
+        Err(e) => {
+            debug!("MCP agent list unavailable: {}", e);
+            None
+        }
+    };
+
+    // Combine and format response
+    Ok(json!({
+        "swarms": docker_sessions,
+        "mcp_agents": mcp_agents,
+        "total_swarms": docker_sessions.len(),
+        "source": "hybrid",
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    }))
 }
 
 /// Simplified function to get task status
