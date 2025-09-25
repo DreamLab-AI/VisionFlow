@@ -20,6 +20,7 @@ use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 use crate::errors::VisionFlowError;
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
 use crate::actors::gpu::stress_majorization_actor::StressMajorizationStats;
+use crate::models::workspace::{Workspace, CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceQuery, WorkspaceFilter};
 
 // K-means clustering results
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1146,5 +1147,97 @@ pub struct InitializeJsonRpc;
 pub struct RequestGraphUpdate {
     pub graph_type: crate::models::graph_types::GraphType,
     pub force_refresh: bool,
+}
+
+// ============================================================================
+// Workspace Actor Messages
+// ============================================================================
+
+/// Get all workspaces with optional filtering and pagination
+#[derive(Message)]
+#[rtype(result = "Result<crate::models::workspace::WorkspaceListResponse, String>")]
+pub struct GetWorkspaces {
+    pub query: WorkspaceQuery,
+}
+
+/// Get a specific workspace by ID
+#[derive(Message)]
+#[rtype(result = "Result<Workspace, String>")]
+pub struct GetWorkspace {
+    pub workspace_id: String,
+}
+
+/// Create a new workspace
+#[derive(Message)]
+#[rtype(result = "Result<Workspace, String>")]
+pub struct CreateWorkspace {
+    pub request: CreateWorkspaceRequest,
+}
+
+/// Update an existing workspace
+#[derive(Message)]
+#[rtype(result = "Result<Workspace, String>")]
+pub struct UpdateWorkspace {
+    pub workspace_id: String,
+    pub request: UpdateWorkspaceRequest,
+}
+
+/// Soft delete a workspace (archive it)
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct DeleteWorkspace {
+    pub workspace_id: String,
+}
+
+/// Toggle favorite status of a workspace
+#[derive(Message)]
+#[rtype(result = "Result<bool, String>")]
+pub struct ToggleFavoriteWorkspace {
+    pub workspace_id: String,
+}
+
+/// Archive or unarchive a workspace
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ArchiveWorkspace {
+    pub workspace_id: String,
+    pub archive: bool, // true to archive, false to unarchive
+}
+
+/// Get workspace count for statistics
+#[derive(Message)]
+#[rtype(result = "Result<usize, String>")]
+pub struct GetWorkspaceCount {
+    pub filter: Option<WorkspaceFilter>,
+}
+
+/// Load workspaces from persistent storage
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct LoadWorkspaces;
+
+/// Save workspaces to persistent storage
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SaveWorkspaces;
+
+/// Internal message for workspace state updates via WebSocket
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct WorkspaceStateChanged {
+    pub workspace: Workspace,
+    pub change_type: WorkspaceChangeType,
+}
+
+/// Type of workspace change for WebSocket notifications
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum WorkspaceChangeType {
+    Created,
+    Updated,
+    Deleted,
+    Favorited,
+    Unfavorited,
+    Archived,
+    Unarchived,
 }
 

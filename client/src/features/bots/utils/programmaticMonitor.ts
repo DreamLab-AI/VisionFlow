@@ -3,7 +3,7 @@
  * Compatible with the bots-monitor.py pattern
  */
 
-import { apiService } from '../../../services/apiService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { createLogger } from '../../../utils/loggerConfig';
 import type { BotsAgent, BotsEdge } from '../types/botsTypes';
 
@@ -28,7 +28,7 @@ export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
     };
 
     // Send through API service
-    const response = await apiService.post('/api/bots/update', payload);
+    const response = await unifiedApiClient.post('/api/bots/update', payload);
 
     logger.debug('Sent bots update:', {
       nodeCount: data.nodes.length,

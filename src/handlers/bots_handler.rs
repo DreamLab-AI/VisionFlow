@@ -49,6 +49,35 @@ pub struct InitializeSwarmRequest {
     pub custom_prompt: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpawnAgentHybridRequest {
+    pub agent_type: String,
+    pub swarm_id: String,
+    pub method: String, // "docker" or "mcp-fallback"
+    pub priority: Option<String>,
+    pub strategy: Option<String>,
+    pub config: Option<SpawnAgentConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpawnAgentConfig {
+    pub auto_scale: Option<bool>,
+    pub monitor: Option<bool>,
+    pub max_workers: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpawnAgentResponse {
+    pub success: bool,
+    pub swarm_id: Option<String>,
+    pub error: Option<String>,
+    pub method_used: Option<String>,
+    pub message: Option<String>,
+}
+
 // Static bots graph data storage
 use once_cell::sync::Lazy;
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
@@ -368,6 +397,195 @@ pub struct BotData {
     pub vx: f32,
     pub vy: f32,
     pub vz: f32,
+}
+
+pub async fn spawn_agent_hybrid(
+    state: web::Data<AppState>,
+    req: web::Json<SpawnAgentHybridRequest>,
+) -> Result<impl Responder> {
+    info!("Spawning agent hybrid: {:?}", req);
+
+    // Parse priority and strategy from request
+    let priority = match req.priority.as_deref() {
+        Some("low") => Some(SwarmPriority::Low),
+        Some("high") => Some(SwarmPriority::High),
+        Some("critical") => Some(SwarmPriority::Critical),
+        _ => Some(SwarmPriority::Medium),
+    };
+
+    let strategy = match req.strategy.as_deref() {
+        Some("strategic") => Some(SwarmStrategy::Strategic),
+        Some("tactical") => Some(SwarmStrategy::Tactical),
+        Some("adaptive") => Some(SwarmStrategy::Adaptive),
+        _ => Some(SwarmStrategy::HiveMind),
+    };
+
+    // Try Docker method first if requested
+    if req.method == "docker" {
+        match spawn_docker_agent(&req.agent_type, priority, strategy).await {
+            Ok(session_id) => {
+                info!("Successfully spawned {} agent via Docker with session: {}", req.agent_type, session_id);
+                return Ok(HttpResponse::Ok().json(SpawnAgentResponse {
+                    success: true,
+                    swarm_id: Some(session_id),
+                    error: None,
+                    method_used: Some("docker".to_string()),
+                    message: Some(format!("Successfully spawned {} agent via Docker", req.agent_type)),
+                }));
+            }
+            Err(e) => {
+                warn!("Docker spawn failed for {} agent: {}", req.agent_type, e);
+                // Fall through to MCP fallback if Docker fails
+            }
+        }
+    }
+
+    // MCP fallback method
+    match spawn_mcp_agent(state.get_ref(), &req.agent_type, &req.swarm_id).await {
+        Ok(agent_id) => {
+            info!("Successfully spawned {} agent via MCP with ID: {}", req.agent_type, agent_id);
+            Ok(HttpResponse::Ok().json(SpawnAgentResponse {
+                success: true,
+                swarm_id: Some(agent_id),
+                error: None,
+                method_used: Some("mcp".to_string()),
+                message: Some(format!("Successfully spawned {} agent via MCP", req.agent_type)),
+            }))
+        }
+        Err(e) => {
+            error!("Both Docker and MCP failed for {} agent: {}", req.agent_type, e);
+            Ok(HttpResponse::InternalServerError().json(SpawnAgentResponse {
+                success: false,
+                swarm_id: None,
+                error: Some(format!("Both Docker and MCP methods failed: {}", e)),
+                method_used: None,
+                message: None,
+            }))
+        }
+    }
+}
+
+async fn spawn_docker_agent(
+    agent_type: &str,
+    priority: Option<SwarmPriority>,
+    strategy: Option<SwarmStrategy>,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let task = format!("Spawn {} agent for hive mind coordination", agent_type);
+
+    // Use the docker_hive_mind spawn function
+    crate::utils::docker_hive_mind::spawn_task_docker(&task, priority, strategy).await
+}
+
+async fn spawn_mcp_agent(
+    state: &AppState,
+    agent_type: &str,
+    swarm_id: &str,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    // Use the bots_client from AppState for MCP spawning
+    match timeout(Duration::from_secs(10), state.bots_client.spawn_agent_mcp(agent_type, swarm_id)).await {
+        Ok(result) => result.map_err(|e| format!("MCP spawn failed: {}", e).into()),
+        Err(_) => Err("MCP spawn timeout".into()),
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskResponse {
+    pub success: bool,
+    pub message: String,
+    pub task_id: Option<String>,
+    pub error: Option<String>,
+}
+
+/// Remove/stop a task by ID
+pub async fn remove_task(
+    path: web::Path<String>,
+    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+) -> Result<impl Responder> {
+    let task_id = path.into_inner();
+    info!("Removing task: {}", task_id);
+
+    // Use DockerHiveMind directly from the hybrid manager
+    match hybrid_manager.docker_hive_mind.stop_swarm(&task_id).await {
+        Ok(()) => {
+            info!("Successfully stopped task: {}", task_id);
+            Ok(HttpResponse::Ok().json(TaskResponse {
+                success: true,
+                message: format!("Task {} stopped successfully", task_id),
+                task_id: Some(task_id),
+                error: None,
+            }))
+        }
+        Err(e) => {
+            error!("Failed to stop task {}: {}", task_id, e);
+            Ok(HttpResponse::InternalServerError().json(TaskResponse {
+                success: false,
+                message: format!("Failed to stop task: {}", e),
+                task_id: Some(task_id),
+                error: Some(e.to_string()),
+            }))
+        }
+    }
+}
+
+/// Pause a task by ID
+pub async fn pause_task(
+    path: web::Path<String>,
+    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+) -> Result<impl Responder> {
+    let task_id = path.into_inner();
+    info!("Pausing task: {}", task_id);
+
+    match hybrid_manager.docker_hive_mind.pause_swarm(&task_id).await {
+        Ok(()) => {
+            info!("Successfully paused task: {}", task_id);
+            Ok(HttpResponse::Ok().json(TaskResponse {
+                success: true,
+                message: format!("Task {} paused successfully", task_id),
+                task_id: Some(task_id),
+                error: None,
+            }))
+        }
+        Err(e) => {
+            error!("Failed to pause task {}: {}", task_id, e);
+            Ok(HttpResponse::InternalServerError().json(TaskResponse {
+                success: false,
+                message: format!("Failed to pause task: {}", e),
+                task_id: Some(task_id),
+                error: Some(e.to_string()),
+            }))
+        }
+    }
+}
+
+/// Resume a paused task by ID
+pub async fn resume_task(
+    path: web::Path<String>,
+    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+) -> Result<impl Responder> {
+    let task_id = path.into_inner();
+    info!("Resuming task: {}", task_id);
+
+    match hybrid_manager.docker_hive_mind.resume_swarm(&task_id).await {
+        Ok(()) => {
+            info!("Successfully resumed task: {}", task_id);
+            Ok(HttpResponse::Ok().json(TaskResponse {
+                success: true,
+                message: format!("Task {} resumed successfully", task_id),
+                task_id: Some(task_id),
+                error: None,
+            }))
+        }
+        Err(e) => {
+            error!("Failed to resume task {}: {}", task_id, e);
+            Ok(HttpResponse::InternalServerError().json(TaskResponse {
+                success: false,
+                message: format!("Failed to resume task: {}", e),
+                task_id: Some(task_id),
+                error: Some(e.to_string()),
+            }))
+        }
+    }
 }
 
 // Helper function for socket handler to get bot positions

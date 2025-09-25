@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useToast } from '../features/design-system/components/Toast';
 import { useSettingsStore } from '../store/settingsStore';
+import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
 interface AutoBalanceNotification {
   message: string;
@@ -32,10 +33,9 @@ export function useAutoBalanceNotifications() {
       if (!pollingIntervalRef.current) {
         pollingIntervalRef.current = setInterval(async () => {
           try {
-            const response = await fetch(`/api/graph/auto-balance-notifications?since=${lastTimestampRef.current}`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.notifications && data.notifications.length > 0) {
+            const response = await unifiedApiClient.get(`/graph/auto-balance-notifications?since=${lastTimestampRef.current}`);
+            const data = response.data;
+            if (data.success && data.notifications && data.notifications.length > 0) {
                 // Process new notifications
                 data.notifications.forEach((notification: AutoBalanceNotification) => {
                   // Show toast based on severity

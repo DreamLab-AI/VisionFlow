@@ -12,6 +12,9 @@
  */
 
 export { AgentTelemetryService, agentTelemetry } from './AgentTelemetry';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('telemetry');
 export type {
   TelemetryMetrics,
   TelemetryUploadPayload
@@ -72,7 +75,7 @@ export function initializeTelemetry() {
     }
   });
 
-  console.log('🔍 Agent Telemetry System Initialized');
-  console.log('📊 Use Ctrl+Shift+D to toggle debug overlay');
-  console.log('🤖 All agent spawns, WebSocket messages, and Three.js operations are being logged');
+  logger.info('Agent Telemetry System Initialized');
+  logger.info('Use Ctrl+Shift+D to toggle debug overlay');
+  logger.info('All agent spawns, WebSocket messages, and Three.js operations are being logged');
 }

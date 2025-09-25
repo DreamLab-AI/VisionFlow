@@ -35,6 +35,21 @@ import { Input } from '@/features/design-system/components/Input';
 import { Textarea } from '@/features/design-system/components/Textarea';
 import { Separator } from '@/features/design-system/components/Separator';
 import { toast } from '@/features/design-system/components/Toast';
+import {
+  exportGraph,
+  shareGraph,
+  publishGraph,
+  generateEmbedCode,
+  generateApiEndpoint,
+  copyToClipboard,
+  ExportOptions,
+  ShareOptions,
+  PublishMetadata
+} from '@/api/exportApi';
+import ShareSettingsDialog from '../dialogs/ShareSettingsDialog';
+import ExportFormatDialog from '../dialogs/ExportFormatDialog';
+import ShareLinkManager from '../dialogs/ShareLinkManager';
+import PublishGraphDialog from '../dialogs/PublishGraphDialog';
 
 interface GraphExportTabProps {
   graphId?: string;
@@ -47,150 +62,228 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
   graphData,
   onExport
 }) => {
-  // Export states
-  const [exportFormat, setExportFormat] = useState('json');
-  const [imageFormat, setImageFormat] = useState('png');
-  const [imageResolution, setImageResolution] = useState('1920x1080');
-  const [includeMetadata, setIncludeMetadata] = useState(true);
-  const [compressionEnabled, setCompressionEnabled] = useState(false);
+  // Dialog states
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showShareManager, setShowShareManager] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  
-  // Sharing states
+
+  // Active states
   const [shareUrl, setShareUrl] = useState('');
-  const [shareExpiry, setShareExpiry] = useState('7days');
-  const [sharePassword, setSharePassword] = useState('');
-  const [shareDescription, setShareDescription] = useState('');
   const [isSharing, setIsSharing] = useState(false);
-  
-  // Publication states
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  // Generated content
   const [embedCode, setEmbedCode] = useState('');
   const [apiEndpoint, setApiEndpoint] = useState('');
+  const [shareId, setShareId] = useState('');
 
-  const exportFormats = [
-    { value: 'json', label: 'JSON Data', icon: Database },
-    { value: 'csv', label: 'CSV Spreadsheet', icon: FileText },
-    { value: 'graphml', label: 'GraphML', icon: Code },
-    { value: 'gexf', label: 'GEXF Format', icon: Code },
-    { value: 'svg', label: 'SVG Vector', icon: FileImage },
-    { value: 'png', label: 'PNG Image', icon: FileImage },
-    { value: 'pdf', label: 'PDF Report', icon: FileText }
-  ];
+  // Real export handler
+  const handleExport = useCallback(async (options: ExportOptions) => {
+    if (!graphData) {
+      toast({
+        title: "No Data",
+        description: "No graph data available to export",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  const handleDataExport = useCallback(async (format: string) => {
     setIsExporting(true);
-    
-    const exportOptions = {
-      format,
-      includeMetadata,
-      compression: compressionEnabled,
-      resolution: format === 'png' ? imageResolution : undefined
-    };
-    
+    setShowExportDialog(false);
+
     try {
       toast({
         title: "Starting Export",
-        description: `Preparing ${format.toUpperCase()} export...`
+        description: `Preparing ${options.format.toUpperCase()} export...`
       });
-      
-      // Simulate export process
-      setTimeout(() => {
-        setIsExporting(false);
-        onExport?.(format, exportOptions);
-        
+
+      const result = await exportGraph(graphData, options);
+
+      if (result.success) {
         toast({
           title: "Export Complete",
-          description: `Graph data exported as ${format.toUpperCase()} successfully`,
-          action: {
-            label: "View",
-            onClick: () => console.log('View export')
-          }
+          description: `Graph exported as ${options.format.toUpperCase()} successfully`,
+          action: result.downloadUrl ? {
+            label: "Download",
+            onClick: () => window.open(result.downloadUrl, '_blank')
+          } : undefined
         });
-      }, 2000);
-      
+        onExport?.(options.format, options);
+      } else {
+        throw new Error(result.message || 'Export failed');
+      }
     } catch (error) {
-      setIsExporting(false);
       toast({
         title: "Export Failed",
-        description: "An error occurred during export. Please try again.",
+        description: error instanceof Error ? error.message : "An error occurred during export",
         variant: "destructive"
       });
+    } finally {
+      setIsExporting(false);
     }
-  }, [includeMetadata, compressionEnabled, imageResolution, onExport]);
+  }, [graphData, onExport]);
 
-  const handleCreateShareLink = useCallback(async () => {
+  // Real share handler
+  const handleShare = useCallback(async (options: ShareOptions) => {
+    if (!graphData) {
+      toast({
+        title: "No Data",
+        description: "No graph data available to share",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSharing(true);
-    
+    setShowShareDialog(false);
+
     try {
       toast({
         title: "Creating Share Link",
         description: "Generating secure sharing URL..."
       });
-      
-      // Simulate share link creation
-      setTimeout(() => {
-        const mockShareUrl = `${window.location.origin}/shared/${graphId}-${Date.now()}`;
-        setShareUrl(mockShareUrl);
-        setIsSharing(false);
-        
+
+      const result = await shareGraph(graphData, options);
+
+      if (result.success && result.shareUrl) {
+        setShareUrl(result.shareUrl);
+        setShareId(result.shareId || '');
+
+        // Auto-copy to clipboard
+        const copied = await copyToClipboard(result.shareUrl);
+
         toast({
           title: "Share Link Created",
-          description: "Link copied to clipboard automatically",
+          description: copied ? "Link copied to clipboard automatically" : "Share link created successfully",
           action: {
-            label: "Copy Again",
-            onClick: () => {
-              navigator.clipboard.writeText(mockShareUrl);
-              toast({ title: "Link copied to clipboard" });
+            label: copied ? "Copy Again" : "Copy Link",
+            onClick: async () => {
+              const success = await copyToClipboard(result.shareUrl!);
+              toast({
+                title: success ? "Link copied to clipboard" : "Copy failed",
+                variant: success ? "default" : "destructive"
+              });
             }
           }
         });
-        
-        // Auto-copy to clipboard
-        navigator.clipboard.writeText(mockShareUrl);
-      }, 1500);
-      
+      } else {
+        throw new Error(result.message || 'Share failed');
+      }
     } catch (error) {
-      setIsSharing(false);
       toast({
         title: "Share Link Failed",
-        description: "Could not create share link. Please try again.",
+        description: error instanceof Error ? error.message : "Could not create share link",
         variant: "destructive"
       });
+    } finally {
+      setIsSharing(false);
     }
-  }, [graphId]);
+  }, [graphData]);
 
-  const generateEmbedCode = useCallback(() => {
-    const embedHtml = `<iframe 
-  src="${window.location.origin}/embed/${graphId}" 
-  width="800" 
-  height="600" 
-  frameborder="0"
-  title="Interactive Graph Visualisation">
-</iframe>`;
-    
+  // Real publish handler
+  const handlePublish = useCallback(async (metadata: PublishMetadata) => {
+    if (!graphData) {
+      toast({
+        title: "No Data",
+        description: "No graph data available to publish",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    setShowPublishDialog(false);
+
+    try {
+      toast({
+        title: "Publishing Graph",
+        description: "Uploading to repository..."
+      });
+
+      const result = await publishGraph(graphData, metadata);
+
+      if (result.success) {
+        toast({
+          title: "Graph Published",
+          description: "Your graph is now available in the public repository",
+          action: result.publishUrl ? {
+            label: "View Published",
+            onClick: () => window.open(result.publishUrl, '_blank')
+          } : undefined
+        });
+      } else {
+        throw new Error(result.message || 'Publish failed');
+      }
+    } catch (error) {
+      toast({
+        title: "Publish Failed",
+        description: error instanceof Error ? error.message : "Could not publish graph",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [graphData]);
+
+  const handleGenerateEmbedCode = useCallback(async () => {
+    if (!shareId && !shareUrl) {
+      toast({
+        title: "Create Share Link First",
+        description: "You need to create a share link before generating embed code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const currentShareId = shareId || shareUrl.split('/').pop() || graphId;
+    const embedHtml = generateEmbedCode(currentShareId, {
+      width: 800,
+      height: 600,
+      interactive: true,
+      showControls: true,
+      theme: 'auto'
+    });
+
     setEmbedCode(embedHtml);
-    navigator.clipboard.writeText(embedHtml);
-    
-    toast({
-      title: "Embed Code Generated",
-      description: "HTML embed code copied to clipboard"
-    });
-  }, [graphId]);
+    const success = await copyToClipboard(embedHtml);
 
-  const generateApiEndpoint = useCallback(() => {
-    const endpoint = `${window.location.origin}/api/graphs/${graphId}/data`;
-    setApiEndpoint(endpoint);
-    navigator.clipboard.writeText(endpoint);
-    
     toast({
-      title: "API Endpoint Generated",
-      description: "REST API endpoint copied to clipboard"
+      title: success ? "Embed Code Generated" : "Generation Complete",
+      description: success ? "HTML embed code copied to clipboard" : "Embed code generated",
+      variant: success ? "default" : "destructive"
     });
-  }, [graphId]);
+  }, [shareId, shareUrl, graphId]);
+
+  const handleGenerateApiEndpoint = useCallback(async () => {
+    if (!shareId && !shareUrl) {
+      toast({
+        title: "Create Share Link First",
+        description: "You need to create a share link before generating API endpoint",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const currentShareId = shareId || shareUrl.split('/').pop() || graphId;
+    const endpoint = generateApiEndpoint(currentShareId);
+
+    setApiEndpoint(endpoint);
+    const success = await copyToClipboard(endpoint);
+
+    toast({
+      title: success ? "API Endpoint Generated" : "Generation Complete",
+      description: success ? "REST API endpoint copied to clipboard" : "API endpoint generated",
+      variant: success ? "default" : "destructive"
+    });
+  }, [shareId, shareUrl, graphId]);
 
   return (
-    <div className="space-y-4">
-      {/* Data Export */}
-      <Card>
+    <>
+      <div className="space-y-4">
+        {/* Data Export */}
+        <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -198,60 +291,12 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1">
-            <Label className="text-xs">Export Format</Label>
-            <Select value={exportFormat} onValueChange={setExportFormat}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select format" />
-              </SelectTrigger>
-              <SelectContent>
-                {exportFormats.map(format => (
-                  <SelectItem key={format.value} value={format.value}>
-                    <div className="flex items-center gap-2">
-                      <format.icon className="h-3 w-3" />
-                      {format.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="text-sm text-muted-foreground mb-3">
+            Choose from multiple export formats including JSON, GraphML, images, and more.
           </div>
-          
-          {['png', 'svg'].includes(exportFormat) && (
-            <div className="space-y-1">
-              <Label className="text-xs">Image Resolution</Label>
-              <Select value={imageResolution} onValueChange={setImageResolution}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select resolution" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1920x1080">1920×1080 (Full HD)</SelectItem>
-                  <SelectItem value="2560x1440">2560×1440 (2K)</SelectItem>
-                  <SelectItem value="3840x2160">3840×2160 (4K)</SelectItem>
-                  <SelectItem value="7680x4320">7680×4320 (8K)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Include Metadata</Label>
-            <Switch
-              checked={includeMetadata}
-              onCheckedChange={setIncludeMetadata}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Enable Compression</Label>
-            <Switch
-              checked={compressionEnabled}
-              onCheckedChange={setCompressionEnabled}
-            />
-          </div>
-          
-          <Button 
-            onClick={() => handleDataExport(exportFormat)}
+
+          <Button
+            onClick={() => setShowExportDialog(true)}
             disabled={isExporting}
             className="w-full"
           >
@@ -263,7 +308,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
             ) : (
               <>
                 <Download className="h-3 w-3 mr-2" />
-                Export {exportFormat.toUpperCase()}
+                Choose Export Format
               </>
             )}
           </Button>
@@ -276,71 +321,42 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Share className="h-4 w-4" />
             Sharing & Collaboration
-            <Badge variant="secondary" className="text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Partial
-            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-2">
-            <Label className="text-xs">Share Description</Label>
-            <Textarea
-              placeholder="Describe what this graph shows..."
-              value={shareDescription}
-              onChange={(e) => setShareDescription(e.target.value)}
-              className="text-xs"
-              rows={2}
-            />
+          <div className="text-sm text-muted-foreground mb-3">
+            Generate secure shareable links with custom permissions and expiry settings.
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-xs">Expires In</Label>
-              <Select value={shareExpiry} onValueChange={setShareExpiry}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1hour">1 Hour</SelectItem>
-                  <SelectItem value="1day">1 Day</SelectItem>
-                  <SelectItem value="7days">7 Days</SelectItem>
-                  <SelectItem value="30days">30 Days</SelectItem>
-                  <SelectItem value="never">Never</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-1">
-              <Label className="text-xs">Password (Optional)</Label>
-              <Input
-                type="password"
-                placeholder="Security password"
-                value={sharePassword}
-                onChange={(e) => setSharePassword(e.target.value)}
-                className="text-xs"
-              />
-            </div>
+            <Button
+              onClick={() => setShowShareDialog(true)}
+              disabled={isSharing}
+              variant="outline"
+              className="w-full"
+            >
+              {isSharing ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Globe className="h-3 w-3 mr-2" />
+                  New Share Link
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={() => setShowShareManager(true)}
+              variant="outline"
+              className="w-full"
+            >
+              <Share className="h-3 w-3 mr-2" />
+              Manage Shares
+            </Button>
           </div>
-          
-          <Button 
-            onClick={handleCreateShareLink}
-            disabled={isSharing}
-            className="w-full"
-            variant="outline"
-          >
-            {isSharing ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                Creating Link...
-              </>
-            ) : (
-              <>
-                <Globe className="h-3 w-3 mr-2" />
-                Create Share Link
-              </>
-            )}
-          </Button>
           
           {shareUrl && (
             <div className="p-2 bg-muted rounded space-y-2">
@@ -378,20 +394,22 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={generateEmbedCode}
+              onClick={handleGenerateEmbedCode}
               className="w-full"
+              disabled={!shareUrl && !shareId}
             >
               <FileText className="h-3 w-3 mr-1" />
               Embed Code
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={generateApiEndpoint}
+              onClick={handleGenerateApiEndpoint}
               className="w-full"
+              disabled={!shareUrl && !shareId}
             >
               <Database className="h-3 w-3 mr-1" />
               API Endpoint
@@ -434,43 +452,103 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardContent>
       </Card>
 
+      {/* Publishing */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Publishing
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm text-muted-foreground mb-3">
+            Publish your graph to the public repository for others to discover and cite.
+          </div>
+
+          <Button
+            onClick={() => setShowPublishDialog(true)}
+            disabled={isPublishing}
+            className="w-full"
+            variant="outline"
+          >
+            {isPublishing ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Upload className="h-3 w-3 mr-2" />
+                Publish to Repository
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Quick Actions */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Quick Actions
+            <Download className="h-4 w-4" />
+            Quick Export
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => handleDataExport('png')}
+              onClick={() => handleExport({ format: 'png', resolution: '1920x1080', quality: 90 })}
               className="w-full"
+              disabled={isExporting}
             >
               <FileImage className="h-3 w-3 mr-1" />
-              Save Image
+              Save PNG
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => handleDataExport('json')}
+              onClick={() => handleExport({ format: 'json', includeMetadata: true })}
               className="w-full"
+              disabled={isExporting}
             >
               <Database className="h-3 w-3 mr-1" />
-              Export Data
+              Export JSON
             </Button>
-          </div>
-          
-          <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-            <strong>Note:</strong> Advanced sharing and collaboration features are under development. 
-            Current implementation provides basic export and link generation.
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+
+      {/* Dialogs */}
+      <ExportFormatDialog
+        open={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        onExport={handleExport}
+        graphData={graphData}
+        isLoading={isExporting}
+      />
+
+      <ShareSettingsDialog
+        open={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        onShare={handleShare}
+        isLoading={isSharing}
+      />
+
+      <ShareLinkManager
+        open={showShareManager}
+        onClose={() => setShowShareManager(false)}
+      />
+
+      <PublishGraphDialog
+        open={showPublishDialog}
+        onClose={() => setShowPublishDialog(false)}
+        onPublish={handlePublish}
+        isLoading={isPublishing}
+      />
+    </>
   );
 };
 

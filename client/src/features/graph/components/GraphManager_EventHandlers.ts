@@ -1,17 +1,20 @@
 import { useCallback, useEffect } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
+import { throttle } from 'lodash';
 import { graphDataManager } from '../managers/graphDataManager';
 import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
 import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { navigateNarrativeGoldmine } from '../../../utils/iframeCommunication';
+import { useGraphInteraction } from '../../visualisation/hooks/useGraphInteraction';
 
 const logger = createLogger('GraphManager');
 
 const DRAG_THRESHOLD = 5; // pixels
 const BASE_SPHERE_RADIUS = 0.5;
+const POSITION_UPDATE_THROTTLE_MS = 100; // 100ms throttle for position updates
 
 // Helper function to slugify node labels
 const slugifyNodeLabel = (label: string): string => {
@@ -32,6 +35,40 @@ export const createEventHandlers = (
   setGraphData: React.Dispatch<React.SetStateAction<any>>,
   onDragStateChange?: (isDragging: boolean) => void
 ) => {
+  // Initialize graph interaction tracking
+  const {
+    startInteraction,
+    endInteraction,
+    updateNodePosition,
+    shouldSendPositionUpdates,
+    flushPositionUpdates
+  } = useGraphInteraction({
+    positionUpdateThrottleMs: POSITION_UPDATE_THROTTLE_MS,
+    onInteractionStateChange: onDragStateChange
+  });
+
+  // Throttled WebSocket position update function
+  const throttledWebSocketUpdate = useCallback(
+    throttle((nodeId: string, position: { x: number; y: number; z: number }) => {
+      // Only send if we should be sending position updates (during active interactions)
+      if (shouldSendPositionUpdates()) {
+        const numericId = graphDataManager.nodeIdMap.get(nodeId);
+        if (numericId !== undefined && graphDataManager.webSocketService?.isReady()) {
+          const update: BinaryNodeData = {
+            nodeId: numericId,
+            position,
+            velocity: { x: 0, y: 0, z: 0 }
+          };
+          graphDataManager.webSocketService.sendNodePositionUpdates([update]);
+
+          if (debugState.isEnabled()) {
+            logger.debug(`Throttled WebSocket update for node ${nodeId}`, position);
+          }
+        }
+      }
+    }, POSITION_UPDATE_THROTTLE_MS),
+    [shouldSendPositionUpdates]
+  );
   const handlePointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     if (!meshRef.current) return;
@@ -54,10 +91,11 @@ export const createEventHandlers = (
       currentNodePos3D: new THREE.Vector3(node.position.x, node.position.y, node.position.z),
     };
 
-    // Lock camera immediately on node click (if callback is provided)
-    if (onDragStateChange) {
-      console.log('Calling onDragStateChange(true)');
-      onDragStateChange(true);
+    // Start interaction tracking immediately on node click
+    startInteraction(node.id);
+
+    if (debugState.isEnabled()) {
+      logger.debug(`Started interaction tracking for node ${node.id}`);
     }
 
     if (debugState.isEnabled()) {
@@ -77,7 +115,6 @@ export const createEventHandlers = (
       if (distance > DRAG_THRESHOLD) {
         drag.isDragging = true;
         setDragState({ nodeId: drag.nodeId, instanceId: drag.instanceId });
-        // Camera is already locked from pointerDown, no need to call onDragStateChange here
 
         const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
         if (numericId !== undefined) {
@@ -142,18 +179,19 @@ export const createEventHandlers = (
           )
         }));
 
-        // Throttle WebSocket updates
-        const now = Date.now();
-        if (now - drag.lastUpdateTime > 30) {
-          if (numericId !== undefined) {
-            drag.pendingUpdate = {
-              nodeId: numericId,
-              position: { x: drag.currentNodePos3D.x, y: drag.currentNodePos3D.y, z: drag.currentNodePos3D.z },
-              velocity: { x: 0, y: 0, z: 0 }
-            };
-            drag.lastUpdateTime = now;
-          }
-        }
+        // Use the interaction-aware position update system
+        updateNodePosition(drag.nodeId!, {
+          x: drag.currentNodePos3D.x,
+          y: drag.currentNodePos3D.y,
+          z: drag.currentNodePos3D.z
+        });
+
+        // Also use throttled WebSocket update as backup
+        throttledWebSocketUpdate(drag.nodeId!, {
+          x: drag.currentNodePos3D.x,
+          y: drag.currentNodePos3D.y,
+          z: drag.currentNodePos3D.z
+        });
       }
     }
   }, [camera, settings?.visualisation?.nodes?.nodeSize, meshRef, dragDataRef, setDragState, setGraphData]);
@@ -161,10 +199,6 @@ export const createEventHandlers = (
   const handlePointerUp = useCallback(() => {
     const drag = dragDataRef.current;
     if (!drag.pointerDown) {
-      // Release camera lock even if no drag was active
-      if (onDragStateChange) {
-        onDragStateChange(false);
-      }
       return;
     }
 
@@ -176,13 +210,8 @@ export const createEventHandlers = (
       if (numericId !== undefined) {
         graphWorkerProxy.unpinNode(numericId);
 
-        // Send final position update
-        const finalUpdate: BinaryNodeData = {
-          nodeId: numericId,
-          position: { x: drag.currentNodePos3D.x, y: drag.currentNodePos3D.y, z: drag.currentNodePos3D.z },
-          velocity: { x: 0, y: 0, z: 0 }
-        };
-        graphDataManager.webSocketService?.send(createBinaryNodeData([finalUpdate]));
+        // Flush any pending position updates immediately
+        flushPositionUpdates();
       }
     } else {
       // This was a CLICK action
@@ -191,10 +220,10 @@ export const createEventHandlers = (
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 
         const slug = slugifyNodeLabel(node.label);
-        
+
         // Use the utility function for secure iframe communication
         const success = navigateNarrativeGoldmine(node.id, node.label, slug);
-        
+
         if (!success) {
           logger.warn('Failed to send navigation message to Narrative Goldmine iframe');
         } else if (debugState.isEnabled()) {
@@ -203,6 +232,9 @@ export const createEventHandlers = (
       }
     }
 
+    // End interaction tracking
+    endInteraction(drag.nodeId);
+
     // Reset state for the next interaction
     dragDataRef.current.pointerDown = false;
     dragDataRef.current.isDragging = false;
@@ -210,13 +242,11 @@ export const createEventHandlers = (
     dragDataRef.current.instanceId = null;
     dragDataRef.current.pendingUpdate = null;
     setDragState({ nodeId: null, instanceId: null });
-    
-    // Release camera lock (if callback is provided)
-    if (onDragStateChange) {
-      console.log('Calling onDragStateChange(false)');
-      onDragStateChange(false);
+
+    if (debugState.isEnabled()) {
+      logger.debug(`Ended interaction tracking for node ${drag.nodeId}`);
     }
-  }, [graphData.nodes, dragDataRef, setDragState, onDragStateChange]);
+  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates]);
 
   // Add global event listeners for pointer up
   useEffect(() => {

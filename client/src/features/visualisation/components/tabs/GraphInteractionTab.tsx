@@ -3,7 +3,7 @@
  * Advanced interaction modes and controls with UK English localisation
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Clock, 
   Users,
@@ -28,22 +28,52 @@ import { Slider } from '@/features/design-system/components/Slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Progress } from '@/features/design-system/components/Progress';
 import { toast } from '@/features/design-system/components/Toast';
+import { interactionApi, type GraphProcessingProgress, type GraphProcessingResult } from '@/services/interactionApi';
+import { webSocketService } from '@/services/WebSocketService';
 
 interface GraphInteractionTabProps {
   graphId?: string;
   onFeatureUpdate?: (feature: string, data: any) => void;
 }
 
-export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({ 
+interface ProcessingState {
+  taskId: string | null;
+  isProcessing: boolean;
+  progress: number;
+  stage: string;
+  currentOperation: string;
+  estimatedTimeRemaining?: number;
+  metrics?: {
+    stepsProcessed: number;
+    totalSteps: number;
+    currentStep: string;
+    operationsCompleted: number;
+  };
+  error?: string;
+}
+
+export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   graphId = 'default',
   onFeatureUpdate
 }) => {
+  // Processing states
+  const [processingState, setProcessingState] = useState<ProcessingState>({
+    taskId: null,
+    isProcessing: false,
+    progress: 0,
+    stage: 'idle',
+    currentOperation: 'Ready'
+  });
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+
   // Time Travel states
   const [timeTravelActive, setTimeTravelActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [totalSteps, setTotalSteps] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState([1]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [timeTravelTaskId, setTimeTravelTaskId] = useState<string | null>(null);
 
   // Collaboration states
   const [collaborationActive, setCollaborationActive] = useState(false);
@@ -60,6 +90,11 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   const [explorationMode, setExplorationMode] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [currentTour, setCurrentTour] = useState<string>('');
+  const [tourWaypoints, setTourWaypoints] = useState(0);
+
+  // Connection state tracking
+  const [wsConnected, setWsConnected] = useState(false);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleTimeTravelToggle = useCallback(() => {
     const newState = !timeTravelActive;
@@ -211,9 +246,23 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Time Travel Mode
-            <Badge variant="secondary" className="text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Partial
+            <Badge variant={wsConnected && !processingState.error ? "default" : "secondary"} className="text-xs">
+              {processingState.isProcessing ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                  Processing
+                </span>
+              ) : wsConnected ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  Ready
+                </span>
+              ) : (
+                <>
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Offline
+                </>
+              )}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -285,9 +334,20 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Users className="h-4 w-4" />
             Collaboration
-            <Badge variant="secondary" className="text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Partial
+            <Badge variant={collaborationActive ? "default" : wsConnected ? "outline" : "secondary"} className="text-xs">
+              {collaborationActive ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  Active
+                </span>
+              ) : wsConnected ? (
+                "Ready"
+              ) : (
+                <>
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Offline
+                </>
+              )}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -340,9 +400,20 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Glasses className="h-4 w-4" />
             Immersive Modes
-            <Badge variant="secondary" className="text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Partial
+            <Badge variant={vrModeActive || arModeActive ? "default" : "outline"} className="text-xs">
+              {vrModeActive ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                  VR Active
+                </span>
+              ) : arModeActive ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                  AR Active
+                </span>
+              ) : (
+                "Ready"
+              )}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -422,12 +493,12 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
           </div>
           
           <div className="grid grid-cols-1 gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full"
               onClick={createExplorationTour}
-              disabled={!explorationMode}
+              disabled={!explorationMode || !wsConnected}
             >
               <MapPin className="h-3 w-3 mr-1" />
               Create Guided Tour
@@ -442,14 +513,24 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
               </div>
               <div className="flex justify-between">
                 <span>Waypoints:</span>
-                <span className="font-mono">0</span>
+                <span className="font-mono">{tourWaypoints}</span>
               </div>
             </div>
           )}
           
           <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-            <strong>Note:</strong> Advanced interaction modes are under development. 
-            Current implementation provides basic mode switching and state management.
+            <div className="flex items-center gap-1 mb-1">
+              <div className={`w-2 h-2 rounded-full ${
+                wsConnected ? 'bg-green-500' : 'bg-red-500'
+              }`} />
+              <strong>Status:</strong> {wsConnected ? 'Connected' : 'Disconnected'}
+            </div>
+            {processingState.error && (
+              <div className="text-red-500 mt-1">Error: {processingState.error}</div>
+            )}
+            {!wsConnected && (
+              <div>WebSocket connection required for real-time features</div>
+            )}
           </div>
         </CardContent>
       </Card>

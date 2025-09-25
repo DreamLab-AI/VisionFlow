@@ -1,3 +1,12 @@
+/**
+ * BotsDataContext - Unified data management for agent swarm visualization
+ *
+ * ARCHITECTURE (post-fix):
+ * - REST polling for agent metadata (health, status, capabilities) via useAgentPolling hook
+ * - WebSocket binary updates for real-time position/velocity data
+ * - Single source of truth - no duplicate polling or race conditions
+ * - Conservative polling: 3s active, 15s idle for metadata (positions are real-time via WS)
+ */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
@@ -45,13 +54,14 @@ interface BotsDataContextType {
 const BotsDataContext = createContext<BotsDataContextType | undefined>(undefined);
 
 export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use the new polling hook for REST-based updates
+  // Use the new polling hook for REST-based metadata updates
+  // Binary position updates come via WebSocket for real-time performance
   const pollingData = useAgentPolling({
     enabled: true,
     config: {
-      activePollingInterval: 1000,  // 1s for active
-      idlePollingInterval: 5000,    // 5s for idle
-      enableSmartPolling: true
+      activePollingInterval: 3000,  // 3s for active (agent metadata updates)
+      idlePollingInterval: 15000,   // 15s for idle (reduced server load)
+      enableSmartPolling: true      // Auto-adjust based on activity
     },
     onError: (error) => {
       logger.error('Polling error:', error);
@@ -97,7 +107,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateFromGraphData = (data: any) => {
     // Safety check for undefined data
     if (!data) {
-      console.warn('updateFromGraphData received undefined data');
+      logger.warn('updateFromGraphData received undefined data');
       return;
     }
     
@@ -243,21 +253,19 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [pollingData]);
 
-  // Subscribe to WebSocket updates for real-time position data
+  // Subscribe to WebSocket binary position updates ONLY
+  // REST polling is handled by useAgentPolling hook above
   useEffect(() => {
     // Subscribe to binary position updates for real-time agent movement
     const unsubscribe = botsWebSocketIntegration.on('bots-binary-position-update', (binaryData: ArrayBuffer) => {
       updateFromBinaryPositions(binaryData);
     });
 
-    // Also subscribe to the REST polling service for metadata updates
-    const unsubscribePolling = agentPollingService.subscribe((data) => {
-      updateFromGraphData(data);
-    });
+    // DO NOT subscribe to REST polling service here - it's handled by useAgentPolling hook
+    // This prevents duplicate polling and race conditions
 
     return () => {
       unsubscribe();
-      unsubscribePolling();
     };
   }, []);
 

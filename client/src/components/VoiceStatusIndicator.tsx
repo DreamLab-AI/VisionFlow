@@ -34,7 +34,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
     // const supported = support.getUserMedia && support.audioContext && support.mediaRecorder;
     // setIsSupported(supported);
     // if (!supported) {
-    //   console.log('Browser support check:', support);
+    // Browser support check logging removed - use proper logging if needed
     // }
   }, []);
 

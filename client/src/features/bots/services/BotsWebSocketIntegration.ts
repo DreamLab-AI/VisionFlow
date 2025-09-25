@@ -7,14 +7,20 @@ import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes'
 const logger = createLogger('BotsWebSocketIntegration');
 
 /**
- * Integration service that handles WebSocket connections for graph data
- * Note: MCP connections are handled by the backend only - frontend uses REST API
+ * Integration service that handles WebSocket connections for real-time position updates
+ *
+ * ARCHITECTURE (post-fix):
+ * - Handles ONLY WebSocket binary position updates (34-byte format) for real-time movement
+ * - Does NOT handle REST polling - that's done by BotsDataContext via useAgentPolling hook
+ * - Does NOT start any timers or polling loops - prevents duplicate data fetching
+ *
+ * Note: MCP connections are handled by the backend only - frontend uses REST API for metadata
  */
 export class BotsWebSocketIntegration {
   private static instance: BotsWebSocketIntegration;
   private logseqConnected = false;
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
-  private botsGraphInterval: NodeJS.Timeout | null = null;
+  // Removed: botsGraphInterval - no longer needed as polling is handled by REST
   private useRestPolling: boolean = true; // Use REST polling instead of WebSocket polling
 
   private constructor() {
@@ -45,24 +51,9 @@ export class BotsWebSocketIntegration {
       // Log connection status changes
       agentTelemetry.logWebSocketMessage('connection_status_change', 'incoming', { connected });
       
-      // Start or stop polling based on connection status
-      if (connected) {
-        if (this.useRestPolling) {
-          // Start REST-based polling service
-          agentPollingService.start();
-          logger.info('Started REST-based agent polling');
-        } else {
-          // Legacy WebSocket polling
-          this.startBotsGraphPolling();
-        }
-      } else {
-        if (this.useRestPolling) {
-          agentPollingService.stop();
-          logger.info('Stopped REST-based agent polling');
-        } else {
-          this.stopBotsGraphPolling();
-        }
-      }
+      // DO NOT start polling here - let BotsDataContext handle REST polling
+      // This service only handles WebSocket binary position updates
+      logger.info(`WebSocket connection ${connected ? 'established' : 'lost'} - position updates ${connected ? 'enabled' : 'disabled'}`);
     });
 
     // Listen for Logseq graph messages
@@ -162,102 +153,41 @@ export class BotsWebSocketIntegration {
 
   /**
    * Configure polling mode (REST vs WebSocket)
+   * @deprecated - Polling is now handled by BotsDataContext, this service only handles binary position updates
    */
   public setPollingMode(useRest: boolean): void {
-    const wasUsingRest = this.useRestPolling;
+    logger.warn('setPollingMode is deprecated. Polling is handled by BotsDataContext via REST API.');
     this.useRestPolling = useRest;
-    
-    if (wasUsingRest !== useRest && this.logseqConnected) {
-      // Switch polling mode
-      if (useRest) {
-        this.stopBotsGraphPolling();
-        agentPollingService.start();
-      } else {
-        agentPollingService.stop();
-        this.startBotsGraphPolling();
-      }
-      logger.info(`Switched polling mode to ${useRest ? 'REST' : 'WebSocket'}`);
-    }
   }
 
   /**
    * Start polling for full bots graph data (legacy WebSocket polling)
+   * @deprecated - Use REST polling via BotsDataContext instead
    */
   public startBotsGraphPolling(interval: number = 2000): void {
-    if (this.botsGraphInterval) {
-      clearInterval(this.botsGraphInterval);
-    }
-    
-    logger.info(`Starting bots graph polling with ${interval}ms interval`);
-    
-    this.botsGraphInterval = setInterval(() => {
-      if (webSocketService.isReady()) {
-        // Log outgoing request
-        agentTelemetry.logWebSocketMessage('requestBotsGraph', 'outgoing');
-
-        // Request full graph data with nodes and edges
-        webSocketService.sendMessage('requestBotsGraph');
-      }
-    }, interval);
-    
-    // Initial request
-    if (webSocketService.isReady()) {
-      agentTelemetry.logWebSocketMessage('requestBotsGraph', 'outgoing', { reason: 'initial_request' });
-      webSocketService.sendMessage('requestBotsGraph');
-    }
+    logger.warn('startBotsGraphPolling is deprecated. Use REST polling via BotsDataContext instead.');
+    // No longer start WebSocket polling to avoid duplicate data fetching
   }
 
   /**
    * Stop polling for bots graph data
+   * @deprecated - No longer needed as polling is handled by BotsDataContext
    */
   public stopBotsGraphPolling(): void {
-    if (this.botsGraphInterval) {
-      logger.info('Stopping bots graph polling');
-      clearInterval(this.botsGraphInterval);
-      this.botsGraphInterval = null;
-    }
+    logger.warn('stopBotsGraphPolling is deprecated - no WebSocket polling to stop');
+    // No longer has botsGraphInterval timer to clear
   }
 
   // Public API methods
 
   /**
    * Request initial data for both visualizations
+   * @deprecated - Initial data fetching is now handled by BotsDataContext via REST polling
    */
   async requestInitialData() {
-    logger.info('Requesting initial data for graph visualization - using unified init flow');
-
-    // UNIFIED INIT: Skip the WebSocket requestInitialData message
-    // The REST endpoint /api/graph/data will be called separately and will trigger WebSocket broadcast
-    // This prevents graph rebuilding and ensures proper initialization
-    // Note: Commenting out to prevent duplicate initialization
-    // if (this.logseqConnected) {
-    //   webSocketService.sendMessage('requestInitialData');
-    // }
-
-    // Fetch bots data via REST API from the backend
-    try {
-      const { apiService } = await import('../../../services/apiService');
-      const botsData = await apiService.get('/bots/data');
-      logger.info('Fetched bots data:', botsData);
-
-      // Log REST API call telemetry
-      agentTelemetry.logWebSocketMessage('rest_api_call', 'outgoing', {
-        endpoint: '/bots/data',
-        hasResponse: !!botsData,
-        nodeCount: botsData?.nodes?.length || 0
-      });
-
-      // Emit the data for components to use
-      if (botsData && botsData.nodes) {
-        agentTelemetry.logAgentAction('websocket', 'service', 'rest_data_received', {
-          nodeCount: botsData.nodes.length,
-          hasEdges: !!botsData.edges
-        });
-        this.emit('bots-data', botsData);
-      }
-    } catch (error) {
-      logger.error('Failed to fetch bots data:', error);
-    }
+    logger.info('requestInitialData is deprecated - initial data is now fetched via REST polling in BotsDataContext');
+    // No longer fetch initial data here to avoid duplicate requests
+    // BotsDataContext handles all REST API calls for agent metadata
   }
 
   /**
@@ -312,11 +242,7 @@ export class BotsWebSocketIntegration {
    */
   clearAgents() {
     logger.info('Clearing all agents data');
-    // Stop polling for bots graph
-    if (this.botsGraphInterval) {
-      clearInterval(this.botsGraphInterval);
-      this.botsGraphInterval = null;
-    }
+    // No longer has WebSocket polling to stop - handled by BotsDataContext
     // Emit cleared state via the proper event
     this.emit('bots-graph-update', {
       nodes: [],
@@ -326,15 +252,14 @@ export class BotsWebSocketIntegration {
   }
 
   /**
-   * Restart polling for bots graph
+   * @deprecated Polling is now handled by BotsDataContext via REST API
+   * This method is kept for backward compatibility but does nothing
    */
   restartPolling() {
-    logger.info('Restarting bots graph polling');
-    this.clearAgents();
-    // Small delay to ensure clean state
-    setTimeout(() => {
-      this.startBotsGraphPolling();
-    }, 500);
+    logger.warn('restartPolling is deprecated. Polling is handled by BotsDataContext via REST API.');
+    // No-op - polling is handled by BotsDataContext
+    // NOTE: Hive mind control is managed via docker exec with claude-flow CLI
+    // from visionflow container to /ext/multi-agent-docker container
   }
 
   /**
@@ -344,10 +269,8 @@ export class BotsWebSocketIntegration {
     logger.info('Disconnecting WebSocket services');
     this.clearAgents();
     
-    // Stop polling services
-    if (this.useRestPolling) {
-      agentPollingService.stop();
-    }
+    // Stop only WebSocket polling - REST polling is managed by BotsDataContext
+    this.stopBotsGraphPolling();
     
     webSocketService.close();
     this.logseqConnected = false;

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
-use crate::types::claude_flow::AgentStatus;
+use crate::types::claude_flow::{AgentStatus, Vec3};
 use crate::config::dev_config;
 use sysinfo::{System, Pid};
 use std::sync::{Arc, Mutex};
@@ -48,12 +48,6 @@ pub struct VisualizedAgent {
     pub animation_state: AnimationState,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentMetadata {
@@ -216,61 +210,66 @@ impl AgentVisualizationProcessor {
     /// Process raw agent data from MCP into visualization format
     pub fn process_agents(&mut self, agents: Vec<AgentStatus>) -> Vec<VisualizedAgent> {
         agents.into_iter().map(|agent| {
-            let agent_type = agent.profile.agent_type.to_string();
-            
-            // Calculate normalized metrics
-            let health = ((agent.success_rate as f32) / 100.0).clamp(0.0, 1.0);
-            let (cpu_usage, memory_usage) = self.get_real_system_metrics(&agent.agent_id);
-            let activity_level = if agent.active_tasks_count > 0 { 0.8 } else { 0.2 };
-            
+            // Use the new agent_type field directly
+            let agent_type = agent.agent_type.clone();
+
+            // Use already normalized values from the new structure
+            let health = agent.health;
+            let cpu_usage = agent.cpu_usage;
+            let memory_usage = agent.memory_usage;
+            let activity_level = agent.activity;
+
             // Determine visual properties based on agent state
             let (color, shape, animation) = self.get_visual_properties(&agent_type, &agent.status, health);
-            
-            // Calculate size based on workload
-            let size = 1.0 + (agent.active_tasks_count as f32 * 0.2).min(2.0);
-            
+
+            // Calculate size based on workload or task count
+            let size = agent.workload.unwrap_or_else(|| 1.0 + (agent.active_tasks_count as f32 * 0.2).min(2.0));
+
             // Glow intensity based on activity
             let glow_intensity = 0.3 + activity_level * 0.7;
-            
-            // Track token usage
-            let token_usage = self.get_agent_token_usage(&agent.agent_id);
-            let token_rate = self.calculate_token_rate(&agent.agent_id, token_usage);
-            
+
+            // Use the existing token data from the new structure
+            let token_usage = agent.tokens;
+            let token_rate = agent.token_rate;
+
+            // Use position from agent if available, otherwise physics will set it
+            let position = agent.position.unwrap_or(Vec3 { x: 0.0, y: 0.0, z: 0.0 });
+
             VisualizedAgent {
                 id: agent.agent_id.clone(),
                 name: agent.profile.name.clone(),
                 agent_type: agent_type.clone(),
                 status: agent.status.clone(),
-                
-                position: Vec3 { x: 0.0, y: 0.0, z: 0.0 }, // Will be set by physics
+
+                position,
                 velocity: Vec3 { x: 0.0, y: 0.0, z: 0.0 },
                 color,
                 size,
                 glow_intensity,
-                
+
                 health,
                 cpu_usage,
                 memory_usage,
                 activity_level,
-                
-                active_tasks: agent.active_tasks_count,
-                completed_tasks: agent.completed_tasks_count,
-                success_rate: (agent.success_rate as f32) / 100.0,
-                current_task: agent.current_task.as_ref().map(|t| t.description.clone()),
-                
+
+                active_tasks: agent.tasks_active,
+                completed_tasks: agent.tasks_completed,
+                success_rate: agent.success_rate_normalized,
+                current_task: agent.current_task_description.clone(),
+
                 token_usage,
                 token_rate,
-                
+
                 metadata: AgentMetadata {
                     created_at: agent.timestamp,
-                    age_seconds: (Utc::now() - agent.timestamp).num_seconds() as u64,
+                    age_seconds: agent.age,
                     last_activity: agent.timestamp,
-                    capabilities: agent.profile.capabilities.clone(),
+                    capabilities: agent.capabilities.clone(),
                     error_count: agent.failed_tasks_count,
                     warning_count: 0,
                     tags: vec![agent_type.clone(), agent.status.clone()],
                 },
-                
+
                 shape_type: shape,
                 animation_state: animation,
             }

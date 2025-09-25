@@ -13,6 +13,8 @@ use webxr::{
         bots_handler,
         bots_visualization_handler,
         hybrid_health_handler,
+        workspace_handler,
+        graph_export_handler,
     },
     services::{
         file_service::FileService,
@@ -544,6 +546,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.settings_addr.clone()))
             .app_data(web::Data::new(app_state_data.metadata_addr.clone()))
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))
+            .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
             .app_data(hybrid_health_manager_data.clone()) // Add HybridHealthManager
@@ -554,9 +557,11 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
+                    .configure(workspace_handler::config) // Add workspace routes under /api/workspace
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
+                    .configure(graph_export_handler::configure_routes) // Graph export and sharing endpoints
                     .service(web::scope("/hybrid")
                         .route("/status", web::get().to(hybrid_health_handler::get_hybrid_status))
                         .route("/performance", web::get().to(hybrid_health_handler::get_performance_report))

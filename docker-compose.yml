@@ -67,7 +67,7 @@ services:
   # Production configuration
   webxr-prod:
     profiles: ["production", "prod"]
-    container_name: visionflow_container
+    container_name: visionflow_prod_container
     build:
       context: .
       dockerfile: Dockerfile.production

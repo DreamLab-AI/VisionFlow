@@ -252,16 +252,31 @@ pub async fn get_agent_visualization_snapshot(
             failed_tasks_count: 0,
             success_rate: 1.0,
             timestamp: chrono::Utc::now(),
-            current_task: update.current_task.map(|task| crate::types::claude_flow::TaskReference {
+            current_task: update.current_task.as_ref().map(|task| crate::types::claude_flow::TaskReference {
                 task_id: "current".to_string(),
-                description: task,
+                description: task.clone(),
                 priority: crate::types::claude_flow::TaskPriority::Medium,
             }),
+
+            // Client compatibility fields
+            agent_type: "generic".to_string(),
+            current_task_description: update.current_task.clone(),
+            capabilities: vec!["general".to_string()],
+            position: None,
             cpu_usage: update.cpu.unwrap_or(0.0),
             memory_usage: update.memory.unwrap_or(0.0),
             health: update.health.unwrap_or(1.0),
             activity: update.activity.unwrap_or(0.0),
             tasks_active: update.tasks_active.unwrap_or(0),
+            tasks_completed: 0,
+            success_rate_normalized: 1.0,
+            tokens: 0,
+            token_rate: 0.0,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            age: 0,
+            workload: Some(0.5),
+
+            // Other fields
             performance_metrics: crate::types::claude_flow::PerformanceMetrics {
                 tasks_completed: 0,
                 success_rate: 1.0,
@@ -274,7 +289,6 @@ pub async fn get_agent_visualization_snapshot(
             agent_mode: Some("agent".to_string()),
             parent_queen_id: None,
             processing_logs: None,
-            total_execution_time: 0,
         }
     }).collect();
 

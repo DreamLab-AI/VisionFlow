@@ -1,0 +1,7 @@
+# Add these dependencies to Cargo.toml for graph export functionality
+
+[dependencies]
+# Add these to existing dependencies
+xml = "0.8"
+bcrypt = "0.15"
+flate2 = "1.0"

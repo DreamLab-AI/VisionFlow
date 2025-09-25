@@ -420,3 +420,4 @@ HologramEnvironment.displayName = 'HologramEnvironment';
 EnergyFieldParticles.displayName = 'EnergyFieldParticles';
 
 export default HologramEnvironment;
+export { EnergyFieldParticles };

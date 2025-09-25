@@ -177,7 +177,7 @@ impl ClaudeFlowActorTcp {
             profile: AgentProfile {
                 name: agent.name.clone(),
                 agent_type: agent_type.clone(),
-                capabilities: Vec::new(),
+                capabilities: vec!["general".to_string()],
                 description: Some(format!("Claude Flow agent of type {:?}", agent_type)),
                 version: "1.0.0".to_string(),
                 tags: vec!["claude-flow".to_string(), agent_type.to_string()],
@@ -189,14 +189,28 @@ impl ClaudeFlowActorTcp {
             success_rate: 100.0,
             timestamp: Utc::now(),
             current_task: None,
+
+            // Client compatibility fields
+            agent_type: agent_type.to_string(),
+            current_task_description: None,
+            capabilities: vec!["general".to_string()],
+            position: None,
             cpu_usage: agent.cpu_usage,
             memory_usage: agent.memory_usage,
             health: agent.health,
             activity: agent.workload,
             tasks_active: 0,
+            tasks_completed: 0,
+            success_rate_normalized: 1.0,
+            tokens: 1000,
+            token_rate: 0.0,
+            created_at: Utc::now().to_rfc3339(),
+            age: 0,
+            workload: Some(agent.workload),
+
             performance_metrics: PerformanceMetrics {
                 tasks_completed: 0,
-                success_rate: 100.0,
+                success_rate: 1.0,
             },
             token_usage: TokenUsage {
                 total: 1000,
@@ -206,7 +220,6 @@ impl ClaudeFlowActorTcp {
             agent_mode: Some("autonomous".to_string()),
             parent_queen_id: None,
             processing_logs: None,
-            total_execution_time: 0,
         }
     }
 
@@ -287,26 +300,40 @@ impl ClaudeFlowActorTcp {
             profile: AgentProfile {
                 name,
                 agent_type: agent_type.clone(),
-                capabilities: Vec::new(),
+                capabilities: vec!["general".to_string()],
                 description: Some(format!("Claude Flow agent of type {:?}", agent_type)),
                 version: "1.0.0".to_string(),
                 tags: vec!["claude-flow".to_string(), agent_type.to_string()],
             },
-            status,
+            status: status.clone(),
             active_tasks_count: 0,
             completed_tasks_count: 0,
             failed_tasks_count: 0,
             success_rate: 100.0,
             timestamp: Utc::now(),
             current_task: None,
-            cpu_usage: 10.0 + rng.gen::<f32>() * 20.0,
-            memory_usage: 20.0 + rng.gen::<f32>() * 30.0,
-            health: 100.0,
-            activity: 50.0,
+
+            // Client compatibility fields
+            agent_type: agent_type.to_string(),
+            current_task_description: None,
+            capabilities: vec!["general".to_string()],
+            position: None,
+            cpu_usage: (10.0 + rng.gen::<f32>() * 20.0) / 100.0,  // Normalize to 0-1
+            memory_usage: (20.0 + rng.gen::<f32>() * 30.0) / 100.0,  // Normalize to 0-1
+            health: 1.0,  // Normalize to 0-1
+            activity: 0.5,  // Normalize to 0-1
             tasks_active: 0,
+            tasks_completed: 0,
+            success_rate_normalized: 1.0,
+            tokens: 1000,
+            token_rate: 0.0,
+            created_at: Utc::now().to_rfc3339(),
+            age: 0,
+            workload: Some(0.5),
+
             performance_metrics: PerformanceMetrics {
                 tasks_completed: 0,
-                success_rate: 100.0,
+                success_rate: 1.0,
             },
             token_usage: TokenUsage {
                 total: 1000,
@@ -316,7 +343,6 @@ impl ClaudeFlowActorTcp {
             agent_mode: Some("autonomous".to_string()),
             parent_queen_id: None,
             processing_logs: None,
-            total_execution_time: 0,
         })
     }
     
@@ -508,9 +534,9 @@ impl ClaudeFlowActorTcp {
                     // Convert MultiMcpAgentStatus to AgentStatus for compatibility
                     let agent_statuses: Vec<AgentStatus> = agents.into_iter().map(|mcp_agent| {
                         AgentStatus {
-                            agent_id: mcp_agent.agent_id,
+                            agent_id: mcp_agent.agent_id.clone(),
                             profile: AgentProfile {
-                                name: mcp_agent.name,
+                                name: mcp_agent.name.clone(),
                                 agent_type: match mcp_agent.agent_type.as_str() {
                                     "coordinator" => AgentType::Coordinator,
                                     "researcher" => AgentType::Researcher,
@@ -523,23 +549,37 @@ impl ClaudeFlowActorTcp {
                                     "documenter" => AgentType::Documenter,
                                     _ => AgentType::Coordinator,
                                 },
-                                capabilities: mcp_agent.capabilities,
+                                capabilities: mcp_agent.capabilities.clone(),
                                 description: Some("MCP agent retrieved via TCP connection".to_string()),
                                 version: "1.0.0".to_string(),
-                                tags: vec!["mcp".to_string(), mcp_agent.agent_type],
+                                tags: vec!["mcp".to_string(), mcp_agent.agent_type.clone()],
                             },
-                            status: mcp_agent.status,
+                            status: mcp_agent.status.clone(),
                             active_tasks_count: mcp_agent.performance.tasks_active,
                             completed_tasks_count: mcp_agent.performance.tasks_completed,
                             failed_tasks_count: mcp_agent.performance.tasks_failed,
                             success_rate: mcp_agent.performance.success_rate,
                             timestamp: Utc::now(),
                             current_task: None,
+
+                            // Client compatibility fields
+                            agent_type: mcp_agent.agent_type.clone(),
+                            current_task_description: None,
+                            capabilities: mcp_agent.capabilities.clone(),
+                            position: None,
                             cpu_usage: mcp_agent.performance.cpu_usage,
                             memory_usage: mcp_agent.performance.memory_usage,
                             health: mcp_agent.performance.health_score,
                             activity: mcp_agent.performance.activity_level,
                             tasks_active: mcp_agent.performance.tasks_active,
+                            tasks_completed: mcp_agent.performance.tasks_completed,
+                            success_rate_normalized: mcp_agent.performance.success_rate,
+                            tokens: mcp_agent.performance.token_usage,
+                            token_rate: mcp_agent.performance.token_rate,
+                            created_at: Utc::now().to_rfc3339(),
+                            age: 0,
+                            workload: Some(mcp_agent.performance.activity_level),
+
                             performance_metrics: PerformanceMetrics {
                                 tasks_completed: mcp_agent.performance.tasks_completed,
                                 success_rate: mcp_agent.performance.success_rate,
@@ -552,7 +592,6 @@ impl ClaudeFlowActorTcp {
                             agent_mode: Some("autonomous".to_string()),
                             parent_queen_id: mcp_agent.metadata.parent_id,
                             processing_logs: None,
-                            total_execution_time: 0,
                         }
                     }).collect();
 

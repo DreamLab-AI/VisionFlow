@@ -58,6 +58,11 @@ tracing-appender = "0.2"
 thiserror = "2.0.16"
 anyhow = "1.0.99"
 
+# Graph serialization
+xml = "0.8"
+blake3 = "1.5"
+bcrypt = "0.15"
+
 # GPU/Compute
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"

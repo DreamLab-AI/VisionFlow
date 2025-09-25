@@ -7,30 +7,85 @@ use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Vec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentStatus {
+    // Core identification
+    #[serde(rename = "id")]
     pub agent_id: String,
     pub profile: AgentProfile,
     pub status: String,
+
+    // Task information
     pub active_tasks_count: u32,
     pub completed_tasks_count: u32,
     pub failed_tasks_count: u32,
     pub success_rate: f32,
     pub timestamp: DateTime<Utc>,
     pub current_task: Option<TaskReference>,
-    
-    // Additional fields needed by existing code
+
+    // Client compatibility fields with proper serialization
+    #[serde(rename = "type")]
+    pub agent_type: String,
+
+    #[serde(rename = "currentTask")]
+    pub current_task_description: Option<String>,
+
+    pub capabilities: Vec<String>,
+
+    // Position as Vec3 structure
+    pub position: Option<Vec3>,
+
+    // Performance metrics (0-1 normalized for client)
+    #[serde(rename = "cpuUsage")]
     pub cpu_usage: f32,
+
+    #[serde(rename = "memoryUsage")]
     pub memory_usage: f32,
+
     pub health: f32,
     pub activity: f32,
+
+    #[serde(rename = "tasksActive")]
     pub tasks_active: u32,
+
+    #[serde(rename = "tasksCompleted")]
+    pub tasks_completed: u32,
+
+    #[serde(rename = "successRate")]
+    pub success_rate_normalized: f32,
+
+    pub tokens: u64,
+
+    #[serde(rename = "tokenRate")]
+    pub token_rate: f32,
+
+    // Additional fields
     pub performance_metrics: PerformanceMetrics,
     pub token_usage: TokenUsage,
+
+    #[serde(rename = "swarmId")]
     pub swarm_id: Option<String>,
+
+    #[serde(rename = "agentMode")]
     pub agent_mode: Option<String>,
+
+    #[serde(rename = "parentQueenId")]
     pub parent_queen_id: Option<String>,
+
+    #[serde(rename = "processingLogs")]
     pub processing_logs: Option<Vec<String>>,
-    pub total_execution_time: u64,
+
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+
+    pub age: u64,
+    pub workload: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -189,6 +244,49 @@ impl ClaudeFlowClient {
         let agent_type = agent_data.get("type").and_then(|v| v.as_str()).unwrap_or("generic").to_string();
         let status = agent_data.get("status").and_then(|v| v.as_str()).unwrap_or("idle").to_string();
 
+        // Extract position data
+        let position = if let (Some(x), Some(y), Some(z)) = (
+            agent_data.get("x").and_then(|v| v.as_f64()),
+            agent_data.get("y").and_then(|v| v.as_f64()),
+            agent_data.get("z").and_then(|v| v.as_f64())
+        ) {
+            Some(Vec3 { x: x as f32, y: y as f32, z: z as f32 })
+        } else if let Some(pos) = agent_data.get("position") {
+            Some(Vec3 {
+                x: pos.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32,
+                y: pos.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32,
+                z: pos.get("z").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32,
+            })
+        } else {
+            None
+        };
+
+        // Extract current task description
+        let current_task_description = agent_data.get("current_task")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| agent_data.get("currentTask").and_then(|v| v.as_str()).map(|s| s.to_string()));
+
+        // Extract capabilities
+        let capabilities = agent_data.get("capabilities")
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(|s| s.to_string()).collect())
+            .unwrap_or_else(|| vec![agent_type.clone()]);
+
+        // Normalize success rate to 0-1 range
+        let success_rate_raw = agent_data.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(0.95) as f32;
+        let success_rate_normalized = if success_rate_raw > 1.0 { success_rate_raw / 100.0 } else { success_rate_raw };
+
+        // Normalize CPU/memory usage to percentage (0-1 range)
+        let cpu_usage_raw = agent_data.get("cpu_usage").and_then(|v| v.as_f64()).unwrap_or(25.0) as f32;
+        let cpu_usage = if cpu_usage_raw > 1.0 { cpu_usage_raw / 100.0 } else { cpu_usage_raw };
+
+        let memory_usage_raw = agent_data.get("memory_usage").and_then(|v| v.as_f64()).unwrap_or(128.0) as f32;
+        let memory_usage = if memory_usage_raw > 1.0 { memory_usage_raw / 100.0 } else { memory_usage_raw };
+
+        let now = chrono::Utc::now();
+        let created_at = now.to_rfc3339();
+
         Ok(AgentStatus {
             agent_id: agent_id.clone(),
             profile: AgentProfile {
@@ -205,30 +303,44 @@ impl ClaudeFlowClient {
                     "documenter" => AgentType::Documenter,
                     _ => AgentType::Generic,
                 },
-                capabilities: vec![agent_type.clone()],
+                capabilities: capabilities.clone(),
                 description: Some(format!("{} agent", agent_type)),
                 version: "1.0.0".to_string(),
                 tags: vec!["general".to_string()],
             },
-            status,
+            status: status.clone(),
+
+            // Original fields
             active_tasks_count: agent_data.get("active_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
             completed_tasks_count: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
             failed_tasks_count: agent_data.get("failed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            success_rate: agent_data.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(0.95) as f32,
-            timestamp: chrono::Utc::now(),
-            current_task: agent_data.get("current_task").and_then(|v| v.as_str()).map(|task_desc| TaskReference {
+            success_rate: success_rate_raw,
+            timestamp: now,
+            current_task: current_task_description.as_ref().map(|task_desc| TaskReference {
                 task_id: format!("task_{}", uuid::Uuid::new_v4()),
-                description: task_desc.to_string(),
+                description: task_desc.clone(),
                 priority: TaskPriority::Medium,
             }),
-            cpu_usage: agent_data.get("cpu_usage").and_then(|v| v.as_f64()).unwrap_or(25.0) as f32,
-            memory_usage: agent_data.get("memory_usage").and_then(|v| v.as_f64()).unwrap_or(128.0) as f32,
+
+            // Client compatibility fields
+            agent_type: agent_type.clone(),
+            current_task_description,
+            capabilities,
+            position,
+            cpu_usage,
+            memory_usage,
             health: agent_data.get("health").and_then(|v| v.as_f64()).unwrap_or(0.9) as f32,
             activity: agent_data.get("activity").and_then(|v| v.as_f64()).unwrap_or(0.5) as f32,
             tasks_active: agent_data.get("tasks_active").and_then(|v| v.as_u64()).unwrap_or(1) as u32,
+            tasks_completed: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            success_rate_normalized,
+            tokens: agent_data.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(1500),
+            token_rate: agent_data.get("token_rate").and_then(|v| v.as_f64()).unwrap_or(0.1) as f32,
+
+            // Additional fields
             performance_metrics: PerformanceMetrics {
                 tasks_completed: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                success_rate: agent_data.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(0.95) as f32,
+                success_rate: success_rate_normalized,
             },
             token_usage: TokenUsage {
                 total: agent_data.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(1500),
@@ -238,7 +350,9 @@ impl ClaudeFlowClient {
             agent_mode: agent_data.get("agent_mode").and_then(|v| v.as_str()).map(|s| s.to_string()),
             parent_queen_id: agent_data.get("parent_queen_id").and_then(|v| v.as_str()).map(|s| s.to_string()),
             processing_logs: Some(vec![]),
-            total_execution_time: agent_data.get("execution_time").and_then(|v| v.as_u64()).unwrap_or(0),
+            created_at,
+            age: 0, // Will be calculated based on created_at vs current time
+            workload: agent_data.get("workload").and_then(|v| v.as_f64()).map(|v| v as f32),
         })
     }
 

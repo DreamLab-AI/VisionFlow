@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { SpaceDriver } from '../services/SpaceDriverService';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('useMouseControls');
 
 /**
  * Hook to ensure mouse controls work properly, especially when SpaceMouse is unavailable
@@ -11,7 +14,7 @@ export function useMouseControls(orbitControlsRef: React.RefObject<OrbitControls
     const ensureControlsEnabled = () => {
       if (orbitControlsRef.current && 'enabled' in orbitControlsRef.current) {
         orbitControlsRef.current.enabled = true;
-        console.log('[useMouseControls] OrbitControls enabled');
+        logger.debug('OrbitControls enabled');
       }
     };
 
@@ -22,7 +25,7 @@ export function useMouseControls(orbitControlsRef: React.RefObject<OrbitControls
     if (!hasWebHID || !isSecureContext) {
       // If WebHID is not available, ensure OrbitControls are always enabled
       ensureControlsEnabled();
-      console.log('[useMouseControls] WebHID not available or insecure context - OrbitControls permanently enabled');
+      logger.info('WebHID unavailable or insecure context - OrbitControls permanently enabled', { hasWebHID, isSecureContext });
     }
 
     // Listen for WebHID unavailable event

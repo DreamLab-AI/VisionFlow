@@ -5,6 +5,9 @@
 
 import { AudioContextManager } from './AudioContextManager';
 import { gatedConsole } from '../utils/console';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('AudioInputService');
 
 export interface AudioConstraints {
   echoCancellation?: boolean;
@@ -77,7 +80,7 @@ export class AudioInputService {
       // if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
       //   throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
       // }
-      console.log('DEVELOPER MODE: HTTPS check bypassed in AudioInputService');
+      logger.warn('DEVELOPER MODE: HTTPS check bypassed in AudioInputService');
 
       const defaultConstraints: MediaStreamConstraints = {
         audio: {
@@ -204,9 +207,9 @@ export class AudioInputService {
 
     this.mediaRecorder.onstop = async () => {
       // Combine all blobs into a single complete audio file
-      console.log('[AudioInputService] Recording stopped, creating blob from', this.audioBlobs.length, 'chunks');
+      logger.debug('Recording stopped, creating complete audio blob', { chunks: this.audioBlobs.length });
       const completeAudio = new Blob(this.audioBlobs, { type: this.mediaRecorder?.mimeType || 'audio/webm' });
-      console.log('[AudioInputService] Complete audio blob created:', completeAudio.size, 'bytes, type:', completeAudio.type);
+      logger.debug('Complete audio blob created', { size: completeAudio.size, type: completeAudio.type });
       this.emit('recordingComplete', completeAudio);
       this.emit('recordingStopped', this.audioChunks);
     };
@@ -222,7 +225,7 @@ export class AudioInputService {
    */
   stopRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
-      console.log('[AudioInputService] Stopping recording, blobs collected:', this.audioBlobs.length);
+      logger.debug('Stopping recording', { blobsCollected: this.audioBlobs.length });
       this.mediaRecorder.stop();
       this.setState('ready');
     }

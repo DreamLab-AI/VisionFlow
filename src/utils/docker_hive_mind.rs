@@ -333,6 +333,38 @@ impl DockerHiveMind {
         Ok(())
     }
 
+    /// Pause a swarm
+    pub async fn pause_swarm(&self, swarm_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        info!("Pausing swarm: {}", swarm_id);
+
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec",
+            &self.container_name,
+            &self.claude_flow_path,
+            "hive-mind", "pause", swarm_id
+        ]);
+
+        let output = timeout(self.config.command_timeout, cmd.output()).await??;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to pause swarm {}: {}", swarm_id, stderr).into());
+        }
+
+        // Update cache
+        {
+            let mut cache = self.session_cache.write().await;
+            if let Some(session) = cache.get_mut(swarm_id) {
+                session.status = SwarmStatus::Paused;
+                session.last_activity = Utc::now();
+            }
+        }
+
+        info!("Swarm {} paused successfully", swarm_id);
+        Ok(())
+    }
+
     /// Resume a paused swarm
     pub async fn resume_swarm(&self, swarm_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("Resuming swarm: {}", swarm_id);

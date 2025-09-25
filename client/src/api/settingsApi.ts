@@ -1,8 +1,9 @@
 // Settings API Client - Path-based interface for granular settings operations with concurrent update handling
 import { Settings } from '../features/settings/config/settings';
 import { createLogger } from '../utils/loggerConfig';
+import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
 
-const API_BASE = '/api/settings';
+const API_BASE = '/settings';
 
 // Debouncing and batching configuration
 const DEBOUNCE_DELAY_MS = 50; // 50ms debounce for UI responsiveness
@@ -87,26 +88,18 @@ class SettingsUpdateManager {
 
   private async processCriticalUpdate(update: DebouncedUpdate): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/path`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ path: update.path, value: update.value }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: `Failed to update critical setting: ${update.path}` }));
-        throw new Error(error.error || `Critical update failed: ${response.statusText}`);
-      }
+      await unifiedApiClient.putData(`${API_BASE}/path`, { path: update.path, value: update.value });
 
       logger.info(`[DEBOUNCE] Critical update processed immediately: ${update.path}`);
-      
+
       // Remove from queue since it's been processed
       this.updateQueue.delete(update.path);
     } catch (error) {
+      const errorMessage = isApiError(error)
+        ? error.message
+        : `Failed to update critical setting: ${update.path}`;
       logger.error(`[DEBOUNCE] Critical update failed for ${update.path}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -168,35 +161,46 @@ class SettingsUpdateManager {
 
   private async processBatchChunk(chunk: BatchOperation[]): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/batch`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          updates: chunk
-        }),
+      const responseData = await unifiedApiClient.putData(`${API_BASE}/batch`, {
+        updates: chunk
       });
-      
-      if (!response.ok) {
-        logger.warn(`Batch chunk failed (${response.status}), falling back to individual updates`);
-        
+
+      // Process the results from the server to ensure client state matches
+      if (responseData.results && Array.isArray(responseData.results)) {
+        logger.info(`[DEBOUNCE] Server batch update response:`, responseData);
+
+        // Check if any values were modified by the server
+        responseData.results.forEach((result: any) => {
+          if (result.success) {
+            // Find the original value we sent
+            const originalUpdate = chunk.find(u => u.path === result.path);
+            if (originalUpdate && JSON.stringify(originalUpdate.value) !== JSON.stringify(result.value)) {
+              logger.warn(`[DEBOUNCE] Server modified value for ${result.path}:`, {
+                sent: originalUpdate.value,
+                received: result.value
+              });
+              // TODO: Update the local store with the server's value without triggering another update
+              // This needs a new store method like setLocalOnly() that doesn't call autoSaveManager
+            }
+          }
+        });
+      }
+
+      logger.info(`[DEBOUNCE] Successfully processed batch chunk of ${chunk.length} updates`);
+    } catch (error) {
+      if (isApiError(error)) {
+        logger.warn(`Batch chunk failed (${error.status}), falling back to individual updates`);
+
         // Fallback to individual updates
         const results = await Promise.allSettled(
           chunk.map(async ({ path, value }) => {
-            const response = await fetch(`${API_BASE}/path`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ path, value }),
-            });
-            
-            if (!response.ok) {
-              const error = await response.json().catch(() => ({ error: `Failed to update: ${path}` }));
-              throw new Error(error.error || `Update failed: ${response.statusText}`);
+            try {
+              await unifiedApiClient.putData(`${API_BASE}/path`, { path, value });
+              return { path, success: true };
+            } catch (err) {
+              const errorMessage = isApiError(err) ? err.message : `Failed to update: ${path}`;
+              throw new Error(errorMessage);
             }
-            return { path, success: true };
           })
         );
 
@@ -204,41 +208,12 @@ class SettingsUpdateManager {
         if (failures.length > 0) {
           throw new Error(`${failures.length} out of ${chunk.length} individual updates failed in fallback`);
         }
-        
+
         logger.info(`[DEBOUNCE] Successfully processed chunk of ${chunk.length} updates via individual fallback`);
       } else {
-        // Parse the response to get the actual values from the server
-        const responseData = await response.json();
-        
-        // Process the results from the server to ensure client state matches
-        if (responseData.results && Array.isArray(responseData.results)) {
-          // We need to update the store directly without triggering another server update
-          // Since the server has already saved these values, we just need to sync the local state
-          // For now, log the server response to verify it's working
-          logger.info(`[DEBOUNCE] Server batch update response:`, responseData);
-          
-          // Check if any values were modified by the server
-          responseData.results.forEach((result: any) => {
-            if (result.success) {
-              // Find the original value we sent
-              const originalUpdate = chunk.find(u => u.path === result.path);
-              if (originalUpdate && JSON.stringify(originalUpdate.value) !== JSON.stringify(result.value)) {
-                logger.warn(`[DEBOUNCE] Server modified value for ${result.path}:`, {
-                  sent: originalUpdate.value,
-                  received: result.value
-                });
-                // TODO: Update the local store with the server's value without triggering another update
-                // This needs a new store method like setLocalOnly() that doesn't call autoSaveManager
-              }
-            }
-          });
-        }
-        
-        logger.info(`[DEBOUNCE] Successfully processed batch chunk of ${chunk.length} updates`);
+        logger.error(`[DEBOUNCE] Batch chunk processing failed:`, error);
+        throw error;
       }
-    } catch (error) {
-      logger.error(`[DEBOUNCE] Batch chunk processing failed:`, error);
-      throw error;
     }
   }
 
@@ -262,16 +237,16 @@ export const settingsApi = {
    * @returns The setting value
    */
   async getSettingByPath(path: string): Promise<any> {
-    const encodedPath = encodeURIComponent(path);
-    const response = await fetch(`${API_BASE}/path?path=${encodedPath}`);
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: `Failed to get setting at path: ${path}` }));
-      throw new Error(error.error || `Failed to get setting at path ${path}: ${response.statusText}`);
+    try {
+      const encodedPath = encodeURIComponent(path);
+      const result = await unifiedApiClient.getData(`${API_BASE}/path?path=${encodedPath}`);
+      return result.value; // Backend returns { value: actualValue }
+    } catch (error) {
+      const errorMessage = isApiError(error)
+        ? error.message
+        : `Failed to get setting at path: ${path}`;
+      throw new Error(errorMessage);
     }
-    
-    const result = await response.json();
-    return result.value; // Backend returns { value: actualValue }
   },
   
   /**
@@ -296,19 +271,7 @@ export const settingsApi = {
 
     try {
       // Use the optimized batch POST endpoint
-      const response = await fetch(`${API_BASE}/batch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ paths }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Batch read failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
+      const result = await unifiedApiClient.postData(`${API_BASE}/batch`, { paths });
       logger.info(`Successfully fetched ${paths.length} settings using batch endpoint`);
       return result; // Server returns { path: value } mapping
     } catch (error) {
@@ -356,25 +319,9 @@ export const settingsApi = {
 
     try {
       // Try the server's batch endpoint first
-      const response = await fetch(`${API_BASE}/batch`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          updates
-        }),
-      });
-      
-      if (response.ok) {
-        logger.info(`Successfully updated ${updates.length} settings using batch endpoint`);
-        return;
-      }
-      
-      // If batch endpoint fails, fall back to individual updates
-      logger.warn(`Batch endpoint failed (${response.status}), falling back to individual updates`);
-      throw new Error(`Batch endpoint returned ${response.status}`);
-      
+      await unifiedApiClient.putData(`${API_BASE}/batch`, { updates });
+      logger.info(`Successfully updated ${updates.length} settings using batch endpoint`);
+      return;
     } catch (error) {
       logger.warn('Error with batch endpoint, attempting individual updates fallback:', error);
       
@@ -417,17 +364,13 @@ export const settingsApi = {
    * Reset settings to defaults
    */
   async resetSettings(): Promise<Settings> {
-    const response = await fetch(`${API_BASE}/reset`, {
-      method: 'POST',
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to reset settings' }));
-      throw new Error(error.error || `Failed to reset settings: ${response.statusText}`);
+    try {
+      const settings = await unifiedApiClient.postData<Settings>(`${API_BASE}/reset`);
+      return settings;
+    } catch (error) {
+      const errorMessage = isApiError(error) ? error.message : 'Failed to reset settings';
+      throw new Error(errorMessage);
     }
-    
-    const settings = await response.json();
-    return settings;
   },
   
   
@@ -471,17 +414,13 @@ export const settingsApi = {
    * @param value - New value
    */
   async updateSettingImmediately(path: string, value: any): Promise<void> {
-    const response = await fetch(`${API_BASE}/path`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ path, value }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: `Failed to update setting immediately: ${path}` }));
-      throw new Error(error.error || `Failed to update setting immediately at path ${path}: ${response.statusText}`);
+    try {
+      await unifiedApiClient.putData(`${API_BASE}/path`, { path, value });
+    } catch (error) {
+      const errorMessage = isApiError(error)
+        ? error.message
+        : `Failed to update setting immediately: ${path}`;
+      throw new Error(errorMessage);
     }
   },
   

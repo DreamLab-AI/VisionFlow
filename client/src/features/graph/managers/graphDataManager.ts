@@ -27,6 +27,9 @@ class GraphDataManager {
   private reverseNodeIdMap: Map<number, string> = new Map();
   private workerInitialized: boolean = false;
   private graphType: 'logseq' | 'visionflow' = 'logseq'; // Graph type identifier
+  private isUserInteracting: boolean = false; // Track if user is actively interacting
+  private interactionTimeoutRef: number | null = null;
+  private updateCount: number = 0; // Track update count
 
   private constructor() {
     // Worker proxy initializes automatically, just wait for it to be ready
@@ -471,8 +474,9 @@ class GraphDataManager {
   }
 
   // Send node positions to the server via WebSocket
+  // Only sends during active user interactions to prevent continuous updates
   public async sendNodePositions(): Promise<void> {
-    if (!this.binaryUpdatesEnabled || !this.webSocketService) {
+    if (!this.binaryUpdatesEnabled || !this.webSocketService || !this.isUserInteracting) {
       return;
     }
 
@@ -620,19 +624,62 @@ class GraphDataManager {
     return nodes;
   }
 
+  // Set user interaction state (called by interaction hooks)
+  public setUserInteracting(isInteracting: boolean): void {
+    if (this.isUserInteracting === isInteracting) {
+      return; // No change needed
+    }
+
+    this.isUserInteracting = isInteracting;
+
+    if (isInteracting) {
+      // Clear any existing timeout when starting interaction
+      if (this.interactionTimeoutRef) {
+        window.clearTimeout(this.interactionTimeoutRef);
+        this.interactionTimeoutRef = null;
+      }
+
+      if (debugState.isEnabled()) {
+        logger.debug('User interaction started - WebSocket position updates enabled');
+      }
+    } else {
+      // Set a brief timeout before completely stopping updates
+      // This prevents rapid start/stop cycles
+      this.interactionTimeoutRef = window.setTimeout(() => {
+        this.isUserInteracting = false;
+        this.interactionTimeoutRef = null;
+
+        if (debugState.isEnabled()) {
+          logger.debug('User interaction ended - WebSocket position updates disabled');
+        }
+      }, 200); // 200ms grace period
+    }
+  }
+
+  // Check if user is currently interacting
+  public isUserCurrentlyInteracting(): boolean {
+    return this.isUserInteracting;
+  }
+
   // Clean up resources
   public dispose(): void {
     if (this.retryTimeout) {
       window.clearTimeout(this.retryTimeout);
       this.retryTimeout = null;
     }
-    
+
+    if (this.interactionTimeoutRef) {
+      window.clearTimeout(this.interactionTimeoutRef);
+      this.interactionTimeoutRef = null;
+    }
+
     this.graphDataListeners = [];
     this.positionUpdateListeners = [];
     this.webSocketService = null;
     this.nodeIdMap.clear();
     this.reverseNodeIdMap.clear();
-    
+    this.isUserInteracting = false;
+
     if (debugState.isEnabled()) {
       logger.info('GraphDataManager disposed');
     }
