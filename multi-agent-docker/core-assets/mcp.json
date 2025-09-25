@@ -2,7 +2,7 @@
   "mcpServers": {
     "claude-flow": {
       "command": "npx",
-      "args": ["claude-flow@alpha", "mcp", "start"],
+      "args": ["claude-flow@latest", "mcp", "start"],
       "type": "stdio"
     },
     "ruv-swarm": {
@@ -52,7 +52,7 @@
         "PBR_PORT": "9878"
       }
     },
-    "playwright": {
+    "playwright-visual": {
       "command": "node",
       "args": ["./scripts/playwright-mcp-client.js"],
       "type": "stdio",
@@ -60,6 +60,11 @@
         "PLAYWRIGHT_PROXY_HOST": "gui-tools-service",
         "PLAYWRIGHT_PROXY_PORT": "9879"
       }
+    },
+    "playwright": {
+      "command": "node",
+      "args": ["./scripts/playwright-mcp-local.js"],
+      "type": "stdio"
     }
   }
 }

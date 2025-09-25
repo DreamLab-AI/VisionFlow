@@ -36,22 +36,21 @@ export function useAutoBalanceNotifications() {
             const response = await unifiedApiClient.get(`/graph/auto-balance-notifications?since=${lastTimestampRef.current}`);
             const data = response.data;
             if (data.success && data.notifications && data.notifications.length > 0) {
-                // Process new notifications
-                data.notifications.forEach((notification: AutoBalanceNotification) => {
-                  // Show toast based on severity
-                  toast({
-                    title: notification.severity.charAt(0).toUpperCase() + notification.severity.slice(1),
-                    description: notification.message,
-                    variant: notification.severity === 'success' ? 'default' : notification.severity === 'warning' ? 'destructive' : 'default',
-                    duration: 5000,
-                  });
-                  
-                  // Update last timestamp
-                  if (notification.timestamp > lastTimestampRef.current) {
-                    lastTimestampRef.current = notification.timestamp;
-                  }
+              // Process new notifications
+              data.notifications.forEach((notification: AutoBalanceNotification) => {
+                // Show toast based on severity
+                toast({
+                  title: notification.severity.charAt(0).toUpperCase() + notification.severity.slice(1),
+                  description: notification.message,
+                  variant: notification.severity === 'success' ? 'default' : notification.severity === 'warning' ? 'destructive' : 'default',
+                  duration: 5000,
                 });
-              }
+
+                // Update last timestamp
+                if (notification.timestamp > lastTimestampRef.current) {
+                  lastTimestampRef.current = notification.timestamp;
+                }
+              });
             }
           } catch (error) {
             console.error('Failed to fetch auto-balance notifications:', error);

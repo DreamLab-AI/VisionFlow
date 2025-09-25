@@ -360,13 +360,15 @@ alias cf-tcp-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf st
 alias cf-tcp-logs='tail -f /app/mcp-logs/claude-flow-tcp.log'
 alias cf-test-tcp='echo "{\"jsonrpc\":\"2.0\",\"id\":\"test\",\"method\":\"tools/list\",\"params\":{}}" | nc localhost 9502'
 
-# Playwright MCP Commands (via GUI container)
-alias playwright-test='echo "Playwright runs in GUI container. Connect via VNC on port 5901 for visual access."'
+# Playwright MCP Commands
+alias playwright-test='echo "Testing local Playwright MCP server..." && echo "{\"jsonrpc\":\"2.0\",\"id\":\"test\",\"method\":\"tools/list\",\"params\":{}}" | node /app/core-assets/scripts/playwright-mcp-local.js 2>&1 | head -20'
+alias playwright-headless='node /app/core-assets/scripts/playwright-mcp-local.js'
 alias playwright-vnc='echo "VNC access: vncviewer localhost:5901 (or use any VNC client)"'
 alias playwright-health='curl -s http://127.0.0.1:9880 | jq 2>/dev/null || echo "Proxy not running"'
 alias playwright-proxy-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status playwright-mcp-proxy'
 alias playwright-proxy-logs='tail -f /app/mcp-logs/playwright-proxy.log'
 alias playwright-stack-test='/app/core-assets/scripts/test-playwright-stack.sh'
+alias playwright-visual='echo "Playwright visual mode runs in GUI container. Connect via VNC on port 5901 for visual access."'
 
 # Quick MCP testing functions
 mcp-test-tcp() {
@@ -462,28 +464,34 @@ This environment includes Claude-Flow v110 with advanced AI capabilities:
 - Creates self-improving code assistants that learn your style
 - Enables distributed swarms with collective intelligence
 
-### 🎭 Playwright MCP Integration (Visual Mode)
-Powerful browser automation with visual debugging through the GUI container:
+### 🎭 Playwright MCP Integration
+Powerful browser automation available in two modes:
 
-#### Visual Browser Automation
+#### Headless Mode (Default)
+- **Local execution**: Run browser automation directly in the main container
+- **Fast performance**: No network overhead, direct browser control
+- **Automated testing**: Perfect for CI/CD and automated workflows
+- **Resource efficient**: Lower memory usage without GUI overhead
+
+#### Visual Mode (via GUI Container)
 - **Real-time visualization**: See browser actions through VNC (port 5901)
 - **Cross-browser testing**: Chromium, Firefox, and WebKit with visual feedback
 - **Interactive debugging**: Pause and inspect during automation
 - **Visual selector development**: Point-and-click to create selectors
 - **DevTools access**: Full browser developer tools available
 
-#### Enhanced Capabilities in GUI Container
-- **Native dialogs**: Handle file pickers, print dialogs visually
-- **Complex interactions**: Drag & drop, hover effects with visual confirmation
-- **Multi-window support**: See popup handling and tab management
-- **Screenshot/video recording**: Capture automation runs visually
-- **GPU acceleration**: Faster rendering for complex web apps
+#### Enhanced Capabilities
+- **Native dialogs**: Handle file pickers, print dialogs (visual mode)
+- **Complex interactions**: Drag & drop, hover effects with confirmation
+- **Multi-window support**: Popup handling and tab management
+- **Screenshot/video recording**: Capture automation runs
+- **GPU acceleration**: Faster rendering for complex web apps (visual mode)
 
 #### MCP Server Access
-- **Proxy connection**: Seamless integration from main container
+- **Two configurations**: `playwright` (headless) and `playwright-visual` (GUI)
 - **Page navigation**: `playwright_navigate`, `playwright_click`, `playwright_fill`
-- **Element interaction**: Forms, buttons, dropdowns with visual feedback
-- **Script evaluation**: Execute JavaScript and see results
+- **Element interaction**: Forms, buttons, dropdowns
+- **Script evaluation**: Execute JavaScript and get results
 - **Session management**: Persistent browser contexts across tests
 
 ### 🕵️ Chrome DevTools MCP Integration (Visual Mode)
@@ -541,10 +549,11 @@ validate-toolchains
 # Initialize Claude-Flow v110 agents
 claude-flow-init-agents  # Initialize Goal Planner and Neural agents
 
-# Playwright MCP commands (Visual Mode)
-playwright-vnc          # Connect to VNC for visual browser access
-playwright-proxy-status # Check proxy connection status
-playwright-proxy-logs   # View proxy logs
+# Playwright MCP commands
+playwright-test         # Test Playwright headless mode locally
+playwright-vnc          # Connect to VNC for visual browser access (GUI mode)
+playwright-proxy-status # Check proxy connection status (GUI mode)
+playwright-proxy-logs   # View proxy logs (GUI mode)
 ```
 EOF
     log_success "Appended service and context info to CLAUDE.md"

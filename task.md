@@ -30,3 +30,69 @@ src/gpu/ & src/utils/*.cu
 - Included 7-phase implementation plan with testing strategies and risk mitigation
 - Defined success metrics: 75% complexity reduction, <1000 lines per actor
 - Estimated effort: 16 days for complete refactoring with comprehensive testing
+
+## Client-Side Bug Fixes
+✅ **RESOLVED**: Fixed syntax error in useAutoBalanceNotifications.ts
+- Issue: Extra closing brace causing "Expected finally but found }" error
+- Location: `/workspace/ext/client/src/hooks/useAutoBalanceNotifications.ts:55`
+- Fix: Removed duplicate closing brace, proper indentation restored
+- Verification: TypeScript compilation successful
+
+✅ **RESOLVED**: Fixed useVoiceInteractionCentralized.tsx
+- Issue: JSX in .ts file causing TypeScript errors
+- Location: `/workspace/ext/client/src/hooks/useVoiceInteractionCentralized.tsx`
+- Fix: Renamed from .ts to .tsx to support JSX syntax
+- Status: File now compiles correctly
+
+## Infrastructure Issues Found
+⚠️ **MCP TCP Connection Issue**
+- VisionFlow is trying to connect to multi-agent-container:9500
+- Error: "Connection refused (os error 111)" every 2 seconds
+- Impact: MCP features not working, falling back to JSON-RPC
+- Container IPs:
+  - VisionFlow: 172.18.0.10 (ports 4000 backend, 5173 vite dev)
+  - Multi-agent-container: 172.18.0.9 (port 9500 not listening)
+- Solution needed: Start MCP TCP server on port 9500 in multi-agent-container
+
+## GraphServiceActor Refactoring Implementation Plan
+
+### Phase 1: Message Type Extraction (Day 1-2)
+- Extract all message types to `src/actors/messages/graph_messages.rs`
+- Create shared message traits for inter-actor communication
+- Run `cargo check` to verify no compilation errors
+
+### Phase 2: GraphStateActor Extraction (Day 3-4)
+- Create `src/actors/graph_state_actor.rs` (800-1200 lines)
+- Move node/edge management, state persistence, and basic CRUD operations
+- Migrate handlers: UpdateNode, AddEdge, RemoveNode, GetGraph, etc.
+- Run `cargo check` after extraction
+
+### Phase 3: PhysicsOrchestratorActor Extraction (Day 5-7)
+- Create `src/actors/physics_orchestrator_actor.rs` (1000-1500 lines)
+- Move physics simulation loop, force computation coordination, GPU communication
+- Migrate handlers: StartSimulation, StopSimulation, UpdatePhysics, etc.
+- Run `cargo check` to ensure GPU actor communication works
+
+### Phase 4: SemanticProcessorActor Extraction (Day 8-10)
+- Create `src/actors/semantic_processor_actor.rs` (800-1200 lines)
+- Move AI features, constraint generation, semantic analysis
+- Migrate handlers: ApplyConstraints, UpdateSemantics, RunClustering, etc.
+- Run `cargo check` for AI feature validation
+
+### Phase 5: ClientCoordinatorActor Extraction (Day 11-12)
+- Create `src/actors/client_coordinator_actor.rs` (600-1000 lines)
+- Move WebSocket communication, client state sync, position updates
+- Migrate handlers: ClientConnect, ClientDisconnect, BroadcastUpdate, etc.
+- Run `cargo check` for WebSocket functionality
+
+### Phase 6: Supervisor Pattern Implementation (Day 13-14)
+- Convert GraphServiceActor to GraphServiceSupervisor (500-800 lines)
+- Implement actor supervision tree
+- Add message routing and coordination logic
+- Run `cargo check` for supervision hierarchy
+
+### Phase 7: Testing & Validation (Day 15-16)
+- Integration tests for inter-actor communication
+- Performance benchmarks (target <1ms latency)
+- Load testing with 1000+ nodes
+- Final `cargo check` and `cargo test`
