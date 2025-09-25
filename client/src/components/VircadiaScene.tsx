@@ -192,26 +192,27 @@ export const VircadiaScene: React.FC<VircadiaSceneProps> = ({
     vircadiaServiceRef.current.updateMultiUserState(multiUserState)
   }, [multiUserState, settings?.xr?.enableMultiUser])
   
-  // Store scene to memory for coordination
+  // Store scene info to local storage for debugging (removed invalid CLI fetch)
   useEffect(() => {
     if (!sceneRef.current || !vircadiaServiceRef.current) return
-    
+
     const storeSceneInfo = async () => {
       try {
-        await fetch('npx claude-flow@alpha hooks post-edit --file "VircadiaScene.tsx" --memory-key "hive/implementation/vircadia-scene"', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            scene: 'initialized',
-            hasXR: await isXRSupported(),
-            multiUserEnabled: settings?.xr?.enableMultiUser !== false
-          })
-        })
+        const sceneInfo = {
+          scene: 'initialized',
+          timestamp: new Date().toISOString(),
+          hasXR: await isXRSupported(),
+          multiUserEnabled: settings?.xr?.enableMultiUser !== false
+        }
+
+        // Store to localStorage for debugging instead of invalid CLI fetch
+        localStorage.setItem('vircadia-scene-info', JSON.stringify(sceneInfo))
+        logger.debug('Scene info stored locally:', sceneInfo)
       } catch (err) {
-        logger.warn('Failed to store scene info to memory:', err)
+        logger.warn('Failed to store scene info:', err)
       }
     }
-    
+
     storeSceneInfo()
   }, [isXRSupported, settings?.xr?.enableMultiUser])
   

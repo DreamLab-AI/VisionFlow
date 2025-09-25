@@ -2,6 +2,7 @@ import React, { ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, FileText } from 'lucide-react';
 import { Button } from '../features/design-system/components';
 import { createLogger } from '../utils/loggerConfig';
+import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
 const logger = createLogger('ErrorBoundary');
 
@@ -89,13 +90,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         url: window.location.href
       };
 
-      await fetch('/api/errors/log', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(errorData)
-      });
+      await unifiedApiClient.post('/api/errors/log', errorData);
     } catch (logError) {
       // Fail silently - don't want logging errors to affect the user
       logger.warn('Failed to log error to server:', logError);

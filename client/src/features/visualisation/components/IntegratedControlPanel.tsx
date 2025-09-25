@@ -5,7 +5,7 @@ import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
 import { VoiceStatusIndicator } from '../../../components/VoiceStatusIndicator';
-import { apiService } from '../../../services/apiService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { botsWebSocketIntegration } from '../../bots/services/BotsWebSocketIntegration';
 import { useBotsData } from '../../bots/contexts/BotsDataContext';
 // Import design system components
@@ -992,10 +992,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                     onClick={async () => {
                       // Disconnect from current hive mind
                       try {
-                        const response = await fetch(`${apiService.getBaseUrl()}/bots/disconnect-multi-agent`, {
-                          method: 'POST'
-                        });
-                        if (response.ok) {
+                        const response = await unifiedApiClient.post('/bots/disconnect-multi-agent');
+                        if (response.status >= 200 && response.status < 300) {
                           // Clear local state
                           botsWebSocketIntegration.clearAgents();
                           updateBotsData({

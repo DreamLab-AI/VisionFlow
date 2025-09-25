@@ -6,7 +6,7 @@ import { Button } from '../../design-system/components/Button';
 import { Input } from '../../design-system/components/Input';
 import type { BotsAgent } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/loggerConfig';
-import { apiService } from '../../../services/apiService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 
 const logger = createLogger('AgentDetailPanel');
 
@@ -261,12 +261,13 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                     try {
                       setTaskStatus({ status: 'submitting', message: 'Submitting task to swarm...' });
 
-                      const response = await apiService.post('/bots/submit-task', {
+                      const apiResponse = await unifiedApiClient.post('/bots/submit-task', {
                         task: taskDescription,
                         priority: taskPriority,
                         strategy: 'adaptive',
                         swarmId: selectedAgent.swarmId || 'default'
                       });
+                      const response = apiResponse.data;
 
                       if (response.taskId) {
                         setTaskStatus({
@@ -279,7 +280,8 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                         // Start polling for task status
                         const pollInterval = setInterval(async () => {
                           try {
-                            const statusRes = await apiService.get(`/bots/task-status/${response.taskId}`);
+                            const statusApiResponse = await unifiedApiClient.get(`/bots/task-status/${response.taskId}`);
+                            const statusRes = statusApiResponse.data;
 
                             if (statusRes.status === 'completed') {
                               setTaskStatus({

@@ -1,7 +1,7 @@
 //! Force Compute Actor - Handles physics force computation and simulation
 
 use actix::prelude::*;
-use log::{error, info, trace, debug, warn};
+use log::{error, info, trace};
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
 
@@ -9,10 +9,8 @@ use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
-use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D, TelemetryEvent, LogLevel};
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState};
-use serde_json;
-use std::collections::HashMap;
 
 /// Physics statistics for reporting
 #[derive(Debug, Clone, Serialize, Deserialize)]

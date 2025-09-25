@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { unifiedApiClient } from '../../../services/api';
 
 interface AutoBalanceIndicatorProps {
   style?: React.CSSProperties;
@@ -21,17 +22,17 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
       }
       
       // Poll for recent notifications to determine if actively tuning
-      fetch('/api/graph/auto-balance-notifications')
-        .then(res => res.json())
-        .then(data => {
+      unifiedApiClient.get('/api/graph/auto-balance-notifications')
+        .then(response => {
+          const data = response.data;
           if (data.success && data.notifications && data.notifications.length > 0) {
             const latestNotification = data.notifications[data.notifications.length - 1];
             const now = Date.now();
             const timeSinceLastNotification = now - latestNotification.timestamp;
-            
+
             // Consider active if there was a notification in the last 5 seconds
             setIsActive(timeSinceLastNotification < 5000);
-            
+
             // If it's a "stable" notification, stop showing as active after 2 seconds
             if (latestNotification.severity === 'success' && timeSinceLastNotification < 2000) {
               setTimeout(() => setIsActive(false), 2000);

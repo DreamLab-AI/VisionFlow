@@ -4,6 +4,7 @@ import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig'
 import { debugState } from '../../../utils/clientDebugState'
 import { produce } from 'immer'
 import type { GraphNode, GraphEdge } from '../../graph/types/graphTypes'
+import { unifiedApiClient } from '../../../services/api'
 
 const logger = createLogger('AnalyticsStore')
 
@@ -260,21 +261,11 @@ export const useAnalyticsStore = create<AnalyticsState>()(
 
           // Try server API first
           try {
-            const response = await fetch('/api/analytics/shortest-path', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                source_node_id: parseInt(sourceNodeId), // Convert to number for server
-              }),
+            const response = await unifiedApiClient.post('/api/analytics/shortest-path', {
+              source_node_id: parseInt(sourceNodeId), // Convert to number for server
             })
 
-            if (!response.ok) {
-              throw new Error(`Server error: ${response.statusText}`)
-            }
-
-            const data = await response.json()
+            const data = response.data
 
             if (!data.success) {
               throw new Error(data.error || 'SSSP computation failed on server')

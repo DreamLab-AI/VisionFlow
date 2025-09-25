@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/features/design-system/components/Toast';
 import { ScrollArea } from '@/features/design-system/components/ScrollArea';
+import { unifiedApiClient } from '../../../services/api';
 
 interface ClusteringMethod {
   id: string;
@@ -146,26 +147,19 @@ export function SemanticClusteringControls() {
   const handleRunClustering = useCallback(async () => {
     setIsProcessing(true);
     setProgress(0);
-    
+
     try {
-      const response = await fetch('/api/analytics/clustering/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: clusteringMethod,
-          params: clusteringParams,
-        }),
+      const response = await unifiedApiClient.post('/api/analytics/clustering/run', {
+        method: clusteringMethod,
+        params: clusteringParams,
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setClusters(data.clusters);
-        
-        toast({
-          title: 'Clustering Complete',
-          description: `Found ${data.clusters.length} clusters`,
-        });
-      }
+
+      setClusters(response.data.clusters);
+
+      toast({
+        title: 'Clustering Complete',
+        description: `Found ${response.data.clusters.length} clusters`,
+      });
     } catch (error) {
       toast({
         title: 'Clustering Failed',
@@ -180,13 +174,9 @@ export function SemanticClusteringControls() {
 
   const handleClusterSelection = useCallback(async (clusterId: string) => {
     setSelectedCluster(clusterId);
-    
+
     try {
-      await fetch('/api/analytics/clustering/focus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clusterId }),
-      });
+      await unifiedApiClient.post('/api/analytics/clustering/focus', { clusterId });
     } catch (error) {
       console.error('Failed to focus cluster:', error);
     }
@@ -194,14 +184,10 @@ export function SemanticClusteringControls() {
 
   const handleAnomalyToggle = useCallback(async (enabled: boolean) => {
     setAnomalyDetection(prev => ({ ...prev, enabled }));
-    
+
     try {
-      await fetch('/api/analytics/anomaly/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled, ...anomalyDetection }),
-      });
-      
+      await unifiedApiClient.post('/api/analytics/anomaly/toggle', { enabled, ...anomalyDetection });
+
       if (enabled) {
         toast({
           title: 'Anomaly Detection Enabled',
@@ -219,12 +205,9 @@ export function SemanticClusteringControls() {
     
     const fetchAnomalies = async () => {
       try {
-        const response = await fetch('/api/analytics/anomaly/current');
-        if (response.ok) {
-          const data = await response.json();
-          setAnomalies(data.anomalies);
-          setAnomalyStats(data.stats);
-        }
+        const response = await unifiedApiClient.get('/api/analytics/anomaly/current');
+        setAnomalies(response.data.anomalies);
+        setAnomalyStats(response.data.stats);
       } catch (error) {
         console.error('Failed to fetch anomalies:', error);
       }

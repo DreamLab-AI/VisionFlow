@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/features/design-system/components/Button';
 import { Input } from '@/features/design-system/components/Input';
 import Send from 'lucide-react/dist/esm/icons/send';
-import { apiService } from '@/services/apiService';
+import { unifiedApiClient } from '@/services/api/UnifiedApiClient';
 import { useSettingsStore } from '@/store/settingsStore'; // For auth check
 import { nostrAuth } from '@/services/nostrAuthService'; // For getting token
 import { createLogger, createErrorMetadata } from '@/utils/loggerConfig';
@@ -61,7 +61,11 @@ const ConversationPane: React.FC = () => {
       }
 
       const payload: RagflowChatRequestPayload = { question, sessionId: sessionId ?? undefined, stream: false };
-      const response: RagflowChatResponsePayload = await apiService.sendRagflowChatMessage(payload, headers);
+      const apiResponse = await unifiedApiClient.post('/ragflow/chat', payload, {
+        headers,
+        skipAuth: !nostrAuth.isAuthenticated()
+      });
+      const response: RagflowChatResponsePayload = apiResponse.data;
 
       const botMessage: Message = { id: response.sessionId + '_bot', sender: 'bot', text: response.answer };
       setMessages(prev => [...prev, botMessage]);

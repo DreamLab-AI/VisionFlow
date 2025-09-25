@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/loggerConfig';
-import { apiService } from '../../../services/apiService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 
 const logger = createLogger('MultiAgentInitializationPrompt');
@@ -42,8 +42,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const response = await fetch(`${apiService.getBaseUrl()}/bots/status`);
-        const data = await response.json();
+        const data = await unifiedApiClient.getData('/bots/status');
         setMcpConnected(data.connected);
       } catch (error) {
         setMcpConnected(false);
@@ -113,9 +112,8 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
       logger.info('Spawning hive mind with config:', config);
 
       // Call API to initialize multi-agent
-      const fullUrl = `${apiService.getBaseUrl()}/bots/initialize-swarm`;
-      logger.info('Calling API endpoint:', fullUrl);
-      const response = await apiService.post('/bots/initialize-swarm', config);
+      logger.info('Calling API endpoint: /bots/initialize-swarm');
+      const response = await unifiedApiClient.postData('/bots/initialize-swarm', config);
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);

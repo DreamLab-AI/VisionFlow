@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/feat
 import { SemanticClusteringControls } from '@/features/analytics/components/SemanticClusteringControls';
 import { ConstraintBuilderDialog } from './ConstraintBuilderDialog';
 import { PhysicsPresets } from './PhysicsPresets';
+import { unifiedApiClient } from '../../../services/api';
 
 type KernelMode = 'legacy' | 'advanced' | 'visual_analytics';
 
@@ -144,11 +145,8 @@ export function PhysicsEngineControls() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/api/analytics/gpu-metrics');
-        if (response.ok) {
-          const data = await response.json();
-          setGpuMetrics(data);
-        }
+        const response = await unifiedApiClient.get('/api/analytics/gpu-metrics');
+        setGpuMetrics(response.data);
       } catch (error) {
         // Failed to fetch GPU metrics
       }
@@ -162,19 +160,13 @@ export function PhysicsEngineControls() {
   // Handlers
   const handleKernelModeChange = useCallback(async (mode: KernelMode) => {
     try {
-      const response = await fetch('/api/analytics/kernel-mode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode }),
+      const response = await unifiedApiClient.post('/api/analytics/kernel-mode', { mode });
+
+      setKernelMode(mode);
+      toast({
+        title: 'Kernel Mode Changed',
+        description: `Switched to ${mode} kernel`,
       });
-      
-      if (response.ok) {
-        setKernelMode(mode);
-        toast({
-          title: 'Kernel Mode Changed',
-          description: `Switched to ${mode} kernel`,
-        });
-      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -228,18 +220,14 @@ export function PhysicsEngineControls() {
   }, [currentGraph, updateSettings, toast]);
 
   const handleConstraintToggle = useCallback(async (constraintId: string) => {
-    const newConstraints = constraints.map(c => 
+    const newConstraints = constraints.map(c =>
       c.id === constraintId ? { ...c, enabled: !c.enabled } : c
     );
     setConstraints(newConstraints);
-    
+
     try {
-      await fetch('/api/analytics/constraints', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          constraints: newConstraints.filter(c => c.enabled).map(c => c.id),
-        }),
+      await unifiedApiClient.post('/api/analytics/constraints', {
+        constraints: newConstraints.filter(c => c.enabled).map(c => c.id),
       });
     } catch (error) {
       // Failed to update constraints
@@ -247,18 +235,14 @@ export function PhysicsEngineControls() {
   }, [constraints]);
 
   const handleLayerToggle = useCallback(async (layerId: string) => {
-    const newLayers = isolationLayers.map(l => 
+    const newLayers = isolationLayers.map(l =>
       l.id === layerId ? { ...l, active: !l.active } : l
     );
     setIsolationLayers(newLayers);
-    
+
     try {
-      await fetch('/api/analytics/layers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          layers: newLayers.filter(l => l.active),
-        }),
+      await unifiedApiClient.post('/api/analytics/layers', {
+        layers: newLayers.filter(l => l.active),
       });
     } catch (error) {
       // Failed to update isolation layers

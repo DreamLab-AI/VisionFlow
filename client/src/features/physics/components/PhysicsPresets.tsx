@@ -27,6 +27,7 @@ import {
 } from '@/features/design-system/components/Dialog';
 import { Input } from '@/features/design-system/components/Input';
 import { Label } from '@/features/design-system/components/Label';
+import { unifiedApiClient } from '../../../services/api';
 
 interface Preset {
   id: string;
@@ -168,18 +169,12 @@ export function PhysicsPresets() {
 
   const applyPreset = async (preset: Preset) => {
     try {
-      const response = await fetch('/api/analytics/preset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(preset.config),
+      await unifiedApiClient.post('/api/analytics/preset', preset.config);
+
+      toast({
+        title: 'Preset Applied',
+        description: `${preset.name} configuration loaded`,
       });
-      
-      if (response.ok) {
-        toast({
-          title: 'Preset Applied',
-          description: `${preset.name} configuration loaded`,
-        });
-      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -200,24 +195,18 @@ export function PhysicsPresets() {
     }
 
     try {
-      const response = await fetch('/api/analytics/preset/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: customPresetName,
-          description: customPresetDescription,
-        }),
+      await unifiedApiClient.post('/api/analytics/preset/save', {
+        name: customPresetName,
+        description: customPresetDescription,
       });
-      
-      if (response.ok) {
-        toast({
-          title: 'Preset Saved',
-          description: `"${customPresetName}" has been saved`,
-        });
-        setShowSaveDialog(false);
-        setCustomPresetName('');
-        setCustomPresetDescription('');
-      }
+
+      toast({
+        title: 'Preset Saved',
+        description: `"${customPresetName}" has been saved`,
+      });
+      setShowSaveDialog(false);
+      setCustomPresetName('');
+      setCustomPresetDescription('');
     } catch (error) {
       toast({
         title: 'Error',
@@ -229,21 +218,21 @@ export function PhysicsPresets() {
 
   const exportPresets = async () => {
     try {
-      const response = await fetch('/api/analytics/preset/export');
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'physics-presets.json';
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        toast({
-          title: 'Presets Exported',
-          description: 'Download started',
-        });
-      }
+      const response = await unifiedApiClient.get('/api/analytics/preset/export');
+
+      // Convert response data to blob for download
+      const blob = new Blob([JSON.stringify(response.data)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'physics-presets.json';
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Presets Exported',
+        description: 'Download started',
+      });
     } catch (error) {
       toast({
         title: 'Error',

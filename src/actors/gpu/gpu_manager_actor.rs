@@ -1,17 +1,13 @@
 //! GPU Manager Actor - Supervisor for specialized GPU computation actors
 
 use actix::prelude::*;
-use actix::ActorFuture;
-use log::{error, info, debug, warn};
-use std::sync::Arc;
-use std::collections::HashMap;
+use log::{error, info};
 
 use crate::actors::messages::*;
-use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D, TelemetryEvent, LogLevel};
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState, ChildActorAddresses};
 use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
-use serde_json;
 
 /// GPU Manager Actor - coordinates all specialized GPU actors
 pub struct GPUManagerActor {

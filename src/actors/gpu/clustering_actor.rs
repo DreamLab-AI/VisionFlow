@@ -1,7 +1,7 @@
 //! Clustering Actor - Handles K-means clustering and community detection algorithms
 
 use actix::prelude::*;
-use log::{debug, error, info, warn};
+use log::{error, info};
 use std::time::Instant;
 use uuid::Uuid;
 use rand::Rng;
