@@ -227,7 +227,7 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
 // Helper function to merge two JSON values
 fn merge_json_values(base: Value, update: Value) -> Value {
     use serde_json::map::Entry;
-    
+
     match (base, update) {
         (Value::Object(mut base_map), Value::Object(update_map)) => {
             for (key, update_value) in update_map {
@@ -244,6 +244,179 @@ fn merge_json_values(base: Value, update: Value) -> Value {
             Value::Object(base_map)
         }
         (_, update) => update, // For non-objects, update overwrites base
+    }
+}
+
+/// Cached field mapping to avoid rebuilding the HashMap on every call
+static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static str, &'static str>> =
+    std::sync::LazyLock::new(|| {
+        let mut field_mappings = std::collections::HashMap::new();
+
+        // Node settings fields
+        field_mappings.insert("base_color", "baseColor");
+        field_mappings.insert("emission_color", "emissionColor");
+        field_mappings.insert("node_size", "nodeSize");
+        field_mappings.insert("enable_instancing", "enableInstancing");
+        field_mappings.insert("enable_hologram", "enableHologram");
+        field_mappings.insert("enable_metadata_shape", "enableMetadataShape");
+        field_mappings.insert("enable_metadata_visualisation", "enableMetadataVisualisation");
+
+        // Edge settings fields
+        field_mappings.insert("arrow_size", "arrowSize");
+        field_mappings.insert("base_width", "baseWidth");
+        field_mappings.insert("edge_color", "color");
+        field_mappings.insert("edge_opacity", "opacity");
+        field_mappings.insert("edge_width", "edgeWidth");
+        field_mappings.insert("enable_arrows", "enableArrows");
+        field_mappings.insert("width_range", "widthRange");
+
+        // Rendering settings fields
+        field_mappings.insert("ambient_light_intensity", "ambientLightIntensity");
+        field_mappings.insert("background_color", "backgroundColor");
+        field_mappings.insert("directional_light_intensity", "directionalLightIntensity");
+        field_mappings.insert("enable_ambient_occlusion", "enableAmbientOcclusion");
+        field_mappings.insert("enable_antialiasing", "enableAntialiasing");
+        field_mappings.insert("enable_shadows", "enableShadows");
+        field_mappings.insert("environment_intensity", "environmentIntensity");
+        field_mappings.insert("shadow_map_size", "shadowMapSize");
+        field_mappings.insert("shadow_bias", "shadowBias");
+
+        // Animation settings fields
+        field_mappings.insert("enable_motion_blur", "enableMotionBlur");
+        field_mappings.insert("enable_node_animations", "enableNodeAnimations");
+        field_mappings.insert("motion_blur_strength", "motionBlurStrength");
+        field_mappings.insert("animation_speed", "animationSpeed");
+
+        // Auto-pause config fields
+        field_mappings.insert("equilibrium_velocity_threshold", "equilibriumVelocityThreshold");
+        field_mappings.insert("equilibrium_check_frames", "equilibriumCheckFrames");
+        field_mappings.insert("equilibrium_energy_threshold", "equilibriumEnergyThreshold");
+        field_mappings.insert("pause_on_equilibrium", "pauseOnEquilibrium");
+        field_mappings.insert("resume_on_interaction", "resumeOnInteraction");
+
+        // Auto-balance config fields (extensive physics parameters)
+        field_mappings.insert("stability_variance_threshold", "stabilityVarianceThreshold");
+        field_mappings.insert("stability_frame_count", "stabilityFrameCount");
+        field_mappings.insert("clustering_distance_threshold", "clusteringDistanceThreshold");
+        field_mappings.insert("clustering_hysteresis_buffer", "clusteringHysteresisBuffer");
+        field_mappings.insert("bouncing_node_percentage", "bouncingNodePercentage");
+        field_mappings.insert("boundary_min_distance", "boundaryMinDistance");
+        field_mappings.insert("boundary_max_distance", "boundaryMaxDistance");
+        field_mappings.insert("extreme_distance_threshold", "extremeDistanceThreshold");
+        field_mappings.insert("explosion_distance_threshold", "explosionDistanceThreshold");
+        field_mappings.insert("spreading_distance_threshold", "spreadingDistanceThreshold");
+        field_mappings.insert("spreading_hysteresis_buffer", "spreadingHysteresisBuffer");
+        field_mappings.insert("oscillation_detection_frames", "oscillationDetectionFrames");
+        field_mappings.insert("oscillation_change_threshold", "oscillationChangeThreshold");
+        field_mappings.insert("min_oscillation_changes", "minOscillationChanges");
+        field_mappings.insert("parameter_adjustment_rate", "parameterAdjustmentRate");
+        field_mappings.insert("max_adjustment_factor", "maxAdjustmentFactor");
+        field_mappings.insert("min_adjustment_factor", "minAdjustmentFactor");
+        field_mappings.insert("adjustment_cooldown_ms", "adjustmentCooldownMs");
+        field_mappings.insert("state_change_cooldown_ms", "stateChangeCooldownMs");
+        field_mappings.insert("parameter_dampening_factor", "parameterDampeningFactor");
+        field_mappings.insert("hysteresis_delay_frames", "hysteresisDelayFrames");
+        field_mappings.insert("grid_cell_size_min", "gridCellSizeMin");
+        field_mappings.insert("grid_cell_size_max", "gridCellSizeMax");
+        field_mappings.insert("repulsion_cutoff_min", "repulsionCutoffMin");
+        field_mappings.insert("repulsion_cutoff_max", "repulsionCutoffMax");
+        field_mappings.insert("repulsion_softening_min", "repulsionSofteningMin");
+        field_mappings.insert("repulsion_softening_max", "repulsionSofteningMax");
+        field_mappings.insert("center_gravity_min", "centerGravityMin");
+        field_mappings.insert("center_gravity_max", "centerGravityMax");
+        field_mappings.insert("spatial_hash_efficiency_threshold", "spatialHashEfficiencyThreshold");
+        field_mappings.insert("cluster_density_threshold", "clusterDensityThreshold");
+        field_mappings.insert("numerical_instability_threshold", "numericalInstabilityThreshold");
+
+        // Physics settings fields
+        field_mappings.insert("bounds_size", "boundsSize");
+        field_mappings.insert("separation_radius", "separationRadius");
+        field_mappings.insert("enable_bounds", "enableBounds");
+        field_mappings.insert("max_velocity", "maxVelocity");
+        field_mappings.insert("max_force", "maxForce");
+        field_mappings.insert("repel_k", "repelK");
+        field_mappings.insert("spring_k", "springK");
+        field_mappings.insert("mass_scale", "massScale");
+        field_mappings.insert("boundary_damping", "boundaryDamping");
+        field_mappings.insert("update_threshold", "updateThreshold");
+        field_mappings.insert("stress_weight", "stressWeight");
+        field_mappings.insert("stress_alpha", "stressAlpha");
+        field_mappings.insert("boundary_limit", "boundaryLimit");
+        field_mappings.insert("alignment_strength", "alignmentStrength");
+        field_mappings.insert("cluster_strength", "clusterStrength");
+        field_mappings.insert("compute_mode", "computeMode");
+        field_mappings.insert("rest_length", "restLength");
+        field_mappings.insert("repulsion_cutoff", "repulsionCutoff");
+        field_mappings.insert("repulsion_softening_epsilon", "repulsionSofteningEpsilon");
+        field_mappings.insert("center_gravity_k", "centerGravityK");
+        field_mappings.insert("grid_cell_size", "gridCellSize");
+        field_mappings.insert("warmup_iterations", "warmupIterations");
+        field_mappings.insert("cooling_rate", "coolingRate");
+        field_mappings.insert("boundary_extreme_multiplier", "boundaryExtremeMultiplier");
+        field_mappings.insert("boundary_extreme_force_multiplier", "boundaryExtremeForceMultiplier");
+        field_mappings.insert("boundary_velocity_damping", "boundaryVelocityDamping");
+        field_mappings.insert("min_distance", "minDistance");
+        field_mappings.insert("max_repulsion_dist", "maxRepulsionDist");
+        field_mappings.insert("boundary_margin", "boundaryMargin");
+        field_mappings.insert("boundary_force_strength", "boundaryForceStrength");
+        field_mappings.insert("warmup_curve", "warmupCurve");
+        field_mappings.insert("zero_velocity_iterations", "zeroVelocityIterations");
+
+        // System settings fields
+        field_mappings.insert("host_port", "hostPort");
+        field_mappings.insert("log_level", "logLevel");
+        field_mappings.insert("persist_settings", "persistSettings");
+        field_mappings.insert("gpu_memory_limit", "gpuMemoryLimit");
+
+        field_mappings
+    });
+
+/// Normalize JSON field names from snake_case to camelCase to prevent duplicate field errors
+/// during serde deserialization when both naming conventions exist in the same object.
+///
+/// This function specifically handles the known problematic fields that have serde aliases:
+/// - base_color -> baseColor
+/// - ambient_light_intensity -> ambientLightIntensity
+/// - emission_color -> emissionColor
+/// - etc.
+///
+/// Performance optimized with cached field mappings.
+fn normalize_field_names_to_camel_case(value: Value) -> Result<Value, String> {
+    normalize_object_fields(value, &FIELD_MAPPINGS)
+}
+
+/// Recursively normalize field names in a JSON object using the provided mapping
+fn normalize_object_fields(value: Value, mappings: &std::collections::HashMap<&str, &str>) -> Result<Value, String> {
+    match value {
+        Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+
+            for (key, val) in map {
+                // Check if this field needs normalization
+                let normalized_key = if let Some(&camel_case_key) = mappings.get(key.as_str()) {
+                    // Convert snake_case to camelCase
+                    camel_case_key.to_string()
+                } else {
+                    // Keep original key
+                    key
+                };
+
+                // Recursively normalize nested objects
+                let normalized_value = normalize_object_fields(val, mappings)?;
+                new_map.insert(normalized_key, normalized_value);
+            }
+
+            Ok(Value::Object(new_map))
+        }
+        Value::Array(arr) => {
+            let normalized_array: Result<Vec<Value>, String> = arr
+                .into_iter()
+                .map(|item| normalize_object_fields(item, mappings))
+                .collect();
+            Ok(Value::Array(normalized_array?))
+        }
+        // For primitive values, no normalization needed
+        _ => Ok(value),
     }
 }
 
@@ -1653,22 +1826,32 @@ impl AppFullSettings {
         if crate::utils::logging::is_debug_enabled() {
             debug!("merge_update: Incoming update (camelCase): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
-        
+
         // Convert empty strings to null for Option<String> fields
         let processed_update = convert_empty_strings_to_null(update.clone());
         if crate::utils::logging::is_debug_enabled() {
             debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&processed_update).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
-        
-        // Merge the update into self
+
+        // CRITICAL FIX: Normalize field names before merging to prevent duplicate field errors
+        // This ensures both current settings and update use the same field naming convention (camelCase)
         let current_value = serde_json::to_value(&self)
             .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
-        
-        let merged = merge_json_values(current_value, processed_update);
+
+        // Normalize both values to use camelCase consistently
+        let normalized_current = normalize_field_names_to_camel_case(current_value)?;
+        let normalized_update = normalize_field_names_to_camel_case(processed_update)?;
+
+        if crate::utils::logging::is_debug_enabled() {
+            debug!("merge_update: After field normalization (current): {}", serde_json::to_string_pretty(&normalized_current).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!("merge_update: After field normalization (update): {}", serde_json::to_string_pretty(&normalized_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+        }
+
+        let merged = merge_json_values(normalized_current, normalized_update);
         if crate::utils::logging::is_debug_enabled() {
             debug!("merge_update: After merge: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
         }
-        
+
         // Deserialize back to AppFullSettings
         *self = serde_json::from_value(merged.clone())
             .map_err(|e| {
@@ -1678,7 +1861,7 @@ impl AppFullSettings {
                 }
                 format!("Failed to deserialize merged settings: {}", e)
             })?;
-        
+
         Ok(())
     }
     

@@ -32,12 +32,12 @@ visualisation:
     opacity: 0.6
     pulseSpeed: 1.2
     flowSpeed: 0.5
-    nodeGlowStrength: 0.053478915
-    edgeGlowStrength: 0.9127068
+    nodeGlowStrength: 0.7
+    edgeGlowStrength: 0.5
     environmentGlowStrength: 0.96262044
   bloom:
-    enabled: false
-    intensity: 1.0
+    enabled: true
+    intensity: 1.5
     radius: 0.8
     threshold: 0.15
     color: '#ffffff'
@@ -66,11 +66,11 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#d22d2d'
+        baseColor: '#FF0000'
         metalness: 0.20965025
-        opacity: 0.33048844
+        opacity: 0.95
         roughness: 0.25633773
-        nodeSize: 0.28876713
+        nodeSize: 1.8417583
         quality: high
         enableInstancing: false
         enableHologram: false
@@ -79,7 +79,7 @@ visualisation:
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#7d1717'
+        color: '#FF00FF'
         enableArrows: false
         opacity: 0.07945205
         widthRange:
@@ -365,7 +365,7 @@ system:
     enableRequestValidation: false
     sessionTimeout: 3600
   debug:
-    enabled: false
+    enabled: true
   persistSettings: true
 xr:
   enabled: false

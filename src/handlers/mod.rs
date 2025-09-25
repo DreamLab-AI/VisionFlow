@@ -22,3 +22,6 @@ pub mod workspace_handler;
 pub mod graph_export_handler;
 pub mod realtime_websocket_handler;
 pub mod websocket_settings_handler;
+
+#[cfg(test)]
+pub mod tests;
