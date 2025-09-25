@@ -18,3 +18,7 @@ pub mod validation_handler;
 pub mod graph_state_handler;
 pub mod settings_validation_fix;
 pub mod hybrid_health_handler;
+pub mod workspace_handler;
+pub mod graph_export_handler;
+pub mod realtime_websocket_handler;
+pub mod websocket_settings_handler;

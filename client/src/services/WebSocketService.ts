@@ -6,6 +6,17 @@ import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { parseBinaryNodeData, isAgentNode, createBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
 import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/BatchQueue';
 import { validateNodePositions, createValidationMiddleware } from '../utils/validation';
+import {
+  WebSocketMessage,
+  WebSocketEventHandlers,
+  WebSocketConfig,
+  WebSocketConnectionState,
+  WebSocketError,
+  WebSocketStatistics,
+  Subscription,
+  SubscriptionFilters,
+  MessageHandler
+} from '../types/websocketTypes';
 
 const logger = createLogger('WebSocketService');
 
@@ -14,7 +25,8 @@ export interface WebSocketAdapter {
   isReady: () => boolean;
 }
 
-export interface WebSocketMessage {
+// Legacy interface for backward compatibility
+export interface LegacyWebSocketMessage {
   type: string;
   data?: any;
   error?: WebSocketErrorFrame;
@@ -38,6 +50,7 @@ export interface QueuedMessage {
   retries: number;
 }
 
+// Legacy interface - replaced by WebSocketConnectionState from websocketTypes
 export interface ConnectionState {
   status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'failed';
   lastConnected?: number;
@@ -45,7 +58,8 @@ export interface ConnectionState {
   reconnectAttempts: number;
 }
 
-type MessageHandler = (message: WebSocketMessage) => void;
+// Legacy types for backward compatibility
+type LegacyMessageHandler = (message: LegacyWebSocketMessage) => void;
 type BinaryMessageHandler = (data: ArrayBuffer) => void;
 type ConnectionStatusHandler = (connected: boolean) => void;
 type ConnectionStateHandler = (state: ConnectionState) => void;
@@ -54,10 +68,16 @@ type EventHandler = (data: any) => void;
 class WebSocketService {
   private static instance: WebSocketService;
   private socket: WebSocket | null = null;
-  private messageHandlers: MessageHandler[] = [];
+  private messageHandlers: LegacyMessageHandler[] = [];
   private binaryMessageHandlers: BinaryMessageHandler[] = [];
   private connectionStatusHandlers: ConnectionStatusHandler[] = [];
   private eventHandlers: Map<string, EventHandler[]> = new Map();
+
+  // New typed event system
+  private subscriptions: Map<string, Subscription> = new Map();
+  private subscriptionCounter: number = 0;
+  private statistics: WebSocketStatistics;
+  private config: WebSocketConfig;
   private reconnectInterval: number = 1000; // Start at 1s
   private maxReconnectAttempts: number = 10;
   private reconnectAttempts: number = 0;
@@ -80,7 +100,44 @@ class WebSocketService {
   private positionBatchQueue: NodePositionBatchQueue | null = null;
   private binaryMessageCount: number = 0;
 
+  // Enhanced connection state with server features
+  private enhancedConnectionState: WebSocketConnectionState = {
+    status: 'disconnected',
+    reconnectAttempts: 0,
+    serverFeatures: []
+  };
+
   private constructor() {
+    // Initialize statistics
+    this.statistics = {
+      messagesReceived: 0,
+      messagesSent: 0,
+      bytesReceived: 0,
+      bytesSent: 0,
+      connectionTime: 0,
+      reconnections: 0,
+      averageLatency: 0,
+      messagesByType: {},
+      errors: 0,
+      lastActivity: Date.now()
+    };
+
+    // Initialize configuration
+    this.config = {
+      reconnect: {
+        maxAttempts: 10,
+        baseDelay: 1000,
+        maxDelay: 30000,
+        backoffFactor: 2
+      },
+      heartbeat: {
+        interval: 30000,
+        timeout: 10000
+      },
+      compression: true,
+      binaryProtocol: true
+    };
+
     // Default WebSocket URL
     this.url = this.determineWebSocketUrl();
 
@@ -375,21 +432,21 @@ class WebSocketService {
       // Log only occasionally to avoid spam
       this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
       if (this.binaryMessageCount % 100 === 1) { // Log first message and every 100th message
-        console.log('[WebSocketService] Binary data received, graph type:', graphType, 'data size:', data.byteLength, 'msg count:', this.binaryMessageCount);
+        logger.debug('Binary data received', { graphType, dataSize: data.byteLength, msgCount: this.binaryMessageCount });
       }
       
       if (graphType === 'logseq') {
         try {
           await graphDataManager.updateNodePositions(data);
           if (this.binaryMessageCount % 100 === 1) {
-            console.log('[WebSocketService] Node positions updated successfully');
+            logger.debug('Node positions updated successfully');
           }
         } catch (error) {
           console.error('[WebSocketService] Error updating positions:', error);
           logger.error('Error processing binary data in graphDataManager:', createErrorMetadata(error));
         }
       } else if (this.binaryMessageCount % 100 === 1) {
-        console.log('[WebSocketService] Skipping binary - graph type is:', graphType);
+        logger.debug('Skipping binary - graph type is', { graphType });
         if (debugState.isDataDebugEnabled()) {
           logger.debug('Skipping binary data processing - not a Logseq graph');
         }

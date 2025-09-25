@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('HologramNodeMaterial');
 
 /**
  * HOLOGRAM NODE MATERIAL
@@ -199,7 +202,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     });
     
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('HologramNodeMaterial: Created with parameters', {
+      logger.debug('Material created', {
         baseColor: params.baseColor.getHexString(),
         emissiveColor: params.emissiveColor.getHexString(),
         enableHologram: params.enableHologram,
@@ -225,7 +228,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     this.uniforms.emissiveColor.value = new THREE.Color(emissiveColor || baseColor);
     
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('HologramNodeMaterial: Updated colors', {
+      logger.debug('Colors updated', {
         baseColor: this.uniforms.baseColor.value.getHexString(),
         emissiveColor: this.uniforms.emissiveColor.value.getHexString()
       });
@@ -239,7 +242,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
   setHologramEnabled(enabled: boolean) {
     this.uniforms.enableHologram.value = enabled;
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('HologramNodeMaterial: Hologram effects', enabled ? 'enabled' : 'disabled');
+      logger.debug('Hologram effects ' + (enabled ? 'enabled' : 'disabled'));
     }
   }
 
@@ -270,7 +273,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
     
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('HologramNodeMaterial: Updated hologram parameters', params);
+      logger.debug('Hologram parameters updated', params);
     }
   }
   
@@ -280,7 +283,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
   updateBloomContribution(glowStrength: number) {
     this.uniforms.glowStrength.value = glowStrength;
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('HologramNodeMaterial: Updated bloom contribution to', glowStrength);
+      logger.debug('Bloom contribution updated', { glowStrength });
     }
   }
   

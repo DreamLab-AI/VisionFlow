@@ -1,4 +1,4 @@
-import { apiService } from './apiService';
+import { unifiedApiClient } from './api/UnifiedApiClient';
 import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
 import { Event, UnsignedEvent, nip19 } from 'nostr-tools';
@@ -107,7 +107,7 @@ class NostrAuthService {
         logger.info(`Verifying stored session for pubkey: ${storedUser.pubkey}`);
         try {
           // Verify token with backend
-          const verificationResponse = await apiService.post<VerifyResponse>('/auth/nostr/verify', {
+          const verificationResponse = await unifiedApiClient.postData<VerifyResponse>('/auth/nostr/verify', {
             pubkey: storedUser.pubkey,
             token: storedToken
           });
@@ -210,7 +210,7 @@ class NostrAuthService {
 
       // 5. Send the signed event to the backend API
       logger.info(`Sending auth event to backend for pubkey: ${pubkey}`);
-      const response = await apiService.post<AuthResponse>('/auth/nostr', eventPayload);
+      const response = await unifiedApiClient.postData<AuthResponse>('/auth/nostr', eventPayload);
       logger.info(`Backend auth successful for pubkey: ${response.user.pubkey}`);
 
       // 6. Store session and update state
@@ -276,7 +276,7 @@ class NostrAuthService {
       try {
         logger.info(`Calling server logout for pubkey: ${user.pubkey}`);
         // Server expects DELETE with pubkey and token in body
-        await apiService.delete<any>('/auth/nostr', {
+        await unifiedApiClient.request<any>('DELETE', '/auth/nostr', {
           pubkey: user.pubkey,
           token: token
         });

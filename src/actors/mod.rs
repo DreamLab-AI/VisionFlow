@@ -13,6 +13,7 @@ pub mod supervisor;
 pub mod voice_commands;
 // pub mod supervisor_voice; // Removed - duplicate handlers in supervisor.rs
 pub mod multi_mcp_visualization_actor;
+pub mod workspace_actor;
 pub mod messages;
 pub mod graph_messages;
 
@@ -28,4 +29,5 @@ pub use jsonrpc_client::JsonRpcClient;
 pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
 pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePreamble};
 pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor;
+pub use workspace_actor::WorkspaceActor;
 pub use messages::*;

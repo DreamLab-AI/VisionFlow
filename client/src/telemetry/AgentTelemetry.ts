@@ -103,12 +103,12 @@ export class AgentTelemetryService {
     this.metrics.agentSpawns++;
     this.logger.logAgentAction(agentId, agentType, 'spawn', metadata);
 
-    console.group(`🤖 Agent Spawned: ${agentType}:${agentId}`);
-    console.log('Agent Type:', agentType);
-    console.log('Agent ID:', agentId);
-    console.log('Metadata:', metadata);
-    console.log('Total Spawned:', this.metrics.agentSpawns);
-    console.groupEnd();
+    this.logger.debug('Agent Spawned', {
+      agentType,
+      agentId,
+      metadata,
+      totalSpawned: this.metrics.agentSpawns
+    });
   }
 
   logAgentAction(agentId: string, agentType: string, action: string, metadata?: Record<string, any>, position?: { x: number; y: number; z: number }) {
@@ -125,16 +125,12 @@ export class AgentTelemetryService {
 
     this.logger.logWebSocketMessage(messageType, direction, metadata, size);
 
-    if (direction === 'incoming') {
-      console.group(`📥 WebSocket Message: ${messageType}`);
-    } else {
-      console.group(`📤 WebSocket Message: ${messageType}`);
-    }
-    console.log('Type:', messageType);
-    console.log('Direction:', direction);
-    console.log('Size:', size ? `${size} bytes` : 'unknown');
-    console.log('Data:', data);
-    console.groupEnd();
+    this.logger.debug('WebSocket Message', {
+      messageType,
+      direction,
+      size: size ? `${size} bytes` : 'unknown',
+      data
+    });
   }
 
   logThreeJSOperation(action: ThreeJSTelemetryData['action'], objectId: string, position?: { x: number; y: number; z: number }, rotation?: { x: number; y: number; z: number }, metadata?: Record<string, any>) {
@@ -163,10 +159,11 @@ export class AgentTelemetryService {
   }
 
   logUserInteraction(interactionType: string, target: string, metadata?: Record<string, any>) {
-    console.group(`👆 User Interaction: ${interactionType}`);
-    console.log('Target:', target);
-    console.log('Metadata:', metadata);
-    console.groupEnd();
+    this.logger.debug('User Interaction', {
+      interactionType,
+      target,
+      metadata
+    });
 
     this.logger.logAgentAction('user', 'interaction', interactionType, { target, ...metadata });
   }

@@ -3,7 +3,7 @@
  * Provides AI-powered graph optimisation tools with UK English localisation
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Brain, 
   Cpu,
@@ -33,15 +33,28 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Progress } from '@/features/design-system/components/Progress';
 import { toast } from '@/features/design-system/components/Toast';
+import {
+  optimizationApi,
+  optimizationWebSocket,
+  OptimizationTask,
+  OptimizationResult,
+  OptimizationParams,
+  GraphData,
+  OptimizationWebSocketEvent
+} from '@/api/optimizationApi';
 
 interface GraphOptimisationTabProps {
   graphId?: string;
+  graphData?: GraphData;
   onFeatureUpdate?: (feature: string, data: any) => void;
+  onOptimizationComplete?: (result: OptimizationResult) => void;
 }
 
-export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({ 
+export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   graphId = 'default',
-  onFeatureUpdate
+  graphData,
+  onFeatureUpdate,
+  onOptimizationComplete
 }) => {
   // AI Insights states
   const [aiInsightsEnabled, setAiInsightsEnabled] = useState(false);
@@ -56,18 +69,123 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('force-directed');
   
   // Mock optimisation results
-  const [optimisationResults, setOptimisationResults] = useState<any>(null);
-  const [mockResults] = useState({
-    algorithm: 'Adaptive Force-Directed',
-    confidence: 0.87,
-    performanceGain: 0.34,
-    clusters: 8,
-    recommendations: [
-      { type: 'layout', priority: 'high', description: 'Adjust node spacing for better clarity' },
-      { type: 'clustering', priority: 'medium', description: 'Group related nodes for improved navigation' },
-      { type: 'performance', priority: 'low', description: 'Enable GPU acceleration for smoother interactions' }
-    ]
-  });
+  // Real optimization state
+  const [optimisationResults, setOptimisationResults] = useState<OptimizationResult | null>(null);
+  const [currentTask, setCurrentTask] = useState<OptimizationTask | null>(null);
+  const [gpuStatus, setGpuStatus] = useState<{ available: boolean; utilization: number }>({ available: false, utilization: 0 });
+  const [availableAlgorithms, setAvailableAlgorithms] = useState<string[]>([]);
+  const [performanceMetrics, setPerformanceMetrics] = useState<any>(null);
+  const [canCancel, setCanCancel] = useState(false);
+
+  // Refs for cleanup
+  const wsConnectedRef = useRef(false);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize WebSocket and load GPU status on mount
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // Connect to optimization WebSocket
+        if (!wsConnectedRef.current) {
+          await optimizationWebSocket.connect();
+          wsConnectedRef.current = true;
+
+          // Listen for optimization events
+          optimizationWebSocket.addEventListener('optimization_progress', handleOptimizationProgress);
+          optimizationWebSocket.addEventListener('optimization_complete', handleOptimizationComplete);
+          optimizationWebSocket.addEventListener('optimization_error', handleOptimizationError);
+          optimizationWebSocket.addEventListener('gpu_status', handleGpuStatusUpdate);
+        }
+
+        // Load initial data
+        const [gpuStatusData, algorithms, metrics] = await Promise.all([
+          optimizationApi.getGpuStatus(),
+          optimizationApi.getAvailableAlgorithms(),
+          optimizationApi.getPerformanceMetrics()
+        ]);
+
+        setGpuStatus({
+          available: gpuStatusData.available,
+          utilization: gpuStatusData.utilization
+        });
+        setAvailableAlgorithms(algorithms);
+        setPerformanceMetrics(metrics);
+
+      } catch (error) {
+        console.error('Failed to initialize optimization system:', error);
+        toast({
+          title: "Initialization Error",
+          description: "Failed to connect to GPU optimization backend",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initialize();
+
+    return () => {
+      // Cleanup
+      if (wsConnectedRef.current) {
+        optimizationWebSocket.removeEventListener('optimization_progress', handleOptimizationProgress);
+        optimizationWebSocket.removeEventListener('optimization_complete', handleOptimizationComplete);
+        optimizationWebSocket.removeEventListener('optimization_error', handleOptimizationError);
+        optimizationWebSocket.removeEventListener('gpu_status', handleGpuStatusUpdate);
+        optimizationWebSocket.disconnect();
+        wsConnectedRef.current = false;
+      }
+
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // WebSocket event handlers
+  const handleOptimizationProgress = useCallback((event: OptimizationWebSocketEvent) => {
+    if (event.taskId === currentTask?.taskId) {
+      setOptimisationProgress(event.data.progress || 0);
+      setCurrentTask(prev => prev ? { ...prev, progress: event.data.progress || 0 } : null);
+    }
+  }, [currentTask?.taskId]);
+
+  const handleOptimizationComplete = useCallback((event: OptimizationWebSocketEvent) => {
+    if (event.taskId === currentTask?.taskId) {
+      setIsOptimising(false);
+      setCanCancel(false);
+      setOptimisationProgress(100);
+
+      // Fetch the complete result
+      optimizationApi.getOptimizationResults(event.taskId!).then(result => {
+        setOptimisationResults(result);
+        onOptimizationComplete?.(result);
+
+        toast({
+          title: "Optimization Complete",
+          description: `Layout improved with ${(result.performanceGain * 100).toFixed(0)}% performance gain using ${result.algorithm}`
+        });
+      });
+    }
+  }, [currentTask?.taskId, onOptimizationComplete]);
+
+  const handleOptimizationError = useCallback((event: OptimizationWebSocketEvent) => {
+    if (event.taskId === currentTask?.taskId) {
+      setIsOptimising(false);
+      setCanCancel(false);
+
+      toast({
+        title: "Optimization Failed",
+        description: event.data.error || "GPU optimization encountered an error",
+        variant: "destructive"
+      });
+    }
+  }, [currentTask?.taskId]);
+
+  const handleGpuStatusUpdate = useCallback((event: OptimizationWebSocketEvent) => {
+    setGpuStatus({
+      available: event.data.available,
+      utilization: event.data.utilization
+    });
+  }, []);
 
   const handleAiInsightsToggle = useCallback((enabled: boolean) => {
     setAiInsightsEnabled(enabled);
@@ -99,47 +217,163 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   }, [aiInsightsEnabled, onFeatureUpdate]);
 
   const runLayoutOptimisation = useCallback(async () => {
+    if (!graphData) {
+      toast({
+        title: "No Graph Data",
+        description: "Please load a graph before running optimization",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!gpuStatus.available) {
+      toast({
+        title: "GPU Unavailable",
+        description: "GPU acceleration is required for optimization",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsOptimising(true);
     setOptimisationProgress(0);
-    
+    setCanCancel(true);
+
     toast({
-      title: "Running Layout Optimisation",
-      description: "Applying AI-recommended positions and clustering..."
+      title: "Starting GPU Optimization",
+      description: "Initializing stress majorization algorithm..."
     });
-    
-    // Simulate optimisation progress
-    const interval = setInterval(() => {
-      setOptimisationProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsOptimising(false);
-          setOptimisationResults(mockResults);
-          toast({
-            title: "Optimisation Complete",
-            description: `Layout improved with ${(mockResults.performanceGain * 100).toFixed(0)}% performance gain`
-          });
-          return 100;
-        }
-        return prev + 10;
+
+    try {
+      const optimizationParams: OptimizationParams = {
+        algorithm: layoutAlgorithm as any,
+        optimizationLevel: optimisationLevel[0],
+        clusteringEnabled,
+        gpuAcceleration: true,
+        performanceMode: performanceMode as any,
+        maxIterations: 1000,
+        convergenceThreshold: 0.01
+      };
+
+      const task = await optimizationApi.triggerStressMajorization(graphData, optimizationParams);
+      setCurrentTask(task);
+
+      // Start polling for progress if WebSocket isn't connected
+      if (!optimizationWebSocket.isConnected()) {
+        pollIntervalRef.current = setInterval(async () => {
+          try {
+            const status = await optimizationApi.getOptimizationStatus(task.taskId);
+            setOptimisationProgress(status.progress);
+            setCurrentTask(status);
+
+            if (status.status === 'completed') {
+              clearInterval(pollIntervalRef.current!);
+              const result = await optimizationApi.getOptimizationResults(task.taskId);
+              setOptimisationResults(result);
+              setIsOptimising(false);
+              setCanCancel(false);
+              onOptimizationComplete?.(result);
+            } else if (status.status === 'failed') {
+              clearInterval(pollIntervalRef.current!);
+              setIsOptimising(false);
+              setCanCancel(false);
+              throw new Error(status.error || 'Optimization failed');
+            }
+          } catch (error) {
+            clearInterval(pollIntervalRef.current!);
+            throw error;
+          }
+        }, 1000);
+      }
+
+    } catch (error) {
+      setIsOptimising(false);
+      setCanCancel(false);
+      toast({
+        title: "Optimization Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
       });
-    }, 200);
-  }, [mockResults]);
+    }
+  }, [graphData, gpuStatus.available, layoutAlgorithm, optimisationLevel, clusteringEnabled, performanceMode, onOptimizationComplete]);
 
   const runClusterAnalysis = useCallback(async () => {
+    if (!graphData) {
+      toast({
+        title: "No Graph Data",
+        description: "Please load a graph before running cluster analysis",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsOptimising(true);
     toast({
-      title: "Running Cluster Analysis",
-      description: "Identifying node communities and optimal groupings..."
+      title: "Running GPU Cluster Analysis",
+      description: "Identifying node communities using GPU acceleration..."
     });
-    
-    setTimeout(() => {
+
+    try {
+      const task = await optimizationApi.runClusteringAnalysis(graphData, 'louvain');
+      setCurrentTask(task);
+
+      // Poll for clustering results
+      const pollClustering = async () => {
+        const status = await optimizationApi.getOptimizationStatus(task.taskId);
+
+        if (status.status === 'completed') {
+          const result = await optimizationApi.getOptimizationResults(task.taskId);
+          setOptimisationResults(result);
+          setIsOptimising(false);
+
+          toast({
+            title: "Clustering Analysis Complete",
+            description: `Identified ${result.clusters} optimal clusters with ${(result.metrics.clustering.modularity * 100).toFixed(1)}% modularity`
+          });
+        } else if (status.status === 'failed') {
+          throw new Error(status.error || 'Clustering failed');
+        } else {
+          setTimeout(pollClustering, 1000);
+        }
+      };
+
+      setTimeout(pollClustering, 1000);
+
+    } catch (error) {
       setIsOptimising(false);
       toast({
-        title: "Clustering Analysis Complete",
-        description: `Identified ${mockResults.clusters} optimal clusters`
+        title: "Clustering Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
       });
-    }, 1500);
-  }, [mockResults.clusters]);
+    }
+  }, [graphData]);
+
+  const cancelOptimization = useCallback(async () => {
+    if (currentTask) {
+      try {
+        await optimizationApi.cancelOptimization(currentTask.taskId);
+        setIsOptimising(false);
+        setCanCancel(false);
+        setCurrentTask(null);
+
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+
+        toast({
+          title: "Optimization Cancelled",
+          description: "GPU optimization task has been cancelled"
+        });
+      } catch (error) {
+        toast({
+          title: "Cancellation Failed",
+          description: "Could not cancel optimization task",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [currentTask]);
 
   const applyRecommendation = useCallback((recommendation: any) => {
     toast({
@@ -158,9 +392,9 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Brain className="h-4 w-4" />
             AI-Powered Optimisation
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant={gpuStatus.available ? "default" : "destructive"} className="text-xs">
               <AlertCircle className="h-3 w-3 mr-1" />
-              Partial
+              {gpuStatus.available ? `GPU ${gpuStatus.utilization.toFixed(0)}%` : "GPU Unavailable"}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -206,11 +440,20 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
                   <SelectValue placeholder="Select Algorithm" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="force-directed">Force-Directed</SelectItem>
-                  <SelectItem value="hierarchical">Hierarchical</SelectItem>
-                  <SelectItem value="circular">Circular</SelectItem>
-                  <SelectItem value="grid">Grid-Based</SelectItem>
-                  <SelectItem value="adaptive">Adaptive (AI)</SelectItem>
+                  {availableAlgorithms.length > 0 ? (
+                    availableAlgorithms.map(algorithm => (
+                      <SelectItem key={algorithm} value={algorithm}>
+                        {algorithm.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="stress-majorization">Stress Majorization (GPU)</SelectItem>
+                      <SelectItem value="force-directed">Force-Directed</SelectItem>
+                      <SelectItem value="hierarchical">Hierarchical</SelectItem>
+                      <SelectItem value="adaptive">Adaptive (AI)</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -230,10 +473,29 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
           {isOptimising && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label className="text-xs">Progress</Label>
-                <span className="text-xs">{optimisationProgress}%</span>
+                <Label className="text-xs">
+                  {currentTask?.algorithm || 'Optimization'} Progress
+                </Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs">{optimisationProgress.toFixed(1)}%</span>
+                  {canCancel && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelOptimization}
+                      className="h-5 px-2 text-xs"
+                    >
+                      <Pause className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <Progress value={optimisationProgress} className="w-full" />
+              {currentTask?.estimatedCompletion && (
+                <div className="text-xs text-muted-foreground">
+                  Est. completion: {new Date(currentTask.estimatedCompletion).toLocaleTimeString()}
+                </div>
+              )}
             </div>
           )}
           
@@ -242,7 +504,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
               variant="outline" 
               size="sm"
               onClick={runLayoutOptimisation}
-              disabled={isOptimising || !aiInsightsEnabled}
+              disabled={isOptimising || !gpuStatus.available || !graphData}
               className="w-full"
             >
               <Target className="h-3 w-3 mr-1" />
@@ -252,7 +514,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
               variant="outline" 
               size="sm"
               onClick={runClusterAnalysis}
-              disabled={isOptimising}
+              disabled={isOptimising || !gpuStatus.available || !graphData}
               className="w-full"
             >
               <Layers className="h-3 w-3 mr-1" />
@@ -269,8 +531,13 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
           </div>
 
           {optimisationResults && (
-            <div className="text-xs space-y-2 p-3 bg-muted rounded-md">
-              <div className="font-semibold text-primary">Optimisation Results</div>
+            <div className="text-xs space-y-3 p-3 bg-muted rounded-md">
+              <div className="font-semibold text-primary flex items-center gap-2">
+                Optimization Results
+                <Badge variant="secondary" className="text-xs">
+                  GPU Accelerated
+                </Badge>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex justify-between">
                   <span>Algorithm:</span>
@@ -279,27 +546,48 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
                 <div className="flex justify-between">
                   <span>Confidence:</span>
                   <span className="font-mono text-green-600">
-                    {(optimisationResults.confidence * 100).toFixed(0)}%
+                    {(optimisationResults.confidence * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Performance:</span>
                   <span className="font-mono text-blue-600">
-                    +{(optimisationResults.performanceGain * 100).toFixed(0)}%
+                    +{(optimisationResults.performanceGain * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Clusters:</span>
                   <span className="font-mono">{optimisationResults.clusters}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Iterations:</span>
+                  <span className="font-mono">{optimisationResults.iterations}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>GPU Usage:</span>
+                  <span className="font-mono text-purple-600">
+                    {optimisationResults.gpuUtilization.toFixed(1)}%
+                  </span>
+                </div>
               </div>
+              {optimisationResults.metrics && (
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="font-semibold">Metrics</div>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <div>Stress Reduction: {(optimisationResults.metrics.stressMajorization.stressReduction * 100).toFixed(1)}%</div>
+                    <div>Modularity: {(optimisationResults.metrics.clustering.modularity * 100).toFixed(1)}%</div>
+                    <div>Compute Time: {optimisationResults.metrics.performance.computeTime.toFixed(2)}s</div>
+                    <div>Efficiency: {(optimisationResults.metrics.performance.efficiency * 100).toFixed(1)}%</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* AI Recommendations */}
-      {aiInsightsEnabled && optimisationResults && (
+      {optimisationResults && optimisationResults.recommendations && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -308,17 +596,20 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {optimisationResults.recommendations.map((rec: any, index: number) => (
+            {optimisationResults.recommendations.map((rec, index: number) => (
               <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'default' : 'secondary'}
+                    <Badge
+                      variant={rec.priority === 'critical' ? 'destructive' : rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'default' : 'secondary'}
                       className="text-xs"
                     >
                       {rec.priority}
                     </Badge>
                     <span className="text-xs font-semibold capitalize">{rec.type}</span>
+                    {rec.confidence && (
+                      <span className="text-xs text-muted-foreground">({(rec.confidence * 100).toFixed(0)}%)</span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
                 </div>
@@ -360,9 +651,21 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
             </Select>
           </div>
           
+          {performanceMetrics && (
+            <div className="text-xs space-y-2 p-2 bg-muted/50 rounded">
+              <div className="font-semibold">System Status</div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>GPU Utilization: {performanceMetrics.gpu?.utilization?.toFixed(1) || 'N/A'}%</div>
+                <div>Active Tasks: {performanceMetrics.optimization?.activeTasksCount || 0}</div>
+                <div>Success Rate: {performanceMetrics.optimization?.successRate ? (performanceMetrics.optimization.successRate * 100).toFixed(1) : 'N/A'}%</div>
+                <div>Avg Execution: {performanceMetrics.optimization?.averageExecutionTime?.toFixed(1) || 'N/A'}s</div>
+              </div>
+            </div>
+          )}
+
           <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-            <strong>Note:</strong> AI-powered optimisation features are under active development. 
-            Current implementation provides basic layout and clustering analysis.
+            <strong>GPU Acceleration:</strong> {gpuStatus.available ? 'Available and active' : 'Unavailable - using CPU fallback'}.
+            Real-time optimization with WebSocket progress tracking enabled.
           </div>
         </CardContent>
       </Card>

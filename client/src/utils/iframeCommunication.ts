@@ -1,4 +1,7 @@
 import { IFRAME_COMMUNICATION_CONFIG, MessageAction } from '../config/iframeCommunication';
+import { createLogger } from './loggerConfig';
+
+const logger = createLogger('iframeCommunication');
 
 /**
  * Base interface for all iframe messages
@@ -39,7 +42,7 @@ export function sendMessageToIframe(
     );
     
     if (IFRAME_COMMUNICATION_CONFIG.validation.logMessages) {
-      console.log('Sent message to iframe:', message);
+      logger.debug('Sent message to iframe', message);
     }
     
     return true;

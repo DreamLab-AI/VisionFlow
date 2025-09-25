@@ -3,21 +3,25 @@
  * Provides advanced graph analysis tools with UK English localisation
  */
 
-import React, { useState, useCallback } from 'react';
-import { 
-  GitCompare, 
-  Brain, 
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  GitCompare,
+  Brain,
   TrendingUp,
   BarChart3,
   Network,
   Target,
-  AlertCircle
+  AlertCircle,
+  Cpu,
+  Activity,
+  Zap,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { Switch } from '@/features/design-system/components/Switch';
 import { Label } from '@/features/design-system/components/Label';
 import { Badge } from '@/features/design-system/components/Badge';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-syst
 import { Separator } from '@/features/design-system/components/Separator';
 import { toast } from '@/features/design-system/components/Toast';
 import { ShortestPathControls } from '@/features/analytics/components/ShortestPathControls';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';
 
 interface GraphAnalysisTabProps {
@@ -39,41 +44,53 @@ interface GraphAnalysisTabProps {
   otherGraphData?: any;
 }
 
-export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({ 
+export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
   graphId = 'default',
   graphData,
   otherGraphData
 }) => {
-  // Analysis states
+  // Real analytics integration
+  const {
+    structuralAnalysis,
+    semanticAnalysis,
+    clusteringResults,
+    performanceStats,
+    isGPUEnabled,
+    isAnalyzing,
+    error,
+    runAnalysis,
+    cancelTask,
+    hasActiveTasks,
+    activeTasks,
+    refresh
+  } = useAnalytics({
+    autoRefreshStats: true,
+    enableWebSocket: true
+  });
+
+  // UI states
   const [comparisonEnabled, setComparisonEnabled] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [isAnalysing, setIsAnalysing] = useState(false);
+  const [analysisType, setAnalysisType] = useState<'structural' | 'semantic' | 'both'>('both');
   const [metricsEnabled, setMetricsEnabled] = useState(true);
   const [autoAnalysis, setAutoAnalysis] = useState(false);
-
-  // Mock analysis data for demonstration
-  const [mockAnalysis] = useState({
-    similarity: {
-      overall: 0.73,
-      structural: 0.68,
-      semantic: 0.78
-    },
-    matches: 127,
-    differences: 42,
-    clusters: 8,
-    centrality: {
-      betweenness: 0.34,
-      closeness: 0.62,
-      eigenvector: 0.51
-    }
-  });
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
 
   const handleComparisonToggle = useCallback((enabled: boolean) => {
     setComparisonEnabled(enabled);
+    if (enabled && (!graphData || !otherGraphData)) {
+      toast({
+        title: "Insufficient Data",
+        description: "Two graphs are required for comparison analysis",
+        variant: "destructive"
+      });
+      setComparisonEnabled(false);
+      return;
+    }
+
     if (enabled) {
       toast({
         title: "Graph Comparison Activated",
-        description: "Analysing similarities and differences between graphs..."
+        description: "Ready to analyse similarities and differences between graphs"
       });
     } else {
       toast({
@@ -81,44 +98,102 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
         description: "Comparison analysis stopped"
       });
     }
-  }, []);
+  }, [graphData, otherGraphData]);
 
   const runStructuralAnalysis = useCallback(async () => {
-    setIsAnalysing(true);
-    toast({
-      title: "Running Structural Analysis",
-      description: "Analysing graph topology and connectivity patterns..."
-    });
-    
-    // Simulate analysis delay
-    setTimeout(() => {
-      setAnalysisResults(mockAnalysis);
-      setIsAnalysing(false);
+    if (!graphData?.nodes || !graphData?.edges) {
       toast({
-        title: "Analysis Complete",
-        description: "Structural analysis results are now available"
+        title: "No Graph Data",
+        description: "Please load graph data first",
+        variant: "destructive"
       });
-    }, 2000);
-  }, [mockAnalysis]);
+      return;
+    }
+
+    try {
+      toast({
+        title: "Running Structural Analysis",
+        description: "Analysing graph topology with GPU acceleration..."
+      });
+
+      const taskId = await runAnalysis({
+        type: 'structural',
+        graphData,
+        options: {
+          include_centrality: true,
+          include_clustering: true,
+          include_connectivity: true,
+          cluster_resolution: 1.0
+        }
+      });
+
+      setCurrentTaskId(taskId);
+
+      toast({
+        title: "Analysis Started",
+        description: `Task ID: ${taskId}. Progress will be displayed below.`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Analysis Failed",
+        description: error.message || "Failed to start structural analysis",
+        variant: "destructive"
+      });
+    }
+  }, [graphData, runAnalysis]);
 
   const runSemanticAnalysis = useCallback(async () => {
-    setIsAnalysing(true);
-    toast({
-      title: "Running Semantic Analysis",
-      description: "Analysing node content and semantic relationships..."
-    });
-    
-    setTimeout(() => {
-      setIsAnalysing(false);
+    if (!graphData?.nodes || !graphData?.edges) {
       toast({
-        title: "Semantic Analysis Complete",
-        description: "Content similarity patterns identified"
+        title: "No Graph Data",
+        description: "Please load graph data first",
+        variant: "destructive"
       });
-    }, 1500);
-  }, []);
+      return;
+    }
+
+    try {
+      toast({
+        title: "Running Semantic Analysis",
+        description: "Analysing node content and semantic relationships..."
+      });
+
+      const taskId = await runAnalysis({
+        type: 'semantic',
+        graphData,
+        options: {
+          similarity_threshold: 0.7,
+          topic_count: 10,
+          embedding_model: 'default'
+        }
+      });
+
+      setCurrentTaskId(taskId);
+
+      toast({
+        title: "Semantic Analysis Started",
+        description: `Task ID: ${taskId}. Processing node content...`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Analysis Failed",
+        description: error.message || "Failed to start semantic analysis",
+        variant: "destructive"
+      });
+    }
+  }, [graphData, runAnalysis]);
 
   const exportAnalysisResults = useCallback(() => {
-    if (!analysisResults) {
+    const results = {
+      structural: structuralAnalysis,
+      semantic: semanticAnalysis,
+      clustering: clusteringResults,
+      performance: performanceStats,
+      timestamp: new Date().toISOString(),
+      graphId
+    };
+
+    if (!results.structural && !results.semantic && !results.clustering) {
       toast({
         title: "No Results Available",
         description: "Please run an analysis first",
@@ -126,12 +201,25 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
       });
       return;
     }
-    
-    toast({
-      title: "Exporting Analysis Results",
-      description: "Downloading analysis report as JSON..."
+
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(results, null, 2)], {
+      type: 'application/json'
     });
-  }, [analysisResults]);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `graph-analysis-${graphId}-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Analysis Results Exported",
+      description: "Downloaded analysis report as JSON"
+    });
+  }, [structuralAnalysis, semanticAnalysis, clusteringResults, performanceStats, graphId]);
 
   return (
     <div className="space-y-4">
@@ -159,7 +247,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
           
           {comparisonEnabled && (
             <div className="space-y-3 pl-4 border-l-2 border-muted">
-              <Select defaultValue="both">
+              <Select value={analysisType} onValueChange={(value) => setAnalysisType(value as 'structural' | 'semantic' | 'both')}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Comparison Type" />
                 </SelectTrigger>
@@ -178,30 +266,54 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
                 />
               </div>
 
-              {analysisResults && (
+              {(structuralAnalysis || semanticAnalysis) && (
                 <div className="text-xs space-y-2 p-3 bg-muted rounded-md">
                   <div className="font-semibold text-primary">Analysis Results</div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="flex justify-between">
-                      <span>Overall Similarity:</span>
-                      <span className="font-mono text-green-600">
-                        {(analysisResults.similarity.overall * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Node Matches:</span>
-                      <span className="font-mono">{analysisResults.matches}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Structural:</span>
-                      <span className="font-mono">
-                        {(analysisResults.similarity.structural * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Differences:</span>
-                      <span className="font-mono text-orange-600">{analysisResults.differences}</span>
-                    </div>
+                    {structuralAnalysis && (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Clusters Found:</span>
+                          <span className="font-mono text-blue-600">
+                            {structuralAnalysis.clusters?.length || 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Modularity:</span>
+                          <span className="font-mono">
+                            {(structuralAnalysis.modularity || 0).toFixed(3)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Avg Centrality:</span>
+                          <span className="font-mono">
+                            {(structuralAnalysis.centrality?.average || 0).toFixed(3)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Connected Comps:</span>
+                          <span className="font-mono text-purple-600">
+                            {structuralAnalysis.connected_components || 0}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    {semanticAnalysis && (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Topics Found:</span>
+                          <span className="font-mono text-green-600">
+                            {semanticAnalysis.topics?.length || 0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Avg Similarity:</span>
+                          <span className="font-mono">
+                            {(semanticAnalysis.average_similarity || 0).toFixed(3)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -228,48 +340,68 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={runStructuralAnalysis}
-              disabled={isAnalysing}
+              disabled={isAnalyzing || !graphData}
               className="w-full"
             >
               <Network className="h-3 w-3 mr-1" />
-              {isAnalysing ? "Analysing..." : "Structural"}
+              {isAnalyzing ? "Analysing..." : "Structural"}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={runSemanticAnalysis}
-              disabled={isAnalysing}
+              disabled={isAnalyzing || !graphData}
               className="w-full"
             >
               <Target className="h-3 w-3 mr-1" />
-              {isAnalysing ? "Processing..." : "Semantic"}
+              {isAnalyzing ? "Processing..." : "Semantic"}
             </Button>
           </div>
 
           {metricsEnabled && (
             <div className="text-xs space-y-2 p-3 bg-muted rounded-md">
-              <div className="font-semibold text-primary">Network Metrics</div>
+              <div className="font-semibold text-primary flex items-center gap-2">
+                Network Metrics
+                {isGPUEnabled && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Zap className="h-2 w-2 mr-1" />
+                    GPU
+                  </Badge>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex justify-between">
-                  <span>Clusters:</span>
-                  <span className="font-mono">{mockAnalysis.clusters}</span>
+                  <span>Nodes:</span>
+                  <span className="font-mono">{graphData?.nodes?.length || 0}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Betweenness:</span>
-                  <span className="font-mono">{mockAnalysis.centrality.betweenness.toFixed(2)}</span>
+                  <span>Edges:</span>
+                  <span className="font-mono">{graphData?.edges?.length || 0}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Closeness:</span>
-                  <span className="font-mono">{mockAnalysis.centrality.closeness.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Eigenvector:</span>
-                  <span className="font-mono">{mockAnalysis.centrality.eigenvector.toFixed(2)}</span>
-                </div>
+                {performanceStats && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Iterations:</span>
+                      <span className="font-mono">{performanceStats.iteration_count}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Kinetic Energy:</span>
+                      <span className="font-mono">{performanceStats.kinetic_energy.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Forces:</span>
+                      <span className="font-mono">{performanceStats.total_forces.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>GPU Failures:</span>
+                      <span className="font-mono text-orange-600">{performanceStats.gpu_failure_count}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -303,10 +435,56 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
             Export Analysis Report
           </Button>
           
-          <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-            <strong>Note:</strong> Advanced graph analysis features are under development. 
-            Current implementation provides basic comparison and metrics calculation.
-          </div>
+          {/* Real-time Task Progress */}
+          {hasActiveTasks && (
+            <div className="text-xs space-y-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
+              <div className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                <Activity className="h-3 w-3 animate-pulse" />
+                Active Tasks
+              </div>
+              {Array.from(activeTasks.entries()).map(([taskId, task]) => (
+                <div key={taskId} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {task.task_type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {task.progress}%
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
+                    onClick={() => cancelTask(taskId)}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error Display */}
+          {error && (
+            <div className="text-xs text-red-600 dark:text-red-400 p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {/* GPU Status */}
+          {performanceStats && (
+            <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Cpu className="h-3 w-3" />
+                <span>GPU Acceleration: {isGPUEnabled ? 'Enabled' : 'Disabled'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                <span>Mode: {performanceStats.compute_mode}</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

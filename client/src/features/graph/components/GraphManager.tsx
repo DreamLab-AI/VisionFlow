@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData, createBinaryNodeData } from '../../../types/binaryProtocol'
 import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
-import { createEventHandlers } from './GraphManager_EventHandlers'
+import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
 import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
@@ -633,8 +633,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [])
 
-  // Event handlers
-  const { handlePointerDown, handlePointerMove, handlePointerUp } = createEventHandlers(
+  // Event handlers with interaction tracking
+  const { handlePointerDown, handlePointerMove, handlePointerUp } = useGraphEventHandlers(
     meshRef,
     dragDataRef,
     setDragState,

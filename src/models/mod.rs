@@ -9,9 +9,12 @@ pub mod simulation_params;
 pub mod user_settings;
 pub mod ragflow_chat;
 pub mod constraints;
+pub mod workspace;
+pub mod graph_export;
 
 pub use metadata::MetadataStore;
 pub use pagination::PaginationParams;
 pub use protected_settings::ProtectedSettings;
 pub use simulation_params::SimulationParams;
 pub use user_settings::UserSettings;
+pub use workspace::{Workspace, CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceResponse, WorkspaceListResponse};

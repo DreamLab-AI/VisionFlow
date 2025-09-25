@@ -1,97 +1,101 @@
-# 📚 VisionFlow Documentation
+# VisionFlow Documentation
 
-Welcome to the VisionFlow documentation. This unified system combines high-performance 3D visualisation with intelligent multi-agent orchestration for real-time knowledge graph exploration and AI-driven analytics.
+**Last Updated**: 2025-09-25
+**System Completion**: ~50%
+**Documentation Accuracy**: Verified and Updated
 
-## 🚀 Quick Start Paths
+## 📚 Documentation Structure
 
-| I want to... | Start here | Time needed |
-|--------------|------------|-------------|
-| **Get up and running fast** | [Quick Start Guide](getting-started/02-quick-start.md) | 5 minutes |
-| **Understand the system** | [System Overview](concepts/01-system-overview.md) | 15 minutes |
-| **Integrate via API** | [API Documentation](reference/api/index.md) | 10 minutes |
-| **Deploy in production** | [Deployment Guide](guides/01-deployment.md) | 30 minutes |
-| **Contribute code** | [Development Guide](guides/02-development-workflow.md) | 20 minutes |
+### Core Architecture
+- **[System Overview](high-level.md)** - High-level system architecture, current status, and reality assessment
+- **[Client Architecture](client-architecture-current.md)** - React/TypeScript client with 442 files, dual graph visualization
+- **[Server Architecture](server-architecture.md)** - Rust Actor system with 19+ actors, GPU compute, Docker orchestration
+- **[Interface Layer](interface-layer.md)** - REST API, WebSocket protocols, and client-server contracts
 
-## 📖 Documentation Structure
+### Implementation Details
+- **[Visualization Architecture](visualization-architecture.md)** - Dual graph rendering (Knowledge + Agent graphs)
+- **[Binary Protocol](binary-protocol.md)** - 34-byte wire format for real-time position updates
+- **[Agent Orchestration](agent-orchestration.md)** - Docker/MCP hybrid spawning with claude-flow CLI
+- **[Settings Architecture](settings-architecture.md)** - 169-parameter configuration system
 
-Our documentation follows the [Diátaxis framework](https://diataxis.fr/) for optimal learning paths:
+### Development Status
+- **[Task List](../task.md)** - Current implementation priorities and progress tracking
+- **[Duplicate Polling Fix](../client/DUPLICATE_POLLING_FIX_SUMMARY.md)** - Major performance optimization
 
-### 🎯 [Getting Started](getting-started/00-index.md)
-**Learning-oriented** - Start here if you're new
-- [Installation Guide](getting-started/01-installation.md) - System requirements and setup
-- [Quick Start](getting-started/02-quick-start.md) - 5-minute hands-on introduction
-- [Configuration](getting-started/configuration.md) - Basic settings
+## 🎯 System Status Overview
 
-### 📋 [How-to Guides](guides/index.md)
-**Task-oriented** - Practical step-by-step guides
-- [Deployment](guides/01-deployment.md) - Production deployment strategies
-- [Development Workflow](guides/02-development-workflow.md) - Best practices
-- [GUI Sandbox](guides/03-using-the-gui-sandbox.md) - Visual tools
-- [Agent Orchestration](guides/04-orchestrating-agents.md) - Multi-agent management
-- [System Extension](guides/05-extending-the-system.md) - Customisation
-- [Troubleshooting](guides/06-troubleshooting.md) - Common issues
+### ✅ Verified Working (Tested)
+- **Build System**: Project compiles successfully with `cargo check`
+- **Docker Setup**: CUDA-enabled containers operational
+- **Configuration**: Comprehensive settings management (169 parameters)
+- **Agent Spawning**: Hybrid Docker/MCP endpoint implemented
+- **Data Models**: Standardized between client and server
+- **WebSocket/REST**: Separation of concerns implemented
 
-### 🧠 [Concepts](concepts/index.md)
-**Understanding-oriented** - Architecture and theory
-- [System Overview](concepts/01-system-overview.md) - High-level architecture
-- [Agentic Workers](concepts/02-agentic-workers.md) - AI agent system
-- [GPU Compute](concepts/03-gpu-compute.md) - CUDA acceleration
-- [Networking](concepts/04-networking.md) - WebSocket protocols
-- [Security](concepts/05-security.md) - Authentication and authorisation
-- [Data Flow](concepts/06-data-flow.md) - Processing pipeline
+### ⚠️ Needs Runtime Validation
+- **GPU Pipeline**: 3,300+ lines CUDA code needs testing
+- **Binary Protocol**: 34-byte format implemented but needs validation
+- **Voice System**: Integration points exist but untested
+- **Agent Orchestration**: claude-flow CLI integration needs verification
+- **Performance Metrics**: Claims need benchmarking
 
-### 📚 [Reference](reference/index.md)
-**Information-oriented** - Technical specifications
-- [Configuration](reference/configuration.md) - All settings explained
-- [API Reference](reference/api/index.md) - Complete API documentation
-  - [REST API](reference/api/rest-api.md)
-  - [WebSocket API](reference/api/websocket-api.md)
-  - [Binary Protocol](reference/api/binary-protocol.md)
-  - [MCP Protocol](reference/api/mcp-protocol.md)
-- [Agent Reference](reference/agents/README.md) - Agent specifications
-- [Glossary](reference/glossary.md) - Technical terms
+### 🚧 In Progress
+- **Task Management**: Basic spawning works, full orchestration pending
+- **API Consolidation**: Three patterns being unified
+- **Telemetry Visualization**: Partial implementation
+- **Position Update Throttling**: Continuous updates need fixing
 
-## 🔍 Quick Reference
+### ❌ Not Implemented
+- **Advanced GPU Kernels**: Documentation claims exist but no implementation
+- **Complex Swarm Patterns**: Only basic coordination implemented
+- **Production Testing**: No test coverage yet
+- **Performance Benchmarks**: No validated metrics
 
-### System Capabilities
-| Feature | Performance | Description |
-|---------|-------------|-------------|
-| **3D Rendering** | 60 FPS @ 100k+ nodes | GPU-accelerated visualisation |
-| **Agent System** | 50+ concurrent agents | Multi-agent orchestration |
-| **Real-time Updates** | <10ms latency | Binary WebSocket protocol |
-| **API Throughput** | 1000+ req/min | High-performance endpoints |
-| **GPU Compute** | 100x speedup | CUDA-accelerated algorithms |
+## 📊 Realistic Assessment
 
-### Key Technologies
-- **Frontend**: React, Three.js, WebXR
-- **Backend**: Node.js, Rust (GPU kernels)
-- **Protocols**: WebSocket, MCP, Binary
-- **Infrastructure**: Docker, Kubernetes
-- **AI Integration**: Anthropic Claude, OpenAI
+**Current State**: The system is a solid technical foundation at approximately 45-55% completion. The core architecture is sound with:
+- Clean client-server separation
+- Working WebSocket/REST architecture
+- Basic agent orchestration
+- Comprehensive configuration system
 
-## 🗺️ Navigation Tips
+**Documentation Philosophy**: This documentation has been updated to reflect actual implementation rather than aspirational features. All "FULLY IMPLEMENTED" claims have been removed in favor of honest status reporting.
 
-1. **New to the system?** → [Getting Started](getting-started/00-index.md)
-2. **Need to accomplish a task?** → [Guides](guides/index.md)
-3. **Want to understand how it works?** → [Concepts](concepts/index.md)
-4. **Looking up specific details?** → [Reference](reference/index.md)
+## 🔗 Quick Links
 
-## 📈 Documentation Features
+### For Developers
+- [Client Code](/workspace/ext/client/src) - TypeScript/React implementation
+- [Server Code](/workspace/ext/src) - Rust backend implementation
+- [Task List](../task.md) - Current priorities and progress
 
-- **Comprehensive Coverage**: 50+ documentation pages
-- **Cross-referenced**: Extensive internal linking
-- **Code Examples**: Practical implementation samples
-- **Visual Diagrams**: Mermaid architecture diagrams
-- **UK English**: Consistent British spelling throughout
+### For Architecture Review
+- [High-Level Overview](high-level.md) - System architecture and status
+- [Interface Contracts](interface-layer.md) - API specifications
+- [Binary Protocol](binary-protocol.md) - Wire format details
 
-## 🚦 Getting Help
+### For Operations
+- [Docker Setup](docker-setup.md) - Container configuration
+- [Settings Guide](settings-architecture.md) - Configuration options
+- [Agent Orchestration](agent-orchestration.md) - Hive mind operations
 
-- **Common Issues**: See [Troubleshooting Guide](guides/06-troubleshooting.md)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/VisionsFlow/issues)
-- **Discussions**: [Community forum](https://github.com/your-org/VisionsFlow/discussions)
+## 📝 Documentation Standards
+
+All documentation in this directory follows these principles:
+1. **Accuracy First**: Document what exists, not what's planned
+2. **Status Clarity**: Clear markers for working/pending/broken
+3. **Code References**: Link to actual implementation files
+4. **Regular Updates**: Timestamp all major changes
+5. **Reality Check**: Remove inflated claims and marketing language
+
+## 🚀 Next Steps
+
+Based on the current ~50% completion status, priorities should focus on:
+1. Validating existing GPU pipeline implementation
+2. Testing binary protocol in production scenarios
+3. Completing task management commands
+4. Fixing position update throttling
+5. Implementing proper test coverage
 
 ---
 
-**Ready to begin?** Start with our [installation guide](getting-started/01-installation.md) to set up your environment, then follow the [quick-start tutorial](getting-started/02-quick-start.md) to see the system in action.
-
-*Documentation Version: 2.0.0 | Last Updated: 2025-09-22*
+*Note: This documentation reflects the actual state of the codebase as of 2025-09-25. Previous versions may have contained aspirational features that are not yet implemented.*

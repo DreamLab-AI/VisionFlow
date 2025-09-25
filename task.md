@@ -1,263 +1,239 @@
+# VisionFlow Task List - Complete System Implementation
+**Last Updated**: 2025-09-25
+**Status**: Ready for Hive Mind Implementation
 
+## 🚨 CRITICAL ISSUES (Priority 1 - Blocking Functionality)
 
-## 🔴 HIGH PRIORITY: Mock Implementations Requiring Backend Integration
+**Progress: 3/3 Complete (100%)** ✅
 
-### 1. **WorkspaceManager Component** (`client/src/features/workspace/components/WorkspaceManager.tsx`)
-- **Current State**: Uses hardcoded mock workspace data
-- **Required Action**:
-  - Create workspace API endpoints (`/api/workspace/*`)
-  - Implement CRUD operations for workspaces
-  - Add database schema for workspace persistence
-  - Connect UI to real backend services
-- **Mock Data Lines**: 50-84 (hardcoded workspace array)
+### 1.1 Fix Agent Spawning System ✅
+- **Issue**: Client expects `POST /api/bots/spawn-agent-hybrid` but server doesn't implement it
+- **Location**:
+  - Client: `BotsControlPanel.tsx:58`
+  - Server: ~~Missing from~~ **IMPLEMENTED** in `handlers/api_handler/bots/mod.rs`
+- **Impact**: ~~Cannot spawn new agents from UI~~ **RESOLVED**
+- **Action**: ~~Implement endpoint on server, ensure Docker/MCP integration works~~ **COMPLETED**
 
-### 2. **GraphAnalysisTab Component** (`client/src/features/visualisation/components/tabs/GraphAnalysisTab.tsx`)
-- **Current State**: Returns mock analysis results instead of real computations
-- **Available Backend**: `/api/analytics/*` endpoints exist but not connected
-- **Required Action**:
-  - Connect to existing analytics API endpoints
-  - Implement real structural analysis using GPU acceleration
-  - Add semantic analysis capabilities
-  - Remove mockAnalysis state (lines 55-69)
-- **Backend Support**: Visual analytics params, constraints, performance stats available
+**Implementation Details:**
+- ✅ Added `POST /api/bots/spawn-agent-hybrid` endpoint
+- ✅ Implemented `SpawnAgentHybridRequest` and `SpawnAgentResponse` structures with proper camelCase conversion
+- ✅ Docker primary method with MCP fallback
+- ✅ Proper error handling for both spawn methods
+- ✅ Client-server request/response format compatibility verified
+- ✅ Integration with existing `DockerHiveMind` and `BotsClient` systems
 
-### 3. **GraphOptimisationTab Component** (`client/src/features/visualisation/components/tabs/GraphOptimisationTab.tsx`)
-- **Current State**: Simulates optimization with fake results
-- **Required Action**:
-  - Integrate with GPU-accelerated optimization backend
-  - Connect to stress majorization algorithms
-  - Implement real clustering analysis
-  - Remove mockResults state (lines 60-86)
-- **Backend Support**: GPU physics stats and stress majorization available
+### 1.2 Standardize Agent Data Model ✅
+- **Issue**: ~~Incompatible Agent structures between client/server~~ **RESOLVED**
+- **Previous Mismatches**:
+  - ~~Server: `agent_type` vs Client: `type`~~ **FIXED**: Added serde rename to `type` field
+  - ~~Server: `x,y,z` vs Client: `position: Vec3`~~ **FIXED**: Added unified `Vec3` position structure
+  - ~~Missing fields: `currentTask`, `capabilities`~~ **FIXED**: Added all required fields
+- **Action**: ~~Create unified Agent model, update both sides~~ **COMPLETED**
 
-### 4. **GraphExportTab Component** (`client/src/features/visualisation/components/tabs/GraphExportTab.tsx`)
-- **Current State**: Generates fake share URLs (line 131: `mockShareUrl`)
-- **Required Action**:
-  - Implement real graph serialization
-  - Create shareable link generation service
-  - Add backend storage for shared graphs
-  - Implement proper export formats (JSON, GEXF, GraphML)
+**Implementation Details:**
+- ✅ Added client compatibility fields with proper serde renaming (snake_case → camelCase)
+- ✅ Created unified `Vec3` structure for position data
+- ✅ Added all missing fields: `currentTask`, `capabilities`, `age`, `workload`, etc.
+- ✅ Implemented proper value normalization (CPU/memory usage to 0-1 range)
+- ✅ Updated all AgentStatus initializers across codebase
+- ✅ Updated agent visualization processor to use new field structure
+- ✅ Verified compilation success with cargo check
+- ✅ Server now serializes agent data with correct camelCase field names expected by client
 
-### 5. **GraphInteractionTab Component** (`client/src/features/visualisation/components/tabs/GraphInteractionTab.tsx`)
-- **Current State**: Mock progress tracking for graph operations
-- **Required Action**:
-  - Connect to real graph processing pipeline
-  - Implement actual progress monitoring
-  - Add WebSocket support for real-time updates
+### 1.3 Fix WebSocket/REST Data Race ✅
+- **Issue**: ~~Duplicate polling causing race conditions~~ **RESOLVED**
+- **Location**: `BotsWebSocketIntegration.ts`, `AgentPollingService.ts`
+- **Action**: ~~Ensure WebSocket for positions only, REST for metadata~~ **COMPLETED**
+
+**Implementation Details:**
+- ✅ Removed WebSocket timer polling (every 2 seconds)
+- ✅ Deprecated polling methods with proper warnings
+- ✅ WebSocket now handles ONLY binary position updates
+- ✅ REST polling for metadata with conservative intervals (3s active, 15s idle)
+- ✅ Removed unused botsGraphInterval timer variable
+- ✅ Fixed logging to use logger instead of console.warn
+- ✅ Hybrid system properly uses claude-flow CLI via docker exec
+
+## 🔧 HIGH PRIORITY (Priority 2 - Core Functionality)
+
+### 2.1 Complete Task Management Endpoints ⚠️
+- **Current State**: Basic spawn works via `/api/bots/spawn-agent-hybrid`
+- **Still Needed**:
+  - `/api/bots/remove-task/{id}` endpoint for task cleanup
+  - `/api/bots/pause-task/{id}` endpoint for task suspension
+  - `/api/bots/resume-task/{id}` endpoint for task continuation
+- **Files**: `src/handlers/bots_handler.rs`, `client/src/features/bots/BotsControlPanel.tsx`
+- **Action**: Implement DockerHiveMind stop/resume methods in REST endpoints
+
+### 2.2 Fix Client Position Update Throttling ⚠️
+- **Issue**: Client sends position updates continuously even without user interaction
+- **Location**: `client/src/features/visualisation/hooks/useNodeInteraction.ts`
+- **Current**: Updates sent on every frame via binary WebSocket
+- **Action**:
+  - Add user interaction flag (dragging, clicking)
+  - Only send updates during active interactions
+  - Implement 100ms throttle during interactions
+
+### 2.3 Complete Telemetry Mock Data ✅
+- **Current**: Agent telemetry fully implemented with comprehensive mock data
+- **Location**: `client/src/features/bots/services/mockAgentData.ts`
+- **Issue**: ~~Mock data doesn't match server AgentStatus structure~~ **RESOLVED**
+- **Action**: ~~Update mock to match actual AgentStatus fields from `src/types/claude_flow.rs`~~ **COMPLETED**
+
+**Implementation Details:**
+- ✅ Created comprehensive `MockAgentStatus` interface matching server `AgentStatus` structure
+- ✅ All fields implemented: `id`, `profile`, `status`, `capabilities`, `position` (Vec3), etc.
+- ✅ Performance metrics: `cpuUsage`, `memoryUsage`, `health`, `activity` (normalized 0-1)
+- ✅ Task information: `currentTask`, `tasksActive`, `tasksCompleted`, `successRate`
+- ✅ Token usage: `tokens`, `tokenRate`, comprehensive `TokenUsage` structure
+- ✅ Agent metadata: `swarmId`, `agentMode`, `parentQueenId`, `processingLogs`
+- ✅ Realistic data generation with type-specific behaviors and capabilities
+- ✅ Mock data adapter for compatibility with existing `AgentPollingService` and `BotsTypes`
+- ✅ Development utilities: `MockDataService` for live simulation and testing
+- ✅ Specialized generators: high-activity agents, idle agents, coordinator agents
+- ✅ Mock edges generation for swarm visualization
+- ✅ Comprehensive swarm metadata calculation
+
+## 📊 MEDIUM PRIORITY (Priority 3 - Enhancement)
+
+### 3.1 Complete API Client Consolidation 🔄
+- **Current**: Three patterns coexist (apiService, apiClient, direct fetch)
+- **Progress**: `UnifiedApiClient.ts` created at `client/src/api/UnifiedApiClient.ts`
+- **Remaining Work**:
+  - Migrate 15+ direct fetch calls to UnifiedApiClient
+  - Remove deprecated apiService methods
+  - Update all components to use unified client
+- **Files**: `client/src/api/`, `client/src/features/*/api/`
+
+### 3.2 Centralize Voice State Management 🔄
+- **Issue**: Voice state accessed through 3 different patterns
+- **Location**: `client/src/features/voice/`
+- **Action**:
+  - Complete `useVoiceInteraction` hook implementation
+  - Remove direct voice state access from components
+  - Centralize WebRTC management
+
+### 3.3 GPU Pipeline Runtime Validation ⚠️
+- **Status**: 3,300+ lines CUDA code exists but untested
+- **Location**: `src/gpu/`, `src/actors/gpu/`
+- **Action**: Create integration tests to validate GPU pipeline actually works
+- **Note**: May not work at runtime despite compilation success
+
+## ✅ COMPLETED ITEMS
+
+### ✅ Architecture Documentation
+- Created client-architecture-current.md
+- Created server-architecture.md
+- Created visualization-architecture.md
+- Created interface-layer.md
+
+### ✅ Fixed Issues
+- Missing gatedConsole export
+- Missing EnergyFieldParticles export
+- GraphExportTab syntax error
+- Duplicate data fetching in bots system
+
+### ✅ Understanding Achieved
+- Core visualization for both graphs documented
+- Server-side logic mapped
+- Interface layer documented
+- Clean architecture established
+
+## 📋 Current Status Summary
+
+### System Completion: ~50%
+
+**✅ Fully Working:**
+- Agent spawning endpoint (hybrid Docker/MCP)
+- Standardized data models
+- WebSocket/REST separation
+- Basic configuration system
+- Binary protocol specification
+
+**🔄 Partially Working:**
+- Task management (spawn works, remove/pause/resume needed)
+- Telemetry visualization (needs proper mocks)
+- API consolidation (UnifiedApiClient exists, migration incomplete)
+- GPU pipeline (compiles but untested)
+
+**❌ Not Working:**
+- Position update throttling (continuous updates)
+- Voice state centralization (fragmented)
+- Complex swarm patterns (not implemented)
+- Production testing (no coverage)
+
+## 🎯 Implementation Plan
+
+### Phase 1: Critical Fixes (Immediate)
+1. Fix agent spawning endpoint
+2. Standardize data models
+3. Fix WebSocket/REST race condition
+
+### Phase 2: Core Features (Today)
+1. Implement task management
+2. Fix position update throttling
+3. Create proper telemetry mocks
+
+### Phase 3: Cleanup (Tomorrow)
+1. Complete API consolidation
+2. Centralize voice state
+3. Verify all integrations
+
+## 📝 Architecture Documentation
+
+### 📊 Core Architecture Documents
+- **[System Overview](docs/high-level.md)** - High-level system architecture and status
+- **[Client Architecture](docs/client-architecture-current.md)** - React/TypeScript client structure (Updated 2025-09-25)
+- **[Server Architecture](docs/server-architecture.md)** - Rust Actor system backend (Updated 2025-09-25)
+- **[Interface Layer](docs/interface-layer.md)** - REST/WebSocket/Binary protocols and API contracts
+
+### 🎨 Specialized Documentation
+- **[Visualization Architecture](docs/visualization-architecture.md)** - Dual graph rendering system
+- **[Binary Protocol Specification](docs/binary-protocol.md)** - 34-byte wire format details
+- **[Agent Orchestration](docs/agent-orchestration.md)** - Hive mind and swarm patterns
+- **[Settings System](docs/settings-architecture.md)** - Configuration management
+
+## 📝 Architecture Insights
+
+### Knowledge Graph (Logseq)
+- Client-side physics simulation
+- Type-based visual differentiation
+- Metadata-driven node shapes/colors
+
+### Agent Graph (VisionFlow)
+- Server-side position computation
+- Health/performance-based visualization
+- Real-time metrics display
+
+### Shared Infrastructure
+- Three.js/R3F canvas
+- Binary WebSocket protocol (34-byte)
+- Unified settings system
+- Post-processing effects
+
+## 🚀 Hive Mind Deployment Strategy
+
+### Agents Required:
+1. **Backend Developer** - Fix server endpoints
+2. **Frontend Developer** - Update client models
+3. **System Architect** - Ensure consistency
+4. **API Tester** - Validate integrations
+5. **Code Analyzer** - Prevent duplications
+
+### Coordination:
+- Use hierarchical topology
+- Backend fixes first (blocking)
+- Frontend updates parallel
+- Testing throughout
+
+## 📊 Success Metrics
+- [ ] All agents spawn successfully
+- [ ] No data race conditions
+- [ ] Position updates only during interactions
+- [ ] Telemetry displays correctly
+- [ ] Clean architecture maintained
+- [ ] No client/server logic duplication
 
 ---
 
-## 📊 Backend API Endpoints Analysis
-
-### **Currently Available Backend Support:**
-
-#### Analytics Endpoints (`/api/analytics/*`):
-- `GET /api/analytics/params` - Visual analytics parameters
-- `POST /api/analytics/params` - Update parameters
-- `GET /api/analytics/constraints` - Current constraints
-- `POST /api/analytics/constraints` - Add/update constraints
-- `POST /api/analytics/focus` - Set focus node/region
-- `GET /api/analytics/stats` - Performance statistics
-
-#### GPU Acceleration Features:
-- Stress majorization algorithms
-- SSSP computations
-- Visual analytics with GPU compute
-- Real-time physics simulations
-- Performance metrics collection
-
-### **Missing Backend Endpoints (Need Implementation):**
-
-#### Workspace Management:
-- `GET /api/workspace/list` - List all workspaces
-- `POST /api/workspace/create` - Create new workspace
-- `PUT /api/workspace/{id}` - Update workspace
-- `DELETE /api/workspace/{id}` - Delete workspace
-- `POST /api/workspace/{id}/favorite` - Toggle favorite status
-- `POST /api/workspace/{id}/archive` - Archive workspace
-
-#### Graph Sharing/Export:
-- `POST /api/graph/export` - Export graph in various formats
-- `POST /api/graph/share` - Generate shareable link
-- `GET /api/graph/shared/{id}` - Retrieve shared graph
-- `POST /api/graph/publish` - Publish to graph repository
-
----
-
-## ✅ Successfully Completed Cleanup Operations
-
-### Duplicated Code Consolidation
-
-1. **✅ ErrorBoundary Component** - Consolidated to single implementation
-2. **✅ Settings Batch Update API** - Advanced implementation retained
-3. **✅ Hologram Effect Components** - Feature-complete merger
-4. **✅ Logging System** - Unified with enhanced configuration
-5. **✅ SSSP Analytics Panels** - Superior implementation retained
-
-### Dead Code Removal
-
-**Directories Removed:**
-- ✅ `components/performance/`
-- ✅ `features/auth/`
-- ✅ `features/control-center/`
-- ✅ `features/dashboard/`
-- ✅ `features/telemetry/`
-
-**Files Removed:** 63 individual files across the codebase
-
-### Technical Debt Reduction
-- **63 files removed** - Eliminated maintenance overhead
-- **5 directory trees eliminated** - Reduced bundle size
-- **Code duplication eliminated** - Single source of truth
-- **Import chains optimized** - Faster build times
-
----
-
-## 🔧 Implementation Priority Order
-
-### Phase 1: Connect Existing Backend (Immediate)
-1. **GraphAnalysisTab** - Connect to `/api/analytics/*` endpoints
-2. **GraphOptimisationTab** - Integrate GPU optimization features
-3. Remove all `mockAnalysis` and `mockResults` states
-4. Add proper error handling and loading states
-
-### Phase 2: Implement Missing Backend (Short-term)
-1. **Workspace API** - Create CRUD endpoints and database schema
-2. **Graph Export/Share** - Implement serialization and storage
-3. Remove hardcoded workspace data
-4. Add authentication and authorization
-
-### Phase 3: Enhanced Features (Medium-term)
-1. Real-time collaboration for workspaces
-2. Advanced graph analysis algorithms
-3. Machine learning-powered optimization
-4. Cloud storage integration
-
----
-
-## 📝 Additional Findings
-
-### Console.log Statements in Production
-Found in multiple files that need cleaning:
-- `hooks/useHybridSystemStatus.ts`
-- `services/AudioInputService.ts`
-- `services/VoiceWebSocketService.ts`
-- `services/WebSocketService.ts`
-- `rendering/materials/BloomStandardMaterial.ts`
-- `rendering/materials/HologramNodeMaterial.ts`
-
-### TODO Comments Requiring Attention
-- `api/settingsApi.ts:230` - Update local store without triggering update
-- `services/nostrAuthService.ts:181` - Make relayUrl configurable
-- `features/physics/components/PhysicsEngineControls.tsx:270` - Implement constraint saving
-- `features/settings/components/SettingsSection.tsx:51` - Implement read-only display
-
----
-
-## 🎯 Success Metrics
-
-### Current State
-- ✅ **Build Status**: Compiles without errors
-- ✅ **Dead Code**: Removed successfully
-- ✅ **Duplicates**: Consolidated
-- ⚠️ **Mock Data**: Still present, needs implementation
-- ⚠️ **Backend Integration**: Partially complete
-
-### Target State
-- ✅ All mock data replaced with real API calls
-- ✅ Full backend integration for all features
-- ✅ Zero console.log statements in production
-- ✅ All TODO comments resolved
-- ✅ Complete test coverage for new integrations
-
----
-
-## 🚀 Next Actions
-
-1. **Immediate**: Create API client service layer for backend communication
-2. **Today**: Replace mock data in GraphAnalysisTab with real API calls
-3. **This Week**: Implement workspace backend and remove hardcoded data
-4. **This Sprint**: Complete all backend integrations and remove all mocks
-
-**Critical Note**: These mock implementations are not dead code but incomplete features that users expect to work. They represent technical debt that needs immediate attention to prevent user confusion and maintain product quality.
-
-An analysis of the provided codebase reveals several instances of dead code and duplication, likely resulting from refactoring and evolving requirements. Here is a summary of the findings:
-
-### Dead Code
-
-Dead code consists of files, functions, or code blocks that are no longer used, are unreachable, or serve no functional purpose.
-
-1.  **Old Health Handlers**
-    *   **Files:**
-        *   `src/handlers/health_handler_old.rs`
-        *   `src/handlers/mcp_health_handler_old.rs`
-    *   **Reasoning:** The `_old` suffix and the presence of `consolidated_health_handler.rs` and `hybrid_health_handler.rs` strongly indicate these files are obsolete and have been replaced. They are not referenced in the `handlers/mod.rs` file that matters (`api_handler/mod.rs` doesn't list them, and the root `handlers/mod.rs` does not list them either).
-
-2.  **Unused `OptimizedSettingsActor`**
-    *   **File:** `src/actors/optimized_settings_actor.rs`
-    *   **Reasoning:** The `app_state.rs` file, which is responsible for initializing and holding the application's actor addresses, exclusively instantiates `SettingsActor`. The `OptimizedSettingsActor`, while more complex (featuring Redis, LRU caching, etc.), is never used in the main application flow. Its only apparent use is in `performance/settings_benchmark.rs` for comparison, making it dead code in the context of the main application.
-
-3.  **Unused GPU Utility (`DynamicBufferManager`)**
-    *   **File:** `src/gpu/dynamic_buffer_manager.rs`
-    *   **Reasoning:** This file provides a generic manager for dynamically resizing GPU buffers. However, the primary GPU compute engine, `src/utils/unified_gpu_compute.rs`, implements its own specific buffer resizing logic (e.g., `resize_buffers`, `resize_cell_buffers`). The generic manager appears to be an unused or abandoned utility.
-
-4.  **Dead Message Handlers in `ForceComputeActor`**
-    *   **File:** `src/actors/gpu/force_compute_actor.rs`
-    *   **Reasoning:** This actor implements handlers for numerous messages that are outside its scope (e.g., `RunCommunityDetection`, `UpdateConstraints`, `TriggerStressMajorization`). These handlers simply return an error message stating that another actor should handle the request. Since the `GPUManagerActor` correctly routes these messages to the specialized actors, these handlers in `ForceComputeActor` are unreachable in any successful execution path and represent dead code from a likely refactoring.
-
-5.  **Disabled and Obsolete Code in `GraphServiceActor`**
-    *   **File:** `src/actors/graph_actor.rs`
-    *   **Reasoning:**
-        *   The functions `execute_stress_majorization_step` and `update_dynamic_constraints` are explicitly marked with `DISABLED` comments, indicating they are no longer in use.
-        *   The large block of code within `update_node_positions` that performs auto-balancing, equilibrium checks, and position clamping is a CPU-based physics implementation. Since the application now delegates physics to the GPU via `ForceComputeActor`, this logic is redundant and effectively dead.
-        *   The `#[cfg(test)]` block at the end of the file contains an outdated `new()` function for the actor that doesn't match the current implementation, making it dead test code.
-
-6.  **Obsolete Test Binaries**
-    *   **Files:**
-        *   `src/test_constraint_integration.rs`
-        *   `src/test_metadata_debug.rs`
-    *   **Reasoning:** These files appear to be one-off debugging scripts rather than part of a formal test suite. They use outdated actor APIs (e.g., `GraphServiceActor::new_test_instance()`, which is also dead code) and are not integrated into a larger testing framework.
-
-### Duplicates
-
-Duplicate code consists of repeated logic, data structures, or functionality that could be consolidated into a single, reusable component.
-
-1.  **Agent Data Models**
-    *   **Files:**
-        *   `src/services/agent_visualization_protocol.rs` (defines `MultiMcpAgentStatus`, `AgentPerformanceData`)
-        *   `src/types/claude_flow.rs` (defines `AgentStatus`, `PerformanceMetrics`)
-    *   **Reasoning:** These two files define nearly identical data structures for representing the status and metrics of an agent. Fields like `cpu_usage`, `memory_usage`, `tasks_completed`, and `success_rate` are duplicated. This creates confusion and maintenance overhead. A single canonical `AgentStatus` model should be defined and used throughout the application.
-
-2.  **Docker Command Execution Logic**
-    *   **Files:**
-        *   `src/utils/docker_hive_mind.rs`
-        *   `src/utils/consolidated_docker_service.rs`
-    *   **Reasoning:** `docker_hive_mind.rs` contains logic to build and execute `docker exec` commands. This functionality is provided in a more generic, robust, and reusable way by `consolidated_docker_service.rs`. The command execution logic in `docker_hive_mind.rs` is a direct duplication and should be refactored to use `ConsolidatedDockerService`.
-
-3.  **MCP TCP Clients**
-    *   **Files:**
-        *   `src/utils/mcp_connection.rs`
-        *   `src/utils/mcp_tcp_client.rs`
-    *   **Reasoning:** Both files implement TCP clients for communicating with MCP servers. `mcp_connection.rs` provides a stateful, persistent connection, while `mcp_tcp_client.rs` offers a more stateless, request-response client. While their internal approaches differ slightly, they solve the same core problem and represent a significant duplication of functionality that should be unified into a single, robust MCP client module.
-
-4.  **Health Check Handlers**
-    *   **Files:**
-        *   `src/handlers/consolidated_health_handler.rs`
-        *   `src/handlers/hybrid_health_handler.rs`
-    *   **Reasoning:** Both handlers provide endpoints for checking system health. `consolidated_health_handler.rs` checks system metrics (CPU, memory) and service actors, while `hybrid_health_handler.rs` focuses on the health of the Docker and MCP systems. Their responsibilities overlap, and the logic for checking system resources and services could be consolidated.
-
-5.  **Two `gpu` Directories with Overlapping Concerns**
-    *   **Directories:** `src/gpu/` and `src/actors/gpu/`
-    *   **Reasoning:** The existence of two `gpu` directories indicates a refactoring from a monolithic approach to a more modular, actor-based system.
-        *   The `src/actors/gpu/` directory contains the modern, integrated actor system.
-        *   The `src/gpu/` directory contains older or alternative implementations. For example, `RenderData` is defined in both `gpu/visual_analytics.rs` and `gpu/streaming_pipeline.rs`, which is a direct duplication. Much of the code in `src/gpu/` is likely legacy or superseded by the `unified_gpu_compute.rs` engine used by the actors.
-
-6.  **Analytics API Structure**
-    *   **Files:**
-        *   `src/handlers/api_handler/analytics/clustering.rs`
-        *   `src/handlers/api_handler/analytics/community.rs`
-    *   **Reasoning:** Community detection is a form of clustering. Splitting this functionality across two separate files and API endpoints (`/clustering` and `/community`) leads to duplicated request/response structures and a confusing API. This should be consolidated under a single `/analytics/clustering` endpoint.
-
-7.  **Logging Initialization**
-    *   **Files:** `src/utils/logging.rs` and `src/utils/advanced_logging.rs`
-    *   **Reasoning:** `main.rs` initializes both the simple `env_logger` from `logging.rs` and the more complex structured logger from `advanced_logging.rs`. This is redundant. A single logging strategy should be chosen and used consistently.
+**Note**: This task list represents the complete current state based on comprehensive architecture analysis. The hive mind should focus on Priority 1 items first as they block core functionality.

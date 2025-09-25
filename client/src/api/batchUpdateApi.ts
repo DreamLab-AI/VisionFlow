@@ -2,10 +2,11 @@ import React from 'react';
 import { createLogger } from '../utils/loggerConfig';
 import { BinaryNodeData } from '../types/binaryProtocol';
 import { validateNodePositions } from '../utils/validation';
+import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
 
 const logger = createLogger('BatchUpdateApi');
 
-const API_BASE = '/api';
+const API_BASE = '';
 
 export interface BatchUpdateResult {
   success: boolean;
@@ -51,19 +52,7 @@ export const batchUpdateApi = {
         };
       }
 
-      const response = await fetch(`${API_BASE}/graph/nodes/batch-update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ updates })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Batch update failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await unifiedApiClient.putData(`${API_BASE}/graph/nodes/batch-update`, { updates });
       logger.info(`Batch update successful: ${result.processed} processed, ${result.failed} failed`);
       
       return result;
@@ -79,19 +68,7 @@ export const batchUpdateApi = {
    */
   async createNodes(nodes: Array<{ id?: number; type: string; position: { x: number; y: number; z: number }; metadata?: any }>): Promise<BatchUpdateResult> {
     try {
-      const response = await fetch(`${API_BASE}/graph/nodes/batch-create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nodes })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Batch create failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await unifiedApiClient.postData(`${API_BASE}/graph/nodes/batch-create`, { nodes });
       logger.info(`Batch created ${result.processed} nodes`);
       
       return result;
@@ -106,19 +83,7 @@ export const batchUpdateApi = {
    */
   async deleteNodes(nodeIds: number[]): Promise<BatchUpdateResult> {
     try {
-      const response = await fetch(`${API_BASE}/graph/nodes/batch-delete`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nodeIds })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Batch delete failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await unifiedApiClient.request('DELETE', `${API_BASE}/graph/nodes/batch-delete`, { nodeIds });
       logger.info(`Batch deleted ${result.processed} nodes`);
       
       return result;
@@ -133,19 +98,7 @@ export const batchUpdateApi = {
    */
   async updateEdges(edges: Array<{ id: number; source?: number; target?: number; weight?: number }>): Promise<BatchUpdateResult> {
     try {
-      const response = await fetch(`${API_BASE}/graph/edges/batch-update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ edges })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Edge batch update failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await unifiedApiClient.putData(`${API_BASE}/graph/edges/batch-update`, { edges });
       logger.info(`Batch updated ${result.processed} edges`);
       
       return result;

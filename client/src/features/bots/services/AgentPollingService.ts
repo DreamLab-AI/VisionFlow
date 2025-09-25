@@ -1,5 +1,14 @@
+/**
+ * AgentPollingService - REST API polling for agent metadata updates
+ *
+ * ARCHITECTURE (post-fix):
+ * - Polls REST /api/bots/data for agent metadata (health, status, capabilities)
+ * - Conservative intervals: 2s active, 10s idle (reduced from 1s/5s)
+ * - Does NOT handle position updates - those come via WebSocket binary protocol
+ * - Single instance managed by BotsDataContext via useAgentPolling hook
+ */
 import { createLogger } from '../../../utils/loggerConfig';
-import { apiService } from '../../../services/apiService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import type { BotsAgent, BotsEdge } from '../types/BotsTypes';
 import { PollingPerformanceMonitor } from '../utils/pollingPerformance';
 
@@ -47,8 +56,8 @@ export interface AgentSwarmData {
 }
 
 export interface PollingConfig {
-  activePollingInterval: number; // Default 1000ms for active tasks
-  idlePollingInterval: number;   // Default 5000ms for idle
+  activePollingInterval: number; // Default 2000ms for active tasks (metadata updates)
+  idlePollingInterval: number;   // Default 10000ms for idle (reduced load)
   enableSmartPolling: boolean;   // Auto-adjust based on activity
   maxRetries: number;
   retryDelay: number;
@@ -74,8 +83,8 @@ export class AgentPollingService {
 
   private constructor() {
     this.config = {
-      activePollingInterval: 1000,  // 1s for active tasks
-      idlePollingInterval: 5000,    // 5s for idle
+      activePollingInterval: 2000,  // 2s for active tasks (reduced from 1s)
+      idlePollingInterval: 10000,   // 10s for idle (increased from 5s)
       enableSmartPolling: true,
       maxRetries: 3,
       retryDelay: 2000
@@ -206,7 +215,7 @@ export class AgentPollingService {
       const startTime = Date.now();
       
       // Fetch agent swarm data from REST API
-      const data = await apiService.get<AgentSwarmData>('/bots/data');
+      const data = await unifiedApiClient.getData<AgentSwarmData>('/bots/data');
       
       const pollDuration = Date.now() - startTime;
       this.lastPollTime = Date.now();

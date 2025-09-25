@@ -8,6 +8,7 @@ use crate::actors::graph_actor::GraphServiceActor;
 use crate::actors::messages::UpdateBotsGraph;
 use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
 use crate::services::agent_visualization_protocol::{McpServerType, MultiMcpAgentStatus};
+use crate::utils::mcp_connection::call_agent_spawn;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
@@ -205,6 +206,36 @@ impl BotsClient {
         match self.mcp_client.test_connection().await {
             Ok(result) => Ok(result),
             Err(e) => Err(anyhow::anyhow!("Connection test failed: {}", e))
+        }
+    }
+
+    pub async fn spawn_agent_mcp(&self, agent_type: &str, swarm_id: &str) -> Result<String> {
+        info!("Spawning MCP agent: type={}, swarm={}", agent_type, swarm_id);
+
+        // Use the MCP connection utility to spawn an agent
+        let port_str = self.mcp_client.port.to_string();
+        match call_agent_spawn(&self.mcp_client.host, &port_str, agent_type, swarm_id).await {
+            Ok(response) => {
+                // Extract agent ID from response
+                let agent_id = if let Some(content) = response.get("content") {
+                    if let Some(agent_data) = content.get("agent_id") {
+                        agent_data.as_str().unwrap_or("unknown").to_string()
+                    } else if let Some(result) = content.get("result") {
+                        result.as_str().unwrap_or("mcp_agent").to_string()
+                    } else {
+                        format!("mcp_{}_{}", agent_type, swarm_id)
+                    }
+                } else {
+                    format!("mcp_{}_{}", agent_type, swarm_id)
+                };
+
+                info!("Successfully spawned MCP agent {} of type {}", agent_id, agent_type);
+                Ok(agent_id)
+            }
+            Err(e) => {
+                error!("Failed to spawn MCP agent: {}", e);
+                Err(anyhow::anyhow!("MCP agent spawn failed: {}", e))
+            }
         }
     }
 }

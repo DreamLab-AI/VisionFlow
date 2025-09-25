@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('BloomStandardMaterial');
 
 /**
  * BLOOM STANDARD MATERIAL
@@ -63,7 +66,7 @@ export class BloomStandardMaterial extends THREE.MeshStandardMaterial {
     
     // Debug logging gated by performance debug setting
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('BloomStandardMaterial: Created with parameters', {
+      logger.debug('Material created', {
         color: this.color.getHexString(),
         emissive: this.emissive.getHexString(),
         emissiveIntensity: this.emissiveIntensity,
@@ -81,7 +84,7 @@ export class BloomStandardMaterial extends THREE.MeshStandardMaterial {
     this.needsUpdate = true;
     
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('BloomStandardMaterial: Updated colors', {
+      logger.debug('Colors updated', {
         color: this.color.getHexString(),
         emissive: this.emissive.getHexString()
       });
@@ -94,7 +97,7 @@ export class BloomStandardMaterial extends THREE.MeshStandardMaterial {
   updateBloomIntensity(intensity: number) {
     this.emissiveIntensity = intensity;
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('BloomStandardMaterial: Updated bloom intensity to', intensity);
+      logger.debug('Bloom intensity updated', { intensity });
     }
   }
   

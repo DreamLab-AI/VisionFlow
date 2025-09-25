@@ -1,4 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createLogger } from '../utils/loggerConfig';
+import { unifiedApiClient } from '../services/api/UnifiedApiClient';
+
+const logger = createLogger('useHybridSystemStatus');
 
 export interface HybridSystemStatus {
   dockerHealth: 'healthy' | 'degraded' | 'unavailable' | 'unknown';
@@ -101,20 +105,9 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     try {
       const startTime = Date.now();
 
-      const response = await fetch('/api/hybrid/status', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await unifiedApiClient.get('/hybrid/status');
       const networkLatency = Date.now() - startTime;
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       // Add network latency to the response
       return {
@@ -141,7 +134,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('Hybrid system status WebSocket connected');
+        logger.info('WebSocket connected successfully');
         setError(null);
         setReconnectAttempts(0);
 
@@ -196,14 +189,14 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       };
 
       ws.onclose = (event) => {
-        console.log('Hybrid system status WebSocket closed:', event.code, event.reason);
+        logger.warn('WebSocket closed', { code: event.code, reason: event.reason });
         wsRef.current = null;
 
         if (opts.autoReconnect && reconnectAttempts < (opts.maxReconnectAttempts || 5)) {
           setReconnectAttempts(prev => prev + 1);
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(`Attempting WebSocket reconnection (${reconnectAttempts + 1}/${opts.maxReconnectAttempts})`);
+            logger.info(`Attempting WebSocket reconnection`, { attempt: reconnectAttempts + 1, maxAttempts: opts.maxReconnectAttempts });
             initializeWebSocket();
           }, opts.reconnectDelay || 5000);
         } else {
@@ -294,22 +287,12 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   ) => {
     try {
-      const response = await fetch('/api/hybrid/spawn-swarm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          task: taskDescription,
-          ...config,
-        }),
+      const response = await unifiedApiClient.post('/hybrid/spawn-swarm', {
+        task: taskDescription,
+        ...config,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
 
       // Refresh status to get updated session list
       setTimeout(refresh, 1000);
@@ -324,21 +307,12 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
   // Stop swarm function
   const stopSwarm = useCallback(async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/hybrid/swarm/${sessionId}/stop`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      const response = await unifiedApiClient.post(`/hybrid/swarm/${sessionId}/stop`);
 
       // Refresh status to get updated session list
       setTimeout(refresh, 1000);
 
-      return await response.json();
+      return response.data;
     } catch (err) {
       console.error('Failed to stop swarm:', err);
       throw err;
@@ -348,18 +322,8 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
   // Get performance report
   const getPerformanceReport = useCallback(async () => {
     try {
-      const response = await fetch('/api/hybrid/performance-report', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
+      const response = await unifiedApiClient.get('/hybrid/performance-report');
+      return response.data;
     } catch (err) {
       console.error('Failed to get performance report:', err);
       throw err;

@@ -7,6 +7,9 @@ import { AudioOutputService } from './AudioOutputService';
 import { AudioInputService, AudioChunk } from './AudioInputService';
 import { useSettingsStore } from '../store/settingsStore';
 import { gatedConsole } from '../utils/console';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('VoiceWebSocketService');
 
 export interface VoiceMessage {
   type: 'tts' | 'stt' | 'audio_chunk' | 'transcription' | 'error' | 'connected';
@@ -127,7 +130,7 @@ export class VoiceWebSocketService {
       
       // Debug logging to see what we're receiving
       if (message.type === 'error') {
-        console.log('Raw error message from server:', message);
+        logger.error('Raw error message from server', message);
       }
 
       switch (message.type) {
@@ -213,7 +216,7 @@ export class VoiceWebSocketService {
 
     // DEVELOPER WORKAROUND: Bypass all browser checks for testing
     const support = AudioInputService.getBrowserSupport();
-    console.log('DEVELOPER MODE: Browser support checks bypassed', support);
+    logger.warn('DEVELOPER MODE: Browser support checks bypassed', support);
     
     // Original checks commented out for testing
     // if (!support.getUserMedia) {
@@ -296,12 +299,12 @@ export class VoiceWebSocketService {
   private setupAudioInputListeners() {
     // Listen for complete recording instead of chunks
     this.audioInput.on('recordingComplete', async (completeAudio: Blob) => {
-      console.log('[VoiceWebSocketService] recordingComplete event received, blob size:', completeAudio.size);
+      logger.debug('Recording complete event received', { blobSize: completeAudio.size });
       if (this.isStreamingAudio && this.isConnected()) {
         // Convert blob to ArrayBuffer and send complete audio
         try {
           const arrayBuffer = await completeAudio.arrayBuffer();
-          console.log('[VoiceWebSocketService] Sending complete audio file:', arrayBuffer.byteLength, 'bytes');
+          logger.debug('Sending complete audio file', { bytes: arrayBuffer.byteLength });
           gatedConsole.voice.log('Sending complete audio file:', {
             size: arrayBuffer.byteLength,
             type: completeAudio.type
@@ -313,7 +316,7 @@ export class VoiceWebSocketService {
           gatedConsole.voice.error('Failed to send audio:', error);
         }
       } else {
-        console.log('[VoiceWebSocketService] Not sending audio - streaming:', this.isStreamingAudio, 'connected:', this.isConnected());
+        logger.debug('Not sending audio', { streaming: this.isStreamingAudio, connected: this.isConnected() });
       }
     });
 
