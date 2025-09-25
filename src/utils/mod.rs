@@ -23,7 +23,6 @@ pub mod hybrid_performance_optimizer;
 pub mod gpu_memory;
 pub mod async_improvements;
 pub mod websocket_heartbeat;
-pub mod consolidated_docker_service;
 pub mod handler_commons;
 pub mod standard_websocket_messages;
 pub mod realtime_integration;

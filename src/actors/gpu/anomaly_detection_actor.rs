@@ -1,7 +1,7 @@
 //! Anomaly Detection Actor - Handles anomaly detection algorithms
 
 use actix::prelude::*;
-use log::{debug, error, info, warn};
+use log::{error, info};
 use std::time::Instant;
 use serde::{Serialize, Deserialize};
 

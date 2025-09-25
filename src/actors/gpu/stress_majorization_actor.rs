@@ -1,7 +1,7 @@
 //! Stress Majorization Actor - Handles stress optimization and layout algorithms
 
 use actix::prelude::*;
-use log::{debug, error, info, trace, warn};
+use log::{error, info, trace, warn};
 use std::time::Instant;
 use serde::{Serialize, Deserialize};
 

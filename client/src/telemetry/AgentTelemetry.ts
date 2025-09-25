@@ -1,5 +1,6 @@
 import { createAgentLogger } from '../utils/loggerConfig';
 import { AgentTelemetryData, WebSocketTelemetryData, ThreeJSTelemetryData } from '../utils/loggerConfig';
+import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
 export interface TelemetryMetrics {
   agentSpawns: number;
@@ -185,23 +186,15 @@ export class AgentTelemetryService {
   // Position/velocity data comes via WebSocket binary protocol separately
   async fetchAgentTelemetry(): Promise<any> {
     try {
-      // Fetch both telemetry status and full agent data
+      // Fetch both telemetry status and full agent data using unified API client
       const [statusResponse, dataResponse] = await Promise.all([
-        fetch('/api/bots/status', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        }),
-        fetch('/api/bots/data', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        })
+        unifiedApiClient.get('/api/bots/status'),
+        unifiedApiClient.get('/api/bots/data')
       ]);
 
-      if (statusResponse.ok && dataResponse.ok) {
-        const [telemetryData, agentData] = await Promise.all([
-          statusResponse.json(),
-          dataResponse.json()
-        ]);
+      // Extract data from API response objects
+      const telemetryData = statusResponse.data;
+      const agentData = dataResponse.data;
 
         // Merge telemetry and agent metadata
         const mergedData = {
@@ -218,9 +211,6 @@ export class AgentTelemetryService {
         }
 
         return mergedData;
-      } else {
-        throw new Error(`Failed to fetch telemetry: status=${statusResponse.status}, data=${dataResponse.status}`);
-      }
     } catch (error) {
       this.logger.error('Failed to fetch agent telemetry:', error);
       // Use cached telemetry if available

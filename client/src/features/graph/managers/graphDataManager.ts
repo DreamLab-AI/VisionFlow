@@ -1,5 +1,6 @@
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
 import { debugState, clientDebugState } from '../../../utils/clientDebugState';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { WebSocketAdapter } from '../../../services/WebSocketService';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
@@ -137,50 +138,39 @@ class GraphDataManager {
           logger.info(`Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
         }
 
-        const response = await fetch('/api/graph/data');
+        const response = await unifiedApiClient.get('/api/graph/data');
         console.log(`[GraphDataManager] API response status: ${response.status}`);
 
-        if (response.ok) {
-          const data = await response.json();
+        const data = response.data;
 
-          if (!data || typeof data !== 'object') {
-            throw new Error('Invalid graph data format: data is not an object');
-          }
-
-          const nodes = Array.isArray(data.nodes) ? data.nodes : [];
-          const edges = Array.isArray(data.edges) ? data.edges : [];
-          const metadata = data.metadata || {};
-
-          const enrichedNodes = nodes.map(node => {
-            const nodeMetadata = metadata[node.metadata_id || node.metadataId];
-            if (nodeMetadata) {
-              return { ...node, metadata: { ...node.metadata, ...nodeMetadata } };
-            }
-            return node;
-          });
-
-          const validatedData = { nodes: enrichedNodes, edges };
-
-          if (debugState.isEnabled()) {
-            logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges`);
-          }
-
-          console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
-          await this.setGraphData(validatedData);
-
-          const currentData = await graphWorkerProxy.getGraphData();
-          console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
-          return currentData;
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid graph data format: data is not an object');
         }
 
-        if (response.status === 502 || response.status >= 500) {
-          // Retry on server errors
-          throw new Error(`API request failed with status ${response.status}`);
-        } else {
-          // Don't retry on client errors (4xx)
-          logger.error(`Failed to fetch initial graph data with status ${response.status}. Not retrying.`);
-          throw new Error(`API request failed with status ${response.status}`);
+        const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+        const edges = Array.isArray(data.edges) ? data.edges : [];
+        const metadata = data.metadata || {};
+
+        const enrichedNodes = nodes.map(node => {
+          const nodeMetadata = metadata[node.metadata_id || node.metadataId];
+          if (nodeMetadata) {
+            return { ...node, metadata: { ...node.metadata, ...nodeMetadata } };
+          }
+          return node;
+        });
+
+        const validatedData = { nodes: enrichedNodes, edges };
+
+        if (debugState.isEnabled()) {
+          logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges`);
         }
+
+        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
+        await this.setGraphData(validatedData);
+
+        const currentData = await graphWorkerProxy.getGraphData();
+        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
+        return currentData;
 
       } catch (error) {
         logger.error(`Attempt ${attempt} failed to fetch initial graph data:`, createErrorMetadata(error));

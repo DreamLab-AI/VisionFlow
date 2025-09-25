@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useToast, ToastAction } from '../features/design-system/components';
 import { createLogger } from '../utils/loggerConfig';
 import { webSocketService } from '../services/WebSocketService';
+import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
 const logger = createLogger('ErrorHandler');
 
@@ -294,11 +295,7 @@ async function sendErrorTelemetry(errorData: Record<string, any>) {
     // Only send in production
     if (process.env.NODE_ENV !== 'production') return;
     
-    await fetch('/api/telemetry/errors', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(errorData)
-    });
+    await unifiedApiClient.post('/api/telemetry/errors', errorData);
   } catch (error) {
     // Fail silently - don't want telemetry to affect user experience
     logger.debug('Failed to send error telemetry:', error);

@@ -50,12 +50,12 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   const handleAddAgent = async (type: BotsAgent['type']) => {
     // Enhanced agent spawning with hybrid Docker/MCP backend
     try {
-      const { apiService } = await import('../../../services/apiService');
+      const { unifiedApiClient } = await import('../../../services/api/UnifiedApiClient');
 
       // First attempt: Use new hybrid Docker endpoint
       let response;
       try {
-        response = await apiService.post('/bots/spawn-agent-hybrid', {
+        const apiResponse = await unifiedApiClient.post('/bots/spawn-agent-hybrid', {
           agentType: type,
           swarmId: 'default',
           method: 'docker', // Primary method
@@ -67,6 +67,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
             maxWorkers: 8
           }
         });
+        response = apiResponse.data;
 
         if (response.success) {
           console.log(`Successfully spawned ${type} agent via Docker:`, response.swarmId);
@@ -84,11 +85,12 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
       }
 
       // Fallback: Use traditional MCP endpoint
-      response = await apiService.post('/bots/spawn-agent', {
+      const fallbackResponse = await unifiedApiClient.post('/bots/spawn-agent', {
         agentType: type,
         swarmId: 'default',
         method: 'mcp-fallback'
       });
+      response = fallbackResponse.data;
 
       if (response.success) {
         console.log(`Successfully spawned ${type} agent via MCP fallback`);
