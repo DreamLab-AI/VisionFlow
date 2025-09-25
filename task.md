@@ -44,15 +44,48 @@ src/gpu/ & src/utils/*.cu
 - Fix: Renamed from .ts to .tsx to support JSX syntax
 - Status: File now compiles correctly
 
+## Client-Side Issues Fixed
+
+✅ **RESOLVED**: Fixed circular dependency between loggerConfig.ts and clientDebugState.ts
+- Issue: "Cannot access 'clientDebugState' before initialization" error
+- Root cause: Circular import dependency causing initialization order problems
+- Location: `/workspace/ext/client/src/utils/loggerConfig.ts`
+- Fix: Implemented lazy loading with dynamic imports and proxy pattern
+- Status: Client no longer shows "require is not defined" error
+
+✅ **RESOLVED**: Added missing replaceGlobalConsole export
+- Issue: Missing export in console.ts causing import errors
+- Location: `/workspace/ext/client/src/utils/console.ts`
+- Fix: Added replaceGlobalConsole function export
+- Status: Import error resolved
+
+✅ **RESOLVED**: Successfully connected to VisionFlow via Playwright
+- Used headless Playwright to capture console errors
+- Identified remaining client issues:
+  - 404 errors for `/api/settings/batch` endpoint
+  - SharedArrayBuffer warnings (expected in dev)
+  - COOP header warnings (normal for non-HTTPS)
+
+## Backend Issues Identified
+
+⚠️ **ROUTE CONFLICT**: Duplicate `/api/settings/batch` endpoint definitions
+- Issue: Both `settings_handler.rs` and `settings_paths.rs` define the same routes
+- Locations:
+  - `/workspace/ext/src/handlers/settings_handler.rs:1566-1567`
+  - `/workspace/ext/src/handlers/settings_paths.rs:625-626`
+- Both loaded in `/workspace/ext/src/handlers/api_handler/mod.rs:38-39`
+- Impact: Second registration overrides first, causing 404 errors
+- Solution needed: Remove duplicate route definition or merge implementations
+
 ## Infrastructure Issues Found
-⚠️ **MCP TCP Connection Issue**
+⚠️ **MCP TCP Connection Issue** (Previously documented)
 - VisionFlow is trying to connect to multi-agent-container:9500
 - Error: "Connection refused (os error 111)" every 2 seconds
 - Impact: MCP features not working, falling back to JSON-RPC
 - Container IPs:
   - VisionFlow: 172.18.0.10 (ports 4000 backend, 5173 vite dev)
-  - Multi-agent-container: 172.18.0.9 (port 9500 not listening)
-- Solution needed: Start MCP TCP server on port 9500 in multi-agent-container
+  - Multi-agent-container: 172.18.0.9 (port 9500 now listening)
+- Note: MCP server is now running on port 9500, connection should work
 
 ## GraphServiceActor Refactoring Implementation Plan
 

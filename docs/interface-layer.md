@@ -53,12 +53,16 @@ GET /api/bots/status
 GET /api/bots/agents
 ```
 
-**FULLY IMPLEMENTED ENDPOINT**:
+**FULLY IMPLEMENTED ENDPOINTS**:
 - `POST /api/bots/spawn-agent-hybrid` - ✅ Implemented with Docker/MCP hybrid support
   - Location: `/workspace/ext/src/handlers/api_handler/bots/mod.rs:24`
   - Handler: `/workspace/ext/src/handlers/bots_handler.rs:402-449`
   - Features: Docker-first with MCP fallback, priority/strategy support
   - Serde: Automatic camelCase conversion via `#[serde(rename_all = "camelCase")]`
+
+- `POST /api/settings/batch` - ✅ Working for batch settings reads
+- `PUT /api/settings/batch` - ✅ Working for batch settings updates
+- `GET /api/graph/data` - ✅ Returns graph nodes and edges
 
 #### 2. Case Conversion Layer Status
 **Status**: ✅ FULLY IMPLEMENTED

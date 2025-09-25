@@ -138,7 +138,7 @@ class GraphDataManager {
           logger.info(`Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
         }
 
-        const response = await unifiedApiClient.get('/api/graph/data');
+        const response = await unifiedApiClient.get('/graph/data');
         console.log(`[GraphDataManager] API response status: ${response.status}`);
 
         const data = response.data;
