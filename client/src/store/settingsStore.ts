@@ -216,12 +216,15 @@ export const useSettingsStore = create<SettingsState>()(
 
       initialize: async () => {
         try {
+          console.log('[SettingsStore] Starting initialization with essential paths');
           if (debugState.isEnabled()) {
             logger.info('Initializing settings store with essential paths only')
           }
 
           // Load only essential settings for fast startup
+          console.log('[SettingsStore] Calling settingsApi.getSettingsByPaths');
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
+          console.log('[SettingsStore] Essential settings loaded successfully');
 
           if (debugState.isEnabled()) {
             logger.info('Essential settings loaded:', { essentialSettings })
@@ -242,6 +245,7 @@ export const useSettingsStore = create<SettingsState>()(
           }
 
         } catch (error) {
+          console.error('[SettingsStore] Failed to initialize:', error);
           logger.error('Failed to initialize settings store:', createErrorMetadata(error))
           set({ initialized: false })
           throw error

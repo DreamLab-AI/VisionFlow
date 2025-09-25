@@ -3,6 +3,7 @@ import { Settings } from '../features/settings/config/settings';
 import { createLogger } from '../utils/loggerConfig';
 import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
 
+const logger = createLogger('SettingsApi');
 const API_BASE = '/settings';
 
 // Debouncing and batching configuration

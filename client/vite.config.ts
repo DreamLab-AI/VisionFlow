@@ -42,10 +42,10 @@ export default defineConfig({
     },
     
     // Proxy API requests to backend server
-    // In Docker dev mode, Nginx handles proxying, but for local dev we need Vite proxy
-    proxy: process.env.DOCKER_ENV ? {} : {
+    // Always use proxy for API requests - the backend is at port 4000
+    proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:4000',
+        target: process.env.VITE_API_URL || 'http://172.18.0.10:4000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {

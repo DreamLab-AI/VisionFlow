@@ -78,9 +78,12 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         }
 
         try {
+          console.log('[AppInitializer] Step 1: Initializing graphWorkerProxy');
           // Initialize settings
           await graphWorkerProxy.initialize();
+          console.log('[AppInitializer] Step 2: graphWorkerProxy initialized, calling settings initialize');
           const settings = await initialize();
+          console.log('[AppInitializer] Step 3: Settings initialized:', settings ? 'success' : 'null');
 
           // Apply debug settings safely
           if (settings?.system?.debug) {
@@ -112,7 +115,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
           // Fetch initial graph data AFTER settings and BEFORE signaling completion
           try {
-            console.log('[AppInitializer] Fetching initial graph data via REST API');
+            console.log('[AppInitializer] About to fetch initial graph data via REST API');
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
             console.log(`[AppInitializer] Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
@@ -131,12 +134,14 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             await graphDataManager.setGraphData(emptyGraph);
           }
 
+          console.log('[AppInitializer] About to call onInitialized');
           if (debugState.isEnabled()) {
             logger.info('Application initialized successfully');
           }
 
           // Signal that initialization is complete
           onInitialized();
+          console.log('[AppInitializer] onInitialized called successfully');
 
       } catch (error) {
           logger.error('Failed to initialize application components:', createErrorMetadata(error as Error));
