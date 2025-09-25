@@ -164,6 +164,9 @@ graph TB
 - Background GitHub synchronization
 - Error recovery middleware
 - Multi-worker server setup (4 workers)
+- **Field Normalization**: config/mod.rs with comprehensive camelCase ↔ snake_case handling
+- **Settings API**: Complete CRUD operations with path-based access
+- **Route Conflict Resolution**: Cleaned up duplicate endpoints
 
 ### 2. Actor System Architecture
 
@@ -228,9 +231,9 @@ Performance Status:
 └── Task Management: ✅ All endpoints implemented
 ```
 
-#### GraphServiceActor ⚠️ REFACTORING NEEDED
+#### GraphServiceActor ⚠️ REFACTORING NEEDED - Phase 1 Complete
 - **Current Size**: 38,456 tokens (exceeds maintainability threshold)
-- **Current Status**: 230 warnings remaining (down from 242)
+- **Current Status**: 218 warnings remaining (down from 242 - 24 warnings resolved)
 - **Purpose**: Central graph state management and physics simulation
 - **Responsibilities**:
   - Graph CRUD operations (nodes, edges, metadata)
@@ -238,7 +241,9 @@ Performance Status:
   - GPU compute orchestration
   - Real-time client synchronization
 - **Key Messages**: `BuildGraphFromMetadata`, `UpdateNodePosition`, `StartSimulation`
-- **Refactoring Priority**: HIGH - Needs immediate decomposition into specialized actors
+- **Refactoring Priority**: HIGH - Phase 1 message extraction complete, supervisor pattern next
+- **Phase 1 Complete**: Message extraction and route optimization finished
+- **Next Phase**: Implement supervisor pattern with specialized actors
 
 #### GPUManagerActor
 - **Purpose**: Modular GPU resource management
@@ -270,10 +275,16 @@ Performance Status:
 - **HybridAgentActor**: Docker/MCP hybrid agent spawning - **FULLY IMPLEMENTED with claude-flow CLI integration**
 - **DockerHiveMindActor**: Container orchestration and management with **enhanced pause_swarm/resume_swarm methods - FULLY IMPLEMENTED**
 
-## Proposed Refactoring: GraphServiceActor Decomposition
+## Proposed Refactoring: GraphServiceActor Decomposition - Phase 1 Complete ✅
 
 ### Current Problem
 GraphServiceActor has grown to 38,456 tokens, making it difficult to maintain and test. It violates the single responsibility principle by handling multiple concerns.
+
+### Phase 1 Completed ✅
+- **Message Extraction**: Core message types extracted and standardized
+- **Route Optimization**: Duplicate routes cleaned up in handlers
+- **Warning Reduction**: 24 warnings resolved (230 → 218)
+- **Interface Standardization**: Field normalization fixes applied
 
 ### Proposed Solution: Supervisor Pattern with Specialized Actors
 

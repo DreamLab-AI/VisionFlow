@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import GraphCanvas from '../features/graph/components/GraphCanvas';
+import GraphCanvasWrapper from '../features/graph/components/GraphCanvasWrapper';
 import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
 import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
@@ -96,7 +96,7 @@ const MainLayoutContent: React.FC = () => {
       height: '100vh',
       backgroundColor: '#000022'
     }}>
-      <GraphCanvas />
+      <GraphCanvasWrapper />
 
       {/* Integrated Control Panel - Now includes GraphFeatures functionality */}
       <IntegratedControlPanel
