@@ -95,15 +95,18 @@ RUN \
     # Ensure user 'dev' is in the correct group and has sudo privileges.
     usermod -g ${HOST_GID} dev && \
     usermod -aG sudo dev && \
-    echo "dev ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    \
-    # Fix sudo permissions
-    chown root:root /usr/bin/sudo && \
-    chmod 4755 /usr/bin/sudo && \
     \
     # Set up permissions for log directory.
     mkdir -p /app/mcp-logs && \
     chown -R dev:dev /app/mcp-logs
+
+# Configure sudo properly for dev user
+RUN echo "dev ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/dev && \
+    chmod 0440 /etc/sudoers.d/dev && \
+    chown root:root /usr/bin/sudo && \
+    chmod 4755 /usr/bin/sudo && \
+    # Test sudo works
+    sudo -u dev sudo -n true
 
 # 4. Set up Python environments
 # Create a virtual environment for Python 3.12
@@ -166,6 +169,7 @@ RUN npm cache clean --force && \
     npm install --production && \
     npm install -g . && \
     npm install -g @clduab11/gemini-flow && \
+    npm install -g claude-flow@latest && \
     npm cache clean --force
 
 # Install claude via install script as dev user
@@ -180,12 +184,20 @@ USER root
 # Create symlink to make claude available globally
 RUN if [ -f /home/dev/.local/bin/claude ]; then ln -s /home/dev/.local/bin/claude /usr/local/bin/claude; fi
 
-# Note: Playwright has been moved to the GUI container for visual debugging
-# Access it via the proxy on port 9879
+# Install Playwright and MCP server
+RUN npm install -g playwright@latest @executeautomation/playwright-mcp-server && \
+    npm cache clean --force
+
+# Install Playwright browsers
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
+RUN npx playwright@latest install --with-deps chromium && \
+    chmod -R 755 /opt/playwright-browsers
 
 # Grant dev user permissions to update global npm packages
 RUN chown -R dev:dev "$(npm config get prefix)/lib/node_modules" && \
     chown -R dev:dev "$(npm config get prefix)/bin" || true
+
+# Sudo already configured above
 
 # Install Rust as the dev user
 USER dev
@@ -269,9 +281,9 @@ COPY AGENT-BRIEFING.md /app/
 RUN git config --global user.email "agent@multi-agent-docker.com" && \
     git config --global user.name "Development Agent"
 
-# Grant sudo access to the dev user
-USER root
-RUN echo "dev ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+# Remove duplicate sudo configuration (already done above)
+# Ensure setup script is executable
+RUN chmod +x /app/setup-workspace.sh
 
 # --- Shell Configuration ---
 # Set up the bash environment for the dev user while still root
@@ -323,7 +335,43 @@ USER root
 # Copy supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# --- Initialize Claude and setup workspace during build ---
+# Create workspace directory with proper ownership
+RUN mkdir -p /workspace /app/mcp-logs && \
+    chown -R dev:dev /workspace /app/mcp-logs
+
+# Switch to dev user to run claude initialization
+USER dev
+WORKDIR /workspace
+
+# Initialize Claude to create CLAUDE.md and .mcp.json
+RUN echo "/exit" | timeout 10s claude --dangerously-skip-permissions || true
+
+# Switch back to root to run setup
+USER root
+
+# Run setup-workspace.sh to configure everything
+RUN cd /workspace && \
+    /app/setup-workspace.sh --quiet && \
+    chown -R dev:dev /workspace /app/mcp-logs
+
+# Ensure all workspace files have correct ownership
+RUN find /workspace -type f -name "*.json" -exec chown dev:dev {} \; && \
+    find /workspace -type f -name "*.md" -exec chown dev:dev {} \; && \
+    chown -R dev:dev /workspace/.claude 2>/dev/null || true
+
+# Switch back to dev user
+USER dev
+
 # Set the entrypoint
+USER root
+
+# Final sudo fix - must be done as last step before entrypoint
+RUN chown root:root /usr/bin/sudo && \
+    chmod 4755 /usr/bin/sudo && \
+    # Verify sudo works for dev user
+    sudo -u dev sudo -n true
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command to start supervisord

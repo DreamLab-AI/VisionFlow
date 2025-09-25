@@ -260,5 +260,49 @@ export const gatedConsole = {
   }
 };
 
+// Function to replace global console with gated console
+export const replaceGlobalConsole = () => {
+  // Store original console methods
+  const originalConsole = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    debug: console.debug,
+    info: console.info
+  };
+
+  // Replace global console methods with gated versions
+  console.log = (...args: any[]) => {
+    if (debugControl.isEnabled()) {
+      originalConsole.log(...args);
+    }
+  };
+
+  console.error = (...args: any[]) => {
+    // Always show errors
+    originalConsole.error(...args);
+  };
+
+  console.warn = (...args: any[]) => {
+    if (debugControl.isEnabled()) {
+      originalConsole.warn(...args);
+    }
+  };
+
+  console.debug = (...args: any[]) => {
+    if (debugControl.isEnabled()) {
+      originalConsole.debug(...args);
+    }
+  };
+
+  console.info = (...args: any[]) => {
+    if (debugControl.isEnabled()) {
+      originalConsole.info(...args);
+    }
+  };
+
+  logger.info('Global console replaced with gated console');
+};
+
 // Export for compatibility with existing code
 export default debugControl;
