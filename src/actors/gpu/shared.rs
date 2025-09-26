@@ -3,8 +3,9 @@
 use std::sync::Arc;
 use std::collections::HashMap;
 use actix::Addr;
-use cudarc::driver::{CudaDevice, CudaStream};
+use cudarc::driver::CudaDevice;
 use serde::{Serialize, Deserialize};
+use super::cuda_stream_wrapper::SafeCudaStream;
 
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
 use crate::models::simulation_params::SimulationParams;
@@ -17,10 +18,10 @@ use crate::models::constraints::Constraint;
 /// Child actor addresses for the GPU manager
 
 /// Shared GPU context that gets passed between child actors
-// Note: CudaStream wrapped in Arc<Mutex> for thread safety
+// Note: SafeCudaStream provides thread safety guarantees
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
-    pub stream: Arc<std::sync::Mutex<CudaStream>>,
+    pub stream: Arc<std::sync::Mutex<SafeCudaStream>>,
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
 }
 

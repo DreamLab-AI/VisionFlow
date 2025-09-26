@@ -1,5 +1,7 @@
+
 //! Stress Majorization Actor - Handles stress optimization and layout algorithms
 
+use std::sync::Arc;
 use actix::prelude::*;
 use log::{error, info, trace, warn};
 use std::time::Instant;
@@ -35,7 +37,7 @@ pub struct StressMajorizationActor {
     gpu_state: GPUState,
     
     /// Shared GPU context reference
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
     
     /// Stress majorization safety controls
     safety: StressMajorizationSafety,

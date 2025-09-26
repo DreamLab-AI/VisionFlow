@@ -1,6 +1,7 @@
 //! GPU actor module for specialized GPU computation actors
 
 pub mod shared;
+pub mod cuda_stream_wrapper;
 pub mod gpu_manager_actor;
 pub mod gpu_resource_actor;
 pub mod force_compute_actor;

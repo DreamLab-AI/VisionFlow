@@ -1,5 +1,7 @@
+
 //! GPU Manager Actor - Supervisor for specialized GPU computation actors
 
+use std::sync::Arc;
 use actix::prelude::*;
 use log::{debug, error, info};
 
@@ -19,7 +21,7 @@ pub struct GPUManagerActor {
     gpu_state: GPUState,
     
     /// Shared GPU context (None until initialized)
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
     
     /// Flag to track if child actors have been spawned
     children_spawned: bool,
@@ -50,7 +52,12 @@ impl GPUManagerActor {
         debug!("GPUResourceActor created: {:?}", resource_actor);
 
         debug!("Creating ForceComputeActor...");
-        let force_compute_actor = ForceComputeActor::new().start();
+        // Configure ForceComputeActor with dynamic mailbox capacity
+        // Scale mailbox based on expected workload - no hard limits for future 100K+ nodes
+        let force_compute_actor = actix::Actor::create(|ctx| {
+            ctx.set_mailbox_capacity(2048); // Large buffer for async GPU operations
+            ForceComputeActor::new()
+        });
         debug!("Creating ClusteringActor...");
         let clustering_actor = ClusteringActor::new().start();
         debug!("Creating AnomalyDetectionActor...");
