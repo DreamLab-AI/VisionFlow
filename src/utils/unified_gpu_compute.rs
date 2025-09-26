@@ -2426,7 +2426,21 @@ impl UnifiedGPUCompute {
 
         Ok((pos_x, pos_y, pos_z))
     }
-    
+
+    pub fn get_node_velocities(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
+        // Extract velocities from current state
+        let mut vel_x = vec![0.0f32; self.num_nodes];
+        let mut vel_y = vec![0.0f32; self.num_nodes];
+        let mut vel_z = vec![0.0f32; self.num_nodes];
+
+        // Copy actual velocities from GPU buffers
+        self.vel_in_x.copy_to(&mut vel_x)?;
+        self.vel_in_y.copy_to(&mut vel_y)?;
+        self.vel_in_z.copy_to(&mut vel_z)?;
+
+        Ok((vel_x, vel_y, vel_z))
+    }
+
     pub fn clear_constraints(&mut self) -> Result<()> {
         self.num_constraints = 0;
 
