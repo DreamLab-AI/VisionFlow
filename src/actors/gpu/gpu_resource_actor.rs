@@ -306,9 +306,11 @@ impl Handler<InitializeGPU> for GPUResourceActor {
         debug!("GPUResourceActor::handle(InitializeGPU) - Message received");
         info!("GPUResourceActor: InitializeGPU received with {} nodes", msg.graph.nodes.len());
         debug!("Graph service address present: {}", msg.graph_service_addr.is_some());
+        debug!("GPU manager address present: {}", msg.gpu_manager_addr.is_some());
 
         let graph_data = msg.graph;
         let graph_service_addr = msg.graph_service_addr;
+        let gpu_manager_addr = msg.gpu_manager_addr;
 
         // Perform GPU initialization
         debug!("Starting async GPU initialization");
@@ -326,8 +328,41 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                     
                     match initialization_result {
                         Ok(_) => {
-                            info!("GPU initialization completed successfully - notifying GraphServiceActor");
-                            
+                            info!("GPU initialization completed successfully");
+
+                            // Create SharedGPUContext from initialized resources
+                            if actor.device.is_some() && actor.cuda_stream.is_some() && actor.unified_compute.is_some() {
+                                // Take ownership temporarily to create the shared context
+                                let device = actor.device.as_ref().unwrap().clone();
+                                let stream = actor.cuda_stream.take().unwrap();
+                                let compute = actor.unified_compute.take().unwrap();
+
+                                let shared_context = Arc::new(super::shared::SharedGPUContext {
+                                    device: device.clone(),
+                                    stream: Arc::new(std::sync::Mutex::new(stream)),
+                                    unified_compute: Arc::new(std::sync::Mutex::new(compute)),
+                                });
+
+                                info!("Created SharedGPUContext - distributing to GPU actors");
+
+                                // Send context back to GPUManagerActor for distribution
+                                if let Some(manager_addr) = gpu_manager_addr {
+                                    if let Err(e) = manager_addr.try_send(SetSharedGPUContext {
+                                        context: shared_context.clone()
+                                    }) {
+                                        error!("Failed to send SharedGPUContext to GPUManagerActor: {}", e);
+                                    } else {
+                                        info!("SharedGPUContext sent to GPUManagerActor for distribution");
+                                    }
+                                }
+
+                                // Note: We cannot store the stream back because it doesn't implement Clone
+                                // The shared context now owns the stream and compute engine
+                                info!("SharedGPUContext ownership transferred to shared actors");
+                            } else {
+                                error!("Failed to create SharedGPUContext - missing components");
+                            }
+
                             // Send GPUInitialized message to GraphServiceActor if address provided
                             if let Some(addr) = graph_service_addr {
                                 if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {

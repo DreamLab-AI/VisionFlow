@@ -2143,9 +2143,10 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
                 info!("Graph data prepared for GPU physics");
                 
                 // First initialize GPU with GraphServiceActor address for notification
-                gpu_compute_addr.do_send(InitializeGPU { 
+                gpu_compute_addr.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
-                    graph_service_addr: Some(ctx.address())
+                    graph_service_addr: Some(ctx.address()),
+                    gpu_manager_addr: None,  // Will be filled by GPUManagerActor
                 });
                 info!("Sent GPU initialization request to GPU compute actor");
                 
@@ -2305,9 +2306,10 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
             info!("Sending loaded graph data to GPU physics");
             
             // First initialize GPU with GraphServiceActor address for notification
-            gpu_compute_addr.do_send(InitializeGPU { 
+            gpu_compute_addr.do_send(InitializeGPU {
                 graph: Arc::clone(&self.graph_data),
-                graph_service_addr: Some(ctx.address())
+                graph_service_addr: Some(ctx.address()),
+                gpu_manager_addr: None,  // Will be filled by GPUManagerActor
             });
             info!("Sent GPU initialization request to GPU compute actor");
             
@@ -2564,6 +2566,7 @@ impl Handler<InitializeGPUConnection> for GraphServiceActor {
                 gpu_manager.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
+                    gpu_manager_addr: None,  // Will be filled by GPUManagerActor
                 });
 
                 // Also send the graph data update

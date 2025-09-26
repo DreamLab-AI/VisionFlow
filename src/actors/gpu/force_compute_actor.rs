@@ -703,3 +703,24 @@ impl Handler<GetClusteringResults> for ForceComputeActor {
         Err("Clustering results should be retrieved from ClusteringActor, not ForceComputeActor".to_string())
     }
 }
+
+/// Handler for receiving SharedGPUContext from ResourceActor
+impl Handler<SetSharedGPUContext> for ForceComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: Received SharedGPUContext from ResourceActor");
+
+        // Store the shared context
+        self.shared_context = Some(msg.context);
+
+        // Update GPU state to indicate we're ready
+        self.gpu_state.is_initialized = true;
+
+        info!("ForceComputeActor: SharedGPUContext stored successfully - GPU physics enabled!");
+        info!("ForceComputeActor: Physics can now run with {} nodes and {} edges",
+              self.gpu_state.num_nodes, self.gpu_state.num_edges);
+
+        Ok(())
+    }
+}

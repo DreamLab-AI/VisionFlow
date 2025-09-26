@@ -907,12 +907,20 @@ pub struct SystemMetrics {
 pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
     pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+    pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
 }
 
 // Message to notify GraphServiceActor that GPU is ready
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct GPUInitialized;
+
+// Message to share GPU context with ForceComputeActor and other GPU actors
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SetSharedGPUContext {
+    pub context: std::sync::Arc<crate::actors::gpu::shared::SharedGPUContext>,
+}
 
 // Message to store GPU compute actor address in GraphServiceActor
 #[derive(Message)]

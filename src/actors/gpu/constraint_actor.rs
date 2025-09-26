@@ -275,6 +275,18 @@ pub struct ClearConstraints;
 #[rtype(result = "Result<ConstraintStatistics, String>")]
 pub struct GetConstraintStatistics;
 
+/// Handler for receiving SharedGPUContext from ResourceActor
+impl Handler<SetSharedGPUContext> for ConstraintActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ConstraintActor: Received SharedGPUContext from ResourceActor");
+        self.shared_context = Some(msg.context);
+        info!("ConstraintActor: SharedGPUContext stored successfully");
+        Ok(())
+    }
+}
+
 // Constraint statistics structure
 #[derive(Debug, Clone)]
 pub struct ConstraintStatistics {

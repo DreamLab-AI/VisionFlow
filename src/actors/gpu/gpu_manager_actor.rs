@@ -136,9 +136,13 @@ impl Handler<InitializeGPU> for GPUManagerActor {
             }
         };
 
+        // Add GPUManagerActor's address to the message
+        let mut msg_with_manager = msg;
+        msg_with_manager.gpu_manager_addr = Some(ctx.address());
+
         // Delegate to ResourceActor
-        debug!("Delegating InitializeGPU to ResourceActor");
-        let fut = child_actors.resource_actor.send(msg)
+        debug!("Delegating InitializeGPU to ResourceActor with manager address");
+        let fut = child_actors.resource_actor.send(msg_with_manager)
             .into_actor(self)
             .map(|res, _actor, _ctx| {
                 match res {
@@ -157,19 +161,33 @@ impl Handler<InitializeGPU> for GPUManagerActor {
 /// Graph data updates - delegate to ResourceActor
 impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, msg: UpdateGPUGraphData, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
-        
-        // Send to ResourceActor and handle synchronously for now
-        // TODO: Could be made async if needed
-        match child_actors.resource_actor.try_send(msg) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("Failed to send UpdateGPUGraphData to ResourceActor: {}", e);
-                Err("Failed to delegate graph update".to_string())
-            }
+
+        // Send to both ResourceActor AND ForceComputeActor
+        // ResourceActor needs it for GPU buffer management
+        // ForceComputeActor needs it for node/edge counts and physics
+        let graph = msg.graph.clone();
+
+        // Send to ResourceActor
+        if let Err(e) = child_actors.resource_actor.try_send(UpdateGPUGraphData {
+            graph: graph.clone()
+        }) {
+            error!("Failed to send UpdateGPUGraphData to ResourceActor: {}", e);
+            return Err("Failed to delegate graph update to ResourceActor".to_string());
         }
+
+        // Also send to ForceComputeActor so it knows the graph dimensions
+        if let Err(e) = child_actors.force_compute_actor.try_send(UpdateGPUGraphData {
+            graph: graph
+        }) {
+            error!("Failed to send UpdateGPUGraphData to ForceComputeActor: {}", e);
+            return Err("Failed to delegate graph update to ForceComputeActor".to_string());
+        }
+
+        debug!("UpdateGPUGraphData sent to both ResourceActor and ForceComputeActor");
+        Ok(())
     }
 }
 
@@ -468,6 +486,77 @@ impl Handler<UpdateAdvancedParams> for GPUManagerActor {
         match child_actors.force_compute_actor.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UpdateAdvancedParams: {}", e))
+        }
+    }
+}
+
+/// Handle SetSharedGPUContext - distribute to all child actors
+impl Handler<SetSharedGPUContext> for GPUManagerActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, ctx: &mut Self::Context) -> Self::Result {
+        info!("GPUManagerActor: Received SharedGPUContext, distributing to all child actors");
+
+        let child_actors = self.get_child_actors(ctx)?;
+        let context = msg.context;
+        let mut errors = Vec::new();
+
+        // Distribute to ForceComputeActor (most critical)
+        if let Err(e) = child_actors.force_compute_actor.try_send(SetSharedGPUContext {
+            context: context.clone()
+        }) {
+            errors.push(format!("ForceComputeActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to ForceComputeActor");
+        }
+
+        // Distribute to ClusteringActor
+        if let Err(e) = child_actors.clustering_actor.try_send(SetSharedGPUContext {
+            context: context.clone()
+        }) {
+            errors.push(format!("ClusteringActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to ClusteringActor");
+        }
+
+        // Distribute to ConstraintActor
+        if let Err(e) = child_actors.constraint_actor.try_send(SetSharedGPUContext {
+            context: context.clone()
+        }) {
+            errors.push(format!("ConstraintActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to ConstraintActor");
+        }
+
+        // Distribute to StressMajorizationActor
+        if let Err(e) = child_actors.stress_majorization_actor.try_send(SetSharedGPUContext {
+            context: context.clone()
+        }) {
+            errors.push(format!("StressMajorizationActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to StressMajorizationActor");
+        }
+
+        // Distribute to AnomalyDetectionActor
+        if let Err(e) = child_actors.anomaly_detection_actor.try_send(SetSharedGPUContext {
+            context: context.clone()
+        }) {
+            errors.push(format!("AnomalyDetectionActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to AnomalyDetectionActor");
+        }
+
+        if errors.is_empty() {
+            info!("SharedGPUContext successfully distributed to all child actors");
+            Ok(())
+        } else {
+            error!("Failed to distribute SharedGPUContext to some actors: {:?}", errors);
+            // Still return Ok if at least ForceComputeActor received it
+            if !errors.iter().any(|e| e.starts_with("ForceComputeActor")) {
+                Ok(())
+            } else {
+                Err(format!("Critical: Failed to send context to ForceComputeActor"))
+            }
         }
     }
 }

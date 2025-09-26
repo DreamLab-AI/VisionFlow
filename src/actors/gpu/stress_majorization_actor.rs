@@ -381,3 +381,15 @@ impl Handler<CheckStressMajorization> for StressMajorizationActor {
 #[derive(Message)]
 #[rtype(result = "Result<bool, String>")]
 pub struct CheckStressMajorization;
+
+/// Handler for receiving SharedGPUContext from ResourceActor
+impl Handler<SetSharedGPUContext> for StressMajorizationActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("StressMajorizationActor: Received SharedGPUContext from ResourceActor");
+        self.shared_context = Some(msg.context);
+        info!("StressMajorizationActor: SharedGPUContext stored successfully");
+        Ok(())
+    }
+}
