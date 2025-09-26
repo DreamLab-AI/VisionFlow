@@ -1,0 +1,309 @@
+# Test Mapping Configuration for Ontology Validation
+# This file defines how graph nodes and edges map to ontology classes and properties
+
+[metadata]
+version = "1.0.0"
+description = "Test mappings for Person/Company ontology validation"
+ontology_file = "sample.ttl"
+namespace = "http://example.org/test/ontology#"
+
+# Node Type Mappings
+# Maps graph node types to OWL classes
+[node_mappings]
+
+[node_mappings.person]
+class = "test:Person"
+required_properties = ["test:hasName"]
+optional_properties = [
+    "test:hasAge",
+    "test:hasEmail",
+    "test:hasEmployeeId",
+    "test:hasSalary"
+]
+validation_rules = [
+    "age_range_0_120",
+    "email_format_validation",
+    "employee_id_unique"
+]
+
+[node_mappings.company]
+class = "test:Company"
+required_properties = ["test:hasCompanyName"]
+optional_properties = [
+    "test:hasIndustry",
+    "test:hasEmployeeCount",
+    "test:hasRevenue",
+    "test:hasFoundedYear"
+]
+validation_rules = [
+    "employee_count_positive",
+    "revenue_non_negative",
+    "founded_year_reasonable"
+]
+
+[node_mappings.department]
+class = "test:Department"
+required_properties = ["test:hasDepartmentName"]
+optional_properties = ["test:hasBudget"]
+validation_rules = [
+    "budget_non_negative",
+    "must_belong_to_company"
+]
+
+# Edge/Relationship Mappings
+# Maps graph edges to OWL object properties
+[edge_mappings]
+
+[edge_mappings.employs]
+property = "test:employs"
+domain = "test:Company"
+range = "test:Person"
+inverse_property = "test:worksFor"
+validation_rules = [
+    "no_self_employment",
+    "employment_constraint_check"
+]
+
+[edge_mappings.works_for]
+property = "test:worksFor"
+domain = "test:Person"
+range = "test:Company"
+inverse_property = "test:employs"
+validation_rules = [
+    "single_primary_employer",
+    "employment_consistency_check"
+]
+
+[edge_mappings.has_department]
+property = "test:hasDepartment"
+domain = "test:Company"
+range = "test:Department"
+inverse_property = "test:belongsTo"
+validation_rules = ["department_ownership_exclusive"]
+
+[edge_mappings.belongs_to]
+property = "test:belongsTo"
+domain = "test:Department"
+range = "test:Company"
+inverse_property = "test:hasDepartment"
+validation_rules = ["single_company_per_department"]
+
+[edge_mappings.works_in_department]
+property = "test:worksInDepartment"
+domain = "test:Person"
+range = "test:Department"
+validation_rules = [
+    "department_employment_consistency",
+    "single_department_per_person"
+]
+
+[edge_mappings.colleague_of]
+property = "test:colleagueOf"
+domain = "test:Person"
+range = "test:Person"
+symmetric = true
+validation_rules = [
+    "no_self_colleague",
+    "colleague_symmetry_check",
+    "same_company_colleagues"
+]
+
+# Validation Rules Configuration
+[validation_rules]
+
+[validation_rules.age_range_0_120]
+type = "range_check"
+property = "test:hasAge"
+min_value = 0
+max_value = 120
+error_message = "Age must be between 0 and 120"
+
+[validation_rules.email_format_validation]
+type = "regex_check"
+property = "test:hasEmail"
+pattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+error_message = "Invalid email format"
+
+[validation_rules.employee_id_unique]
+type = "uniqueness_check"
+property = "test:hasEmployeeId"
+scope = "global"
+error_message = "Employee ID must be unique across all persons"
+
+[validation_rules.employee_count_positive]
+type = "range_check"
+property = "test:hasEmployeeCount"
+min_value = 1
+error_message = "Employee count must be at least 1"
+
+[validation_rules.revenue_non_negative]
+type = "range_check"
+property = "test:hasRevenue"
+min_value = 0.0
+error_message = "Revenue cannot be negative"
+
+[validation_rules.founded_year_reasonable]
+type = "range_check"
+property = "test:hasFoundedYear"
+min_value = 1800
+max_value = 2030
+error_message = "Founded year should be between 1800 and 2030"
+
+[validation_rules.budget_non_negative]
+type = "range_check"
+property = "test:hasBudget"
+min_value = 0.0
+error_message = "Budget cannot be negative"
+
+[validation_rules.must_belong_to_company]
+type = "required_relationship"
+relationship = "test:belongsTo"
+target_type = "test:Company"
+error_message = "Department must belong to a company"
+
+[validation_rules.no_self_employment]
+type = "no_self_reference"
+error_message = "Company cannot employ itself"
+
+[validation_rules.employment_constraint_check]
+type = "domain_range_check"
+error_message = "Employment relationship domain/range constraint violation"
+
+[validation_rules.single_primary_employer]
+type = "cardinality_check"
+max_cardinality = 1
+error_message = "Person can have at most one primary employer"
+
+[validation_rules.employment_consistency_check]
+type = "inverse_consistency"
+inverse_property = "test:employs"
+error_message = "Employment relationship consistency violation"
+
+[validation_rules.department_ownership_exclusive]
+type = "exclusive_relationship"
+error_message = "Department can only belong to one company"
+
+[validation_rules.single_company_per_department]
+type = "cardinality_check"
+max_cardinality = 1
+error_message = "Department can belong to at most one company"
+
+[validation_rules.department_employment_consistency]
+type = "transitivity_check"
+via_property = "test:belongsTo"
+consistency_property = "test:worksFor"
+error_message = "Person must work for the company that owns their department"
+
+[validation_rules.single_department_per_person]
+type = "cardinality_check"
+max_cardinality = 1
+error_message = "Person can work in at most one department"
+
+[validation_rules.no_self_colleague]
+type = "no_self_reference"
+error_message = "Person cannot be colleague of themselves"
+
+[validation_rules.colleague_symmetry_check]
+type = "symmetry_check"
+error_message = "Colleague relationship must be symmetric"
+
+[validation_rules.same_company_colleagues]
+type = "same_company_check"
+via_property = "test:worksFor"
+error_message = "Colleagues must work for the same company"
+
+# Test Data Configuration
+[test_data]
+default_namespace = "http://example.org/test/ontology#"
+
+# Sample node instances for testing
+[test_data.sample_persons]
+john_smith = { name = "John Smith", age = 35, email = "john.smith@acmecorp.com", employee_id = "EMP001" }
+jane_doe = { name = "Jane Doe", age = 28, email = "jane.doe@acmecorp.com", employee_id = "EMP002" }
+bob_johnson = { name = "Bob Johnson", age = 42, email = "bob.johnson@techstart.com", employee_id = "TS001" }
+
+[test_data.sample_companies]
+acme_corp = { name = "ACME Corporation", industry = "Manufacturing", employee_count = 500, revenue = 50000000.0 }
+tech_startup = { name = "TechStart Inc.", industry = "Technology", employee_count = 50, revenue = 5000000.0 }
+
+[test_data.sample_departments]
+engineering = { name = "Engineering", budget = 2000000.0, company = "acme_corp" }
+marketing = { name = "Marketing", budget = 1000000.0, company = "acme_corp" }
+development = { name = "Development", budget = 800000.0, company = "tech_startup" }
+
+# Test Cases for Validation
+[test_cases]
+
+[test_cases.valid_employment]
+description = "Valid employment relationships"
+nodes = ["john_smith", "jane_doe", "acme_corp"]
+edges = [
+    { from = "john_smith", to = "acme_corp", type = "works_for" },
+    { from = "acme_corp", to = "jane_doe", type = "employs" }
+]
+expected_result = "valid"
+
+[test_cases.invalid_self_employment]
+description = "Company cannot employ itself"
+nodes = ["acme_corp"]
+edges = [
+    { from = "acme_corp", to = "acme_corp", type = "employs" }
+]
+expected_result = "invalid"
+expected_error = "no_self_employment"
+
+[test_cases.disjoint_class_violation]
+description = "Person cannot be a Company (disjoint classes)"
+nodes = [
+    { id = "john_smith", types = ["person", "company"] }
+]
+expected_result = "invalid"
+expected_error = "disjoint_class_violation"
+
+[test_cases.missing_required_property]
+description = "Person without required name property"
+nodes = [
+    { id = "unnamed_person", type = "person", properties = { age = 30 } }
+]
+expected_result = "invalid"
+expected_error = "missing_required_property"
+
+[test_cases.property_range_violation]
+description = "Invalid age value (negative)"
+nodes = [
+    { id = "invalid_person", type = "person", properties = { name = "Invalid Person", age = -5 } }
+]
+expected_result = "invalid"
+expected_error = "age_range_0_120"
+
+[test_cases.colleague_symmetry]
+description = "Colleague relationships should be symmetric"
+nodes = ["john_smith", "jane_doe"]
+edges = [
+    { from = "john_smith", to = "jane_doe", type = "colleague_of" }
+]
+expected_result = "valid_with_inference"
+inferred_edges = [
+    { from = "jane_doe", to = "john_smith", type = "colleague_of" }
+]
+
+[test_cases.employment_consistency]
+description = "Person in department must work for department's company"
+nodes = ["john_smith", "acme_corp", "engineering"]
+edges = [
+    { from = "john_smith", to = "acme_corp", type = "works_for" },
+    { from = "acme_corp", to = "engineering", type = "has_department" },
+    { from = "john_smith", to = "engineering", type = "works_in_department" }
+]
+expected_result = "valid"
+
+[test_cases.employment_inconsistency]
+description = "Person in department but works for different company"
+nodes = ["john_smith", "acme_corp", "tech_startup", "engineering"]
+edges = [
+    { from = "john_smith", to = "tech_startup", type = "works_for" },
+    { from = "acme_corp", to = "engineering", type = "has_department" },
+    { from = "john_smith", to = "engineering", type = "works_in_department" }
+]
+expected_result = "invalid"
+expected_error = "department_employment_consistency"

@@ -2086,6 +2086,7 @@ pub struct FeatureFlags {
     pub stress_majorization: bool,
     pub semantic_constraints: bool,
     pub sssp_integration: bool,
+    pub ontology_validation: bool,
 }
 
 impl Default for FeatureFlags {
@@ -2099,11 +2100,12 @@ impl Default for FeatureFlags {
             stress_majorization: false, // Disabled by default as per task.md
             semantic_constraints: false, // Disabled by default
             sssp_integration: true,
+            ontology_validation: false, // Disabled by default
         }
     }
 }
 
-static FEATURE_FLAGS: Lazy<Arc<Mutex<FeatureFlags>>> = 
+pub static FEATURE_FLAGS: Lazy<Arc<Mutex<FeatureFlags>>> =
     Lazy::new(|| Arc::new(Mutex::new(FeatureFlags::default())));
 
 /// GET /api/analytics/feature-flags - Get current feature flags
@@ -2116,12 +2118,13 @@ pub async fn get_feature_flags() -> Result<HttpResponse> {
         "description": {
             "gpu_clustering": "Enable GPU-accelerated clustering algorithms",
             "gpu_anomaly_detection": "Enable GPU-accelerated anomaly detection",
-            "real_time_insights": "Enable real-time AI insights generation", 
+            "real_time_insights": "Enable real-time AI insights generation",
             "advanced_visualizations": "Enable advanced visualization features",
             "performance_monitoring": "Enable detailed performance monitoring",
             "stress_majorization": "Enable stress majorization layout algorithm",
             "semantic_constraints": "Enable semantic constraint processing",
-            "sssp_integration": "Enable single-source shortest path integration"
+            "sssp_integration": "Enable single-source shortest path integration",
+            "ontology_validation": "Enable ontology validation and inference operations"
         }
     })))
 }
