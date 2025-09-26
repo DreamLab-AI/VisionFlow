@@ -4,6 +4,7 @@ use actix::prelude::*;
 use log::{error, info, trace};
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
+use std::sync::Arc;
 
 use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
@@ -42,7 +43,7 @@ pub struct ForceComputeActor {
     gpu_state: GPUState,
 
     /// Shared GPU context reference
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
 
     /// Physics simulation parameters
     simulation_params: SimulationParams,
@@ -56,6 +57,12 @@ pub struct ForceComputeActor {
     /// Last computation step timing
     last_step_start: Option<Instant>,
     last_step_duration_ms: f32,
+
+    /// Flag to prevent overlapping GPU computations
+    is_computing: bool,
+
+    /// Count of skipped frames due to ongoing computation
+    skipped_frames: u32,
 }
 
 impl ForceComputeActor {
@@ -68,11 +75,25 @@ impl ForceComputeActor {
             compute_mode: ComputeMode::Basic,
             last_step_start: None,
             last_step_duration_ms: 0.0,
+            is_computing: false,
+            skipped_frames: 0,
         }
     }
     
     /// Perform GPU force computation step
     fn perform_force_computation(&mut self) -> Result<(), String> {
+        // Skip if already computing (prevent overlapping GPU operations)
+        if self.is_computing {
+            self.skipped_frames += 1;
+            if self.skipped_frames % 60 == 0 {
+                info!("ForceComputeActor: Skipped {} frames due to ongoing GPU computation",
+                      self.skipped_frames);
+            }
+            return Ok(()); // Not an error, just skip this frame
+        }
+
+        self.is_computing = true;
+
         // Start timing the computation step
         let step_start = Instant::now();
         let correlation_id = CorrelationId::new();
@@ -145,6 +166,7 @@ impl ForceComputeActor {
                     logger.log_event(event);
                 }
 
+                self.is_computing = false; // Clear flag on error
                 return Err(error_msg);
             }
         };
@@ -217,12 +239,14 @@ impl ForceComputeActor {
                     logger.log_event(event);
                 }
 
+                self.is_computing = false; // Clear flag on GPU error
                 Err(error_msg)
             }
         }
             .map_err(|e| {
                 error!("GPU force computation failed: {}", e);
                 self.gpu_state.gpu_failure_count += 1;
+                self.is_computing = false; // Clear flag on any error
                 format!("Force computation failed: {}", e)
             })?;
         
@@ -234,9 +258,12 @@ impl ForceComputeActor {
 
         // Log performance metrics occasionally
         if self.iteration_count() % 300 == 0 { // Every 5 seconds
-            info!("ForceComputeActor: {} iterations completed, {} GPU failures, last step: {:.2}ms",
-                  self.iteration_count(), self.gpu_state.gpu_failure_count, self.last_step_duration_ms);
+            info!("ForceComputeActor: {} iterations completed, {} GPU failures, {} skipped frames, last step: {:.2}ms",
+                  self.iteration_count(), self.gpu_state.gpu_failure_count, self.skipped_frames, self.last_step_duration_ms);
         }
+
+        // Clear computing flag to allow next frame
+        self.is_computing = false;
 
         Ok(())
     }

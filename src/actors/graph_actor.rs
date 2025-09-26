@@ -2507,14 +2507,19 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
               self.bots_graph_data.edges.len(),
               binary_size);
 
-        // Send the updated bots graph data to GPU for force-directed positioning
-        if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
-            gpu_compute_addr.do_send(UpdateGPUGraphData {
-                graph: Arc::clone(&self.bots_graph_data)
-            });
-            info!("Sent updated bots graph data to GPU compute actor");
+        // Only send bots graph to GPU if it has nodes - don't overwrite VisionFlow graph with empty data
+        if self.bots_graph_data.nodes.len() > 0 {
+            if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
+                gpu_compute_addr.do_send(UpdateGPUGraphData {
+                    graph: Arc::clone(&self.bots_graph_data)
+                });
+                info!("Sent updated bots graph data ({} nodes) to GPU compute actor",
+                      self.bots_graph_data.nodes.len());
+            } else {
+                warn!("No GPU compute address available - bots will remain at initial positions");
+            }
         } else {
-            warn!("No GPU compute address available - bots will remain at initial positions");
+            debug!("Skipping GPU update for empty bots graph - preserving existing VisionFlow graph physics");
         }
 
         // Remove CPU physics calculations for agent graph - delegate to GPU

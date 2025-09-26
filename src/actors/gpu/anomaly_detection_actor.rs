@@ -1,5 +1,7 @@
+
 //! Anomaly Detection Actor - Handles anomaly detection algorithms
 
+use std::sync::Arc;
 use actix::prelude::*;
 use log::{error, info};
 use std::time::Instant;
@@ -36,7 +38,7 @@ pub struct AnomalyDetectionActor {
     gpu_state: GPUState,
     
     /// Shared GPU context reference
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
 }
 
 impl AnomalyDetectionActor {

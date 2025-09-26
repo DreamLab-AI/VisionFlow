@@ -1,5 +1,7 @@
+
 //! Clustering Actor - Handles K-means clustering and community detection algorithms
 
+use std::sync::Arc;
 use actix::prelude::*;
 use log::{error, info};
 use std::time::Instant;
@@ -48,7 +50,7 @@ pub struct ClusteringActor {
     gpu_state: GPUState,
     
     /// Shared GPU context reference
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
 }
 
 impl ClusteringActor {

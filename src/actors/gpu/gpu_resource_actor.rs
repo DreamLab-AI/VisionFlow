@@ -337,9 +337,12 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                 let stream = actor.cuda_stream.take().unwrap();
                                 let compute = actor.unified_compute.take().unwrap();
 
+                                // Wrap stream in our thread-safe wrapper
+                                let safe_stream = super::cuda_stream_wrapper::SafeCudaStream::new(stream);
+
                                 let shared_context = Arc::new(super::shared::SharedGPUContext {
                                     device: device.clone(),
-                                    stream: Arc::new(std::sync::Mutex::new(stream)),
+                                    stream: Arc::new(std::sync::Mutex::new(safe_stream)),
                                     unified_compute: Arc::new(std::sync::Mutex::new(compute)),
                                 });
 

@@ -1,5 +1,7 @@
+
 //! Constraint Actor - Handles constraint management and updates
 
+use std::sync::Arc;
 use actix::prelude::*;
 use log::{debug, error, info};
 
@@ -13,7 +15,7 @@ pub struct ConstraintActor {
     gpu_state: GPUState,
     
     /// Shared GPU context reference
-    shared_context: Option<SharedGPUContext>,
+    shared_context: Option<Arc<SharedGPUContext>>,
     
     /// Current constraint set
     constraints: Vec<Constraint>,
