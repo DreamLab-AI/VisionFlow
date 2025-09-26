@@ -1455,18 +1455,30 @@ impl GraphServiceActor {
 
         // CRITICAL FIX: Immediately broadcast GPU-computed positions to clients
         // Don't wait for the next scheduled broadcast interval
-        if updated_count > 0 && !positions.is_empty() {
-            let binary_data = crate::utils::binary_protocol::encode_node_data(&positions);
+        if updated_count > 0 {
+            // Create position data for broadcasting
+            let mut broadcast_positions: Vec<(u32, BinaryNodeData)> = Vec::new();
+            for (node_id, node) in self.node_map.iter() {
+                broadcast_positions.push((*node_id, BinaryNodeDataClient::new(
+                    *node_id,
+                    node.data.position(),
+                    node.data.velocity(),
+                )));
+            }
 
-            // Send to client manager for immediate broadcasting
-            self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
-                positions: binary_data,
-            });
+            if !broadcast_positions.is_empty() {
+                let binary_data = crate::utils::binary_protocol::encode_node_data(&broadcast_positions);
 
-            // Update broadcast time
-            self.last_broadcast_time = Some(std::time::Instant::now());
+                // Send to client manager for immediate broadcasting
+                self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                    positions: binary_data,
+                });
 
-            info!("Immediately broadcast {} GPU-computed positions to clients", updated_count);
+                // Update broadcast time
+                self.last_broadcast_time = Some(std::time::Instant::now());
+
+                info!("Immediately broadcast {} GPU-computed positions to clients", broadcast_positions.len());
+            }
         }
     }
 
