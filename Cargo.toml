@@ -63,6 +63,15 @@ xml = "0.8"
 blake3 = "1.5"
 bcrypt = "0.15"
 
+# Ontology validation
+horned-owl = "1.0"
+rio_api = "0.8"  # RDF parsing
+rio_turtle = "0.8"  # Turtle format support
+sophia = { version = "0.8", features = ["xml"] }  # RDF handling
+
+# Optional for SPARQL support later
+oxigraph = { version = "0.3", optional = true }
+
 # GPU/Compute
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"
@@ -126,6 +135,7 @@ default = ["gpu"]
 gpu = ["cudarc/driver"]  # Enable GPU support with CUDA driver
 gpu-safe = []  # Feature for GPU-safe types
 cpu = []  # CPU-only mode
+ontology = ["oxigraph"]  # Enable ontology validation with SPARQL support
 
 [profile.release]
 opt-level = 3

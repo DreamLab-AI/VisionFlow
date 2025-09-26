@@ -1,0 +1,404 @@
+# Ontology Mapping Configuration
+# Maps property graph elements to RDF/OWL concepts for semantic data integration
+
+[metadata]
+title = "Property Graph to RDF/OWL Mapping Configuration"
+version = "1.0.0"
+description = "Comprehensive mapping configuration for transforming property graphs into semantic RDF/OWL representations"
+author = "Ontology Mapping System"
+created = "2025-09-26"
+last_modified = "2025-09-26"
+
+# Global Configuration Settings
+[global]
+# Base IRI namespace for the ontology
+base_iri = "http://example.org/kg/"
+# Default vocabulary namespaces
+default_vocabulary = "http://example.org/vocab/"
+# Version IRI for the ontology
+version_iri = "http://example.org/kg/v1.0.0"
+# Language tag for literals
+default_language = "en"
+# Enable strict mode for validation
+strict_mode = true
+# Generate inverse properties automatically
+auto_generate_inverses = true
+
+# Default Classes and Properties
+[defaults]
+# Default class for unmapped node types
+default_node_class = "owl:Thing"
+# Default property for unmapped edges
+default_edge_property = "owl:topObjectProperty"
+# Default datatype for unmapped properties
+default_datatype = "xsd:string"
+# Fallback namespace for unknown entities
+fallback_namespace = "http://example.org/unknown/"
+
+# Namespace Prefixes
+[namespaces]
+owl = "http://www.w3.org/2002/07/owl#"
+rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+xsd = "http://www.w3.org/2001/XMLSchema#"
+foaf = "http://xmlns.com/foaf/0.1/"
+dc = "http://purl.org/dc/terms/"
+skos = "http://www.w3.org/2004/02/skos/core#"
+prov = "http://www.w3.org/ns/prov#"
+schema = "http://schema.org/"
+kg = "http://example.org/kg/"
+vocab = "http://example.org/vocab/"
+
+# Node Type to OWL Class Mappings
+[class_mappings]
+
+[class_mappings.Person]
+owl_class = "foaf:Person"
+rdfs_label = "Person"
+rdfs_comment = "A human individual with personal and professional attributes"
+rdfs_subclass_of = ["foaf:Agent", "prov:Agent"]
+equivalent_classes = ["schema:Person"]
+disjoint_with = ["vocab:Company", "vocab:File", "vocab:Directory"]
+
+[class_mappings.Company]
+owl_class = "vocab:Company"
+rdfs_label = "Company"
+rdfs_comment = "A business organization or corporation"
+rdfs_subclass_of = ["foaf:Organization", "prov:Agent"]
+equivalent_classes = ["schema:Organization"]
+disjoint_with = ["foaf:Person", "vocab:File", "vocab:Directory"]
+
+[class_mappings.File]
+owl_class = "vocab:File"
+rdfs_label = "File"
+rdfs_comment = "A computer file or digital document"
+rdfs_subclass_of = ["vocab:DigitalResource", "prov:Entity"]
+equivalent_classes = ["schema:DigitalDocument"]
+disjoint_with = ["foaf:Person", "vocab:Company", "vocab:Directory"]
+
+[class_mappings.Directory]
+owl_class = "vocab:Directory"
+rdfs_label = "Directory"
+rdfs_comment = "A file system directory or folder"
+rdfs_subclass_of = ["vocab:Container", "prov:Entity"]
+equivalent_classes = ["schema:Collection"]
+disjoint_with = ["foaf:Person", "vocab:Company", "vocab:File"]
+
+[class_mappings.Agent]
+owl_class = "vocab:Agent"
+rdfs_label = "Software Agent"
+rdfs_comment = "An autonomous software agent or AI system"
+rdfs_subclass_of = ["prov:SoftwareAgent", "prov:Agent"]
+equivalent_classes = ["schema:SoftwareApplication"]
+disjoint_with = ["foaf:Person", "vocab:Company"]
+
+[class_mappings.Project]
+owl_class = "vocab:Project"
+rdfs_label = "Project"
+rdfs_comment = "A collaborative project or undertaking"
+rdfs_subclass_of = ["foaf:Project", "prov:Activity"]
+equivalent_classes = ["schema:Project"]
+
+[class_mappings.Repository]
+owl_class = "vocab:Repository"
+rdfs_label = "Repository"
+rdfs_comment = "A code repository or data store"
+rdfs_subclass_of = ["vocab:Container", "prov:Entity"]
+equivalent_classes = ["schema:DataCatalog"]
+
+# Edge Type to Object Property Mappings
+[object_property_mappings]
+
+[object_property_mappings.employs]
+owl_property = "vocab:employs"
+rdfs_label = "employs"
+rdfs_comment = "Indicates an employment relationship between a company and person"
+rdfs_domain = "vocab:Company"
+rdfs_range = "foaf:Person"
+owl_inverse_of = "vocab:employedBy"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty"]
+
+[object_property_mappings.employedBy]
+owl_property = "vocab:employedBy"
+rdfs_label = "employed by"
+rdfs_comment = "Indicates a person is employed by a company"
+rdfs_domain = "foaf:Person"
+rdfs_range = "vocab:Company"
+owl_inverse_of = "vocab:employs"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty", "owl:FunctionalProperty"]
+
+[object_property_mappings.knows]
+owl_property = "foaf:knows"
+rdfs_label = "knows"
+rdfs_comment = "Indicates acquaintance or familiarity between persons"
+rdfs_domain = "foaf:Person"
+rdfs_range = "foaf:Person"
+owl_inverse_of = "foaf:knows"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:SymmetricProperty", "owl:IrreflexiveProperty"]
+
+[object_property_mappings.contains]
+owl_property = "vocab:contains"
+rdfs_label = "contains"
+rdfs_comment = "Indicates containment relationship between directories and files"
+rdfs_domain = "vocab:Directory"
+rdfs_range = ["vocab:File", "vocab:Directory"]
+owl_inverse_of = "vocab:containedIn"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty", "owl:TransitiveProperty"]
+
+[object_property_mappings.containedIn]
+owl_property = "vocab:containedIn"
+rdfs_label = "contained in"
+rdfs_comment = "Indicates a file or directory is contained within another directory"
+rdfs_domain = ["vocab:File", "vocab:Directory"]
+rdfs_range = "vocab:Directory"
+owl_inverse_of = "vocab:contains"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty", "owl:TransitiveProperty"]
+
+[object_property_mappings.collaboratesWith]
+owl_property = "vocab:collaboratesWith"
+rdfs_label = "collaborates with"
+rdfs_comment = "Indicates collaboration between persons or organizations"
+rdfs_domain = ["foaf:Person", "vocab:Company"]
+rdfs_range = ["foaf:Person", "vocab:Company"]
+owl_inverse_of = "vocab:collaboratesWith"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:SymmetricProperty"]
+
+[object_property_mappings.owns]
+owl_property = "vocab:owns"
+rdfs_label = "owns"
+rdfs_comment = "Indicates ownership of a resource"
+rdfs_domain = ["foaf:Person", "vocab:Company"]
+rdfs_range = ["vocab:File", "vocab:Directory", "vocab:Repository"]
+owl_inverse_of = "vocab:ownedBy"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty"]
+
+[object_property_mappings.createdBy]
+owl_property = "prov:wasGeneratedBy"
+rdfs_label = "created by"
+rdfs_comment = "Indicates the agent that created this resource"
+rdfs_domain = "prov:Entity"
+rdfs_range = "prov:Agent"
+property_type = "owl:ObjectProperty"
+characteristics = ["owl:AsymmetricProperty"]
+
+# Data Property Mappings
+[data_property_mappings]
+
+[data_property_mappings.name]
+owl_property = "foaf:name"
+rdfs_label = "name"
+rdfs_comment = "The name of a person, organization, or resource"
+rdfs_domain = ["foaf:Person", "vocab:Company", "vocab:File", "vocab:Directory"]
+rdfs_range = "xsd:string"
+property_type = "owl:DatatypeProperty"
+characteristics = ["owl:FunctionalProperty"]
+
+[data_property_mappings.email]
+owl_property = "foaf:mbox"
+rdfs_label = "email"
+rdfs_comment = "Email address of a person or organization"
+rdfs_domain = ["foaf:Person", "vocab:Company"]
+rdfs_range = "xsd:string"
+property_type = "owl:DatatypeProperty"
+regex_pattern = "^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$"
+
+[data_property_mappings.age]
+owl_property = "foaf:age"
+rdfs_label = "age"
+rdfs_comment = "Age of a person in years"
+rdfs_domain = "foaf:Person"
+rdfs_range = "xsd:nonNegativeInteger"
+property_type = "owl:DatatypeProperty"
+characteristics = ["owl:FunctionalProperty"]
+min_value = 0
+max_value = 150
+
+[data_property_mappings.fileSize]
+owl_property = "vocab:fileSize"
+rdfs_label = "file size"
+rdfs_comment = "Size of a file in bytes"
+rdfs_domain = "vocab:File"
+rdfs_range = "xsd:nonNegativeInteger"
+property_type = "owl:DatatypeProperty"
+characteristics = ["owl:FunctionalProperty"]
+units = "bytes"
+
+[data_property_mappings.createdDate]
+owl_property = "dc:created"
+rdfs_label = "created date"
+rdfs_comment = "Date when the resource was created"
+rdfs_domain = ["vocab:File", "vocab:Directory", "vocab:Repository"]
+rdfs_range = "xsd:dateTime"
+property_type = "owl:DatatypeProperty"
+characteristics = ["owl:FunctionalProperty"]
+
+[data_property_mappings.modifiedDate]
+owl_property = "dc:modified"
+rdfs_label = "modified date"
+rdfs_comment = "Date when the resource was last modified"
+rdfs_domain = ["vocab:File", "vocab:Directory"]
+rdfs_range = "xsd:dateTime"
+property_type = "owl:DatatypeProperty"
+characteristics = ["owl:FunctionalProperty"]
+
+[data_property_mappings.language]
+owl_property = "dc:language"
+rdfs_label = "language"
+rdfs_comment = "Programming or natural language of the resource"
+rdfs_domain = ["vocab:File", "vocab:Repository"]
+rdfs_range = "xsd:string"
+property_type = "owl:DatatypeProperty"
+
+[data_property_mappings.version]
+owl_property = "vocab:version"
+rdfs_label = "version"
+rdfs_comment = "Version identifier of the resource"
+rdfs_domain = ["vocab:File", "vocab:Repository", "vocab:Project"]
+rdfs_range = "xsd:string"
+property_type = "owl:DatatypeProperty"
+
+[data_property_mappings.description]
+owl_property = "dc:description"
+rdfs_label = "description"
+rdfs_comment = "Textual description of the resource"
+rdfs_domain = "owl:Thing"
+rdfs_range = "xsd:string"
+property_type = "owl:DatatypeProperty"
+
+# IRI Template Patterns
+[iri_templates]
+
+[iri_templates.nodes]
+# Template for generating node IRIs
+person = "{base_iri}person/{id}"
+company = "{base_iri}company/{id}"
+file = "{base_iri}file/{hash}"
+directory = "{base_iri}directory/{path_hash}"
+agent = "{base_iri}agent/{id}"
+project = "{base_iri}project/{id}"
+repository = "{base_iri}repository/{id}"
+
+[iri_templates.edges]
+# Template for generating edge IRIs (when needed)
+employs = "{base_iri}employment/{source_id}-{target_id}"
+knows = "{base_iri}acquaintance/{source_id}-{target_id}"
+contains = "{base_iri}containment/{source_id}-{target_id}"
+collaborates = "{base_iri}collaboration/{source_id}-{target_id}"
+owns = "{base_iri}ownership/{source_id}-{target_id}"
+
+[iri_templates.metadata]
+# Template for metadata IRIs
+property = "{vocab_namespace}{property_name}"
+class = "{vocab_namespace}{class_name}"
+
+# Domain and Range Constraints
+[constraints]
+
+[constraints.cardinality]
+# Cardinality restrictions for properties
+"vocab:employedBy" = { type = "max", value = 1, comment = "A person can be employed by at most one company" }
+"foaf:age" = { type = "exactly", value = 1, comment = "A person has exactly one age" }
+"vocab:fileSize" = { type = "exactly", value = 1, comment = "A file has exactly one size" }
+"dc:created" = { type = "exactly", value = 1, comment = "A resource has exactly one creation date" }
+
+[constraints.value_restrictions]
+# Value restrictions for properties
+"foaf:age" = { operator = ">=", value = 0, datatype = "xsd:nonNegativeInteger" }
+"vocab:fileSize" = { operator = ">=", value = 0, datatype = "xsd:nonNegativeInteger" }
+
+[constraints.disjoint_classes]
+# Disjoint class declarations
+agents_and_resources = ["foaf:Person", "vocab:Company", "vocab:File", "vocab:Directory"]
+digital_and_physical = ["vocab:File", "vocab:Directory", "foaf:Person"]
+
+# Inference Rules Configuration
+[inference]
+
+[inference.property_characteristics]
+# Automatic inference of property characteristics
+transitive_properties = ["vocab:contains", "vocab:containedIn"]
+symmetric_properties = ["foaf:knows", "vocab:collaboratesWith"]
+functional_properties = ["foaf:name", "foaf:age", "vocab:fileSize", "dc:created"]
+inverse_functional_properties = ["foaf:mbox"]
+
+[inference.class_hierarchies]
+# Automatic inference for class hierarchies
+infer_subclass_relationships = true
+infer_equivalent_classes = true
+infer_disjoint_classes = true
+
+[inference.property_chains]
+# Property chain axioms for complex inferences
+"vocab:indirectlyContains" = ["vocab:contains", "vocab:contains"]
+"vocab:worksWithColleague" = ["vocab:employedBy", "vocab:employs"]
+
+# Validation Rules
+[validation]
+
+[validation.required_properties]
+# Properties that must be present for each class
+"foaf:Person" = ["foaf:name"]
+"vocab:Company" = ["foaf:name"]
+"vocab:File" = ["foaf:name", "vocab:fileSize"]
+"vocab:Directory" = ["foaf:name"]
+
+[validation.data_quality]
+# Data quality constraints
+email_format_validation = true
+date_range_validation = true
+numeric_range_validation = true
+uri_format_validation = true
+
+[validation.consistency_checks]
+# Consistency checking rules
+check_inverse_properties = true
+check_domain_range_violations = true
+check_cardinality_violations = true
+check_disjoint_class_violations = true
+
+# Output Configuration
+[output]
+
+[output.serialization]
+# Preferred RDF serialization formats
+default_format = "turtle"
+supported_formats = ["turtle", "rdf-xml", "n-triples", "json-ld"]
+use_prefixes = true
+compact_output = false
+
+[output.ontology_metadata]
+# Include ontology-level metadata
+include_ontology_header = true
+include_import_statements = true
+include_version_info = true
+include_annotations = true
+
+[output.documentation]
+# Generate documentation
+generate_html_docs = true
+include_examples = true
+include_diagrams = false
+documentation_language = "en"
+
+# Performance and Optimization
+[performance]
+batch_size = 1000
+parallel_processing = true
+cache_mappings = true
+optimize_queries = true
+max_memory_usage = "2GB"
+
+# Logging and Debugging
+[logging]
+log_level = "INFO"
+log_mappings = true
+log_validation_errors = true
+log_inference_results = false
+output_statistics = true

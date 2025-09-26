@@ -1153,6 +1153,96 @@ pub struct RequestGraphUpdate {
 }
 
 // ============================================================================
+// Ontology Actor Messages
+// ============================================================================
+
+/// Load ontology axioms from various sources (file, URL, or direct content)
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct LoadOntologyAxioms {
+    pub source: String, // File path, URL, or direct ontology content
+    pub format: Option<String>, // "turtle", "rdf-xml", "n-triples" - auto-detect if None
+}
+
+/// Update ontology mapping configuration
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateOntologyMapping {
+    pub config: crate::services::owl_validator::ValidationConfig,
+}
+
+/// Validate ontology against property graph with different modes
+#[derive(Message)]
+#[rtype(result = "Result<crate::services::owl_validator::ValidationReport, String>")]
+pub struct ValidateOntology {
+    pub ontology_id: String,
+    pub graph_data: crate::services::owl_validator::PropertyGraph,
+    pub mode: ValidationMode,
+}
+
+/// Validation mode for ontology validation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ValidationMode {
+    Quick,      // Basic constraints only
+    Full,       // Complete validation with inference
+    Incremental, // Only validate changes since last run
+}
+
+/// Apply inferred relationships to the graph
+#[derive(Message)]
+#[rtype(result = "Result<Vec<crate::services::owl_validator::RdfTriple>, String>")]
+pub struct ApplyInferences {
+    pub rdf_triples: Vec<crate::services::owl_validator::RdfTriple>,
+    pub max_depth: Option<usize>,
+}
+
+/// Get latest ontology validation report
+#[derive(Message)]
+#[rtype(result = "Result<Option<crate::services::owl_validator::ValidationReport>, String>")]
+pub struct GetOntologyReport {
+    pub report_id: Option<String>, // Get specific report or latest if None
+}
+
+/// Get ontology system health status
+#[derive(Message)]
+#[rtype(result = "Result<OntologyHealth, String>")]
+pub struct GetOntologyHealth;
+
+/// Ontology system health information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntologyHealth {
+    pub loaded_ontologies: u32,
+    pub cached_reports: u32,
+    pub validation_queue_size: u32,
+    pub last_validation: Option<DateTime<Utc>>,
+    pub cache_hit_rate: f32,
+    pub avg_validation_time_ms: f32,
+    pub active_jobs: u32,
+    pub memory_usage_mb: f32,
+}
+
+/// Clear ontology caches
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ClearOntologyCaches;
+
+/// Get cached ontology list
+#[derive(Message)]
+#[rtype(result = "Result<Vec<CachedOntologyInfo>, String>")]
+pub struct GetCachedOntologies;
+
+/// Information about cached ontology
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CachedOntologyInfo {
+    pub id: String,
+    pub loaded_at: DateTime<Utc>,
+    pub signature: String,
+    pub source: String,
+    pub size_kb: u32,
+    pub access_count: u32,
+}
+
+// ============================================================================
 // Workspace Actor Messages
 // ============================================================================
 
