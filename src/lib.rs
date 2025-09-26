@@ -15,7 +15,7 @@ pub mod utils;
 // pub mod test_settings_fix;
 
 pub use app_state::AppState;
-pub use actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor};
+pub use actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor};
 pub use models::metadata::MetadataStore;
 pub use models::protected_settings::ProtectedSettings;
 pub use models::simulation_params::SimulationParams;

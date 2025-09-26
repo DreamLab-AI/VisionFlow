@@ -60,9 +60,13 @@ use glam::Vec3;
 use crate::types::Vec3Data;
  
 use crate::actors::messages::*;
+use crate::actors::graph_messages::{
+    BatchAddNodes, BatchAddEdges, BatchGraphUpdate,
+    FlushUpdateQueue, ConfigureUpdateQueue
+};
 use crate::errors::VisionFlowError;
 // use crate::utils::binary_protocol; // Unused
-use crate::actors::client_manager_actor::ClientManagerActor;
+use crate::actors::client_coordinator_actor::ClientCoordinatorActor;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
 use crate::models::metadata::{MetadataStore, FileMetadata};
@@ -86,7 +90,7 @@ pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
     node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
     gpu_compute_addr: Option<Addr<GPUManagerActor>>, // GPUManagerActor for coordinated GPU computation
-    client_manager: Addr<ClientManagerActor>,
+    client_manager: Addr<ClientCoordinatorActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
     next_node_id: AtomicU32,
@@ -111,7 +115,7 @@ pub struct GraphServiceActor {
     last_semantic_analysis: Option<std::time::Instant>,
     
     // Auto-balance tracking
-    settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
+    settings_addr: Option<Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>>,
     auto_balance_history: Vec<f32>, // Track max distances to detect minima
     stable_count: u32, // Count stable frames to detect settling
     auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
@@ -121,6 +125,12 @@ pub struct GraphServiceActor {
     frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast (deprecated - use time-based instead)
     last_broadcast_time: Option<std::time::Instant>, // Time-based broadcast tracking to fix 10-second delay issue
     initial_positions_sent: bool, // Track if initial positions have been sent to clients
+
+    // Backpressure management
+    pending_broadcasts: u32, // Number of pending position broadcasts
+    max_pending_broadcasts: u32, // Maximum allowed pending broadcasts before throttling
+    broadcast_skip_count: u32, // Number of broadcasts skipped due to backpressure
+    last_backpressure_warning: Option<std::time::Instant>, // Rate limit warnings
     
     // Smooth parameter transitions
     target_params: SimulationParams, // Target physics parameters
@@ -128,6 +138,152 @@ pub struct GraphServiceActor {
     
     // Position change tracking to avoid unnecessary updates
     previous_positions: HashMap<u32, crate::types::vec3::Vec3Data>, // Track previous positions for change detection
+
+    // Update queue for batch operations
+    update_queue: UpdateQueue,
+    queue_config: UpdateQueueConfig,
+
+    // Metrics for batch operations
+    batch_metrics: BatchMetrics,
+}
+
+/// Configuration for the update queue system
+#[derive(Debug, Clone)]
+struct UpdateQueueConfig {
+    max_operations: usize,
+    flush_interval_ms: u64,
+    enable_auto_flush: bool,
+}
+
+impl Default for UpdateQueueConfig {
+    fn default() -> Self {
+        Self {
+            max_operations: 1000,
+            flush_interval_ms: 100,
+            enable_auto_flush: true,
+        }
+    }
+}
+
+/// Queue for batching graph update operations
+#[derive(Debug, Default)]
+struct UpdateQueue {
+    pending_nodes: Vec<Node>,
+    pending_edges: Vec<Edge>,
+    pending_node_removals: Vec<u32>,
+    pending_edge_removals: Vec<String>,
+    last_flush_time: Option<std::time::Instant>,
+    operation_count: usize,
+}
+
+impl UpdateQueue {
+    fn new() -> Self {
+        Self {
+            pending_nodes: Vec::new(),
+            pending_edges: Vec::new(),
+            pending_node_removals: Vec::new(),
+            pending_edge_removals: Vec::new(),
+            last_flush_time: Some(std::time::Instant::now()),
+            operation_count: 0,
+        }
+    }
+
+    fn add_node(&mut self, node: Node) {
+        self.pending_nodes.push(node);
+        self.operation_count += 1;
+    }
+
+    fn add_edge(&mut self, edge: Edge) {
+        self.pending_edges.push(edge);
+        self.operation_count += 1;
+    }
+
+    fn remove_node(&mut self, node_id: u32) {
+        self.pending_node_removals.push(node_id);
+        self.operation_count += 1;
+    }
+
+    fn remove_edge(&mut self, edge_id: String) {
+        self.pending_edge_removals.push(edge_id);
+        self.operation_count += 1;
+    }
+
+    fn is_empty(&self) -> bool {
+        self.pending_nodes.is_empty()
+            && self.pending_edges.is_empty()
+            && self.pending_node_removals.is_empty()
+            && self.pending_edge_removals.is_empty()
+    }
+
+    fn clear(&mut self) {
+        self.pending_nodes.clear();
+        self.pending_edges.clear();
+        self.pending_node_removals.clear();
+        self.pending_edge_removals.clear();
+        self.operation_count = 0;
+        self.last_flush_time = Some(std::time::Instant::now());
+    }
+
+    fn should_flush(&self, config: &UpdateQueueConfig) -> bool {
+        if !config.enable_auto_flush {
+            return false;
+        }
+
+        // Flush if we've exceeded max operations
+        if self.operation_count >= config.max_operations {
+            return true;
+        }
+
+        // Flush if enough time has passed
+        if let Some(last_flush) = self.last_flush_time {
+            let elapsed = last_flush.elapsed();
+            if elapsed.as_millis() >= config.flush_interval_ms as u128 {
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+/// Metrics for tracking batch operation performance
+#[derive(Debug, Default)]
+struct BatchMetrics {
+    total_batches_processed: u64,
+    total_nodes_batched: u64,
+    total_edges_batched: u64,
+    average_batch_size: f64,
+    max_batch_size: usize,
+    total_flush_count: u64,
+    auto_flush_count: u64,
+    manual_flush_count: u64,
+    last_flush_duration_ms: u64,
+}
+
+impl BatchMetrics {
+    fn record_batch(&mut self, node_count: usize, edge_count: usize, flush_duration: std::time::Duration, is_auto_flush: bool) {
+        self.total_batches_processed += 1;
+        self.total_nodes_batched += node_count as u64;
+        self.total_edges_batched += edge_count as u64;
+
+        let batch_size = node_count + edge_count;
+        if batch_size > self.max_batch_size {
+            self.max_batch_size = batch_size;
+        }
+
+        // Update rolling average
+        let total_operations = self.total_nodes_batched + self.total_edges_batched;
+        self.average_batch_size = total_operations as f64 / self.total_batches_processed as f64;
+
+        self.total_flush_count += 1;
+        if is_auto_flush {
+            self.auto_flush_count += 1;
+        } else {
+            self.manual_flush_count += 1;
+        }
+
+        self.last_flush_duration_ms = flush_duration.as_millis() as u64;
+    }
 }
 
 /// Auto-balance state tracking for hysteresis prevention
@@ -414,9 +570,9 @@ impl GraphServiceActor {
     }
     
     pub fn new(
-        client_manager: Addr<ClientManagerActor>,
+        client_manager: Addr<ClientCoordinatorActor>,
         gpu_compute_addr: Option<Addr<GPUManagerActor>>,
-        settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
+        settings_addr: Option<Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>>,
     ) -> Self {
         let advanced_params = AdvancedParams::default();
         let semantic_analyzer = SemanticAnalyzer::new(
@@ -494,6 +650,17 @@ impl GraphServiceActor {
             
             // Position change tracking
             previous_positions: HashMap::new(),
+
+            // Backpressure management initialization
+            pending_broadcasts: 0,
+            max_pending_broadcasts: 5, // Default value, will be adjusted adaptively
+            broadcast_skip_count: 0,
+            last_backpressure_warning: None,
+
+            // Update queue and batch metrics initialization
+            update_queue: UpdateQueue::new(),
+            queue_config: UpdateQueueConfig::default(),
+            batch_metrics: BatchMetrics::default(),
         }
     }
 
@@ -507,10 +674,32 @@ impl GraphServiceActor {
 
     pub fn add_node(&mut self, node: Node) {
         let node_id = node.id; // Store the ID before moving node
-        
+
+        // Use queue for better performance if auto-flush is enabled
+        if self.queue_config.enable_auto_flush {
+            // Queue the operation for batch processing
+            self.update_queue.add_node(node);
+
+            // Auto-flush if thresholds are met
+            if self.update_queue.should_flush(&self.queue_config) {
+                if let Err(e) = self.flush_update_queue_internal(true) {
+                    error!("Failed to flush update queue: {}", e);
+                    // Queue is already updated, so just log the error
+                }
+            }
+        } else {
+            // Direct update when queue is disabled
+            self.add_node_direct(node);
+        }
+
+        debug!("Added/updated node: {}", node_id);
+    }
+
+    /// Direct node addition without queueing (used as fallback)
+    fn add_node_direct(&mut self, node: Node) {
         // Update node_map
         Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
-        
+
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         // Add to graph data if not already present
         if !graph_data_mut.nodes.iter().any(|n| n.id == node.id) {
@@ -521,8 +710,6 @@ impl GraphServiceActor {
                 *existing = node; // Move node here instead of cloning
             }
         }
-        
-        debug!("Added/updated node: {}", node_id);
     }
 
     pub fn remove_node(&mut self, node_id: u32) {
@@ -544,7 +731,28 @@ impl GraphServiceActor {
 
     pub fn add_edge(&mut self, edge: Edge) {
         let edge_id = edge.id.clone(); // Store the ID before moving edge
-        
+
+        // Use queue for better performance if auto-flush is enabled
+        if self.queue_config.enable_auto_flush {
+            // Queue the operation for batch processing
+            self.update_queue.add_edge(edge);
+
+            // Auto-flush if thresholds are met
+            if self.update_queue.should_flush(&self.queue_config) {
+                if let Err(e) = self.flush_update_queue_internal(true) {
+                    error!("Failed to flush update queue: {}", e);
+                }
+            }
+        } else {
+            // Direct update when queue is disabled
+            self.add_edge_direct(edge);
+        }
+
+        debug!("Added/updated edge: {}", edge_id);
+    }
+
+    /// Direct edge addition without queueing (used as fallback)
+    fn add_edge_direct(&mut self, edge: Edge) {
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         // Add to graph data if not already present
         if !graph_data_mut.edges.iter().any(|e| e.id == edge.id) {
@@ -555,13 +763,425 @@ impl GraphServiceActor {
                 *existing = edge; // Move edge here instead of cloning
             }
         }
-        
-        debug!("Added/updated edge: {}", edge_id);
     }
 
     pub fn remove_edge(&mut self, edge_id: &str) {
         Arc::make_mut(&mut self.graph_data).edges.retain(|e| e.id != edge_id);
         debug!("Removed edge: {}", edge_id);
+    }
+
+    /// Efficiently add multiple nodes in a single batch operation
+    /// Optimized to minimize Arc::make_mut calls and improve memory access patterns
+    pub fn batch_add_nodes(&mut self, nodes: Vec<Node>) -> Result<(), String> {
+        if nodes.is_empty() {
+            return Ok(());
+        }
+
+        let start_time = std::time::Instant::now();
+        let node_count = nodes.len();
+
+        // Pre-allocate capacity for better performance
+        let mut new_nodes = Vec::with_capacity(node_count);
+        let mut updated_nodes = Vec::new();
+
+        // Single Arc::make_mut call for node_map
+        let node_map_mut = Arc::make_mut(&mut self.node_map);
+
+        // Single Arc::make_mut call for graph_data
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+
+        // Build lookup set for O(1) existence checks instead of O(n) iterations
+        let existing_node_ids: std::collections::HashSet<u32> =
+            graph_data_mut.nodes.iter().map(|n| n.id).collect();
+
+        // Process nodes and separate new from updates
+        for node in nodes {
+            let node_id = node.id;
+
+            // Insert into node_map (always update for latest data)
+            node_map_mut.insert(node_id, node.clone());
+
+            // Separate new nodes from updates for more efficient batch processing
+            if existing_node_ids.contains(&node_id) {
+                updated_nodes.push(node);
+            } else {
+                new_nodes.push(node);
+            }
+        }
+
+        // Bulk extend for new nodes (more efficient than individual pushes)
+        graph_data_mut.nodes.extend(new_nodes);
+
+        // Update existing nodes with optimized lookup
+        for update_node in updated_nodes {
+            if let Some(existing) = graph_data_mut.nodes.iter_mut().find(|n| n.id == update_node.id) {
+                *existing = update_node;
+            }
+        }
+
+        let duration = start_time.elapsed();
+        self.batch_metrics.record_batch(node_count, 0, duration, false);
+
+        debug!("Batch added {} nodes in {}ms", node_count, duration.as_millis());
+        Ok(())
+    }
+
+    /// Efficiently add multiple edges in a single batch operation
+    /// Optimized to minimize Arc::make_mut calls and improve memory access patterns
+    pub fn batch_add_edges(&mut self, edges: Vec<Edge>) -> Result<(), String> {
+        if edges.is_empty() {
+            return Ok(());
+        }
+
+        let start_time = std::time::Instant::now();
+        let edge_count = edges.len();
+
+        // Pre-allocate capacity for better performance
+        let mut new_edges = Vec::with_capacity(edge_count);
+        let mut updated_edges = Vec::new();
+
+        // Single Arc::make_mut call for graph_data
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+
+        // Build lookup set for O(1) existence checks instead of O(n) iterations
+        let existing_edge_ids: std::collections::HashSet<String> =
+            graph_data_mut.edges.iter().map(|e| e.id.clone()).collect();
+
+        // Process edges and separate new from updates
+        for edge in edges {
+            // Separate new edges from updates for more efficient batch processing
+            if existing_edge_ids.contains(&edge.id) {
+                updated_edges.push(edge);
+            } else {
+                new_edges.push(edge);
+            }
+        }
+
+        // Bulk extend for new edges (more efficient than individual pushes)
+        graph_data_mut.edges.extend(new_edges);
+
+        // Update existing edges with optimized lookup
+        for update_edge in updated_edges {
+            if let Some(existing) = graph_data_mut.edges.iter_mut().find(|e| e.id == update_edge.id) {
+                *existing = update_edge;
+            }
+        }
+
+        let duration = start_time.elapsed();
+        self.batch_metrics.record_batch(0, edge_count, duration, false);
+
+        debug!("Batch added {} edges in {}ms", edge_count, duration.as_millis());
+        Ok(())
+    }
+
+    /// Perform mixed batch operations (nodes, edges, removals) in a single transaction
+    pub fn batch_graph_update(&mut self,
+                             nodes: Vec<Node>,
+                             edges: Vec<Edge>,
+                             remove_node_ids: Vec<u32>,
+                             remove_edge_ids: Vec<String>) -> Result<(), String> {
+        let start_time = std::time::Instant::now();
+        let total_operations = nodes.len() + edges.len() + remove_node_ids.len() + remove_edge_ids.len();
+
+        if total_operations == 0 {
+            return Ok(());
+        }
+
+        // Single Arc::make_mut calls for both data structures
+        let node_map_mut = Arc::make_mut(&mut self.node_map);
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+
+        // Remove nodes first
+        for node_id in &remove_node_ids {
+            node_map_mut.remove(node_id);
+            graph_data_mut.nodes.retain(|n| n.id != *node_id);
+            graph_data_mut.edges.retain(|e| e.source != *node_id && e.target != *node_id);
+            self.previous_positions.remove(node_id);
+        }
+
+        // Remove edges
+        for edge_id in &remove_edge_ids {
+            graph_data_mut.edges.retain(|e| e.id != *edge_id);
+        }
+
+        // Store lengths before moving
+        let nodes_len = nodes.len();
+        let edges_len = edges.len();
+
+        // Add nodes
+        for node in nodes {
+            node_map_mut.insert(node.id, node.clone());
+
+            if !graph_data_mut.nodes.iter().any(|n| n.id == node.id) {
+                graph_data_mut.nodes.push(node);
+            } else {
+                if let Some(existing) = graph_data_mut.nodes.iter_mut().find(|n| n.id == node.id) {
+                    *existing = node;
+                }
+            }
+        }
+
+        // Add edges
+        for edge in edges {
+            if !graph_data_mut.edges.iter().any(|e| e.id == edge.id) {
+                graph_data_mut.edges.push(edge);
+            } else {
+                if let Some(existing) = graph_data_mut.edges.iter_mut().find(|e| e.id == edge.id) {
+                    *existing = edge;
+                }
+            }
+        }
+
+        let duration = start_time.elapsed();
+        self.batch_metrics.record_batch(
+            nodes_len + remove_node_ids.len(),
+            edges_len + remove_edge_ids.len(),
+            duration,
+            false
+        );
+
+        debug!("Batch operation completed: {} total operations in {}ms",
+               total_operations, duration.as_millis());
+        Ok(())
+    }
+
+    /// Add operation to queue and auto-flush if thresholds are met
+    pub fn queue_add_node(&mut self, node: Node) -> Result<(), String> {
+        self.update_queue.add_node(node);
+
+        if self.update_queue.should_flush(&self.queue_config) {
+            self.flush_update_queue_internal(true)?;
+        }
+
+        Ok(())
+    }
+
+    /// Add operation to queue and auto-flush if thresholds are met
+    pub fn queue_add_edge(&mut self, edge: Edge) -> Result<(), String> {
+        self.update_queue.add_edge(edge);
+
+        if self.update_queue.should_flush(&self.queue_config) {
+            self.flush_update_queue_internal(true)?;
+        }
+
+        Ok(())
+    }
+
+    /// Flush all pending operations from the queue
+    pub fn flush_update_queue(&mut self) -> Result<(), String> {
+        self.flush_update_queue_internal(false)
+    }
+
+    /// Internal flush implementation with auto-flush tracking
+    /// Optimized to use the more efficient batch methods directly
+    fn flush_update_queue_internal(&mut self, is_auto_flush: bool) -> Result<(), String> {
+        if self.update_queue.is_empty() {
+            return Ok(());
+        }
+
+        let start_time = std::time::Instant::now();
+
+        // Count operations for metrics
+        let node_count = self.update_queue.pending_nodes.len();
+        let edge_count = self.update_queue.pending_edges.len();
+        let _removal_count = self.update_queue.pending_node_removals.len() +
+                            self.update_queue.pending_edge_removals.len();
+
+        // Extract operations from queue using efficient mem::take
+        let nodes = std::mem::take(&mut self.update_queue.pending_nodes);
+        let edges = std::mem::take(&mut self.update_queue.pending_edges);
+        let remove_node_ids = std::mem::take(&mut self.update_queue.pending_node_removals);
+        let remove_edge_ids = std::mem::take(&mut self.update_queue.pending_edge_removals);
+
+        // Use optimized batch methods for better performance
+        if !remove_node_ids.is_empty() || !remove_edge_ids.is_empty() ||
+           (!nodes.is_empty() && !edges.is_empty()) {
+            // Use batch_graph_update for mixed operations (optimal for removals)
+            self.batch_graph_update(nodes, edges, remove_node_ids, remove_edge_ids)?;
+        } else {
+            // Use specialized batch methods for pure additions (more efficient)
+            if !nodes.is_empty() {
+                self.batch_add_nodes(nodes)?;
+            }
+            if !edges.is_empty() {
+                self.batch_add_edges(edges)?;
+            }
+        }
+
+        // Clear queue and update metrics
+        self.update_queue.clear();
+
+        let duration = start_time.elapsed();
+        self.batch_metrics.record_batch(node_count, edge_count, duration, is_auto_flush);
+
+        if is_auto_flush {
+            trace!("Auto-flushed update queue in {}ms", duration.as_millis());
+        } else {
+            debug!("Manually flushed update queue in {}ms", duration.as_millis());
+        }
+
+        Ok(())
+    }
+
+    /// Configure the update queue parameters
+    pub fn configure_update_queue(&mut self, max_operations: usize, flush_interval_ms: u64, enable_auto_flush: bool) {
+        self.queue_config = UpdateQueueConfig {
+            max_operations,
+            flush_interval_ms,
+            enable_auto_flush,
+        };
+        debug!("Updated queue config: max_ops={}, interval={}ms, auto_flush={}",
+               max_operations, flush_interval_ms, enable_auto_flush);
+    }
+
+    /// Get current batch operation metrics
+    pub fn get_batch_metrics(&self) -> &BatchMetrics {
+        &self.batch_metrics
+    }
+
+    /// Optimized batch update with pre-allocated capacity and minimal Arc::make_mut calls
+    /// This method is designed for high-throughput data ingestion scenarios
+    pub fn batch_update_optimized(&mut self,
+                                 nodes: Vec<Node>,
+                                 edges: Vec<Edge>) -> Result<(), String> {
+        if nodes.is_empty() && edges.is_empty() {
+            return Ok(());
+        }
+
+        let start_time = std::time::Instant::now();
+        let node_count = nodes.len();
+        let edge_count = edges.len();
+        let total_operations = node_count + edge_count;
+
+        // Single Arc::make_mut calls for optimal performance
+        let node_map_mut = Arc::make_mut(&mut self.node_map);
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+
+        // Process nodes if present
+        if !nodes.is_empty() {
+
+            // Build existence sets for O(1) lookups
+            let existing_node_ids: std::collections::HashSet<u32> =
+                graph_data_mut.nodes.iter().map(|n| n.id).collect();
+
+            let mut new_nodes = Vec::with_capacity(node_count);
+            let mut updated_nodes = Vec::new();
+
+            for node in nodes {
+                let node_id = node.id;
+
+                // Update node_map
+                node_map_mut.insert(node_id, node.clone());
+
+                // Separate new from updates
+                if existing_node_ids.contains(&node_id) {
+                    updated_nodes.push(node);
+                } else {
+                    new_nodes.push(node);
+                }
+            }
+
+            // Bulk operations
+            graph_data_mut.nodes.extend(new_nodes);
+            for update_node in updated_nodes {
+                if let Some(existing) = graph_data_mut.nodes.iter_mut().find(|n| n.id == update_node.id) {
+                    *existing = update_node;
+                }
+            }
+        }
+
+        // Process edges if present
+        if !edges.is_empty() {
+
+            // Build existence set for O(1) lookups
+            let existing_edge_ids: std::collections::HashSet<String> =
+                graph_data_mut.edges.iter().map(|e| e.id.clone()).collect();
+
+            let mut new_edges = Vec::with_capacity(edge_count);
+            let mut updated_edges = Vec::new();
+
+            for edge in edges {
+                // Separate new from updates
+                if existing_edge_ids.contains(&edge.id) {
+                    updated_edges.push(edge);
+                } else {
+                    new_edges.push(edge);
+                }
+            }
+
+            // Bulk operations
+            graph_data_mut.edges.extend(new_edges);
+            for update_edge in updated_edges {
+                if let Some(existing) = graph_data_mut.edges.iter_mut().find(|e| e.id == update_edge.id) {
+                    *existing = update_edge;
+                }
+            }
+        }
+
+        let duration = start_time.elapsed();
+        self.batch_metrics.record_batch(node_count, edge_count, duration, false);
+
+        debug!("Optimized batch update: {} operations in {}ms",
+               total_operations, duration.as_millis());
+        Ok(())
+    }
+
+    /// High-throughput queue-based batch operations
+    /// Automatically triggers flush when queue size or time thresholds are exceeded
+    pub fn queue_batch_operations(&mut self,
+                                 nodes: Vec<Node>,
+                                 edges: Vec<Edge>) -> Result<(), String> {
+        // Add all nodes to queue
+        for node in nodes {
+            self.update_queue.add_node(node);
+        }
+
+        // Add all edges to queue
+        for edge in edges {
+            self.update_queue.add_edge(edge);
+        }
+
+        // Check if we should auto-flush based on current configuration
+        if self.update_queue.should_flush(&self.queue_config) {
+            self.flush_update_queue_internal(true)?;
+        }
+
+        Ok(())
+    }
+
+    /// Force flush with performance metrics
+    /// Returns detailed performance information about the flush operation
+    pub fn force_flush_with_metrics(&mut self) -> Result<(usize, usize, std::time::Duration), String> {
+        let start_time = std::time::Instant::now();
+        let node_count = self.update_queue.pending_nodes.len();
+        let edge_count = self.update_queue.pending_edges.len();
+
+        self.flush_update_queue_internal(false)?;
+
+        let duration = start_time.elapsed();
+        Ok((node_count, edge_count, duration))
+    }
+
+    /// Configure queue for maximum throughput
+    /// Sets optimal parameters for high-volume data ingestion
+    pub fn configure_for_high_throughput(&mut self) {
+        self.queue_config = UpdateQueueConfig {
+            max_operations: 5000,  // Higher threshold for batch operations
+            flush_interval_ms: 50, // More frequent flushes to maintain responsiveness
+            enable_auto_flush: true,
+        };
+        debug!("Configured queue for high-throughput mode: max_ops=5000, interval=50ms");
+    }
+
+    /// Configure queue for memory conservation
+    /// Sets parameters to minimize memory usage at the cost of some throughput
+    pub fn configure_for_memory_conservation(&mut self) {
+        self.queue_config = UpdateQueueConfig {
+            max_operations: 500,   // Lower threshold to reduce memory usage
+            flush_interval_ms: 200, // Less frequent flushes to reduce overhead
+            enable_auto_flush: true,
+        };
+        debug!("Configured queue for memory conservation: max_ops=500, interval=200ms");
     }
 
     /// Build graph from metadata while preserving existing node positions
@@ -1158,6 +1778,30 @@ impl GraphServiceActor {
         false
     }
 
+    // Helper method to calculate adaptive max_pending_broadcasts based on node count
+    fn calculate_adaptive_max_pending_broadcasts(&self) -> u32 {
+        let node_count = self.node_map.len();
+        match node_count {
+            0..=999 => 10,           // < 1000 nodes: max 10 pending
+            1000..=9999 => 5,        // 1000-10000 nodes: max 5 pending
+            _ => 3,                  // > 10000 nodes: max 3 pending
+        }
+    }
+
+    // Method to handle broadcast acknowledgments from clients
+    pub fn acknowledge_broadcast(&mut self) {
+        if self.pending_broadcasts > 0 {
+            self.pending_broadcasts -= 1;
+            debug!("Broadcast acknowledged, pending: {}/{}",
+                   self.pending_broadcasts, self.max_pending_broadcasts);
+        }
+    }
+
+    // Method to get backpressure metrics for monitoring
+    pub fn get_backpressure_metrics(&self) -> (u32, u32, u32) {
+        (self.pending_broadcasts, self.max_pending_broadcasts, self.broadcast_skip_count)
+    }
+
     pub fn update_node_positions(&mut self, positions: Vec<(u32, BinaryNodeData)>) {
         // CRITICAL FIX: Skip position updates if physics is paused
         // This prevents the graph from jumping when it's in a settled/stable state
@@ -1165,6 +1809,9 @@ impl GraphServiceActor {
             debug!("Physics is paused, skipping position update for {} nodes", positions.len());
             return;
         }
+
+        // Update adaptive max_pending_broadcasts based on current node count
+        self.max_pending_broadcasts = self.calculate_adaptive_max_pending_broadcasts();
         
         let mut updated_count = 0;
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
@@ -1414,9 +2061,32 @@ impl GraphServiceActor {
         let force_broadcast = !self.initial_positions_sent;
         
         if should_broadcast || force_broadcast {
+            // Check backpressure - skip broadcast if too many pending
+            let backpressure_active = self.pending_broadcasts > self.max_pending_broadcasts && !force_broadcast;
+
+            if backpressure_active {
+                // Skip broadcast due to backpressure
+                self.broadcast_skip_count += 1;
+
+                // Log warning every 5 seconds to avoid spam
+                let should_warn = if let Some(last_warning) = self.last_backpressure_warning {
+                    now.duration_since(last_warning) >= std::time::Duration::from_secs(5)
+                } else {
+                    true
+                };
+
+                if should_warn {
+                    warn!("Backpressure active: pending_broadcasts ({}) > max_pending_broadcasts ({}), skipped {} broadcasts total. Node count: {}",
+                          self.pending_broadcasts, self.max_pending_broadcasts, self.broadcast_skip_count, self.node_map.len());
+                    self.last_backpressure_warning = Some(now);
+                }
+
+                return; // Skip this broadcast
+            }
+
             // Create binary position data for all nodes
             let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
-            
+
             for (node_id, node) in self.node_map.iter() {
                 position_data.push((*node_id, BinaryNodeDataClient::new(
                     *node_id,
@@ -1424,16 +2094,19 @@ impl GraphServiceActor {
                     node.data.velocity(),
                 )));
             }
-            
+
             // Broadcast to all connected clients via client manager
             if !position_data.is_empty() {
                 let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
-                
+
                 // Send to client manager for broadcasting
                 self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
                     positions: binary_data,
                 });
-                
+
+                // Increment pending broadcasts counter for backpressure tracking
+                self.pending_broadcasts += 1;
+
                 // Update broadcast time and mark initial positions as sent
                 self.last_broadcast_time = Some(now);
                 if !self.initial_positions_sent {
@@ -1442,11 +2115,13 @@ impl GraphServiceActor {
                 } else if force_broadcast {
                     info!("Force broadcast positions to new clients ({} nodes)", position_data.len());
                 }
-                
+
                 if crate::utils::logging::is_debug_enabled() && !force_broadcast {
-                    debug!("Broadcast positions: {} nodes, stable: {}", 
-                           position_data.len(), 
-                           self.current_state == AutoBalanceState::Stable);
+                    debug!("Broadcast positions: {} nodes, stable: {}, pending: {}/{}",
+                           position_data.len(),
+                           self.current_state == AutoBalanceState::Stable,
+                           self.pending_broadcasts,
+                           self.max_pending_broadcasts);
                 }
             }
         }
@@ -1456,28 +2131,39 @@ impl GraphServiceActor {
         // CRITICAL FIX: Immediately broadcast GPU-computed positions to clients
         // Don't wait for the next scheduled broadcast interval
         if updated_count > 0 {
-            // Create position data for broadcasting
-            let mut broadcast_positions: Vec<(u32, BinaryNodeData)> = Vec::new();
-            for (node_id, node) in self.node_map.iter() {
-                broadcast_positions.push((*node_id, BinaryNodeDataClient::new(
-                    *node_id,
-                    node.data.position(),
-                    node.data.velocity(),
-                )));
-            }
+            // Apply backpressure check for immediate GPU broadcasts too
+            if self.pending_broadcasts > self.max_pending_broadcasts {
+                self.broadcast_skip_count += 1;
+                debug!("Skipping immediate GPU broadcast due to backpressure: {}/{}",
+                       self.pending_broadcasts, self.max_pending_broadcasts);
+            } else {
+                // Create position data for broadcasting
+                let mut broadcast_positions: Vec<(u32, BinaryNodeData)> = Vec::new();
+                for (node_id, node) in self.node_map.iter() {
+                    broadcast_positions.push((*node_id, BinaryNodeDataClient::new(
+                        *node_id,
+                        node.data.position(),
+                        node.data.velocity(),
+                    )));
+                }
 
-            if !broadcast_positions.is_empty() {
-                let binary_data = crate::utils::binary_protocol::encode_node_data(&broadcast_positions);
+                if !broadcast_positions.is_empty() {
+                    let binary_data = crate::utils::binary_protocol::encode_node_data(&broadcast_positions);
 
-                // Send to client manager for immediate broadcasting
-                self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
-                    positions: binary_data,
-                });
+                    // Send to client manager for immediate broadcasting
+                    self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
+                        positions: binary_data,
+                    });
 
-                // Update broadcast time
-                self.last_broadcast_time = Some(std::time::Instant::now());
+                    // Increment pending broadcasts counter for backpressure tracking
+                    self.pending_broadcasts += 1;
 
-                info!("Immediately broadcast {} GPU-computed positions to clients", broadcast_positions.len());
+                    // Update broadcast time
+                    self.last_broadcast_time = Some(std::time::Instant::now());
+
+                    info!("Immediately broadcast {} GPU-computed positions to clients (pending: {}/{})",
+                          broadcast_positions.len(), self.pending_broadcasts, self.max_pending_broadcasts);
+                }
             }
         }
     }
@@ -2967,6 +3653,51 @@ impl Handler<GetEquilibriumStatus> for GraphServiceActor {
 
     fn handle(&mut self, _msg: GetEquilibriumStatus, _ctx: &mut Self::Context) -> Self::Result {
         Ok(self.simulation_params.is_physics_paused)
+    }
+}
+
+// ============================================================================
+// BATCH OPERATION HANDLERS - Optimized data ingestion pipeline
+// ============================================================================
+
+impl Handler<BatchAddNodes> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: BatchAddNodes, _ctx: &mut Self::Context) -> Self::Result {
+        self.batch_add_nodes(msg.nodes)
+    }
+}
+
+impl Handler<BatchAddEdges> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: BatchAddEdges, _ctx: &mut Self::Context) -> Self::Result {
+        self.batch_add_edges(msg.edges)
+    }
+}
+
+impl Handler<BatchGraphUpdate> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: BatchGraphUpdate, _ctx: &mut Self::Context) -> Self::Result {
+        self.batch_graph_update(msg.nodes, msg.edges, msg.remove_node_ids, msg.remove_edge_ids)
+    }
+}
+
+impl Handler<FlushUpdateQueue> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, _msg: FlushUpdateQueue, _ctx: &mut Self::Context) -> Self::Result {
+        self.flush_update_queue()
+    }
+}
+
+impl Handler<ConfigureUpdateQueue> for GraphServiceActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ConfigureUpdateQueue, _ctx: &mut Self::Context) -> Self::Result {
+        self.configure_update_queue(msg.max_operations, msg.flush_interval_ms, msg.enable_auto_flush);
+        Ok(())
     }
 }
 

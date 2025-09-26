@@ -425,7 +425,7 @@ class GraphWorker {
         const distanceSq = dx * dx + dy * dy + dz * dz;
         
         // =================================================================================
-        // EXPERIMENTAL: Disable Node Smoothing
+        // EXPERIMENTAL: Disable Node Smoothing (COMMENTED OUT)
         // The following lines force nodes to snap directly to their target positions,
         // bypassing the gentle interpolation (smoothing) logic. This is useful for
         // debugging the raw output of the server-side physics simulation.
@@ -433,13 +433,12 @@ class GraphWorker {
         // To re-enable smoothing, comment out this block and uncomment the original
         // `if/else` block below.
         // =================================================================================
-        this.currentPositions[i3] = this.targetPositions[i3];
-        this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
-        this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+        // this.currentPositions[i3] = this.targetPositions[i3];
+        // this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+        // this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
 
-        /*
         // =================================================================================
-        // ORIGINAL SMOOTHING LOGIC (DISABLED)
+        // ORIGINAL SMOOTHING LOGIC (RE-ENABLED)
         // =================================================================================
         // Very large snap threshold to prevent ANY micro-oscillations
         // When nodes are within this distance, they snap directly to target
@@ -449,7 +448,7 @@ class GraphWorker {
           const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 2] - this.targetPositions[i3 + 2]) > 0.01;
-          
+
           if (positionChanged) {
             totalMovement += Math.sqrt(distanceSq);
             this.currentPositions[i3] = this.targetPositions[i3];
@@ -467,15 +466,14 @@ class GraphWorker {
           const moveX = dx * lerpFactor;
           const moveY = dy * lerpFactor;
           const moveZ = dz * lerpFactor;
-          
+
           totalMovement += Math.sqrt(moveX * moveX + moveY * moveY + moveZ * moveZ);
-          
+
           this.currentPositions[i3] += moveX;
           this.currentPositions[i3 + 1] += moveY;
           this.currentPositions[i3 + 2] += moveZ;
         }
         // =================================================================================
-        */
       }
       
       // Log total movement to detect if nodes are actually moving

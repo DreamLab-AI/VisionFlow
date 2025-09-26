@@ -92,6 +92,18 @@ pub struct StressMajorizationSolver {
     iteration_history: Vec<f32>,
 }
 
+impl Clone for StressMajorizationSolver {
+    fn clone(&self) -> Self {
+        Self {
+            config: self.config.clone(),
+            _gpu_context: self._gpu_context.clone(), // Arc can be cloned
+            cached_distance_matrix: self.cached_distance_matrix.clone(),
+            cached_weight_matrix: self.cached_weight_matrix.clone(),
+            iteration_history: self.iteration_history.clone(),
+        }
+    }
+}
+
 impl StressMajorizationSolver {
     /// Create a new stress majorization solver with default configuration
     pub fn new() -> Self {

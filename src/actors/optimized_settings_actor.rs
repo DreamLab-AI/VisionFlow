@@ -4,6 +4,7 @@
 use actix::prelude::*;
 use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance};
+use crate::actors::{GraphServiceActor, gpu::ForceComputeActor};
 use crate::config::path_access::PathAccessible;
 use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError, ActorError, ErrorContext};
 use std::collections::HashMap;
@@ -22,6 +23,9 @@ use flate2::Status;
 #[cfg(feature = "redis")]
 use redis::{Client as RedisClient, AsyncCommands};
 
+// Cache configuration constants
+const CACHE_SIZE: usize = 1000;
+
 pub struct OptimizedSettingsActor {
     settings: Arc<RwLock<AppFullSettings>>,
     #[cfg(feature = "redis")]
@@ -31,6 +35,8 @@ pub struct OptimizedSettingsActor {
     metrics: Arc<RwLock<PerformanceMetrics>>,
     compressor: Arc<RwLock<Compress>>,
     decompressor: Arc<RwLock<Decompress>>,
+    graph_service_addr: Option<Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>>,
+    gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 }
 
 #[derive(Clone, Debug)]
@@ -111,7 +117,6 @@ impl PerformanceMetrics {
     }
 }
 
-const CACHE_SIZE: usize = 1000;
 const CACHE_TTL: Duration = Duration::from_secs(300); // 5 minutes
 const REDIS_TTL: usize = 3600; // 1 hour
 const EXPECTED_FULL_SETTINGS_SIZE: u64 = 50_000; // ~50KB
@@ -175,9 +180,22 @@ impl OptimizedSettingsActor {
             metrics: Arc::new(RwLock::new(PerformanceMetrics::default())),
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
+            graph_service_addr: None,
+            gpu_compute_addr: None,
         })
     }
-    
+
+    pub fn with_actors(
+        graph_service_addr: Option<Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+    ) -> VisionFlowResult<Self> {
+        let mut actor = Self::new()?;
+        actor.graph_service_addr = graph_service_addr;
+        actor.gpu_compute_addr = gpu_compute_addr;
+        info!("OptimizedSettingsActor initialized with GPU and Graph actor addresses for physics forwarding and concurrent update batching");
+        Ok(actor)
+    }
+
     fn initialize_path_patterns(lookup: &mut HashMap<String, PathPattern>) {
         // Physics settings patterns - most frequently accessed
         let physics_patterns = vec![
@@ -459,7 +477,10 @@ impl OptimizedSettingsActor {
             return Ok(value);
         }
         
-        Err("Path pattern not optimized".to_string())
+        Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+            setting_path: "compiled_path".to_string(),
+            reason: "Path pattern not optimized".to_string(),
+        }))
     }
     
     pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlowResult<()> {
@@ -579,12 +600,18 @@ impl OptimizedSettingsActor {
                 if n.is_i64() {
                     Ok(())
                 } else {
-                    Err("Expected integer value".to_string())
+                    Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                        setting_path: "value".to_string(),
+                        reason: "Expected integer value".to_string(),
+                    }))
                 }
             }
             (FieldType::Bool, Value::Bool(_)) => Ok(()),
             (FieldType::String, Value::String(_)) => Ok(()),
-            _ => Err("Type mismatch".to_string()),
+            _ => Err(VisionFlowError::Settings(SettingsError::ValidationFailed {
+                setting_path: "value".to_string(),
+                reason: "Type mismatch".to_string(),
+            })),
         }
     }
 }
@@ -693,6 +720,8 @@ impl Clone for OptimizedSettingsActor {
             metrics: self.metrics.clone(),
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
+            graph_service_addr: self.graph_service_addr.clone(),
+            gpu_compute_addr: self.gpu_compute_addr.clone(),
         }
     }
 }

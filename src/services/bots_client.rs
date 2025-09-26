@@ -4,7 +4,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use log::{info, error, debug, warn};
 use actix::Addr;
-use crate::actors::graph_actor::GraphServiceActor;
+use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
 use crate::actors::messages::UpdateBotsGraph;
 use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
 use crate::services::agent_visualization_protocol::{McpServerType, MultiMcpAgentStatus};
@@ -67,7 +67,7 @@ impl From<MultiMcpAgentStatus> for Agent {
 #[derive(Clone)]
 pub struct BotsClient {
     mcp_client: McpTcpClient,
-    graph_service_addr: Option<Addr<GraphServiceActor>>,
+    graph_service_addr: Option<Addr<TransitionalGraphSupervisor>>,
     agents: Arc<RwLock<Vec<Agent>>>,
 }
 
@@ -91,7 +91,7 @@ impl BotsClient {
         }
     }
     
-    pub fn with_graph_service(graph_addr: Addr<GraphServiceActor>) -> Self {
+    pub fn with_graph_service(graph_addr: Addr<TransitionalGraphSupervisor>) -> Self {
         let mut client = Self::new();
         client.graph_service_addr = Some(graph_addr);
         client

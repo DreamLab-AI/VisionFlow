@@ -104,7 +104,7 @@ impl Handler<SendToClientText> for SocketFlowServer {
 pub struct SocketFlowServer {
     app_state: Arc<AppState>,
     client_id: Option<usize>,
-    client_manager_addr: actix::Addr<crate::actors::client_manager_actor::ClientManagerActor>,
+    client_manager_addr: actix::Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>,
     last_ping: Option<u64>,
     update_counter: usize, // Counter for throttling debug logs
     last_activity: std::time::Instant, // Track last activity time
@@ -143,7 +143,7 @@ pub struct SocketFlowServer {
 }
 
 impl SocketFlowServer {
-    pub fn new(app_state: Arc<AppState>, pre_read_settings: PreReadSocketSettings, client_manager_addr: actix::Addr<crate::actors::client_manager_actor::ClientManagerActor>, client_ip: String) -> Self {
+    pub fn new(app_state: Arc<AppState>, pre_read_settings: PreReadSocketSettings, client_manager_addr: actix::Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>, client_ip: String) -> Self {
         let min_update_rate = pre_read_settings.min_update_rate;
         let max_update_rate = pre_read_settings.max_update_rate;
         let motion_threshold = pre_read_settings.motion_threshold;
@@ -473,7 +473,7 @@ impl Actor for SocketFlowServer {
 // Update signature to work with actor system
 async fn fetch_nodes(
     app_state: Arc<AppState>,
-    _settings_addr: actix::Addr<crate::actors::settings_actor::SettingsActor>
+    _settings_addr: actix::Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>
 ) -> Option<(Vec<(u32, BinaryNodeData)>, bool)> {
     // Fetch raw nodes asynchronously from GraphServiceActor
     use crate::actors::messages::GetGraphData;

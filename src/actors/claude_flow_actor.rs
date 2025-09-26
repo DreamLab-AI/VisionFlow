@@ -33,7 +33,7 @@ use crate::services::agent_visualization_protocol::McpServerType;
 /// Refactored ClaudeFlowActorTcp - pure application logic
 pub struct ClaudeFlowActorTcp {
     _client: ClaudeFlowClient,
-    graph_service_addr: Addr<GraphServiceActor>,
+    graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
     
     /// Application state
     is_connected: bool,
@@ -67,7 +67,7 @@ pub struct ClaudeFlowActorTcp {
 }
 
 impl ClaudeFlowActorTcp {
-    pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<GraphServiceActor>) -> Self {
+    pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>) -> Self {
         info!("Creating refactored ClaudeFlowActorTcp with separated concerns");
         Self {
             _client: client,

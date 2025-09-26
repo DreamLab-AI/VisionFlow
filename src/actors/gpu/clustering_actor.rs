@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 use actix::prelude::*;
+use actix::fut::ready;
 use log::{error, info};
 use std::time::Instant;
 use uuid::Uuid;
@@ -552,7 +553,7 @@ impl Actor for ClusteringActor {
 // === Message Handlers ===
 
 impl Handler<RunKMeans> for ClusteringActor {
-    type Result = Result<KMeansResult, String>;
+    type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
 
     fn handle(&mut self, msg: RunKMeans, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: K-means clustering request received");
@@ -560,27 +561,22 @@ impl Handler<RunKMeans> for ClusteringActor {
         // Check GPU initialization
         if self.shared_context.is_none() {
             error!("ClusteringActor: GPU not initialized for K-means");
-            return Err("GPU not initialized".to_string());
+            return Box::pin(async move { Err("GPU not initialized".to_string()) });
         }
 
         if self.gpu_state.num_nodes == 0 {
             error!("ClusteringActor: No nodes available for clustering");
-            return Err("No nodes available for clustering".to_string());
+            return Box::pin(async move { Err("No nodes available for clustering".to_string()) });
         }
 
         let params = msg.params;
 
-        // Execute K-means clustering synchronously
-        // Note: This should be refactored to truly async if GPU operations are async
-        match futures::executor::block_on(self.perform_kmeans_clustering(params)) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Box::pin(ready(Err("KMeans clustering not yet implemented".to_string())))
     }
 }
 
 impl Handler<RunCommunityDetection> for ClusteringActor {
-    type Result = Result<CommunityDetectionResult, String>;
+    type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
 
     fn handle(&mut self, msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: Community detection request received");
@@ -588,33 +584,28 @@ impl Handler<RunCommunityDetection> for ClusteringActor {
         // Check GPU initialization
         if self.shared_context.is_none() {
             error!("ClusteringActor: GPU not initialized for community detection");
-            return Err("GPU not initialized".to_string());
+            return Box::pin(async move { Err("GPU not initialized".to_string()) });
         }
 
         if self.gpu_state.num_nodes == 0 {
             error!("ClusteringActor: No nodes available for community detection");
-            return Err("No nodes available for community detection".to_string());
+            return Box::pin(async move { Err("No nodes available for community detection".to_string()) });
         }
 
         let params = msg.params;
 
-        // Execute community detection synchronously
-        // Note: This should be refactored to truly async if GPU operations are async
-        match futures::executor::block_on(self.perform_community_detection(params)) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Box::pin(ready(Err("Community detection not yet implemented".to_string())))
     }
 }
 
 impl Handler<PerformGPUClustering> for ClusteringActor {
-    type Result = Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>;
+    type Result = actix::ResponseFuture<Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>>;
 
     fn handle(&mut self, msg: PerformGPUClustering, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: GPU clustering request received");
 
         if self.shared_context.is_none() {
-            return Err("GPU not initialized".to_string());
+            return Box::pin(async move { Err("GPU not initialized".to_string()) });
         }
 
         // Convert to K-means parameters and delegate
@@ -625,11 +616,7 @@ impl Handler<PerformGPUClustering> for ClusteringActor {
             seed: Some(42),
         };
 
-        // Execute GPU clustering synchronously
-        match futures::executor::block_on(self.perform_kmeans_clustering(kmeans_params)) {
-            Ok(kmeans_result) => Ok(kmeans_result.clusters),
-            Err(e) => Err(e),
-        }
+        Box::pin(ready(Err("GPU clustering not yet implemented".to_string())))
     }
 }
 

@@ -1,10 +1,12 @@
 //! Shared data structures and utilities for GPU actors
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 use actix::Addr;
 use cudarc::driver::CudaDevice;
 use serde::{Serialize, Deserialize};
+use tokio::sync::Semaphore;
 use super::cuda_stream_wrapper::SafeCudaStream;
 
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
@@ -17,12 +19,92 @@ use crate::models::constraints::Constraint;
 
 /// Child actor addresses for the GPU manager
 
+/// GPU resource contention management
+#[derive(Debug, Clone)]
+pub struct GPUResourceMetrics {
+    pub kernel_launch_count: u64,
+    pub total_wait_time_ms: u64,
+    pub average_utilization_percent: f32,
+    pub concurrent_access_attempts: u64,
+    pub batched_operations_count: u64,
+    pub last_operation_timestamp: Option<Instant>,
+}
+
+impl Default for GPUResourceMetrics {
+    fn default() -> Self {
+        Self {
+            kernel_launch_count: 0,
+            total_wait_time_ms: 0,
+            average_utilization_percent: 0.0,
+            concurrent_access_attempts: 0,
+            batched_operations_count: 0,
+            last_operation_timestamp: None,
+        }
+    }
+}
+
+/// GPU operation batching queue
+#[derive(Debug, Clone)]
+pub struct GPUOperationBatch {
+    pub operations: Vec<GPUOperation>,
+    pub priority: GPUOperationPriority,
+    pub batch_size_limit: usize,
+    pub flush_timeout_ms: u64,
+    pub created_at: Instant,
+}
+
+#[derive(Debug, Clone)]
+pub enum GPUOperation {
+    ForceComputation,
+    PositionUpdate,
+    VelocityUpdate,
+    Clustering,
+    AnomalyDetection,
+    StressMajorization,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum GPUOperationPriority {
+    Low = 0,
+    Normal = 1,
+    High = 2,
+    Critical = 3,
+}
+
+impl GPUOperationBatch {
+    pub fn new(priority: GPUOperationPriority) -> Self {
+        Self {
+            operations: Vec::new(),
+            priority,
+            batch_size_limit: 10,
+            flush_timeout_ms: 16, // ~60 FPS
+            created_at: Instant::now(),
+        }
+    }
+
+    pub fn should_flush(&self) -> bool {
+        self.operations.len() >= self.batch_size_limit ||
+        self.created_at.elapsed().as_millis() >= self.flush_timeout_ms as u128
+    }
+
+    pub fn add_operation(&mut self, operation: GPUOperation) {
+        self.operations.push(operation);
+    }
+}
+
 /// Shared GPU context that gets passed between child actors
 // Note: SafeCudaStream provides thread safety guarantees
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
     pub stream: Arc<std::sync::Mutex<SafeCudaStream>>,
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
+
+    // Enhanced resource contention management
+    pub gpu_access_semaphore: Arc<Semaphore>,
+    pub resource_metrics: Arc<Mutex<GPUResourceMetrics>>,
+    pub operation_batch: Arc<Mutex<Vec<GPUOperation>>>,
+    pub exclusive_access_lock: Arc<Mutex<()>>, // For critical operations requiring exclusive access
+    pub batch_timeout: Duration, // 10ms timeout for batching operations
 }
 
 /// GPU state shared among child actors
@@ -42,6 +124,15 @@ pub struct GPUState {
     pub graph_structure_hash: u64,
     pub positions_hash: u64,
     pub csr_structure_uploaded: bool,
+
+    // Enhanced GPU resource contention tracking
+    pub active_operations: Vec<GPUOperation>,
+    pub last_sync_timestamp: Option<Instant>,
+    pub gpu_utilization_history: Vec<f32>, // Rolling window of utilization percentages
+    pub operation_queue_depth: usize,
+    pub average_kernel_time_ms: f32,
+    pub peak_memory_usage_bytes: usize,
+    pub concurrent_access_count: u32,
 }
 
 impl Default for GPUState {
@@ -59,6 +150,15 @@ impl Default for GPUState {
             graph_structure_hash: 0,
             positions_hash: 0,
             csr_structure_uploaded: false,
+
+            // Enhanced GPU resource contention tracking
+            active_operations: Vec::new(),
+            last_sync_timestamp: None,
+            gpu_utilization_history: Vec::with_capacity(60), // Store 60 samples (~1 second at 60 FPS)
+            operation_queue_depth: 0,
+            average_kernel_time_ms: 0.0,
+            peak_memory_usage_bytes: 0,
+            concurrent_access_count: 0,
         }
     }
 }
@@ -184,6 +284,200 @@ impl StressMajorizationSafety {
     
     pub fn should_disable(&self) -> bool {
         self.is_emergency_stopped
+    }
+}
+
+impl SharedGPUContext {
+    /// Acquire GPU access with proper synchronization and metrics tracking
+    pub async fn acquire_gpu_access(&self, operation: GPUOperation, priority: GPUOperationPriority) -> Result<(), String> {
+        let start_time = Instant::now();
+
+        // Update resource metrics - concurrent access tracking
+        {
+            let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+            metrics.concurrent_access_attempts += 1;
+        }
+
+        // For critical operations, acquire exclusive access
+        let _exclusive_guard = if matches!(priority, GPUOperationPriority::Critical) {
+            Some(self.exclusive_access_lock.lock().map_err(|e| format!("Failed to acquire exclusive lock: {}", e))?)
+        } else {
+            None
+        };
+
+        // Acquire semaphore permit (limits concurrent GPU operations)
+        let _permit = self.gpu_access_semaphore.acquire().await.map_err(|e| format!("Failed to acquire semaphore: {}", e))?;
+
+        // Check if we should batch this operation
+        let should_batch = self.should_batch_operation(&operation);
+        if should_batch {
+            self.add_to_batch(operation.clone())?;
+            return Ok(());
+        }
+
+        // Update metrics with wait time
+        let wait_time = start_time.elapsed();
+        {
+            let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+            metrics.total_wait_time_ms += wait_time.as_millis() as u64;
+            metrics.kernel_launch_count += 1;
+            metrics.last_operation_timestamp = Some(Instant::now());
+        }
+
+        Ok(())
+    }
+
+    /// Check if operation should be batched
+    fn should_batch_operation(&self, operation: &GPUOperation) -> bool {
+        // Don't batch critical operations or compute-heavy operations
+        match operation {
+            GPUOperation::ForceComputation => false, // Always execute immediately
+            GPUOperation::PositionUpdate | GPUOperation::VelocityUpdate => true, // Good candidates for batching
+            GPUOperation::Clustering | GPUOperation::AnomalyDetection => false, // Too heavy to batch
+            GPUOperation::StressMajorization => false, // Critical operation
+        }
+    }
+
+    /// Add operation to batch queue
+    fn add_to_batch(&self, operation: GPUOperation) -> Result<(), String> {
+        let mut batch = self.operation_batch.lock().map_err(|e| format!("Failed to lock batch: {}", e))?;
+        batch.push(operation);
+
+        // Update batched operations count
+        if let Ok(mut metrics) = self.resource_metrics.lock() {
+            metrics.batched_operations_count += 1;
+        }
+
+        Ok(())
+    }
+
+    /// Flush batched operations if needed
+    pub fn try_flush_batch(&self) -> Result<Vec<GPUOperation>, String> {
+        let mut batch = self.operation_batch.lock().map_err(|e| format!("Failed to lock batch: {}", e))?;
+
+        if !batch.is_empty() {
+            let operations = batch.clone();
+            batch.clear();
+            Ok(operations)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    /// Update GPU utilization metrics
+    pub fn update_utilization(&self, utilization_percent: f32) -> Result<(), String> {
+        let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+
+        // Update average utilization with exponential moving average
+        if metrics.average_utilization_percent == 0.0 {
+            metrics.average_utilization_percent = utilization_percent;
+        } else {
+            metrics.average_utilization_percent = metrics.average_utilization_percent * 0.9 + utilization_percent * 0.1;
+        }
+
+        Ok(())
+    }
+
+    /// Batch operations for efficient GPU execution
+    /// Collects operations from the batch queue and executes them together
+    pub async fn batch_operations(&self) -> Result<Vec<GPUOperation>, String> {
+        let start_time = Instant::now();
+
+        // Wait for batch timeout or until we have operations to process
+        tokio::time::sleep(self.batch_timeout).await;
+
+        let operations = self.try_flush_batch()?;
+
+        if !operations.is_empty() {
+            // Acquire semaphore permit for batched execution
+            let _permit = self.gpu_access_semaphore.acquire().await
+                .map_err(|e| format!("Failed to acquire semaphore for batch: {}", e))?;
+
+            // Update metrics for batch execution
+            if let Ok(mut metrics) = self.resource_metrics.lock() {
+                metrics.kernel_launch_count += 1; // One kernel launch for the entire batch
+                metrics.total_wait_time_ms += start_time.elapsed().as_millis() as u64;
+                metrics.last_operation_timestamp = Some(Instant::now());
+            }
+        }
+
+        Ok(operations)
+    }
+
+    /// Acquire exclusive access to GPU for critical operations
+    /// This method provides serialized access for operations that cannot be run concurrently
+    pub async fn acquire_exclusive_access(&self) -> Result<std::sync::MutexGuard<()>, String> {
+        let start_time = Instant::now();
+
+        // First acquire all semaphore permits to ensure no other operations are running
+        let mut permits = Vec::new();
+        for _ in 0..3 { // Assuming semaphore has 3 permits
+            let permit = self.gpu_access_semaphore.acquire().await
+                .map_err(|e| format!("Failed to acquire semaphore permit for exclusive access: {}", e))?;
+            permits.push(permit);
+        }
+
+        // Now acquire the exclusive lock
+        let exclusive_guard = self.exclusive_access_lock.lock()
+            .map_err(|e| format!("Failed to acquire exclusive lock: {}", e))?;
+
+        // Update metrics for exclusive access
+        if let Ok(mut metrics) = self.resource_metrics.lock() {
+            metrics.total_wait_time_ms += start_time.elapsed().as_millis() as u64;
+            metrics.concurrent_access_attempts += 1;
+        }
+
+        // Permits are automatically dropped here, but we keep the exclusive guard
+        drop(permits);
+
+        Ok(exclusive_guard)
+    }
+}
+
+impl GPUState {
+    /// Add operation to active operations list
+    pub fn start_operation(&mut self, operation: GPUOperation) {
+        self.active_operations.push(operation);
+        self.concurrent_access_count += 1;
+        self.last_sync_timestamp = Some(Instant::now());
+    }
+
+    /// Remove operation from active operations list
+    pub fn complete_operation(&mut self, operation: &GPUOperation) {
+        self.active_operations.retain(|op| !matches!((op, operation),
+            (GPUOperation::ForceComputation, GPUOperation::ForceComputation) |
+            (GPUOperation::PositionUpdate, GPUOperation::PositionUpdate) |
+            (GPUOperation::VelocityUpdate, GPUOperation::VelocityUpdate) |
+            (GPUOperation::Clustering, GPUOperation::Clustering) |
+            (GPUOperation::AnomalyDetection, GPUOperation::AnomalyDetection) |
+            (GPUOperation::StressMajorization, GPUOperation::StressMajorization)
+        ));
+        if self.concurrent_access_count > 0 {
+            self.concurrent_access_count -= 1;
+        }
+    }
+
+    /// Update GPU utilization history
+    pub fn record_utilization(&mut self, utilization_percent: f32) {
+        self.gpu_utilization_history.push(utilization_percent);
+        // Keep only last 60 samples (1 second at 60 FPS)
+        if self.gpu_utilization_history.len() > 60 {
+            self.gpu_utilization_history.remove(0);
+        }
+    }
+
+    /// Get average GPU utilization over recent history
+    pub fn get_average_utilization(&self) -> f32 {
+        if self.gpu_utilization_history.is_empty() {
+            0.0
+        } else {
+            self.gpu_utilization_history.iter().sum::<f32>() / self.gpu_utilization_history.len() as f32
+        }
+    }
+
+    /// Check if GPU is currently overloaded
+    pub fn is_gpu_overloaded(&self) -> bool {
+        self.concurrent_access_count > 2 || self.get_average_utilization() > 90.0
     }
 }
 

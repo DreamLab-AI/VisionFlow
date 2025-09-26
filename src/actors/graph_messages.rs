@@ -107,6 +107,44 @@ pub struct AddNodesFromMetadata {
     pub metadata: Vec<FileMetadata>,
 }
 
+/// Batch message for adding multiple nodes efficiently
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct BatchAddNodes {
+    pub nodes: Vec<Node>,
+}
+
+/// Batch message for adding multiple edges efficiently
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct BatchAddEdges {
+    pub edges: Vec<Edge>,
+}
+
+/// Batch message for mixed node and edge operations
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct BatchGraphUpdate {
+    pub nodes: Vec<Node>,
+    pub edges: Vec<Edge>,
+    pub remove_node_ids: Vec<u32>,
+    pub remove_edge_ids: Vec<String>,
+}
+
+/// Message to flush pending queue operations
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct FlushUpdateQueue;
+
+/// Message to configure queue parameters
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureUpdateQueue {
+    pub max_operations: usize,
+    pub flush_interval_ms: u64,
+    pub enable_auto_flush: bool,
+}
+
 /// Message for updating a node from metadata
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
@@ -337,6 +375,11 @@ pub enum GraphStateMessages {
     UpdateBotsGraph(UpdateBotsGraph),
     GetBotsGraphData(GetBotsGraphData),
     ComputeShortestPaths(ComputeShortestPaths),
+    BatchAddNodes(BatchAddNodes),
+    BatchAddEdges(BatchAddEdges),
+    BatchGraphUpdate(BatchGraphUpdate),
+    FlushUpdateQueue(FlushUpdateQueue),
+    ConfigureUpdateQueue(ConfigureUpdateQueue),
 }
 
 /// Response types for graph state operations

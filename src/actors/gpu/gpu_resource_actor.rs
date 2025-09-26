@@ -344,6 +344,13 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                     device: device.clone(),
                                     stream: Arc::new(std::sync::Mutex::new(safe_stream)),
                                     unified_compute: Arc::new(std::sync::Mutex::new(compute)),
+
+                                    // Enhanced resource contention management
+                                    gpu_access_semaphore: Arc::new(tokio::sync::Semaphore::new(3)), // Allow 3 concurrent operations
+                                    resource_metrics: Arc::new(std::sync::Mutex::new(super::shared::GPUResourceMetrics::default())),
+                                    operation_batch: Arc::new(std::sync::Mutex::new(Vec::new())),
+                                    exclusive_access_lock: Arc::new(std::sync::Mutex::new(())),
+                                    batch_timeout: std::time::Duration::from_millis(10),
                                 });
 
                                 info!("Created SharedGPUContext - distributing to GPU actors");
