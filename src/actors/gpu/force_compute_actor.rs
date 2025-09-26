@@ -7,11 +7,13 @@ use std::time::Instant;
 use std::sync::Arc;
 
 use crate::actors::messages::*;
+use crate::actors::graph_actor::GraphServiceActor;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState};
+use glam::Vec3;
 
 /// Physics statistics for reporting
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,6 +72,9 @@ pub struct ForceComputeActor {
 
     /// Stability gate iteration counter (resets on reheat)
     stability_iterations: u32,
+
+    /// Reference to GraphServiceActor for position updates
+    graph_service_addr: Option<Addr<GraphServiceActor>>,
 }
 
 impl ForceComputeActor {
@@ -86,6 +91,7 @@ impl ForceComputeActor {
             skipped_frames: 0,
             reheat_factor: 0.0,
             stability_iterations: 0,
+            graph_service_addr: None,
         }
     }
     
@@ -241,6 +247,30 @@ impl ForceComputeActor {
                         .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)));
 
                         logger.log_event(event);
+                    }
+                }
+
+                // Download positions from GPU and send to GraphServiceActor
+                // This is critical for client updates!
+                if iteration % 1 == 0 { // Send every frame for smooth animation
+                    if let Ok((pos_x, pos_y, pos_z)) = unified_compute.get_node_positions() {
+                        // Convert to format expected by GraphServiceActor
+                        let mut positions = Vec::new();
+                        for i in 0..pos_x.len() {
+                            positions.push(glam::Vec3::new(pos_x[i], pos_y[i], pos_z[i]));
+                        }
+
+                        // Send positions to GraphServiceActor for client broadcast
+                        if let Some(ref graph_addr) = self.graph_service_addr {
+                            graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                positions
+                            });
+
+                            if iteration % 60 == 0 {
+                                info!("ForceComputeActor: Sent {} node positions to GraphServiceActor",
+                                      positions.len());
+                            }
+                        }
                     }
                 }
 
@@ -481,13 +511,32 @@ impl Handler<ComputeForces> for ForceComputeActor {
 
 impl Handler<UpdateSimulationParams> for ForceComputeActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: UpdateSimulationParams received");
         info!("  New params - spring_k: {:.3}, repel_k: {:.3}, damping: {:.3}",
               msg.params.spring_k, msg.params.repel_k, msg.params.damping);
-        
+
+        // Update the simulation parameters
         self.update_simulation_parameters(msg.params);
+
+        // Reset iteration count to restart stability gate
+        // The CUDA kernel checks iteration % 600 for stability logging
+        // By resetting, we ensure physics continues for at least 600 iterations
+        let previous_iteration = self.gpu_state.iteration_count;
+        self.gpu_state.iteration_count = 0;
+
+        // Reset our local stability counter
+        self.stability_iterations = 0;
+
+        // Set a small reheat factor to add slight perturbation
+        // This will be used to slightly increase velocities if implemented
+        self.reheat_factor = 0.3;
+
+        info!("ForceComputeActor: Reset iteration counter from {} to 0 to restart physics",
+              previous_iteration);
+        info!("ForceComputeActor: Stability gate will allow physics to run for at least 600 iterations");
+
         Ok(())
     }
 }
@@ -587,14 +636,20 @@ impl Handler<InitializeGPU> for ForceComputeActor {
     
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: InitializeGPU received");
-        
+
         // Store graph data dimensions
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
-        
-        info!("ForceComputeActor: GPU initialized with {} nodes, {} edges", 
+
+        // Store GraphServiceActor address for position updates
+        if msg.graph_service_addr.is_some() {
+            self.graph_service_addr = msg.graph_service_addr;
+            info!("ForceComputeActor: GraphServiceActor address stored for position updates");
+        }
+
+        info!("ForceComputeActor: GPU initialized with {} nodes, {} edges",
               self.gpu_state.num_nodes, self.gpu_state.num_edges);
-        
+
         Ok(())
     }
 }
@@ -780,33 +835,3 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
     }
 }
 
-/// Handler for updating simulation parameters with automatic reheat
-impl Handler<UpdateSimulationParams> for ForceComputeActor {
-    type Result = Result<(), String>;
-
-    fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ForceComputeActor: Received updated simulation parameters");
-
-        // Update the simulation parameters
-        self.simulation_params = msg.params;
-
-        // Reset iteration count to restart stability gate
-        // The CUDA kernel checks iteration % 600 for stability logging
-        // By resetting, we ensure physics continues for at least 600 iterations
-        let previous_iteration = self.gpu_state.iteration_count;
-        self.gpu_state.iteration_count = 0;
-
-        // Reset our local stability counter
-        self.stability_iterations = 0;
-
-        // Set a small reheat factor to add slight perturbation
-        // This will be used to slightly increase velocities if implemented
-        self.reheat_factor = 0.3;
-
-        info!("ForceComputeActor: Parameters updated, reset iteration counter from {} to 0 to restart physics",
-              previous_iteration);
-        info!("ForceComputeActor: Stability gate will allow physics to run for at least 600 iterations");
-
-        Ok(())
-    }
-}
