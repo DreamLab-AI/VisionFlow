@@ -4,6 +4,7 @@ use actix_web::web;
 use log::info;
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
+use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::gpu;
 use cudarc::driver::CudaDevice;
 use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
@@ -29,6 +30,7 @@ pub struct AppState {
     pub client_manager_addr: Addr<ClientManagerActor>,
     pub claude_flow_addr: Addr<ClaudeFlowActor>,
     pub workspace_addr: Addr<WorkspaceActor>,
+    pub ontology_actor_addr: Addr<OntologyActor>,
     pub github_client: Arc<GitHubClient>,
     pub content_api: Arc<ContentAPI>,
     pub perplexity_service: Option<Arc<PerplexityService>>,
@@ -151,6 +153,9 @@ impl AppState {
         info!("[AppState::new] Starting WorkspaceActor");
         let workspace_addr = WorkspaceActor::new().start();
 
+        info!("[AppState::new] Starting OntologyActor");
+        let ontology_actor_addr = OntologyActor::new().start();
+
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
@@ -185,6 +190,7 @@ impl AppState {
             client_manager_addr,
             claude_flow_addr,
             workspace_addr,
+            ontology_actor_addr,
             github_client,
             content_api,
             perplexity_service,
@@ -278,5 +284,9 @@ impl AppState {
 
     pub fn get_workspace_addr(&self) -> &Addr<WorkspaceActor> {
         &self.workspace_addr
+    }
+
+    pub fn get_ontology_actor_addr(&self) -> &Addr<OntologyActor> {
+        &self.ontology_actor_addr
     }
 }

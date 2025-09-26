@@ -4,6 +4,7 @@ pub mod visualisation;
 pub mod bots;
 pub mod analytics;
 pub mod quest3;
+pub mod ontology;
 
 // Re-export specific types and functions
 // Re-export specific types and functions
@@ -40,5 +41,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
             .configure(crate::handlers::constraints_handler::config)
+            .configure(ontology::config)
     );
 }

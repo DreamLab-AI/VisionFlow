@@ -1,0 +1,283 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix test: <http://example.org/test/ontology#> .
+
+# Ontology Declaration
+<http://example.org/test/ontology> rdf:type owl:Ontology ;
+    rdfs:label "Test Ontology for Graph Validation"@en ;
+    rdfs:comment "A sample ontology for testing graph validation, containing Person and Company classes with employment relationships."@en ;
+    owl:versionInfo "1.0.0" .
+
+# Classes
+
+## Person Class
+test:Person rdf:type owl:Class ;
+    rdfs:label "Person"@en ;
+    rdfs:comment "Represents a human individual with employment relationships"@en ;
+    rdfs:subClassOf foaf:Person .
+
+## Company Class
+test:Company rdf:type owl:Class ;
+    rdfs:label "Company"@en ;
+    rdfs:comment "Represents a business organisation that can employ people"@en ;
+    rdfs:subClassOf org:Organization .
+
+## Department Class (for more complex testing)
+test:Department rdf:type owl:Class ;
+    rdfs:label "Department"@en ;
+    rdfs:comment "A subdivision within a company"@en ;
+    rdfs:subClassOf org:OrganizationalUnit .
+
+# Disjoint Classes Declaration
+# This ensures that a Person cannot be a Company and vice versa
+test:Person owl:disjointWith test:Company .
+test:Person owl:disjointWith test:Department .
+test:Company owl:disjointWith test:Department .
+
+# Object Properties
+
+## Employment relationship (bidirectional)
+test:employs rdf:type owl:ObjectProperty ;
+    rdfs:label "employs"@en ;
+    rdfs:comment "Indicates that a company employs a person"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range test:Person .
+
+test:worksFor rdf:type owl:ObjectProperty ;
+    rdfs:label "works for"@en ;
+    rdfs:comment "Indicates that a person works for a company"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range test:Company ;
+    owl:inverseOf test:employs .
+
+## Department relationships
+test:hasDepartment rdf:type owl:ObjectProperty ;
+    rdfs:label "has department"@en ;
+    rdfs:comment "Indicates that a company has a department"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range test:Department .
+
+test:belongsTo rdf:type owl:ObjectProperty ;
+    rdfs:label "belongs to"@en ;
+    rdfs:comment "Indicates that a department belongs to a company"@en ;
+    rdfs:domain test:Department ;
+    rdfs:range test:Company ;
+    owl:inverseOf test:hasDepartment .
+
+test:worksInDepartment rdf:type owl:ObjectProperty ;
+    rdfs:label "works in department"@en ;
+    rdfs:comment "Indicates that a person works in a specific department"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range test:Department .
+
+## Colleague relationship (symmetric)
+test:colleagueOf rdf:type owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:label "colleague of"@en ;
+    rdfs:comment "Indicates that two people are colleagues (symmetric relationship)"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range test:Person .
+
+# Data Properties
+
+## Person properties
+test:hasName rdf:type owl:DatatypeProperty ;
+    rdfs:label "has name"@en ;
+    rdfs:comment "The full name of a person"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range xsd:string .
+
+test:hasAge rdf:type owl:DatatypeProperty ;
+    rdfs:label "has age"@en ;
+    rdfs:comment "The age of a person in years"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range xsd:int .
+
+test:hasEmail rdf:type owl:DatatypeProperty ;
+    rdfs:label "has email"@en ;
+    rdfs:comment "The email address of a person"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range xsd:string .
+
+test:hasEmployeeId rdf:type owl:DatatypeProperty ;
+    rdfs:label "has employee ID"@en ;
+    rdfs:comment "The unique employee identifier"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range xsd:string .
+
+test:hasSalary rdf:type owl:DatatypeProperty ;
+    rdfs:label "has salary"@en ;
+    rdfs:comment "The annual salary of a person"@en ;
+    rdfs:domain test:Person ;
+    rdfs:range xsd:decimal .
+
+## Company properties
+test:hasCompanyName rdf:type owl:DatatypeProperty ;
+    rdfs:label "has company name"@en ;
+    rdfs:comment "The official name of a company"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range xsd:string .
+
+test:hasIndustry rdf:type owl:DatatypeProperty ;
+    rdfs:label "has industry"@en ;
+    rdfs:comment "The industry sector of a company"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range xsd:string .
+
+test:hasEmployeeCount rdf:type owl:DatatypeProperty ;
+    rdfs:label "has employee count"@en ;
+    rdfs:comment "The total number of employees"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range xsd:int .
+
+test:hasRevenue rdf:type owl:DatatypeProperty ;
+    rdfs:label "has revenue"@en ;
+    rdfs:comment "The annual revenue of a company"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range xsd:decimal .
+
+test:hasFoundedYear rdf:type owl:DatatypeProperty ;
+    rdfs:label "has founded year"@en ;
+    rdfs:comment "The year the company was founded"@en ;
+    rdfs:domain test:Company ;
+    rdfs:range xsd:gYear .
+
+## Department properties
+test:hasDepartmentName rdf:type owl:DatatypeProperty ;
+    rdfs:label "has department name"@en ;
+    rdfs:comment "The name of a department"@en ;
+    rdfs:domain test:Department ;
+    rdfs:range xsd:string .
+
+test:hasBudget rdf:type owl:DatatypeProperty ;
+    rdfs:label "has budget"@en ;
+    rdfs:comment "The annual budget of a department"@en ;
+    rdfs:domain test:Department ;
+    rdfs:range xsd:decimal .
+
+# Constraints and Rules
+
+## Cardinality restrictions
+test:Person rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty test:hasName ;
+    owl:cardinality 1
+] .
+
+test:Person rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty test:hasAge ;
+    owl:maxCardinality 1
+] .
+
+test:Company rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty test:hasCompanyName ;
+    owl:cardinality 1
+] .
+
+## Value restrictions
+test:Person rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty test:hasAge ;
+    owl:someValuesFrom [
+        rdf:type rdfs:Datatype ;
+        owl:onDatatype xsd:int ;
+        owl:withRestrictions (
+            [xsd:minInclusive 0]
+            [xsd:maxInclusive 120]
+        )
+    ]
+] .
+
+test:Company rdfs:subClassOf [
+    rdf:type owl:Restriction ;
+    owl:onProperty test:hasEmployeeCount ;
+    owl:someValuesFrom [
+        rdf:type rdfs:Datatype ;
+        owl:onDatatype xsd:int ;
+        owl:withRestrictions (
+            [xsd:minInclusive 1]
+        )
+    ]
+] .
+
+# Test Instances (for validation testing)
+
+## Sample Persons
+test:john_smith rdf:type test:Person ;
+    test:hasName "John Smith" ;
+    test:hasAge 35 ;
+    test:hasEmail "john.smith@acmecorp.com" ;
+    test:hasEmployeeId "EMP001" ;
+    test:hasSalary 75000.00 .
+
+test:jane_doe rdf:type test:Person ;
+    test:hasName "Jane Doe" ;
+    test:hasAge 28 ;
+    test:hasEmail "jane.doe@acmecorp.com" ;
+    test:hasEmployeeId "EMP002" ;
+    test:hasSalary 82000.00 .
+
+test:bob_johnson rdf:type test:Person ;
+    test:hasName "Bob Johnson" ;
+    test:hasAge 42 ;
+    test:hasEmail "bob.johnson@techstart.com" ;
+    test:hasEmployeeId "TS001" ;
+    test:hasSalary 95000.00 .
+
+## Sample Companies
+test:acme_corp rdf:type test:Company ;
+    test:hasCompanyName "ACME Corporation" ;
+    test:hasIndustry "Manufacturing" ;
+    test:hasEmployeeCount 500 ;
+    test:hasRevenue 50000000.00 ;
+    test:hasFoundedYear "1985"^^xsd:gYear .
+
+test:tech_startup rdf:type test:Company ;
+    test:hasCompanyName "TechStart Inc." ;
+    test:hasIndustry "Technology" ;
+    test:hasEmployeeCount 50 ;
+    test:hasRevenue 5000000.00 ;
+    test:hasFoundedYear "2018"^^xsd:gYear .
+
+## Sample Departments
+test:engineering_dept rdf:type test:Department ;
+    test:hasDepartmentName "Engineering" ;
+    test:hasBudget 2000000.00 ;
+    test:belongsTo test:acme_corp .
+
+test:marketing_dept rdf:type test:Department ;
+    test:hasDepartmentName "Marketing" ;
+    test:hasBudget 1000000.00 ;
+    test:belongsTo test:acme_corp .
+
+test:dev_dept rdf:type test:Department ;
+    test:hasDepartmentName "Development" ;
+    test:hasBudget 800000.00 ;
+    test:belongsTo test:tech_startup .
+
+# Employment Relationships
+test:john_smith test:worksFor test:acme_corp .
+test:jane_doe test:worksFor test:acme_corp .
+test:bob_johnson test:worksFor test:tech_startup .
+
+test:acme_corp test:employs test:john_smith .
+test:acme_corp test:employs test:jane_doe .
+test:tech_startup test:employs test:bob_johnson .
+
+# Department relationships
+test:acme_corp test:hasDepartment test:engineering_dept .
+test:acme_corp test:hasDepartment test:marketing_dept .
+test:tech_startup test:hasDepartment test:dev_dept .
+
+test:john_smith test:worksInDepartment test:engineering_dept .
+test:jane_doe test:worksInDepartment test:marketing_dept .
+test:bob_johnson test:worksInDepartment test:dev_dept .
+
+# Colleague relationships
+test:john_smith test:colleagueOf test:jane_doe .
+test:jane_doe test:colleagueOf test:john_smith .

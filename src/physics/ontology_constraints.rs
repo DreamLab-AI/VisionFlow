@@ -40,14 +40,12 @@
 
 use std::collections::{HashMap, HashSet};
 use log::{info, debug, trace, warn};
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind, AdvancedParams},
+    constraints::{Constraint, ConstraintSet, ConstraintKind},
     graph::GraphData,
     node::Node,
-    metadata::MetadataStore,
 };
 
 /// Types of OWL axioms that can be translated to physics constraints
@@ -217,36 +215,25 @@ impl OntologyConstraintTranslator {
 
         let mut constraints = Vec::new();
 
-        // Process inferences in parallel for better performance
-        let inference_constraints: Result<Vec<Vec<Constraint>>, _> = inferences
-            .par_iter()
-            .map(|inference| {
-                let mut inference_constraints = self.axioms_to_constraints(
-                    &[inference.inferred_axiom.clone()],
-                    &graph.nodes,
-                )?;
+        // Process inferences sequentially to avoid thread safety issues
+        let mut inference_constraints = Vec::new();
 
-                // Adjust constraint weights based on inference confidence
-                for constraint in &mut inference_constraints {
-                    constraint.weight *= inference.reasoning_confidence;
-                }
+        for inference in inferences {
+            let mut single_inference_constraints = self.axioms_to_constraints(
+                &[inference.inferred_axiom.clone()],
+                &graph.nodes,
+            )?;
 
-                Ok(inference_constraints)
-            })
-            .collect();
-
-        match inference_constraints {
-            Ok(constraint_batches) => {
-                for mut batch in constraint_batches {
-                    constraints.append(&mut batch);
-                }
+            // Adjust constraint weights based on inference confidence
+            for constraint in &mut single_inference_constraints {
+                constraint.weight *= inference.reasoning_confidence;
             }
-            Err(e) => {
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to process inferences: {}", e)
-                )));
-            }
+
+            inference_constraints.push(single_inference_constraints);
+        }
+
+        for mut batch in inference_constraints {
+            constraints.append(&mut batch);
         }
 
         info!("Generated {} constraints from {} inferences", constraints.len(), inferences.len());
@@ -277,21 +264,23 @@ impl OntologyConstraintTranslator {
         )?;
         all_constraints.append(&mut inference_constraints);
 
-        // Group constraints by category
-        let grouped_constraints = self.group_constraints_by_category(&all_constraints);
-
-        // Create constraint set with advanced parameters
-        let constraint_set = ConstraintSet {
+        // Create constraint set with groups
+        let mut constraint_set = ConstraintSet {
             constraints: all_constraints,
-            advanced_params: Some(AdvancedParams {
-                iterations: 100,
-                convergence_threshold: 0.001,
-                step_size: 0.1,
-                damping_factor: 0.95,
-                adaptive_step: true,
-                parallel_processing: true,
-            }),
+            groups: std::collections::HashMap::new(),
         };
+
+        // Group constraints by category
+        let grouped_constraints = self.group_constraints_by_category(&constraint_set.constraints);
+        for (group, indices) in grouped_constraints {
+            let group_name = match group {
+                OntologyConstraintGroup::OntologySeparation => "ontology_separation",
+                OntologyConstraintGroup::OntologyAlignment => "ontology_alignment",
+                OntologyConstraintGroup::OntologyBoundaries => "ontology_boundaries",
+                OntologyConstraintGroup::OntologyIdentity => "ontology_identity",
+            };
+            constraint_set.groups.insert(group_name.to_string(), indices);
+        }
 
         info!("Applied {} total ontology constraints", constraint_set.constraints.len());
         Ok(constraint_set)
@@ -508,7 +497,7 @@ impl OntologyConstraintTranslator {
         &self,
         axiom: &OWLAxiom,
         node_lookup: &HashMap<String, &Node>,
-        strength: f32,
+        _strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let object = axiom.object.as_ref().ok_or("DifferentFrom axiom missing object")?;
 
@@ -572,9 +561,9 @@ impl OntologyConstraintTranslator {
     /// Create bidirectional constraints for inverse properties
     fn create_inverse_property_constraints(
         &self,
-        axiom: &OWLAxiom,
-        node_lookup: &HashMap<String, &Node>,
-        strength: f32,
+        _axiom: &OWLAxiom,
+        _node_lookup: &HashMap<String, &Node>,
+        _strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         // Inverse properties create symmetric relationships
         // This might require edge information which we don't have direct access to
@@ -610,7 +599,7 @@ impl OntologyConstraintTranslator {
 
         let count = nodes.len() as f32;
         let sum = nodes.iter().fold((0.0, 0.0, 0.0), |acc, node| {
-            let pos = &node.data.position;
+            let pos = node.data.position();
             (acc.0 + pos.x, acc.1 + pos.y, acc.2 + pos.z)
         });
 

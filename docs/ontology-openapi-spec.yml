@@ -1,0 +1,876 @@
+openapi: 3.0.0
+info:
+  title: Ontology Validation API
+  version: 1.0.0
+  description: |
+    The Ontology Validation API provides semantic validation and reasoning capabilities for knowledge graphs.
+    It enables loading OWL ontologies, performing consistency checks, generating inferences, and translating
+    logical constraints into physics forces for graph visualization.
+
+    ## Key Features
+    - Load ontologies from files, URLs, or direct content
+    - Perform validation with different modes (quick, full, incremental)
+    - Real-time updates via WebSocket connections
+    - Automatic inference generation and application
+    - Physics constraint translation for semantic visualization
+    - Comprehensive error reporting and diagnostics
+
+  contact:
+    name: WebXR Team
+    url: https://github.com/webxr-project
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /api/ontology
+    description: Ontology validation endpoints
+
+paths:
+  /load-axioms:
+    post:
+      summary: Load Ontology Axioms
+      description: |
+        Load ontology axioms from various sources including files, URLs, or direct content.
+        Supports multiple formats including OWL, Turtle, and RDF/XML.
+      operationId: loadOntologyAxioms
+      tags:
+        - Ontology Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoadAxiomsRequest'
+            examples:
+              file_source:
+                summary: Load from file
+                value:
+                  source: "/ontologies/domain.owl"
+                  format: "rdf-xml"
+                  validateImmediately: true
+              url_source:
+                summary: Load from URL
+                value:
+                  source: "https://www.w3.org/2006/vcard/ns-2006.rdf"
+                  format: "rdf-xml"
+              direct_content:
+                summary: Direct content
+                value:
+                  source: "@prefix ex: <http://example.org/> . ex:Person a owl:Class ."
+                  format: "turtle"
+      responses:
+        '200':
+          description: Ontology loaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadAxiomsResponse'
+              example:
+                ontologyId: "ontology_a1b2c3d4"
+                loadedAt: "2024-01-15T10:30:00Z"
+                axiomCount: 1250
+                loadingTimeMs: 1200
+                validationJobId: "job_x9y8z7"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /mapping:
+    post:
+      summary: Update Mapping Configuration
+      description: |
+        Update the configuration that maps property graph elements to RDF terms.
+        This affects how nodes, edges, and metadata are translated for validation.
+      operationId: updateMappingConfiguration
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MappingRequest'
+            example:
+              config:
+                enableReasoning: true
+                reasoningTimeoutSeconds: 30
+                enableInference: true
+                maxInferenceDepth: 3
+                enableCaching: true
+                cacheTtlSeconds: 3600
+                validateCardinality: true
+                validateDomainsRanges: true
+                validateDisjointClasses: true
+              applyToAll: false
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /validate:
+    post:
+      summary: Run Ontology Validation
+      description: |
+        Validate the current graph state against loaded ontology axioms.
+        Supports different validation modes with varying performance characteristics.
+      operationId: validateOntology
+      tags:
+        - Validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+            examples:
+              quick_validation:
+                summary: Quick validation
+                value:
+                  ontologyId: "ontology_a1b2c3d4"
+                  mode: "quick"
+                  priority: 5
+              full_validation:
+                summary: Full validation with WebSocket updates
+                value:
+                  ontologyId: "ontology_a1b2c3d4"
+                  mode: "full"
+                  priority: 8
+                  enableWebsocketUpdates: true
+                  clientId: "client_abc123"
+      responses:
+        '200':
+          description: Validation initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+              example:
+                jobId: "job_validation_789"
+                status: "queued"
+                estimatedCompletion: "2024-01-15T10:35:00Z"
+                queuePosition: 2
+                websocketUrl: "/api/ontology/ws?client_id=client_abc123"
+        '202':
+          description: Validation queued for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Ontology not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Ontology not found"
+                code: "ONTOLOGY_NOT_FOUND"
+                timestamp: "2024-01-15T10:30:00Z"
+                traceId: "trace_abc123def"
+
+  /report:
+    get:
+      summary: Get Validation Report
+      description: |
+        Retrieve validation results including violations, inferences, and statistics.
+        Can get the latest report or a specific report by ID.
+      operationId: getValidationReport
+      tags:
+        - Validation
+      parameters:
+        - name: report_id
+          in: query
+          description: Specific report ID (omit for latest report)
+          required: false
+          schema:
+            type: string
+          example: "report_def456"
+      responses:
+        '200':
+          description: Validation report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationReport'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Report not found"
+                code: "REPORT_NOT_FOUND"
+                timestamp: "2024-01-15T10:30:00Z"
+                traceId: "trace_abc123def"
+
+  /apply:
+    post:
+      summary: Apply Inferences
+      description: |
+        Apply inference results to the graph by adding new relationships
+        or annotations based on reasoning results.
+      operationId: applyInferences
+      tags:
+        - Inference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyInferencesRequest'
+            example:
+              rdfTriples:
+                - subject: "ex:alice"
+                  predicate: "ex:worksFor"
+                  object: "ex:acme_corp"
+                  isLiteral: false
+              maxDepth: 5
+              updateGraph: true
+      responses:
+        '200':
+          description: Inferences applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferenceResult'
+              example:
+                inputCount: 1
+                inferredTriples:
+                  - subject: "ex:acme_corp"
+                    predicate: "ex:employs"
+                    object: "ex:alice"
+                    isLiteral: false
+                processingTimeMs: 45
+                graphUpdated: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /health:
+    get:
+      summary: Get System Health
+      description: |
+        Retrieve system health information including performance metrics,
+        cache statistics, and current system status.
+      operationId: getSystemHealth
+      tags:
+        - System
+      responses:
+        '200':
+          description: System health retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatusResponse'
+              example:
+                status: "healthy"
+                health:
+                  loadedOntologies: 3
+                  cachedReports: 12
+                  validationQueueSize: 1
+                  lastValidation: "2024-01-15T10:30:00Z"
+                  cacheHitRate: 0.85
+                  avgValidationTimeMs: 1250.5
+                  activeJobs: 2
+                  memoryUsageMb: 156.8
+                ontologyValidationEnabled: true
+                timestamp: "2024-01-15T10:35:00Z"
+
+  /cache:
+    delete:
+      summary: Clear System Caches
+      description: |
+        Clear all ontology-related caches including parsed ontologies,
+        validation reports, and constraint caches.
+      operationId: clearSystemCaches
+      tags:
+        - System
+      responses:
+        '200':
+          description: Caches cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: "success"
+                message: "All caches cleared"
+                timestamp: "2024-01-15T10:35:00Z"
+
+  /ws:
+    get:
+      summary: WebSocket Connection
+      description: |
+        Establish WebSocket connection for real-time validation updates,
+        progress monitoring, and constraint notifications.
+      operationId: connectWebSocket
+      tags:
+        - WebSocket
+      parameters:
+        - name: client_id
+          in: query
+          description: Unique client identifier for routing updates
+          required: false
+          schema:
+            type: string
+          example: "client_abc123"
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: Invalid WebSocket request
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  schemas:
+    LoadAxiomsRequest:
+      type: object
+      required:
+        - source
+      properties:
+        source:
+          type: string
+          description: Ontology source (file path, URL, or direct content)
+          example: "https://example.org/ontology.owl"
+        format:
+          type: string
+          description: Format hint for parsing
+          enum: ["turtle", "rdf-xml", "n-triples", "auto"]
+          example: "turtle"
+        validateImmediately:
+          type: boolean
+          description: Start validation immediately after loading
+          default: false
+
+    LoadAxiomsResponse:
+      type: object
+      properties:
+        ontologyId:
+          type: string
+          description: Generated ontology identifier
+          example: "ontology_a1b2c3d4"
+        loadedAt:
+          type: string
+          format: date-time
+          description: Load timestamp
+          example: "2024-01-15T10:30:00Z"
+        axiomCount:
+          type: integer
+          description: Number of axioms loaded
+          example: 1250
+        loadingTimeMs:
+          type: integer
+          description: Loading duration in milliseconds
+          example: 1200
+        validationJobId:
+          type: string
+          description: Validation job ID if immediate validation requested
+          example: "job_x9y8z7"
+
+    MappingRequest:
+      type: object
+      required:
+        - config
+      properties:
+        config:
+          $ref: '#/components/schemas/ValidationConfigDto'
+        applyToAll:
+          type: boolean
+          description: Apply configuration to all loaded ontologies
+          default: false
+
+    ValidationConfigDto:
+      type: object
+      properties:
+        enableReasoning:
+          type: boolean
+          description: Enable logical reasoning
+          default: true
+        reasoningTimeoutSeconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          description: Maximum reasoning time in seconds
+          default: 30
+        enableInference:
+          type: boolean
+          description: Generate inferred relationships
+          default: true
+        maxInferenceDepth:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Maximum inference chain depth
+          default: 3
+        enableCaching:
+          type: boolean
+          description: Enable result caching
+          default: true
+        cacheTtlSeconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          description: Cache TTL in seconds
+          default: 3600
+        validateCardinality:
+          type: boolean
+          description: Validate cardinality constraints
+          default: true
+        validateDomainsRanges:
+          type: boolean
+          description: Validate domain and range constraints
+          default: true
+        validateDisjointClasses:
+          type: boolean
+          description: Validate disjoint class constraints
+          default: true
+
+    ValidationRequest:
+      type: object
+      required:
+        - ontologyId
+        - mode
+      properties:
+        ontologyId:
+          type: string
+          description: Previously loaded ontology ID
+          example: "ontology_a1b2c3d4"
+        mode:
+          type: string
+          enum: ["quick", "full", "incremental"]
+          description: Validation mode
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Job priority (higher is more urgent)
+          default: 5
+        enableWebsocketUpdates:
+          type: boolean
+          description: Enable real-time WebSocket updates
+          default: false
+        clientId:
+          type: string
+          description: Client ID for WebSocket routing
+          example: "client_abc123"
+
+    ValidationResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          description: Validation job identifier
+          example: "job_validation_789"
+        status:
+          type: string
+          enum: ["queued", "running", "completed", "failed"]
+          description: Current job status
+        estimatedCompletion:
+          type: string
+          format: date-time
+          description: Estimated completion time
+          example: "2024-01-15T10:35:00Z"
+        queuePosition:
+          type: integer
+          description: Position in validation queue
+          example: 2
+        websocketUrl:
+          type: string
+          description: WebSocket URL for real-time updates
+          example: "/api/ontology/ws?client_id=client_abc123"
+
+    ApplyInferencesRequest:
+      type: object
+      required:
+        - rdfTriples
+      properties:
+        rdfTriples:
+          type: array
+          items:
+            $ref: '#/components/schemas/RdfTripleDto'
+          description: RDF triples to apply inferences to
+        maxDepth:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Maximum inference depth
+          default: 3
+        updateGraph:
+          type: boolean
+          description: Update the graph with inferences
+          default: false
+
+    RdfTripleDto:
+      type: object
+      required:
+        - subject
+        - predicate
+        - object
+      properties:
+        subject:
+          type: string
+          description: Triple subject IRI
+          example: "ex:alice"
+        predicate:
+          type: string
+          description: Triple predicate IRI
+          example: "ex:worksFor"
+        object:
+          type: string
+          description: Triple object IRI or literal
+          example: "ex:acme_corp"
+        isLiteral:
+          type: boolean
+          description: Whether object is a literal value
+          default: false
+        datatype:
+          type: string
+          description: Literal datatype IRI
+          example: "xsd:string"
+        language:
+          type: string
+          description: Language tag for literals
+          example: "en"
+
+    ValidationReport:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Report identifier
+          example: "report_def456"
+        timestamp:
+          type: string
+          format: date-time
+          description: Report generation time
+          example: "2024-01-15T10:32:15Z"
+        durationMs:
+          type: integer
+          description: Validation duration in milliseconds
+          example: 2100
+        graphSignature:
+          type: string
+          description: Graph content hash for caching
+          example: "blake3_hash_abc123"
+        totalTriples:
+          type: integer
+          description: Total number of RDF triples processed
+          example: 15420
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Violation'
+          description: Validation violations found
+        inferredTriples:
+          type: array
+          items:
+            $ref: '#/components/schemas/RdfTripleDto'
+          description: Inferred relationships
+        statistics:
+          $ref: '#/components/schemas/ValidationStatistics'
+
+    Violation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Violation identifier
+          example: "violation_001"
+        severity:
+          type: string
+          enum: ["Error", "Warning", "Info"]
+          description: Violation severity level
+        rule:
+          type: string
+          description: Violated rule name
+          example: "DisjointClasses"
+        message:
+          type: string
+          description: Human-readable violation description
+          example: "Individual ex:john cannot be both ex:Person and ex:Company"
+        subject:
+          type: string
+          description: Triple subject involved in violation
+          example: "ex:john"
+        predicate:
+          type: string
+          description: Triple predicate involved in violation
+          example: "rdf:type"
+        object:
+          type: string
+          description: Triple object involved in violation
+        timestamp:
+          type: string
+          format: date-time
+          description: Violation detection time
+          example: "2024-01-15T10:32:15Z"
+
+    ValidationStatistics:
+      type: object
+      properties:
+        classesChecked:
+          type: integer
+          description: Number of classes validated
+          example: 45
+        propertiesChecked:
+          type: integer
+          description: Number of properties validated
+          example: 78
+        individualsChecked:
+          type: integer
+          description: Number of individuals validated
+          example: 1205
+        constraintsEvaluated:
+          type: integer
+          description: Number of constraints evaluated
+          example: 234
+        inferenceRulesApplied:
+          type: integer
+          description: Number of inference rules applied
+          example: 89
+        cacheHits:
+          type: integer
+          description: Number of cache hits
+          example: 156
+        cacheMisses:
+          type: integer
+          description: Number of cache misses
+          example: 23
+
+    InferenceResult:
+      type: object
+      properties:
+        inputCount:
+          type: integer
+          description: Number of input triples
+          example: 1
+        inferredTriples:
+          type: array
+          items:
+            $ref: '#/components/schemas/RdfTripleDto'
+          description: Generated inferred triples
+        processingTimeMs:
+          type: integer
+          description: Processing time in milliseconds
+          example: 45
+        graphUpdated:
+          type: boolean
+          description: Whether graph was updated with inferences
+          example: true
+
+    HealthStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unhealthy"]
+          description: Overall system status
+        health:
+          $ref: '#/components/schemas/OntologyHealthDto'
+        ontologyValidationEnabled:
+          type: boolean
+          description: Whether ontology validation is enabled
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+          example: "2024-01-15T10:35:00Z"
+
+    OntologyHealthDto:
+      type: object
+      properties:
+        loadedOntologies:
+          type: integer
+          description: Number of loaded ontologies
+          example: 3
+        cachedReports:
+          type: integer
+          description: Number of cached validation reports
+          example: 12
+        validationQueueSize:
+          type: integer
+          description: Number of queued validation jobs
+          example: 1
+        lastValidation:
+          type: string
+          format: date-time
+          description: Timestamp of last validation
+          example: "2024-01-15T10:30:00Z"
+        cacheHitRate:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Cache hit rate (0.0 to 1.0)
+          example: 0.85
+        avgValidationTimeMs:
+          type: number
+          format: float
+          description: Average validation time in milliseconds
+          example: 1250.5
+        activeJobs:
+          type: integer
+          description: Number of currently active validation jobs
+          example: 2
+        memoryUsageMb:
+          type: number
+          format: float
+          description: Memory usage in megabytes
+          example: 156.8
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["success"]
+          description: Success status
+        message:
+          type: string
+          description: Success message
+          example: "Operation completed successfully"
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+          example: "2024-01-15T10:35:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Validation failed due to parsing error"
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "VALIDATION_FAILED"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2024-01-15T10:35:00Z"
+        traceId:
+          type: string
+          description: Unique trace identifier for debugging
+          example: "trace_abc123def"
+
+    WebSocketMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [
+            "connection_established",
+            "validation_progress",
+            "validation_complete",
+            "constraint_update",
+            "error"
+          ]
+          description: Message type
+        payload:
+          type: object
+          description: Message payload (varies by type)
+        timestamp:
+          type: string
+          format: date-time
+          description: Message timestamp
+          example: "2024-01-15T10:35:00Z"
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Invalid ontology format specified"
+            code: "INVALID_REQUEST"
+            timestamp: "2024-01-15T10:30:00Z"
+            traceId: "trace_abc123def"
+
+    PayloadTooLarge:
+      description: Ontology file too large
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Ontology file exceeds maximum size limit"
+            code: "ONTOLOGY_TOO_LARGE"
+            details:
+              maxSizeMb: 50
+              actualSizeMb: 75
+            timestamp: "2024-01-15T10:30:00Z"
+            traceId: "trace_abc123def"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Internal server error occurred"
+            code: "INTERNAL_ERROR"
+            timestamp: "2024-01-15T10:30:00Z"
+            traceId: "trace_abc123def"
+
+    ServiceUnavailable:
+      description: Ontology validation feature disabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Ontology validation feature is disabled"
+            code: "FEATURE_DISABLED"
+            details:
+              message: "Enable the ontology_validation feature flag to use this endpoint"
+            timestamp: "2024-01-15T10:30:00Z"
+            traceId: "trace_abc123def"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Authentication token for API access
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Ontology Management
+    description: Loading and managing ontology definitions
+  - name: Configuration
+    description: System configuration and mapping settings
+  - name: Validation
+    description: Ontology validation operations
+  - name: Inference
+    description: Reasoning and inference operations
+  - name: System
+    description: System health and cache management
+  - name: WebSocket
+    description: Real-time communication via WebSocket

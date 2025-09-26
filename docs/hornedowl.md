@@ -1,6 +1,32 @@
-# Ontology Validation
+# Ontology Validation System
 
 *[Server](../index.md) > [Features](../server/features/index.md)*
+
+## Implementation Status
+
+### ✅ Completed Components
+
+- **OntologyActor** (`src/actors/ontology_actor.rs`): Fully implemented async actor system
+- **OwlValidatorService** (`src/services/owl_validator.rs`): Complete validation engine with horned-owl integration
+- **API Endpoints** (`src/handlers/api_handler/ontology/mod.rs`): Full REST and WebSocket API
+- **Constraint Translation** (`src/physics/ontology_constraints.rs`): OWL axiom to physics constraint conversion
+- **Real-time Updates**: WebSocket protocol for validation progress and constraint updates
+- **Caching System**: Multi-level caching for performance optimization
+- **Error Handling**: Comprehensive error reporting with diagnostics
+
+### 🔄 Current Capabilities
+
+- **Ontology Loading**: Support for OWL, Turtle, RDF/XML formats from files, URLs, or direct content
+- **Validation Modes**: Quick (<100ms), Full (<5s), and Incremental (<50ms) validation
+- **Inference Engine**: Automatic discovery of implicit relationships using whelk-rs reasoner
+- **Physics Integration**: Translation of logical axioms to visual physics constraints
+- **Performance Monitoring**: Real-time metrics and health status reporting
+
+### 📋 Related Documentation
+
+- **[System Overview](ontology-system-overview.md)**: Complete architecture and component details
+- **[API Reference](ontology-api-reference.md)**: Full REST and WebSocket API documentation
+- **[User Guide](ontology-user-guide.md)**: Configuration, examples, and best practices
 
 ## Concept Overview
 
