@@ -29,10 +29,10 @@ graph TB
     end
     
     subgraph "Agent Pool"
-        A1[Agent 1<br/>Researcher]
-        A2[Agent 2<br/>Coder]
-        A3[Agent 3<br/>Reviewer]
-        A4[Agent N<br/>...]
+        A1["Agent 1<br/>Researcher"]
+        A2["Agent 2<br/>Coder"]
+        A3["Agent 3<br/>Reviewer"]
+        A4["Agent N<br/>..."]
     end
     
     subgraph "Communication Layer"

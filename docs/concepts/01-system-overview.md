@@ -15,24 +15,24 @@ graph TB
     end
     
     subgraph "VisionFlow Backend"
-        REST[REST API<br/>Actix-web]
-        WS[WebSocket Server<br/>Binary Protocol]
-        SR[SwarmRegistry<br/>Actor]
+        REST["REST API<br/>Actix-web"]
+        WS["WebSocket Server<br/>Binary Protocol"]
+        SR["SwarmRegistry<br/>Actor"]
         CFA[ClaudeFlowActor]
         GA[GraphActor]
-        GPU[GPU Compute<br/>CUDA]
+        GPU["GPU Compute<br/>CUDA"]
         CM[ConnectionManager]
     end
     
     subgraph "Multi-Agent Container"
-        MCP[MCP TCP Server<br/>:9500]
+        MCP["MCP TCP Server<br/>:9500"]
         AS[Agent Swarms]
         TM[Task Manager]
         MM[Memory Store]
     end
     
     subgraph "External Services"
-        DB[(PostgreSQL/<br/>Supabase)]
+        DB["(PostgreSQL/<br/>Supabase)"]
         S3[S3 Storage]
         RAG[RAGFlow]
     end
