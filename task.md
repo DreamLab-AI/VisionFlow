@@ -212,3 +212,115 @@ Modified `upload_edges_csr` function in `/workspace/ext/src/utils/unified_gpu_co
 4. **Rust Compilation**: ✅ Successful
    - cargo check passes with only warnings
    - Buffer mismatch fix integrated correctly
+
+### ✅ FIX IMPLEMENTED - PTX Include Path Issue Resolved
+
+**New Issue Found**: GPUResourceActor was crashing immediately on startup
+- **Error**: "receiver is gone" - ResourceActor died before receiving messages
+- **Root Cause**: Incorrect PTX file include path
+
+**Solution Applied**:
+Modified `/workspace/ext/src/actors/gpu/gpu_resource_actor.rs` line 82:
+- Changed from: `include_str!("../../utils/visionflow_unified.ptx")`
+- Changed to: `include_str!(concat!(env!("OUT_DIR"), "/visionflow_unified.ptx"))`
+- This correctly loads the PTX from the build output directory where build.rs places it
+
+**Status**: Ready for container rebuild and testing
+
+### ✅ Comprehensive Logging Added
+
+**Purpose**: Track GPU initialization process to identify failures
+
+**Logging Added to**:
+1. **GPUResourceActor** (`/workspace/ext/src/actors/gpu/gpu_resource_actor.rs`):
+   - Actor creation and lifecycle (new, started, stopped)
+   - GPU initialization steps (device, stream, PTX loading)
+   - PTX file loading with size and location info
+   - CSR creation and graph data upload
+   - Error conditions with detailed context
+
+2. **GPUManagerActor** (`/workspace/ext/src/actors/gpu/gpu_manager_actor.rs`):
+   - Child actor spawning
+   - Message delegation to ResourceActor
+   - InitializeGPU message handling
+
+**Log Levels Used**:
+- `debug!` - Detailed step-by-step tracking
+- `info!` - Key milestones
+- `error!` - Failure conditions
+
+**Key Log Points**:
+- PTX loading from `env!("OUT_DIR")/visionflow_unified.ptx`
+- CUDA device and stream initialization
+- UnifiedGPUCompute creation
+- Graph data upload with node/edge counts
+- Actor lifecycle events
+
+**Status**: ✅ Code compiles successfully with logging
+**Next Step**: Container rebuild to test GPU initialization with detailed logging
+
+## Container Rebuild Testing Results (11:49)
+
+### Logging Successfully Reveals Issue
+
+**Startup Sequence Logged**:
+1. ✅ GPUManagerActor started successfully
+2. ✅ GPUResourceActor created and started
+3. ✅ InitializeGPU message received with 185 nodes
+4. ✅ CUDA device and stream creation successful
+5. ❌ **PANIC** during `upload_positions` - buffer size mismatch
+
+**Crash Details**:
+```
+thread 'main' panicked at device_slice.rs:563:9:
+destination and source slices have different lengths
+```
+
+**Location**: `UnifiedGPUCompute::upload_positions` line 2038
+
+**Root Cause**:
+- Buffer allocated for 1000 nodes (with growth factor)
+- Position data has 185 nodes
+- `copy_from` requires exact size match
+
+### ✅ FIX IMPLEMENTED - Position Upload Buffer Padding
+
+**Solution Applied**:
+Modified `/workspace/ext/src/utils/unified_gpu_compute.rs` `upload_positions` function:
+- Added padding logic similar to `upload_edges_csr`
+- Pads position arrays to `allocated_nodes` size when needed
+- Ensures buffer and data sizes match for CUDA copy
+
+**Status**: Ready for another container rebuild
+
+## ✅ SUCCESS - GPU Initialization Complete! (11:56)
+
+### All Fixes Applied Successfully
+
+**GPU Initialization Status**:
+1. ✅ GPUManagerActor started successfully
+2. ✅ GPUResourceActor created and started
+3. ✅ CUDA device 0 initialized
+4. ✅ CUDA stream created
+5. ✅ PTX loaded from build directory
+6. ✅ UnifiedGPUCompute engine created
+7. ✅ Graph data uploaded (185 nodes, 4023 edges)
+8. ✅ GPU initialization completed
+9. ✅ GPUInitialized message sent to GraphServiceActor
+10. ✅ Physics simulation enabled
+
+**Key Log Messages**:
+```
+[11:57:30Z] GPU initialization completed successfully - notifying GraphServiceActor
+[11:57:30Z] Physics simulation is now ready:
+  - GPU initialized: true
+  - Physics enabled: true
+  - Node count: 185
+  - Edge count: 4023
+```
+
+**Remaining Issue**:
+- ForceComputeActor is running but shows "Computing forces (iteration 0), nodes: 0"
+- This suggests the graph data hasn't been passed to ForceComputeActor yet
+
+**Status**: GPU initialization SUCCESSFUL! Physics system is ready but may need graph data routing to ForceComputeActor.
