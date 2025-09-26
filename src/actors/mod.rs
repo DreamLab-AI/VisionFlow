@@ -17,6 +17,7 @@ pub mod voice_commands;
 pub mod multi_mcp_visualization_actor;
 pub mod workspace_actor;
 pub mod semantic_processor_actor;
+pub mod ontology_actor;
 pub mod graph_service_supervisor;
 pub mod messages;
 pub mod graph_messages;
@@ -37,6 +38,7 @@ pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePre
 pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor;
 pub use workspace_actor::WorkspaceActor;
 pub use semantic_processor_actor::{SemanticProcessorActor, SemanticProcessorConfig, SemanticStats, AISemanticFeatures};
+pub use ontology_actor::{OntologyActor, OntologyActorConfig, ValidationJob, JobPriority, JobStatus, ActorStatistics as OntologyActorStatistics};
 pub use graph_service_supervisor::{
     GraphServiceSupervisor, GraphSupervisionStrategy, RestartPolicy, BackoffStrategy,
     ActorHealth, ActorType, SupervisorStatus, SupervisorMessage, ActorHeartbeat,

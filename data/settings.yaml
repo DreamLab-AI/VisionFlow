@@ -48,11 +48,11 @@ visualisation:
   hologram:
     ringCount: 3
     ringColor: '#f0e800'
-    ringOpacity: 0.14099218
+    ringOpacity: 0.1456044
     sphereSizes:
     - 80.0
     - 180.0
-    ringRotationSpeed: 0.0169428
+    ringRotationSpeed: 0.13736264
     enableBuckminster: true
     buckminsterSize: 250.0
     buckminsterOpacity: 0.3
@@ -70,24 +70,24 @@ visualisation:
         metalness: 0.20965025
         opacity: 0.95
         roughness: 0.25633773
-        nodeSize: 1.8417583
+        nodeSize: 1.9505495
         quality: high
         enableInstancing: false
-        enableHologram: false
-        enableMetadataShape: false
+        enableHologram: true
+        enableMetadataShape: true
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#FF00FF'
+        color: '#8b9315'
         enableArrows: false
-        opacity: 0.07945205
+        opacity: 0.260989
         widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.3731045
+        desktopFontSize: 1.4345055
         enableLabels: true
         textColor: '#805b5b'
         textOutlineColor: '#ff0000'

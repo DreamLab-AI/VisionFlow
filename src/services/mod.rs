@@ -10,6 +10,7 @@ pub mod github;
 // graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
 pub mod nostr_service;
+pub mod owl_validator;
 pub mod perplexity_service;
 pub mod ragflow_service;
 pub mod semantic_analyzer;

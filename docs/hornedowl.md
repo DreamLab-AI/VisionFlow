@@ -2,6 +2,55 @@
 
 *[Server](../index.md) > [Features](../server/features/index.md)*
 
+## Concept Overview
+
+```mermaid
+graph TB
+    subgraph "Data Flow Overview"
+        PG[Property Graph<br/>Flexible Structure] --> M[Mapping Service<br/>mapping.toml]
+        M --> RDF[RDF Triples<br/>Formal Structure]
+        RDF --> OV[OWL Validator<br/>horned-owl + whelk-rs]
+        OV --> VR[Validation Report]
+        OV --> IS[Inference Set]
+        
+        VR --> |Violations| D[Diagnostics<br/>& Fixes]
+        IS --> |New Facts| G[Graph Enrichment]
+        IS --> |Axioms| PC[Physics Constraints]
+        
+        PC --> GPU[GPU Physics Engine<br/>Constraint Groups]
+        G --> PG
+    end
+
+    subgraph "System Architecture"
+        API[REST/WS API<br/>/api/ontology/*] --> OA[Ontology Actor<br/>Async Message Handler]
+        OA --> OVS[OwlValidatorService<br/>Core Logic]
+        OA --> CT[Constraint Translator<br/>Axiom→Physics]
+        
+        OVS --> |Caching| Cache[In-Memory Cache<br/>Ontology/Mappings/Signatures]
+        CT --> |Constraint Groups| CG[ontology_separation<br/>ontology_alignment<br/>ontology_boundaries<br/>ontology_identity]
+    end
+
+    subgraph "Validation Process"
+        V1[Load Ontology<br/>Axioms] --> V2[Map Graph<br/>to RDF]
+        V2 --> V3[Consistency<br/>Check]
+        V3 --> V4[Run Inference<br/>Engine]
+        V4 --> V5[Generate<br/>Report]
+        V5 --> V6[Apply Results]
+    end
+
+    subgraph "Physics Translation"
+        A1[DisjointClasses] --> |Repulsion| Sep[Separation Forces]
+        A2[SubClassOf] --> |Attraction| Align[Alignment Forces]
+        A3[InverseOf] --> |Bidirectional| Edge[Synthetic Edges]
+        A4[SameAs] --> |Co-location| Merge[Identity Constraints]
+    end
+
+    style PG fill:#4A5568,stroke:#2D3748,stroke-width:2px,color:#fff
+    style OV fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,color:#fff
+    style GPU fill:#D69E2E,stroke:#B7791F,stroke-width:2px,color:#fff
+    style OA fill:#38A169,stroke:#276749,stroke-width:2px,color:#fff
+```
+
 ## Introduction
 
 The ontology system provides a formal validation and logical inference layer for the knowledge graph, acting as a "truth engine." While the base graph is a flexible property graph, the ontology system maps it to a strict OWL/RDF structure to perform powerful consistency checks and infer new knowledge.
