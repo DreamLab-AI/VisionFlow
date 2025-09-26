@@ -164,6 +164,16 @@ pub struct SemanticAnalyzer {
     domain_patterns: HashMap<KnowledgeDomain, Vec<String>>,
 }
 
+impl Clone for SemanticAnalyzer {
+    fn clone(&self) -> Self {
+        Self {
+            config: self.config.clone(),
+            feature_cache: self.feature_cache.clone(),
+            domain_patterns: self.domain_patterns.clone(),
+        }
+    }
+}
+
 impl SemanticAnalyzer {
     /// Create a new semantic analyzer
     pub fn new(config: SemanticAnalyzerConfig) -> Self {

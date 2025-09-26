@@ -3,7 +3,8 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn};
 
-use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
+use crate::actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
+use crate::actors::graph_service_supervisor::{GraphServiceSupervisor, TransitionalGraphSupervisor};
 use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::gpu;
 use cudarc::driver::CudaDevice;
@@ -21,13 +22,13 @@ use crate::services::bots_client::BotsClient;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub graph_service_addr: Addr<GraphServiceActor>,
+    pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
     pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
-    pub settings_addr: Addr<SettingsActor>,
+    pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
-    pub client_manager_addr: Addr<ClientManagerActor>,
+    pub client_manager_addr: Addr<ClientCoordinatorActor>,
     pub claude_flow_addr: Addr<ClaudeFlowActor>,
     pub workspace_addr: Addr<WorkspaceActor>,
     pub ontology_actor_addr: Addr<OntologyActor>,
@@ -58,8 +59,8 @@ impl AppState {
         tokio::time::sleep(Duration::from_millis(50)).await;
 
         // Start actors
-        info!("[AppState::new] Starting ClientManagerActor");
-        let client_manager_addr = ClientManagerActor::new().start();
+        info!("[AppState::new] Starting ClientCoordinatorActor");
+        let client_manager_addr = ClientCoordinatorActor::new().start();
 
         // Extract physics settings from logseq graph before moving settings
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
@@ -67,31 +68,35 @@ impl AppState {
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        // Create GraphServiceActor first, but without GPU compute address initially
-        info!("[AppState::new] Starting GraphServiceActor");
+        // Create GraphServiceSupervisor instead of the monolithic GraphServiceActor
+        info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
         let _device = CudaDevice::new(0).map_err(|e| {
             log::error!("Failed to create CUDA device: {}", e);
             format!("CUDA initialization failed: {}", e)
         })?;
-        let graph_service_addr = GraphServiceActor::new(
-            client_manager_addr.clone(),
-            None, // GPU compute actor will be created and linked later
-            None // SettingsActor address will be set later
+        let graph_service_addr = TransitionalGraphSupervisor::new(
+            Some(client_manager_addr.clone()),
+            None // GPU manager will be linked later
         ).start();
         
-        // WEBSOCKET SETTLING FIX: Set graph service address in client manager for force broadcasts
-        info!("[AppState::new] Linking ClientManagerActor to GraphServiceActor for settling fix");
-        client_manager_addr.do_send(crate::actors::messages::SetGraphServiceAddress {
-            addr: graph_service_addr.clone(),
-        });
+        // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
+        info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
+        // Note: SetGraphServiceAddress message expects GraphServiceActor, but we now use TransitionalGraphSupervisor
+        // For now, we'll skip this connection and rely on the supervisor's internal GraphServiceActor
+        warn!("SetGraphServiceAddress message temporarily disabled during supervisor transition");
+        // TODO: Either update SetGraphServiceAddress to accept TransitionalGraphSupervisor
+        // or create a bridge mechanism for this specific message
+        // client_manager_addr.do_send(crate::actors::messages::SetGraphServiceAddress {
+        //     addr: graph_service_addr.clone(),
+        // });
         
         // Create the modular GPU manager system
         info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
         let gpu_manager_addr = Some(GPUManagerActor::new().start());
         
-        // Initialize the connection between GraphServiceActor and GPUManagerActor
+        // Initialize the connection between GraphServiceSupervisor and GPUManagerActor
         use crate::actors::messages::InitializeGPUConnection;
-        // Send the GPUManagerActor address to GraphServiceActor for proper message routing
+        // Send the GPUManagerActor address to GraphServiceSupervisor for proper message routing
         info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
         if let Some(ref gpu_manager) = gpu_manager_addr {
             graph_service_addr.do_send(InitializeGPUConnection {
@@ -101,12 +106,12 @@ impl AppState {
             warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");
         }
 
-        info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
-        let settings_actor = SettingsActor::with_actors(
+        info!("[AppState::new] Starting OptimizedSettingsActor with actor addresses for physics forwarding");
+        let settings_actor = OptimizedSettingsActor::with_actors(
             Some(graph_service_addr.clone()),
             None, // Legacy GPU compute actor removed
         ).map_err(|e| {
-            log::error!("Failed to create SettingsActor: {}", e);
+            log::error!("Failed to create OptimizedSettingsActor: {}", e);
             e
         })?;
         let settings_addr = settings_actor.start();
@@ -132,7 +137,7 @@ impl AppState {
             graph_service_addr.clone()
         ).start();
         
-        // Send initial physics settings to both GraphServiceActor and GPUComputeActor
+        // Send initial physics settings to both GraphServiceSupervisor and GPUComputeActor
         // Use the From trait to convert PhysicsSettings to SimulationParams
         // This ensures all fields are properly set from settings.yaml
         let sim_params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
@@ -141,7 +146,7 @@ impl AppState {
             params: sim_params,
         };
         
-        // Send to GraphServiceActor
+        // Send to GraphServiceSupervisor
         graph_service_addr.do_send(update_msg.clone());
         
         // Send to GPUManagerActor if available
@@ -173,7 +178,7 @@ impl AppState {
                 gpu_manager: Some(gpu_manager.clone()),
             };
             graph_service_addr.do_send(init_msg);
-            info!("[AppState] Sent GPU initialization message to GraphServiceActor");
+            info!("[AppState] Sent GPU initialization message to GraphServiceSupervisor");
         }
 
         info!("[AppState::new] Actor system initialization complete");
@@ -269,15 +274,15 @@ impl AppState {
         self.feature_access.get_available_features(pubkey)
     }
 
-    pub fn get_client_manager_addr(&self) -> &Addr<ClientManagerActor> {
+    pub fn get_client_manager_addr(&self) -> &Addr<ClientCoordinatorActor> {
         &self.client_manager_addr
     }
 
-    pub fn get_graph_service_addr(&self) -> &Addr<GraphServiceActor> {
+    pub fn get_graph_service_addr(&self) -> &Addr<TransitionalGraphSupervisor> {
         &self.graph_service_addr
     }
 
-    pub fn get_settings_addr(&self) -> &Addr<SettingsActor> {
+    pub fn get_settings_addr(&self) -> &Addr<OptimizedSettingsActor> {
         &self.settings_addr
     }
 

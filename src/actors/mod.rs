@@ -2,9 +2,8 @@
 
 pub mod graph_actor;
 pub mod physics_orchestrator_actor;
-pub mod settings_actor;
+pub mod optimized_settings_actor;
 pub mod metadata_actor;
-pub mod client_manager_actor;
 pub mod client_coordinator_actor;
 pub mod gpu; // Modular GPU actors system
 pub mod protected_settings_actor;
@@ -24,9 +23,8 @@ pub mod graph_messages;
 
 pub use graph_actor::GraphServiceActor;
 pub use physics_orchestrator_actor::PhysicsOrchestratorActor;
-pub use settings_actor::SettingsActor;
+pub use optimized_settings_actor::OptimizedSettingsActor;
 pub use metadata_actor::MetadataActor;
-pub use client_manager_actor::ClientManagerActor;
 pub use client_coordinator_actor::{ClientCoordinatorActor, ClientCoordinatorStats, ClientManager, ClientState};
 pub use gpu::GPUManagerActor; // Modular GPU manager system
 pub use protected_settings_actor::ProtectedSettingsActor;

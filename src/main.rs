@@ -18,7 +18,7 @@ use webxr::{
     },
     services::{
         file_service::FileService,
-        // graph_service::GraphService removed - now using GraphServiceActor
+        // graph_service::GraphService removed - now using GraphServiceSupervisor
         github::{GitHubClient, ContentAPI, GitHubConfig},
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
@@ -432,15 +432,15 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    // Use GraphServiceActor to build or update the graph
+    // Use GraphServiceSupervisor to build or update the graph
     use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
     use std::sync::Arc as StdArc;
     
     if let Some(graph_data) = graph_data_option {
-        // If we have pre-computed graph data, send it directly to the GraphServiceActor
+        // If we have pre-computed graph data, send it directly to the GraphServiceSupervisor
         match app_state.graph_service_addr.send(UpdateGraphData { graph_data: StdArc::new(graph_data) }).await {
             Ok(Ok(())) => {
-                info!("Pre-computed graph data loaded successfully into GraphServiceActor");
+                info!("Pre-computed graph data loaded successfully into GraphServiceSupervisor");
             },
             Ok(Err(e)) => {
                 error!("Failed to load pre-computed graph data into actor: {}", e);
@@ -468,7 +468,7 @@ async fn main() -> std::io::Result<()> {
         // No pre-computed graph data, build from metadata
         match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
             Ok(Ok(())) => {
-                info!("Graph built successfully using GraphServiceActor - GPU initialization is handled automatically by the actor");
+                info!("Graph built successfully using GraphServiceSupervisor - GPU initialization is handled automatically by the supervisor");
             },
             Ok(Err(e)) => {
                 error!("Failed to build graph from metadata using actor: {}", e);
@@ -485,14 +485,14 @@ async fn main() -> std::io::Result<()> {
     tokio::time::sleep(Duration::from_millis(500)).await;
     info!("Initial delay complete. Starting HTTP server...");
 
-    // Start simulation in GraphServiceActor (Second start attempt commented out for debugging stack overflow)
+    // Start simulation in GraphServiceSupervisor (Second start attempt commented out for debugging stack overflow)
     // use webxr::actors::messages::StartSimulation;
     // if let Err(e) = app_state.graph_service_addr.send(StartSimulation).await {
-    //     error!("Failed to start simulation in GraphServiceActor: {}", e);
+    //     error!("Failed to start simulation in GraphServiceSupervisor: {}", e);
     //     return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to start simulation: {}", e)));
     // }
-    // info!("Simulation started in GraphServiceActor (Second start attempt commented out)");
-    info!("Skipping redundant StartSimulation message to GraphServiceActor for debugging stack overflow. Simulation should already be running from actor's started() method.");
+    // info!("Simulation started in GraphServiceSupervisor (Second start attempt commented out)");
+    info!("Skipping redundant StartSimulation message to GraphServiceSupervisor for debugging stack overflow. Simulation should already be running from supervisor's started() method.");
 
     // Create web::Data after all initialization is complete
     let app_state_data = web::Data::new(app_state);

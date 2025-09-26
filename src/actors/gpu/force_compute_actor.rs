@@ -13,7 +13,7 @@ use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
 use crate::utils::socket_flow_messages::{BinaryNodeDataClient, glam_to_vec3data};
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
-use super::shared::{SharedGPUContext, GPUState};
+use super::shared::{SharedGPUContext, GPUState, GPUOperation, GPUOperationPriority};
 use glam::Vec3;
 
 /// Physics statistics for reporting
@@ -96,8 +96,18 @@ impl ForceComputeActor {
         }
     }
     
-    /// Perform GPU force computation step
+    /// Perform GPU force computation step with enhanced resource contention management
     fn perform_force_computation(&mut self) -> Result<(), String> {
+        // Check if GPU is overloaded and skip if necessary
+        if self.gpu_state.is_gpu_overloaded() {
+            self.skipped_frames += 1;
+            if self.skipped_frames % 60 == 0 {
+                info!("ForceComputeActor: Skipped {} frames due to GPU overload (utilization: {:.1}%, concurrent ops: {})",
+                      self.skipped_frames, self.gpu_state.get_average_utilization(), self.gpu_state.concurrent_access_count);
+            }
+            return Ok(()); // Not an error, just skip this frame
+        }
+
         // Skip if already computing (prevent overlapping GPU operations)
         if self.is_computing {
             self.skipped_frames += 1;
@@ -109,6 +119,9 @@ impl ForceComputeActor {
         }
 
         self.is_computing = true;
+
+        // Track GPU operation start
+        self.gpu_state.start_operation(GPUOperation::ForceComputation);
 
         // Start timing the computation step
         let step_start = Instant::now();
@@ -139,31 +152,9 @@ impl ForceComputeActor {
             logger.log_event(event);
         }
 
-        let mut unified_compute = match &self.shared_context {
-            Some(ctx) => {
-                ctx.unified_compute.lock()
-                    .map_err(|e| {
-                        let error_msg = format!("Failed to acquire GPU compute lock: {}", e);
-
-                        // Log GPU lock acquisition failure
-                        if let Some(logger) = get_telemetry_logger() {
-                            let event = TelemetryEvent::new(
-                                correlation_id.clone(),
-                                LogLevel::ERROR,
-                                "gpu_compute",
-                                "lock_acquisition_failed",
-                                &error_msg,
-                                "force_compute_actor"
-                            )
-                            .with_metadata("error_type", serde_json::json!("mutex_lock_failed"))
-                            .with_metadata("iteration", serde_json::json!(iteration));
-
-                            logger.log_event(event);
-                        }
-
-                        error_msg
-                    })?
-            },
+        // Try to acquire exclusive GPU access for force computation
+        let shared_context = match &self.shared_context {
+            Some(ctx) => ctx,
             None => {
                 let error_msg = "GPU context not initialized".to_string();
 
@@ -182,10 +173,62 @@ impl ForceComputeActor {
                     logger.log_event(event);
                 }
 
-                self.is_computing = false; // Clear flag on error
+                self.is_computing = false;
+                self.gpu_state.complete_operation(&GPUOperation::ForceComputation);
                 return Err(error_msg);
             }
         };
+
+        // Acquire exclusive GPU access for force computation (critical operation)
+        let _exclusive_guard = shared_context.exclusive_access_lock.lock()
+            .map_err(|e| {
+                let error_msg = format!("Failed to acquire exclusive GPU lock: {}", e);
+
+                // Log GPU lock acquisition failure
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id.clone(),
+                        LogLevel::ERROR,
+                        "gpu_compute",
+                        "exclusive_lock_acquisition_failed",
+                        &error_msg,
+                        "force_compute_actor"
+                    )
+                    .with_metadata("error_type", serde_json::json!("exclusive_lock_failed"))
+                    .with_metadata("iteration", serde_json::json!(iteration));
+
+                    logger.log_event(event);
+                }
+
+                self.is_computing = false;
+                self.gpu_state.complete_operation(&GPUOperation::ForceComputation);
+                error_msg
+            })?;
+
+        let mut unified_compute = shared_context.unified_compute.lock()
+            .map_err(|e| {
+                let error_msg = format!("Failed to acquire GPU compute lock: {}", e);
+
+                // Log GPU lock acquisition failure
+                if let Some(logger) = get_telemetry_logger() {
+                    let event = TelemetryEvent::new(
+                        correlation_id.clone(),
+                        LogLevel::ERROR,
+                        "gpu_compute",
+                        "lock_acquisition_failed",
+                        &error_msg,
+                        "force_compute_actor"
+                    )
+                    .with_metadata("error_type", serde_json::json!("mutex_lock_failed"))
+                    .with_metadata("iteration", serde_json::json!(iteration));
+
+                    logger.log_event(event);
+                }
+
+                self.is_computing = false;
+                self.gpu_state.complete_operation(&GPUOperation::ForceComputation);
+                error_msg
+            })?;
 
         // Update unified parameters from simulation params
         let mut current_unified_params = self.unified_params.clone();
@@ -219,6 +262,15 @@ impl ForceComputeActor {
 
         match gpu_result {
             Ok(_) => {
+                // Update GPU utilization metrics
+                let gpu_utilization = self.calculate_gpu_utilization(execution_duration);
+                self.gpu_state.record_utilization(gpu_utilization);
+
+                // Update shared context utilization metrics
+                if let Err(e) = shared_context.update_utilization(gpu_utilization) {
+                    log::warn!("Failed to update shared GPU utilization metrics: {}", e);
+                }
+
                 // Log successful GPU kernel execution
                 if let Some(logger) = get_telemetry_logger() {
                     // Calculate GPU memory usage estimate (rough)
@@ -232,28 +284,48 @@ impl ForceComputeActor {
                         gpu_memory_mb
                     );
 
-                    // Also log positions if we can access them (for origin position debugging)
+                    // Enhanced telemetry with GPU utilization and resource metrics
                     if iteration % 300 == 0 { // Every 5 seconds at 60fps - less frequent for position traces
                         let event = TelemetryEvent::new(
                             correlation_id,
                             LogLevel::TRACE,
                             "position_tracking",
                             "gpu_position_update",
-                            &format!("GPU force computation completed for {} nodes at iteration {}",
-                                   self.gpu_state.num_nodes, iteration),
+                            &format!("GPU force computation completed for {} nodes at iteration {} (utilization: {:.1}%)",
+                                   self.gpu_state.num_nodes, iteration, gpu_utilization),
                             "force_compute_actor"
                         )
                         .with_metadata("execution_time_ms", serde_json::json!(execution_duration))
                         .with_metadata("nodes_processed", serde_json::json!(self.gpu_state.num_nodes))
-                        .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)));
+                        .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)))
+                        .with_metadata("gpu_utilization_percent", serde_json::json!(gpu_utilization))
+                        .with_metadata("concurrent_ops", serde_json::json!(self.gpu_state.concurrent_access_count))
+                        .with_metadata("average_utilization", serde_json::json!(self.gpu_state.get_average_utilization()));
 
                         logger.log_event(event);
                     }
                 }
 
                 // Download positions and velocities from GPU and send to GraphServiceActor
-                // This is critical for client updates!
-                if iteration % 1 == 0 { // Send every frame for smooth animation
+                // Adaptive throttling based on physics state and node count
+                // Check if system is stable based on iteration count and reheat factor
+                let stable = self.stability_iterations > 600 && self.reheat_factor == 0.0;
+
+                let download_interval = if stable {
+                    // When stable, reduce download frequency significantly
+                    30  // ~2 Hz at 60 iterations/sec
+                } else if self.gpu_state.num_nodes > 10000 {
+                    // For large graphs, throttle more aggressively
+                    10  // ~6 Hz
+                } else if self.gpu_state.num_nodes > 1000 {
+                    // Medium graphs
+                    5   // ~12 Hz
+                } else {
+                    // Small graphs can handle higher frequency
+                    2   // ~30 Hz
+                };
+
+                if iteration % download_interval == 0 {
                     // Get both positions and velocities for complete physics state
                     let positions_result = unified_compute.get_node_positions();
                     let velocities_result = unified_compute.get_node_velocities();
@@ -282,11 +354,11 @@ impl ForceComputeActor {
                             });
 
                             if iteration % 60 == 0 {
-                                info!("ForceComputeActor: Sent {} node positions/velocities to GraphServiceActor",
-                                      pos_x.len());
+                                info!("ForceComputeActor: Download interval: {}ms, Nodes: {}, Stable: {}",
+                                      download_interval * 16, self.gpu_state.num_nodes, stable);
                             }
                         } else if iteration % 60 == 0 {
-                            warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
+                            log::warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
                         }
                     } else {
                         error!("ForceComputeActor: Failed to download positions/velocities from GPU");
@@ -503,6 +575,19 @@ impl ForceComputeActor {
 
             (estimated_velocity, estimated_kinetic_energy, estimated_total_forces)
         }
+    }
+
+    /// Calculate GPU utilization based on execution time and expected frame time
+    /// Returns utilization as a percentage (0.0 - 100.0)
+    fn calculate_gpu_utilization(&self, execution_time_ms: f64) -> f32 {
+        // Expected frame time at 60 FPS is ~16.67 ms
+        const TARGET_FRAME_TIME_MS: f64 = 16.67;
+
+        // Calculate utilization as percentage of target frame time
+        let utilization_percent = (execution_time_ms / TARGET_FRAME_TIME_MS * 100.0) as f32;
+
+        // Clamp to reasonable bounds (0-100%)
+        utilization_percent.min(100.0).max(0.0)
     }
 }
 
