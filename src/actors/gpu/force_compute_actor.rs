@@ -11,7 +11,7 @@ use crate::actors::graph_actor::GraphServiceActor;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
-use crate::utils::socket_flow_messages::BinaryNodeDataClient;
+use crate::utils::socket_flow_messages::{BinaryNodeDataClient, glam_to_vec3data};
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState};
 use glam::Vec3;
@@ -270,8 +270,8 @@ impl ForceComputeActor {
 
                             node_updates.push((node_id, BinaryNodeDataClient::new(
                                 node_id,
-                                position,
-                                velocity,
+                                glam_to_vec3data(position),
+                                glam_to_vec3data(velocity),
                             )));
                         }
 
