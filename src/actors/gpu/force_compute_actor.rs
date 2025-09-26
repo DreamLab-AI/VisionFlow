@@ -11,6 +11,7 @@ use crate::actors::graph_actor::GraphServiceActor;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
+use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState};
 use glam::Vec3;
@@ -250,27 +251,45 @@ impl ForceComputeActor {
                     }
                 }
 
-                // Download positions from GPU and send to GraphServiceActor
+                // Download positions and velocities from GPU and send to GraphServiceActor
                 // This is critical for client updates!
                 if iteration % 1 == 0 { // Send every frame for smooth animation
-                    if let Ok((pos_x, pos_y, pos_z)) = unified_compute.get_node_positions() {
+                    // Get both positions and velocities for complete physics state
+                    let positions_result = unified_compute.get_node_positions();
+                    let velocities_result = unified_compute.get_node_velocities();
+
+                    if let (Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z))) =
+                        (positions_result, velocities_result) {
+
                         // Convert to format expected by GraphServiceActor
-                        let mut positions = Vec::new();
+                        let mut node_updates = Vec::new();
                         for i in 0..pos_x.len() {
-                            positions.push(glam::Vec3::new(pos_x[i], pos_y[i], pos_z[i]));
+                            let node_id = i as u32;
+                            let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
+                            let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
+
+                            node_updates.push((node_id, BinaryNodeDataClient::new(
+                                node_id,
+                                position,
+                                velocity,
+                            )));
                         }
 
                         // Send positions to GraphServiceActor for client broadcast
                         if let Some(ref graph_addr) = self.graph_service_addr {
                             graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
-                                positions
+                                positions: node_updates
                             });
 
                             if iteration % 60 == 0 {
-                                info!("ForceComputeActor: Sent {} node positions to GraphServiceActor",
-                                      positions.len());
+                                info!("ForceComputeActor: Sent {} node positions/velocities to GraphServiceActor",
+                                      pos_x.len());
                             }
+                        } else if iteration % 60 == 0 {
+                            warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
                         }
+                    } else {
+                        error!("ForceComputeActor: Failed to download positions/velocities from GPU");
                     }
                 }
 
