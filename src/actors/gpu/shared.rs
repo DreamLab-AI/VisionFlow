@@ -17,10 +17,10 @@ use crate::models::constraints::Constraint;
 /// Child actor addresses for the GPU manager
 
 /// Shared GPU context that gets passed between child actors
-// Note: Cannot derive Clone because CudaStream doesn't implement Clone
+// Note: CudaStream wrapped in Arc<Mutex> for thread safety
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
-    pub stream: CudaStream,
+    pub stream: Arc<std::sync::Mutex<CudaStream>>,
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
 }
 
@@ -35,7 +35,8 @@ pub struct GPUState {
     pub constraints: Vec<Constraint>,
     pub iteration_count: u32,
     pub gpu_failure_count: u32,
-    
+    pub is_initialized: bool,
+
     // GPU Upload Optimization tracking
     pub graph_structure_hash: u64,
     pub positions_hash: u64,
@@ -53,6 +54,7 @@ impl Default for GPUState {
             constraints: Vec::new(),
             iteration_count: 0,
             gpu_failure_count: 0,
+            is_initialized: false,
             graph_structure_hash: 0,
             positions_hash: 0,
             csr_structure_uploaded: false,

@@ -630,3 +630,15 @@ impl Handler<PerformGPUClustering> for ClusteringActor {
         }
     }
 }
+
+/// Handler for receiving SharedGPUContext from ResourceActor
+impl Handler<SetSharedGPUContext> for ClusteringActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ClusteringActor: Received SharedGPUContext from ResourceActor");
+        self.shared_context = Some(msg.context);
+        info!("ClusteringActor: SharedGPUContext stored successfully");
+        Ok(())
+    }
+}

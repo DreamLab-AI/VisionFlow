@@ -244,6 +244,7 @@ impl PhysicsOrchestratorActor {
                 gpu_addr.do_send(InitializeGPU {
                     graph: Arc::clone(graph_data),
                     graph_service_addr: None, // Will be set later if needed
+                    gpu_manager_addr: None,  // Will be filled by GPUManagerActor
                 });
 
                 // Update GPU with current graph data

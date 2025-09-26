@@ -747,3 +747,15 @@ struct AnomalyStats {
     max_anomaly_score: f32,
     min_anomaly_score: f32,
 }
+
+/// Handler for receiving SharedGPUContext from ResourceActor
+impl Handler<SetSharedGPUContext> for AnomalyDetectionActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("AnomalyDetectionActor: Received SharedGPUContext from ResourceActor");
+        self.shared_context = Some(msg.context);
+        info!("AnomalyDetectionActor: SharedGPUContext stored successfully");
+        Ok(())
+    }
+}
