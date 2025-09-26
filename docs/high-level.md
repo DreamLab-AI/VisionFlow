@@ -144,34 +144,34 @@ The current **75-80% completion** demonstrates mature architectural foundations 
 graph TB
     subgraph "Docker Network: docker_ragflow"
         subgraph "VisionFlow Container (172.18.0.2 - visionflow_container)"
-            Nginx[Nginx<br/>Port 3001]
-            Backend[Rust Backend<br/>Port 4000]
-            Frontend[Vite Dev Server<br/>Port 5173]
+            Nginx["Nginx<br/>Port 3001"]
+            Backend["Rust Backend<br/>Port 4000"]
+            Frontend["Vite Dev Server<br/>Port 5173"]
             Supervisor[Supervisord]
         end
 
         subgraph "Multi-Agent Container (Basic Setup)"
             ClaudeFlow[Claude-Flow Service]
-            MCPServer[MCP TCP Server<br/>Port 9500]
-            WSBridge[WebSocket Bridge<br/>Port 3002]
-            HealthCheck[Health Check<br/>Port 9501]
+            MCPServer["MCP TCP Server<br/>Port 9500"]
+            WSBridge["WebSocket Bridge<br/>Port 3002"]
+            HealthCheck["Health Check<br/>Port 9501"]
         end
 
         subgraph "Voice Services (External)"
-            Whisper[Whisper STT Service<br/>Port 8080]
-            Kokoro[Kokoro TTS Service<br/>Port 5000]
+            Whisper["Whisper STT Service<br/>Port 8080"]
+            Kokoro["Kokoro TTS Service<br/>Port 5000"]
         end
 
         subgraph "Support Services"
-            MCP_Orchestrator[MCP Orchestrator<br/>Port 9001]
+            MCP_Orchestrator["MCP Orchestrator<br/>Port 9001"]
             GUI_Tools[GUI Tools Service]
         end
     end
 
     subgraph "External Access"
         Browser[Browser Client]
-        CloudFlare[CloudFlare Tunnel<br/>Production]
-        LocalDev[Local Development<br/>Port 3001]
+        CloudFlare["CloudFlare Tunnel<br/>Production"]
+        LocalDev["Local Development<br/>Port 3001"]
     end
 
     %% Connections

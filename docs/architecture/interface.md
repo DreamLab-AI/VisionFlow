@@ -890,25 +890,25 @@ The API consolidation migration is **100% complete**:
 graph TB
     subgraph "VisionFlow System Architecture Overview"
         subgraph "Client Layer"
-            TypeScriptClient[TypeScript Client<br/>React Application]
-            UnifiedApiClient[UnifiedApiClient<br/>HTTP Communication]
-            WebSocketService[WebSocket Service<br/>Real-time Updates]
+            TypeScriptClient["TypeScript Client<br/>React Application"]
+            UnifiedApiClient["UnifiedApiClient<br/>HTTP Communication"]
+            WebSocketService["WebSocket Service<br/>Real-time Updates"]
         end
 
         subgraph "Interface Layer"
-            RestEndpoints[REST Endpoints<br/>19 Active APIs]
-            WebSocketEndpoints[WebSocket Endpoints<br/>4 Specialized Channels]
-            FieldConversion[Field Conversion<br/>Automatic camelCase ↔ snake_case]
+            RestEndpoints["REST Endpoints<br/>19 Active APIs"]
+            WebSocketEndpoints["WebSocket Endpoints<br/>4 Specialized Channels"]
+            FieldConversion["Field Conversion<br/>Automatic camelCase ↔ snake_case"]
         end
 
         subgraph "Server Layer"
-            ActixWebServer[Actix Web Server<br/>Rust Backend]
-            ActorSystem[Actor System<br/>Message-driven Processing]
-            GPUCompute[GPU Compute<br/>CUDA Kernels]
+            ActixWebServer["Actix Web Server<br/>Rust Backend"]
+            ActorSystem["Actor System<br/>Message-driven Processing"]
+            GPUCompute["GPU Compute<br/>CUDA Kernels"]
         end
 
         subgraph "Data Layer"
-            GraphData[Graph Data<br/>Nodes & Edges]
+            GraphData["Graph Data<br/>Nodes & Edges"]
             Settings[Settings<br/>Configuration]
             AgentData[Agent Data<br/>Task Management]
         end

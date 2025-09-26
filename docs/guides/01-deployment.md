@@ -426,7 +426,7 @@ The multi-agent container provides a complete development environment with MCP t
 graph TB
     subgraph "Multi-Agent Container"
         SUPERVISOR[Supervisord]
-        WS_BRIDGE[WebSocket Bridge<br/>Port 3002]
+        WS_BRIDGE["WebSocket Bridge<br/>Port 3002"]
         CLAUDE_FLOW[Claude Flow]
 
         subgraph "MCP Tools"

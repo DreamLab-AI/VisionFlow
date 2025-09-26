@@ -61,15 +61,15 @@ VisionFlow is a high-performance, GPU-accelerated platform that combines:
 
 ```mermaid
 graph TD
-    A[User Interface<br/>React + Three.js] --> B[VisionFlow Backend<br/>Rust + Actix]
-    B --> C[Knowledge Graph<br/>Logseq/Markdown]
-    B --> D[AI Agents<br/>Claude Flow MCP]
-    B --> E[GPU Compute<br/>CUDA Physics]
+    A["User Interface<br/>React + Three.js"] --> B["VisionFlow Backend<br/>Rust + Actix"]
+    B --> C["Knowledge Graph<br/>Logseq/Markdown"]
+    B --> D["AI Agents<br/>Claude Flow MCP"]
+    B --> E["GPU Compute<br/>CUDA Physics"]
     
-    F[WebSocket<br/>Real-time Updates] --> A
+    F["WebSocket<br/>Real-time Updates"] --> A
     B --> F
     
-    G[REST API<br/>Configuration] --> A
+    G["REST API<br/>Configuration"] --> A
     B --> G
     
     style A fill:#e1f5fe

@@ -15,14 +15,14 @@ The system uses a hybrid model that combines the flexibility of a property graph
 ```mermaid
 graph TD
     subgraph "VisionFlow Property Graph"
-        A[Node A<br/>type: Person] --> |knows| B[Node B<br/>type: Person]
-        C[Node C<br/>type: Company] --> |employs| A
+        A["Node A<br/>type: Person"] --> |knows| B["Node B<br/>type: Person"]
+        C["Node C<br/>type: Company"] --> |employs| A
     end
 
     subgraph "Ontology Mapping & Validation"
         direction LR
         M{{Mapping Service}}
-        V[OwlValidatorService<br/>(horned-owl + whelk-rs)]
+        V["OwlValidatorService<br/>(horned-owl + whelk-rs)"]
         R[Reasoner]
 
         M -- "Maps to RDF Triples" --> V

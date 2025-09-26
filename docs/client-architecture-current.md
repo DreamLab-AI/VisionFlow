@@ -20,178 +20,178 @@ This document provides a comprehensive architecture diagram reflecting the **CUR
 graph TB
     subgraph "Browser Runtime Environment"
         subgraph "React Application Layer"
-            App[App.tsx<br/>Root Component]
-            AppInit[AppInitializer<br/>WebSocket & Settings Init]
-            MainLayout[MainLayout.tsx<br/>Primary Layout Manager]
-            Quest3AR[Quest3AR.tsx<br/>XR/AR Layout]
+            App["App.tsx<br/>Root Component"]
+            AppInit["AppInitializer<br/>WebSocket & Settings Init"]
+            MainLayout["MainLayout.tsx<br/>Primary Layout Manager"]
+            Quest3AR["Quest3AR.tsx<br/>XR/AR Layout"]
         end
 
         subgraph "Context Providers & State"
-            ApplicationMode[ApplicationModeProvider<br/>Mode Management]
-            XRCore[XRCoreProvider<br/>WebXR Integration]
-            TooltipProvider[TooltipProvider<br/>UI Tooltips]
-            HelpProvider[HelpProvider<br/>Help System]
-            OnboardingProvider[OnboardingProvider<br/>User Onboarding]
-            BotsDataProvider[BotsDataProvider<br/>Agent Data Context]
+            ApplicationMode["ApplicationModeProvider<br/>Mode Management"]
+            XRCore["XRCoreProvider<br/>WebXR Integration"]
+            TooltipProvider["TooltipProvider<br/>UI Tooltips"]
+            HelpProvider["HelpProvider<br/>Help System"]
+            OnboardingProvider["OnboardingProvider<br/>User Onboarding"]
+            BotsDataProvider["BotsDataProvider<br/>Agent Data Context"]
         end
 
         subgraph "Core Features Architecture"
             subgraph "Dual Graph Visualization System"
-                GraphCanvas[GraphCanvas.tsx<br/>Three.js R3F Canvas]
-                GraphManager[GraphManager<br/>Scene Management]
-                GraphDataManager[graphDataManager<br/>Data Orchestration]
-                KnowledgeGraph[Knowledge Graph<br/>Knowledge Node Visualization]
-                AgentGraph[Agent Graph<br/>Agent Node Visualization]
-                SimpleThreeTest[SimpleThreeTest<br/>Debug Renderer]
-                GraphCanvasSimple[GraphCanvasSimple<br/>Lightweight Renderer]
-                SelectiveBloom[SelectiveBloom<br/>Post-processing Effects]
-                HologramEnvironment[HologramEnvironment<br/>Holographic Rendering]
+                GraphCanvas["GraphCanvas.tsx<br/>Three.js R3F Canvas"]
+                GraphManager["GraphManager<br/>Scene Management"]
+                GraphDataManager["graphDataManager<br/>Data Orchestration"]
+                KnowledgeGraph["Knowledge Graph<br/>Knowledge Node Visualization"]
+                AgentGraph["Agent Graph<br/>Agent Node Visualization"]
+                SimpleThreeTest["SimpleThreeTest<br/>Debug Renderer"]
+                GraphCanvasSimple["GraphCanvasSimple<br/>Lightweight Renderer"]
+                SelectiveBloom["SelectiveBloom<br/>Post-processing Effects"]
+                HologramEnvironment["HologramEnvironment<br/>Holographic Rendering"]
             end
 
             subgraph "Agent/Bot System"
-                BotsVisualization[BotsVisualization<br/>Agent Node Rendering]
-                AgentPollingStatus[AgentPollingStatus<br/>Connection Status UI]
-                BotsWebSocketIntegration[BotsWebSocketIntegration<br/>WebSocket Handler]
-                AgentPollingService[AgentPollingService<br/>REST API Polling]
-                ConfigurationMapper[ConfigurationMapper<br/>Agent Config Mapping]
+                BotsVisualization["BotsVisualization<br/>Agent Node Rendering"]
+                AgentPollingStatus["AgentPollingStatus<br/>Connection Status UI"]
+                BotsWebSocketIntegration["BotsWebSocketIntegration<br/>WebSocket Handler"]
+                AgentPollingService["AgentPollingService<br/>REST API Polling"]
+                ConfigurationMapper["ConfigurationMapper<br/>Agent Config Mapping"]
             end
 
             subgraph "Settings Management"
-                SettingsStore[settingsStore<br/>Zustand State]
-                FloatingSettingsPanel[FloatingSettingsPanel<br/>Settings UI]
-                LazySettingsSections[LazySettingsSections<br/>Dynamic Loading]
-                UndoRedoControls[UndoRedoControls<br/>Settings History]
-                VirtualizedSettingsGroup[VirtualizedSettingsGroup<br/>Performance UI]
-                AutoSaveManager[AutoSaveManager<br/>Batch Persistence]
+                SettingsStore["settingsStore<br/>Zustand State"]
+                FloatingSettingsPanel["FloatingSettingsPanel<br/>Settings UI"]
+                LazySettingsSections["LazySettingsSections<br/>Dynamic Loading"]
+                UndoRedoControls["UndoRedoControls<br/>Settings History"]
+                VirtualizedSettingsGroup["VirtualizedSettingsGroup<br/>Performance UI"]
+                AutoSaveManager["AutoSaveManager<br/>Batch Persistence"]
             end
 
             subgraph "XR/AR System"
-                XRCoreProvider[XRCoreProvider<br/>WebXR Foundation]
-                Quest3Integration[useQuest3Integration<br/>Device Detection]
-                XRManagers[XR Managers<br/>Device State]
-                XRComponents[XR Components<br/>AR/VR UI]
+                XRCoreProvider["XRCoreProvider<br/>WebXR Foundation"]
+                Quest3Integration["useQuest3Integration<br/>Device Detection"]
+                XRManagers["XR Managers<br/>Device State"]
+                XRComponents["XR Components<br/>AR/VR UI"]
             end
         end
 
         subgraph "Communication Layer"
             subgraph "WebSocket Binary Protocol"
-                WebSocketService[WebSocketService.ts<br/>Connection Management]
-                BinaryWebSocketProtocol[BinaryWebSocketProtocol.ts<br/>Binary Protocol Handler]
-                BinaryProtocol[binaryProtocol.ts<br/>34-byte Node Format]
-                BatchQueue[BatchQueue.ts<br/>Performance Batching]
-                ValidationMiddleware[validation.ts<br/>Data Validation]
+                WebSocketService["WebSocketService.ts<br/>Connection Management"]
+                BinaryWebSocketProtocol["BinaryWebSocketProtocol.ts<br/>Binary Protocol Handler"]
+                BinaryProtocol["binaryProtocol.ts<br/>34-byte Node Format"]
+                BatchQueue["BatchQueue.ts<br/>Performance Batching"]
+                ValidationMiddleware["validation.ts<br/>Data Validation"]
             end
 
             subgraph "REST API Layer - 100% Unified"
-                UnifiedApiClient[UnifiedApiClient<br/>ONLY HTTP Client (111 refs)]
-                SettingsApi[settingsApi<br/>Settings CRUD]
-                AnalyticsApi[analyticsApi<br/>Analytics Data]
-                OptimizationApi[optimizationApi<br/>Performance API]
-                ExportApi[exportApi<br/>Data Export]
-                WorkspaceApi[workspaceApi<br/>Workspace Management]
-                BatchUpdateApi[batchUpdateApi<br/>Batch Operations]
+                UnifiedApiClient["UnifiedApiClient<br/>ONLY HTTP Client (111 refs)"]
+                SettingsApi["settingsApi<br/>Settings CRUD"]
+                AnalyticsApi["analyticsApi<br/>Analytics Data"]
+                OptimizationApi["optimizationApi<br/>Performance API"]
+                ExportApi["exportApi<br/>Data Export"]
+                WorkspaceApi["workspaceApi<br/>Workspace Management"]
+                BatchUpdateApi["batchUpdateApi<br/>Batch Operations"]
                 Note1["All fetch() calls are external resources only"]
                 Note2["Migration 100% Complete"]
             end
 
             subgraph "Voice System - Centralized Architecture"
-                VoiceProvider[VoiceProvider<br/>Context Provider]
-                UseVoiceInteractionCentralized[useVoiceInteractionCentralized<br/>Main Hook]
-                SpecializedVoiceHooks[8 Specialized Voice Hooks]
-                AudioInputService[AudioInputService<br/>Voice Capture]
-                AuthGatedVoiceButton[AuthGatedVoiceButton<br/>Voice UI Controls]
-                AuthGatedVoiceIndicator[AuthGatedVoiceIndicator<br/>Voice Status]
+                VoiceProvider["VoiceProvider<br/>Context Provider"]
+                UseVoiceInteractionCentralized["useVoiceInteractionCentralized<br/>Main Hook"]
+                SpecializedVoiceHooks["8 Specialized Voice Hooks"]
+                AudioInputService["AudioInputService<br/>Voice Capture"]
+                AuthGatedVoiceButton["AuthGatedVoiceButton<br/>Voice UI Controls"]
+                AuthGatedVoiceIndicator["AuthGatedVoiceIndicator<br/>Voice Status"]
             end
         end
 
         subgraph "Visualization & Effects"
             subgraph "Rendering Pipeline"
-                Materials[rendering/materials<br/>Custom Shaders]
-                Shaders[shaders/<br/>WebGL Shaders]
-                ThreeGeometries[three-geometries<br/>Custom Geometries]
+                Materials["rendering/materials<br/>Custom Shaders"]
+                Shaders["shaders/<br/>WebGL Shaders"]
+                ThreeGeometries["three-geometries<br/>Custom Geometries"]
             end
 
             subgraph "Visual Features"
-                IntegratedControlPanel[IntegratedControlPanel<br/>Main Control UI]
-                SpacePilotIntegration[SpacePilotSimpleIntegration<br/>3D Mouse Support]
-                VisualizationControls[Visualization Controls<br/>Visual Settings]
-                VisualizationEffects[Visualization Effects<br/>Post-processing]
+                IntegratedControlPanel["IntegratedControlPanel<br/>Main Control UI"]
+                SpacePilotIntegration["SpacePilotSimpleIntegration<br/>3D Mouse Support"]
+                VisualizationControls["Visualization Controls<br/>Visual Settings"]
+                VisualizationEffects["Visualization Effects<br/>Post-processing"]
             end
         end
 
         subgraph "Feature Modules"
             subgraph "Analytics System"
-                AnalyticsComponents[Analytics Components<br/>Data Visualization]
-                AnalyticsStore[Analytics Store<br/>Analytics State]
-                AnalyticsExamples[Analytics Examples<br/>Demo Components]
+                AnalyticsComponents["Analytics Components<br/>Data Visualization"]
+                AnalyticsStore["Analytics Store<br/>Analytics State"]
+                AnalyticsExamples["Analytics Examples<br/>Demo Components"]
             end
 
             subgraph "Physics Engine"
-                PhysicsPresets[PhysicsPresets<br/>Preset Configurations]
-                PhysicsEngineControls[PhysicsEngineControls<br/>Physics UI]
-                ConstraintBuilderDialog[ConstraintBuilderDialog<br/>Physics Constraints]
+                PhysicsPresets["PhysicsPresets<br/>Preset Configurations"]
+                PhysicsEngineControls["PhysicsEngineControls<br/>Physics UI"]
+                ConstraintBuilderDialog["ConstraintBuilderDialog<br/>Physics Constraints"]
             end
 
             subgraph "Command Palette"
-                CommandPalette[CommandPalette<br/>Command Interface]
-                CommandHooks[Command Hooks<br/>Command Logic]
+                CommandPalette["CommandPalette<br/>Command Interface"]
+                CommandHooks["Command Hooks<br/>Command Logic"]
             end
 
             subgraph "Design System"
-                DesignSystemComponents[Design System Components<br/>UI Library]
-                DesignSystemPatterns[Design System Patterns<br/>UI Patterns]
+                DesignSystemComponents["Design System Components<br/>UI Library"]
+                DesignSystemPatterns["Design System Patterns<br/>UI Patterns"]
             end
 
             subgraph "Help System"
-                HelpRegistry[HelpRegistry<br/>Help Content]
-                HelpComponents[Help Components<br/>Help UI]
+                HelpRegistry["HelpRegistry<br/>Help Content"]
+                HelpComponents["Help Components<br/>Help UI"]
             end
 
             subgraph "Onboarding System"
-                OnboardingFlows[Onboarding Flows<br/>User Flows]
-                OnboardingComponents[Onboarding Components<br/>Onboarding UI]
-                OnboardingHooks[Onboarding Hooks<br/>Flow Logic]
+                OnboardingFlows["Onboarding Flows<br/>User Flows"]
+                OnboardingComponents["Onboarding Components<br/>Onboarding UI"]
+                OnboardingHooks["Onboarding Hooks<br/>Flow Logic"]
             end
 
             subgraph "Workspace Management"
-                WorkspaceManager[WorkspaceManager<br/>Workspace UI]
+                WorkspaceManager["WorkspaceManager<br/>Workspace UI"]
             end
         end
 
         subgraph "Utilities & Infrastructure"
             subgraph "Performance & Monitoring"
-                PerformanceMonitor[performanceMonitor<br/>Performance Tracking]
-                DualGraphPerformanceMonitor[dualGraphPerformanceMonitor<br/>Multi-graph Performance]
-                DualGraphOptimizations[dualGraphOptimizations<br/>Performance Utils]
-                GraphOptimizationService[GraphOptimizationService<br/>Graph Performance]
-                NodeDistributionOptimizer[NodeDistributionOptimizer<br/>Layout Optimization]
-                ClientDebugState[clientDebugState<br/>Debug State]
-                TelemetrySystem[Telemetry System<br/>Usage Analytics]
+                PerformanceMonitor["performanceMonitor<br/>Performance Tracking"]
+                DualGraphPerformanceMonitor["dualGraphPerformanceMonitor<br/>Multi-graph Performance"]
+                DualGraphOptimizations["dualGraphOptimizations<br/>Performance Utils"]
+                GraphOptimizationService["GraphOptimizationService<br/>Graph Performance"]
+                NodeDistributionOptimizer["NodeDistributionOptimizer<br/>Layout Optimization"]
+                ClientDebugState["clientDebugState<br/>Debug State"]
+                TelemetrySystem["Telemetry System<br/>Usage Analytics"]
             end
 
             subgraph "Utility Libraries"
-                LoggerConfig[loggerConfig<br/>Logging System]
-                DebugConfig[debugConfig<br/>Debug Configuration]
-                ClassNameUtils[classNameUtils<br/>CSS Utilities]
-                DownloadHelpers[downloadHelpers<br/>File Downloads]
-                AccessibilityUtils[accessibility<br/>A11y Utilities]
-                IframeCommunication[iframeCommunication<br/>Cross-frame Comm]
+                LoggerConfig["loggerConfig<br/>Logging System"]
+                DebugConfig["debugConfig<br/>Debug Configuration"]
+                ClassNameUtils["classNameUtils<br/>CSS Utilities"]
+                DownloadHelpers["downloadHelpers<br/>File Downloads"]
+                AccessibilityUtils["accessibility<br/>A11y Utilities"]
+                IframeCommunication["iframeCommunication<br/>Cross-frame Comm"]
             end
         end
 
         subgraph "Error Handling & Components"
-            ErrorBoundary[ErrorBoundary<br/>Error Catching]
-            ErrorHandling[Error Handling<br/>Error Components]
-            ConnectionWarning[ConnectionWarning<br/>Connection Status]
-            BrowserSupportWarning[BrowserSupportWarning<br/>Browser Compatibility]
-            SpaceMouseStatus[SpaceMouseStatus<br/>Device Status]
-            DebugControlPanel[DebugControlPanel<br/>Debug Interface]
+            ErrorBoundary["ErrorBoundary<br/>Error Catching"]
+            ErrorHandling["Error Handling<br/>Error Components"]
+            ConnectionWarning["ConnectionWarning<br/>Connection Status"]
+            BrowserSupportWarning["BrowserSupportWarning<br/>Browser Compatibility"]
+            SpaceMouseStatus["SpaceMouseStatus<br/>Device Status"]
+            DebugControlPanel["DebugControlPanel<br/>Debug Interface"]
         end
 
         subgraph "Legacy Integrations"
-            VircadiaIntegration[Vircadia Integration<br/>Legacy VR Support]
-            VircadiaWeb[vircadia-web<br/>Legacy Web Client]
-            VircadiaWorld[vircadia-world<br/>Legacy World System]
+            VircadiaIntegration["Vircadia Integration<br/>Legacy VR Support"]
+            VircadiaWeb["vircadia-web<br/>Legacy Web Client"]
+            VircadiaWorld["vircadia-world<br/>Legacy World System"]
         end
     end
 
@@ -230,7 +230,7 @@ graph TB
     IntegratedControlPanel --> AnalyticsComponents
 
     %% External System Connections
-    WebSocketService -.->|WebSocket Binary| Backend[Rust Backend<br/>/wss endpoint]
+    WebSocketService -.->|WebSocket Binary| Backend["Rust Backend<br/>/wss endpoint"]
     UnifiedApiClient -.->|REST API| Backend
     AgentPollingService -.->|REST Polling| Backend
     AudioInputService -.->|Voice Data| Backend
@@ -255,27 +255,27 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Application Initialization Flow"
-        Browser[Browser Load] --> App[App.tsx]
-        App --> AppInitializer[AppInitializer]
+        Browser["Browser Load"] --> App["App.tsx"]
+        App --> AppInitializer["AppInitializer"]
 
-        AppInitializer --> SettingsInit[Settings Initialization]
-        AppInitializer --> WebSocketInit[WebSocket Connection]
-        AppInitializer --> AuthInit[Authentication Check]
+        AppInitializer --> SettingsInit["Settings Initialization"]
+        AppInitializer --> WebSocketInit["WebSocket Connection"]
+        AppInitializer --> AuthInit["Authentication Check"]
 
-        SettingsInit --> SettingsStore[Zustand Settings Store]
-        WebSocketInit --> WebSocketService[WebSocket Service]
-        AuthInit --> NostrAuth[Nostr Authentication]
+        SettingsInit --> SettingsStore["Zustand Settings Store"]
+        WebSocketInit --> WebSocketService["WebSocket Service"]
+        AuthInit --> NostrAuth["Nostr Authentication"]
 
-        App --> Quest3Detection{Quest 3 Detected?}
-        Quest3Detection -->|Yes| Quest3AR[Quest3AR Layout]
-        Quest3Detection -->|No| MainLayout[MainLayout]
+        App --> Quest3Detection{"Quest 3 Detected?"}
+        Quest3Detection -->|Yes| Quest3AR["Quest3AR Layout"]
+        Quest3Detection -->|No| MainLayout["MainLayout"]
 
-        MainLayout --> GraphCanvas[Graph Canvas]
-        MainLayout --> ControlPanels[Control Panels]
-        MainLayout --> VoiceComponents[Voice Components]
+        MainLayout --> GraphCanvas["Graph Canvas"]
+        MainLayout --> ControlPanels["Control Panels"]
+        MainLayout --> VoiceComponents["Voice Components"]
 
-        Quest3AR --> XRScene[XR Scene]
-        Quest3AR --> XRControls[XR Controls]
+        Quest3AR --> XRScene["XR Scene"]
+        Quest3AR --> XRControls["XR Controls"]
 
         style AppInitializer fill:#c8e6c9
         style SettingsStore fill:#fff3e0
@@ -288,32 +288,32 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Graph Rendering Pipeline"
-        GraphCanvas[GraphCanvas.tsx<br/>React Three Fiber Canvas]
+        GraphCanvas["GraphCanvas.tsx<br/>React Three Fiber Canvas"]
 
         subgraph "Scene Management"
-            GraphManager[GraphManager<br/>Scene Object Manager]
-            GraphDataManager[GraphDataManager<br/>Data Orchestration]
-            SimpleThreeTest[SimpleThreeTest<br/>Debug Renderer]
-            GraphCanvasSimple[GraphCanvasSimple<br/>Lightweight Mode]
+            GraphManager["GraphManager<br/>Scene Object Manager"]
+            GraphDataManager["GraphDataManager<br/>Data Orchestration"]
+            SimpleThreeTest["SimpleThreeTest<br/>Debug Renderer"]
+            GraphCanvasSimple["GraphCanvasSimple<br/>Lightweight Mode"]
         end
 
         subgraph "Data Sources"
-            WebSocketBinary[WebSocket Binary<br/>Position Updates]
-            RESTPolling[REST API Polling<br/>Metadata Updates]
-            GraphDataSubscription[Graph Data Subscription]
+            WebSocketBinary["WebSocket Binary<br/>Position Updates"]
+            RESTPolling["REST API Polling<br/>Metadata Updates"]
+            GraphDataSubscription["Graph Data Subscription"]
         end
 
         subgraph "Visual Effects"
-            SelectiveBloom[Selective Bloom<br/>Post-processing]
-            HologramEnvironment[Hologram Environment<br/>Holographic Effects]
-            CustomMaterials[Custom Materials<br/>WebGL Shaders]
+            SelectiveBloom["Selective Bloom<br/>Post-processing"]
+            HologramEnvironment["Hologram Environment<br/>Holographic Effects"]
+            CustomMaterials["Custom Materials<br/>WebGL Shaders"]
         end
 
         subgraph "Agent Visualization"
-            BotsVisualization[Bots Visualization<br/>Agent Nodes]
-            AgentNodes[Agent Node Meshes]
-            AgentLabels[Agent Labels]
-            AgentConnections[Agent Connections]
+            BotsVisualization["Bots Visualization<br/>Agent Nodes"]
+            AgentNodes["Agent Node Meshes"]
+            AgentLabels["Agent Labels"]
+            AgentConnections["Agent Connections"]
         end
 
         GraphCanvas --> GraphManager
@@ -344,33 +344,33 @@ graph TB
 graph TB
     subgraph "Binary Protocol Architecture"
         subgraph "WebSocket Connection"
-            WebSocketService[WebSocketService.ts<br/>Connection Manager]
-            ConnectionHandlers[Connection Handlers]
-            ReconnectLogic[Reconnect Logic]
-            HeartbeatSystem[Heartbeat System]
+            WebSocketService["WebSocketService.ts<br/>Connection Manager"]
+            ConnectionHandlers["Connection Handlers"]
+            ReconnectLogic["Reconnect Logic"]
+            HeartbeatSystem["Heartbeat System"]
         end
 
         subgraph "Binary Data Processing"
-            BinaryWebSocketProtocol[BinaryWebSocketProtocol.ts<br/>Protocol Handler]
-            BinaryProtocol[binaryProtocol.ts<br/>34-byte Node Format]
-            DataParser[Binary Data Parser]
-            NodeValidator[Node Data Validator]
-            BatchProcessor[Batch Processor]
+            BinaryWebSocketProtocol["BinaryWebSocketProtocol.ts<br/>Protocol Handler"]
+            BinaryProtocol["binaryProtocol.ts<br/>34-byte Node Format"]
+            DataParser["Binary Data Parser"]
+            NodeValidator["Node Data Validator"]
+            BatchProcessor["Batch Processor"]
         end
 
         subgraph "Message Types"
-            ControlMessages[Control Messages<br/>0x00-0x0F]
-            DataMessages[Data Messages<br/>0x10-0x3F]
-            StreamMessages[Stream Messages<br/>0x40-0x5F]
-            AgentMessages[Agent Messages<br/>0x60-0x7F]
+            ControlMessages["Control Messages<br/>0x00-0x0F"]
+            DataMessages["Data Messages<br/>0x10-0x3F"]
+            StreamMessages["Stream Messages<br/>0x40-0x5F"]
+            AgentMessages["Agent Messages<br/>0x60-0x7F"]
         end
 
         subgraph "Node Data Structure (34 bytes)"
-            NodeID[Node ID: u16 (2 bytes)<br/>Flags: Agent/Knowledge]
-            Position[Position: Vec3 (12 bytes)<br/>x, y, z coordinates]
-            Velocity[Velocity: Vec3 (12 bytes)<br/>vx, vy, vz components]
-            SSSPDistance[SSSP Distance: f32 (4 bytes)<br/>Shortest path distance]
-            SSSPParent[SSSP Parent: i32 (4 bytes)<br/>Parent node ID]
+            NodeID["Node ID: u16 (2 bytes)<br/>Flags: Agent/Knowledge"]
+            Position["Position: Vec3 (12 bytes)<br/>x, y, z coordinates"]
+            Velocity["Velocity: Vec3 (12 bytes)<br/>vx, vy, vz components"]
+            SSSPDistance["SSSP Distance: f32 (4 bytes)<br/>Shortest path distance"]
+            SSSPParent["SSSP Parent: i32 (4 bytes)<br/>Parent node ID"]
         end
 
         WebSocketService --> BinaryWebSocketProtocol
@@ -408,8 +408,8 @@ graph TB
 graph TB
     subgraph "Agent Management System"
         subgraph "Data Sources"
-            BotsWebSocketIntegration[BotsWebSocketIntegration<br/>WebSocket Handler]
-            AgentPollingService[AgentPollingService<br/>REST Polling]
+            BotsWebSocketIntegration["BotsWebSocketIntegration<br/>WebSocket Handler"]
+            AgentPollingService["AgentPollingService<br/>REST Polling"]
             ConfigurationMapper[Configuration Mapper<br/>Agent Config]
         end
 
