@@ -24,11 +24,11 @@ The system has been built incrementally with a focus on core functionality first
 
 The "VisionFlow" system is not a simple application but a comprehensive, enterprise-grade platform. Its value is driven by the sophisticated integration of several high-value technology domains:
 
-- **High-Performance 3D Visualization**: Real-time rendering of over 100,000 nodes at 60 FPS using Three.js and WebXR is a highly specialized and complex engineering challenge.
+- **High-Performance 3D Visualisation**: Real-time rendering of over 100,000 nodes at 60 FPS using Three.js and WebXR is a highly specialised and complex engineering challenge.
 
 - **GPU-Accelerated Compute**: The use of Rust and CUDA for backend physics simulations and graph algorithms represents a significant technical moat and requires elite engineering talent.
 
-- **Sophisticated Multi-Agent AI System**: The architecture describes a complex swarm intelligence platform with multiple specialized agents (Planner, Coder, Researcher, etc.), various coordination patterns (Mesh, Hierarchical), and a dedicated communication protocol (MCP). This is at the forefront of the rapidly growing AI agent market.
+- **Sophisticated Multi-Agent AI System**: The architecture describes a complex swarm intelligence platform with multiple specialised agents (Planner, Coder, Researcher, etc.), various coordination patterns (Mesh, Hierarchical), and a dedicated communication protocol (MCP). This is at the forefront of the rapidly growing AI agent market.
 
 - **Enterprise-Grade Architecture**: The documentation details a robust, scalable, and secure system. Features like a custom binary WebSocket protocol for 85% bandwidth reduction, a detailed security model with JWT and MFA, and a distributed actor model (Actix) indicate a system built for high performance and reliability.
 
@@ -38,7 +38,7 @@ The "VisionFlow" system is not a simple application but a comprehensive, enterpr
 
 ## 2. Estimated Team Composition and Cost
 
-To build a system of this caliber, a highly specialized and senior team would be required.
+To build a system of this caliber, a highly specialised and senior team would be required.
 
 | Role | Required Expertise | Estimated Count | Average Annual Salary |
 |------|-------------------|-----------------|----------------------|
@@ -113,7 +113,7 @@ The current **75-80% completion** demonstrates mature architectural foundations 
 
 ### Authentication & Settings
 7. [Authentication & Authorization](#authentication--authorization)
-8. [Settings Management](#settings-management--synchronization)
+8. [Settings Management](#settings-management--synchronisation)
 
 ### Network & Protocol
 9. [WebSocket Protocol Details](#websocket-protocol-details) ✅ CORRECTED
@@ -357,7 +357,7 @@ flowchart TB
             ForceKernel["Force Calculation Kernel<br/>✅ GPU execution"]
             SpringKernel["Spring Forces<br/>✅ GPU accelerated"]
             RepulsionKernel["Repulsion Forces<br/>✅ Connected"]
-            DampingKernel["Damping Application<br/>✅ GPU optimized"]
+            DampingKernel["Damping Application<br/>✅ GPU optimised"]
             IntegrationKernel["Velocity Integration<br/>✅ GPU compute"]
             ConstraintKernel["Constraint Solver<br/>✅ GPU enabled"]
         end
@@ -443,14 +443,14 @@ flowchart TB
 The GPU compute pipeline has substantial code but needs verification:
 - **3,300+ lines of CUDA code** exist in src/utils/*.cu files
 - **Configuration system** complete with dev_config.toml (169 lines)
-- **CUDA integration** via cudarc library but runtime behavior unverified
+- **CUDA integration** via cudarc library but runtime behaviour unverified
 - **GPU manager actor** exists but actual GPU execution needs testing
 
 **Known Status**:
 1. ⚠️ CUDA kernels present but runtime connection unverified
 2. ✅ Configuration-driven parameters via dev_config.toml
 3. ⚠️ GPU pipeline exists but needs validation
-4. ⚠️ Actor integration present but runtime behavior unknown
+4. ⚠️ Actor integration present but runtime behaviour unknown
 
 ### 🔧 MAJOR IMPLEMENTATIONS COMPLETED (2025-09-25)
 
@@ -475,7 +475,7 @@ The GPU compute pipeline has substantial code but needs verification:
 ✅ **Complete Mock Telemetry Data**:
 - **MockAgentData Service**: Comprehensive AgentStatus structure matching
 - **All Fields Implemented**: CPU usage, memory, health, tasks, tokens, capabilities
-- **Realistic Data**: Type-specific behaviors and performance patterns
+- **Realistic Data**: Type-specific behaviours and performance patterns
 - **Development Tools**: Live simulation utilities for testing
 
 **Performance Impact**:
@@ -1072,7 +1072,7 @@ sequenceDiagram
 
 ## Agent Spawn Flow
 
-⚠️ **THEORETICAL**: Agent spawn logic exists but runtime behavior needs testing
+⚠️ **THEORETICAL**: Agent spawn logic exists but runtime behaviour needs testing
 
 ```mermaid
 flowchart TB
@@ -1179,7 +1179,7 @@ flowchart TB
 - **Configuration system** (100% - dev_config.toml with 169 parameters)
 - **Docker setup** (95% - CUDA support, volume mounts, networking)
 - **Rust compilation** (100% - builds successfully with warnings only)
-- **Basic project structure** (100% - well-organized codebase)
+- **Basic project structure** (100% - well-organised codebase)
 - **API consolidation** (100% - UnifiedApiClient implemented across all components)
 - **Voice state centralization** (100% - comprehensive hook architecture created)
 - **GPU pipeline validation** (100% - PTX kernels tested via simulation)
@@ -1189,7 +1189,7 @@ flowchart TB
 - **Binary WebSocket protocol** (75% - implemented and tested)
 - **Agent spawning system** (80% - code exists, hybrid Docker/MCP approach functioning)
 - **MCP TCP connections** (70% - basic framework, response processing improved)
-- **Authentication with Nostr** (75% - code exists, runtime behavior validated)
+- **Authentication with Nostr** (75% - code exists, runtime behaviour validated)
 
 ### ✅ RECENTLY COMPLETED (70-90%)
 - **Voice system integration** (90% - services integrated with centralized state)
@@ -1204,7 +1204,7 @@ flowchart TB
 
 ### ⚠️ REMAINING WORK (30-40%)
 - **Advanced WebXR features** (55% - basic implementation solid, advanced features needed)
-- **Performance optimization** (65% - core optimizations in place, fine-tuning in progress)
+- **Performance optimisation** (65% - core optimisations in place, fine-tuning in progress)
 - **Production hardening** (60% - security and reliability features implemented, deployment prep needed)
 
 ### ⚠️ NEEDS VALIDATION (Uncertain Status)
@@ -1240,7 +1240,7 @@ flowchart TB
 - **Test Coverage**: Comprehensive test infrastructure in place
 
 ### Code Organization
-- **Total Actors**: 15+ specialized actors for different system components
+- **Total Actors**: 15+ specialised actors for different system components
 - **Largest File**: GraphServiceActor (38,456 tokens) - **refactoring planned for decomposition**
 - **Module Structure**: Well-organized with clear separation of concerns
 - **Architecture**: Clean actor-based design with proper message passing
@@ -1276,7 +1276,7 @@ flowchart TB
 2. **MEDIUM**: Warning reduction (230 → target: <50)
 3. **MEDIUM**: Advanced WebXR features refinement
 4. **MEDIUM**: Production performance optimization
-5. **LOW**: Documentation synchronization and final testing
+5. **LOW**: Documentation synchronisation and final testing
 
 ### **Development Roadmap**
 
@@ -1460,7 +1460,7 @@ graph TB
 - **Current Status**: Solid foundation, ~50% complete
 - **Phase 1 (2-4 weeks)**: Runtime validation and debugging
 - **Phase 2 (4-8 weeks)**: Integration testing and fixes
-- **Phase 3 (4-6 weeks)**: Performance optimization and refinement
+- **Phase 3 (4-6 weeks)**: Performance optimisation and refinement
 - **Phase 4 (2-4 weeks)**: Production deployment preparation
 
 ### Technology Stack Maturity
@@ -1553,7 +1553,7 @@ graph TB
    - **Access Method**: Docker exec commands from main container
    - **MCP Server**: TCP service on port 9500 (fallback)
    - **Integration**: Hybrid approach with CLI primary, TCP fallback
-   - **Status**: ⚠️ Framework exists, runtime behavior unclear
+   - **Status**: ⚠️ Framework exists, runtime behaviour unclear
 
 3. **External Voice Services**: Independent services (not containerized)
    - **Whisper STT**: Speech-to-text on port 8080
@@ -2633,7 +2633,7 @@ flowchart TB
 
 ## Validation Methodology
 
-This documentation was validated through comprehensive audit using specialized agents:
+This documentation was validated through comprehensive audit using specialised agents:
 1. **Deep Code Analysis**: Line-by-line inspection finding 89 TODOs and placeholders
 2. **GPU Implementation Audit**: Found CUDA kernels exist but aren't connected
 3. **MCP/TCP Testing**: Confirmed real TCP works but response processing incomplete
@@ -2672,7 +2672,7 @@ This documentation was validated through comprehensive audit using specialized a
 - **Implementation status**: Previously inflated (75-80% → actual 45-55%)
 - **Feature completeness**: Many "fully implemented" features actually need validation
 - **Container topology**: Simplified 2-container setup, not complex microservices
-- **Binary protocol**: Well-specified but runtime behavior unverified
+- **Binary protocol**: Well-specified but runtime behaviour unverified
 
 ### Recommended Next Steps
 
@@ -2691,7 +2691,7 @@ This documentation was validated through comprehensive audit using specialized a
 2. **Production Deployment**: Container orchestration and monitoring setup
 3. **User Experience**: Frontend polish and advanced visualization features
 
-This system represents a **solid technical foundation** with sophisticated architecture and substantial implementation. The main gap is between theoretical design and verified runtime behavior. With proper validation and debugging, this could become a highly capable graph visualization platform.
+This system represents a **solid technical foundation** with sophisticated architecture and substantial implementation. The main gap is between theoretical design and verified runtime behaviour. With proper validation and debugging, this could become a highly capable graph visualization platform.
 
 ---
 

@@ -9,18 +9,15 @@
 //! - Dynamic layout updates based on swarm topology
 
 use actix::prelude::*;
-use actix::Message as ActixMessage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use log::{info, warn, error, debug};
-use tokio::time::interval;
+use log::{info, warn, debug};
 
 use crate::services::agent_visualization_protocol::{
     AgentVisualizationMessage, InitializeMessage, PositionUpdateMessage,
     StateUpdateMessage, ConnectionUpdateMessage, MetricsUpdateMessage,
     AgentInit, ConnectionInit, VisualConfig, PhysicsConfig, Position,
-    McpServerInfo, McpServerType, MultiMcpAgentStatus,
     SwarmTopologyData, GlobalPerformanceMetrics, PositionUpdate,
     AgentStateUpdate, SwarmMetrics, AgentMetrics,
     LayerLoad, CriticalPath, Bottleneck
@@ -28,7 +25,6 @@ use crate::services::agent_visualization_protocol::{
 use crate::types::AgentStatus;
 use crate::services::multi_mcp_agent_discovery::McpServerConfig;
 use crate::types::Vec3Data;
-use crate::types::mcp_responses::{McpResponse, McpSuccessResponse};
 
 /// Wrapper for AgentVisualizationMessage to implement Actix Message trait
 #[derive(Message, Debug, Clone)]

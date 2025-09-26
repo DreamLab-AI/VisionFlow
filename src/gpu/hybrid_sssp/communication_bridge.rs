@@ -2,7 +2,6 @@
 // Handles efficient data transfer and kernel invocation
 
 use super::SSPMetrics;
-use std::sync::Arc;
 use std::time::Instant;
 
 /// GPU Bridge for efficient CPU-GPU communication

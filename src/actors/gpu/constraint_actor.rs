@@ -1,7 +1,7 @@
 //! Constraint Actor - Handles constraint management and updates
 
 use actix::prelude::*;
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 
 use crate::actors::messages::*;
 use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData, ConstraintKind};

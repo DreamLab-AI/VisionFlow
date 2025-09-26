@@ -1,8 +1,8 @@
-# VisionFlow Visualization Architecture
+# VisionFlow Visualisation Architecture
 
 ## Overview
 
-VisionFlow supports dual-graph visualization where both **Knowledge Graphs** (Logseq) and **Agent Graphs** (VisionFlow bots) coexist in the same 3D scene. This document outlines the existing architecture showing how both graph types are rendered and what infrastructure is shared vs distinct.
+VisionFlow supports dual-graph visualisation where both **Knowledge Graphs** (Logseq) and **Agent Graphs** (VisionFlow bots) coexist in the same 3D scene. This document outlines the existing architecture showing how both graph types are rendered and what infrastructure is shared vs distinct.
 
 ## Core Architecture
 
@@ -71,7 +71,7 @@ interface GraphNode {
 interface BotsAgent {
   id: string;
   type: 'coordinator' | 'researcher' | 'coder' | 'analyst' | /* +15 more types */;
-  status: 'idle' | 'busy' | 'active' | 'error' | 'initializing' | 'terminating' | 'offline';
+  status: 'idle' | 'busy' | 'active' | 'error' | 'initialising' | 'terminating' | 'offline';
   health: number;        // 0-100
   cpuUsage: number;      // percentage
   memoryUsage: number;   // percentage
@@ -106,11 +106,11 @@ interface BotsAgent {
 
 ### Data Flow
 1. `BotsDataContext` → aggregates from polling service
-2. `useBotsData()` → provides context to visualization
+2. `useBotsData()` → provides context to visualisation
 3. Server-authoritative positions via context updates
 4. Real-time metrics from WebSocket integration
 
-## 4. Shared Visualization Infrastructure
+## 4. Shared Visualisation Infrastructure
 
 ### Three.js/R3F Framework
 - **Canvas**: Single R3F Canvas component
@@ -130,7 +130,7 @@ interface BotsAgent {
 - **HologramNodeMaterial**: Custom shader material with:
   - Emissive glow effects
   - Time-based animations
-  - Instance color support
+  - Instance colour support
   - Hologram rim lighting
 - **Standard Materials**: For non-holographic elements
 
@@ -177,7 +177,7 @@ interface BinaryNodeData {
 - **Clustering Methods**: Spectral, Hierarchical, DBSCAN, K-Means++, Louvain, Affinity Propagation
 - **GPU Acceleration**: Most algorithms GPU-accelerated
 - **Parameters**: Configurable similarity metrics, cluster counts, convergence thresholds
-- **Results View**: Cluster visualization with coherence metrics and keywords
+- **Results View**: Cluster visualisation with coherence metrics and keywords
 - **Anomaly Detection**: Real-time outlier identification with multiple methods
 - **Advanced Analytics**: UMAP reduction, Graph Wavelets, Hyperbolic Embedding, Persistent Homology
 
@@ -185,30 +185,30 @@ interface BinaryNodeData {
 
 **Existing Capabilities**:
 - **SSSP Algorithms**: Dijkstra, Bellman-Ford, Floyd-Warshall
-- **Visualization**: Color-coded distance visualization (green=close, red=far, gray=unreachable)
+- **Visualisation**: Colour-coded distance visualisation (green=close, red=far, gray=unreachable)
 - **Source Selection**: Interactive source node selection
-- **Distance Normalization**: 0-1 normalized distance display
+- **Distance Normalization**: 0-1 normalised distance display
 - **Path Reconstruction**: Via predecessor tracking
 - **Performance Metrics**: Computation time, cache hit rates
-- **Real-time Updates**: Live shortest path visualization on graph
+- **Real-time Updates**: Live shortest path visualisation on graph
 
 ### Node Distribution Options
 
 **Current Analytics Options**:
 1. **Clustering-based Distribution**:
    - Spectral clustering for community detection
-   - Hierarchical clustering for tree-like organization
+   - Hierarchical clustering for tree-like organisation
    - DBSCAN for density-based grouping
 
 2. **Path-based Distribution**:
-   - SSSP visualization with distance-based coloring
+   - SSSP visualisation with distance-based colouring
    - Source node selection for path analysis
    - Reachability analysis
 
 3. **Advanced Spatial Layouts**:
    - UMAP dimensionality reduction for 2D/3D projection
    - Hyperbolic embedding for hierarchical structures
-   - Graph wavelet analysis for multi-scale organization
+   - Graph wavelet analysis for multi-scale organisation
 
 4. **Anomaly-based Highlighting**:
    - Isolation Forest for structural anomalies
@@ -223,7 +223,7 @@ interface BinaryNodeData {
 | **Node Types** | File, folder, concept, todo, reference | 17+ agent types (coordinator, coder, etc.) |
 | **Visual Basis** | Metadata type and connections | Real-time metrics (health, CPU, tokens) |
 | **Positioning** | Physics simulation in worker | Server-authoritative |
-| **Materials** | HologramNodeMaterial with type colors | Dynamic materials with status colors |
+| **Materials** | HologramNodeMaterial with type colours | Dynamic materials with status colours |
 | **Animations** | Physics-based movement, SSSP pulsing | Status-based (pulsing, rotation, shake) |
 | **Interactivity** | Drag & drop, SSSP source selection | Click for mode cycling, hover for details |
 | **Labels** | Type-based with metadata | Dynamic with performance metrics |
@@ -263,4 +263,4 @@ Based on the existing architecture, potential enhancements could include:
 
 ## Conclusion
 
-VisionFlow successfully implements a sophisticated dual-graph visualization system where both knowledge and agent graphs coexist in the same 3D space. The architecture cleanly separates concerns while sharing core Three.js infrastructure, enabling rich analytics for knowledge graphs while providing real-time monitoring for agent systems. The existing control center provides extensive analytics capabilities for knowledge graphs, with opportunities to extend similar capabilities to agent graphs.
+VisionFlow successfully implements a sophisticated dual-graph visualisation system where both knowledge and agent graphs coexist in the same 3D space. The architecture cleanly separates concerns while sharing core Three.js infrastructure, enabling rich analytics for knowledge graphs while providing real-time monitoring for agent systems. The existing control center provides extensive analytics capabilities for knowledge graphs, with opportunities to extend similar capabilities to agent graphs.

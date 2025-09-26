@@ -27,11 +27,11 @@ use crate::AppState;
 use crate::actors::messages::{
     GetSettings, UpdateVisualAnalyticsParams,
     GetConstraints, UpdateConstraints, GetPhysicsStats,
-    SetComputeMode, GetGraphData, ComputeSSSP,
+    SetComputeMode, GetGraphData,
     TriggerStressMajorization, ResetStressMajorizationSafety,
     GetStressMajorizationStats, UpdateStressMajorizationParams
 };
-use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
+use crate::utils::mcp_tcp_client::create_mcp_client;
 use crate::services::agent_visualization_protocol::McpServerType;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, PerformanceMetrics};
 use crate::models::constraints::{ConstraintSet, AdvancedParams};

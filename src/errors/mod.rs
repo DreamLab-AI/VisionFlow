@@ -63,6 +63,8 @@ pub enum ActorError {
     SupervisionFailed { supervisor: String, supervised: String, reason: String },
     /// Actor mailbox full or inaccessible
     MailboxError { actor_name: String, reason: String },
+    /// Actor not available or not found
+    ActorNotAvailable(String),
 }
 
 /// GPU computation specific errors
@@ -235,8 +237,10 @@ impl fmt::Display for ActorError {
                 write!(f, "Failed to handle '{}' message: {}", message_type, reason),
             ActorError::SupervisionFailed { supervisor, supervised, reason } => 
                 write!(f, "Supervisor '{}' failed to supervise '{}': {}", supervisor, supervised, reason),
-            ActorError::MailboxError { actor_name, reason } => 
+            ActorError::MailboxError { actor_name, reason } =>
                 write!(f, "Mailbox error for actor '{}': {}", actor_name, reason),
+            ActorError::ActorNotAvailable(actor_name) =>
+                write!(f, "Actor '{}' is not available", actor_name),
         }
     }
 }

@@ -19,7 +19,6 @@ use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient};
 use crate::errors::VisionFlowError;
 use std::collections::HashMap;
 use std::sync::Arc;
-use serde::{Serialize, Deserialize};
 
 /// Message-based graph operations to replace Arc::make_mut() patterns
 #[derive(Message)]

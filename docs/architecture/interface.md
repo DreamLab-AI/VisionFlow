@@ -282,10 +282,10 @@ graph TB
 - Priority levels: low, medium, high, critical
 - Strategies: strategic, tactical, adaptive, hive-mind
 
-#### POST `/api/bots/initialize-swarm`
+#### POST `/api/bots/initialise-swarm`
 **Purpose**: Initialize agent swarm coordination
 **Request**: Swarm configuration parameters
-**Response**: Swarm initialization status
+**Response**: Swarm initialisation status
 
 ### Task Management
 
@@ -320,7 +320,7 @@ graph TB
 
 ### Connection Architecture
 
-The WebSocket system uses a multi-endpoint architecture optimized for different data types:
+The WebSocket system uses a multi-endpoint architecture optimised for different data types:
 
 | Endpoint | Protocol | Purpose | Traffic Reduction |
 |----------|----------|---------|------------------|
@@ -606,7 +606,7 @@ pub struct RateLimitConfig {
 2. **Path-Based Updates**: Granular setting modifications
 3. **Batch Operations**: Atomic multi-field updates
 4. **Caching Layer**: Response caching for read-heavy operations
-5. **Connection Pooling**: Database connection optimization
+5. **Connection Pooling**: Database connection optimisation
 
 ### Scalability Considerations
 
@@ -665,7 +665,7 @@ await apiClient.spawnAgentHybrid({
 ### ✅ RESOLVED ISSUES
 
 #### 1. API Consolidation (Completed)
-- **Issue**: Multiple API clients with inconsistent behavior
+- **Issue**: Multiple API clients with inconsistent behaviour
 - **Solution**: UnifiedApiClient implementation
 - **Status**: ✅ Resolved - 100% migration complete
 
@@ -689,7 +689,7 @@ await apiClient.spawnAgentHybrid({
 
 #### 1. Unused Server Endpoints
 - **Issue**: Some server endpoints not consumed by client
-- **Examples**: `/api/bots/update`, `/api/bots/initialize-swarm`
+- **Examples**: `/api/bots/update`, `/api/bots/initialise-swarm`
 - **Impact**: Code maintenance overhead
 - **Recommendation**: Audit and remove unused endpoints
 
@@ -719,7 +719,7 @@ await apiClient.spawnAgentHybrid({
 1. **Consistent Naming**: Use camelCase in API, snake_case in Rust
 2. **Error Handling**: Implement comprehensive error responses
 3. **Validation**: Validate all inputs at API boundary
-4. **Documentation**: Keep API documentation synchronized with code
+4. **Documentation**: Keep API documentation synchronised with code
 5. **Testing**: Write integration tests for all endpoints
 
 ### WebSocket Implementation
@@ -727,7 +727,7 @@ await apiClient.spawnAgentHybrid({
 1. **Binary Protocol**: Use binary for high-frequency data
 2. **Message Types**: Define clear message type hierarchy
 3. **Error Recovery**: Implement reconnection logic
-4. **Performance**: Monitor and optimize message throughput
+4. **Performance**: Monitor and optimise message throughput
 5. **Security**: Implement connection authentication
 
 ### Field Conversion
@@ -788,7 +788,7 @@ describe('Settings API Integration', () => {
 describe('WebSocket Binary Protocol', () => {
   test('should receive binary node updates', (done) => {
     wsClient.onBinaryMessage((data) => {
-      const nodeData = deserializeBinaryNodeData(data);
+      const nodeData = deserialiseBinaryNodeData(data);
       expect(nodeData.nodeId).toBeGreaterThan(0);
       done();
     });
@@ -818,16 +818,151 @@ The VisionFlow interface layer represents a mature, production-ready API archite
 ### Key Strengths
 
 - ✅ **Complete Interface Coverage**: 19 active endpoints across all domains
-- ✅ **Automatic Data Conversion**: Seamless camelCase ↔ snake_case handling
+- ✅ **Automatic Data Conversion**: Seamless camelCase ↔ snake_case handling via enhanced config/mod.rs
 - ✅ **Performance Optimization**: 80% WebSocket traffic reduction through binary protocol
 - ✅ **Error Recovery**: Comprehensive error handling and retry logic
 - ✅ **Type Safety**: Full TypeScript and Rust type safety throughout
+- ✅ **Actor Communication**: Optimized message routing with extracted patterns
+- ✅ **Route Conflict Resolution**: All duplicate endpoints cleaned up
+- ✅ **Task Management**: Complete agent task lifecycle control (remove/pause/resume)
+- ✅ **Multi-Channel WebSocket**: Specialized channels for different data types
+- ✅ **Field Normalization**: Comprehensive field mapping with validation
 
 ### Future Enhancements
 
 - 🔄 **Authentication System**: Complete JWT-based authentication
 - 🔄 **Rate Limiting**: Implement request rate limiting
-- 🔄 **Caching Layer**: Add response caching for optimization
+- 🔄 **Caching Layer**: Add response caching for optimisation
 - 🔄 **Monitoring**: Enhanced performance and health monitoring
+- 🔄 **GraphService Refactoring**: Complete Phase 2 supervisor pattern implementation
 
-*Interface Layer Documentation - VisionFlow v2.1.0*
+---
+
+## Settings API Audit Report (Integrated 2025-09-25)
+
+### Complete API Endpoint Analysis
+
+The Settings API has been comprehensively audited with the following findings:
+
+#### Critical Issues Resolved
+1. **Duplicate Route Definitions**: `/api/settings/batch` endpoints were defined in both settings_handler.rs and settings_paths.rs. RESOLVED by commenting out conflicting routes.
+2. **Field Name Conversion**: CamelCase ↔ snake_case conversion creates "duplicate field" errors when both formats are present in the same JSON.
+
+#### Complete Endpoint Mapping
+
+**Primary Settings Endpoints**:
+- GET `/api/settings` - Get all settings (legacy)
+- POST `/api/settings` - Update all settings (legacy)
+- POST `/api/settings/reset` - Reset to defaults
+- POST `/api/settings/save` - Force save settings
+- GET `/api/settings/validation/stats` - Get validation statistics
+
+**Path-Based Endpoints**:
+- GET `/api/settings/path` - Get specific value by dot path
+- PUT `/api/settings/path` - Update specific value by path
+- POST `/api/settings/batch` - Read multiple paths
+- PUT `/api/settings/batch` - Update multiple paths
+- GET `/api/settings/schema` - Get schema for path
+
+**Performance Metrics**:
+| Operation | Current Latency | Target |
+|-----------|----------------|---------|
+| GET /api/settings | ~50ms | <20ms |
+| PUT /api/settings/path | ~30ms | <10ms |
+| POST /api/settings/batch | ~100ms | <50ms |
+
+### API Migration Completion Status
+
+The API consolidation migration is **100% complete**:
+- **14 Components Migrated**: All API consumers updated to UnifiedApiClient
+- **111 References Converted**: Complete codebase migration from legacy apiService
+- **Zero Legacy Imports**: No deprecated apiService usage remains
+- **VircadiaScene.tsx Fix**: Invalid CLI fetch() call replaced with localStorage debugging
+- **External Resource Preservation**: Legitimate fetch() calls for downloads and external APIs maintained
+
+---
+
+## Additional Architecture Diagrams
+
+### System Overview Diagram
+
+```mermaid
+graph TB
+    subgraph "VisionFlow System Architecture Overview"
+        subgraph "Client Layer"
+            TypeScriptClient[TypeScript Client<br/>React Application]
+            UnifiedApiClient[UnifiedApiClient<br/>HTTP Communication]
+            WebSocketService[WebSocket Service<br/>Real-time Updates]
+        end
+
+        subgraph "Interface Layer"
+            RestEndpoints[REST Endpoints<br/>19 Active APIs]
+            WebSocketEndpoints[WebSocket Endpoints<br/>4 Specialized Channels]
+            FieldConversion[Field Conversion<br/>Automatic camelCase ↔ snake_case]
+        end
+
+        subgraph "Server Layer"
+            ActixWebServer[Actix Web Server<br/>Rust Backend]
+            ActorSystem[Actor System<br/>Message-driven Processing]
+            GPUCompute[GPU Compute<br/>CUDA Kernels]
+        end
+
+        subgraph "Data Layer"
+            GraphData[Graph Data<br/>Nodes & Edges]
+            Settings[Settings<br/>Configuration]
+            AgentData[Agent Data<br/>Task Management]
+        end
+    end
+
+    TypeScriptClient --> UnifiedApiClient
+    TypeScriptClient --> WebSocketService
+    UnifiedApiClient --> RestEndpoints
+    WebSocketService --> WebSocketEndpoints
+    RestEndpoints --> FieldConversion
+    WebSocketEndpoints --> FieldConversion
+    FieldConversion --> ActixWebServer
+    ActixWebServer --> ActorSystem
+    ActorSystem --> GPUCompute
+    ActorSystem --> GraphData
+    ActorSystem --> Settings
+    ActorSystem --> AgentData
+
+    style TypeScriptClient fill:#e3f2fd
+    style UnifiedApiClient fill:#c8e6c9
+    style RestEndpoints fill:#fff3e0
+    style ActorSystem fill:#f3e5f5
+```
+
+### Data Flow Diagram
+
+```mermaid
+flowchart TD
+    subgraph "Client to Server Data Flow"
+        A[User Interaction] --> B[TypeScript Client]
+        B --> C{Request Type?}
+        C -->|Configuration| D[Settings API]
+        C -->|Visualization| E[Graph API]
+        C -->|Agent Control| F[Bot API]
+        C -->|Real-time| G[WebSocket Binary]
+
+        D --> H[Field Conversion]
+        E --> H
+        F --> H
+        G --> I[Binary Protocol]
+
+        H --> J[Actor Message]
+        I --> J
+        J --> K[Business Logic]
+        K --> L[Data Storage]
+        L --> M[Response Generation]
+        M --> N[Field Conversion Back]
+        N --> O[Client Update]
+    end
+
+    style A fill:#e3f2fd
+    style H fill:#c8e6c9
+    style J fill:#fff3e0
+    style K fill:#f3e5f5
+```
+
+*Interface Layer Documentation - VisionFlow v2.2.0 - Enhanced with Architecture Diagrams*

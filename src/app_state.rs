@@ -1,7 +1,7 @@
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
-use log::{info, warn, error};
+use log::info;
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
 use crate::actors::gpu;

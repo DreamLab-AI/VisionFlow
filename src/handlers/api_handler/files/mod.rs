@@ -1,6 +1,6 @@
 use actix_web::{web, Error as ActixError, HttpResponse};
 use std::sync::Arc;
-use crate::actors::messages::{GetSettings, UpdateMetadata, BuildGraphFromMetadata, AddNodesFromMetadata, UpdateNodeFromMetadata, RemoveNodeByMetadata, GetNodeData as GetGpuNodeData};
+use crate::actors::messages::{GetSettings, UpdateMetadata, AddNodesFromMetadata, GetNodeData as GetGpuNodeData};
 use serde_json::json;
 use log::{info, debug, error};
 
