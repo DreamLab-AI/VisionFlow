@@ -16,13 +16,13 @@ use tokio::sync::RwLock;
 use chrono::{Utc, DateTime};
 use uuid::Uuid;
 use serde_json::{json, Value};
-use socket2::{Socket, Domain, Type, Protocol, SockRef};
+use socket2::{Socket, SockRef};
 use fastrand;
 
 use crate::utils::network::{
     NetworkResilienceManager, CircuitBreaker,
-    retry_tcp_connection, RetryableError,
-    TimeoutConfig, ConnectionPool, ConnectionPoolConfig, PooledConnection
+    retry_tcp_connection,
+    TimeoutConfig, ConnectionPool, ConnectionPoolConfig
 };
 use crate::utils::resource_monitor::{ResourceMonitor, ResourceLimits};
 

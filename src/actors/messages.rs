@@ -19,7 +19,6 @@ use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
 use crate::errors::VisionFlowError;
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
-use crate::actors::gpu::stress_majorization_actor::StressMajorizationStats;
 use crate::models::workspace::{Workspace, CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceQuery, WorkspaceFilter};
 
 // K-means clustering results
@@ -147,6 +146,10 @@ pub struct GetGraphData;
 pub struct UpdateNodePositions {
     pub positions: Vec<(u32, BinaryNodeData)>,
 }
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<(u32, Vec3)>, String>")]
+pub struct GetNodePositions;
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]

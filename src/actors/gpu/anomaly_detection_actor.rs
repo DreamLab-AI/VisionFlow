@@ -425,7 +425,6 @@ impl AnomalyDetectionActor {
         let feature_dim = 3; // x, y, z coordinates
         let mut isolation_scores = vec![0.0f32; num_nodes];
 
-        use rand::Rng;
         let mut rng = rand::thread_rng();
 
         // Build isolation trees and compute path lengths

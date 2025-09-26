@@ -21,13 +21,13 @@ use rand::Rng;
 use serde_json::{json, Value};
 
 use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
-use crate::types::mcp_responses::{McpResponse, McpContentResult, AgentListResponse, McpParseError};
+use crate::types::mcp_responses::{McpResponse, McpContentResult, AgentListResponse};
 use crate::actors::messages::*;
 use crate::actors::GraphServiceActor;
 use crate::actors::tcp_connection_actor::{TcpConnectionActor, TcpConnectionEvent, TcpConnectionEventType, EstablishConnection, SubscribeToEvents, TcpConnectionConfig};
 use crate::actors::jsonrpc_client::{JsonRpcClient, ConnectToTcpActor, InitializeMcpSession, CallTool, ClientInfo};
 use crate::actors::messages::UpdateAgentCache;
-use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
+use crate::utils::mcp_tcp_client::create_mcp_client;
 use crate::services::agent_visualization_protocol::McpServerType;
 
 /// Refactored ClaudeFlowActorTcp - pure application logic

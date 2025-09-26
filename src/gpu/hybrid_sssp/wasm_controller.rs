@@ -4,9 +4,7 @@
 use super::{HybridSSPConfig, SSPMetrics};
 use super::communication_bridge::GPUBridge;
 use super::adaptive_heap::AdaptiveHeap;
-use std::collections::{HashMap, VecDeque};
-use std::pin::Pin;
-use std::future::Future;
+use std::collections::VecDeque;
 
 /// WASM Controller for recursive BMSSP algorithm
 pub struct WASMController {

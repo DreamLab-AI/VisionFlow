@@ -7,8 +7,6 @@ pub mod gpu_kernels;
 pub mod communication_bridge;
 pub mod adaptive_heap;
 
-use std::sync::Arc;
-use std::collections::HashMap;
 
 /// Hybrid SSSP configuration
 #[derive(Debug, Clone)]

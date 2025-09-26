@@ -9,7 +9,7 @@ use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetMetadata, GetSettings, BuildGraphFromMetadata, AddNodesFromMetadata, UpdateNodeFromMetadata, RemoveNodeByMetadata, GetAutoBalanceNotifications, InitialClientSync};
+use crate::actors::messages::{GetGraphData, GetSettings, AddNodesFromMetadata, GetAutoBalanceNotifications, InitialClientSync};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
