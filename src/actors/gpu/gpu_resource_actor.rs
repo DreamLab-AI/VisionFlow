@@ -1,7 +1,7 @@
 //! GPU Resource Actor - Handles GPU initialization, memory management, and device status
 
 use actix::prelude::*;
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
@@ -42,6 +42,7 @@ pub struct GPUResourceActor {
 
 impl GPUResourceActor {
     pub fn new() -> Self {
+        debug!("GPUResourceActor::new() - Creating new instance");
         Self {
             device: None,
             cuda_stream: None,
@@ -54,17 +55,28 @@ impl GPUResourceActor {
     /// Initialize GPU device and unified compute engine
     async fn perform_gpu_initialization(&mut self, graph_data: Arc<GraphData>) -> Result<(), String> {
         info!("GPUResourceActor: Starting GPU initialization with {} nodes", graph_data.nodes.len());
-        
+        debug!("GPUResourceActor - Graph has {} nodes and {} edges",
+               graph_data.nodes.len(), graph_data.edges.len());
+
         // Test GPU capabilities first
+        debug!("GPUResourceActor - Testing GPU capabilities...");
         Self::static_test_gpu_capabilities().await
             .map_err(|e| format!("GPU capabilities test failed: {}", e))?;
-        
+
         // Initialize CUDA device
-        let device = CudaDevice::new(0).map_err(|e| format!("Failed to create CUDA device: {}", e))?;
+        debug!("GPUResourceActor - Creating CUDA device 0...");
+        let device = CudaDevice::new(0).map_err(|e| {
+            error!("Failed to create CUDA device: {}", e);
+            format!("Failed to create CUDA device: {}", e)
+        })?;
         info!("CUDA device initialized successfully");
-        
+
         // Create CUDA stream
-        let cuda_stream = device.fork_default_stream().map_err(|e| format!("Failed to create CUDA stream: {}", e))?;
+        debug!("GPUResourceActor - Creating CUDA stream...");
+        let cuda_stream = device.fork_default_stream().map_err(|e| {
+            error!("Failed to create CUDA stream: {}", e);
+            format!("Failed to create CUDA stream: {}", e)
+        })?;
         info!("CUDA stream created successfully");
         
         // Get device capabilities
@@ -78,8 +90,18 @@ impl GPUResourceActor {
               max_threads_per_block, compute_capability_major);
         
         // Initialize unified compute engine
-        let mut unified_compute = UnifiedGPUCompute::new(1000, 1000, include_str!("../../utils/visionflow_unified.ptx"))
-            .map_err(|e| format!("Failed to create unified compute: {}", e))?;
+        // Include PTX from build output directory
+        debug!("Loading PTX from build directory: {}/visionflow_unified.ptx", env!("OUT_DIR"));
+        let ptx_content = include_str!(concat!(env!("OUT_DIR"), "/visionflow_unified.ptx"));
+        debug!("PTX content loaded successfully, size: {} bytes", ptx_content.len());
+        debug!("PTX first 100 chars: {}", &ptx_content[..100.min(ptx_content.len())]);
+
+        debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
+        let mut unified_compute = UnifiedGPUCompute::new(1000, 1000, ptx_content)
+            .map_err(|e| {
+                error!("Failed to create unified compute: {}", e);
+                format!("Failed to create unified compute: {}", e)
+            })?;
         
         info!("UnifiedGPUCompute engine initialized successfully");
         
@@ -259,13 +281,19 @@ struct CsrResult {
 
 impl Actor for GPUResourceActor {
     type Context = Context<Self>;
-    
-    fn started(&mut self, _ctx: &mut Self::Context) {
-        info!("GPU Resource Actor started");
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        debug!("GPUResourceActor::started() - Actor lifecycle started, address: {:?}", ctx.address());
+        debug!("GPUResourceActor - Initial state: device={}, cuda_stream={}, unified_compute={}",
+              self.device.is_some(), self.cuda_stream.is_some(), self.unified_compute.is_some());
+        info!("GPU Resource Actor started successfully");
     }
-    
+
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("GPU Resource Actor stopped");
+        error!("GPUResourceActor::stopped() - Actor lifecycle stopped!");
+        error!("GPUResourceActor - Final state: device={}, cuda_stream={}, unified_compute={}",
+              self.device.is_some(), self.cuda_stream.is_some(), self.unified_compute.is_some());
+        error!("GPUResourceActor - Failure count: {}", self.gpu_state.gpu_failure_count);
     }
 }
 
@@ -275,18 +303,22 @@ impl Handler<InitializeGPU> for GPUResourceActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
     
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
+        debug!("GPUResourceActor::handle(InitializeGPU) - Message received");
         info!("GPUResourceActor: InitializeGPU received with {} nodes", msg.graph.nodes.len());
-        
+        debug!("Graph service address present: {}", msg.graph_service_addr.is_some());
+
         let graph_data = msg.graph;
         let graph_service_addr = msg.graph_service_addr;
-        
+
         // Perform GPU initialization
-        Box::pin(async move { 
+        debug!("Starting async GPU initialization");
+        Box::pin(async move {
             // This will call our async initialization method
             Ok::<(), ()>(())
         }.into_actor(self).map(move |result, actor, _ctx| {
             match result {
                 Ok(_) => {
+                    debug!("Async initialization started, performing GPU initialization...");
                     // Perform the actual GPU initialization
                     let initialization_result = futures::executor::block_on(
                         actor.perform_gpu_initialization(graph_data)

@@ -488,10 +488,23 @@ impl UnifiedGPUCompute {
                 self.num_nodes, x.len(), y.len(), z.len()
             ));
         }
-        
-        self.pos_in_x.copy_from(x)?;
-        self.pos_in_y.copy_from(y)?;
-        self.pos_in_z.copy_from(z)?;
+
+        // Handle padding when buffer is larger than data (due to growth factor)
+        if x.len() < self.allocated_nodes {
+            let mut padded_x = x.to_vec();
+            let mut padded_y = y.to_vec();
+            let mut padded_z = z.to_vec();
+            padded_x.resize(self.allocated_nodes, 0.0);
+            padded_y.resize(self.allocated_nodes, 0.0);
+            padded_z.resize(self.allocated_nodes, 0.0);
+            self.pos_in_x.copy_from(&padded_x)?;
+            self.pos_in_y.copy_from(&padded_y)?;
+            self.pos_in_z.copy_from(&padded_z)?;
+        } else {
+            self.pos_in_x.copy_from(x)?;
+            self.pos_in_y.copy_from(y)?;
+            self.pos_in_z.copy_from(z)?;
+        }
         Ok(())
     }
 

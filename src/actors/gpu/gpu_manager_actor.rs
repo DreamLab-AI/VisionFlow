@@ -1,7 +1,7 @@
 //! GPU Manager Actor - Supervisor for specialized GPU computation actors
 
 use actix::prelude::*;
-use log::{error, info};
+use log::{debug, error, info};
 
 use crate::actors::messages::*;
 use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient};
@@ -38,17 +38,26 @@ impl GPUManagerActor {
     /// Spawn all child actors and establish supervision
     fn spawn_child_actors(&mut self, _ctx: &mut Context<Self>) -> Result<(), String> {
         if self.children_spawned {
+            debug!("Child actors already spawned, skipping");
             return Ok(()); // Already spawned
         }
-        
+
         info!("GPU Manager: Spawning specialized child actors");
-        
+
         // Spawn child actors with supervision
+        debug!("Creating GPUResourceActor...");
         let resource_actor = GPUResourceActor::new().start();
+        debug!("GPUResourceActor created: {:?}", resource_actor);
+
+        debug!("Creating ForceComputeActor...");
         let force_compute_actor = ForceComputeActor::new().start();
+        debug!("Creating ClusteringActor...");
         let clustering_actor = ClusteringActor::new().start();
+        debug!("Creating AnomalyDetectionActor...");
         let anomaly_detection_actor = AnomalyDetectionActor::new().start();
+        debug!("Creating StressMajorizationActor...");
         let stress_majorization_actor = StressMajorizationActor::new().start();
+        debug!("Creating ConstraintActor...");
         let constraint_actor = ConstraintActor::new().start();
         
         self.child_actors = Some(ChildActorAddresses {
@@ -112,17 +121,23 @@ impl Handler<InitializeGPU> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
     
     fn handle(&mut self, msg: InitializeGPU, ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU Manager: InitializeGPU received");
-        
+        debug!("GPUManagerActor::handle(InitializeGPU) - Message received");
+        info!("GPU Manager: InitializeGPU received with {} nodes", msg.graph.nodes.len());
+        debug!("Graph service address present: {}", msg.graph_service_addr.is_some());
+
         let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+            Ok(actors) => {
+                debug!("Child actors retrieved successfully");
+                actors.clone()
+            },
             Err(e) => {
                 error!("Failed to get child actors: {}", e);
                 return Box::pin(async move { Err(e) }.into_actor(self));
             }
         };
-        
+
         // Delegate to ResourceActor
+        debug!("Delegating InitializeGPU to ResourceActor");
         let fut = child_actors.resource_actor.send(msg)
             .into_actor(self)
             .map(|res, _actor, _ctx| {
