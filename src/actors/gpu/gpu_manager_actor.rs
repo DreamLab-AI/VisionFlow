@@ -4,6 +4,7 @@ use actix::prelude::*;
 use log::{error, info};
 
 use crate::actors::messages::*;
+use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient};
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, TelemetryEvent, LogLevel};
 use super::shared::{SharedGPUContext, GPUState, ChildActorAddresses};
 use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
@@ -380,5 +381,78 @@ impl Handler<GetForceComputeActor> for GPUManagerActor {
     }
 }
 
-// TODO: Add more handlers as needed for complete delegation
-// This covers the main message types that need routing
+// Additional handlers for messages that need delegation
+
+/// Handle UploadConstraintsToGPU - delegate to ConstraintActor
+impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UploadConstraintsToGPU, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = self.get_child_actors(ctx)?;
+
+        // Send to ConstraintActor
+        match child_actors.constraint_actor.try_send(msg) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("Failed to delegate UploadConstraintsToGPU: {}", e))
+        }
+    }
+}
+
+/// Handle GetNodeData - delegate to ForceComputeActor
+impl Handler<GetNodeData> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<Vec<BinaryNodeData>, String>>;
+
+    fn handle(&mut self, msg: GetNodeData, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = match self.get_child_actors(ctx) {
+            Ok(actors) => actors.clone(),
+            Err(e) => {
+                return Box::pin(async move { Err(e) }.into_actor(self));
+            }
+        };
+
+        // Delegate to ForceComputeActor
+        let fut = child_actors.force_compute_actor.send(msg)
+            .into_actor(self)
+            .map(|res, _actor, _ctx| {
+                match res {
+                    Ok(result) => result,
+                    Err(e) => {
+                        error!("GPU Manager: ForceComputeActor communication failed: {}", e);
+                        Err(format!("ForceComputeActor communication failed: {}", e))
+                    }
+                }
+            });
+
+        Box::pin(fut)
+    }
+}
+
+/// Handle UpdateSimulationParams - delegate to ForceComputeActor
+impl Handler<UpdateSimulationParams> for GPUManagerActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateSimulationParams, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = self.get_child_actors(ctx)?;
+
+        // Send to ForceComputeActor
+        match child_actors.force_compute_actor.try_send(msg) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("Failed to delegate UpdateSimulationParams: {}", e))
+        }
+    }
+}
+
+/// Handle UpdateAdvancedParams - delegate to ForceComputeActor
+impl Handler<UpdateAdvancedParams> for GPUManagerActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateAdvancedParams, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = self.get_child_actors(ctx)?;
+
+        // Send to ForceComputeActor only (StressMajorizationActor doesn't need it directly)
+        match child_actors.force_compute_actor.try_send(msg) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("Failed to delegate UpdateAdvancedParams: {}", e))
+        }
+    }
+}

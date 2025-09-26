@@ -503,7 +503,7 @@ impl UnifiedGPUCompute {
                 self.num_nodes + 1, row_offsets.len()
             ));
         }
-        
+
         // Check that edge data arrays have same length
         if col_indices.len() != weights.len() {
             return Err(anyhow!(
@@ -511,7 +511,7 @@ impl UnifiedGPUCompute {
                 col_indices.len(), weights.len()
             ));
         }
-        
+
         // Check that we don't exceed allocated edge buffer size
         if col_indices.len() > self.allocated_edges {
             return Err(anyhow!(
@@ -519,10 +519,32 @@ impl UnifiedGPUCompute {
                 col_indices.len(), self.allocated_edges
             ));
         }
-        
-        self.edge_row_offsets.copy_from(row_offsets)?;
-        self.edge_col_indices.copy_from(col_indices)?;
-        self.edge_weights.copy_from(weights)?;
+
+        // Handle partial buffer uploads - buffers may be larger than data
+        // Create padded versions if buffer is larger than data
+        if row_offsets.len() <= self.allocated_nodes + 1 {
+            // For row_offsets, pad with the last value
+            let mut padded_row_offsets = row_offsets.to_vec();
+            let last_val = *padded_row_offsets.last().unwrap_or(&0);
+            padded_row_offsets.resize(self.allocated_nodes + 1, last_val);
+            self.edge_row_offsets.copy_from(&padded_row_offsets)?;
+        } else {
+            self.edge_row_offsets.copy_from(row_offsets)?;
+        }
+
+        // For edges, pad with zeros if buffer is larger
+        if col_indices.len() < self.allocated_edges {
+            let mut padded_col_indices = col_indices.to_vec();
+            let mut padded_weights = weights.to_vec();
+            padded_col_indices.resize(self.allocated_edges, 0);
+            padded_weights.resize(self.allocated_edges, 0.0);
+            self.edge_col_indices.copy_from(&padded_col_indices)?;
+            self.edge_weights.copy_from(&padded_weights)?;
+        } else {
+            self.edge_col_indices.copy_from(col_indices)?;
+            self.edge_weights.copy_from(weights)?;
+        }
+
         self.num_edges = col_indices.len();
         Ok(())
     }
