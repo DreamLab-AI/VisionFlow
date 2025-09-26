@@ -1,7 +1,7 @@
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
-use log::info;
+use log::{info, warn};
 
 use crate::actors::{GraphServiceActor, SettingsActor, MetadataActor, ClientManagerActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
 use crate::actors::ontology_actor::OntologyActor;
@@ -89,14 +89,17 @@ impl AppState {
         info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
         let gpu_manager_addr = Some(GPUManagerActor::new().start());
         
-        // Get the ForceComputeActor address from the GPU manager and store it in GraphServiceActor
-        use crate::actors::messages::{StoreGPUComputeAddress};
-        // For now, we'll set the GPU compute address to None and let it be initialized later
-        // This avoids the tokio runtime panic during initialization
-        info!("[AppState] Deferring GPU compute actor initialization to avoid runtime issues");
-        graph_service_addr.do_send(StoreGPUComputeAddress {
-            addr: None,
-        });
+        // Initialize the connection between GraphServiceActor and GPUManagerActor
+        use crate::actors::messages::InitializeGPUConnection;
+        // Send the GPUManagerActor address to GraphServiceActor for proper message routing
+        info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
+        if let Some(ref gpu_manager) = gpu_manager_addr {
+            graph_service_addr.do_send(InitializeGPUConnection {
+                gpu_manager: Some(gpu_manager.clone()),
+            });
+        } else {
+            warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");
+        }
 
         info!("[AppState::new] Starting SettingsActor with actor addresses for physics forwarding");
         let settings_actor = SettingsActor::with_actors(

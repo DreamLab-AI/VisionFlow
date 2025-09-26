@@ -180,7 +180,7 @@ visualisation:
         zeroVelocityIterations: 10
         constraintRampFrames: 60
         constraintMaxForcePerNode: 50.0
-        clusteringAlgorithm: none
+        clusteringAlgorithm: louvain
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50
@@ -300,7 +300,7 @@ visualisation:
         zeroVelocityIterations: 10
         constraintRampFrames: 60
         constraintMaxForcePerNode: 50.0
-        clusteringAlgorithm: none
+        clusteringAlgorithm: louvain
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50

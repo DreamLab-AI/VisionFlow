@@ -918,8 +918,8 @@ pub struct GPUInitialized;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
-    // TODO: Refactor to use GPUManagerActor
-    pub addr: Option<Addr<crate::actors::gpu::ForceComputeActor>>,
+    // Changed to GPUManagerActor for proper message routing
+    pub addr: Option<Addr<crate::actors::gpu::GPUManagerActor>>,
 }
 
 // Message to get the ForceComputeActor address from GPUManagerActor

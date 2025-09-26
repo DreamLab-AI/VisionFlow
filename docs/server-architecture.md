@@ -61,8 +61,8 @@ graph TB
 
     %% GPU Subsystem
     subgraph "GPU Computation Layer"
-        GPUCompute[GPU Compute Actors]
-        ForceComputeActor[Force Compute Actor<br/>Physics Simulation]
+        GPUResourceActor[GPU Resource Actor<br/>CUDA Device & Memory Management]
+        ForceComputeActor[Force Compute Actor<br/>Physics Simulation Steps]
         ClusteringActor[Clustering Actor<br/>Community Detection]
         ConstraintActor[Constraint Actor<br/>Layout Constraints]
         AnomalyDetectionActor[Anomaly Detection Actor<br/>Pattern Recognition]
@@ -123,14 +123,15 @@ graph TB
     APIHandler --> HybridAPI
     APIHandler --> SpawnAPI
 
-    GPUManager --> GPUCompute
-    GPUCompute --> ForceComputeActor
-    GPUCompute --> ClusteringActor
-    GPUCompute --> ConstraintActor
-    GPUCompute --> AnomalyDetectionActor
-    GPUCompute --> StressMajorizationActor
-    GPUCompute --> VisualAnalyticsActor
-    GPUCompute --> StreamingPipelineActor
+    GPUManager --> GPUResourceActor
+    GPUManager --> GPUResourceActor
+    GPUManager --> ForceComputeActor
+    GPUManager --> ClusteringActor
+    GPUManager --> ConstraintActor
+    GPUManager --> AnomalyDetectionActor
+    GPUManager --> StressMajorizationActor
+    GPUManager --> VisualAnalyticsActor
+    GPUManager --> StreamingPipelineActor
 
     GraphActor --> MemoryStore
     MetadataActor --> FileStorage
@@ -247,13 +248,13 @@ Performance Status:
 
 #### GPUManagerActor
 - **Purpose**: Modular GPU resource management
-- **Sub-actors**: ForceComputeActor, ClusteringActor, ConstraintActor, AnomalyDetectionActor, StressMajorizationActor, VisualAnalyticsActor, StreamingPipelineActor
+- **Sub-actors**: GPUResourceActor, ForceComputeActor, ClusteringActor, ConstraintActor, AnomalyDetectionActor, StressMajorizationActor, VisualAnalyticsActor, StreamingPipelineActor
 - **Responsibilities**:
-  - CUDA device management
-  - GPU memory allocation
-  - Compute task distribution
-  - Performance monitoring
-  - Specialized GPU actor coordination
+  - Supervise specialized GPU actors
+  - Route messages to appropriate GPU components
+  - Coordinate GPU resource allocation
+  - Performance monitoring and metrics
+  - Handle GPU initialization requests from GraphServiceActor
 
 #### ClientManagerActor
 - **Purpose**: WebSocket connection management
@@ -543,8 +544,9 @@ graph LR
 ```mermaid
 graph TB
     subgraph "GPU Actors"
-        GPUManager[GPU Manager Actor<br/>Resource Coordination]
-        ForceComputeActor[Force Compute Actor<br/>Physics Simulation]
+        GPUManager[GPU Manager Actor<br/>Supervisor & Message Router]
+        GPUResourceActor[GPU Resource Actor<br/>CUDA Device & Memory Management]
+        ForceComputeActor[Force Compute Actor<br/>Physics Simulation Steps]
         ClusteringActor[Clustering Actor<br/>Community Detection]
         ConstraintActor[Constraint Actor<br/>Layout Constraints]
         AnomalyDetectionActor[Anomaly Detection<br/>Pattern Recognition]
@@ -565,6 +567,7 @@ graph TB
         BufferManager[Dynamic Buffer Manager<br/>Memory Safety]
     end
 
+    GPUManager --> GPUResourceActor
     GPUManager --> ForceComputeActor
     GPUManager --> ClusteringActor
     GPUManager --> ConstraintActor
@@ -573,6 +576,7 @@ graph TB
     GPUManager --> VisualAnalyticsActor
     GPUManager --> StreamingPipelineActor
 
+    GPUResourceActor --> CUDA
     ForceComputeActor --> StreamingPipeline
     ClusteringActor --> VisualAnalytics
     StressMajorizationActor --> HybridSSPExecutor

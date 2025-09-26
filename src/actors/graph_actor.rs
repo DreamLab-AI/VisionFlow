@@ -69,7 +69,7 @@ use crate::models::metadata::{MetadataStore, FileMetadata};
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, glam_to_vec3data}; // Added glam_to_vec3data
 // Using the modular GPU system's ForceComputeActor for physics computation
-use crate::actors::gpu::ForceComputeActor as GPUComputeActor;
+use crate::actors::gpu::GPUManagerActor;
 use crate::models::simulation_params::SimulationParams;
 use crate::config::AutoBalanceConfig;
 
@@ -85,7 +85,7 @@ use std::sync::Mutex;
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>, // Changed to Arc<GraphData>
     node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
-    gpu_compute_addr: Option<Addr<GPUComputeActor>>, // ForceComputeActor for physics updates
+    gpu_compute_addr: Option<Addr<GPUManagerActor>>, // GPUManagerActor for coordinated GPU computation
     client_manager: Addr<ClientManagerActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
@@ -415,7 +415,7 @@ impl GraphServiceActor {
     
     pub fn new(
         client_manager: Addr<ClientManagerActor>,
-        gpu_compute_addr: Option<Addr<GPUComputeActor>>,
+        gpu_compute_addr: Option<Addr<GPUManagerActor>>,
         settings_addr: Option<Addr<crate::actors::settings_actor::SettingsActor>>,
     ) -> Self {
         let advanced_params = AdvancedParams::default();
@@ -2554,32 +2554,26 @@ impl Handler<InitializeGPUConnection> for GraphServiceActor {
             let gpu_manager_clone = gpu_manager.clone();
             let self_addr = ctx.address();
             
-            // Use the actor's context to spawn the async task
-            ctx.spawn(async move {
-                // Small delay to ensure GPU manager is ready
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                
-                match gpu_manager_clone.send(GetForceComputeActor).await {
-                    Ok(Ok(force_compute_addr)) => {
-                        info!("[GraphServiceActor] Successfully got ForceComputeActor address from GPUManager");
-                        self_addr.do_send(StoreGPUComputeAddress {
-                            addr: Some(force_compute_addr),
-                        });
-                    }
-                    Ok(Err(e)) => {
-                        error!("[GraphServiceActor] Failed to get ForceComputeActor from GPUManager: {}", e);
-                        self_addr.do_send(StoreGPUComputeAddress {
-                            addr: None,
-                        });
-                    }
-                    Err(e) => {
-                        error!("[GraphServiceActor] Failed to communicate with GPUManager: {}", e);
-                        self_addr.do_send(StoreGPUComputeAddress {
-                            addr: None,
-                        });
-                    }
-                }
-            }.into_actor(self));
+            // Store the GPUManagerActor address directly
+            self.gpu_compute_addr = Some(gpu_manager.clone());
+            info!("[GraphServiceActor] Stored GPUManagerActor address for GPU coordination");
+
+            // Initialize GPU with current graph data if we have any
+            if !self.graph_data.nodes.is_empty() {
+                info!("Sending initial graph data to GPU via GPUManager");
+                gpu_manager.do_send(InitializeGPU {
+                    graph: Arc::clone(&self.graph_data),
+                    graph_service_addr: Some(ctx.address()),
+                });
+
+                // Also send the graph data update
+                gpu_manager.do_send(UpdateGPUGraphData {
+                    graph: Arc::clone(&self.graph_data),
+                });
+
+                self.gpu_initialized = true;
+                info!("GPU initialization messages sent via GPUManager");
+            }
         } else {
             warn!("No GPU manager provided for initialization");
         }
