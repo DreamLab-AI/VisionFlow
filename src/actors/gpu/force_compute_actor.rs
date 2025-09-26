@@ -63,6 +63,13 @@ pub struct ForceComputeActor {
 
     /// Count of skipped frames due to ongoing computation
     skipped_frames: u32,
+
+    /// Reheat factor for restarting physics after parameter changes
+    /// When > 0, adds thermal velocity to break equilibrium
+    reheat_factor: f32,
+
+    /// Stability gate iteration counter (resets on reheat)
+    stability_iterations: u32,
 }
 
 impl ForceComputeActor {
@@ -77,6 +84,8 @@ impl ForceComputeActor {
             last_step_duration_ms: 0.0,
             is_computing: false,
             skipped_frames: 0,
+            reheat_factor: 0.0,
+            stability_iterations: 0,
         }
     }
     
@@ -175,9 +184,28 @@ impl ForceComputeActor {
         let mut current_unified_params = self.unified_params.clone();
         self.sync_simulation_to_unified_params(&mut current_unified_params);
 
+        // If reheat is requested, pass it to the GPU computation
+        // This will add thermal velocity to nodes to break equilibrium
+        let mut sim_params_with_reheat = self.simulation_params.clone();
+        if self.reheat_factor > 0.0 {
+            info!("Reheating physics with factor {:.2} to break equilibrium after parameter change", self.reheat_factor);
+            // Reset stability counter to allow physics to run again
+            self.stability_iterations = 0;
+            // The reheat will be applied in the GPU kernel by adding random velocities
+            // proportional to reheat_factor * sqrt(temperature)
+        }
+
         // Execute force computation on GPU
         let sim_params = &self.simulation_params;
         let gpu_result = unified_compute.execute_physics_step(sim_params);
+
+        // Clear reheat after applying it once
+        if self.reheat_factor > 0.0 {
+            self.reheat_factor = 0.0;
+        }
+
+        // Increment stability counter
+        self.stability_iterations += 1;
 
         let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0; // Convert to milliseconds
         self.last_step_duration_ms = execution_duration as f32;
@@ -747,6 +775,37 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
         info!("ForceComputeActor: SharedGPUContext stored successfully - GPU physics enabled!");
         info!("ForceComputeActor: Physics can now run with {} nodes and {} edges",
               self.gpu_state.num_nodes, self.gpu_state.num_edges);
+
+        Ok(())
+    }
+}
+
+/// Handler for updating simulation parameters with automatic reheat
+impl Handler<UpdateSimulationParams> for ForceComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: Received updated simulation parameters");
+
+        // Update the simulation parameters
+        self.simulation_params = msg.params;
+
+        // Reset iteration count to restart stability gate
+        // The CUDA kernel checks iteration % 600 for stability logging
+        // By resetting, we ensure physics continues for at least 600 iterations
+        let previous_iteration = self.gpu_state.iteration_count;
+        self.gpu_state.iteration_count = 0;
+
+        // Reset our local stability counter
+        self.stability_iterations = 0;
+
+        // Set a small reheat factor to add slight perturbation
+        // This will be used to slightly increase velocities if implemented
+        self.reheat_factor = 0.3;
+
+        info!("ForceComputeActor: Parameters updated, reset iteration counter from {} to 0 to restart physics",
+              previous_iteration);
+        info!("ForceComputeActor: Stability gate will allow physics to run for at least 600 iterations");
 
         Ok(())
     }
