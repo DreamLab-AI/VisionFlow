@@ -410,39 +410,39 @@ graph TB
         subgraph "Data Sources"
             BotsWebSocketIntegration["BotsWebSocketIntegration<br/>WebSocket Handler"]
             AgentPollingService["AgentPollingService<br/>REST Polling"]
-            ConfigurationMapper[Configuration Mapper<br/>Agent Config]
+            ConfigurationMapper["Configuration Mapper<br/>Agent Config"]
         end
 
         subgraph "Data Context"
-            BotsDataProvider[BotsDataProvider<br/>React Context]
-            BotsDataContext[Bots Data Context<br/>State Management]
-            AgentState[Agent State<br/>Agent Information]
+            BotsDataProvider["BotsDataProvider<br/>React Context"]
+            BotsDataContext["Bots Data Context<br/>State Management"]
+            AgentState["Agent State<br/>Agent Information"]
         end
 
         subgraph "Agent Types"
-            CoordinatorAgents[Coordinator Agents<br/>Orchestration]
-            ResearcherAgents[Researcher Agents<br/>Data Analysis]
-            CoderAgents[Coder Agents<br/>Code Generation]
-            AnalystAgents[Analyst Agents<br/>Analysis]
-            ArchitectAgents[Architect Agents<br/>System Design]
-            TesterAgents[Tester Agents<br/>Quality Assurance]
-            ReviewerAgents[Reviewer Agents<br/>Code Review]
+            CoordinatorAgents["Coordinator Agents<br/>Orchestration"]
+            ResearcherAgents["Researcher Agents<br/>Data Analysis"]
+            CoderAgents["Coder Agents<br/>Code Generation"]
+            AnalystAgents["Analyst Agents<br/>Analysis"]
+            ArchitectAgents["Architect Agents<br/>System Design"]
+            TesterAgents["Tester Agents<br/>Quality Assurance"]
+            ReviewerAgents["Reviewer Agents<br/>Code Review"]
         end
 
         subgraph "Agent Data Structure"
-            AgentID[Agent ID & Type]
-            AgentStatus[Status & Health]
-            AgentMetrics[CPU/Memory Usage]
-            AgentCapabilities[Capabilities & Tasks]
-            AgentPosition[3D Position Data]
-            SSSPData[SSSP Pathfinding]
-            SwarmMetadata[Swarm Metadata]
+            AgentID["Agent ID & Type"]
+            AgentStatus["Status & Health"]
+            AgentMetrics["CPU/Memory Usage"]
+            AgentCapabilities["Capabilities & Tasks"]
+            AgentPosition["3D Position Data"]
+            SSSPData["SSSP Pathfinding"]
+            SwarmMetadata["Swarm Metadata"]
         end
 
         subgraph "Visualization Components"
-            BotsVisualization[Bots Visualization<br/>3D Agent Rendering]
-            AgentPollingStatus[Agent Polling Status<br/>Connection UI]
-            AgentInteraction[Agent Interaction<br/>Selection & Details]
+            BotsVisualization["Bots Visualization<br/>3D Agent Rendering"]
+            AgentPollingStatus["Agent Polling Status<br/>Connection UI"]
+            AgentInteraction["Agent Interaction<br/>Selection & Details"]
         end
 
         BotsWebSocketIntegration --> BotsDataProvider
@@ -486,34 +486,34 @@ graph TB
 graph TB
     subgraph "Settings System Architecture"
         subgraph "State Management"
-            SettingsStore[settingsStore.ts<br/>Zustand Store]
-            PartialSettings[Partial Settings<br/>Lazy Loading]
-            LoadedPaths[Loaded Paths Tracking]
-            Subscribers[Path Subscribers]
+            SettingsStore["settingsStore.ts<br/>Zustand Store"]
+            PartialSettings["Partial Settings<br/>Lazy Loading"]
+            LoadedPaths["Loaded Paths Tracking"]
+            Subscribers["Path Subscribers"]
         end
 
         subgraph "Persistence Layer"
-            AutoSaveManager[AutoSaveManager<br/>Batch Operations]
-            SettingsApi[settingsApi<br/>Backend Sync]
-            LocalStorage[localStorage<br/>Browser Persistence]
-            BackendSync[Backend Sync<br/>Server State]
+            AutoSaveManager["AutoSaveManager<br/>Batch Operations"]
+            SettingsApi["settingsApi<br/>Backend Sync"]
+            LocalStorage["localStorage<br/>Browser Persistence"]
+            BackendSync["Backend Sync<br/>Server State"]
         end
 
         subgraph "UI Components"
-            FloatingSettingsPanel[FloatingSettingsPanel<br/>Main Settings UI]
-            LazySettingsSections[LazySettingsSections<br/>Dynamic Loading]
-            VirtualizedSettingsGroup[VirtualizedSettingsGroup<br/>Performance UI]
-            UndoRedoControls[UndoRedoControls<br/>History Management]
-            BackendUrlSetting[BackendUrlSetting<br/>Connection Config]
+            FloatingSettingsPanel["FloatingSettingsPanel<br/>Main Settings UI"]
+            LazySettingsSections["LazySettingsSections<br/>Dynamic Loading"]
+            VirtualizedSettingsGroup["VirtualizedSettingsGroup<br/>Performance UI"]
+            UndoRedoControls["UndoRedoControls<br/>History Management"]
+            BackendUrlSetting["BackendUrlSetting<br/>Connection Config"]
         end
 
         subgraph "Settings Categories"
-            SystemSettings[System Settings<br/>Debug, WebSocket, etc.]
-            VisualizationSettings[Visualization Settings<br/>Rendering, Effects]
-            PhysicsSettings[Physics Settings<br/>Simulation Parameters]
-            XRSettings[XR Settings<br/>WebXR Configuration]
-            AuthSettings[Auth Settings<br/>Authentication]
-            GraphSettings[Graph Settings<br/>Graph Visualization]
+            SystemSettings["System Settings<br/>Debug, WebSocket, etc."]
+            VisualizationSettings["Visualization Settings<br/>Rendering, Effects"]
+            PhysicsSettings["Physics Settings<br/>Simulation Parameters"]
+            XRSettings["XR Settings<br/>WebXR Configuration"]
+            AuthSettings["Auth Settings<br/>Authentication"]
+            GraphSettings["Graph Settings<br/>Graph Visualization"]
         end
 
         SettingsStore --> PartialSettings
@@ -550,35 +550,35 @@ graph TB
 graph TB
     subgraph "XR System Architecture"
         subgraph "Core XR Infrastructure"
-            XRCoreProvider[XRCoreProvider<br/>WebXR Foundation]
-            Quest3Integration[useQuest3Integration<br/>Quest 3 Detection]
-            XRManagers[XR Managers<br/>Device Management]
-            XRSystems[XR Systems<br/>Tracking Systems]
+            XRCoreProvider["XRCoreProvider<br/>WebXR Foundation"]
+            Quest3Integration["useQuest3Integration<br/>Quest 3 Detection"]
+            XRManagers["XR Managers<br/>Device Management"]
+            XRSystems["XR Systems<br/>Tracking Systems"]
         end
 
         subgraph "XR Components"
-            XRComponents[XR Components<br/>UI Components]
-            XRUIComponents[XR UI Components<br/>Spatial UI]
-            Quest3AR[Quest3AR.tsx<br/>AR Layout]
+            XRComponents["XR Components<br/>UI Components"]
+            XRUIComponents["XR UI Components<br/>Spatial UI"]
+            Quest3AR["Quest3AR.tsx<br/>AR Layout"]
         end
 
         subgraph "Device Detection"
-            UserAgentDetection[User Agent Detection<br/>Quest 3 Browser]
-            ForceParameters[Force Parameters<br/>?force=quest3]
-            AutoStartLogic[Auto Start Logic<br/>XR Session Init]
+            UserAgentDetection["User Agent Detection<br/>Quest 3 Browser"]
+            ForceParameters["Force Parameters<br/>?force=quest3"]
+            AutoStartLogic["Auto Start Logic<br/>XR Session Init"]
         end
 
         subgraph "XR Providers & Hooks"
-            XRProviders[XR Providers<br/>Context Providers]
-            XRHooks[XR Hooks<br/>React Hooks]
-            XRTypes[XR Types<br/>Type Definitions]
+            XRProviders["XR Providers<br/>Context Providers"]
+            XRHooks["XR Hooks<br/>React Hooks"]
+            XRTypes["XR Types<br/>Type Definitions"]
         end
 
         subgraph "Legacy Vircadia Integration"
-            VircadiaXR[Vircadia XR<br/>Legacy VR Support]
-            VircadiaComponents[Vircadia Components<br/>Legacy Components]
-            VircadiaServices[Vircadia Services<br/>Legacy Services]
-            VircadiaHooks[Vircadia Hooks<br/>Legacy Hooks]
+            VircadiaXR["Vircadia XR<br/>Legacy VR Support"]
+            VircadiaComponents["Vircadia Components<br/>Legacy Components"]
+            VircadiaServices["Vircadia Services<br/>Legacy Services"]
+            VircadiaHooks["Vircadia Hooks<br/>Legacy Hooks"]
         end
 
         XRCoreProvider --> Quest3Integration
@@ -677,31 +677,31 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "Voice System Centralized Architecture"
-        VoiceProvider[VoiceProvider<br/>Context Provider]
+        VoiceProvider["VoiceProvider<br/>Context Provider"]
 
         subgraph "Main Hook"
-            UseVoiceInteractionCentralized[useVoiceInteractionCentralized<br/>Central Voice Management]
+            UseVoiceInteractionCentralized["useVoiceInteractionCentralized<br/>Central Voice Management"]
         end
 
         subgraph "8 Specialized Hooks"
-            UseVoiceRecording[useVoiceRecording<br/>Recording State]
-            UseVoicePlayback[useVoicePlayback<br/>Playback Control]
-            UseVoiceWebSocket[useVoiceWebSocket<br/>WebSocket Communication]
-            UseVoiceAuth[useVoiceAuth<br/>Authentication]
-            UseVoicePermissions[useVoicePermissions<br/>Microphone Permissions]
-            UseVoiceSettings[useVoiceSettings<br/>Voice Configuration]
-            UseVoiceIndicator[useVoiceIndicator<br/>Visual Indicators]
-            UseVoiceKeyboard[useVoiceKeyboard<br/>Keyboard Shortcuts]
+            UseVoiceRecording["useVoiceRecording<br/>Recording State"]
+            UseVoicePlayback["useVoicePlayback<br/>Playback Control"]
+            UseVoiceWebSocket["useVoiceWebSocket<br/>WebSocket Communication"]
+            UseVoiceAuth["useVoiceAuth<br/>Authentication"]
+            UseVoicePermissions["useVoicePermissions<br/>Microphone Permissions"]
+            UseVoiceSettings["useVoiceSettings<br/>Voice Configuration"]
+            UseVoiceIndicator["useVoiceIndicator<br/>Visual Indicators"]
+            UseVoiceKeyboard["useVoiceKeyboard<br/>Keyboard Shortcuts"]
         end
 
         subgraph "UI Components"
-            AuthGatedVoiceButton[AuthGatedVoiceButton<br/>Voice Controls]
-            AuthGatedVoiceIndicator[AuthGatedVoiceIndicator<br/>Status Display]
+            AuthGatedVoiceButton["AuthGatedVoiceButton<br/>Voice Controls"]
+            AuthGatedVoiceIndicator["AuthGatedVoiceIndicator<br/>Status Display"]
         end
 
         subgraph "Core Services"
-            AudioInputService[AudioInputService<br/>Audio Capture]
-            WebSocketService[WebSocket Service<br/>Binary Communication]
+            AudioInputService["AudioInputService<br/>Audio Capture"]
+            WebSocketService["WebSocket Service<br/>Binary Communication"]
         end
 
         VoiceProvider --> UseVoiceInteractionCentralized
@@ -872,15 +872,15 @@ graph LR
 ```mermaid
 graph LR
     subgraph "Before: Triple Polling"
-        A1[AgentPollingService<br/>1-5s REST]
-        A2[WebSocketIntegration<br/>2s WebSocket]
-        A3[DataContext<br/>Subscribes to Both]
+        A1["AgentPollingService<br/>1-5s REST"]
+        A2["WebSocketIntegration<br/>2s WebSocket"]
+        A3["DataContext<br/>Subscribes to Both"]
     end
 
     subgraph "After: Single Source"
-        B1[WebSocket Binary<br/>Real-time Positions]
-        B2[REST Metadata<br/>3s/15s Smart Polling]
-        B3[DataContext<br/>Single Subscription]
+        B1["WebSocket Binary<br/>Real-time Positions"]
+        B2["REST Metadata<br/>3s/15s Smart Polling"]
+        B3["DataContext<br/>Single Subscription"]
     end
 
     A1 -.-> B2
@@ -978,28 +978,28 @@ The client maintains clear separation between:
 graph TB
     subgraph "Client Interface Layers - 100% Operational"
         subgraph "REST API Integration"
-            UnifiedClient[UnifiedApiClient<br/>111 References - 100% Migration]
-            SettingsAPI[Settings API<br/>9 Endpoints Active]
-            GraphAPI[Graph API<br/>2 Endpoints Active]
-            AgentAPI[Agent/Bot API<br/>8 Endpoints + Task Management]
+            UnifiedClient["UnifiedApiClient<br/>111 References - 100% Migration"]
+            SettingsAPI["Settings API<br/>9 Endpoints Active"]
+            GraphAPI["Graph API<br/>2 Endpoints Active"]
+            AgentAPI["Agent/Bot API<br/>8 Endpoints + Task Management"]
         end
 
         subgraph "WebSocket Binary Protocol"
-            WSService[WebSocket Service<br/>80% Traffic Reduction]
-            BinaryProtocol[Binary Node Protocol<br/>34-byte Format]
-            PositionUpdates[Position Updates<br/>Real-time Streaming]
+            WSService["WebSocket Service<br/>80% Traffic Reduction"]
+            BinaryProtocol["Binary Node Protocol<br/>34-byte Format"]
+            PositionUpdates["Position Updates<br/>Real-time Streaming"]
         end
 
         subgraph "Field Conversion System"
-            SerdeConversion[Serde Conversion<br/>camelCase ↔ snake_case]
-            FieldNormalization[Field Normalization<br/>config/mod.rs Fixes]
-            AutoMapping[Automatic Mapping<br/>130+ Structs]
+            SerdeConversion["Serde Conversion<br/>camelCase ↔ snake_case"]
+            FieldNormalization["Field Normalization<br/>config/mod.rs Fixes"]
+            AutoMapping["Automatic Mapping<br/>130+ Structs"]
         end
 
         subgraph "Actor Communication"
-            MessageRouting[Message Routing<br/>GraphServiceActor]
-            ActorMessages[Actor Messages<br/>Async Communication]
-            StateSync[State Synchronization<br/>Real-time Updates]
+            MessageRouting["Message Routing<br/>GraphServiceActor"]
+            ActorMessages["Actor Messages<br/>Async Communication"]
+            StateSync["State Synchronization<br/>Real-time Updates"]
         end
     end
 
