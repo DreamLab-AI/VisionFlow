@@ -2570,28 +2570,40 @@ impl UnifiedGPUCompute {
     
     pub fn get_node_positions(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
         // Extract positions from current state
-        let mut pos_x = vec![0.0f32; self.num_nodes];
-        let mut pos_y = vec![0.0f32; self.num_nodes];
-        let mut pos_z = vec![0.0f32; self.num_nodes];
+        // Use allocated_nodes to match GPU buffer size, then truncate to actual nodes
+        let mut pos_x = vec![0.0f32; self.allocated_nodes];
+        let mut pos_y = vec![0.0f32; self.allocated_nodes];
+        let mut pos_z = vec![0.0f32; self.allocated_nodes];
 
         // Copy actual positions from GPU buffers
         self.pos_in_x.copy_to(&mut pos_x)?;
         self.pos_in_y.copy_to(&mut pos_y)?;
         self.pos_in_z.copy_to(&mut pos_z)?;
 
+        // Truncate to actual number of nodes
+        pos_x.truncate(self.num_nodes);
+        pos_y.truncate(self.num_nodes);
+        pos_z.truncate(self.num_nodes);
+
         Ok((pos_x, pos_y, pos_z))
     }
 
     pub fn get_node_velocities(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
         // Extract velocities from current state
-        let mut vel_x = vec![0.0f32; self.num_nodes];
-        let mut vel_y = vec![0.0f32; self.num_nodes];
-        let mut vel_z = vec![0.0f32; self.num_nodes];
+        // Use allocated_nodes to match GPU buffer size, then truncate to actual nodes
+        let mut vel_x = vec![0.0f32; self.allocated_nodes];
+        let mut vel_y = vec![0.0f32; self.allocated_nodes];
+        let mut vel_z = vec![0.0f32; self.allocated_nodes];
 
         // Copy actual velocities from GPU buffers
         self.vel_in_x.copy_to(&mut vel_x)?;
         self.vel_in_y.copy_to(&mut vel_y)?;
         self.vel_in_z.copy_to(&mut vel_z)?;
+
+        // Truncate to actual number of nodes
+        vel_x.truncate(self.num_nodes);
+        vel_y.truncate(self.num_nodes);
+        vel_z.truncate(self.num_nodes);
 
         Ok((vel_x, vel_y, vel_z))
     }
