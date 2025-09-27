@@ -391,6 +391,7 @@ impl Handler<SetSharedGPUContext> for StressMajorizationActor {
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("StressMajorizationActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
+        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
         info!("StressMajorizationActor: SharedGPUContext stored successfully");
         Ok(())
     }

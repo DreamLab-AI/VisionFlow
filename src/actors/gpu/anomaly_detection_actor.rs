@@ -757,6 +757,7 @@ impl Handler<SetSharedGPUContext> for AnomalyDetectionActor {
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("AnomalyDetectionActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
+        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
         info!("AnomalyDetectionActor: SharedGPUContext stored successfully");
         Ok(())
     }

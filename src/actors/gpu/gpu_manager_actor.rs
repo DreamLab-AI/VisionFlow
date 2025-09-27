@@ -506,20 +506,23 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
 
         let child_actors = self.get_child_actors(ctx)?;
         let context = msg.context;
+        let graph_service_addr = msg.graph_service_addr;
         let mut errors = Vec::new();
 
-        // Distribute to ForceComputeActor (most critical)
+        // Distribute to ForceComputeActor (most critical) - include GraphServiceActor address
         if let Err(e) = child_actors.force_compute_actor.try_send(SetSharedGPUContext {
-            context: context.clone()
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
         }) {
             errors.push(format!("ForceComputeActor: {}", e));
         } else {
-            info!("SharedGPUContext sent to ForceComputeActor");
+            info!("SharedGPUContext sent to ForceComputeActor with GraphServiceActor address");
         }
 
         // Distribute to ClusteringActor
         if let Err(e) = child_actors.clustering_actor.try_send(SetSharedGPUContext {
-            context: context.clone()
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
         }) {
             errors.push(format!("ClusteringActor: {}", e));
         } else {
@@ -528,7 +531,8 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
 
         // Distribute to ConstraintActor
         if let Err(e) = child_actors.constraint_actor.try_send(SetSharedGPUContext {
-            context: context.clone()
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
         }) {
             errors.push(format!("ConstraintActor: {}", e));
         } else {
@@ -537,7 +541,8 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
 
         // Distribute to StressMajorizationActor
         if let Err(e) = child_actors.stress_majorization_actor.try_send(SetSharedGPUContext {
-            context: context.clone()
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
         }) {
             errors.push(format!("StressMajorizationActor: {}", e));
         } else {
@@ -546,7 +551,8 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
 
         // Distribute to AnomalyDetectionActor
         if let Err(e) = child_actors.anomaly_detection_actor.try_send(SetSharedGPUContext {
-            context: context.clone()
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
         }) {
             errors.push(format!("AnomalyDetectionActor: {}", e));
         } else {

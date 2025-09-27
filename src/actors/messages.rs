@@ -920,6 +920,7 @@ pub struct GPUInitialized;
 #[rtype(result = "Result<(), String>")]
 pub struct SetSharedGPUContext {
     pub context: std::sync::Arc<crate::actors::gpu::shared::SharedGPUContext>,
+    pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
 }
 
 // Message to store GPU compute actor address in GraphServiceActor
