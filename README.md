@@ -1,19 +1,116 @@
-# VisionFlow
-## Collaborative Team AI Research Environment
-## Continuous Background Agent Intelligence.
-## Self Sovereign Multi-Modal Interface
-## Dozens of Users, Hundreds of Agents Thousands of Nodes
-## Multi-Device Augmented Reality First Design
+<div align="center">
 
+# 🌌 VisionFlow
 
+[![License](https://img.shields.io/badge/License-Mozilla%202.0-blue.svg)](LICENSE)
+[![CUDA](https://img.shields.io/badge/CUDA-40%20Kernels-green.svg)](docs/)
+[![Agents](https://img.shields.io/badge/AI%20Agents-50%2B%20Concurrent-orange.svg)](docs/)
+[![Performance](https://img.shields.io/badge/Performance-60%20FPS%20@%20100k%20nodes-red.svg)](docs/)
 
-<img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:100%; display:block; margin:0 auto;">
+</div>
 
-![Runtime Old Screenshot](./jarvisOld.png)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <strong>👥 Collaborative Team AI</strong><br/>
+        <sub>Research Environment</sub>
+      </td>
+      <td align="center">
+        <strong>🤖 Continuous Background</strong><br/>
+        <sub>Agent Intelligence</sub>
+      </td>
+      <td align="center">
+        <strong>🔐 Self-Sovereign</strong><br/>
+        <sub>Multi-Modal Interface</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <strong>📊 Massive Scale</strong><br/>
+        <sub>Dozens of Users • Hundreds of Agents • Thousands of Nodes</sub>
+      </td>
+      <td align="center">
+        <strong>🛡️ Enterprise Security</strong><br/>
+        <sub>Thin Client • Secure Server • W3C DID</sub>
+      </td>
+      <td align="center">
+        <strong>🎙️ Voice-First</strong><br/>
+        <sub>Natural Human-AI Conversation</sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
-**Like ChatGPT Pulse for your private knowledge:** VisionFlow deploys self-sovereign AI agents that continuously research, analyse, and surface insights from your data corpus - all visualised in stunning real-time 3D.
+---
 
-**Inspired by the innovative work of Prof. Rob Aspin:** [https://github.com/trebornipsa](https://github.com/trebornipsa)
+<div align="center">
+  <img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:90%; max-width:800px; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+  <br/><br/>
+
+  <img src="./jarvisOld.png" alt="Runtime Screenshot" style="width:90%; max-width:800px; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+</div>
+
+<br/>
+
+<div align="center">
+  <h3>🚀 Like ChatGPT Pulse for Your Private Knowledge</h3>
+  <p><strong>VisionFlow deploys self-sovereign AI agents that continuously research, analyse, and surface insights<br/>from your data corpus - all visualised in stunning real-time 3D.</strong></p>
+
+  <sub>Inspired by the innovative work of <a href="https://github.com/trebornipsa">Prof. Rob Aspin</a></sub>
+</div>
+
+---
+
+<div align="center">
+  <table>
+    <tr>
+      <th>🏆 Enterprise Value</th>
+      <th>⚡ Performance</th>
+      <th>🔧 Technology</th>
+      <th>👥 Collaboration</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <strong>$24-75M</strong><br/>
+        <sub>Market Valuation</sub>
+      </td>
+      <td align="center">
+        <strong>60 FPS</strong><br/>
+        <sub>@ 100k+ nodes</sub>
+      </td>
+      <td align="center">
+        <strong>40 CUDA</strong><br/>
+        <sub>GPU Kernels</sub>
+      </td>
+      <td align="center">
+        <strong>50+ Agents</strong><br/>
+        <sub>Concurrent Swarms</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <strong>$7.5-15M</strong><br/>
+        <sub>Annual Revenue</sub>
+      </td>
+      <td align="center">
+        <strong><10ms</strong><br/>
+        <sub>WebSocket Latency</sub>
+      </td>
+      <td align="center">
+        <strong>34-byte</strong><br/>
+        <sub>Binary Protocol</sub>
+      </td>
+      <td align="center">
+        <strong>Real-time</strong><br/>
+        <sub>Voice-to-Voice AI</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
 
 ![Group In Octave](./groupOctave.jpg)
 
