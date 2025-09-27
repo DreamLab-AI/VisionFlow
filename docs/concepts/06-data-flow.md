@@ -232,7 +232,7 @@ impl PositionUpdateStream {
 
 ### 2. Voice Data Stream
 
-Real-time audio processing pipeline:
+Real-time audio processing pipeline with dual implementation (centralised + legacy):
 
 ```rust
 // Voice data flow

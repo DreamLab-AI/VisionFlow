@@ -774,7 +774,7 @@ pub struct DetectionRule {
 }
 
 impl IntrusionDetector {
-    pub async fn analyze_request(
+    pub async fn analyse_request(
         &self,
         request: &HttpRequest,
         context: &RequestContext

@@ -218,7 +218,7 @@ At 60 FPS with 1000 nodes:
 
 ## SSSP (Single Source Shortest Path) Data
 
-The protocol includes SSSP data for graph traversal visualization:
+The protocol includes SSSP data for graph traversal visualisation:
 
 - **sssp_distance**: Distance from source node (f32)
   - `Infinity` = No path exists

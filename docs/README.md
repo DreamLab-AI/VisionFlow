@@ -8,8 +8,8 @@
 
 ### Core Architecture
 - **[System Overview](high-level.md)** - High-level system architecture and current status assessment
-- **[Client Architecture](architecture/client.md)** - React/TypeScript client with dual graph visualization
-- **[Server Architecture](architecture/server.md)** - Rust Actor system with GPU compute and Docker orchestration
+- **[Client Architecture](client-architecture-current.md)** - React/TypeScript client with dual graph visualization
+- **[Server Architecture](server-architecture.md)** - Rust Actor system with GPU compute and Docker orchestration
 - **[Interface Layer](architecture/interface.md)** - REST API, WebSocket protocols, and client-server communication
 
 ### Implementation Guides
@@ -65,8 +65,8 @@
 ### For New Developers
 1. Start with [System Overview](high-level.md) for architecture understanding
 2. Follow [Getting Started](getting-started/00-index.md) for setup
-3. Review [Client Architecture](architecture/client.md) for frontend details
-4. Study [Server Architecture](architecture/server.md) for backend implementation
+3. Review [Client Architecture](client-architecture-current.md) for frontend details
+4. Study [Server Architecture](server-architecture.md) for backend implementation
 
 ### For System Administrators
 1. Review [Deployment Guide](guides/01-deployment.md)
@@ -135,9 +135,9 @@ See [Contributing Guide](contributing.md) for development standards, code review
 ```
 docs/
 ├── README.md (this file)
+├── client-architecture-current.md (React/TypeScript architecture)
+├── server-architecture.md (Rust actor system architecture)
 ├── architecture/
-│   ├── client.md (React/TypeScript architecture)
-│   ├── server.md (Rust actor system architecture)
 │   └── interface.md (API and WebSocket protocols)
 ├── guides/
 │   ├── testing-guide.md (Control panel testing)
@@ -149,7 +149,7 @@ docs/
 │   └── configuration.md (System configuration)
 ├── concepts/ (System design concepts)
 ├── getting-started/ (Setup and quick start)
-└── archive/ (Historical documentation)
+└── _archived/ (Historical documentation)
 ```
 
 ---

@@ -5,7 +5,7 @@ This document provides a comprehensive architecture diagram reflecting the **CUR
 **Last Updated**: 2025-09-27
 **Analysis Base**: Direct source code inspection of 442 TypeScript/React files
 **Recent Updates**:
-- **Interface Layer Consolidation**: UnifiedApiClient architecture with 119 references
+- **Interface Layer Consolidation**: UnifiedApiClient architecture with 31 references
 - **WebSocket Binary Protocol Enhancement**: 80% traffic reduction achieved
 - **Settings API Standardisation**: Field normalisation fixes in config/mod.rs
 - **Voice System Architecture**: Centralised system designed (legacy hook still active)
@@ -82,7 +82,7 @@ graph TB
             end
 
             subgraph "REST API Layer - Unified Implementation"
-                UnifiedApiClient["UnifiedApiClient<br/>Single HTTP Client (119 refs)"]
+                UnifiedApiClient["UnifiedApiClient<br/>Single HTTP Client (31 refs)"]
                 SettingsApi["settingsApi<br/>Settings CRUD"]
                 AnalyticsApi["analyticsApi<br/>Analytics Data"]
                 OptimizationApi["optimisationApi<br/>Performance API"]
@@ -866,7 +866,7 @@ graph TB
 ### API Layer Migration - Complete
 
 **Achievement**: Complete migration from deprecated apiService to UnifiedApiClient:
-- **119 UnifiedApiClient references** across the entire codebase (corrected from 111)
+- **31 UnifiedApiClient references** across the entire codebase
 - **Zero apiService references** remaining
 - **Internal fetch() calls** only within UnifiedApiClient implementation
 - **External resource downloads** properly isolated in downloadHelpers
@@ -950,7 +950,7 @@ graph LR
 - **Settings Architecture**: settingsStore.ts, AutoSaveManager.ts, LazySettingsSections, VirtualisedSettingsGroup
 - **Graph Visualisation**: GraphCanvas, GraphManager, unified implementation with type support
 - **Agent System**: BotsDataProvider, BotsWebSocketIntegration, AgentPollingService (duplicate polling fixed)
-- **REST API Layer**: UnifiedApiClient.ts (119 references), all API endpoints
+- **REST API Layer**: UnifiedApiClient.ts (31 references), all API endpoints
 - **XR/AR System**: XRCoreProvider, Quest3Integration, XR Components
 - **Mock Data System**: Comprehensive MockAgentStatus with full server compatibility
 - **Performance Monitoring**: performanceMonitor, dualGraphPerformanceMonitor
@@ -960,7 +960,7 @@ graph LR
 ### 🎯 Current Status & Existing Implementations
 
 **✅ Recently Implemented:**
-- **API Layer Migration Complete**: UnifiedApiClient is the primary API client (119 references)
+- **API Layer Migration Complete**: UnifiedApiClient is the primary API client (31 references)
 - **Voice System Architecture**: Centralised system designed (legacy hook still active)
 - **Mock System Complete**: Comprehensive mocks for testing (not real API calls)
 - **Position Throttling**: Smart update hooks for performance

@@ -148,7 +148,7 @@ voiceWs.send(JSON.stringify({
 #### Execute Task
 - **Pattern**: `"execute task: {description} with {priority} priority"`
 - **Examples**:
-  - "execute task: analyze the authentication module with high priority"
+  - "execute task: analyse the authentication module with high priority"
   - "run analysis on the data with medium priority"
   - "process the files with low priority"
 - **MCP Action**: `call_task_orchestrate(description, priority, strategy)`
@@ -322,7 +322,7 @@ DELETE /api/voice/session/{sessionId}
 
 ```json
 {
-    "recognizedIntent": "SpawnAgent",
+    "recognisedIntent": "SpawnAgent",
     "confidence": 0.95,
     "alternativeIntents": [
         {"intent": "ListAgents", "confidence": 0.12},
@@ -351,7 +351,7 @@ DELETE /api/voice/session/{sessionId}
 
 ### Task Orchestration Flow
 
-1. **Voice Command**: "execute task: analyze security with high priority"
+1. **Voice Command**: "execute task: analyse security with high priority"
 2. **Intent Recognition**: `ExecuteTask` with parameters
 3. **MCP Call**: `call_task_orchestrate(description, "high", "adaptive")`
 4. **Task Assignment**: Real task distributed to agent swarm

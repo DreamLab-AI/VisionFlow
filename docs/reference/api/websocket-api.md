@@ -69,7 +69,7 @@ ws.onmessage = (event) => {
   if (event.data instanceof ArrayBuffer) {
     // Real-time binary position updates from backend physics
     const nodeUpdates = parseBinaryNodeData(event.data);
-    // Apply updates directly to visualization (no client-side physics)
+    // Apply updates directly to visualisation (no client-side physics)
     updateVisualization(nodeUpdates);
   }
 };
@@ -163,7 +163,7 @@ Keeps connection alive and measures latency.
 ```
 
 ### Agent Control
-Controls agent behavior and coordination.
+Controls agent behaviour and coordination.
 
 ```json
 {
@@ -335,7 +335,7 @@ Important system-wide events from actual swarm operations.
       }
     ],
     "consensusThreshold": 0.7,
-    "initializationTime": 2847
+    "initialisationTime": 2847
   }
 }
 ```
@@ -598,7 +598,7 @@ function parseBinaryNodeData(buffer) {
   return nodes;
 }
 
-// Usage: Apply updates directly to visualization
+// Usage: Apply updates directly to visualisation
 ws.onmessage = (event) => {
   if (event.data instanceof ArrayBuffer) {
     const nodeUpdates = parseBinaryNodeData(event.data);

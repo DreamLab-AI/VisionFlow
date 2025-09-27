@@ -478,14 +478,14 @@ GET /api/gpu/anomalies
         "nodeId": "node_47",
         "score": 2.34,
         "position": [245.7, 189.3, 67.1],
-        "neighbors": 8,
+        "neighbours": 8,
         "distance": 23.7
       },
       {
         "nodeId": "node_82",
         "score": 1.89,
         "position": [78.2, 345.9, 123.4],
-        "neighbors": 12,
+        "neighbours": 12,
         "distance": 19.2
       }
     ],

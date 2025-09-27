@@ -28,7 +28,7 @@ Content-Type: application/json
 
 **GPU Implementation Details:**
 - Parallel distance calculations across CUDA cores
-- Shared memory optimization for centroid updates
+- Shared memory optimisation for centroid updates
 - Real-time convergence monitoring
 - Automatic scaling for large datasets
 
@@ -58,7 +58,7 @@ Content-Type: application/json
 ```
 
 #### Louvain Community Detection
-GPU-accelerated community detection with modularity optimization.
+GPU-accelerated community detection with modularity optimisation.
 
 ```http
 POST /api/clustering/start
@@ -74,7 +74,7 @@ Content-Type: application/json
 
 **GPU Implementation Details:**
 - Parallel modularity calculations
-- GPU-accelerated neighbor aggregation
+- GPU-accelerated neighbour aggregation
 - Real community merge operations
 - Dynamic memory allocation for variable cluster sizes
 
@@ -106,7 +106,7 @@ Content-Type: application/json
 ```
 
 #### DBSCAN Clustering
-Density-based clustering with GPU-accelerated neighbor searches.
+Density-based clustering with GPU-accelerated neighbour searches.
 
 ```http
 POST /api/clustering/start
@@ -121,7 +121,7 @@ Content-Type: application/json
 ```
 
 **GPU Implementation Details:**
-- GPU k-d tree construction for neighbor queries
+- GPU k-d tree construction for neighbour queries
 - Parallel core point identification
 - CUDA-accelerated cluster expansion
 - Real noise point detection
@@ -150,7 +150,7 @@ Content-Type: application/json
 ### Anomaly Detection Algorithms
 
 #### Local Outlier Factor (LOF)
-GPU-accelerated outlier detection with real k-nearest neighbor calculations.
+GPU-accelerated outlier detection with real k-nearest neighbour calculations.
 
 ```http
 POST /api/analytics/anomaly-detection
@@ -298,7 +298,7 @@ Content-Type: application/json
 ### Graph Analysis Algorithms
 
 #### Stress Majorization
-GPU-accelerated force-directed layout with real stress optimization.
+GPU-accelerated force-directed layout with real stress optimisation.
 
 ```http
 POST /api/graph/layout/stress-majorization
@@ -406,7 +406,7 @@ GET /api/gpu/performance/{algorithm}
       "threadUtilization": 0.88
     }
   },
-  "optimizations": {
+  "optimisations": {
     "sharedMemoryUsage": 89,
     "coalescedAccess": 0.94,
     "warpEfficiency": 0.87
@@ -430,7 +430,7 @@ Content-Type: application/json
     "blocksPerGrid": 128,
     "sharedMemorySize": 48
   },
-  "optimizations": {
+  "optimisations": {
     "coalescedAccess": true,
     "tensorCores": true,
     "memoryPrefetch": true
@@ -540,7 +540,7 @@ Content-Type: application/json
   "mcpIntegration": {
     "swarmCoordination": true,
     "resultDistribution": "broadcast",
-    "followUpTasks": ["visualization_update", "cluster_analysis"]
+    "followUpTasks": ["visualisation_update", "cluster_analysis"]
   }
 }
 ```

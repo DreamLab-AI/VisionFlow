@@ -26,7 +26,7 @@ VisionFlow supports dual-graph visualisation where both **Knowledge Graphs** (Lo
 <SelectiveBloom enabled={enableBloom} />         // Shared effects
 ```
 
-## 2. Knowledge Graph Visualization
+## 2. Knowledge Graph Visualisation
 
 ### Components
 - **GraphManager** (`features/graph/components/GraphManager.tsx`)
@@ -46,12 +46,12 @@ interface GraphNode {
 
 ### Visual Characteristics
 - **Node Types**: File, folder, concept, todo, reference (different geometries)
-- **Colors**: Type-based (gold folders, turquoise files, etc.)
+- **Colours**: Type-based (gold folders, turquoise files, etc.)
 - **Shapes**: Spheres, cubes, octahedrons, cones, torus based on metadata
 - **Materials**: HologramNodeMaterial with emissive glow
 - **Scaling**: Connection-based and type-importance scaling
 - **Labels**: Billboard text with metadata display
-- **SSSP Visualization**: Color gradient from green (close) to red (far) from source node
+- **SSSP Visualisation**: Colour gradient from green (close) to red (far) from source node
 
 ### Data Flow
 1. `graphDataManager` → fetches from `/api/graph/data`
@@ -59,7 +59,7 @@ interface GraphNode {
 3. Binary position updates via WebSocket
 4. Real-time updates to Three.js meshes
 
-## 3. Agent Graph Visualization
+## 3. Agent Graph Visualisation
 
 ### Components
 - **BotsVisualization** (`features/bots/components/BotsVisualizationFixed.tsx`)
@@ -86,13 +86,13 @@ interface BotsAgent {
 
 ### Visual Characteristics
 - **Dynamic Sizing**: Based on workload, CPU usage, token rate, activity
-- **Health-based Colors**: Green (healthy) to red (critical)
+- **Health-based Colours**: Green (healthy) to red (critical)
 - **Status-based Geometry**:
   - Error: Tetrahedron (sharp edges)
   - Busy: Complex shapes (Queen = Icosahedron, Coordinator = Dodecahedron)
   - Active: High-poly spheres
   - Idle: Low-poly spheres
-- **Agent Type Colors**:
+- **Agent Type Colours**:
   - Coordination agents: Gold/orange palette
   - Development agents: Green palette
   - Special roles: Purple/blue/red palette
@@ -185,7 +185,7 @@ interface BinaryNodeData {
 
 **Existing Capabilities**:
 - **SSSP Algorithms**: Dijkstra, Bellman-Ford, Floyd-Warshall
-- **Visualisation**: Colour-coded distance visualisation (green=close, red=far, gray=unreachable)
+- **Visualisation**: Colour-coded distance visualisation (green=close, red=far, grey=unreachable)
 - **Source Selection**: Interactive source node selection
 - **Distance Normalization**: 0-1 normalised distance display
 - **Path Reconstruction**: Via predecessor tracking
