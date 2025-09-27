@@ -175,6 +175,10 @@ fn default_glow_opacity() -> f32 {
     0.8
 }
 
+fn default_bounds_size() -> f32 {
+    1000.0
+}
+
 pub mod feature_access;
 // pub mod tests;
 
@@ -650,7 +654,7 @@ pub struct PhysicsSettings {
     #[serde(default, alias = "auto_pause")]
     #[validate(nested)]
     pub auto_pause: AutoPauseConfig,
-    #[serde(alias = "bounds_size")]
+    #[serde(default = "default_bounds_size", alias = "bounds_size")]
     pub bounds_size: f32,
     #[serde(alias = "separation_radius")]
     pub separation_radius: f32,

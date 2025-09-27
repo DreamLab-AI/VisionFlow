@@ -81,14 +81,23 @@ impl AppState {
         
         // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
         info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
-        // Note: SetGraphServiceAddress message expects GraphServiceActor, but we now use TransitionalGraphSupervisor
-        // For now, we'll skip this connection and rely on the supervisor's internal GraphServiceActor
-        warn!("SetGraphServiceAddress message temporarily disabled during supervisor transition");
-        // TODO: Either update SetGraphServiceAddress to accept TransitionalGraphSupervisor
-        // or create a bridge mechanism for this specific message
-        // client_manager_addr.do_send(crate::actors::messages::SetGraphServiceAddress {
-        //     addr: graph_service_addr.clone(),
-        // });
+        // Get the internal GraphServiceActor from the supervisor and set it in ClientManagerActor
+        let graph_supervisor_clone = graph_service_addr.clone();
+        let client_manager_clone = client_manager_addr.clone();
+        actix::spawn(async move {
+            // Wait a moment for supervisor to initialize
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+            // Get the internal GraphServiceActor address
+            if let Ok(Some(graph_actor)) = graph_supervisor_clone.send(crate::actors::messages::GetGraphServiceActor).await {
+                info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
+                client_manager_clone.do_send(crate::actors::messages::SetGraphServiceAddress {
+                    addr: graph_actor,
+                });
+            } else {
+                warn!("Could not retrieve GraphServiceActor from supervisor");
+            }
+        });
         
         // Create the modular GPU manager system
         info!("[AppState::new] Starting GPUManagerActor (modular architecture)");

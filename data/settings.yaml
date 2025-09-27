@@ -142,19 +142,19 @@ visualisation:
           resumeOnInteraction: true
         boundsSize: 1000.0
         separationRadius: 2.1155233
-        damping: 0.30769232
+        damping: 0.05
         enableBounds: false
         enabled: true
         iterations: 50
-        maxVelocity: 9.570835
-        maxForce: 100.0
-        repelK: 75.88626
-        springK: 2.4726028
+        maxVelocity: 100.0
+        maxForce: 1000.0
+        repelK: 150.0
+        springK: 15.0
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
         dt: 0.02269863
-        temperature: 0.01
+        temperature: 2.0
         gravity: 0.0001
         stressWeight: 0.0001
         stressAlpha: 0.0001
@@ -262,19 +262,19 @@ visualisation:
           resumeOnInteraction: true
         boundsSize: 1000.0
         separationRadius: 2.0
-        damping: 0.2
+        damping: 0.1
         enableBounds: false
         enabled: true
         iterations: 50
-        maxVelocity: 20.0
-        maxForce: 200.0
-        repelK: 50.0
-        springK: 5.0
+        maxVelocity: 50.0
+        maxForce: 500.0
+        repelK: 100.0
+        springK: 10.0
         massScale: 1.0
         boundaryDamping: 0.95
         updateThreshold: 0.01
         dt: 0.016
-        temperature: 0.1
+        temperature: 1.0
         gravity: 0.0001
         stressWeight: 0.0001
         stressAlpha: 0.0001
