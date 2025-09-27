@@ -2,15 +2,15 @@
 
 This document provides a comprehensive architecture diagram reflecting the **CURRENT CLIENT IMPLEMENTATION** at `/workspace/ext/client/src`. This architecture analysis is based on direct code examination and represents the actual running system.
 
-**Last Updated**: 2025-09-25
+**Last Updated**: 2025-09-27
 **Analysis Base**: Direct source code inspection of 442 TypeScript/React files
 **Recent Updates**:
-- **Interface Layer Consolidation**: UnifiedApiClient architecture with 111 references
+- **Interface Layer Consolidation**: UnifiedApiClient architecture with 119 references
 - **WebSocket Binary Protocol Enhancement**: 80% traffic reduction achieved
-- **Settings API Standardization**: Field normalization fixes in config/mod.rs
-- **Voice System Centralization**: 8 specialized hooks with full integration
+- **Settings API Standardisation**: Field normalisation fixes in config/mod.rs
+- **Voice System Architecture**: Centralised system designed (legacy hook still active)
 - **Agent Task Management**: Complete remove/pause/resume functionality
-- **Dual Graph Architecture**: Separate Knowledge and Agent visualization layers
+- **Dual Graph Architecture**: Protocol support for dual types with unified implementation
 
 ---
 
@@ -21,7 +21,7 @@ graph TB
     subgraph "Browser Runtime Environment"
         subgraph "React Application Layer"
             App["App.tsx<br/>Root Component"]
-            AppInit["AppInitializer<br/>WebSocket & Settings Init"]
+            AppInit["AppInitialiser<br/>WebSocket & Settings Init"]
             MainLayout["MainLayout.tsx<br/>Primary Layout Manager"]
             Quest3AR["Quest3AR.tsx<br/>XR/AR Layout"]
         end
@@ -36,20 +36,19 @@ graph TB
         end
 
         subgraph "Core Features Architecture"
-            subgraph "Dual Graph Visualization System"
+            subgraph "Graph Visualisation System"
                 GraphCanvas["GraphCanvas.tsx<br/>Three.js R3F Canvas"]
                 GraphManager["GraphManager<br/>Scene Management"]
                 GraphDataManager["graphDataManager<br/>Data Orchestration"]
-                KnowledgeGraph["Knowledge Graph<br/>Knowledge Node Visualization"]
-                AgentGraph["Agent Graph<br/>Agent Node Visualization"]
+                UnifiedGraph["Unified Graph Implementation<br/>Protocol Support for Dual Types"]
                 SimpleThreeTest["SimpleThreeTest<br/>Debug Renderer"]
                 GraphCanvasSimple["GraphCanvasSimple<br/>Lightweight Renderer"]
                 SelectiveBloom["SelectiveBloom<br/>Post-processing Effects"]
-                HologramEnvironment["HologramEnvironment<br/>Holographic Rendering"]
+                HolographicDataSphere["HolographicDataSphere<br/>Complete Hologram Module"]
             end
 
             subgraph "Agent/Bot System"
-                BotsVisualization["BotsVisualization<br/>Agent Node Rendering"]
+                BotsVisualization["BotsVisualisation<br/>Agent Node Rendering"]
                 AgentPollingStatus["AgentPollingStatus<br/>Connection Status UI"]
                 BotsWebSocketIntegration["BotsWebSocketIntegration<br/>WebSocket Handler"]
                 AgentPollingService["AgentPollingService<br/>REST API Polling"]
@@ -61,7 +60,7 @@ graph TB
                 FloatingSettingsPanel["FloatingSettingsPanel<br/>Settings UI"]
                 LazySettingsSections["LazySettingsSections<br/>Dynamic Loading"]
                 UndoRedoControls["UndoRedoControls<br/>Settings History"]
-                VirtualizedSettingsGroup["VirtualizedSettingsGroup<br/>Performance UI"]
+                VirtualizedSettingsGroup["VirtualisedSettingsGroup<br/>Performance UI"]
                 AutoSaveManager["AutoSaveManager<br/>Batch Persistence"]
             end
 
@@ -82,29 +81,30 @@ graph TB
                 ValidationMiddleware["validation.ts<br/>Data Validation"]
             end
 
-            subgraph "REST API Layer - 100% Unified"
-                UnifiedApiClient["UnifiedApiClient<br/>ONLY HTTP Client (111 refs)"]
+            subgraph "REST API Layer - Unified Implementation"
+                UnifiedApiClient["UnifiedApiClient<br/>Single HTTP Client (119 refs)"]
                 SettingsApi["settingsApi<br/>Settings CRUD"]
                 AnalyticsApi["analyticsApi<br/>Analytics Data"]
-                OptimizationApi["optimizationApi<br/>Performance API"]
+                OptimizationApi["optimisationApi<br/>Performance API"]
                 ExportApi["exportApi<br/>Data Export"]
                 WorkspaceApi["workspaceApi<br/>Workspace Management"]
                 BatchUpdateApi["batchUpdateApi<br/>Batch Operations"]
-                Note1["All fetch() calls are external resources only"]
-                Note2["Migration 100% Complete"]
+                Note1["Internal fetch() in UnifiedApiClient only"]
+                Note2["External resources via downloadHelpers"]
+                Note3["debug.html contains test fetch (debugging only)"]
             end
 
-            subgraph "Voice System - Centralized Architecture"
-                VoiceProvider["VoiceProvider<br/>Context Provider"]
-                UseVoiceInteractionCentralized["useVoiceInteractionCentralized<br/>Main Hook"]
-                SpecializedVoiceHooks["8 Specialized Voice Hooks"]
+            subgraph "Voice System - Dual Implementation"
+                LegacyVoiceHook["useVoiceInteraction<br/>Legacy Hook (Active)"]
+                CentralisedArchitecture["useVoiceInteractionCentralised<br/>Modern System (Available)"]
+                NineSpecialisedHooks["9 Specialised Voice Hooks<br/>(Designed but Inactive)"]
                 AudioInputService["AudioInputService<br/>Voice Capture"]
                 AuthGatedVoiceButton["AuthGatedVoiceButton<br/>Voice UI Controls"]
                 AuthGatedVoiceIndicator["AuthGatedVoiceIndicator<br/>Voice Status"]
             end
         end
 
-        subgraph "Visualization & Effects"
+        subgraph "Visualisation & Effects"
             subgraph "Rendering Pipeline"
                 Materials["rendering/materials<br/>Custom Shaders"]
                 Shaders["shaders/<br/>WebGL Shaders"]
@@ -114,14 +114,14 @@ graph TB
             subgraph "Visual Features"
                 IntegratedControlPanel["IntegratedControlPanel<br/>Main Control UI"]
                 SpacePilotIntegration["SpacePilotSimpleIntegration<br/>3D Mouse Support"]
-                VisualizationControls["Visualization Controls<br/>Visual Settings"]
-                VisualizationEffects["Visualization Effects<br/>Post-processing"]
+                VisualisationControls["Visualisation Controls<br/>Visual Settings"]
+                VisualisationEffects["Visualisation Effects<br/>Post-processing"]
             end
         end
 
         subgraph "Feature Modules"
             subgraph "Analytics System"
-                AnalyticsComponents["Analytics Components<br/>Data Visualization"]
+                AnalyticsComponents["Analytics Components<br/>Data Visualisation"]
                 AnalyticsStore["Analytics Store<br/>Analytics State"]
                 AnalyticsExamples["Analytics Examples<br/>Demo Components"]
             end
@@ -162,9 +162,9 @@ graph TB
             subgraph "Performance & Monitoring"
                 PerformanceMonitor["performanceMonitor<br/>Performance Tracking"]
                 DualGraphPerformanceMonitor["dualGraphPerformanceMonitor<br/>Multi-graph Performance"]
-                DualGraphOptimizations["dualGraphOptimizations<br/>Performance Utils"]
-                GraphOptimizationService["GraphOptimizationService<br/>Graph Performance"]
-                NodeDistributionOptimizer["NodeDistributionOptimizer<br/>Layout Optimization"]
+                DualGraphOptimizations["dualGraphOptimisations<br/>Performance Utils"]
+                GraphOptimizationService["GraphOptimisationService<br/>Graph Performance"]
+                NodeDistributionOptimizer["NodeDistributionOptimiser<br/>Layout Optimisation"]
                 ClientDebugState["clientDebugState<br/>Debug State"]
                 TelemetrySystem["Telemetry System<br/>Usage Analytics"]
             end
@@ -209,7 +209,7 @@ graph TB
     GraphCanvas --> GraphManager
     GraphCanvas --> BotsVisualization
     GraphCanvas --> SelectiveBloom
-    GraphCanvas --> HologramEnvironment
+    GraphCanvas --> HolographicDataSphere
 
     GraphManager --> GraphDataManager
     BotsVisualization --> BotsWebSocketIntegration
@@ -226,7 +226,7 @@ graph TB
     SettingsStore --> SettingsApi
 
     IntegratedControlPanel --> PhysicsEngineControls
-    IntegratedControlPanel --> VisualizationControls
+    IntegratedControlPanel --> VisualisationControls
     IntegratedControlPanel --> AnalyticsComponents
 
     %% External System Connections
@@ -254,13 +254,13 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Application Initialization Flow"
+    subgraph "Application Initialisation Flow"
         Browser["Browser Load"] --> App["App.tsx"]
-        App --> AppInitializer["AppInitializer"]
+        App --> AppInitialiser["AppInitialiser"]
 
-        AppInitializer --> SettingsInit["Settings Initialization"]
-        AppInitializer --> WebSocketInit["WebSocket Connection"]
-        AppInitializer --> AuthInit["Authentication Check"]
+        AppInitialiser --> SettingsInit["Settings Initialisation"]
+        AppInitialiser --> WebSocketInit["WebSocket Connection"]
+        AppInitialiser --> AuthInit["Authentication Check"]
 
         SettingsInit --> SettingsStore["Zustand Settings Store"]
         WebSocketInit --> WebSocketService["WebSocket Service"]
@@ -277,13 +277,15 @@ graph TB
         Quest3AR --> XRScene["XR Scene"]
         Quest3AR --> XRControls["XR Controls"]
 
-        style AppInitializer fill:#c8e6c9
+        style AppInitialiser fill:#c8e6c9
         style SettingsStore fill:#fff3e0
         style WebSocketService fill:#e3f2fd
     end
 ```
 
-### 2. Graph Visualization Architecture
+### 2. Graph Visualisation Architecture
+
+**Note**: The system implements a unified graph with protocol support for dual types (Knowledge and Agent nodes), not separate graph implementations.
 
 ```mermaid
 graph TB
@@ -293,6 +295,7 @@ graph TB
         subgraph "Scene Management"
             GraphManager["GraphManager<br/>Scene Object Manager"]
             GraphDataManager["GraphDataManager<br/>Data Orchestration"]
+            UnifiedImplementation["Unified Graph<br/>Type Flags: 0x4000, 0x8000"]
             SimpleThreeTest["SimpleThreeTest<br/>Debug Renderer"]
             GraphCanvasSimple["GraphCanvasSimple<br/>Lightweight Mode"]
         end
@@ -305,12 +308,12 @@ graph TB
 
         subgraph "Visual Effects"
             SelectiveBloom["Selective Bloom<br/>Post-processing"]
-            HologramEnvironment["Hologram Environment<br/>Holographic Effects"]
+            HolographicDataSphere["HolographicDataSphere Module<br/>Contains HologramEnvironment"]
             CustomMaterials["Custom Materials<br/>WebGL Shaders"]
         end
 
-        subgraph "Agent Visualization"
-            BotsVisualization["Bots Visualization<br/>Agent Nodes"]
+        subgraph "Agent Visualisation"
+            BotsVisualisation["Bots Visualisation<br/>Agent Nodes"]
             AgentNodes["Agent Node Meshes"]
             AgentLabels["Agent Labels"]
             AgentConnections["Agent Connections"]
@@ -318,27 +321,27 @@ graph TB
 
         GraphCanvas --> GraphManager
         GraphCanvas --> SelectiveBloom
-        GraphCanvas --> HologramEnvironment
-        GraphCanvas --> BotsVisualization
+        GraphCanvas --> HolographicDataSphere
+        GraphCanvas --> BotsVisualisation
 
         GraphManager --> GraphDataManager
         GraphDataManager --> WebSocketBinary
         GraphDataManager --> RESTPolling
         GraphDataManager --> GraphDataSubscription
 
-        BotsVisualization --> AgentNodes
-        BotsVisualization --> AgentLabels
-        BotsVisualization --> AgentConnections
+        BotsVisualisation --> AgentNodes
+        BotsVisualisation --> AgentLabels
+        BotsVisualisation --> AgentConnections
 
         style GraphCanvas fill:#e3f2fd
         style GraphDataManager fill:#c8e6c9
-        style BotsVisualization fill:#f3e5f5
+        style BotsVisualisation fill:#f3e5f5
     end
 ```
 
 ### 3. WebSocket Binary Protocol Implementation
 
-**Recent Updates**: Completed dual graph visualization support with separate Knowledge and Agent graphs, plus major duplicate polling fix eliminating race conditions.
+**Recent Updates**: Completed protocol support for dual graph types with unified implementation, plus major duplicate polling fix eliminating race conditions.
 
 ```mermaid
 graph TB
@@ -366,7 +369,7 @@ graph TB
         end
 
         subgraph "Node Data Structure (34 bytes)"
-            NodeID["Node ID: u16 (2 bytes)<br/>Flags: Agent/Knowledge"]
+            NodeID["Node ID: u16 (2 bytes)<br/>Flags: Knowledge/Agent"]
             Position["Position: Vec3 (12 bytes)<br/>x, y, z coordinates"]
             Velocity["Velocity: Vec3 (12 bytes)<br/>vx, vy, vz components"]
             SSSPDistance["SSSP Distance: f32 (4 bytes)<br/>Shortest path distance"]
@@ -439,8 +442,8 @@ graph TB
             SwarmMetadata["Swarm Metadata"]
         end
 
-        subgraph "Visualization Components"
-            BotsVisualization["Bots Visualization<br/>3D Agent Rendering"]
+        subgraph "Visualisation Components"
+            BotsVisualisation["Bots Visualisation<br/>3D Agent Rendering"]
             AgentPollingStatus["Agent Polling Status<br/>Connection UI"]
             AgentInteraction["Agent Interaction<br/>Selection & Details"]
         end
@@ -468,7 +471,7 @@ graph TB
         AgentState --> SSSPData
         AgentState --> SwarmMetadata
 
-        BotsDataContext --> BotsVisualization
+        BotsDataContext --> BotsVisualisation
         BotsDataContext --> AgentPollingStatus
         BotsDataContext --> AgentInteraction
 
@@ -480,7 +483,7 @@ graph TB
 
 ### 5. Settings Management Architecture
 
-**Updated Architecture**: Restructured with path-based lazy loading, batch persistence via AutoSaveManager, and improved performance with virtualized UI components.
+**Updated Architecture**: Restructured with path-based lazy loading, batch persistence via AutoSaveManager, and improved performance with virtualised UI components.
 
 ```mermaid
 graph TB
@@ -502,18 +505,18 @@ graph TB
         subgraph "UI Components"
             FloatingSettingsPanel["FloatingSettingsPanel<br/>Main Settings UI"]
             LazySettingsSections["LazySettingsSections<br/>Dynamic Loading"]
-            VirtualizedSettingsGroup["VirtualizedSettingsGroup<br/>Performance UI"]
+            VirtualisedSettingsGroup["VirtualisedSettingsGroup<br/>Performance UI"]
             UndoRedoControls["UndoRedoControls<br/>History Management"]
             BackendUrlSetting["BackendUrlSetting<br/>Connection Config"]
         end
 
         subgraph "Settings Categories"
             SystemSettings["System Settings<br/>Debug, WebSocket, etc."]
-            VisualizationSettings["Visualization Settings<br/>Rendering, Effects"]
+            VisualisationSettings["Visualisation Settings<br/>Rendering, Effects"]
             PhysicsSettings["Physics Settings<br/>Simulation Parameters"]
             XRSettings["XR Settings<br/>WebXR Configuration"]
             AuthSettings["Auth Settings<br/>Authentication"]
-            GraphSettings["Graph Settings<br/>Graph Visualization"]
+            GraphSettings["Graph Settings<br/>Graph Visualisation"]
         end
 
         SettingsStore --> PartialSettings
@@ -527,12 +530,12 @@ graph TB
 
         SettingsStore --> FloatingSettingsPanel
         FloatingSettingsPanel --> LazySettingsSections
-        FloatingSettingsPanel --> VirtualizedSettingsGroup
+        FloatingSettingsPanel --> VirtualisedSettingsGroup
         FloatingSettingsPanel --> UndoRedoControls
         FloatingSettingsPanel --> BackendUrlSetting
 
         SettingsStore --> SystemSettings
-        SettingsStore --> VisualizationSettings
+        SettingsStore --> VisualisationSettings
         SettingsStore --> PhysicsSettings
         SettingsStore --> XRSettings
         SettingsStore --> AuthSettings
@@ -621,7 +624,7 @@ sequenceDiagram
     participant Binary as Binary Protocol
     participant GraphData as Graph Data Manager
     participant Canvas as Graph Canvas
-    participant Agents as Agent Visualization
+    participant Agents as Agent Visualisation
 
     Note over Backend,Agents: 2000ms Graph Data Polling Cycle
 
@@ -672,31 +675,33 @@ sequenceDiagram
     Store-->>UI: Notify subscribers
 ```
 
-### 3. Voice System - Centralized Architecture
+### 3. Voice System - Dual Implementation Status
+
+**Note**: The centralised architecture exists but isn't actively deployed. Components currently use the legacy `useVoiceInteraction` hook.
 
 ```mermaid
 graph TB
-    subgraph "Voice System Centralized Architecture"
-        VoiceProvider["VoiceProvider<br/>Context Provider"]
-
-        subgraph "Main Hook"
-            UseVoiceInteractionCentralized["useVoiceInteractionCentralized<br/>Central Voice Management"]
+    subgraph "Voice System Current State"
+        subgraph "Active Implementation"
+            LegacyHook["useVoiceInteraction.ts<br/>Legacy Hook (In Use)"]
+            VoiceButton["VoiceButton.tsx<br/>Uses Legacy Hook"]
+            VoiceIndicator["VoiceStatusIndicator.tsx<br/>Uses Legacy Hook"]
         end
 
-        subgraph "8 Specialized Hooks"
-            UseVoiceRecording["useVoiceRecording<br/>Recording State"]
-            UseVoicePlayback["useVoicePlayback<br/>Playback Control"]
-            UseVoiceWebSocket["useVoiceWebSocket<br/>WebSocket Communication"]
-            UseVoiceAuth["useVoiceAuth<br/>Authentication"]
-            UseVoicePermissions["useVoicePermissions<br/>Microphone Permissions"]
-            UseVoiceSettings["useVoiceSettings<br/>Voice Configuration"]
-            UseVoiceIndicator["useVoiceIndicator<br/>Visual Indicators"]
-            UseVoiceKeyboard["useVoiceKeyboard<br/>Keyboard Shortcuts"]
-        end
+        subgraph "Available but Inactive"
+            VoiceProvider["VoiceProvider<br/>Context Provider (Unused)"]
+            CentralisedHook["useVoiceInteractionCentralised<br/>Modern Architecture"]
 
-        subgraph "UI Components"
-            AuthGatedVoiceButton["AuthGatedVoiceButton<br/>Voice Controls"]
-            AuthGatedVoiceIndicator["AuthGatedVoiceIndicator<br/>Status Display"]
+            subgraph "9 Specialised Hooks (Designed)"
+                UseVoiceConnection["useVoiceConnection"]
+                UseVoiceInput["useVoiceInput"]
+                UseVoiceOutput["useVoiceOutput"]
+                UseVoiceTranscription["useVoiceTranscription"]
+                UseVoiceSettings["useVoiceSettings"]
+                UseVoicePermissions["useVoicePermissions"]
+                UseVoiceBrowserSupport["useVoiceBrowserSupport"]
+                UseAudioLevel["useAudioLevel"]
+            end
         end
 
         subgraph "Core Services"
@@ -704,25 +709,23 @@ graph TB
             WebSocketService["WebSocket Service<br/>Binary Communication"]
         end
 
-        VoiceProvider --> UseVoiceInteractionCentralized
-        UseVoiceInteractionCentralized --> UseVoiceRecording
-        UseVoiceInteractionCentralized --> UseVoicePlayback
-        UseVoiceInteractionCentralized --> UseVoiceWebSocket
-        UseVoiceInteractionCentralized --> UseVoiceAuth
-        UseVoiceInteractionCentralized --> UseVoicePermissions
-        UseVoiceInteractionCentralized --> UseVoiceSettings
-        UseVoiceInteractionCentralized --> UseVoiceIndicator
-        UseVoiceInteractionCentralized --> UseVoiceKeyboard
+        LegacyHook --> VoiceButton
+        LegacyHook --> VoiceIndicator
+        LegacyHook --> AudioInputService
+        LegacyHook --> WebSocketService
 
-        UseVoiceInteractionCentralized --> AuthGatedVoiceButton
-        UseVoiceInteractionCentralized --> AuthGatedVoiceIndicator
+        CentralisedHook -.-> UseVoiceConnection
+        CentralisedHook -.-> UseVoiceInput
+        CentralisedHook -.-> UseVoiceOutput
+        CentralisedHook -.-> UseVoiceTranscription
+        CentralisedHook -.-> UseVoiceSettings
+        CentralisedHook -.-> UseVoicePermissions
+        CentralisedHook -.-> UseVoiceBrowserSupport
+        CentralisedHook -.-> UseAudioLevel
 
-        UseVoiceRecording --> AudioInputService
-        UseVoiceWebSocket --> WebSocketService
-
-        style VoiceProvider fill:#e3f2fd
-        style UseVoiceInteractionCentralized fill:#c8e6c9
-        style UseVoiceRecording fill:#fff3e0
+        style LegacyHook fill:#c8e6c9
+        style CentralisedHook fill:#ffcdd2
+        style VoiceProvider fill:#ffcdd2
     end
 ```
 
@@ -731,17 +734,15 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant User as User
-    participant VoiceProvider as Voice Provider
-    participant CentralHook as useVoiceInteractionCentralized
+    participant LegacyHook as useVoiceInteraction
     participant AudioService as Audio Input Service
     participant WS as WebSocket Service
     participant Backend as Rust Backend
     participant Whisper as Whisper STT
     participant Kokoro as Kokoro TTS
 
-    User->>VoiceProvider: Press voice button
-    VoiceProvider->>CentralHook: Trigger recording
-    CentralHook->>AudioService: Start recording
+    User->>LegacyHook: Press voice button
+    LegacyHook->>AudioService: Start recording
     AudioService->>AudioService: Capture audio stream
     AudioService->>WS: Send binary audio
     WS->>Backend: Forward audio data
@@ -751,9 +752,62 @@ sequenceDiagram
     Backend->>Kokoro: Generate TTS
     Kokoro-->>Backend: Audio response
     Backend->>WS: Send binary audio response
-    WS->>CentralHook: Audio response received
-    CentralHook->>VoiceProvider: Update state
-    VoiceProvider-->>User: Voice feedback
+    WS->>LegacyHook: Audio response received
+    LegacyHook-->>User: Voice feedback
+```
+
+---
+
+## Testing Architecture
+
+**Important Note**: Tests use comprehensive mocks, not real API calls. The test suite validates component behaviour with mocked backend responses.
+
+### Mock System Infrastructure
+
+```mermaid
+graph TB
+    subgraph "Test Infrastructure - Mock Based"
+        subgraph "Mock Providers"
+            MockApiClient["createMockApiClient<br/>Mock HTTP Client"]
+            MockWebSocket["createMockWebSocket<br/>Mock WebSocket"]
+            MockWebSocketServer["MockWebSocketServer<br/>Mock WS Server"]
+        end
+
+        subgraph "Integration Test Suites"
+            AnalyticsTests["analytics.test.ts<br/>234 tests"]
+            WorkspaceTests["workspace.test.ts<br/>198 tests"]
+            OptimisationTests["optimisation.test.ts<br/>276 tests"]
+            ExportTests["export.test.ts<br/>226 tests"]
+        end
+
+        subgraph "Mock Data Generators"
+            GraphMocks["Mock Graph Data"]
+            AgentMocks["Mock Agent Status"]
+            AnalyticsMocks["Mock Analytics"]
+            WorkspaceMocks["Mock Workspaces"]
+        end
+
+        subgraph "Test Execution Status"
+            SecurityAlert["Tests Disabled<br/>Supply Chain Security"]
+            TestCount["934+ Individual Tests<br/>(Not Running)"]
+        end
+
+        MockApiClient --> AnalyticsTests
+        MockApiClient --> WorkspaceTests
+        MockApiClient --> OptimisationTests
+        MockApiClient --> ExportTests
+
+        MockWebSocket --> AnalyticsTests
+        MockWebSocketServer --> WorkspaceTests
+
+        GraphMocks --> MockApiClient
+        AgentMocks --> MockApiClient
+        AnalyticsMocks --> MockApiClient
+        WorkspaceMocks --> MockApiClient
+
+        style SecurityAlert fill:#ffcdd2
+        style TestCount fill:#fff3e0
+    end
 ```
 
 ---
@@ -764,13 +818,13 @@ sequenceDiagram
 
 | Component | Dependencies | Provides |
 |-----------|-------------|----------|
-| **App.tsx** | AppInitializer, MainLayout, Quest3AR | Root application structure |
+| **App.tsx** | AppInitialiser, MainLayout, Quest3AR | Root application structure |
 | **MainLayout.tsx** | GraphCanvas, IntegratedControlPanel, BotsDataProvider | Primary layout management |
-| **GraphCanvas.tsx** | GraphManager, BotsVisualization, SelectiveBloom | 3D graph rendering |
+| **GraphCanvas.tsx** | GraphManager, BotsVisualisation, SelectiveBloom | 3D graph rendering |
 | **WebSocketService.ts** | BinaryProtocol, BatchQueue | Real-time communication |
 | **SettingsStore.ts** | AutoSaveManager, SettingsAPI | Configuration management |
 | **BotsDataProvider.tsx** | BotsWebSocketIntegration, AgentPollingService | Agent data context |
-| **UnifiedApiClient.ts** | None (base client) | HTTP communication (111 refs, 100% migration) |
+| **UnifiedApiClient.ts** | None (base client) | HTTP communication (119 refs) |
 | **XRCoreProvider.tsx** | Quest3Integration, XRManagers | WebXR functionality |
 
 ### Feature Module Integration
@@ -789,32 +843,34 @@ sequenceDiagram
 
 ## Performance Considerations
 
-### Current Performance Optimizations
+### Current Performance Optimisations
 
 1. **WebSocket Binary Protocol**: 34-byte format reduces bandwidth by 95% vs JSON
 2. **Batch Processing**: Debounced settings saves and graph updates
 3. **Lazy Loading**: Settings sections loaded on-demand
-4. **Virtualized Components**: Performance UI for large datasets
-5. **React Optimizations**: Memo, callback, and effect optimizations
-6. **Three.js Optimizations**: Instance rendering, LOD, frustum culling
+4. **Virtualised Components**: Performance UI for large datasets
+5. **React Optimisations**: Memo, callback, and effect optimisations
+6. **Three.js Optimisations**: Instance rendering, LOD, frustum culling
 
 ### Identified Performance Bottlenecks
 
-1. **Agent Polling**: 10-second REST polling could be optimized with WebSocket events
+1. **Agent Polling**: 10-second REST polling could be optimised with WebSocket events
 2. **Graph Rendering**: Large graphs (>10k nodes) may impact performance
 3. **Settings Persistence**: Individual setting saves could benefit from batching
-4. **XR Performance**: AR/VR mode may need additional optimizations
+4. **XR Performance**: AR/VR mode may need additional optimisations
 
 ---
 
 ## Major Architecture Updates
 
-### API Layer Migration - 100% Complete
+### API Layer Migration - Complete
 
 **Achievement**: Complete migration from deprecated apiService to UnifiedApiClient:
-- **111 UnifiedApiClient references** across the entire codebase
+- **119 UnifiedApiClient references** across the entire codebase (corrected from 111)
 - **Zero apiService references** remaining
-- **All fetch() calls** are now for external resources only (no internal API calls)
+- **Internal fetch() calls** only within UnifiedApiClient implementation
+- **External resource downloads** properly isolated in downloadHelpers
+- **Debug fetch()** in public/debug.html for testing only
 - **Consistent error handling** and request/response patterns
 - **Performance improvements** through unified caching and request batching
 
@@ -828,8 +884,8 @@ graph LR
     end
 
     subgraph "After: Single Source"
-        B1[UnifiedApiClient<br/>111 References]
-        B2[fetch() calls<br/>External Only]
+        B1[UnifiedApiClient<br/>119 References]
+        B2[fetch() calls<br/>Internal & Debug Only]
         B3[Consistent Patterns<br/>Error Handling]
     end
 
@@ -838,14 +894,14 @@ graph LR
     A3 -.-> B1
 ```
 
-### Voice System Centralization - Complete
+### Voice System Architecture - Designed but Not Deployed
 
-**Implementation**: Moved from scattered voice components to centralized architecture:
-- **VoiceProvider**: Context provider for voice state management
-- **useVoiceInteractionCentralized**: Main hook coordinating all voice functionality
-- **8 Specialized Hooks**: Each handling specific voice system aspects
-- **Centralized State**: All voice state managed through single context
-- **Better Performance**: Reduced re-renders and improved audio handling
+**Implementation Status**: Centralised architecture designed but legacy hook still active:
+- **VoiceProvider**: Context provider designed but unused
+- **useVoiceInteractionCentralised**: Modern hook with 9 specialised hooks (not 8)
+- **Legacy useVoiceInteraction**: Still actively used by all voice components
+- **9 Specialised Hooks**: Designed but not integrated into production
+- **Migration Pending**: Components need updating to use centralised system
 
 ### Mock Data Enhancement - Complete
 
@@ -868,32 +924,13 @@ graph LR
 - **Eliminated Race Conditions**: Removed duplicate subscription paths
 - **70% Server Load Reduction**: From aggressive 1s polling to smart intervals
 
-**Architecture Changes**:
-```mermaid
-graph LR
-    subgraph "Before: Triple Polling"
-        A1["AgentPollingService<br/>1-5s REST"]
-        A2["WebSocketIntegration<br/>2s WebSocket"]
-        A3["DataContext<br/>Subscribes to Both"]
-    end
+### Graph Visualisation System
 
-    subgraph "After: Single Source"
-        B1["WebSocket Binary<br/>Real-time Positions"]
-        B2["REST Metadata<br/>3s/15s Smart Polling"]
-        B3["DataContext<br/>Single Subscription"]
-    end
-
-    A1 -.-> B2
-    A2 -.-> B1
-    A3 -.-> B3
-```
-
-### Dual Graph Visualization System
-
-**Implementation**: Separate visualization layers for Knowledge and Agent graphs:
-- **Knowledge Graph**: Traditional node-link relationships
-- **Agent Graph**: Real-time agent positions and interactions
-- **Performance Optimized**: DualGraphPerformanceMonitor tracks both systems
+**Implementation**: Unified graph with protocol support for dual types:
+- **Unified Implementation**: Single graph system handles all node types
+- **Protocol Support**: Binary protocol distinguishes Knowledge (0x4000) and Agent (0x8000) nodes
+- **Performance Optimised**: DualGraphPerformanceMonitor tracks system metrics
+- **HolographicDataSphere Module**: Contains HologramEnvironment as internal component
 
 ### Enhanced Binary Protocol
 
@@ -910,46 +947,42 @@ graph LR
 ### ✅ Fully Implemented Components
 - Core React application structure (App.tsx, MainLayout, Quest3AR)
 - **Binary Protocol System**: WebSocketService.ts, BinaryWebSocketProtocol.ts, binaryProtocol.ts
-- **Settings Architecture**: settingsStore.ts, AutoSaveManager.ts, LazySettingsSections, VirtualizedSettingsGroup
-- **Dual Graph Visualization**: GraphCanvas, GraphManager, KnowledgeGraph, AgentGraph
+- **Settings Architecture**: settingsStore.ts, AutoSaveManager.ts, LazySettingsSections, VirtualisedSettingsGroup
+- **Graph Visualisation**: GraphCanvas, GraphManager, unified implementation with type support
 - **Agent System**: BotsDataProvider, BotsWebSocketIntegration, AgentPollingService (duplicate polling fixed)
-- **REST API Layer - 100% Unified**: UnifiedApiClient.ts (111 references), settingsApi, analyticsApi, optimizationApi, exportApi, workspaceApi, batchUpdateApi
+- **REST API Layer**: UnifiedApiClient.ts (119 references), all API endpoints
 - **XR/AR System**: XRCoreProvider, Quest3Integration, XR Components
-- **Voice Integration - Centralized**: VoiceProvider, useVoiceInteractionCentralized, 8 specialized hooks, AudioInputService, AuthGatedVoiceButton, AuthGatedVoiceIndicator
-- **Mock Data System**: Comprehensive MockAgentStatus with full server compatibility and camelCase conversion
-- **Performance Monitoring**: performanceMonitor, dualGraphPerformanceMonitor, GraphOptimizationService
-- **Utilities**: loggerConfig, debugConfig, classNameUtils, downloadHelpers, accessibilityUtils
+- **Mock Data System**: Comprehensive MockAgentStatus with full server compatibility
+- **Performance Monitoring**: performanceMonitor, dualGraphPerformanceMonitor
+- **Utilities**: loggerConfig, debugConfig, classNameUtils, downloadHelpers
 - **Error Handling**: ErrorBoundary, ConnectionWarning, BrowserSupportWarning
 
-### 🎯 Current Priorities & Existing Implementations
+### 🎯 Current Status & Existing Implementations
 
 **✅ Recently Implemented:**
-- **API Layer Migration Complete**: UnifiedApiClient is now the ONLY API client (111 references across codebase)
-- **Voice System Centralized**: New VoiceProvider context with useVoiceInteractionCentralized main hook
-- **8 Specialized Voice Hooks**: useVoiceRecording, useVoicePlayback, useVoiceWebSocket, useVoiceAuth, useVoicePermissions, useVoiceSettings, useVoiceIndicator, useVoiceKeyboard
-- **Mock Data Upgraded**: Comprehensive MockAgentStatus matching server structure with proper camelCase conversion
-- **Position Throttling**: `useNodeInteraction` and `useGraphInteraction` hooks for smart updates
-- **Spawn Agents**: `BotsControlPanel.tsx` has hybrid Docker/MCP spawn via `/bots/spawn-agent-hybrid`
-- **Task Management**: Support for remove/pause/resume task endpoints
-- **Interaction Detection**: User interaction flags for position updates (80% traffic reduction)
+- **API Layer Migration Complete**: UnifiedApiClient is the primary API client (119 references)
+- **Voice System Architecture**: Centralised system designed (legacy hook still active)
+- **Mock System Complete**: Comprehensive mocks for testing (not real API calls)
+- **Position Throttling**: Smart update hooks for performance
+- **Task Management**: Support for remove/pause/resume endpoints
+- **Graph System**: Unified implementation with protocol support for dual types
 
 **🔧 Needs Refinement:**
+- **Voice System Migration**: Move from legacy hook to centralised architecture
 - **Authentication**: Nostr authentication runtime testing
 - **Complex Agent Patterns**: Advanced swarm orchestration UI controls
-- **Voice System Integration**: End-to-end STT/TTS processing (architecture complete)
+- **Test Activation**: Tests disabled due to security concerns
 
 ### 🔮 Future Features (Not Current Requirements)
 - **Advanced Analytics**: Not needed on clients (server-side only)
 - **Physics Engine**: Server-driven, controlled via commands
 - **XR System Enhancements**: Future upgrade
 - **Vircadia Integration**: FUTURE parallel multi-user VR system
-- **Advanced Task Management**: Basic spawn/remove sufficient for now
-- Advanced agent task management UI
 
 ### 📋 Architecture Strengths
 - Well-structured feature modules
 - Comprehensive error handling
-- Performance-optimized data flows
+- Performance-optimised data flows
 - Extensible component architecture
 - Strong separation of concerns
 - Modern React patterns and hooks
@@ -976,9 +1009,9 @@ The client maintains clear separation between:
 
 ```mermaid
 graph TB
-    subgraph "Client Interface Layers - 100% Operational"
+    subgraph "Client Interface Layers - Operational"
         subgraph "REST API Integration"
-            UnifiedClient["UnifiedApiClient<br/>111 References - 100% Migration"]
+            UnifiedClient["UnifiedApiClient<br/>119 References"]
             SettingsAPI["Settings API<br/>9 Endpoints Active"]
             GraphAPI["Graph API<br/>2 Endpoints Active"]
             AgentAPI["Agent/Bot API<br/>8 Endpoints + Task Management"]
@@ -992,14 +1025,14 @@ graph TB
 
         subgraph "Field Conversion System"
             SerdeConversion["Serde Conversion<br/>camelCase ↔ snake_case"]
-            FieldNormalization["Field Normalization<br/>config/mod.rs Fixes"]
+            FieldNormalisation["Field Normalisation<br/>config/mod.rs Fixes"]
             AutoMapping["Automatic Mapping<br/>130+ Structs"]
         end
 
         subgraph "Actor Communication"
             MessageRouting["Message Routing<br/>GraphServiceActor"]
             ActorMessages["Actor Messages<br/>Async Communication"]
-            StateSync["State Synchronization<br/>Real-time Updates"]
+            StateSync["State Synchronisation<br/>Real-time Updates"]
         end
     end
 
@@ -1011,8 +1044,8 @@ graph TB
     BinaryProtocol --> PositionUpdates
 
     SettingsAPI --> SerdeConversion
-    SerdeConversion --> FieldNormalization
-    FieldNormalization --> AutoMapping
+    SerdeConversion --> FieldNormalisation
+    FieldNormalisation --> AutoMapping
 
     MessageRouting --> ActorMessages
     ActorMessages --> StateSync
@@ -1025,4 +1058,4 @@ graph TB
 
 ---
 
-*This architecture diagram represents the current state of the VisionFlow client as of 2025-09-25, based on direct source code analysis of 442 TypeScript/React files. Major updates include interface layer consolidation with UnifiedApiClient, WebSocket binary protocol optimization achieving 80% traffic reduction, comprehensive field normalization fixes, and complete agent task management implementation.*
+*This architecture diagram represents the current state of the VisionFlow client as of 2025-09-27, based on direct source code analysis of 442 TypeScript/React files and comprehensive swarm-based auditing. Major corrections include accurate API reference counts (119), clarification of voice system dual implementation status, test infrastructure using mocks rather than real API calls, and unified graph implementation with protocol support for dual types.*
