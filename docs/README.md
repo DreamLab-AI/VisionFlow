@@ -7,10 +7,12 @@
 ## 📚 Documentation Index
 
 ### Core Architecture
-- **[System Overview](high-level.md)** - High-level system architecture and current status assessment
-- **[Client Architecture](client-architecture-current.md)** - React/TypeScript client with dual graph visualization
-- **[Server Architecture](server-architecture.md)** - Rust Actor system with GPU compute and Docker orchestration
+- **[System Overview](architecture/overview.md)** - High-level system architecture and current status assessment
+- **[Client Architecture](architecture/core/client.md)** - React/TypeScript client with dual graph visualization
+- **[Server Architecture](architecture/core/server.md)** - Rust Actor system with GPU compute and Docker orchestration
+- **[Visualization System](architecture/core/visualization.md)** - Graph rendering and visual effects architecture
 - **[Interface Layer](architecture/interface.md)** - REST API, WebSocket protocols, and client-server communication
+- **[GPU Systems](architecture/gpu/)** - GPU compute communication and optimizations
 
 ### Implementation Guides
 - **[Testing Guide](guides/testing-guide.md)** - Control panel testing procedures and API validation
@@ -25,9 +27,13 @@
 - **[Binary Protocol](reference/binary-protocol.md)** - WebSocket binary message format
 
 ### Specialized Topics
-- **[Visualization Architecture](visualization-architecture.md)** - Graph rendering and visual effects
+- **[Ontology Systems](specialized/ontology/)** - Ontology integration, API reference, and constraints
 - **[Concepts](concepts/index.md)** - System concepts and design principles
 - **[Contributing](contributing.md)** - Development contribution guidelines
+
+### Reports
+- **[Technical Reports](reports/technical/)** - In-depth technical analysis and documentation
+- **[Verification Reports](reports/verification/)** - System testing and validation reports
 
 ## 🎯 System Status Overview
 
@@ -63,10 +69,10 @@
 ## 🔗 Quick Navigation
 
 ### For New Developers
-1. Start with [System Overview](high-level.md) for architecture understanding
+1. Start with [System Overview](architecture/overview.md) for architecture understanding
 2. Follow [Getting Started](getting-started/00-index.md) for setup
-3. Review [Client Architecture](client-architecture-current.md) for frontend details
-4. Study [Server Architecture](server-architecture.md) for backend implementation
+3. Review [Client Architecture](architecture/core/client.md) for frontend details
+4. Study [Server Architecture](architecture/core/server.md) for backend implementation
 
 ### For System Administrators
 1. Review [Deployment Guide](guides/01-deployment.md)
@@ -135,10 +141,22 @@ See [Contributing Guide](contributing.md) for development standards, code review
 ```
 docs/
 ├── README.md (this file)
-├── client-architecture-current.md (React/TypeScript architecture)
-├── server-architecture.md (Rust actor system architecture)
 ├── architecture/
+│   ├── overview.md (High-level system architecture)
+│   ├── core/
+│   │   ├── client.md (React/TypeScript architecture)
+│   │   ├── server.md (Rust actor system architecture)
+│   │   └── visualization.md (Graph rendering architecture)
+│   ├── gpu/
+│   │   ├── communication-flow.md (GPU actor communication)
+│   │   └── optimizations.md (Graph actor optimizations)
+│   ├── integration/ (Integration architectures)
 │   └── interface.md (API and WebSocket protocols)
+├── specialized/
+│   └── ontology/ (Ontology integration and API documentation)
+├── reports/
+│   ├── technical/ (Technical analysis reports)
+│   └── verification/ (System testing and validation reports)
 ├── guides/
 │   ├── testing-guide.md (Control panel testing)
 │   ├── 01-deployment.md (Deployment procedures)
