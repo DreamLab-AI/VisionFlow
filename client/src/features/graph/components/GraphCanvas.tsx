@@ -12,8 +12,7 @@ import { BotsVisualization } from '../../bots/components';
 import { AgentPollingStatus } from '../../bots/components/AgentPollingStatus';
 // SpacePilot Integration - using simpler version that works with useFrame
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
-// Consolidated hologram environment
-import HologramEnvironment from '../../visualisation/components/HologramEnvironment';
+// Hologram environment removed
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
@@ -22,6 +21,7 @@ import HologramEnvironment from '../../visualisation/components/HologramEnvironm
 import { useSettingsStore } from '../../../store/settingsStore';
 import { graphDataManager, type GraphData } from '../managers/graphDataManager';
 import { createLogger } from '../../../utils/loggerConfig';
+import { HologramContent } from '../../visualisation/components/HolographicDataSphere';
 
 const logger = createLogger('GraphCanvas');
 
@@ -35,7 +35,6 @@ const GraphCanvas: React.FC = () => {
     const xrEnabled = settings?.xr?.enabled !== false;
     const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
     const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram !== false;
     const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
     
     // Graph data state
@@ -118,11 +117,15 @@ const GraphCanvas: React.FC = () => {
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[10, 10, 10]} intensity={0.8} />
                 
-                {/* Consolidated hologram environment - all effects in one component on Layer 2 */}
-                <HologramEnvironment 
-                    enabled={enableHologram}
-                    position={[0, 0, 0]}
-                    useDiffuseEffects={true}
+                {/* Holographic Data Sphere with minimal opacity - scaled 50x */}
+                <HologramContent
+                  opacity={0.1}
+                  layer={2}
+                  renderOrder={-1}
+                  includeSwarm={false}
+                  enableDepthFade={true}
+                  fadeStart={2000}
+                  fadeEnd={5000}
                 />
                 
                 {/* Graph Manager - only render when we have data and canvas is ready */}
