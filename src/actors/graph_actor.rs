@@ -3043,6 +3043,12 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
+        // Skip processing and broadcasting if there are no agents
+        if msg.agents.is_empty() {
+            debug!("No agents to update - skipping bots graph broadcast");
+            return;
+        }
+
         // This logic converts `Agent` objects into `Node` and `Edge` objects
         let mut nodes = vec![];
         let mut edges = vec![];

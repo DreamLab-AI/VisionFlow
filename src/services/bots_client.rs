@@ -147,7 +147,7 @@ impl BotsClient {
                     Ok(mcp_agents) => {
                         if !mcp_agents.is_empty() {
                             info!("📊 Received {} agents from MCP server", mcp_agents.len());
-                            
+
                             // Convert MCP agents to our Agent format
                             let converted_agents: Vec<Agent> = mcp_agents
                                 .into_iter()
@@ -163,9 +163,16 @@ impl BotsClient {
                             // Send to graph if connected
                             if let Some(ref graph_addr) = graph_service_addr {
                                 info!("📨 BotsClient sending {} agents to graph", converted_agents.len());
-                                
+
                                 // Send agents directly without conversion
                                 graph_addr.do_send(UpdateBotsGraph { agents: converted_agents.clone() });
+                            }
+                        } else {
+                            // Clear stored agents if MCP returns empty list
+                            let mut agents_lock = agents.write().await;
+                            if !agents_lock.is_empty() {
+                                debug!("Clearing stored agents - MCP returned empty list");
+                                agents_lock.clear();
                             }
                         }
                     }

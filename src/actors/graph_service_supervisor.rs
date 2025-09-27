@@ -854,6 +854,15 @@ impl TransitionalGraphSupervisor {
     }
 }
 
+/// Handler for GetGraphServiceActor - returns the internal GraphServiceActor address
+impl Handler<msgs::GetGraphServiceActor> for TransitionalGraphSupervisor {
+    type Result = Option<Addr<GraphServiceActor>>;
+
+    fn handle(&mut self, _msg: msgs::GetGraphServiceActor, ctx: &mut Self::Context) -> Self::Result {
+        self.get_or_create_actor(ctx).cloned()
+    }
+}
+
 impl Actor for TransitionalGraphSupervisor {
     type Context = Context<Self>;
 

@@ -597,6 +597,11 @@ pub struct SetGraphServiceAddress {
     pub addr: actix::Addr<crate::actors::graph_actor::GraphServiceActor>,
 }
 
+// Message to get the GraphServiceActor from TransitionalGraphSupervisor
+#[derive(Message)]
+#[rtype(result = "Option<actix::Addr<crate::actors::graph_actor::GraphServiceActor>>")]
+pub struct GetGraphServiceActor;
+
 // Messages for ClientManagerActor to send to individual SocketFlowServer clients
 #[derive(Message)]
 #[rtype(result = "()")]
