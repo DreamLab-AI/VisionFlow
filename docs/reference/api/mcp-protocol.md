@@ -192,7 +192,7 @@ Creates a new agent within a swarm with real TCP connection and spawning.
             "connections": 3,
             "healthCheck": "passing"
         },
-        "initializationMetrics": {
+        "initialisationMetrics": {
             "spawnTime": 1247,
             "modelLoadTime": 892,
             "memoryAllocated": "3.2 GB"
@@ -442,7 +442,7 @@ Agents can be addressed through their swarm:
             "agentId": "agent_456",       // Target agent
             "message": {
                 "type": "command",
-                "action": "analyze_code",
+                "action": "analyse_code",
                 "params": {"file": "main.rs"}
             }
         }

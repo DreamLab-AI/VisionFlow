@@ -11,7 +11,7 @@
 - **API Endpoints** (`src/handlers/api_handler/ontology/mod.rs`): Full REST and WebSocket API
 - **Constraint Translation** (`src/physics/ontology_constraints.rs`): OWL axiom to physics constraint conversion
 - **Real-time Updates**: WebSocket protocol for validation progress and constraint updates
-- **Caching System**: Multi-level caching for performance optimization
+- **Caching System**: Multi-level caching for performance optimisation
 - **Error Handling**: Comprehensive error reporting with diagnostics
 
 ### 🔄 Current Capabilities
@@ -277,7 +277,7 @@ File: [ontology/mapping.toml](ontology/mapping.toml)
 - IRI templates
   - `iri.node = "vf:node/{id}"`
   - `iri.edge = "vf:edge/{source}-{target}"`
-- Domain/Range hints (optional optimization for validation)
+- Domain/Range hints (optional optimisation for validation)
   - `domain."vf:employs" = "vf:Company"`
   - `range."vf:employs" = "vf:Person"`
 
@@ -494,7 +494,7 @@ Feature flags:
 ## 15) Success Metrics
 
 - < 150ms quick validation on 2k nodes, 3k edges (cached ontology)
-- ≥ 95% of inverse relationships realized after inference
+- ≥ 95% of inverse relationships realised after inference
 - ≥ 80% of disjointness/domain/range violations produce actionable fixes adopted
 - Layout coherence improvement (edge crossing reduction, cluster separation) with ontology constraints enabled
 

@@ -13,7 +13,7 @@ This document provides comprehensive documentation for all interface layers in t
 - **🎯 100% API Consolidation**: Single UnifiedApiClient architecture implemented
 - **🔧 Field Conversion Resolution**: Automated camelCase ↔ snake_case handling via Serde
 - **📡 19 Active Endpoints**: Comprehensive REST API coverage across 3 main handlers
-- **⚡ 80% WebSocket Optimization**: Binary protocol reduces traffic by 80%
+- **⚡ 80% WebSocket Optimisation**: Binary protocol reduces traffic by 80%
 - **🚀 Zero Legacy Code**: Complete migration from deprecated apiService
 
 ---
@@ -96,7 +96,7 @@ graph TB
     },
     "graphs": {
       "nodes": {
-        "baseColor": "#FF0000",
+        "baseColour": "#FF0000",
         "opacity": 1.0,
         "metalness": 0.1
       }
@@ -123,11 +123,11 @@ graph TB
 #### GET `/api/settings/path`
 **Purpose**: Get specific setting by dot-notation path
 **Query Parameters**: `path` (string) - Dot-notation path
-**Example**: `?path=visualisation.graphs.nodes.baseColor`
+**Example**: `?path=visualisation.graphs.nodes.baseColour`
 
 ```json
 {
-  "path": "visualisation.graphs.nodes.baseColor",
+  "path": "visualisation.graphs.nodes.baseColour",
   "value": "#FF0000",
   "type": "string"
 }
@@ -138,7 +138,7 @@ graph TB
 **Request Body**:
 ```json
 {
-  "path": "visualisation.graphs.nodes.baseColor",
+  "path": "visualisation.graphs.nodes.baseColour",
   "value": "#00FF00"
 }
 ```
@@ -151,7 +151,7 @@ graph TB
 ```json
 {
   "paths": [
-    "visualisation.graphs.nodes.baseColor",
+    "visualisation.graphs.nodes.baseColour",
     "visualisation.rendering.ambientLightIntensity"
   ]
 }
@@ -164,7 +164,7 @@ graph TB
 {
   "updates": [
     {
-      "path": "visualisation.graphs.nodes.baseColor",
+      "path": "visualisation.graphs.nodes.baseColour",
       "value": "#00FF00"
     },
     {
@@ -349,7 +349,7 @@ struct BinaryNodeData {
 - `KNOWLEDGE_NODE_FLAG`: 0x4000 - Identifies knowledge nodes
 - `NODE_ID_MASK`: 0x3FFF - Extracts actual node ID
 
-#### Performance Optimizations
+#### Performance Optimisations
 
 1. **Binary-Only Position Updates**: 80% traffic reduction vs JSON
 2. **Interaction-Based Throttling**: Updates only during user interactions
@@ -500,7 +500,7 @@ pub struct VisualisationSettings {
 
 #### Issue: Duplicate Field Errors
 **Problem**: JSON containing both camelCase and snake_case versions of same field
-**Example**: `{"baseColor": "#FF0000", "base_color": "#00FF00"}`
+**Example**: `{"baseColour": "#FF0000", "base_colour": "#00FF00"}`
 **Solution**: Client-side preprocessing to ensure single naming convention
 
 #### Issue: Field Mapping Conflicts
@@ -595,12 +595,12 @@ pub struct RateLimitConfig {
 
 | Operation | Current Latency | Target | Status |
 |-----------|----------------|--------|--------|
-| GET /api/settings | ~50ms | <20ms | Optimizing |
+| GET /api/settings | ~50ms | <20ms | Optimising |
 | PUT /api/settings/path | ~30ms | <10ms | ✅ Good |
 | POST /api/settings/batch | ~100ms | <50ms | Depends on batch size |
 | WebSocket binary updates | ~5ms | <5ms | ✅ Optimal |
 
-### Optimization Strategies
+### Optimisation Strategies
 
 1. **Binary Protocol**: 80% reduction in WebSocket traffic
 2. **Path-Based Updates**: Granular setting modifications
@@ -737,7 +737,7 @@ await apiClient.spawnAgentHybrid({
 3. **Testing**: Test field conversion in both directions
 4. **Documentation**: Document field mapping clearly
 
-### Performance Optimization
+### Performance Optimisation
 
 1. **Profiling**: Regular performance monitoring
 2. **Caching**: Implement response caching where appropriate
@@ -802,9 +802,9 @@ describe('WebSocket Binary Protocol', () => {
 // Example field conversion test
 #[test]
 fn test_camel_case_conversion() {
-    let json = r#"{"baseColor": "#FF0000", "ambientLightIntensity": 0.5}"#;
+    let json = r#"{"baseColour": "#FF0000", "ambientLightIntensity": 0.5}"#;
     let settings: VisualisationSettings = serde_json::from_str(json).unwrap();
-    assert_eq!(settings.base_color, "#FF0000");
+    assert_eq!(settings.base_colour, "#FF0000");
     assert_eq!(settings.ambient_light_intensity, 0.5);
 }
 ```
@@ -819,7 +819,7 @@ The VisionFlow interface layer represents a mature, production-ready API archite
 
 - ✅ **Complete Interface Coverage**: 19 active endpoints across all domains
 - ✅ **Automatic Data Conversion**: Seamless camelCase ↔ snake_case handling via enhanced config/mod.rs
-- ✅ **Performance Optimization**: 80% WebSocket traffic reduction through binary protocol
+- ✅ **Performance Optimisation**: 80% WebSocket traffic reduction through binary protocol
 - ✅ **Error Recovery**: Comprehensive error handling and retry logic
 - ✅ **Type Safety**: Full TypeScript and Rust type safety throughout
 - ✅ **Actor Communication**: Optimized message routing with extracted patterns

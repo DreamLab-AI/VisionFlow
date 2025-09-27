@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the optimal architecture for the multi-agent system that combines the simplicity and reliability of Docker exec for task orchestration with the data-rich capabilities of TCP/MCP for real-time telemetry and visualization.
+This document outlines the optimal architecture for the multi-agent system that combines the simplicity and reliability of Docker exec for task orchestration with the data-rich capabilities of TCP/MCP for real-time telemetry and visualisation.
 
 ## Current State Analysis
 
@@ -15,7 +15,7 @@ This document outlines the optimal architecture for the multi-agent system that 
 
 ### Identified Assets in Current System
 1. **Functional hive-mind**: Docker container has working claude-flow hive-mind
-2. **Rich Telemetry**: TCP/MCP provides detailed agent visualization data
+2. **Rich Telemetry**: TCP/MCP provides detailed agent visualisation data
 3. **WebSocket Infrastructure**: Real-time streaming to GPU-based spring system
 4. **Resilience Framework**: Circuit breakers, health monitoring, retry logic
 
@@ -23,12 +23,12 @@ This document outlines the optimal architecture for the multi-agent system that 
 
 ### 1. Separation of Concerns
 - **Control Plane (Docker Exec)**: Task creation, lifecycle management, process orchestration
-- **Data Plane (TCP/MCP)**: Telemetry streaming, visualization data, performance metrics
-- **Visualization Plane (WebSocket)**: Real-time updates to spring system on GPU
+- **Data Plane (TCP/MCP)**: Telemetry streaming, visualisation data, performance metrics
+- **Visualisation Plane (WebSocket)**: Real-time updates to spring system on GPU
 
 ### 2. Single Source of Truth
 - Hive-mind in multi-agent-container is authoritative for all task state
-- TCP/MCP serves as read-only data source for visualization
+- TCP/MCP serves as read-only data source for visualisation
 - No task creation via TCP/MCP to prevent state fragmentation
 
 ### 3. Fault Isolation
@@ -291,7 +291,7 @@ pub enum DockerHiveMindError {
 
 | Operation | Justification | Bandwidth |
 |-----------|---------------|-----------|
-| `agent_metrics` | Rich telemetry data for visualization | ~100KB/s |
+| `agent_metrics` | Rich telemetry data for visualisation | ~100KB/s |
 | `performance_analysis` | GPU spring system needs continuous updates | ~50KB/s |
 | `neural_patterns` | Real-time AI decision data | ~25KB/s |
 | `topology_updates` | Dynamic agent relationship changes | ~10KB/s |
@@ -723,11 +723,11 @@ impl WebSocketMultiplexer {
 - Implement bandwidth limiting and compression
 - Add fallback mechanisms
 
-### Phase 4: Optimize Telemetry Pipeline
+### Phase 4: Optimise Telemetry Pipeline
 - Implement WebSocket multiplexing
 - Add compression and filtering
 - Create bandwidth management
-- Optimize for GPU spring system updates
+- Optimise for GPU spring system updates
 
 ### Phase 5: Add Monitoring and Recovery
 - Container restart detection and recovery

@@ -49,7 +49,7 @@ ws.onmessage = (event) => {
 ### 2. GPU-Accelerated Analytics APIs
 - **Real CUDA clustering** - K-means, Louvain, DBSCAN with actual computations
 - **Anomaly detection** - LOF, Isolation Forest, Z-Score with GPU acceleration
-- **Graph analysis** - Stress majorization with real iterative optimization
+- **Graph analysis** - Stress majorisation with real iterative optimisation
 - **Performance monitoring** - Live GPU utilization and kernel metrics
 
 ### 3. System APIs
