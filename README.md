@@ -1,4 +1,11 @@
-# VisionFlow: Your AI Research Assistant with ChatGPT Pulse-like Intelligence
+# VisionFlow
+## Collaborative Team AI Research Environment
+## Continuous Background Agent Intelligence.
+## Self Sovereign Multi-Modal Interface
+## Dozens of Users, Hundreds of Agents Thousands of Nodes
+## Multi-Device Augmented Reality First Design
+
+
 
 <img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:100%; display:block; margin:0 auto;">
 
