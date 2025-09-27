@@ -1,7 +1,7 @@
 //! Force Compute Actor - Handles physics force computation and simulation
 
 use actix::prelude::*;
-use log::{error, info, trace};
+use log::{error, info, trace, warn};
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
 use std::sync::Arc;
@@ -927,6 +927,14 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
 
         // Store the shared context
         self.shared_context = Some(msg.context);
+
+        // Store the GraphServiceActor address for sending position updates
+        if let Some(addr) = msg.graph_service_addr {
+            self.graph_service_addr = Some(addr);
+            info!("ForceComputeActor: GraphServiceActor address stored - position updates will be sent to clients!");
+        } else {
+            warn!("ForceComputeActor: No GraphServiceActor address provided - positions won't be sent to clients");
+        }
 
         // Update GPU state to indicate we're ready
         self.gpu_state.is_initialized = true;

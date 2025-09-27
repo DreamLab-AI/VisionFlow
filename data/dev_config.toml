@@ -9,18 +9,18 @@ spring_length_multiplier = 5.0
 spring_length_max = 10.0
 spring_force_clamp_factor = 0.5
 
-# New CUDA kernel parameters
-rest_length = 50.0                      # Natural spring rest length
-repulsion_cutoff = 50.0                 # Maximum distance for repulsion calculations
+# New CUDA kernel parameters - INCREASED FOR MORE MOVEMENT
+rest_length = 100.0                     # Natural spring rest length (DOUBLED for more spacing)
+repulsion_cutoff = 150.0                # Maximum distance for repulsion calculations (TRIPLED)
 repulsion_softening_epsilon = 0.0001   # Prevents division by zero in force calculations
-center_gravity_k = 0.005               # Gravity toward center - helps nodes settle and prevents drift
+center_gravity_k = 0.001               # Gravity toward center - REDUCED to allow more drift
 grid_cell_size = 50.0                  # Spatial grid resolution for neighbor searches
 warmup_iterations = 100                # Number of warmup simulation steps
 cooling_rate = 0.001                   # Rate of cooling during warmup
 
-# GPU kernel-specific physics parameters
-max_force = 15.0                       # Maximum force magnitude for clamping
-max_velocity = 50.0                    # Maximum velocity magnitude for clamping
+# GPU kernel-specific physics parameters - INCREASED FOR MORE MOVEMENT
+max_force = 50.0                       # Maximum force magnitude for clamping (3X MORE)
+max_velocity = 150.0                   # Maximum velocity magnitude for clamping (3X MORE)
 world_bounds_min = -1000.0             # Minimum world coordinate
 world_bounds_max = 1000.0              # Maximum world coordinate
 cell_size_lod = 100.0                  # Level of detail cell size

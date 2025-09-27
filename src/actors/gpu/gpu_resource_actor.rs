@@ -355,14 +355,15 @@ impl Handler<InitializeGPU> for GPUResourceActor {
 
                                 info!("Created SharedGPUContext - distributing to GPU actors");
 
-                                // Send context back to GPUManagerActor for distribution
+                                // Send context back to GPUManagerActor for distribution with GraphServiceActor address
                                 if let Some(manager_addr) = gpu_manager_addr {
                                     if let Err(e) = manager_addr.try_send(SetSharedGPUContext {
-                                        context: shared_context.clone()
+                                        context: shared_context.clone(),
+                                        graph_service_addr: graph_service_addr.clone(),
                                     }) {
                                         error!("Failed to send SharedGPUContext to GPUManagerActor: {}", e);
                                     } else {
-                                        info!("SharedGPUContext sent to GPUManagerActor for distribution");
+                                        info!("SharedGPUContext sent to GPUManagerActor for distribution with GraphServiceActor address");
                                     }
                                 }
 

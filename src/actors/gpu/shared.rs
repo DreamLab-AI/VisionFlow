@@ -477,7 +477,9 @@ impl GPUState {
 
     /// Check if GPU is currently overloaded
     pub fn is_gpu_overloaded(&self) -> bool {
-        self.concurrent_access_count > 2 || self.get_average_utilization() > 90.0
+        // Only consider GPU overloaded if both high concurrent access AND high utilization
+        // Previous logic was too aggressive, blocking at just 3 concurrent operations
+        self.concurrent_access_count > 5 && self.get_average_utilization() > 80.0
     }
 }
 

@@ -627,6 +627,7 @@ impl Handler<SetSharedGPUContext> for ClusteringActor {
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
+        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
         info!("ClusteringActor: SharedGPUContext stored successfully");
         Ok(())
     }
