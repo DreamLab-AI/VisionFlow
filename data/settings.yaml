@@ -21,7 +21,7 @@ visualisation:
     waveSpeed: 0.5
   glow:
     enabled: false
-    intensity: 0.8010822
+    intensity: 3.2142856
     radius: 0.7598874
     threshold: 0.1300069
     diffuseStrength: 1.5
@@ -37,7 +37,7 @@ visualisation:
     environmentGlowStrength: 0.96262044
   bloom:
     enabled: true
-    intensity: 1.5
+    intensity: 1.0
     radius: 0.8
     threshold: 0.15
     color: '#ffffff'
@@ -66,28 +66,28 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#FF0000'
+        baseColor: '#ff0000'
         metalness: 0.20965025
         opacity: 0.95
         roughness: 0.25633773
-        nodeSize: 1.9505495
+        nodeSize: 1.9159341
         quality: high
         enableInstancing: false
-        enableHologram: true
+        enableHologram: false
         enableMetadataShape: true
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#8b9315'
+        color: '#849504'
         enableArrows: false
-        opacity: 0.260989
+        opacity: 0.24725275
         widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.4672527
+        desktopFontSize: 1.4713461
         enableLabels: false
         textColor: '#805b5b'
         textOutlineColor: '#ff0000'

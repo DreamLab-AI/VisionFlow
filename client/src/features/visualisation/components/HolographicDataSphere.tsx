@@ -63,7 +63,8 @@ class GlobalFadeEffect extends Effect {
       `
       uniform float uAlpha;
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-        outputColor = vec4(inputColor.rgb * uAlpha, inputColor.a);
+        // Properly handle alpha channel multiplication
+        outputColor = vec4(inputColor.rgb, inputColor.a * uAlpha);
       }
     `,
       {
@@ -129,7 +130,8 @@ function useDepthFade(ref, { baseOpacity, fadeStart, fadeEnd }) {
           const originalOpacity = mat.userData.__baseOpacity;
           mat.opacity = THREE.MathUtils.clamp(originalOpacity * fadeMultiplier, 0, originalOpacity);
           mat.transparent = mat.opacity < 1;
-          mat.depthWrite = true;
+          // Don't force depthWrite for transparent materials
+          mat.depthWrite = mat.opacity >= 0.99;
           mat.needsUpdate = true;
         }
       });
@@ -142,12 +144,13 @@ function registerMaterialForFade(material, baseOpacity) {
     material.userData = {};
   }
   material.userData.__isDepthFaded = true;
-  if (material.userData.__baseOpacity === undefined) {
-    material.userData.__baseOpacity = baseOpacity;
-  }
+  // Always set the base opacity, don't check if undefined
+  material.userData.__baseOpacity = baseOpacity;
   material.opacity = baseOpacity;
-  material.transparent = baseOpacity < 1;
-  material.depthWrite = true;
+  material.transparent = true; // Always transparent for proper blending
+  // Never use depthWrite for transparent hologram materials
+  material.depthWrite = false;
+  material.needsUpdate = true;
 }
 
 function ParticleCore({ count = 5200, radius = 170, color = '#02f0ff', opacity = 0.3 }) {
@@ -184,7 +187,7 @@ function ParticleCore({ count = 5200, radius = 170, color = '#02f0ff', opacity =
         opacity={opacity}
         sizeAttenuation
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </Points>
   );
@@ -207,7 +210,7 @@ function HolographicShell({
     [radius, detail]
   );
 
-  const spikeGeometry = useMemo(() => new THREE.ConeGeometry(11, 92, 10, 1, true), []);
+  const spikeGeometry = useMemo(() => new THREE.ConeGeometry(2.2, 18.4, 10, 1, true), []);
 
   const vertexData = useMemo(() => {
     const positions = [];
@@ -259,7 +262,7 @@ function HolographicShell({
       const pulse =
         1 + (Math.sin(elapsed * 2.2 + index * 0.37) * 0.5 + 0.5) * spikeHeight;
 
-      const spikeOffset = tempVector.copy(position).addScaledVector(normal, 40 * pulse);
+      const spikeOffset = tempVector.copy(position).addScaledVector(normal, 8 * pulse);
 
       quaternion.setFromUnitVectors(up, normal);
       scale.setScalar(1);
@@ -357,7 +360,7 @@ function TechnicalGrid({ count = 240, radius = 410, opacity = 0.3 }) {
           lineWidth={0.42}
           transparent
           opacity={opacity}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
         />
       ))}
     </group>
@@ -499,7 +502,7 @@ function EnergyArcs({ innerRadius = 1.28, outerRadius = 1.95, opacity = 0.3 }) {
       lineWidth={2.4}
       transparent
       opacity={opacity}
-      blending={THREE.AdditiveBlending}
+      blending={THREE.NormalBlending}
     />
   );
 }
@@ -637,13 +640,20 @@ export function HologramContent({
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    root.traverse((object) => {
-      const material = object.material;
-      if (!material) return;
-      const materials = Array.isArray(material) ? material : [material];
-      materials.forEach((mat) => registerMaterialForFade(mat, mat.opacity));
-    });
-  }, []);
+    // Delay material registration to ensure all materials are initialized
+    const timeoutId = setTimeout(() => {
+      root.traverse((object) => {
+        const material = object.material;
+        if (!material) return;
+        const materials = Array.isArray(material) ? material : [material];
+        materials.forEach((mat) => {
+          // Use the provided opacity as base, not the material's current opacity
+          registerMaterialForFade(mat, opacity);
+        });
+      });
+    }, 100);
+    return () => clearTimeout(timeoutId);
+  }, [opacity]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -658,7 +668,8 @@ export function HologramContent({
           mat.userData.__baseOpacity = opacity;
           mat.opacity = opacity;
           mat.transparent = opacity < 1;
-          mat.depthWrite = true;
+          // Don't force depthWrite for transparent materials
+          mat.depthWrite = opacity >= 0.99;
           mat.needsUpdate = true;
         }
       });
