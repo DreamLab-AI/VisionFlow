@@ -538,6 +538,17 @@ const XRCoreProvider: React.FC<XRCoreProviderProps> = ({
     }
 
     try {
+      // Request fullscreen first for Quest 3 browser compatibility
+      if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+        try {
+          await document.documentElement.requestFullscreen();
+          // Small delay to ensure fullscreen is active
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (fsError) {
+          logger.warn('Fullscreen request failed, continuing with XR session:', fsError);
+        }
+      }
+
       // Quest 3 AR optimized session configuration
       const sessionInit: XRSessionInit = {
         requiredFeatures: ['local-floor'],

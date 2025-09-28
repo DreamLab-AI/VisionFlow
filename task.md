@@ -3,6 +3,12 @@
 ## 🔴 Critical Issue Identified
 Authenticated users always receive the same (stale) settings at load time despite correctly writing to settings.yaml. This is a cache invalidation and authentication propagation issue.
 
+## 🔍 Current Status
+- Server is running at http://172.18.0.10:4000
+- All users (authenticated and unauthenticated) receive identical settings values
+- PUT requests succeed but don't affect subsequent GET requests for that user
+- Our code fixes are NOT deployed to the running server yet
+
 ## 🎯 Root Cause Analysis
 
 ### 1. **Primary Cause: Cache Invalidation Failure**

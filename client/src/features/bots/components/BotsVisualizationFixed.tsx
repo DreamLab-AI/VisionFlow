@@ -622,7 +622,18 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         <meshStandardMaterial
           color={color}
           emissive={glowColor}
-          emissiveIntensity={agent.status === 'active' || agent.status === 'busy' ? 0.5 : 0.2}
+          emissiveIntensity={(() => {
+            // Get glow settings from central store
+            const glowSettings = settings?.visualisation?.glow;
+            const baseIntensity = glowSettings?.nodeGlowStrength ?? 0.7;
+
+            // Apply status-based modulation
+            if (agent.status === 'active' || agent.status === 'busy') {
+              return baseIntensity * 0.7; // 70% of base for active agents
+            } else {
+              return baseIntensity * 0.3; // 30% of base for idle agents
+            }
+          })()}
           metalness={0.3}
           roughness={0.7}
           transparent={agent.status === 'error' || agent.status === 'terminating'}

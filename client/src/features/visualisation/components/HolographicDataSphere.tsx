@@ -22,6 +22,7 @@ import {
 } from '@react-three/postprocessing';
 import { Effect } from 'postprocessing';
 import * as THREE from 'three';
+import { useSettingsStore } from '../../../store/settingsStore';
 
 export const SCENE_CONFIG = {
   background: '#02030c',
@@ -40,8 +41,8 @@ export const LIGHTING_CONFIG = {
 
 export const POSTPROCESS_DEFAULTS = {
   globalAlpha: HOLOGRAM_BASE_OPACITY,
-  bloomIntensity: 76,
-  bloomThreshold: 0.07,
+  bloomIntensity: 1.5, // Reduced from 76 to a reasonable value
+  bloomThreshold: 0.15, // Aligned with central settings
   bloomSmoothing: 0.36,
   aoRadius: 124,
   aoIntensity: 0.75,
@@ -691,8 +692,8 @@ export function HologramContent({
 
 export function HologramEffects({
   globalAlpha = POSTPROCESS_DEFAULTS.globalAlpha,
-  bloomIntensity = POSTPROCESS_DEFAULTS.bloomIntensity,
-  bloomThreshold = POSTPROCESS_DEFAULTS.bloomThreshold,
+  bloomIntensity: propsBloomIntensity,
+  bloomThreshold: propsBloomThreshold,
   bloomSmoothing = POSTPROCESS_DEFAULTS.bloomSmoothing,
   aoRadius = POSTPROCESS_DEFAULTS.aoRadius,
   aoIntensity = POSTPROCESS_DEFAULTS.aoIntensity,
@@ -704,6 +705,13 @@ export function HologramEffects({
   selectionLayer = 0,
   renderPriority,
 }) {
+  // Get settings from central store
+  const settings = useSettingsStore(state => state.settings);
+  const bloomSettings = settings?.visualisation?.bloom;
+
+  // Use central settings if available, fallback to props or defaults
+  const bloomIntensity = bloomSettings?.intensity ?? propsBloomIntensity ?? POSTPROCESS_DEFAULTS.bloomIntensity;
+  const bloomThreshold = bloomSettings?.threshold ?? propsBloomThreshold ?? POSTPROCESS_DEFAULTS.bloomThreshold;
   return (
     <EffectComposer
       multisampling={multisampling}
@@ -737,7 +745,7 @@ export function HologramEnvironment({
   background = SCENE_CONFIG.background,
   fogNear = SCENE_CONFIG.fogNear,
   fogFar = SCENE_CONFIG.fogFar,
-  ambientIntensity = LIGHTING_CONFIG.ambient,
+  ambientIntensity: propsAmbientIntensity,
   keyLight = LIGHTING_CONFIG.key,
   rimLight = LIGHTING_CONFIG.rim,
   fillLight = LIGHTING_CONFIG.fill,
@@ -751,6 +759,12 @@ export function HologramEnvironment({
     speed: 0.25,
   },
 }) {
+  // Get lighting settings from central store
+  const settings = useSettingsStore(state => state.settings);
+  const renderingSettings = settings?.visualisation?.rendering;
+
+  // Use central settings if available, with reasonable defaults
+  const ambientIntensity = renderingSettings?.ambientLightIntensity ?? propsAmbientIntensity ?? LIGHTING_CONFIG.ambient;
   return (
     <>
       <color attach="background" args={[background]} />

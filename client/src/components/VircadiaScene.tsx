@@ -74,21 +74,21 @@ export const VircadiaScene: React.FC<VircadiaSceneProps> = ({
         camera.setTarget(BABYLON.Vector3.Zero())
         camera.attachControl(canvasRef.current, true)
         
-        // Setup lighting for AR/VR
+        // Setup lighting for AR/VR using central settings
         const ambientLight = new BABYLON.HemisphericLight(
           'ambient',
           new BABYLON.Vector3(0, 1, 0),
           scene
         )
-        ambientLight.intensity = 0.7
-        
+        ambientLight.intensity = settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.5
+
         const directionalLight = new BABYLON.DirectionalLight(
           'directional',
           new BABYLON.Vector3(-1, -2, -1),
           scene
         )
         directionalLight.position = new BABYLON.Vector3(3, 10, 3)
-        directionalLight.intensity = 1.2
+        directionalLight.intensity = settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.01263736
         
         // Shadow generator
         const shadowGenerator = new BABYLON.ShadowGenerator(2048, directionalLight)

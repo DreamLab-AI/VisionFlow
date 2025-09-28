@@ -163,6 +163,17 @@ export class XRSessionManager {
 
     const startSession = async (mode: XRSessionMode, sessionInit: XRSessionInit = {}) => {
       try {
+        // Request fullscreen first for Quest 3 browser compatibility
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          try {
+            await document.documentElement.requestFullscreen();
+            // Small delay to ensure fullscreen is active
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } catch (fsError) {
+            logger.warn('Fullscreen request failed, continuing with XR session:', fsError);
+          }
+        }
+        
         const session = await navigator.xr!.requestSession(mode, sessionInit);
         await currentRenderer.xr.setSession(session);
         // showExitXR() will be called by sessionstart listener

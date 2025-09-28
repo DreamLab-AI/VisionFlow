@@ -221,7 +221,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         emissiveColor: '#00ffff', // Cyan emissive
         opacity: settings?.visualisation?.graphs?.logseq?.nodes?.opacity ?? settings?.visualisation?.nodes?.opacity ?? 0.8,
         enableHologram: true, // Force enable to test
-        glowStrength: 2.0 * (nodeBloomStrength || 1), // Multiply by bloom strength with fallback
+        glowStrength: (nodeBloomStrength || 1) * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7), // Use central glow strength setting
         pulseSpeed: 1.0,
         hologramStrength: 0.8, // Strong hologram effect
         rimPower: 2.0, // Moderate rim lighting
@@ -256,10 +256,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       // Update glow strength based on bloom slider
       const strength = nodeBloomStrength || 1;
       materialRef.current.updateHologramParams({
-        glowStrength: strength * 2.0 // Scale the glow based on slider
+        glowStrength: strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7) // Use central glow strength
       });
       // Also update the emissive intensity directly
-      materialRef.current.uniforms.glowStrength.value = strength * 2.0;
+      materialRef.current.uniforms.glowStrength.value = strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7);
       materialRef.current.needsUpdate = true;
     }
   }, [nodeBloomStrength]);
