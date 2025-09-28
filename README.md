@@ -128,12 +128,12 @@ VisionFlow enables team-based human-AI research where multiple experts collabora
 ```mermaid
 graph TB
     subgraph "Immersive Collaboration"
-        Expert1[Research Lead<br/>🎙️ Voice + Custom View]
-        Expert2[Data Scientist<br/>🎙️ Voice + Analytics View]
+        Expert1["Research Lead\n🎙️ Voice + Custom View"]
+        Expert2["Data Scientist\n🎙️ Voice + Analytics View"]
 
         subgraph "Shared Knowledge Space"
-           AI_teams[Voice-Responsive AI teams]
-           KnowledgeGraph[Living Knowledge Graph]
+           AI_teams["Voice-Responsive AI teams"]
+           KnowledgeGraph["Living Knowledge Graph"]
         end
 
         Expert1 <--> |Guides & Validates| AI_teams
@@ -170,68 +170,58 @@ This diagram shows the entire Rust backend, including the transitional actor sys
 
 ```mermaid
 graph TB
-    %% Client Layer
-    Client[Web Clients<br/>Unity/Browser]
+    Client["Web Clients\nUnity/Browser"]
 
-    %% Entry Point
-    Main[main.rs<br/>HTTP Server Entry Point]
+    Main["main.rs\nHTTP Server Entry Point"]
 
-    %% Core Server Infrastructure
     subgraph "HTTP Server Layer"
-        HttpServer[Actix HTTP Server<br/>:8080]
-        Middleware[CORS + Logger + Compression<br/>Error Recovery Middleware]
-        Router[Route Configuration]
+        HttpServer["Actix HTTP Server\n:8080"]
+        Middleware["CORS + Logger + Compression\nError Recovery Middleware"]
+        Router["Route Configuration"]
     end
 
-    %% Application State
-    AppState[AppState<br/>Centralised State Management]
+    AppState["AppState\nCentralised State Management"]
 
-    %% Actor System - CURRENT STATE
     subgraph "Actor System (Actix) - Transitional Architecture"
         subgraph "Graph Supervision (Hybrid)"
-            TransitionalSupervisor[TransitionalGraphSupervisor<br/>Bridge Pattern Wrapper]
-            GraphActor[GraphServiceActor<br/>Refactor In Progress]
-            GraphStateActor[GraphStateActor<br/>State Management - Refactor]
-            PhysicsOrchestrator[PhysicsOrchestratorActor<br/>Physics]
-            SemanticProcessor[SemanticProcessorActor<br/>Semantic Analysis]
+            TransitionalSupervisor["TransitionalGraphSupervisor\nBridge Pattern Wrapper"]
+            GraphActor["GraphServiceActor\nRefactor In Progress"]
+            GraphStateActor["GraphStateActor\nState Management - Refactor"]
+            PhysicsOrchestrator["PhysicsOrchestratorActor\nPhysics"]
+            SemanticProcessor["SemanticProcessorActor\nSemantic Analysis"]
         end
 
-        GPUManager[GPUManagerActor<br/>GPU Resource Management]
-        ClientCoordinator[ClientCoordinatorActor<br/>WebSocket Connections]
+        GPUManager["GPUManagerActor\nGPU Resource Management"]
+        ClientCoordinator["ClientCoordinatorActor\nWebSocket Connections"]
     end
 
-    %% WebSocket Handlers
     subgraph "WebSocket Layer"
-        SocketFlow[Socket Flow Handler<br/>Binary Graph Updates 34-byte]
-        SpeechWS[Speech WebSocket<br/>Voice Commands]
-        MCPRelay[MCP Relay WebSocket<br/>Multi-Agent Communication]
+        SocketFlow["Socket Flow Handler\nBinary Graph Updates 34-byte"]
+        SpeechWS["Speech WebSocket\nVoice Commands"]
+        MCPRelay["MCP Relay WebSocket\nMulti-Agent Communication"]
     end
 
-    %% REST API Handlers
     subgraph "REST API Layer"
-        APIHandler[API Handler<br/>/api routes]
-        GraphAPI[Graph API<br/>CRUD operations]
-        FilesAPI[Files API<br/>GitHub integration]
-        BotsAPI[Bots API<br/>Task Management]
+        APIHandler["API Handler\n/api routes"]
+        GraphAPI["Graph API\nCRUD operations"]
+        FilesAPI["Files API\nGitHub integration"]
+        BotsAPI["Bots API\nTask Management"]
     end
 
-    %% GPU Subsystem - FULLY IMPLEMENTED
     subgraph "GPU Computation Layer (40 CUDA Kernels)"
-        GPUResourceActor[GPU Resource Actor<br/>CUDA Device & Memory]
-        ForceComputeActor[Force Compute Actor<br/>Physics Kernels]
-        ClusteringActor[Clustering Actor<br/>K-means, Louvain]
-        AnomalyDetectionActor[Anomaly Detection Actor<br/>LOF, Z-score]
+        GPUResourceActor["GPU Resource Actor\nCUDA Device & Memory"]
+        ForceComputeActor["Force Compute Actor\nPhysics Kernels"]
+        ClusteringActor["Clustering Actor\nK-means, Louvain"]
+        AnomalyDetectionActor["Anomaly Detection Actor\nLOF, Z-score"]
     end
 
-    %% External Services
     subgraph "External Integrations"
-        GitHub[GitHub API]
-        Docker[Docker Services]
-        MCP[MCP Servers<br/>TCP :9500]
-        Speech[Speech Services]
+        GitHub["GitHub API"]
+        Docker["Docker Services"]
+        MCP["MCP Servers\nTCP :9500"]
+        Speech["Speech Services"]
     end
 
-    %% Connections
     Client --> HttpServer
     HttpServer --> Router
     Router --> AppState
@@ -254,50 +244,49 @@ This is the master diagram for the frontend, built with React and Three.js. It d
 graph TB
     subgraph "Browser Runtime Environment"
         subgraph "React Application Layer"
-            App["App.tsx<br/>Root Component"]
-            AppInit["AppInitialiser<br/>WebSocket & Settings Init"]
-            MainLayout["MainLayout.tsx<br/>Primary Layout"]
+            App["App.tsx\nRoot Component"]
+            AppInit["AppInitialiser\nWebSocket & Settings Init"]
+            MainLayout["MainLayout.tsx\nPrimary Layout"]
         end
 
         subgraph "Core Features Architecture"
             subgraph "Graph Visualisation System"
-                GraphCanvas["GraphCanvas.tsx<br/>Three.js R3F Canvas"]
-                GraphManager["GraphManager<br/>Scene Management"]
-                HolographicDataSphere["HolographicDataSphere<br/>Immersive Hologram"]
+                GraphCanvas["GraphCanvas.tsx\nThree.js R3F Canvas"]
+                GraphManager["GraphManager\nScene Management"]
+                HolographicDataSphere["HolographicDataSphere\nImmersive Hologram"]
             end
 
             subgraph "Agent/Bot System"
-                BotsVisualization["BotsVisualisation<br/>Agent Node Rendering"]
-                AgentPollingService["AgentPollingService<br/>REST API Polling"]
+                BotsVisualization["BotsVisualisation\nAgent Node Rendering"]
+                AgentPollingService["AgentPollingService\nREST API Polling"]
             end
         end
 
         subgraph "Communication Layer"
             subgraph "WebSocket Binary Protocol"
-                WebSocketService["WebSocketService.ts<br/>Connection Management"]
-                BinaryProtocol["binaryProtocol.ts<br/>34-byte Node Format"]
+                WebSocketService["WebSocketService.ts\nConnection Management"]
+                BinaryProtocol["binaryProtocol.ts\n34-byte Node Format"]
             end
 
             subgraph "REST API Layer - Unified Implementation"
-                UnifiedApiClient["UnifiedApiClient<br/>Single HTTP Client (31 refs)"]
+                UnifiedApiClient["UnifiedApiClient\nSingle HTTP Client (31 refs)"]
             end
 
             subgraph "Voice System - Dual Implementation"
-                LegacyVoiceHook["useVoiceInteraction<br/>Legacy Hook (Active)"]
-                CentralisedArchitecture["useVoiceInteractionCentralised<br/>Modern System (Available)"]
+                LegacyVoiceHook["useVoiceInteraction\nLegacy Hook (Active)"]
+                CentralisedArchitecture["useVoiceInteractionCentralised\nModern System (Available)"]
             end
         end
 
         subgraph "Visualisation & Effects"
             subgraph "Rendering Pipeline"
-                Materials["rendering/materials<br/>Custom Shaders"]
-                Shaders["shaders/<br/>WebGL Shaders"]
-                SelectiveBloom["SelectiveBloom<br/>Post-processing"]
+                Materials["rendering/materials\nCustom Shaders"]
+                Shaders["shaders/\nWebGL Shaders"]
+                SelectiveBloom["SelectiveBloom\nPost-processing"]
             end
         end
     end
 
-    %% Data Flow Connections
     App --> AppInit
     AppInit --> WebSocketService
     AppInit --> UnifiedApiClient
@@ -311,7 +300,6 @@ graph TB
     WebSocketService --> BinaryProtocol
     MainLayout --> LegacyVoiceHook
 
-    %% External System Connections
     WebSocketService -.->|WebSocket Binary| Backend["Rust Backend"]
     UnifiedApiClient -.->|REST API| Backend
     AgentPollingService -.->|REST Polling| Backend
@@ -325,14 +313,14 @@ The Rust server is migrating from a monolith to a supervised actor system. This 
 ```mermaid
 graph TB
     subgraph "Transitional Architecture - Bridge Pattern"
-        TransitionalSupervisor[TransitionalGraphSupervisor<br/>Bridge Pattern Wrapper]
-        GraphActor[GraphServiceActor<br/>35,193 lines - Being Refactored]
+        TransitionalSupervisor["TransitionalGraphSupervisor\nBridge Pattern Wrapper"]
+        GraphActor["GraphServiceActor\n35,193 lines - Being Refactored"]
 
         subgraph "Extracted Actor Services"
-            GraphStateActor[GraphStateActor<br/>State Management]
-            PhysicsOrchestrator[PhysicsOrchestratorActor<br/>GPU Physics]
-            SemanticProcessor[SemanticProcessorActor<br/>AI Analysis]
-            ClientCoordinator[ClientCoordinatorActor<br/>WebSocket Management]
+            GraphStateActor["GraphStateActor\nState Management"]
+            PhysicsOrchestrator["PhysicsOrchestratorActor\nGPU Physics"]
+            SemanticProcessor["SemanticProcessorActor\nAI Analysis"]
+            ClientCoordinator["ClientCoordinatorActor\nWebSocket Management"]
         end
 
         TransitionalSupervisor -->|Manages| GraphActor
@@ -351,20 +339,20 @@ Performance is critical. VisionFlow offloads heavy computation to the GPU using 
 ```mermaid
 graph LR
     subgraph "GPU Actor Hierarchy & Kernels"
-        Supervisor[GPUManagerActor<br/>Supervisor]
+        Supervisor["GPUManagerActor\nSupervisor"]
 
         subgraph "Worker Actors"
-            Resource[GPUResourceActor]
-            Physics[ForceComputeActor]
-            Clustering[ClusteringActor]
-            Anomaly[AnomalyDetectionActor]
+            Resource["GPUResourceActor"]
+            Physics["ForceComputeActor"]
+            Clustering["ClusteringActor"]
+            Anomaly["AnomalyDetectionActor"]
         end
 
         subgraph "CUDA Kernels (40 Total)"
-            LayoutKernels[Force-Directed Layout<br/>Spring-Mass Physics]
-            ClusteringKernels[K-means++, Louvain]
-            AnomalyKernels[Local Outlier Factor]
-            Pathfinding[Shortest Path]
+            LayoutKernels["Force-Directed Layout\nSpring-Mass Physics"]
+            ClusteringKernels["K-means++, Louvain"]
+            AnomalyKernels["Local Outlier Factor"]
+            Pathfinding["Shortest Path"]
         end
 
         Supervisor --> Resource & Physics & Clustering & Anomaly
@@ -382,22 +370,22 @@ This shows the flow of data from the WebSocket service through the data and scen
 ```mermaid
 graph TB
     subgraph "Graph Rendering Pipeline"
-        GraphCanvas["GraphCanvas.tsx<br/>React Three Fiber Canvas"]
+        GraphCanvas["GraphCanvas.tsx\nReact Three Fiber Canvas"]
 
         subgraph "Scene Management"
-            GraphManager["GraphManager<br/>Scene & Data Orchestration"]
-            UnifiedImplementation["Unified Graph<br/>Handles Knowledge & Agent Nodes"]
+            GraphManager["GraphManager\nScene & Data Orchestration"]
+            UnifiedImplementation["Unified Graph\nHandles Knowledge & Agent Nodes"]
         end
 
         subgraph "Data Sources"
-            WebSocketBinary["WebSocket Binary<br/>Real-time Position Updates"]
-            REST_API["REST API Polling<br/>Metadata Updates"]
+            WebSocketBinary["WebSocket Binary\nReal-time Position Updates"]
+            REST_API["REST API Polling\nMetadata Updates"]
         end
 
         subgraph "Visual Effects & Agents"
-            SelectiveBloom["Selective Bloom<br/>Post-processing"]
-            HolographicDataSphere["HolographicDataSphere<br/>Immersive Visualisation"]
-            BotsVisualisation["Bots Visualisation<br/>3D Agent Rendering"]
+            SelectiveBloom["Selective Bloom\nPost-processing"]
+            HolographicDataSphere["HolographicDataSphere\nImmersive Visualisation"]
+            BotsVisualisation["Bots Visualisation\n3D Agent Rendering"]
         end
 
         GraphCanvas --> GraphManager & SelectiveBloom & HolographicDataSphere & BotsVisualisation
@@ -416,17 +404,17 @@ This diagram reveals the current state of the voice system, where a legacy hook 
 graph TB
     subgraph "Voice System Current State"
         subgraph "Active Implementation"
-            LegacyHook["useVoiceInteraction.ts<br/>Legacy Hook (In Use)"]
+            LegacyHook["useVoiceInteraction.ts\nLegacy Hook (In Use)"]
         end
 
         subgraph "Available but Inactive"
-            CentralisedHook["useVoiceInteractionCentralised<br/>Modern Architecture"]
-            NineHooks["9 Specialised Hooks<br/>(Designed but Inactive)"]
+            CentralisedHook["useVoiceInteractionCentralised\nModern Architecture"]
+            NineHooks["9 Specialised Hooks\n(Designed but Inactive)"]
         end
 
         subgraph "Core Services"
-            AudioInputService["AudioInputService<br/>Mic Capture"]
-            WebSocketService["WebSocket Service<br/>Binary Streaming"]
+            AudioInputService["AudioInputService\nMic Capture"]
+            WebSocketService["WebSocket Service\nBinary Streaming"]
         end
 
         LegacyHook --> AudioInputService
@@ -446,7 +434,7 @@ To achieve real-time performance, VisionFlow uses a highly optimised 34-byte bin
 ```mermaid
 graph TD
     subgraph "34-Byte Wire Protocol"
-        WireFormat["Wire Packet Structure<br/>34 bytes total"]
+        WireFormat["Wire Packet Structure\n34 bytes total"]
 
         subgraph "Packet Layout"
             NodeID["node_id: u16 (2 bytes)"]
@@ -458,7 +446,7 @@ graph TD
 
         WireFormat --> NodeID & Position & Velocity & Distance & Parent
     end
-    Comparison["JSON: ~680 bytes → Binary: 34 bytes<br/>95% reduction"]
+    Comparison["JSON: ~680 bytes → Binary: 34 bytes\n95% reduction"]
     WireFormat --> Comparison
     style WireFormat fill:#673ab7
 ```
