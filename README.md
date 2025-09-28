@@ -63,10 +63,37 @@ echo "VisionFlow is running at http://localhost:3001"
 
 ## 🛠️ Technical Deep Dive
 
+> 💡 **Click the sections below to explore detailed architecture diagrams and technical specifications**
+
 <details>
 <summary><strong>🧠 Advanced Knowledge Architecture & Agent Orchestration</strong></summary>
 
 ### Advanced Knowledge Graph Architecture
+
+```mermaid
+graph TB
+    subgraph "Transitional Architecture - Bridge Pattern"
+        TransitionalSupervisor["TransitionalGraphSupervisor<br/>Bridge Pattern Wrapper"]
+        GraphActor["GraphServiceActor<br/>35,193 lines - Being Refactored"]
+
+        subgraph "Extracted Actor Services"
+            GraphStateActor["GraphStateActor<br/>State Management"]
+            PhysicsOrchestrator["PhysicsOrchestratorActor<br/>GPU Physics"]
+            SemanticProcessor["SemanticProcessorActor<br/>AI Analysis"]
+            ClientCoordinator["ClientCoordinatorActor<br/>WebSocket Management"]
+        end
+
+        TransitionalSupervisor -->|Manages| GraphActor
+        TransitionalSupervisor -->|Supervises| GraphStateActor
+        TransitionalSupervisor -->|Orchestrates| PhysicsOrchestrator
+        TransitionalSupervisor -->|Coordinates| SemanticProcessor
+        TransitionalSupervisor -->|Routes| ClientCoordinator
+    end
+
+    style TransitionalSupervisor fill:#ff9800
+    style GraphActor fill:#ffd54f
+```
+
 - **Microsoft GraphRAG Integration**: We build hierarchical knowledge structures with subject-object-predicate relationships, capturing deep semantic meaning beyond simple vector similarity.
 - **Leiden Clustering Algorithm**: Automatically organises your knowledge into well-connected communities, revealing hidden relationships and structuring information from high-level domains down to specific details.
 - **Cutting-Edge Shortest Path Analysis**: Utilises [new research](https://arxiv.org/abs/2504.17033) for multi-hop reasoning, enabling you to connect distant concepts and trace the flow of information.
@@ -88,6 +115,61 @@ VisionFlow deploys specialised AI agents that work continuously in the backgroun
 <details>
 <summary><strong>⚡ High-Performance Technology Stack</strong></summary>
 
+### GPU Computation Layer
+
+```mermaid
+graph LR
+    subgraph "GPU Computation Layer - 40 Production CUDA Kernels"
+        subgraph "visionflow_unified.cu (28 kernels)"
+            Physics[Force-Directed Layout<br/>Spring-Mass Physics]
+            Clustering1[K-means++ Clustering<br/>Spectral Analysis]
+            Anomaly1[Local Outlier Factor<br/>Statistical Z-score]
+        end
+
+        subgraph "gpu_clustering_kernels.cu (8 kernels)"
+            Louvain[Louvain Modularity<br/>Community Detection]
+            LabelProp[Label Propagation<br/>Graph Partitioning]
+        end
+
+        subgraph "Specialised Kernels (4)"
+            Stability[Stability Gates<br/>2 kernels]
+            SSSP[Shortest Path<br/>2 kernels]
+        end
+    end
+
+    style Physics fill:#4caf50
+    style Clustering1 fill:#2196f3
+    style Anomaly1 fill:#ff5722
+```
+
+### Binary Protocol Architecture
+
+```mermaid
+graph TD
+    subgraph "34-Byte Wire Protocol (Actual Implementation)"
+        WireFormat["Wire Packet Structure<br/>34 bytes total"]
+
+        subgraph "Packet Layout"
+            NodeID["node_id: u16 (2 bytes)"]
+            Position["position: [f32; 3] (12 bytes)"]
+            Velocity["velocity: [f32; 3] (12 bytes)"]
+            Distance["sssp_distance: f32 (4 bytes)"]
+            Parent["sssp_parent: i32 (4 bytes)"]
+        end
+
+        WireFormat --> NodeID
+        WireFormat --> Position
+        WireFormat --> Velocity
+        WireFormat --> Distance
+        WireFormat --> Parent
+    end
+
+    Comparison["JSON: 680 bytes → Binary: 34 bytes<br/>95% reduction"]
+
+    style WireFormat fill:#673ab7
+    style Comparison fill:#4caf50
+```
+
 | Layer | Component | Specification | Performance |
 | :--- | :--- | :--- | :--- |
 | **GPU Acceleration** | 40 CUDA Kernels | Physics, clustering, pathfinding | 100x CPU speedup |
@@ -96,25 +178,63 @@ VisionFlow deploys specialised AI agents that work continuously in the backgroun
 | **Backend** | Rust + Actix | Supervised actor system | 1,000+ requests/min |
 | **AI Orchestration**| MCP Protocol | ClaudeFlowActor & Agent Swarms | 50+ concurrent agents |
 
-<br/>
-
-```mermaid
-graph TD
-    subgraph "VisionFlow Architecture"
-        A[Frontend: React Three Fiber] -- "Binary WebSocket (34-byte)" --> B(Backend: Rust Actix Actors)
-        B -- "Manages" --> C(AI Layer: Agent Swarms & MCP)
-        B -- "Offloads To" --> D(GPU: 40 CUDA Kernels)
-        C -- "Updates" --> E(Data Layer: Git & Logseq)
-        D -- "Accelerates" --> A
-    end
-```
-
 </details>
 
 <details>
-<summary><strong>👥 Multi-User Collaboration & Use Cases</strong></summary>
+<summary><strong>👥 Multi-User Voice-Enabled Collaboration Architecture</strong></summary>
 
-VisionFlow enables team-based human-AI research where multiple experts collaborate with AI agents in real-time.
+```mermaid
+graph TB
+    subgraph "Immersive Voice-Enabled Collaboration"
+        subgraph "Human Experts with Independent Views"
+            Expert1[Research Lead<br/>🎙️ Voice + Custom View]
+            Expert2[Data Scientist<br/>🎙️ Voice + Analytics View]
+            Expert3[Developer<br/>🎙️ Voice + Code View]
+        end
+
+        subgraph "Voice-Responsive AI Swarms"
+            ResearchSwarm[Research Agents<br/>🔊 Voice Response]
+            CoderSwarm[Coder Agents<br/>🔊 Code Narration]
+            AnalystSwarm[Analyst Agents<br/>🔊 Data Insights]
+        end
+
+        subgraph "Shared Knowledge + Individual Lenses"
+            KnowledgeGraph[Living Knowledge Graph<br/>Common Data Layer]
+
+            subgraph "Personalised Views"
+                View1[Research View<br/>Publications Focus]
+                View2[Analytics View<br/>Metrics Focus]
+                View3[Code View<br/>Architecture Focus]
+            end
+
+            HolographicVis[200x Holographic Sphere<br/>Synchronised Perspectives]
+        end
+
+        Expert1 <-->|🎙️ Voice Commands| ResearchSwarm
+        Expert2 <-->|🎙️ Voice Queries| AnalystSwarm
+        Expert3 <-->|🎙️ Voice Reviews| CoderSwarm
+
+        KnowledgeGraph --> View1 & View2 & View3
+        View1 --> Expert1
+        View2 --> Expert2
+        View3 --> Expert3
+    end
+
+    subgraph "Voice & Sync Infrastructure"
+        VoiceSystem[Dual Voice System<br/>Legacy + Centralised]
+        SpatialAudio[3D Spatial Audio<br/>Positioned Voices]
+        WebSocketSync[Binary WebSocket<br/>34-byte packets]
+        IndependentState[Per-User State<br/>Custom Settings]
+    end
+
+    VoiceSystem --> Expert1 & Expert2 & Expert3
+    SpatialAudio --> HolographicVis
+    WebSocketSync --> KnowledgeGraph
+
+    style Expert1 fill:#4caf50
+    style VoiceSystem fill:#ff5722
+    style View1 fill:#e3f2fd
+```
 
 ### Key Scenarios:
 - **Voice-First Collaborative Research**: Teams guide agent swarms and discuss findings using natural voice commands in a shared 3D space with spatial audio.
@@ -122,25 +242,183 @@ VisionFlow enables team-based human-AI research where multiple experts collabora
 - **Team-Based Knowledge Discovery**: AI agents route findings to the most relevant human expert, who can then validate the insight and guide the next phase of research via merge request approval.
 - **Collaborative Code Intelligence**: Use coder agents for live pair-programming sessions, architectural discussions, and automated knowledge capture from senior developers.
 
-<br/>
+</details>
+
+<details>
+<summary><strong>🔬 Client Architecture & 3D Rendering Pipeline</strong></summary>
 
 ```mermaid
 graph TB
-    subgraph "Immersive Collaboration"
-        Expert1[Research Lead<br/>🎙️ Voice + Custom View]
-        Expert2[Data Scientist<br/>🎙️ Voice + Analytics View]
-
-        subgraph "Shared Knowledge Space"
-           AI_Swarms[Voice-Responsive AI Swarms]
-           KnowledgeGraph[Living Knowledge Graph]
+    subgraph "React Three Fiber Visualisation Pipeline"
+        subgraph "Core Rendering (60 FPS @ 100k nodes)"
+            GraphCanvas["GraphCanvas.tsx<br/>R3F Main Canvas"]
+            GraphManager["GraphManager<br/>Scene Orchestration"]
+            HolographicDataSphere["HolographicDataSphere<br/>200x Scale Hologram System"]
         end
 
-        Expert1 <--> |Guides & Validates| AI_Swarms
-        Expert2 <--> |Queries & Directs| AI_Swarms
-        AI_Swarms -- Updates --> KnowledgeGraph
-        KnowledgeGraph -- Streams To --> Expert1 & Expert2
+        subgraph "Binary WebSocket (34-byte protocol)"
+            UnifiedApiClient["UnifiedApiClient<br/>31 References Across Codebase"]
+            BinaryProtocol["Binary Protocol<br/>85% Bandwidth Reduction"]
+            WebSocketService["WebSocket Service<br/><10ms Latency"]
+        end
+
+        subgraph "Multi-User Synchronisation"
+            ClientCoordinator["ClientCoordinatorActor<br/>User Session Management"]
+            PresenceSystem["Presence Tracking<br/>Real-time Locations"]
+            CollaborationLayer["Collaboration Layer<br/>Shared State Sync"]
+        end
+    end
+
+    style GraphCanvas fill:#e1f5fe
+    style HolographicDataSphere fill:#fff3e0
+    style CollaborationLayer fill:#c8e6c9
+```
+
+### Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant Backend as Rust Backend
+    participant WS as WebSocket Service
+    participant Binary as Binary Protocol
+    participant GraphData as Graph Data Manager
+    participant Canvas as Graph Canvas
+    participant Agents as Agent Visualisation
+
+    Note over Backend,Agents: Real-time Position Updates
+
+    Backend->>WS: Binary frame (34 bytes/node)
+    WS->>Binary: Parse binary data
+    Binary->>Binary: Validate node format
+    Binary->>GraphData: Update positions
+
+    par Graph Updates
+        GraphData->>Canvas: Node positions
+        and
+        GraphData->>Agents: Agent positions
+    end
+
+    Canvas->>Canvas: Update Three.js scene
+    Agents->>Agents: Update agent meshes
+
+    Note over Backend,Agents: Agent Metadata via REST
+
+    loop Every 10 seconds
+        Agents->>Backend: GET /api/bots/data
+        Backend-->>Agents: Agent metadata (JSON)
+        Agents->>Agents: Update agent details
     end
 ```
+
+</details>
+
+<details>
+<summary><strong>🎙️ Voice-to-Voice Architecture</strong></summary>
+
+```mermaid
+graph LR
+    subgraph "Voice Input/Output Pipeline"
+        subgraph "Human Voice Input"
+            Mic[Microphone<br/>Voice Capture]
+            STT[Speech-to-Text<br/>OpenAI Whisper]
+            Intent[Intent Recognition<br/>Context Analysis]
+        end
+
+        subgraph "AI Voice Response"
+            TTS[Text-to-Speech<br/>OpenAI/Kokoro]
+            Spatial[3D Spatial Audio<br/>Positioned Output]
+            Speaker[Voice Output<br/>Natural Response]
+        end
+
+        subgraph "Dual Voice System"
+            Legacy[useVoiceInteraction<br/>196 lines - Active]
+            Central[useVoiceInteractionCentralised<br/>856 lines - Available]
+            Hooks[9 Specialised Hooks<br/>Domain-Specific]
+        end
+    end
+
+    Mic --> STT --> Intent
+    Intent --> Legacy & Central
+    Legacy & Central --> TTS
+    TTS --> Spatial --> Speaker
+
+    style Mic fill:#4caf50
+    style TTS fill:#2196f3
+    style Central fill:#ff9800
+```
+
+### Voice Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant LegacyHook as useVoiceInteraction
+    participant AudioService as Audio Input Service
+    participant WS as WebSocket Service
+    participant Backend as Rust Backend
+    participant Whisper as Whisper STT
+    participant Kokoro as Kokoro TTS
+
+    User->>LegacyHook: Press voice button
+    LegacyHook->>AudioService: Start recording
+    AudioService->>AudioService: Capture audio stream
+    AudioService->>WS: Send binary audio
+    WS->>Backend: Forward audio data
+    Backend->>Whisper: Process STT
+    Whisper-->>Backend: Transcribed text
+    Backend->>Backend: Process command
+    Backend->>Kokoro: Generate TTS
+    Kokoro-->>Backend: Audio response
+    Backend->>WS: Send binary audio response
+    WS->>LegacyHook: Audio response received
+    LegacyHook-->>User: Voice feedback
+```
+
+</details>
+
+<details>
+<summary><strong>🏗️ System Integration Overview</strong></summary>
+
+```mermaid
+graph TB
+    Client["Web Clients<br/>Unity/Browser"]
+    
+    subgraph "Actor System (Transitional Architecture)"
+        TransitionalSupervisor["TransitionalGraphSupervisor<br/>Bridge Pattern"]
+        GraphActor["GraphServiceActor<br/>Being Refactored"]
+        GPUManager["GPUManagerActor"]
+        ClientCoordinator["ClientCoordinatorActor"]
+        ClaudeFlowActor["ClaudeFlowActor<br/>MCP Integration"]
+    end
+    
+    subgraph "External Integrations"
+        GitHub["GitHub API"]
+        Docker["Docker Services<br/>multi-agent-container"]
+        MCP["MCP Servers<br/>TCP :9500"]
+        Speech["Speech Services"]
+    end
+    
+    Client --> ClientCoordinator
+    TransitionalSupervisor --> GraphActor
+    ClaudeFlowActor --> MCP
+    GPUManager --> GraphActor
+    
+    style TransitionalSupervisor fill:#ff9800
+    style GPUManager fill:#4caf50
+```
+
+### Performance Metrics
+
+| Component | Specification | Performance |
+|-----------|--------------|-------------|
+| **GPU Kernels** | 40 CUDA kernels | 100x CPU speedup |
+| **Binary Protocol** | 34-byte packets | 95% bandwidth saving |
+| **Actor System** | 20 Actix actors | 1000+ req/min |
+| **WebSocket Latency** | Binary streaming | <10ms updates |
+| **3D Rendering** | Three.js + WebGL | 60 FPS @ 100k nodes |
+| **Agent Swarms** | MCP orchestration | 50+ concurrent agents |
+| **Memory Efficiency** | Per-node overhead | 34 bytes only |
+| **Hologram Scale** | HolographicDataSphere | 200x visual scale |
 
 </details>
 
