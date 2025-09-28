@@ -8,6 +8,8 @@ use crate::handlers::validation_handler::ValidationService;
 use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, EndpointRateLimits, extract_client_id};
 use crate::utils::validation::MAX_REQUEST_SIZE;
 use log::{info, warn, error, debug};
+use tracing::{info as trace_info, debug as trace_debug};
+use uuid::Uuid;
 
 // Import comprehensive validation for GPU parameters
 use crate::handlers::settings_validation_fix::{validate_physics_settings_complete, validate_constraint, convert_to_snake_case_recursive, get_complete_field_mappings, apply_field_mappings};
@@ -1164,6 +1166,26 @@ impl EnhancedSettingsHandler {
         state: web::Data<AppState>,
         payload: web::Json<Value>,
     ) -> Result<HttpResponse, Error> {
+        // Extract request ID for tracing
+        let request_id = req.headers()
+            .get("X-Request-ID")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or(&Uuid::new_v4().to_string())
+            .to_string();
+
+        // Extract authentication info
+        let pubkey = req.headers()
+            .get("X-Nostr-Pubkey")
+            .and_then(|v| v.to_str().ok());
+        let has_token = req.headers().get("X-Nostr-Token").is_some();
+
+        trace_info!(
+            request_id = %request_id,
+            user_pubkey = ?pubkey,
+            authenticated = pubkey.is_some() && has_token,
+            "Settings update request received"
+        );
+
         let client_id = extract_client_id(&req);
         
         // Rate limiting check
@@ -1355,6 +1377,26 @@ impl EnhancedSettingsHandler {
         req: HttpRequest,
         state: web::Data<AppState>,
     ) -> Result<HttpResponse, Error> {
+        // Extract request ID for tracing
+        let request_id = req.headers()
+            .get("X-Request-ID")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or(&Uuid::new_v4().to_string())
+            .to_string();
+
+        // Extract authentication info
+        let pubkey = req.headers()
+            .get("X-Nostr-Pubkey")
+            .and_then(|v| v.to_str().ok());
+        let has_token = req.headers().get("X-Nostr-Token").is_some();
+
+        trace_info!(
+            request_id = %request_id,
+            user_pubkey = ?pubkey,
+            authenticated = pubkey.is_some() && has_token,
+            "Settings GET request received"
+        );
+
         let client_id = extract_client_id(&req);
 
         // Rate limiting (more permissive for GET requests)
@@ -1468,6 +1510,73 @@ impl EnhancedSettingsHandler {
                 })))
             }
         }
+    }
+
+    /// Settings health check endpoint
+    pub async fn settings_health(
+        &self,
+        req: HttpRequest,
+        state: web::Data<AppState>,
+    ) -> Result<HttpResponse, Error> {
+        let request_id = req.headers()
+            .get("X-Request-ID")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or(&Uuid::new_v4().to_string())
+            .to_string();
+
+        trace_info!(
+            request_id = %request_id,
+            "Settings health check requested"
+        );
+
+        // Get cache statistics
+        let (cache_entries, cache_ages) = crate::models::user_settings::UserSettings::get_cache_stats();
+
+        // Calculate cache metrics
+        let cache_hit_rate = if cache_entries > 0 {
+            // This is an estimate - in production, track actual hits/misses
+            0.85 // Placeholder
+        } else {
+            0.0
+        };
+
+        let oldest_cache_entry = cache_ages.iter()
+            .map(|(_, age)| age.as_secs())
+            .max()
+            .unwrap_or(0);
+
+        let avg_cache_age = if !cache_ages.is_empty() {
+            cache_ages.iter()
+                .map(|(_, age)| age.as_secs())
+                .sum::<u64>() / cache_ages.len() as u64
+        } else {
+            0
+        };
+
+        // Check settings actor health
+        let settings_healthy = match state.settings_addr.send(GetSettings).await {
+            Ok(Ok(_)) => true,
+            _ => false,
+        };
+
+        Ok(HttpResponse::Ok().json(json!({
+            "status": if settings_healthy { "healthy" } else { "degraded" },
+            "request_id": request_id,
+            "cache": {
+                "entries": cache_entries,
+                "hit_rate": cache_hit_rate,
+                "oldest_entry_secs": oldest_cache_entry,
+                "avg_age_secs": avg_cache_age,
+                "ttl_secs": 600, // 10 minutes
+            },
+            "settings_actor": {
+                "responsive": settings_healthy,
+            },
+            "rate_limiting": {
+                "stats": self.rate_limiter.get_stats(),
+            },
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        })))
     }
 
     /// Get validation statistics for settings

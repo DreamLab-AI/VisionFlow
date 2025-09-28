@@ -1,5 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse};
 use log::{warn, error};
+use tracing::{debug, info};
+use uuid::Uuid;
 use crate::services::nostr_service::NostrService;
 
 pub enum AccessLevel {
@@ -12,11 +14,22 @@ pub async fn verify_access(
     nostr_service: &NostrService,
     required_level: AccessLevel,
 ) -> Result<String, HttpResponse> {
+    // Generate request ID for tracing
+    let request_id = req.headers()
+        .get("X-Request-ID")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or(&Uuid::new_v4().to_string())
+        .to_string();
+
     // Get pubkey from header
     let pubkey = match req.headers().get("X-Nostr-Pubkey") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
             warn!("Missing Nostr pubkey in request headers");
+            debug!(
+                request_id = %request_id,
+                "Authentication failed - missing pubkey header"
+            );
             return Err(HttpResponse::Forbidden().body("Authentication required"));
         }
     };
@@ -26,27 +39,69 @@ pub async fn verify_access(
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
             warn!("Missing Nostr token in request headers");
+            debug!(
+                request_id = %request_id,
+                has_pubkey = true,
+                "Authentication failed - missing token header"
+            );
             return Err(HttpResponse::Forbidden().body("Authentication required"));
         }
     };
 
+    // Log successful header extraction
+    debug!(
+        request_id = %request_id,
+        has_pubkey = !pubkey.is_empty(),
+        has_token = !token.is_empty(),
+        pubkey_prefix = %&pubkey.chars().take(8).collect::<String>(),
+        "Authentication headers extracted"
+    );
+
     // Validate session
     if !nostr_service.validate_session(&pubkey, &token).await {
         warn!("Invalid or expired session for user {}", pubkey);
+        debug!(
+            request_id = %request_id,
+            pubkey = %pubkey,
+            "Session validation failed"
+        );
         return Err(HttpResponse::Unauthorized().body("Invalid or expired session"));
     }
+
+    info!(
+        request_id = %request_id,
+        pubkey = %pubkey,
+        "Session validated successfully"
+    );
 
     // Check access level
     match required_level {
         AccessLevel::Authenticated => {
             // Any valid session is sufficient
+            debug!(
+                request_id = %request_id,
+                pubkey = %pubkey,
+                access_level = "authenticated",
+                "Access granted"
+            );
             Ok(pubkey)
         }
         AccessLevel::PowerUser => {
             if nostr_service.is_power_user(&pubkey).await {
+                debug!(
+                    request_id = %request_id,
+                    pubkey = %pubkey,
+                    access_level = "power_user",
+                    "Power user access granted"
+                );
                 Ok(pubkey)
             } else {
                 warn!("Non-power user {} attempted restricted operation", pubkey);
+                debug!(
+                    request_id = %request_id,
+                    pubkey = %pubkey,
+                    "Power user access denied"
+                );
                 Err(HttpResponse::Forbidden().body("This operation requires power user access"))
             }
         }

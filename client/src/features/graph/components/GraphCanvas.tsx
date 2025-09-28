@@ -113,9 +113,9 @@ const GraphCanvas: React.FC = () => {
                     setCanvasReady(true);
                 }}
             >
-                {/* Basic lighting */}
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 10]} intensity={0.8} />
+                {/* Basic lighting - reduced to prevent washout */}
+                <ambientLight intensity={0.15} />
+                <directionalLight position={[10, 10, 10]} intensity={0.4} />
                 
                 {/* Holographic Data Sphere with minimal opacity - scaled 50x */}
                 <HologramContent

@@ -10,6 +10,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { webSocketService } from '../services/WebSocketService';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { parseBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
+import { BotsDataProvider } from '../features/bots/contexts/BotsDataContext';
 import * as THREE from 'three';
 
 const logger = createLogger('Quest3AR');
@@ -275,8 +276,8 @@ const Quest3AR: React.FC = () => {
             zIndex: 1
           }}
         >
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <ambientLight intensity={0.15} />
+          <directionalLight position={[10, 10, 5]} intensity={0.4} />
           <ARGraphRenderer />
         </Canvas>
 
@@ -444,4 +445,13 @@ const Quest3AR: React.FC = () => {
   );
 };
 
-export default Quest3AR;
+// Wrap Quest3AR with BotsDataProvider to ensure all child components have access to bots data
+const Quest3ARWithProviders: React.FC = () => {
+  return (
+    <BotsDataProvider>
+      <Quest3AR />
+    </BotsDataProvider>
+  );
+};
+
+export default Quest3ARWithProviders;

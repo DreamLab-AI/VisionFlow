@@ -9,6 +9,7 @@ import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
 import { settingsApi, BatchOperation } from '../api/settingsApi';
 import { AutoSaveManager } from './autoSaveManager';
+import { nostrAuth } from '../services/nostrAuthService';
 
 
 
@@ -16,6 +17,46 @@ const logger = createLogger('SettingsStore')
 
 // Create AutoSaveManager instance for debounced batch saving with retry logic
 const autoSaveManager = new AutoSaveManager();
+
+// Helper to wait for authentication to be ready
+async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
+  const startTime = Date.now();
+
+  // First, ensure nostrAuth is initialized
+  if (!nostrAuth['initialized']) {
+    logger.info('Waiting for nostrAuth to initialize...');
+    await nostrAuth.initialize();
+  }
+
+  // Then wait a bit for auth state to settle if user is authenticated
+  return new Promise((resolve) => {
+    const checkAuth = () => {
+      const elapsed = Date.now() - startTime;
+
+      // If we've waited long enough, or auth is not happening, proceed
+      if (elapsed >= maxWaitMs || !localStorage.getItem('nostr_session_token')) {
+        logger.info('Proceeding with settings initialization', {
+          authenticated: nostrAuth.isAuthenticated(),
+          elapsed
+        });
+        resolve();
+        return;
+      }
+
+      // If authenticated, we're ready
+      if (nostrAuth.isAuthenticated()) {
+        logger.info('Auth ready, proceeding with settings initialization');
+        resolve();
+        return;
+      }
+
+      // Check again in 100ms
+      setTimeout(checkAuth, 100);
+    };
+
+    checkAuth();
+  });
+}
 
 // Essential paths loaded at startup for fast initialization
 const ESSENTIAL_PATHS = [
@@ -221,6 +262,17 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info('Initializing settings store with essential paths only')
           }
 
+          // Wait for authentication to be ready to avoid race condition
+          await waitForAuthReady();
+
+          const isAuthenticated = nostrAuth.isAuthenticated();
+          const user = nostrAuth.getCurrentUser();
+
+          logger.info('Settings initialization with auth state', {
+            authenticated: isAuthenticated,
+            user: user?.pubkey?.slice(0, 8) + '...',
+          });
+
           // Load only essential settings for fast startup
           console.log('[SettingsStore] Calling settingsApi.getSettingsByPaths');
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
@@ -234,7 +286,10 @@ export const useSettingsStore = create<SettingsState>()(
             partialSettings: essentialSettings as DeepPartial<Settings>,
             settings: essentialSettings as DeepPartial<Settings>, // Keep settings in sync
             loadedPaths: new Set(ESSENTIAL_PATHS),
-            initialized: true
+            initialized: true,
+            authenticated: isAuthenticated,
+            user: user ? { isPowerUser: user.isPowerUser, pubkey: user.pubkey } : null,
+            isPowerUser: user?.isPowerUser || false
           }));
 
           // Initialize AutoSaveManager now that store is ready
