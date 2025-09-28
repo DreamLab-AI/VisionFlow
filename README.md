@@ -74,7 +74,7 @@ echo "VisionFlow is running at http://localhost:3001"
 graph TB
     subgraph "Transitional Architecture - Bridge Pattern"
         TransitionalSupervisor["TransitionalGraphSupervisor<br/>Bridge Pattern Wrapper"]
-        GraphActor["GraphServiceActor<br/>35,193 lines - Being Refactored"]
+        GraphActor["GraphServiceActor<br/>35,193 lines, Being Refactored"]
 
         subgraph "Extracted Actor Services"
             GraphStateActor["GraphStateActor<br/>State Management"]
@@ -119,21 +119,21 @@ VisionFlow deploys specialised AI agents that work continuously in the backgroun
 
 ```mermaid
 graph LR
-    subgraph "GPU Computation Layer - 40 Production CUDA Kernels"
-        subgraph "visionflow_unified.cu (28 kernels)"
-            Physics[Force-Directed Layout<br/>Spring-Mass Physics]
-            Clustering1[K-means++ Clustering<br/>Spectral Analysis]
-            Anomaly1[Local Outlier Factor<br/>Statistical Z-score]
+    subgraph GCL["GPU Computation Layer - 40 Production CUDA Kernels"]
+        subgraph VU["visionflow_unified.cu (28 kernels)"]
+            Physics["Force-Directed Layout<br/>Spring-Mass Physics"]
+            Clustering1["K-means++ Clustering<br/>Spectral Analysis"]
+            Anomaly1["Local Outlier Factor<br/>Statistical Z-score"]
         end
 
-        subgraph "gpu_clustering_kernels.cu (8 kernels)"
-            Louvain[Louvain Modularity<br/>Community Detection]
-            LabelProp[Label Propagation<br/>Graph Partitioning]
+        subgraph GCK["gpu_clustering_kernels.cu (8 kernels)"]
+            Louvain["Louvain Modularity<br/>Community Detection"]
+            LabelProp["Label Propagation<br/>Graph Partitioning"]
         end
 
-        subgraph "Specialised Kernels (4)"
-            Stability[Stability Gates<br/>2 kernels]
-            SSSP[Shortest Path<br/>2 kernels]
+        subgraph SK["Specialised Kernels (4)"]
+            Stability["Stability Gates<br/>2 kernels"]
+            SSSP["Shortest Path<br/>2 kernels"]
         end
     end
 
@@ -249,20 +249,20 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "React Three Fiber Visualisation Pipeline"
-        subgraph "Core Rendering (60 FPS @ 100k nodes)"
+    subgraph R3F["React Three Fiber Visualisation Pipeline"]
+        subgraph CR["Core Rendering (60 FPS @ 100k nodes)"]
             GraphCanvas["GraphCanvas.tsx<br/>R3F Main Canvas"]
             GraphManager["GraphManager<br/>Scene Orchestration"]
             HolographicDataSphere["HolographicDataSphere<br/>200x Scale Hologram System"]
         end
 
-        subgraph "Binary WebSocket (34-byte protocol)"
+        subgraph BW["Binary WebSocket (34-byte protocol)"]
             UnifiedApiClient["UnifiedApiClient<br/>31 References Across Codebase"]
             BinaryProtocol["Binary Protocol<br/>85% Bandwidth Reduction"]
             WebSocketService["WebSocket Service<br/><10ms Latency"]
         end
 
-        subgraph "Multi-User Synchronisation"
+        subgraph MU["Multi-User Synchronisation"]
             ClientCoordinator["ClientCoordinatorActor<br/>User Session Management"]
             PresenceSystem["Presence Tracking<br/>Real-time Locations"]
             CollaborationLayer["Collaboration Layer<br/>Shared State Sync"]
@@ -310,36 +310,36 @@ sequenceDiagram
     end
 ```
 
-</details>
-
 <details>
 <summary><strong>🎙️ Voice-to-Voice Architecture</strong></summary>
 
 ```mermaid
 graph LR
-    subgraph "Voice Input/Output Pipeline"
-        subgraph "Human Voice Input"
-            Mic[Microphone<br/>Voice Capture]
-            STT[Speech-to-Text<br/>OpenAI Whisper]
-            Intent[Intent Recognition<br/>Context Analysis]
+    subgraph VIO["Voice Input/Output Pipeline"]
+        subgraph HVI["Human Voice Input"]
+            Mic["Microphone<br/>Voice Capture"]
+            STT["Speech-to-Text<br/>OpenAI Whisper"]
+            Intent["Intent Recognition<br/>Context Analysis"]
         end
 
-        subgraph "AI Voice Response"
-            TTS[Text-to-Speech<br/>OpenAI/Kokoro]
-            Spatial[3D Spatial Audio<br/>Positioned Output]
-            Speaker[Voice Output<br/>Natural Response]
+        subgraph AVR["AI Voice Response"]
+            TTS["Text-to-Speech<br/>OpenAI/Kokoro"]
+            Spatial["3D Spatial Audio<br/>Positioned Output"]
+            Speaker["Voice Output<br/>Natural Response"]
         end
 
-        subgraph "Dual Voice System"
-            Legacy[useVoiceInteraction<br/>196 lines - Active]
-            Central[useVoiceInteractionCentralised<br/>856 lines - Available]
-            Hooks[9 Specialised Hooks<br/>Domain-Specific]
+        subgraph DVS["Dual Voice System"]
+            Legacy["useVoiceInteraction<br/>196 lines - Active"]
+            Central["useVoiceInteractionCentralised<br/>856 lines - Available"]
+            Hooks["9 Specialised Hooks<br/>Domain-Specific"]
         end
     end
 
     Mic --> STT --> Intent
-    Intent --> Legacy & Central
-    Legacy & Central --> TTS
+    Intent --> Legacy
+    Intent --> Central
+    Legacy --> TTS
+    Central --> TTS
     TTS --> Spatial --> Speaker
 
     style Mic fill:#4caf50
@@ -373,8 +373,6 @@ sequenceDiagram
     WS->>LegacyHook: Audio response received
     LegacyHook-->>User: Voice feedback
 ```
-
-</details>
 
 <details>
 <summary><strong>🏗️ System Integration Overview</strong></summary>
