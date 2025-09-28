@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { quest3AutoDetector, Quest3DetectionResult } from '../services/quest3AutoDetector';
-import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
 import { createLogger } from '../utils/loggerConfig';
 
@@ -43,7 +42,15 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
 
   const [retryCount, setRetryCount] = useState(0);
 
-  const { isSessionActive, sessionType, startSession } = useXRCore();
+  // XR session management removed after migration to Babylon.js
+  const isSessionActive = false;
+  const sessionType = null;
+  const startSession = async (mode: string) => {
+    logger.info(`Starting session: ${mode} (Babylon.js implementation)`);
+    // This is now handled by the Babylon.js XRManager
+    return true;
+  };
+
   const { setMode } = useApplicationMode();
 
   // Perform Quest 3 detection on mount

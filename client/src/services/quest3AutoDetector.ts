@@ -36,14 +36,17 @@ export class Quest3AutoDetector {
     const userAgent = navigator.userAgent || '';
     const platform = usePlatformStore.getState();
 
-    // Detect Quest 3 hardware
-    const isQuest3Hardware = userAgent.includes('Quest 3') || userAgent.includes('Quest3');
+    // Detect Quest 3 hardware - be more flexible with detection
+    const isQuest3Hardware = userAgent.includes('Quest 3') ||
+                            userAgent.includes('Quest3') ||
+                            userAgent.includes('Quest 3');
 
     // Detect Quest browser (more comprehensive)
     const isQuest3Browser = isQuest3Hardware ||
       userAgent.includes('OculusBrowser') ||
       userAgent.includes('Quest') ||
-      (userAgent.includes('Mobile') && userAgent.includes('VR'));
+      (userAgent.includes('Mobile') && userAgent.includes('VR')) ||
+      (userAgent.includes('X11') && userAgent.includes('Linux') && userAgent.includes('VR'));
 
     // Check WebXR AR support
     let supportsAR = false;

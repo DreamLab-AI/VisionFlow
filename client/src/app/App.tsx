@@ -1,12 +1,12 @@
 import { useEffect, useCallback, useState } from 'react'
 import AppInitializer from './AppInitializer'
 import { ApplicationModeProvider } from '../contexts/ApplicationModeContext';
-import XRCoreProvider from '../features/xr/providers/XRCoreProvider';
 import { useSettingsStore } from '../store/settingsStore';
 import { createLogger } from '../utils/loggerConfig';
-import Quest3AR from './Quest3AR';
 import MainLayout from './MainLayout';
 import { useQuest3Integration } from '../hooks/useQuest3Integration';
+import { ImmersiveApp } from '../immersive/components/ImmersiveApp';
+import { BotsDataProvider } from '../features/bots/contexts/BotsDataContext';
 import { CommandPalette } from '../features/command-palette/components/CommandPalette';
 import { initializeCommandPalette } from '../features/command-palette/defaultCommands';
 import { HelpProvider } from '../features/help/components/HelpProvider';
@@ -36,17 +36,32 @@ function App() {
   // Initialize auto-balance notifications polling
   useAutoBalanceNotifications();
 
-  // Check if we should use Quest 3 AR mode (unified approach)
-  const shouldUseQuest3AR = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isQuest3Browser = userAgent.includes('quest 3') || 
-                            userAgent.includes('meta quest 3') ||
-                            (userAgent.includes('oculus') && userAgent.includes('quest'));
-    
+  // Check if we should use immersive client (new Babylon.js implementation)
+  const shouldUseImmersiveClient = () => {
+    const userAgent = navigator.userAgent;
+    // Check with original case (Quest 3 browsers use "Quest 3" with capital letters)
+    const isQuest3Browser = userAgent.includes('Quest 3') ||
+                            userAgent.includes('Quest3') ||
+                            userAgent.includes('OculusBrowser') ||
+                            (userAgent.includes('VR') && userAgent.includes('Quest')) ||
+                            userAgent.toLowerCase().includes('meta quest');
+
     // Check for force parameter
     const forceQuest3 = window.location.search.includes('force=quest3') ||
-                        window.location.search.includes('directar=true');
-    
+                        window.location.search.includes('directar=true') ||
+                        window.location.search.includes('immersive=true');
+
+    // Log for debugging
+    if (initialized) {
+      console.log('Immersive mode check:', {
+        userAgent: userAgent.substring(0, 100),
+        isQuest3Browser,
+        forceQuest3,
+        shouldUseQuest3Layout,
+        willUseImmersive: isQuest3Browser || forceQuest3 || shouldUseQuest3Layout
+      });
+    }
+
     return (isQuest3Browser || forceQuest3 || shouldUseQuest3Layout) && initialized;
   };
 
@@ -97,7 +112,11 @@ function App() {
           </div>
         );
       case 'initialized':
-        return shouldUseQuest3AR() ? <Quest3AR /> : <MainLayout />;
+        return shouldUseImmersiveClient() ? (
+          <BotsDataProvider>
+            <ImmersiveApp />
+          </BotsDataProvider>
+        ) : <MainLayout />;
     }
   };
 
@@ -107,19 +126,17 @@ function App() {
         <OnboardingProvider>
           <ErrorBoundary>
             <ApplicationModeProvider>
-              <XRCoreProvider>
-                {renderContent()}
-                {initializationState === 'loading' && (
-                  <AppInitializer onInitialized={handleInitialized} onError={handleInitializationError} />
-                )}
-                {initializationState === 'initialized' && (
-                  <>
-                    <ConnectionWarning />
-                    <CommandPalette />
-                    <DebugControlPanel />
-                  </>
-                )}
-              </XRCoreProvider>
+              {renderContent()}
+              {initializationState === 'loading' && (
+                <AppInitializer onInitialized={handleInitialized} onError={handleInitializationError} />
+              )}
+              {initializationState === 'initialized' && (
+                <>
+                  <ConnectionWarning />
+                  <CommandPalette />
+                  <DebugControlPanel />
+                </>
+              )}
             </ApplicationModeProvider>
           </ErrorBoundary>
         </OnboardingProvider>

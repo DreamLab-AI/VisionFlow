@@ -100,16 +100,17 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     return { agents, edges };
   }, []);
 
-  // Efficient state update with change detection
-  const updateState = useCallback((data: AgentSwarmData) => {
+  // Store the update function in a ref to avoid re-renders
+  const updateStateRef = useRef<(data: AgentSwarmData) => void>();
+  updateStateRef.current = (data: AgentSwarmData) => {
     const { agents, edges } = transformAgentData(data);
     const now = Date.now();
-    
+
     // Update agent positions efficiently
     let hasAgentChanges = false;
     agents.forEach(agent => {
       const existing = agentsMapRef.current.get(agent.id);
-      if (!existing || 
+      if (!existing ||
           existing.position.x !== agent.position.x ||
           existing.position.y !== agent.position.y ||
           existing.position.z !== agent.position.z ||
@@ -126,7 +127,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     edges.forEach(edge => {
       newEdgeIds.add(edge.id);
       const existing = edgesMapRef.current.get(edge.id);
-      if (!existing || 
+      if (!existing ||
           existing.dataVolume !== edge.dataVolume ||
           existing.messageCount !== edge.messageCount) {
         hasEdgeChanges = true;
@@ -145,7 +146,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     // Only update state if there are actual changes
     if (hasAgentChanges || hasEdgeChanges || now - lastUpdateRef.current > 5000) {
       lastUpdateRef.current = now;
-      
+
       setState(prev => ({
         ...prev,
         agents: Array.from(agentsMapRef.current.values()),
@@ -170,14 +171,24 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
         });
       }
     }
-  }, [transformAgentData]);
+  };
 
-  // Handle polling errors
-  const handleError = useCallback((error: Error) => {
+  // Efficient state update with change detection
+  const updateState = useCallback((data: AgentSwarmData) => {
+    updateStateRef.current?.(data);
+  }, []);
+
+  // Handle polling errors - no dependencies to prevent re-renders
+  const handleErrorRef = useRef<(error: Error) => void>();
+  handleErrorRef.current = (error: Error) => {
     logger.error('Polling error:', error);
     setState(prev => ({ ...prev, error }));
     onError?.(error);
-  }, [onError]);
+  };
+
+  const handleError = useCallback((error: Error) => {
+    handleErrorRef.current?.(error);
+  }, []);
 
   // Configure polling service
   useEffect(() => {
@@ -204,11 +215,17 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     // Update polling status periodically
     const statusInterval = setInterval(() => {
       const status = agentPollingService.getStatus();
-      setState(prev => ({
-        ...prev,
-        isPolling: status.isPolling,
-        activityLevel: status.activityLevel
-      }));
+      setState(prev => {
+        // Only update if values have changed
+        if (prev.isPolling === status.isPolling && prev.activityLevel === status.activityLevel) {
+          return prev;
+        }
+        return {
+          ...prev,
+          isPolling: status.isPolling,
+          activityLevel: status.activityLevel
+        };
+      });
     }, 2000);
 
     return () => {
@@ -216,7 +233,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       agentPollingService.stop();
       clearInterval(statusInterval);
     };
-  }, [enabled, updateState, handleError]);
+  }, [enabled]); // Remove updateState and handleError from dependencies
 
   // Memoized return value to prevent unnecessary re-renders
   const result = useMemo(() => ({
