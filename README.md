@@ -139,7 +139,8 @@ graph TB
         Expert1 <--> |Guides & Validates| AI_teams
         Expert2 <--> |Queries & Directs| AI_teams
         AI_teams -- Updates --> KnowledgeGraph
-        KnowledgeGraph -- Streams To --> Expert1 & Expert2
+        KnowledgeGraph -- Streams To --> Expert1
+        KnowledgeGraph -- Streams To --> Expert2
     end
 ```
 
@@ -229,12 +230,21 @@ graph TB
     TransitionalSupervisor --> GraphActor
     AppState --> GPUManager
     AppState --> ClientCoordinator
-    Router --> SocketFlow & SpeechWS & MCPRelay
+    Router --> SocketFlow
+    Router --> SpeechWS
+    Router --> MCPRelay
     Router --> APIHandler
-    APIHandler --> GraphAPI & FilesAPI & BotsAPI
-    GPUManager --> GPUResourceActor & ForceComputeActor & ClusteringActor & AnomalyDetectionActor
+    APIHandler --> GraphAPI
+    APIHandler --> FilesAPI
+    APIHandler --> BotsAPI
+    GPUManager --> GPUResourceActor
+    GPUManager --> ForceComputeActor
+    GPUManager --> ClusteringActor
+    GPUManager --> AnomalyDetectionActor
     BotsAPI --> Docker
-    GraphActor --> GitHub & MCP & Speech
+    GraphActor --> GitHub
+    GraphActor --> MCP
+    GraphActor --> Speech
 ```
 
 **Complete Client Architecture**
@@ -355,7 +365,10 @@ graph LR
             Pathfinding["Shortest Path"]
         end
 
-        Supervisor --> Resource & Physics & Clustering & Anomaly
+        Supervisor --> Resource
+        Supervisor --> Physics
+        Supervisor --> Clustering
+        Supervisor --> Anomaly
         Physics --> LayoutKernels
         Clustering --> ClusteringKernels
         Anomaly --> AnomalyKernels
@@ -388,8 +401,13 @@ graph TB
             BotsVisualisation["Bots Visualisation\n3D Agent Rendering"]
         end
 
-        GraphCanvas --> GraphManager & SelectiveBloom & HolographicDataSphere & BotsVisualisation
-        GraphManager --> WebSocketBinary & REST_API & UnifiedImplementation
+        GraphCanvas --> GraphManager
+        GraphCanvas --> SelectiveBloom
+        GraphCanvas --> HolographicDataSphere
+        GraphCanvas --> BotsVisualisation
+        GraphManager --> WebSocketBinary
+        GraphManager --> REST_API
+        GraphManager --> UnifiedImplementation
 
         style GraphCanvas fill:#e3f2fd
         style GraphManager fill:#c8e6c9
@@ -444,7 +462,11 @@ graph TD
             Parent["sssp_parent: i32 (4 bytes)"]
         end
 
-        WireFormat --> NodeID & Position & Velocity & Distance & Parent
+        WireFormat --> NodeID
+        WireFormat --> Position
+        WireFormat --> Velocity
+        WireFormat --> Distance
+        WireFormat --> Parent
     end
     Comparison["JSON: ~680 bytes → Binary: 34 bytes\n95% reduction"]
     WireFormat --> Comparison
