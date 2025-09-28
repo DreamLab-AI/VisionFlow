@@ -1,14 +1,14 @@
 import React, { useRef, useCallback, useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { GraphManager } from '../managers/GraphManager';
-import { BotsVisualization } from '../../bots/components/BotsVisualization';
-import { CameraController } from './CameraController';
+import { GraphManager } from './GraphManager';
+import { BotsVisualization } from '../../bots/components/BotsVisualizationFixed';
+import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/loggerConfig';
 import * as THREE from 'three';
 
-const logger = createLogger('ARGraphViewport');
+const logger = createLogger('ARGraphViewport'); // Clean AR viewport
 
 /**
  * Clean AR-optimized graph viewport without any UI or hologram elements
@@ -22,6 +22,10 @@ export const ARGraphViewport: React.FC = () => {
   const [graphSize, setGraphSize] = useState(50);
   const [isNodeDragging, setIsNodeDragging] = useState(false);
   
+  useEffect(() => {
+    logger.info('ARGraphViewport mounted', { settings: renderingSettings });
+  }, []);
+  
   // Light refs for layer control
   const [ambientRef, setAmbientRef] = useState<any>(null);
   const [dirRef, setDirRef] = useState<any>(null);
@@ -30,7 +34,7 @@ export const ARGraphViewport: React.FC = () => {
   // Camera settings for AR
   const near = 0.1;
   const far = 1500;
-  const backgroundColor = renderingSettings?.backgroundColor || 'transparent';
+  const backgroundColor = renderingSettings?.backgroundColor || '#000033'; // Dark blue background for visibility
 
   useEffect(() => {
     // Enable lights only for default layer and layer 1
@@ -43,7 +47,14 @@ export const ARGraphViewport: React.FC = () => {
   }, [ambientRef, dirRef, pointRef]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      backgroundColor: '#000033'
+    }}>
       <Canvas
         camera={{ near, far }}
         gl={{
@@ -101,6 +112,12 @@ export const ARGraphViewport: React.FC = () => {
         />
 
         <Suspense fallback={null}>
+          {/* Test cube to verify rendering */}
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[2, 2, 2]} />
+            <meshStandardMaterial color="red" />
+          </mesh>
+          
           {/* Graph rendering only - no hologram */}
           <GraphManager onDragStateChange={(isDragging) => {
             setIsNodeDragging(isDragging);
