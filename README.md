@@ -14,29 +14,29 @@
     <tr>
       <td align="center">
         <strong>👥 Collaborative Team AI</strong><br/>
-        <sub>Research Environment</sub>
+        <sub>Action on 100k + complex nodes</sub>
       </td>
       <td align="center">
-        <strong>🤖 Continuous Background</strong><br/>
-        <sub>Agent Intelligence</sub>
+        <strong>🤖 Continuous Background Agents</strong><br/>
+        <sub>Agent Intelligence • Dip In Dip Out</sub>
       </td>
       <td align="center">
-        <strong>🔐 Self-Sovereign</strong><br/>
-        <sub>Multi-Modal Interface</sub>
+        <strong>🔐 Private & Self-Sovereign</strong><br/>
+        <sub>Multi-Modal Immersive Interface</sub>
       </td>
     </tr>
     <tr>
       <td align="center">
         <strong>📊 Massive Scale</strong><br/>
-        <sub>Dozens of Users • Hundreds of Agents • Thousands of Nodes</sub>
+        <sub>Dozens of Users • Hundreds of Agents</sub>
       </td>
       <td align="center">
         <strong>🛡️ Enterprise Security</strong><br/>
         <sub>Thin Client • Secure Server • W3C DID</sub>
       </td>
       <td align="center">
-        <strong>🎙️ Voice-First</strong><br/>
-        <sub>Natural Human-AI Conversation</sub>
+        <strong>🎙️ Voice-First & Human First</strong><br/>
+        <sub>Natural Human-AI Intreractions</sub>
       </td>
     </tr>
   </table>
@@ -45,18 +45,19 @@
 ---
 
 <div align="center">
-  <img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:90%; max-width:800px; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-
-  <br/><br/>
-
-  <img src="./jarvisOld.png" alt="Runtime Screenshot" style="width:90%; max-width:800px; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  <table>
+    <tr>
+      <td><img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+      <td><img src="./jarvisSept.gif" alt="Runtime Screenshot" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+    </tr>
+  </table>
 </div>
 
 <br/>
 
 <div align="center">
   <h3>🚀 Like ChatGPT Pulse for Your Private Knowledge</h3>
-  <p><strong>VisionFlow deploys self-sovereign AI agents that continuously research, analyse, and surface insights<br/>from your data corpus - all visualised in stunning real-time 3D.</strong></p>
+  <p><strong>VisionFlow deploys self-sovereign AI agents that continuously research, analyse, and surface insights<br/>from your data corpus - all visualised for collaborative teams, in stunning real-time 3D.</strong></p>
 
   <sub>Inspired by the innovative work of <a href="https://github.com/trebornipsa">Prof. Rob Aspin</a></sub>
 </div>
@@ -73,8 +74,8 @@
     </tr>
     <tr>
       <td align="center">
-        <strong>$24-75M</strong><br/>
-        <sub>Market Valuation</sub>
+        <strong>Completely Open Source</strong><br/>
+        <sub>Support Contracts on Request</sub>
       </td>
       <td align="center">
         <strong>60 FPS</strong><br/>
@@ -91,8 +92,8 @@
     </tr>
     <tr>
       <td align="center">
-        <strong>$7.5-15M</strong><br/>
-        <sub>Annual Revenue</sub>
+        <strong>Cost Savings though Flow</strong><br/>
+        <sub>Based on Decades of Immersive Research</sub>
       </td>
       <td align="center">
         <strong><10ms</strong><br/>
@@ -112,23 +113,108 @@
 
 ---
 
-![Group In Octave](./groupOctave.jpg)
-
-![Chloe In Octave](./ChloeOctave.jpg)
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="./groupOctave.jpg" alt="Group In Octave" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+      <td><img src="./ChloeOctave.jpg" alt="Chloe In Octave" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## 🧠 The ChatGPT Pulse of Private Knowledge
+### 📝 Powerful Markdown Based Data Management with Logseq
 
-Just as ChatGPT Pulse performs asynchronous research on your behalf, **VisionFlow orchestrates swarms of AI agents** that continuously work in the background to:
+VisionFlow integrates seamlessly with [Logseq](https://logseq.com/), a privacy-first, open-source platform for knowledge management. Logseq enables you to maintain your research data in plain Markdown files while providing advanced features like:
 
-### 🔄 Continuous Background Intelligence
-- **Autonomous Research**: Like Pulse's overnight research, VisionFlow agents continuously analyse your private corpus
-- **Proactive Discovery**: Surface new connections and insights without being prompted
-- **Living Knowledge Graph**: Your data evolves and updates in real-time as agents discover relationships
-- **Multi-Agent Collaboration**: Specialised agents (Researcher, Analyst, Coder, Reviewer) work together like Pulse's research engine
+- **Block-based organization** for structured knowledge capture
+- **Bidirectional linking** to connect related concepts
+- **Knowledge graphs** to visualize relationships in your data
+- **Local storage** ensuring complete data ownership and privacy
+- **Plugin ecosystem** for extending functionality
+- **Multi Platform & Mobile** any of your users or team, anywhere
 
-### 🎯 Key Similarities with ChatGPT Pulse
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="./logseq1.png" alt="Logseq View 1" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+      <td><img src="./logseq2.png" alt="Logseq View 2" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+      <td><img src="./logseq3.png" alt="Logseq View 3" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+      <td><img src="./logseq4.png" alt="Logseq View 4" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
+    </tr>
+  </table>
+</div>
+
+
+# Private Knowledge with Powerful Data Analysis
+
+VisionFlow combines cutting-edge graph analysis techniques with version-controlled data management to deliver unparalleled insights from your private knowledge corpus.
+
+### 🔍 Advanced Knowledge Graph Architecture
+
+- **Microsoft GraphRAG Integration**: Unlike traditional RAG systems that rely on simple vector similarity, VisionFlow leverages [Microsoft's GraphRAG](https://github.com/microsoft/graphrag) to build hierarchical knowledge structures. This creates subject-object-predicate relationships (e.g., "Project Alpha - requires - Machine Learning") that capture the deep semantic meaning within your data.
+
+- **Leiden Clustering Algorithm**: Automatically organises your knowledge into well-connected communities using the state-of-the-art Leiden algorithm. This ensures:
+  - **Hierarchical Organisation**: Knowledge is structured from high-level domains down to specific details
+  - **Implicit Connection Discovery**: Reveals hidden relationships between disparate pieces of information
+  - **Scalable Analysis**: Efficiently handles massive knowledge bases with hundreds of thousands of nodes
+
+- **Cutting Edge Shortest Path Analysis**: Cutting edge ([new research](https://arxiv.org/abs/2504.17033)) shortest path analysis enables multi-hop reasoning across your knowledge graph to:
+  - Connect concepts that aren't directly linked
+  - Visually trace the flow of information through your organisation
+  - Discover optimal knowledge paths for complex queries
+
+
+# 🔄 Continuous Background Intelligence
+
+### 🤖 Intelligent Agent Orchestration
+
+VisionFlow deploys specialised AI agents that work continuously in the background:
+
+- **Researcher Agents**: Deep-dive into specific topics using GraphRAG's local search capabilities
+- **Analyst Agents**: Identify patterns and correlations using clustering algorithms
+- **Coder Agents**: Parse and understand code relationships, documentation, and dependencies
+- **Reviewer Agents**: Validate findings and cross-reference information across the knowledge graph
+- **Planner Agents**: Coordinate research strategies using global search for holistic understanding
+
+- **Autonomous Research**: Unlike ChatGPT Pulse's daily summaries, VisionFlow agents continuously analyse your private corpus in real-time, using GraphRAG's dual query modes (local for detail, global for synthesis)
+
+- **Proactive Discovery**: Surface new connections through:
+  - Community detection that groups related concepts
+  - Path analysis that reveals indirect relationships
+  - Hierarchical summarisation that provides context at every level
+
+- **Living Knowledge Graph with Git Integration**:
+  - Your data evolves in real-time as agents discover relationships
+  - All changes are tracked through Git version control
+  - Updates are submitted as **merge requests** for human oversight
+  - Complete transparency with detailed commit history
+  - Rollback capabilities for any knowledge state
+
+### 🔐 Enterprise-Grade Data Governance
+- Your data is stored in (private) **Git-tracked structures** with comprehensive version history, enabling:
+
+- **Version Control**: Every knowledge update is tracked, attributed, and reversible
+- **Audit Trail**: Complete history of how your knowledge graph evolved
+- **Human-in-the-Loop**: AI discoveries require human approval via merge requests
+- **Data Sovereignty**: All processing happens on your infrastructure
+- **Time Travel**: Wind back and forth through the history of your data visually in the immersive graph
+
+### 🚀 Multi-User Human-AI Collaboration Universe
+
+VisionFlow creates an **immersive collaborative space** where human experts and AI agents work together:
+
+- **👥 Multi-User Collaboration**: Multiple human experts collaborate with AI agents in real-time
+- **🤝 Human-AI Symbiosis**: Agents learn from human expertise while augmenting human capabilities
+- **🔐 Private & Secure**: Your data never leaves your infrastructure
+- **👁️ Immersive 3D Workspace**: Watch humans and AI agents collaborate in shared virtual space
+- **🌐 Unlimited Corpus**: Connect GitHub repos, documents, databases, APIs
+- **⚡ Real-time Synchronisation**: All participants see updates instantly
+- **🎮 Interactive Control**: Humans direct agent swarms while agents suggest new research directions
+
+
+# VisionFlow Vs ChatGPT Pulse
 
 | ChatGPT Pulse | VisionFlow |
 |---------------|------------|
@@ -139,17 +225,7 @@ Just as ChatGPT Pulse performs asynchronous research on your behalf, **VisionFlo
 | Based on your memories & history | Based on your private data & documents |
 | Curated topics from interactions | Agent-discovered knowledge connections |
 
-### 🚀 Beyond Pulse: Multi-User Human-AI Collaboration Universe
 
-While ChatGPT Pulse works with your OpenAI conversations, VisionFlow creates an **immersive collaborative space** where human experts and AI agents work together:
-
-- **👥 Multi-User Collaboration**: Multiple human experts collaborate with AI agents in real-time
-- **🤝 Human-AI Symbiosis**: Agents learn from human expertise while augmenting human capabilities
-- **🔐 Private & Secure**: Your data never leaves your infrastructure
-- **👁️ Immersive 3D Workspace**: Watch humans and AI agents collaborate in shared virtual space
-- **🌐 Unlimited Corpus**: Connect GitHub repos, documents, databases, APIs
-- **⚡ Real-time Synchronisation**: All participants see updates instantly
-- **🎮 Interactive Control**: Humans direct agent swarms while agents suggest new research directions
 
 ---
 
@@ -177,7 +253,7 @@ open http://localhost:3001
 ## ✨ Core Capabilities: Human-AI Collaborative Intelligence
 
 ### 🤝 Immersive Multi-User Collaboration Platform
-Unlike ChatGPT Pulse's single-user experience, VisionFlow enables **team-based human-AI research with voice**:
+VisionFlow enables **team-based human-AI research with voice**:
 
 - **🎙️ Voice-to-Voice AI Interaction**: Natural conversation with AI agents using advanced TTS/STT
 - **👁️ Independent Specialist Views**: Each user maintains their own perspective while staying synchronised
@@ -199,7 +275,7 @@ Just like ChatGPT Pulse researches on your behalf, VisionFlow deploys intelligen
 - **Knowledge Evolution**: Continuously update understanding through human-AI interaction
 
 ### 📊 Visual Intelligence Dashboard
-Instead of Pulse's card-based summaries, VisionFlow provides:
+VisionFlow provides:
 
 - **3D Knowledge Universe**: Navigate your data like a galaxy of interconnected insights
 - **Real-time Agent Visualisation**: Watch AI agents collaborate and discover
@@ -208,7 +284,7 @@ Instead of Pulse's card-based summaries, VisionFlow provides:
 - **Time-Travel Analysis**: Replay how knowledge evolved over time
 
 ### 🧠 Multi-Agent Orchestration
-While Pulse uses a single research engine, VisionFlow orchestrates specialised swarms:
+VisionFlow orchestrates specialised swarms:
 
 - **Researcher Agents**: Deep-dive into specific topics
 - **Analyst Agents**: Identify patterns and correlations
@@ -268,7 +344,7 @@ While Pulse uses a single research engine, VisionFlow orchestrates specialised s
 
 ---
 
-## 🏗️ Cutting-Edge Architecture: Beyond ChatGPT Pulse
+## 🏗️ Cutting-Edge Architecture:
 
 ### 🎯 TransitionalGraphSupervisor Pattern (Unique to VisionFlow)
 
@@ -611,16 +687,17 @@ Each team member experiences the same data through their own specialist lens:
 - ✅ MCP integration for tool extensibility
 
 ### Coming Soon
+- 🔄 **AR Knowledge Space**: Spatial computing interface
 - 🔄 **Enhanced Voice Features**: Multi-language support, voice cloning
 - 🔄 **AR Collaboration**: Quest 3 shared workspace with hand tracking
-- 🔄 **Scheduled Insights**: Pulse-style daily summaries option
+- 🔄 **Scheduled Insights**: Daily summaries option
+- 🔄 **Email Integration**: Search and integrate across huge legacy email stores
 - 🔄 **Mobile Companion**: iOS/Android apps with voice control
 - 🔄 **Plugin Marketplace**: Community-built specialist views
 
 ### Future Vision
 - 🔮 **Predictive Intelligence**: Anticipate information needs
 - 🔮 **Cross-Corpus Learning**: Insights from multiple organisations
-- 🔮 **AR Knowledge Space**: Spatial computing interface
 - 🔮 **Autonomous Workflows**: Agents that take action on insights
 
 ---
@@ -658,7 +735,5 @@ Our comprehensive documentation covers everything from basic setup to advanced a
 Mozilla Public License 2.0 - See [LICENSE](LICENSE) for details.
 
 ---
-
-**VisionFlow: Where ChatGPT Pulse meets private knowledge sovereignty** 🚀
 
 *Continuous research. Real-time insights. Your data, your control.*
