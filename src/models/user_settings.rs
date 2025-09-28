@@ -5,7 +5,9 @@ use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use log::{info, error, debug, warn};
+use tracing::{debug as trace_debug, info as trace_info};
 use once_cell::sync::Lazy;
+use uuid::Uuid;
 
 use crate::config::AppFullSettings;
 
@@ -39,6 +41,8 @@ impl UserSettings {
     }
 
     pub fn load(pubkey: &str) -> Option<Self> {
+        let request_id = Uuid::new_v4();
+
         // First check the cache
         {
             let cache = match USER_SETTINGS_CACHE.read() {
@@ -52,10 +56,33 @@ impl UserSettings {
                 // Check if cache is still valid
                 if cached.timestamp.elapsed() < CACHE_EXPIRATION {
                     debug!("Using cached settings for user {}", pubkey);
+                    trace_debug!(
+                        request_id = %request_id,
+                        user_id = %pubkey,
+                        cache_hit = true,
+                        cache_age_secs = cached.timestamp.elapsed().as_secs(),
+                        "Loading user settings - cache hit"
+                    );
                     return Some(cached.settings.clone());
                 }
                 // Cache expired, will reload from disk
                 debug!("Cache expired for user {}, reloading from disk", pubkey);
+                trace_debug!(
+                    request_id = %request_id,
+                    user_id = %pubkey,
+                    cache_hit = false,
+                    cache_age_secs = cached.timestamp.elapsed().as_secs(),
+                    reason = "cache_expired",
+                    "Cache expired, reloading from disk"
+                );
+            } else {
+                trace_debug!(
+                    request_id = %request_id,
+                    user_id = %pubkey,
+                    cache_hit = false,
+                    reason = "not_in_cache",
+                    "User not in cache, loading from disk"
+                );
             }
         }
         
@@ -187,9 +214,13 @@ impl UserSettings {
         };
         if cache.remove(pubkey).is_some() {
             debug!("Cleared cache for user {}", pubkey);
+            trace_info!(
+                user_id = %pubkey,
+                "User settings cache invalidated"
+            );
         }
     }
-    
+
     // Clear all cached settings
     pub fn clear_all_cache() {
         let mut cache = match USER_SETTINGS_CACHE.write() {
@@ -202,5 +233,34 @@ impl UserSettings {
         let count = cache.len();
         cache.clear();
         debug!("Cleared all cached settings ({} entries)", count);
+        trace_info!(
+            entries_cleared = count,
+            "All user settings cache cleared"
+        );
+    }
+
+    // Invalidate cache on authentication state change
+    pub fn invalidate_user_cache(pubkey: &str) {
+        Self::clear_cache(pubkey);
+        trace_info!(
+            user_id = %pubkey,
+            "User cache invalidated due to auth state change"
+        );
+    }
+
+    // Get cache statistics
+    pub fn get_cache_stats() -> (usize, Vec<(String, Duration)>) {
+        let cache = match USER_SETTINGS_CACHE.read() {
+            Ok(cache) => cache,
+            Err(_) => return (0, Vec::new()),
+        };
+
+        let entries = cache.len();
+        let ages: Vec<(String, Duration)> = cache
+            .iter()
+            .map(|(key, value)| (key.clone(), value.timestamp.elapsed()))
+            .collect();
+
+        (entries, ages)
     }
 }

@@ -66,11 +66,11 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#ff0000'
+        baseColor: '#b30000'
         metalness: 0.20965025
         opacity: 0.95
         roughness: 0.25633773
-        nodeSize: 1.9159341
+        nodeSize: 1.9554945
         quality: high
         enableInstancing: false
         enableHologram: false
@@ -87,7 +87,7 @@ visualisation:
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.4713461
+        desktopFontSize: 1.4836264
         enableLabels: false
         textColor: '#805b5b'
         textOutlineColor: '#ff0000'
