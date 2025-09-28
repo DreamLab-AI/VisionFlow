@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createLogger } from '../../utils/loggerConfig';
+import { useSettingsStore } from '../../store/settingsStore';
 
 const logger = createLogger('BloomStandardMaterial');
 
@@ -124,58 +125,76 @@ export class BloomStandardMaterial extends THREE.MeshStandardMaterial {
 }
 
 /**
- * PRESET CONFIGURATIONS
- * 
- * Pre-configured materials for common use cases
+ * PRESET CONFIGURATIONS FACTORY
+ *
+ * Creates pre-configured materials for common use cases using central settings
  */
-export const BloomStandardPresets = {
-  /**
-   * High-intensity material for primary graph elements (nodes, important edges)
-   */
-  GraphPrimary: new BloomStandardMaterial({
-    color: '#00ffff',
-    emissiveIntensity: 3.0,
-    opacity: 0.9,
-    wireframe: true,
-    roughness: 0.2,
-    metalness: 0.9
-  }),
-  
-  /**
-   * Medium-intensity material for secondary graph elements
-   */
-  GraphSecondary: new BloomStandardMaterial({
-    color: '#0099ff',
-    emissiveIntensity: 2.0,
-    opacity: 0.7,
-    wireframe: true,
-    roughness: 0.4,
-    metalness: 0.7
-  }),
-  
-  /**
-   * Soft glow material for environmental elements (particles, atmosphere)
-   */
-  EnvironmentGlow: new BloomStandardMaterial({
-    color: '#00ffaa',
-    emissiveIntensity: 1.5,
-    opacity: 0.6,
-    wireframe: false,
-    roughness: 0.8,
-    metalness: 0.3
-  }),
-  
-  /**
-   * Subtle material for background hologram elements
-   */
-  HologramSubtle: new BloomStandardMaterial({
-    color: '#0066ff',
-    emissiveIntensity: 1.0,
-    opacity: 0.4,
-    wireframe: true,
-    roughness: 0.6,
-    metalness: 0.5
-  })
+export const createBloomStandardPresets = () => {
+  // Get current settings from store
+  const settings = useSettingsStore.getState().settings;
+  const bloomSettings = settings?.visualisation?.bloom;
+  const glowSettings = settings?.visualisation?.glow;
+
+  // Use central bloom intensity if available, otherwise use defaults
+  const baseIntensity = bloomSettings?.intensity ?? 1.0;
+  const glowStrength = glowSettings?.intensity ?? 3.2142856;
+
+  return {
+    /**
+     * High-intensity material for primary graph elements (nodes, important edges)
+     */
+    GraphPrimary: new BloomStandardMaterial({
+      color: '#00ffff',
+      emissiveIntensity: baseIntensity * 3.0,
+      opacity: 0.9,
+      wireframe: true,
+      roughness: 0.2,
+      metalness: 0.9
+    }),
+
+    /**
+     * Medium-intensity material for secondary graph elements
+     */
+    GraphSecondary: new BloomStandardMaterial({
+      color: '#0099ff',
+      emissiveIntensity: baseIntensity * 2.0,
+      opacity: 0.7,
+      wireframe: true,
+      roughness: 0.4,
+      metalness: 0.7
+    }),
+
+    /**
+     * Soft glow material for environmental elements (particles, atmosphere)
+     */
+    EnvironmentGlow: new BloomStandardMaterial({
+      color: '#00ffaa',
+      emissiveIntensity: baseIntensity * 1.5,
+      opacity: 0.6,
+      wireframe: false,
+      roughness: 0.8,
+      metalness: 0.3
+    }),
+
+    /**
+     * Subtle material for background hologram elements
+     */
+    HologramSubtle: new BloomStandardMaterial({
+      color: '#0066ff',
+      emissiveIntensity: baseIntensity * 1.0,
+      opacity: 0.4,
+      wireframe: true,
+      roughness: 0.6,
+      metalness: 0.5
+    })
+  };
 };
+
+/**
+ * PRESET CONFIGURATIONS
+ *
+ * Legacy static presets - use createBloomStandardPresets() for dynamic settings
+ */
+export const BloomStandardPresets = createBloomStandardPresets();
 
 export default BloomStandardMaterial;

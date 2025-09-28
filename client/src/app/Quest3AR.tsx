@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { AuthGatedVoiceButton } from '../components/AuthGatedVoiceButton';
 import { AuthGatedVoiceIndicator } from '../components/AuthGatedVoiceIndicator';
-import GraphViewport from '../features/graph/components/GraphViewport';
+import { ARGraphViewport } from '../features/graph/components/ARGraphViewport';
 import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { useXRCore } from '../features/xr/providers/XRCoreProvider';
 import { useApplicationMode } from '../contexts/ApplicationModeContext';
@@ -11,6 +11,7 @@ import { webSocketService } from '../services/WebSocketService';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { parseBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
 import { BotsDataProvider } from '../features/bots/contexts/BotsDataContext';
+import { Quest3FullscreenHandler } from '../features/xr/components/Quest3FullscreenHandler';
 import * as THREE from 'three';
 
 const logger = createLogger('Quest3AR');
@@ -257,107 +258,38 @@ const Quest3AR: React.FC = () => {
         margin: 0,
         padding: 0
       }}>
-        {/* Three.js AR Scene */}
+        {/* Three.js AR Scene - Clean AR Passthrough using settings.yaml */}
         <Canvas
           camera={{ position: [0, 0, 5], fov: 75 }}
           gl={{
             antialias: false, // Performance optimization for Quest 3
-            alpha: true,
-            preserveDrawingBuffer: true
+            alpha: true, // Required for AR passthrough
+            preserveDrawingBuffer: true,
+            xr: { // WebXR configuration
+              enabled: true,
+              mode: 'immersive-ar' // AR passthrough mode
+            }
           }}
-          frameloop="demand"
+          frameloop="always"
           dpr={0.8} // Lower DPR for Quest 3 performance
           style={{
             width: '100%',
             height: '100%',
             position: 'absolute',
             top: 0,
-            left: 0,
-            zIndex: 1
+            left: 0
           }}
         >
-          <ambientLight intensity={0.15} />
-          <directionalLight position={[10, 10, 5]} intensity={0.4} />
+          <ambientLight intensity={settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.01263736} />
           <ARGraphRenderer />
         </Canvas>
-
-        {/* AR-optimized voice controls */}
-        <div style={{
-          position: 'fixed',
-          bottom: '40px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-          pointerEvents: 'auto'
-        }}>
-          <AuthGatedVoiceButton
-            size="lg"
-            variant="primary"
-            className="bg-blue-500 bg-opacity-90 backdrop-blur-md border-2 border-white border-opacity-30 shadow-lg"
-          />
-          <AuthGatedVoiceIndicator
-            className="max-w-sm text-center bg-black bg-opacity-70 backdrop-blur-md rounded-xl p-3 border border-white border-opacity-20 text-white"
-            showTranscription={true}
-            showStatus={true}
-          />
-        </div>
-
-        {/* AR session status indicator */}
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          zIndex: 1000,
-          backgroundColor: 'rgba(0, 255, 0, 0.8)',
-          color: 'black',
-          padding: '8px 12px',
-          borderRadius: '20px',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          pointerEvents: 'none'
-        }}>
-          {isQuest3.current ? 'Quest 3' : 'XR'} AR Active • {updateRate}fps
-        </div>
-
-        {/* Development debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div style={{
-            position: 'fixed',
-            top: '60px',
-            left: '20px',
-            zIndex: 999,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            pointerEvents: 'none',
-            maxWidth: '300px'
-          }}>
-            <div>Session Type: {sessionType}</div>
-            <div>Unified AR: Active</div>
-            <div>Voice Controls: Available</div>
-            <div>Device: {isQuest3.current ? 'Meta Quest 3' : 'Generic XR'}</div>
-            <div>Update Rate: {updateRate} fps</div>
-            <div>WebSocket: {isConnected ? 'Connected' : 'Disconnected'}</div>
-            <div>Data Source: Centralized (graphDataManager)</div>
-            <div>Binary Protocol: Integrated</div>
-          </div>
-        )}
       </div>
     );
   }
 
-  // Fallback: Use GraphViewport for non-XR mode with AR readiness UI
+
+  // Fallback: Use clean AR graph viewport for non-XR mode
   return (
     <div style={{
       width: '100vw',
@@ -368,79 +300,8 @@ const Quest3AR: React.FC = () => {
       margin: 0,
       padding: 0
     }}>
-      {/* Full-screen graph viewport for fallback */}
-      <div style={{
-        width: '100vw',
-        height: '100vh',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        zIndex: 1
-      }}>
-        <GraphViewport />
-      </div>
-
-      {/* AR readiness overlay */}
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        zIndex: 1000,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '16px',
-        borderRadius: '12px',
-        textAlign: 'center',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-      }}>
-        <div style={{ fontSize: '16px', marginBottom: '8px' }}>🥽 AR Ready</div>
-        {isQuest3.current ? (
-          <button
-            onClick={() => startSession().catch(logger.error)}
-            style={{
-              backgroundColor: '#3B82F6',
-              color: 'white',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Enter AR
-          </button>
-        ) : (
-          <div style={{ fontSize: '12px', opacity: 0.7 }}>
-            Quest 3 required
-          </div>
-        )}
-      </div>
-
-      {/* Voice controls for fallback mode */}
-      <div style={{
-        position: 'fixed',
-        bottom: '40px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '16px',
-        pointerEvents: 'auto'
-      }}>
-        <AuthGatedVoiceButton
-          size="lg"
-          variant="primary"
-          className="bg-blue-500 bg-opacity-90 backdrop-blur-md border-2 border-white border-opacity-30 shadow-lg"
-        />
-        <AuthGatedVoiceIndicator
-          className="max-w-sm text-center bg-black bg-opacity-70 backdrop-blur-md rounded-xl p-3 border border-white border-opacity-20 text-white"
-          showTranscription={true}
-          showStatus={true}
-        />
-      </div>
+      {/* Clean AR graph viewport - no hologram, no UI */}
+      <ARGraphViewport />
     </div>
   );
 };

@@ -66,9 +66,9 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#b30000'
+        baseColor: '#ff0000'
         metalness: 0.20965025
-        opacity: 0.95
+        opacity: 0.21428572
         roughness: 0.25633773
         nodeSize: 1.9554945
         quality: high
