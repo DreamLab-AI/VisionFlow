@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "8.28.0",
+    "@babylonjs/gui": "8.29.0",
     "@babylonjs/loaders": "8.28.0",
     "@babylonjs/materials": "8.28.0",
     "@getalby/sdk": "^4.1.1",
@@ -38,7 +39,6 @@
     "@react-three/drei": "^9.80.0",
     "@react-three/fiber": "^8.15.0",
     "@react-three/postprocessing": "^2.15.0",
-    "@react-three/xr": "^6.0.0",
     "@types/lodash": "4.17.20",
     "@types/react-window": "^1.8.8",
     "@types/three": "^0.175.0",
