@@ -1,0 +1,43 @@
+[package]
+name = "utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+csv = { workspace = true }
+sha2 = { workspace = true }
+regex = { workspace = true }
+rayon = { workspace = true }
+log = { workspace = true }
+thiserror = { workspace = true }
+indexmap = { workspace = true }
+quick-xml = { version = "0.31", features = ["serialize"] }
+pulldown-cmark = "0.9"
+hex = "0.4"
+md5 = "0.7"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+bytes = "1.5"
+flate2 = "1.0"
+base64 = "0.22"
+unicode-normalization = "0.1"
+
+[dev-dependencies]
+tempfile = "3.8"
+criterion = "0.5"
+tokio-test = { workspace = true }
+proptest = { workspace = true }
+mockall = { workspace = true }
+wiremock = { workspace = true }
+rstest = { workspace = true }
+test-case = { workspace = true }
+fake = { workspace = true }
+insta = { workspace = true }
+serial_test = { workspace = true }
+
+[[bench]]
+name = "processing_benchmarks"
+harness = false

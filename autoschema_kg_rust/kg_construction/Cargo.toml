@@ -1,0 +1,113 @@
+[package]
+name = "kg_construction"
+version = "0.1.0"
+edition = "2021"
+
+# Standalone workspace to avoid conflicts
+[workspace]
+
+[[bin]]
+name = "kg_concept_demo"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+
+# Serialization and JSON handling
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Text processing and regex
+regex = "1.5"
+
+# Progress tracking
+indicatif = "0.17"
+
+# Date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# File system operations
+walkdir = "2.3"
+
+# String utilities
+uuid = { version = "1.0", features = ["v4"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Async iterator utilities
+async-stream = "0.3"
+futures-util = "0.3"
+
+# ML inference with candle - optional for advanced features
+# candle-core = "0.8"
+# candle-nn = "0.8"
+# candle-transformers = "0.8"
+# candle-examples = "0.8"
+# hf-hub = "0.3"
+# tokenizers = "0.20"
+
+# Alternative ML backend - commented out due to version constraints
+# ort = { version = "2.0.0-rc.10", features = ["load-dynamic"] }
+
+# HTTP client for model downloads
+reqwest = { version = "0.12", features = ["json", "stream"] }
+
+# Dataset handling
+# hf-datasets = "0.3"  # Not available on crates.io
+# arrow2 = "0.18"
+# parquet2 = "0.17"
+
+# Neo4j database driver
+neo4rs = "0.7"
+
+# Connection pooling
+deadpool = "0.10"
+
+# URL parsing
+url = "2.5"
+
+# Async traits
+async-trait = "0.1"
+
+# CSV processing
+csv = "1.3"
+
+# Cryptographic hashing for node IDs
+sha2 = "0.10"
+
+# Random number generation
+rand = "0.8"
+
+# System information (for performance metrics)
+sysinfo = "0.30"
+
+# Archive handling
+flate2 = "1.0"
+tar = "0.4"
+
+# Memory mapping for large files
+memmap2 = "0.9"
+
+# Command line argument parsing
+clap = "4.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+proptest = "1.0"
+rstest = "0.18"
+criterion = { version = "0.5", features = ["html_reports"] }
+mockall = "0.12"
+wiremock = "0.5"
+test-case = "3.3"
+fake = { version = "2.9", features = ["derive", "chrono", "uuid"] }
+tempfile = "3.8"
+insta = "1.34"
+serial_test = "3.0"
