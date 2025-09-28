@@ -1,414 +1,194 @@
-# Settings System Issue - Comprehensive Analysis & Solution Plan
+Of course. Here is a comprehensive identification of all AR/VR Quest 3 code in the client base and a detailed migration plan to replace it with a Babylon.js implementation for the immersive headset client, leaving the desktop code completely intact.
 
-## 🔴 Critical Issue Identified
-Authenticated users always receive the same (stale) settings at load time despite correctly writing to settings.yaml. This is a cache invalidation and authentication propagation issue.
+### Part 1: Identification of All Immersive AR/VR Code to be Replaced
 
-## 🔍 Current Status
-- Server is running at http://172.18.0.10:4000
-- All users (authenticated and unauthenticated) receive identical settings values
-- PUT requests succeed but don't affect subsequent GET requests for that user
-- Our code fixes are NOT deployed to the running server yet
+The following files and directories constitute the current immersive AR/VR implementation, which is based on `@react-three/xr` and includes the Vircadia stub. This entire set of code will be removed and replaced.
 
-## 🎯 Root Cause Analysis
+1.  **Primary Quest 3 AR Component:**
+    *   `client/src/app/Quest3AR.tsx`: The main entry point for the current immersive experience.
 
-### 1. **Primary Cause: Cache Invalidation Failure**
-- User settings cache has 10-minute TTL but is NOT cleared when authentication state changes
-- Location: `src/models/user_settings.rs` lines 260-308
-- Impact: Users get cached anonymous/default settings even after authenticating
+2.  **Vircadia Stub System (Parallel System):**
+    *   `client/src/components/VircadiaScene.tsx`: The Babylon.js-based Vircadia scene component.
+    *   `client/src/examples/VircadiaXRExample.tsx`: Example usage of the Vircadia component.
+    *   `client/src/hooks/useVircadiaXR.ts`: Hook for Vircadia-specific XR logic.
+    *   `client/src/services/vircadia/`: The entire directory containing Vircadia services (`GraphVisualizationManager.ts`, `MultiUserManager.ts`, `SpatialAudioManager.ts`, `VircadiaService.ts`).
+    *   `client/tests/xr/vircadia/`: The entire test directory for the Vircadia integration.
 
-### 2. **Authentication Header Propagation Issues**
-- Headers `X-Nostr-Pubkey` and `X-Nostr-Token` inconsistently included in requests
-- Location: `client/src/api/settingsApi.ts`
-- Impact: Server cannot identify user, falls back to default settings
+3.  **Core WebXR Implementation (`@react-three/xr` based):**
+    *   `client/src/features/xr/`: This entire directory is the core of the current implementation and will be completely replaced.
+        *   `components/`: `Quest3FullscreenHandler.tsx`, `VircadiaXRIntegration.tsx`, `XRVisualisationConnector.tsx`, `ui/XRControlPanel.tsx`.
+        *   `hooks/`: `useSafeXRHooks.tsx`.
+        *   `managers/`: `xrSessionManager.ts`.
+        *   `providers/`: `XRCoreProvider.tsx`.
+        *   `systems/`: `HandInteractionSystem.tsx`.
+        *   `types/`: `extendedReality.ts`, `webxr-extensions.d.ts`.
 
-### 3. **Race Condition During Initialization**
-- Client settings store initializes before authentication is fully established
-- Location: `client/src/store/settingsStore.ts` lines 381-415
-- Impact: Initial settings load happens with anonymous context
+4.  **Supporting Hooks and Services:**
+    *   `client/src/hooks/useQuest3Integration.ts`: The primary hook for detecting and managing the Quest 3 experience. Its logic will be adapted for the new Babylon.js client.
+    *   `client/src/services/quest3AutoDetector.ts`: The service responsible for detecting the Quest 3 environment. Its detection logic will be reused.
 
-### 4. **Insufficient Debugging Visibility**
-- Current logging heavily focused on GPU operations
-- Settings operations lack trace-level logging
-- No request correlation IDs for debugging auth/settings flow
+5.  **AR-Specific Viewports:**
+    *   `client/src/features/graph/components/ARGraphViewport.tsx`: A specialized viewport for the AR experience that will be replaced by the new Babylon.js scene.
 
-## 📊 Current Logging Configuration Analysis
+6.  **Configuration:**
+    *   `data/settings.yaml`: The `xr` section will be reviewed and adapted for the new Babylon.js implementation. The existing fields may not map directly.
 
-### Current RUST_LOG (GPU-focused):
-```bash
-RUST_LOG=warn,webxr::actors::gpu=info,webxr::actors::graph_actor=info
-```
+7.  **Dependencies (`package.json`):**
+    *   `@react-three/xr`: This package will be removed as it is the foundation of the old implementation.
 
-### Recommended RUST_LOG (Settings-focused):
-```bash
-RUST_LOG=warn,webxr::config=debug,webxr::models::user_settings=debug,webxr::actors::optimized_settings_actor=debug,webxr::actors::protected_settings_actor=debug,webxr::handlers::settings_handler=debug,webxr::handlers::settings_paths=debug,webxr::actors::gpu=warn,webxr::actors::graph_actor=warn
-```
-
-## 🏗️ Three-Phase Solution Implementation
-
-### **Phase 1: Enhanced Observability (Immediate - Week 1)**
-
-#### 1.1 Comprehensive Trace Logging
-**File: `src/utils/auth.rs`**
-```rust
-// Add at line 45, after extracting pubkey
-tracing::debug!(
-    request_id = %request_id,
-    has_pubkey = pubkey.is_some(),
-    has_token = token.is_some(),
-    "Authentication headers extracted"
-);
-```
-
-**File: `src/models/user_settings.rs`**
-```rust
-// Add at line 285 in load_user_settings
-tracing::debug!(
-    user_id = %user_id,
-    cache_hit = cached.is_some(),
-    request_id = %request_id,
-    "Loading user settings"
-);
-```
-
-**File: `src/handlers/settings_handler.rs`**
-```rust
-// Add at line 1985 in get_all_settings
-tracing::info!(
-    user_pubkey = ?pubkey,
-    authenticated = pubkey.is_some(),
-    request_id = %Uuid::new_v4(),
-    "Settings request received"
-);
-```
-
-#### 1.2 Request Correlation IDs
-- Add X-Request-ID header to all client requests
-- Propagate through all backend operations
-- Include in all log statements
-
-#### 1.3 Settings Health Monitoring Endpoint
-**New endpoint: `/api/settings/health`**
-```rust
-pub async fn settings_health(
-    State(state): State<AppState>,
-) -> Json<SettingsHealthResponse> {
-    // Return cache stats, error rates, performance metrics
-}
-```
-
-### **Phase 2: Core Reliability Fixes (Week 2)**
-
-#### 2.1 Fix Cache Invalidation
-**File: `src/models/user_settings.rs`**
-```rust
-// Add new method at line 350
-pub async fn invalidate_user_cache(&self, user_id: &str) {
-    self.cache.remove(user_id).await;
-    tracing::info!(user_id = %user_id, "User cache invalidated");
-}
-
-// Call on authentication state changes
-pub async fn on_auth_state_change(&self, user_id: Option<&str>) {
-    if let Some(id) = user_id {
-        self.invalidate_user_cache(id).await;
-    }
-}
-```
-
-#### 2.2 Fix Authentication Headers
-**File: `client/src/api/settingsApi.ts`**
-```typescript
-// Centralize header management (line 150)
-class AuthenticatedApiClient {
-  private getAuthHeaders(): Headers {
-    const headers = new Headers();
-    const auth = getAuthState();
-
-    if (auth.pubkey) {
-      headers.set('X-Nostr-Pubkey', auth.pubkey);
-      headers.set('X-Request-ID', generateRequestId());
-      console.debug('[Settings] Auth headers included', {
-        pubkey: auth.pubkey.slice(0, 8) + '...',
-        requestId: headers.get('X-Request-ID')
-      });
-    }
-
-    if (auth.token) {
-      headers.set('X-Nostr-Token', auth.token);
-    }
-
-    return headers;
-  }
-
-  async get(path: string) {
-    const headers = this.getAuthHeaders();
-    // Always use centralized headers
-  }
-}
-```
-
-#### 2.3 Fix Race Conditions
-**File: `client/src/store/settingsStore.ts`**
-```typescript
-// Add initialization guard (line 385)
-export const initializeSettingsStore = async () => {
-  // Wait for auth to be ready
-  await waitForAuthReady();
-
-  // Only then load settings
-  const settings = await settingsApi.getAllSettings();
-
-  useSettingsStore.setState({
-    settings,
-    isAuthenticated: true,
-    loadedAt: Date.now()
-  });
-}
-```
-
-### **Phase 3: Advanced Features (Week 3-4)**
-
-#### 3.1 Real-time Settings Sync
-- Implement WebSocket-based settings synchronization
-- Push updates to all user sessions immediately
-- Handle offline/online transitions gracefully
-
-#### 3.2 Intelligent Caching Strategy
-```rust
-// LRU cache with memory monitoring
-pub struct SmartCache {
-    lru: LruCache<String, UserSettings>,
-    max_memory_mb: usize,
-    hit_rate_tracker: HitRateTracker,
-}
-```
-
-#### 3.3 Performance Optimization
-- Batch settings updates
-- Implement partial loading for large settings
-- Add compression for settings transfer
-
-## 📋 Specific Code Changes Required
-
-### Backend (Rust) Changes:
-1. ✅ Add trace logging to auth extraction (`src/utils/auth.rs`)
-2. ✅ Add cache invalidation on auth change (`src/models/user_settings.rs`)
-3. ✅ Add request correlation IDs (`src/handlers/settings_handler.rs`)
-4. ✅ Implement settings health endpoint (`src/handlers/settings_handler.rs`)
-5. ✅ Add performance metrics collection (`src/actors/optimized_settings_actor.rs`)
-
-### Frontend (TypeScript) Changes:
-1. ✅ Centralize auth header management (`client/src/api/settingsApi.ts`)
-2. ✅ Fix initialization race condition (`client/src/store/settingsStore.ts`)
-3. ✅ Add request correlation IDs (`client/src/utils/requestId.ts`)
-4. ✅ Implement retry with backoff (`client/src/api/retryManager.ts`)
-5. ✅ Add client-side performance tracking (`client/src/utils/metrics.ts`)
-
-## ✅ Success Criteria
-
-### Immediate (Phase 1):
-- [ ] 100% of settings requests have trace logging
-- [ ] All auth state changes are logged
-- [ ] Request correlation IDs present in all logs
-- [ ] Settings health endpoint returns meaningful metrics
-
-### Reliability (Phase 2):
-- [ ] Settings load correctly for authenticated users 100% of the time
-- [ ] No stale cache issues after authentication
-- [ ] < 1% error rate on settings operations
-- [ ] Race conditions eliminated
-
-### Performance (Phase 3):
-- [ ] < 200ms P95 settings load time
-- [ ] > 85% cache hit rate for repeat requests
-- [ ] < 5ms overhead from new logging
-- [ ] Real-time sync latency < 100ms
-
-## 🧪 Testing Strategy
-
-### Unit Tests:
-- Test cache invalidation logic
-- Test header propagation
-- Test race condition guards
-
-### Integration Tests:
-- Test full auth → settings flow
-- Test cache behavior across auth changes
-- Test concurrent user scenarios
-
-### E2E Tests:
-- Test user login → settings load → modify → reload
-- Test multiple sessions for same user
-- Test auth expiry and renewal
-
-## 🚀 Deployment Plan
-
-### Stage 1: Observability (Low Risk)
-1. Deploy enhanced logging configuration
-2. Deploy request correlation IDs
-3. Monitor for 24 hours
-4. Analyze logs to confirm root cause
-
-### Stage 2: Core Fixes (Medium Risk)
-1. Deploy to staging environment
-2. Run full test suite
-3. Deploy to 10% of production users
-4. Monitor error rates and performance
-5. Full rollout if metrics are good
-
-### Stage 3: Advanced Features (Low Risk)
-1. Feature flag new capabilities
-2. Gradual rollout with monitoring
-3. A/B test performance improvements
-
-## 🔙 Rollback Plan
-1. Each phase can be rolled back independently
-2. Feature flags for all new functionality
-3. Backward compatibility maintained
-4. Database migrations are reversible
-
-## 📈 Monitoring & Alerts
-
-### Key Metrics to Track:
-- Settings load success rate
-- Cache hit/miss ratio
-- Authentication header presence
-- P50/P95/P99 load times
-- Error rates by endpoint
-
-### Alert Thresholds:
-- Error rate > 1% - Warning
-- Error rate > 5% - Critical
-- P95 latency > 500ms - Warning
-- Cache hit rate < 70% - Warning
-
-## 🔍 Additional Investigation Notes
-
-The Hive Mind analysis revealed that while the codebase has excellent infrastructure for user-specific settings, there's a critical integration gap where authentication state is not properly propagated through the settings loading flow. The system has all the necessary components but they're not properly connected.
-
-Key findings from the audit:
-- **13+ GPU logging statements** vs minimal settings logging
-- **UserSettings model exists but unused** in critical endpoints
-- **Global cache serves all users** instead of user-specific caching
-- **Authentication headers inconsistently propagated** through requests
+The migration will replace this entire system with a new, self-contained Babylon.js implementation that lives in a new `src/immersive` directory.
 
 ---
 
-# Settings Management System - Complete Architecture
+### Part 2: Detailed Migration Plan to Babylon.js
 
-## 1. Configuration Files & Data Storage
+This plan outlines a complete replacement of the old AR/VR code with a new Babylon.js-based system for the immersive headset client only. It ensures no backward compatibility and leaves the desktop client code untouched.
 
-### Primary Configuration
-- **`data/settings.yaml`** - Main application settings file (YAML format) containing all user-facing settings
-- **`data/dev_config.toml`** - Developer-focused internal settings for performance tuning and debugging
-- **`data/workspaces.json`** - Persistent storage for user-created workspace configurations
-- **`client/.env.example`** - Template for environment variables (API URLs, debug modes, log levels)
+#### **Guiding Principles:**
 
-## 2. Frontend (Client-Side)
+*   **Isolation:** The new immersive client code will reside in `src/immersive` to keep it separate from the desktop client code.
+*   **Data Re-use:** The new client will hook into the existing data layers (`graphDataManager`, `botsDataContext`, `settingsStore`) to ensure data consistency.
+*   **No Legacy Code:** All files identified in Part 1 will be deleted in the final phase.
+*   **Desktop Integrity:** No changes will be made to the desktop rendering pipeline in `src/features/graph`, `src/features/visualisation`, or `src/app/MainLayout.tsx`.
 
-### Core State Management
-- **`client/src/store/settingsStore.ts`** - Central Zustand store, single source of truth for client settings
-- **`client/src/store/autoSaveManager.ts`** - Debounces and batches settings changes for backend sync
-- **`client/src/store/settingsRetryManager.ts`** - Retry logic with exponential backoff for failed updates
+---
 
-### API Communication Layer
-- **`client/src/api/settingsApi.ts`**
-  - `settingsApi` object - CRUD operations using path-based system
-  - `SettingsUpdateManager` class - Debounces/batches updates, prioritizes critical changes
+### **Phase 1: Project Setup & Scaffolding**
 
-### React Hooks
-- **`client/src/hooks/useSelectiveSettingsStore.ts`**
-  - `useSelectiveSetting` - Subscribe to specific setting paths
-  - `useSettingSetter` - Update settings with intelligent batching
-- **`client/src/hooks/useGraphSettings.ts`** - Specialized hook for graph-specific settings
-- **`client/src/features/settings/hooks/useSettingsHistory.ts`** - Undo/redo functionality
+**Objective:** Prepare the project for Babylon.js development and set up the conditional rendering logic.
 
-### UI Components
-- **`client/src/features/settings/components/panels/SettingsPanelRedesign.tsx`** - Main settings panel container
-- **`client/src/features/settings/components/SettingControlComponent.tsx`** - Generic control renderer
-- **`client/src/features/settings/components/LocalStorageSettingControl.tsx`** - localStorage-based controls
-- **`client/src/features/settings/components/UndoRedoControls.tsx`** - Undo/redo UI buttons
-- **`client/src/features/settings/components/FloatingSettingsPanel.tsx`** - Floating settings modal
+1.  **Install Dependencies:** Add Babylon.js and its related packages to the project.
+    ```bash
+    npm install @babylonjs/core @babylonjs/gui @babylonjs/loaders @babylonjs/materials
+    npm install @babylonjs/react --save # For easy integration with React
+    ```
 
-### Type Definitions & Schemas
-- **`client/src/features/settings/config/settings.ts`** - TypeScript interfaces for settings structure
-- **`client/src/features/settings/config/settingsUIDefinition.ts`** - UI schema mapping settings to widgets
-- **`client/src/features/settings/config/debugSettingsUIDefinition.ts`** - Debug settings UI schema
-- **`client/src/features/settings/config/viewportSettings.ts`** - Viewport-impacting settings list
+2.  **Create New Directory Structure:** Create a new home for the immersive client.
+    ```
+    client/src/immersive/
+    ├── components/         # React components for the immersive experience
+    │   └── ImmersiveApp.tsx  # Main entry point, hosts the Babylon canvas
+    ├── babylon/            # Core Babylon.js logic (non-React)
+    │   ├── BabylonScene.ts   # Manages engine, scene, camera, lights
+    │   ├── GraphRenderer.ts  # Renders nodes, edges, labels
+    │   ├── XRManager.ts      # Manages WebXR session, controllers, hands
+    │   └── XRUI.ts           # Manages 3D GUI using Babylon GUI
+    └── hooks/              # Hooks to bridge React state and Babylon
+        └── useImmersiveData.ts
+    ```
 
-### Client-Side Utilities
-- **`client/src/utils/clientDebugState.ts`** - Manages client-only debug settings via localStorage
-- **`client/src/utils/debugConfig.ts`** - Initializes debug system from environment variables
-- **`client/src/client/settings_cache_client.ts`** - Browser localStorage caching for settings
+3.  **Create Placeholder Files:** Create the files listed above with basic class/component structures.
 
-### Feature-Specific Configuration
-- **`client/src/features/bots/config/pollingConfig.ts`** - Agent polling system presets
-- **`client/src/features/bots/services/ConfigurationMapper.ts`** - Bot visualization configuration
-- **`client/src/config/iframeCommunication.ts`** - iframe security settings
-- **`client/src/features/command-palette/CommandRegistry.ts`** - Recently used commands storage
-- **`client/src/features/onboarding/hooks/useOnboarding.ts`** - Onboarding completion tracking
-- **`client/src/services/nostrAuthService.ts`** - Nostr authentication state persistence
+4.  **Update Application Entry Point:** Modify `client/src/app/App.tsx` to switch between the desktop and the new immersive client.
+    *   **Modify `shouldUseQuest3AR` function:** Rename it to `shouldUseImmersiveClient`. The detection logic from `useQuest3Integration` can be reused.
+    *   **Update the render logic:**
+        ```tsx
+        // client/src/app/App.tsx
 
-## 3. Backend (Rust Server-Side)
+        import MainLayout from './MainLayout';
+        import { ImmersiveApp } from '../immersive/components/ImmersiveApp'; // New import
+        // ... other imports
 
-### Core Actors
-- **`src/actors/optimized_settings_actor.rs`** - Central settings management with caching
-- **`src/actors/protected_settings_actor.rs`** - Secure handling of sensitive settings
-- **`src/actors/workspace_actor.rs`** - Workspace CRUD operations
+        // ... inside App component
+        const renderContent = () => {
+          // ... loading and error states
+          case 'initialized':
+            // The core switch between desktop and immersive
+            return shouldUseImmersiveClient() ? <ImmersiveApp /> : <MainLayout />;
+        };
+        ```
 
-### Configuration Modules
-- **`src/config/mod.rs`** - Defines `AppFullSettings` struct mirroring settings.yaml
-- **`src/config/dev_config.rs`** - Maps dev_config.toml to Rust structs
-- **`src/config/path_access.rs`** - Implements path-based (dot-notation) settings access
-- **`src/config/feature_access.rs`** - Feature flags and role-based access control
+---
 
-### Data Models
-- **`src/models/protected_settings.rs`** - Sensitive data structure
-- **`src/models/user_settings.rs`** - Per-user settings model
-- **`src/models/workspace.rs`** - Workspace state model
-- **`src/models/simulation_params.rs`** - Physics simulation parameters
-- **`src/models/constraints.rs`** - Layout constraint settings
+### **Phase 2: Core Babylon.js Scene & Graph Rendering**
 
-### API Handlers
-- **`src/handlers/settings_handler.rs`** - Main `/api/settings` REST endpoint
-- **`src/handlers/settings_paths.rs`** - Path-based settings access endpoints
-- **`src/handlers/settings_validation_fix.rs`** - Settings validation logic
-- **`src/handlers/workspace_handler.rs`** - Workspace REST API
-- **`src/handlers/websocket_settings_handler.rs`** - Real-time WebSocket sync
-- **`src/protocols/binary_settings_protocol.rs`** - Binary protocol for WebSocket
+**Objective:** Render the knowledge graph and agent visualization using Babylon.js, sourcing data from existing managers.
 
-### Settings Consumers
-- **`src/actors/gpu/force_compute_actor.rs`** - Uses SimulationParams for physics
-- **`src/actors/gpu/stress_majorization_actor.rs`** - Consumes layout optimization params
-- **`src/actors/gpu/constraint_actor.rs`** - Applies constraint settings
-- **`src/app_state.rs`** - Central application state holding actor addresses
+1.  **Implement `ImmersiveApp.tsx`:**
+    *   Create a React component that renders a full-screen `<canvas>`.
+    *   Use a `ref` for the canvas element.
+    *   In a `useEffect` hook, instantiate `BabylonScene`, passing the canvas ref. This will be the bridge between React and Babylon.js.
 
-### Component-Specific Configuration
-- **`src/services/github/config.rs`** - GitHub API configuration from env vars
-- **`src/actors/claude_flow_actor.rs`** - Claude connection settings from env vars
-- **`src/actors/tcp_connection_actor.rs`** - TCP connection parameters
-- **`src/actors/ontology_actor.rs`** - Ontology validation configuration
-- **`src/actors/semantic_processor_actor.rs`** - Semantic analysis parameters
-- **`src/main.rs`** - Application bootstrap and environment variable loading
+2.  **Implement `BabylonScene.ts`:**
+    *   Create a class that accepts an `HTMLCanvasElement`.
+    *   The constructor will initialize `BABYLON.Engine`, `BABYLON.Scene`, a universal camera, and basic lighting (e.g., `HemisphericLight`).
+    *   Create a `run()` method to start the render loop (`engine.runRenderLoop`).
+    *   Instantiate `GraphRenderer` and `XRManager` here.
 
-## 4. Build & Tooling
-- **`src/bin/generate_types.rs`** - Generates TypeScript interfaces from Rust structs
+3.  **Implement `GraphRenderer.ts`:**
+    *   This class will be responsible for all visual representations of the graph.
+    *   **Data Subscription:** In its constructor, subscribe to `graphDataManager.onGraphDataChange` and `botsDataContext`.
+    *   **Node Rendering:**
+        *   Use `BABYLON.InstancedMesh` for performance. Create one for each node type/shape.
+        *   On data updates, iterate through nodes and set the matrix (`setMatrixAt`) and color (`setColorAt`) for each instance.
+        *   Read styling information (colors, sizes) from the `settingsStore`.
+    *   **Edge Rendering:**
+        *   Use `BABYLON.LineSystem` for high-performance line rendering.
+        *   On data updates, update the line system with new start and end points based on node positions from the physics worker.
+    *   **Label Rendering:**
+        *   Use the `@babylonjs/gui` library's `AdvancedDynamicTexture` with `TextBlock` elements attached to node meshes. This is the most performant way to handle many labels in Babylon.js.
 
-## 5. Testing
-- **`client/src/tests/settings-sync-integration.test.ts`** - Client-server sync validation
-- **`client/src/tests/nostr-settings-integration.test.ts`** - Nostr auth integration tests
-- **`client/src/tests/store/autoSaveManagerAdvanced.test.ts`** - AutoSaveManager testing
+---
 
-## Architecture Summary
+### **Phase 3: WebXR Integration & Interaction**
 
-The system uses a **hybrid approach**:
+**Objective:** Enable immersive AR mode and replicate user interactions like node selection and dragging.
 
-1. **Centralized Settings**: Main application settings managed through settings.yaml/dev_config.toml, synchronized between client and server via REST/WebSocket APIs
+1.  **Implement `XRManager.ts`:**
+    *   This class will manage the WebXR session.
+    *   In its constructor, initialize `scene.createDefaultXRExperienceAsync`. This helper simplifies WebXR setup.
+    *   Configure the `WebXRExperienceHelper` for `'immersive-ar'` mode, targeting Quest 3 passthrough.
+    *   Expose methods like `enterXR()` and `exitXR()`.
+    *   **Hand Tracking:** Enable the `WebXRHandTracking` feature. Add observables to get joint data.
+    *   **Controller Input:** Use the `WebXRInputSource` observable to get controller data (position, rotation, button presses).
 
-2. **Decentralized Configuration**: Individual services and components manage their own settings through environment variables or localStorage for deployment flexibility
+2.  **Implement Interaction Logic:**
+    *   **Selection:** In the `XRManager`, use `scene.pickWithRay()` with a ray originating from the controller or a hand joint (e.g., the index finger tip) to detect intersections with graph node meshes.
+    *   **Dragging:**
+        *   On a "select" event (trigger press or pinch gesture), pin the selected node in the physics simulation by calling `graphWorkerProxy.pinNode(nodeId)`.
+        *   While the select action is held, continuously update the node's position by calling `graphWorkerProxy.updateUserDrivenNodePosition(nodeId, newPosition)`. The `newPosition` can be determined by intersecting the controller/hand ray with a plane parallel to the camera.
+        *   On "selectend", unpin the node by calling `graphWorkerProxy.unpinNode(nodeId)`.
 
-3. **Path-Based Access**: Efficient partial updates using dot-notation paths to avoid transferring entire settings objects
+---
 
-4. **Multi-Layer Caching**: Settings cached at multiple levels (localStorage, in-memory) for performance
+### **Phase 4: Immersive UI (GUI)**
 
-5. **Type Safety**: Automated TypeScript generation from Rust structs ensures frontend-backend consistency
+**Objective:** Recreate the control panel and other UI elements in a 3D environment.
+
+1.  **Implement `XRUI.ts`:**
+    *   This class will use the `@babylonjs/gui` library.
+    *   Create an `AdvancedDynamicTexture` attached to a plane mesh. This plane will serve as the UI panel.
+    *   Attach the UI plane to the camera or a controller so it's always accessible to the user.
+    *   **Rebuild Controls:** Programmatically add GUI controls (`Slider`, `Checkbox`, `Button`, etc.) to the texture, mirroring the sections and settings defined in `settingsUIDefinition.ts`.
+    *   **Data Binding:**
+        *   Read initial values for controls from the `settingsStore`.
+        *   On user interaction with a GUI control, call `settingsStore.setByPath()` to update the setting. This ensures state remains synchronized.
+
+---
+
+### **Phase 5: Refactoring & Cleanup**
+
+**Objective:** Completely remove all old AR/VR code to finalize the migration.
+
+1.  **Delete Files and Directories:** Remove the following from the project:
+    *   `client/src/app/Quest3AR.tsx`
+    *   `client/src/components/VircadiaScene.tsx`
+    *   `client/src/examples/VircadiaXRExample.tsx`
+    *   `client/src/hooks/useVircadiaXR.ts`
+    *   `client/src/features/graph/components/ARGraphViewport.tsx`
+    *   The **entire** `client/src/features/xr/` directory.
+    *   The **entire** `client/src/services/vircadia/` directory.
+    *   The **entire** `client/tests/xr/` directory.
+
+2.  **Update `package.json`:**
+    *   Remove the `@react-three/xr` dependency.
+        ```bash
+        npm uninstall @react-three/xr
+        ```
+    *   Verify that no other R3F dependencies can be removed. The desktop client still uses `@react-three/fiber` and `@react-three/drei`, so those must remain.
+
+3.  **Code Cleanup:**
+    *   Search the codebase for any remaining imports from the deleted files and remove them.
+    *   Review `App.tsx` and `ApplicationModeContext.tsx` to ensure all old XR-related logic is gone and they correctly reference the new immersive client.
+
+---

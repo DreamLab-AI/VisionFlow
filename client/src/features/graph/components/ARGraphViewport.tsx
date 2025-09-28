@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { GraphManager } from './GraphManager';
+import GraphManager from './GraphManager';
 import { BotsVisualization } from '../../bots/components/BotsVisualizationFixed';
 import CameraController from '../../visualisation/components/CameraController';
 import { useSettingsStore } from '../../../store/settingsStore';
