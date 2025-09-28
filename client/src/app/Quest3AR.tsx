@@ -118,7 +118,7 @@ const ARGraphRenderer: React.FC = () => {
  * - Maintains voice interaction capabilities
  */
 const Quest3AR: React.FC = () => {
-  const { isSessionActive, sessionType, startSession } = useXRCore();
+  const { isSessionActive, sessionType, startSession, isXRSupported } = useXRCore();
   const { setMode } = useApplicationMode();
   const settings = useSettingsStore((state) => state.settings);
   const [isConnected, setIsConnected] = useState(false);
@@ -155,12 +155,19 @@ const Quest3AR: React.FC = () => {
           return;
         }
 
-        logger.info('Quest 3 detected - initializing unified AR mode');
+        logger.info('Quest 3 detected - initializing unified AR mode', {
+          isXRSupported,
+          hasStartSession: !!startSession
+        });
         
-        // Use the centralized XR session management
-        if (!isSessionActive) {
-          await startSession();
+        // Check if XR is supported before trying to start session
+        if (!isXRSupported) {
+          logger.warn('WebXR not supported on this device/browser');
+          // Don't set error, just continue without XR
         }
+        
+        // Don't auto-start XR session - let user trigger it manually
+        logger.info('XR support available, user can start session manually');
         
         // Ensure WebSocket connection through centralized service
         if (!webSocketService.isReady()) {
@@ -223,31 +230,32 @@ const Quest3AR: React.FC = () => {
     };
   }, [isSessionActive, renderLoop]);
 
-  if (!isReady) {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)',
-        color: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        fontFamily: 'system-ui'
-      }}>
-        <div className="mb-4">🥽</div>
-        <div>Initializing Quest 3 AR...</div>
-        <div style={{ fontSize: '14px', opacity: 0.7, marginTop: '16px' }}>
-          Preparing immersive AR experience
-        </div>
-      </div>
-    );
-  }
+  // Skip loading screen - go straight to AR viewport
+  // if (!isReady) {
+  //   return (
+  //     <div style={{
+  //       position: 'fixed',
+  //       top: 0,
+  //       left: 0,
+  //       right: 0,
+  //       bottom: 0,
+  //       background: 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)',
+  //       color: 'white',
+  //       display: 'flex',
+  //       flexDirection: 'column',
+  //       alignItems: 'center',
+  //       justifyContent: 'center',
+  //       fontSize: '24px',
+  //       fontFamily: 'system-ui'
+  //     }}>
+  //       <div className="mb-4">🥽</div>
+  //       <div>Initializing Quest 3 AR...</div>
+  //       <div style={{ fontSize: '14px', opacity: 0.7, marginTop: '16px' }}>
+  //         Preparing immersive AR experience
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // If in XR session, use minimal AR view with Three.js Canvas
   if (isSessionActive) {
@@ -335,10 +343,40 @@ const Quest3AR: React.FC = () => {
         fontSize: '16px'
       }}>
         <div>Quest3AR Component Loaded</div>
+        <div>Protocol: {window.location.protocol}</div>
+        <div>WebXR in navigator: {'xr' in navigator ? 'YES' : 'NO'}</div>
+        <div>WebXR Supported: {isXRSupported ? 'YES' : 'NO'}</div>
         <div>Session Active: {isSessionActive ? 'YES' : 'NO'}</div>
+        <div>Start Session Available: {startSession ? 'YES' : 'NO'}</div>
         <div>Is Ready: {isReady ? 'YES' : 'NO'}</div>
         <div>Is Quest 3: {isQuest3.current ? 'YES' : 'NO'}</div>
         <div>Settings: {settings ? 'Loaded' : 'Not loaded'}</div>
+        {/* Manual XR button */}
+        {'xr' in navigator && (
+          <button
+            onClick={async () => {
+              try {
+                const session = await navigator.xr.requestSession('immersive-ar');
+                console.log('XR Session started:', session);
+                setError('XR Session started successfully!');
+              } catch (e) {
+                console.error('XR Session failed:', e);
+                setError(`XR Failed: ${e.message}`);
+              }
+            }}
+            style={{
+              marginTop: '10px',
+              padding: '5px 10px',
+              backgroundColor: 'blue',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Test WebXR
+          </button>
+        )}
       </div>
       
       {/* Render the AR viewport */}
