@@ -123,6 +123,7 @@ const Quest3AR: React.FC = () => {
   const settings = useSettingsStore((state) => state.settings);
   const [isConnected, setIsConnected] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Performance optimization refs
   const frameRef = useRef<number>();
@@ -147,13 +148,13 @@ const Quest3AR: React.FC = () => {
   // Auto-start AR session if conditions are met
   useEffect(() => {
     const initializeAR = async () => {
-      if (!isQuest3.current && !window.location.search.includes('force=quest3')) {
-        logger.warn('Not Quest 3 device, add ?force=quest3 to test');
-        setIsReady(true); // Still allow fallback mode
-        return;
-      }
-
       try {
+        if (!isQuest3.current && !window.location.search.includes('force=quest3')) {
+          logger.warn('Not Quest 3 device, add ?force=quest3 to test');
+          setIsReady(true); // Still allow fallback mode
+          return;
+        }
+
         logger.info('Quest 3 detected - initializing unified AR mode');
         
         // Use the centralized XR session management
@@ -169,8 +170,10 @@ const Quest3AR: React.FC = () => {
         setIsReady(true);
         logger.info('Quest 3 AR initialized successfully');
         
-      } catch (error) {
-        logger.error('Failed to initialize Quest 3 AR:', error);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error('Failed to initialize Quest 3 AR:', err);
+        setError(`Initialization failed: ${errorMessage}`);
         setIsReady(true); // Fallback to standard mode
       }
     };
@@ -289,18 +292,56 @@ const Quest3AR: React.FC = () => {
   }
 
 
-  // Fallback: Use clean AR graph viewport for non-XR mode
+  // Add error handling
+  if (error) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'red',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        textAlign: 'center',
+        padding: '20px'
+      }}>
+        <div>
+          <h1>Error in Quest3AR</h1>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Debug info to check if component is mounting
   return (
     <div style={{
       width: '100vw',
       height: '100vh',
-      position: 'relative',
-      overflow: 'hidden',
-      backgroundColor: 'transparent',
-      margin: 0,
-      padding: 0
+      backgroundColor: 'black',
+      color: 'white',
+      position: 'relative'
     }}>
-      {/* Clean AR graph viewport - no hologram, no UI */}
+      {/* Debug info */}
+      <div style={{
+        position: 'absolute',
+        top: '10px',
+        left: '10px',
+        backgroundColor: 'rgba(255, 0, 0, 0.8)',
+        padding: '10px',
+        zIndex: 1000,
+        fontSize: '16px'
+      }}>
+        <div>Quest3AR Component Loaded</div>
+        <div>Session Active: {isSessionActive ? 'YES' : 'NO'}</div>
+        <div>Is Ready: {isReady ? 'YES' : 'NO'}</div>
+        <div>Is Quest 3: {isQuest3.current ? 'YES' : 'NO'}</div>
+        <div>Settings: {settings ? 'Loaded' : 'Not loaded'}</div>
+      </div>
+      
+      {/* Render the AR viewport */}
       <ARGraphViewport />
     </div>
   );
