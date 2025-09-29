@@ -4,9 +4,13 @@ import {
   WebXRExperienceHelper,
   WebXRHandTracking,
   WebXRInputSource,
+  WebXRState,
   Vector3,
   Ray
 } from '@babylonjs/core';
+import { createRemoteLogger } from '../../services/remoteLogger';
+
+const logger = createRemoteLogger('XRManager');
 
 /**
  * Manages WebXR session and interactions for Quest 3 AR
@@ -25,25 +29,102 @@ export class XRManager {
   }
 
   private async initializeXR(): Promise<void> {
+    // First, check WebXR capabilities
+    logger.info('====== XRManager: WebXR Initialization Starting ======');
+    logger.info('User Agent: ' + navigator.userAgent);
+    logger.info('Protocol: ' + window.location.protocol);
+    logger.info('Hostname: ' + window.location.hostname);
+
+    console.log('====== XRManager: WebXR Initialization Starting ======');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Protocol:', window.location.protocol);
+    console.log('Hostname:', window.location.hostname);
+
+    // Check for WebXR support
+    if ('xr' in navigator) {
+      logger.info('✅ WebXR API is available');
+      console.log('✅ WebXR API is available');
+      try {
+        const vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
+        const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
+        logger.info('VR Support: ' + (vrSupported ? '✅ YES' : '❌ NO'));
+        logger.info('AR Support: ' + (arSupported ? '✅ YES' : '❌ NO'));
+        console.log('VR Support:', vrSupported ? '✅ YES' : '❌ NO');
+        console.log('AR Support:', arSupported ? '✅ YES' : '❌ NO');
+      } catch (checkError) {
+        logger.error('Error checking XR support', checkError);
+        console.error('Error checking XR support:', checkError);
+      }
+    } else {
+      logger.error('❌ WebXR API is NOT available in this browser');
+      console.error('❌ WebXR API is NOT available in this browser');
+    }
+
     try {
-      // Attempt to create XR experience regardless of protocol
-      // Quest 3 browser may allow WebXR in development scenarios
-      console.log('XRManager: Attempting to initialize WebXR...');
+      console.log('Creating Babylon XR experience with immersive-ar mode...');
 
       // Create default XR experience for Quest 3 AR
-      this.xrHelper = await this.scene.createDefaultXRExperienceAsync({
+      // The default UI button will be created automatically by Babylon
+      const xrOptions = {
         floorMeshes: [], // No floor mesh for AR passthrough
-        optionalFeatures: true,
-        // Disable the default UI that shows HTTPS warning
         uiOptions: {
-          sessionMode: 'immersive-ar',
+          sessionMode: 'immersive-ar', // Request AR mode for passthrough
           referenceSpaceType: 'local-floor',
-          ignoreHTTPSWarning: true // Try to ignore HTTPS warning
+          // Let Babylon handle the button creation - this is what Quest browser expects
+          customButtons: undefined // Use default button
+        },
+        optionalFeatures: true
+      };
+
+      console.log('XR Options:', JSON.stringify(xrOptions, null, 2));
+      this.xrHelper = await this.scene.createDefaultXRExperienceAsync(xrOptions);
+
+      logger.info('✅ XR Helper created successfully');
+      logger.info('XR Helper baseExperience exists: ' + !!this.xrHelper.baseExperience);
+      logger.info('XR UI exists: ' + !!this.xrHelper.enterExitUI);
+
+      console.log('✅ XR Helper created successfully');
+      console.log('XR Helper baseExperience exists:', !!this.xrHelper.baseExperience);
+      console.log('XR UI exists:', !!this.xrHelper.enterExitUI);
+
+      // Log button details
+      if (this.xrHelper.enterExitUI) {
+        logger.info('XR Button Details:');
+        console.log('XR Button Details:');
+        const button = (this.xrHelper.enterExitUI as any).renderTarget?.firstChild;
+        if (button) {
+          const buttonInfo = {
+            exists: !!button,
+            position: button.style?.position,
+            display: button.style?.display,
+            zIndex: button.style?.zIndex,
+            visibility: button.style?.visibility
+          };
+          logger.info('Button element info', buttonInfo);
+          console.log('- Button element exists:', !!button);
+          console.log('- Button position:', button.style?.position);
+          console.log('- Button display:', button.style?.display);
+          console.log('- Button z-index:', button.style?.zIndex);
+          console.log('- Button visibility:', button.style?.visibility);
+        } else {
+          logger.warn('⚠️ XR button element not found in DOM');
+          console.warn('⚠️ XR button element not found in DOM');
         }
-      } as any);
+      }
 
       // Configure for immersive AR mode
       if (this.xrHelper.baseExperience) {
+        console.log('Configuring XR features...');
+
+        // Listen for XR state changes
+        this.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+          console.log('🔄 XR State Changed:', WebXRState[state]);
+          if (state === WebXRState.IN_XR) {
+            console.log('✅ Successfully entered XR mode!');
+          } else if (state === WebXRState.NOT_IN_XR) {
+            console.log('⬅️ Exited XR mode');
+          }
+        });
         // Enable hand tracking
         const handTrackingFeature = this.xrHelper.baseExperience.featuresManager.enableFeature(
           WebXRHandTracking.Name,
@@ -59,14 +140,34 @@ export class XRManager {
         this.setupControllerInteractions();
       }
 
-      console.log('XRManager: WebXR initialized successfully');
+      console.log('====== XRManager: WebXR Initialization Complete ======');
+      console.log('Summary:');
+      console.log('- XR Helper:', this.xrHelper ? '✅' : '❌');
+      console.log('- Base Experience:', this.xrHelper?.baseExperience ? '✅' : '❌');
+      console.log('- Enter/Exit UI:', this.xrHelper?.enterExitUI ? '✅' : '❌');
+      console.log('- Hand Tracking:', this.handTracking ? '✅' : '❌');
     } catch (error) {
-      // This is expected in non-HTTPS environments
-      if (error instanceof Error && error.message.includes('HTTPS')) {
-        console.info('XRManager: Running in non-HTTPS mode. WebXR features disabled for development.');
-      } else {
-        console.warn('XRManager: WebXR not available or failed to initialize', error);
+      console.error('❌ XRManager: Failed to initialize WebXR');
+      console.error('Error details:', error);
+
+      // Log specific error information
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+
+        if (error.message.includes('HTTPS')) {
+          console.warn('🔒 HTTPS Required: WebXR requires a secure context (HTTPS)');
+          console.warn('For Quest 3 testing, you need to:');
+          console.warn('1. Use HTTPS (even with self-signed certificate)');
+          console.warn('2. Or use localhost with port forwarding via adb');
+        } else if (error.message.includes('session')) {
+          console.warn('🎮 Session Error: Browser may not support the requested XR session mode');
+        } else if (error.message.includes('permission')) {
+          console.warn('🔐 Permission Error: User may have denied XR permissions');
+        }
       }
+
+      console.log('====== XRManager: Initialization Failed ======');
     }
   }
 
@@ -197,62 +298,19 @@ export class XRManager {
     // TODO: Communicate with XRUI component
   }
 
-  public async enterXR(): Promise<void> {
-    if (!this.xrHelper?.baseExperience) {
-      console.warn('XRManager: XR not initialized, attempting to create session directly');
+  /**
+   * Gets the XR helper for external access
+   * The built-in UI button will handle entering XR automatically
+   */
+  public getXRHelper(): WebXRExperienceHelper | null {
+    return this.xrHelper;
+  }
 
-      // Try to create a session directly if the helper isn't available
-      if ('xr' in navigator && navigator.xr) {
-        try {
-          // Check what's supported
-          const vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
-          const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
-
-          console.log('XRManager: VR supported:', vrSupported, 'AR supported:', arSupported);
-
-          // Try AR first if supported, then fall back to VR
-          const sessionMode = arSupported ? 'immersive-ar' : vrSupported ? 'immersive-vr' : null;
-
-          if (sessionMode) {
-            const session = await navigator.xr.requestSession(sessionMode, {
-              requiredFeatures: ['local-floor'],
-              optionalFeatures: ['hand-tracking', 'bounded-floor', 'unbounded']
-            });
-
-            console.log('XRManager: Session started in', sessionMode, 'mode');
-
-            // TODO: Set up the session with Babylon.js
-            // This would need proper integration with the Babylon.js scene
-          } else {
-            console.error('XRManager: No immersive modes supported');
-          }
-        } catch (error) {
-          console.error('XRManager: Failed to start XR session:', error);
-        }
-      }
-      return;
-    }
-
-    try {
-      // First try immersive-ar for Quest 3 passthrough
-      console.log('XRManager: Attempting to enter immersive-ar mode...');
-      await this.xrHelper.baseExperience.enterXRAsync('immersive-ar', 'local-floor', {
-        optionalFeatures: ['hand-tracking', 'mesh-detection', 'plane-detection']
-      });
-    } catch (arError) {
-      console.warn('XRManager: immersive-ar failed, trying immersive-vr:', arError);
-
-      try {
-        // Fall back to immersive-vr if AR is not available
-        await this.xrHelper.baseExperience.enterXRAsync('immersive-vr', 'local-floor', {
-          optionalFeatures: ['hand-tracking', 'bounded-floor', 'unbounded']
-        });
-        console.log('XRManager: Successfully entered immersive-vr mode');
-      } catch (vrError) {
-        console.error('XRManager: Failed to enter any immersive mode:', vrError);
-        throw vrError;
-      }
-    }
+  /**
+   * Check if currently in XR session
+   */
+  public isInXR(): boolean {
+    return this.xrHelper?.baseExperience?.state === WebXRState.IN_XR;
   }
 
   public async exitXR(): Promise<void> {

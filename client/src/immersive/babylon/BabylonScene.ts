@@ -1,4 +1,5 @@
 import * as BABYLON from '@babylonjs/core';
+import { Color3, Color4, DirectionalLight } from '@babylonjs/core';
 import { GraphRenderer } from './GraphRenderer';
 import { XRManager } from './XRManager';
 import { XRUI } from './XRUI';
@@ -25,16 +26,26 @@ export class BabylonScene {
 
     // Create the 3D scene
     this.scene = new BABYLON.Scene(this.engine);
-    this.scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    // Use transparent background for AR passthrough
+    this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
     // Setup camera
     this.camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0, 1.6, -5), this.scene);
     this.camera.setTarget(BABYLON.Vector3.Zero());
     this.camera.attachControl(canvas, true);
 
-    // Add lighting
-    const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), this.scene);
-    light.intensity = 0.7;
+    // Add multiple lights for better XR visibility
+    const hemisphericLight = new BABYLON.HemisphericLight('hemisphericLight', new BABYLON.Vector3(0, 1, 0), this.scene);
+    hemisphericLight.intensity = 1.2;
+    hemisphericLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.3);
+
+    // Add directional light for better shadows and depth
+    const directionalLight = new BABYLON.DirectionalLight('directionalLight', new BABYLON.Vector3(-1, -2, -1), this.scene);
+    directionalLight.position = new BABYLON.Vector3(3, 9, 3);
+    directionalLight.intensity = 0.8;
+
+    // Add ambient light to ensure minimum visibility in XR
+    this.scene.ambientColor = new BABYLON.Color3(0.3, 0.3, 0.4);
 
     // Initialize components
     this.graphRenderer = new GraphRenderer(this.scene);

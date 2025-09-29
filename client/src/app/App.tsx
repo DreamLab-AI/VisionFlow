@@ -19,7 +19,15 @@ import { DebugControlPanel } from '../components/DebugControlPanel';
 import { ConnectionWarning } from '../components/ConnectionWarning';
 import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
 import ErrorBoundary from '../components/ErrorBoundary';
-const logger = createLogger('App')
+import { remoteLogger } from '../services/remoteLogger';
+
+const logger = createLogger('App');
+
+// Initialize remote logging for Quest 3 debugging
+if (typeof window !== 'undefined') {
+  console.log('[RemoteLogger] Initializing remote logging service...');
+  remoteLogger.logXRInfo(); // Log XR capabilities on startup
+}
 
 function App() {
   const [initializationState, setInitializationState] = useState<'loading' | 'initialized' | 'error'>('loading');

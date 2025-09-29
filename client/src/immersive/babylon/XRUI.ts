@@ -3,8 +3,10 @@ import {
   Mesh,
   MeshBuilder,
   StandardMaterial,
-  Vector3
+  Vector3,
+  Color3
 } from '@babylonjs/core';
+import * as BABYLON from '@babylonjs/core';
 import {
   AdvancedDynamicTexture,
   Control,
@@ -61,12 +63,16 @@ export class XRUI {
     this.uiPlane = MeshBuilder.CreatePlane('uiPlane', { width: 2, height: 1.5 }, this.scene);
     this.uiPlane.position = new Vector3(2, 1.6, 0); // Position to the right of user
 
-    // Create material for the UI plane
+    // Create material for the UI plane with emissive properties
     const uiMaterial = new StandardMaterial('uiMaterial', this.scene);
+    uiMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.15); // Slight glow
+    uiMaterial.diffuseColor = new BABYLON.Color3(0.15, 0.15, 0.2);
+    uiMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     this.uiPlane.material = uiMaterial;
 
     // Create GUI texture on the plane
     this.uiTexture = AdvancedDynamicTexture.CreateForMesh(this.uiPlane);
+    this.uiTexture.background = "rgba(30, 30, 40, 0.9)"; // Semi-transparent dark background
 
     // Create main control panel
     this.createControlPanel();

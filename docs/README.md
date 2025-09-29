@@ -11,17 +11,20 @@
 - **[Client Architecture](architecture/core/client.md)** - React/TypeScript client with dual graph visualization
 - **[Server Architecture](architecture/core/server.md)** - Rust Actor system with GPU compute and Docker orchestration
 - **[Visualization System](architecture/core/visualization.md)** - Graph rendering and visual effects architecture
+- **[XR Immersive System](architecture/xr-immersive-system.md)** - WebXR-based AR/VR system with Babylon.js for Quest 3
 - **[Interface Layer](architecture/interface.md)** - REST API, WebSocket protocols, and client-server communication
 - **[GPU Systems](architecture/gpu/)** - GPU compute communication and optimizations
 
 ### Implementation Guides
 - **[Testing Guide](guides/testing-guide.md)** - Control panel testing procedures and API validation
 - **[Getting Started](getting-started/00-index.md)** - Installation and quick start guide
+- **[Quest 3 XR Setup](guides/xr-quest3-setup.md)** - Complete guide for Quest 3 AR/VR setup and usage
 - **[Development Workflow](guides/02-development-workflow.md)** - Development best practices
 - **[Deployment Guide](guides/01-deployment.md)** - Production deployment procedures
 
 ### Reference Documentation
 - **[API Reference](reference/api/index.md)** - Complete API endpoint documentation
+- **[XR API Reference](reference/xr-api.md)** - WebXR and Babylon.js API documentation
 - **[Agent Reference](reference/agents/README.md)** - Available agents and capabilities
 - **[Configuration](reference/configuration.md)** - System configuration options
 - **[Binary Protocol](reference/binary-protocol.md)** - WebSocket binary message format
@@ -38,6 +41,7 @@
 ## 🎯 System Status Overview
 
 ### ✅ Fully Implemented & Tested
+- **XR Immersive System**: Complete Babylon.js WebXR implementation for Quest 3 AR/VR
 - **REST API Architecture**: 19 endpoints with unified client (111 references)
 - **WebSocket Binary Protocol**: 80% traffic reduction achieved through optimisation
 - **Agent Task Management**: Complete remove/pause/resume functionality
@@ -46,6 +50,7 @@
 - **Field Conversion**: Automatic camelCase ↔ snake_case via Serde
 
 ### 🔧 Performance Achievements
+- **XR Rendering**: Multi-light setup with emissive materials for optimal AR visibility
 - **API Consolidation**: 100% migration from legacy apiService to UnifiedApiClient
 - **Binary Protocol Optimization**: 34-byte node format reduces bandwidth by 95%
 - **GPU Pipeline**: 13 PTX kernels validated across 50/200/1000 node scales
@@ -87,6 +92,14 @@
 4. Check [Binary Protocol](reference/binary-protocol.md) for WebSocket details
 
 ## 📈 Recent Major Updates
+
+### XR System Implementation (2025-09-29)
+- ✅ **Complete Babylon.js Migration**: Replaced @react-three/xr with high-performance Babylon.js
+- ✅ **Quest 3 AR Support**: Full immersive-ar mode with passthrough and hand tracking
+- ✅ **Enhanced Lighting**: Multi-light setup with emissive materials for XR visibility
+- ✅ **3D UI Controls**: Interactive panels with settings synchronization
+- ✅ **WebXR Integration**: Native WebXR support with controller and hand interactions
+- ✅ **Comprehensive Documentation**: Full XR architecture, API reference, and setup guides
 
 ### Documentation Organization (2025-09-25)
 - ✅ **Consolidated Architecture**: Merged 6 loose documentation files into organised structure

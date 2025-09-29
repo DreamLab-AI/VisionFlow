@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Remote Logger Test</title>
+</head>
+<body>
+    <h1>Remote Logger Test</h1>
+    <button id="test">Send Test Log</button>
+    <pre id="status"></pre>
+
+    <script>
+        const apiUrl = 'http://localhost:3000';
+        const endpoint = `${apiUrl}/api/client-logs`;
+
+        document.getElementById('test').addEventListener('click', async () => {
+            const payload = {
+                logs: [
+                    {
+                        level: 'info',
+                        namespace: 'test',
+                        message: 'Test log from manual test page',
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        url: window.location.href
+                    }
+                ],
+                sessionId: 'test-session-' + Date.now(),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.text();
+                document.getElementById('status').textContent =
+                    `Response: ${response.status} ${response.statusText}\n${result}`;
+
+                if (response.ok) {
+                    console.log('✅ Log sent successfully!');
+                } else {
+                    console.error('❌ Failed to send log:', response.status);
+                }
+            } catch (error) {
+                document.getElementById('status').textContent =
+                    `Error: ${error.message}`;
+                console.error('❌ Error sending log:', error);
+            }
+        });
+
+        // Auto-test on load
+        console.log('Test page loaded. Click button to test logging.');
+    </script>
+</body>
+</html>

@@ -90,14 +90,18 @@ impl GPUResourceActor {
               max_threads_per_block, compute_capability_major);
         
         // Initialize unified compute engine
-        // Include PTX from build output directory
-        debug!("Loading PTX from build directory: {}/visionflow_unified.ptx", env!("OUT_DIR"));
-        let ptx_content = include_str!(concat!(env!("OUT_DIR"), "/visionflow_unified.ptx"));
+        // Load PTX using the ptx utility module which handles both build-time and runtime scenarios
+        debug!("Loading PTX content using ptx utility module");
+        let ptx_content = crate::utils::ptx::load_ptx_sync()
+            .map_err(|e| {
+                error!("Failed to load PTX content: {}", e);
+                format!("Failed to load PTX content: {}", e)
+            })?;
         debug!("PTX content loaded successfully, size: {} bytes", ptx_content.len());
         debug!("PTX first 100 chars: {}", &ptx_content[..100.min(ptx_content.len())]);
 
         debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
-        let mut unified_compute = UnifiedGPUCompute::new(1000, 1000, ptx_content)
+        let mut unified_compute = UnifiedGPUCompute::new(1000, 1000, &ptx_content)
             .map_err(|e| {
                 error!("Failed to create unified compute: {}", e);
                 format!("Failed to create unified compute: {}", e)

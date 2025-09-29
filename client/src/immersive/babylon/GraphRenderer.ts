@@ -122,8 +122,11 @@ export class GraphRenderer {
 
     if (lines.length > 0) {
       this.edgeLineSystem = MeshBuilder.CreateLineSystem('edges', { lines }, this.scene);
+      // Create edge material with emissive properties for XR visibility
       const edgeMaterial = new StandardMaterial('edgeMaterial', this.scene);
-      edgeMaterial.diffuseColor = Color3.Gray();
+      edgeMaterial.diffuseColor = new Color3(0.7, 0.7, 0.8);
+      edgeMaterial.emissiveColor = new Color3(0.3, 0.3, 0.4); // Glow for visibility
+      edgeMaterial.specularColor = new Color3(0.5, 0.5, 0.6);
       this.edgeLineSystem.material = edgeMaterial;
     }
   }
@@ -141,8 +144,10 @@ export class GraphRenderer {
     for (const node of nodes) {
       if (node.label) {
         const textBlock = new TextBlock(node.id + '_label', node.label);
-        textBlock.color = 'white';
-        textBlock.fontSize = 14;
+        textBlock.color = '#FFFFFF'; // Bright white for XR visibility
+        textBlock.fontSize = 18; // Larger for better readability in XR
+        textBlock.outlineWidth = 2;
+        textBlock.outlineColor = '#000000'; // Black outline for contrast
         // TODO: Position label relative to node
         this.labelTexture.addControl(textBlock);
         this.labelBlocks.set(node.id, textBlock);
