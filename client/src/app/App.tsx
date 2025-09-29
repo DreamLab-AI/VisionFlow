@@ -19,11 +19,56 @@ import { DebugControlPanel } from '../components/DebugControlPanel';
 import { ConnectionWarning } from '../components/ConnectionWarning';
 import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { NeuralDashboard } from '../components/NeuralDashboard';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Toaster } from 'react-hot-toast';
 const logger = createLogger('App')
+
+// Neural UI Theme
+const neuralTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#64ffda',
+    },
+    secondary: {
+      main: '#2196f3',
+    },
+    background: {
+      default: '#0a0a0a',
+      paper: '#1a1a2e',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: 'rgba(255, 255, 255, 0.7)',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          scrollbarColor: '#64ffda #0a0a0a',
+          '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
+            backgroundColor: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
+            backgroundColor: '#64ffda',
+            borderRadius: 8,
+          },
+        },
+      },
+    },
+  },
+});
 
 function App() {
   const [initializationState, setInitializationState] = useState<'loading' | 'initialized' | 'error'>('loading');
   const [initializationError, setInitializationError] = useState<Error | null>(null);
+  const [appMode, setAppMode] = useState<'standard' | 'neural'>('standard');
   const initialized = useSettingsStore(state => state.initialized);
 
   const { shouldUseQuest3Layout, isQuest3Detected, autoStartSuccessful } = useQuest3Integration({
@@ -65,6 +110,15 @@ function App() {
     return (isQuest3Browser || forceQuest3 || shouldUseQuest3Layout) && initialized;
   };
 
+  // Check if we should use neural dashboard
+  const shouldUseNeuralMode = () => {
+    const forceNeural = window.location.search.includes('mode=neural') ||
+                        window.location.search.includes('neural=true') ||
+                        window.location.pathname.includes('/neural');
+
+    return forceNeural || appMode === 'neural';
+  };
+
   useEffect(() => {
     // Initialize command palette, help system, and onboarding on first load
     if (initialized) {
@@ -81,6 +135,11 @@ function App() {
           }));
         }, 1000);
       }
+
+      // Register neural mode command
+      window.addEventListener('toggle-neural-mode', () => {
+        setAppMode(prev => prev === 'neural' ? 'standard' : 'neural');
+      });
     }
   }, [initialized])
 
@@ -112,11 +171,32 @@ function App() {
           </div>
         );
       case 'initialized':
-        return shouldUseImmersiveClient() ? (
-          <BotsDataProvider>
-            <ImmersiveApp />
-          </BotsDataProvider>
-        ) : <MainLayout />;
+        if (shouldUseNeuralMode()) {
+          return (
+            <ThemeProvider theme={neuralTheme}>
+              <CssBaseline />
+              <NeuralDashboard />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: '#1a1a2e',
+                    color: '#ffffff',
+                    border: '1px solid #64ffda',
+                  },
+                }}
+              />
+            </ThemeProvider>
+          );
+        } else if (shouldUseImmersiveClient()) {
+          return (
+            <BotsDataProvider>
+              <ImmersiveApp />
+            </BotsDataProvider>
+          );
+        } else {
+          return <MainLayout />;
+        }
     }
   };
 

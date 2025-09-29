@@ -5,7 +5,25 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ['@getalby/sdk']
+    include: [
+      '@getalby/sdk',
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@emotion/react',
+      '@emotion/styled',
+      'recharts',
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+      'd3',
+      'socket.io-client',
+      'axios',
+      'framer-motion',
+      'react-hot-toast',
+      'date-fns',
+      'lodash',
+    ]
   },
   build: {
     outDir: 'dist',
@@ -69,6 +87,11 @@ export default defineConfig({
         target: process.env.VITE_WS_URL || 'ws://localhost:4000',
         ws: true,
         changeOrigin: true
+      },
+      '/neural': {
+        target: 'ws://localhost:8080',
+        ws: true,
+        changeOrigin: true,
       }
     }
   },

@@ -1,0 +1,36 @@
+services:
+  codex-synaptic:
+    build:
+      context: .
+      target: production
+    image: codex-synaptic:production
+    command: ["node", "dist/index.js"]
+    environment:
+      NODE_ENV: production
+      CODEX_SYNAPTIC_LOG_LEVEL: info
+    volumes:
+      - codex-config:/app/config
+      - codex-logs:/app/logs
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  codex-synaptic-dev:
+    build:
+      context: .
+      target: development
+    image: codex-synaptic:development
+    command: ["sh", "-c", "npm install && npm run dev"]
+    environment:
+      NODE_ENV: development
+      CODEX_SYNAPTIC_LOG_LEVEL: debug
+    volumes:
+      - ./:/app
+      - codex-config:/app/config
+      - codex-logs:/app/logs
+    profiles: ["dev"]
+    tty: true
+
+volumes:
+  codex-config:
+  codex-logs:

@@ -1,7 +1,7 @@
 {
   "name": "multi-agent-docker",
   "version": "1.0.0",
-  "description": "A multi-agent Docker environment with Claude-Flow and other tools.",
+  "description": "Neural-enhanced multi-agent Docker environment with codex-syntaptic integration and advanced AI capabilities.",
   "private": true,
   "dependencies": {
     "claude-flow": "latest",
@@ -13,7 +13,26 @@
     "ws": "^8.18.0",
     "ruv-swarm": "latest",
     "playwright": "^1.48.0",
-    "@executeautomation/playwright-mcp-server": "latest"
+    "@executeautomation/playwright-mcp-server": "latest",
+    "codex-syntaptic": "^1.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.17",
+    "@types/ws": "^8.5.10",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "gpu-js": "^2.16.0",
+    "neuroglancer": "^2.37.0",
+    "neuromorphic-sdk": "^0.8.5",
+    "pino": "^8.19.0",
+    "pino-pretty": "^10.3.1",
+    "redis": "^4.6.12",
+    "systeminformation": "^5.21.22",
+    "tfjs": "^1.0.4",
+    "tfjs-node": "^4.15.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "uuid": "^9.0.1"
   },
   "scripts": {
     "start-mcp-tcp": "node /app/core-assets/scripts/mcp-tcp-server.js",
@@ -25,7 +44,11 @@
     "init-agents": "bash /app/core-assets/scripts/init-claude-flow-agents.sh",
     "goal-init": "claude-flow goal init --force",
     "neural-init": "claude-flow neural init --force",
-    "cf-status": "claude-flow status"
+    "cf-status": "claude-flow status",
+    "neural-start": "tsx src/neural-server.ts",
+    "neural-build": "tsc src/*.ts --outDir dist",
+    "neural-monitor": "tsx src/neural-monitoring.ts",
+    "neural-test": "node dist/neural-server.js --test"
   },
   "engines": {
     "node": ">=22.0.0"

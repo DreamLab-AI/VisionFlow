@@ -115,6 +115,14 @@ sysinfo = "0.37.0"
 # Parallel processing
 rayon = "1.11.0"
 
+# Neural integration dependencies
+hex = "0.4"
+lru = "0.12"
+sha1 = "0.10"
+
+# Codex-syntaptic integration (hypothetical package for cognitive patterns)
+# codex-syntaptic = { version = "0.1.0", features = ["cognitive-patterns", "neural-networks"] }
+
 
 [dev-dependencies]
 tokio-test = "0.4"

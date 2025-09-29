@@ -1,0 +1,61 @@
+{
+  "name": "codex-synaptic",
+  "version": "1.0.0",
+  "description": "Advanced distributed AI agent orchestration system with neural mesh networking, swarm intelligence, and consensus mechanisms",
+  "main": "dist/index.js",
+  "bin": {
+    "codex-synaptic": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write src/**/*.ts",
+    "cli": "ts-node src/cli/index.ts",
+    "prepare": "npm run build",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "codex-synaptic",
+    "ai",
+    "agents",
+    "neural-mesh",
+    "swarm-intelligence",
+    "consensus",
+    "distributed-systems",
+    "synaptic-networks",
+    "autonomous-agents"
+  ],
+  "author": "Parallax Analytics <info@parallaxanalytics.io>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/estree": "^1.0.8",
+    "@types/js-yaml": "^4.0.9",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "^24.3.1",
+    "@types/sqlite3": "^3.1.11",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint": "^9.35.0",
+    "globals": "^15.12.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vitest": "^1.6.1"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.0",
+    "crypto-js": "^4.2.0",
+    "inquirer": "^12.9.4",
+    "js-yaml": "^4.1.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3"
+  }
+}
