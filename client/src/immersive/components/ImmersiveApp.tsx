@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BabylonScene } from '../babylon/BabylonScene';
 import { useImmersiveData } from '../hooks/useImmersiveData';
 import { createLogger } from '../../utils/loggerConfig';
+import { createRemoteLogger, remoteLogger } from '../../services/remoteLogger';
 
 const logger = createLogger('ImmersiveApp');
+const remoteLog = createRemoteLogger('ImmersiveApp');
 
 export interface ImmersiveAppProps {
   onExit?: () => void;
@@ -35,6 +37,14 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
         }
 
         logger.info('Initializing immersive environment...');
+        remoteLog.info('Initializing immersive environment on ' + navigator.userAgent);
+
+        // Log Quest detection
+        const isQuest = /OculusBrowser|Quest/i.test(navigator.userAgent);
+        if (isQuest) {
+          remoteLog.info('🎮 Quest device detected!');
+          remoteLogger.logXRInfo(); // Log detailed XR capabilities
+        }
 
         // Initialize Babylon.js scene - using the simpler API
         const scene = new BabylonScene(canvasRef.current);
@@ -48,10 +58,12 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
 
         setIsInitialized(true);
         logger.info('Immersive environment initialized successfully');
+        remoteLog.info('✅ Immersive environment initialized successfully');
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown initialization error';
         logger.error('Failed to initialize immersive environment:', errorMessage);
+        remoteLog.error('Failed to initialize immersive environment', err);
         setError(errorMessage);
       }
     };
@@ -152,62 +164,43 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
       )}
 
       {isInitialized && (
-        <div className="immersive-overlay">
+        <div className="immersive-overlay" style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          zIndex: 1001
+        }}>
           <div className="immersive-controls">
-            <button
-              className="enter-xr-button"
-              onClick={async (event) => {
-                // This is a user interaction event, required for WebXR
-                event.preventDefault();
-                console.log('Enter AR button clicked - user interaction event active');
-
-                // Enter WebXR AR/VR mode
-                if (babylonScene && babylonScene.xrManager) {
-                  try {
-                    console.log('Requesting immersive session...');
-                    await babylonScene.xrManager.enterXR();
-                    console.log('Successfully entered immersive mode');
-                  } catch (err) {
-                    console.error('Failed to enter XR:', err);
-                    alert('Failed to enter immersive mode. Please ensure WebXR permissions are granted.');
-                  }
-                } else {
-                  console.error('XRManager not available');
-                }
-              }}
-              title="Enter VR/AR Mode"
-              style={{
-                marginRight: '10px',
-                padding: '10px 20px',
-                backgroundColor: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Enter AR
-            </button>
-            <button
-              className="exit-button"
-              onClick={onExit}
-              title="Exit Immersive Mode"
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Exit
-            </button>
+            {/* Babylon.js creates its own VR/AR button automatically at the bottom right */}
+            {/* Only show exit button for non-XR mode */}
+            {onExit && (
+              <button
+                className="exit-button"
+                onClick={onExit}
+                title="Exit Immersive Mode"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Exit to Desktop
+              </button>
+            )}
           </div>
 
           {selectedNode && (
-            <div className="immersive-info">
-              <h3>Selected Node: {selectedNode}</h3>
+            <div className="immersive-info" style={{
+              marginTop: '10px',
+              padding: '10px',
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              borderRadius: '4px'
+            }}>
+              <h3>Selected: {selectedNode}</h3>
             </div>
           )}
         </div>

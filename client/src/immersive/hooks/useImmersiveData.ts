@@ -43,14 +43,11 @@ export const useImmersiveData = (initialData?: any) => {
       });
       subscriptions.push(positionUnsubscribe);
 
-      // Initialize graph data manager and get initial data
+      // Get initial graph data (manager initializes automatically)
       const initializeData = async () => {
         try {
-          // Initialize the manager
-          await graphDataManager.initialize();
-          console.log('Graph data manager initialized successfully');
-
-          // Get current graph data if available
+          // The graph data manager initializes automatically in its constructor
+          // Just get current graph data if available
           const currentData = await graphDataManager.getGraphData();
           if (currentData && currentData.nodes && currentData.nodes.length > 0) {
             console.log('Initial graph data available:', currentData);
@@ -62,7 +59,7 @@ export const useImmersiveData = (initialData?: any) => {
             // Data will come through subscription
           }
         } catch (err) {
-          console.error('Failed to initialize graph data manager:', err);
+          console.error('Failed to get initial graph data:', err);
           // Don't set error here, just wait for data through subscriptions
           // Many components work without initial data
           setIsLoading(false);

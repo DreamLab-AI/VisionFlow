@@ -45,7 +45,7 @@ export default defineConfig({
     // Always use proxy for API requests - the backend is at port 4000
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://172.18.0.10:4000',
+        target: process.env.VITE_API_URL || 'http://visionflow_container:4000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
@@ -61,12 +61,12 @@ export default defineConfig({
         }
       },
       '/ws': {
-        target: process.env.VITE_WS_URL || 'ws://localhost:4000',
+        target: process.env.VITE_WS_URL || 'ws://visionflow_container:4000',
         ws: true,
         changeOrigin: true
       },
       '/wss': {
-        target: process.env.VITE_WS_URL || 'ws://localhost:4000',
+        target: process.env.VITE_WS_URL || 'ws://visionflow_container:4000',
         ws: true,
         changeOrigin: true
       }

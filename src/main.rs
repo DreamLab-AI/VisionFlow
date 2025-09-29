@@ -15,6 +15,7 @@ use webxr::{
         hybrid_health_handler,
         workspace_handler,
         graph_export_handler,
+        client_log_handler,
     },
     services::{
         file_service::FileService,
@@ -562,6 +563,7 @@ async fn main() -> std::io::Result<()> {
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
                     .configure(graph_export_handler::configure_routes) // Graph export and sharing endpoints
+                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) // Client browser logs endpoint
                     .service(web::scope("/hybrid")
                         .route("/status", web::get().to(hybrid_health_handler::get_hybrid_status))
                         .route("/performance", web::get().to(hybrid_health_handler::get_performance_report))
