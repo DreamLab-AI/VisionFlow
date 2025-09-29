@@ -117,7 +117,6 @@ rayon = "1.11.0"
 
 # Neural integration dependencies
 hex = "0.4"
-lru = "0.12"
 sha1 = "0.10"
 
 # Codex-syntaptic integration (hypothetical package for cognitive patterns)

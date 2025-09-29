@@ -12,6 +12,7 @@ claude-flow
 CLAUDE.md
 workspace
 client/src/vircadia
+autoschema_kg_rust
 
 # Dependencies
 node_modules
