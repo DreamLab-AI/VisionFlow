@@ -795,8 +795,9 @@ impl NeuralConsensus {
             .context("Proposal not found")?;
         
         let votes = self.votes.read().await;
-        let proposal_votes = votes.get(proposal_id).unwrap_or(&Vec::new());
-        
+        let empty_vec = Vec::new();
+        let proposal_votes = votes.get(proposal_id).unwrap_or(&empty_vec);
+
         // Check if minimum votes received
         if proposal_votes.len() < proposal.required_votes as usize {
             return Ok(false);
@@ -852,11 +853,11 @@ impl NeuralConsensus {
             ExperienceData::ConsensusResult {
                 proposal_id: proposal_id.to_string(),
                 result_type: format!("{:?}", result.result_type),
-                vote_summary: result.vote_summary,
+                vote_summary: result.vote_summary.clone(),
                 timestamp: result.timestamp,
             },
         ).await?;
-        
+
         // Update trust network based on result
         self.update_trust_network(proposal_id, &result).await?;
         

@@ -868,30 +868,32 @@ impl NeuralDockerOrchestrator {
 
     /// Scale cluster based on neural load
     pub async fn scale_cluster(&self, cluster_id: Uuid) -> Result<()> {
-        let clusters = self.clusters.read().await;
-        let cluster = clusters.get(&cluster_id)
-            .context("Cluster not found")?;
-        
-        if !cluster.scaling_policy.auto_scaling {
-            return Ok(());
-        }
-        
+        let (scaling_policy, container_count) = {
+            let clusters = self.clusters.read().await;
+            let cluster = clusters.get(&cluster_id)
+                .context("Cluster not found")?;
+
+            if !cluster.scaling_policy.auto_scaling {
+                return Ok(());
+            }
+
+            (cluster.scaling_policy.clone(), cluster.containers.len())
+        };
+
         // Calculate current load metrics
         let neural_load = self.calculate_cluster_neural_load(cluster_id).await?;
         let cognitive_complexity = self.calculate_cognitive_complexity(cluster_id).await?;
-        
-        let should_scale_up = 
-            neural_load > cluster.scaling_policy.scale_up_threshold ||
-            cognitive_complexity > cluster.scaling_policy.scale_up_threshold;
-            
-        let should_scale_down = 
-            neural_load < cluster.scaling_policy.scale_down_threshold &&
-            cognitive_complexity < cluster.scaling_policy.scale_down_threshold &&
-            cluster.containers.len() > cluster.scaling_policy.min_containers as usize;
-        
-        drop(clusters);
-        
-        if should_scale_up && cluster.containers.len() < cluster.scaling_policy.max_containers as usize {
+
+        let should_scale_up =
+            neural_load > scaling_policy.scale_up_threshold ||
+            cognitive_complexity > scaling_policy.scale_up_threshold;
+
+        let should_scale_down =
+            neural_load < scaling_policy.scale_down_threshold &&
+            cognitive_complexity < scaling_policy.scale_down_threshold &&
+            container_count > scaling_policy.min_containers as usize;
+
+        if should_scale_up && container_count < scaling_policy.max_containers as usize {
             self.scale_up_cluster(cluster_id).await?
         } else if should_scale_down {
             self.scale_down_cluster(cluster_id).await?

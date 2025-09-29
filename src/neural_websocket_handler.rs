@@ -10,7 +10,7 @@ use chrono::{DateTime, Utc};
 use anyhow::{Result, Context};
 use tracing::{info, warn, error, debug};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
-use actix_web_actors::{ws, WsResponseError};
+use actix_web_actors::ws;
 use actix::{Actor, StreamHandler, Handler, Message, ActorContext, AsyncContext};
 use futures_util::StreamExt;
 

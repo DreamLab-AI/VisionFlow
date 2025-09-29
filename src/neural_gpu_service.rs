@@ -11,7 +11,7 @@ use tracing::{info, warn, error, debug};
 use nalgebra::{Vector3, Matrix3, DMatrix, DVector};
 use bytemuck::{Pod, Zeroable};
 
-use crate::gpu::compute_service::ComputeService;
+// ComputeService import removed - module doesn't exist
 use crate::neural_memory::{NeuralMemory, MemoryType, ExperienceData};
 use crate::neural_actor_system::CognitivePattern;
 

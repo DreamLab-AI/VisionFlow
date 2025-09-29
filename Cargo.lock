@@ -4979,6 +4979,7 @@ dependencies = [
  "futures-util",
  "glam 0.30.5",
  "heck",
+ "hex",
  "horned-owl",
  "js-sys",
  "lazy_static",

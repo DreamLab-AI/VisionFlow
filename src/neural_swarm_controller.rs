@@ -14,7 +14,7 @@ use nalgebra::{Vector3, Matrix3};
 use crate::neural_actor_system::{NeuralActor, CognitivePattern, NeuralActorSystem};
 use crate::neural_memory::{NeuralMemory, MemoryType, ExperienceData};
 use crate::neural_consensus::{NeuralConsensus, ConsensusResult};
-use crate::gpu::compute_service::ComputeService;
+// ComputeService import removed - module doesn't exist
 
 /// Neural swarm topology types
 #[derive(Debug, Clone, Serialize, Deserialize)]

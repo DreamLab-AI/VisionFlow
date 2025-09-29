@@ -323,7 +323,7 @@ pub struct NeuralMemory {
     pub memory_store: Arc<RwLock<HashMap<String, MemoryEntry>>>,
     pub memory_index: Arc<RwLock<HashMap<MemoryType, Vec<String>>>>,
     pub cognitive_index: Arc<RwLock<HashMap<CognitivePattern, Vec<String>>>>,
-    pub temporal_index: Arc<RwLock<VecDeque<(DateTime<Utc>, String)>>>>,
+    pub temporal_index: Arc<RwLock<VecDeque<(DateTime<Utc>, String)>>>,
     pub importance_index: Arc<RwLock<Vec<(f32, String)>>>,
     pub cache: Arc<Mutex<LruCache<String, MemoryEntry>>>,
     pub statistics: Arc<RwLock<MemoryStatistics>>,
