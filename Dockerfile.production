@@ -1,109 +1,44 @@
-FROM nvidia/cuda:12.8.1-devel-ubuntu22.04 as builder
+# Production Dockerfile - Based on dev image for consistency
+FROM ar-ai-knowledge-graph-webxr:latest AS dev_image
+
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=${RUST_LOG:-info} \
+    RUST_LOG=${RUST_LOG:-warn} \
     PATH="/root/.cargo/bin:${PATH}" \
     NVIDIA_DRIVER_CAPABILITIES=all \
     CUDA_HOME=/usr/local/cuda \
     NODE_ENV=production
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    git \
-    build-essential \
-    gcc-11 \
-    g++-11 \
-    pkg-config \
-    libssl-dev \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set gcc-11 as default compiler (needed for CUDA compilation)
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
-
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
-
-# Install Rust (latest stable)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-
-# Create app directory
-WORKDIR /build
-
-# Copy Rust files
-COPY Cargo.toml ./
-COPY src ./src
-
-# Copy client files for frontend build
-COPY client ./client
-
-# Build client (production mode)
-WORKDIR /build/client
-# Temporarily set NODE_ENV=development for install to ensure devDeps, then run build
-RUN NODE_ENV=development npm install && \
-    npm run build
-
-# Build Rust server (release mode with GPU features)
-WORKDIR /build
-# Set CUDA_ARCH for build.rs to compile PTX
-ARG CUDA_ARCH=86
-ENV CUDA_ARCH=${CUDA_ARCH}
-# Build with GPU features
-RUN cargo build --release --features gpu
-
-# PTX compilation is handled by build.rs during cargo build
-# No separate PTX compilation needed
-
-# Second stage: runtime image
-FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=warn \
-    NODE_ENV=production \
-    NVIDIA_DRIVER_CAPABILITIES=all
-
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     nginx \
+    netcat-openbsd \
     ca-certificates \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
-WORKDIR /app
-
 # Create necessary directories
+WORKDIR /app
 RUN mkdir -p /app/data/markdown \
     /app/data/metadata \
     /app/data/runtime \
     /app/user_settings \
-    /app/client/dist \
-    /app/src/utils \
-    /app/src/utils/ptx
+    /app/logs \
+    /var/log/nginx \
+    /var/run/nginx
 
-# Copy built artifacts from builder stage
-COPY --from=builder /build/target/release/webxr /app/webxr
-COPY --from=builder /build/client/dist /app/client/dist
-# Copy CUDA source file for runtime compilation fallback
-COPY --from=builder /build/src/utils/visionflow_unified.cu /app/src/utils/visionflow_unified.cu
+# Copy built files from dev image
+COPY --from=dev_image /app/target/release/webxr /app/webxr
+COPY --from=dev_image /app/client/dist /app/client/dist
+COPY --from=dev_image /app/src/utils/ptx /app/src/utils/ptx
 
-# Copy settings file
+# Copy configuration files
 COPY data/settings.yaml /app/settings.yaml
-
-# Copy nginx configuration for production
 COPY nginx.production.conf /etc/nginx/nginx.conf
-
-# Copy startup script
-COPY scripts/start.sh /app/start.sh
+COPY scripts/production-startup.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# Expose port
 EXPOSE 4000
 
-# Set entrypoint
 ENTRYPOINT ["/app/start.sh"]
