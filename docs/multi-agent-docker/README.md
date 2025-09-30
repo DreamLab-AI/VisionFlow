@@ -520,7 +520,7 @@ docker exec multi-agent-container node /app/core-assets/scripts/secure-client-ex
 ### 📖 Security Documentation
 
 For detailed security information, see:
-- [SECURITY.md](SECURITY.md) - Comprehensive security guide
+- [Security Guide](../guides/security.md) - Comprehensive security guide
 - [.env.example](.env.example) - Complete configuration reference
 
 ### 🚨 Security Best Practices

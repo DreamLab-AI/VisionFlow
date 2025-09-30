@@ -2214,7 +2214,7 @@ docker exec multi-agent-container netstat -tulnp
 - `README.md` - User guide
 - `ARCHITECTURE.md` - System architecture
 - `TROUBLESHOOTING.md` - Detailed troubleshooting
-- `SECURITY.md` - Security configuration
+- [Security Configuration](../guides/security.md) - Security configuration
 - `TOOLS.md` - Available MCP tools
 
 **View logs**:
