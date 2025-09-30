@@ -237,7 +237,7 @@ impl AgentVisualizationProcessor {
                 // Random position in a sphere to prevent stacking
                 use rand::Rng;
                 let mut rng = rand::thread_rng();
-                let radius = 100.0; // Spread agents over 100 unit radius
+                let radius = 30.0; // Smaller radius for faster settling (was 100.0)
                 let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
                 let phi = rng.gen::<f32>() * std::f32::consts::PI;
                 let r = rng.gen::<f32>().powf(1.0/3.0) * radius; // Uniform sphere distribution
@@ -483,12 +483,12 @@ impl AgentVisualizationProcessor {
             agents: processed_agents,
             connections,
             physics_config: PhysicsConfig {
-                spring_k: 0.3,
-                link_distance: 25.0,
-                damping: 0.92,
-                repel_k: 20.0,
-                gravity_k: 0.08,
-                max_velocity: 0.8,
+                spring_k: 0.05,
+                link_distance: 50.0,
+                damping: 0.9,
+                repel_k: 5000.0,      // Strong repulsion for agent separation
+                gravity_k: 0.001,     // Weak center gravity to allow spreading
+                max_velocity: 10.0,   // Allow fast movement for quick settling
             },
             visual_config: self.create_visual_config(),
         }
