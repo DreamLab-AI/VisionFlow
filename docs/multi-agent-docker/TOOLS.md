@@ -120,14 +120,25 @@ Utilities for working with lightweight, embedded databases.
 
 This section provides a reference for the specialised MCP tools designed for AI agent orchestration. These tools often act as wrappers or bridges to the more general tools listed above.
 
-| Tool Name | Type | Source File | Purpose |
-| :--- | :--- | :--- | :--- |
-| `blender-mcp` | Bridge | `core-assets/scripts/mcp-blender-client.js` | 3D modelling and rendering via external Blender instance. |
-| `qgis-mcp` | Bridge | `core-assets/mcp-tools/qgis_mcp.py` | Geospatial analysis via external QGIS instance. |
-| `pbr-generator-mcp`| Bridge | `core-assets/mcp-tools/pbr_mcp_client.py` | PBR texture generation via external service. |
-| `kicad-mcp` | Direct | `core-assets/mcp-tools/kicad_mcp.py` | Electronic Design Automation (EDA) using KiCad CLI. |
-| `ngspice-mcp` | Direct | `core-assets/mcp-tools/ngspice_mcp.py` | Circuit simulation using NGSpice. |
-| `imagemagick-mcp` | Direct | `core-assets/mcp-tools/imagemagick_mcp.py` | Image creation and manipulation using ImageMagick. |
+### MCP Server Status
+
+| Tool Name | Status | Type | Container | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `claude-flow` | ✅ Working | Direct | multi-agent | AI orchestration with memory and GOAP planning |
+| `ruv-swarm` | ✅ Working | Direct | multi-agent | Multi-agent coordination and swarm intelligence |
+| `flow-nexus` | ✅ Working | Direct | multi-agent | Workflow orchestration and task management |
+| `playwright-mcp` | ✅ Working | Bridge | gui-tools | Browser automation and web scraping |
+| `blender-mcp` | ⏳ GUI-dependent | Bridge | gui-tools | 3D modelling and rendering via external Blender instance |
+| `qgis-mcp` | ⏳ GUI-dependent | Bridge | gui-tools | Geospatial analysis via external QGIS instance |
+| `pbr-generator-mcp`| ⏳ GUI-dependent | Bridge | gui-tools | PBR texture generation via external service |
+| `kicad-mcp` | ⏳ GUI-dependent | Bridge | gui-tools | Electronic Design Automation (EDA) using KiCad CLI |
+| `imagemagick-mcp` | ⏳ GUI-dependent | Bridge | gui-tools | Image creation and manipulation using ImageMagick |
+
+**Status Legend**:
+- ✅ **Working**: Available immediately after container startup
+- ⏳ **GUI-dependent**: Will show soft-fail timeout warnings until `gui-tools-container` services are fully initialized (30-60 seconds)
+
+**Note**: GUI-dependent tools auto-recover once the GUI container is ready. Timeout warnings during startup are expected behavior and do not affect core MCP functionality.
 
 ### 2.1. `blender-mcp`
 

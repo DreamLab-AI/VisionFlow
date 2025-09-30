@@ -72,10 +72,11 @@ graph TB
 
 #### Supervisord
 - **Purpose**: Manages long-running background services
-- **Managed Services**: WebSocket Bridge (mcp-ws-relay)
+- **Managed Services**: WebSocket Bridge (mcp-ws-relay), TCP Server (mcp-tcp-server), GUI proxies, Claude Flow TCP
 - **Configuration**: `/etc/supervisor/conf.d/supervisord.conf`
-- **Logs**: `/app/mcp-logs/`
-- **User Management**: Runs as `dev` user with proper socket permissions
+- **Logging**: All program logs redirect to **stdout/stderr** (`/dev/stdout`, `/dev/stderr`)
+- **Monitoring**: Use `docker logs multi-agent-container` for unified log access
+- **User Management**: Runs as `dev` user with proper socket permissions at `/workspace/.supervisor/supervisor.sock`
 
 ```mermaid
 sequenceDiagram
@@ -317,12 +318,19 @@ if __name__ == "__main__":
 1. **Supervisord Connection Refused**
    - Check if supervisord is running: `ps aux | grep supervisord`
    - Verify socket exists: `ls -la /workspace/.supervisor/`
+   - View supervisord logs: `docker logs multi-agent-container | grep supervisord`
 
 2. **MCP Tool Not Found**
    - Verify tool is defined in `.mcp.json`
    - Check Claude Flow tools: `./node_modules/.bin/claude-flow mcp tools`
 
-3. **External Application Connection Failed**
+3. **GUI-dependent MCP Tools Timeout**
+   - **Expected behavior**: Blender, QGIS, KiCad, ImageMagick show timeout warnings until GUI container initializes
+   - Check GUI container: `docker ps | grep gui-tools-container`
+   - View GUI logs: `docker logs gui-tools-container`
+   - Services auto-recover when GUI container is ready
+
+4. **External Application Connection Failed**
    - Ensure external application is running
    - Check network connectivity
    - Verify port numbers match configuration
@@ -333,8 +341,13 @@ if __name__ == "__main__":
 # Check supervisord status
 supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status
 
-# View supervisord logs
-tail -f /app/mcp-logs/supervisord.log
+# View all service logs (from host machine)
+docker logs multi-agent-container
+docker logs -f multi-agent-container  # Follow in real-time
+docker logs --tail 100 multi-agent-container  # Last 100 lines
+
+# View logs from inside container
+# (All logs now stream to docker logs - no separate log files)
 
 # List all available MCP tools
 ./mcp-helper.sh list-tools

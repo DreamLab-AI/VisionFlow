@@ -27,15 +27,20 @@ This environment utilizes a sophisticated dual-container architecture to separat
 
 Your capabilities are defined by the MCP tools available in your container. These tools fall into two categories:
 
--   **Direct Tools:** These are self-contained command-line tools that run directly within your container.
-    -   `imagemagick-mcp`: For all image manipulation tasks.
-    -   `kicad-mcp`: For electronic design automation (EDA).
-    -   `ngspice-mcp`: For circuit simulation.
+-   **Core Tools (Always Available):** These tools are immediately available after container startup.
+    -   `claude-flow`: AI orchestration with memory and GOAP planning
+    -   `ruv-swarm`: Multi-agent coordination and swarm intelligence
+    -   `flow-nexus`: Workflow orchestration and task management
+    -   `playwright-mcp`: Browser automation (runs in GUI container but available immediately)
 
--   **Bridge Tools:** These tools connect to services running in the `gui-tools-container`.
-    -   `blender-mcp`: Your interface to the Blender 3D application.
-    -   `qgis-mcp`: Your interface to the QGIS geospatial application.
-    -   `pbr-generator-mcp`: Your interface to the PBR texture generation service.
+-   **GUI-Dependent Tools (Soft-Fail on Startup):** These tools connect to services running in the `gui-tools-container` and show timeout warnings during initialization.
+    -   `blender-mcp`: 3D modeling and rendering via external Blender
+    -   `qgis-mcp`: Geospatial analysis via external QGIS
+    -   `pbr-generator-mcp`: PBR texture generation service
+    -   `kicad-mcp`: Electronic design automation (EDA)
+    -   `imagemagick-mcp`: Image manipulation tasks
+
+**Startup Behavior**: GUI-dependent tools will show timeout warnings for 30-60 seconds while the GUI container initializes. This is expected and normal. Services auto-recover once ready.
 
 ## 4. Your Operational Directives
 
@@ -45,4 +50,42 @@ Your capabilities are defined by the MCP tools available in your container. Thes
 4.  **Diagnose Failures:**
     *   If a **direct tool** fails, check your command's syntax and parameters.
     *   If a **bridge tool** fails, the issue is likely in the `gui-tools-container`. The service might be down or there could be a network issue. You cannot fix this directly, but you can report the failure to the user, mentioning the bridge pattern.
+    *   **GUI Tool Timeout Warnings**: If you see timeout warnings for Blender, QGIS, KiCad, or ImageMagick during startup, this is **expected behavior**. These tools require 30-60 seconds to initialize in the GUI container. They will auto-recover once ready.
 5.  **Leverage the Full Toolchain:** You have a powerful suite of EDA, 2D/3D, and geospatial tools. Analyze the user's request to determine the optimal combination of MCP services to achieve the goal.
+
+## 5. Logging and Monitoring
+
+### Unified Logging Architecture
+
+All services now log to **stdout/stderr** for unified monitoring:
+
+```bash
+# View all container logs (from host)
+docker logs multi-agent-container
+docker logs -f multi-agent-container  # Follow in real-time
+
+# View timestamped logs
+docker logs -t multi-agent-container
+
+# Last N lines
+docker logs --tail 100 multi-agent-container
+```
+
+**Key Points**:
+- No separate log files in `/app/mcp-logs/` (deprecated)
+- Supervisord logs to `/dev/stdout` and `/dev/stderr`
+- All MCP services redirect to stdout/stderr
+- Use `docker logs` for unified log access
+
+### Service Status Check
+
+```bash
+# Inside container - check all services
+supervisorctl status
+
+# View specific service output
+supervisorctl tail -f mcp-tcp-server
+
+# Restart a service
+supervisorctl restart mcp-ws-bridge
+```

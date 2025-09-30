@@ -56,11 +56,30 @@ RUN apt-get update && \
     wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 && \
     chmod +x /usr/local/bin/hadolint
 
-# 3. Create dev user with single consolidated setup
+# 3. Create dev user with idempotent setup (handles existing UID/GID)
 ARG HOST_UID=1000
 ARG HOST_GID=1000
-RUN groupadd -g ${HOST_GID} dev && \
-    useradd -m -u ${HOST_UID} -g dev -s /bin/bash dev && \
+RUN \
+    # Idempotent group creation
+    if getent group ${HOST_GID} >/dev/null; then \
+        if [ "$(getent group ${HOST_GID} | cut -d: -f1)" != "dev" ]; then \
+            groupmod -n dev "$(getent group ${HOST_GID} | cut -d: -f1)"; \
+        fi; \
+    else \
+        groupadd -g ${HOST_GID} dev; \
+    fi && \
+    \
+    # Idempotent user creation
+    if getent passwd ${HOST_UID} >/dev/null; then \
+        EXISTING_USER=$(getent passwd ${HOST_UID} | cut -d: -f1) && \
+        if [ "$EXISTING_USER" != "dev" ]; then \
+            usermod -l dev -d /home/dev -m "$EXISTING_USER" && \
+            usermod -g dev dev; \
+        fi; \
+    else \
+        useradd --uid ${HOST_UID} --gid ${HOST_GID} -m -s /bin/bash dev; \
+    fi && \
+    \
     usermod -aG sudo dev && \
     echo "dev ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/dev && \
     chmod 0440 /etc/sudoers.d/dev && \
@@ -97,7 +116,7 @@ RUN chmod +x /entrypoint.sh /app/setup-workspace.sh /app/mcp-helper.sh /app/core
 COPY package.json package-lock.json* ./
 RUN npm cache clean --force && \
     npm install --production && \
-    npm install -g . @clduab11/gemini-flow claude-flow@latest playwright@latest @executeautomation/playwright-mcp-server goalie && \
+    npm install -g . @clduab11/gemini-flow claude-flow@latest ruv-swarm@latest flow-nexus@latest playwright@latest @executeautomation/playwright-mcp-server goalie && \
     npm cache clean --force
 
 # Apply build-time claude-flow patches

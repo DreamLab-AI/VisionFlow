@@ -85,6 +85,31 @@ The Multi-Agent Docker Environment consists of two primary containers orchestrat
 
 ---
 
+## Resource Configuration
+
+### Default Resource Allocation
+
+Both containers default to **16GB RAM** and **4 CPUs** for optimal AI workload performance.
+
+**Configuration**: Set via environment variables in `.env` file:
+
+```bash
+# Resource allocation (defaults shown)
+DOCKER_MEMORY=16g    # Memory per container
+DOCKER_CPUS=4        # CPU cores per container
+```
+
+**Requirements**:
+- **Minimum**: 8GB RAM, 2 CPUs (basic functionality)
+- **Recommended**: 16GB RAM, 4 CPUs (optimal AI workflows)
+- **Production**: 32GB+ RAM, 8+ CPUs, NVIDIA GPU (full acceleration)
+
+**Applied to**:
+- `multi-agent-container`: AI orchestration, MCP servers, development tools
+- `gui-tools-container`: Blender, QGIS, Playwright, PBR generation
+
+---
+
 ## Directory Structure
 
 ```
@@ -227,9 +252,49 @@ Proxy services connecting to GUI container tools.
    ↓
 3. gui-proxies group starts (parallel)
    - All proxy services wait for GUI container
+   - Soft-fail with timeout warnings expected (30-60s)
    ↓
 4. Health checks begin (30s intervals)
+   ↓
+5. GUI container ready
+   - Proxy services auto-recover and become available
 ```
+
+### Logging Architecture
+
+**Unified stdout/stderr Logging**: All services log to Docker's logging driver for centralized monitoring.
+
+**Configuration** (supervisord.conf):
+```ini
+[supervisord]
+logfile=/dev/stdout           # Supervisord master log
+logfile_maxbytes=0            # No rotation (Docker handles it)
+
+[program:*]
+stdout_logfile=/dev/stdout    # Service stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr    # Service stderr
+stderr_logfile_maxbytes=0
+```
+
+**Monitoring Commands**:
+```bash
+# From host - view all logs
+docker logs multi-agent-container
+docker logs -f multi-agent-container      # Follow in real-time
+docker logs --tail 100 multi-agent-container  # Last 100 lines
+docker logs -t multi-agent-container      # With timestamps
+
+# From container - supervisord status
+supervisorctl status
+supervisorctl tail -f mcp-tcp-server
+```
+
+**Benefits**:
+- Unified log access via `docker logs`
+- Timestamps automatically added by Docker
+- Integration with log aggregation tools (Fluentd, Logstash, etc.)
+- No separate log file management required
 
 ---
 

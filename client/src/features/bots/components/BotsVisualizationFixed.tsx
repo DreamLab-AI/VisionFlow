@@ -419,6 +419,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const lastPositionRef = useRef<THREE.Vector3>();
   const currentPositionRef = useRef<THREE.Vector3>(position.clone());
   const targetPositionRef = useRef<THREE.Vector3>(position.clone());
+  const settings = useSettingsStore(state => state.settings);
 
   // Enhanced health-based glow color with more precise mapping
   const glowColor = useMemo(() => {
