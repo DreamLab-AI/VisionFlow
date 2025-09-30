@@ -370,6 +370,17 @@ alias playwright-proxy-logs='tail -f /app/mcp-logs/playwright-proxy.log'
 alias playwright-stack-test='/app/core-assets/scripts/test-playwright-stack.sh'
 alias playwright-visual='echo "Playwright visual mode runs in GUI container. Connect via VNC on port 5901 for visual access."'
 
+# Goalie Research Commands (MCP only, no TCP server)
+alias goalie-search='goalie search'
+alias goalie-quick='goalie query'
+alias goalie-reasoning='goalie reasoning'
+
+# CLAUDE.md Resilience
+alias claude-md-status='supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status claude-md-watcher'
+alias claude-md-logs='tail -f /app/mcp-logs/claude-md-watcher.log'
+alias claude-md-verify='grep -c "SYSTEM_TOOLS_MANIFEST" /workspace/CLAUDE.md'
+alias claude-md-repair='/app/core-assets/scripts/claude-md-patcher.sh'
+
 # Quick MCP testing functions
 mcp-test-tcp() {
     local port=${1:-9500}
@@ -379,6 +390,10 @@ mcp-test-tcp() {
 mcp-test-health() {
     echo "Testing MCP health endpoint..."
     curl -s http://127.0.0.1:9501/health | jq . 2>/dev/null || curl -s http://127.0.0.1:9501/health
+}
+goalie-research() {
+    echo "Performing deep research: $1"
+    goalie search "$1" --max-results 15 --save
 }
 
 # Toolchain validation function
@@ -413,10 +428,9 @@ add_mcp_aliases
 # 5. Validate and fix Rust toolchain availability
 # This is now handled in the Dockerfile
 
-# 6. Update CLAUDE.md with service and context info
+# 6. Update CLAUDE.md with compact tool manifest
 update_claude_md() {
     local claude_md="./CLAUDE.md"
-    local marker="## 🔌 Additional Services & Development Context"
 
     if [ "${SETUP_APPEND_CLAUDE_DOC:-true}" != "true" ]; then
         log_info "Skipping CLAUDE.md updates (SETUP_APPEND_CLAUDE_DOC is not 'true')"
@@ -424,139 +438,15 @@ update_claude_md() {
     fi
 
     if [ ! -f "$claude_md" ]; then
-        log_warning "CLAUDE.md not found, cannot append info."
+        log_warning "CLAUDE.md not found, cannot patch."
         return 1
     fi
 
-    if grep -q "$marker" "$claude_md"; then
-        log_info "CLAUDE.md already contains additional services info"
-        return 0
-    fi
+    if dry_run_log "Would patch $claude_md with compact tool manifest"; then return 0; fi
 
-    if dry_run_log "Would append service and context info to $claude_md"; then return 0; fi
-
-    cat >> "$claude_md" << 'EOF'
-
-## 🔌 Additional Services & Development Context
-
-This environment is enhanced with several services and a specific development workflow.
-
-### MCP Services Available
-- **TCP Server**: `localhost:9500` for external controllers.
-- **WebSocket Bridge**: `localhost:3002` for browser-based tools.
-- **Health Check**: `localhost:9501/health` for service monitoring.
-- **GUI Tools**: via `gui-tools-service` (Blender:9876, QGIS:9877, PBR:9878).
-- **Playwright**: via `playwright` (Proxy: 9879).
-- **Chrome DevTools**: via `chrome-devtools-mcp` (Proxy: 9222).
-
-### Claude-Flow v110 Features
-This environment includes Claude-Flow v110 with advanced AI capabilities:
-
-#### 🎯 Goal Planner Agent
-- Applies Goal-Oriented Action Planning (GOAP) with A* pathfinding
-- Evaluates current state and calculates optimal action sequences
-- Adapts dynamically when conditions change or steps fail
-- Perfect for deployments, migrations, and complex workflows
-
-#### 🧠 SAFLA Neural Agent
-- Four-tier memory architecture: vector, episodic, semantic, and working memory
-- Accumulates knowledge and recognizes patterns across sessions
-- Creates self-improving code assistants that learn your style
-- Enables distributed swarms with collective intelligence
-
-### 🎭 Playwright MCP Integration
-Powerful browser automation available in two modes:
-
-#### Headless Mode (Default)
-- **Local execution**: Run browser automation directly in the main container
-- **Fast performance**: No network overhead, direct browser control
-- **Automated testing**: Perfect for CI/CD and automated workflows
-- **Resource efficient**: Lower memory usage without GUI overhead
-
-#### Visual Mode (via GUI Container)
-- **Real-time visualization**: See browser actions through VNC (port 5901)
-- **Cross-browser testing**: Chromium, Firefox, and WebKit with visual feedback
-- **Interactive debugging**: Pause and inspect during automation
-- **Visual selector development**: Point-and-click to create selectors
-- **DevTools access**: Full browser developer tools available
-
-#### Enhanced Capabilities
-- **Native dialogs**: Handle file pickers, print dialogs (visual mode)
-- **Complex interactions**: Drag & drop, hover effects with confirmation
-- **Multi-window support**: Popup handling and tab management
-- **Screenshot/video recording**: Capture automation runs
-- **GPU acceleration**: Faster rendering for complex web apps (visual mode)
-
-#### MCP Server Access
-- **Two configurations**: `playwright` (headless) and `playwright-visual` (GUI)
-- **Page navigation**: `playwright_navigate`, `playwright_click`, `playwright_fill`
-- **Element interaction**: Forms, buttons, dropdowns
-- **Script evaluation**: Execute JavaScript and get results
-- **Session management**: Persistent browser contexts across tests
-
-### 🕵️ Chrome DevTools MCP Integration (Visual Mode)
-Inspect and debug web pages with the Chrome DevTools Protocol:
-
-#### Features
-- **Live DOM inspection**: View and modify the DOM in real-time.
-- **JavaScript debugging**: Set breakpoints, step through code, and inspect variables.
-- **Network monitoring**: Analyze network requests and performance.
-- **Performance profiling**: Identify and fix performance bottlenecks.
-
-#### MCP Server Access
-- **Proxy connection**: Seamless integration from the main container.
-- **Direct protocol access**: Send raw Chrome DevTools Protocol commands.
-
-### Development Context
-- **Project Root**: Your project is mounted at `ext/`.
-- **Always read the current state of ext/task.md**
-- **Always update task.md with your progress, removing elements that are confirmed as working by the user**
-- **Execution Environment**: Claude operates within this Docker container. It cannot build external Docker images or see services running on your host machine.
-- **Available Toolchains**: You can validate your code using tools inside this container, such as `cargo check`, `npm test`, or `python -m py_compile`.
-
-### 🤖 Automated Setup
-This environment features comprehensive automated setup that runs on container startup:
-
-#### What's Automated
-- **Claude Authentication**: Credentials from .env are automatically configured
-- **Workspace Configuration**: Claude project settings and MCP alignment
-- **AI Agents**: Goal Planner and SAFLA Neural agents are initialized
-- **Service Management**: All MCP services start automatically with health monitoring
-- **Development Tools**: Git configuration, shortcuts, and example projects
-
-#### Monitoring Automation
-- **Check Status**: Run `setup-status` to see automation progress
-- **View Logs**: Run `setup-logs` to watch setup in real-time
-- **Re-run Setup**: Run `rerun-setup` if needed
-
-#### Automation Markers
-The system tracks setup progress with these markers:
-- `/workspace/.claude_configured` - Claude workspace is set up
-- `/workspace/.swarm/.agents_initialized` - AI agents are ready
-- `/workspace/.full_setup_completed` - Full automation completed
-
-### Quick Commands
-```bash
-# Check code without a full build
-cargo check         # For Rust projects in ext/
-npm run test        # For Node.js projects in ext/
-
-# Manage and test MCP services
-mcp-tcp-status
-mcp-test-health
-validate-toolchains
-
-# Initialize Claude-Flow v110 agents
-claude-flow-init-agents  # Initialize Goal Planner and Neural agents
-
-# Playwright MCP commands
-playwright-test         # Test Playwright headless mode locally
-playwright-vnc          # Connect to VNC for visual browser access (GUI mode)
-playwright-proxy-status # Check proxy connection status (GUI mode)
-playwright-proxy-logs   # View proxy logs (GUI mode)
-```
-EOF
-    log_success "Appended service and context info to CLAUDE.md"
+    # Use the compact patcher
+    /app/core-assets/scripts/claude-md-patcher.sh
+    log_success "CLAUDE.md patched with compact tool manifest"
 }
 
 update_claude_md
@@ -588,289 +478,9 @@ else
     dry_run_log "Would ensure claude-flow is installed globally"
 fi
 
-# 8. Patch MCP server to fix hardcoded version and method routing
-patch_mcp_server() {
-    log_info "🔧 Patching MCP server to fix version, method routing, and agent tracking..."
-
-    # Check the node_modules installation
-    local mcp_server_path="/app/node_modules/claude-flow/src/mcp/mcp-server.js"
-    
-    if [ ! -f "$mcp_server_path" ]; then
-        log_info "Node modules installation not found, checking for global installation..."
-        mcp_server_path="/usr/lib/node_modules/claude-flow/src/mcp/mcp-server.js"
-    fi
-
-    if [ -z "$mcp_server_path" ] || [ ! -f "$mcp_server_path" ]; then
-        log_warning "MCP server not found, skipping patches"
-        return 1
-    fi
-
-    log_info "Found MCP server at: $mcp_server_path"
-
-    if dry_run_log "Would patch MCP server at $mcp_server_path"; then return 0; fi
-
-    # Patch 1: Fix hardcoded version
-    if grep -q "this.version = '2.0.0-alpha.59'" "$mcp_server_path"; then
-        log_info "Patching hardcoded version..."
-        sed -i.bak "s|this.version = '2.0.0-alpha.59'|// PATCHED: Dynamic version from package.json\n    try {\n      this.version = require('../../package.json').version;\n    } catch (e) {\n      this.version = '2.0.0-alpha.101'; // Fallback\n    }|" "$mcp_server_path"
-        log_success "Patched MCP server version"
-    else
-        log_info "Version patch already applied or not needed"
-    fi
-
-    # Patch 2: Fix method routing to support direct tool calls
-    if ! grep -q "PATCHED: Check if method is a direct tool call" "$mcp_server_path"; then
-        log_info "Patching method routing for direct tool calls..."
-
-        # Create a temporary file with the patch
-        cat > /tmp/mcp_patch.txt << 'PATCH_EOF'
-        default:
-          // PATCHED: Check if method is a direct tool call
-          if (this.tools[method]) {
-            console.error(
-              `[${new Date().toISOString()}] INFO [claude-flow-mcp] Direct tool call: ${method}`
-            );
-            // Route direct tool calls to handleToolCall
-            return this.handleToolCall(id, { name: method, arguments: params });
-          }
-          return this.createErrorResponse(id, -32601, 'Method not found');
-PATCH_EOF
-
-        # Apply the patch by replacing the default case in handleMessage
-        awk '
-        /default:.*Method not found/ {
-            while ((getline line < "/tmp/mcp_patch.txt") > 0) {
-                print line
-            }
-            close("/tmp/mcp_patch.txt")
-            # Skip the original line
-            next
-        }
-        { print }
-        ' "$mcp_server_path" > "${mcp_server_path}.patched"
-
-        if [ -f "${mcp_server_path}.patched" ]; then
-            mv "${mcp_server_path}.patched" "$mcp_server_path"
-            log_success "Patched MCP server method routing"
-        else
-            log_warning "Failed to apply method routing patch"
-        fi
-
-        rm -f /tmp/mcp_patch.txt
-    else
-        log_info "Method routing patch already applied"
-    fi
-
-    # Patch 3: Fix agent_list to properly query database instead of returning mock data
-    if grep -q "// Fallback mock response" "$mcp_server_path"; then
-        log_info "Patching agent_list to use real database queries..."
-        
-        # Create backup
-        cp "$mcp_server_path" "${mcp_server_path}.bak.$(date +%s)"
-        
-        # Use a more robust patching method that preserves the switch statement structure
-        log_info "Creating agent_list patch file..."
-        
-        # Create a temporary patch file
-        cat > /tmp/agent_list_patch.js << 'AGENT_PATCH_EOF'
-        // PATCHED: Query database directly for agents
-        try {
-          const swarmId = args.swarmId || await this.getActiveSwarmId();
-          if (!swarmId) {
-            // No swarm specified, list all agents from database
-            const allEntries = await this.memoryStore.list();  // No namespace needed
-            const agents = allEntries.filter(entry => entry.key.startsWith("agent:")).map(entry => {
-              try {
-                const data = typeof entry.value === "string" ? JSON.parse(entry.value) : entry.value;
-                return {
-                  id: data.id || entry.key.split(":").pop(),
-                  name: data.name || "unknown",
-                  type: data.type || "agent",
-                  status: data.status || "unknown",
-                  capabilities: data.capabilities || [],
-                  swarmId: entry.key.split(":")[1] || "unknown"
-                };
-              } catch (e) {
-                return null;
-              }
-            }).filter(Boolean);
-            
-            return {
-              success: true,
-              swarmId: "all",
-              agents: agents,
-              count: agents.length,
-              timestamp: new Date().toISOString(),
-            };
-          }
-          
-          // Query agents for specific swarm
-          const prefix = `agent:${swarmId}:`;
-          const entries = await this.memoryStore.list();  // No namespace needed
-          const swarmAgents = entries.filter(entry => entry.key.startsWith(prefix)).map(entry => {
-            try {
-              const data = typeof entry.value === "string" ? JSON.parse(entry.value) : entry.value;
-              return {
-                id: data.id || entry.key.split(":").pop(),
-                name: data.name || "unknown",
-                type: data.type || "agent",
-                status: data.status || "active",
-                capabilities: data.capabilities || []
-              };
-            } catch (e) {
-              return null;
-            }
-          }).filter(Boolean);
-          
-          return {
-            success: true,
-            swarmId: swarmId,
-            agents: swarmAgents,
-            count: swarmAgents.length,
-            timestamp: new Date().toISOString(),
-          };
-        } catch (error) {
-          console.error("Failed to query agents:", error);
-          return {
-            success: false,
-            error: error.message,
-            agents: [],
-            timestamp: new Date().toISOString(),
-          };
-        }
-AGENT_PATCH_EOF
-        
-        # Use awk to replace the mock response section while preserving case statement structure
-        awk '
-        BEGIN { in_mock = 0; skip = 0 }
-        /\/\/ Fallback mock response/ { in_mock = 1; skip = 1; next }
-        in_mock && /timestamp: new Date\(\)\.toISOString\(\),/ { 
-            skip = 1
-            # Read and insert the patch content
-            while ((getline line < "/tmp/agent_list_patch.js") > 0) {
-                print "        " line
-            }
-            close("/tmp/agent_list_patch.js")
-            in_mock = 0
-            next
-        }
-        in_mock { skip = 1; next }
-        !skip { print }
-        { skip = 0 }
-        ' "$mcp_server_path" > "${mcp_server_path}.patched"
-        
-        if [ -f "${mcp_server_path}.patched" ] && [ -s "${mcp_server_path}.patched" ]; then
-            mv "${mcp_server_path}.patched" "$mcp_server_path"
-            log_success "Patched agent_list to use real database queries"
-        else
-            log_error "Failed to patch agent_list - patch file empty or missing"
-            [ -f "${mcp_server_path}.patched" ] && rm -f "${mcp_server_path}.patched"
-        fi
-        
-        rm -f /tmp/agent_list_patch.js
-    else
-        log_info "Agent tracking patch already applied or not needed"
-    fi
-
-    # Patch 4: Implement terminal_execute to actually run commands
-    if ! grep -q "PATCHED: terminal_execute implementation" "$mcp_server_path"; then
-        log_info "Patching terminal_execute to actually execute commands..."
-        
-        # Use a more targeted approach - find the line number of the default case in executeTool
-        local default_line=$(awk '/async executeTool\(name, args\) {/,/^  \}$/ {if (/^      default:$/) print NR}' "$mcp_server_path" | tail -1)
-        
-        if [ -n "$default_line" ]; then
-            log_info "Found default case at line $default_line"
-            
-            # Create the terminal_execute implementation
-            cat > /tmp/terminal_execute_impl.txt << 'EOF'
-      case 'terminal_execute':
-        // PATCHED: terminal_execute implementation
-        console.error(
-          `[${new Date().toISOString()}] INFO [claude-flow-mcp] Executing command: ${args.command} ${(args.args || []).join(' ')}`
-        );
-        
-        try {
-          const { exec } = await import('child_process');
-          const { promisify } = await import('util');
-          const execAsync = promisify(exec);
-          
-          const command = args.command;
-          const commandArgs = args.args || [];
-          const fullCommand = commandArgs.length > 0 ? `${command} ${commandArgs.join(' ')}` : command;
-          
-          const options = {
-            cwd: process.env.CLAUDE_PROJECT_ROOT || '/workspace',
-            env: {
-              ...process.env,
-              PATH: '/home/dev/.local/bin:/opt/venv312/bin:/home/dev/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-              HOME: '/home/dev',
-              USER: 'dev'
-            },
-            shell: true,
-            maxBuffer: 1024 * 1024 * 10 // 10MB buffer
-          };
-          
-          try {
-            const { stdout, stderr } = await execAsync(fullCommand, options);
-            return {
-              success: true,
-              tool: 'terminal_execute',
-              command: command,
-              args: commandArgs,
-              stdout: stdout || '',
-              stderr: stderr || '',
-              exitCode: 0,
-              timestamp: new Date().toISOString()
-            };
-          } catch (error) {
-            return {
-              success: false,
-              tool: 'terminal_execute',
-              command: command,
-              args: commandArgs,
-              stdout: error.stdout || '',
-              stderr: error.stderr || error.message,
-              exitCode: error.code || 1,
-              error: error.message,
-              timestamp: new Date().toISOString()
-            };
-          }
-        } catch (error) {
-          console.error(
-            `[${new Date().toISOString()}] ERROR [claude-flow-mcp] terminal_execute failed:`,
-            error
-          );
-          return {
-            success: false,
-            tool: 'terminal_execute',
-            error: error.message,
-            timestamp: new Date().toISOString()
-          };
-        }
-        
-EOF
-
-            # Insert the implementation before the default case
-            sed -i.bak "${default_line}r /tmp/terminal_execute_impl.txt" "$mcp_server_path"
-            rm -f /tmp/terminal_execute_impl.txt
-            
-            log_success "Patched terminal_execute implementation"
-        else
-            log_error "Could not find default case in executeTool function"
-        fi
-    else
-        log_info "terminal_execute patch already applied"
-    fi
-
-    log_info "Patches applied. Restart services with 'mcp-tcp-restart' or by restarting the container if needed."
-}
-
-if [ "$DRY_RUN" = false ]; then
-    patch_mcp_server
-else
-    dry_run_log "Would patch MCP server"
-fi
+# 8. Runtime patching removed - now handled at build time
+# Patches are applied during docker build in the Dockerfile
+log_info "🔧 Runtime patching disabled - patches applied at build time"
 
 # 9. Patch TCP server to use global installation and shared database
 patch_tcp_server() {

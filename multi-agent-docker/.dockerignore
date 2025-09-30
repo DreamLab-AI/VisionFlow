@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+!AGENT-BRIEFING.md
+
+# Workspace runtime
+workspace/.supervisor/
+workspace/.swarm/
+workspace/node_modules/
+workspace/*.log
+
+# Backup files
+*.bak
+*.bak.*
+*~
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+Dockerfile.dev
+docker-compose.*.yml
+
+# Logs
+*.log
+logs/
+
+# Cache
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.npm/
+.cargo/cache/
+
+# Environment
+.env.local
+.env.*.local

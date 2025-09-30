@@ -215,9 +215,35 @@ docker_compose() {
     docker compose --profile "$PROFILE" "${compose_args[@]}" "$@"
 }
 
+# Check cloudflared tunnel
+check_cloudflared() {
+    if [[ "$PROFILE" == "dev" ]]; then
+        # Check if cloudflared is running
+        if ! docker ps | grep -q cloudflared-tunnel; then
+            warning "Cloudflared tunnel is not running"
+            read -p "Would you like to start the cloudflared tunnel for public access? (y/N) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                log "Starting cloudflared tunnel..."
+                # The tunnel will start with docker compose up since we added dev to its profiles
+                return 0
+            else
+                info "Skipping cloudflared tunnel. Access will be local only."
+                # Remove cloudflared from the compose command
+                export SKIP_CLOUDFLARED=true
+            fi
+        else
+            success "Cloudflared tunnel is already running"
+        fi
+    fi
+}
+
 # Start environment
 start_environment() {
     log "Starting $PROFILE environment..."
+
+    # Check if we should start cloudflared
+    check_cloudflared
 
     local up_args=()
 
@@ -292,12 +318,20 @@ show_status() {
     if docker ps -q -f name="$CONTAINER_NAME" &> /dev/null; then
         echo ""
         log "Service URLs:"
-        echo "  Web UI:        http://localhost:4000"
+        if [[ "$PROFILE" == "dev" ]]; then
+            echo "  Vite Dev:      http://localhost:3001"
+            echo "  Web UI:        http://localhost:4000 (mapped to 3001)"
+        else
+            echo "  Web UI:        http://localhost:4000"
+        fi
         echo "  WebSocket:     ws://localhost:4000/ws"
         echo "  Claude Flow:   tcp://localhost:9500"
 
-        if [[ "$PROFILE" == "dev" ]]; then
-            echo "  Vite Dev:      http://localhost:5173"
+        # Check cloudflared status
+        if docker ps | grep -q cloudflared-tunnel; then
+            echo ""
+            success "Cloudflared tunnel is active"
+            echo "  Public URL:    https://www.visionflow.info"
         fi
     fi
 }

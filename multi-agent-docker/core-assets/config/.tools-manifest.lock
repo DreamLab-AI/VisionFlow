@@ -1,0 +1,5 @@
+# Lock file to track manifest version
+# Used by claude-md-watcher to detect when re-patching is needed
+VERSION=1.0.0
+LAST_APPLIED=0
+CHECKSUM=
