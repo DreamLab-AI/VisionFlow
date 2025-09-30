@@ -1,401 +1,133 @@
-
-## ✅ XR SYSTEM FULLY IMPLEMENTED AND DOCUMENTED
-
-**LATEST UPDATE (2025-09-29)**: XR lighting fixed and comprehensive documentation added!
-
-### 🎉 All Issues Resolved:
-1. ✅ Fixed XR lighting issue - added multi-light setup with emissive materials
-2. ✅ Fixed black screen in Quest 3 - transparent background for AR passthrough
-3. ✅ Enhanced material visibility - all objects now have emissive glow
-4. ✅ Improved UI contrast - semi-transparent backgrounds with outlined text
-5. ✅ Complete documentation - architecture, API reference, and setup guides added
-6. ✅ Fixed Quest 3 "Enter VR" button - now using Babylon's built-in WebXR UI button
-7. ✅ Added remote logging system - browser logs now sent to server at ext/logs/client.log
-   - Created RemoteLogger service that captures all console output
-   - Added comprehensive XR debugging info (WebXR support, AR/VR capabilities, Quest detection)
-   - Implemented Rust handler to receive and store logs in ext/logs/client.log
-   - Logs include user agent, session ID, and timestamp for Quest 3 debugging
-
-### 📚 Documentation Added:
-
-1. **Architecture Documentation** (`/docs/architecture/xr-immersive-system.md`)
-   - Complete system architecture overview
-   - Component responsibilities and data flow
-   - Lighting system and material design
-   - WebXR features and Quest 3 integration
-
-2. **Setup Guide** (`/docs/guides/xr-quest3-setup.md`)
-   - Hardware and software requirements
-   - Development setup instructions
-   - Controls and interaction guide
-   - Troubleshooting common issues
-
-3. **API Reference** (`/docs/reference/xr-api.md`)
-   - Complete API documentation for all XR classes
-   - Type definitions and interfaces
-   - Event system documentation
-   - Code examples and usage patterns
-
-### ✅ Completed Implementation Details
-
-#### 1. ✅ Detection and Initialization (COMPLETE & WORKING)
-
-The system for detecting a Quest 3 device and launching the immersive application is robust and well-designed.
-
-*   **`client/src/hooks/useQuest3Integration.ts`**: This hook correctly uses a dedicated service (`quest3AutoDetector`) to check for the device.
-*   **`client/src/services/quest3AutoDetector.ts`**: This service properly checks the user agent and WebXR capabilities (`immersive-ar`) to determine if it's running on a Quest 3. The logic for `shouldAutoStart` is a good feature.
-*   **`client/src/app/App.tsx`**: The main application correctly uses the `useQuest3Integration` hook and a `force=quest3` URL parameter to conditionally render the `<ImmersiveApp />`. This shows a clear and debuggable entry point into the XR experience.
-*   **`client/src/immersive/components/ImmersiveApp.tsx`**: This component correctly initializes the `BabylonScene`, serving as the bridge between the React application and the Babylon.js world.
-
-#### 2. ✅ Session Management (COMPLETE)
-
-**RESOLVED**: File duplication has been eliminated. The implementation is now consolidated in `/babylon/` directory.
-
-*   **`client/src/immersive/babylon/XRManager.ts`**: Single, unified XRManager implementation
-*   Correctly uses `createDefaultXRExperienceAsync` for WebXR setup
-*   Enables hand tracking (`WebXRHandTracking`) with 25-joint system
-*   Sets up observables for controller and hand input
-*   Supports immersive-ar mode for Quest 3 passthrough
-
-#### 3. ✅ Rendering (COMPLETE)
-
-**IMPLEMENTED**: Full graph rendering with dynamic data from the physics engine.
-
-*   **`client/src/immersive/babylon/GraphRenderer.ts`**:
-    *   ✅ Proper instanced mesh implementation for nodes
-    *   ✅ Fixed `setMatrixAt` error with correct Babylon.js API
-    *   ✅ Implemented `getNodePosition` to map nodeIds to Float32Array positions
-    *   ✅ Dynamic node creation from position data when nodes array is empty
-    *   ✅ Edge rendering with LineSystem for performance
-    *   ✅ Label rendering with AdvancedDynamicTexture
-
-#### 4. ✅ Interaction (COMPLETE)
-
-**IMPLEMENTED**: Full XR input handling with node interaction.
-
-*   **`client/src/immersive/babylon/XRManager.ts`**:
-    *   ✅ Ray casting from controllers and hands
-    *   ✅ Node selection with visual feedback
-    *   ✅ Trigger-based interaction (press/release)
-    *   ✅ Squeeze button for UI panel toggle
-    *   ✅ Hand tracking with index finger tip interaction
-    *   ✅ Scene observable for node selection events
-
-#### 5. ✅ UI (In-World) (COMPLETE)
-
-**IMPLEMENTED**: Full 3D UI panel with functional controls.
-
-*   **`client/src/immersive/babylon/XRUI.ts`**:
-    *   ✅ 3D plane with AdvancedDynamicTexture
-    *   ✅ Full control panel with sliders, checkboxes, and buttons
-    *   ✅ Node size and edge opacity sliders
-    *   ✅ Show labels and show bots checkboxes
-    *   ✅ Reset camera button
-    *   ✅ Settings synchronization with `useSettingsStore`
-    *   ✅ Real-time updates from settings changes
-
-#### 6. ✅ Data Flow (COMPLETE)
-
-The data pipeline from the React application to the Babylon.js scene is well-designed, but the final step of consuming that data within the renderer is incomplete.
-
-*   **`client/src/immersive/hooks/useImmersiveData.ts`**: This hook correctly subscribes to `graphDataManager` to get `graphData` and `nodePositions`. This is an excellent pattern for bridging the two environments.
-*   **`client/src/immersive/components/ImmersiveApp.tsx`**: This component correctly uses the hook and passes the data to the `BabylonScene` instance.
-*   **FIXED**: The `GraphRenderer` now properly consumes the `nodePositions` Float32Array and maps it to node instances, completing the data flow pipeline.
-
-### Final Implementation Scorecard
-
-| Feature                 | Status                  | Implementation Details                                                                                                                   |
-| ----------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Device Detection**    | ✅ **Complete**         | Robust detection of Quest 3 and AR capabilities. Auto-detection and force parameter working.                                             |
-| **Session Management**  | ✅ **Complete**         | Unified WebXR session management with hand tracking, controller input, and immersive-ar mode.                                           |
-| **Graph Rendering**     | ✅ **Complete**         | Full node/edge rendering with instanced meshes, dynamic position updates from physics engine.                                           |
-| **XR Interaction**      | ✅ **Complete**         | Full input handling with ray casting, node selection, controller triggers, and hand tracking.                                           |
-| **In-World UI**         | ✅ **Complete**         | 3D UI panel with functional controls, sliders, checkboxes, all synced with settings store.                                              |
-| **Data Flow**           | ✅ **Complete**         | Complete data pipeline from React to Babylon with proper Float32Array position mapping.                                                 |
-
-### 🎊 Migration Complete!
-
-The Babylon.js implementation for Quest 3 is now **FULLY FUNCTIONAL**! The migration from @react-three/xr has been successfully completed with all features implemented and working.
-
-**What's Working:**
-- ✅ Quest 3 auto-detection and immersive mode switching
-- ✅ Full Babylon.js scene with graph visualization
-- ✅ WebXR AR mode with passthrough support
-- ✅ Hand tracking (25-joint system) and controller input
-- ✅ Node/edge rendering with instanced meshes
-- ✅ 3D UI controls synced with settings
-- ✅ Complete data flow from physics engine
-- ✅ All infinite loop bugs fixed
-- ✅ All runtime errors resolved
-
-### ⚡ Current Status:
-
-**XR System**: FULLY OPERATIONAL ✅
-- Quest 3 auto-detection working
-- Babylon.js scene rendering properly
-- Enhanced lighting for XR visibility
-- WebXR AR mode with passthrough
-- Hand tracking and controller input
-- 3D UI controls with settings sync
-
-**Access Methods**:
-1. Quest 3 browser (auto-detected)
-2. URL parameters: `?force=quest3` or `?immersive=true`
-3. "Enter AR" button in immersive interface
-
-**Documentation**: COMPLETE ✅
-- Architecture documented
-- Setup guides created
-- API reference complete
-- Main README updated
-
-
-## ✅ BABYLON.JS MIGRATION COMPLETE
-
-The Hive Mind swarm has successfully executed the major refactor from @react-three/xr to Babylon.js!
-
-### 🎉 Migration Summary
-
-**Status: COMPLETED** - All 5 phases executed successfully
-
-### ✅ What Was Accomplished:
-
-1. **Phase 1: Project Setup & Scaffolding** ✅
-   - Installed Babylon.js dependencies (@babylonjs/core, @babylonjs/gui, @babylonjs/loaders, @babylonjs/materials)
-   - Created new `/src/immersive/` directory structure
-   - Implemented modular architecture with separation of concerns
-
-2. **Phase 2: Core Babylon.js Scene & Graph Rendering** ✅
-   - Implemented BabylonScene.ts with full 3D scene management
-   - Created GraphRenderer.ts with node/edge visualization
-   - Connected to existing data managers (graphDataManager, BotsDataContext)
-
-3. **Phase 3: WebXR Integration & Interaction** ✅
-   - Implemented XRManager.ts with Quest 3 AR support
-   - Added hand tracking (25-joint system)
-   - Controller input with trigger and thumbstick support
-   - Ray casting for node selection
-
-4. **Phase 4: Immersive UI (GUI)** ✅
-   - Created XRUI.ts with 3D control panels
-   - Implemented sliders, buttons, and controls
-   - Full settings synchronization with desktop client
-
-5. **Phase 5: Cleanup** ✅
-   - Deleted all old AR/VR code
-   - Removed @react-three/xr dependency
-   - Cleaned up imports and references
-
-### 🚀 New Architecture:
-```
-/src/immersive/
-├── components/ImmersiveApp.tsx   # Main React entry
-├── babylon/
-│   ├── BabylonScene.ts          # Scene management
-│   ├── GraphRenderer.ts         # Graph visualization
-│   ├── XRManager.ts            # WebXR & interactions
-│   └── XRUI.ts                # 3D UI controls
-└── hooks/useImmersiveData.ts    # Data bridge
-```
-
-### 🔌 Integration Complete:
-- App.tsx automatically switches between desktop and immersive modes
-- Quest 3 auto-detection works
-- URL parameter `?immersive=true` enables immersive mode
-- Full data synchronization maintained
-- Desktop client remains completely untouched
-
----
-
-## Original Migration Plan (For Reference)
-
-The following files and directories constitute the current immersive AR/VR implementation, which is based on `@react-three/xr` and includes the Vircadia stub. This entire set of code will be removed and replaced.
-
-1.  **Primary Quest 3 AR Component:**
-    *   `client/src/app/Quest3AR.tsx`: The main entry point for the current immersive experience.
-
-2.  **Vircadia Stub System (Parallel System):**
-    *   `client/src/components/VircadiaScene.tsx`: The Babylon.js-based Vircadia scene component.
-    *   `client/src/examples/VircadiaXRExample.tsx`: Example usage of the Vircadia component.
-    *   `client/src/hooks/useVircadiaXR.ts`: Hook for Vircadia-specific XR logic.
-    *   `client/src/services/vircadia/`: The entire directory containing Vircadia services (`GraphVisualizationManager.ts`, `MultiUserManager.ts`, `SpatialAudioManager.ts`, `VircadiaService.ts`).
-    *   `client/tests/xr/vircadia/`: The entire test directory for the Vircadia integration.
-
-3.  **Core WebXR Implementation (`@react-three/xr` based):**
-    *   `client/src/features/xr/`: This entire directory is the core of the current implementation and will be completely replaced.
-        *   `components/`: `Quest3FullscreenHandler.tsx`, `VircadiaXRIntegration.tsx`, `XRVisualisationConnector.tsx`, `ui/XRControlPanel.tsx`.
-        *   `hooks/`: `useSafeXRHooks.tsx`.
-        *   `managers/`: `xrSessionManager.ts`.
-        *   `providers/`: `XRCoreProvider.tsx`.
-        *   `systems/`: `HandInteractionSystem.tsx`.
-        *   `types/`: `extendedReality.ts`, `webxr-extensions.d.ts`.
-
-4.  **Supporting Hooks and Services:**
-    *   `client/src/hooks/useQuest3Integration.ts`: The primary hook for detecting and managing the Quest 3 experience. Its logic will be adapted for the new Babylon.js client.
-    *   `client/src/services/quest3AutoDetector.ts`: The service responsible for detecting the Quest 3 environment. Its detection logic will be reused.
-
-5.  **AR-Specific Viewports:**
-    *   `client/src/features/graph/components/ARGraphViewport.tsx`: A specialized viewport for the AR experience that will be replaced by the new Babylon.js scene.
-
-6.  **Configuration:**
-    *   `data/settings.yaml`: The `xr` section will be reviewed and adapted for the new Babylon.js implementation. The existing fields may not map directly.
-
-7.  **Dependencies (`package.json`):**
-    *   `@react-three/xr`: This package will be removed as it is the foundation of the old implementation.
-
-The migration will replace this entire system with a new, self-contained Babylon.js implementation that lives in a new `src/immersive` directory.
-
----
-
-### Part 2: Detailed Migration Plan to Babylon.js
-
-This plan outlines a complete replacement of the old AR/VR code with a new Babylon.js-based system for the immersive headset client only. It ensures no backward compatibility and leaves the desktop client code untouched.
-
-#### **Guiding Principles:**
-
-*   **Isolation:** The new immersive client code will reside in `src/immersive` to keep it separate from the desktop client code.
-*   **Data Re-use:** The new client will hook into the existing data layers (`graphDataManager`, `botsDataContext`, `settingsStore`) to ensure data consistency.
-*   **No Legacy Code:** All files identified in Part 1 will be deleted in the final phase.
-*   **Desktop Integrity:** No changes will be made to the desktop rendering pipeline in `src/features/graph`, `src/features/visualisation`, or `src/app/MainLayout.tsx`.
-
----
-
-### **Phase 1: Project Setup & Scaffolding**
-
-**Objective:** Prepare the project for Babylon.js development and set up the conditional rendering logic.
-
-1.  **Install Dependencies:** Add Babylon.js and its related packages to the project.
-    ```bash
-    npm install @babylonjs/core @babylonjs/gui @babylonjs/loaders @babylonjs/materials
-    npm install @babylonjs/react --save # For easy integration with React
-    ```
-
-2.  **Create New Directory Structure:** Create a new home for the immersive client.
-    ```
-    client/src/immersive/
-    ├── components/         # React components for the immersive experience
-    │   └── ImmersiveApp.tsx  # Main entry point, hosts the Babylon canvas
-    ├── babylon/            # Core Babylon.js logic (non-React)
-    │   ├── BabylonScene.ts   # Manages engine, scene, camera, lights
-    │   ├── GraphRenderer.ts  # Renders nodes, edges, labels
-    │   ├── XRManager.ts      # Manages WebXR session, controllers, hands
-    │   └── XRUI.ts           # Manages 3D GUI using Babylon GUI
-    └── hooks/              # Hooks to bridge React state and Babylon
-        └── useImmersiveData.ts
-    ```
-
-3.  **Create Placeholder Files:** Create the files listed above with basic class/component structures.
-
-4.  **Update Application Entry Point:** Modify `client/src/app/App.tsx` to switch between the desktop and the new immersive client.
-    *   **Modify `shouldUseQuest3AR` function:** Rename it to `shouldUseImmersiveClient`. The detection logic from `useQuest3Integration` can be reused.
-    *   **Update the render logic:**
-        ```tsx
-        // client/src/app/App.tsx
-
-        import MainLayout from './MainLayout';
-        import { ImmersiveApp } from '../immersive/components/ImmersiveApp'; // New import
-        // ... other imports
-
-        // ... inside App component
-        const renderContent = () => {
-          // ... loading and error states
-          case 'initialized':
-            // The core switch between desktop and immersive
-            return shouldUseImmersiveClient() ? <ImmersiveApp /> : <MainLayout />;
-        };
-        ```
-
----
-
-### **Phase 2: Core Babylon.js Scene & Graph Rendering**
-
-**Objective:** Render the knowledge graph and agent visualization using Babylon.js, sourcing data from existing managers.
-
-1.  **Implement `ImmersiveApp.tsx`:**
-    *   Create a React component that renders a full-screen `<canvas>`.
-    *   Use a `ref` for the canvas element.
-    *   In a `useEffect` hook, instantiate `BabylonScene`, passing the canvas ref. This will be the bridge between React and Babylon.js.
-
-2.  **Implement `BabylonScene.ts`:**
-    *   Create a class that accepts an `HTMLCanvasElement`.
-    *   The constructor will initialize `BABYLON.Engine`, `BABYLON.Scene`, a universal camera, and basic lighting (e.g., `HemisphericLight`).
-    *   Create a `run()` method to start the render loop (`engine.runRenderLoop`).
-    *   Instantiate `GraphRenderer` and `XRManager` here.
-
-3.  **Implement `GraphRenderer.ts`:**
-    *   This class will be responsible for all visual representations of the graph.
-    *   **Data Subscription:** In its constructor, subscribe to `graphDataManager.onGraphDataChange` and `botsDataContext`.
-    *   **Node Rendering:**
-        *   Use `BABYLON.InstancedMesh` for performance. Create one for each node type/shape.
-        *   On data updates, iterate through nodes and set the matrix (`setMatrixAt`) and color (`setColorAt`) for each instance.
-        *   Read styling information (colors, sizes) from the `settingsStore`.
-    *   **Edge Rendering:**
-        *   Use `BABYLON.LineSystem` for high-performance line rendering.
-        *   On data updates, update the line system with new start and end points based on node positions from the physics worker.
-    *   **Label Rendering:**
-        *   Use the `@babylonjs/gui` library's `AdvancedDynamicTexture` with `TextBlock` elements attached to node meshes. This is the most performant way to handle many labels in Babylon.js.
-
----
-
-### **Phase 3: WebXR Integration & Interaction**
-
-**Objective:** Enable immersive AR mode and replicate user interactions like node selection and dragging.
-
-1.  **Implement `XRManager.ts`:**
-    *   This class will manage the WebXR session.
-    *   In its constructor, initialize `scene.createDefaultXRExperienceAsync`. This helper simplifies WebXR setup.
-    *   Configure the `WebXRExperienceHelper` for `'immersive-ar'` mode, targeting Quest 3 passthrough.
-    *   Expose methods like `enterXR()` and `exitXR()`.
-    *   **Hand Tracking:** Enable the `WebXRHandTracking` feature. Add observables to get joint data.
-    *   **Controller Input:** Use the `WebXRInputSource` observable to get controller data (position, rotation, button presses).
-
-2.  **Implement Interaction Logic:**
-    *   **Selection:** In the `XRManager`, use `scene.pickWithRay()` with a ray originating from the controller or a hand joint (e.g., the index finger tip) to detect intersections with graph node meshes.
-    *   **Dragging:**
-        *   On a "select" event (trigger press or pinch gesture), pin the selected node in the physics simulation by calling `graphWorkerProxy.pinNode(nodeId)`.
-        *   While the select action is held, continuously update the node's position by calling `graphWorkerProxy.updateUserDrivenNodePosition(nodeId, newPosition)`. The `newPosition` can be determined by intersecting the controller/hand ray with a plane parallel to the camera.
-        *   On "selectend", unpin the node by calling `graphWorkerProxy.unpinNode(nodeId)`.
-
----
-
-### **Phase 4: Immersive UI (GUI)**
-
-**Objective:** Recreate the control panel and other UI elements in a 3D environment.
-
-1.  **Implement `XRUI.ts`:**
-    *   This class will use the `@babylonjs/gui` library.
-    *   Create an `AdvancedDynamicTexture` attached to a plane mesh. This plane will serve as the UI panel.
-    *   Attach the UI plane to the camera or a controller so it's always accessible to the user.
-    *   **Rebuild Controls:** Programmatically add GUI controls (`Slider`, `Checkbox`, `Button`, etc.) to the texture, mirroring the sections and settings defined in `settingsUIDefinition.ts`.
-    *   **Data Binding:**
-        *   Read initial values for controls from the `settingsStore`.
-        *   On user interaction with a GUI control, call `settingsStore.setByPath()` to update the setting. This ensures state remains synchronized.
-
----
-
-### **Phase 5: Refactoring & Cleanup**
-
-**Objective:** Completely remove all old AR/VR code to finalize the migration.
-
-1.  **Delete Files and Directories:** Remove the following from the project:
-    *   `client/src/app/Quest3AR.tsx`
-    *   `client/src/components/VircadiaScene.tsx`
-    *   `client/src/examples/VircadiaXRExample.tsx`
-    *   `client/src/hooks/useVircadiaXR.ts`
-    *   `client/src/features/graph/components/ARGraphViewport.tsx`
-    *   The **entire** `client/src/features/xr/` directory.
-    *   The **entire** `client/src/services/vircadia/` directory.
-    *   The **entire** `client/tests/xr/` directory.
-
-2.  **Update `package.json`:**
-    *   Remove the `@react-three/xr` dependency.
-        ```bash
-        npm uninstall @react-three/xr
-        ```
-    *   Verify that no other R3F dependencies can be removed. The desktop client still uses `@react-three/fiber` and `@react-three/drei`, so those must remain.
-
-3.  **Code Cleanup:**
-    *   Search the codebase for any remaining imports from the deleted files and remove them.
-    *   Review `App.tsx` and `ApplicationModeContext.tsx` to ensure all old XR-related logic is gone and they correctly reference the new immersive client.
-
----
+you are operating in the multi agent docker on our host system
+
+> docker ps
+CONTAINER ID   IMAGE                                                         COMMAND                  CREATED             STATUS                         PORTS                                                                                                                                                       NAMES
+76d772e1c7eb   ar-ai-knowledge-graph-webxr                                   "./dev-entrypoint.sh"    10 minutes ago      Up 10 minutes                  4000/tcp, 5173/tcp, 0.0.0.0:3001->3001/tcp, [::]:3001->3001/tcp, 24678/tcp                                                                                  visionflow_container
+13c460906ba5   cloudflare/cloudflared:latest                                 "cloudflared --no-au…"   About an hour ago   Up 10 minutes                                                                                                                                                                              cloudflared-tunnel
+ca431834ad1d   multi-agent-docker:latest                                     "/entrypoint.sh /bin…"   About an hour ago   Up 59 minutes                  0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp, 0.0.0.0:3002->3002/tcp, [::]:3002->3002/tcp, 0.0.0.0:9500-9503->9500-9503/tcp, [::]:9500-9503->9500-9503/tcp   multi-agent-container
+56e863d5884b   gui-tools-docker:latest                                       "/home/blender/start…"   About an hour ago   Up About an hour (unhealthy)   0.0.0.0:5901->5901/tcp, [::]:5901->5901/tcp, 0.0.0.0:9876-9879->9876-9879/tcp, [::]:9876-9879->9876-9879/tcp, 9222/tcp                                      gui-tools-container
+d398fef838d8   swr.cn-north-4.myhuaweicloud.com/infiniflow/ragflow:nightly   "./entrypoint.sh"        32 hours ago        Up 32 hours                    0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:9380->9380/tcp, [::]:9380->9380/tcp                                   ragflow-server
+b5e2eb63ee40   elasticsearch:8.11.3                                          "/bin/tini -- /usr/l…"   32 hours ago        Up 32 hours (healthy)          9300/tcp, 0.0.0.0:1200->9200/tcp, [::]:1200->9200/tcp                                                                                                       ragflow-es-01
+effb8f419ed8   valkey/valkey:8                                               "docker-entrypoint.s…"   32 hours ago        Up 32 hours (healthy)          0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp                                                                                                                 ragflow-redis
+46f024bea631   quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z              "/usr/bin/docker-ent…"   32 hours ago        Up 32 hours (healthy)          0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp                                                                                             ragflow-minio
+79ad81d0246e   mysql:8.0.39                                                  "docker-entrypoint.s…"   32 hours ago        Up 32 hours (healthy)          33060/tcp, 0.0.0.0:5455->3306/tcp, [::]:5455->3306/tcp                                                                                                      ragflow-mysql
+ec342ef367ac   registry.gitlab.com/aadnk/whisper-webui:latest                "python3 app.py --in…"   9 days ago          Up 9 days                      0.0.0.0:7860->7860/tcp, [::]:7860->7860/tcp                                                                                                                 whisper-webui
+5698461a6765   ghcr.io/remsky/kokoro-fastapi-gpu:latest                      "/opt/nvidia/nvidia_…"   12 days ago         Up 12 days                     0.0.0.0:8880->8880/tcp, [::]:8880->8880/tcp                                                                                                                 kokoro-tts-container
+>  docker stop 13c460906ba5
+13c460906ba5
+> docker network inspect docker_ragflow
+[
+    {
+        "Name": "docker_ragflow",
+        "Id": "b0c38a1301451c0329969ef53fdedde5221b1b05b063ad94d66017a45d3ddaa3",
+        "Created": "2025-04-05T14:36:31.500965678Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv4": true,
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "46f024bea631306afe91f7a7cf75113820019fca36e3842fd51263b33e4fe881": {
+                "Name": "ragflow-minio",
+                "EndpointID": "f012e5c1cdeec905da201ef35010cb8867cec6c7de3450c2667f4180cfa02bcd",
+                "MacAddress": "82:b0:a6:c8:d1:8b",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            },
+            "5698461a67654b6428f8b6ae9086d05d3cba433e6178f8e80c854d81ef3b1a67": {
+                "Name": "kokoro-tts-container",
+                "EndpointID": "adac268a8919fa9bad016bcecfe19eecaf662a42a78cbf847791218b872c83e8",
+                "MacAddress": "0a:94:07:1d:88:29",
+                "IPv4Address": "172.18.0.5/16",
+                "IPv6Address": ""
+            },
+            "56e863d5884bf991e1f6e3af73095e4e6ec7e1a7303e6f12f289852cfef65c82": {
+                "Name": "gui-tools-container",
+                "EndpointID": "bae022f4f810a776577a41720690eeda0ae46e60de52517340ca5cd0d60eb9b4",
+                "MacAddress": "8e:cd:30:c4:b6:db",
+                "IPv4Address": "172.18.0.4/16",
+                "IPv6Address": ""
+            },
+            "76d772e1c7eb0c8883e3c9abd837fd31150086bd5e1ccf1a94ed29404a46d546": {
+                "Name": "visionflow_container",
+                "EndpointID": "2d21f7cb8fd0950c802cfaf4dd8c0d4331e833a66f206c57bdda8e6396beb3f7",
+                "MacAddress": "ce:a7:d6:e4:90:3e",
+                "IPv4Address": "172.18.0.11/16",
+                "IPv6Address": ""
+            },
+            "79ad81d0246e64439471148534abab577005f052248550108963ce3ef8a4e14b": {
+                "Name": "ragflow-mysql",
+                "EndpointID": "46fc44b401bef69e840b63ae89f2f6a141d5d6223a5a96b421f5306d4f0e1608",
+                "MacAddress": "ca:f0:79:12:df:f7",
+                "IPv4Address": "172.18.0.8/16",
+                "IPv6Address": ""
+            },
+            "b5e2eb63ee40e3ea0bf315d0f04d95dac20ee31d4199bcf4cf698519115f4e1f": {
+                "Name": "ragflow-es-01",
+                "EndpointID": "fa2353342e174059daf37fbab03531de6f4665116abac0ecc2152a5b47932881",
+                "MacAddress": "ce:ff:1f:86:9f:bc",
+                "IPv4Address": "172.18.0.7/16",
+                "IPv6Address": ""
+            },
+            "ca431834ad1d561df88a042e8157bb03e955370b8ca52c506f2e7cc0675e461d": {
+                "Name": "multi-agent-container",
+                "EndpointID": "9ef213c3ac58d4e7d63a862f971e0dc2cfcfcbf4d5f1ad2c03d86246980a1c29",
+                "MacAddress": "fe:c8:30:2a:48:6a",
+                "IPv4Address": "172.18.0.9/16",
+                "IPv6Address": ""
+            },
+            "d398fef838d88269be503d379cf8220813944e2c665b211c7defbb70cda106c9": {
+                "Name": "ragflow-server",
+                "EndpointID": "f2da61ab0b2edd39ed52356dd4a54d1272f5d213b2aed2e2bf72fcda1539e5f6",
+                "MacAddress": "36:55:19:f7:4a:91",
+                "IPv4Address": "172.18.0.10/16",
+                "IPv6Address": ""
+            },
+            "ec342ef367ace011e1390e53298ff2b37d6397e20f560af44b066f58142ff4ae": {
+                "Name": "whisper-webui",
+                "EndpointID": "9ac164a4f5b19f5c5d1a06a2045b45c226b8047867acac97c8fffda7b22f90f8",
+                "MacAddress": "ea:3d:8a:17:7c:7c",
+                "IPv4Address": "172.18.0.3/16",
+                "IPv6Address": ""
+            },
+            "effb8f419ed82cf4bebc0f2705e3faea36ec098d5dadfcd6d81f492e72ead434": {
+                "Name": "ragflow-redis",
+                "EndpointID": "729b4f0b3fbe7e56ec9c76920d3f21f2119b16fd6e76a54c1b90053f058f0a22",
+                "MacAddress": "8a:4d:ee:a2:cd:7b",
+                "IPv4Address": "172.18.0.6/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {
+            "com.docker.compose.config-hash": "20de4b714cebc3288cab9ac5bf17cbed67f64545e9b273c2e547d4a6538609b9",
+            "com.docker.compose.network": "ragflow",
+            "com.docker.compose.project": "docker",
+            "com.docker.compose.version": "2.34.0"
+        }
+    }
+]
+
+you cannot see the operations of the docker project described in ext/src but you can confirm runtime vs the ext/multi-agent-docker project which is OUR container.
+
+your task is to fully consolidate new semi structured updates containing in ext/docs into the structured corpus of the docs system, using best in class systems and diagrams and conventions. Maximise the available information. Where you find that some information in one file is at odds with another you can check the client code in ext/client the server code in ext/src and the multi-agent container mcp and agent stuff in ext/multi-agent-docker.  You should only update in ext/docs, removing legacy and incorrect material, integrating into the relevant locations and confirming against code. use uk english spelling.
+
+work using a swarm until everything is done and old files are cleaned up, we have version control so don't worry about deleting within ext/docs
+
+remove all reports about the last cycle of development, they are everywhere. we should capture the NOW using descriptive best practice, discarding the journey.
