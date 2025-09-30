@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-30",
+  "categories": {
+    "research": {
+      "goalie": {
+        "description": "Goal-Oriented AI Research with GOAP planning, 20-30 sources, anti-hallucination",
+        "methods": ["search", "query", "reasoning"],
+        "cost": "$0.006-0.10 per query",
+        "apiKey": "PERPLEXITY_API_KEY"
+      }
+    },
+    "development": {
+      "claude-flow": {
+        "description": "AI agent orchestration with GOAP and SAFLA neural agents",
+        "methods": ["goal", "neural", "terminal_execute"],
+        "database": "/workspace/.swarm/memory.db"
+      }
+    },
+    "automation": {
+      "playwright": {
+        "description": "Browser automation (headless + visual via VNC:5901)",
+        "ports": {"headless": "local", "visual": 9879}
+      }
+    },
+    "graphics": {
+      "blender": {"port": 9876, "vnc": 5901},
+      "qgis": {"port": 9877, "vnc": 5901},
+      "pbr": {"port": 9878, "vnc": 5901}
+    }
+  },
+  "aliases": {
+    "research": "goalie search",
+    "quick_search": "goalie query",
+    "agents": "claude-flow-init-agents",
+    "browser": "playwright-test"
+  },
+  "docs": "/app/GOALIE-INTEGRATION.md"
+}

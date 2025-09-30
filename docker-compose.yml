@@ -3,6 +3,7 @@ services:
   webxr:
     profiles: ["dev"]
     container_name: visionflow_container
+    hostname: webxr
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -61,7 +62,9 @@ services:
     ports:
       - "3001:3001"  # Nginx entry point for dev
     networks:
-      - docker_ragflow
+      docker_ragflow:
+        aliases:
+          - webxr
     restart: unless-stopped
 
   # Production configuration - using dev image with production settings
@@ -125,9 +128,9 @@ services:
       retries: 3
       start_period: 40s
 
-  # Cloudflare tunnel for production
+  # Cloudflare tunnel - now works with dev profile
   cloudflared:
-    profiles: ["production", "prod"]
+    profiles: ["dev", "production", "prod"]
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run
@@ -136,7 +139,12 @@ services:
     volumes:
       - ./config.yml:/etc/cloudflared/config.yml:ro
     depends_on:
-      - webxr-prod
+      webxr:
+        condition: service_started
+        required: false
+      webxr-prod:
+        condition: service_started
+        required: false
     networks:
       - docker_ragflow
     restart: unless-stopped

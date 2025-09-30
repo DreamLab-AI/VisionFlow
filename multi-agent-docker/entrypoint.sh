@@ -30,6 +30,13 @@ echo ""
 echo "=== MCP Environment Ready ==="
 echo "Starting background services..."
 echo ""
+
+# Detect and configure GPU
+if [ -f /app/scripts/gpu-detect.sh ]; then
+    source /app/scripts/gpu-detect.sh --detect
+fi
+
+echo ""
 echo "✨ Automatic setup will begin in a few seconds..."
 echo "   (Check progress with: tail -f /workspace/.setup.log)"
 echo ""
