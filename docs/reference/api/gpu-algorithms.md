@@ -221,7 +221,7 @@ Content-Type: application/json
 - Parallel isolation tree construction
 - GPU-accelerated path length calculations
 - Real ensemble scoring
-- Memory-optimized tree storage
+- Memory-optimised tree storage
 
 **Response:**
 ```json

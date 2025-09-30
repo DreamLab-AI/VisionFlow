@@ -62,7 +62,7 @@ Customize and extend VisionFlow:
 Resolve common issues:
 - Installation problems
 - Network connectivity issues
-- Performance optimization
+- Performance optimisation
 - GPU configuration
 - Agent coordination problems
 

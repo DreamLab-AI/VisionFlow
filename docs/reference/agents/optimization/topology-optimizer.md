@@ -1,6 +1,6 @@
 # Topology Optimizer Agent
 
-*[Reference](../index.md) > [Agents](../../reference/agents/index.md) > [Optimization](../reference/agents/optimization/index.md)*
+*[Reference](../index.md) > [Agents](../../reference/agents/index.md) > [Optimization](../reference/agents/optimisation/index.md)*
 
 ## Agent Profile
 - **Name**: Topology Optimizer
@@ -24,15 +24,15 @@ class TopologyOptimizer {
       adaptive: new AdaptiveTopology()
     };
     
-    this.optimizer = new NetworkOptimizer();
-    this.analyzer = new TopologyAnalyzer();
+    this.optimiser = new NetworkOptimizer();
+    this.analyser = new TopologyAnalyzer();
     this.predictor = new TopologyPredictor();
   }
   
   // Intelligent topology selection and optimisation
   async optimizeTopology(swarm, workloadProfile, constraints = {}) {
     // Analyze current topology performance
-    const currentAnalysis = await this.analyzer.analyze(swarm.topology);
+    const currentAnalysis = await this.analyser.analyse(swarm.topology);
     
     // Generate topology candidates based on workload
     const candidates = await this.generateCandidates(workloadProfile, constraints);
@@ -290,7 +290,7 @@ class CommunicationOptimizer {
   // Comprehensive communication optimisation
   async optimizeCommunication(swarm, historicalData) {
     // Analyze communication patterns
-    const patterns = await this.patternAnalyzer.analyze(historicalData);
+    const patterns = await this.patternAnalyzer.analyse(historicalData);
     
     // Optimise based on pattern analysis
     const optimizations = {
@@ -721,7 +721,7 @@ class SimulatedAnnealingOptimizer {
 ### Topology Optimisation Commands
 ```bash
 # Analyze current topology
-npx claude-flow topology-analyze --swarm-id <id> --metrics performance
+npx claude-flow topology-analyse --swarm-id <id> --metrics performance
 
 # Optimise topology automatically
 npx claude-flow topology-optimise --swarm-id <id> --strategy adaptive
@@ -742,7 +742,7 @@ npx claude-flow topology-monitor --swarm-id <id> --interval 60
 npx claude-flow placement-optimise --algorithm genetic --agents <agent-list>
 
 # Analyze placement efficiency
-npx claude-flow placement-analyze --current-placement <config>
+npx claude-flow placement-analyse --current-placement <config>
 
 # Generate placement recommendations
 npx claude-flow placement-recommend --communication-patterns <file>
@@ -811,29 +811,29 @@ This Topology Optimizer agent provides sophisticated swarm topology optimisation
 - [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
 - [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
 - [Agents](../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimization/benchmark-suite.md)
+- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
 - [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
 - [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimization/load-balancer.md)
+- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
 - [Multi Agent Orchestration](../../../server/agent-swarm.md)
 - [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
 - [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
 - [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
 - [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../reference/agents/optimization/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimization/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimization/resource-allocator.md)
+- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
+- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
+- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
 - [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
-- [analyze-code-quality](../../../reference/agents/analysis/code-review/analyze-code-quality.md)
+- [analyse-code-quality](../../../reference/agents/analysis/code-review/analyse-code-quality.md)
 - [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)
 - [architecture](../../../reference/agents/sparc/architecture.md)
 - [automation-smart-agent](../../../reference/agents/templates/automation-smart-agent.md)
 - [base-template-generator](../../../reference/agents/base-template-generator.md)
 - [byzantine-coordinator](../../../reference/agents/consensus/byzantine-coordinator.md)
-- [code-analyzer](../../../reference/agents/analysis/code-analyzer.md)
+- [code-analyser](../../../reference/agents/analysis/code-analyser.md)
 - [code-review-swarm](../../../reference/agents/github/code-review-swarm.md)
 - [coder](../../../reference/agents/core/coder.md)
 - [coordinator-swarm-init](../../../reference/agents/templates/coordinator-swarm-init.md)
@@ -853,7 +853,7 @@ This Topology Optimizer agent provides sophisticated swarm topology optimisation
 - [multi-repo-swarm](../../../reference/agents/github/multi-repo-swarm.md)
 - [ops-cicd-github](../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
 - [orchestrator-task](../../../reference/agents/templates/orchestrator-task.md)
-- [performance-analyzer](../../../reference/agents/templates/performance-analyzer.md)
+- [performance-analyser](../../../reference/agents/templates/performance-analyser.md)
 - [performance-benchmarker](../../../reference/agents/consensus/performance-benchmarker.md)
 - [planner](../../../reference/agents/core/planner.md)
 - [pr-manager](../../../reference/agents/github/pr-manager.md)

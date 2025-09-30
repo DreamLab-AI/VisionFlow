@@ -3,7 +3,7 @@
 
 ### Executive Summary
 
-The multi-agent system requires a hybrid architecture that leverages Docker exec for swarm lifecycle management while maintaining MCP/TCP connections for high-throughput telemetry and visualization. This plan addresses the process isolation issues while optimizing for performance and reliability.
+The multi-agent system requires a hybrid architecture that leverages Docker exec for swarm lifecycle management while maintaining MCP/TCP connections for high-throughput telemetry and visualization. This plan addresses the process isolation issues while optimising for performance and reliability.
 
 ## Current Architecture Analysis
 
@@ -421,6 +421,6 @@ const useHybridStatus = () => {
 
 ## Conclusion
 
-The hybrid architecture leverages Docker exec for reliable swarm lifecycle management while maintaining MCP/TCP for high-throughput telemetry. This approach resolves process isolation issues while optimizing for performance and fault tolerance.
+The hybrid architecture leverages Docker exec for reliable swarm lifecycle management while maintaining MCP/TCP for high-throughput telemetry. This approach resolves process isolation issues while optimising for performance and fault tolerance.
 
 The phased implementation ensures minimal disruption while providing clear migration paths and comprehensive error handling. Success metrics focus on reliability, performance, and user experience improvements.

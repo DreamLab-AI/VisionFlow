@@ -64,7 +64,7 @@ jobs:
           
       - name: Analyze Changes
         run: |
-          npx ruv-swarm actions analyze \
+          npx ruv-swarm actions analyse \
             --commit ${{ github.sha }} \
             --suggest-tests \
             --optimise-pipeline
@@ -74,7 +74,7 @@ jobs:
 ```bash
 # Generate workflows based on code analysis
 npx ruv-swarm actions generate-workflow \
-  --analyze-codebase \
+  --analyse-codebase \
   --detect-languages \
   --create-optimal-pipeline
 ```
@@ -165,7 +165,7 @@ npx ruv-swarm actions optimise \
 ```bash
 # Analyze failed runs using gh CLI
 gh run view ${{ github.run_id }} --json jobs,conclusion | \
-  npx ruv-swarm actions analyze-failure \
+  npx ruv-swarm actions analyse-failure \
     --suggest-fixes \
     --auto-retry-flaky
 
@@ -182,7 +182,7 @@ fi
 ```bash
 # Optimise resource usage
 npx ruv-swarm actions resources \
-  --analyze-usage \
+  --analyse-usage \
   --suggest-runners \
   --cost-optimise
 ```
@@ -273,7 +273,7 @@ const { SwarmAction } = require('ruv-swarm');
 async function run() {
   const swarm = new SwarmAction({
     topology: 'mesh',
-    agents: ['analyzer', 'optimizer']
+    agents: ['analyser', 'optimiser']
   });
   
   await swarm.execute(core.getInput('task'));
@@ -307,7 +307,7 @@ jobs:
 ```bash
 # Determine optimal parallelization
 npx ruv-swarm actions parallel-strategy \
-  --analyze-dependencies \
+  --analyse-dependencies \
   --time-estimates \
   --cost-aware
 ```
@@ -328,7 +328,7 @@ npx ruv-swarm actions analytics \
 ```bash
 # Optimise GitHub Actions costs
 npx ruv-swarm actions cost-optimise \
-  --analyze-usage \
+  --analyse-usage \
   --suggest-caching \
   --recommend-self-hosted
 ```
@@ -383,7 +383,7 @@ jobs:
       - name: Release Swarm
         run: |
           npx ruv-swarm actions release \
-            --analyze-changes \
+            --analyse-changes \
             --generate-notes \
             --create-artifacts \
             --publish-smart
@@ -403,7 +403,7 @@ jobs:
       - name: Documentation Swarm
         run: |
           npx ruv-swarm actions update-docs \
-            --analyze-changes \
+            --analyse-changes \
             --update-api-docs \
             --check-examples
 ```
@@ -434,7 +434,7 @@ jobs:
 ```bash
 # Predict potential failures
 npx ruv-swarm actions predict \
-  --analyze-history \
+  --analyse-history \
   --identify-risks \
   --suggest-preventive
 ```
@@ -443,7 +443,7 @@ npx ruv-swarm actions predict \
 ```bash
 # Get workflow recommendations
 npx ruv-swarm actions recommend \
-  --analyze-repo \
+  --analyse-repo \
   --suggest-workflows \
   --industry-best-practices
 ```
@@ -488,7 +488,7 @@ mcp__claude-flow__agent_spawn { type: "coordinator", name: "Workflow Coordinator
 mcp__claude-flow__agent_spawn { type: "architect", name: "Pipeline Architect" }
 mcp__claude-flow__agent_spawn { type: "coder", name: "Workflow Developer" }
 mcp__claude-flow__agent_spawn { type: "tester", name: "CI/CD Tester" }
-mcp__claude-flow__agent_spawn { type: "optimizer", name: "Performance Optimizer" }
+mcp__claude-flow__agent_spawn { type: "optimiser", name: "Performance Optimizer" }
 mcp__claude-flow__agent_spawn { type: "monitor", name: "Automation Monitor" }
 mcp__claude-flow__agent_spawn { type: "analyst", name: "Workflow Analyzer" }
 
@@ -554,7 +554,7 @@ const createIntelligentWorkflow = async (repoContext) => {
   // Spawn specialised workflow agents
   await mcp__claude_flow__agent_spawn({ type: "architect", name: "Workflow Architect" });
   await mcp__claude_flow__agent_spawn({ type: "coder", name: "YAML Generator" });
-  await mcp__claude_flow__agent_spawn({ type: "optimizer", name: "Performance Optimizer" });
+  await mcp__claude_flow__agent_spawn({ type: "optimiser", name: "Performance Optimizer" });
   await mcp__claude_flow__agent_spawn({ type: "tester", name: "Workflow Validator" });
   
   // Create adaptive workflow based on repository analysis
@@ -563,7 +563,7 @@ const createIntelligentWorkflow = async (repoContext) => {
     steps: [
       {
         name: "Smart Code Analysis",
-        agents: ["analyzer", "security_scanner"],
+        agents: ["analyser", "security_scanner"],
         parallel: true
       },
       {
@@ -645,30 +645,30 @@ See also: [swarm-pr.md](./swarm-pr.md), [swarm-issue.md](./swarm-issue.md), [syn
 - [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
 - [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
 - [Agents](../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimization/benchmark-suite.md)
+- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
 - [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
 - [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimization/load-balancer.md)
+- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
 - [Multi Agent Orchestration](../../../server/agent-swarm.md)
 - [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
 - [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
 - [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
 - [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../reference/agents/optimization/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimization/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimization/resource-allocator.md)
+- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
+- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
+- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../reference/agents/optimization/topology-optimizer.md)
+- [Topology Optimizer Agent](../../../reference/agents/optimisation/topology-optimiser.md)
 - [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
-- [analyze-code-quality](../../../reference/agents/analysis/code-review/analyze-code-quality.md)
+- [analyse-code-quality](../../../reference/agents/analysis/code-review/analyse-code-quality.md)
 - [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)
 - [architecture](../../../reference/agents/sparc/architecture.md)
 - [automation-smart-agent](../../../reference/agents/templates/automation-smart-agent.md)
 - [base-template-generator](../../../reference/agents/base-template-generator.md)
 - [byzantine-coordinator](../../../reference/agents/consensus/byzantine-coordinator.md)
-- [code-analyzer](../../../reference/agents/analysis/code-analyzer.md)
+- [code-analyser](../../../reference/agents/analysis/code-analyser.md)
 - [code-review-swarm](../../../reference/agents/github/code-review-swarm.md)
 - [coder](../../../reference/agents/core/coder.md)
 - [coordinator-swarm-init](../../../reference/agents/templates/coordinator-swarm-init.md)
@@ -688,7 +688,7 @@ See also: [swarm-pr.md](./swarm-pr.md), [swarm-issue.md](./swarm-issue.md), [syn
 - [multi-repo-swarm](../../../reference/agents/github/multi-repo-swarm.md)
 - [ops-cicd-github](../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
 - [orchestrator-task](../../../reference/agents/templates/orchestrator-task.md)
-- [performance-analyzer](../../../reference/agents/templates/performance-analyzer.md)
+- [performance-analyser](../../../reference/agents/templates/performance-analyser.md)
 - [performance-benchmarker](../../../reference/agents/consensus/performance-benchmarker.md)
 - [planner](../../../reference/agents/core/planner.md)
 - [pr-manager](../../../reference/agents/github/pr-manager.md)

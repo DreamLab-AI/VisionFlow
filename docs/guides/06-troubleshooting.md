@@ -974,7 +974,7 @@ When reporting issues, include:
 1. System information: `./health-check.sh > system-info.txt`
 2. Logs: `docker-compose logs > logs.txt`
 3. Steps to reproduce
-4. Expected vs actual behavior
+4. Expected vs actual behaviour
 5. Any error messages
 
 ```bash

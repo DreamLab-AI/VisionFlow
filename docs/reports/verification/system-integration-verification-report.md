@@ -156,7 +156,7 @@ pub struct SwarmConfig {
 - **WebSocket**: 20+ dedicated handlers for real-time communication
 - **REST**: 15+ handlers for stateless operations
 - **MCP Relay**: Bridge between internal WebSocket and external MCP
-- **Binary Protocol**: 34-byte optimized data format
+- **Binary Protocol**: 34-byte optimised data format
 
 ## 5. Container Orchestration Verification ✅ CONFIRMED
 

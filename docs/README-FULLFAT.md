@@ -1,4 +1,4 @@
-<div align="center">
+<div align="centre">
 
 # 🌌 VisionFlow
 
@@ -9,32 +9,32 @@
 
 </div>
 
-<div align="center">
+<div align="centre">
   <table>
     <tr>
-      <td align="center">
+      <td align="centre">
         <strong>👥 Collaborative Team AI</strong><br/>
         <sub>Action on 100k + complex nodes</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>🤖 Continuous Background Agents</strong><br/>
         <sub>Agent Intelligence • Dip In Dip Out</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>🔐 Private & Self-Sovereign</strong><br/>
         <sub>Multi-Modal Immersive Interface</sub>
       </td>
     </tr>
     <tr>
-      <td align="center">
+      <td align="centre">
         <strong>📊 Massive Scale</strong><br/>
         <sub>Dozens of Users • Hundreds of Agents</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>🛡️ Enterprise Security</strong><br/>
         <sub>Thin Client • Secure Server • W3C DID</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>🎙️ Voice-First & Human First</strong><br/>
         <sub>Natural Human-AI Intreractions</sub>
       </td>
@@ -44,7 +44,7 @@
 
 ---
 
-<div align="center">
+<div align="centre">
   <table>
     <tr>
       <td><img src="./visionflow.gif" alt="VisionFlow Visualisation" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
@@ -55,7 +55,7 @@
 
 <br/>
 
-<div align="center">
+<div align="centre">
   <h3>🚀 Like ChatGPT Pulse for Your Private Knowledge</h3>
   <p><strong>VisionFlow deploys self-sovereign AI agents that continuously research, analyse, and surface insights<br/>from your data corpus - all visualised for collaborative teams, in stunning real-time 3D.</strong></p>
 
@@ -64,7 +64,7 @@
 
 ---
 
-<div align="center">
+<div align="centre">
   <table>
     <tr>
       <th>🏆 Enterprise Value</th>
@@ -73,37 +73,37 @@
       <th>👥 Collaboration</th>
     </tr>
     <tr>
-      <td align="center">
+      <td align="centre">
         <strong>Completely Open Source</strong><br/>
         <sub>Support Contracts on Request</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>60 FPS</strong><br/>
         <sub>@ 100k+ nodes</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>40 CUDA</strong><br/>
         <sub>GPU Kernels</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>50+ Agents</strong><br/>
         <sub>Concurrent Swarms</sub>
       </td>
     </tr>
     <tr>
-      <td align="center">
+      <td align="centre">
         <strong>Cost Savings though Flow</strong><br/>
         <sub>Based on Decades of Immersive Research</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong><10ms</strong><br/>
         <sub>WebSocket Latency</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>34-byte</strong><br/>
         <sub>Binary Protocol</sub>
       </td>
-      <td align="center">
+      <td align="centre">
         <strong>Real-time</strong><br/>
         <sub>Voice-to-Voice AI</sub>
       </td>
@@ -113,7 +113,7 @@
 
 ---
 
-<div align="center">
+<div align="centre">
   <table>
     <tr>
       <td><img src="./groupOctave.jpg" alt="Group In Octave" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>
@@ -135,7 +135,7 @@ VisionFlow integrates seamlessly with [Logseq](https://logseq.com/), a privacy-f
 - **Plugin ecosystem** for extending functionality
 - **Multi Platform & Mobile** any of your users or team, anywhere
 
-<div align="center">
+<div align="centre">
   <table>
     <tr>
       <td><img src="./logseq1.png" alt="Logseq View 1" style="width:100%; border-radius:10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"></td>

@@ -69,15 +69,15 @@ __global__ void force_pass_kernel(
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             for (int dz = -1; dz <= 1; dz++) {
-                int3 neighbor = make_int3(
+                int3 neighbour = make_int3(
                     cell_coords.x + dx,
                     cell_coords.y + dy,
                     cell_coords.z + dz
                 );
                 
-                if (is_valid_cell(neighbor, config)) {
+                if (is_valid_cell(neighbour, config)) {
                     process_cell_particles(
-                        idx, pos, neighbor, 
+                        idx, pos, neighbour, 
                         pos_x, pos_y, pos_z,
                         &total_force, params
                     );
@@ -138,7 +138,7 @@ pub struct GPUBufferManager {
 
 ### 3. Spatial Hashing
 
-The system uses a 3D spatial hash grid for efficient neighbor queries:
+The system uses a 3D spatial hash grid for efficient neighbour queries:
 
 ```cuda
 // Grid configuration

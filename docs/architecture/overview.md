@@ -1194,7 +1194,7 @@ flowchart TB
 ### ✅ RECENTLY COMPLETED (70-90%)
 - **Voice system integration** (90% - services integrated with centralized state)
 - **Test infrastructure** (80% - test files validated and framework operational)
-- **Runtime behavior validation** (75% - system operational status confirmed)
+- **Runtime behaviour validation** (75% - system operational status confirmed)
 - **Agent orchestration** (80% - framework operational with coordination patterns)
 
 ### ⚠️ IN PROGRESS (Current Sprint)
@@ -1275,7 +1275,7 @@ flowchart TB
 1. **HIGH**: GraphServiceActor decomposition (38,456 tokens → manageable components)
 2. **MEDIUM**: Warning reduction (230 → target: <50)
 3. **MEDIUM**: Advanced WebXR features refinement
-4. **MEDIUM**: Production performance optimization
+4. **MEDIUM**: Production performance optimisation
 5. **LOW**: Documentation synchronisation and final testing
 
 ### **Development Roadmap**
@@ -1286,7 +1286,7 @@ flowchart TB
 - **Code Quality Improvements**: Enhance maintainability and testability
 
 #### Next Phase: Production Optimization (3-4 weeks)
-- **Performance Tuning**: GPU pipeline optimization and WebSocket efficiency
+- **Performance Tuning**: GPU pipeline optimisation and WebSocket efficiency
 - **Integration Testing**: End-to-end validation of all system components
 - **Security Hardening**: Production-ready authentication and authorization
 
@@ -1364,7 +1364,7 @@ graph TB
 - **Total Lines**: 3,284 lines across 5 CUDA files
 - **visionflow_unified.cu**: 1,886 lines - Main GPU physics pipeline
 - **gpu_clustering_kernels.cu**: 641 lines - Clustering algorithms
-- **dynamic_grid.cu**: 322 lines - Spatial grid optimization
+- **dynamic_grid.cu**: 322 lines - Spatial grid optimisation
 - **visionflow_unified_stability.cu**: 330 lines - Stability control
 - **sssp_compact.cu**: 105 lines - Shortest path algorithms
 - **Status**: Substantial CUDA implementation, runtime integration needs verification
@@ -1452,7 +1452,7 @@ graph TB
 7. ✅ **Agent task execution** - Framework operational with task processing
 
 ### Remaining Focus Areas (25-20% of total work)
-1. **Production hardening and optimization** (50% complete)
+1. **Production hardening and optimisation** (50% complete)
 2. **Advanced WebXR feature polish** (45% complete)
 3. **Performance fine-tuning** (55% complete)
 
@@ -2663,7 +2663,7 @@ This documentation was validated through comprehensive audit using specialised a
 ### What Needs Runtime Validation (⚠️)
 1. **GPU compute pipeline execution** - CUDA code exists but runtime unclear
 2. **WebSocket binary protocol** - 34-byte format specified but implementation unclear
-3. **Agent orchestration** - Framework complete but coordination behavior unclear
+3. **Agent orchestration** - Framework complete but coordination behaviour unclear
 4. **Voice system integration** - Services configured but end-to-end flow unclear
 5. **Client-server data flow** - Components exist but actual data streaming unclear
 

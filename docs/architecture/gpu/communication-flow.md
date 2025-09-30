@@ -230,6 +230,6 @@ sequenceDiagram
 - **Multi-GPU Support**: Distribute operations across multiple GPUs
 - **Dynamic Load Balancing**: Automatically balance GPU workload
 - **Predictive Resource Management**: Anticipate GPU memory needs
-- **Real-time Performance Metrics**: Monitor GPU utilization and optimize
+- **Real-time Performance Metrics**: Monitor GPU utilization and optimise
 
 This corrected architecture provides a solid foundation for scalable GPU operations while maintaining clear separation of concerns and robust error handling.

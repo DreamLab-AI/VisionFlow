@@ -103,7 +103,7 @@ If `claude-flow` or the `mcp-helper.sh` script reports that a tool is not found:
 
 ### Issue: GUI-dependent MCP Tools Timeout Warnings
 
-**This is expected behavior** during container initialization.
+**This is expected behaviour** during container initialization.
 
 **Background**: MCP servers for Blender, QGIS, KiCad, and ImageMagick require the `gui-tools-container` to be fully running. During startup, these tools will show timeout warnings until the GUI services are ready.
 

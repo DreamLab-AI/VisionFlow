@@ -223,7 +223,7 @@ Expected outcome:
 ```
 Task: "Analyze this codebase and suggest improvements"
 Topology: star
-Agents: coordinator, analyst, optimizer, documenter
+Agents: coordinator, analyst, optimiser, documenter
 Max Agents: 5
 ```
 

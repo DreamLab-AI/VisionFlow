@@ -410,7 +410,7 @@ FROM nvidia/cuda:12.9.1-devel-ubuntu24.04
 **Rust**:
 - Installed as dev user in `/home/dev/.cargo`
 - Toolchain: stable channel
-- AVX-512 optimization support
+- AVX-512 optimisation support
 
 **Deno**:
 - Installed at `/root/.deno`
@@ -3110,7 +3110,7 @@ Comprehensive review of the DOCKER-ENVIRONMENT.md documentation against actual s
 
 5. **Sequence Diagrams**
    - Mermaid syntax valid
-   - Flow logic matches actual script behavior
+   - Flow logic matches actual script behaviour
    - All participants and messages accurate
 
 ### ⚠️ Minor Discrepancies
@@ -3190,7 +3190,7 @@ grep patch_mcp_server setup-workspace.sh  # Function exists ✓
 
 ## Conclusion
 
-The DOCKER-ENVIRONMENT.md documentation is **97% accurate** with only minor discrepancies that don't affect functionality. The proposed optimization plans are technically sound and implementable. The document serves as an excellent reference for understanding and improving the multi-agent Docker environment.
+The DOCKER-ENVIRONMENT.md documentation is **97% accurate** with only minor discrepancies that don't affect functionality. The proposed optimisation plans are technically sound and implementable. The document serves as an excellent reference for understanding and improving the multi-agent Docker environment.
 
 **Verification Status**: ✅ APPROVED with minor notes
 
@@ -3201,7 +3201,7 @@ Verifier: Claude (Opus 4.1)
 Critical Issues
 1. Brittle Runtime Patching of claude-flow
 The current setup relies on setup-workspace.sh to apply patches to the claude-flow package at runtime using sed and awk.
-Problem: This approach is extremely fragile. A minor update to claude-flow that changes the structure of mcp-server.js could break the patching mechanism, leading to silent failures or hard-to-debug errors in agent behavior.
+Problem: This approach is extremely fragile. A minor update to claude-flow that changes the structure of mcp-server.js could break the patching mechanism, leading to silent failures or hard-to-debug errors in agent behaviour.
 Evidence: The setup-workspace-patching.sh file contains complex sed and awk commands to modify the claude-flow source code.
 Suggestion: Implement the proposed "Automation Optimization Plan" from DOCKER-ENVIRONMENT.md. Using standard .patch files applied during the Docker build process (Strategy 2 in the document) is the most robust and maintainable solution. This makes builds deterministic and fails fast if a patch is no longer compatible.
 2. Overly Complex and Fragile User/Permission Handling

@@ -9,4 +9,4 @@ This section contains documentation for GPU computation and actor communication 
 
 ## Overview
 
-The GPU architecture provides high-performance computation capabilities for graph processing and visualization, with specialized actor communication patterns optimized for GPU workloads.
+The GPU architecture provides high-performance computation capabilities for graph processing and visualization, with specialized actor communication patterns optimised for GPU workloads.

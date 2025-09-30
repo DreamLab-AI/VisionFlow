@@ -35,7 +35,7 @@ Agent names follow kebab-case convention:
 - `pr-manager`, `issue-tracker`, `release-manager`, `workflow-automation`
 
 ### Performance & Optimization
-- `performance-benchmarker`, `topology-optimizer`, `load-balancer`
+- `performance-benchmarker`, `topology-optimiser`, `load-balancer`
 
 ## Related Documentation
 

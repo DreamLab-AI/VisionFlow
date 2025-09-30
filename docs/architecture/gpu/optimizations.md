@@ -103,7 +103,7 @@ graph_actor.batch_add_nodes(nodes)?;
 let edges = vec![edge1, edge2, edge3];
 graph_actor.batch_add_edges(edges)?;
 
-// Combined optimized batch
+// Combined optimised batch
 graph_actor.batch_update_optimized(nodes, edges)?;
 ```
 

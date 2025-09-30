@@ -122,7 +122,7 @@ The MCP helper script simplifies tool interaction:
   "params": {
     "width": 512,
     "height": 512,
-    "color": "blue",
+    "colour": "blue",
     "output": "blue_square.png"
   }
 }'
@@ -382,13 +382,13 @@ ImageMagick MCP provides powerful image manipulation:
 
 1. **Basic Operations**
 ```bash
-# Create solid color image
+# Create solid colour image
 ./mcp-helper.sh run-tool imagemagick-mcp '{
   "tool": "create",
   "params": {
     "width": 800,
     "height": 600,
-    "color": "#FF5733",
+    "colour": "#FF5733",
     "output": "orange_bg.png"
   }
 }'
@@ -636,8 +636,8 @@ class CustomMCPTool:
             # Route to appropriate handler
             if method == 'process_data':
                 return self.process_data(params)
-            elif method == 'analyze':
-                return self.analyze(params)
+            elif method == 'analyse':
+                return self.analyse(params)
             else:
                 return {'error': f'Unknown method: {method}'}
                 
@@ -652,7 +652,7 @@ class CustomMCPTool:
         result = {'processed': len(data), 'status': 'success'}
         return {'result': result}
     
-    def analyze(self, params):
+    def analyse(self, params):
         """Custom analysis logic."""
         # Your analysis logic here
         return {'result': 'Analysis complete'}
@@ -695,7 +695,7 @@ echo '{"method": "process_data", "params": {"data": [1, 2, 3]}}' | python3 mcp-t
 
 # Test via MCP helper
 ./mcp-helper.sh run-tool custom-tool '{
-  "method": "analyze",
+  "method": "analyse",
   "params": {"input": "test data"}
 }'
 ```

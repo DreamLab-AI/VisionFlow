@@ -13,7 +13,7 @@ This guide covers best practices for developing with VisionFlow, including envir
 5. [Testing Strategies](#testing-strategies)
 6. [Debugging Techniques](#debugging-techniques)
 7. [Contributing Guidelines](#contributing-guidelines)
-8. [Performance Optimization](#performance-optimization)
+8. [Performance Optimization](#performance-optimisation)
 
 ## Development Environment Setup
 
@@ -76,7 +76,7 @@ pip install -r requirements-dev.txt
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "rust-analyzer.cargo.features": ["all"],
+  "rust-analyser.cargo.features": ["all"],
   "python.linting.enabled": true,
   "python.linting.pylintEnabled": true,
   "typescript.tsdk": "client/node_modules/typescript/lib"

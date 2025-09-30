@@ -104,7 +104,7 @@ Map PR labels to agent types:
     "feature": ["architect", "coder", "tester"],
     "refactor": ["analyst", "coder"],
     "docs": ["researcher", "writer"],
-    "performance": ["analyst", "optimizer"]
+    "performance": ["analyst", "optimiser"]
   }
 }
 ```
@@ -129,7 +129,7 @@ npx ruv-swarm github pr-init 123 \
   --auto-agents \
   --pr-data "$PR_INFO" \
   --diff "$PR_DIFF" \
-  --analyze-impact
+  --analyse-impact
 ```
 
 ### Progress Updates
@@ -330,7 +330,7 @@ mcp__claude-flow__agent_spawn { type: "coordinator", name: "PR Coordinator" }
 mcp__claude-flow__agent_spawn { type: "reviewer", name: "Code Reviewer" }
 mcp__claude-flow__agent_spawn { type: "tester", name: "Test Engineer" }
 mcp__claude-flow__agent_spawn { type: "analyst", name: "Impact Analyzer" }
-mcp__claude-flow__agent_spawn { type: "optimizer", name: "Performance Optimizer" }
+mcp__claude-flow__agent_spawn { type: "optimiser", name: "Performance Optimizer" }
 
 # Store PR context for swarm coordination
 mcp__claude-flow__memory_usage {
@@ -438,30 +438,30 @@ See also: [swarm-issue.md](./swarm-issue.md), [sync-coordinator.md](./sync-coord
 - [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
 - [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
 - [Agents](../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimization/benchmark-suite.md)
+- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
 - [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
 - [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimization/load-balancer.md)
+- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
 - [Multi Agent Orchestration](../../../server/agent-swarm.md)
 - [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
 - [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
 - [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
 - [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../reference/agents/optimization/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimization/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimization/resource-allocator.md)
+- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
+- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
+- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../reference/agents/optimization/topology-optimizer.md)
+- [Topology Optimizer Agent](../../../reference/agents/optimisation/topology-optimiser.md)
 - [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
-- [analyze-code-quality](../../../reference/agents/analysis/code-review/analyze-code-quality.md)
+- [analyse-code-quality](../../../reference/agents/analysis/code-review/analyse-code-quality.md)
 - [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)
 - [architecture](../../../reference/agents/sparc/architecture.md)
 - [automation-smart-agent](../../../reference/agents/templates/automation-smart-agent.md)
 - [base-template-generator](../../../reference/agents/base-template-generator.md)
 - [byzantine-coordinator](../../../reference/agents/consensus/byzantine-coordinator.md)
-- [code-analyzer](../../../reference/agents/analysis/code-analyzer.md)
+- [code-analyser](../../../reference/agents/analysis/code-analyser.md)
 - [code-review-swarm](../../../reference/agents/github/code-review-swarm.md)
 - [coder](../../../reference/agents/core/coder.md)
 - [coordinator-swarm-init](../../../reference/agents/templates/coordinator-swarm-init.md)
@@ -481,7 +481,7 @@ See also: [swarm-issue.md](./swarm-issue.md), [sync-coordinator.md](./sync-coord
 - [multi-repo-swarm](../../../reference/agents/github/multi-repo-swarm.md)
 - [ops-cicd-github](../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
 - [orchestrator-task](../../../reference/agents/templates/orchestrator-task.md)
-- [performance-analyzer](../../../reference/agents/templates/performance-analyzer.md)
+- [performance-analyser](../../../reference/agents/templates/performance-analyser.md)
 - [performance-benchmarker](../../../reference/agents/consensus/performance-benchmarker.md)
 - [planner](../../../reference/agents/core/planner.md)
 - [pr-manager](../../../reference/agents/github/pr-manager.md)

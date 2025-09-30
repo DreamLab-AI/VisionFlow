@@ -103,8 +103,8 @@ agents:
       - code_review_coordination
       - merge_management
     
-  - type: performance-analyzer
-    role: optimization
+  - type: performance-analyser
+    role: optimisation
     capabilities:
       - performance_profiling
       - bottleneck_detection

@@ -71,10 +71,10 @@ graph TB
         A4[SameAs] --> |Co-location| Merge[Identity Constraints]
     end
 
-    style PG fill:#4A5568,stroke:#2D3748,stroke-width:2px,color:#fff
-    style OV fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,color:#fff
-    style GPU fill:#D69E2E,stroke:#B7791F,stroke-width:2px,color:#fff
-    style OA fill:#38A169,stroke:#276749,stroke-width:2px,color:#fff
+    style PG fill:#4A5568,stroke:#2D3748,stroke-width:2px,colour:#fff
+    style OV fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,colour:#fff
+    style GPU fill:#D69E2E,stroke:#B7791F,stroke-width:2px,colour:#fff
+    style OA fill:#38A169,stroke:#276749,stroke-width:2px,colour:#fff
 ```
 
 ## Introduction
@@ -119,7 +119,7 @@ graph TD
 
     V -- "ValidationReport" --> A
 
-    style I1 fill:#D69E2E,stroke:#333,stroke-width:2px,color:#fff
+    style I1 fill:#D69E2E,stroke:#333,stroke-width:2px,colour:#fff
 ```
 
 This hybrid approach allows developers and users to interact with a simple, flexible graph structure while leveraging the power of formal semantics for validation and advanced reasoning in the background.

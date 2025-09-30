@@ -59,7 +59,7 @@ The XR Immersive System provides a complete WebXR-based augmented reality experi
 
 ## Lighting System
 
-The XR environment uses a multi-light setup optimized for AR/VR visibility:
+The XR environment uses a multi-light setup optimised for AR/VR visibility:
 
 ### Light Sources
 
@@ -295,7 +295,7 @@ performance:
 1. **Black screen in XR**
    - Check lighting configuration
    - Verify emissive materials
-   - Ensure transparent clear color
+   - Ensure transparent clear colour
 
 2. **No hand tracking**
    - Enable in Quest settings

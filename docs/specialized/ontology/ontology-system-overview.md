@@ -84,9 +84,9 @@ graph TB
 
     CT --> PA
 
-    style OA fill:#38A169,stroke:#276749,stroke-width:2px,color:#fff
-    style OVS fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,color:#fff
-    style CT fill:#D69E2E,stroke:#B7791F,stroke-width:2px,color:#fff
+    style OA fill:#38A169,stroke:#276749,stroke-width:2px,colour:#fff
+    style OVS fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,colour:#fff
+    style CT fill:#D69E2E,stroke:#B7791F,stroke-width:2px,colour:#fff
 ```
 
 ## Core Components
