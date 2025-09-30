@@ -48,7 +48,7 @@ visualisation:
   hologram:
     ringCount: 3
     ringColor: '#f0e800'
-    ringOpacity: 0.1456044
+    ringOpacity: 0.03846154
     sphereSizes:
     - 80.0
     - 180.0
@@ -66,28 +66,28 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#ff0000'
+        baseColor: '#000000'
         metalness: 0.20965025
         opacity: 0.21428572
         roughness: 0.25633773
-        nodeSize: 1.9554945
+        nodeSize: 0.25934067
         quality: high
         enableInstancing: false
-        enableHologram: false
+        enableHologram: true
         enableMetadataShape: true
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#849504'
+        color: '#f46262'
         enableArrows: false
-        opacity: 0.24725275
+        opacity: 0.10164835
         widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.4836264
+        desktopFontSize: 1.4467857
         enableLabels: false
         textColor: '#805b5b'
         textOutlineColor: '#ff0000'
@@ -142,14 +142,14 @@ visualisation:
           resumeOnInteraction: true
         boundsSize: 1000.0
         separationRadius: 2.1155233
-        damping: 0.05
+        damping: 0.4945055
         enableBounds: false
         enabled: true
         iterations: 50
         maxVelocity: 100.0
         maxForce: 1000.0
-        repelK: 150.0
-        springK: 15.0
+        repelK: 13.28022
+        springK: 6.6758575
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
