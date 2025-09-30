@@ -58,8 +58,9 @@ git clone <repository-url> && cd multi-agent-docker
 - [ ] Docker Engine installed
 - [ ] Docker Compose installed
 - [ ] Git installed
-- [ ] 8GB+ RAM available
+- [ ] 16GB+ RAM recommended (configurable)
 - [ ] 20GB+ disk space
+- [ ] (Optional) NVIDIA GPU with drivers for acceleration
 
 ### 🎯 Step-by-Step Guide
 
@@ -186,7 +187,7 @@ These commands are run from your **host machine's terminal**.
 | `./multi-agent.sh stop` | Stops and removes the containers. |
 | `./multi-agent.sh restart` | Restarts the containers. |
 | `./multi-agent.sh status` | Shows the status of the running containers. |
-| `./multi-agent.sh logs` | Tails the logs from both containers. Use `logs -f` to follow. |
+| `./multi-agent.sh logs` | Tails the logs from both containers. Use `logs -f` to follow. All logs now stream to `docker logs` for easy monitoring. |
 | `./multi-agent.sh shell` | Enters the shell of an already running `multi-agent-container`. |
 | `./multi-agent.sh cleanup` | Stops containers and removes all associated volumes (deletes all data). |
 
@@ -211,6 +212,17 @@ cp /app/mcp-helper.sh ./
 chmod +x ./mcp-helper.sh
 ```
 
+#### GUI-dependent MCP servers timeout warnings
+**Expected Behavior**: Blender, QGIS, KiCad, and ImageMagick MCP servers will show timeout warnings until the GUI container services are started. This is normal and will not affect core functionality. Services will become available once the `gui-tools-container` is fully initialized.
+
+```bash
+# Check GUI container status
+docker ps | grep gui-tools-container
+
+# View GUI container logs
+docker logs gui-tools-container
+```
+
 ### 🎯 Working with Claude
 
 The setup automatically provides Claude with MCP tool knowledge. To use tools with Claude:
@@ -233,20 +245,41 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 
 ### 🛠️ Available MCP Tools
 
-| Tool | Purpose | Example Use |
-|------|---------|-------------|
-| **imagemagick-mcp** | Image creation & manipulation | Create graphics, resize, apply effects |
-| **blender-mcp** | 3D modeling & rendering | Create 3D models, render scenes |
-| **qgis-mcp** | Geospatial analysis | Process maps, analyze geographic data |
-| **kicad-mcp** | Electronic design | Design PCBs, create schematics |
-| **ngspice-mcp** | Circuit simulation | Simulate electronic circuits |
-| **pbr-generator-mcp** | PBR texture creation | Generate realistic material textures |
-| **playwright-mcp** | Browser automation | Automate web tasks, run tests |
-| **chrome-devtools-mcp** | Web debugging | Inspect and debug web pages |
+| Tool | Status | Purpose | Container |
+|------|--------|---------|-----------|
+| **claude-flow** | ✅ Working | AI orchestration with memory | multi-agent |
+| **ruv-swarm** | ✅ Working | Multi-agent coordination | multi-agent |
+| **flow-nexus** | ✅ Working | Workflow orchestration | multi-agent |
+| **playwright-mcp** | ✅ Working | Browser automation | gui-tools |
+| **blender-mcp** | ⏳ GUI-dependent | 3D modeling & rendering | gui-tools |
+| **qgis-mcp** | ⏳ GUI-dependent | Geospatial analysis | gui-tools |
+| **kicad-mcp** | ⏳ GUI-dependent | Electronic design | gui-tools |
+| **imagemagick-mcp** | ⏳ GUI-dependent | Image manipulation | gui-tools |
+
+**Note**: GUI-dependent tools will show soft-fail timeout warnings until the GUI container services fully initialize. This is expected behavior and does not affect core MCP functionality.
 
 ---
 
 **Need help?** Use `./mcp-helper.sh claude-instructions` or check the [Architecture Guide](./ARCHITECTURE.md)!
+
+## ⚙️ Resource Configuration
+
+### Default Resource Allocation
+
+Both containers default to **16GB RAM** and **4 CPUs** for optimal performance with AI workloads.
+
+**Customization**: Override defaults via environment variables in `.env`:
+
+```bash
+# .env file
+DOCKER_MEMORY=8g      # Adjust memory allocation
+DOCKER_CPUS=2         # Adjust CPU cores
+```
+
+**Requirements**:
+- Minimum: 8GB RAM, 2 CPUs
+- Recommended: 16GB RAM, 4 CPUs
+- Optimal: 32GB+ RAM, 8+ CPUs with NVIDIA GPU
 
 ## 🔌 MCP Connectivity
 
@@ -287,8 +320,25 @@ reader.read_line(&mut response).await?;
 -   `mcp-tcp-stop`: Stop the TCP server.
 -   `mcp-tcp-status`: Check the server status.
 -   `mcp-tcp-restart`: Restart the server.
--   `mcp-tcp-logs`: View server logs.
 -   `mcp-tcp-test`: Run a simple connection test.
+
+#### Logging
+
+All MCP services now log to **stdout/stderr** for unified monitoring:
+
+```bash
+# View all logs from host
+docker logs multi-agent-container
+
+# Follow logs in real-time
+docker logs -f multi-agent-container
+
+# View timestamped logs
+docker logs -t multi-agent-container
+
+# Last 100 lines
+docker logs --tail 100 multi-agent-container
+```
 
 ### MCP WebSocket Bridge (Port 3002)
 

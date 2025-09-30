@@ -128,9 +128,18 @@ const ws = new WebSocket('ws://localhost:3002', {
 
 ## Monitoring
 
+All logs now stream to **stdout/stderr** for unified monitoring via `docker logs`.
+
 Security events are logged with the `[SECURITY]` prefix:
 ```
 [SECURITY] {"timestamp":"2024-01-01T00:00:00.000Z","event":"invalid_auth","ip":"192.168.1.1"}
+```
+
+**View logs from host**:
+```bash
+docker logs multi-agent-container
+docker logs -f multi-agent-container  # Follow in real-time
+docker logs multi-agent-container | grep SECURITY  # Filter security events
 ```
 
 Monitor these logs for:

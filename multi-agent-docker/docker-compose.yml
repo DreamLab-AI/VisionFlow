@@ -92,7 +92,6 @@ services:
       - MCP_ENABLE_TCP=true
       - MCP_ENABLE_UNIX=false
       - MCP_LOG_LEVEL=${MCP_LOG_LEVEL:-info}
-      - MCP_HEALTH_PORT=9501
       # Security Configuration
       - WS_AUTH_ENABLED=${WS_AUTH_ENABLED:-true}
       - WS_AUTH_TOKEN=${WS_AUTH_TOKEN}
@@ -164,19 +163,18 @@ services:
     ports:
       - "3000:3000"    # Claude Flow UI
       - "3002:3002"    # WebSocket Bridge (existing)
-      - "9500:9500"    # MCP TCP Server (shared claude-flow)
-      - "9501:9501"    # MCP Health Check
-      - "9502:9502"    # Claude-Flow TCP (isolated sessions)
-      - "9503:9503"    # Claude-Flow TCP health
+      - "9500:9500"    # MCP TCP Server (shared claude-flow) - PRIMARY
+      - "9502:9502"    # Claude-Flow TCP (isolated sessions per client)
+      - "9503:9503"    # Claude-Flow TCP health endpoint (localhost only)
 
     volumes:
       # Persistent data (read-write)
       - ./workspace:/workspace:rw
       - ./pbr_outputs:/workspace/pbr_outputs:rw
       - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
-      # Configuration (read-only)
-      - ~/.claude:/home/dev/.claude:ro
-      - ~/.claude.json:/home/dev/.claude.json:ro
+      # Configuration (read-write for Claude to save state)
+      - ~/.claude:/home/dev/.claude:rw
+      - ~/.claude.json:/home/dev/.claude.json:rw
       # Runtime data (ephemeral)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./blender-files:/blender-files:rw
@@ -199,13 +197,13 @@ services:
     mem_limit: ${DOCKER_MEMORY:-16g}
     cpus: "${DOCKER_CPUS:-4}"
 
-    # Health check for both WebSocket and TCP
-    healthcheck:
-      test: ["CMD-SHELL", "/app/core-assets/scripts/health-check.sh || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 90s
+    # Health check disabled - port 9501 health endpoint not implemented
+    # healthcheck:
+    #   test: ["CMD-SHELL", "/app/core-assets/scripts/health-check.sh || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 90s
 
 
     # Restart policy
