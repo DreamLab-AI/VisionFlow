@@ -1,12 +1,16 @@
 # Guides
 
-*[Guides](../index.md)*
+*[Documentation Hub](../README.md) > Guides*
 
 User and developer guides, tutorials, and how-to documentation.
 
 ## Available Guides
 
-*This section will be populated as guides are created and migrated.*
+### Security
+- **[Security Best Practices](security.md)** - WebSocket authentication, rate limiting, Docker security
+
+### System Monitoring
+- **[Telemetry and Logging](telemetry-logging.md)** - Component-based logging, performance monitoring, Docker volume integration
 
 ## Guide Categories
 

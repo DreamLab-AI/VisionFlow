@@ -185,7 +185,7 @@ Choose your path based on your immediate needs:
 
 ## Related Topics
 
-- [Configuration Guide](../getting-started/configuration.md)
-- [Getting Started with VisionFlow](../getting-started.md)
-- [Installation Guide](../getting-started/installation.md)
-- [Quick Start Guide](../getting-started/quickstart.md)
+- [Configuration Guide](configuration.md)
+- [Getting Started with VisionFlow](quickstart.md)
+- [Installation Guide](installation.md)
+- [Quick Start Guide](quickstart.md)
