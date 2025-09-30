@@ -232,8 +232,22 @@ impl AgentVisualizationProcessor {
             let token_usage = agent.tokens;
             let token_rate = agent.token_rate;
 
-            // Use position from agent if available, otherwise physics will set it
-            let position = agent.position.unwrap_or(Vec3 { x: 0.0, y: 0.0, z: 0.0 });
+            // Use position from agent if available, otherwise initialize with random position
+            let position = agent.position.unwrap_or_else(|| {
+                // Random position in a sphere to prevent stacking
+                use rand::Rng;
+                let mut rng = rand::thread_rng();
+                let radius = 100.0; // Spread agents over 100 unit radius
+                let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
+                let phi = rng.gen::<f32>() * std::f32::consts::PI;
+                let r = rng.gen::<f32>().powf(1.0/3.0) * radius; // Uniform sphere distribution
+
+                Vec3 {
+                    x: r * phi.sin() * theta.cos(),
+                    y: r * phi.sin() * theta.sin(),
+                    z: r * phi.cos(),
+                }
+            });
 
             VisualizedAgent {
                 id: agent.agent_id.clone(),

@@ -227,7 +227,7 @@ impl Default for PhysicsConfig {
             spring_k: 0.05,
             link_distance: 50.0,
             damping: 0.9,
-            repel_k: 1000.0,
+            repel_k: 5000.0,              // Increased from 1000.0 for better agent separation
             gravity_k: 0.01,
             max_velocity: 10.0,
         }

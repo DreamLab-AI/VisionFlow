@@ -15,7 +15,15 @@ export default defineConfig({
     host: '0.0.0.0',
     port: parseInt(process.env.VITE_DEV_SERVER_PORT || '5173'),
     strictPort: true,
-    
+
+    // Allow Cloudflare Tunnel hostname
+    allowedHosts: [
+      'www.visionflow.info',
+      'visionflow.info',
+      'localhost',
+      '192.168.0.51'
+    ],
+
     // HMR configuration for development
     hmr: {
       // This is the crucial part for Docker environments.
@@ -25,13 +33,13 @@ export default defineConfig({
       clientPort: 3001,
       path: '/vite-hmr',
     },
-    
+
     // File watching for Docker environments
     watch: {
       usePolling: true,
       interval: 1000,
     },
-    
+
     // CORS headers for development
     cors: true,
     
