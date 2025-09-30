@@ -2,7 +2,7 @@
 
 ## Overview
 
-VisionFlow uses a highly optimized binary protocol for real-time position updates, providing 95% bandwidth reduction compared to JSON. This protocol transmits node positions, velocities, and graph traversal data at 60 FPS with minimal latency.
+VisionFlow uses a highly optimised binary protocol for real-time position updates, providing 95% bandwidth reduction compared to JSON. This protocol transmits node positions, velocities, and graph traversal data at 60 FPS with minimal latency.
 
 ## Protocol Version
 
@@ -313,7 +313,7 @@ function inspectBinaryFrame(buffer: ArrayBuffer): void {
 ### Hex Dump
 
 ```bash
-# Capture and analyze binary frame
+# Capture and analyse binary frame
 websocat ws://localhost:3001/ws | head -c 34 | xxd
 
 # Expected output for one node:

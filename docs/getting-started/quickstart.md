@@ -1,440 +1,358 @@
-# VisionFlow Quick Start Guide
+# Getting Started with VisionFlow
 
-*[Getting-Started](../index.md)*
+## Quick Start Guide
 
-Get VisionFlow running and create your first stunning 3D graph visualisation with AI multi-agent systems in just 5 minutes! This comprehensive guide takes you from installation through your first successful multi-agent deployment.
+VisionFlow is a real-time 3D visualisation platform combining AI agent orchestration with GPU-accelerated graph physics. Follow this guide to get up and running in minutes.
 
 ## Prerequisites
 
-Before starting, ensure you have:
-
 ### System Requirements
-- **Docker** 20.10+ and Docker Compose 2.0+
-- **8GB RAM** minimum (16GB recommended for multi-agent tasks)
-- **Modern web browser** with WebGL support
-- **Internet connection** for AI model access
 
-### Optional Components
-- **NVIDIA GPU** with CUDA 11.8+ for GPU acceleration
-- **Meta Quest 3** for XR features
-- **16GB+ RAM** for large multi-agent deployments
+**Minimum:**
+- OS: Linux (Ubuntu 20.04+), macOS 12+, Windows 10+ with WSL2
+- CPU: 4 cores, 2.5GHz+
+- RAM: 8GB
+- Docker: Version 20.10+
+- Node.js: Version 18+ (for development)
 
-## 5-Minute Quick Start
+**Recommended:**
+- CPU: 8+ cores, 3.5GHz+
+- RAM: 16GB+
+- GPU: NVIDIA GPU with CUDA 11.8+ (for GPU acceleration)
+- Storage: SSD with 20GB+ available
 
-### Step 1: Installation and Setup (2 minutes)
+### Optional Features
+
+**For GPU Physics:**
+- NVIDIA GPU with CUDA 11.8+
+- NVIDIA Container Toolkit (for Docker GPU support)
+
+**For XR/VR:**
+- Meta Quest 3 or compatible WebXR device
+- WebXR-compatible browser (Chrome 90+, Firefox 98+)
+
+## Installation Options
+
+### Option 1: Docker (Recommended)
+
+The fastest way to get started is using Docker Compose:
 
 ```bash
-# 1. Clone the repository (if not already done)
-git clone https://github.com/yourusername/visionflow.git
-cd visionflow
+# Clone the repository
+git clone <repository-url>
+cd ext
 
-# 2. Configure environment
-cp .env.example .env
-
-# Edit .env with essential settings:
-# CLAUDE_FLOW_HOST=multi-agent-container
-# MCP_TCP_PORT=9500
-# ENABLE_GPU=true (if you have an NVIDIA GPU)
-
-# 3. Start all services
+# Start all services with Docker Compose
 docker-compose up -d
 
-# Wait for services to initialise
-echo "Waiting for VisionFlow to start..."
-sleep 60
-
-# 4. Verify services are running
-docker-compose ps
+# Access the application
+open http://localhost:3002
 ```
 
-Expected output:
-```
-NAME                    COMMAND                  SERVICE             STATUS
-visionflow_container    "/app/scripts/start.sh"  webxr          Up
-multi-agent-container   "python3 -m claude..."   claude-flow        Up
-postgres                "docker-entrypoint..."   postgres           Up
-redis                   "docker-entrypoint..."   redis              Up
-```
+**Services Started:**
+- Frontend: React app on port 3002
+- Backend: Rust server on port 8080
+- GPU Service: CUDA physics engine
 
-### Step 2: Open VisionFlow (30 seconds)
+### Option 2: Development Setup
 
-Open your web browser and navigate to:
-```
-http://localhost:3001
-```
+For development and customisation:
 
-You should see the VisionFlow interface with:
-- A dark 3D visualisation area in the centre
-- Control panels on the left and right sides
-- A status indicator showing "Connected" in green
+```bash
+# Prerequisites
+sudo apt update
+sudo apt install curl build-essential
 
-### Step 3: Load Your First Graph (1 minute)
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
 
-There are several ways to quickly get started:
+# Install Node.js (via nvm)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install 18
+nvm use 18
 
-#### Option A: Load Demo Data (Fastest)
-1. Click the **"Load Demo Graph"** button in the control panel
-2. Watch as a sample knowledge graph appears with interconnected nodes
-3. Use your mouse to rotate, zoom, and explore the 3D space
+# Clone and setup
+git clone <repository-url>
+cd ext
 
-#### Option B: Create Empty Graph
-1. Click **"New Graph"** in the control panel
-2. Add nodes by clicking **"Add Node"** and entering text
-3. Connect nodes by selecting two nodes and clicking **"Add Edge"**
+# Install dependencies
+cd client && npm install
+cd ../server && cargo build --release
 
-#### Option C: Load Your Logseq Data
-1. Click **"Connect to GitHub"** in the control panel
-2. Authorize VisionFlow to access your Logseq repository
-3. Select your markdown files to visualise
-
-### Step 4: Explore and Interact (1.5 minutes)
-
-#### Mouse Controls
-- **Left Click + Drag**: Rotate the camera around the graph
-- **Right Click + Drag**: Pan the camera position
-- **Scroll Wheel**: Zoom in and out
-- **Double Click**: Focus on a specific node
-
-#### Keyboard Shortcuts
-- **`Space`**: Pause/resume physics simulation
-- **`R`**: Reset camera to default position
-- **`F`**: Toggle fullscreen mode
-- **`G`**: Toggle grid display
-- **`H`**: Show/hide help overlay
-
-#### Interactive Features
-- **Node Selection**: Click nodes to select and highlight connections
-- **Node Information**: Hover over nodes to see detailed information
-- **Edge Filtering**: Use controls to filter relationship types
-- **Physics Controls**: Adjust gravity, repulsion, and spring forces
-
-## Your First Multi-Agent Workflow
-
-### What are Multi-Agent Systems?
-
-Multi-agent systems in VisionFlow are intelligent AI agents that work together to solve complex problems. Each agent has specialised capabilities:
-
-- **Coordinator**: Orchestrates tasks and manages workflow
-- **Researcher**: Gathers information and analyses requirements
-- **Coder**: Implements solutions and writes code
-- **Architect**: Designs system structure and patterns
-- **Tester**: Creates tests and validates implementations
-- **Reviewer**: Ensures code quality and best practices
-
-### Initialise Your First Multi-Agent System
-
-#### Step 1: Access the Multi-Agent Panel
-1. Look for the **"VisionFlow (MCP)"** section in the left control panel
-2. You should see an **"Initialise multi-agent"** button if no agents are active
-3. Click this button to open the configuration dialogue
-
-#### Step 2: Configure Your Agents
-Fill in the multi-agent configuration form:
-
-**Task Description:**
-Start with a simple, clear task. Here are some beginner-friendly examples:
-
-```
-Create a simple REST API with user authentication
+# Start development servers
+./scripts/dev.sh
 ```
 
-```
-Write unit tests for a calculator module
-```
+## First Launch
 
-```
-Build a basic React component with state management
-```
+### 1. Verify Installation
 
-**Topology Selection:**
-- **Mesh**: Best for collaborative tasks (recommended for beginners)
-- **Hierarchical**: Structured approach with clear leadership
-- **Star**: Central coordination model
-- **Ring**: Sequential processing
+After starting VisionFlow, navigate to `http://localhost:3002`. You should see:
 
-**Agent Selection:**
-For your first workflow, try this combination:
-- ✅ Coordinator (always recommended)
-- ✅ Researcher
-- ✅ Coder
-- ✅ Tester
+✅ **Expected:** Loading screen followed by 3D visualisation interface  
+❌ **Problem:** Blank page or errors → Check Docker logs or development console
 
-**Settings:**
-- **Maximum Agents**: Start with 4-6 agents
-- **Neural Enhancement**: Enable for better performance
-- **GPU Acceleration**: Enable if you have a compatible GPU
+### 2. Basic Interface Tour
 
-#### Step 3: Deploy Your Agents
-1. Click **"Spawn Hive Mind"** to start the agent deployment
-2. Watch the 3D visualisation as agents appear as nodes
-3. Observe the connections forming between agents as they communicate
+**Main Components:**
+- **GraphCanvas**: Central 3D visualisation area with dual graph rendering
+- **SettingsPanelRedesign**: Right sidebar with settings and controls
+- **CommandPalette**: Press `Ctrl+K` for quick actions  
+- **ConversationPane**: Bottom pane for AI interactions
+- **Status Bar**: Bottom bar showing connection status
 
-#### Step 4: Monitor Agent Activity
-As your agents work:
-- **Node Colors**: Different colors represent agent types and states
-  - 🔵 Blue: Coordinator agents
-  - 🟢 Green: Researcher agents
-  - 🟡 Yellow: Coder agents
-  - 🟠 Orange: Tester agents
-  - ⚪ White: Idle agents
-  - 🔴 Red: Agents with errors
+### 3. Load Sample Data
 
-- **Edge Thickness**: Thicker connections indicate more communication
-- **Node Movement**: Active agents move more dynamically
-- **Pulsing**: Indicates agents are processing tasks
-
-#### Step 5: Review Results
-1. Check the **Activity Log** panel for detailed agent communications
-2. View **Task Progress** to see completion status
-3. Examine any **Generated Files** or **Code Output**
-4. Review **Performance Metrics** to understand efficiency
-
-### Sample Multi-Agent Workflows
-
-#### Quick Development Task (5-10 minutes)
-```
-Task: "Create a simple todo list API with GET and POST endpoints"
-Topology: mesh
-Agents: coordinator, researcher, coder, tester
-Max Agents: 4
+**Option A: Demo Mode**
+```bash
+# Load built-in demo graph
+curl -X POST http://localhost:8080/api/demo/load
 ```
 
-Expected outcome:
-- Researcher analyses requirements
-- Coder implements the API
-- Tester creates validation tests
-- Coordinator ensures everything works together
+**Option B: Connect Logseq**
+1. Open SettingsPanelRedesign (gear icon)
+2. Navigate to "Data Sources" tab  
+3. Enter your GitHub repository URL for Logseq data
+4. Configure GitHub token for authentication
+5. Click "Connect"
 
-#### Documentation Project (10-15 minutes)
-```
-Task: "Document the authentication system with API examples"
-Topology: hierarchical
-Agents: coordinator, researcher, documenter, reviewer
-Max Agents: 4
-```
+### 4. Verify GPU Acceleration (Optional)
 
-Expected outcome:
-- Researcher gathers system information
-- Documenter creates comprehensive documentation
-- Reviewer ensures quality and accuracy
-- Coordinator manages the overall process
+If you have an NVIDIA GPU:
 
-#### Code Analysis Task (15-20 minutes)
-```
-Task: "Analyse this codebase and suggest improvements"
-Topology: star
-Agents: coordinator, analyst, optimiser, documenter
-Max Agents: 5
+```bash
+# Check GPU detection
+curl http://localhost:8080/api/system/gpu-info
+
+# Expected response:
+# {"gpu_count": 1, "gpu_name": "GeForce RTX 3060", "cuda_version": "11.8"}
 ```
 
-Expected outcome:
-- Analyst examines code structure and patterns
-- Optimiser identifies performance improvements
-- Documenter creates improvement recommendations
-- Coordinator synthesises all findings
+## Configuration
 
-## Understanding the Interface
+### Environment Variables
 
-### Left Control Panel
+Create `.env` file in the project root:
 
-#### Graph Management
-- **Load Demo Graph**: Quick sample data for testing
-- **New Graph**: Create empty graph from scratch
-- **Save Graph**: Persist current graph state
-- **Load Graph**: Restore previously saved graph
+```env
+# Server Configuration
+RUST_LOG=info
+SERVER_PORT=8080
+CLIENT_PORT=3002
 
-#### Multi-Agent Systems
-- **Initialise Multi-Agent**: Configure and deploy AI agents
-- **Agent Status**: Monitor active agents and their states
-- **Task Management**: View and control ongoing tasks
-- **Performance Metrics**: Real-time system performance data
+# GPU Settings (optional)
+ENABLE_GPU=true
+CUDA_VISIBLE_DEVICES=0
 
-#### Data Sources
-- **GitHub Integration**: Connect to Logseq repositories
-- **File Upload**: Import local markdown files
-- **API Connection**: Connect to external data sources
-- **Real-time Sync**: Toggle automatic updates
+# Data Sources
+GITHUB_TOKEN=your_github_token
+GITHUB_REPO=your_username/logseq-repo
 
-### Right Control Panel
+# AI Services
+OPENAI_API_KEY=your_openai_key
+PERPLEXITY_API_KEY=your_perplexity_key
 
-#### Visualisation Settings
-- **Physics Controls**: Adjust gravity, repulsion, and springs
-- **Rendering Options**: Quality settings and visual effects
-- **Camera Settings**: Field of view and movement sensitivity
-- **Performance**: Frame rate and optimisation settings
+# Claude Flow MCP Integration
+CLAUDE_FLOW_HOST=multi-agent-container
+MCP_TCP_PORT=9500
+MCP_TRANSPORT=tcp
 
-#### Analytics and Insights
-- **Clustering**: Group related nodes automatically
-- **Anomaly Detection**: Highlight unusual patterns
-- **Semantic Analysis**: AI-powered relationship discovery
-- **Export Options**: Save visualisations and data
+# Features
+ENABLE_XR=true
+ENABLE_VOICE=false
+```
 
-#### Advanced Features
-- **XR Mode**: Enable Quest 3 or other XR devices
-- **Voice Controls**: Activate voice interaction
-- **API Access**: Generate API keys and endpoints
-- **Debug Tools**: Performance monitoring and troubleshooting
+### Basic Settings
 
-### 3D Visualisation Area
+Access settings via the gear icon in the top-right:
 
-#### Node Types
-- **Knowledge Nodes**: Represent concepts, documents, or ideas
-  - 📄 Document nodes (blue)
-  - 💡 Concept nodes (yellow)
-  - 🏷️ Tag nodes (green)
+**Essential Settings:**
+- **Physics Quality**: Start with "Medium" for balanced performance
+- **Render Quality**: Adjust based on your hardware
+- **Graph Type**: Choose "Logseq" for knowledge graphs, "Agents" for AI systems
+- **XR Mode**: Enable for VR/AR experiences
 
-- **Agent Nodes**: Represent AI agents and their activities
-  - 🎯 Coordinator agents (purple)
-  - 🔍 Researcher agents (teal)
-  - ⚙️ Coder agents (orange)
-  - 🧪 Tester agents (pink)
+## Key Features Overview
 
-#### Edge Types
-- **Solid Lines**: Strong relationships or frequent communication
-- **Dashed Lines**: Weak relationships or occasional communication
-- **Thick Lines**: High-bandwidth or critical connections
-- **Thin Lines**: Low-bandwidth or informational connections
+### 1. Real-time Graph Physics
 
-#### Interactive Elements
-- **Selection Highlighting**: Selected nodes and their connections
-- **Hover Information**: Tooltips with detailed node/edge data
-- **Context Menus**: Right-click for additional options
-- **Drag and Drop**: Manual node positioning
+VisionFlow uses GPU-accelerated physics to create dynamic, force-directed layouts:
+
+- **Spring Forces**: Connected nodes attract each other
+- **Repulsion**: Unconnected nodes push apart
+- **Damping**: Prevents excessive movement
+- **Boundaries**: Keeps graphs contained
+
+**Controls:**
+- Mouse: Rotate and zoom the camera
+- Scroll: Zoom in/out
+- Drag: Pan the view
+
+### 2. Dual Graph System
+
+Simultaneously visualise multiple graph types with unified physics:
+
+- **Knowledge Graph**: Logseq data from GitHub (blue theme, bit 30 node flags)
+- **Agent Graph**: AI Multi Agent telemetry from Claude Flow MCP (green theme, bit 31 node flags)  
+- **Binary Protocol**: Real-time position/velocity streaming at 60 FPS
+- **GraphServiceActor**: Central coordinator for both graph types
+
+### 3. Interactive Elements
+
+**Node Interaction:**
+- Click: Select node and show metadata
+- Double-click: Centre camera on node
+- Hover: Show quick info tooltip
+
+**Edge Interaction:**
+- Click edge: Show relationship details
+- Hover: Highlight connected nodes
+
+### 4. XR/VR Mode (Optional)
+
+For Quest 3 or compatible devices:
+
+1. Connect your VR headset
+2. Open VisionFlow in a WebXR browser
+3. Click the VR icon in the interface
+4. Use hand tracking or controllers to interact
 
 ## Common Workflows
 
-### Knowledge Graph Exploration
+### Exploring a Knowledge Graph
 
-#### Personal Knowledge Base
-1. Connect your Logseq repository via GitHub
-2. Watch as your markdown files become an interactive 3D graph
-3. Explore connections between your notes and ideas
-4. Discover unexpected relationships through AI analysis
+1. **Load Data**: Connect Logseq or upload graph data
+2. **Adjust Physics**: Tune spring/repulsion forces for optimal layout
+3. **Navigate**: Use mouse controls to explore the graph
+4. **Search**: Use Command Palette (`Ctrl+K`) to find specific nodes
+5. **Filter**: Toggle graph types or metadata filters
 
-#### Research Project
-1. Import research papers and documents
-2. Use AI clustering to group related concepts
-3. Identify knowledge gaps and research opportunities
-4. Export findings for publication or presentation
+### Monitoring AI Agents
 
-#### Learning and Education
-1. Create concept maps for complex topics
-2. Visualise learning pathways and dependencies
-3. Track progress through knowledge domains
-4. Share interactive visualisations with students
+1. **Connect Agent System**: Configure Claude Flow MCP integration (TCP port 9500)
+2. **View Agent Graph**: Agent nodes automatically appear with bit 31 flags
+3. **Monitor Health**: Node colors indicate agent status via ClaudeFlowActor
+4. **Track Tasks**: See real-time task processing through binary WebSocket updates
+5. **Debug Issues**: Click problematic agents for detailed logs via API
 
-### AI Agent Collaboration
+### Performance Tuning
 
-#### Software Development
-- **Frontend Development**: React components, styling, user experience
-- **Backend Development**: APIs, databases, server logic
-- **Testing**: Unit tests, integration tests, quality assurance
-- **Documentation**: Technical writing, API docs, user guides
+1. **Check FPS**: Enable performance overlay in Debug settings
+2. **Adjust Quality**: Lower render quality if FPS < 30
+3. **GPU Usage**: Monitor GPU utilization in System panel
+4. **Network Load**: Check WebSocket message rates
 
-#### Content Creation
-- **Research**: Information gathering, fact-checking, source validation
-- **Writing**: Content creation, editing, style consistency
-- **Review**: Quality assurance, accuracy verification
-- **Publishing**: Formatting, distribution, platform optimisation
+## Troubleshooting
 
-#### Data Analysis
-- **Collection**: Data gathering from multiple sources
-- **Processing**: Cleaning, transformation, validation
-- **Analysis**: Statistical analysis, pattern recognition
-- **Visualisation**: Charts, graphs, dashboard creation
+### Common Issues
 
-## Tips for Success
+**🔧 Performance Issues**
+- Lower render quality in settings
+- Disable advanced visual effects
+- Reduce node count or use filtering
+- Check GPU memory usage
 
-### Best Practices
+**🔧 Connection Issues**
+- Verify Docker containers are running: `docker-compose ps`
+- Check backend health: `curl http://localhost:8080/health`
+- Restart services: `docker-compose restart`
 
-#### Start Simple
-- Begin with small graphs (10-50 nodes)
-- Use basic physics settings initially
-- Focus on one feature at a time
-- Gradually increase complexity
+**🔧 GPU Not Detected**
+- Install NVIDIA Container Toolkit
+- Verify CUDA installation: `nvidia-smi`
+- Check Docker GPU support: `docker run --gpus all nvidia/cuda:11.8-runtime-ubuntu20.04 nvidia-smi`
 
-#### Optimise Performance
-- Enable GPU acceleration if available
-- Adjust physics quality based on your hardware
-- Use clustering for large datasets
-- Monitor frame rate and adjust settings accordingly
+**🔧 XR/VR Issues**
+- Use Chrome or Firefox with WebXR support
+- Enable "Enable VR Developer Features" in chrome://flags
+- Ensure VR headset is properly connected
+- Check browser permissions for device access
 
-#### Effective Multi-Agent Use
-- Start with 3-5 agents for simple tasks
-- Clearly define your task objectives
-- Choose appropriate topology for your workflow
-- Monitor agent communication and performance
+### Debug Mode
 
-### Troubleshooting Tips
+Enable detailed logging:
 
-#### Graph Not Loading
-1. Check browser console for errors (F12 → Console)
-2. Verify WebSocket connection status
-3. Refresh the page and try again
-4. Check that all Docker services are running
+```bash
+# Backend logs
+docker-compose logs -f server
 
-#### Poor Performance
-1. Reduce graph complexity or node count
-2. Lower physics simulation quality
-3. Disable GPU acceleration if causing issues
-4. Close other browser tabs to free memory
+# Frontend logs
+# Open browser DevTools → Console tab
 
-#### Agents Not Spawning
-1. Verify Claude Flow MCP connection is active
-2. Check that all required services are running
-3. Review task description for clarity
-4. Try with fewer agents initially
+# Enable debug mode
+curl -X POST http://localhost:8080/api/debug/enable
+```
 
-#### 3D Navigation Issues
-1. Ensure WebGL is enabled in your browser
-2. Update graphics drivers if using GPU acceleration
-3. Try different camera sensitivity settings
-4. Reset camera position with 'R' key
+### Getting Help
+
+**Documentation:**
+- [Architecture Guide](./architecture/system-overview.md)
+- [API Reference](./api/index.md)
+- [Configuration Reference](./configuration/index.md)
+
+**Community:**
+- GitHub Issues: Report bugs and feature requests
+- Discord: Community discussion and support
+- Documentation: Comprehensive guides and tutorials
 
 ## Next Steps
 
-Now that you've mastered the basics, explore these advanced features:
+### Beginner
+1. ✅ Complete this getting started guide
+2. 📖 Read [Basic Usage Guide](./guides/quick-start.md)
+3. 🎯 Try [Tutorial: Your First Graph](./guides/quick-start.md)
 
-### Advanced Visualisation
-- **[Custom Shaders](../client/rendering.md)** - Create stunning visual effects
-- **[XR Integration](../client/xr.md)** - Immersive Quest 3 experiences
-- **[Performance Optimisation](../client/performance.md)** - Smooth 60fps with large graphs
+### Intermediate  
+1. 🔧 Explore [Configuration Options](./configuration/index.md)
+2. 🤖 Set up [Agent Integration](./features/agent-orchestration.md)
+3. 🥽 Try [WebXR Mode](./client/xr-integration.md)
 
-### API Integration
-- **[REST API](../api/rest.md)** - Programmatic control and automation
-- **[WebSocket API](../api/websocket.md)** - Real-time data streaming
-- **[GraphQL](../api/graphql.md)** - Flexible data queries
+### Advanced
+1. 🏗️ Study [Architecture Documentation](./architecture/index.md)
+2. 💻 Set up [Development Environment](./development/setup.md)
+3. 🚀 Deploy to [Production](./deployment/index.md)
 
-### Advanced Multi-Agent Systems
-- **[Custom Agents](../features/custom-agents.md)** - Build specialised AI agents
-- **[Workflow Automation](../features/workflows.md)** - Automate complex processes
-- **[Performance Monitoring](../features/monitoring.md)** - Track system efficiency
+## Quick Reference
 
-### Production Deployment
-- **[Docker Production](../deployment/docker.md)** - Scalable container deployment
-- **[Cloud Deployment](../deployment/cloud.md)** - AWS, GCP, Azure setups
-- **[Monitoring](../deployment/monitoring.md)** - Production monitoring and alerts
+### Keyboard Shortcuts
+- `Ctrl+K`: Open command palette
+- `Space`: Pause/resume physics
+- `R`: Reset camera view
+- `T`: Toggle graph types
+- `F`: Focus on selected node
+- `Ctrl+/`: Toggle help overlay
 
-## Community and Support
+### API Endpoints
+- Health check: `GET /health`
+- Graph data: `GET /api/graph`
+- Settings: `GET/POST /api/settings`
+- System info: `GET /api/system/info`
 
-### Get Help
-- **[Documentation Hub](../index.md)** - Comprehensive guides
-- **[Troubleshooting](../troubleshooting.md)** - Common issues and solutions
-- **[GitHub Issues](https://github.com/visionflow/visionflow/issues)** - Bug reports and features
-- **[Discord Community](https://discord.gg/visionflow)** - Real-time community support
+### Docker Commands
+```bash
+# Start services
+docker-compose up -d
 
-### Share Your Success
-- **[Community Showcase](https://showcase.visionflow.ai)** - Share your visualisations
-- **[Blog](https://blog.visionflow.ai)** - Write about your experience
-- **[Social Media](https://twitter.com/visionflow)** - Connect with other users
+# View logs
+docker-compose logs -f
+
+# Restart service
+docker-compose restart server
+
+# Stop all
+docker-compose down
+```
 
 ---
 
-**Congratulations!** You've successfully created your first VisionFlow graph and deployed AI agents. The future of knowledge visualisation and AI collaboration is at your fingertips!
+🎉 **Welcome to VisionFlow!** You're now ready to explore real-time 3D visualisation with AI agent orchestration.
+
+For questions or issues, check our [Troubleshooting Guide](./guides/troubleshooting.md) or reach out via GitHub Issues.
 
 ## Related Topics
 
-- [Configuration Guide](../getting-started/configuration.md)
-- [Getting Started with VisionFlow](../getting-started.md)
-- [Getting Started with VisionFlow](../getting-started/index.md)
-- [Installation Guide](../getting-started/installation.md)
+- [Configuration Guide](getting-started/configuration.md)
+- [Getting Started with VisionFlow](getting-started/index.md)
+- [Installation Guide](getting-started/installation.md)
+- [Quick Start Guide](getting-started/quickstart.md)

@@ -11,7 +11,7 @@ This comprehensive research report analyzes the integration of OWL (Web Ontology
 **Key Findings:**
 - VisionFlow's property graph architecture can be seamlessly mapped to RDF triples
 - Semantic physics constraints can translate logical axioms into spatial relationships
-- Performance optimization through incremental validation enables real-time operation
+- Performance optimisation through incremental validation enables real-time operation
 - Multi-agent system benefits significantly from ontology-driven knowledge validation
 
 ---
@@ -198,7 +198,7 @@ pub struct Node {
     pub metadata: HashMap<String, String>, // RDF data properties
     pub node_type: Option<String>,         // Maps to rdf:type
     pub size: Option<f32>,                 // Spatial property
-    pub color: Option<String>,             // Visualization property
+    pub colour: Option<String>,             // Visualization property
     pub weight: Option<f32>,               // Graph theory property
     pub group: Option<String>,             // Classification property
     pub user_data: Option<HashMap<String, String>>, // Extended properties
@@ -265,7 +265,7 @@ impl OntologyAwareUpdatePipeline {
 ### 3.3 Physics Engine Integration
 
 **Current Physics Architecture:**
-- **Stress Majorization:** Global layout optimization
+- **Stress Majorization:** Global layout optimisation
 - **Semantic Constraints:** Domain-specific spatial relationships
 - **GPU Acceleration:** High-performance matrix operations
 
@@ -1195,7 +1195,7 @@ pub struct OntologyEvolutionManager {
 ```
 
 **Key Tasks:**
-1. **Advanced Reasoning:** Full OWL DL reasoning with optimization
+1. **Advanced Reasoning:** Full OWL DL reasoning with optimisation
 2. **Ontology Versioning:** Handle ontology updates and migrations
 3. **Performance Monitoring:** Comprehensive metrics and profiling
 4. **Developer Tools:** Visual ontology browser and debugging interface
@@ -1208,7 +1208,7 @@ pub struct OntologyEvolutionManager {
 
 **Risk 1: Validation Latency Impact**
 - **Impact:** Ontology validation could introduce unacceptable latency (>16ms for 60fps)
-- **Probability:** High without proper optimization
+- **Probability:** High without proper optimisation
 - **Mitigation:**
   - Implement time-budgeted validation with graceful degradation
   - Use incremental validation for updates
@@ -1355,7 +1355,7 @@ pub struct OntologyEvolutionManager {
 - Optimize for the most common use cases while supporting advanced features
 - Design for horizontal scaling with distributed validation
 - Implement intelligent caching and incremental processing
-- Provide monitoring and profiling tools for performance optimization
+- Provide monitoring and profiling tools for performance optimisation
 
 ### 10.3 Innovation Opportunities
 
@@ -1373,7 +1373,7 @@ pub struct OntologyEvolutionManager {
 
 ### 10.4 Final Assessment
 
-The integration of OWL/RDF ontology validation into VisionFlow represents a significant opportunity to enhance the platform's capabilities while maintaining its real-time performance characteristics. The research demonstrates clear technical feasibility with well-defined integration points and performance optimization strategies.
+The integration of OWL/RDF ontology validation into VisionFlow represents a significant opportunity to enhance the platform's capabilities while maintaining its real-time performance characteristics. The research demonstrates clear technical feasibility with well-defined integration points and performance optimisation strategies.
 
 **Key Benefits:**
 - **Enhanced Data Quality:** Comprehensive validation against domain knowledge

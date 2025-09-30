@@ -26,7 +26,7 @@ tools:
 hooks:
   pre_task: |
     echo "🏗️ Initializing repository architecture analysis..."
-    npx ruv-swarm hook pre-task --mode repo-architect --analyze-structure
+    npx ruv-swarm hook pre-task --mode repo-architect --analyse-structure
   post_edit: |
     echo "📐 Validating architecture changes and updating structure documentation..."
     npx ruv-swarm hook post-edit --mode repo-architect --validate-structure
@@ -60,7 +60,7 @@ Repository structure optimisation and multi-repo management with ruv-swarm coord
 mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 4 }
 mcp__claude-flow__agent_spawn { type: "analyst", name: "Structure Analyzer" }
 mcp__claude-flow__agent_spawn { type: "architect", name: "Repository Architect" }
-mcp__claude-flow__agent_spawn { type: "optimizer", name: "Structure Optimizer" }
+mcp__claude-flow__agent_spawn { type: "optimiser", name: "Structure Optimizer" }
 mcp__claude-flow__agent_spawn { type: "coordinator", name: "Multi-Repo Coordinator" }
 
 // Analyze current repository structure
@@ -205,7 +205,7 @@ jobs:
   mcp__claude-flow__swarm_init { topology: "hierarchical", maxAgents: 6 }
   mcp__claude-flow__agent_spawn { type: "architect", name: "Senior Architect" }
   mcp__claude-flow__agent_spawn { type: "analyst", name: "Structure Analyst" }
-  mcp__claude-flow__agent_spawn { type: "optimizer", name: "Performance Optimizer" }
+  mcp__claude-flow__agent_spawn { type: "optimiser", name: "Performance Optimizer" }
   mcp__claude-flow__agent_spawn { type: "researcher", name: "Best Practices Researcher" }
   mcp__claude-flow__agent_spawn { type: "coordinator", name: "Multi-Repo Coordinator" }
   
@@ -391,7 +391,7 @@ const integrationPattern = {
 - `/github sync-coordinator` - For cross-repo synchronisation
 - `/github release-manager` - For coordinated releases
 - `/sparc architect` - For detailed architecture design
-- `/sparc optimizer` - For performance optimisation
+- `/sparc optimiser` - For performance optimisation
 
 ### Workflow Enhancement:
 - Automated structure validation
@@ -408,30 +408,30 @@ const integrationPattern = {
 - [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
 - [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
 - [Agents](../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimization/benchmark-suite.md)
+- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
 - [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
 - [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimization/load-balancer.md)
+- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
 - [Multi Agent Orchestration](../../../server/agent-swarm.md)
 - [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
 - [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
 - [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
 - [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../reference/agents/optimization/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimization/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimization/resource-allocator.md)
+- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
+- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
+- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../reference/agents/optimization/topology-optimizer.md)
+- [Topology Optimizer Agent](../../../reference/agents/optimisation/topology-optimiser.md)
 - [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
-- [analyze-code-quality](../../../reference/agents/analysis/code-review/analyze-code-quality.md)
+- [analyse-code-quality](../../../reference/agents/analysis/code-review/analyse-code-quality.md)
 - [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)
 - [architecture](../../../reference/agents/sparc/architecture.md)
 - [automation-smart-agent](../../../reference/agents/templates/automation-smart-agent.md)
 - [base-template-generator](../../../reference/agents/base-template-generator.md)
 - [byzantine-coordinator](../../../reference/agents/consensus/byzantine-coordinator.md)
-- [code-analyzer](../../../reference/agents/analysis/code-analyzer.md)
+- [code-analyser](../../../reference/agents/analysis/code-analyser.md)
 - [code-review-swarm](../../../reference/agents/github/code-review-swarm.md)
 - [coder](../../../reference/agents/core/coder.md)
 - [coordinator-swarm-init](../../../reference/agents/templates/coordinator-swarm-init.md)
@@ -451,7 +451,7 @@ const integrationPattern = {
 - [multi-repo-swarm](../../../reference/agents/github/multi-repo-swarm.md)
 - [ops-cicd-github](../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
 - [orchestrator-task](../../../reference/agents/templates/orchestrator-task.md)
-- [performance-analyzer](../../../reference/agents/templates/performance-analyzer.md)
+- [performance-analyser](../../../reference/agents/templates/performance-analyser.md)
 - [performance-benchmarker](../../../reference/agents/consensus/performance-benchmarker.md)
 - [planner](../../../reference/agents/core/planner.md)
 - [pr-manager](../../../reference/agents/github/pr-manager.md)

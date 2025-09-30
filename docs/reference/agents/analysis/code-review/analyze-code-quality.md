@@ -1,5 +1,5 @@
 ---
-name: "code-analyzer"
+name: "code-analyser"
 colour: "purple"
 type: "analysis"
 version: "1.0.0"
@@ -15,7 +15,7 @@ metadata:
 triggers:
   keywords:
     - "code review"
-    - "analyze code"
+    - "analyse code"
     - "code quality"
     - "refactor"
     - "technical debt"
@@ -27,7 +27,7 @@ triggers:
     - "**/*.java"
   task_patterns:
     - "review * code"
-    - "analyze * quality"
+    - "analyse * quality"
     - "find code smells"
   domains:
     - "analysis"
@@ -88,11 +88,11 @@ communication:
 integration:
   can_spawn: []
   can_delegate_to:
-    - "analyze-security"
-    - "analyze-performance"
+    - "analyse-security"
+    - "analyse-performance"
   requires_approval_from: []
   shares_context_with:
-    - "analyze-refactoring"
+    - "analyse-refactoring"
     - "test-unit"
 
 optimisation:
@@ -105,17 +105,17 @@ hooks:
   pre_execution: |
     echo "🔍 Code Quality Analyzer initializing..."
     echo "📁 Scanning project structure..."
-    # Count files to analyze
+    # Count files to analyse
 
 *[Reference](../index.md) > [Agents](../../../reference/agents/index.md) > [Analysis](../../reference/agents/analysis/index.md) > [Code Review](../reference/agents/analysis/code-review/index.md)*
-    find . -name "*.js" -o -name "*.ts" -o -name "*.py" | grep -v node_modules | wc -l | xargs echo "Files to analyze:"
+    find . -name "*.js" -o -name "*.ts" -o -name "*.py" | grep -v node_modules | wc -l | xargs echo "Files to analyse:"
     # Check for linting configs
     echo "📋 Checking for code quality configs..."
     ls -la .eslintrc* .prettierrc* .pylintrc tslint.json 2>/dev/null || echo "No linting configs found"
   post_execution: |
     echo "✅ Code quality analysis completed"
     echo "📊 Analysis stored in memory for future reference"
-    echo "💡 Run 'analyze-refactoring' for detailed refactoring suggestions"
+    echo "💡 Run 'analyse-refactoring' for detailed refactoring suggestions"
   on_error: |
     echo "⚠️ Analysis warning: {{error_message}}"
     echo "🔄 Continuing with partial analysis..."
@@ -123,8 +123,8 @@ hooks:
 examples:
   - trigger: "review code quality in the authentication module"
     response: "I'll perform a comprehensive code quality analysis of the authentication module, checking for code smells, complexity, and improvement opportunities..."
-  - trigger: "analyze technical debt in the codebase"
-    response: "I'll analyze the entire codebase for technical debt, identifying areas that need refactoring and estimating the effort required..."
+  - trigger: "analyse technical debt in the codebase"
+    response: "I'll analyse the entire codebase for technical debt, identifying areas that need refactoring and estimating the effort required..."
 ---
 
 # Code Quality Analyzer
@@ -190,29 +190,29 @@ You are a Code Quality Analyzer performing comprehensive code reviews and analys
 - [Agentic Metaverse for Global Creatives](../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
 - [Agentic Mycelia](../../../../archive/legacy/old_markdown/Agentic Mycelia.md)
 - [Agents](../../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../../reference/agents/optimization/benchmark-suite.md)
+- [Benchmark Suite Agent](../../../../reference/agents/optimisation/benchmark-suite.md)
 - [Claude Code Agents Directory Structure](../../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../../reference/agents/consensus/README.md)
 - [Financialised Agentic Memetics](../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../../reference/agents/optimization/load-balancer.md)
+- [Load Balancing Coordinator Agent](../../../../reference/agents/optimisation/load-balancer.md)
 - [Multi Agent Orchestration](../../../../server/agent-swarm.md)
 - [Multi Agent RAG scrapbook](../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
 - [Multi-Agent Container Setup](../../../../deployment/multi-agent-setup.md)
 - [Multi-MCP Agent Visualisation System](../../../../MCP_AGENT_VISUALIZATION.md)
 - [Multi-MCP Agent Visualisation System](../../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../../reference/agents/optimization/performance-monitor.md)
-- [Performance Optimisation Agents](../../../../reference/agents/optimization/README.md)
-- [Resource Allocator Agent](../../../../reference/agents/optimization/resource-allocator.md)
+- [Performance Monitor Agent](../../../../reference/agents/optimisation/performance-monitor.md)
+- [Performance Optimisation Agents](../../../../reference/agents/optimisation/README.md)
+- [Resource Allocator Agent](../../../../reference/agents/optimisation/resource-allocator.md)
 - [Swarm Coordination Agents](../../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../../reference/agents/optimization/topology-optimizer.md)
+- [Topology Optimizer Agent](../../../../reference/agents/optimisation/topology-optimiser.md)
 - [adaptive-coordinator](../../../../reference/agents/swarm/adaptive-coordinator.md)
 - [arch-system-design](../../../../reference/agents/architecture/system-design/arch-system-design.md)
 - [architecture](../../../../reference/agents/sparc/architecture.md)
 - [automation-smart-agent](../../../../reference/agents/templates/automation-smart-agent.md)
 - [base-template-generator](../../../../reference/agents/base-template-generator.md)
 - [byzantine-coordinator](../../../../reference/agents/consensus/byzantine-coordinator.md)
-- [code-analyzer](../../../../reference/agents/analysis/code-analyzer.md)
+- [code-analyser](../../../../reference/agents/analysis/code-analyser.md)
 - [code-review-swarm](../../../../reference/agents/github/code-review-swarm.md)
 - [coder](../../../../reference/agents/core/coder.md)
 - [coordinator-swarm-init](../../../../reference/agents/templates/coordinator-swarm-init.md)
@@ -232,7 +232,7 @@ You are a Code Quality Analyzer performing comprehensive code reviews and analys
 - [multi-repo-swarm](../../../../reference/agents/github/multi-repo-swarm.md)
 - [ops-cicd-github](../../../../reference/agents/devops/ci-cd/ops-cicd-github.md)
 - [orchestrator-task](../../../../reference/agents/templates/orchestrator-task.md)
-- [performance-analyzer](../../../../reference/agents/templates/performance-analyzer.md)
+- [performance-analyser](../../../../reference/agents/templates/performance-analyser.md)
 - [performance-benchmarker](../../../../reference/agents/consensus/performance-benchmarker.md)
 - [planner](../../../../reference/agents/core/planner.md)
 - [pr-manager](../../../../reference/agents/github/pr-manager.md)

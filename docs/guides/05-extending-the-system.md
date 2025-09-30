@@ -84,7 +84,7 @@ class CustomMCPTool:
         
         # Initialize tool state
         self.config = self.load_config()
-        self.capabilities = ['process', 'analyze', 'transform']
+        self.capabilities = ['process', 'analyse', 'transform']
     
     def load_config(self) -> Dict:
         """Load tool configuration."""
@@ -103,7 +103,7 @@ class CustomMCPTool:
             # Route to appropriate handler
             handlers = {
                 'process': self.handle_process,
-                'analyze': self.handle_analyze,
+                'analyse': self.handle_analyze,
                 'transform': self.handle_transform,
                 'capabilities': self.get_capabilities
             }
@@ -193,7 +193,7 @@ if __name__ == '__main__':
               "options": "object"
             }
           },
-          "analyze": {
+          "analyse": {
             "params": {
               "input": "string",
               "depth": "number"
@@ -732,7 +732,7 @@ struct CustomAnalysisResponse {
 pub fn configure_custom_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/custom")
-            .route("/analyze", web::post().to(analyze_graph))
+            .route("/analyse", web::post().to(analyze_graph))
             .route("/visualize/{id}", web::get().to(get_visualization))
             .route("/export", web::post().to(export_data))
     );
@@ -743,7 +743,7 @@ async fn analyze_graph(
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse> {
     let analysis_result = app_state
-        .analyzer
+        .analyser
         .perform_analysis(&req.graph_id, &req.analysis_type, &req.parameters)
         .await?;
     
@@ -980,15 +980,15 @@ export const CustomVisualization: React.FC<CustomVisualizationProps> = ({
       positions[i * 3 + 1] = point.y;
       positions[i * 3 + 2] = point.z;
       
-      colors[i * 3] = point.color.r;
-      colors[i * 3 + 1] = point.color.g;
-      colors[i * 3 + 2] = point.color.b;
+      colors[i * 3] = point.colour.r;
+      colors[i * 3 + 1] = point.colour.g;
+      colors[i * 3 + 2] = point.colour.b;
       
       sizes[i] = point.size;
     });
     
     geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
-    geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    geo.setAttribute('colour', new Float32BufferAttribute(colors, 3));
     geo.setAttribute('size', new Float32BufferAttribute(sizes, 1));
     
     return geo;
@@ -1029,7 +1029,7 @@ export const CustomVisualization: React.FC<CustomVisualizationProps> = ({
 // shaders/custom.glsl
 // Vertex Shader
 attribute float size;
-attribute vec3 color;
+attribute vec3 colour;
 
 varying vec3 vColor;
 varying float vDistance;
@@ -1037,7 +1037,7 @@ varying float vDistance;
 uniform vec3 cameraPosition;
 
 void main() {
-  vColor = color;
+  vColor = colour;
   
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
   vDistance = length(cameraPosition - position);
@@ -1200,7 +1200,7 @@ def validate_input(data: Dict) -> bool:
     schema = {
         "type": "object",
         "properties": {
-            "action": {"type": "string", "enum": ["process", "analyze"]},
+            "action": {"type": "string", "enum": ["process", "analyse"]},
             "data": {"type": "array", "maxItems": 1000}
         },
         "required": ["action", "data"]

@@ -106,7 +106,7 @@ edge_iri = "ex:edge/{source}-{target}"
 
 ### Validation Configuration
 
-Configure validation behavior through the API:
+Configure validation behaviour through the API:
 
 ```json
 {

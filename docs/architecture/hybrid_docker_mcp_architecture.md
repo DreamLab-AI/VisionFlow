@@ -776,7 +776,7 @@ impl WebSocketMultiplexer {
 
 - **Week 1**: docker_hive_mind.rs module implementation
 - **Week 2**: Speech service migration and testing
-- **Week 3**: API handler updates and WebSocket optimization
+- **Week 3**: API handler updates and WebSocket optimisation
 - **Week 4**: Telemetry pipeline and compression
 - **Week 5**: Monitoring, recovery, and performance tuning
 - **Week 6**: Integration testing and documentation

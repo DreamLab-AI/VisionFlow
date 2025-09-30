@@ -325,7 +325,7 @@ if __name__ == "__main__":
    - Check Claude Flow tools: `./node_modules/.bin/claude-flow mcp tools`
 
 3. **GUI-dependent MCP Tools Timeout**
-   - **Expected behavior**: Blender, QGIS, KiCad, ImageMagick show timeout warnings until GUI container initializes
+   - **Expected behaviour**: Blender, QGIS, KiCad, ImageMagick show timeout warnings until GUI container initializes
    - Check GUI container: `docker ps | grep gui-tools-container`
    - View GUI logs: `docker logs gui-tools-container`
    - Services auto-recover when GUI container is ready
@@ -356,7 +356,7 @@ docker logs --tail 100 multi-agent-container  # Last 100 lines
 ./mcp-helper.sh test-all
 
 # Test specific MCP tool directly
-echo '{"tool": "create", "params": {"width": 100, "height": 100, "color": "red", "output": "test.png"}}' | python3 ./mcp-tools/imagemagick_mcp.py
+echo '{"tool": "create", "params": {"width": 100, "height": 100, "colour": "red", "output": "test.png"}}' | python3 ./mcp-tools/imagemagick_mcp.py
 
 # Check Claude Flow configuration
 ./node_modules/.bin/claude-flow mcp tools --file ./.mcp.json
@@ -371,7 +371,7 @@ echo '{"tool": "create", "params": {"width": 100, "height": 100, "color": "red",
 2.  **Load Balancing**: Support multiple instances of tools for parallel processing and improved performance.
 3.  **Monitoring**: Integrate Prometheus metrics for detailed insights into tool usage and performance.
 4.  **Hot Reload**: Enable dynamic updates to tools and configurations without requiring container restarts.
-5.  **Vision Model Integration**: Deploy a local vision model in the `gui-tools-container` to provide real-time visual descriptions of GUI application states to the AI agents. This involves selecting, optimizing, and deploying a suitable model and designing an efficient data streaming mechanism.
+5.  **Vision Model Integration**: Deploy a local vision model in the `gui-tools-container` to provide real-time visual descriptions of GUI application states to the AI agents. This involves selecting, optimising, and deploying a suitable model and designing an efficient data streaming mechanism.
 6.  **Revit Model Parsing and Conversion**: Implement a tool to parse Revit models (`.rvt` files) and convert their data into a Blender-compatible format, preserving semantic information. This requires a deep understanding of both Revit's data model and Blender's API, likely involving external libraries and custom parsers.
 
 ## Testing and Validation

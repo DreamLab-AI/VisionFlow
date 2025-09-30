@@ -235,7 +235,7 @@ Settings automatically sync between:
 
 ### Issue: Black Screen in XR
 
-**Solution**: The lighting system has been optimized with:
+**Solution**: The lighting system has been optimised with:
 - Multiple light sources for better visibility
 - Emissive materials on all objects
 - Transparent background for AR passthrough
@@ -329,7 +329,7 @@ xrManager.onGestureDetected.add((gesture) => {
 
 1. **Multiple input methods**: Support both hands and controllers
 2. **Adjustable UI scale**: Allow text size changes
-3. **Color blind modes**: Provide alternative color schemes
+3. **Color blind modes**: Provide alternative colour schemes
 4. **Voice commands**: Future enhancement
 5. **Seated mode**: Support seated experiences
 
@@ -345,7 +345,7 @@ xrManager.onGestureDetected.add((gesture) => {
 
 ### Quest 3
 
-- Supports color passthrough
+- Supports colour passthrough
 - 90Hz/120Hz refresh rates
 - Enhanced hand tracking
 - Eye tracking (future)

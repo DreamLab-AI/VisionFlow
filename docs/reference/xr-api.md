@@ -110,7 +110,7 @@ interface Node {
   label?: string;
   type?: 'agent' | 'document' | 'entity' | 'default';
   position?: { x: number; y: number; z: number };
-  color?: string;
+  colour?: string;
   size?: number;
 }
 ```
@@ -129,7 +129,7 @@ interface Edge {
   source: string | number;
   target: string | number;
   weight?: number;
-  color?: string;
+  colour?: string;
   opacity?: number;
 }
 ```
@@ -465,7 +465,7 @@ interface Node {
   label?: string;
   type?: NodeType;
   position?: Vector3;
-  color?: string;
+  colour?: string;
   size?: number;
   metadata?: any;
 }
@@ -476,7 +476,7 @@ interface Edge {
   target: string | number;
   weight?: number;
   directed?: boolean;
-  color?: string;
+  colour?: string;
   opacity?: number;
 }
 

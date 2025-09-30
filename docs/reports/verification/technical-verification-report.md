@@ -19,7 +19,7 @@ This report provides a comprehensive verification of technical documentation cla
 **Kernels Found: 25**
 1. `build_grid_kernel` - Grid cell assignment for spatial hashing
 2. `compute_cell_bounds_kernel` - Cell boundary computation
-3. `force_pass_kernel` - Main force computation with repulsion, springs, centering
+3. `force_pass_kernel` - Main force computation with repulsion, springs, centring
 4. `relaxation_step_kernel` - SSSP relaxation step
 5. `integrate_pass_kernel` - Position/velocity integration
 6. `compact_frontier_kernel` - Frontier compaction for SSSP
@@ -52,7 +52,7 @@ This report provides a comprehensive verification of technical documentation cla
 5. `compute_lof_kernel` - LOF anomaly detection
 6. `compute_zscore_kernel` - Z-score anomaly detection
 7. `init_communities_kernel` - Community initialization
-8. `louvain_local_pass_kernel` - Louvain optimization
+8. `louvain_local_pass_kernel` - Louvain optimisation
 9. `compute_stress_kernel` - Stress computation
 10. `stress_majorization_step_kernel` - Stress majorization
 

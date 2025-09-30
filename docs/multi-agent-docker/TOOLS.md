@@ -138,7 +138,7 @@ This section provides a reference for the specialised MCP tools designed for AI 
 - ✅ **Working**: Available immediately after container startup
 - ⏳ **GUI-dependent**: Will show soft-fail timeout warnings until `gui-tools-container` services are fully initialized (30-60 seconds)
 
-**Note**: GUI-dependent tools auto-recover once the GUI container is ready. Timeout warnings during startup are expected behavior and do not affect core MCP functionality.
+**Note**: GUI-dependent tools auto-recover once the GUI container is ready. Timeout warnings during startup are expected behaviour and do not affect core MCP functionality.
 
 ### 2.1. `blender-mcp`
 
@@ -281,7 +281,7 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
 - `create`: Creates a new, simple image.
   - `width` (int): The image width.
   - `height` (int): The image height.
-  - `color` (string): The background colour (e.g., "red", "#FF0000").
+  - `colour` (string): The background colour (e.g., "red", "#FF0000").
   - `output` (string): The path to save the output image.
 - `convert`: Runs a generic `convert` command with the provided arguments.
   - `args` (list): A list of string arguments to pass to the `convert` command.
@@ -294,7 +294,7 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
   "params": {
     "width": 100,
     "height": 100,
-    "color": "red",
+    "colour": "red",
     "output": "red_square.png"
   }
 }'

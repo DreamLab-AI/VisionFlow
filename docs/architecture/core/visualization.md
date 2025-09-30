@@ -263,4 +263,4 @@ Based on the existing architecture, potential enhancements could include:
 
 ## Conclusion
 
-VisionFlow successfully implements a sophisticated dual-graph visualisation system where both knowledge and agent graphs coexist in the same 3D space. The architecture cleanly separates concerns while sharing core Three.js infrastructure, enabling rich analytics for knowledge graphs while providing real-time monitoring for agent systems. The existing control center provides extensive analytics capabilities for knowledge graphs, with opportunities to extend similar capabilities to agent graphs.
+VisionFlow successfully implements a sophisticated dual-graph visualisation system where both knowledge and agent graphs coexist in the same 3D space. The architecture cleanly separates concerns while sharing core Three.js infrastructure, enabling rich analytics for knowledge graphs while providing real-time monitoring for agent systems. The existing control centre provides extensive analytics capabilities for knowledge graphs, with opportunities to extend similar capabilities to agent graphs.

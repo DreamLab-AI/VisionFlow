@@ -1,6 +1,6 @@
 # Ontology Constraints Translator
 
-The `OntologyConstraintTranslator` is a powerful component that converts OWL/RDF axioms and logical inferences into physics-based constraints for knowledge graph layout optimization. It bridges semantic reasoning with physical simulation to create meaningful spatial arrangements that reflect ontological relationships.
+The `OntologyConstraintTranslator` is a powerful component that converts OWL/RDF axioms and logical inferences into physics-based constraints for knowledge graph layout optimisation. It bridges semantic reasoning with physical simulation to create meaningful spatial arrangements that reflect ontological relationships.
 
 ## Features
 
@@ -283,7 +283,7 @@ constraint_set.set_group_active("ontology_alignment", physics_params.enforce_hie
 
 ### 4. Memory Efficiency
 - Clear caches periodically for long-running applications
-- Monitor cache hit rates for optimization opportunities
+- Monitor cache hit rates for optimisation opportunities
 - Use batch processing for large axiom sets
 
 ## Example Applications
@@ -321,7 +321,7 @@ constraint_set.set_group_active("ontology_alignment", physics_params.enforce_hie
 - Parallel constraint generation
 - Incremental constraint updates
 - Adaptive cache sizing
-- Memory pool optimization
+- Memory pool optimisation
 
 ## API Reference
 

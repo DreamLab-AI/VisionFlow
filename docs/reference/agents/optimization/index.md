@@ -9,7 +9,7 @@ This section contains documentation for agents focused on performance optimisati
 - **[load-balancer.md](load-balancer.md)** - Dynamic load balancing and resource distribution
 - **[performance-monitor.md](performance-monitor.md)** - Real-time performance monitoring and analysis
 - **[resource-allocator.md](resource-allocator.md)** - Intelligent resource allocation and management
-- **[topology-optimizer.md](topology-optimizer.md)** - Network and system topology optimisation
+- **[topology-optimiser.md](topology-optimiser.md)** - Network and system topology optimisation
 
 ## Purpose
 

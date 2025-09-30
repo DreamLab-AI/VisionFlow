@@ -13,7 +13,7 @@ This section contains documentation for reusable agent templates and patterns.
 ### Specialised Templates
 - **[github-pr-manager.md](github-pr-manager.md)** - GitHub pull request management template
 - **[implementer-sparc-coder.md](implementer-sparc-coder.md)** - SPARC methodology implementation template
-- **[performance-analyzer.md](performance-analyzer.md)** - Performance analysis template
+- **[performance-analyser.md](performance-analyser.md)** - Performance analysis template
 - **[sparc-coordinator.md](sparc-coordinator.md)** - SPARC workflow coordination template
 
 ### Planning Templates

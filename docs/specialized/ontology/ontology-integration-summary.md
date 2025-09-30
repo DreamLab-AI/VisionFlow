@@ -213,7 +213,7 @@ POST /api/analytics/feature-flags
 - Data quality assurance
 
 ### 4. Semantic Physics
-- Logical layout optimization
+- Logical layout optimisation
 - Constraint-based visualization
 - Meaningful spatial arrangements
 
@@ -249,7 +249,7 @@ The ontology validation system has been successfully implemented with:
 - **Complete API** with REST and WebSocket
 - **Comprehensive testing** infrastructure
 - **Full documentation** suite
-- **Performance optimized** implementation
+- **Performance optimised** implementation
 - **Feature flag** protected deployment
 - **Zero breaking changes** to existing system
 

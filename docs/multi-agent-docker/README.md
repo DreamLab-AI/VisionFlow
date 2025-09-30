@@ -153,7 +153,7 @@ You'll know the environment is fully operational when you can confirm the follow
 ./mcp-helper.sh test-imagemagick
 
 # Manual test - create a golden square
-./mcp-helper.sh run-tool imagemagick-mcp '{"method": "create", "params": {"width": 200, "height": 200, "color": "gold", "output": "gold_square.png"}}'
+./mcp-helper.sh run-tool imagemagick-mcp '{"method": "create", "params": {"width": 200, "height": 200, "colour": "gold", "output": "gold_square.png"}}'
 ```
 
 #### Test PBR Generator
@@ -256,7 +256,7 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 | **kicad-mcp** | ⏳ GUI-dependent | Electronic design | gui-tools |
 | **imagemagick-mcp** | ⏳ GUI-dependent | Image manipulation | gui-tools |
 
-**Note**: GUI-dependent tools will show soft-fail timeout warnings until the GUI container services fully initialize. This is expected behavior and does not affect core MCP functionality.
+**Note**: GUI-dependent tools will show soft-fail timeout warnings until the GUI container services fully initialize. This is expected behaviour and does not affect core MCP functionality.
 
 ---
 
