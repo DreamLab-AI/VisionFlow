@@ -152,7 +152,7 @@ const GraphCanvas: React.FC = () => {
                     rotateSpeed={0.8}
                 />
                 {/* Using the simpler SpacePilot integration that works with useFrame */}
-                <SpacePilotSimpleIntegration />
+                <SpacePilotSimpleIntegration orbitControlsRef={orbitControlsRef} />
                 
                 {/* XR Support - causes graph to disappear */}
                 {/* {xrEnabled && <XRController />} */}
