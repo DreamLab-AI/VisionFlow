@@ -5,13 +5,16 @@ echo "🚀 Initializing Multi-Agent Environment..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting entrypoint.sh"
 
 # Ensure the dev user owns their home directory to prevent permission
-# issues with npx, cargo, etc. This is safe to run on every start.
-# Skip mounted files that might be read-only
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting home directory permissions for user 'dev'..."
-find /home/dev -maxdepth 1 ! -name '.claude*' -exec chown dev:dev {} \; 2>/dev/null || true
-# For deeper directories, but skip .claude directory entirely
-find /home/dev -mindepth 2 -not -path "/home/dev/.claude*" -exec chown -R dev:dev {} \; 2>/dev/null || true
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Permissions set"
+# issues with npx, cargo, etc. Run in background to avoid blocking startup.
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting home directory permissions for user 'dev' (background)..."
+(
+    # Max depth 1 first (fast)
+    find /home/dev -maxdepth 1 ! -name '.claude*' -exec chown dev:dev {} \; 2>/dev/null || true
+    # Deeper directories in background (slow, skip .claude entirely)
+    find /home/dev -mindepth 2 -maxdepth 5 -not -path "/home/dev/.claude*" -exec chown dev:dev {} \; 2>/dev/null || true
+) &
+PERM_PID=$!
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Permission fixing started in background (PID: $PERM_PID)"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Fixing critical permissions..."
 # Fix sudo permissions (critical for setup scripts)

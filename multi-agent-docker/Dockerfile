@@ -160,7 +160,6 @@ RUN if [ -f /home/dev/.local/bin/claude ]; then ln -sf /home/dev/.local/bin/clau
 # 8. Copy core assets and set up workspace
 COPY --chown=dev:dev core-assets/ /app/core-assets/
 COPY core-assets/patches /app/core-assets/patches
-COPY README.md AGENT-BRIEFING.md /app/
 RUN cd /app/core-assets/scripts && npm install && \
     mkdir -p /var/run/mcp /workspace && \
     chown -R dev:dev /var/run/mcp /workspace /app/core-assets && \

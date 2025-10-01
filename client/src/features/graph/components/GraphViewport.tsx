@@ -90,6 +90,7 @@ const GraphViewport: React.FC = () => {
   const glowSettings = settings?.visualisation?.glow;
   const debugSettings = settings?.system?.debug;
   const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+  const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
 
   const fov = cameraSettings?.fov ?? 75;
   const near = cameraSettings?.near ?? 0.1;
@@ -263,16 +264,18 @@ const GraphViewport: React.FC = () => {
                 setIsNodeDragging(isDragging);
               }} />
 
-            {/* Holographic Data Sphere with minimal opacity - scaled 50x */}
-            <HologramContent
-              opacity={0.15}
-              layer={2}
-              renderOrder={-1}
-              includeSwarm={false}
-              enableDepthFade={true}
-              fadeStart={1600}
-              fadeEnd={4000}
-            />
+            {/* Holographic Data Sphere with minimal opacity - scaled 50x - only render if enabled */}
+            {enableHologram && (
+              <HologramContent
+                opacity={0.15}
+                layer={2}
+                renderOrder={-1}
+                includeSwarm={false}
+                enableDepthFade={true}
+                fadeStart={1600}
+                fadeEnd={4000}
+              />
+            )}
 
               {/* VisionFlow visualization re-enabled in same origin space */}
               <BotsVisualization />
