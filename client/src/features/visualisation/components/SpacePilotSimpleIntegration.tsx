@@ -48,35 +48,56 @@ export const SpacePilotSimpleIntegration: React.FC<SpacePilotSimpleIntegrationPr
     }
   }, [camera]);
 
-  // Track connection state
+  // Track connection state and activity
   const isConnected = useRef(false);
+  const isActivelyMoving = useRef(false);
+  const hasDivergedFromOrbit = useRef(false);
+  const lastActivityTime = useRef(0);
+
+  // Set up mouse interaction listener to reset OrbitControls
+  useEffect(() => {
+    const handleMouseInteraction = () => {
+      // When mouse is used, snap back to orbiting around origin
+      const orbitControls = orbitControlsRef?.current;
+      if (orbitControls && hasDivergedFromOrbit.current) {
+        // Reset target to origin
+        orbitControls.target.set(0, 0, 0);
+
+        // Make sure camera is at current position
+        orbitControls.object.position.copy(camera.position);
+
+        // Update OrbitControls
+        orbitControls.update();
+
+        hasDivergedFromOrbit.current = false;
+        console.log('[SpacePilot] Mouse interaction - OrbitControls snapped back to origin');
+      }
+    };
+
+    window.addEventListener('mousedown', handleMouseInteraction);
+    window.addEventListener('wheel', handleMouseInteraction);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseInteraction);
+      window.removeEventListener('wheel', handleMouseInteraction);
+    };
+  }, [camera, orbitControlsRef]);
 
   // Set up SpacePilot event listeners
   useEffect(() => {
     const handleConnect = () => {
       isConnected.current = true;
-      // Completely disable OrbitControls when SpacePilot connects
-      const orbitControls = orbitControlsRef?.current;
-      if (orbitControls) {
-        orbitControls.enabled = false;
-        orbitControls.enableRotate = false;
-        orbitControls.enablePan = false;
-        orbitControls.enableZoom = false;
-        console.log('[SpacePilot] Connected - OrbitControls completely disabled for free-flying');
-      } else {
-        console.log('[SpacePilot] Connected - No OrbitControls ref provided');
-      }
+      // Don't disable OrbitControls on connect - we'll handle it dynamically
+      console.log('[SpacePilot] Connected - Hybrid control mode active');
     };
 
     const handleDisconnect = () => {
       isConnected.current = false;
-      // Re-enable OrbitControls when SpacePilot disconnects
+      isActivelyMoving.current = false;
+      // Ensure OrbitControls is enabled when disconnected
       const orbitControls = orbitControlsRef?.current;
       if (orbitControls) {
         orbitControls.enabled = true;
-        orbitControls.enableRotate = true;
-        orbitControls.enablePan = true;
-        orbitControls.enableZoom = true;
         console.log('[SpacePilot] Disconnected - OrbitControls re-enabled');
       }
     };
@@ -150,32 +171,67 @@ export const SpacePilotSimpleIntegration: React.FC<SpacePilotSimpleIntegrationPr
     smoothedRotation.current.ry = smoothedRotation.current.ry * config.smoothing + rotation.current.ry * (1 - config.smoothing);
     smoothedRotation.current.rz = smoothedRotation.current.rz * config.smoothing + rotation.current.rz * (1 - config.smoothing);
 
-    // Free-fly camera control (completely independent from OrbitControls)
-    // Get camera-relative directions
-    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); // Forward is -Z in camera space
-    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion); // Up is Y in camera space
+    // Check if SpacePilot is actively being used (values outside deadzone)
+    const isTranslating = Math.abs(smoothedTranslation.current.x) > 0.001 ||
+                          Math.abs(smoothedTranslation.current.y) > 0.001 ||
+                          Math.abs(smoothedTranslation.current.z) > 0.001;
+    const isRotating = Math.abs(smoothedRotation.current.rx) > 0.001 ||
+                       Math.abs(smoothedRotation.current.ry) > 0.001 ||
+                       Math.abs(smoothedRotation.current.rz) > 0.001;
 
-    // Translation: X=strafe left/right (positive X = right), Y=forward/back (negative Y = forward), Z=up/down (positive Z = down)
-    camera.position.add(right.multiplyScalar(smoothedTranslation.current.x * config.translationSpeed)); // X controls strafe (positive = right)
-    camera.position.add(forward.multiplyScalar(-smoothedTranslation.current.y * config.translationSpeedY)); // Y controls forward/back (reduced sensitivity)
-    camera.position.add(up.multiplyScalar(-smoothedTranslation.current.z * config.translationSpeed)); // Z controls up/down (positive = down)
+    const wasActive = isActivelyMoving.current;
+    isActivelyMoving.current = isTranslating || isRotating;
 
-    // Rotation: Apply to camera directly for free-flying
-    const pitchAmount = smoothedRotation.current.rx * config.rotationSpeed * (config.invertRX ? -1 : 1);
-    const yawAmount = -smoothedRotation.current.rz * config.rotationSpeedRZ;  // RZ controls yaw (inverted)
-    const rollAmount = -smoothedRotation.current.ry * config.rotationSpeedRY;  // RY controls roll (inverted)
+    // Handle OrbitControls state based on activity
+    const orbitControls = orbitControlsRef?.current;
+    if (orbitControls) {
+      if (isActivelyMoving.current) {
+        // Disable OrbitControls when SpacePilot is active
+        if (orbitControls.enabled) {
+          orbitControls.enabled = false;
+          lastActivityTime.current = Date.now();
+        }
+        hasDivergedFromOrbit.current = true;
+      } else if (wasActive && !isActivelyMoving.current) {
+        // Re-enable OrbitControls after a short delay when SpacePilot stops
+        const timeSinceActive = Date.now() - lastActivityTime.current;
+        if (timeSinceActive > 100) { // 100ms delay
+          orbitControls.enabled = true;
+          // Don't update target - let it stay at origin or wherever it was
+          // Mouse interaction will snap it back to origin if needed
+        }
+      }
+    }
 
-    const euler = new THREE.Euler(
-      pitchAmount, // Pitch (tilt up/down)
-      yawAmount,   // Yaw (turn left/right) - RZ controls yaw (inverted)
-      rollAmount,  // Roll (tilt sideways) - RY controls roll
-      'YXZ'
-    );
+    // Only apply movement if SpacePilot is actively being used
+    if (isActivelyMoving.current) {
+      // Free-fly camera control (completely independent from OrbitControls)
+      // Get camera-relative directions
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); // Forward is -Z in camera space
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion); // Up is Y in camera space
 
-    // Apply rotation
-    const quaternion = new THREE.Quaternion().setFromEuler(euler);
-    camera.quaternion.multiply(quaternion);
+      // Translation: X=strafe left/right (positive X = right), Y=forward/back (negative Y = forward), Z=up/down (positive Z = down)
+      camera.position.add(right.multiplyScalar(smoothedTranslation.current.x * config.translationSpeed)); // X controls strafe (positive = right)
+      camera.position.add(forward.multiplyScalar(-smoothedTranslation.current.y * config.translationSpeedY)); // Y controls forward/back (reduced sensitivity)
+      camera.position.add(up.multiplyScalar(-smoothedTranslation.current.z * config.translationSpeed)); // Z controls up/down (positive = down)
+
+      // Rotation: Apply to camera directly for free-flying
+      const pitchAmount = smoothedRotation.current.rx * config.rotationSpeed * (config.invertRX ? -1 : 1);
+      const yawAmount = -smoothedRotation.current.rz * config.rotationSpeedRZ;  // RZ controls yaw (inverted)
+      const rollAmount = -smoothedRotation.current.ry * config.rotationSpeedRY;  // RY controls roll (inverted)
+
+      const euler = new THREE.Euler(
+        pitchAmount, // Pitch (tilt up/down)
+        yawAmount,   // Yaw (turn left/right) - RZ controls yaw (inverted)
+        rollAmount,  // Roll (tilt sideways) - RY controls roll
+        'YXZ'
+      );
+
+      // Apply rotation
+      const quaternion = new THREE.Quaternion().setFromEuler(euler);
+      camera.quaternion.multiply(quaternion);
+    }
   });
 
   return null;
