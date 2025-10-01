@@ -42,7 +42,7 @@ visualisation:
     threshold: 0.15
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 0.0
+    strength: 0.78296703
     blurPasses: 0.0
     knee: 0.0
   hologram:

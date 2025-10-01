@@ -1,15 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { OrbitControls } from '@react-three/drei';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
+
+interface SpacePilotSimpleIntegrationProps {
+  orbitControlsRef?: React.RefObject<any>;
+}
 
 /**
  * Simple SpacePilot integration for orbit-style camera control
  * Works with or without OrbitControls
  */
-export const SpacePilotSimpleIntegration: React.FC = () => {
-  const { camera, controls } = useThree();
+export const SpacePilotSimpleIntegration: React.FC<SpacePilotSimpleIntegrationProps> = ({ orbitControlsRef }) => {
+  const { camera } = useThree();
 
   // console.log('[SpacePilotSimpleIntegration] Component mounted', { hasControls: !!controls });
 
@@ -27,9 +30,11 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
 
   // Configuration
   const config = {
-    translationSpeed: 1.0,   // Increased for better responsiveness
-    rotationSpeed: 0.1,      // Increased for better responsiveness
-    rotationSpeedRY: 0.02,   // Radically reduced for yaw
+    translationSpeed: 5.0,   // 5x increase for proper sensitivity
+    translationSpeedY: 2.5,  // Y axis at 2.5x (reduced by 2x from other axes)
+    rotationSpeed: 0.02,     // Reduced 5x for RX (pitch) sensitivity
+    rotationSpeedRY: 0.02,   // Reduced sensitivity for RY (roll)
+    rotationSpeedRZ: 0.02,   // Original reduced sensitivity for RZ (yaw)
     deadzone: 0.02,          // Very low deadzone for sensitivity
     smoothing: 0.85,
     invertRX: true           // Invert pitch
@@ -50,21 +55,29 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
   useEffect(() => {
     const handleConnect = () => {
       isConnected.current = true;
-      // Disable OrbitControls when SpacePilot connects
-      if (controls && 'enabled' in controls) {
-        (controls as any).enabled = false;
-        console.log('[SpacePilot] Connected - OrbitControls disabled');
+      // Completely disable OrbitControls when SpacePilot connects
+      const orbitControls = orbitControlsRef?.current;
+      if (orbitControls) {
+        orbitControls.enabled = false;
+        orbitControls.enableRotate = false;
+        orbitControls.enablePan = false;
+        orbitControls.enableZoom = false;
+        console.log('[SpacePilot] Connected - OrbitControls completely disabled for free-flying');
       } else {
-        console.log('[SpacePilot] Connected - No OrbitControls found to disable');
+        console.log('[SpacePilot] Connected - No OrbitControls ref provided');
       }
     };
 
     const handleDisconnect = () => {
       isConnected.current = false;
       // Re-enable OrbitControls when SpacePilot disconnects
-      if (controls && 'enabled' in controls) {
-        (controls as any).enabled = true;
-        console.log('[SpacePilot] Disconnected - OrbitControls enabled');
+      const orbitControls = orbitControlsRef?.current;
+      if (orbitControls) {
+        orbitControls.enabled = true;
+        orbitControls.enableRotate = true;
+        orbitControls.enablePan = true;
+        orbitControls.enableZoom = true;
+        console.log('[SpacePilot] Disconnected - OrbitControls re-enabled');
       }
     };
 
@@ -72,8 +85,8 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
       const { x, y, z } = event.detail;
       // console.log('[SpacePilot] Raw translation:', { x, y, z });
       // Normalize from Int16 range (-32768 to 32767) to -1 to 1
-      // Some SpacePilot models use a smaller range, so let's use 450 as max
-      const scale = 1 / 450;
+      // Increased scale by 5x for proper sensitivity (was 1/450, now 1/90)
+      const scale = 1 / 90;
       const nx = x * scale;
       const ny = y * scale;
       const nz = z * scale;
@@ -88,7 +101,7 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
     const handleRotate = (event: CustomEvent) => {
       const { rx, ry, rz } = event.detail;
       // console.log('[SpacePilot] Raw rotation:', { rx, ry, rz });
-      const scale = 1 / 450;
+      const scale = 1 / 90; // 5x increase for proper sensitivity
       const nrx = rx * scale;
       const nry = ry * scale;
       const nrz = rz * scale;
@@ -122,7 +135,7 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
       SpaceDriver.removeEventListener('rotate', handleRotate);
       SpaceDriver.removeEventListener('buttons', handleButtons);
     };
-  }, [controls]);
+  }, [orbitControlsRef]);
 
   // Update camera position every frame
   useFrame(() => {
@@ -137,22 +150,26 @@ export const SpacePilotSimpleIntegration: React.FC = () => {
     smoothedRotation.current.ry = smoothedRotation.current.ry * config.smoothing + rotation.current.ry * (1 - config.smoothing);
     smoothedRotation.current.rz = smoothedRotation.current.rz * config.smoothing + rotation.current.rz * (1 - config.smoothing);
 
-    // Free-fly camera control (decoupled from OrbitControls)
+    // Free-fly camera control (completely independent from OrbitControls)
     // Get camera-relative directions
-    const forward = new THREE.Vector3(0, -1, 0).applyQuaternion(camera.quaternion); // Forward is -Y
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); // Forward is -Z in camera space
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-    const up = new THREE.Vector3(0, 0, 1); // Z is up/down in screen space
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion); // Up is Y in camera space
 
-    // Translation: X=strafe, Z=forward/back (inverted), Y=up/down (not inverted per user request)
-    camera.position.add(right.multiplyScalar(smoothedTranslation.current.x * config.translationSpeed));
-    camera.position.add(forward.multiplyScalar(smoothedTranslation.current.z * config.translationSpeed)); // Z inverted
-    camera.position.add(up.multiplyScalar(smoothedTranslation.current.y * config.translationSpeed)); // Y not inverted per user request
+    // Translation: X=strafe left/right (positive X = right), Y=forward/back (negative Y = forward), Z=up/down (positive Z = down)
+    camera.position.add(right.multiplyScalar(smoothedTranslation.current.x * config.translationSpeed)); // X controls strafe (positive = right)
+    camera.position.add(forward.multiplyScalar(-smoothedTranslation.current.y * config.translationSpeedY)); // Y controls forward/back (reduced sensitivity)
+    camera.position.add(up.multiplyScalar(-smoothedTranslation.current.z * config.translationSpeed)); // Z controls up/down (positive = down)
 
-    // Rotation: Apply to camera directly (RZ and RY switched, both inverted)
+    // Rotation: Apply to camera directly for free-flying
+    const pitchAmount = smoothedRotation.current.rx * config.rotationSpeed * (config.invertRX ? -1 : 1);
+    const yawAmount = -smoothedRotation.current.rz * config.rotationSpeedRZ;  // RZ controls yaw (inverted)
+    const rollAmount = -smoothedRotation.current.ry * config.rotationSpeedRY;  // RY controls roll (inverted)
+
     const euler = new THREE.Euler(
-      smoothedRotation.current.rx * config.rotationSpeed * (config.invertRX ? -1 : 1), // Pitch (inverted)
-      -smoothedRotation.current.rz * config.rotationSpeedRY, // Roll (inverted, with reduced sensitivity)
-      -smoothedRotation.current.ry * config.rotationSpeed,  // Yaw (inverted)
+      pitchAmount, // Pitch (tilt up/down)
+      yawAmount,   // Yaw (turn left/right) - RZ controls yaw (inverted)
+      rollAmount,  // Roll (tilt sideways) - RY controls roll
       'YXZ'
     );
 
