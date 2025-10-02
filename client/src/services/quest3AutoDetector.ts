@@ -1,6 +1,7 @@
 import { createLogger } from '../utils/loggerConfig';
 import { usePlatformStore } from './platformManager';
 import { useSettingsStore } from '../store/settingsStore';
+import { ClientCore } from './vircadia/VircadiaClientCore';
 
 const logger = createLogger('Quest3AutoDetector');
 
@@ -15,6 +16,7 @@ export class Quest3AutoDetector {
   private static instance: Quest3AutoDetector;
   private detectionResult: Quest3DetectionResult | null = null;
   private autoStartAttempted: boolean = false;
+  private vircadiaClient: ClientCore | null = null;
 
   private constructor() {}
 
@@ -137,6 +139,9 @@ export class Quest3AutoDetector {
       usePlatformStore.getState().setXRMode(true);
       usePlatformStore.getState().setXRSessionState('active');
 
+      // Initialize Vircadia connection for multi-user XR
+      await this.initializeVircadiaConnection();
+
       return true;
 
     } catch (error) {
@@ -219,11 +224,64 @@ export class Quest3AutoDetector {
   }
 
   /**
+   * Initialize Vircadia connection for multi-user XR
+   */
+  private async initializeVircadiaConnection(): Promise<void> {
+    try {
+      logger.info('Initializing Vircadia connection for Quest 3 XR...');
+
+      // Create Vircadia client
+      this.vircadiaClient = new ClientCore({
+        serverUrl: import.meta.env.VITE_VIRCADIA_SERVER_URL || 'ws://localhost:3020/world/ws',
+        authToken: import.meta.env.VITE_VIRCADIA_AUTH_TOKEN || 'system-token',
+        authProvider: import.meta.env.VITE_VIRCADIA_AUTH_PROVIDER || 'system',
+        reconnectAttempts: 5,
+        reconnectDelay: 5000,
+        debug: import.meta.env.DEV || false,
+        suppress: false
+      });
+
+      // Connect to Vircadia server
+      const connectionInfo = await this.vircadiaClient.Utilities.Connection.connect({
+        timeoutMs: 10000
+      });
+
+      logger.info('Vircadia connected for Quest 3 XR', {
+        agentId: connectionInfo.agentId,
+        sessionId: connectionInfo.sessionId
+      });
+
+    } catch (error) {
+      logger.error('Failed to initialize Vircadia connection:', error);
+      // Continue with single-user XR mode if Vircadia fails
+    }
+  }
+
+  /**
+   * Get Vircadia client instance (if connected)
+   */
+  public getVircadiaClient(): ClientCore | null {
+    return this.vircadiaClient;
+  }
+
+  /**
+   * Disconnect Vircadia on XR session end
+   */
+  public disconnectVircadia(): void {
+    if (this.vircadiaClient) {
+      logger.info('Disconnecting Vircadia client');
+      this.vircadiaClient.dispose();
+      this.vircadiaClient = null;
+    }
+  }
+
+  /**
    * Reset detection state (for testing/development)
    */
   public resetDetection(): void {
     this.detectionResult = null;
     this.autoStartAttempted = false;
+    this.disconnectVircadia();
   }
 }
 

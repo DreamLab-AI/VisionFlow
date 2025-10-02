@@ -393,17 +393,93 @@ xrHelper.onStateChangedObservable.add((state) => {
 });
 ```
 
+## Multi-User Collaboration (Future)
+
+### Vircadia Integration
+
+VisionFlow is designed for future integration with **Vircadia**, an open-source metaverse platform that will enable multi-user collaborative XR experiences.
+
+#### Planned Multi-User Features
+
+**Collaborative Exploration**
+- Multiple users in the same graph space
+- Shared node selections and annotations
+- Real-time state synchronization
+- Collaborative filtering and analysis
+
+**Avatar and Presence**
+- 3D avatars for each user
+- Real-time position tracking
+- User nameplates with status
+- Customizable avatar models
+
+**Spatial Communication**
+- 3D spatial audio based on user position
+- Voice quality varies with distance
+- Private channels and broadcast modes
+- Integrated with existing voice system
+
+**Session Management**
+- Persistent multi-user sessions
+- Join/leave notifications
+- Session-specific graph views
+- Cross-session synchronization
+
+#### Configuration (Future)
+
+```yaml
+vircadia:
+  enabled: false  # Future feature
+  serverUrl: wss://vircadia.example.com
+  domainId: visionflow-graph
+
+  avatar:
+    modelUrl: /assets/avatars/default.glb
+    scale: 1.0
+    showNameplate: true
+
+  session:
+    persistence: true
+    maxUsers: 50
+    autoJoin: true
+
+  communication:
+    spatialAudioEnabled: true
+    audioRange: 20.0
+```
+
+#### Performance Targets
+
+- 10+ concurrent users per session
+- 10,000+ graph nodes with multi-user
+- <100ms latency for interactions
+- 72 FPS maintained on Quest 3
+
+#### Status
+
+⚠️ **Planned Integration** - Vircadia multi-user XR is currently in design phase. See [Vircadia Integration Architecture](/docs/architecture/VircadiaIntegration.md) for technical details.
+
+---
+
 ## Resources
 
 ### Documentation
 - [Babylon.js WebXR Guide](https://doc.babylonjs.com/features/featuresDeepDive/webXR)
 - [Meta Quest Developer Docs](https://developer.oculus.com/documentation/)
 - [WebXR W3C Specification](https://www.w3.org/TR/webxr/)
+- [Vircadia Web SDK](https://github.com/vircadia/vircadia-web-sdk) (future integration)
+- [Vircadia World Server](https://github.com/vircadia/vircadia-world) (future integration)
+
+### VisionFlow XR Documentation
+- [XR API Reference](/docs/reference/xr-api.md)
+- [XR Immersive System Architecture](/docs/architecture/xr-immersive-system.md)
+- [Vircadia Integration Architecture](/docs/architecture/VircadiaIntegration.md)
 
 ### Communities
 - [Babylon.js Forum](https://forum.babylonjs.com/)
 - [WebXR Discord](https://discord.gg/webxr)
 - [Oculus Developer Forum](https://forums.oculusvr.com/)
+- [Vircadia Community](https://vircadia.com) (future integration)
 
 ### Tools
 - [Babylon Playground](https://playground.babylonjs.com/)

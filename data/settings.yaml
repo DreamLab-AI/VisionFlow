@@ -2,7 +2,7 @@ visualisation:
   rendering:
     ambientLightIntensity: 0.5
     backgroundColor: '#000000'
-    directionalLightIntensity: 0.01263736
+    directionalLightIntensity: 0.30769232
     enableAmbientOcclusion: false
     enableAntialiasing: true
     enableShadows: false
@@ -20,8 +20,8 @@ visualisation:
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: false
-    intensity: 0.5769231
+    enabled: true
+    intensity: 1.6071428
     radius: 0.7598874
     threshold: 0.1300069
     diffuseStrength: 1.5
@@ -36,13 +36,13 @@ visualisation:
     edgeGlowStrength: 0.5
     environmentGlowStrength: 0.96262044
   bloom:
-    enabled: false
+    enabled: true
     intensity: 1.0
     radius: 0.8
     threshold: 0.15
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 0.78296703
+    strength: 4.1895604
     blurPasses: 0.0
     knee: 0.0
   hologram:
@@ -66,32 +66,32 @@ visualisation:
   graphs:
     logseq:
       nodes:
-        baseColor: '#ffea00'
-        metalness: 0.42857143
-        opacity: 0.21428572
+        baseColor: '#202724'
+        metalness: 0.32417583
+        opacity: 0.1456044
         roughness: 0.25633773
-        nodeSize: 1.9554945
+        nodeSize: 1.6785715
         quality: high
         enableInstancing: false
         enableHologram: true
-        enableMetadataShape: true
+        enableMetadataShape: false
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
         baseWidth: 1.671978
-        color: '#ff6161'
+        color: '#ff0000'
         enableArrows: false
-        opacity: 0.16483517
+        opacity: 0.260989
         widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.409945
-        enableLabels: false
-        textColor: '#805b5b'
-        textOutlineColor: '#ff0000'
-        textOutlineWidth: 0.00239011
+        desktopFontSize: 1.4345055
+        enableLabels: true
+        textColor: '#676565'
+        textOutlineColor: '#00ff40'
+        textOutlineWidth: 0.0074725277
         textResolution: 32
         textPadding: 0.3
         billboardMode: camera
