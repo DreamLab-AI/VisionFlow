@@ -430,6 +430,11 @@ function TextRing({
 }) {
   const groupRef = useRef();
 
+  // Reduce letter spacing significantly - the drei Text component
+  // might handle curveRadius differently than expected
+  const repeatCount = 1; // Just show text once
+  const adjustedLetterSpacing = 0.2; // Much smaller value for drei's Text
+
   useFrame((state) => {
     if (!groupRef.current) return;
     groupRef.current.rotation.y -= 0.0019;
@@ -443,13 +448,13 @@ function TextRing({
         anchorX="center"
         anchorY="middle"
         curveRadius={radius}
-        letterSpacing={16}
+        letterSpacing={adjustedLetterSpacing}
         fillOpacity={opacity}
         outlineWidth={1.6}
         outlineColor="#f3ffff"
         depthOffset={-0.5}
       >
-        {text.repeat(4)}
+        {text.repeat(repeatCount)}
       </Text>
     </group>
   );

@@ -307,11 +307,293 @@ performance:
    - Disable shadows
    - Lower texture resolution
 
+## Vircadia Multi-User Integration
+
+### Overview
+
+The XR system is designed for future integration with **Vircadia**, an open-source metaverse platform that enables multi-user collaborative experiences in virtual worlds.
+
+### Architecture Integration
+
+```
+Current: Babylon.js XR (Single User)
+         ↓
+Future:  Vircadia XR (Multi-User)
+         ├── Vircadia Web SDK
+         ├── Session Management
+         ├── Avatar System
+         └── Spatial Communication
+```
+
+### Multi-User Capabilities
+
+**Collaborative Graph Exploration**
+- Multiple users explore the same graph simultaneously
+- Shared selections and annotations
+- Real-time synchronization of graph state changes
+- Collaborative filtering and analysis
+
+**Avatar and Presence System**
+- 3D avatars representing each user
+- Real-time position and orientation tracking
+- User nameplates with status indicators
+- Customizable avatar models and appearance
+
+**Spatial Communication**
+- 3D spatial audio positioned by user location
+- Voice quality based on distance from other users
+- Private channels and broadcast modes
+- Integrated with existing voice system
+
+**Session Management**
+- Persistent multi-user sessions
+- User join/leave notifications
+- Session-specific graph views
+- Cross-session state synchronization
+
+### Technical Components
+
+#### Vircadia Client Integration
+
+```typescript
+// Vircadia SDK wrapper in React
+const VircadiaProvider: React.FC = ({ children }) => {
+  const [client, setClient] = useState<VircadiaClient | null>(null);
+  const [session, setSession] = useState<VircadiaSession | null>(null);
+
+  useEffect(() => {
+    const vircadiaClient = new VircadiaClient({
+      serverUrl: process.env.VITE_VIRCADIA_SERVER_URL,
+      domainId: process.env.VITE_VIRCADIA_DOMAIN_ID
+    });
+
+    vircadiaClient.connect().then(() => {
+      setClient(vircadiaClient);
+    });
+  }, []);
+
+  return (
+    <VircadiaContext.Provider value={{ client, session }}>
+      {children}
+    </VircadiaContext.Provider>
+  );
+};
+```
+
+#### Entity Mapping
+
+```typescript
+// Convert Babylon.js scene to Vircadia entities
+class GraphToVircadiaMapper {
+  nodeToEntity(node: GraphNode): VircadiaEntity {
+    return {
+      id: node.id,
+      type: 'sphere',
+      position: node.position,
+      scale: node.size,
+      color: node.colour,
+      metadata: {
+        label: node.label,
+        nodeType: node.type
+      }
+    };
+  }
+
+  edgeToEntity(edge: GraphEdge): VircadiaEntity {
+    return {
+      id: `edge-${edge.source}-${edge.target}`,
+      type: 'line',
+      points: [
+        this.getNodePosition(edge.source),
+        this.getNodePosition(edge.target)
+      ],
+      color: edge.colour,
+      opacity: edge.opacity
+    };
+  }
+}
+```
+
+#### Real-time Synchronization
+
+```typescript
+// Sync graph updates across users
+class VircadiaGraphSync {
+  constructor(
+    private client: VircadiaClient,
+    private graphManager: GraphManager
+  ) {}
+
+  broadcastNodeSelection(nodeId: string): void {
+    this.client.broadcast({
+      type: 'node-selection',
+      userId: this.client.userId,
+      nodeId: nodeId,
+      timestamp: Date.now()
+    });
+  }
+
+  onRemoteSelection(callback: (data: SelectionEvent) => void): void {
+    this.client.on('node-selection', (event) => {
+      if (event.userId !== this.client.userId) {
+        callback(event);
+      }
+    });
+  }
+}
+```
+
+### Configuration
+
+```yaml
+vircadia:
+  enabled: false  # Future feature flag
+  serverUrl: wss://vircadia.example.com
+  domainId: visionflow-graph-domain
+  autoConnect: true
+
+  avatar:
+    modelUrl: /assets/avatars/default.glb
+    scale: 1.0
+    showNameplate: true
+    nameplateDistance: 10.0
+
+  session:
+    persistence: true
+    maxUsers: 50
+    autoJoin: true
+
+  rendering:
+    nodeStyle: sphere
+    edgeStyle: line
+    labelMode: billboard
+
+  communication:
+    spatialAudioEnabled: true
+    audioRange: 20.0
+    voiceQuality: high
+```
+
+### Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User1 as User 1 Client
+    participant VS as Vircadia Server
+    participant User2 as User 2 Client
+    participant Graph as Graph Backend
+
+    User1->>VS: Join Session
+    VS->>User2: User Joined Event
+    User1->>Graph: Subscribe to Graph
+    Graph->>User1: Initial Graph Data
+    User1->>VS: Broadcast Graph State
+    VS->>User2: Sync Graph State
+
+    User1->>VS: Select Node
+    VS->>User2: Remote Selection Event
+    User2->>User2: Highlight Remote Selection
+```
+
+### Migration Strategy
+
+**Phase 1: SDK Integration (Weeks 1-2)**
+- Add Vircadia Web SDK dependency
+- Create VircadiaClient service wrapper
+- Implement basic connection testing
+- Environment configuration setup
+
+**Phase 2: Component Development (Weeks 3-4)**
+- Build VircadiaXR React component
+- Implement graph entity mapping
+- Create session management UI
+- Add user presence indicators
+
+**Phase 3: Real-time Sync (Weeks 5-6)**
+- Binary protocol adapter for Vircadia
+- Real-time position streaming
+- Collaborative selection state
+- Performance optimization
+
+**Phase 4: Multi-user Features (Weeks 7-8)**
+- Avatar system integration
+- Spatial audio implementation
+- Session persistence
+- User testing and refinement
+
+**Phase 5: Production Release (Weeks 9-12)**
+- Feature flag rollout
+- Performance benchmarking
+- Documentation and tutorials
+- Gradual user migration
+
+### Compatibility
+
+| Feature | Babylon.js XR | Vircadia XR |
+|---------|---------------|-------------|
+| Single User | ✅ Production | ✅ Supported |
+| Multi-User | ❌ Not Available | ✅ Native |
+| Meta Quest 3 | ✅ Optimized | ✅ Supported |
+| Spatial Audio | ❌ Planned | ✅ Native |
+| Avatars | ❌ No | ✅ Full System |
+| Session Persistence | ❌ Client Only | ✅ Server-backed |
+| Graph Synchronization | ✅ WebSocket | ✅ Vircadia + WebSocket |
+
+### Performance Considerations
+
+**Network Optimization**
+- Vircadia uses efficient binary protocols
+- Delta compression for position updates
+- Client-side prediction for smooth movement
+- Adaptive quality based on bandwidth
+
+**Rendering Efficiency**
+- Entity instancing for multiple users
+- LOD system based on distance
+- Frustum culling for off-screen avatars
+- Batched updates for graph changes
+
+**Scalability Targets**
+- 10+ concurrent users per session
+- 10,000+ graph nodes with multi-user
+- <100ms latency for user interactions
+- 72 FPS maintained on Quest 3
+
+### Development Resources
+
+**Vircadia Documentation**
+- [Vircadia Web SDK](https://github.com/vircadia/vircadia-web-sdk)
+- [Vircadia World Server](https://github.com/vircadia/vircadia-world)
+- [API Reference](https://docs.vircadia.com)
+
+**Integration Guides**
+- [Vircadia Integration Architecture](/docs/architecture/VircadiaIntegration.md)
+- [Multi-User Setup Guide](/docs/guides/vircadia-setup.md) (future)
+- [Session Management API](/docs/reference/vircadia-api.md) (future)
+
+### Current Status
+
+⚠️ **Planned Future Integration** - Vircadia multi-user capabilities are designed and documented but not yet implemented in production. The current Babylon.js XR system remains the active implementation for Quest 3 single-user experiences.
+
+**Active Work**
+- Architecture design completed
+- Integration strategy defined
+- Component structure planned
+- Performance targets established
+
+**Next Steps**
+1. Vircadia SDK evaluation and testing
+2. Proof-of-concept multi-user session
+3. Performance benchmarking
+4. User testing with beta group
+
+---
+
 ## Future Enhancements
 
 ### Planned Features
 
-- Multi-user collaboration
+- Multi-user collaboration (via Vircadia integration)
 - Spatial audio integration
 - Gesture recognition
 - Voice commands

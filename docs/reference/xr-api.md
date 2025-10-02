@@ -712,6 +712,112 @@ xrHelper.onStateChangedObservable.add((state) => {
 
 ---
 
+## Vircadia Integration
+
+### Multi-User XR Platform
+
+VisionFlow integrates with **Vircadia**, an open-source metaverse platform, to enable collaborative multi-user XR experiences beyond the single-user Quest 3 implementation.
+
+#### Architecture
+
+```typescript
+// Vircadia integration lives alongside existing XR system
+App.tsx
+├── VircadiaProvider
+│   ├── VircadiaClient (SDK instance)
+│   └── SessionManager (multi-user coordination)
+├── XR Mode Selection
+│   ├── Quest3AR (single-user, current)
+│   └── VircadiaXR (multi-user, future)
+```
+
+#### Key Features
+
+**Multi-User Sessions**
+- Shared graph exploration with multiple users
+- Real-time avatar presence and positioning
+- Synchronized node selections and interactions
+- Collaborative annotation and markup
+
+**Enhanced Spatial Presence**
+- Avatar system with customizable models
+- Spatial audio positioned in 3D space
+- User nameplates and status indicators
+- Gesture-based communication
+
+**Vircadia Server Integration**
+- WebSocket connection to Vircadia domain servers
+- Session persistence and state management
+- User authentication and authorization
+- Cross-session data synchronization
+
+#### API Extensions
+
+```typescript
+// Vircadia session management
+interface VircadiaSession {
+  connect(serverUrl: string): Promise<void>;
+  joinSession(sessionId: string): Promise<SessionInfo>;
+  broadcastGraphUpdate(update: GraphUpdate): void;
+  onRemoteUserJoined(callback: (user: VircadiaUser) => void): void;
+  onRemoteUserLeft(callback: (userId: string) => void): void;
+}
+
+// Multi-user graph state
+interface VircadiaGraphSync {
+  shareNodeSelection(nodeId: string): void;
+  shareViewTransform(transform: Matrix4): void;
+  onRemoteSelection(callback: (userId: string, nodeId: string) => void): void;
+  onRemoteViewChange(callback: (userId: string, transform: Matrix4) => void): void;
+}
+
+// Avatar management
+interface VircadiaAvatar {
+  setAvatarModel(modelUrl: string): Promise<void>;
+  updateAvatarTransform(transform: Matrix4): void;
+  setDisplayName(name: string): void;
+  setAvatarScale(scale: number): void;
+}
+```
+
+#### Configuration
+
+```typescript
+// Settings for Vircadia integration
+interface VircadiaSettings {
+  enabled: boolean;
+  serverUrl: string;
+  autoConnect: boolean;
+  sessionPersistence: boolean;
+
+  avatar: {
+    modelUrl: string;
+    scale: number;
+    showNameplate: boolean;
+  };
+
+  graphRendering: {
+    nodeStyle: 'sphere' | 'cube' | 'custom';
+    edgeStyle: 'line' | 'tube' | 'particle';
+    labelMode: 'billboard' | '3d' | 'screen';
+  };
+
+  multiUser: {
+    maxUsers: number;
+    voiceEnabled: boolean;
+    spatialAudioRange: number;
+  };
+}
+```
+
+#### Status
+
+⚠️ **Future Integration** - Vircadia multi-user XR is planned for future releases. Current XR implementation (Babylon.js Quest3AR) remains the production system.
+
+See [Vircadia Integration Architecture](/docs/architecture/VircadiaIntegration.md) and [XR Immersive System](/docs/architecture/xr-immersive-system.md#vircadia-multi-user-integration) for detailed specifications.
+
+---
+
 ## Examples
 
 ### Complete Integration Example
