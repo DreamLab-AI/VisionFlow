@@ -4,13 +4,12 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   Camera,
   MousePointer2,
   Zap,
   Eye,
-  Move3D,
   RotateCcw,
   AlertCircle,
   Palette,

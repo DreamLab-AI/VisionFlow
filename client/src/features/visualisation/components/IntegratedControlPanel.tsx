@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { MultiAgentInitializationPrompt } from '../../bots/components';
 import { clientDebugState } from '../../../utils/clientDebugState';
 import { AutoBalanceIndicator } from './AutoBalanceIndicator';
 import { VoiceStatusIndicator } from '../../../components/VoiceStatusIndicator';
+import ErrorBoundary from '../../../components/ErrorBoundary';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { botsWebSocketIntegration } from '../../bots/services/BotsWebSocketIntegration';
 import { useBotsData } from '../../bots/contexts/BotsDataContext';
@@ -50,10 +52,8 @@ interface IntegratedControlPanelProps {
     mcpConnected: boolean;
     dataSource: string;
   };
-  // GraphFeatures integration props
   graphData?: any;
   otherGraphData?: any;
-  onGraphFeatureUpdate?: (feature: string, data: any) => void;
 }
 
 interface SettingField {
@@ -100,8 +100,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   onOrbitControlsToggle,
   botsData,
   graphData,
-  otherGraphData,
-  onGraphFeatureUpdate
+  otherGraphData
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [spacePilotConnected, setSpacePilotConnected] = useState(false);
@@ -113,7 +112,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   });
 
   // Menu state
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string | null>('dashboard');
   const [selectedFieldIndex, setSelectedFieldIndex] = useState(0);
   const [selectedValue, setSelectedValue] = useState<number>(0);
 
@@ -121,10 +120,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   const [nostrConnected, setNostrConnected] = useState(false);
   const [nostrPublicKey, setNostrPublicKey] = useState<string>('');
   const [showmultiAgentPrompt, setshowmultiAgentPrompt] = useState(false);
-  
+
   // Graph features state
   const [graphFeaturesEnabled, setGraphFeaturesEnabled] = useState(false);
-  
+
   // Get updateBotsData from context
   const { updateBotsData } = useBotsData();
 
@@ -136,17 +135,14 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Helper function to get values from settings path
-  const getValueFromPath = (path: string): any => {
+  const getValueFromPath = useCallback((path: string): any => {
     const keys = path.split('.');
     let value = settings;
     for (const key of keys) {
       value = value?.[key];
     }
-    
-    // Debug removed - no longer needed
-    
     return value;
-  };
+  }, [settings]);
 
   // Check WebHID availability and initialize Nostr state
   useEffect(() => {
@@ -358,7 +354,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     }
   };
 
-  const updateSettingByPath = (path: string, value: any) => {
+  const updateSettingByPath = useCallback((path: string, value: any) => {
     updateSettings((draft) => {
       const keys = path.split('.');
       let obj: any = draft;
@@ -368,7 +364,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
       }
       obj[keys[keys.length - 1]] = value;
     });
-    
+
     // Sync debug settings with clientDebugState
     if (path.startsWith('system.debug.')) {
       const debugPath = path.replace('system.debug.', '');
@@ -387,7 +383,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         clientDebugState.set('enableNodeDebug', value);
       }
     }
-  };
+  }, [updateSettings]);
 
   const handleCommitSettings = () => {
     // Settings are already committed via updateSettings
@@ -431,9 +427,15 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
   };
 
   // Get section settings based on active section or provided section
-  const getSectionSettings = (sectionId?: string) => {
+  const getSectionSettings = useCallback((sectionId?: string) => {
     const targetSection = sectionId || activeSection;
     switch (targetSection) {
+      case 'graph-analysis':
+      case 'graph-visualisation':
+      case 'graph-optimisation':
+      case 'graph-interaction':
+      case 'graph-export':
+        return null;
       case 'dashboard':
         return {
           title: 'Dashboard',
@@ -496,45 +498,45 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled' },
             { key: 'autoBalance', label: '⚖️ Adaptive Balancing', type: 'toggle', path: 'visualisation.graphs.logseq.physics.autoBalance' },
             { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.damping' },
-            
+
             // Core GPU-Aligned Forces
             { key: 'springK', label: 'Spring Strength (k)', type: 'slider', min: 0.0001, max: 10, path: 'visualisation.graphs.logseq.physics.springK' },
             { key: 'repelK', label: 'Repulsion Strength (k)', type: 'slider', min: 0.1, max: 200, path: 'visualisation.graphs.logseq.physics.repelK' },
             { key: 'attractionK', label: 'Attraction Strength (k)', type: 'slider', min: 0, max: 10, path: 'visualisation.graphs.logseq.physics.attractionK' },
-            
+
             // Dynamics
             { key: 'dt', label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 0.1, path: 'visualisation.graphs.logseq.physics.dt' },
             { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.maxVelocity' },
-            
+
             // Boundaries and Separation
             { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.separationRadius' },
             { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds' },
             { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, path: 'visualisation.graphs.logseq.physics.boundsSize' },
-            
+
             // Stress Optimization
             { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressWeight' },
             { key: 'stressAlpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.stressAlpha' },
-            
+
             // Constants
             { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, path: 'visualisation.graphs.logseq.physics.minDistance' },
             { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist' },
-            
+
             // Warmup System
             { key: 'warmupIterations', label: 'Warmup Iterations', type: 'slider', min: 0, max: 500, path: 'visualisation.graphs.logseq.physics.warmupIterations' },
             { key: 'coolingRate', label: 'Cooling Rate', type: 'slider', min: 0.00001, max: 0.01, path: 'visualisation.graphs.logseq.physics.coolingRate' },
-            
+
             // CUDA Kernel Parameters
             { key: 'restLength', label: 'Rest Length', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.restLength' },
             { key: 'repulsionCutoff', label: 'Repulsion Cutoff', type: 'slider', min: 10, max: 200, path: 'visualisation.graphs.logseq.physics.repulsionCutoff' },
             { key: 'repulsionSofteningEpsilon', label: 'Repulsion Epsilon', type: 'slider', min: 0.00001, max: 0.01, path: 'visualisation.graphs.logseq.physics.repulsionSofteningEpsilon' },
             { key: 'centerGravityK', label: 'Centre Gravity K', type: 'slider', min: 0, max: 0.1, path: 'visualisation.graphs.logseq.physics.centerGravityK' },
             { key: 'gridCellSize', label: 'Grid Cell Size', type: 'slider', min: 10, max: 100, path: 'visualisation.graphs.logseq.physics.gridCellSize' },
-            
+
             // Boundary Behaviour Parameters
             { key: 'boundaryExtremeMultiplier', label: 'Boundary Extreme Mult', type: 'slider', min: 1, max: 5, path: 'visualisation.graphs.logseq.physics.boundaryExtremeMultiplier' },
             { key: 'boundaryExtremeForceMultiplier', label: 'Boundary Force Mult', type: 'slider', min: 1, max: 20, path: 'visualisation.graphs.logseq.physics.boundaryExtremeForceMultiplier' },
             { key: 'boundaryVelocityDamping', label: 'Boundary Vel Damping', type: 'slider', min: 0, max: 1, path: 'visualisation.graphs.logseq.physics.boundaryVelocityDamping' },
-            
+
             // Legacy Parameters (for backward compatibility)
             { key: 'iterations', label: 'Iterations', type: 'slider', min: 1, max: 1000, path: 'visualisation.graphs.logseq.physics.iterations' },
             { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.1, max: 10, path: 'visualisation.graphs.logseq.physics.massScale' },
@@ -551,7 +553,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'showDegreeDistribution', label: 'Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution' },
             { key: 'showClustering', label: 'Clustering Coefficient', type: 'toggle', path: 'analytics.showClusteringCoefficient' },
             { key: 'showCentrality', label: 'Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality' },
-            
+
             // GPU Clustering Controls
             { key: 'clusteringAlgorithm', label: 'Clustering Algorithm', type: 'select', options: ['none', 'kmeans', 'spectral', 'louvain'], path: 'analytics.clustering.algorithm' },
             { key: 'clusterCount', label: 'Cluster Count', type: 'slider', min: 2, max: 20, path: 'analytics.clustering.clusterCount' },
@@ -570,7 +572,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'gpuMemoryLimit', label: 'GPU Memory (MB)', type: 'slider', min: 256, max: 8192, step: 256, path: 'performance.gpuMemoryLimit' },
             { key: 'levelOfDetail', label: 'Quality Preset', type: 'select', options: ['low', 'medium', 'high', 'ultra'], path: 'performance.levelOfDetail' },
             { key: 'adaptiveQuality', label: 'Adaptive Quality', type: 'toggle', path: 'performance.enableAdaptiveQuality' },
-            
+
             // GPU Warmup Controls
             { key: 'warmupDuration', label: 'Warmup Duration (s)', type: 'slider', min: 0, max: 10, path: 'performance.warmupDuration' },
             { key: 'convergenceThreshold', label: 'Convergence Threshold', type: 'slider', min: 0.001, max: 0.1, path: 'performance.convergenceThreshold' },
@@ -589,7 +591,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'glowIntensity', label: 'Glow Intensity', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.intensity' },
             { key: 'glowRadius', label: 'Glow Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius' },
             { key: 'glowThreshold', label: 'Glow Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold' },
-            
+
             // Bloom Settings (Nodes/Edges - Layer 1)
             { key: 'bloom', label: 'Graph Bloom', type: 'toggle', path: 'visualisation.bloom.enabled' },
             { key: 'bloomStrength', label: 'Bloom Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.bloom.strength' },
@@ -634,7 +636,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'showEdgeWeights', label: 'Show Edge Weights', type: 'toggle', path: 'developer.showEdgeWeights' },
             { key: 'enableProfiler', label: 'Enable Profiler', type: 'toggle', path: 'developer.enableProfiler' },
             { key: 'apiDebugMode', label: 'API Debug Mode', type: 'toggle', path: 'developer.apiDebugMode' },
-            
+
             // Debug Settings (moved from XR/AR section)
             { key: 'enableDebug', label: 'Debug Mode', type: 'toggle', path: 'system.debug.enabled' },
             { key: 'showMemory', label: 'Show Memory', type: 'toggle', path: 'system.debug.showMemory' },
@@ -646,7 +648,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'nodeDebug', label: 'Node Debug', type: 'toggle', path: 'system.debug.enableNodeDebug' },
             { key: 'shaderDebug', label: 'Shader Debug', type: 'toggle', path: 'system.debug.enableShaderDebug' },
             { key: 'matrixDebug', label: 'Matrix Debug', type: 'toggle', path: 'system.debug.enableMatrixDebug' },
-            
+
             // GPU Debug Features
             { key: 'forceVectors', label: 'Show Force Vectors', type: 'toggle', path: 'developer.gpu.showForceVectors' },
             { key: 'constraintVisualization', label: 'Constraint Visualization', type: 'toggle', path: 'developer.gpu.showConstraints' },
@@ -665,33 +667,6 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'provider', label: 'Auth Provider', type: 'text', path: 'auth.provider' }
           ]
         };
-        return {
-          title: 'Data & Integrations',
-          fields: [
-            // General Data Settings
-            { key: 'autoSave', label: 'Auto Save', type: 'toggle', path: 'data.autoSave' },
-            { key: 'saveInterval', label: 'Save Interval (min)', type: 'slider', min: 1, max: 30, path: 'data.saveInterval' },
-            { key: 'cacheSize', label: 'Cache Size (MB)', type: 'slider', min: 10, max: 500, path: 'data.cacheSize' },
-            { key: 'compression', label: 'Data Compression', type: 'toggle', path: 'data.compression' },
-
-            // WebSocket Settings
-            { key: 'wsUpdateRate', label: 'Update Rate (Hz)', type: 'slider', min: 1, max: 60, path: 'system.websocket.updateRate' },
-            { key: 'wsReconnectAttempts', label: 'Reconnect Tries', type: 'slider', min: 0, max: 10, path: 'system.websocket.reconnectAttempts' },
-            { key: 'wsReconnectDelay', label: 'Reconnect Delay', type: 'slider', min: 500, max: 10000, path: 'system.websocket.reconnectDelay' },
-            { key: 'wsCompression', label: 'WS Compression', type: 'toggle', path: 'system.websocket.compression.enabled' },
-            { key: 'wsCompressionThreshold', label: 'Compress Size', type: 'slider', min: 64, max: 4096, path: 'system.websocket.compression.threshold' },
-
-            // SpacePilot Settings
-            { key: 'spTranslationX', label: 'SP Trans X Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.translation.x' },
-            { key: 'spTranslationY', label: 'SP Trans Y Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.translation.y' },
-            { key: 'spTranslationZ', label: 'SP Trans Z Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.translation.z' },
-            { key: 'spRotationX', label: 'SP Rot X Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.rotation.rx' },
-            { key: 'spRotationY', label: 'SP Rot Y Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.rotation.ry' },
-            { key: 'spRotationZ', label: 'SP Rot Z Sens', type: 'slider', min: 0.1, max: 5, path: 'system.spacepilot.sensitivity.rotation.rz' },
-            { key: 'spDeadzone', label: 'SP Deadzone', type: 'slider', min: 0, max: 30, path: 'system.spacepilot.deadzone' },
-            { key: 'spSmoothing', label: 'SP Smoothing', type: 'slider', min: 0, max: 95, path: 'system.spacepilot.smoothing' }
-          ]
-        };
       case 'xr':
         return {
           title: 'XR/AR Settings',
@@ -706,70 +681,330 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
             { key: 'xrRenderScale', label: 'XR Render Scale', type: 'slider', min: 0.5, max: 2, path: 'xr.renderScale' },
             { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.handTracking.enabled' },
             { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.interactions.enableHaptics' },
-            
+
             // XR-Optimized GPU Features
             { key: 'xrComputeMode', label: 'XR Compute Mode', type: 'toggle', path: 'xr.gpu.enableOptimizedCompute' },
             { key: 'xrPerformancePreset', label: 'XR Performance', type: 'select', options: ['Battery Saver', 'Balanced', 'Performance'], path: 'xr.performance.preset' },
             { key: 'xrAdaptiveQuality', label: 'XR Adaptive Quality', type: 'toggle', path: 'xr.enableAdaptiveQuality' }
           ]
         };
-      case 'graph-analysis':
-        return {
-          title: 'Graph Analysis',
-          fields: [
-            { key: 'comparisonEnabled', label: 'Enable Comparison', type: 'toggle', path: 'graphFeatures.analysis.comparisonEnabled' },
-            { key: 'autoAnalysis', label: 'Auto Analysis', type: 'toggle', path: 'graphFeatures.analysis.autoAnalysis' },
-            { key: 'metricsEnabled', label: 'Real-time Metrics', type: 'toggle', path: 'graphFeatures.analysis.metricsEnabled' },
-            { key: 'comparisonType', label: 'Comparison Type', type: 'select', options: ['structural', 'semantic', 'both'], path: 'graphFeatures.analysis.comparisonType' }
-          ]
-        };
-      case 'graph-visualisation':
-        return {
-          title: 'Graph Visualisation',
-          fields: [
-            { key: 'syncEnabled', label: 'Graph Synchronisation', type: 'toggle', path: 'graphFeatures.visualisation.syncEnabled' },
-            { key: 'cameraSync', label: 'Camera Sync', type: 'toggle', path: 'graphFeatures.visualisation.cameraSync' },
-            { key: 'animationsEnabled', label: 'Enable Animations', type: 'toggle', path: 'graphFeatures.visualisation.animationsEnabled' },
-            { key: 'transitionDuration', label: 'Transition Duration (ms)', type: 'slider', min: 0, max: 1000, path: 'graphFeatures.visualisation.transitionDuration' },
-            { key: 'visualEffects', label: 'Visual Effects', type: 'toggle', path: 'graphFeatures.visualisation.visualEffects' }
-          ]
-        };
-      case 'graph-optimisation':
-        return {
-          title: 'Graph Optimisation',
-          fields: [
-            { key: 'aiInsightsEnabled', label: 'AI Insights', type: 'toggle', path: 'graphFeatures.optimisation.aiInsightsEnabled' },
-            { key: 'autoOptimise', label: 'Auto-Optimise', type: 'toggle', path: 'graphFeatures.optimisation.autoOptimise' },
-            { key: 'optimisationLevel', label: 'Optimisation Level', type: 'slider', min: 1, max: 5, path: 'graphFeatures.optimisation.optimisationLevel' },
-            { key: 'layoutAlgorithm', label: 'Layout Algorithm', type: 'select', options: ['force-directed', 'hierarchical', 'circular', 'adaptive'], path: 'graphFeatures.optimisation.layoutAlgorithm' },
-            { key: 'clusteringEnabled', label: 'Enable Clustering', type: 'toggle', path: 'graphFeatures.optimisation.clusteringEnabled' }
-          ]
-        };
-      case 'graph-interaction':
-        return {
-          title: 'Graph Interaction',
-          fields: [
-            { key: 'timeTravelEnabled', label: 'Time Travel Mode', type: 'toggle', path: 'graphFeatures.interaction.timeTravelEnabled' },
-            { key: 'collaborationEnabled', label: 'Collaboration', type: 'toggle', path: 'graphFeatures.interaction.collaborationEnabled' },
-            { key: 'vrModeEnabled', label: 'VR Mode', type: 'toggle', path: 'graphFeatures.interaction.vrModeEnabled' },
-            { key: 'explorationMode', label: 'Exploration Mode', type: 'toggle', path: 'graphFeatures.interaction.explorationMode' },
-            { key: 'handTrackingEnabled', label: 'Hand Tracking', type: 'toggle', path: 'graphFeatures.interaction.handTrackingEnabled' }
-          ]
-        };
-      case 'graph-export':
-        return {
-          title: 'Graph Export',
-          fields: [
-            { key: 'exportFormat', label: 'Export Format', type: 'select', options: ['json', 'csv', 'png', 'svg', 'pdf'], path: 'graphFeatures.export.exportFormat' },
-            { key: 'includeMetadata', label: 'Include Metadata', type: 'toggle', path: 'graphFeatures.export.includeMetadata' },
-            { key: 'compressionEnabled', label: 'Enable Compression', type: 'toggle', path: 'graphFeatures.export.compressionEnabled' },
-            { key: 'shareExpiry', label: 'Share Expiry', type: 'select', options: ['1hour', '1day', '7days', '30days', 'never'], path: 'graphFeatures.export.shareExpiry' }
-          ]
-        };
       default:
         return null;
     }
-  };
+  }, [activeSection]);
+
+  // NEW: Content renderer that dispatches to the correct rendering strategy
+  const renderTabContent = useCallback((menuId: string) => {
+    console.log('[ICP] renderTabContent ->', menuId);
+    switch (menuId) {
+      // --- Special cases for bespoke components ---
+      case 'graph-analysis':
+        return (
+          <GraphAnalysisTab
+            graphId="current"
+            graphData={graphData}
+            otherGraphData={otherGraphData}
+          />
+        );
+      case 'graph-visualisation':
+        return (
+          <GraphVisualisationTab
+            graphId="current"
+          />
+        );
+      case 'graph-optimisation':
+        return (
+          <GraphOptimisationTab
+            graphId="current"
+            graphData={graphData}
+          />
+        );
+      case 'graph-interaction':
+        return (
+          <GraphInteractionTab
+            graphId="current"
+          />
+        );
+      case 'graph-export':
+        return (
+          <GraphExportTab
+            graphId="current"
+            graphData={graphData}
+            onExport={(format, options) => {
+              console.log('Export requested:', { format, options });
+            }}
+          />
+        );
+
+      // --- Default case for generic settings panels ---
+      default:
+        const sectionSettings = getSectionSettings(menuId);
+        if (!sectionSettings) return null;
+
+        return (
+          <div ref={scrollContainerRef}>
+            <div style={{ fontWeight: 600, marginBottom: '16px', color: '#FBBF24', fontSize: '13px' }}>
+              {sectionSettings.title}
+            </div>
+            <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {sectionSettings.fields.map((field, index) => {
+                const currentValue = getValueFromPath(field.path);
+                const isSelected = selectedFieldIndex === index;
+
+                return (
+                  <div
+                    key={field.key}
+                    data-field-index={index}
+                    style={{
+                      padding: '10px',
+                      backgroundColor: isSelected ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255,255,255,0.03)',
+                      border: isSelected ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setSelectedFieldIndex(index)}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{field.label}</span>
+                      {isSelected && spacePilotConnected && (
+                        <span style={{ fontSize: '9px', color: '#FBBF24', opacity: 0.8 }}>◀ ▶</span>
+                      )}
+                    </div>
+
+                    {/* Value display based on type */}
+                    <div style={{
+                      fontSize: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      {field.type === 'slider' && (
+                        <>
+                          <div style={{
+                            flex: 1,
+                            height: '6px',
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '3px',
+                            position: 'relative',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const percentage = x / rect.width;
+                            const newValue = (field.min ?? 0) + ((field.max ?? 1) - (field.min ?? 0)) * percentage;
+                            updateSettingByPath(field.path, newValue);
+                          }}>
+                            <div style={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              height: '100%',
+                              width: `${(((currentValue ?? field.min ?? 0) - (field.min ?? 0)) / ((field.max ?? 1) - (field.min ?? 0))) * 100}%`,
+                              background: 'linear-gradient(90deg, #FBBF24, #F59E0B)',
+                              borderRadius: '3px',
+                              transition: 'width 0.2s ease',
+                              pointerEvents: 'none'
+                            }} />
+                          </div>
+                          <span style={{
+                            minWidth: '45px',
+                            textAlign: 'right',
+                            fontFamily: 'monospace',
+                            color: 'rgba(255,255,255,0.8)',
+                            fontSize: '10px'
+                          }}>
+                            {typeof currentValue === 'number' ? currentValue.toFixed(2) : '0.00'}
+                          </span>
+                        </>
+                      )}
+
+                      {field.type === 'toggle' && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateSettingByPath(field.path, !currentValue);
+                        }}>
+                          <div style={{
+                            width: '36px',
+                            height: '20px',
+                            borderRadius: '10px',
+                            background: currentValue ? 'linear-gradient(135deg, #10B981, #059669)' : 'rgba(255,255,255,0.2)',
+                            position: 'relative',
+                            transition: 'background 0.2s ease',
+                            boxShadow: currentValue ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none'
+                          }}>
+                            <div style={{
+                              position: 'absolute',
+                              top: '2px',
+                              left: currentValue ? '18px' : '2px',
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                              background: 'white',
+                              transition: 'left 0.2s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }} />
+                          </div>
+                          <span style={{
+                            color: currentValue ? '#10B981' : 'rgba(255,255,255,0.6)',
+                            fontWeight: 500,
+                            fontSize: '10px'
+                          }}>
+                            {currentValue ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                      )}
+
+                      {field.type === 'color' && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <input
+                            type="color"
+                            value={currentValue || '#888888'}
+                            onChange={(e) => {
+                              updateSettingByPath(field.path, e.target.value);
+                            }}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              backgroundColor: 'transparent'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span style={{
+                            fontFamily: 'monospace',
+                            fontSize: '9px',
+                            color: 'rgba(255,255,255,0.8)'
+                          }}>
+                            {currentValue || '#888888'}
+                          </span>
+                        </div>
+                      )}
+
+                      {field.type === 'nostr-button' && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <button
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '4px',
+                              background: nostrConnected ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #3B82F6, #2563EB)',
+                              border: 'none',
+                              fontSize: '9px',
+                              color: 'white',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              transition: 'all 0.2s ease',
+                              boxShadow: nostrConnected ? '0 0 8px rgba(16, 185, 129, 0.3)' : '0 0 8px rgba(59, 130, 246, 0.3)'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (nostrConnected) {
+                                handleNostrLogout();
+                              } else {
+                                handleNostrLogin();
+                              }
+                            }}
+                          >
+                            {nostrConnected ? 'LOGOUT' : 'LOGIN'}
+                          </button>
+                          {nostrConnected && (
+                            <span style={{ fontSize: '9px', opacity: 0.7, fontFamily: 'monospace' }}>
+                              {nostrPublicKey.slice(0, 8)}...
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {field.type === 'text' && (
+                        <div style={{
+                          flex: 1,
+                          padding: '6px 10px',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                          color: 'rgba(255,255,255,0.8)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontFamily: 'monospace'
+                        }}>
+                          {currentValue || 'Not set'}
+                        </div>
+                      )}
+
+                      {field.type === 'select' && (
+                        <select
+                          value={currentValue || field.options?.[0] || ''}
+                          onChange={(e) => {
+                            updateSettingByPath(field.path, e.target.value);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            color: 'rgba(255,255,255,0.9)',
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                        >
+                          {field.options?.map(option => (
+                            <option key={option} value={option} style={{ background: '#1F2937', color: 'white' }}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Navigation hints */}
+            {spacePilotConnected && (
+              <div style={{
+                marginTop: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                fontSize: '9px',
+                opacity: 0.6,
+                textAlign: 'center',
+                color: 'rgba(255,255,255,0.6)'
+              }}>
+                ↑↓ Navigate • ←→ Adjust • F Commit
+              </div>
+            )}
+          </div>
+        );
+    }
+  }, [graphData, otherGraphData, selectedFieldIndex, spacePilotConnected, nostrConnected, nostrPublicKey, getSectionSettings, getValueFromPath, updateSettingByPath]);
 
   if (!isExpanded) {
     // Collapsed state
@@ -803,8 +1038,6 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
     );
   }
 
-  const sectionSettings = getSectionSettings();
-
   // Expanded state
   return (
     <TooltipProvider>
@@ -836,10 +1069,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           marginBottom: '16px'
         }}>
           <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-            <div style={{ 
-              width: '8px', 
-              height: '8px', 
-              backgroundColor: '#10B981', 
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#10B981',
               borderRadius: '50%',
               boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)'
             }} />
@@ -877,9 +1110,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         </div>
 
         {/* System info */}
-        <div style={{ 
-          marginBottom: '16px', 
-          paddingBottom: '12px', 
+        <div style={{
+          marginBottom: '16px',
+          paddingBottom: '12px',
           borderBottom: '1px solid rgba(255,255,255,0.15)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -892,14 +1125,14 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
 
         {/* VisionFlow Status */}
         {botsData && (
-          <div style={{ 
-            marginBottom: '16px', 
-            paddingBottom: '12px', 
-            borderBottom: '1px solid rgba(255,255,255,0.15)' 
+          <div style={{
+            marginBottom: '16px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid rgba(255,255,255,0.15)'
           }}>
-            <div style={{ 
-              fontWeight: 600, 
-              marginBottom: '12px', 
+            <div style={{
+              fontWeight: 600,
+              marginBottom: '12px',
               color: '#FBBF24',
               display: 'flex',
               alignItems: 'center',
@@ -942,10 +1175,10 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
               </div>
             ) : (
               <>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '8px', 
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px',
                   fontSize: '11px',
                   marginBottom: '12px'
                 }}>
@@ -1040,13 +1273,13 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         )}
 
         {/* SpacePilot Status */}
-        <div style={{ 
-          marginBottom: '16px', 
-          paddingBottom: '12px', 
-          borderBottom: '1px solid rgba(255,255,255,0.15)' 
+        <div style={{
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid rgba(255,255,255,0.15)'
         }}>
-          <div style={{ 
-            fontWeight: 600, 
+          <div style={{
+            fontWeight: 600,
             marginBottom: '8px',
             fontSize: '13px',
             display: 'flex',
@@ -1107,16 +1340,16 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
         </div>
 
         {/* Tabbed Interface */}
-        <Tabs 
-          value={activeSection || 'dashboard'} 
+        <Tabs
+          value={activeSection || 'dashboard'}
           onValueChange={(value) => {
             setActiveSection(value);
             setSelectedFieldIndex(0);
           }}
           style={{ width: '100%' }}
         >
-          <TabsList style={{ 
-            width: '100%', 
+          <TabsList style={{
+            width: '100%',
             backgroundColor: 'rgba(255,255,255,0.08)',
             border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: '6px',
@@ -1131,7 +1364,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
               return (
                 <Tooltip key={menu.id} content={menu.description}>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value={menu.id}
                     style={{
                       display: 'flex',
@@ -1162,8 +1395,8 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
           </TabsList>
 
           {/* Second row of tabs for graph features */}
-          <TabsList style={{ 
-            width: '100%', 
+          <TabsList style={{
+            width: '100%',
             backgroundColor: 'rgba(0,255,255,0.08)',
             border: '1px solid rgba(0,255,255,0.15)',
             borderRadius: '6px',
@@ -1178,7 +1411,7 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
               const isPressed = spacePilotConnected && spacePilotButtons.includes(`[${btnNum}]`);
               return (
                 <Tooltip key={menu.id} content={menu.description}>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value={menu.id}
                     style={{
                       display: 'flex',
@@ -1219,317 +1452,9 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
                 borderRadius: '6px',
                 border: '1px solid rgba(255,255,255,0.1)'
               }}>
-                {/* Graph Feature Tabs */}
-                {menu.id === 'graph-analysis' && (
-                  <GraphAnalysisTab 
-                    graphId="current" 
-                    graphData={graphData}
-                    otherGraphData={otherGraphData}
-                  />
-                )}
-                {menu.id === 'graph-visualisation' && (
-                  <GraphVisualisationTab 
-                    graphId="current"
-                    onFeatureUpdate={onGraphFeatureUpdate}
-                  />
-                )}
-                {menu.id === 'graph-optimisation' && (
-                  <GraphOptimisationTab 
-                    graphId="current"
-                    onFeatureUpdate={onGraphFeatureUpdate}
-                  />
-                )}
-                {menu.id === 'graph-interaction' && (
-                  <GraphInteractionTab 
-                    graphId="current"
-                    onFeatureUpdate={onGraphFeatureUpdate}
-                  />
-                )}
-                {menu.id === 'graph-export' && (
-                  <GraphExportTab 
-                    graphId="current"
-                    graphData={graphData}
-                    onExport={(format, options) => {
-                      onGraphFeatureUpdate?.('export', { format, options });
-                    }}
-                  />
-                )}
-
-                {/* Regular Setting Sections */}
-                {![
-                  'graph-analysis',
-                  'graph-visualisation', 
-                  'graph-optimisation',
-                  'graph-interaction',
-                  'graph-export'
-                ].includes(menu.id) && (() => {
-                  // Use the existing comprehensive getSectionSettings function with menu.id parameter
-                  const sectionSettings = getSectionSettings(menu.id);
-                  if (!sectionSettings) return null;
-                  
-                  return (
-                    <div ref={scrollContainerRef}>
-                      <div style={{ fontWeight: 600, marginBottom: '16px', color: '#FBBF24', fontSize: '13px' }}>
-                        {sectionSettings.title}
-                      </div>
-                      <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {sectionSettings.fields.map((field, index) => {
-                          const currentValue = getValueFromPath(field.path);
-                          const isSelected = selectedFieldIndex === index;
-
-                          return (
-                            <div
-                              key={field.key}
-                              data-field-index={index}
-                              style={{
-                                padding: '10px',
-                                backgroundColor: isSelected ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255,255,255,0.03)',
-                                border: isSelected ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '6px',
-                                transition: 'all 0.2s ease',
-                                cursor: 'pointer'
-                              }}
-                              onClick={() => setSelectedFieldIndex(index)}
-                            >
-                              <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                marginBottom: '8px'
-                              }}>
-                                <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>{field.label}</span>
-                                {isSelected && spacePilotConnected && (
-                                  <span style={{ fontSize: '9px', color: '#FBBF24', opacity: 0.8 }}>◀ ▶</span>
-                                )}
-                              </div>
-
-                              {/* Value display based on type */}
-                              <div style={{
-                                fontSize: '10px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                              }}>
-                                {field.type === 'slider' && (
-                                  <>
-                                    <div style={{
-                                      flex: 1,
-                                      height: '6px',
-                                      background: 'rgba(255,255,255,0.1)',
-                                      borderRadius: '3px',
-                                      position: 'relative',
-                                      cursor: 'pointer'
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const rect = e.currentTarget.getBoundingClientRect();
-                                      const x = e.clientX - rect.left;
-                                      const percentage = x / rect.width;
-                                      const newValue = field.min + (field.max - field.min) * percentage;
-                                      updateSettingByPath(field.path, newValue);
-                                    }}>
-                                      <div style={{
-                                        position: 'absolute',
-                                        left: 0,
-                                        top: 0,
-                                        height: '100%',
-                                        width: `${((currentValue - field.min) / (field.max - field.min)) * 100}%`,
-                                        background: 'linear-gradient(90deg, #FBBF24, #F59E0B)',
-                                        borderRadius: '3px',
-                                        transition: 'width 0.2s ease',
-                                        pointerEvents: 'none'
-                                      }} />
-                                    </div>
-                                    <span style={{ 
-                                      minWidth: '45px', 
-                                      textAlign: 'right',
-                                      fontFamily: 'monospace',
-                                      color: 'rgba(255,255,255,0.8)',
-                                      fontSize: '10px'
-                                    }}>
-                                      {typeof currentValue === 'number' ? currentValue.toFixed(2) : '0.00'}
-                                    </span>
-                                  </>
-                                )}
-
-                                {field.type === 'toggle' && (
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    cursor: 'pointer'
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateSettingByPath(field.path, !currentValue);
-                                  }}>
-                                    <div style={{
-                                      width: '36px',
-                                      height: '20px',
-                                      borderRadius: '10px',
-                                      background: currentValue ? 'linear-gradient(135deg, #10B981, #059669)' : 'rgba(255,255,255,0.2)',
-                                      position: 'relative',
-                                      transition: 'background 0.2s ease',
-                                      boxShadow: currentValue ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none'
-                                    }}>
-                                      <div style={{
-                                        position: 'absolute',
-                                        top: '2px',
-                                        left: currentValue ? '18px' : '2px',
-                                        width: '16px',
-                                        height: '16px',
-                                        borderRadius: '50%',
-                                        background: 'white',
-                                        transition: 'left 0.2s ease',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                                      }} />
-                                    </div>
-                                    <span style={{ 
-                                      color: currentValue ? '#10B981' : 'rgba(255,255,255,0.6)',
-                                      fontWeight: 500,
-                                      fontSize: '10px'
-                                    }}>
-                                      {currentValue ? 'ON' : 'OFF'}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {field.type === 'color' && (
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                  }}>
-                                    <input
-                                      type="color"
-                                      value={currentValue || '#888888'}
-                                      onChange={(e) => {
-                                        updateSettingByPath(field.path, e.target.value);
-                                      }}
-                                      style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        border: '1px solid rgba(255,255,255,0.2)',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        backgroundColor: 'transparent'
-                                      }}
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
-                                    <span style={{ 
-                                      fontFamily: 'monospace', 
-                                      fontSize: '9px',
-                                      color: 'rgba(255,255,255,0.8)'
-                                    }}>
-                                      {currentValue || '#888888'}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {field.type === 'nostr-button' && (
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                  }}>
-                                    <button
-                                      style={{
-                                        padding: '6px 12px',
-                                        borderRadius: '4px',
-                                        background: nostrConnected ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #3B82F6, #2563EB)',
-                                        border: 'none',
-                                        fontSize: '9px',
-                                        color: 'white',
-                                        cursor: 'pointer',
-                                        fontWeight: 600,
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: nostrConnected ? '0 0 8px rgba(16, 185, 129, 0.3)' : '0 0 8px rgba(59, 130, 246, 0.3)'
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (nostrConnected) {
-                                          handleNostrLogout();
-                                        } else {
-                                          handleNostrLogin();
-                                        }
-                                      }}
-                                    >
-                                      {nostrConnected ? 'LOGOUT' : 'LOGIN'}
-                                    </button>
-                                    {nostrConnected && (
-                                      <span style={{ fontSize: '9px', opacity: 0.7, fontFamily: 'monospace' }}>
-                                        {nostrPublicKey.slice(0, 8)}...
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-
-                                {field.type === 'text' && (
-                                  <div style={{
-                                    flex: 1,
-                                    padding: '6px 10px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.15)',
-                                    borderRadius: '4px',
-                                    fontSize: '10px',
-                                    color: 'rgba(255,255,255,0.8)',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    fontFamily: 'monospace'
-                                  }}>
-                                    {currentValue || 'Not set'}
-                                  </div>
-                                )}
-
-                                {field.type === 'select' && (
-                                  <select
-                                    value={currentValue || field.options?.[0] || ''}
-                                    onChange={(e) => {
-                                      updateSettingByPath(field.path, e.target.value);
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{
-                                      padding: '6px 10px',
-                                      background: 'rgba(255,255,255,0.05)',
-                                      border: '1px solid rgba(255,255,255,0.15)',
-                                      borderRadius: '4px',
-                                      fontSize: '10px',
-                                      color: 'rgba(255,255,255,0.9)',
-                                      cursor: 'pointer',
-                                      fontWeight: 500
-                                    }}
-                                  >
-                                    {field.options?.map(option => (
-                                      <option key={option} value={option} style={{ background: '#1F2937', color: 'white' }}>
-                                        {option}
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Navigation hints */}
-                      {spacePilotConnected && (
-                        <div style={{
-                          marginTop: '12px',
-                          paddingTop: '12px',
-                          borderTop: '1px solid rgba(255,255,255,0.1)',
-                          fontSize: '9px',
-                          opacity: 0.6,
-                          textAlign: 'center',
-                          color: 'rgba(255,255,255,0.6)'
-                        }}>
-                          ↑↓ Navigate • ←→ Adjust • F Commit
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                <ErrorBoundary>
+                  {renderTabContent(menu.id)}
+                </ErrorBoundary>
               </div>
             </TabsContent>
           ))}
@@ -1543,11 +1468,11 @@ export const IntegratedControlPanel: React.FC<IntegratedControlPanelProps> = ({
               borderRadius: '6px',
               border: '1px solid rgba(255,255,255,0.1)'
             }}>
-              <div style={{ 
-                fontSize: '11px', 
-                fontWeight: 600, 
-                marginBottom: '8px', 
-                color: 'rgba(255,255,255,0.8)' 
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                marginBottom: '8px',
+                color: 'rgba(255,255,255,0.8)'
               }}>
                 SpacePilot Debug
               </div>

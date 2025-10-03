@@ -265,7 +265,15 @@ export class OptimizationWebSocketManager {
       try {
         this.ws = new WebSocket(this.url);
 
+        const connectionTimeout = setTimeout(() => {
+          if (this.ws && this.ws.readyState !== WebSocket.OPEN) {
+            this.ws.close();
+            reject(new Error('WebSocket connection timeout'));
+          }
+        }, 5000);
+
         this.ws.onopen = () => {
+          clearTimeout(connectionTimeout);
           logger.info('Optimization WebSocket connected');
           this.reconnectAttempts = 0;
           resolve();
@@ -281,12 +289,14 @@ export class OptimizationWebSocketManager {
         };
 
         this.ws.onclose = (event) => {
+          clearTimeout(connectionTimeout);
           logger.warn('Optimization WebSocket closed', { code: event.code, reason: event.reason });
           this.handleReconnect();
         };
 
         this.ws.onerror = (error) => {
-          logger.error('Optimization WebSocket error', error);
+          clearTimeout(connectionTimeout);
+          logger.warn('Optimization WebSocket error (backend may not be available)', error);
           reject(error);
         };
       } catch (error) {
