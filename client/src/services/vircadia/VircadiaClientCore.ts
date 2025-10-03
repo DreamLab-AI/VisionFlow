@@ -100,7 +100,9 @@ const debugError = (config: ClientCoreConfig, message: string, ...args: unknown[
 class CoreConnectionManager {
     private ws: WebSocket | null = null;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
     private reconnectCount = 0;
+    private lastHeartbeatTime: number = 0;
     private pendingRequests = new Map<
         string,
         {
@@ -115,6 +117,8 @@ class CoreConnectionManager {
     private connectionPromise: Promise<ClientCoreConnectionInfo> | null = null;
     private agentId: string | null = null;
     private sessionId: string | null = null;
+    private readonly HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
+    private readonly HEARTBEAT_TIMEOUT_MS = 10000;  // 10 seconds
 
     constructor(private config: ClientCoreConfig) {}
 
@@ -169,6 +173,7 @@ class CoreConnectionManager {
                     clearTimeout(timeoutTimer);
                     this.updateStatus("connected");
                     this.reconnectCount = 0;
+                    this.startHeartbeat();
                     debugLog(this.config, "WebSocket connected");
                     resolve(this.getConnectionInfo());
                 };
@@ -271,6 +276,8 @@ class CoreConnectionManager {
     }
 
     disconnect(): void {
+        this.stopHeartbeat();
+
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
@@ -288,6 +295,57 @@ class CoreConnectionManager {
         this.connectionPromise = null;
         this.agentId = null;
         this.sessionId = null;
+    }
+
+    /**
+     * Start heartbeat mechanism to detect stale connections
+     */
+    private startHeartbeat(): void {
+        this.stopHeartbeat();
+        this.lastHeartbeatTime = Date.now();
+
+        this.heartbeatTimer = setInterval(() => {
+            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                this.stopHeartbeat();
+                return;
+            }
+
+            const timeSinceLastHeartbeat = Date.now() - this.lastHeartbeatTime;
+
+            // Check if we haven't received any response for too long
+            if (timeSinceLastHeartbeat > this.HEARTBEAT_INTERVAL_MS + this.HEARTBEAT_TIMEOUT_MS) {
+                debugLog(this.config, "Heartbeat timeout - connection appears stale");
+                this.stopHeartbeat();
+                this.ws?.close();
+                return;
+            }
+
+            // Send heartbeat query
+            this.query({ query: "SELECT 1 as heartbeat", timeoutMs: this.HEARTBEAT_TIMEOUT_MS })
+                .then(() => {
+                    this.lastHeartbeatTime = Date.now();
+                    debugLog(this.config, "Heartbeat successful");
+                })
+                .catch((error) => {
+                    debugError(this.config, "Heartbeat failed:", error);
+                    this.stopHeartbeat();
+                    this.ws?.close();
+                });
+
+        }, this.HEARTBEAT_INTERVAL_MS);
+
+        debugLog(this.config, "Heartbeat started");
+    }
+
+    /**
+     * Stop heartbeat mechanism
+     */
+    private stopHeartbeat(): void {
+        if (this.heartbeatTimer) {
+            clearInterval(this.heartbeatTimer);
+            this.heartbeatTimer = null;
+            debugLog(this.config, "Heartbeat stopped");
+        }
     }
 
     query<T = unknown>(options: QueryOptions): Promise<QueryResult<T>> {
