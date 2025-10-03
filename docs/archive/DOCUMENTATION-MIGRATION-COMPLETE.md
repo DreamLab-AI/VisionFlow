@@ -30,7 +30,7 @@ Three parallel agents audited all legacy documentation:
 ### 3. Key Findings
 
 **Project Naming Issue**:
-- 3 files incorrectly use "VisionsFlow" instead of "VisionFlow"
+- 3 files incorrectly use "VisionFlow" instead of "VisionFlow"
 - Files: `docs/README-FULLFAT.md`, `docs/guides/01-deployment.md`, `docs/guides/02-development-workflow.md`
 - **Action Required**: Global find/replace in these files
 
@@ -59,10 +59,10 @@ Three parallel agents audited all legacy documentation:
 
 1. **Fix Project Naming**
    ```bash
-   # Fix "VisionsFlow" → "VisionFlow" in 3 files
-   sed -i 's/VisionsFlow/VisionFlow/g' docs/README-FULLFAT.md
-   sed -i 's/VisionsFlow/VisionFlow/g' docs/guides/01-deployment.md
-   sed -i 's/VisionsFlow/VisionFlow/g' docs/guides/02-development-workflow.md
+   # Fix "VisionFlow" → "VisionFlow" in 3 files
+   sed -i 's/VisionFlow/VisionFlow/g' docs/README-FULLFAT.md
+   sed -i 's/VisionFlow/VisionFlow/g' docs/guides/01-deployment.md
+   sed -i 's/VisionFlow/VisionFlow/g' docs/guides/02-development-workflow.md
    ```
 
 2. **Create Client API Reference**
