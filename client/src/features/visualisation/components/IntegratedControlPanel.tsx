@@ -13,6 +13,8 @@ import { SpaceDriver } from '../../../services/SpaceDriverService';
 import { Tabs, TabsContent } from '../../design-system/components/Tabs';
 import { TooltipProvider } from '../../design-system/components/Tooltip';
 import ErrorBoundary from '../../../components/ErrorBoundary';
+// Import to trigger scrollbar-hiding CSS injection
+import '../../design-system/components/ScrollArea';
 
 // Control Panel Components
 import { ControlPanelHeader } from './ControlPanel/ControlPanelHeader';
@@ -285,7 +287,7 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
       />
 
       {/* Tab Navigation and Content */}
-      <div style={{
+      <div className="scroll-area" style={{
         flex: 1,
         overflow: 'auto',
         marginTop: '8px',

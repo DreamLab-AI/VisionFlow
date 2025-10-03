@@ -6,20 +6,13 @@ interface ScrollAreaProps {
   style?: React.CSSProperties;
 }
 
-export const ScrollArea: React.FC<ScrollAreaProps> = ({ 
-  children, 
-  className = '', 
-  style = {} 
+export const ScrollArea: React.FC<ScrollAreaProps> = ({
+  children,
+  className = '',
+  style = {}
 }) => {
   return (
-    <div 
-      className={`overflow-auto ${className}`}
-      style={{
-        ...style,
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05)',
-      }}
-    >
+    <div className={`overflow-auto scroll-area ${className}`} style={{ ...style }}>
       {children}
     </div>
   );
@@ -28,22 +21,12 @@ export const ScrollArea: React.FC<ScrollAreaProps> = ({
 // Add custom scrollbar styles
 const scrollbarStyles = `
   .scroll-area::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    display: none;
   }
-  
-  .scroll-area::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-  }
-  
-  .scroll-area::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-  }
-  
-  .scroll-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+
+  .scroll-area {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 `;
 
