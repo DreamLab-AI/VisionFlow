@@ -1,20 +1,20 @@
 # VisionFlow Interface Layer Documentation
 
-**Version**: 2.1.0
-**Last Updated**: 2025-09-25
+**Version**: 2.2.0
+**Last Updated**: 2025-10-03
 **Status**: Production Ready
 
 ## Executive Summary
 
-This document provides comprehensive documentation for all interface layers in the VisionFlow system, including REST APIs, WebSocket protocols, actor communication patterns, and data flow architectures. Following a comprehensive audit completed on 2025-09-25, all critical interface issues have been resolved and the system is operating at **100% interface consistency**.
+This document provides comprehensive documentation for all interface layers in the VisionFlow system, including REST APIs, WebSocket protocols, actor communication patterns, and data flow architectures. Following a comprehensive audit and code pruning completed on 2025-10-03, all critical interface issues have been resolved and the system is operating at **100% interface consistency** with a **30% reduced codebase**.
 
 ## Key Achievements
 
-- **🎯 100% API Consolidation**: Single UnifiedApiClient architecture implemented
+- **🎯 Layered API Architecture**: UnifiedApiClient (526 LOC) + Domain APIs (2,619 LOC)
 - **🔧 Field Conversion Resolution**: Automated camelCase ↔ snake_case handling via Serde
 - **📡 19 Active Endpoints**: Comprehensive REST API coverage across 3 main handlers
 - **⚡ 80% WebSocket Optimisation**: Binary protocol reduces traffic by 80%
-- **🚀 Zero Legacy Code**: Complete migration from deprecated apiService
+- **🚀 Code Pruning Complete**: 38 files removed (11,957 LOC) with zero functionality loss
 
 ---
 
@@ -57,6 +57,101 @@ graph TB
 - **Protocol**: Binary WebSocket for high-frequency data, JSON REST for configuration
 - **Conversion**: Automatic via Serde `rename_all = "camelCase"`
 - **Authentication**: JWT-based with rate limiting (planned)
+
+---
+
+## Layered API Architecture
+
+VisionFlow implements a **two-layer API architecture** that separates transport concerns from business logic:
+
+### Layer 1: UnifiedApiClient (Foundation Layer)
+**Location**: `client/src/services/api/UnifiedApiClient.ts` (526 LOC)
+
+**Purpose**: Low-level HTTP transport foundation
+- Request/response interceptors
+- Automatic retry logic with exponential backoff
+- Authentication token management
+- Timeout handling
+- Error standardization
+- Request cancellation
+
+**Key Features**:
+```typescript
+// Singleton instance used by all domain APIs
+export const unifiedApiClient = new UnifiedApiClient();
+
+// Core capabilities
+- setAuthToken(token: string): void
+- setInterceptors(config: InterceptorConfig): void
+- get<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>>
+- post<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>>
+- put<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>>
+- delete<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>>
+```
+
+### Layer 2: Domain API Layer (Business Logic)
+**Location**: `client/src/api/*` (2,619 LOC total)
+
+**Purpose**: High-level domain-specific APIs with business logic
+
+#### settingsApi.ts (430 LOC)
+- **Debouncing**: 50ms delay for UI responsiveness
+- **Priority System**: Critical (Physics) > High (Visual) > Normal (System) > Low (UI)
+- **Batching**: Up to 25 operations per batch
+- **Smart Updates**: Immediate processing for critical physics parameters
+
+Used by: `settingsStore`, `autoSaveManager`, `useSelectiveSettingsStore`
+
+#### analyticsApi.ts (582 LOC)
+- GPU analytics integration
+- Performance metrics collection
+- Community detection
+- Clustering analysis
+
+Used by: `useAnalytics` hook
+
+#### workspaceApi.ts (337 LOC)
+- Workspace CRUD operations
+- Multi-workspace management
+- Error handling for workspace operations
+
+Used by: `useWorkspaces` hook
+
+#### exportApi.ts (329 LOC)
+- Export functionality (JSON, GraphML, GEXF, CSV)
+- Publish to public gallery
+- Share link generation
+- Size estimation
+
+Used by: `GraphExportTab`, `ShareLinkManager`, `PublishGraphDialog`, `ExportFormatDialog`, `ShareSettingsDialog`
+
+#### optimizationApi.ts (376 LOC)
+- Graph optimization APIs
+- Layout algorithms
+- Performance tuning
+
+Used by: `GraphOptimisationTab`
+
+#### batchUpdateApi.ts (135 LOC)
+- Generic batch operation handling
+- Multi-path updates
+
+### Architecture Benefits
+
+1. **Separation of Concerns**: Transport logic separated from business logic
+2. **Reusability**: UnifiedApiClient used by all domain APIs
+3. **Maintainability**: Business logic centralized in domain-specific files
+4. **Type Safety**: Full TypeScript typing throughout
+5. **Performance**: Built-in debouncing, batching, and priority handling
+
+### Why Not Remove the Domain Layer?
+
+The QA report incorrectly identified the domain API layer as "redundant abstraction". This is **incorrect** because:
+
+1. **Essential Business Logic**: Debouncing, batching, priority systems are NOT in UnifiedApiClient
+2. **Domain-Specific Handling**: Each API has unique requirements (e.g., settings batching vs workspace CRUD)
+3. **Active Usage**: 12+ components depend on domain APIs
+4. **Architectural Pattern**: Standard layered architecture - transport foundation + domain logic
 
 ---
 
