@@ -67,9 +67,8 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   const [performanceMode, setPerformanceMode] = useState('balanced');
   const [clusteringEnabled, setClusteringEnabled] = useState(false);
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('force-directed');
-  
-  // Mock optimisation results
-  // Real optimization state
+
+  // Optimization state
   const [optimisationResults, setOptimisationResults] = useState<OptimizationResult | null>(null);
   const [currentTask, setCurrentTask] = useState<OptimizationTask | null>(null);
   const [gpuStatus, setGpuStatus] = useState<{ available: boolean; utilization: number }>({ available: false, utilization: 0 });
