@@ -20,6 +20,7 @@ import { ConnectionWarning } from '../components/ConnectionWarning';
 import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotifications';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { remoteLogger } from '../services/remoteLogger';
+import { VircadiaProvider } from '../contexts/VircadiaContext';
 
 const logger = createLogger('App');
 
@@ -129,27 +130,29 @@ function App() {
   };
 
   return (
-    <TooltipProvider delayDuration={300} skipDelayDuration={100}>
-      <HelpProvider>
-        <OnboardingProvider>
-          <ErrorBoundary>
-            <ApplicationModeProvider>
-              {renderContent()}
-              {initializationState === 'loading' && (
-                <AppInitializer onInitialized={handleInitialized} onError={handleInitializationError} />
-              )}
-              {initializationState === 'initialized' && (
-                <>
-                  <ConnectionWarning />
-                  <CommandPalette />
-                  <DebugControlPanel />
-                </>
-              )}
-            </ApplicationModeProvider>
-          </ErrorBoundary>
-        </OnboardingProvider>
-      </HelpProvider>
-    </TooltipProvider>
+    <VircadiaProvider autoConnect={false}>
+      <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+        <HelpProvider>
+          <OnboardingProvider>
+            <ErrorBoundary>
+              <ApplicationModeProvider>
+                {renderContent()}
+                {initializationState === 'loading' && (
+                  <AppInitializer onInitialized={handleInitialized} onError={handleInitializationError} />
+                )}
+                {initializationState === 'initialized' && (
+                  <>
+                    <ConnectionWarning />
+                    <CommandPalette />
+                    <DebugControlPanel />
+                  </>
+                )}
+              </ApplicationModeProvider>
+            </ErrorBoundary>
+          </OnboardingProvider>
+        </HelpProvider>
+      </TooltipProvider>
+    </VircadiaProvider>
   );
 }
 
