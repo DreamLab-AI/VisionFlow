@@ -192,6 +192,36 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           waveSpeed: { label: 'Wave Speed', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.waveSpeed', description: 'Speed of selection wave animation.' },
         },
       },
+      interaction: {
+        label: 'Advanced Interaction',
+        settings: {
+          headTrackedParallaxEnabled: {
+            label: 'Head-Tracked Parallax',
+            type: 'toggle',
+            path: 'visualisation.interaction.headTrackedParallax.enabled',
+            description: 'Enable parallax viewing effect using your webcam for head tracking.'
+          },
+          headTrackedParallaxSensitivity: {
+            label: 'Parallax Sensitivity',
+            type: 'slider',
+            min: 0.1,
+            max: 2.0,
+            step: 0.1,
+            path: 'visualisation.interaction.headTrackedParallax.sensitivity',
+            description: 'Controls the intensity of the head-tracked parallax effect.'
+          },
+          headTrackedParallaxMode: {
+            label: 'Parallax Camera Mode',
+            type: 'select',
+            options: [
+              { value: 'asymmetricFrustum', label: 'Asymmetric Frustum (Recommended)' },
+              { value: 'offset', label: 'Camera Offset (Simpler)' }
+            ],
+            path: 'visualisation.interaction.headTrackedParallax.cameraMode',
+            description: 'Method used to create the parallax effect. Asymmetric Frustum is more realistic.'
+          }
+        }
+      },
     },
   },
   // Physics - Physics simulation settings

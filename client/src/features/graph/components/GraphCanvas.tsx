@@ -12,6 +12,8 @@ import { BotsVisualization } from '../../bots/components';
 import { AgentPollingStatus } from '../../bots/components/AgentPollingStatus';
 // SpacePilot Integration - using simpler version that works with useFrame
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
+// Head Tracking for Parallax
+import { HeadTrackedParallaxController } from '../../visualisation/components/HeadTrackedParallaxController';
 // Hologram environment removed
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
@@ -153,7 +155,10 @@ const GraphCanvas: React.FC = () => {
                 />
                 {/* Using the simpler SpacePilot integration that works with useFrame */}
                 <SpacePilotSimpleIntegration orbitControlsRef={orbitControlsRef} />
-                
+
+                {/* Head-Tracked Parallax Controller */}
+                <HeadTrackedParallaxController />
+
                 {/* XR Support - causes graph to disappear */}
                 {/* {xrEnabled && <XRController />} */}
                 {/* {xrEnabled && <XRVisualisationConnector />} */}
