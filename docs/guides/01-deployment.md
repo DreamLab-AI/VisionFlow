@@ -60,8 +60,8 @@ The fastest way to get VisionFlow running locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/VisionsFlow.git
-cd VisionsFlow
+git clone https://github.com/your-org/VisionFlow.git
+cd VisionFlow
 
 # Copy environment template
 cp .env.example .env

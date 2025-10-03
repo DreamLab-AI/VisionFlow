@@ -40,8 +40,8 @@ gh --version            # GitHub CLI
 1. **Clone and Configure Repository**
 ```bash
 # Clone with submodules
-git clone --recursive https://github.com/your-org/VisionsFlow.git
-cd VisionsFlow
+git clone --recursive https://github.com/your-org/VisionFlow.git
+cd VisionFlow
 
 # Set up Git hooks
 ./scripts/setup-git-hooks.sh
@@ -106,7 +106,7 @@ docker-compose --profile dev up
 ### Directory Organization
 
 ```
-VisionsFlow/
+VisionFlow/
 ├── client/                    # React frontend
 │   ├── src/
 │   │   ├── components/       # React components
@@ -638,14 +638,14 @@ gh pr list --search "keyword"
 1. **Fork and Clone**
 ```bash
 # Fork repository on GitHub
-gh repo fork your-org/VisionsFlow
+gh repo fork your-org/VisionFlow
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/VisionsFlow.git
-cd VisionsFlow
+git clone https://github.com/YOUR_USERNAME/VisionFlow.git
+cd VisionFlow
 
 # Add upstream remote
-git remote add upstream https://github.com/your-org/VisionsFlow.git
+git remote add upstream https://github.com/your-org/VisionFlow.git
 ```
 
 2. **Create Feature Branch**
