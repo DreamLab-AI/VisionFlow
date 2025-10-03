@@ -5,8 +5,6 @@ import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
 import { useSettingsStore } from '../store/settingsStore';
 import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';
-import { AuthGatedVoiceButton } from '../components/AuthGatedVoiceButton';
-import { AuthGatedVoiceIndicator } from '../components/AuthGatedVoiceIndicator';
 import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
