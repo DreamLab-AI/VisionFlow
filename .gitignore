@@ -11,8 +11,7 @@ claude-flow
 .roomodes
 CLAUDE.md
 workspace
-client/src
-vircadia/
+
 
 # Dependencies
 node_modules
@@ -26,14 +25,13 @@ multi-agent-docker/.venv/
 multi-agent-docker/pbr_outputs/
 multi-agent-docker/workspace/
 #multi-agent-docker/gui-based-tools-docker/tessellating-pbr-generator/src/
-client/src/vircadia-web/
 multi-agent-docker/.git
 docs/archive
 
 # .claude
 .npm
 .yarn
-/featureclient/
+
 
 # Build output
 dist
