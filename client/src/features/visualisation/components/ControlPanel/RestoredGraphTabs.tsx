@@ -80,7 +80,7 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
   const glowEffect = settings?.visualization?.effects?.glow ?? true;
 
   return (
-    <div style={{ padding: '8px', color: 'white' }}>
+    <div style={{ padding: '4px', color: 'white' }}>
       <SectionHeader icon={Eye} title="Synchronisation" color="#a78bfa" />
       <Toggle
         checked={syncEnabled}
@@ -92,7 +92,7 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
         label="Enable Sync"
       />
       {syncEnabled && (
-        <div style={{ marginLeft: '8px', paddingLeft: '8px', borderLeft: '1px solid rgba(167,139,250,0.3)' }}>
+        <div style={{ marginLeft: '6px', paddingLeft: '6px', borderLeft: '1px solid rgba(167,139,250,0.3)' }}>
           <Toggle
             checked={cameraSync}
             onChange={(val) => updateSettings((draft) => {
@@ -157,10 +157,10 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
   const cullDistance = settings?.performance?.cullDistance ?? 50;
 
   return (
-    <div style={{ padding: '8px', color: 'white' }}>
+    <div style={{ padding: '4px', color: 'white' }}>
       <SectionHeader icon={TrendingUp} title="Performance" color="#f59e0b" />
 
-      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>
+      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>
         Nodes: {graphData?.nodes?.length || 0} | Edges: {graphData?.edges?.length || 0}
       </div>
 
@@ -219,7 +219,7 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
           fontWeight: '600',
           border: 'none',
           cursor: 'pointer',
-          marginTop: '6px'
+          marginTop: '4px'
         }}
       >
         Optimize Now
@@ -238,7 +238,7 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
   const hoverDelay = settings?.interaction?.hoverDelay ?? 200;
 
   return (
-    <div style={{ padding: '8px', color: 'white' }}>
+    <div style={{ padding: '4px', color: 'white' }}>
       <SectionHeader icon={MousePointer2} title="Interaction" color="#3b82f6" />
 
       <Toggle
@@ -308,10 +308,10 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
   };
 
   return (
-    <div style={{ padding: '8px', color: 'white' }}>
+    <div style={{ padding: '4px', color: 'white' }}>
       <SectionHeader icon={Download} title="Export" color="#ec4899" />
 
-      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>
+      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>
         Ready to export: {graphData?.nodes?.length || 0} nodes, {graphData?.edges?.length || 0} edges
       </div>
 
@@ -364,7 +364,7 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
           fontWeight: '600',
           border: 'none',
           cursor: 'pointer',
-          marginTop: '8px'
+          marginTop: '4px'
         }}
       >
         Export Graph
@@ -382,10 +382,10 @@ export const RestoredGraphAnalysisTab: React.FC<GraphTabProps> = ({ graphData })
   };
 
   return (
-    <div style={{ padding: '8px', color: 'white' }}>
+    <div style={{ padding: '4px', color: 'white' }}>
       <SectionHeader icon={TrendingUp} title="Graph Analysis" color="#10b981" />
 
-      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>
+      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>
         <div>Nodes: {graphData?.nodes?.length || 0}</div>
         <div>Edges: {graphData?.edges?.length || 0}</div>
         <div>Density: {graphData?.nodes?.length ?
@@ -412,14 +412,14 @@ export const RestoredGraphAnalysisTab: React.FC<GraphTabProps> = ({ graphData })
       </button>
 
       <div style={{
-        marginTop: '8px',
+        marginTop: '4px',
         padding: '6px',
         background: 'rgba(16,185,129,0.1)',
         border: '1px solid rgba(16,185,129,0.3)',
         borderRadius: '3px',
         fontSize: '9px'
       }}>
-        <div style={{ fontWeight: '600', marginBottom: '4px' }}>Available Analyses:</div>
+        <div style={{ fontWeight: '600', marginBottom: '2px' }}>Available Analyses:</div>
         <div>• Centrality Measures</div>
         <div>• Community Detection</div>
         <div>• Shortest Paths</div>

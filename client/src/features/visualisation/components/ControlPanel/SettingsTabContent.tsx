@@ -330,7 +330,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>
       <h3 style={{
         fontSize: '11px',
         fontWeight: '600',
@@ -341,9 +341,9 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
         background: 'rgba(0,0,0,0.5)',
         backdropFilter: 'blur(4px)',
         padding: '4px 0',
-        margin: '0 -8px',
-        paddingLeft: '8px',
-        paddingRight: '8px',
+        margin: '0 -4px',
+        paddingLeft: '4px',
+        paddingRight: '4px',
         zIndex: 10
       }}>
         {sectionConfig.title}
