@@ -60,17 +60,6 @@ function App() {
                         window.location.search.includes('directar=true') ||
                         window.location.search.includes('immersive=true');
 
-    // Log for debugging
-    if (initialized) {
-      console.log('Immersive mode check:', {
-        userAgent: userAgent.substring(0, 100),
-        isQuest3Browser,
-        forceQuest3,
-        shouldUseQuest3Layout,
-        willUseImmersive: isQuest3Browser || forceQuest3 || shouldUseQuest3Layout
-      });
-    }
-
     return (isQuest3Browser || forceQuest3 || shouldUseQuest3Layout) && initialized;
   };
 
