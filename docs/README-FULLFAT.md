@@ -233,8 +233,8 @@ VisionFlow creates an **immersive collaborative space** where human experts and 
 
 ```bash
 # Clone and deploy your private research assistant
-git clone https://github.com/your-org/VisionsFlow
-cd VisionsFlow
+git clone https://github.com/your-org/VisionFlow
+cd VisionFlow
 
 # Configure environment
 cp .env.example .env
@@ -707,7 +707,7 @@ Our comprehensive documentation covers everything from basic setup to advanced a
 
 ## 🤝 Community & Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/VisionsFlow/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/VisionFlow/issues)
 - **Discord**: [Join our community](https://discord.gg/ar-ai-kg)
 - **Documentation**: [Full Documentation Hub](docs/)
 
