@@ -19,7 +19,7 @@ The reference documentation is organized into the following categories:
 
 ### System Components
 - **[Agents](agents/)** - Multi-agent system architecture and components
-- **[Binary Protocol Details](binary-protocol.md)** - Legacy binary protocol specification
+- **[Binary Protocol (28-byte Prototype)](binary-protocol.md)** - Deprecated prototype specification (archived)
 - **[CUDA Integration](cuda/)** - GPU acceleration and CUDA documentation
 
 ### Reference Resources

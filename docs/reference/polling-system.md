@@ -858,8 +858,8 @@ function MyComponent() {
 ## Next Steps
 
 - See [WebSocket API Reference](api/websocket-api.md) for binary position updates
-- See [3D Visualisation Guide](../guides/3d-visualisation.md) for rendering integration
-- See [Performance Optimisation Guide](../guides/performance-optimisation.md) for advanced tuning
+- See [System Architecture](../concepts/system-architecture.md) for 3D rendering integration details
+- See [GPU Compute Architecture](../concepts/gpu-compute.md) for performance optimization and tuning
 
 ---
 

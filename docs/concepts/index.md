@@ -14,8 +14,8 @@ Understand the complete VisionFlow architecture, including the multi-container D
 ### [Agentic Workers](./02-agentic-workers.md)
 Explore the distributed agent system, including the MCP (Model Context Protocol) integration, swarm coordination patterns, and task orchestration mechanisms that enable intelligent multi-agent collaboration.
 
-### [GPU Compute Architecture](./03-gpu-compute.md)
-Learn about the CUDA-accelerated physics engine (40 kernels), hybrid CPU/GPU SSSP algorithms, and the sophisticated force-directed graph layout system that powers real-time visualisation of complex knowledge networks.
+### [GPU Compute Architecture](./gpu-compute.md)
+Learn about the CUDA-accelerated physics engine (40 kernels), hybrid CPU/GPU SSSP algorithms, and the sophisticated force-directed graph layout system that powers real-time visualisation of complex knowledge networks. Includes detailed actor communication flow, performance optimisations, and comprehensive kernel documentation.
 
 ### [Networking and Protocols](./04-networking.md)
 Dive into the WebSocket infrastructure, binary protocols (34-byte format), and real-time synchronisation mechanisms that enable sub-10ms latency updates and 84.8% bandwidth reduction.

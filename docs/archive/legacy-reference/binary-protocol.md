@@ -1,14 +1,18 @@
-# Binary Protocol Specification
+# Binary Protocol Specification (Legacy)
+
+> **⚠️ DEPRECATED**: This document describes an early prototype (28-byte format) that was never deployed to production.
+>
+> **See**: [API Reference: Binary Protocol](./api/binary-protocol.md) for the **definitive 34-byte specification** currently in use.
 
 ## Overview
 
-VisionFlow uses a highly optimised binary protocol for real-time position updates, providing 85% bandwidth reduction compared to JSON WebSocket messaging. This document serves as the **single source of truth** for the binary protocol format.
+This document describes the 28-byte prototype format explored during early development. VisionFlow's actual production system uses a 34-byte wire format with SSSP data fields.
 
-## Protocol Version
+## Protocol Version (Prototype)
 
-**Current Version**: `1.0`  
-**Specification Date**: 2024-12-19  
-**Format**: 28-byte fixed-length binary packets  
+**Prototype Version**: `1.0`
+**Specification Date**: 2024-12-19
+**Format**: 28-byte fixed-length binary packets (never deployed)  
 
 ## Binary Frame Format
 
@@ -263,22 +267,28 @@ xxd -l 28 position_frame.bin
 3. Update position update interfaces to match binary format
 4. Test with both formats during transition period
 
+## Migration to Production Format
+
+The 28-byte format was superseded by the 34-byte format which adds:
+- SSSP distance field (4 bytes, f32)
+- SSSP parent field (4 bytes, i32)
+
+These fields enable real-time shortest path visualisation without additional WebSocket messages.
+
 ## Related Documentation
 
-- [WebSocket API Reference](./api/websocket.md) - Complete WebSocket API documentation
-- [WebSocket Protocols](./api/websocket-protocols.md) - Multi-endpoint protocol overview
-- [Client WebSocket Integration](./client/websocket.md) - Client-side implementation details
-- [Configuration Guide](./CONFIGURATION.md) - WebSocket and MCP configuration options
+**Current Production Documentation**:
+- **[Binary Protocol (Definitive)](./api/binary-protocol.md)** - 34-byte production specification
+- [WebSocket API Reference](./api/websocket-api.md) - Complete WebSocket API documentation
+- [Networking and Protocols](../concepts/networking-and-protocols.md) - Multi-protocol architecture overview
 
-## Cross-References
+**Legacy References**:
+- This document (28-byte prototype - deprecated)
 
-This document serves as the **authoritative specification** for VisionFlow's binary protocol. All other documentation references this specification for:
+## Status
 
-- 28-byte position update format
-- Node type flag definitions  
-- Endianness and data type specifications
-- Performance characteristics
+**ARCHIVED**: This specification describes a prototype format that was never deployed to production. All implementations use the 34-byte format documented in [api/binary-protocol.md](./api/binary-protocol.md).
 
 ---
 
-**Note**: This specification is the authoritative source for the VisionFlow binary protocol. All implementations should reference this document for accurate frame format details.
+**[← Reference Index](./index.md)** | **[View Production Spec →](./api/binary-protocol.md)**

@@ -623,8 +623,8 @@ graph LR
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/your-org/VisionsFlow
-   cd VisionsFlow
+   git clone https://github.com/your-org/VisionFlow
+   cd VisionFlow
    ```
 
 2. **Configure Your Knowledge Sources**
