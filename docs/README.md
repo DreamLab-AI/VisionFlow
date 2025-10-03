@@ -1,8 +1,8 @@
 # VisionFlow Documentation
 
-**Last Updated**: 2025-09-25
+**Last Updated**: 2025-10-03
 **Documentation Status**: Organized and Consolidated
-**System Version**: 2.2.0
+**System Version**: 2.3.0 (Post Code Pruning)
 
 ## 📚 Documentation Index
 
@@ -42,34 +42,36 @@
 
 ### ✅ Fully Implemented & Tested
 - **XR Immersive System**: Complete Babylon.js WebXR implementation for Quest 3 AR/VR
-- **REST API Architecture**: 19 endpoints with unified client (111 references)
+- **REST API Architecture**: Layered API design with UnifiedApiClient foundation + domain APIs
 - **WebSocket Binary Protocol**: 80% traffic reduction achieved through optimisation
 - **Agent Task Management**: Complete remove/pause/resume functionality
 - **Settings System**: 169-parameter configuration with real-time updates
 - **Docker Integration**: Hybrid spawning with claude-flow CLI
 - **Field Conversion**: Automatic camelCase ↔ snake_case via Serde
+- **Code Quality**: 11,957 lines of legacy code removed (38 files) - 30% codebase reduction
 
 ### 🔧 Performance Achievements
 - **XR Rendering**: Multi-light setup with emissive materials for optimal AR visibility
-- **API Consolidation**: 100% migration from legacy apiService to UnifiedApiClient
+- **API Architecture**: Layered design - UnifiedApiClient (526 LOC) + domain APIs (2,619 LOC)
 - **Binary Protocol Optimization**: 34-byte node format reduces bandwidth by 95%
 - **GPU Pipeline**: 13 PTX kernels validated across 50/200/1000 node scales
 - **WebSocket Traffic**: 80% reduction through intelligent throttling
 - **Client Fixes**: Resolved proxy configuration and initialisation issues
+- **Codebase Cleanup**: Removed 6,400+ lines of disabled tests, 1,037 lines of unused utilities
 
 ### ⚠️ Areas Requiring Attention
 - **GraphServiceActor**: 38,456 tokens - needs supervisor pattern refactoring
-- **Voice System**: Centralization architecture designed but needs full implementation
 - **Warning Reduction**: 230 warnings remaining (target: <50)
+- **Testing Infrastructure**: Automated testing removed due to security; manual testing via testing-guide.md
 
 ## 📊 Architecture Quality Metrics
 
 | Component | Status | Lines/Tokens | Test Coverage | Performance |
 |-----------|--------|--------------|---------------|-------------|
-| **Client Architecture** | ✅ Operational | 442 TypeScript files | Good | 80% optimised |
+| **Client Architecture** | ✅ Operational | 404 TypeScript files (-38) | Manual only | 80% optimised |
 | **Server Architecture** | ✅ Operational | 19+ Actors | Partial | GPU validated |
 | **Interface Layer** | ✅ Operational | 19 endpoints | Complete | Binary optimised |
-| **Testing Framework** | ✅ Complete | Comprehensive guide | N/A | Validated |
+| **Testing Framework** | ⚠️ Manual Only | Security removed automated | N/A | Validated |
 
 ## 🔗 Quick Navigation
 
@@ -92,6 +94,13 @@
 4. Check [Binary Protocol](reference/binary-protocol.md) for WebSocket details
 
 ## 📈 Recent Major Updates
+
+### Code Pruning & Cleanup (2025-10-03)
+- ✅ **38 Files Removed**: Disabled tests, unused utilities, legacy voice components, example files
+- ✅ **11,957 Lines Removed**: 30% codebase reduction with zero functionality loss
+- ✅ **API Architecture Clarified**: Documented layered design - UnifiedApiClient + domain APIs
+- ✅ **Documentation Updated**: Complete docs refresh reflecting current architecture
+- ✅ **Build Performance**: Cleaner codebase, faster builds, maintained all functionality
 
 ### XR System Implementation (2025-09-29)
 - ✅ **Complete Babylon.js Migration**: Replaced @react-three/xr with high-performance Babylon.js

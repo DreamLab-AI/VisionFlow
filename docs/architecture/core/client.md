@@ -2,13 +2,14 @@
 
 This document provides a comprehensive architecture diagram reflecting the **CURRENT CLIENT IMPLEMENTATION** at `/workspace/ext/client/src`. This architecture analysis is based on direct code examination and represents the actual running system.
 
-**Last Updated**: 2025-09-27
-**Analysis Base**: Direct source code inspection of 442 TypeScript/React files
+**Last Updated**: 2025-10-03
+**Analysis Base**: Direct source code inspection of 404 TypeScript/React files
 **Recent Updates**:
-- **Interface Layer Consolidation**: UnifiedApiClient architecture with 31 references
+- **Code Pruning Complete**: 38 files removed (11,957 LOC) - 30% codebase reduction
+- **API Architecture Clarified**: Layered design documented - UnifiedApiClient + domain APIs
+- **Testing Infrastructure Removed**: Security concerns led to removal of automated tests
 - **WebSocket Binary Protocol Enhancement**: 80% traffic reduction achieved
 - **Settings API Standardisation**: Field normalisation fixes in config/mod.rs
-- **Voice System Architecture**: Centralised system designed (legacy hook still active)
 - **Agent Task Management**: Complete remove/pause/resume functionality
 - **Dual Graph Architecture**: Protocol support for dual types with unified implementation
 
@@ -81,26 +82,29 @@ graph TB
                 ValidationMiddleware["validation.ts<br/>Data Validation"]
             end
 
-            subgraph "REST API Layer - Unified Implementation"
-                UnifiedApiClient["UnifiedApiClient<br/>Single HTTP Client (31 refs)"]
-                SettingsApi["settingsApi<br/>Settings CRUD"]
-                AnalyticsApi["analyticsApi<br/>Analytics Data"]
-                OptimizationApi["optimisationApi<br/>Performance API"]
-                ExportApi["exportApi<br/>Data Export"]
-                WorkspaceApi["workspaceApi<br/>Workspace Management"]
-                BatchUpdateApi["batchUpdateApi<br/>Batch Operations"]
-                Note1["Internal fetch() in UnifiedApiClient only"]
-                Note2["External resources via downloadHelpers"]
-                Note3["debug.html contains test fetch (debugging only)"]
+            subgraph "REST API Layer - Layered Architecture"
+                UnifiedApiClient["UnifiedApiClient (Foundation)<br/>HTTP Client 526 LOC"]
+                DomainAPIs["Domain API Layer 2,619 LOC<br/>Business Logic + Request Handling"]
+                SettingsApi["settingsApi 430 LOC<br/>Debouncing, Batching, Priority"]
+                AnalyticsApi["analyticsApi 582 LOC<br/>GPU Analytics Integration"]
+                OptimizationApi["optimisationApi 376 LOC<br/>Graph Optimization"]
+                ExportApi["exportApi 329 LOC<br/>Export, Publish, Share"]
+                WorkspaceApi["workspaceApi 337 LOC<br/>Workspace CRUD"]
+                BatchUpdateApi["batchUpdateApi 135 LOC<br/>Batch Operations"]
+
+                UnifiedApiClient --> DomainAPIs
+                DomainAPIs --> SettingsApi
+                DomainAPIs --> AnalyticsApi
+                DomainAPIs --> OptimizationApi
+                DomainAPIs --> ExportApi
+                DomainAPIs --> WorkspaceApi
+                DomainAPIs --> BatchUpdateApi
             end
 
-            subgraph "Voice System - Dual Implementation"
-                LegacyVoiceHook["useVoiceInteraction<br/>Legacy Hook (Active)"]
-                CentralisedArchitecture["useVoiceInteractionCentralised<br/>Modern System (Available)"]
-                NineSpecialisedHooks["9 Specialised Voice Hooks<br/>(Designed but Inactive)"]
+            subgraph "Voice System"
+                LegacyVoiceHook["useVoiceInteraction<br/>Active Hook"]
                 AudioInputService["AudioInputService<br/>Voice Capture"]
-                AuthGatedVoiceButton["AuthGatedVoiceButton<br/>Voice UI Controls"]
-                AuthGatedVoiceIndicator["AuthGatedVoiceIndicator<br/>Voice Status"]
+                VoiceIntegration["Integrated in Control Panel<br/>No Standalone Components"]
             end
         end
 

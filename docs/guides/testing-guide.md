@@ -1,11 +1,24 @@
 # VisionFlow Testing Guide
 
-**Last Updated**: 2025-09-25
-**Purpose**: Comprehensive testing guide for VisionFlow control panel functionality and API endpoints
+**Last Updated**: 2025-10-03
+**Purpose**: Comprehensive manual testing guide for VisionFlow control panel functionality and API endpoints
+**Testing Approach**: Manual testing only (automated tests removed for security)
 
 ## Overview
 
-This guide provides testing procedures for the VisionFlow visualization settings control panel and associated API endpoints. The control panel enables real-time adjustment of physics parameters, visual effects, and debug settings.
+This guide provides manual testing procedures for the VisionFlow visualization settings control panel and associated API endpoints. The control panel enables real-time adjustment of physics parameters, visual effects, and debug settings.
+
+### Testing Strategy
+
+**⚠️ Important**: VisionFlow uses **manual testing only**. Automated testing infrastructure was removed in October 2025 due to supply chain security concerns (see [ADR 003](../decisions/003-code-pruning-2025-10.md)).
+
+**Testing Approach**:
+- Manual functional testing via UI
+- API endpoint testing via curl/Postman
+- Visual verification of graph behavior
+- Performance monitoring via browser DevTools
+
+For details on why automated tests were removed, see [SECURITY_ALERT.md](../archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md).
 
 ## Control Panel Settings Structure
 
