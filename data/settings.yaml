@@ -2,7 +2,7 @@ visualisation:
   rendering:
     ambientLightIntensity: 0.5
     backgroundColor: '#000000'
-    directionalLightIntensity: 0.30769232
+    directionalLightIntensity: 0.4
     enableAmbientOcclusion: false
     enableAntialiasing: true
     enableShadows: false
@@ -21,9 +21,9 @@ visualisation:
     waveSpeed: 0.5
   glow:
     enabled: true
-    intensity: 1.6071428
-    radius: 0.7598874
-    threshold: 0.1300069
+    intensity: 3.5
+    radius: 1.2
+    threshold: 0.39
     diffuseStrength: 1.5
     atmosphericDensity: 0.8
     volumetricIntensity: 1.2
@@ -42,7 +42,7 @@ visualisation:
     threshold: 0.15
     color: '#ffffff'
     tintColor: '#ffffff'
-    strength: 4.1895604
+    strength: 0.0
     blurPasses: 0.0
     knee: 0.0
   hologram:
@@ -68,17 +68,17 @@ visualisation:
       nodes:
         baseColor: '#202724'
         metalness: 0.8
-        opacity: 0.1456044
-        roughness: 0.25633773
+        opacity: 0.24
+        roughness: 0.6
         nodeSize: 1.1
         quality: high
         enableInstancing: true
         enableHologram: true
-        enableMetadataShape: false
+        enableMetadataShape: true
         enableMetadataVisualisation: true
       edges:
         arrowSize: 0.02
-        baseWidth: 1.671978
+        baseWidth: 0.61
         color: '#ff0000'
         enableArrows: false
         opacity: 0.260989
@@ -87,7 +87,7 @@ visualisation:
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.4345055
+        desktopFontSize: 1.31
         enableLabels: true
         textColor: '#676565'
         textOutlineColor: '#00ff40'
