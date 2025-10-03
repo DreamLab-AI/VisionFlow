@@ -4,6 +4,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Eye, Zap, TrendingUp, MousePointer2, Download } from 'lucide-react';
+import { useSettingsStore } from '../../../../store/settingsStore';
 import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';
 
 interface GraphTabProps {
@@ -68,38 +69,92 @@ const SectionHeader: React.FC<{ icon: React.ComponentType<any>; title: string; c
 );
 
 export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
-  const [syncEnabled, setSyncEnabled] = useState(false);
-  const [cameraSync, setCameraSync] = useState(true);
-  const [selectionSync, setSelectionSync] = useState(true);
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
-  const [bloomEffect, setBloomEffect] = useState(false);
-  const [glowEffect, setGlowEffect] = useState(true);
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  const syncEnabled = settings?.visualization?.sync?.enabled ?? false;
+  const cameraSync = settings?.visualization?.sync?.camera ?? true;
+  const selectionSync = settings?.visualization?.sync?.selection ?? true;
+  const animationsEnabled = settings?.visualization?.animations?.enabled ?? true;
+  const bloomEffect = settings?.visualization?.effects?.bloom ?? false;
+  const glowEffect = settings?.visualization?.effects?.glow ?? true;
 
   return (
     <div style={{ padding: '8px', color: 'white' }}>
       <SectionHeader icon={Eye} title="Synchronisation" color="#a78bfa" />
-      <Toggle checked={syncEnabled} onChange={setSyncEnabled} label="Enable Sync" />
+      <Toggle
+        checked={syncEnabled}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.visualization) draft.visualization = {};
+          if (!draft.visualization.sync) draft.visualization.sync = {};
+          draft.visualization.sync.enabled = val;
+        })}
+        label="Enable Sync"
+      />
       {syncEnabled && (
         <div style={{ marginLeft: '8px', paddingLeft: '8px', borderLeft: '1px solid rgba(167,139,250,0.3)' }}>
-          <Toggle checked={cameraSync} onChange={setCameraSync} label="Camera" />
-          <Toggle checked={selectionSync} onChange={setSelectionSync} label="Selection" />
+          <Toggle
+            checked={cameraSync}
+            onChange={(val) => updateSettings((draft) => {
+              if (!draft.visualization) draft.visualization = {};
+              if (!draft.visualization.sync) draft.visualization.sync = {};
+              draft.visualization.sync.camera = val;
+            })}
+            label="Camera"
+          />
+          <Toggle
+            checked={selectionSync}
+            onChange={(val) => updateSettings((draft) => {
+              if (!draft.visualization) draft.visualization = {};
+              if (!draft.visualization.sync) draft.visualization.sync = {};
+              draft.visualization.sync.selection = val;
+            })}
+            label="Selection"
+          />
         </div>
       )}
 
       <SectionHeader icon={Zap} title="Animations" color="#fbbf24" />
-      <Toggle checked={animationsEnabled} onChange={setAnimationsEnabled} label="Enable Animations" />
+      <Toggle
+        checked={animationsEnabled}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.visualization) draft.visualization = {};
+          if (!draft.visualization.animations) draft.visualization.animations = {};
+          draft.visualization.animations.enabled = val;
+        })}
+        label="Enable Animations"
+      />
 
       <SectionHeader icon={Zap} title="Visual Effects" color="#ec4899" />
-      <Toggle checked={bloomEffect} onChange={setBloomEffect} label="Bloom" />
-      <Toggle checked={glowEffect} onChange={setGlowEffect} label="Glow" />
+      <Toggle
+        checked={bloomEffect}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.visualization) draft.visualization = {};
+          if (!draft.visualization.effects) draft.visualization.effects = {};
+          draft.visualization.effects.bloom = val;
+        })}
+        label="Bloom"
+      />
+      <Toggle
+        checked={glowEffect}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.visualization) draft.visualization = {};
+          if (!draft.visualization.effects) draft.visualization.effects = {};
+          draft.visualization.effects.glow = val;
+        })}
+        label="Glow"
+      />
     </div>
   );
 };
 
 export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphData }) => {
-  const [autoOptimize, setAutoOptimize] = useState(false);
-  const [simplifyEdges, setSimplifyEdges] = useState(true);
-  const [cullDistance, setCullDistance] = useState(50);
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  const autoOptimize = settings?.performance?.autoOptimize ?? false;
+  const simplifyEdges = settings?.performance?.simplifyEdges ?? true;
+  const cullDistance = settings?.performance?.cullDistance ?? 50;
 
   return (
     <div style={{ padding: '8px', color: 'white' }}>
@@ -109,8 +164,22 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
         Nodes: {graphData?.nodes?.length || 0} | Edges: {graphData?.edges?.length || 0}
       </div>
 
-      <Toggle checked={autoOptimize} onChange={setAutoOptimize} label="Auto Optimize" />
-      <Toggle checked={simplifyEdges} onChange={setSimplifyEdges} label="Simplify Edges" />
+      <Toggle
+        checked={autoOptimize}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.performance) draft.performance = {};
+          draft.performance.autoOptimize = val;
+        })}
+        label="Auto Optimize"
+      />
+      <Toggle
+        checked={simplifyEdges}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.performance) draft.performance = {};
+          draft.performance.simplifyEdges = val;
+        })}
+        label="Simplify Edges"
+      />
 
       <div style={{ padding: '6px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -120,7 +189,10 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
         <input
           type="range"
           value={cullDistance}
-          onChange={(e) => setCullDistance(Number(e.target.value))}
+          onChange={(e) => updateSettings((draft) => {
+            if (!draft.performance) draft.performance = {};
+            draft.performance.cullDistance = Number(e.target.value);
+          })}
           min={10}
           max={100}
           step={5}
@@ -157,18 +229,42 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
 };
 
 export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
-  const [enableHover, setEnableHover] = useState(true);
-  const [enableClick, setEnableClick] = useState(true);
-  const [enableDrag, setEnableDrag] = useState(true);
-  const [hoverDelay, setHoverDelay] = useState(200);
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  const enableHover = settings?.interaction?.enableHover ?? true;
+  const enableClick = settings?.interaction?.enableClick ?? true;
+  const enableDrag = settings?.interaction?.enableDrag ?? true;
+  const hoverDelay = settings?.interaction?.hoverDelay ?? 200;
 
   return (
     <div style={{ padding: '8px', color: 'white' }}>
       <SectionHeader icon={MousePointer2} title="Interaction" color="#3b82f6" />
 
-      <Toggle checked={enableHover} onChange={setEnableHover} label="Hover Effects" />
-      <Toggle checked={enableClick} onChange={setEnableClick} label="Click to Select" />
-      <Toggle checked={enableDrag} onChange={setEnableDrag} label="Drag Nodes" />
+      <Toggle
+        checked={enableHover}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.interaction) draft.interaction = {};
+          draft.interaction.enableHover = val;
+        })}
+        label="Hover Effects"
+      />
+      <Toggle
+        checked={enableClick}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.interaction) draft.interaction = {};
+          draft.interaction.enableClick = val;
+        })}
+        label="Click to Select"
+      />
+      <Toggle
+        checked={enableDrag}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.interaction) draft.interaction = {};
+          draft.interaction.enableDrag = val;
+        })}
+        label="Drag Nodes"
+      />
 
       <div style={{ padding: '6px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -178,7 +274,10 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
         <input
           type="range"
           value={hoverDelay}
-          onChange={(e) => setHoverDelay(Number(e.target.value))}
+          onChange={(e) => updateSettings((draft) => {
+            if (!draft.interaction) draft.interaction = {};
+            draft.interaction.hoverDelay = Number(e.target.value);
+          })}
           min={0}
           max={500}
           step={50}
@@ -197,8 +296,11 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
 };
 
 export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) => {
-  const [format, setFormat] = useState('json');
-  const [includeMetadata, setIncludeMetadata] = useState(true);
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  const format = settings?.export?.format ?? 'json';
+  const includeMetadata = settings?.export?.includeMetadata ?? true;
 
   const handleExport = () => {
     console.log('Exporting as', format, 'with metadata:', includeMetadata);
@@ -219,7 +321,10 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
         </label>
         <select
           value={format}
-          onChange={(e) => setFormat(e.target.value)}
+          onChange={(e) => updateSettings((draft) => {
+            if (!draft.export) draft.export = {};
+            draft.export.format = e.target.value;
+          })}
           style={{
             width: '100%',
             background: 'rgba(255,255,255,0.05)',
@@ -238,7 +343,14 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
         </select>
       </div>
 
-      <Toggle checked={includeMetadata} onChange={setIncludeMetadata} label="Include Metadata" />
+      <Toggle
+        checked={includeMetadata}
+        onChange={(val) => updateSettings((draft) => {
+          if (!draft.export) draft.export = {};
+          draft.export.includeMetadata = val;
+        })}
+        label="Include Metadata"
+      />
 
       <button
         onClick={handleExport}

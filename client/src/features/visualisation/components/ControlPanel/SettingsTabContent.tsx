@@ -31,17 +31,17 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
   // Update setting by path
   const updateSettingByPath = useCallback(async (path: string, value: any) => {
     const keys = path.split('.');
-    const updates: any = {};
 
-    // Build nested update object
-    let current = updates;
-    for (let i = 0; i < keys.length - 1; i++) {
-      current[keys[i]] = {};
-      current = current[keys[i]];
-    }
-    current[keys[keys.length - 1]] = value;
-
-    await updateSettings(updates);
+    await updateSettings((draft) => {
+      let current: any = draft;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        }
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
+    });
   }, [updateSettings]);
 
   // Handle Nostr login

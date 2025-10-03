@@ -67,12 +67,12 @@ visualisation:
     logseq:
       nodes:
         baseColor: '#202724'
-        metalness: 0.32417583
+        metalness: 0.8
         opacity: 0.1456044
         roughness: 0.25633773
-        nodeSize: 1.6785715
+        nodeSize: 1.1
         quality: high
-        enableInstancing: false
+        enableInstancing: true
         enableHologram: true
         enableMetadataShape: false
         enableMetadataVisualisation: true
