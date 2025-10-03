@@ -25,10 +25,6 @@ export {
   AdvancedInteractionModes
 };
 
-// Main Integration Component
-import GraphFeatures from '../components/GraphFeatures';
-export { GraphFeatures };
-
 // Type Exports for Synchronization
 export type {
   SyncState,
@@ -448,10 +444,7 @@ export default {
   graphAnimations,
   aiInsights,
   advancedInteractionModes,
-  
-  // Components
-  GraphFeatures,
-  
+
   // Management
   innovationManager,
   setupInnovativeFeatures,

@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { 
-  Download, 
+import {
+  Download,
   Share,
   FileImage,
   FileText,
@@ -17,6 +17,7 @@ import {
   ExternalLink,
   AlertCircle,
   CheckCircle,
+  Upload,
   Loader2
 } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';

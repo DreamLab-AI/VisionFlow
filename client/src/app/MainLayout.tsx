@@ -47,43 +47,6 @@ const MainLayoutContent: React.FC = () => {
     
     return unsubscribe;
   }, []);
-  
-  // Handle graph feature updates
-  const handleGraphFeatureUpdate = useCallback((feature: string, data: any) => {
-    logger.debug(`Graph feature update: ${feature}`, data);
-    
-    // Handle different feature updates
-    switch (feature) {
-      case 'synchronisation':
-        logger.info('Graph synchronisation settings updated', data);
-        break;
-      case 'comparison':
-        logger.info('Graph comparison analysis completed', data);
-        break;
-      case 'aiInsights':
-        logger.info('AI insights generated', data);
-        break;
-      case 'animations':
-        logger.info('Animation settings updated', data);
-        break;
-      case 'export':
-        logger.info('Graph export initiated', data);
-        // Here you could trigger actual export functionality
-        break;
-      case 'timeTravel':
-        logger.info('Time travel navigation', data);
-        break;
-      case 'collaboration':
-        logger.info('Collaboration session update', data);
-        break;
-      case 'vrMode':
-      case 'arMode':
-        logger.info('Immersive mode toggle', { feature, ...data });
-        break;
-      default:
-        logger.debug('Unknown feature update', { feature, data });
-    }
-  }, []);
 
   return (
     <div style={{
@@ -101,16 +64,9 @@ const MainLayoutContent: React.FC = () => {
         showStats={showStats}
         enableBloom={enableBloom}
         onOrbitControlsToggle={() => {}}
-        botsData={botsData ? {
-          nodeCount: botsData.nodeCount,
-          edgeCount: botsData.edgeCount,
-          tokenCount: botsData.tokenCount,
-          mcpConnected: botsData.mcpConnected,
-          dataSource: botsData.dataSource
-        } : undefined}
+        botsData={botsData}
         graphData={graphData}
         otherGraphData={otherGraphData}
-        onGraphFeatureUpdate={handleGraphFeatureUpdate}
       />
 
       {/* SpaceMouse Status Warning */}

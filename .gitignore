@@ -18,6 +18,7 @@ node_modules
 client/node_modules
 .pnpm-store/
 memory/workspace
+client/public/models
 
 multi-agent-docker/gui-based-tools-docker/blender-4.5.1-linux-x64.tar.xz
 multi-agent-docker/mcp-logs/
