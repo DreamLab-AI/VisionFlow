@@ -314,6 +314,18 @@ export interface XRSettings {
   controllerRayColor?: string;
 }
 
+// Head-tracked parallax settings
+export interface HeadTrackedParallaxSettings {
+  enabled: boolean;
+  sensitivity: number;
+  cameraMode: 'offset' | 'asymmetricFrustum';
+}
+
+// Interaction settings
+export interface InteractionSettings {
+  headTrackedParallax: HeadTrackedParallaxSettings;
+}
+
 // Visualisation settings
 export interface CameraSettings {
   fov: number;
@@ -345,7 +357,8 @@ export interface VisualisationSettings {
   hologram: HologramSettings;
   spacePilot?: SpacePilotConfig;
   camera?: CameraSettings;
-  
+  interaction?: InteractionSettings;
+
   // Graph-specific settings
   graphs: GraphsSettings;
 }

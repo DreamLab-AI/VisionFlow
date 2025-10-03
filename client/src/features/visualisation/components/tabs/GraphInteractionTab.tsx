@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { 
-  Clock, 
+import {
+  Clock,
   Users,
   Glasses,
   Play,
@@ -18,7 +18,8 @@ import {
   Gamepad2,
   AlertCircle,
   Sparkles,
-  Navigation
+  Navigation,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -30,6 +31,7 @@ import { Progress } from '@/features/design-system/components/Progress';
 import { toast } from '@/features/design-system/components/Toast';
 import { interactionApi, type GraphProcessingProgress, type GraphProcessingResult } from '@/services/interactionApi';
 import { webSocketService } from '@/services/WebSocketService';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface GraphInteractionTabProps {
   graphId?: string;
@@ -95,6 +97,40 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   // Connection state tracking
   const [wsConnected, setWsConnected] = useState(false);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Settings store for head tracking
+  const { settings, updateSettings } = useSettingsStore();
+  const headTrackingEnabled = settings?.visualisation?.interaction?.headTrackedParallax?.enabled ?? false;
+
+  const handleHeadTrackingToggle = useCallback((enabled: boolean) => {
+    updateSettings(draft => {
+      if (!draft.visualisation) draft.visualisation = {} as any;
+      if (!draft.visualisation.interaction) {
+        draft.visualisation.interaction = {
+          headTrackedParallax: {
+            enabled: false,
+            sensitivity: 1.0,
+            cameraMode: 'asymmetricFrustum'
+          }
+        };
+      }
+      if (!draft.visualisation.interaction.headTrackedParallax) {
+        draft.visualisation.interaction.headTrackedParallax = {
+          enabled: false,
+          sensitivity: 1.0,
+          cameraMode: 'asymmetricFrustum'
+        };
+      }
+      draft.visualisation.interaction.headTrackedParallax.enabled = enabled;
+    });
+    onFeatureUpdate?.('headTracking', { enabled });
+    toast({
+      title: `Head Tracking ${enabled ? 'Enabled' : 'Disabled'}`,
+      description: enabled
+        ? 'Webcam will be used to create a parallax effect.'
+        : 'Head tracking has been turned off.'
+    });
+  }, [updateSettings, onFeatureUpdate]);
 
   const handleTimeTravelToggle = useCallback(() => {
     const newState = !timeTravelActive;
@@ -240,6 +276,29 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Head-Tracked Parallax */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Head-Tracked Parallax
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="head-tracking-toggle">Enable Head Tracking</Label>
+            <Switch
+              id="head-tracking-toggle"
+              checked={headTrackingEnabled}
+              onCheckedChange={handleHeadTrackingToggle}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Uses your webcam to create a 3D parallax effect based on your head position.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Time Travel Mode */}
       <Card>
         <CardHeader className="pb-3">
