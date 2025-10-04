@@ -6,7 +6,7 @@ const logger = createLogger('AutoSaveManager');
 
 /**
  * AutoSaveManager - Provides debounced batch saving with retry logic
- * 
+ *
  * Key features:
  * - Debounced batching (500ms delay) to reduce server load
  * - Retry logic with exponential backoff (max 3 retries)
@@ -23,6 +23,19 @@ export class AutoSaveManager {
   private readonly DEBOUNCE_DELAY = 500; // 500ms debounce
   private readonly RETRY_DELAY = 1000; // 1s retry delay
 
+  // Client-only paths that should never sync to server
+  private readonly CLIENT_ONLY_PATHS = [
+    'auth.nostr.connected',
+    'auth.nostr.publicKey',
+  ];
+
+  // Check if a path is client-only (shouldn't sync to server)
+  private isClientOnlyPath(path: string): boolean {
+    return this.CLIENT_ONLY_PATHS.some(clientPath =>
+      path === clientPath || path.startsWith(clientPath + '.')
+    );
+  }
+
   setInitialized(initialized: boolean) {
     this.isInitialized = initialized;
   }
@@ -30,7 +43,13 @@ export class AutoSaveManager {
   // Queue a change for auto-save
   queueChange(path: string, value: any) {
     if (!this.isInitialized) return;
-    
+
+    // Skip client-only paths that shouldn't sync to server
+    if (this.isClientOnlyPath(path)) {
+      logger.debug(`Skipping client-only path: ${path}`);
+      return;
+    }
+
     this.pendingChanges.set(path, value);
     this.resetRetryCount(path);
     this.scheduleFlush();
@@ -39,8 +58,14 @@ export class AutoSaveManager {
   // Queue multiple changes
   queueChanges(changes: Map<string, any>) {
     if (!this.isInitialized) return;
-    
+
     changes.forEach((value, path) => {
+      // Skip client-only paths that shouldn't sync to server
+      if (this.isClientOnlyPath(path)) {
+        logger.debug(`Skipping client-only path: ${path}`);
+        return;
+      }
+
       this.pendingChanges.set(path, value);
       this.resetRetryCount(path);
     });
