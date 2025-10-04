@@ -70,7 +70,7 @@ visualisation:
         metalness: 0.8
         opacity: 0.24
         roughness: 0.6
-        nodeSize: 1.9
+        nodeSize: 2.0
         quality: high
         enableInstancing: true
         enableHologram: true
@@ -149,7 +149,7 @@ visualisation:
         maxVelocity: 100.0
         maxForce: 1000.0
         repelK: 13.28022
-        springK: 6.6758575
+        springK: 4.6001
         massScale: 0.39917582
         boundaryDamping: 0.95
         updateThreshold: 0.01
