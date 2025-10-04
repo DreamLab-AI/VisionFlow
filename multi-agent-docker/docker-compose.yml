@@ -1,58 +1,4 @@
 services:
-  gui-tools-service:
-    build:
-      context: gui-based-tools-docker
-      dockerfile: Dockerfile
-    image: gui-tools-docker:latest
-    container_name: gui-tools-container
-    hostname: gui-tools-service
-
-    # GPU support for graphics-intensive work
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-
-    environment:
-      - MCP_HOST=0.0.0.0
-      - MCP_PORT=9876
-      - QGIS_MCP_HOST=0.0.0.0
-      - QGIS_MCP_PORT=9877
-      - PBR_MCP_HOST=0.0.0.0
-      - PBR_MCP_PORT=9878
-      - PLAYWRIGHT_MCP_HOST=0.0.0.0
-      - PLAYWRIGHT_MCP_PORT=9879
-
-    ports:
-      - "5901:5901"   # VNC port
-      - "9876:9876"   # MCP Blender port
-      - "9877:9877"   # MCP QGIS port
-      - "9878:9878"   # MCP PBR Generator port
-      - "9879:9879"   # MCP Playwright port
-
-    # Health check ensures all services are ready
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-    # Restart policy
-    restart: unless-stopped
-
-    # Resource limits
-    mem_limit: ${DOCKER_MEMORY:-16g}
-    cpus: "${DOCKER_CPUS:-4}"
-
-    networks:
-      docker_ragflow:
-        aliases:
-          - visionflow_container
-
   multi-agent:
     build:
       context: .
@@ -64,27 +10,31 @@ services:
     container_name: multi-agent-container
     privileged: true
     user: root
+    hostname: multi-agent-dev
 
-    # GPU support (uncomment if you have NVIDIA GPU)
+    # NVIDIA GPU support with high-performance allocation
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [gpu, compute, utility, graphics]
+        limits:
+          memory: ${DOCKER_MEMORY:-32g}
+          cpus: "${DOCKER_CPUS:-16}"
 
     environment:
-      - DISPLAY=:99
+      - DISPLAY=:1
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
       - PYTHONUNBUFFERED=1
-      - BLENDER_HOST=gui-tools-service
+      # Local GUI MCP servers (no proxying needed)
+      - MCP_HOST=0.0.0.0
       - BLENDER_PORT=9876
-      - QGIS_HOST=gui-tools-service
       - QGIS_PORT=9877
-      - PBR_HOST=gui-tools-service
       - PBR_PORT=9878
+      - PLAYWRIGHT_PORT=9879
       # MCP TCP Server Configuration
       - MCP_TCP_AUTOSTART=true
       - MCP_TCP_PORT=${MCP_TCP_PORT:-9500}
@@ -162,10 +112,15 @@ services:
 
     ports:
       - "3000:3000"    # Claude Flow UI
-      - "3002:3002"    # WebSocket Bridge (existing)
+      - "3002:3002"    # WebSocket Bridge
+      - "5901:5901"    # VNC port for GUI access
       - "9500:9500"    # MCP TCP Server (shared claude-flow) - PRIMARY
       - "9502:9502"    # Claude-Flow TCP (isolated sessions per client)
-      - "9503:9503"    # Claude-Flow TCP health endpoint (localhost only)
+      - "9503:9503"    # Claude-Flow TCP health endpoint
+      - "9876:9876"    # MCP Blender port
+      - "9877:9877"    # MCP QGIS port
+      - "9878:9878"    # MCP PBR Generator port
+      - "9879:9879"    # MCP Playwright port
 
     volumes:
       # Persistent data (read-write)
@@ -193,18 +148,16 @@ services:
     cap_add:
       - SYS_PTRACE
 
-    # Resource limits
-    mem_limit: ${DOCKER_MEMORY:-16g}
-    cpus: "${DOCKER_CPUS:-4}"
+    # Shared memory for GUI applications and browsers
+    shm_size: '4gb'
 
-    # Health check disabled - port 9501 health endpoint not implemented
-    # healthcheck:
-    #   test: ["CMD-SHELL", "/app/core-assets/scripts/health-check.sh || exit 1"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 90s
-
+    # Health check for MCP services
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879 && nc -z localhost 5901"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
     # Restart policy
     restart: unless-stopped

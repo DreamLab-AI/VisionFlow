@@ -1,22 +1,16 @@
-# Stage 0 – CUDA + cuDNN (official NVIDIA image)
+# NVIDIA CUDA base with GUI support
 FROM nvidia/cuda:12.9.1-devel-ubuntu24.04 AS base
 
-################################################################################
-# Stage 1 – OS deps, Python 3.12 & 3.13 venvs, Rust, Node, ML stack, WasmEdge, Blender
-################################################################################
 ARG DEBIAN_FRONTEND=noninteractive
 
-# 1. Set Environment Variables
-# Set the application workspace directory
 ENV APP_HOME="/app"
 WORKDIR $APP_HOME
 
-# 2. Install Dependencies
-# Add any dependencies needed to run Blender and its Python environment.
-# wget and other utilities are for downloading and extracting Blender.
+# Install base packages including VNC and GUI support
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --allow-unauthenticated \
-    ca-certificates curl gnupg software-properties-common
+    ca-certificates curl gnupg software-properties-common \
+    xfce4 xfce4-goodies xvfb x11vnc dbus-x11 terminator xinit net-tools
 # Add Docker's official GPG key
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
@@ -32,12 +26,14 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa && \
 # Add NodeSource repository for up-to-date NodeJS (v22+)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 # Add Google Cloud SDK repository
-RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-# Install all packages including network utilities
+RUN mkdir -p /usr/share/keyrings && \
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list
+
+# Install all packages including network utilities, GUI tools, browser dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --allow-unauthenticated \
-      wget libxi6 libxxf86vm1 libxfixes3 libxrender1 \
+      wget libxi6 libxxf86vm1 libxfixes3 libxrender1 xz-utils \
       build-essential clang git pkg-config libssl-dev \
       lsb-release shellcheck hyperfine openssh-client tmux sudo \
       docker-ce docker-ce-cli containerd.io unzip 7zip texlive-full latexmk chktex \
@@ -51,7 +47,11 @@ RUN apt-get update && \
       nodejs \
       jq \
       google-cloud-sdk \
-      libvulkan1 vulkan-tools ocl-icd-libopencl1 && \
+      libvulkan1 vulkan-tools ocl-icd-libopencl1 \
+      qgis qgis-plugin-grass \
+      libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libatspi2.0-0 \
+      libx11-6 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxcb1 \
+      libpango-1.0-0 libcairo2 libasound2t64 fonts-liberation fonts-noto-color-emoji && \
     rm -rf /var/lib/apt/lists/* && \
     wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 && \
     chmod +x /usr/local/bin/hadolint
@@ -86,7 +86,7 @@ RUN \
     mkdir -p /app/mcp-logs /workspace && \
     chown -R dev:dev /app/mcp-logs /workspace
 
-# 4. Install Python and additional tool libraries (consolidated)
+# 4. Install Python, additional tool libraries, and Chrome
 RUN python3.12 -m venv /opt/venv312 && \
     apt-get update && \
     apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -95,6 +95,9 @@ RUN python3.12 -m venv /opt/venv312 && \
     libavutil-dev libavfilter-dev libswscale-dev libswresample-dev \
     colmap libpng-dev libjpeg-dev libtiff-dev libopenexr-dev \
     kicad ngspice libngspice0 && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/opt/venv312/bin:$PATH"
@@ -116,7 +119,8 @@ RUN chmod +x /entrypoint.sh /app/setup-workspace.sh /app/mcp-helper.sh /app/core
 COPY package.json package-lock.json* ./
 RUN npm cache clean --force && \
     npm install --production && \
-    npm install -g . @clduab11/gemini-flow claude-flow@latest ruv-swarm@latest flow-nexus@latest playwright@latest @executeautomation/playwright-mcp-server goalie && \
+    npm install -g . @clduab11/gemini-flow claude-flow@latest ruv-swarm@latest flow-nexus@latest \
+    playwright@latest @executeautomation/playwright-mcp-server chrome-devtools-mcp goalie && \
     npm cache clean --force
 
 # Apply build-time claude-flow patches
@@ -130,11 +134,22 @@ RUN if [ -f /app/core-assets/patches/claude-flow/mcp-server.patch ]; then \
         fi; \
     fi
 
-# Install Playwright browsers
+# Install Playwright browsers and copy GUI tool assets
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
-RUN npx playwright@latest install --with-deps chromium && \
+RUN npx playwright@latest install chromium firefox webkit && \
     chmod -R 755 /opt/playwright-browsers && \
     chown -R dev:dev "$(npm config get prefix)/lib/node_modules" "$(npm config get prefix)/bin"
+
+# Install Blender 4.5.1
+COPY gui-based-tools-docker.old/blender-4.5.1-linux-x64.tar.xz /tmp/blender-4.5.1-linux-x64.tar.xz
+RUN cd /opt && \
+    tar -xf /tmp/blender-4.5.1-linux-x64.tar.xz && \
+    rm /tmp/blender-4.5.1-linux-x64.tar.xz && \
+    ln -s /opt/blender-4.5.1-linux-x64 /opt/blender-4.5
+
+# Install PBR Generator
+COPY gui-based-tools-docker.old/tessellating-pbr-generator /opt/tessellating-pbr-generator
+RUN chown -R dev:dev /opt/tessellating-pbr-generator
 
 # 7. Install Python packages, Rust, and WasmEdge (consolidated as dev user)
 COPY requirements.txt .
@@ -146,9 +161,25 @@ RUN /opt/venv312/bin/pip install --no-cache-dir --retries 10 --timeout 60 -r req
 USER dev
 WORKDIR /home/dev
 ENV HOME=/home/dev
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Switch back to root to install PBR Generator dependencies into system venv
+USER root
+RUN /home/dev/.local/bin/uv pip install --python /opt/venv312/bin/python -r /opt/tessellating-pbr-generator/requirements.txt
+
+USER dev
+
+# Install Claude CLI and Rust
 RUN curl -fsSL https://claude.ai/install.sh | bash || true && \
     for i in 1 2 3; do curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path && break || sleep 5; done
-ENV PATH="/home/dev/.cargo/bin:/home/dev/.local/bin:${PATH}"
+
+# Set up Blender addon directories and QGIS plugin directory
+RUN mkdir -p /home/dev/.config/blender && \
+    mkdir -p /home/dev/.local/share/QGIS/QGIS3/profiles/default/python/plugins
+
+ENV PATH="/opt/blender-4.5/blender:/home/dev/.cargo/bin:/home/dev/.local/bin:${PATH}"
 
 USER root
 WORKDIR $APP_HOME
@@ -157,12 +188,24 @@ RUN if [ -f /home/dev/.local/bin/claude ]; then ln -sf /home/dev/.local/bin/clau
     bash -s -- -p /usr/local --plugins wasi_nn-openvino && \
     ldconfig
 
-# 8. Copy core assets and set up workspace
+# 8. Copy GUI tool scripts and core assets
+COPY gui-based-tools-docker.old/addon.py /home/dev/addon.py
+COPY gui-based-tools-docker.old/autostart.py /home/dev/autostart.py
+COPY gui-based-tools-docker.old/playwright-mcp-server.js /opt/playwright-mcp/server.js
+COPY gui-based-tools-docker.old/qgis-mcp-server.js /opt/qgis-mcp-server.js
+COPY gui-based-tools-docker.old/pbr-mcp-simple.py /opt/pbr-mcp-simple.py
+
+# Install QGIS MCP plugin
+RUN git clone https://github.com/syauqi-uqi/qgis_mcp_modify1.git /tmp/qgis_mcp_modify1 && \
+    cp -r /tmp/qgis_mcp_modify1/qgis_mcp_plugin /home/dev/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ && \
+    rm -rf /tmp/qgis_mcp_modify1
+
 COPY --chown=dev:dev core-assets/ /app/core-assets/
 COPY core-assets/patches /app/core-assets/patches
 RUN cd /app/core-assets/scripts && npm install && \
-    mkdir -p /var/run/mcp /workspace && \
-    chown -R dev:dev /var/run/mcp /workspace /app/core-assets && \
+    mkdir -p /var/run/mcp /workspace /opt/playwright-mcp && \
+    chmod +x /opt/playwright-mcp/server.js /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py && \
+    chown -R dev:dev /var/run/mcp /workspace /app/core-assets /home/dev /opt/playwright-mcp /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py && \
     git config --global user.email "agent@multi-agent-docker.com" && \
     git config --global user.name "Development Agent" && \
     chmod 2775 /workspace /app

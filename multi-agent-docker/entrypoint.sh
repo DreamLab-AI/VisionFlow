@@ -1,8 +1,54 @@
 #!/bin/bash
 set -ex
 
-echo "🚀 Initializing Multi-Agent Environment..."
+echo "🚀 Initializing Multi-Agent Environment with GUI..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting entrypoint.sh"
+
+# Setup VNC and X server
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting X server and VNC..."
+export DISPLAY=:1
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+Xvfb :1 -screen 0 1920x1080x24 &
+XVFB_PID=$!
+sleep 3
+
+if ps -p $XVFB_PID > /dev/null; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Xvfb started successfully (PID: $XVFB_PID)"
+else
+    echo "ERROR: Xvfb failed to start"
+    exit 1
+fi
+
+# Start XFCE desktop
+startxfce4 &
+sleep 3
+
+# Start VNC server
+x11vnc -display :1 -nopw -forever -xkb -listen 0.0.0.0 -rfbport 5901 -verbose &
+VNC_PID=$!
+sleep 3
+
+if ps -p $VNC_PID > /dev/null; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] VNC server started (PID: $VNC_PID)"
+else
+    echo "WARNING: VNC server may not have started"
+fi
+
+# Install Blender MCP addon
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Installing Blender MCP addon..."
+BLENDER_VERSION=$(/opt/blender-4.5/blender --version | head -n1 | grep -oP '(?<=Blender )\d+\.\d+' || echo "4.5")
+ADDON_DIR="/home/dev/.config/blender/${BLENDER_VERSION}/scripts/addons"
+mkdir -p "$ADDON_DIR"
+cp /home/dev/addon.py "$ADDON_DIR/addon.py"
+chown -R dev:dev /home/dev/.config/blender
+
+# Start GUI applications in background
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting GUI applications..."
+su - dev -c "DISPLAY=:1 /opt/blender-4.5/blender --python /home/dev/autostart.py" &
+su - dev -c "DISPLAY=:1 qgis" &
+sleep 5
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] GUI setup complete"
 
 # Ensure the dev user owns their home directory to prevent permission
 # issues with npx, cargo, etc. Run in background to avoid blocking startup.
