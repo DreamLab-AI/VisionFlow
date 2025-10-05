@@ -85,6 +85,12 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting setup background job..."
     # Run claude init as dev user to ensure proper permissions
     su - dev -c 'claude --dangerously-skip-permissions /exit' || true
 
+    # Configure Claude MCP with isolated databases
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Configuring Claude MCP database isolation..."
+    if [ -f /app/scripts/configure-claude-mcp.sh ]; then
+        /app/scripts/configure-claude-mcp.sh || echo "⚠️ MCP config failed, continuing..."
+    fi
+
     # Check if workspace setup hasn't been done yet
     if [ ! -f /workspace/.setup_completed ]; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running workspace setup..."

@@ -3,7 +3,10 @@
     "claude-flow": {
       "command": "npx",
       "args": ["claude-flow@latest", "mcp", "start"],
-      "type": "stdio"
+      "type": "stdio",
+      "env": {
+        "CLAUDE_FLOW_DB_PATH": "/workspace/.swarm/claude-local.db"
+      }
     },
     "ruv-swarm": {
       "command": "npx",

@@ -48,7 +48,7 @@ class PersistentMCPServer {
       USER: 'dev',
       PATH: `/home/dev/.local/bin:/opt/venv312/bin:/home/dev/.cargo/bin:/home/dev/.deno/bin:/app/core-assets/scripts:/app/core-assets/mcp-tools:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin`,
       CLAUDE_FLOW_DIRECT_MODE: 'true',
-      CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/memory.db',
+      CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/tcp-server.db',
       // Ensure access to Claude configuration
       CLAUDE_CONFIG_DIR: '/home/dev/.claude',
       CLAUDE_PROJECT_ROOT: '/workspace'

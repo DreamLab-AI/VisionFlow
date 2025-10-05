@@ -145,6 +145,9 @@ services:
     stdin_open: true
     tty: true
 
+    # Prevent container exit on process failures
+    init: true
+
     # Security options
     security_opt:
       - seccomp:unconfined

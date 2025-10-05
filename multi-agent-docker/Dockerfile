@@ -99,7 +99,8 @@ COPY entrypoint.sh /entrypoint.sh
 COPY setup-workspace.sh /app/setup-workspace.sh
 COPY mcp-helper.sh /app/mcp-helper.sh
 COPY core-assets/scripts/ /app/core-assets/scripts/
-RUN chmod +x /entrypoint.sh /app/setup-workspace.sh /app/mcp-helper.sh /app/core-assets/scripts/*.js /app/core-assets/scripts/*.sh
+COPY scripts/ /app/scripts/
+RUN chmod +x /entrypoint.sh /app/setup-workspace.sh /app/mcp-helper.sh /app/core-assets/scripts/*.js /app/core-assets/scripts/*.sh /app/scripts/*.sh 2>/dev/null || true
 
 # Install Node.js packages
 COPY package.json package-lock.json* ./
