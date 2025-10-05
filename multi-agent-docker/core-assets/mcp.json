@@ -12,59 +12,67 @@
     },
     "blender-mcp": {
       "command": "node",
-      "args": ["./scripts/mcp-blender-client.js"],
+      "args": ["/app/core-assets/scripts/mcp-blender-client.js"],
       "type": "stdio",
       "env": {
-        "BLENDER_HOST": "gui-tools-service",
+        "BLENDER_HOST": "localhost",
         "BLENDER_PORT": "9876"
       }
     },
     "qgis-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/qgis_mcp.py"],
+      "args": ["-u", "/app/core-assets/mcp-tools/qgis_mcp.py"],
       "type": "stdio",
       "env": {
-        "QGIS_HOST": "gui-tools-service",
-        "QGIS_PORT": "9875"
+        "QGIS_HOST": "localhost",
+        "QGIS_PORT": "9877"
       }
     },
     "kicad-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/kicad_mcp.py"],
+      "args": ["-u", "/app/core-assets/mcp-tools/kicad_mcp.py"],
       "type": "stdio"
     },
     "ngspice-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/ngspice_mcp.py"],
+      "args": ["-u", "/app/core-assets/mcp-tools/ngspice_mcp.py"],
       "type": "stdio"
     },
     "imagemagick-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/imagemagick_mcp.py"],
+      "args": ["-u", "/app/core-assets/mcp-tools/imagemagick_mcp.py"],
       "type": "stdio"
     },
     "pbr-generator-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/pbr_mcp_client.py"],
+      "args": ["-u", "/app/core-assets/mcp-tools/pbr_mcp_client.py"],
       "type": "stdio",
       "env": {
-        "PBR_HOST": "gui-tools-service",
+        "PBR_HOST": "localhost",
         "PBR_PORT": "9878"
       }
     },
     "playwright-visual": {
       "command": "node",
-      "args": ["./scripts/playwright-mcp-client.js"],
+      "args": ["/app/core-assets/scripts/playwright-mcp-client.js"],
       "type": "stdio",
       "env": {
-        "PLAYWRIGHT_PROXY_HOST": "gui-tools-service",
+        "PLAYWRIGHT_PROXY_HOST": "localhost",
         "PLAYWRIGHT_PROXY_PORT": "9879"
       }
     },
     "playwright": {
       "command": "node",
-      "args": ["./scripts/playwright-mcp-local.js"],
+      "args": ["/app/core-assets/scripts/playwright-mcp-local.js"],
       "type": "stdio"
+    },
+    "web-summary": {
+      "command": "/opt/venv312/bin/python3",
+      "args": ["-u", "/opt/web-summary-mcp-server.py"],
+      "type": "stdio",
+      "env": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+      }
     }
   }
 }

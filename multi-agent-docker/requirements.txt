@@ -5,8 +5,11 @@ h2o
 xgboost
 flake8
 pylint
+google-generativeai
+beautifulsoup4
+aiohttp
 # New 2D/3D Additions
-open3d
+# open3d - temporarily disabled, no compatible wheel for Python 3.12
 pymeshlab
 # Note: nerfstudio requires PyAV which has Cython compilation issues
 # If you need nerfstudio, install it separately after the base image is built:

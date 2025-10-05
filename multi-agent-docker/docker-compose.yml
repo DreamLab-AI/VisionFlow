@@ -97,6 +97,8 @@ services:
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - GOAP_MAX_REPLANS=${GOAP_MAX_REPLANS:-3}
       - GOAP_CACHE_TTL=${GOAP_CACHE_TTL:-3600}
+      # Google AI Studio Configuration
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       # IP Blocking
       - AUTO_BLOCK_ENABLED=${AUTO_BLOCK_ENABLED:-true}
       - BLOCK_DURATION=${BLOCK_DURATION:-3600000}
@@ -114,6 +116,7 @@ services:
       - "3000:3000"    # Claude Flow UI
       - "3002:3002"    # WebSocket Bridge
       - "5901:5901"    # VNC port for GUI access
+      - "6901:6901"    # KasmVNC web access (HTTPS)
       - "9500:9500"    # MCP TCP Server (shared claude-flow) - PRIMARY
       - "9502:9502"    # Claude-Flow TCP (isolated sessions per client)
       - "9503:9503"    # Claude-Flow TCP health endpoint
@@ -121,6 +124,7 @@ services:
       - "9877:9877"    # MCP QGIS port
       - "9878:9878"    # MCP PBR Generator port
       - "9879:9879"    # MCP Playwright port
+      - "9880:9880"    # MCP Web Summary port
 
     volumes:
       # Persistent data (read-write)
@@ -153,7 +157,7 @@ services:
 
     # Health check for MCP services
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879 && nc -z localhost 5901"]
+      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879 && nc -z localhost 9880 && nc -z localhost 5901"]
       interval: 30s
       timeout: 10s
       retries: 5

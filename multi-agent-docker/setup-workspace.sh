@@ -85,24 +85,13 @@ fi
 echo "🚀 Initializing enhanced Multi-Agent workspace..."
 [ "$DRY_RUN" = true ] && echo "🔍 DRY RUN MODE - No changes will be made"
 
-# --- Claude Code Home Directory Workaround ---
-log_info "Applying workaround for Claude Code home directory..."
-if [ ! -d "/home/ubuntu" ]; then
-    if dry_run_log "Would create symlink /home/ubuntu -> /home/dev"; then :; else
-        ln -s /home/dev /home/ubuntu
-        log_success "Created symlink /home/ubuntu -> /home/dev for Claude Code compatibility."
-    fi
+# --- Claude CLI Setup ---
+log_info "Verifying Claude CLI installation..."
+# Claude should be installed in /home/dev/.local/bin and already in PATH
+if command -v claude >/dev/null 2>&1; then
+    log_success "Claude CLI available: $(which claude)"
 else
-    log_info "Directory /home/ubuntu already exists, skipping symlink."
-fi
-
-# Ensure claude is accessible globally
-if [ -f "/home/ubuntu/.local/bin/claude" ] && [ ! -f "/usr/local/bin/claude" ]; then
-    if dry_run_log "Would create global claude symlink"; then :; else
-        ln -sf /home/ubuntu/.local/bin/claude /usr/local/bin/claude
-        chmod +x /usr/local/bin/claude 2>/dev/null || true
-        log_success "Created global claude symlink"
-    fi
+    log_warning "Claude CLI not found. Install with: claude login"
 fi
 
 # --- Security Token Validation ---
@@ -609,58 +598,46 @@ verify_agent_tracking() {
 # Removed: Patch creation was inappropriate for a setup script
 # This should be handled as part of the actual project development, not environment setup
 
-# 10. Verify Playwright MCP Proxy
-verify_playwright_proxy() {
-    log_info "🎭 Verifying Playwright MCP Proxy connection..."
-    
+# 10. Verify Playwright MCP Server (Local)
+verify_playwright_mcp() {
+    log_info "🎭 Verifying Playwright MCP Server..."
+
     if [ "$DRY_RUN" = true ]; then
-        dry_run_log "Would verify Playwright MCP Proxy"
+        dry_run_log "Would verify Playwright MCP Server"
         return 0
     fi
-    
-    # Check if proxy is running
-    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status playwright-mcp-proxy 2>/dev/null | grep -q RUNNING; then
-        log_success "Playwright MCP Proxy is running"
-        
-        # Test proxy health endpoint
-        if curl -sf http://127.0.0.1:9880 >/dev/null 2>&1; then
-            log_success "Playwright proxy is healthy and connected to GUI container"
-            log_info "Access browser automation visually via VNC on port 5901"
-        else
-            log_warning "Playwright proxy is running but GUI container may not be accessible"
-            log_info "Ensure the GUI container is running: docker-compose ps gui-tools-service"
-        fi
+
+    # Check if local MCP server is running
+    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status playwright-mcp-server 2>/dev/null | grep -q RUNNING; then
+        log_success "Playwright MCP Server running on port 9879"
+        log_info "Access browser automation visually via VNC on port 5901"
     else
-        log_warning "Playwright MCP Proxy is not running"
-        log_info "Start it with: supervisorctl start playwright-mcp-proxy"
+        log_warning "Playwright MCP Server is not running"
+        log_info "Start it with: supervisorctl start playwright-mcp-server"
     fi
 }
 
-# 11. Verify Chrome DevTools MCP Proxy
-verify_chrome_devtools_proxy() {
-    log_info "🔍 Verifying Chrome DevTools MCP Proxy connection..."
-    
+# 11. Verify GUI MCP Servers (Unified Container)
+verify_gui_mcp_servers() {
+    log_info "🖥️  Verifying GUI MCP Servers..."
+
     if [ "$DRY_RUN" = true ]; then
-        dry_run_log "Would verify Chrome DevTools MCP Proxy"
+        dry_run_log "Would verify GUI MCP Servers"
         return 0
     fi
-    
-    # Check if proxy is running
-    if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status chrome-devtools-mcp-proxy 2>/dev/null | grep -q RUNNING; then
-        log_success "Chrome DevTools MCP Proxy is running"
-        
-        # Test proxy health endpoint
-        if curl -sf http://127.0.0.1:9222 >/dev/null 2>&1; then
-            log_success "Chrome DevTools proxy is healthy and connected to GUI container"
-            log_info "Access browser automation via VNC on port 5901"
+
+    # Check all GUI-based MCP servers
+    local servers=("qgis-mcp-server:9877" "pbr-mcp-server:9878")
+    for server_info in "${servers[@]}"; do
+        IFS=':' read -r server port <<< "$server_info"
+        if supervisorctl -c /etc/supervisor/conf.d/supervisord.conf status "$server" 2>/dev/null | grep -q RUNNING; then
+            log_success "${server} running on port ${port}"
         else
-            log_warning "Chrome DevTools proxy is running but GUI container may not be accessible"
-            log_info "Ensure the GUI container is running: docker-compose ps gui-tools-service"
+            log_warning "${server} is not running"
         fi
-    else
-        log_warning "Chrome DevTools MCP Proxy is not running"
-        log_info "Start it with: supervisorctl start chrome-devtools-mcp-proxy"
-    fi
+    done
+
+    log_info "Access all GUI tools via VNC desktop on port 5901 (password: password)"
 }
 
 # 12. Verify Claude-Flow MCP Service
@@ -777,14 +754,21 @@ fi
 if [ "$DRY_RUN" = false ]; then
     verify_services_startup
     verify_agent_tracking
-    verify_playwright_proxy
-    verify_chrome_devtools_proxy
+    verify_playwright_mcp
+    verify_gui_mcp_servers
     verify_claude_flow_service
+fi
+
+# Fix ownership of workspace files created by this script
+if [ "$DRY_RUN" = false ] && [ "$(id -u)" -eq 0 ]; then
+    chown -R dev:dev /workspace/.mcp.json* /workspace/.hive-mind /workspace/.swarm /workspace/.claude 2>/dev/null || true
+    log_success "Fixed ownership of workspace files"
 fi
 
 # Mark setup as completed
 if [ "$DRY_RUN" = false ]; then
     touch /workspace/.setup_completed
+    chown dev:dev /workspace/.setup_completed 2>/dev/null || true
     log_success "Workspace setup completed successfully!"
 fi
 
