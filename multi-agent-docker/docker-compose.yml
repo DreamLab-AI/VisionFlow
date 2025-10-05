@@ -137,6 +137,10 @@ services:
       # Runtime data (ephemeral)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./blender-files:/blender-files:rw
+      # Logs directory (read-write for debugging)
+      - ./logs:/var/log/multi-agent:rw
+      - ./logs/mcp:/app/mcp-logs:rw
+      - ./logs/supervisor:/var/log/supervisor:rw
 
     entrypoint: ["/entrypoint.sh"]
     command: ["/bin/bash", "-l"]

@@ -1,11 +1,12 @@
 {
   "mcpServers": {
     "claude-flow": {
-      "command": "npx",
-      "args": ["claude-flow@latest", "mcp", "start"],
+      "command": "node",
+      "args": ["/app/scripts/stdio-to-tcp-bridge.js"],
       "type": "stdio",
       "env": {
-        "CLAUDE_FLOW_DB_PATH": "/workspace/.swarm/claude-local.db"
+        "MCP_HOST": "127.0.0.1",
+        "MCP_PORT": "9500"
       }
     },
     "ruv-swarm": {

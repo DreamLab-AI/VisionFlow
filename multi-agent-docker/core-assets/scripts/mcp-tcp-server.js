@@ -34,13 +34,22 @@ class PersistentMCPServer {
     if (this.mcpProcess) return;
 
     this.log('info', 'Starting persistent MCP process...');
-    
+
     // Check if we should use the generic relay mode
     const mcpCommand = process.env.MCP_TCP_COMMAND || '/app/node_modules/.bin/claude-flow';
     const mcpArgs = process.env.MCP_TCP_ARGS ? process.env.MCP_TCP_ARGS.split(' ') : ['mcp', 'start'];
-    
+
+    // Create isolated directory for TCP server's claude-flow instance
+    // This ensures it creates .swarm/memory.db in its own directory, not /workspace/.swarm/memory.db
+    const tcpServerDir = '/workspace/.swarm/tcp-server-instance';
+    const fs = require('fs');
+    if (!fs.existsSync(tcpServerDir)) {
+      fs.mkdirSync(tcpServerDir, { recursive: true, mode: 0o755 });
+    }
+
     this.log('info', `Starting MCP: ${mcpCommand} ${mcpArgs.join(' ')}`);
-    
+    this.log('info', `Working directory: ${tcpServerDir} (isolated DB)`);
+
     // Merge with dev user's environment to ensure proper access to tools
     const devEnv = {
       ...process.env,
@@ -53,10 +62,10 @@ class PersistentMCPServer {
       CLAUDE_CONFIG_DIR: '/home/dev/.claude',
       CLAUDE_PROJECT_ROOT: '/workspace'
     };
-    
+
     this.mcpProcess = spawn(mcpCommand, mcpArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: '/workspace',
+      cwd: tcpServerDir,  // Run in isolated directory
       env: devEnv,
       uid: process.getuid(), // Run as same user
       gid: process.getgid()

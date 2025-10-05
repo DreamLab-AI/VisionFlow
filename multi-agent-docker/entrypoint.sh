@@ -1,6 +1,12 @@
 #!/bin/bash
 set -ex
 
+# Persistent logging
+ENTRYPOINT_LOG="/var/log/multi-agent/entrypoint.log"
+mkdir -p "$(dirname "$ENTRYPOINT_LOG")"
+exec 1> >(tee -a "$ENTRYPOINT_LOG")
+exec 2>&1
+
 echo "🚀 Initializing Multi-Agent Environment..."
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting entrypoint.sh"
 
@@ -89,6 +95,12 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting setup background job..."
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Configuring Claude MCP database isolation..."
     if [ -f /app/scripts/configure-claude-mcp.sh ]; then
         /app/scripts/configure-claude-mcp.sh || echo "⚠️ MCP config failed, continuing..."
+    fi
+
+    # Initialize hive-mind session infrastructure
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Initializing hive-mind session manager..."
+    if [ -f /app/scripts/hive-session-manager.sh ]; then
+        /app/scripts/hive-session-manager.sh init || echo "⚠️ Session manager init failed, continuing..."
     fi
 
     # Check if workspace setup hasn't been done yet
