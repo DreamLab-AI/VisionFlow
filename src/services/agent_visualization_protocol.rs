@@ -31,20 +31,21 @@ pub enum AgentVisualizationMessage {
 pub struct InitializeMessage {
     pub timestamp: i64, // Unix timestamp
     pub swarm_id: String,
+    pub session_uuid: Option<String>, // Session UUID from session manager
     pub topology: String,
-    
+
     /// All agents with full metadata
     pub agents: Vec<AgentInit>,
-    
+
     /// All connections between agents
     pub connections: Vec<ConnectionInit>,
-    
+
     /// Visual configuration for rendering
     pub visual_config: VisualConfig,
-    
+
     /// Physics configuration for GPU solver
     pub physics_config: PhysicsConfig,
-    
+
     /// Initial positions (optional - can be calculated client-side)
     pub positions: HashMap<String, Position>,
 }
@@ -396,6 +397,17 @@ pub struct DiscoveryMessage {
     pub total_agents: u32,
     pub swarms: Vec<SwarmInfo>,
     pub global_topology: GlobalTopology,
+    /// Session registry mapping UUIDs to swarm IDs
+    pub session_registry: std::collections::HashMap<String, SessionInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionInfo {
+    pub uuid: String,
+    pub swarm_id: Option<String>,
+    pub task: String,
+    pub created_at: i64,
+    pub status: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -589,6 +601,20 @@ pub struct AgentVisualizationProtocol {
     agent_cache: std::collections::HashMap<String, MultiMcpAgentStatus>,
     topology_cache: std::collections::HashMap<String, SwarmTopologyData>,
     last_discovery: Option<chrono::DateTime<chrono::Utc>>,
+
+    // Session UUID tracking
+    session_uuid_map: std::collections::HashMap<String, String>, // swarm_id -> session_uuid
+    session_metadata: std::collections::HashMap<String, SessionMetadata>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionMetadata {
+    pub uuid: String,
+    pub swarm_id: Option<String>,
+    pub task: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub working_dir: String,
+    pub output_dir: String,
 }
 
 impl AgentVisualizationProtocol {
@@ -600,7 +626,36 @@ impl AgentVisualizationProtocol {
             agent_cache: std::collections::HashMap::new(),
             topology_cache: std::collections::HashMap::new(),
             last_discovery: None,
+            session_uuid_map: std::collections::HashMap::new(),
+            session_metadata: std::collections::HashMap::new(),
         }
+    }
+
+    /// Register a session with UUID and metadata
+    pub fn register_session(&mut self, uuid: String, metadata: SessionMetadata) {
+        log::info!("Registering session {} with metadata", uuid);
+        self.session_metadata.insert(uuid, metadata);
+    }
+
+    /// Link swarm ID to session UUID
+    pub fn link_swarm_to_session(&mut self, swarm_id: String, session_uuid: String) {
+        log::info!("Linking swarm {} to session {}", swarm_id, session_uuid);
+        self.session_uuid_map.insert(swarm_id.clone(), session_uuid.clone());
+
+        // Update session metadata with swarm_id
+        if let Some(metadata) = self.session_metadata.get_mut(&session_uuid) {
+            metadata.swarm_id = Some(swarm_id);
+        }
+    }
+
+    /// Get session UUID for a swarm ID
+    pub fn get_session_for_swarm(&self, swarm_id: &str) -> Option<&String> {
+        self.session_uuid_map.get(swarm_id)
+    }
+
+    /// Get session metadata by UUID
+    pub fn get_session_metadata(&self, uuid: &str) -> Option<&SessionMetadata> {
+        self.session_metadata.get(uuid)
     }
     
     /// Register an MCP server for agent discovery
@@ -664,12 +719,27 @@ impl AgentVisualizationProtocol {
             data_flow_patterns: self.analyze_data_flow_patterns(),
         };
         
+        // Build session registry
+        let session_registry: std::collections::HashMap<String, SessionInfo> = self.session_metadata
+            .iter()
+            .map(|(uuid, metadata)| {
+                (uuid.clone(), SessionInfo {
+                    uuid: uuid.clone(),
+                    swarm_id: metadata.swarm_id.clone(),
+                    task: metadata.task.clone(),
+                    created_at: metadata.created_at.timestamp(),
+                    status: "running".to_string(), // Can be enhanced with actual status
+                })
+            })
+            .collect();
+
         let discovery = DiscoveryMessage {
             timestamp: timestamp.timestamp_millis(),
             servers,
             total_agents,
             swarms: swarm_infos,
             global_topology,
+            session_registry,
         };
         
         let message = MultiMcpVisualizationMessage::Discovery(discovery);
@@ -875,6 +945,7 @@ impl AgentVisualizationProtocol {
         let init_msg = InitializeMessage {
             timestamp: chrono::Utc::now().timestamp(),
             swarm_id: swarm_id.to_string(),
+            session_uuid: None, // Will be populated if session UUID is known
             topology: topology.to_string(),
             agents: init_agents,
             connections: init_connections,

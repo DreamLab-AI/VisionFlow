@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
+use std::path::PathBuf;
 use tokio::sync::{RwLock, Mutex};
 use tokio::process::Command;
 use tokio::time::{timeout, sleep};
@@ -45,7 +46,7 @@ pub enum SwarmStrategy {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionInfo {
-    pub session_id: String,
+    pub session_id: String,  // UUID from session manager
     pub task_description: String,
     pub status: SwarmStatus,
     pub created_at: DateTime<Utc>,
@@ -53,6 +54,13 @@ pub struct SessionInfo {
     pub metrics: SwarmMetrics,
     pub config: SwarmConfig,
     pub workers: Vec<WorkerAgent>,
+    // Session manager paths
+    pub working_dir: std::path::PathBuf,
+    pub output_dir: std::path::PathBuf,
+    pub database_path: std::path::PathBuf,
+    pub log_file: std::path::PathBuf,
+    // Optional swarm ID (when available from claude-flow)
+    pub swarm_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,6 +96,39 @@ pub struct WorkerAgent {
     pub last_activity: DateTime<Utc>,
 }
 
+/// Session manager metadata response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionManagerMetadata {
+    pub session_id: String,
+    pub task: String,
+    pub priority: String,
+    pub created: DateTime<Utc>,
+    pub updated: Option<DateTime<Utc>>,
+    pub status: String,
+    pub working_dir: PathBuf,
+    pub output_dir: PathBuf,
+    pub database: PathBuf,
+    pub log_file: PathBuf,
+    #[serde(default)]
+    pub metadata: Option<Value>,
+}
+
+/// Session registry from session manager list command
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionRegistry {
+    pub sessions: HashMap<String, SessionRegistryEntry>,
+    pub created: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionRegistryEntry {
+    pub task: String,
+    pub status: String,
+    pub created: DateTime<Utc>,
+    pub updated: DateTime<Utc>,
+    pub dir: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct HealthMonitor {
     container_name: String,
@@ -110,7 +151,7 @@ pub struct ContainerHealth {
 #[derive(Clone, Debug)]
 pub struct DockerHiveMind {
     container_name: String,
-    claude_flow_path: String,
+    session_manager_script: String,
     session_cache: Arc<RwLock<HashMap<String, SessionInfo>>>,
     health_monitor: HealthMonitor,
     config: DockerHiveMindConfig,
@@ -163,7 +204,7 @@ impl DockerHiveMind {
 
         Self {
             container_name: container_name.clone(),
-            claude_flow_path: "/app/node_modules/.bin/claude-flow".to_string(),
+            session_manager_script: "/app/scripts/hive-session-manager.sh".to_string(),
             session_cache: Arc::new(RwLock::new(HashMap::new())),
             health_monitor,
             config,
@@ -176,68 +217,221 @@ impl DockerHiveMind {
 
         Self {
             container_name: container_name.clone(),
-            claude_flow_path: "/app/node_modules/.bin/claude-flow".to_string(),
+            session_manager_script: "/app/scripts/hive-session-manager.sh".to_string(),
             session_cache: Arc::new(RwLock::new(HashMap::new())),
             health_monitor,
             config,
         }
     }
 
-    /// Spawn a new swarm with the given task description
-    pub async fn spawn_swarm(&self, task: &str, config: SwarmConfig) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        info!("Spawning swarm for task: {}", task);
+    /// Create a new session via session manager
+    pub async fn create_session(
+        &self,
+        task: &str,
+        priority: &str,
+        metadata: Option<Value>,
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        info!("Creating session for task: {}", task);
 
         // 1. Check container health
         self.health_monitor.check_container_health().await?;
 
-        // 2. Generate session ID
-        let session_id = format!("swarm-{}-{}",
-            Utc::now().timestamp_millis(),
-            &Uuid::new_v4().to_string()[..8]
-        );
+        // 2. Prepare metadata JSON
+        let metadata_json = metadata
+            .map(|m| serde_json::to_string(&m).unwrap_or_else(|_| "{}".to_string()))
+            .unwrap_or_else(|| "{}".to_string());
 
-        // 3. Build Docker command
-        let mut cmd = self.build_spawn_command(task, &config);
-
-        // 4. Execute with retry logic
-        let output = self.execute_with_retries(&mut cmd).await?;
-
-        // 5. Parse response and extract actual session ID if available
-        let actual_session_id = self.extract_session_id(&output)
-            .unwrap_or_else(|_| session_id.clone());
-
-        // 6. Cache session info
-        let session_info = SessionInfo {
-            session_id: actual_session_id.clone(),
-            task_description: task.to_string(),
-            status: SwarmStatus::Spawning,
-            created_at: Utc::now(),
-            last_activity: Utc::now(),
-            metrics: SwarmMetrics::default(),
-            config: config.clone(),
-            workers: Vec::new(),
-        };
-
-        {
-            let mut cache = self.session_cache.write().await;
-            cache.insert(actual_session_id.clone(), session_info);
-        }
-
-        info!("Swarm spawned successfully with ID: {}", actual_session_id);
-        Ok(actual_session_id)
-    }
-
-    /// Get all active sessions
-    pub async fn get_sessions(&self) -> Result<Vec<SessionInfo>, Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Fetching all hive-mind sessions");
-
-        // 1. Query Docker container for live sessions
+        // 3. Build Docker command to create session
         let mut cmd = Command::new("docker");
         cmd.args(&[
             "exec",
             &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "sessions"
+            &self.session_manager_script,
+            "create",
+            task,
+            priority,
+            &metadata_json,
+        ]);
+
+        // 4. Execute with retry
+        let output = self.execute_with_retries(&mut cmd).await?;
+
+        // 5. Extract UUID from stdout
+        let uuid = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+        if uuid.is_empty() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to create session: {}", stderr).into());
+        }
+
+        info!("Session created with UUID: {}", uuid);
+        Ok(uuid)
+    }
+
+    /// Start a session via session manager (spawns hive-mind in background)
+    pub async fn start_session(&self, uuid: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        info!("Starting session: {}", uuid);
+
+        // Build Docker command to start session in detached mode
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec", "-d",
+            &self.container_name,
+            &self.session_manager_script,
+            "start",
+            uuid,
+        ]);
+
+        // Execute
+        let output = self.execute_with_retries(&mut cmd).await?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to start session {}: {}", uuid, stderr).into());
+        }
+
+        info!("Session {} started successfully", uuid);
+        Ok(())
+    }
+
+    /// Spawn a new swarm with the given task description (combines create + start)
+    pub async fn spawn_swarm(&self, task: &str, config: SwarmConfig) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        info!("Spawning swarm for task: {}", task);
+
+        // Map priority to string
+        let priority = match config.priority {
+            SwarmPriority::Critical => "high",
+            SwarmPriority::High => "high",
+            SwarmPriority::Medium => "medium",
+            SwarmPriority::Low => "low",
+        };
+
+        // Build metadata
+        let metadata = json!({
+            "strategy": format!("{:?}", config.strategy),
+            "max_workers": config.max_workers,
+            "consensus_type": config.consensus_type,
+            "memory_size_mb": config.memory_size_mb,
+            "auto_scale": config.auto_scale,
+            "encryption": config.encryption,
+            "monitor": config.monitor,
+            "verbose": config.verbose,
+        });
+
+        // 1. Create session
+        let uuid = self.create_session(task, priority, Some(metadata)).await?;
+
+        // 2. Start session
+        self.start_session(&uuid).await?;
+
+        // 3. Get session metadata to populate cache
+        let session_metadata = self.get_session_metadata(&uuid).await?;
+
+        // 4. Cache session info
+        let session_info = SessionInfo {
+            session_id: uuid.clone(),
+            task_description: task.to_string(),
+            status: SwarmStatus::Spawning,
+            created_at: session_metadata.created,
+            last_activity: session_metadata.updated.unwrap_or(Utc::now()),
+            metrics: SwarmMetrics::default(),
+            config: config.clone(),
+            workers: Vec::new(),
+            working_dir: session_metadata.working_dir,
+            output_dir: session_metadata.output_dir,
+            database_path: session_metadata.database,
+            log_file: session_metadata.log_file,
+            swarm_id: None, // Will be populated later via MCP
+        };
+
+        {
+            let mut cache = self.session_cache.write().await;
+            cache.insert(uuid.clone(), session_info);
+        }
+
+        info!("Swarm spawned successfully with UUID: {}", uuid);
+        Ok(uuid)
+    }
+
+    /// Get session metadata from session manager
+    pub async fn get_session_metadata(&self, uuid: &str) -> Result<SessionManagerMetadata, Box<dyn std::error::Error + Send + Sync>> {
+        debug!("Getting metadata for session: {}", uuid);
+
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec",
+            &self.container_name,
+            &self.session_manager_script,
+            "get",
+            uuid,
+        ]);
+
+        let output = timeout(self.config.command_timeout, cmd.output()).await??;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Failed to get session metadata for {}: {}", uuid, stderr).into());
+        }
+
+        let json = String::from_utf8_lossy(&output.stdout);
+        let metadata: SessionManagerMetadata = serde_json::from_str(&json)?;
+
+        Ok(metadata)
+    }
+
+    /// Get session output directory
+    pub async fn get_session_output_dir(&self, uuid: &str) -> Result<std::path::PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec",
+            &self.container_name,
+            &self.session_manager_script,
+            "output-dir",
+            uuid,
+        ]);
+
+        let output = timeout(self.config.command_timeout, cmd.output()).await??;
+
+        if !output.status.success() {
+            return Err(format!("Failed to get output dir for session {}", uuid).into());
+        }
+
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(std::path::PathBuf::from(path))
+    }
+
+    /// Get session log file path
+    pub async fn get_session_log_file(&self, uuid: &str) -> Result<std::path::PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec",
+            &self.container_name,
+            &self.session_manager_script,
+            "log",
+            uuid,
+        ]);
+
+        let output = timeout(self.config.command_timeout, cmd.output()).await??;
+
+        if !output.status.success() {
+            return Err(format!("Failed to get log file for session {}", uuid).into());
+        }
+
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(std::path::PathBuf::from(path))
+    }
+
+    /// Get all active sessions from session manager
+    pub async fn get_sessions(&self) -> Result<Vec<SessionInfo>, Box<dyn std::error::Error + Send + Sync>> {
+        debug!("Fetching all sessions from session manager");
+
+        // 1. Query session manager for list
+        let mut cmd = Command::new("docker");
+        cmd.args(&[
+            "exec",
+            &self.container_name,
+            &self.session_manager_script,
+            "list",
         ]);
 
         let output = timeout(self.config.command_timeout, cmd.output()).await??;
@@ -247,37 +441,74 @@ impl DockerHiveMind {
             return Err(format!("Failed to get sessions: {}", stderr).into());
         }
 
-        // 2. Parse output and update cache
-        let sessions = self.parse_sessions_output(&output).await?;
+        // 2. Parse session registry JSON
+        let json = String::from_utf8_lossy(&output.stdout);
+        let registry: SessionRegistry = serde_json::from_str(&json)?;
 
-        // 3. Update cache with live data
+        // 3. Convert to SessionInfo vec
+        let mut sessions = Vec::new();
+        for (uuid, session_data) in registry.sessions {
+            // Get from cache if available, otherwise create basic info
+            let cached = {
+                let cache = self.session_cache.read().await;
+                cache.get(&uuid).cloned()
+            };
+
+            let session_info = if let Some(mut cached_session) = cached {
+                // Update status from registry
+                cached_session.status = self.parse_status_string(&session_data.status);
+                cached_session.last_activity = session_data.updated;
+                cached_session
+            } else {
+                // Create basic session info from registry
+                SessionInfo {
+                    session_id: uuid.clone(),
+                    task_description: session_data.task,
+                    status: self.parse_status_string(&session_data.status),
+                    created_at: session_data.created,
+                    last_activity: session_data.updated,
+                    metrics: SwarmMetrics::default(),
+                    config: SwarmConfig::default(),
+                    workers: Vec::new(),
+                    working_dir: std::path::PathBuf::from(&session_data.dir),
+                    output_dir: std::path::PathBuf::from(format!("/workspace/ext/hive-sessions/{}", uuid)),
+                    database_path: std::path::PathBuf::from(format!("{}/.swarm/memory.db", session_data.dir)),
+                    log_file: std::path::PathBuf::from(format!("/var/log/multi-agent/hive-{}.log", uuid)),
+                    swarm_id: None,
+                }
+            };
+
+            sessions.push(session_info);
+        }
+
+        // 4. Update cache
         self.update_session_cache(&sessions).await;
 
-        // 4. Return combined cache + live data
         Ok(sessions)
     }
 
-    /// Get status of a specific swarm
-    pub async fn get_swarm_status(&self, swarm_id: &str) -> Result<SwarmStatus, Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Getting status for swarm: {}", swarm_id);
+    /// Get status of a specific session by UUID
+    pub async fn get_session_status(&self, uuid: &str) -> Result<SwarmStatus, Box<dyn std::error::Error + Send + Sync>> {
+        debug!("Getting status for session: {}", uuid);
 
         // 1. Check cache first
         {
             let cache = self.session_cache.read().await;
-            if let Some(session) = cache.get(swarm_id) {
+            if let Some(session) = cache.get(uuid) {
                 if session.last_activity > Utc::now() - chrono::Duration::seconds(30) {
                     return Ok(session.status.clone());
                 }
             }
         }
 
-        // 2. Query live status from container
+        // 2. Query session manager status
         let mut cmd = Command::new("docker");
         cmd.args(&[
             "exec",
             &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "status", swarm_id
+            &self.session_manager_script,
+            "status",
+            uuid,
         ]);
 
         let output = timeout(self.config.command_timeout, cmd.output()).await??;
@@ -286,13 +517,14 @@ impl DockerHiveMind {
             return Ok(SwarmStatus::Unknown);
         }
 
-        // 3. Parse status from output
-        let status = self.parse_swarm_status(&output)?;
+        // 3. Parse status string
+        let status_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let status = self.parse_status_string(&status_str);
 
         // 4. Update cache
         {
             let mut cache = self.session_cache.write().await;
-            if let Some(session) = cache.get_mut(swarm_id) {
+            if let Some(session) = cache.get_mut(uuid) {
                 session.status = status.clone();
                 session.last_activity = Utc::now();
             }
@@ -301,132 +533,79 @@ impl DockerHiveMind {
         Ok(status)
     }
 
-    /// Stop a swarm
-    pub async fn stop_swarm(&self, swarm_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        info!("Stopping swarm: {}", swarm_id);
+    /// Get status of a specific swarm (alias for session status, maintained for compatibility)
+    pub async fn get_swarm_status(&self, swarm_id_or_uuid: &str) -> Result<SwarmStatus, Box<dyn std::error::Error + Send + Sync>> {
+        self.get_session_status(swarm_id_or_uuid).await
+    }
+
+    /// Parse status string from session manager into SwarmStatus enum
+    fn parse_status_string(&self, status: &str) -> SwarmStatus {
+        match status.to_lowercase().as_str() {
+            "created" => SwarmStatus::Spawning,
+            "starting" => SwarmStatus::Spawning,
+            "running" => SwarmStatus::Active,
+            "paused" => SwarmStatus::Paused,
+            "completed" => SwarmStatus::Completed,
+            "failed" => SwarmStatus::Failed,
+            "completing" => SwarmStatus::Completing,
+            _ => SwarmStatus::Unknown,
+        }
+    }
+
+    /// Stop a session (UUID-based)
+    pub async fn stop_session(&self, uuid: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        info!("Stopping session: {}", uuid);
 
         let mut cmd = Command::new("docker");
         cmd.args(&[
             "exec",
             &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "stop", swarm_id
+            &self.session_manager_script,
+            "stop",
+            uuid,
         ]);
 
         let output = timeout(self.config.command_timeout, cmd.output()).await??;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("Failed to stop swarm {}: {}", swarm_id, stderr).into());
+            return Err(format!("Failed to stop session {}: {}", uuid, stderr).into());
         }
 
         // Update cache
         {
             let mut cache = self.session_cache.write().await;
-            if let Some(session) = cache.get_mut(swarm_id) {
+            if let Some(session) = cache.get_mut(uuid) {
                 session.status = SwarmStatus::Completing;
                 session.last_activity = Utc::now();
             }
         }
 
-        info!("Swarm {} stopped successfully", swarm_id);
+        info!("Session {} stopped successfully", uuid);
         Ok(())
     }
 
-    /// Pause a swarm
-    pub async fn pause_swarm(&self, swarm_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        info!("Pausing swarm: {}", swarm_id);
+    /// Stop a swarm (alias for stop_session, maintained for compatibility)
+    pub async fn stop_swarm(&self, swarm_id_or_uuid: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        self.stop_session(swarm_id_or_uuid).await
+    }
 
-        let mut cmd = Command::new("docker");
-        cmd.args(&[
-            "exec",
-            &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "pause", swarm_id
-        ]);
-
-        let output = timeout(self.config.command_timeout, cmd.output()).await??;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("Failed to pause swarm {}: {}", swarm_id, stderr).into());
-        }
-
-        // Update cache
-        {
-            let mut cache = self.session_cache.write().await;
-            if let Some(session) = cache.get_mut(swarm_id) {
-                session.status = SwarmStatus::Paused;
-                session.last_activity = Utc::now();
-            }
-        }
-
-        info!("Swarm {} paused successfully", swarm_id);
+    /// Pause swarm (stub - session manager doesn't support pause yet)
+    pub async fn pause_swarm(&self, _swarm_id_or_uuid: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        warn!("pause_swarm is not implemented for session manager");
         Ok(())
     }
 
-    /// Resume a paused swarm
-    pub async fn resume_swarm(&self, swarm_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        info!("Resuming swarm: {}", swarm_id);
-
-        let mut cmd = Command::new("docker");
-        cmd.args(&[
-            "exec",
-            &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "resume", swarm_id
-        ]);
-
-        let output = timeout(self.config.command_timeout, cmd.output()).await??;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("Failed to resume swarm {}: {}", swarm_id, stderr).into());
-        }
-
-        // Update cache
-        {
-            let mut cache = self.session_cache.write().await;
-            if let Some(session) = cache.get_mut(swarm_id) {
-                session.status = SwarmStatus::Active;
-                session.last_activity = Utc::now();
-            }
-        }
-
-        info!("Swarm {} resumed successfully", swarm_id);
+    /// Resume swarm (stub - session manager doesn't support resume yet)
+    pub async fn resume_swarm(&self, _swarm_id_or_uuid: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        warn!("resume_swarm is not implemented for session manager");
         Ok(())
     }
 
-    /// Get swarm metrics
-    pub async fn get_swarm_metrics(&self, swarm_id: &str) -> Result<SwarmMetrics, Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Getting metrics for swarm: {}", swarm_id);
-
-        let mut cmd = Command::new("docker");
-        cmd.args(&[
-            "exec",
-            &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "metrics", swarm_id
-        ]);
-
-        let output = timeout(self.config.command_timeout, cmd.output()).await??;
-
-        if !output.status.success() {
-            return Ok(SwarmMetrics::default());
-        }
-
-        let metrics = self.parse_swarm_metrics(&output)?;
-
-        // Update cache
-        {
-            let mut cache = self.session_cache.write().await;
-            if let Some(session) = cache.get_mut(swarm_id) {
-                session.metrics = metrics.clone();
-                session.last_activity = Utc::now();
-            }
-        }
-
-        Ok(metrics)
+    /// Get swarm metrics (stub - should use MCP bridge instead)
+    pub async fn get_swarm_metrics(&self, _swarm_id: &str) -> Result<SwarmMetrics, Box<dyn std::error::Error + Send + Sync>> {
+        warn!("get_swarm_metrics is deprecated - use McpSessionBridge instead");
+        Ok(SwarmMetrics::default())
     }
 
     /// Cleanup orphaned processes and stale sessions
@@ -476,66 +655,6 @@ impl DockerHiveMind {
 
     // Private helper methods
 
-    fn build_spawn_command(&self, task: &str, config: &SwarmConfig) -> Command {
-        let mut cmd = Command::new("docker");
-
-        cmd.args(&[
-            "exec", "-d",  // Detached to avoid blocking
-            &self.container_name,
-            &self.claude_flow_path,
-            "hive-mind", "spawn",
-            task,
-            "--claude", "--auto-spawn"
-        ]);
-
-        // Add queen type based on priority
-        match config.priority {
-            SwarmPriority::High | SwarmPriority::Critical => {
-                cmd.args(&["--queen-type", "tactical"]);
-            },
-            SwarmPriority::Medium => {
-                cmd.args(&["--queen-type", "strategic"]);
-            },
-            SwarmPriority::Low => {
-                cmd.args(&["--queen-type", "adaptive"]);
-            },
-        }
-
-        // Add max workers
-        if let Some(workers) = config.max_workers {
-            cmd.args(&["--max-workers", &workers.to_string()]);
-        }
-
-        // Add consensus type
-        if let Some(consensus) = &config.consensus_type {
-            cmd.args(&["--consensus", consensus]);
-        }
-
-        // Add memory size
-        if let Some(memory) = config.memory_size_mb {
-            cmd.args(&["--memory-size", &memory.to_string()]);
-        }
-
-        // Add flags
-        if config.auto_scale {
-            cmd.arg("--auto-scale");
-        }
-
-        if config.encryption {
-            cmd.arg("--encryption");
-        }
-
-        if config.monitor {
-            cmd.arg("--monitor");
-        }
-
-        if config.verbose {
-            cmd.arg("--verbose");
-        }
-
-        cmd
-    }
-
     async fn execute_with_retries(&self, cmd: &mut Command) -> Result<std::process::Output, Box<dyn std::error::Error + Send + Sync>> {
         let mut last_error = None;
 
@@ -565,138 +684,6 @@ impl DockerHiveMind {
         }
 
         Err(last_error.unwrap_or("Unknown error".to_string()).into())
-    }
-
-    fn extract_session_id(&self, output: &std::process::Output) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let combined = format!("{}\n{}", stdout, stderr);
-
-        // Look for session ID patterns
-        if let Some(captures) = regex::Regex::new(r"session[_-]([a-zA-Z0-9-]+)")
-            .unwrap()
-            .captures(&combined)
-        {
-            if let Some(id) = captures.get(1) {
-                return Ok(format!("session-{}", id.as_str()));
-            }
-        }
-
-        // Fallback: generate temporary ID
-        Ok(format!("temp-{}", Uuid::new_v4().to_string()[..8].to_string()))
-    }
-
-    async fn parse_sessions_output(&self, output: &std::process::Output) -> Result<Vec<SessionInfo>, Box<dyn std::error::Error + Send + Sync>> {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let mut sessions = Vec::new();
-
-        // Try to parse as JSON first
-        if let Ok(json_value) = serde_json::from_str::<Value>(&stdout) {
-            if let Some(sessions_array) = json_value.get("sessions").and_then(|s| s.as_array()) {
-                for session_value in sessions_array {
-                    if let Ok(session) = serde_json::from_value::<SessionInfo>(session_value.clone()) {
-                        sessions.push(session);
-                    }
-                }
-            }
-        } else {
-            // Parse as plain text output
-            sessions = self.parse_text_sessions(&stdout);
-        }
-
-        // Merge with cache for additional context
-        let cache = self.session_cache.read().await;
-        for session in &mut sessions {
-            if let Some(cached) = cache.get(&session.session_id) {
-                session.config = cached.config.clone();
-                session.task_description = cached.task_description.clone();
-            }
-        }
-
-        Ok(sessions)
-    }
-
-    fn parse_text_sessions(&self, text: &str) -> Vec<SessionInfo> {
-        let mut sessions = Vec::new();
-        let lines: Vec<&str> = text.lines().collect();
-
-        for line in lines {
-            if let Some(session) = self.parse_session_line(line) {
-                sessions.push(session);
-            }
-        }
-
-        sessions
-    }
-
-    fn parse_session_line(&self, line: &str) -> Option<SessionInfo> {
-        // Simple text parsing for session lines
-        // Format: "session-123456 | Status: Active | Task: Build REST API"
-
-        let parts: Vec<&str> = line.split('|').collect();
-        if parts.len() < 2 {
-            return None;
-        }
-
-        let session_id = parts[0].trim().to_string();
-        let status_part = parts.get(1)?.trim();
-        let task_part = parts.get(2).unwrap_or(&"Unknown task").trim();
-
-        let status = match status_part.to_lowercase() {
-            s if s.contains("active") => SwarmStatus::Active,
-            s if s.contains("paused") => SwarmStatus::Paused,
-            s if s.contains("completed") => SwarmStatus::Completed,
-            s if s.contains("failed") => SwarmStatus::Failed,
-            s if s.contains("spawning") => SwarmStatus::Spawning,
-            _ => SwarmStatus::Unknown,
-        };
-
-        Some(SessionInfo {
-            session_id,
-            task_description: task_part.replace("Task: ", "").to_string(),
-            status,
-            created_at: Utc::now() - chrono::Duration::hours(1), // Estimate
-            last_activity: Utc::now(),
-            metrics: SwarmMetrics::default(),
-            config: SwarmConfig::default(),
-            workers: Vec::new(),
-        })
-    }
-
-    fn parse_swarm_status(&self, output: &std::process::Output) -> Result<SwarmStatus, Box<dyn std::error::Error + Send + Sync>> {
-        let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-
-        let status = if stdout.contains("active") || stdout.contains("running") {
-            SwarmStatus::Active
-        } else if stdout.contains("paused") || stdout.contains("suspended") {
-            SwarmStatus::Paused
-        } else if stdout.contains("completed") || stdout.contains("finished") {
-            SwarmStatus::Completed
-        } else if stdout.contains("failed") || stdout.contains("error") {
-            SwarmStatus::Failed
-        } else if stdout.contains("spawning") || stdout.contains("starting") {
-            SwarmStatus::Spawning
-        } else if stdout.contains("completing") || stdout.contains("stopping") {
-            SwarmStatus::Completing
-        } else {
-            SwarmStatus::Unknown
-        };
-
-        Ok(status)
-    }
-
-    fn parse_swarm_metrics(&self, output: &std::process::Output) -> Result<SwarmMetrics, Box<dyn std::error::Error + Send + Sync>> {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-
-        // Try JSON first
-        if let Ok(json_value) = serde_json::from_str::<Value>(&stdout) {
-            if let Ok(metrics) = serde_json::from_value::<SwarmMetrics>(json_value) {
-                return Ok(metrics);
-            }
-        }
-
-        // Fallback to default
-        Ok(SwarmMetrics::default())
     }
 
     async fn update_session_cache(&self, sessions: &[SessionInfo]) {

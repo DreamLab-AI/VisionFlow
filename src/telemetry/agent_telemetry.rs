@@ -27,6 +27,14 @@ impl CorrelationId {
         Self(format!("agent-{}", agent_id))
     }
 
+    pub fn from_session_uuid(uuid: &str) -> Self {
+        Self(format!("session-{}", uuid))
+    }
+
+    pub fn from_swarm_id(swarm_id: &str) -> Self {
+        Self(format!("swarm-{}", swarm_id))
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -130,6 +138,10 @@ pub struct TelemetryEvent {
     pub mcp_message_type: Option<String>,
     pub mcp_direction: Option<String>, // "inbound" | "outbound"
     pub mcp_payload_size: Option<usize>,
+
+    /// Session tracking
+    pub session_uuid: Option<String>,
+    pub swarm_id: Option<String>,
 }
 
 impl TelemetryEvent {
@@ -169,12 +181,26 @@ impl TelemetryEvent {
             mcp_message_type: None,
             mcp_direction: None,
             mcp_payload_size: None,
+            session_uuid: None,
+            swarm_id: None,
         }
     }
 
     /// Add structured metadata
     pub fn with_metadata(mut self, key: &str, value: serde_json::Value) -> Self {
         self.metadata.insert(key.to_string(), value);
+        self
+    }
+
+    /// Add session UUID
+    pub fn with_session_uuid(mut self, session_uuid: &str) -> Self {
+        self.session_uuid = Some(session_uuid.to_string());
+        self
+    }
+
+    /// Add swarm ID
+    pub fn with_swarm_id(mut self, swarm_id: &str) -> Self {
+        self.swarm_id = Some(swarm_id.to_string());
         self
     }
 
@@ -291,8 +317,19 @@ impl AgentTelemetryLogger {
     }
 
     /// Log agent spawn event with position generation debugging
-    pub fn log_agent_spawn(&self, agent_id: &str, initial_position: Position3D, metadata: HashMap<String, serde_json::Value>) {
-        let correlation_id = CorrelationId::from_agent_id(agent_id);
+    pub fn log_agent_spawn(
+        &self,
+        agent_id: &str,
+        session_uuid: Option<&str>,
+        initial_position: Position3D,
+        metadata: HashMap<String, serde_json::Value>
+    ) {
+        let correlation_id = if let Some(uuid) = session_uuid {
+            CorrelationId::from_session_uuid(uuid)
+        } else {
+            CorrelationId::from_agent_id(agent_id)
+        };
+
         self.set_correlation_context(agent_id, correlation_id.clone());
 
         let mut event = TelemetryEvent::new(
@@ -306,6 +343,11 @@ impl AgentTelemetryLogger {
         )
         .with_agent_id(agent_id)
         .with_position(initial_position.clone());
+
+        // Add session UUID if provided
+        if let Some(uuid) = session_uuid {
+            event = event.with_session_uuid(uuid);
+        }
 
         // Add metadata
         for (key, value) in metadata {
@@ -386,8 +428,19 @@ impl AgentTelemetryLogger {
     }
 
     /// Log graph state change
-    pub fn log_graph_state_change(&self, change_type: &str, node_count: u32, edge_count: u32, details: HashMap<String, serde_json::Value>) {
-        let correlation_id = CorrelationId::new();
+    pub fn log_graph_state_change(
+        &self,
+        session_uuid: Option<&str>,
+        change_type: &str,
+        node_count: u32,
+        edge_count: u32,
+        details: HashMap<String, serde_json::Value>
+    ) {
+        let correlation_id = if let Some(uuid) = session_uuid {
+            CorrelationId::from_session_uuid(uuid)
+        } else {
+            CorrelationId::new()
+        };
 
         let mut event = TelemetryEvent::new(
             correlation_id,
@@ -401,6 +454,11 @@ impl AgentTelemetryLogger {
         .with_metadata("change_type", serde_json::json!(change_type))
         .with_metadata("node_count", serde_json::json!(node_count))
         .with_metadata("edge_count", serde_json::json!(edge_count));
+
+        // Add session UUID if provided
+        if let Some(uuid) = session_uuid {
+            event = event.with_session_uuid(uuid);
+        }
 
         // Add additional details
         for (key, value) in details {

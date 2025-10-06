@@ -533,6 +533,7 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
 
             logger.log_agent_spawn(
                 &format!("client_{}", client_id),
+                None, // session_uuid - not available in this context
                 initial_position,
                 metadata
             );

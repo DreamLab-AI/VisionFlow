@@ -9,6 +9,7 @@ pub mod file_service;
 pub mod github;
 // graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
+pub mod mcp_session_bridge;
 pub mod nostr_service;
 pub mod owl_validator;
 pub mod perplexity_service;

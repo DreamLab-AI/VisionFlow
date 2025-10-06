@@ -895,6 +895,7 @@ impl MultiMcpVisualizationActor {
         let message = AgentVisualizationMessage::Initialize(InitializeMessage {
             timestamp: chrono::Utc::now().timestamp(),
             swarm_id: "multi_mcp_swarm".to_string(),
+            session_uuid: None, // Multi-MCP swarm doesn't have a single session UUID
             topology: "multi_server".to_string(),
             agents: self.agents.values().cloned().collect(),
             connections: self.connections.values().cloned().collect(),
