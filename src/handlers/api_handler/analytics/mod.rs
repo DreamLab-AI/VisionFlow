@@ -677,8 +677,9 @@ async fn calculate_network_metrics(
     let active_nodes = physics_stats.as_ref().map(|s| s.nodes_count).unwrap_or(0) as f32;
     let active_edges = physics_stats.as_ref().map(|s| s.edges_count).unwrap_or(0) as f32;
 
-    // Binary protocol: 34 bytes per node per frame at 60 FPS
-    let bytes_per_node_per_frame = 34.0;
+    // Binary protocol V2: 38 bytes per node per frame at 60 FPS
+    // (4-byte u32 ID + 12-byte pos + 12-byte vel + 4-byte sssp_dist + 4-byte sssp_parent + 1-byte version overhead)
+    let bytes_per_node_per_frame = 38.0;
     let frames_per_second = 60.0;
     let seconds_per_minute = 60.0;
 

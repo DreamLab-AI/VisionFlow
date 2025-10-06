@@ -20,6 +20,7 @@ use crate::services::ragflow_service::RAGFlowService;
 use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
 use crate::services::mcp_session_bridge::McpSessionBridge;
+use crate::services::session_correlation_bridge::SessionCorrelationBridge;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -44,6 +45,7 @@ pub struct AppState {
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
     pub mcp_session_bridge: Arc<McpSessionBridge>,
+    pub session_correlation_bridge: Arc<SessionCorrelationBridge>,
     pub debug_enabled: bool,
 }
 
@@ -188,6 +190,21 @@ impl AppState {
             bridge_clone.start_background_refresh(Duration::from_secs(10)).await;
         });
 
+        info!("[AppState::new] Initializing SessionCorrelationBridge");
+        let session_correlation_bridge = Arc::new(SessionCorrelationBridge::new());
+
+        // Start background cleanup task for expired session mappings (5 minute TTL)
+        let bridge_cleanup = session_correlation_bridge.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(Duration::from_secs(300)).await; // Run every 5 minutes
+                let (removed, remaining) = bridge_cleanup.cleanup_expired(Duration::from_secs(1800)).await; // 30 minute TTL
+                if removed > 0 {
+                    info!("[SessionCorrelationBridge] Cleaned up {} expired mappings, {} remaining", removed, remaining);
+                }
+            }
+        });
+
         // GPU initialization will be handled later by the actors themselves
         // This avoids the tokio runtime panic during initialization
         info!("[AppState] GPU manager will self-initialize when needed");
@@ -231,6 +248,7 @@ impl AppState {
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
             mcp_session_bridge,
+            session_correlation_bridge,
             debug_enabled,
         })
     }
@@ -322,5 +340,9 @@ impl AppState {
 
     pub fn get_mcp_session_bridge(&self) -> &Arc<McpSessionBridge> {
         &self.mcp_session_bridge
+    }
+
+    pub fn get_session_correlation_bridge(&self) -> &Arc<SessionCorrelationBridge> {
+        &self.session_correlation_bridge
     }
 }

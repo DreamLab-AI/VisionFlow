@@ -19,27 +19,30 @@ export interface BinaryNodeData {
 }
 
 /**
- * Node binary format (Updated to match server):
- * - Node ID: 2 bytes (uint16) - optimized size
+ * Node binary format Protocol V2 (Updated to match server):
+ * - Node ID: 4 bytes (uint32) - FIXED: No truncation, supports 1B nodes
  * - Position: 12 bytes (3 float32 values)
  * - Velocity: 12 bytes (3 float32 values)
  * - SSSP Distance: 4 bytes (float32)
  * - SSSP Parent: 4 bytes (int32)
- * Total: 34 bytes per node
+ * Total: 38 bytes per node
  *
  * SSSP data is included for real-time path visualization
+ *
+ * FIXED: V1 had a bug that truncated node IDs > 16383 causing collisions
+ * V2 uses full u32 IDs with flags at bits 31/30 instead of 15/14
  */
-export const BINARY_NODE_SIZE = 34;
+export const BINARY_NODE_SIZE = 38;
 export const BINARY_NODE_ID_OFFSET = 0;
-export const BINARY_POSITION_OFFSET = 2;  // After uint16 node ID
-export const BINARY_VELOCITY_OFFSET = 14; // After position (2 + 12)
-export const BINARY_SSSP_DISTANCE_OFFSET = 26; // After velocity (14 + 12)
-export const BINARY_SSSP_PARENT_OFFSET = 30;   // After distance (26 + 4)
+export const BINARY_POSITION_OFFSET = 4;  // After uint32 node ID
+export const BINARY_VELOCITY_OFFSET = 16; // After position (4 + 12)
+export const BINARY_SSSP_DISTANCE_OFFSET = 28; // After velocity (16 + 12)
+export const BINARY_SSSP_PARENT_OFFSET = 32;   // After distance (28 + 4)
 
-// Node type flag constants (must match server) - adjusted for u16
-export const AGENT_NODE_FLAG = 0x8000;     // Bit 15 indicates agent node
-export const KNOWLEDGE_NODE_FLAG = 0x4000; // Bit 14 indicates knowledge graph node  
-export const NODE_ID_MASK = 0x3FFF;        // Mask to extract actual node ID (bits 0-13)
+// Node type flag constants (Protocol V2 - must match server)
+export const AGENT_NODE_FLAG = 0x80000000;     // Bit 31 indicates agent node
+export const KNOWLEDGE_NODE_FLAG = 0x40000000; // Bit 14 indicates knowledge graph node
+export const NODE_ID_MASK = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
 export enum NodeType {
   Knowledge = 'knowledge',
@@ -70,6 +73,8 @@ export function isKnowledgeNode(nodeId: number): boolean {
 
 /**
  * Parse binary data buffer into an array of BinaryNodeData objects
+ * Supports both V1 (34 bytes, u16 IDs) and V2 (38 bytes, u32 IDs) protocols
+ * Server sends: [1 byte version][node_data][node_data]...
  */
 export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
   if (!buffer || buffer.byteLength === 0) {
@@ -80,58 +85,110 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
   const safeBuffer = buffer.slice(0);
   const view = new DataView(safeBuffer);
   const nodes: BinaryNodeData[] = [];
-  
+
   try {
-    // Check if data length is not a multiple of the expected size
-    if (safeBuffer.byteLength % BINARY_NODE_SIZE !== 0) {
-      console.warn(`Binary data length (${safeBuffer.byteLength} bytes) is not a multiple of ${BINARY_NODE_SIZE}. This may indicate compressed data.`);
+    // Check for protocol version byte (first byte)
+    let offset = 0;
+    let nodeSize = BINARY_NODE_SIZE; // Default to V2 (38 bytes)
+
+    if (safeBuffer.byteLength > 0) {
+      const firstByte = view.getUint8(0);
+
+      // Check if first byte is a protocol version (1 or 2)
+      if (firstByte === 1 || firstByte === 2) {
+        const protocolVersion = firstByte;
+        offset = 1; // Skip version byte
+
+        if (protocolVersion === 1) {
+          nodeSize = 34; // V1 legacy format
+          console.warn('Received V1 protocol data (34 bytes/node). V2 (38 bytes/node) is recommended.');
+        }
+      }
+    }
+
+    const dataLength = safeBuffer.byteLength - offset;
+
+    // Check if remaining data length is a multiple of the expected size
+    if (dataLength % nodeSize !== 0) {
+      console.warn(`Binary data length (${dataLength} bytes after version byte) is not a multiple of ${nodeSize}. This may indicate compressed data.`);
       console.warn(`First few bytes: ${new Uint8Array(safeBuffer.slice(0, Math.min(16, safeBuffer.byteLength))).join(', ')}`);
-      
+
       // Check for zlib header (0x78 followed by compression level byte)
       const header = new Uint8Array(safeBuffer.slice(0, Math.min(4, safeBuffer.byteLength)));
       if (header[0] === 0x78 && (header[1] === 0x01 || header[1] === 0x5E || header[1] === 0x9C || header[1] === 0xDA)) {
         console.error("Data appears to be zlib compressed but decompression failed or wasn't attempted");
       }
     }
-    
+
     // Calculate how many complete nodes we can process
-    const completeNodes = Math.floor(safeBuffer.byteLength / BINARY_NODE_SIZE);
-    
+    const completeNodes = Math.floor(dataLength / nodeSize);
+
     if (completeNodes === 0) {
-      console.warn(`Received binary data with insufficient length: ${safeBuffer.byteLength} bytes (needed at least ${BINARY_NODE_SIZE} bytes per node)`);
+      console.warn(`Received binary data with insufficient length: ${dataLength} bytes (needed at least ${nodeSize} bytes per node)`);
       return [];
     }
     
+    // Parse nodes based on detected protocol
+    const isV1 = nodeSize === 34;
+
     for (let i = 0; i < completeNodes; i++) {
-      const offset = i * BINARY_NODE_SIZE;
-      
+      const nodeOffset = offset + (i * nodeSize);
+
       // Bounds check to prevent errors on corrupted data
-      if (offset + BINARY_NODE_SIZE > safeBuffer.byteLength) {
+      if (nodeOffset + nodeSize > safeBuffer.byteLength) {
         break;
       }
-      
-      // Read node ID (uint16, 2 bytes)
-      const nodeId = view.getUint16(offset + BINARY_NODE_ID_OFFSET, true);
 
-      // Read position (3 float32 values, 12 bytes)
-      const position: Vec3 = {
-        x: view.getFloat32(offset + BINARY_POSITION_OFFSET, true),
-        y: view.getFloat32(offset + BINARY_POSITION_OFFSET + 4, true),
-        z: view.getFloat32(offset + BINARY_POSITION_OFFSET + 8, true)
-      };
+      let nodeId: number;
+      let position: Vec3;
+      let velocity: Vec3;
+      let ssspDistance: number;
+      let ssspParent: number;
 
-      // Read velocity (3 float32 values, 12 bytes)
-      const velocity: Vec3 = {
-        x: view.getFloat32(offset + BINARY_VELOCITY_OFFSET, true),
-        y: view.getFloat32(offset + BINARY_VELOCITY_OFFSET + 4, true),
-        z: view.getFloat32(offset + BINARY_VELOCITY_OFFSET + 8, true)
-      };
+      if (isV1) {
+        // V1 format: u16 ID (2 bytes)
+        nodeId = view.getUint16(nodeOffset, true);
+        position = {
+          x: view.getFloat32(nodeOffset + 2, true),
+          y: view.getFloat32(nodeOffset + 6, true),
+          z: view.getFloat32(nodeOffset + 10, true)
+        };
+        velocity = {
+          x: view.getFloat32(nodeOffset + 14, true),
+          y: view.getFloat32(nodeOffset + 18, true),
+          z: view.getFloat32(nodeOffset + 22, true)
+        };
+        ssspDistance = view.getFloat32(nodeOffset + 26, true);
+        ssspParent = view.getInt32(nodeOffset + 30, true);
 
-      // Read SSSP distance (float32, 4 bytes)
-      const ssspDistance = view.getFloat32(offset + BINARY_SSSP_DISTANCE_OFFSET, true);
+        // Convert V1 flags (bits 15/14) to V2 flags (bits 31/30)
+        const isAgent = (nodeId & 0x8000) !== 0;
+        const isKnowledge = (nodeId & 0x4000) !== 0;
+        const actualId = nodeId & 0x3FFF;
 
-      // Read SSSP parent (int32, 4 bytes)
-      const ssspParent = view.getInt32(offset + BINARY_SSSP_PARENT_OFFSET, true);
+        if (isAgent) {
+          nodeId = actualId | 0x80000000;
+        } else if (isKnowledge) {
+          nodeId = actualId | 0x40000000;
+        } else {
+          nodeId = actualId;
+        }
+      } else {
+        // V2 format: u32 ID (4 bytes)
+        nodeId = view.getUint32(nodeOffset + BINARY_NODE_ID_OFFSET, true);
+        position = {
+          x: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET, true),
+          y: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 4, true),
+          z: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 8, true)
+        };
+        velocity = {
+          x: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET, true),
+          y: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 4, true),
+          z: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 8, true)
+        };
+        ssspDistance = view.getFloat32(nodeOffset + BINARY_SSSP_DISTANCE_OFFSET, true);
+        ssspParent = view.getInt32(nodeOffset + BINARY_SSSP_PARENT_OFFSET, true);
+      }
 
       // Basic validation to detect corrupted data
       const isValid =
@@ -166,8 +223,8 @@ export function createBinaryNodeData(nodes: BinaryNodeData[]): ArrayBuffer {
   nodes.forEach((node, i) => {
     const offset = i * BINARY_NODE_SIZE;
 
-    // Write node ID (uint16, 2 bytes)
-    view.setUint16(offset + BINARY_NODE_ID_OFFSET, node.nodeId, true);
+    // Write node ID (uint32, 4 bytes) - V2 protocol
+    view.setUint32(offset + BINARY_NODE_ID_OFFSET, node.nodeId, true);
 
     // Write position (3 float32 values, 12 bytes)
     view.setFloat32(offset + BINARY_POSITION_OFFSET, node.position.x, true);

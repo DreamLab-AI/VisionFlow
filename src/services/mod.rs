@@ -20,3 +20,4 @@ pub mod voice_context_manager;
 pub mod voice_tag_manager;
 pub mod speech_voice_integration;
 pub mod graph_serialization;
+pub mod session_correlation_bridge;

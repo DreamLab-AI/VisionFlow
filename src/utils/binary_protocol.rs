@@ -226,16 +226,17 @@ pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
 }
 
 /// Enhanced encoding function that accepts metadata about node types
-/// FIXED: Automatically uses V2 protocol when node IDs > 16383
+/// FIXED: Always uses V2 protocol by default (full 32-bit node ID support)
+/// Only falls back to V1 for backwards compatibility when all IDs are small
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
     knowledge_node_ids: &[u32]
 ) -> Vec<u8> {
-    // Detect if we need V2 protocol
-    let use_v2 = needs_v2_protocol(nodes);
-    let item_size = if use_v2 { WIRE_V2_ITEM_SIZE } else { WIRE_V1_ITEM_SIZE };
-    let protocol_version = if use_v2 { PROTOCOL_V2 } else { PROTOCOL_V1 };
+    // Always use V2 protocol to prevent truncation bugs (V1 is only for backwards compat)
+    let use_v2 = true; // Force V2 for all new encoding
+    let item_size = WIRE_V2_ITEM_SIZE;
+    let protocol_version = PROTOCOL_V2;
 
     // Only log non-empty node transmissions to reduce spam
     if nodes.len() > 0 {
@@ -320,43 +321,55 @@ pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
 }
 
 pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-    // Check if data is properly sized
-    if data.len() % WIRE_ITEM_SIZE != 0 {
-        return Err(format!(
-            "Data size {} is not a multiple of wire item size {}",
-            data.len(),
-            WIRE_ITEM_SIZE
-        ));
-    }
-    
     if data.is_empty() {
         return Ok(Vec::new());
     }
-    
-    let expected_nodes = data.len() / WIRE_ITEM_SIZE;
+
+    // First byte is protocol version
+    if data.len() < 1 {
+        return Err("Data too small for protocol version".to_string());
+    }
+
+    let protocol_version = data[0];
+    let payload = &data[1..];
+
+    match protocol_version {
+        PROTOCOL_V1 => decode_node_data_v1(payload),
+        PROTOCOL_V2 => decode_node_data_v2(payload),
+        v => Err(format!("Unknown protocol version: {}", v)),
+    }
+}
+
+/// Decode V1 protocol (LEGACY - 34 bytes per node, u16 IDs)
+fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
+    // Check if data is properly sized
+    if data.len() % WIRE_V1_ITEM_SIZE != 0 {
+        return Err(format!(
+            "Data size {} is not a multiple of V1 wire item size {}",
+            data.len(),
+            WIRE_V1_ITEM_SIZE
+        ));
+    }
+
+    let expected_nodes = data.len() / WIRE_V1_ITEM_SIZE;
     debug!(
-        "Decoding binary data: size={} bytes, expected nodes={}",
+        "Decoding V1 binary data: size={} bytes, expected nodes={}",
         data.len(),
         expected_nodes
     );
-    
+
     let mut updates = Vec::with_capacity(expected_nodes);
-    
-    // Set up sample logging
     let max_samples = 3;
     let mut samples_logged = 0;
-    
-    debug!("Starting binary data decode, expecting nodes with position and velocity data");
-    
-    // Process data in chunks of WIRE_ITEM_SIZE bytes
-    for chunk in data.chunks_exact(WIRE_ITEM_SIZE) {
-        // Manual deserialization to handle exactly 34 bytes
+
+    // Process data in chunks of WIRE_V1_ITEM_SIZE bytes
+    for chunk in data.chunks_exact(WIRE_V1_ITEM_SIZE) {
         let mut cursor = 0;
-        
+
         // Read u16 ID (2 bytes)
         let wire_id = u16::from_le_bytes([chunk[cursor], chunk[cursor + 1]]);
         cursor += 2;
-        
+
         // Read position (12 bytes = 3 * f32)
         let pos_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         cursor += 4;
@@ -364,7 +377,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         cursor += 4;
         let pos_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         cursor += 4;
-        
+
         // Read velocity (12 bytes = 3 * f32)
         let vel_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         cursor += 4;
@@ -377,16 +390,16 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         let _sssp_distance = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
         cursor += 4;
         let _sssp_parent = i32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
-        
-        // Convert wire ID back to u32 with flags
-        let full_node_id = from_wire_id(wire_id);
-        
-        // Log the first few decoded items as samples
+
+        // Convert V1 wire ID back to u32 with flags
+        #[allow(deprecated)]
+        let full_node_id = from_wire_id_v1(wire_id);
+
         if samples_logged < max_samples {
             let is_agent = is_agent_node(full_node_id);
             let actual_id = get_actual_node_id(full_node_id);
             debug!(
-                "Decoded node wire_id={} -> full_id={} (actual_id={}, is_agent={}): pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
+                "Decoded V1 node wire_id={} -> full_id={} (actual_id={}, is_agent={}): pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
                 wire_id, full_node_id, actual_id, is_agent,
                 pos_x, pos_y, pos_z,
                 vel_x, vel_y, vel_z
@@ -394,10 +407,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
             samples_logged += 1;
         }
 
-        // Use the actual node ID (with agent flag stripped) for server-side processing
         let actual_id = get_actual_node_id(full_node_id);
-
-        // Convert wire format to server format (BinaryNodeData)
         let server_node_data = BinaryNodeData {
             node_id: actual_id,
             x: pos_x,
@@ -410,14 +420,103 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
 
         updates.push((actual_id, server_node_data));
     }
-    
-    debug!("Successfully decoded {} nodes from binary data", updates.len());
+
+    debug!("Successfully decoded {} V1 nodes from binary data", updates.len());
+    Ok(updates)
+}
+
+/// Decode V2 protocol (FIXED - 38 bytes per node, u32 IDs)
+fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
+    // Check if data is properly sized
+    if data.len() % WIRE_V2_ITEM_SIZE != 0 {
+        return Err(format!(
+            "Data size {} is not a multiple of V2 wire item size {}",
+            data.len(),
+            WIRE_V2_ITEM_SIZE
+        ));
+    }
+
+    let expected_nodes = data.len() / WIRE_V2_ITEM_SIZE;
+    debug!(
+        "Decoding V2 binary data: size={} bytes, expected nodes={}",
+        data.len(),
+        expected_nodes
+    );
+
+    let mut updates = Vec::with_capacity(expected_nodes);
+    let max_samples = 3;
+    let mut samples_logged = 0;
+
+    // Process data in chunks of WIRE_V2_ITEM_SIZE bytes
+    for chunk in data.chunks_exact(WIRE_V2_ITEM_SIZE) {
+        let mut cursor = 0;
+
+        // Read u32 ID (4 bytes) - FIXED: Full 32-bit support
+        let wire_id = u32::from_le_bytes([
+            chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]
+        ]);
+        cursor += 4;
+
+        // Read position (12 bytes = 3 * f32)
+        let pos_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let pos_y = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let pos_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+
+        // Read velocity (12 bytes = 3 * f32)
+        let vel_x = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let vel_y = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let vel_z = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+
+        // Read SSSP data (8 bytes)
+        let _sssp_distance = f32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+        cursor += 4;
+        let _sssp_parent = i32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
+
+        // Convert V2 wire ID back to u32 with flags (no truncation)
+        let full_node_id = from_wire_id_v2(wire_id);
+
+        if samples_logged < max_samples {
+            let is_agent = is_agent_node(full_node_id);
+            let actual_id = get_actual_node_id(full_node_id);
+            debug!(
+                "Decoded V2 node wire_id={} -> full_id={} (actual_id={}, is_agent={}): pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
+                wire_id, full_node_id, actual_id, is_agent,
+                pos_x, pos_y, pos_z,
+                vel_x, vel_y, vel_z
+            );
+            samples_logged += 1;
+        }
+
+        let actual_id = get_actual_node_id(full_node_id);
+        let server_node_data = BinaryNodeData {
+            node_id: actual_id,
+            x: pos_x,
+            y: pos_y,
+            z: pos_z,
+            vx: vel_x,
+            vy: vel_y,
+            vz: vel_z,
+        };
+
+        updates.push((actual_id, server_node_data));
+    }
+
+    debug!("Successfully decoded {} V2 nodes from binary data", updates.len());
     Ok(updates)
 }
 
 pub fn calculate_message_size(updates: &[(u32, BinaryNodeData)]) -> usize {
-    // Each update uses WIRE_ITEM_SIZE (34 bytes)
-    updates.len() * WIRE_ITEM_SIZE
+    // Determine protocol version based on node IDs
+    let use_v2 = needs_v2_protocol(updates);
+    let item_size = if use_v2 { WIRE_V2_ITEM_SIZE } else { WIRE_V1_ITEM_SIZE };
+    // 1 byte for protocol version + items
+    1 + updates.len() * item_size
 }
 
 #[cfg(test)]
@@ -426,62 +525,55 @@ mod tests {
 
     #[test]
     fn test_wire_format_size() {
-        // Verify that WIRE_ITEM_SIZE is exactly 34 bytes
-        assert_eq!(WIRE_ITEM_SIZE, 34);
-        assert_eq!(WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE, 34);
+        // Verify V1 format is 34 bytes (legacy)
+        assert_eq!(WIRE_V1_ITEM_SIZE, 34);
+        // Verify V2 format is 38 bytes (current)
+        assert_eq!(WIRE_V2_ITEM_SIZE, 38);
+        assert_eq!(WIRE_ITEM_SIZE, WIRE_V2_ITEM_SIZE); // Default is V2
+        assert_eq!(WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE, 38);
     }
 
     #[test]
     fn test_encode_decode_roundtrip() {
         let nodes = vec![
             (1u32, BinaryNodeData {
-                position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
-                velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
-                sssp_distance: f32::INFINITY,
-                sssp_parent: -1,
-                mass: 100,
-                flags: 1,
-                padding: [0, 0],
+                node_id: 1,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
             }),
             (2u32, BinaryNodeData {
-                position: crate::types::vec3::Vec3Data::new(4.0, 5.0, 6.0),
-                velocity: crate::types::vec3::Vec3Data::new(0.4, 0.5, 0.6),
-                mass: 200,
-                flags: 1,
-                padding: [0, 0],
+                node_id: 2,
+                x: 4.0, y: 5.0, z: 6.0,
+                vx: 0.4, vy: 0.5, vz: 0.6,
             }),
         ];
 
         let encoded = encode_node_data(&nodes);
-        
-        // Verify encoded size matches expected wire format
-        assert_eq!(encoded.len(), nodes.len() * WIRE_ITEM_SIZE);
-        assert_eq!(encoded.len(), nodes.len() * 34);
-        
+
+        // Verify encoded size: 1 byte version + nodes * V2 item size (small IDs use V2 by default now)
+        assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
+
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
 
         for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
             assert_eq!(orig_id, dec_id);
-            assert_eq!(orig_data.position, dec_data.position);
-            assert_eq!(orig_data.velocity, dec_data.velocity);
-            // Note: mass, flags, and padding are not transmitted over the wire,
-            // so decoded values will have defaults (100, 0, [0,0])
-            assert_eq!(dec_data.mass, 100u8);
-            assert_eq!(dec_data.flags, 0u8);
-            assert_eq!(dec_data.padding, [0u8, 0u8]);
+            assert_eq!(orig_data.position(), dec_data.position());
+            assert_eq!(orig_data.velocity(), dec_data.velocity());
         }
     }
 
     #[test]
     fn test_decode_invalid_data() {
-        // Test with data that's not a multiple of wire item size (34 bytes)
-        let result = decode_node_data(&[0u8; 33]);
+        // Test with V2 protocol marker but invalid data size (not multiple of 38 bytes)
+        let mut data = vec![PROTOCOL_V2]; // Version byte
+        data.extend_from_slice(&[0u8; 37]); // 37 bytes (not multiple of 38)
+        let result = decode_node_data(&data);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("not a multiple of wire item size"));
-        
-        // Test with data that's too short but multiple of wire size
-        let result = decode_node_data(&[0u8; 0]);
+        assert!(result.unwrap_err().contains("not a multiple of"));
+
+        // Test with just version byte (valid empty message)
+        let result = decode_node_data(&[PROTOCOL_V2]);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 0);
     }
@@ -490,19 +582,16 @@ mod tests {
     fn test_message_size_calculation() {
         let nodes = vec![
             (1u32, BinaryNodeData {
-                position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
-                velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
-                sssp_distance: f32::INFINITY,
-                sssp_parent: -1,
-                mass: 100,
-                flags: 1,
-                padding: [0, 0],
+                node_id: 1,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
             }),
         ];
 
         let size = calculate_message_size(&nodes);
-        assert_eq!(size, 34);
-        
+        // V2 format: 1 byte version + 38 bytes per node
+        assert_eq!(size, 1 + 38);
+
         let encoded = encode_node_data(&nodes);
         assert_eq!(encoded.len(), size);
     }
@@ -531,69 +620,131 @@ mod tests {
 
     #[test]
     fn test_wire_id_conversion() {
-        // Test basic conversion
+        // Test basic conversion (V2 uses u32, no truncation)
         let node_id = 42u32;
         let wire_id = to_wire_id(node_id);
-        assert_eq!(wire_id, 42u16);
+        assert_eq!(wire_id, 42u32); // V2 returns u32
         assert_eq!(from_wire_id(wire_id), node_id);
-        
+
         // Test agent flag preservation
         let agent_id = set_agent_flag(node_id);
         let agent_wire_id = to_wire_id(agent_id);
-        assert_eq!(agent_wire_id & WIRE_NODE_ID_MASK, 42u16);
-        assert!((agent_wire_id & WIRE_AGENT_FLAG) != 0);
+        assert_eq!(agent_wire_id & WIRE_V2_NODE_ID_MASK, 42u32);
+        assert!((agent_wire_id & WIRE_V2_AGENT_FLAG) != 0);
         assert_eq!(from_wire_id(agent_wire_id), agent_id);
-        
+
         // Test knowledge flag preservation
         let knowledge_id = set_knowledge_flag(node_id);
         let knowledge_wire_id = to_wire_id(knowledge_id);
-        assert_eq!(knowledge_wire_id & WIRE_NODE_ID_MASK, 42u16);
-        assert!((knowledge_wire_id & WIRE_KNOWLEDGE_FLAG) != 0);
+        assert_eq!(knowledge_wire_id & WIRE_V2_NODE_ID_MASK, 42u32);
+        assert!((knowledge_wire_id & WIRE_V2_KNOWLEDGE_FLAG) != 0);
         assert_eq!(from_wire_id(knowledge_wire_id), knowledge_id);
-        
-        // Test large node ID truncation
-        let large_id = 0x5432u32; // Larger than 14 bits
-        let truncated_wire_id = to_wire_id(large_id);
-        assert_eq!(truncated_wire_id, 0x1432u16); // Truncated to 14 bits
+
+        // Test large node ID (V2 no longer truncates)
+        let large_id = 0x5432u32;
+        let wire_id = to_wire_id(large_id);
+        assert_eq!(wire_id, 0x5432u32); // V2: No truncation!
+        assert_eq!(from_wire_id(wire_id), large_id);
     }
 
     #[test]
     fn test_encode_with_agent_flags() {
         let nodes = vec![
             (1u32, BinaryNodeData {
-                position: crate::types::vec3::Vec3Data::new(1.0, 2.0, 3.0),
-                velocity: crate::types::vec3::Vec3Data::new(0.1, 0.2, 0.3),
-                sssp_distance: f32::INFINITY,
-                sssp_parent: -1,
-                mass: 100,
-                flags: 1,
-                padding: [0, 0],
+                node_id: 1,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
             }),
             (2u32, BinaryNodeData {
-                position: crate::types::vec3::Vec3Data::new(4.0, 5.0, 6.0),
-                velocity: crate::types::vec3::Vec3Data::new(0.4, 0.5, 0.6),
-                mass: 200,
-                flags: 1,
-                padding: [0, 0],
+                node_id: 2,
+                x: 4.0, y: 5.0, z: 6.0,
+                vx: 0.4, vy: 0.5, vz: 0.6,
             }),
         ];
 
         // Mark node 2 as an agent
         let agent_ids = vec![2u32];
         let encoded = encode_node_data_with_flags(&nodes, &agent_ids);
-        
-        // Verify encoded size
-        assert_eq!(encoded.len(), nodes.len() * 34);
-        
+
+        // Verify encoded size: 1 byte version + nodes * V2 item size
+        assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
+
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
 
         // Verify that positions and velocities are preserved
         for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
             assert_eq!(orig_id, dec_id); // IDs should match after flag stripping
-            assert_eq!(orig_data.position, dec_data.position);
-            assert_eq!(orig_data.velocity, dec_data.velocity);
+            assert_eq!(orig_data.position(), dec_data.position());
+            assert_eq!(orig_data.velocity(), dec_data.velocity());
         }
+    }
+
+    #[test]
+    fn test_large_node_id_no_truncation() {
+        // Test that V2 protocol handles large node IDs correctly
+        let large_nodes = vec![
+            (20000u32, BinaryNodeData {
+                node_id: 20000,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
+            }),
+            (100000u32, BinaryNodeData {
+                node_id: 100000,
+                x: 4.0, y: 5.0, z: 6.0,
+                vx: 0.4, vy: 0.5, vz: 0.6,
+            }),
+        ];
+
+        // Verify V2 is automatically selected
+        assert!(needs_v2_protocol(&large_nodes));
+
+        let encoded = encode_node_data(&large_nodes);
+
+        // First byte should be PROTOCOL_V2
+        assert_eq!(encoded[0], PROTOCOL_V2);
+
+        let decoded = decode_node_data(&encoded).unwrap();
+        assert_eq!(large_nodes.len(), decoded.len());
+
+        // Verify node IDs are preserved without truncation
+        assert_eq!(decoded[0].0, 20000u32);
+        assert_eq!(decoded[1].0, 100000u32);
+    }
+
+    #[test]
+    fn test_v1_backwards_compatibility() {
+        // Test that small node IDs can use V1 if needed
+        let small_nodes = vec![
+            (100u32, BinaryNodeData {
+                node_id: 100,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
+            }),
+        ];
+
+        // V1 not needed, but should decode correctly if received
+        let mut v1_encoded = vec![PROTOCOL_V1];
+        #[allow(deprecated)]
+        {
+            let wire_id = to_wire_id_v1(100);
+            v1_encoded.extend_from_slice(&wire_id.to_le_bytes());
+        }
+        // Add position
+        v1_encoded.extend_from_slice(&1.0f32.to_le_bytes());
+        v1_encoded.extend_from_slice(&2.0f32.to_le_bytes());
+        v1_encoded.extend_from_slice(&3.0f32.to_le_bytes());
+        // Add velocity
+        v1_encoded.extend_from_slice(&0.1f32.to_le_bytes());
+        v1_encoded.extend_from_slice(&0.2f32.to_le_bytes());
+        v1_encoded.extend_from_slice(&0.3f32.to_le_bytes());
+        // Add SSSP fields
+        v1_encoded.extend_from_slice(&f32::INFINITY.to_le_bytes());
+        v1_encoded.extend_from_slice(&(-1i32).to_le_bytes());
+
+        let decoded = decode_node_data(&v1_encoded).unwrap();
+        assert_eq!(decoded.len(), 1);
+        assert_eq!(decoded[0].0, 100u32);
     }
 }
 

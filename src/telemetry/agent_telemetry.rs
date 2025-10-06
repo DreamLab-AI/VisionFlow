@@ -35,6 +35,17 @@ impl CorrelationId {
         Self(format!("swarm-{}", swarm_id))
     }
 
+    /// Create correlation ID from client session ID
+    /// This is used when browser provides session_${timestamp}_${random}
+    pub fn from_client_session(client_session_id: &str) -> Self {
+        Self(format!("client-{}", client_session_id))
+    }
+
+    /// Create from UUID (used when SessionCorrelationBridge provides mapping)
+    pub fn from_uuid(uuid: uuid::Uuid) -> Self {
+        Self(uuid.to_string())
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -325,6 +336,41 @@ impl AgentTelemetryLogger {
                 self.flush_buffer_to_file(&mut buffer);
             }
         }
+    }
+
+    /// Create telemetry event from client session ID, automatically looking up correlation ID
+    /// This is the recommended method for browser-originated events
+    pub fn from_client_session(
+        &self,
+        client_session_id: &str,
+        bridge: Option<&crate::services::session_correlation_bridge::SessionCorrelationBridge>,
+        level: LogLevel,
+        category: &str,
+        event_type: &str,
+        message: &str,
+        component: &str,
+    ) -> TelemetryEvent {
+        // Try to get mapped correlation ID from bridge
+        let correlation_id = if let Some(bridge) = bridge {
+            bridge.get_correlation_id(client_session_id)
+                .unwrap_or_else(|| {
+                    debug!("No correlation ID found for client session {}, creating fallback", client_session_id);
+                    CorrelationId::from_client_session(client_session_id)
+                })
+        } else {
+            debug!("No SessionCorrelationBridge provided, using client session as correlation ID");
+            CorrelationId::from_client_session(client_session_id)
+        };
+
+        TelemetryEvent::new(
+            correlation_id,
+            level,
+            category,
+            event_type,
+            message,
+            component,
+        )
+        .with_client_session_id(client_session_id)
     }
 
     /// Log agent spawn event with position generation debugging

@@ -32,6 +32,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
+use uuid;
 
 use crate::telemetry::agent_telemetry::CorrelationId;
 
@@ -99,12 +100,17 @@ pub struct SessionCorrelationBridge {
 }
 
 impl SessionCorrelationBridge {
-    /// Create a new session correlation bridge
+    /// Create a new session correlation bridge with default settings
+    pub fn new() -> Self {
+        Self::with_max_age(3600) // Default 1 hour TTL
+    }
+
+    /// Create a new session correlation bridge with custom max age
     ///
     /// # Arguments
     /// * `max_age_seconds` - Maximum age of mappings before considered stale (default: 3600 = 1 hour)
-    pub fn new(max_age_seconds: i64) -> Self {
-        info!("Initializing SessionCorrelationBridge with max_age={}s", max_age_seconds);
+    pub fn with_max_age(max_age_seconds: i64) -> Self {
+        info!("Initialising SessionCorrelationBridge with max_age={}s", max_age_seconds);
         Self {
             client_to_server: Arc::new(RwLock::new(HashMap::new())),
             server_to_client: Arc::new(RwLock::new(HashMap::new())),
@@ -168,9 +174,9 @@ impl SessionCorrelationBridge {
             client_session_id, correlation_id, metadata
         );
 
+        let (key, value) = metadata.into_iter().next().unwrap_or(("".to_string(), "".to_string()));
         let mapping = SessionMapping::new(client_session_id.clone(), correlation_id.clone())
-            .with_metadata(metadata.into_iter().next().unwrap_or(("".to_string(), "".to_string())).0,
-                          metadata.into_iter().next().unwrap_or(("".to_string(), "".to_string())).1);
+            .with_metadata(key, value);
 
         let mut client_map = self.client_to_server
             .write()
@@ -371,6 +377,79 @@ impl SessionCorrelationBridge {
             .map(|m| m.correlation_id.clone())
             .collect())
     }
+
+    /// Async wrapper for lookup_correlation - checks if client session exists and returns correlation ID
+    /// This is the primary method used by client_log_handler
+    pub async fn lookup_correlation(&self, client_session_id: &str) -> Option<uuid::Uuid> {
+        self.get_correlation_id(client_session_id)
+            .and_then(|corr_id| uuid::Uuid::parse_str(corr_id.as_str()).ok())
+    }
+
+    /// Async wrapper for register - creates new bidirectional mapping
+    /// This is called when a new client session is detected
+    pub async fn register(&self, client_session_id: String, correlation_uuid: uuid::Uuid) {
+        let correlation_id = CorrelationId(correlation_uuid.to_string());
+        if let Err(e) = self.register_session(client_session_id.clone(), correlation_id) {
+            error!("Failed to register session correlation: {}", e);
+        } else {
+            debug!("Session correlation registered: {} ↔ {}", client_session_id, correlation_uuid);
+        }
+    }
+
+    /// Async wrapper for cleanup - removes expired mappings based on TTL
+    /// Returns (removed_count, remaining_count)
+    pub async fn cleanup_expired(&self, max_age: tokio::time::Duration) -> (usize, usize) {
+        let max_age_secs = max_age.as_secs() as i64;
+
+        match self.cleanup_stale_sessions_with_age(max_age_secs) {
+            Ok(removed) => {
+                let remaining = self.get_stats()
+                    .map(|s| s.total_mappings)
+                    .unwrap_or(0);
+                (removed, remaining)
+            }
+            Err(e) => {
+                error!("Failed to cleanup expired sessions: {}", e);
+                (0, 0)
+            }
+        }
+    }
+
+    /// Internal helper for cleanup with custom age
+    fn cleanup_stale_sessions_with_age(&self, max_age_seconds: i64) -> Result<usize, String> {
+        debug!("Starting cleanup of stale sessions (max_age={}s)", max_age_seconds);
+
+        let mut client_map = self.client_to_server
+            .write()
+            .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+        let mut server_map = self.server_to_client
+            .write()
+            .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+        // Find stale session IDs
+        let stale_sessions: Vec<String> = client_map
+            .iter()
+            .filter(|(_, mapping)| mapping.is_stale(max_age_seconds))
+            .map(|(session_id, _)| session_id.clone())
+            .collect();
+
+        let count = stale_sessions.len();
+
+        // Remove stale mappings
+        for session_id in stale_sessions {
+            if let Some(mapping) = client_map.remove(&session_id) {
+                server_map.remove(mapping.correlation_id.as_str());
+                debug!("Removed stale mapping: {} ↔ {}", session_id, mapping.correlation_id);
+            }
+        }
+
+        if count > 0 {
+            info!("Cleaned up {} stale session mappings", count);
+        }
+
+        Ok(count)
+    }
 }
 
 /// Statistics about the bridge state
@@ -393,7 +472,7 @@ static BRIDGE_INIT: std::sync::Once = std::sync::Once::new();
 pub fn init_global_bridge(max_age_seconds: Option<i64>) {
     BRIDGE_INIT.call_once(|| {
         let max_age = max_age_seconds.unwrap_or(3600);
-        let bridge = SessionCorrelationBridge::new(max_age);
+        let bridge = SessionCorrelationBridge::with_max_age(max_age);
         unsafe {
             GLOBAL_BRIDGE = Some(bridge);
         }
@@ -435,7 +514,7 @@ mod tests {
 
     #[test]
     fn test_bidirectional_mapping() {
-        let bridge = SessionCorrelationBridge::new(3600);
+        let bridge = SessionCorrelationBridge::with_max_age(3600);
         let session_id = "session_1234567890_abc123".to_string();
         let correlation_id = CorrelationId::new();
 
@@ -456,7 +535,7 @@ mod tests {
 
     #[test]
     fn test_session_removal() {
-        let bridge = SessionCorrelationBridge::new(3600);
+        let bridge = SessionCorrelationBridge::with_max_age(3600);
         let session_id = "session_1234567890_abc123".to_string();
         let correlation_id = CorrelationId::new();
 
@@ -475,7 +554,7 @@ mod tests {
 
     #[test]
     fn test_stale_session_cleanup() {
-        let bridge = SessionCorrelationBridge::new(1); // 1 second max age
+        let bridge = SessionCorrelationBridge::with_max_age(1); // 1 second max age
         let session_id = "session_1234567890_abc123".to_string();
         let correlation_id = CorrelationId::new();
 
@@ -495,7 +574,7 @@ mod tests {
 
     #[test]
     fn test_bridge_stats() {
-        let bridge = SessionCorrelationBridge::new(3600);
+        let bridge = SessionCorrelationBridge::with_max_age(3600);
 
         // Register multiple sessions
         for i in 0..5 {
@@ -513,7 +592,7 @@ mod tests {
 
     #[test]
     fn test_concurrent_access() {
-        let bridge = Arc::new(SessionCorrelationBridge::new(3600));
+        let bridge = Arc::new(SessionCorrelationBridge::with_max_age(3600));
         let mut handles = vec![];
 
         // Spawn multiple threads to register sessions
@@ -539,7 +618,7 @@ mod tests {
 
     #[test]
     fn test_metadata_storage() {
-        let bridge = SessionCorrelationBridge::new(3600);
+        let bridge = SessionCorrelationBridge::with_max_age(3600);
         let session_id = "session_1234567890_abc123".to_string();
         let correlation_id = CorrelationId::new();
 

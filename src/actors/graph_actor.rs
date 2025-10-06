@@ -2084,20 +2084,42 @@ impl GraphServiceActor {
                 return; // Skip this broadcast
             }
 
-            // Create binary position data for all nodes
+            // Create binary position data for BOTH knowledge graph AND agent graph
+            // Per dual-graph architecture: both types broadcast together with type flags
             let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+            let mut knowledge_ids: Vec<u32> = Vec::new();
+            let mut agent_ids: Vec<u32> = Vec::new();
 
+            // Collect knowledge graph nodes (from main graph)
             for (node_id, node) in self.node_map.iter() {
                 position_data.push((*node_id, BinaryNodeDataClient::new(
                     *node_id,
                     node.data.position(),
                     node.data.velocity(),
                 )));
+                knowledge_ids.push(*node_id);
+            }
+
+            // ALSO collect agent graph nodes (from bots_graph_data)
+            // This ensures both graphs are broadcast together in one unified message
+            for node in &self.bots_graph_data.nodes {
+                position_data.push((node.id, BinaryNodeDataClient::new(
+                    node.id,
+                    glam_to_vec3data(Vec3::new(node.data.x, node.data.y, node.data.z)),
+                    glam_to_vec3data(Vec3::new(node.data.vx, node.data.vy, node.data.vz)),
+                )));
+                agent_ids.push(node.id);
             }
 
             // Broadcast to all connected clients via client manager
             if !position_data.is_empty() {
-                let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
+                // Encode with proper type flags: KNOWLEDGE_NODE_FLAG and AGENT_NODE_FLAG
+                // Client will separate them by checking flags
+                let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
+                    &position_data,
+                    &agent_ids,
+                    &knowledge_ids
+                );
 
                 // Send to client manager for broadcasting
                 self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
@@ -2111,14 +2133,16 @@ impl GraphServiceActor {
                 self.last_broadcast_time = Some(now);
                 if !self.initial_positions_sent {
                     self.initial_positions_sent = true;
-                    info!("Sent initial positions to clients ({} nodes)", position_data.len());
+                    info!("Sent initial unified graph positions to clients ({} nodes: {} knowledge + {} agents)",
+                          position_data.len(), knowledge_ids.len(), agent_ids.len());
                 } else if force_broadcast {
-                    info!("Force broadcast positions to new clients ({} nodes)", position_data.len());
+                    info!("Force broadcast unified graph positions to new clients ({} nodes: {} knowledge + {} agents)",
+                          position_data.len(), knowledge_ids.len(), agent_ids.len());
                 }
 
                 if crate::utils::logging::is_debug_enabled() && !force_broadcast {
-                    debug!("Broadcast positions: {} nodes, stable: {}, pending: {}/{}",
-                           position_data.len(),
+                    debug!("Broadcast unified positions: {} total ({} knowledge + {} agents), stable: {}, pending: {}/{}",
+                           position_data.len(), knowledge_ids.len(), agent_ids.len(),
                            self.current_state == AutoBalanceState::Stable,
                            self.pending_broadcasts,
                            self.max_pending_broadcasts);
@@ -3159,91 +3183,39 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         bots_graph_data_mut.nodes = nodes;
         bots_graph_data_mut.edges = edges;
         
-        info!("Updated bots graph with {} agents and {} edges - sending optimized position updates to WebSocket clients",
+        info!("Updated bots graph with {} agents and {} edges - data will be broadcast in next physics cycle",
              msg.agents.len(), self.bots_graph_data.edges.len());
-        
-        // Send BINARY WebSocket updates for agents (position, velocity, SSSP, control bits)
-        // This is the HIGH-SPEED data path - metadata goes via REST
-        let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
-        let mut agent_node_ids: Vec<u32> = Vec::new();
 
-        // Collect agent positions for binary protocol (34 bytes per node)
-        for node in &self.bots_graph_data.nodes {
-            // Create binary node data with position, velocity, SSSP
-            let mut binary_node = BinaryNodeDataClient::new(
-                node.id,
-                glam_to_vec3data(Vec3::new(node.data.x, node.data.y, node.data.z)),
-                glam_to_vec3data(Vec3::new(node.data.vx, node.data.vy, node.data.vz)),
-            );
-
-            position_data.push((node.id, binary_node));
-
-            // Track agent IDs for control bit encoding
-            agent_node_ids.push(node.id);
-        }
-
-        let binary_size = if !position_data.is_empty() {
-            // Use binary protocol with control bits for agent identification
-            // This encodes: node_id (2 bytes with flags), position (12 bytes),
-            // velocity (12 bytes), SSSP distance (4 bytes), SSSP parent (4 bytes)
-            let binary_data = crate::utils::binary_protocol::encode_node_data_with_flags(
-                &position_data,
-                &agent_node_ids  // These will have the agent control bit set
-            );
-
-            // Send via BINARY WebSocket protocol
-            self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
-                positions: binary_data.clone(),
-            });
-
-            // Log metrics
-            let binary_size = binary_data.len();
-            let nodes_sent = position_data.len();
-            info!("Sent BINARY agent update: {} nodes, {} bytes total, {} bytes/node",
-                  nodes_sent, binary_size, binary_size / nodes_sent);
-
-            binary_size
-        } else {
-            0
-        };
-
-        // DO NOT send graph structure over WebSocket - this belongs in REST!
-        // WebSocket is ONLY for high-speed variable data:
-        // - Position/Velocity (sent above via binary)
-        // - SSSP data (included in binary)
-        // - Voice/Audio streams
-        // - Control bits for node types
+        // DUAL-GRAPH ARCHITECTURE FIX:
+        // Per docs/architecture/core/visualization.md, both knowledge and agent graphs
+        // are broadcast TOGETHER in a unified message from the physics loop.
         //
-        // Everything else (edges, metadata, agent details) goes via REST:
-        // - GET /api/bots/data - Full agent list with metadata
-        // - GET /api/bots/status - Agent telemetry
-        // - POST /api/bots/submit-task - Submit tasks
-        // - GET /api/bots/task-status/{id} - Task status
+        // The physics loop (PhysicsUpdate handler) now collects BOTH graphs:
+        // - Knowledge nodes from node_map with KNOWLEDGE_NODE_FLAG (bit 30)
+        // - Agent nodes from bots_graph_data with AGENT_NODE_FLAG (bit 31)
+        //
+        // This prevents duplicate/conflicting broadcasts and ensures clients receive
+        // a single unified stream with proper type flags for separation.
+        //
+        // DO NOT broadcast agents separately here - it causes position conflicts!
+        // The physics loop will pick up the updated bots_graph_data automatically.
 
-        debug!("Agent binary positions sent. Graph structure available via REST /api/bots/data");
+        debug!("Agent graph data updated ({} nodes). Physics loop will broadcast with AGENT_NODE_FLAG.",
+               self.bots_graph_data.nodes.len());
 
-        info!("Sent optimized graph update: {} nodes, {} edges ({} bytes)",
-              position_data.len(),
-              self.bots_graph_data.edges.len(),
-              binary_size);
-
-        // Only send bots graph to GPU if it has nodes - don't overwrite VisionFlow graph with empty data
+        // Send agents to GPU for physics simulation
+        // Both knowledge graph and agent graph coexist in GPU physics
         if self.bots_graph_data.nodes.len() > 0 {
             if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
                 gpu_compute_addr.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(&self.bots_graph_data)
                 });
-                info!("Sent updated bots graph data ({} nodes) to GPU compute actor",
+                info!("Sent updated bots graph data ({} nodes) to GPU compute actor for physics simulation",
                       self.bots_graph_data.nodes.len());
             } else {
-                warn!("No GPU compute address available - bots will remain at initial positions");
+                warn!("No GPU compute address available - bots will use initial positions only");
             }
-        } else {
-            debug!("Skipping GPU update for empty bots graph - preserving existing VisionFlow graph physics");
         }
-
-        // Remove CPU physics calculations for agent graph - delegate to GPU
-        // The GPU will use the edge weights (communication intensity) for spring forces
     }
 }
 

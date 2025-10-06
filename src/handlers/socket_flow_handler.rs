@@ -1040,14 +1040,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                 info!("Received binary message, length: {}", data.len());
                 self.last_activity = std::time::Instant::now();
 
-                // Enhanced logging for binary messages (26 bytes per node with u16 IDs)
-                if data.len() % 26 != 0 {
-                    warn!(
-                        "Binary message size mismatch: {} bytes (not a multiple of 26, remainder: {})",
-                        data.len(),
-                        data.len() % 26
-                    );
-                }
+                // Binary messages use protocol versioning:
+                // V1: 1 byte version + 34 bytes per node (u16 IDs, max 16383)
+                // V2: 1 byte version + 38 bytes per node (u32 IDs, max 1B+)
+                // We don't validate size here since protocol handles it
 
                 match binary_protocol::decode_node_data(&data) {
                     Ok(nodes) => {
