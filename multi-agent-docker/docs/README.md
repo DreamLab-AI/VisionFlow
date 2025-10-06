@@ -1,13 +1,20 @@
 # Multi-Agent Docker System Documentation
 
-**Last Updated**: 2025-10-05
-**Version**: 2.0 (Session-Isolated Architecture)
+**Last Updated**: 2025-10-06
+**Version**: 2.1 (Database-Isolated Architecture)
+
+## ⚠️ Critical: Database Isolation Required
+
+**NEVER run `claude-flow init --force` from `/workspace`** - This creates a shared database that causes container crashes.
+
+The system uses automatic database isolation. No manual initialization is needed.
 
 ## Overview
 
 The Multi-Agent Docker System is a containerized AI orchestration platform that provides:
 
 - **Hive-Mind Task Orchestration** with UUID-based session isolation
+- **Database Isolation** preventing SQLite lock conflicts
 - **MCP (Model Context Protocol)** server infrastructure for AI tool integration
 - **GPU-Accelerated Spring Visualization** telemetry streaming
 - **VNC Desktop Environment** for GUI-based AI tools (Blender, QGIS, Playwright)
@@ -30,6 +37,10 @@ docker exec -d multi-agent-container \
 # Monitor status
 docker exec multi-agent-container \
   /app/scripts/hive-session-manager.sh status $UUID
+
+# If experiencing container crashes
+docker exec multi-agent-container rm -f /workspace/.swarm/memory.db*
+docker-compose restart
 ```
 
 ## Documentation Structure
@@ -126,14 +137,31 @@ multi-agent-docker/
 - Inspect sessions: `/app/scripts/hive-session-manager.sh list`
 - Report issues with full logs and session UUID
 
-## Migration Notes
+## Important Usage Notes
 
-**From Previous Versions**:
-- All spawns now require UUID-based sessions
-- Direct `claude-flow hive-mind spawn` is deprecated
-- Use `hive-session-manager.sh` for all external spawns
-- Logs now persist across container restarts
-- Database isolation prevents concurrent spawn conflicts
+### Do NOT Use These Commands
+- ❌ `claude-flow init --force` (creates shared database conflicts)
+- ❌ `claude-flow-init-agents` alias (same issue)
+- ❌ Direct `claude-flow hive-mind spawn` from `/workspace` (bypasses isolation)
+
+### DO Use These Patterns
+- ✅ Session manager API for all task spawns
+- ✅ MCP servers handle initialization automatically
+- ✅ Wrapper handles CLI commands transparently
+- ✅ Each session gets isolated database automatically
+
+### Database Health Check
+```bash
+# Should show ONLY isolated databases
+docker exec multi-agent-container find /workspace/.swarm -name "memory.db" -ls
+
+# Correct output:
+#   tcp-server-instance/.swarm/memory.db
+#   sessions/{UUID}/.swarm/memory.db
+#   root-cli-instance/.swarm/memory.db
+
+# If you see /workspace/.swarm/memory.db → DELETE IT
+```
 
 ## Next Steps
 

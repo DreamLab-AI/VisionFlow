@@ -4,13 +4,42 @@
 
 SQLite databases are used throughout the system for persistent storage. Understanding their behavior is critical for troubleshooting.
 
-## Database Locations
+## ⚠️ Critical: Shared Database Problem
+
+**The BIGGEST source of issues is the legacy shared database at `/workspace/.swarm/memory.db`**
+
+This file should NOT exist. If it does, it causes:
+- Container crashes and restarts
+- SQLite BUSY errors
+- Session failures
+- Data corruption
+
+**Check for it**:
+```bash
+docker exec multi-agent-container ls -lah /workspace/.swarm/memory.db
+```
+
+**If it exists, delete it immediately**:
+```bash
+docker exec multi-agent-container rm -f /workspace/.swarm/memory.db*
+docker-compose restart
+```
+
+**How it gets created**:
+- Running `claude-flow init --force` from `/workspace` directory ❌
+- Using `claude-flow-init-agents` alias ❌
+- Legacy code paths (should be fixed) ❌
+
+**Prevention**: Never run init commands. The system uses automatic database isolation.
+
+## Correct Database Locations
 
 | Database | Path | Purpose | Isolation Level |
 |----------|------|---------|-----------------|
-| TCP Server DB | `/workspace/.swarm/tcp-server-instance/.swarm/memory.db` | MCP TCP server state | Process-isolated |
-| Session DBs | `/workspace/.swarm/sessions/{UUID}/.swarm/memory.db` | Per-session hive-mind state | Session-isolated |
-| Hive-mind DBs | Session-specific `.hive-mind/memory.db` | Hive-mind metadata | Conditionally created |
+| TCP Server DB | `/workspace/.swarm/tcp-server-instance/.swarm/memory.db` | MCP TCP server state | Process-isolated ✅ |
+| Root CLI DB | `/workspace/.swarm/root-cli-instance/.swarm/memory.db` | CLI commands run as root | User-isolated ✅ |
+| Session DBs | `/workspace/.swarm/sessions/{UUID}/.swarm/memory.db` | Per-session hive-mind state | Session-isolated ✅ |
+| **LEGACY SHARED** | `/workspace/.swarm/memory.db` | **SHOULD NOT EXIST** | ❌ CONFLICTS ❌ |
 
 ## Common Database Issues
 

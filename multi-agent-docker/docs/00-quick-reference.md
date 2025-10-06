@@ -1,5 +1,11 @@
 # Quick Reference Guide
 
+## ⚠️ Critical Database Warning
+
+**NEVER run `claude-flow init --force` from `/workspace`**
+
+This creates a shared `/workspace/.swarm/memory.db` that causes database conflicts and container crashes. The system uses isolated databases automatically - no manual initialization needed.
+
 ## One-Page Overview
 
 ### Start Container
@@ -88,19 +94,26 @@ echo '{
 # Check container status
 docker ps | grep multi-agent
 
-# View startup logs
+# View recent logs
 tail -f logs/entrypoint.log
+tail -f logs/mcp/tcp-server.log
 
 # Check services
 docker exec multi-agent-container supervisorctl status
 
-# Restart MCP server
-docker exec multi-agent-container \
-  supervisorctl restart mcp-tcp-server
+# Restart container if experiencing crashes
+docker-compose restart
 
-# Find database files
+# Remove legacy shared database (if container keeps crashing)
+docker exec multi-agent-container rm -f /workspace/.swarm/memory.db*
+
+# Verify database isolation
 docker exec multi-agent-container \
   find /workspace/.swarm -name "memory.db" -ls
+# Should show:
+#   /workspace/.swarm/tcp-server-instance/.swarm/memory.db
+#   /workspace/.swarm/sessions/{UUID}/.swarm/memory.db
+# Should NOT show: /workspace/.swarm/memory.db
 ```
 
 ## Documentation Index

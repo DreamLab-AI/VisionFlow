@@ -2,28 +2,44 @@
 
 ## Common Issues
 
-### Container Exits Unexpectedly
+### Container Exits/Restarts Repeatedly
 
-**Symptoms**: Container stops running after spawning tasks
+**Symptoms**: Container restarts every few minutes, loses active sessions
 
-**Cause**: Usually database lock conflicts (legacy issue, should be fixed)
+**Primary Cause**: Shared database `/workspace/.swarm/memory.db` causing SQLite lock conflicts
+
+**Diagnosis**:
+```bash
+# Check if legacy shared database exists
+docker exec multi-agent-container ls -lah /workspace/.swarm/memory.db
+
+# If file exists → THIS IS THE PROBLEM
+```
 
 **Solution**:
 ```bash
-# Check logs for the reason
-tail -100 logs/entrypoint.log
+# Remove the shared database
+docker exec multi-agent-container rm -f /workspace/.swarm/memory.db*
 
-# Look for database errors
-grep -r "SQLITE\|lock\|database" logs/
-
-# Verify database isolation
+# Verify proper isolation
 docker exec multi-agent-container \
   find /workspace/.swarm -name "memory.db" -ls
 
-# Should see multiple files, not just one
+# Should show ONLY isolated databases:
+#   /workspace/.swarm/tcp-server-instance/.swarm/memory.db
+#   /workspace/.swarm/sessions/{UUID}/.swarm/memory.db
+#   /workspace/.swarm/root-cli-instance/.swarm/memory.db
+# Should NOT show: /workspace/.swarm/memory.db
+
+# Restart container
+docker-compose restart
 ```
 
-**Prevention**: Use session manager for all spawns
+**Prevention**:
+- NEVER run `claude-flow init --force` from `/workspace`
+- Don't use `claude-flow-init-agents` alias (it creates shared DB)
+- Use session manager API for all task spawns
+- The wrapper handles isolation automatically for CLI commands
 
 ### Session Stuck in "starting"
 

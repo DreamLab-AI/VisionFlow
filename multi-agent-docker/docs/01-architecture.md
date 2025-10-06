@@ -147,17 +147,40 @@ GPU Spring Visualization System
 ### Problem Solved
 SQLite databases don't support concurrent writers. Previous architecture had all spawns writing to `/workspace/.swarm/memory.db` → lock conflicts → container crashes.
 
-### Solution
-Each process gets its own working directory and creates its own database:
+### Solution: Working Directory Isolation
+Each process runs in its own working directory, causing claude-flow to create its own isolated database:
 
 | Process | Working Directory | Database Path |
 |---------|------------------|---------------|
 | TCP MCP Server | `/workspace/.swarm/tcp-server-instance/` | `tcp-server-instance/.swarm/memory.db` |
+| Root CLI Wrapper | `/workspace/.swarm/root-cli-instance/` | `root-cli-instance/.swarm/memory.db` |
 | Session UUID-1 | `/workspace/.swarm/sessions/{uuid-1}/` | `sessions/{uuid-1}/.swarm/memory.db` |
 | Session UUID-2 | `/workspace/.swarm/sessions/{uuid-2}/` | `sessions/{uuid-2}/.swarm/memory.db` |
 | Session UUID-N | `/workspace/.swarm/sessions/{uuid-n}/` | `sessions/{uuid-n}/.swarm/memory.db` |
 
 **Result**: Different files = No lock conflicts = No crashes
+
+### Critical Rule: No Shared Database
+
+**⚠️ NEVER create `/workspace/.swarm/memory.db`**
+
+This path is NOT used by the system. If it exists, it indicates:
+- Someone ran `claude-flow init --force` from `/workspace` (DON'T DO THIS)
+- Legacy code path creating conflicts
+- Container will likely crash due to database locks
+
+**If container keeps restarting**:
+```bash
+docker exec multi-agent-container rm -f /workspace/.swarm/memory.db*
+```
+
+### How claude-flow Wrapper Works
+
+The system installs a wrapper at `/usr/bin/claude-flow` that:
+1. Detects if running as root user
+2. If root: switches to dev user and changes to `/workspace/.swarm/root-cli-instance/`
+3. If dev: runs normally in current directory
+4. Prevents accidental shared database creation
 
 ## Session Directory Structure
 
