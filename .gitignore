@@ -170,3 +170,4 @@ hive-mind-prompt-*.txt
 # Claude Flow metrics directories
 .claude-flow/
 **/.claude-flow/
+multi-agent-docker/gui-tools-assets/blender-*.tar.xz
