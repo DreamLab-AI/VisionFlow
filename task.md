@@ -1,759 +1,212 @@
-Okay, this is an exciting and advanced feature! Adding head-tracked parallax viewing will create a much more immersive "window into another world" effect. Here's a comprehensive breakdown of how we can implement this, touching all the necessary parts of your application.
+Check our new agent init, monitoring and control data flows right across the client server system. Identify disconnects, mocks, stubs, and missing pieces.
 
-### Summary of Changes
+API
 
-1.  **Dependency**: Add `@mediapipe/tasks-vision` for face and eye tracking.
-2.  **New Hook (`useHeadTracking.ts`)**: A dedicated hook to manage webcam access, initialize MediaPipe's Face Landmarker, and process the video stream to calculate head position.
-3.  **New Component (`HeadTrackedParallaxController.tsx`)**: A React Three Fiber component that uses the head tracking data to modify the scene camera, creating the parallax effect.
-4.  **Settings Integration**: Add new settings to enable/disable head tracking and adjust its sensitivity, making it a configurable feature.
-5.  **UI Integration**: Add a toggle button in the `IntegratedControlPanel` (specifically in the `GraphInteractionTab`) to control the feature.
-6.  **Canvas Integration**: Add the new `HeadTrackedParallaxController` to your main `GraphCanvas` to apply the effect.
+  1. Session Creation Flow:
+  POST /api/bots/spawn-agent-hybrid
+  → Creates UUID: 6924c336-440b-46ea-9288-41f62d7cfd89
+  → Session manager creates isolated directory in multi-agent container
+  → Spawns hive-mind swarm
+  → Response in <2 seconds with both UUID and swarm_id
 
-Here are the detailed file modifications and new files required:
+  2. Filesystem Discovery:
+  UUID → Docker exec → Find swarm file
+  → Discovered: swarm-1759757990727-k4n864bw8
+  → Parsing successful
+  → Cached in McpSessionBridge
+  → Discovery time: <1 second
 
-### 1. Update `package.json`
+  3. API Endpoints:
+  - ✅ GET /api/sessions/list - Returns all monitored sessions with UUIDs and swarm IDs
+  - ✅ GET /api/sessions/{uuid}/status - Session details with real-time status
+  - ✅ GET /api/bots/agents - Now uses MCP bridge data instead of fallbacks
+  - ✅ POST /api/bots/spawn-agent-hybrid - Returns {uuid, swarm_id} immediately
 
-First, let's add the MediaPipe dependency.
-
-```json:client/package.json
-{
-  "name": "visionflow-client",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "npm run types:generate && vite build",
-    "preview": "vite preview",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
-    "test": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
-    "test:ui": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
-    "test:coverage": "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'",
-    "types:generate": "cd .. && cargo run --bin generate_types",
-    "types:watch": "cd .. && cargo watch -x 'run --bin generate_types'",
-    "types:clean": "rm -rf src/types/generated",
-    "prebuild": "npm run types:generate",
-    "preinstall": "node scripts/block-test-packages.js",
-    "security:check": "node scripts/block-test-packages.js && npm audit"
-  },
-  "dependencies": {
-    "@babylonjs/core": "8.28.0",
-    "@babylonjs/gui": "8.29.0",
-    "@babylonjs/loaders": "8.28.0",
-    "@babylonjs/materials": "8.28.0",
-    "@getalby/sdk": "^4.1.1",
-    "@mediapipe/tasks-vision": "^0.10.14",
-    "@radix-ui/react-collapsible": "^1.1.4",
-    "@radix-ui/react-dialog": "^1.1.7",
-    "@radix-ui/react-dropdown-menu": "^2.1.7",
-    "@radix-ui/react-label": "^2.1.3",
-    "@radix-ui/react-radio-group": "^1.1.3",
-    "@radix-ui/react-select": "^2.2.4",
-    "@radix-ui/react-slider": "^1.2.4",
-    "@radix-ui/react-slot": "^1.2.0",
-    "@radix-ui/react-switch": "^1.1.4",
-    "@radix-ui/react-toast": "^1.2.7",
-    "@radix-ui/react-tooltip": "^1.2.0",
-    "@radix-ui/themes": "^3.2.1",
-    "@react-three/drei": "^9.80.0",
-    "@react-three/fiber": "^8.15.0",
-    "@react-three/postprocessing": "^2.15.0",
-    "@types/lodash": "4.17.20",
-    "@types/react-window": "^1.8.8",
-    "@types/three": "^0.175.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "comlink": "^4.4.1",
-    "framer-motion": "^12.6.5",
-    "hls.js": "^1.6.2",
-    "immer": "^10.1.1",
-    "lodash": "4.17.21",
-    "lucide-react": "^0.487.0",
-    "nostr-tools": "^2.12.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^3.0.3",
-    "react-rnd": "^10.5.2",
-    "react-syntax-highlighter": "^15.6.6",
-    "react-window": "^1.8.10",
-    "remark-gfm": "^4.0.1",
-    "tailwind-merge": "^3.2.0",
-    "three": "^0.175.0",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.7",
-    "@types/node": "^22.14.1",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.21",
-    "jsdom": "^25.0.1",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.3",
-    "typescript": "^5.8.3",
-    "vite": "^6.2.6",
-    "wscat": "^6.1.0"
-  },
-  "overrides": {
-    "ansi-regex": "6.1.0",
-    "ansi-styles": "6.2.1",
-    "color-name": "2.0.0",
-    "color-convert": "2.0.1",
-    "supports-color": "9.4.0",
-    "strip-ansi": "7.1.0",
-    "string-width": "7.2.0",
-    "wrap-ansi": "9.0.0",
-    "esbuild": "0.25.9",
-    "prismjs": "1.30.0"
+  4. Data Consistency:
+  {
+    "uuid": "6924c336-440b-46ea-9288-41f62d7cfd89",
+    "swarm_id": "swarm-1759757990727-k4n864bw8",
+    "task": "Spawn coder agent for hive mind coordination",
+    "status": "Spawning",
+    "swarm_discovered_at": "2025-10-06T13:39:50.968841001Z"
   }
-}
-```
 
-### 2. Add MediaPipe Model Files
-
-You'll need to download the Face Landmarker model and place it in your `public` directory.
-
-1.  Create a new directory: `client/public/models/`.
-2.  Download the model file from: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`
-3.  Place the downloaded `face_landmarker.task` file inside `client/public/models/`.
-
-### 3. Create the Head Tracking Hook
-
-This new hook will encapsulate all the logic for accessing the webcam and running MediaPipe's face landmark detection.
-
-```typescript:client/src/hooks/useHeadTracking.ts
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
-import * as THREE from 'three';
-import { createLogger } from '@/utils/loggerConfig';
-
-const logger = createLogger('useHeadTracking');
-
-let faceLandmarker: FaceLandmarker | undefined;
-let lastVideoTime = -1;
-
-const smoothingFactor = 0.1; // Apply smoothing for less jittery movement
-
-export function useHeadTracking() {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isTracking, setIsTracking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [headPosition, setHeadPosition] = useState<THREE.Vector2 | null>(null);
-
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const animationFrameId = useRef<number | null>(null);
-  const smoothedPosition = useRef(new THREE.Vector2(0, 0));
-
-  const initialize = useCallback(async () => {
-    if (faceLandmarker) return;
-    try {
-      logger.info('Initializing MediaPipe Face Landmarker...');
-      const filesetResolver = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-      );
-      faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-        baseOptions: {
-          modelAssetPath: `/models/face_landmarker.task`,
-          delegate: 'GPU',
-        },
-        outputFaceBlendshapes: false,
-        outputFacialTransformationMatrixes: false,
-        runningMode: 'VIDEO',
-        numFaces: 1,
-      });
-      logger.info('Face Landmarker initialized.');
-    } catch (e: any) {
-      logger.error('Failed to initialize Face Landmarker', e);
-      setError('Failed to load head tracking model. Please check your network connection.');
-    }
-  }, []);
-
-  const predictWebcam = useCallback(() => {
-    if (!videoRef.current || !faceLandmarker || !videoRef.current.srcObject) {
-        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-        return;
-    }
-
-    const video = videoRef.current;
-    if (video.currentTime !== lastVideoTime) {
-      lastVideoTime = video.currentTime;
-      const results = faceLandmarker.detectForVideo(video, Date.now());
-
-      if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-        // Use nose tip (landmark 1) as a stable point for head position
-        const noseTip = results.faceLandmarks[0][1];
-        if (noseTip) {
-          // Normalize position to [-1, 1] range
-          // MediaPipe gives normalized coordinates [0, 1]
-          // We map x:[0,1] -> [-1,1] and y:[0,1] -> [1,-1] (inverted y)
-          const newPos = new THREE.Vector2(
-            (noseTip.x - 0.5) * 2,
-            -(noseTip.y - 0.5) * 2
-          );
-
-          // Apply smoothing (Lerp)
-          smoothedPosition.current.lerp(newPos, smoothingFactor);
-          setHeadPosition(smoothedPosition.current.clone());
-        }
-      } else {
-        setHeadPosition(null);
-      }
-    }
-
-    animationFrameId.current = requestAnimationFrame(predictWebcam);
-  }, []);
-
-  const start = useCallback(async () => {
-    if (isTracking) return;
-    setError(null);
-
-    await initialize();
-    if (!faceLandmarker) return;
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-        audio: false,
-      });
-
-      if (!videoRef.current) {
-        const video = document.createElement('video');
-        video.style.display = 'none';
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-        document.body.appendChild(video);
-        videoRef.current = video;
-      }
-
-      videoRef.current.srcObject = stream;
-      videoRef.current.addEventListener('loadeddata', () => {
-        videoRef.current?.play();
-        setIsTracking(true);
-        predictWebcam();
-      });
-    } catch (err: any) {
-      logger.error('Failed to get webcam access', err);
-      setError('Webcam access denied. Please allow camera permissions to use head tracking.');
-      setIsEnabled(false);
-    }
-  }, [isTracking, initialize, predictWebcam]);
-
-  const stop = useCallback(() => {
-    if (!isTracking && !videoRef.current?.srcObject) return;
-
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-      animationFrameId.current = null;
-    }
-
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-
-    setIsTracking(false);
-    setHeadPosition(null);
-    smoothedPosition.current.set(0, 0);
-  }, [isTracking]);
-
-  useEffect(() => {
-    if (isEnabled) {
-      start();
-    } else {
-      stop();
-    }
-  }, [isEnabled, start, stop]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stop();
-      if (videoRef.current) {
-        document.body.removeChild(videoRef.current);
-        videoRef.current = null;
-      }
-      // Do not close faceLandmarker, it can be reused across the app lifecycle.
-    };
-  }, [stop]);
-
-  return { isEnabled, setIsEnabled, isTracking, headPosition, error };
-}
-```
-
-### 4. Update Settings Configuration
-
-Let's define the new settings for head tracking.
-
-```typescript:client/src/features/settings/config/settings.ts
-// ... (keep existing content)
-
-// Add these new interfaces
-export interface HeadTrackedParallaxSettings {
-  enabled: boolean;
-  sensitivity: number;
-  cameraMode: 'offset' | 'asymmetricFrustum';
-}
-
-export interface InteractionSettings {
-  headTrackedParallax: HeadTrackedParallaxSettings;
-}
-
-// Modify VisualisationSettings
-export interface VisualisationSettings {
-  // ... (existing properties)
-  interaction?: InteractionSettings;
-}
-
-// ... (rest of the file)
-```
-
-Now, define the UI for these settings.
-
-```typescript:client/src/features/settings/config/settingsUIDefinition.ts
-// ... (keep existing content)
-
-// Add this new subsection to the `visualization` category's `subsections` object
-// in the `settingsUIDefinition` constant.
-
-// ... inside visualization.subsections
-    interaction: {
-      label: 'Advanced Interaction',
-      settings: {
-        headTrackedParallaxEnabled: {
-          label: 'Head-Tracked Parallax',
-          type: 'toggle',
-          path: 'visualisation.interaction.headTrackedParallax.enabled',
-          description: 'Enable parallax viewing effect using your webcam for head tracking.'
-        },
-        headTrackedParallaxSensitivity: {
-          label: 'Parallax Sensitivity',
-          type: 'slider',
-          min: 0.1,
-          max: 2.0,
-          step: 0.1,
-          path: 'visualisation.interaction.headTrackedParallax.sensitivity',
-          description: 'Controls the intensity of the head-tracked parallax effect.'
-        },
-        headTrackedParallaxMode: {
-          label: 'Parallax Camera Mode',
-          type: 'select',
-          options: [
-            { value: 'asymmetricFrustum', label: 'Asymmetric Frustum (Recommended)' },
-            { value: 'offset', label: 'Camera Offset (Simpler)' }
-          ],
-          path: 'visualisation.interaction.headTrackedParallax.cameraMode',
-          description: 'Method used to create the parallax effect. Asymmetric Frustum is more realistic.'
-        }
-      }
-    },
-// ... (rest of the subsections)
-```
-
-### 5. Add the UI Toggle to the Control Panel
-
-We'll add a new card to the `GraphInteractionTab` for controlling this feature.
-
-```tsx:client/src/features/visualisation/components/tabs/GraphInteractionTab.tsx
-/**
- * Graph Interaction Tab Component
- * Advanced interaction modes and controls with UK English localisation
- */
-
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  Clock,
-  Users,
-  Glasses,
-  Play,
-  Pause,
-  RotateCcw,
-  FastForward,
-  Rewind,
-  MapPin,
-  Radio,
-  Gamepad2,
-  AlertCircle,
-  Sparkles,
-  Navigation,
-  Eye // Import the Eye icon
-} from 'lucide-react';
-import { Button } from '@/features/design-system/components/Button';
-import { Switch } from '@/features/design-system/components/Switch';
-import { Label } from '@/features/design-system/components/Label';
-import { Badge } from '@/features/design-system/components/Badge';
-import { Slider } from '@/features/design-system/components/Slider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import { Progress } from '@/features/design-system/components/Progress';
-import { toast } from '@/features/design-system/components/Toast';
-import { interactionApi, type GraphProcessingProgress, type GraphProcessingResult } from '@/services/interactionApi';
-import { webSocketService } from '@/services/WebSocketService';
-import { useSettingsStore } from '@/store/settingsStore'; // Import settings store
-
-interface GraphInteractionTabProps {
-  graphId?: string;
-  onFeatureUpdate?: (feature: string, data: any) => void;
-}
-
-interface ProcessingState {
-  taskId: string | null;
-  isProcessing: boolean;
-  progress: number;
-  stage: string;
-  currentOperation: string;
-  estimatedTimeRemaining?: number;
-  metrics?: {
-    stepsProcessed: number;
-    totalSteps: number;
-    currentStep: string;
-    operationsCompleted: number;
-  };
-  error?: string;
-}
-
-export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
-  graphId = 'default',
-  onFeatureUpdate
-}) => {
-  // ... (existing state and hooks)
-  const { settings, updateSettings } = useSettingsStore();
-  const headTrackingEnabled = settings?.visualisation?.interaction?.headTrackedParallax?.enabled ?? false;
-
-
-  // ... (existing handlers)
-
-  const handleHeadTrackingToggle = useCallback((enabled: boolean) => {
-    updateSettings(draft => {
-      if (!draft.visualisation) draft.visualisation = {};
-      if (!draft.visualisation.interaction) {
-        draft.visualisation.interaction = { headTrackedParallax: { enabled: false, sensitivity: 1.0, cameraMode: 'asymmetricFrustum' } };
-      }
-      if (!draft.visualisation.interaction.headTrackedParallax) {
-        draft.visualisation.interaction.headTrackedParallax = { enabled: false, sensitivity: 1.0, cameraMode: 'asymmetricFrustum' };
-      }
-      draft.visualisation.interaction.headTrackedParallax.enabled = enabled;
-    });
-    onFeatureUpdate?.('headTracking', { enabled });
-    toast({
-      title: `Head Tracking ${enabled ? 'Enabled' : 'Disabled'}`,
-      description: enabled ? 'Webcam will be used to create a parallax effect.' : 'Head tracking has been turned off.'
-    });
-  }, [updateSettings, onFeatureUpdate]);
-
-
-  return (
-    <div className="space-y-4">
-      {/* Head-Tracked Parallax */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            Head-Tracked Parallax
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="head-tracking-toggle">Enable Head Tracking</Label>
-            <Switch
-              id="head-tracking-toggle"
-              checked={headTrackingEnabled}
-              onCheckedChange={handleHeadTrackingToggle}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Uses your webcam to create a 3D parallax effect based on your head position.
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Time Travel Mode */}
-      <Card>
-        {/* ... existing Time Travel content ... */}
-      </Card>
-
-      {/* Collaboration */}
-      <Card>
-        {/* ... existing Collaboration content ... */}
-      </Card>
-
-      {/* VR/AR Modes */}
-      <Card>
-        {/* ... existing VR/AR content ... */}
-      </Card>
-
-      {/* Exploration Tools */}
-      <Card>
-        {/* ... existing Exploration content ... */}
-      </Card>
-    </div>
-  );
-};
-
-export default GraphInteractionTab;
-```
-
-### 6. Create the Camera Controller Component
-
-This component will live inside the R3F Canvas and apply the parallax effect every frame.
-
-```typescript:client/src/features/visualisation/components/HeadTrackedParallaxController.tsx
-import React, { useEffect } from 'react';
-import { useThree, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useSettingsStore } from '@/store/settingsStore';
-import { useHeadTracking } from '@/hooks/useHeadTracking';
-import { toast } from '@/features/design-system/components/Toast';
-
-export function HeadTrackedParallaxController() {
-  const { camera, size } = useThree();
-  const { isEnabled, setIsEnabled, isTracking, headPosition, error } = useHeadTracking();
-
-  const trackingEnabled = useSettingsStore(state => state.settings?.visualisation?.interaction?.headTrackedParallax?.enabled);
-  const sensitivity = useSettingsStore(state => state.settings?.visualisation?.interaction?.headTrackedParallax?.sensitivity ?? 1.0);
-  const cameraMode = useSettingsStore(state => state.settings?.visualisation?.interaction?.headTrackedParallax?.cameraMode ?? 'asymmetricFrustum');
-
-  useEffect(() => {
-    setIsEnabled(!!trackingEnabled);
-  }, [trackingEnabled, setIsEnabled]);
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Head Tracking Error',
-        description: error,
-        variant: 'destructive',
-      });
-    }
-  }, [error]);
-
-  useFrame(() => {
-    if (isTracking && headPosition && camera instanceof THREE.PerspectiveCamera) {
-      if (cameraMode === 'asymmetricFrustum') {
-        const virtualScreenScale = 1.0 + sensitivity * 0.5;
-        const fullWidth = size.width * virtualScreenScale;
-        const fullHeight = size.height * virtualScreenScale;
-
-        const x_offset = -headPosition.x * (fullWidth - size.width) / 2;
-        const y_offset = headPosition.y * (fullHeight - size.height) / 2;
-
-        camera.setViewOffset(
-          fullWidth,
-          fullHeight,
-          x_offset,
-          y_offset,
-          size.width,
-          size.height
-        );
-        camera.updateProjectionMatrix();
-      } else { // 'offset' mode
-        // This is a simpler parallax that might fight with OrbitControls
-        // It's kept as an alternative.
-        const offsetX = headPosition.x * sensitivity * -0.5;
-        const offsetY = headPosition.y * sensitivity * 0.5;
-
-        const offsetVector = new THREE.Vector3(offsetX, offsetY, 0);
-        // This is a simplified approach and might not be perfect.
-        // It's applied as a small "nudge" to the camera's matrix.
-        const nudgeMatrix = new THREE.Matrix4().makeTranslation(offsetVector.x, offsetVector.y, 0);
-        camera.projectionMatrix.multiply(nudgeMatrix);
-      }
-    } else {
-      if (camera.view) {
-        camera.clearViewOffset();
-        camera.updateProjectionMatrix();
-      }
-    }
-  });
-
-  return null;
-}
-```
-
-### 7. Integrate into the Main Canvas
-
-Finally, add the new controller component to your main canvas component.
-
-```tsx:client/src/features/graph/components/GraphCanvas.tsx
-import React, { useRef, useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stats } from '@react-three/drei';
-import * as THREE from 'three';
-
-// GraphManager for rendering the actual graph
-import GraphManager from './GraphManager';
-// Post-processing effects - using modern R3F selective bloom
-import { SelectiveBloom } from '../../../rendering/SelectiveBloom';
-// Bots visualization for agent graph
-import { BotsVisualization } from '../../bots/components';
-import { AgentPollingStatus } from '../../bots/components/AgentPollingStatus';
-// SpacePilot Integration - using simpler version that works with useFrame
-import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
-// Head Tracking for Parallax
-import { HeadTrackedParallaxController } from '../../visualisation/components/HeadTrackedParallaxController';
-// Hologram environment removed
-// XR Support - causes graph to disappear
-// import XRController from '../../xr/components/XRController';
-// import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
-
-// Store and utils
-import { useSettingsStore } from '../../../store/settingsStore';
-import { graphDataManager, type GraphData } from '../managers/graphDataManager';
-import { createLogger } from '../../../utils/loggerConfig';
-import { HologramContent } from '../../visualisation/components/HolographicDataSphere';
-
-const logger = createLogger('GraphCanvas');
-
-// Main GraphCanvas component
-const GraphCanvas: React.FC = () => {
-
-    const containerRef = useRef<HTMLDivElement>(null);
-    const orbitControlsRef = useRef<any>(null);
-    const { settings } = useSettingsStore();
-    const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-    const xrEnabled = settings?.xr?.enabled !== false;
-    const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
-    const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
-    const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
-
-    // Graph data state
-    const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
-    const [canvasReady, setCanvasReady] = useState(false);
-
-    // Subscribe to graph data updates
-    useEffect(() => {
-        let mounted = true;
-
-
-        const handleGraphData = (data: GraphData) => {
-            if (mounted) {
-                setGraphData(data);
-            }
-        };
-
-        const unsubscribe = graphDataManager.onGraphDataChange(handleGraphData);
-
-        // Get initial data
-        graphDataManager.getGraphData().then((data) => {
-            if (mounted) {
-                setGraphData(data);
-            }
-        }).catch((error) => {
-            console.error('[GraphCanvas] Failed to load initial graph data:', error);
-        });
-
-        return () => {
-            mounted = false;
-            unsubscribe();
-        };
-    }, []);
-
-    return (
-        <div
-            ref={containerRef}
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: '#000033',
-                zIndex: 0
-            }}
-        >
-            {/* Debug indicator */}
-            {showStats && (
-                <div style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '10px',
-                    color: 'white',
-                    backgroundColor: 'rgba(255, 0, 0, 0.5)',
-                    padding: '5px 10px',
-                    zIndex: 1000,
-                    fontSize: '12px'
-                }}>
-                    Nodes: {graphData.nodes.length} | Edges: {graphData.edges.length} | Ready: {canvasReady ? 'Yes' : 'No'}
-                </div>
-            )}
-
-            {/* Agent Polling Status Overlay */}
-            <AgentPollingStatus />
-
-            <Canvas
-                camera={{
-                    fov: 75,
-                    near: 0.1,
-                    far: 2000,
-                    position: [20, 15, 20]
-                }}
-                onCreated={({ gl, camera, scene }) => {
-                    gl.setClearColor(0x000033, 1);
-                    setCanvasReady(true);
-                }}
-            >
-                {/* Basic lighting - reduced to prevent washout */}
-                <ambientLight intensity={0.15} />
-                <directionalLight position={[10, 10, 10]} intensity={0.4} />
-
-                {/* Holographic Data Sphere with minimal opacity - scaled 50x - only render if enabled */}
-                {enableHologram && (
-                  <HologramContent
-                    opacity={0.1}
-                    layer={2}
-                    renderOrder={-1}
-                    includeSwarm={false}
-                    enableDepthFade={true}
-                    fadeStart={2000}
-                    fadeEnd={5000}
-                  />
-                )}
-
-                {/* Graph Manager - only render when we have data and canvas is ready */}
-                {canvasReady && graphData.nodes.length > 0 && (
-                    <GraphManager graphData={graphData} />
-                )}
-
-                {/* Fallback cube removed - was showing when graph data was loading */}
-
-                {/* BotsVisualization for agent graph */}
-                <BotsVisualization />
-
-                {/* Camera controls with SpacePilot integration */}
-                <OrbitControls
-                    ref={orbitControlsRef}
-                    enablePan={true}
-                    enableZoom={true}
-                    enableRotate={true}
-                    zoomSpeed={0.8}
-                    panSpeed={0.8}
-                    rotateSpeed={0.8}
-                />
-                {/* Using the simpler SpacePilot integration that works with useFrame */}
-                <SpacePilotSimpleIntegration orbitControlsRef={orbitControlsRef} />
-
-                {/* Add the Head-Tracked Parallax Controller */}
-                <HeadTrackedParallaxController />
-
-                {/* XR Support - causes graph to disappear */}
-                {/* {xrEnabled && <XRController />} */}
-                {/* {xrEnabled && <XRVisualisationConnector />} */}
-
-                {/* Post-processing effects - using modern R3F selective bloom */}
-                <SelectiveBloom enabled={enableBloom || enableGlow} />
-
-                {/* Performance stats */}
-                {showStats && <Stats />}
-            </Canvas>
-        </div>
-    );
-};
-
-export default GraphCanvas;
-```
-
-This implementation provides a complete, end-to-end solution for adding a highly immersive head-tracked parallax effect to your application. It's fully integrated with your existing settings store, control panel, and rendering pipeline.
+  Key Achievements:
+
+  1. UUID-based session isolation working end-to-end
+  2. Filesystem discovery bypasses MCP TCP limitations
+  3. Docker-in-docker commands execute successfully from visionflow container
+  4. Sub-second swarm ID discovery via filesystem scan
+  5. Bidirectional mapping UUID ↔ swarm_id maintained in cache
+  6. Real agent data now flows through MCP bridge instead of legacy fallbacks
+
+
+● The UI is calling the correct endpoint. Let me check the browser console logs or check if    the request is even reaching the backend. Let me look at the nginx access logs:
+
+● I understand. So the UI sends a task description (like "create latex document"), the Rust
+   backend spawns the session via docker exec, and then the backend should be sending agent
+   data back. Let me check what actually happened when you clicked in the UI:
+● No new sessions created. The UI spawn didn't trigger anything. Let me check the UI code
+  to see what endpoint it actually calls:
+
+● Found it! The UI calls /bots/initialize-swarm endpoint. Let me check what parameters it
+  sends for hierarchical vs mesh:
+
+● Read(/mnt/mldata/githubs/AR-AI-Knowledge-Graph/client/src/features/bots/components/MultiAgent
+      InitializationPrompt.tsx)
+  ⎿  Read 30 lines (ctrl+o to expand)
+
+● So it's calling /bots/initialize-swarm with topology parameter. Let me check the backend
+  handler for this:
+
+● Search(pattern: "initialize.*swarm|initialize_hive_mind", path:
+        "/mnt/mldata/githubs/AR-AI-Knowledge-Graph/src/handlers/bots_handler.rs", output_mode:
+        "content")
+  ⎿  Found 6 lines (ctrl+o to expand)
+
+● Read(/mnt/mldata/githubs/AR-AI-Knowledge-Graph/src/handlers/bots_handler.rs)
+  ⎿  Read 60 lines (ctrl+o to expand)
+
+● I see the problem! The initialize_hive_mind_swarm endpoint doesn't actually spawn a
+  docker session - it just creates a fake swarm_id and returns existing agents. It's a stub
+   that doesn't use the session manager at all.
+
+  The issue is:
+  1. UI calls /bots/initialize-swarm with your task
+  2. Backend creates a fake swarm ID (timestamp-based)
+  3. Backend returns existing agents from fetch_hive_mind_agents
+  4. No actual docker session is created
+
+  The endpoint needs to be updated to use the session manager like spawn_agent_hybrid does.
+   Let me check recent logs to confirm:
+
+ The initialize-swarm endpoint needs to actually create a
+  session. This is why you don't see visual feedback - the endpoint is a stub that doesn't
+  create real sessions.
+  This is the gap - the initialize_hive_mind_swarm function needs to be refactored to
+  actually spawn sessions like spawn_agent_hybrid does.
+
+  1. Hive Mind / Swarm / Agent / Bot Creation & Management
+These files are directly involved in the creation, initialization, and control of agent swarms and individual agents, including submitting tasks and managing their lifecycle.
+client/src/features/bots/components/MultiAgentInitializationPrompt.tsx: The primary UI component for creating or "spawning" a new hive mind. It allows users to configure the swarm's topology, the number and types of agents, and the initial task.
+client/src/features/bots/components/AgentDetailPanel.tsx: A UI panel for viewing the detailed status of a single agent. Crucially, it includes functionality to submit new tasks to the entire swarm.
+client/src/features/bots/components/BotsControlPanel.tsx: A 3D UI panel within the visualization used for high-level management, including spawning new agents of different types (Coder, Tester, Analyst) into the existing swarm.
+client/src/features/bots/components/ProgrammaticMonitorControl.tsx: A UI component to control a programmatic monitor, which can simulate and send agent data, effectively managing a simulated swarm.
+client/src/utils/programmaticMonitor.ts: Implements the logic for the programmatic monitor. It can generate mock agent data and send updates via HTTP, simulating agent creation and activity for testing or demonstration.
+client/src/services/vircadia/AvatarManager.ts: Manages user and agent representations (avatars) in the Vircadia multi-user environment. It handles the creation and position broadcasting of these entities.
+client/src/services/vircadia/EntitySyncManager.ts: Responsible for pushing the graph data, which represents the swarm, to the Vircadia server. This is a key step in creating and updating the agents in the shared XR environment.
+client/src/services/vircadia/GraphEntityMapper.ts: Defines how abstract graph nodes and edges are mapped to concrete, renderable entities within the Vircadia world, forming the basis of agent representation.
+client/src/app/components/ConversationPane.tsx: Provides a chat interface for direct interaction with a specific type of agent (a RAGFlow chat agent), demonstrating agent handling and communication.
+2. Data Handling & Services
+These files manage the flow of data related to agents, including fetching from APIs, handling real-time updates via WebSockets, and managing state.
+client/src/features/bots/services/AgentPollingService.ts: The core service responsible for periodically polling the backend REST API (/api/bots/data) to fetch agent swarm metadata and state updates.
+client/src/features/bots/hooks/useAgentPolling.ts: A React hook that uses the AgentPollingService to efficiently provide live agent data to UI components.
+client/src/features/bots/services/BotsWebSocketIntegration.ts: Manages WebSocket connections dedicated to receiving real-time agent data, including high-frequency binary-encoded position and velocity updates.
+client/src/features/bots/hooks/useBotsWebSocketIntegration.ts: A React hook that manages the lifecycle of the BotsWebSocketIntegration service within the application.
+client/src/features/bots/contexts/BotsDataContext.tsx: A crucial React context that acts as the single source of truth for all agent and swarm data, integrating updates from both REST polling and WebSockets.
+client/src/services/BinaryWebSocketProtocol.ts: Defines and handles the custom binary protocol used for streaming agent data efficiently over WebSockets. This includes encoding and decoding agent states, positions, and control flags.
+client/src/types/binaryProtocol.ts: Contains the TypeScript type definitions, constants (like AGENT_NODE_FLAG), and helper functions for the binary protocol, essential for distinguishing agent data from other graph data.
+client/src/features/bots/types/BotsTypes.ts: Defines all core TypeScript interfaces for the bots feature, including BotsAgent, BotsEdge, and BotsState, which structure the agent data throughout the application.
+client/src/services/api/UnifiedApiClient.ts: The centralized API client used by services to communicate with the backend where the agent and swarm logic resides.
+client/src/features/bots/services/mockAgentData.ts: A utility for generating comprehensive mock data that simulates a swarm of agents, used for development and testing.
+client/src/features/bots/services/mockDataAdapter.ts: An adapter that converts the detailed mock data into the specific formats required by the application's services and components.
+client/src/types/ragflowTypes.ts: Defines the data structures for requests and responses when communicating with the RAGFlow chat agent.
+3. Telemetry & Monitoring
+These files are focused on collecting, displaying, and managing telemetry data for monitoring the performance and behavior of the agent swarm.
+client/src/telemetry/AgentTelemetry.ts: The central service for all agent-related telemetry. It collects, buffers, and uploads logs and metrics on agent actions, WebSocket messages, and 3D rendering performance.
+client/src/telemetry/useTelemetry.ts: Provides React hooks (useTelemetry, useThreeJSTelemetry) that make it easy to log telemetry data from various parts of the application.
+client/src/telemetry/DebugOverlay.tsx: A UI component that serves as a real-time dashboard, displaying live telemetry data for debugging the agent system.
+client/src/features/bots/components/AgentPollingStatus.tsx: A UI component that shows the live status of the agent data polling service, including its activity level and the time of the last successful update.
+client/src/features/bots/components/SystemHealthPanel.tsx: A UI panel that aggregates and visualizes high-level health metrics for the entire agent swarm, such as average health, CPU usage, and memory usage.
+client/src/features/bots/components/ActivityLogPanel.tsx: Displays a real-time log of significant agent activities, status changes, errors, and warnings.
+client/src/features/bots/utils/pollingPerformance.ts: A utility class specifically for monitoring the performance of the agent data polling service, tracking metrics like success rate, duration, and data freshness.
+client/src/hooks/useHybridSystemStatus.ts: A hook for monitoring the health and status of the backend system (Docker, MCP) that runs the agents.
+client/src/telemetry/README.md: Documentation that explains the purpose and architecture of the agent telemetry system.
+client/src/utils/loggerConfig.ts: Defines the data structures (AgentTelemetryData) and creates the specialized logger used by the telemetry system.
+4. UI Components & Visualization
+These files are responsible for the visual representation of the agents, their connections, and their status.
+client/src/features/bots/components/BotsVisualizationFixed.tsx: The primary rendering component that uses React Three Fiber to create the 3D visualization of the agent swarm, including the agents (nodes) and their communication links (edges).
+client/src/immersive/components/ImmersiveApp.tsx: The main component for the immersive XR (VR/AR) experience, which renders the agent swarm using Babylon.js.
+client/src/immersive/babylon/GraphRenderer.ts: A Babylon.js class that handles the low-level rendering of agent nodes and edges within the immersive 3D scene.
+client/src/immersive/babylon/BabylonScene.ts: The main Babylon.js scene manager that orchestrates the rendering of the agent swarm data in the immersive environment.
+client/src/visualisation/components/ControlPanel/BotsStatusPanel.tsx: A UI panel within the main control center that provides a high-level summary of the bot network's status (agent count, connection count, token usage).
+client/src/features/bots/components/BotsVisualizationDebugInfo.tsx: A 3D UI component that displays live debugging information directly within the visualization scene for easier troubleshooting.
+5. Configuration
+These files contain configuration presets and settings that define the behavior and appearance of the agent swarm and its visualization.
+client/src/features/bots/config/pollingConfig.ts: Contains configuration presets (e.g., realtime, standard, performance) and thresholds for the agent data polling service, controlling how frequently data is fetched.
+client/src/features/bots/services/ConfigurationMapper.ts: A service that manages and maps all configurable settings for the bots visualization, including colors, physics parameters, and animation settings.
+client/.env.example: An example environment file containing configuration variables for the Vircadia multi-user environment, which is used to host agents as interactive avatars.
+
+Based on the file tree and content provided, here is a comprehensive list of all files involved with hive mind, swarm, agent, or bot creation, handling, telemetry, management, and their associated data handling, including GPU spring management.
+
+### 1. Hive Mind, Swarm, & Agent Creation/Handling
+
+These files are responsible for the creation, lifecycle, and operational logic of individual agents (bots) and their collective swarms (hive minds).
+
+*   **`src/actors/claude_flow_actor.rs`**: The central actor for managing agent data, coordinating swarm polling, and handling swarm-level concepts like `swarm_id` and `swarm_topology`. It connects to the Multi-Agent Container Protocol (MCP) to get real agent status.
+*   **`src/utils/docker_hive_mind.rs`**: Directly implements the "hive mind" concept using Docker to spawn, manage, and terminate entire swarms of containerized agents for specific tasks.
+*   **`src/handlers/bots_handler.rs`**: Contains the API handlers for initializing a hive mind swarm (`initialize_hive_mind_swarm`) and spawning individual agents (`spawn_agent_hybrid`).
+*   **`src/services/multi_mcp_agent_discovery.rs`**: A service dedicated to discovering and monitoring agents across multiple, potentially different, MCP servers.
+*   **`src/services/real_mcp_integration_bridge.rs`**: Provides a direct communication bridge to real MCP servers, handling JSON-RPC, agent management, and data synchronization for agent swarms.
+*   **`src/services/bots_client.rs`**: A client for interacting with the bots/agents service, fetching their status, and sending updates to the graph visualization.
+*   **`src/actors/supervisor.rs`**: A generic actor supervisor that manages the lifecycle of other actors. It contains specific logic for handling voice commands to spawn and control agents via the `DockerHiveMind`.
+*   **`src/actors/voice_commands.rs`**: Defines the structure for voice commands, including intents for spawning and controlling agents (e.g., `SpawnAgent`).
+*   **`src/services/speech_service.rs`** & **`src/services/speech_voice_integration.rs`**: Integrate voice commands with the agent/swarm system, allowing users to control the hive mind with their voice.
+*   **`src/services/voice_tag_manager.rs`**: Manages unique tags to track voice commands through the hive mind system and route responses back correctly.
+*   **`src/tests/voice_tag_integration_test.rs`**: An integration test demonstrating the full voice-to-hive-mind pipeline.
+*   **`src/handlers/api_handler/bots/mod.rs`**: Defines the REST API routes for all bot and swarm-related actions.
+*   **`src/bin/test_mcp_connection.rs`**: A test utility to verify connectivity to the live MCP server where agents run.
+
+### 2. Agent & Swarm Telemetry and Management
+
+These files focus on monitoring, logging, health checks, applying rules, and the overall management of agents and system resources.
+
+*   **`telemetry/agent_telemetry.rs`**: The core file for structured agent telemetry. It defines `TelemetryEvent`, `CorrelationId`, and a global logger for capturing detailed operational data.
+*   **`handlers/client_log_handler.rs`**: An API handler specifically for receiving and storing logs sent from remote clients or agents (e.g., from a browser).
+*   **`handlers/hybrid_health_handler.rs`**: Provides a comprehensive health monitoring system for the hybrid Docker and MCP agent architecture, including a real-time WebSocket endpoint.
+*   **`handlers/consolidated_health_handler.rs`**: A unified health check endpoint that aggregates status from all system components, including agents and GPU.
+*   **`services/mcp_session_bridge.rs`**: A key management service that bridges session UUIDs (from the session manager) with swarm IDs (from the agent system), enabling telemetry tracking across systems.
+*   **`actors/graph_service_supervisor.rs`**: A high-level supervisor that oversees the entire graph service, including all actors that handle agent data and visualization.
+*   **`actors/gpu/gpu_manager_actor.rs`**: The supervisor for all specialized GPU actors, managing resources and delegating tasks related to agent visualization and analysis.
+*   **`utils/resource_monitor.rs`**: A utility for monitoring system resources like file descriptors and memory to prevent crashes, crucial for managing a large number of agents.
+*   **`utils/network/` (directory)**: Contains modules for network resilience (`circuit_breaker.rs`, `graceful_degradation.rs`, `health_check.rs`, `retry.rs`, `timeout.rs`), essential for managing distributed agents and services.
+*   **`utils/advanced_logging.rs`**: Implements a sophisticated, component-separated logging system for capturing detailed telemetry.
+*   **`utils/gpu_diagnostics.rs`**: Provides diagnostic tools to check the status and health of the GPU, which is critical for agent visualization.
+*   **`actors/gpu/anomaly_detection_actor.rs`**: An actor that runs anomaly detection algorithms on the GPU to identify unusual agent behavior.
+*   **`actors/gpu/clustering_actor.rs`**: An actor that groups agents into clusters based on their properties, aiding in management and visualization.
+*   **`actors/gpu/constraint_actor.rs`**: Manages and applies layout constraints to agents in the visualization.
+*   **`physics/semantic_constraints.rs`** & **`physics/ontology_constraints.rs`**: Generate layout constraints based on agent roles, relationships, and metadata.
+*   **`actors/workspace_actor.rs`** & **`handlers/workspace_handler.rs`**: Manage workspaces, which can contain configurations and states for different swarms or agent setups.
+
+### 3. Data Handling & Protocols
+
+These files define the data structures, communication protocols, and serialization/deserialization logic for agents, swarms, and their interactions.
+
+*   **`actors/messages.rs`**: Defines the primary message types for actor communication, including many agent/swarm messages like `UpdateBotsGraph`, `InitializeSwarm`, and `AgentUpdate`.
+*   **`services/agent_visualization_protocol.rs`**: Defines the entire data protocol for agent visualization, including structures for agent status (`MultiMcpAgentStatus`), server info, and topology.
+*   **`types/claude_flow.rs`**: Defines core data structures for agents, such as `AgentStatus`, `AgentProfile`, and `AgentType`.
+*   **`types/mcp_responses.rs`**: Defines type-safe structures for parsing responses from the MCP server, preventing brittle double-JSON parsing.
+*   **`actors/jsonrpc_client.rs`**: Implements the client-side logic for the JSON-RPC protocol used to communicate with the MCP server.
+*   **`actors/tcp_connection_actor.rs`**: A low-level actor that manages the raw TCP stream for any TCP-based communication, including to the MCP server.
+*   **`utils/binary_protocol.rs`**: Defines an efficient binary protocol for sending node data (including agent positions and velocities) over WebSockets.
+*   **`utils/socket_flow_messages.rs`**: Defines the specific data structures (`BinaryNodeDataClient`) that are serialized using the binary protocol.
+*   **`utils/mcp_connection.rs`** & **`utils/mcp_tcp_client.rs`**: Provide utilities and a dedicated client for establishing and managing TCP connections to MCP servers.
+*   **`models/node.rs`**, **`models/edge.rs`**, **`models/graph.rs`**: The fundamental data models for representing agents as nodes and their interactions as edges in the graph.
+*   **`services/graph_serialization.rs`** & **`models/graph_export.rs`**: Handle the serialization and export of graph data, which can include agent swarms, into various formats like JSON or GEXF.
+
+### 4. GPU Spring Management & Visualization
+
+These files are responsible for the physics-based layout of agents (nodes) in the 3D space, including the "spring" forces between them, and the overall visualization.
+
+*   **`actors/gpu/force_compute_actor.rs`**: The primary actor for running the physics simulation on the GPU. It calculates forces (attraction/repulsion) and integrates positions and velocities each frame.
+*   **`utils/unified_gpu_compute.rs`**: The core implementation of the GPU compute engine. It contains the logic for memory management, kernel launching, and the physics simulation steps that model spring-like behaviors.
+*   **`utils/visionflow_unified.cu`** & **`utils/visionflow_unified_stability.cu`**: The actual CUDA source code for the physics simulation. These files contain the kernels that implement spring forces (`ENABLE_SPRINGS`), repulsion, and stability checks.
+*   **`models/simulation_params.rs`**: Defines the data structures (`SimulationParams`, `SimParams`) that configure the physics simulation, including crucial parameters like `spring_k`, `repel_k`, and `damping`.
+*   **`actors/physics_orchestrator_actor.rs`**: A higher-level actor that orchestrates the physics simulation, managing the `ForceComputeActor` and simulation parameters.
+*   **`actors/gpu/gpu_resource_actor.rs`**: Manages GPU memory allocation for all physics-related data, such as node positions, velocities, and forces.
+*   **`actors/gpu/stress_majorization_actor.rs`** & **`physics/stress_majorization.rs`**: Implement an alternative layout algorithm that also manages node positions based on minimizing "stress," a concept related to ideal spring lengths.
+*   **`actors/multi_mcp_visualization_actor.rs`**: Manages the visualization state for multiple agent swarms, applying layout algorithms and preparing data for rendering.
+*   **`handlers/bots_visualization_handler.rs`**: Provides WebSocket endpoints for streaming agent visualization data to clients.
+*   **`services/agent_visualization_processor.rs`**: Processes raw agent status data into a format optimized for GPU rendering and visualization.
+*   **`services/topology_visualization_engine.rs`**: An engine for computing various graph layout algorithms (Force-Directed, Hierarchical, etc.) to position agents visually.
+*   **`gpu/streaming_pipeline.rs`**: An optimized data pipeline for streaming simplified visualization data from a headless GPU to lightweight clients like the Quest 3.
