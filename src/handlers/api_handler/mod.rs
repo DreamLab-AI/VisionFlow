@@ -5,6 +5,7 @@ pub mod bots;
 pub mod analytics;
 pub mod quest3;
 pub mod ontology;
+pub mod sessions;
 
 // Re-export specific types and functions
 // Re-export specific types and functions
@@ -33,6 +34,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(crate::handlers::graph_state_handler::config) // Add graph state endpoint
             .configure(visualisation::config)
             .configure(bots::config)
+            .configure(sessions::config)
             .configure(analytics::config)
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)

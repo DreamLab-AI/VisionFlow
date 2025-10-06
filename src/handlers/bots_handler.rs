@@ -118,16 +118,51 @@ fn convert_sessions_to_agents(sessions: Vec<SessionInfo>) -> Vec<Agent> {
     }).collect()
 }
 
+fn convert_monitored_sessions_to_agents(sessions: Vec<crate::services::mcp_session_bridge::MonitoredSessionMetadata>) -> Vec<Agent> {
+    sessions.into_iter().enumerate().map(|(idx, session)| {
+        let base_id = idx as f32;
+        let display_id = session.swarm_id.as_ref().unwrap_or(&session.uuid);
+
+        Agent {
+            id: display_id.clone(),
+            name: format!("Session-{}", &session.uuid[..8]),
+            agent_type: "worker".to_string(), // Default type, can be enhanced with MCP data
+            status: session.status.clone(),
+            x: (base_id * 50.0) % 300.0 - 150.0,
+            y: (base_id * 30.0) % 200.0 - 100.0,
+            z: 0.0,
+            cpu_usage: 0.0, // TODO: Get from MCP telemetry
+            memory_usage: 0.0, // TODO: Get from MCP telemetry
+            health: if session.status == "active" { 100.0 } else { 50.0 },
+            workload: session.agent_count as f32,
+            created_at: Some(session.created_at.to_rfc3339()),
+            age: Some((chrono::Utc::now() - session.created_at).num_seconds() as u64),
+        }
+    }).collect()
+}
+
 pub async fn fetch_hive_mind_agents(
     state: &AppState,
     hybrid_manager: Option<&Arc<HybridHealthManager>>,
 ) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
-    // Try hybrid approach first if available, fallback to BotsClient
+    // Try MCP session bridge first to get real session data
+    let bridge = state.get_mcp_session_bridge();
+    match bridge.list_monitored_sessions().await {
+        sessions if !sessions.is_empty() => {
+            info!("Retrieved {} sessions from MCP bridge", sessions.len());
+            let agents = convert_monitored_sessions_to_agents(sessions);
+            return Ok(agents);
+        }
+        _ => {
+            info!("No sessions from MCP bridge, trying other methods");
+        }
+    }
+
+    // Try hybrid approach if available
     if let Some(manager) = hybrid_manager {
         match manager.get_system_status().await {
             Ok(status) => {
                 info!("Retrieved {} active sessions from DockerHiveMind", status.active_sessions.len());
-                // Convert sessions to agents for compatibility
                 let agents = convert_sessions_to_agents(status.active_sessions);
                 return Ok(agents);
             }
@@ -422,15 +457,19 @@ pub async fn spawn_agent_hybrid(
 
     // Try Docker method first if requested
     if req.method == "docker" {
-        match spawn_docker_agent(&req.agent_type, priority, strategy).await {
-            Ok(session_id) => {
-                info!("Successfully spawned {} agent via Docker with session: {}", req.agent_type, session_id);
+        let task = format!("Spawn {} agent for hive mind coordination", req.agent_type);
+
+        // Use MCP session bridge to spawn and monitor
+        match spawn_docker_agent_monitored(state.get_ref(), &task, priority, strategy).await {
+            Ok((uuid, swarm_id)) => {
+                info!("Successfully spawned {} agent via Docker - UUID: {}, Swarm ID: {:?}",
+                      req.agent_type, uuid, swarm_id);
                 return Ok(HttpResponse::Ok().json(SpawnAgentResponse {
                     success: true,
-                    swarm_id: Some(session_id),
+                    swarm_id: swarm_id.or(Some(uuid.clone())),
                     error: None,
                     method_used: Some("docker".to_string()),
-                    message: Some(format!("Successfully spawned {} agent via Docker", req.agent_type)),
+                    message: Some(format!("Successfully spawned {} agent via Docker (UUID: {})", req.agent_type, uuid)),
                 }));
             }
             Err(e) => {
@@ -465,15 +504,31 @@ pub async fn spawn_agent_hybrid(
     }
 }
 
-async fn spawn_docker_agent(
-    agent_type: &str,
+async fn spawn_docker_agent_monitored(
+    state: &AppState,
+    task: &str,
     priority: Option<SwarmPriority>,
     strategy: Option<SwarmStrategy>,
-) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    let task = format!("Spawn {} agent for hive mind coordination", agent_type);
+) -> Result<(String, Option<String>), Box<dyn std::error::Error + Send + Sync>> {
+    use crate::utils::docker_hive_mind::SwarmConfig;
 
-    // Use the docker_hive_mind spawn function
-    crate::utils::docker_hive_mind::spawn_task_docker(&task, priority, strategy).await
+    let config = SwarmConfig {
+        priority: priority.unwrap_or(SwarmPriority::Medium),
+        strategy: strategy.unwrap_or(SwarmStrategy::HiveMind),
+        auto_scale: true,
+        monitor: true,
+        max_workers: Some(8),
+        consensus_type: None,
+        memory_size_mb: None,
+        encryption: false,
+        verbose: false,
+    };
+
+    // Use MCP session bridge to spawn and monitor for swarm ID
+    let bridge = state.get_mcp_session_bridge();
+    let monitored = bridge.spawn_and_monitor(task, config).await?;
+
+    Ok((monitored.uuid, monitored.swarm_id))
 }
 
 async fn spawn_mcp_agent(

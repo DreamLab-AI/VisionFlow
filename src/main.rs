@@ -498,6 +498,7 @@ async fn main() -> std::io::Result<()> {
     // Create web::Data after all initialization is complete
     let app_state_data = web::Data::new(app_state);
     let hybrid_health_manager_data = web::Data::new(hybrid_health_manager.clone());
+    let mcp_session_bridge_data = web::Data::new(app_state_data.get_mcp_session_bridge().clone());
 
     // Start the server
     let bind_address = {
@@ -551,6 +552,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
             .app_data(hybrid_health_manager_data.clone()) // Add HybridHealthManager
+            .app_data(mcp_session_bridge_data.clone()) // Add McpSessionBridge
             .route("/wss", web::get().to(socket_flow_handler)) // Changed from /ws to /wss
             .route("/ws/speech", web::get().to(speech_socket_handler))
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) // Legacy MCP relay endpoint

@@ -81,13 +81,13 @@ visualisation:
         baseWidth: 0.61
         color: '#ff0000'
         enableArrows: false
-        opacity: 0.3
+        opacity: 0.1
         widthRange:
         - 0.3
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.31
+        desktopFontSize: 1.11
         enableLabels: true
         textColor: '#676565'
         textOutlineColor: '#00ff40'

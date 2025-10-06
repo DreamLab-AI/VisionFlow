@@ -19,6 +19,7 @@ use crate::services::speech_service::SpeechService;
 use crate::services::ragflow_service::RAGFlowService;
 use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
+use crate::services::mcp_session_bridge::McpSessionBridge;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -42,6 +43,7 @@ pub struct AppState {
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
+    pub mcp_session_bridge: Arc<McpSessionBridge>,
     pub debug_enabled: bool,
 }
 
@@ -176,6 +178,16 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
+        info!("[AppState::new] Initializing McpSessionBridge");
+        let mcp_session_bridge = Arc::new(McpSessionBridge::new("multi-agent-container".to_string()));
+
+        // Start background refresh task for MCP session monitoring
+        let bridge_clone = mcp_session_bridge.clone();
+        tokio::spawn(async move {
+            info!("[AppState] Starting MCP session bridge background refresh (10s interval)");
+            bridge_clone.start_background_refresh(Duration::from_secs(10)).await;
+        });
+
         // GPU initialization will be handled later by the actors themselves
         // This avoids the tokio runtime panic during initialization
         info!("[AppState] GPU manager will self-initialize when needed");
@@ -218,6 +230,7 @@ impl AppState {
             ragflow_session_id,
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
+            mcp_session_bridge,
             debug_enabled,
         })
     }
@@ -305,5 +318,9 @@ impl AppState {
 
     pub fn get_ontology_actor_addr(&self) -> &Addr<OntologyActor> {
         &self.ontology_actor_addr
+    }
+
+    pub fn get_mcp_session_bridge(&self) -> &Arc<McpSessionBridge> {
+        &self.mcp_session_bridge
     }
 }

@@ -105,6 +105,50 @@ impl McpSessionBridge {
         })
     }
 
+    /// Discover swarm ID from filesystem (fallback when MCP doesn't have mapping)
+    async fn discover_swarm_id_from_filesystem(
+        &self,
+        uuid: &str,
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        use tokio::process::Command;
+
+        debug!("Attempting filesystem discovery for session {}", uuid);
+
+        let output = Command::new("docker")
+            .args(&[
+                "exec",
+                "multi-agent-container",
+                "find",
+                &format!("/workspace/.swarm/sessions/{}/.hive-mind/sessions", uuid),
+                "-name",
+                "hive-mind-prompt-swarm-*.txt",
+                "-type",
+                "f",
+            ])
+            .output()
+            .await?;
+
+        if !output.status.success() {
+            return Err(format!("Docker exec failed for session {}", uuid).into());
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let first_line = stdout.lines().next().ok_or("No swarm files found")?;
+
+        // Extract swarm ID from path like: .../hive-mind-prompt-swarm-1759754652788-aygunvow1.txt
+        if let Some(filename) = first_line.split('/').last() {
+            if let Some(swarm_part) = filename.strip_prefix("hive-mind-prompt-swarm-")
+                .and_then(|s| s.strip_suffix(".txt"))
+            {
+                let swarm_id = format!("swarm-{}", swarm_part);
+                info!("Discovered swarm ID {} for session {} via filesystem", swarm_id, uuid);
+                return Ok(swarm_id);
+            }
+        }
+
+        Err(format!("Could not parse swarm ID from filesystem for session {}", uuid).into())
+    }
+
     /// Poll MCP server until swarm ID appears for this session
     async fn poll_for_swarm_id(
         &self,
@@ -116,7 +160,20 @@ impl McpSessionBridge {
 
         loop {
             if start_time.elapsed() > timeout {
-                return Err(format!("Timeout waiting for swarm ID for session {}", uuid).into());
+                // Final attempt: filesystem discovery
+                warn!("MCP polling timed out for session {}, trying filesystem discovery", uuid);
+                return self.discover_swarm_id_from_filesystem(uuid).await;
+            }
+
+            // Try filesystem discovery first (faster and more reliable)
+            match self.discover_swarm_id_from_filesystem(uuid).await {
+                Ok(swarm_id) => {
+                    info!("Found swarm ID {} via filesystem for session {}", swarm_id, uuid);
+                    return Ok(swarm_id);
+                }
+                Err(e) => {
+                    debug!("Filesystem discovery failed: {}", e);
+                }
             }
 
             // Query MCP for session status
