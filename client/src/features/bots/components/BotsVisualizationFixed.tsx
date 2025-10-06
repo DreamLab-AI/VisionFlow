@@ -493,19 +493,21 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     targetPositionRef.current.copy(position);
     
     // Interpolate current position towards target
-    const lerpFactor = 0.15; // Adjust for smoothness (0.05 = very smooth, 0.3 = responsive)
+    // TODO: Extract to configuration - magic number for animation smoothness
+    const lerpFactor = 0.15; // TODO: Config - Adjust for smoothness (0.05 = very smooth, 0.3 = responsive)
     lerpVector3(currentPositionRef.current, targetPositionRef.current, lerpFactor);
-    
+
     // Update group position with interpolated value
     groupRef.current.position.copy(currentPositionRef.current);
 
     // Enhanced pulse animation based on token rate, health, and status
+    // TODO: Extract to configuration - magic numbers for pulse calculations
     if (agent.status === 'active' || agent.status === 'busy') {
       // Base pulse speed influenced by token rate and health
-      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1;
-      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1;
-      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier;
-      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1;
+      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1; // TODO: Config - tokenRate divisor (10) and max multiplier (3)
+      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1; // TODO: Config - health min (0.3) and divisor (100)
+      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier; // TODO: Config - base pulse speed multiplier (2)
+      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1; // TODO: Config - pulse amplitude (0.15) and offset (1)
 
       meshRef.current.scale.setScalar(pulse * clampedSize);
 
@@ -565,6 +567,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   return (
     <group ref={groupRef}>
       {/* Glow effect */}
+      {/* TODO: Config - base opacity (0.15), hover opacity (0.1), tokenRate opacity (0.2/100) */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[clampedSize * 1.5, 16, 16]} />
         <meshBasicMaterial

@@ -24,37 +24,40 @@ import { Effect } from 'postprocessing';
 import * as THREE from 'three';
 import { useSettingsStore } from '../../../store/settingsStore';
 
+// TODO: Map these hardcoded values to settings system
+// Note: Settings system is brittle - don't update UX names yet
+// These values should eventually come from visualisation.hologram settings
 export const SCENE_CONFIG = {
-  background: '#02030c',
-  fogNear: 6,
-  fogFar: 34,
+  background: '#02030c', // TODO: Map to hologram.backgroundColor or rendering.backgroundColor
+  fogNear: 6, // TODO: Map to hologram.fogNear or rendering.fogNear
+  fogFar: 34, // TODO: Map to hologram.fogFar or rendering.fogFar
 };
 
-export const HOLOGRAM_BASE_OPACITY = 0.3;
+export const HOLOGRAM_BASE_OPACITY = 0.3; // TODO: Map to hologram.ringOpacity
 
 export const LIGHTING_CONFIG = {
-  ambient: 0.2,
-  key: { position: [5, 7, 4], intensity: 1.65, color: '#7acbff' },
-  rim: { position: [-6, -4, -3], intensity: 1.05, color: '#ff7b1f' },
-  fill: { position: [0, 0, 12], intensity: 0.55, color: '#00faff' },
+  ambient: 0.2, // TODO: Map to rendering.ambientLightIntensity
+  key: { position: [5, 7, 4], intensity: 1.65, color: '#7acbff' }, // TODO: Map to hologram.keyLight*
+  rim: { position: [-6, -4, -3], intensity: 1.05, color: '#ff7b1f' }, // TODO: Map to hologram.rimLight*
+  fill: { position: [0, 0, 12], intensity: 0.55, color: '#00faff' }, // TODO: Map to hologram.fillLight*
 };
 
 export const POSTPROCESS_DEFAULTS = {
-  globalAlpha: HOLOGRAM_BASE_OPACITY,
-  bloomIntensity: 1.5, // Reduced from 76 to a reasonable value
-  bloomThreshold: 0.15, // Aligned with central settings
-  bloomSmoothing: 0.36,
-  aoRadius: 124,
-  aoIntensity: 0.75,
-  dofFocusDistance: 3.6,
-  dofFocalLength: 4.4,
-  dofBokehScale: 520,
-  vignetteDarkness: 0.45,
+  globalAlpha: HOLOGRAM_BASE_OPACITY, // TODO: Map to hologram.ringOpacity
+  bloomIntensity: 1.5, // TODO: Map to hologram.bloomIntensity or rendering.bloomIntensity
+  bloomThreshold: 0.15, // TODO: Map to hologram.bloomThreshold or rendering.bloomThreshold
+  bloomSmoothing: 0.36, // TODO: Map to hologram.bloomSmoothing
+  aoRadius: 124, // TODO: Map to hologram.aoRadius
+  aoIntensity: 0.75, // TODO: Map to hologram.aoIntensity
+  dofFocusDistance: 3.6, // TODO: Map to hologram.dofFocusDistance
+  dofFocalLength: 4.4, // TODO: Map to hologram.dofFocalLength
+  dofBokehScale: 520, // TODO: Map to hologram.dofBokehScale
+  vignetteDarkness: 0.45, // TODO: Map to hologram.vignetteDarkness
 };
 
 export const FADE_DEFAULTS = {
-  fadeStart: 1200,
-  fadeEnd: 2800,
+  fadeStart: 1200, // TODO: Map to hologram.fadeStart
+  fadeEnd: 2800, // TODO: Map to hologram.fadeEnd
 };
 
 class GlobalFadeEffect extends Effect {

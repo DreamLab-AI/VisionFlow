@@ -2,7 +2,7 @@
 
 ## Overview
 
-The client polling system provides real-time updates of agent swarm metadata and positions through a combination of REST polling and WebSocket binary updates.
+The client polling system provides real-time updates of agent swarm metadata and positions through a **hybrid architecture** combining REST polling for metadata and WebSocket binary updates for real-time position data.
 
 ## Architecture
 
@@ -13,15 +13,23 @@ The client polling system provides real-time updates of agent swarm metadata and
 3. **AgentPollingStatus** - UI component showing real-time status
 4. **BotsDataContext** - Central data provider integrating polling and WebSocket data
 
-### Data Flow
+### Data Flow (Hybrid Architecture)
 
 ```
 REST API (/api/bots/data) → AgentPollingService → useAgentPolling → BotsDataContext
-                                      ↓                                    ↓
-                              Performance Monitor              3D Visualization (Three.js)
+                                                                            ↓
+WebSocket Binary Updates → BotsWebSocketIntegration → Binary Protocol → Position Data
+        (34-byte format)                                                     ↓
+                                                              3D Visualization (Three.js)
                                                                           ↓
                                                               GPU Force-Directed Graph
 ```
+
+**Key Points:**
+- **REST**: Fetches agent metadata (health, status, tokens, etc.) via polling
+- **WebSocket Binary**: Real-time position updates (34-byte binary format, V2 protocol)
+- **BotsWebSocketIntegration**: Handles ONLY binary position updates (no longer does polling)
+- **BotsDataContext**: Coordinates both REST and WebSocket data sources
 
 ## Features
 
@@ -170,10 +178,33 @@ Returns complete agent swarm state:
 }
 ```
 
+## Current Architecture Status
+
+### ✅ Implemented
+- REST polling for agent metadata via `/api/bots/data`
+- WebSocket binary position updates (V2 protocol, 36 bytes/node)
+- Hybrid data coordination through BotsDataContext
+- Smart polling with activity-based interval adjustment
+- Change detection to prevent unnecessary re-renders
+
+### 🚧 Deprecated/Legacy
+- **REMOVED**: `PROTOCOL_V1` support (34-byte format) - now V2 only
+- **DEPRECATED**: WebSocket polling methods in BotsWebSocketIntegration
+  - `startBotsGraphPolling()` - use REST via BotsDataContext
+  - `stopBotsGraphPolling()` - no longer needed
+  - `requestInitialData()` - use REST polling
+  - `restartPolling()` - handled by BotsDataContext
+
+### ⚠️ Known Issues
+- Settings system is brittle - avoid updating UX names
+- Multiple WebSocket service implementations need consolidation
+- Magic numbers in visualization components need extraction to config
+
 ## Future Enhancements
 
-1. **WebSocket Metadata Stream**: Replace REST polling with WebSocket push
-2. **Differential Updates**: Send only changed data
-3. **Compression**: Binary protocol for metadata updates
-4. **Predictive Prefetching**: Anticipate data needs based on user interaction
-5. **Worker Thread Processing**: Offload data transformation to Web Workers
+1. **WebSocket Service Consolidation**: Unify EnhancedWebSocketService, VoiceWebSocketService, and BotsWebSocketIntegration
+2. **Differential Updates**: Send only changed metadata instead of full snapshots
+3. **Binary Metadata Protocol**: Extend binary protocol to include metadata (not just positions)
+4. **Predictive Prefetching**: Anticipate data needs based on user interaction patterns
+5. **Worker Thread Processing**: Offload graph calculations and data transformation to Web Workers
+6. **Compression**: Implement binary compression for large agent swarms (>1000 agents)

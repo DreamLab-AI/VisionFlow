@@ -15,13 +15,22 @@
 ### Security & UX Improvements
 - ✅ Replaced iframe system in `NarrativeGoldminePanel.tsx` with new tab opening (security improvement)
 - ✅ Removed `client/src/utils/iframeCommunication.ts` utility
+- ✅ Fixed broken imports in `useGraphEventHandlers.ts` and `GraphManager_EventHandlers.ts`
+- ✅ Updated Narrative Goldmine URLs to use `#/page/` with proper `encodeURIComponent()`
 
 ### Protocol Cleanup
 - ✅ Removed legacy PROTOCOL_V1 support from `client/src/types/binaryProtocol.ts`
 - ✅ Now only supports V2 protocol (36 bytes per node with u32 IDs)
 
+### Code Quality Improvements
+- ✅ Flagged all magic numbers in `HolographicDataSphere.tsx` with TODO comments for settings mapping
+- ✅ Flagged magic numbers in `BotsVisualizationFixed.tsx` (lerp factors, pulse speeds, opacity values)
+- ✅ Updated `polling-system.md` to reflect current hybrid REST/WebSocket architecture
+- ✅ Documented deprecated methods and legacy code removal
+
 ### Validation
 - ✅ Ran `cargo check` - passes with only warnings (no errors)
+- ✅ Fixed Vite build errors from removed iframeCommunication module
 
 ---
 

@@ -20,7 +20,7 @@ visualisation:
     pulseStrength: 0.8
     waveSpeed: 0.5
   glow:
-    enabled: true
+    enabled: false
     intensity: 3.5
     radius: 1.2
     threshold: 0.39
@@ -48,7 +48,7 @@ visualisation:
   hologram:
     ringCount: 3
     ringColor: '#f0e800'
-    ringOpacity: 0.03846154
+    ringOpacity: 0.2
     sphereSizes:
     - 80.0
     - 180.0
@@ -67,10 +67,10 @@ visualisation:
     logseq:
       nodes:
         baseColor: '#202724'
-        metalness: 0.8
-        opacity: 0.24
+        metalness: 0.1
+        opacity: 0.16
         roughness: 0.6
-        nodeSize: 1.5
+        nodeSize: 1.9
         quality: high
         enableInstancing: true
         enableHologram: true
