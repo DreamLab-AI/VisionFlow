@@ -908,6 +908,48 @@ impl Handler<msgs::GetGraphData> for TransitionalGraphSupervisor {
     }
 }
 
+// Handler for GetNodeMap - NEW for position-aware initialization
+impl Handler<msgs::GetNodeMap> for TransitionalGraphSupervisor {
+    type Result = ResponseActFuture<Self, Result<std::sync::Arc<std::collections::HashMap<u32, crate::models::node::Node>>, String>>;
+
+    fn handle(&mut self, msg: msgs::GetNodeMap, ctx: &mut Self::Context) -> Self::Result {
+        let actor_result = self.get_or_create_actor(ctx);
+        if let Some(actor) = actor_result {
+            let addr = actor.clone();
+            self.messages_forwarded += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("Actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+        }
+    }
+}
+
+// Handler for GetPhysicsState - NEW for settlement state reporting
+impl Handler<msgs::GetPhysicsState> for TransitionalGraphSupervisor {
+    type Result = ResponseActFuture<Self, Result<crate::actors::graph_actor::PhysicsState, String>>;
+
+    fn handle(&mut self, msg: msgs::GetPhysicsState, ctx: &mut Self::Context) -> Self::Result {
+        let actor_result = self.get_or_create_actor(ctx);
+        if let Some(actor) = actor_result {
+            let addr = actor.clone();
+            self.messages_forwarded += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("Actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+        }
+    }
+}
+
 // Handler for BuildGraphFromMetadata from messages module
 impl Handler<msgs::BuildGraphFromMetadata> for TransitionalGraphSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;

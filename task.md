@@ -1,405 +1,82 @@
-# Agent Control System - Current State & Testing Tasks
-
-**Last Updated:** 2025-10-06
-**Status:** MAJOR REFACTORING COMPLETE - READY FOR TESTING ✅
-
----
-
-## System Architecture Overview
-
-The agent control system has been completely refactored with the following data flow:
-
-```
-UI → Backend API → MCP Session Bridge → Docker Hive Mind → MCP Server
-                              ↓
-                    Session UUID + Swarm ID
-                              ↓
-                    Claude Flow Actor (TCP polling)
-                              ↓
-                    Graph Service Actor (node conversion)
-                              ↓
-                    GPU Physics + Binary Protocol V2
-                              ↓
-                    WebSocket Broadcast → Client Visualization
-```
-
----
-
-## Completed Refactorings ✅
+1. Architectural Anomalies & Duplicate Systems
+This is the most significant area of concern, indicating potential architectural drift, incomplete refactoring, or multiple developers implementing similar features independently.
+Multiple WebSocket Services: The project contains at least four overlapping WebSocket implementations, which creates confusion and maintenance overhead.
+client/src/services/WebSocketService.ts: A generic, legacy-style WebSocket service which you should CAREFULLY remove only after confirming nothing else depends on it.
 
-### 1. Session Spawning (FIXED)
-
-**File:** `src/handlers/bots_handler.rs:307-422`
+client/src/services/EnhancedWebSocketService.ts: A newer, more feature-rich implementation that seems intended to replace the legacy one but hasn't fully, complete this migration.
 
-The `initialize_hive_mind_swarm` endpoint now:
-- ✅ Spawns **real docker sessions** via `spawn_swarm_monitored()`
-- ✅ Uses MCP Session Bridge for UUID/swarm_id correlation
-- ✅ Waits for swarm ID discovery (filesystem + MCP query)
-- ✅ Returns: `{uuid, swarm_id, topology, strategy, initial_agents}`
+client/src/services/VoiceWebSocketService.ts: A specialized service for audio, which could potentially be a module within a unified WebSocket service rather than a standalone class.
+You should verify if this is still needed given modern WebRTC capabilities. We have throttling of the data in response to voice interactions, but this might be confused with the actual voice data stream which is handled by WebRTC. check and refine and align the architecture here.
 
-**Old Behavior (REMOVED):**
-```rust
-// OLD STUB CODE - NO LONGER EXISTS
-let swarm_id = format!("swarm-{}", chrono::Utc::now().timestamp());
-return fake_agents; // REMOVED
-```
 
-**New Behavior:**
-```rust
-match spawn_swarm_monitored(state.get_ref(), &task, priority, strategy, &agent_types).await {
-    Ok((uuid, swarm_id)) => {
-        // Real session with bidirectional UUID ↔ swarm_id mapping
-    }
-}
-```
+client/src/features/bots/services/BotsWebSocketIntegration.ts: Another specialized service that also contains deprecated methods and flags (useRestPolling), indicating a past or ongoing architectural shift. ensure this is fully migrated.
 
-### 2. MCP Session Bridge
+Recommendation: Consolidate into a single, modular WebSocket service (like EnhancedWebSocketService) that can be extended with plugins or handlers for different features (bots, voice, etc.).
 
-**File:** `src/services/mcp_session_bridge.rs`
+Multiple Authentication Systems: There appear to be two separate authentication mechanisms.
+client/src/features/auth/initializeAuthentication.ts: A standalone AuthenticationManager class that seems incomplete or abandoned. It uses a generic auth_token in localStorage and contains mock refresh logic. We use nostr for auth, so this seems obsolete.
 
-Provides complete session lifecycle management:
-- ✅ `spawn_and_monitor()` - Spawns session and discovers swarm ID
-- ✅ Bidirectional UUID ↔ swarm_id mapping cache
-- ✅ Filesystem discovery fallback (docker exec find)
-- ✅ MCP TCP query integration
-- ✅ Session telemetry and metrics
-- ✅ Background refresh task
-- ✅ Cleanup of completed sessions
-
-### 3. Agent Telemetry System
-
-**File:** `src/telemetry/agent_telemetry.rs`
-
-Comprehensive structured logging:
-- ✅ Correlation IDs for tracking agent lifecycle
-- ✅ Session UUID tracking
-- ✅ Swarm ID tracking
-- ✅ Client session ID tracking (X-Session-ID header)
-- ✅ Position tracking with deltas
-- ✅ GPU execution telemetry
-- ✅ MCP message flow telemetry
-- ✅ File-based buffered logging (JSONL format)
-
-### 4. Binary Protocol V2 Upgrade
-
-**Files:** `src/utils/binary_protocol.rs`, `client/src/services/BinaryWebSocketProtocol.ts`
-
-Fixed critical node ID truncation bug:
-- ✅ Upgraded from u16 (14-bit) to u32 (30-bit) node IDs
-- ✅ Supports up to 1 billion nodes (was limited to 16K)
-- ✅ Agent flag (bit 31) properly preserved
-- ✅ Auto-detection for backward compatibility with V1
-- ✅ 38 bytes per agent (was 34 bytes)
-
-### 5. Claude Flow Actor Refactoring
-
-**File:** `src/actors/claude_flow_actor.rs`
-
-Separated concerns with sub-actors:
-- ✅ TcpConnectionActor for low-level TCP management
-- ✅ JsonRpcClient for MCP protocol handling
-- ✅ Direct MCP TCP queries (query_agent_list)
-- ✅ Circuit breaker for connection failures
-- ✅ Type-safe agent status conversion
-- ✅ 2-second polling interval
-
-### 6. Graph Service Integration
-
-**File:** `src/actors/graph_actor.rs:3042-3241`
-
-UpdateBotsGraph handler:
-- ✅ Converts Agent → Node with proper metadata
-- ✅ Sets `is_agent: "true"` metadata flag
-- ✅ Assigns agent node IDs (10000+ range)
-- ✅ Preserves positions to prevent re-randomization
-- ✅ Creates communication edges by agent type
-- ✅ Sends to GPU for physics simulation
-- ✅ Encodes binary protocol V2 with agent flags
-- ✅ Broadcasts via WebSocket
-
----
-
-## Testing Checklist
-
-### Phase 1: System Health Checks
-
-Before starting the system:
-
-```bash
-# 1. Verify docker network
-docker network inspect docker_ragflow | grep -E "multi-agent-container|visionflow"
-
-# 2. Check MCP server is accessible
-docker exec multi-agent-container nc -zv localhost 9500
-
-# 3. Verify environment variables
-docker exec visionflow env | grep MCP_HOST
-docker exec visionflow env | grep MCP_TCP_PORT
-
-# 4. Check log directories exist
-docker exec visionflow mkdir -p /workspace/logs/telemetry
-docker exec multi-agent-container ls -la /workspace/.swarm/sessions/
-```
-
-### Phase 2: Agent Spawning Flow
-
-Test the complete spawning pipeline:
-
-1. **Start the system**
-   ```bash
-   # In visionflow container
-   ./start.sh
-   ```
-
-2. **Open browser and navigate to UI**
-   - URL: http://localhost:3001 (or configured port)
-   - Open browser console (F12)
-
-3. **Click "Spawn Hive Mind" button**
-   - Fill in:
-     - Topology: `mesh` or `hierarchical`
-     - Max Agents: `8`
-     - Agent Types: Select at least `coordinator`, `coder`, `researcher`
-     - Task: "Build a REST API with authentication"
-   - Click "Spawn Hive Mind"
-
-4. **Expected Backend Logs**
-   ```
-   INFO 🐝 Initializing hive mind swarm with topology: mesh
-   INFO 🔧 Swarm initialization task: Initialize mesh swarm...
-   INFO 🚀 Spawning swarm with config: SwarmConfig { priority: High, ... }
-   INFO Session <UUID> spawned, waiting for swarm ID...
-   INFO Discovered swarm ID swarm-<TIMESTAMP>-<RANDOM> for session <UUID> via filesystem
-   INFO Linked session <UUID> to swarm swarm-<TIMESTAMP>-<RANDOM>
-   INFO ✓ Swarm spawned - UUID: <UUID>, Swarm ID: Some("swarm-<TIMESTAMP>-<RANDOM>")
-   INFO ✓ Successfully spawned hive mind swarm - UUID: <UUID>, Swarm ID: Some("swarm-...")
-   INFO 🎯 Initial swarm has <N> agents
-   ```
-
-5. **Expected Frontend Response**
-   - HTTP 200 OK
-   - JSON response:
-     ```json
-     {
-       "success": true,
-       "message": "Hive mind swarm initialized successfully",
-       "uuid": "<UUID>",
-       "swarm_id": "swarm-<TIMESTAMP>-<RANDOM>",
-       "topology": "mesh",
-       "strategy": "adaptive",
-       "initial_agents": <N>,
-       "nodes": [...],
-       "edges": [...]
-     }
-     ```
-
-### Phase 3: Agent Data Polling
-
-Monitor real-time agent updates:
-
-1. **Backend Logs (every 2 seconds)**
-   ```
-   INFO Polling agent statuses via MCP TCP client
-   INFO Retrieved <N> agents from MCP TCP server
-   INFO Processing <N> agent statuses directly from MCP
-   INFO 🔄 Sending graph update: <N> agents from real MCP data
-   INFO Updated bots graph with <N> agents and <M> edges
-   INFO Sent BINARY agent update: <N> nodes, <BYTES> bytes total
-   ```
-
-2. **Browser Console Logs**
-   ```
-   [AgentPollingService] Starting polling with interval: 2000ms
-   [BinaryWebSocketProtocol] Decoding V2 agent state (<N> agents)
-   [BotsDataContext] Received <N> agents from polling
-   ```
-
-3. **WebSocket Network Tab**
-   - Filter by "WS" in Network tab
-   - Should see binary frames every 2-10 seconds
-   - Size: ~38 bytes per agent + 4 byte header
-
-### Phase 4: Agent Visualization
-
-Verify agents appear in 3D view:
-
-1. **Check agent nodes render**
-   - Should see colored spheres in 3D space
-   - Colors should match agent types:
-     - Red: Coordinator
-     - Teal: Researcher
-     - Blue: Coder
-     - Coral: Analyst
-     - Mint: Architect
-     - Yellow: Tester
-
-2. **Agent physics**
-   - Nodes should move with GPU physics simulation
-   - Should see attraction/repulsion forces
-   - Edges should connect agents
-
-3. **Agent detail panel**
-   - Click on an agent node
-   - Panel should show:
-     - Agent name
-     - Type
-     - Status (active/idle/spawning)
-     - CPU usage
-     - Memory usage
-     - Health
-     - Workload
-
-### Phase 5: Session Management
-
-Test session lifecycle:
-
-1. **List sessions**
-   ```bash
-   curl http://localhost:8080/api/sessions/list
-   ```
-   - Should return all active sessions with UUIDs and swarm IDs
-
-2. **Get session status**
-   ```bash
-   curl http://localhost:8080/api/sessions/<UUID>/status
-   ```
-   - Should return session metadata and agent count
-
-3. **Pause/Resume/Stop**
-   ```bash
-   # Pause
-   curl -X POST http://localhost:8080/bots/tasks/<UUID>/pause
-
-   # Resume
-   curl -X POST http://localhost:8080/bots/tasks/<UUID>/resume
-
-   # Stop
-   curl -X DELETE http://localhost:8080/bots/tasks/<UUID>/remove
-   ```
-
-### Phase 6: Telemetry Validation
-
-Check telemetry files:
-
-```bash
-# View telemetry logs
-docker exec visionflow ls -lh /workspace/logs/telemetry/
-
-# Latest telemetry file
-docker exec visionflow tail -f /workspace/logs/telemetry/agent_telemetry_$(date +%Y-%m-%d_%H).jsonl
-
-# Filter for agent spawning events
-docker exec visionflow grep '"event_type":"agent_spawn"' /workspace/logs/telemetry/*.jsonl | jq .
-```
-
----
-
-## Known Issues & Workarounds
-
-### Issue 1: MCP Connection Timeout on First Launch
-
-**Symptom:** `Failed to initialize MCP session: Connection timeout`
-
-**Workaround:**
-```bash
-# Restart multi-agent-container
-docker restart multi-agent-container
-
-# Wait 10 seconds
-sleep 10
-
-# Restart visionflow
-docker restart visionflow
-```
-
-### Issue 2: Agent Nodes Not Visible
-
-**Symptom:** Backend sends agents but 3D view is empty
-
-**Check:**
-1. Browser console for errors
-2. WebSocket connection status
-3. Binary protocol version mismatch
-
-**Debug:**
-```javascript
-// In browser console
-window.botsDataContext.getState()
-// Should show agents array
-```
-
-### Issue 3: Swarm ID Discovery Timeout
-
-**Symptom:** `No swarm ID found for session <UUID>`
-
-**Causes:**
-- Multi-agent-container filesystem not mounted properly
-- MCP server not running
-- Session directory not created
-
-**Fix:**
-```bash
-# Check MCP server
-docker exec multi-agent-container ps aux | grep mcp
-
-# Check session directories
-docker exec multi-agent-container ls -la /workspace/.swarm/sessions/
-```
-
----
-
-## Performance Targets
-
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Session spawn latency | <2s | ~1.5s | ✅ |
-| Swarm ID discovery | <1s | ~500ms | ✅ |
-| Agent poll interval | 2s | 2s | ✅ |
-| WebSocket broadcast latency | <16ms | ~10ms | ✅ |
-| Binary encoding (100 agents) | <5ms | ~2ms | ✅ |
-| GPU physics update (1000 nodes) | <16ms | ~8ms | ✅ |
-
----
-
-## Next Steps
-
-1. **System Launch**
-   - Start docker containers
-   - Run Phase 1 health checks
-   - Open UI and spawn test swarm
-
-2. **End-to-End Validation**
-   - Complete all testing phases
-   - Document any issues found
-   - Collect telemetry samples
-
-3. **Load Testing**
-   - Spawn 10 swarms with 10 agents each
-   - Monitor system resources
-   - Validate WebSocket broadcast scaling
-
-4. **Production Readiness**
-   - Review telemetry data
-   - Optimize polling intervals
-   - Configure monitoring dashboards
-
----
-
-## Reference Documentation
-
-- [Complete System Audit](./AGENT_CONTROL_AUDIT.md)
-- Backend Files:
-  - `src/handlers/bots_handler.rs` - API endpoints
-  - `src/services/mcp_session_bridge.rs` - Session management
-  - `src/actors/claude_flow_actor.rs` - MCP polling
-  - `src/actors/graph_actor.rs` - Agent graph integration
-  - `src/utils/binary_protocol.rs` - Binary encoding
-  - `src/telemetry/agent_telemetry.rs` - Telemetry system
-- Frontend Files:
-  - `client/src/features/bots/components/MultiAgentInitializationPrompt.tsx` - UI
-  - `client/src/services/BinaryWebSocketProtocol.ts` - Binary decoding
-  - `client/src/features/bots/contexts/BotsDataContext.tsx` - State management
-
----
-
-**Ready for system relaunch and testing. All major architectural gaps have been resolved.**
+client/src/services/nostrAuthService.ts & client/src/services/api/authInterceptor.ts: A more complete and integrated system using Nostr (NIP-07) for authentication, which automatically injects headers into API requests via the UnifiedApiClient.
+
+Recommendation: Remove the unused AuthenticationManager in initializeAuthentication.ts to avoid confusion and rely solely on the Nostr-based implementation.
+
+Parallel Vircadia Multi-User System: The client/src/services/vircadia/ directory contains a complete, parallel system for multi-user XR functionality, including its own client core (VircadiaClientCore.ts), entity management (EntitySyncManager.ts), and avatar system (AvatarManager.ts). While configured in .env.example, its integration with the primary "Bots" and "Graph" visualization systems is unclear, suggesting it may be a separate, poorly integrated feature or a duplicate effort. We should take a look around this code and build a plan for full integration as it's certainly needed. This element will require web searching. Document findings into the relevant section of the docs corpus along with detailed plans.
+
+
+2. Development Artifacts, Mocks, and Stubs
+These items are remnants of development or testing and should be cleaned up.
+Backup File:
+File: client/src/features/visualisation/components/IntegratedControlPanel.tsx.backup
+Issue: This is a backup file left in the source tree. It should be removed.
+Developer Overrides:
+
+
+Mock Data Files:
+Files: client/src/features/bots/services/mockAgentData.ts, client/src/features/bots/services/mockDataAdapter.ts remove all mocks.
+
+Test-Specific Components:
+File: client/src/features/graph/components/GraphCanvasTestMode.tsx
+Issue: This component is designed for testing environments where WebGL is unavailable. The logic in GraphCanvasWrapper.tsx correctly isolates it. it should be removed.
+
+Console Logs in Configuration:
+File: client/vite.config.ts
+Issue: The proxy configuration contains console.log statements for debugging requests and responses. These should be removed.
+
+3. Hardcoded Variables & Magic Numbers
+
+File: client/src/app/components/NarrativeGoldminePanel.tsx
+src="https://narrativegoldmine.com//#/graph" is a hardcoded URL. this whole website opening system is quite old. When a node is double clicked on we should open the webpage as a new tab, not in an iframe inside the app. This is a security risk and a poor user experience.
+
+
+The security check url.hostname.includes('narrativegoldmine.com') uses a hardcoded domain, which is correct for now but should be flagged for future configurability.
+
+File: client/src/utils/iframeCommunication.ts replace with the new system for opening webpages in a new tab.
+
+
+File: client/src/features/bots/components/BotsVisualizationFixed.tsx - Contains numerous magic numbers for scaling, animation speeds, and color calculations (e.g., lerpFactor = 0.15, pulseSpeed = 2 * tokenMultiplier * healthMultiplier). These are a major problem and should be flagged in the code for later refactoring.
+
+
+File: client/src/features/visualisation/components/HolographicDataSphere.tsx - This file is filled with hardcoded numeric values for geometry, colors, opacity, and animation parameters.
+Recommendation: Replace these numbers with named constants from the settings system for the hologram. There should be analogous settings for each hard coded value. Just make sure that each variable gets assigned to one of the disconnected settings variables in the settings system. This will make it easy to adjust the hologram's appearance and behavior without diving into the code. We can update the names in the UX later. Don't do that yet as the settings management system is brittle.
+
+4. Other Technical Debt
+Disabled Testing Framework:
+File: client/package.json
+Issue: All test scripts are disabled with the message: "echo 'Testing disabled due to supply chain attack - see SECURITY_ALERT.md'". This is a critical security and quality assurance issue. The block-test-packages.cjs script is a temporary workaround that has become technical debt.
+Recommendation: This is the highest priority issue to resolve. The underlying security concern must be addressed, dependencies updated, and the testing framework re-enabled.
+
+
+Legacy Binary Protocol Support:
+File: client/src/types/binaryProtocol.ts
+Issue: The code includes logic to handle a legacy PROTOCOL_V1 which had a known bug with node ID truncation. Supporting this legacy protocol adds complexity.
+Recommendation: remove support for PROTOCOL_V1 entirely, simplifying the codebase and reducing potential bugs.
+
+Deprecated Methods:
+File: client/src/features/bots/services/BotsWebSocketIntegration.ts
+Issue: Several methods like setPollingMode, startBotsGraphPolling, and requestInitialData are marked as @deprecated. remove them after confirming they are no longer in use.
+
+Recommendation: Identify where these methods are still being used, refactor the code to use the new patterns (e.g., the useAgentPolling hook), and then remove the deprecated methods.
+Outdated Documentation:
+
+File: client/src/features/bots/docs/polling-system.md
+Issue: The documentation describes a REST polling system. While this system exists, the architecture has evolved into a hybrid model with WebSockets. The documentation should be updated to reflect the current state, including the roles of both REST and WebSocket communication. legacy code should be removed

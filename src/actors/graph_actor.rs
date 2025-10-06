@@ -58,6 +58,7 @@ use tokio::time::Duration;
 use log::{debug, info, warn, error, trace};
 use glam::Vec3;
 use crate::types::Vec3Data;
+use serde::Serialize;
  
 use crate::actors::messages::*;
 use crate::actors::graph_messages::{
@@ -295,6 +296,16 @@ enum AutoBalanceState {
     Bouncing,       // Nodes are bouncing off boundaries
     Oscillating,    // System is oscillating between states
     Adjusting,      // Currently making parameter adjustments
+}
+
+/// Physics/settlement state for client optimization
+/// Exported for REST API responses
+#[derive(Debug, Clone, Serialize)]
+pub struct PhysicsState {
+    pub is_settled: bool,
+    pub stable_frame_count: u32,
+    pub kinetic_energy: f32,
+    pub current_state: String,  // Converted from AutoBalanceState enum
 }
 
 // Auto-balance notification structure
@@ -2869,6 +2880,36 @@ impl Handler<GetNodeMap> for GraphServiceActor {
 
     fn handle(&mut self, _msg: GetNodeMap, _ctx: &mut Self::Context) -> Self::Result {
         Ok(Arc::clone(&self.node_map)) // Return Arc reference, no cloning of HashMap data!
+    }
+}
+
+/// NEW: Handler for getting physics/settlement state for client optimization
+impl Handler<GetPhysicsState> for GraphServiceActor {
+    type Result = Result<PhysicsState, String>;
+
+    fn handle(&mut self, _msg: GetPhysicsState, _ctx: &mut Self::Context) -> Self::Result {
+        // Calculate average kinetic energy from recent history
+        let avg_ke = if !self.kinetic_energy_history.is_empty() {
+            self.kinetic_energy_history.iter().sum::<f32>() / self.kinetic_energy_history.len() as f32
+        } else {
+            0.0
+        };
+
+        let state_name = match self.current_state {
+            AutoBalanceState::Stable => "stable",
+            AutoBalanceState::Spreading => "spreading",
+            AutoBalanceState::Clustering => "clustering",
+            AutoBalanceState::Bouncing => "bouncing",
+            AutoBalanceState::Oscillating => "oscillating",
+            AutoBalanceState::Adjusting => "adjusting",
+        };
+
+        Ok(PhysicsState {
+            is_settled: self.current_state == AutoBalanceState::Stable && self.stable_count > 30,
+            stable_frame_count: self.stable_count,
+            kinetic_energy: avg_ke,
+            current_state: state_name.to_string(),
+        })
     }
 }
 

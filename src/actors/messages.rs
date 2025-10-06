@@ -141,6 +141,11 @@ pub enum CommunityDetectionAlgorithm {
 #[rtype(result = "Result<std::sync::Arc<ServiceGraphData>, String>")]
 pub struct GetGraphData;
 
+/// NEW: Get settlement/physics state for client optimization
+#[derive(Message)]
+#[rtype(result = "Result<crate::actors::graph_actor::PhysicsState, String>")]
+pub struct GetPhysicsState;
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateNodePositions {

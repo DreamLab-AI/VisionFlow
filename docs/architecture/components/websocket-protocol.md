@@ -1,12 +1,13 @@
 # WebSocket Binary Protocol
 
-**Version**: 1.2.0
+**Version**: 2.0 (Binary Protocol V2)
 **Status**: Production Ready
-**Performance**: 85% bandwidth reduction achieved
+**Last Updated**: October 2025
+**Performance**: ~80% bandwidth reduction vs JSON
 
 ## Overview
 
-The WebSocket binary protocol provides high-performance real-time communication between the Rust backend and TypeScript clients. The protocol achieves significant bandwidth reduction through custom binary serialisation and selective compression.
+The WebSocket binary protocol provides high-performance real-time communication between the Rust backend and TypeScript clients. Binary Protocol V2 uses 36-byte node frames with u32 IDs and dual-graph type flags, fixing the V1 node ID truncation bug while supporting unified knowledge + agent graph broadcasting.
 
 ## Protocol Architecture
 
@@ -67,13 +68,13 @@ All WebSocket messages follow this binary frame structure:
 
 ## Binary Data Formats
 
-### Node Update Format
+### Node Update Format (Binary Protocol V2)
 
-Each node update uses exactly **34 bytes**:
+Each node update uses exactly **36 bytes**:
 
 ```rust
-struct WireNodeDataItem {
-    id: u16,                // 2 bytes - With type flags in high bits
+struct WireNodeDataItemV2 {
+    id: u32,                // 4 bytes - With type flags in high bits (31/30)
     position: Vec3Data,     // 12 bytes (3 × f32)
     velocity: Vec3Data,     // 12 bytes (3 × f32)
     sssp_distance: f32,     // 4 bytes - SSSP distance
@@ -81,7 +82,12 @@ struct WireNodeDataItem {
 }
 ```
 
-**Total**: 34 bytes per node (vs ~150 bytes JSON)
+**Total**: 36 bytes per node (vs ~150 bytes JSON)
+
+**Type Flags (Dual-Graph Support)**:
+- **Bit 31** (`0x80000000`): Agent node flag
+- **Bit 30** (`0x40000000`): Knowledge graph node flag
+- **Bits 0-29** (`0x3FFFFFFF`): Actual node ID (30-bit, max 1 billion nodes)
 
 ### Vec3Data Format
 
@@ -126,12 +132,107 @@ Batch updates combine multiple node updates:
 ```
 ┌────────────┬──────────┬─────────────────┐
 │ Node Count │ Flags    │  Node Updates   │
-│  2 bytes   │ 2 bytes  │  N × 34 bytes   │
+│  2 bytes   │ 2 bytes  │  N × 36 bytes   │
 └────────────┴──────────┴─────────────────┘
 ```
 
 **Batch size**: Up to 50 nodes per batch (default)
-**Frequency**: 5Hz (200ms intervals)
+**Frequency**: Adaptive (60 FPS active, 5 Hz settled)
+
+## Dual-Graph Broadcasting Architecture
+
+### Overview
+
+VisionFlow supports **unified dual-graph broadcasting** where both knowledge graphs and agent graphs are transmitted in a single WebSocket stream with type identification flags.
+
+### Graph Structure
+
+**Knowledge Graph:**
+- Scientific concepts, papers, entities
+- Physics-simulated positions
+- ~185 nodes typical
+- Flag: `0x40000000` (bit 30)
+
+**Agent Graph:**
+- LLM agents (Claude via MCP)
+- Physics-simulated positions
+- ~3-10 nodes typical
+- Flag: `0x80000000` (bit 31)
+
+### Unified Broadcast Flow
+
+```mermaid
+sequenceDiagram
+    participant PhysicsLoop as Physics Loop (60 FPS)
+    participant GraphActor as Graph Actor
+    participant Encoder as Binary Encoder
+    participant Clients as WebSocket Clients
+
+    PhysicsLoop->>GraphActor: Update node positions
+    GraphActor->>GraphActor: Collect knowledge nodes
+    GraphActor->>GraphActor: Collect agent nodes
+    GraphActor->>Encoder: encode_node_data_with_types()
+    Note over Encoder: Sets KNOWLEDGE_NODE_FLAG on knowledge IDs<br/>Sets AGENT_NODE_FLAG on agent IDs
+    Encoder->>GraphActor: Binary buffer (N × 36 bytes)
+    GraphActor->>Clients: Single broadcast (188 nodes)
+    Clients->>Clients: Decode and separate by flags
+```
+
+### Implementation (`src/actors/graph_actor.rs`)
+
+**Unified Physics Broadcast** (lines 2087-2150):
+
+```rust
+// Collect BOTH graphs in single broadcast
+let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+let mut knowledge_ids: Vec<u32> = Vec::new();
+let mut agent_ids: Vec<u32> = Vec::new();
+
+// Knowledge graph nodes
+for (node_id, node) in self.node_map.iter() {
+    position_data.push((*node_id, BinaryNodeDataClient::new(...)));
+    knowledge_ids.push(*node_id);
+}
+
+// Agent graph nodes
+for node in &self.bots_graph_data.nodes {
+    position_data.push((node.id, BinaryNodeDataClient::new(...)));
+    agent_ids.push(node.id);
+}
+
+// Single unified broadcast with type flags
+let binary_data = encode_node_data_with_types(
+    &position_data,
+    &agent_ids,
+    &knowledge_ids
+);
+```
+
+**Result:** Single WebSocket message containing all 188 nodes with proper type separation.
+
+### Client-Side Separation
+
+Clients decode the unified stream and separate nodes by type:
+
+```typescript
+const nodeId = view.getUint32(offset, true);
+const isAgent = (nodeId & 0x80000000) !== 0;
+const isKnowledge = (nodeId & 0x40000000) !== 0;
+const actualId = nodeId & 0x3FFFFFFF;
+
+if (isAgent) {
+    agentGraph.updateNode(actualId, position, velocity);
+} else if (isKnowledge) {
+    knowledgeGraph.updateNode(actualId, position, velocity);
+}
+```
+
+### Benefits
+
+1. **No Broadcast Conflicts**: Single source of truth eliminates race conditions
+2. **Synchronized Updates**: Both graphs update simultaneously
+3. **Efficient Bandwidth**: One message instead of two separate streams
+4. **Type Safety**: Flags ensure proper graph separation on client
 
 ## Compression Strategy
 
@@ -270,14 +371,21 @@ class WebSocketService {
 
 ### Bandwidth Reduction
 
-| Message Type | JSON Size | Binary Size | Reduction |
-|--------------|-----------|-------------|-----------|
-| Single Node | ~150 bytes | 34 bytes | 77% |
-| 50 Nodes | ~7.5 KB | 1.7 KB | 77% |
+| Message Type | JSON Size | Binary V2 Size | Reduction |
+|--------------|-----------|----------------|-----------|
+| Single Node | ~150 bytes | 36 bytes | 76% |
+| 50 Nodes | ~7.5 KB | 1.8 KB | 76% |
+| 188 Nodes (dual-graph) | ~28 KB | 6.8 KB | 76% |
 | Settings Update | ~800 bytes | ~120 bytes | 85% |
 | Batch (compressed) | ~10 KB | ~2 KB | 80% |
 
-**Overall Achieved**: 84.8% bandwidth reduction
+**Overall Achieved**: ~80% bandwidth reduction vs JSON
+
+**V2 Improvements over V1:**
+- +2 bytes per node (36 vs 34)
+- Supports 1 billion nodes vs 16K
+- Fixes node ID truncation bug
+- Enables dual-graph type separation
 
 ### Latency Metrics
 
@@ -346,22 +454,34 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketActor {
     }
 }
 
-fn serialize_node_update(nodes: &[NodeData]) -> Vec<u8> {
-    let mut buffer = Vec::with_capacity(8 + nodes.len() * 34);
+fn serialize_node_update(
+    nodes: &[(u32, BinaryNodeData)],
+    agent_ids: &[u32],
+    knowledge_ids: &[u32]
+) -> Vec<u8> {
+    let mut buffer = Vec::with_capacity(nodes.len() * 36);
 
-    // Write header
-    buffer.push(1); // Version
-    buffer.push(0x01); // NodeUpdate type
-    buffer.extend_from_slice(&0u16.to_le_bytes()); // Flags
-    buffer.extend_from_slice(&((nodes.len() * 34) as u32).to_le_bytes());
+    // Encode nodes with dual-graph type flags
+    for (node_id, data) in nodes {
+        // Determine type flag
+        let wire_id = if agent_ids.contains(node_id) {
+            node_id | 0x80000000  // AGENT_NODE_FLAG
+        } else if knowledge_ids.contains(node_id) {
+            node_id | 0x40000000  // KNOWLEDGE_NODE_FLAG
+        } else {
+            *node_id
+        };
 
-    // Write node data
-    for node in nodes {
-        buffer.extend_from_slice(&node.id.to_le_bytes());
-        buffer.extend_from_slice(&node.position.x.to_le_bytes());
-        buffer.extend_from_slice(&node.position.y.to_le_bytes());
-        buffer.extend_from_slice(&node.position.z.to_le_bytes());
-        // ... velocity and SSSP data
+        // Write node data (36 bytes)
+        buffer.extend_from_slice(&wire_id.to_le_bytes());         // 4 bytes
+        buffer.extend_from_slice(&data.position.x.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.position.y.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.position.z.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.velocity.x.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.velocity.y.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.velocity.z.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.sssp_distance.to_le_bytes()); // 4 bytes
+        buffer.extend_from_slice(&data.sssp_parent.to_le_bytes());   // 4 bytes
     }
 
     buffer
@@ -389,20 +509,38 @@ class BinaryProtocolClient {
     private parseNodeUpdate(payload: Uint8Array): NodeData[] {
         const view = new DataView(payload.buffer, payload.byteOffset);
         const nodes: NodeData[] = [];
+        const BINARY_NODE_SIZE = 36;
         let offset = 0;
 
         while (offset < payload.length) {
-            const id = view.getUint16(offset, true); offset += 2;
+            // Parse node ID with type flags (V2: u32, 4 bytes)
+            const rawId = view.getUint32(offset, true); offset += 4;
+            const isAgent = (rawId & 0x80000000) !== 0;
+            const isKnowledge = (rawId & 0x40000000) !== 0;
+            const id = rawId & 0x3FFFFFFF;
+
+            // Parse position (12 bytes)
             const x = view.getFloat32(offset, true); offset += 4;
             const y = view.getFloat32(offset, true); offset += 4;
             const z = view.getFloat32(offset, true); offset += 4;
+
+            // Parse velocity (12 bytes)
             const vx = view.getFloat32(offset, true); offset += 4;
             const vy = view.getFloat32(offset, true); offset += 4;
             const vz = view.getFloat32(offset, true); offset += 4;
+
+            // Parse SSSP data (8 bytes)
             const sssp_distance = view.getFloat32(offset, true); offset += 4;
             const sssp_parent = view.getInt32(offset, true); offset += 4;
 
-            nodes.push({ id, position: {x,y,z}, velocity: {vx,vy,vz}, sssp_distance, sssp_parent });
+            nodes.push({
+                id,
+                nodeType: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'normal',
+                position: {x, y, z},
+                velocity: {vx, vy, vz},
+                sssp_distance,
+                sssp_parent
+            });
         }
 
         return nodes;
@@ -433,7 +571,29 @@ mod tests {
         let deserialized = deserialize_node(&serialized).unwrap();
 
         assert_eq!(original, deserialized);
-        assert_eq!(serialized.len(), 34);
+        assert_eq!(serialized.len(), 36); // V2: 36 bytes
+    }
+
+    #[test]
+    fn test_dual_graph_type_flags() {
+        let nodes = vec![
+            (10, create_test_node()),  // Regular
+            (20, create_test_node()),  // Knowledge
+            (30, create_test_node()),  // Agent
+        ];
+        let agent_ids = vec![30];
+        let knowledge_ids = vec![20];
+
+        let binary = encode_node_data_with_types(&nodes, &agent_ids, &knowledge_ids);
+
+        // Verify flags in binary data
+        let id1 = u32::from_le_bytes([binary[0], binary[1], binary[2], binary[3]]);
+        let id2 = u32::from_le_bytes([binary[36], binary[37], binary[38], binary[39]]);
+        let id3 = u32::from_le_bytes([binary[72], binary[73], binary[74], binary[75]]);
+
+        assert_eq!(id1, 10); // No flags
+        assert_eq!(id2 & 0x40000000, 0x40000000); // KNOWLEDGE_NODE_FLAG
+        assert_eq!(id3 & 0x80000000, 0x80000000); // AGENT_NODE_FLAG
     }
 }
 ```
@@ -551,9 +711,58 @@ pub struct RateLimiter {
 4. **Deploy Gradually**: Use feature flags for rollout
 5. **Monitor Performance**: Track bandwidth and latency improvements
 
+## Version History
+
+### Version 2.0 (October 2025) - Current
+
+**Changes:**
+- Upgraded to Binary Protocol V2 (36 bytes per node)
+- Changed node ID from u16 to u32 (fixes truncation bug)
+- Moved type flags from bits 15/14 to bits 31/30
+- Implemented unified dual-graph broadcasting
+- Added adaptive broadcast rate (60 FPS active, 5 Hz settled)
+
+**Bug Fixes:**
+- Fixed node ID truncation for IDs > 16,383
+- Fixed dual-graph broadcast conflicts (knowledge + agent graphs)
+- Eliminated race conditions from separate broadcast paths
+- Fixed 2-byte misalignment causing "corrupted node data" errors
+
+### Version 1.2.0 (Legacy) - Deprecated
+
+**Format:**
+- Binary Protocol V1 (34 bytes per node)
+- u16 node IDs (bits 15/14 for type flags, bits 0-13 for ID)
+- Separate broadcasts for knowledge and agent graphs
+- Fixed 60 FPS broadcast rate
+
+**Known Issues:**
+- Node ID truncation bug (IDs > 16,383 collision)
+- Dual-graph broadcast conflicts
+- Limited to 16,383 nodes maximum
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: "Corrupted node data" errors on client**
+- **Cause**: Client using V1 parser (34 bytes) with V2 server (36 bytes)
+- **Fix**: Update client `BINARY_NODE_SIZE` constant from 34 to 36
+- **Fix**: Update parse offsets (position at offset 4, not 2)
+
+**Issue: Nodes with wrong type (agent vs knowledge)**
+- **Cause**: Client checking wrong flag bits (15/14 instead of 31/30)
+- **Fix**: Update flag constants to `0x80000000` and `0x40000000`
+- **Fix**: Use `getUint32()` instead of `getUint16()` for node ID
+
+**Issue: Agent nodes not moving**
+- **Cause**: Agent graph not included in unified broadcast
+- **Fix**: Verify server logs show "188 nodes: 185 knowledge + 3 agents"
+- **Fix**: Check `encode_node_data_with_types()` receives both ID lists
+
 ## References
 
-- [Binary Protocol Specification](../../reference/binary-protocol-spec.md)
-- [WebSocket API Reference](../../reference/websocket-api.md)
-- [Performance Benchmarks](../../reports/performance-benchmarks.md)
-- [Security Best Practices](../security.md)
+- **[Binary Protocol V2 Specification](../../reference/api/binary-protocol.md)** - Complete wire format details
+- **[Dual-Graph Architecture](../core/visualization.md)** - Knowledge + agent graph visualization
+- **[WebSocket API Reference](../../reference/websocket-api.md)** - API endpoint documentation
+- **[Performance Benchmarks](../../reports/performance-benchmarks.md)** - Bandwidth and latency metrics

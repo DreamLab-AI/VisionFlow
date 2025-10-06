@@ -127,15 +127,16 @@ class GraphDataManager {
   }
 
   // Fetch initial graph data from the API with retry logic
+  // NEW: Server now returns physics-settled positions, eliminating "pop-in" effect
   public async fetchInitialData(): Promise<GraphData> {
     const maxRetries = 5;
     const initialDelay = 1000; // 1 second
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
+        console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data with physics positions (Attempt ${attempt}/${maxRetries})`);
         if (debugState.isEnabled()) {
-          logger.info(`Fetching initial ${this.graphType} graph data (Attempt ${attempt}/${maxRetries})`);
+          logger.info(`Fetching initial ${this.graphType} graph data with physics positions (Attempt ${attempt}/${maxRetries})`);
         }
 
         const response = await unifiedApiClient.get('/graph/data');
@@ -150,7 +151,12 @@ class GraphDataManager {
         const nodes = Array.isArray(data.nodes) ? data.nodes : [];
         const edges = Array.isArray(data.edges) ? data.edges : [];
         const metadata = data.metadata || {};
+        const settlementState = data.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
 
+        console.log(`[GraphDataManager] Received settlement state: settled=${settlementState.isSettled}, frames=${settlementState.stableFrameCount}, KE=${settlementState.kineticEnergy}`);
+
+        // Nodes now have ACTUAL physics-settled positions from server!
+        // No more random (0,0,0) fallback - positions are correct immediately
         const enrichedNodes = nodes.map(node => {
           const nodeMetadata = metadata[node.metadata_id || node.metadataId];
           if (nodeMetadata) {
@@ -162,14 +168,14 @@ class GraphDataManager {
         const validatedData = { nodes: enrichedNodes, edges };
 
         if (debugState.isEnabled()) {
-          logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges`);
+          logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges (physics settled: ${settlementState.isSettled})`);
         }
 
-        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes`);
+        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes at physics-settled positions`);
         await this.setGraphData(validatedData);
 
         const currentData = await graphWorkerProxy.getGraphData();
-        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes`);
+        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes - no position "pop-in" expected!`);
         return currentData;
 
       } catch (error) {
@@ -578,21 +584,23 @@ class GraphDataManager {
     });
   }
 
-  // Initialize a node with default position if needed
+  // Validate node position (server now provides positions, so this should rarely trigger)
   public ensureNodeHasValidPosition(node: Node): Node {
     if (!node.position) {
-      // Provide a default position if none exists
+      // Should not happen with new server response, but keep as safety fallback
+      console.warn(`[GraphDataManager] Node ${node.id} missing position - server should provide this!`);
       return {
         ...node,
         position: { x: 0, y: 0, z: 0 }
       };
-    } else if (typeof node.position.x !== 'number' || 
-               typeof node.position.y !== 'number' || 
+    } else if (typeof node.position.x !== 'number' ||
+               typeof node.position.y !== 'number' ||
                typeof node.position.z !== 'number') {
       // Fix any NaN or undefined coordinates
-      node.position.x = typeof node.position.x === 'number' ? node.position.x : 0;
-      node.position.y = typeof node.position.y === 'number' ? node.position.y : 0;
-      node.position.z = typeof node.position.z === 'number' ? node.position.z : 0;
+      console.warn(`[GraphDataManager] Node ${node.id} has invalid position coordinates - fixing`);
+      node.position.x = typeof node.position.x === 'number' && isFinite(node.position.x) ? node.position.x : 0;
+      node.position.y = typeof node.position.y === 'number' && isFinite(node.position.y) ? node.position.y : 0;
+      node.position.z = typeof node.position.z === 'number' && isFinite(node.position.z) ? node.position.z : 0;
     }
     return node;
   }

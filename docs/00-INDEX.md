@@ -2,8 +2,8 @@
 
 **Complete Navigation Guide for AR-AI Knowledge Graph System**
 
-*Last Updated: 2025-10-03*
-*Version: 2.0.0*
+*Last Updated: 2025-10-06*
+*Version: 2.1.0*
 
 ---
 
@@ -47,10 +47,13 @@
 
 ### Core Architecture
 
-1. **[System Architecture Overview](./architecture/hybrid_docker_mcp_architecture.md)** - Complete system design
+1. **[System Architecture Overview](./architecture/hybrid_docker_mcp_architecture.md)** ⭐ **UPDATED OCT 2025**
    - Docker container architecture
    - MCP (Model Context Protocol) integration
    - Hybrid deployment patterns
+   - **NEW**: Real agent spawning implementation (not stubs!)
+   - **NEW**: MCP session bridge with UUID ↔ swarm_id correlation
+   - **NEW**: GPU integration for agent visualization
    - **Related**: [Deployment Architecture](./deployment/vircadia-docker-deployment.md)
    - **See Also**: [Multi-Agent Docker Architecture](./multi-agent-docker/ARCHITECTURE.md)
 
@@ -158,13 +161,24 @@
    - Message formats
    - Error handling
    - **Related**: [Binary Protocol](./reference/api/binary-protocol.md)
-   - **Implementation**: [Vircadia-React Integration](./architecture/vircadia-react-xr-integration.md#network-architecture)
+   - **Implementation**: [WebSocket Protocol Component](./architecture/components/websocket-protocol.md)
 
-2. **[Binary Protocol](./reference/api/binary-protocol.md)** - Efficient data transfer
-   - Message structure
-   - Entity updates
-   - Performance optimisation
-   - **Related**: [WebSocket API](./reference/api/websocket-api.md)
+2. **[Binary Protocol V2](./reference/api/binary-protocol.md)** ⭐ **UPGRADED OCT 2025**
+   - **NEW**: Protocol V2 (36 bytes/node, u32 IDs)
+   - **FIXED**: Node ID truncation bug (now supports 1B nodes)
+   - **NEW**: Dual-graph type flags (bits 31/30)
+   - Message structure and wire format
+   - Performance: ~80% bandwidth reduction vs JSON
+   - **DEPRECATED**: Protocol V1 (34 bytes, u16 IDs, truncation bug)
+   - **Related**: [WebSocket Protocol Component](./architecture/components/websocket-protocol.md)
+
+2a. **[WebSocket Protocol Component](./architecture/components/websocket-protocol.md)** ⭐ **UPDATED OCT 2025**
+   - **NEW**: Unified dual-graph broadcasting
+   - **NEW**: Knowledge + agent graph synchronization
+   - **FIXED**: Broadcast conflicts between graph types
+   - Binary Protocol V2 implementation details
+   - Adaptive broadcast rates (60 FPS active, 5 Hz settled)
+   - **Related**: [Binary Protocol](./reference/api/binary-protocol.md)
 
 3. **[REST API](./reference/api/rest-api.md)** - HTTP endpoints
    - Authentication
@@ -393,6 +407,13 @@
    - Historical context
    - Migration notes
 
+2. **[Development Notes - October 2025](./archive/development-notes-2025-10/)** ⭐ **NEW**
+   - Agent control implementation audit
+   - Dual-graph broadcast fix documentation
+   - Binary Protocol V2 upgrade details
+   - System refactoring notes
+   - **Note**: Information integrated into permanent docs
+
 ---
 
 ## Navigation Map
@@ -550,15 +571,39 @@ docs/
 
 | Status | Count | Examples |
 |--------|-------|----------|
+| ⭐ New (2025-10-06) | 1 | Development Notes Archive |
+| 🔄 Updated (2025-10-06) | 4 | Binary Protocol V2, WebSocket Protocol, Hybrid Architecture, Index |
 | ⭐ New (2025-10-03) | 2 | Vircadia-React Integration, Docker Deployment |
 | ✅ Current | ~80% | Most architecture and API docs |
 | 🔄 In Progress | ~15% | Some agent templates |
-| 📦 Archived | ~5% | Legacy implementations |
+| 📦 Archived | ~5% | Legacy implementations, Oct 2025 dev notes |
+
+## Recent Updates (October 2025)
+
+### Binary Protocol V2 Upgrade (2025-10-06)
+- Upgraded from 34-byte (u16) to 36-byte (u32) wire format
+- Fixed critical node ID truncation bug (now supports 1 billion nodes vs 16K)
+- Added dual-graph type flags at bits 31/30
+- **Impact**: Prevents ID collisions, enables proper agent/knowledge separation
+- **Migration**: V1 deprecated, clients must upgrade to V2
+
+### Dual-Graph Broadcasting Fix (2025-10-06)
+- Implemented unified broadcast for knowledge + agent graphs
+- Fixed race conditions from separate broadcast paths
+- Added adaptive broadcast rates (60 FPS active, 5 Hz settled)
+- **Impact**: Eliminated visualization conflicts between graph types
+
+### Agent Management Implementation (2025-10-06)
+- Real MCP session spawning (replaced stubs)
+- UUID ↔ swarm_id correlation system
+- Agent streaming via Binary Protocol V2
+- GPU integration for agent physics visualization
+- **Impact**: Production-ready multi-agent system
 
 ---
 
 **Document Maintained By**: VisionFlow Documentation Team
-**Last Comprehensive Review**: 2025-10-03
-**Next Scheduled Review**: 2025-11-03
+**Last Comprehensive Review**: 2025-10-06
+**Next Scheduled Review**: 2025-11-06
 
 For documentation issues or suggestions, please open a GitHub issue with label `documentation`.

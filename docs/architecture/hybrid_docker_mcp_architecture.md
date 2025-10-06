@@ -1,8 +1,22 @@
-# Hybrid Docker Exec + TCP/MCP Architecture Blueprint
+# Hybrid Docker Exec + TCP/MCP Architecture
+
+**Status:** ✅ **IMPLEMENTED AND OPERATIONAL**
+**Last Updated:** 2025-10-06
+**Implementation:** Complete with MCP Session Bridge
 
 ## Executive Summary
 
-This document outlines the optimal architecture for the multi-agent system that combines the simplicity and reliability of Docker exec for task orchestration with the data-rich capabilities of TCP/MCP for real-time telemetry and visualisation.
+This document outlines the hybrid architecture for the multi-agent system that combines Docker exec for task orchestration with TCP/MCP for real-time telemetry and visualization. **This architecture is now fully implemented and operational.**
+
+### Implementation Status
+
+✅ **MCP Session Bridge** (`src/services/mcp_session_bridge.rs`)
+✅ **Real Session Spawning** via `/bots/initialize-swarm`
+✅ **UUID ↔ Swarm ID Correlation** with bidirectional mapping
+✅ **Agent Streaming** via Binary Protocol V2 (36 bytes/node)
+✅ **GPU Integration** for agent physics visualization
+✅ **WebSocket Broadcasting** with agent/knowledge node type flags
+✅ **Telemetry System** with correlation IDs and structured logging
 
 ## Current State Analysis
 
@@ -35,6 +49,57 @@ This document outlines the optimal architecture for the multi-agent system that 
 - Docker exec failures don't affect telemetry streaming
 - TCP/MCP failures don't affect task execution
 - WebSocket failures don't affect core orchestration
+
+## Implemented Data Flow (2025-10-06)
+
+### Agent Spawning Flow
+```
+UI (MultiAgentInitializationPrompt.tsx)
+  ↓ POST /bots/initialize-swarm
+  ↓
+Backend (bots_handler.rs::initialize_hive_mind_swarm)
+  ↓ spawn_swarm_monitored()
+  ↓
+MCP Session Bridge (mcp_session_bridge.rs)
+  ↓ spawn_and_monitor() → DockerHiveMind.spawn_swarm()
+  ↓ Returns UUID immediately
+  ↓ Poll for swarm_id (filesystem discovery + MCP query)
+  ↓ Link UUID ↔ swarm_id in bidirectional cache
+  ↓
+Returns: {uuid, swarm_id, initial_agents}
+```
+
+### Agent Data Streaming Flow
+```
+MCP Server (multi-agent-container:9500)
+  ↓ TCP connection
+  ↓
+Claude Flow Actor (claude_flow_actor.rs)
+  ↓ Poll agent statuses (2s interval)
+  ↓ MCP TCP client query_agent_list()
+  ↓ Convert MultiMcpAgentStatus → AgentStatus
+  ↓
+Graph Service Actor (graph_actor.rs)
+  ↓ Handler<UpdateBotsGraph>
+  ↓ Convert Agent → Node with AGENT_NODE_FLAG (bit 31)
+  ↓ Send to GPU for physics simulation
+  ↓ Encode Binary Protocol V2 (36 bytes/node)
+  ↓
+Client (BinaryWebSocketProtocol.ts)
+  ↓ Decode and visualize
+```
+
+### Key Implementation Files
+
+| Component | File | Status |
+|-----------|------|--------|
+| Session Bridge | `src/services/mcp_session_bridge.rs` | ✅ Complete |
+| Agent Spawning | `src/handlers/bots_handler.rs` | ✅ Refactored |
+| Agent Streaming | `src/actors/claude_flow_actor.rs` | ✅ Operational |
+| Graph Integration | `src/actors/graph_actor.rs` | ✅ Dual-graph support |
+| Binary Protocol | `src/utils/binary_protocol.rs` | ✅ V2 (36 bytes) |
+| Telemetry | `src/telemetry/agent_telemetry.rs` | ✅ Correlation IDs |
+| Client Protocol | `client/src/types/binaryProtocol.ts` | ✅ V2 parser |
 
 ## Core Architecture Components
 

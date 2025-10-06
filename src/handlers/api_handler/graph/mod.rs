@@ -7,16 +7,68 @@ use std::sync::Arc;
 use crate::models::metadata::Metadata;
 use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
+use crate::types::vec3::Vec3Data;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetSettings, AddNodesFromMetadata, GetAutoBalanceNotifications, InitialClientSync};
+use crate::actors::messages::{GetGraphData, GetSettings, AddNodesFromMetadata, GetAutoBalanceNotifications, InitialClientSync, GetNodeMap, GetPhysicsState};
 
+/// Settlement state information for client optimization
+#[derive(Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SettlementState {
+    pub is_settled: bool,
+    pub stable_frame_count: u32,
+    pub kinetic_energy: f32,
+}
+
+/// Node with physics position data included for immediate client rendering
+#[derive(Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeWithPosition {
+    // Core node data
+    pub id: u32,
+    pub metadata_id: String,
+    pub label: String,
+
+    // Physics state (NEW - prevents client-side random positioning)
+    pub position: Vec3Data,
+    pub velocity: Vec3Data,
+
+    // Metadata
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    pub metadata: HashMap<String, String>,
+
+    // Rendering properties
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weight: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+}
+
+/// Original GraphResponse for backward compatibility
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponse {
     pub nodes: Vec<Node>,
     pub edges: Vec<crate::models::edge::Edge>,
     pub metadata: HashMap<String, Metadata>,
+}
+
+/// NEW: Enhanced response with physics positions for optimized client initialization
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphResponseWithPositions {
+    pub nodes: Vec<NodeWithPosition>,
+    pub edges: Vec<crate::models::edge::Edge>,
+    pub metadata: HashMap<String, Metadata>,
+    pub settlement_state: SettlementState,
 }
 
 #[derive(Serialize)]
@@ -41,53 +93,75 @@ pub struct GraphQuery {
 }
 
 pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
-    info!("Received request for graph data");
-    let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
+    info!("Received request for graph data with positions");
 
-    match graph_data_result {
-        Ok(Ok(graph_data_owned)) => { // graph_data_owned is now GraphData
-            debug!("Preparing graph response with {} nodes and {} edges",
-                graph_data_owned.nodes.len(),
-                graph_data_owned.edges.len()
+    // Fetch graph structure AND physics state in parallel
+    let graph_data_future = state.graph_service_addr.send(GetGraphData);
+    let node_map_future = state.graph_service_addr.send(GetNodeMap);
+    let physics_state_future = state.graph_service_addr.send(GetPhysicsState);
+
+    let (graph_result, node_map_result, physics_result) = tokio::join!(
+        graph_data_future,
+        node_map_future,
+        physics_state_future
+    );
+
+    match (graph_result, node_map_result, physics_result) {
+        (Ok(Ok(graph_data)), Ok(Ok(node_map)), Ok(Ok(physics_state))) => {
+            debug!("Preparing enhanced graph response with {} nodes, {} edges, physics state: {:?}",
+                graph_data.nodes.len(),
+                graph_data.edges.len(),
+                physics_state
             );
- 
-            // Clone data from the owned GraphData for the response
-            let response = GraphResponse {
-                nodes: graph_data_owned.nodes.clone(),
-                edges: graph_data_owned.edges.clone(),
-                metadata: graph_data_owned.metadata.clone(),
+
+            // Build nodes with CURRENT physics positions from node_map
+            let nodes_with_positions: Vec<NodeWithPosition> = graph_data.nodes.iter().map(|node| {
+                // Get current position from physics-simulated node_map
+                let (position, velocity) = if let Some(physics_node) = node_map.get(&node.id) {
+                    (physics_node.data.position(), physics_node.data.velocity())
+                } else {
+                    // Fallback to original position if not in node_map yet
+                    (node.data.position(), node.data.velocity())
+                };
+
+                NodeWithPosition {
+                    id: node.id,
+                    metadata_id: node.metadata_id.clone(),
+                    label: node.label.clone(),
+                    position,  // ← ACTUAL physics-settled position!
+                    velocity,
+                    metadata: node.metadata.clone(),
+                    node_type: node.node_type.clone(),
+                    size: node.size,
+                    color: node.color.clone(),
+                    weight: node.weight,
+                    group: node.group.clone(),
+                }
+            }).collect();
+
+            let response = GraphResponseWithPositions {
+                nodes: nodes_with_positions,
+                edges: graph_data.edges.clone(),
+                metadata: graph_data.metadata.clone(),
+                settlement_state: SettlementState {
+                    is_settled: physics_state.is_settled,
+                    stable_frame_count: physics_state.stable_frame_count,
+                    kinetic_energy: physics_state.kinetic_energy,
+                },
             };
 
-            // UNIFIED INIT: Trigger WebSocket broadcast for initial client synchronization
-            let client_identifier = req.peer_addr()
-                .map(|addr| addr.to_string())
-                .unwrap_or_else(|| "unknown".to_string());
-            
-            debug!("Triggering initial WebSocket sync for client: {}", client_identifier);
-            
-            // Send InitialClientSync message to trigger WebSocket broadcast
-            // This ensures that after REST call returns graph data, WebSocket will broadcast current positions
-            let sync_msg = InitialClientSync {
-                client_identifier: client_identifier.clone(),
-                trigger_source: "rest_api".to_string(),
-            };
-            
-            if let Err(e) = state.graph_service_addr.try_send(sync_msg) {
-                warn!("Failed to trigger initial client sync for {}: {}", client_identifier, e);
-                // Don't fail the request, just log the warning
-            } else {
-                debug!("Successfully triggered initial sync for client: {}", client_identifier);
-            }
+            info!("Sending graph data with {} nodes at physics-settled positions (settled: {})",
+                  response.nodes.len(), physics_state.is_settled);
 
             HttpResponse::Ok().json(response)
         }
-        Ok(Err(e)) => {
-            error!("Failed to get graph data from actor: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Failed to retrieve graph data"}))
-        }
-        Err(e) => {
-            error!("Mailbox error getting graph data: {}", e);
+        (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => {
+            error!("Mailbox error fetching graph data: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({"error": "Graph service unavailable"}))
+        }
+        (Ok(Err(e)), _, _) | (_, Ok(Err(e)), _) | (_, _, Ok(Err(e))) => {
+            error!("Failed to fetch graph data: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Failed to retrieve graph data"}))
         }
     }
 }
