@@ -1,96 +1,56 @@
-import React, { CSSProperties, useEffect, useRef, useState } from 'react';
-import { IFRAME_COMMUNICATION_CONFIG, isAllowedOrigin, isNavigationMessage, NavigationMessage } from '../../utils/iframeCommunication';
+import React from 'react';
 
+/**
+ * NarrativeGoldminePanel - Opens narrativegoldmine.com in a new tab
+ *
+ * Security: Opens external site in new tab instead of iframe to avoid security risks
+ */
 const NarrativeGoldminePanel: React.FC = () => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      // Security: Validate origin using utility function
-      if (!isAllowedOrigin(event.origin) && IFRAME_COMMUNICATION_CONFIG.validation.requireKnownDomain) {
-        console.warn('Message from unauthorized origin blocked:', event.origin);
-        return;
-      }
-      
-      if (IFRAME_COMMUNICATION_CONFIG.validation.logMessages) {
-        console.log('Received message from origin:', event.origin);
-      }
-
-      // Type guard for navigation messages using utility function
-      if (isNavigationMessage(event.data)) {
-        const message = event.data as NavigationMessage;
-
-        // Security: Validate URL format and domain
-        try {
-          const url = new URL(message.url);
-          
-          // Check if it's a narrativegoldmine.com URL
-          if (!url.hostname.includes('narrativegoldmine.com')) {
-            console.warn('Navigation blocked: URL not from narrativegoldmine.com', url.hostname);
-            return;
-          }
-
-          // If validation passes, navigate the iframe
-          if (iframeRef.current) {
-            iframeRef.current.src = message.url;
-            
-            if (IFRAME_COMMUNICATION_CONFIG.validation.logMessages) {
-              console.log('Navigated iframe to:', message.url, {
-                nodeId: message.nodeId,
-                nodeLabel: message.nodeLabel,
-                timestamp: message.timestamp
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Invalid URL in navigation message:', message.url, error);
-        }
-      }
-    };
-
-    // Add event listener
-    window.addEventListener('message', handleMessage);
-
-    // Cleanup on unmount
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, []);
-
-  const panelStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden', // Iframe will handle its own scrolling
-    backgroundColor: '#1a1a1a', // Dark background while iframe loads
-    position: 'relative', // For loading overlay positioning
+  const handleOpenInNewTab = () => {
+    window.open('https://narrativegoldmine.com/#/page/', '_blank', 'noopener,noreferrer');
   };
 
-  const iframeStyle: CSSProperties = {
+  const panelStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
-    border: 'none', // Remove default iframe border
-    backgroundColor: '#1a1a1a', // Ensure no white flash while loading
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1a1a1a',
+    color: '#ffffff',
+    padding: '2rem',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    padding: '1rem 2rem',
+    fontSize: '1rem',
+    backgroundColor: '#4a5568',
+    color: 'white',
+    border: 'none',
+    borderRadius: '0.375rem',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
   };
 
   return (
     <div style={panelStyle}>
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-          <div className="text-gray-400 text-sm">Loading Narrative Goldmine...</div>
-        </div>
-      )}
-      <iframe
-        ref={iframeRef}
-        id="narrative-goldmine-iframe" // Added ID for backward compatibility
-        src="https://narrativegoldmine.com//#/graph"
-        style={iframeStyle}
-        title="Narrative Goldmine"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms" // Standard sandbox attributes
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        onLoad={() => setIsLoading(false)}
-      ></iframe>
+      <h2 style={{ marginBottom: '1rem' }}>Narrative Goldmine</h2>
+      <p style={{ marginBottom: '2rem', textAlign: 'center', color: '#a0aec0' }}>
+        Click below to open Narrative Goldmine in a new tab
+      </p>
+      <button
+        onClick={handleOpenInNewTab}
+        style={buttonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#2d3748';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#4a5568';
+        }}
+      >
+        Open Narrative Goldmine
+      </button>
     </div>
   );
 };

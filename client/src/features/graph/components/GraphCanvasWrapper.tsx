@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import GraphCanvas from './GraphCanvas';
-import GraphCanvasTestMode from './GraphCanvasTestMode';
 import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('GraphCanvasWrapper');
@@ -107,46 +106,10 @@ const detectTestMode = (): boolean => {
 };
 
 /**
- * Wrapper component that automatically switches between
- * full GraphCanvas (with WebGL) and GraphCanvasTestMode
- * based on environment detection
+ * Wrapper component for GraphCanvas
  */
 const GraphCanvasWrapper: React.FC = () => {
-    const [isTestMode, setIsTestMode] = useState<boolean>(false);
-    const [detectionComplete, setDetectionComplete] = useState<boolean>(false);
-
-    useEffect(() => {
-        // Perform detection on mount
-        const testMode = detectTestMode();
-        setIsTestMode(testMode);
-        setDetectionComplete(true);
-
-        // Log the decision
-        logger.info(`GraphCanvas mode: ${testMode ? 'TEST MODE (WebGL bypassed)' : 'NORMAL MODE (WebGL enabled)'}`);
-
-        // Set a global flag for other components to check
-        if (typeof window !== 'undefined') {
-            (window as any).__VISIONFLOW_TEST_MODE = testMode;
-        }
-    }, []);
-
-    // Don't render until detection is complete to avoid flashing
-    if (!detectionComplete) {
-        return (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: '#000033',
-                zIndex: 0
-            }} />
-        );
-    }
-
-    // Render appropriate component based on test mode detection
-    return isTestMode ? <GraphCanvasTestMode /> : <GraphCanvas />;
+    return <GraphCanvas />;
 };
 
 export default GraphCanvasWrapper;

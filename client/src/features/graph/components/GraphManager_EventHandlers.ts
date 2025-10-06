@@ -7,7 +7,7 @@ import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
 import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
-import { navigateNarrativeGoldmine } from '../../../utils/iframeCommunication';
+// Removed iframeCommunication import - now using direct window.open
 import { useGraphInteraction } from '../../visualisation/hooks/useGraphInteraction';
 
 const logger = createLogger('GraphManager');
@@ -219,15 +219,15 @@ export const createEventHandlers = (
       if (node?.label) {
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 
-        const slug = slugifyNodeLabel(node.label);
+        // Encode the label for URL (replace spaces and special chars with %20)
+        const encodedLabel = encodeURIComponent(node.label);
 
-        // Use the utility function for secure iframe communication
-        const success = navigateNarrativeGoldmine(node.id, node.label, slug);
+        // Open Narrative Goldmine in a new tab (security: no iframe)
+        const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
 
-        if (!success) {
-          logger.warn('Failed to send navigation message to Narrative Goldmine iframe');
-        } else if (debugState.isEnabled()) {
-          logger.debug(`Successfully sent navigation message for node ${node.id} to iframe`);
+        if (debugState.isEnabled()) {
+          logger.debug(`Opened Narrative Goldmine in new tab for node ${node.id}`);
         }
       }
     }

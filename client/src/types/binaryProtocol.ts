@@ -75,7 +75,7 @@ export function isKnowledgeNode(nodeId: number): boolean {
 
 /**
  * Parse binary data buffer into an array of BinaryNodeData objects
- * Supports both V1 (34 bytes, u16 IDs) and V2 (38 bytes, u32 IDs) protocols
+ * Supports V2 protocol only (36 bytes, u32 IDs)
  * Server sends: [1 byte version][node_data][node_data]...
  */
 export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
@@ -91,20 +91,17 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
   try {
     // Check for protocol version byte (first byte)
     let offset = 0;
-    let nodeSize = BINARY_NODE_SIZE; // Default to V2 (38 bytes)
+    const nodeSize = BINARY_NODE_SIZE; // V2 only (36 bytes)
 
     if (safeBuffer.byteLength > 0) {
       const firstByte = view.getUint8(0);
 
-      // Check if first byte is a protocol version (1 or 2)
-      if (firstByte === 1 || firstByte === 2) {
-        const protocolVersion = firstByte;
+      // Check if first byte is a protocol version
+      if (firstByte === 2) {
         offset = 1; // Skip version byte
-
-        if (protocolVersion === 1) {
-          nodeSize = 34; // V1 legacy format
-          console.warn('Received V1 protocol data (34 bytes/node). V2 (38 bytes/node) is recommended.');
-        }
+      } else if (firstByte === 1) {
+        console.error('PROTOCOL_V1 is no longer supported. Please upgrade to V2.');
+        return [];
       }
     }
 
@@ -130,9 +127,7 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
       return [];
     }
     
-    // Parse nodes based on detected protocol
-    const isV1 = nodeSize === 34;
-
+    // Parse nodes using V2 protocol only
     for (let i = 0; i < completeNodes; i++) {
       const nodeOffset = offset + (i * nodeSize);
 
@@ -141,56 +136,20 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         break;
       }
 
-      let nodeId: number;
-      let position: Vec3;
-      let velocity: Vec3;
-      let ssspDistance: number;
-      let ssspParent: number;
-
-      if (isV1) {
-        // V1 format: u16 ID (2 bytes)
-        nodeId = view.getUint16(nodeOffset, true);
-        position = {
-          x: view.getFloat32(nodeOffset + 2, true),
-          y: view.getFloat32(nodeOffset + 6, true),
-          z: view.getFloat32(nodeOffset + 10, true)
-        };
-        velocity = {
-          x: view.getFloat32(nodeOffset + 14, true),
-          y: view.getFloat32(nodeOffset + 18, true),
-          z: view.getFloat32(nodeOffset + 22, true)
-        };
-        ssspDistance = view.getFloat32(nodeOffset + 26, true);
-        ssspParent = view.getInt32(nodeOffset + 30, true);
-
-        // Convert V1 flags (bits 15/14) to V2 flags (bits 31/30)
-        const isAgent = (nodeId & 0x8000) !== 0;
-        const isKnowledge = (nodeId & 0x4000) !== 0;
-        const actualId = nodeId & 0x3FFF;
-
-        if (isAgent) {
-          nodeId = actualId | 0x80000000;
-        } else if (isKnowledge) {
-          nodeId = actualId | 0x40000000;
-        } else {
-          nodeId = actualId;
-        }
-      } else {
-        // V2 format: u32 ID (4 bytes)
-        nodeId = view.getUint32(nodeOffset + BINARY_NODE_ID_OFFSET, true);
-        position = {
-          x: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET, true),
-          y: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 4, true),
-          z: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 8, true)
-        };
-        velocity = {
-          x: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET, true),
-          y: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 4, true),
-          z: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 8, true)
-        };
-        ssspDistance = view.getFloat32(nodeOffset + BINARY_SSSP_DISTANCE_OFFSET, true);
-        ssspParent = view.getInt32(nodeOffset + BINARY_SSSP_PARENT_OFFSET, true);
-      }
+      // V2 format: u32 ID (4 bytes)
+      const nodeId = view.getUint32(nodeOffset + BINARY_NODE_ID_OFFSET, true);
+      const position: Vec3 = {
+        x: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET, true),
+        y: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 4, true),
+        z: view.getFloat32(nodeOffset + BINARY_POSITION_OFFSET + 8, true)
+      };
+      const velocity: Vec3 = {
+        x: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET, true),
+        y: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 4, true),
+        z: view.getFloat32(nodeOffset + BINARY_VELOCITY_OFFSET + 8, true)
+      };
+      const ssspDistance = view.getFloat32(nodeOffset + BINARY_SSSP_DISTANCE_OFFSET, true);
+      const ssspParent = view.getInt32(nodeOffset + BINARY_SSSP_PARENT_OFFSET, true);
 
       // Basic validation to detect corrupted data
       const isValid =

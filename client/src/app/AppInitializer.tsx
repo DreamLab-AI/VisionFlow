@@ -5,7 +5,6 @@ import { useSettingsStore } from '../store/settingsStore';
 import WebSocketService from '../services/WebSocketService';
 import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
-import { initializeAuth } from '../features/auth/initializeAuthentication';
 import { innovationManager } from '../features/graph/innovations/index';
 
 // Load and initialize all services
@@ -15,11 +14,9 @@ const loadServices = async (): Promise<void> => {
   }
 
   try {
-    // Initialize auth system
-    await initializeAuth();
-
+    // Authentication is handled by Nostr via authInterceptor
     if (debugState.isEnabled()) {
-      logger.info('Auth system initialized');
+      logger.info('Using Nostr authentication system');
     }
 
     // Initialize innovation manager with timeout to prevent blocking
