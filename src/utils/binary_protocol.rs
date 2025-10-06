@@ -5,21 +5,32 @@ use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 use serde_json;
 
+// Protocol versions for wire format
+const PROTOCOL_V1: u8 = 1;  // Legacy 16-bit node IDs (34 bytes per node)
+const PROTOCOL_V2: u8 = 2;  // Full 32-bit node IDs (38 bytes per node)
+
 // Node type flag constants for u32 (server-side)
 const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
 const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
 const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
-// Node type flag constants for u16 (wire format)
-const WIRE_AGENT_FLAG: u16 = 0x8000;         // Bit 15 indicates agent node
-const WIRE_KNOWLEDGE_FLAG: u16 = 0x4000;     // Bit 14 indicates knowledge graph node
-const WIRE_NODE_ID_MASK: u16 = 0x3FFF;       // Mask to extract actual node ID (bits 0-13)
+// Node type flag constants for u16 (wire format v1 - DEPRECATED)
+// BUG: These constants truncate node IDs > 16383, causing collisions
+// FIXED: Use PROTOCOL_V2 with full u32 IDs for node_id > 16383
+const WIRE_V1_AGENT_FLAG: u16 = 0x8000;         // Bit 15 indicates agent node
+const WIRE_V1_KNOWLEDGE_FLAG: u16 = 0x4000;     // Bit 14 indicates knowledge graph node
+const WIRE_V1_NODE_ID_MASK: u16 = 0x3FFF;       // Mask to extract actual node ID (bits 0-13)
 
-/// Explicit wire format struct for WebSocket binary protocol
-/// This struct represents exactly what is sent over the wire
-/// Note: We use manual serialization to ensure exactly 34 bytes
-pub struct WireNodeDataItem {
-    pub id: u16,                // 2 bytes - Client expects u16 for bandwidth optimization
+// Node type flag constants for u32 (wire format v2)
+const WIRE_V2_AGENT_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
+const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
+const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF;   // Mask to extract actual node ID (bits 0-29)
+
+/// Wire format v1 struct (LEGACY - 34 bytes)
+/// BUG: Truncates node IDs to 14 bits (max 16383), causing collisions
+/// DEPRECATED: Use WireNodeDataItemV2 for new implementations
+pub struct WireNodeDataItemV1 {
+    pub id: u16,                // 2 bytes - TRUNCATED to 14 bits + 2 flag bits
     pub position: Vec3Data,     // 12 bytes
     pub velocity: Vec3Data,     // 12 bytes
     pub sssp_distance: f32,     // 4 bytes - SSSP distance from source
@@ -27,14 +38,47 @@ pub struct WireNodeDataItem {
     // Total: 34 bytes
 }
 
+/// Wire format v2 struct (FIXED - 38 bytes)
+/// FIXES: Uses full 32-bit node IDs (30 bits + 2 flag bits)
+/// Supports node IDs up to 1,073,741,823 (2^30 - 1)
+pub struct WireNodeDataItemV2 {
+    pub id: u32,                // 4 bytes - Full 32-bit with 30 bits for ID + 2 flag bits
+    pub position: Vec3Data,     // 12 bytes
+    pub velocity: Vec3Data,     // 12 bytes
+    pub sssp_distance: f32,     // 4 bytes - SSSP distance from source
+    pub sssp_parent: i32,       // 4 bytes - Parent node for path reconstruction
+    // Total: 38 bytes
+}
+
+// Backwards compatibility alias - DEPRECATED
+pub type WireNodeDataItem = WireNodeDataItemV2;
+
 // Constants for wire format sizes
-const WIRE_ID_SIZE: usize = 2;  // u16
-const WIRE_VEC3_SIZE: usize = 12; // 3 * f32
-const WIRE_F32_SIZE: usize = 4; // f32
-const WIRE_I32_SIZE: usize = 4; // i32
-const WIRE_ITEM_SIZE: usize = WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes
+const WIRE_V1_ID_SIZE: usize = 2;  // u16 (LEGACY)
+const WIRE_V2_ID_SIZE: usize = 4;  // u32 (FIXED)
+const WIRE_VEC3_SIZE: usize = 12;  // 3 * f32
+const WIRE_F32_SIZE: usize = 4;    // f32
+const WIRE_I32_SIZE: usize = 4;    // i32
+const WIRE_V1_ITEM_SIZE: usize = WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes
+const WIRE_V2_ITEM_SIZE: usize = WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 38 bytes
+
+// Backwards compatibility alias - DEPRECATED
+const WIRE_ID_SIZE: usize = WIRE_V2_ID_SIZE;
+const WIRE_ITEM_SIZE: usize = WIRE_V2_ITEM_SIZE;
 
 // Binary format (explicit):
+//
+// PROTOCOL V2 (CURRENT - FIXES node ID truncation bug):
+// - Wire format sent to client (38 bytes total):
+//   - Node Index: 4 bytes (u32) - Bits 30-31 for flags, bits 0-29 for ID
+//   - Position: 3 × 4 bytes = 12 bytes
+//   - Velocity: 3 × 4 bytes = 12 bytes
+//   - SSSP Distance: 4 bytes (f32)
+//   - SSSP Parent: 4 bytes (i32)
+// Total: 38 bytes per node
+// Supports node IDs: 0 to 1,073,741,823 (2^30 - 1)
+//
+// PROTOCOL V1 (LEGACY - HAS BUG):
 // - Wire format sent to client (34 bytes total):
 //   - Node Index: 2 bytes (u16) - High bit (0x8000) indicates agent node
 //   - Position: 3 × 4 bytes = 12 bytes
@@ -42,20 +86,17 @@ const WIRE_ITEM_SIZE: usize = WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + W
 //   - SSSP Distance: 4 bytes (f32)
 //   - SSSP Parent: 4 bytes (i32)
 // Total: 34 bytes per node
+// BUG: Only supports node IDs 0-16383 (14 bits). IDs > 16383 get truncated!
 //
-// - Server format (BinaryNodeData - 36 bytes total):
+// - Server format (BinaryNodeData - 28 bytes total):
+//   - Node ID: 4 bytes (u32)
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
-//   - SSSP Distance: 4 bytes
-//   - SSSP Parent: 4 bytes
-//   - Mass: 1 byte
-//   - Flags: 1 byte
-//   - Padding: 2 bytes
-// Total: 36 bytes per node
+// Total: 28 bytes per node
 //
-// Node Type Flags: For wire format, we use the high bits of the u16 ID:
-// - Bit 15 (0x8000): Agent node
-// - Bit 14 (0x4000): Knowledge node
+// Node Type Flags:
+// - V2: Bits 30-31 of u32 ID (Bit 31 = Agent, Bit 30 = Knowledge)
+// - V1: Bits 14-15 of u16 ID (Bit 15 = Agent, Bit 14 = Knowledge) [BUGGY]
 // This allows the client to distinguish between different node types for visualization.
 
 /// Utility functions for node type flag manipulation
@@ -104,34 +145,62 @@ pub fn get_node_type(node_id: u32) -> NodeType {
     }
 }
 
-/// Convert u32 node ID with flags to u16 wire format
-/// Preserves node type flags and truncates ID to fit in 14 bits
-pub fn to_wire_id(node_id: u32) -> u16 {
+/// Convert u32 node ID with flags to u16 wire format (V1 - LEGACY)
+/// BUG: Truncates node IDs to 14 bits! Use to_wire_id_v2 instead.
+/// DEPRECATED: Only kept for backwards compatibility with old clients
+#[deprecated(note = "Use to_wire_id_v2 for full 32-bit node ID support")]
+pub fn to_wire_id_v1(node_id: u32) -> u16 {
     let actual_id = get_actual_node_id(node_id);
-    let wire_id = (actual_id & 0x3FFF) as u16; // Truncate to 14 bits
-    
+    let wire_id = (actual_id & 0x3FFF) as u16; // BUG: Truncates to 14 bits!
+
     // Preserve node type flags
     if is_agent_node(node_id) {
-        wire_id | WIRE_AGENT_FLAG
+        wire_id | WIRE_V1_AGENT_FLAG
     } else if is_knowledge_node(node_id) {
-        wire_id | WIRE_KNOWLEDGE_FLAG
+        wire_id | WIRE_V1_KNOWLEDGE_FLAG
     } else {
         wire_id
     }
 }
 
-/// Convert u16 wire ID back to u32 preserving flags
-pub fn from_wire_id(wire_id: u16) -> u32 {
-    let actual_id = (wire_id & WIRE_NODE_ID_MASK) as u32;
-    
+/// Convert u16 wire ID back to u32 preserving flags (V1 - LEGACY)
+/// DEPRECATED: Only kept for backwards compatibility with old clients
+#[deprecated(note = "Use from_wire_id_v2 for full 32-bit node ID support")]
+pub fn from_wire_id_v1(wire_id: u16) -> u32 {
+    let actual_id = (wire_id & WIRE_V1_NODE_ID_MASK) as u32;
+
     // Restore node type flags
-    if (wire_id & WIRE_AGENT_FLAG) != 0 {
+    if (wire_id & WIRE_V1_AGENT_FLAG) != 0 {
         actual_id | AGENT_NODE_FLAG
-    } else if (wire_id & WIRE_KNOWLEDGE_FLAG) != 0 {
+    } else if (wire_id & WIRE_V1_KNOWLEDGE_FLAG) != 0 {
         actual_id | KNOWLEDGE_NODE_FLAG
     } else {
         actual_id
     }
+}
+
+/// Convert u32 node ID with flags to u32 wire format (V2 - FIXED)
+/// FIXED: Preserves full 32-bit node ID without truncation
+pub fn to_wire_id_v2(node_id: u32) -> u32 {
+    // No truncation needed - wire format uses full u32
+    // Flags are already in the correct bit positions (30-31)
+    node_id
+}
+
+/// Convert u32 wire ID back to u32 preserving flags (V2 - FIXED)
+/// FIXED: No data loss, full 32-bit support
+pub fn from_wire_id_v2(wire_id: u32) -> u32 {
+    // No conversion needed - direct passthrough
+    wire_id
+}
+
+// Backwards compatibility aliases - use V2 by default
+pub fn to_wire_id(node_id: u32) -> u32 {
+    to_wire_id_v2(node_id)
+}
+
+pub fn from_wire_id(wire_id: u32) -> u32 {
+    from_wire_id_v2(wire_id)
 }
 
 /// Convert BinaryNodeData to wire format
@@ -147,25 +216,45 @@ impl BinaryNodeData {
     }
 }
 
+/// Determine if we need V2 protocol (any node_id > 16383)
+/// FIXED: Automatically detects when V2 is needed to prevent truncation
+pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
+    nodes.iter().any(|(node_id, _)| {
+        let actual_id = get_actual_node_id(*node_id);
+        actual_id > 0x3FFF // > 16383
+    })
+}
+
 /// Enhanced encoding function that accepts metadata about node types
+/// FIXED: Automatically uses V2 protocol when node IDs > 16383
 pub fn encode_node_data_with_types(
-    nodes: &[(u32, BinaryNodeData)], 
+    nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
     knowledge_node_ids: &[u32]
 ) -> Vec<u8> {
+    // Detect if we need V2 protocol
+    let use_v2 = needs_v2_protocol(nodes);
+    let item_size = if use_v2 { WIRE_V2_ITEM_SIZE } else { WIRE_V1_ITEM_SIZE };
+    let protocol_version = if use_v2 { PROTOCOL_V2 } else { PROTOCOL_V1 };
+
     // Only log non-empty node transmissions to reduce spam
     if nodes.len() > 0 {
-        trace!("Encoding {} nodes with agent flags for binary transmission", nodes.len());
+        trace!("Encoding {} nodes with agent flags using protocol v{} (item_size={})",
+               nodes.len(), protocol_version, item_size);
     }
-    
-    let mut buffer = Vec::with_capacity(nodes.len() * WIRE_ITEM_SIZE);
-    
+
+    // Reserve space for version byte + node data
+    let mut buffer = Vec::with_capacity(1 + nodes.len() * item_size);
+
+    // Write protocol version as first byte
+    buffer.push(protocol_version);
+
     // Log some samples of the encoded data
     let sample_size = std::cmp::min(3, nodes.len());
     if sample_size > 0 {
-        trace!("Sample of nodes being encoded with agent flags:");
+        trace!("Sample of nodes being encoded with agent flags (protocol v{}):", protocol_version);
     }
-    
+
     for (node_id, node) in nodes {
         // Check node type and set the appropriate flag
         let flagged_id = if agent_node_ids.contains(node_id) {
@@ -175,7 +264,7 @@ pub fn encode_node_data_with_types(
         } else {
             *node_id  // No flags for unknown nodes
         };
-        
+
         // Log the first few nodes for debugging
         if sample_size > 0 && *node_id < sample_size as u32 {
             trace!("Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}], is_agent={}",
@@ -184,12 +273,17 @@ pub fn encode_node_data_with_types(
                 node.vx, node.vy, node.vz,
                 agent_node_ids.contains(node_id));
         }
-        
-        // Manual serialization to ensure exactly 34 bytes
-        let wire_id = to_wire_id(flagged_id);
 
-        // Write u16 ID (2 bytes)
-        buffer.extend_from_slice(&wire_id.to_le_bytes());
+        if use_v2 {
+            // V2: Write u32 ID (4 bytes) - NO TRUNCATION
+            let wire_id = to_wire_id_v2(flagged_id);
+            buffer.extend_from_slice(&wire_id.to_le_bytes());
+        } else {
+            // V1: Write u16 ID (2 bytes) - TRUNCATES (legacy support only)
+            #[allow(deprecated)]
+            let wire_id = to_wire_id_v1(flagged_id);
+            buffer.extend_from_slice(&wire_id.to_le_bytes());
+        }
 
         // Write position (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.x.to_le_bytes());
@@ -201,16 +295,15 @@ pub fn encode_node_data_with_types(
         buffer.extend_from_slice(&node.vy.to_le_bytes());
         buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // SSSP fields not available in BinaryNodeDataClient
-        // These fields are only in BinaryNodeDataGPU for server-side computation
-        // For now, we'll send default values.
+        // SSSP fields (8 bytes)
         buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
         buffer.extend_from_slice(&(-1i32).to_le_bytes());
     }
 
     // Only log non-empty node transmissions to reduce spam
     if nodes.len() > 0 {
-        trace!("Encoded binary data with agent flags: {} bytes for {} nodes", buffer.len(), nodes.len());
+        trace!("Encoded binary data with agent flags (v{}): {} bytes for {} nodes",
+               protocol_version, buffer.len(), nodes.len());
     }
     buffer
 }
@@ -220,59 +313,10 @@ pub fn encode_node_data_with_flags(nodes: &[(u32, BinaryNodeData)], agent_node_i
     encode_node_data_with_types(nodes, agent_node_ids, &[])
 }
 
+/// Basic encoding function without node type metadata
+/// FIXED: Automatically uses V2 protocol when node IDs > 16383
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
-    // Only log non-empty node transmissions to reduce spam
-    if nodes.len() > 0 {
-        trace!("Encoding {} nodes for binary transmission", nodes.len());
-    }
-    
-    let mut buffer = Vec::with_capacity(nodes.len() * WIRE_ITEM_SIZE);
-    
-    // Log some samples of the encoded data
-    let sample_size = std::cmp::min(3, nodes.len());
-    if sample_size > 0 {
-        trace!("Sample of nodes being encoded:");
-    }
-    
-    for (node_id, node) in nodes {
-        // Log the first few nodes for debugging
-        if sample_size > 0 && *node_id < sample_size as u32 {
-            trace!("Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}]",
-                node_id,
-                node.x, node.y, node.z,
-                node.vx, node.vy, node.vz);
-        }
-        
-        // Manual serialization to ensure exactly 34 bytes
-        let wire_id = to_wire_id(*node_id);
-
-        // Write u16 ID (2 bytes)
-        buffer.extend_from_slice(&wire_id.to_le_bytes());
-
-        // Write position (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.x.to_le_bytes());
-        buffer.extend_from_slice(&node.y.to_le_bytes());
-        buffer.extend_from_slice(&node.z.to_le_bytes());
-
-        // Write velocity (12 bytes = 3 * f32)
-        buffer.extend_from_slice(&node.vx.to_le_bytes());
-        buffer.extend_from_slice(&node.vy.to_le_bytes());
-        buffer.extend_from_slice(&node.vz.to_le_bytes());
-
-        // SSSP fields not available in BinaryNodeDataClient
-        // These fields are only in BinaryNodeDataGPU for server-side computation
-        // For now, we'll send default values.
-        buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
-        buffer.extend_from_slice(&(-1i32).to_le_bytes());
-
-        // Mass, flags, and padding are server-side only and not transmitted over wire
-    }
-
-    // Only log non-empty node transmissions to reduce spam
-    if nodes.len() > 0 {
-        trace!("Encoded binary data: {} bytes for {} nodes", buffer.len(), nodes.len());
-    }
-    buffer
+    encode_node_data_with_types(nodes, &[], &[])
 }
 
 pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {

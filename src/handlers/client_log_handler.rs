@@ -1,8 +1,12 @@
-use actix_web::{web, HttpResponse, Error};
+use actix_web::{web, HttpRequest, HttpResponse, Error};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
 use chrono::Local;
+use log::{debug, error, info};
+
+use crate::services::session_correlation_bridge::{get_global_bridge, extract_session_id_from_header};
+use crate::telemetry::agent_telemetry::CorrelationId;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LogEntry {
@@ -27,9 +31,56 @@ pub struct ClientLogsPayload {
 
 /// Handler for receiving browser logs from Quest 3 and other remote clients
 pub async fn handle_client_logs(
+    req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,
 ) -> Result<HttpResponse, Error> {
     let log_file_path = "/app/logs/client.log";
+
+    // Register session correlation mapping if bridge is available
+    if let Some(bridge) = get_global_bridge() {
+        // Check for X-Session-ID header
+        let header_session_id = req.headers()
+            .get("X-Session-ID")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
+
+        // Use header session ID if present, otherwise use payload session ID
+        let client_session_id = header_session_id
+            .as_ref()
+            .unwrap_or(&payload.session_id);
+
+        // Generate a server correlation ID for this session
+        let correlation_id = CorrelationId::from_session_uuid(client_session_id);
+
+        // Register the mapping
+        match bridge.register_session(client_session_id.clone(), correlation_id.clone()) {
+            Ok(_) => {
+                info!("Session correlation registered: {} ↔ {}", client_session_id, correlation_id);
+            }
+            Err(e) => {
+                error!("Failed to register session correlation: {}", e);
+            }
+        }
+
+        // Log telemetry event if telemetry logger is available
+        if let Some(telemetry) = crate::telemetry::agent_telemetry::get_telemetry_logger() {
+            let event = crate::telemetry::agent_telemetry::TelemetryEvent::new(
+                correlation_id,
+                crate::telemetry::agent_telemetry::LogLevel::INFO,
+                "session_tracking",
+                "client_logs_received",
+                &format!("Received {} log entries from client session", payload.logs.len()),
+                "client_log_handler"
+            )
+            .with_client_session_id(client_session_id)
+            .with_metadata("log_count", serde_json::json!(payload.logs.len()))
+            .with_metadata("has_x_session_id_header", serde_json::json!(header_session_id.is_some()));
+
+            telemetry.log_event(event);
+        }
+    } else {
+        debug!("Session correlation bridge not initialized, skipping mapping registration");
+    }
 
     // Open the log file in append mode
     let mut file = OpenOptions::new()

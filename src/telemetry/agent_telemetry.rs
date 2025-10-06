@@ -142,6 +142,10 @@ pub struct TelemetryEvent {
     /// Session tracking
     pub session_uuid: Option<String>,
     pub swarm_id: Option<String>,
+
+    /// Client session ID (from X-Session-ID header or client-generated)
+    /// Format: session_${timestamp}_${random}
+    pub client_session_id: Option<String>,
 }
 
 impl TelemetryEvent {
@@ -183,6 +187,7 @@ impl TelemetryEvent {
             mcp_payload_size: None,
             session_uuid: None,
             swarm_id: None,
+            client_session_id: None,
         }
     }
 
@@ -201,6 +206,12 @@ impl TelemetryEvent {
     /// Add swarm ID
     pub fn with_swarm_id(mut self, swarm_id: &str) -> Self {
         self.swarm_id = Some(swarm_id.to_string());
+        self
+    }
+
+    /// Add client session ID (from X-Session-ID header)
+    pub fn with_client_session_id(mut self, client_session_id: &str) -> Self {
+        self.client_session_id = Some(client_session_id.to_string());
         self
     }
 

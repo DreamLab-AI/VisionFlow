@@ -310,7 +310,7 @@ pub async fn initialize_hive_mind_swarm(
     hybrid_manager: web::Data<Arc<HybridHealthManager>>,
 ) -> Result<impl Responder> {
     info!("🐝 Initializing hive mind swarm with topology: {}", request.topology);
-    
+
     // Test MCP connection first
     match state.bots_client.test_connection().await {
         Ok(true) => info!("✓ MCP server is connected"),
@@ -330,62 +330,92 @@ pub async fn initialize_hive_mind_swarm(
         }
     }
 
-    // Create swarm initialization parameters
-    let swarm_params = json!({
-        "topology": request.topology,
-        "max_agents": request.max_agents,
-        "strategy": request.strategy,
-        "enable_neural": request.enable_neural,
-        "agent_types": request.agent_types,
-        "custom_prompt": request.custom_prompt,
-    });
+    // Build task description from swarm parameters
+    let task = format!(
+        "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
+        request.topology,
+        request.strategy,
+        request.max_agents,
+        request.agent_types.join(", "),
+        request.enable_neural
+    );
 
-    info!("🔧 Swarm params: {:?}", swarm_params);
+    info!("🔧 Swarm initialization task: {}", task);
 
-    // Initialize swarm via MCP
-    let _bots_client = &state.bots_client;
-    // For now, we'll return a simple success response since the MCP client is private
-    // The actual swarm initialization happens through the periodic polling in BotsClient
-    
-    // Store the swarm parameters for reference
-    let swarm_id = format!("swarm_{}", chrono::Utc::now().timestamp_millis());
-    {
-        let mut current_id = CURRENT_SWARM_ID.write().await;
-        *current_id = Some(swarm_id.clone());
-    }
-    
-    // The swarm will be initialized on the next polling cycle
-    info!("Swarm initialization requested: {}", swarm_id);
-    
-    // Immediately fetch agents to get the initial state
-    match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
-        Ok(agents) => {
-            info!("🎯 Initial swarm has {} agents", agents.len());
-            
-            let nodes = convert_agents_to_nodes(agents);
-            let edges = vec![]; // TODO: Generate edges based on swarm topology
+    // Parse strategy from request
+    let strategy = match request.strategy.as_str() {
+        "strategic" => SwarmStrategy::Strategic,
+        "tactical" => SwarmStrategy::Tactical,
+        "adaptive" => SwarmStrategy::Adaptive,
+        _ => SwarmStrategy::HiveMind,
+    };
 
-            // Update bots graph
-            let mut graph = BOTS_GRAPH.write().await;
-            graph.nodes = nodes.clone();
-            graph.edges = edges.clone();
-            
-            Ok(HttpResponse::Ok().json(json!({
-                "success": true,
-                "message": "Hive mind swarm initialized successfully",
-                "swarm_id": swarm_id,
-                "initial_agents": nodes.len(),
-                "nodes": nodes,
-                "edges": edges,
-            })))
+    // Use MCP session bridge to spawn real sessions with spawn_and_monitor
+    match spawn_swarm_monitored(
+        state.get_ref(),
+        &task,
+        Some(SwarmPriority::High),
+        Some(strategy),
+        &request.agent_types,
+    ).await {
+        Ok((uuid, swarm_id)) => {
+            info!("✓ Successfully spawned hive mind swarm - UUID: {}, Swarm ID: {:?}", uuid, swarm_id);
+
+            // Store the swarm ID for reference
+            {
+                let mut current_id = CURRENT_SWARM_ID.write().await;
+                *current_id = swarm_id.clone();
+            }
+
+            // Wait briefly (2s) for agents to spawn
+            tokio::time::sleep(Duration::from_secs(2)).await;
+
+            // Fetch initial agents to get the state
+            match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
+                Ok(agents) => {
+                    info!("🎯 Initial swarm has {} agents", agents.len());
+
+                    let nodes = convert_agents_to_nodes(agents);
+                    let edges = vec![]; // TODO: Generate edges based on swarm topology
+
+                    // Update bots graph
+                    let mut graph = BOTS_GRAPH.write().await;
+                    graph.nodes = nodes.clone();
+                    graph.edges = edges.clone();
+
+                    Ok(HttpResponse::Ok().json(json!({
+                        "success": true,
+                        "message": "Hive mind swarm initialized successfully",
+                        "uuid": uuid,
+                        "swarm_id": swarm_id,
+                        "topology": request.topology,
+                        "strategy": request.strategy,
+                        "initial_agents": nodes.len(),
+                        "nodes": nodes,
+                        "edges": edges,
+                    })))
+                }
+                Err(e) => {
+                    warn!("Swarm spawned but failed to fetch initial agents: {}", e);
+                    Ok(HttpResponse::Ok().json(json!({
+                        "success": true,
+                        "message": "Swarm initialization requested, agents will appear shortly",
+                        "uuid": uuid,
+                        "swarm_id": swarm_id,
+                        "topology": request.topology,
+                        "strategy": request.strategy,
+                        "warning": e.to_string(),
+                    })))
+                }
+            }
         }
         Err(e) => {
-            error!("Failed to fetch initial agents: {}", e);
-            Ok(HttpResponse::Ok().json(json!({
-                "success": true,
-                "message": "Swarm initialization requested, agents will appear shortly",
-                "swarm_id": swarm_id,
-                "error": e.to_string(),
+            error!("✗ Failed to spawn hive mind swarm: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("Failed to initialize swarm: {}", e),
+                "topology": request.topology,
+                "strategy": request.strategy,
             })))
         }
     }
@@ -527,6 +557,43 @@ async fn spawn_docker_agent_monitored(
     // Use MCP session bridge to spawn and monitor for swarm ID
     let bridge = state.get_mcp_session_bridge();
     let monitored = bridge.spawn_and_monitor(task, config).await?;
+
+    Ok((monitored.uuid, monitored.swarm_id))
+}
+
+async fn spawn_swarm_monitored(
+    state: &AppState,
+    task: &str,
+    priority: Option<SwarmPriority>,
+    strategy: Option<SwarmStrategy>,
+    agent_types: &[String],
+) -> Result<(String, Option<String>), Box<dyn std::error::Error + Send + Sync>> {
+    use crate::utils::docker_hive_mind::SwarmConfig;
+
+    // Calculate max workers based on agent types requested
+    let max_workers = agent_types.len().max(4) as u32;
+
+    let config = SwarmConfig {
+        priority: priority.unwrap_or(SwarmPriority::High),
+        strategy: strategy.unwrap_or(SwarmStrategy::HiveMind),
+        auto_scale: true,
+        monitor: true,
+        max_workers: Some(max_workers),
+        consensus_type: None,
+        memory_size_mb: None,
+        encryption: false,
+        verbose: true,
+    };
+
+    info!("🚀 Spawning swarm with config: {:?}", config);
+
+    // Use MCP session bridge to spawn and monitor for swarm ID
+    let bridge = state.get_mcp_session_bridge();
+    let monitored = bridge.spawn_and_monitor(task, config)
+        .await
+        .map_err(|e| format!("Failed to spawn and monitor swarm: {}", e))?;
+
+    info!("✓ Swarm spawned - UUID: {}, Swarm ID: {:?}", monitored.uuid, monitored.swarm_id);
 
     Ok((monitored.uuid, monitored.swarm_id))
 }
