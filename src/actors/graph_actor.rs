@@ -2149,47 +2149,14 @@ impl GraphServiceActor {
                 }
             }
         }
-        
+
         debug!("Updated positions for {} nodes", updated_count);
 
-        // CRITICAL FIX: Immediately broadcast GPU-computed positions to clients
-        // Don't wait for the next scheduled broadcast interval
-        if updated_count > 0 {
-            // Apply backpressure check for immediate GPU broadcasts too
-            if self.pending_broadcasts > self.max_pending_broadcasts {
-                self.broadcast_skip_count += 1;
-                debug!("Skipping immediate GPU broadcast due to backpressure: {}/{}",
-                       self.pending_broadcasts, self.max_pending_broadcasts);
-            } else {
-                // Create position data for broadcasting
-                let mut broadcast_positions: Vec<(u32, BinaryNodeData)> = Vec::new();
-                for (node_id, node) in self.node_map.iter() {
-                    broadcast_positions.push((*node_id, BinaryNodeDataClient::new(
-                        *node_id,
-                        node.data.position(),
-                        node.data.velocity(),
-                    )));
-                }
-
-                if !broadcast_positions.is_empty() {
-                    let binary_data = crate::utils::binary_protocol::encode_node_data(&broadcast_positions);
-
-                    // Send to client manager for immediate broadcasting
-                    self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
-                        positions: binary_data,
-                    });
-
-                    // Increment pending broadcasts counter for backpressure tracking
-                    self.pending_broadcasts += 1;
-
-                    // Update broadcast time
-                    self.last_broadcast_time = Some(std::time::Instant::now());
-
-                    info!("Immediately broadcast {} GPU-computed positions to clients (pending: {}/{})",
-                          broadcast_positions.len(), self.pending_broadcasts, self.max_pending_broadcasts);
-                }
-            }
-        }
+        // REMOVED: Immediate GPU broadcast section
+        // This was causing dual-graph conflicts by broadcasting knowledge nodes separately
+        // without type flags, conflicting with the unified dual-graph broadcast above.
+        // The unified broadcast (lines 2087-2150) already handles both knowledge and agent
+        // graphs with proper type flags at 16ms intervals, making this redundant and harmful.
     }
 
     fn start_simulation_loop(&mut self, ctx: &mut Context<Self>) {
@@ -2749,36 +2716,56 @@ impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceAc
 
     fn handle(&mut self, msg: crate::actors::messages::ForcePositionBroadcast, _ctx: &mut Self::Context) -> Self::Result {
         info!("Force broadcasting positions: {}", msg.reason);
-        
-        // Create binary position data for all nodes regardless of settled state
+
+        // DUAL-GRAPH FIX: Collect BOTH knowledge and agent nodes with proper type flags
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
-        
+        let mut knowledge_ids: Vec<u32> = Vec::new();
+        let mut agent_ids: Vec<u32> = Vec::new();
+
+        // Collect knowledge graph nodes
         for (node_id, node) in self.node_map.iter() {
             position_data.push((*node_id, BinaryNodeDataClient::new(
                 *node_id,
                 node.data.position(),
                 node.data.velocity(),
             )));
+            knowledge_ids.push(*node_id);
         }
-        
+
+        // ALSO collect agent graph nodes
+        for node in &self.bots_graph_data.nodes {
+            position_data.push((node.id, BinaryNodeDataClient::new(
+                node.id,
+                glam_to_vec3data(Vec3::new(node.data.x, node.data.y, node.data.z)),
+                glam_to_vec3data(Vec3::new(node.data.vx, node.data.vy, node.data.vz)),
+            )));
+            agent_ids.push(node.id);
+        }
+
         // Broadcast to all connected clients via client manager
         if !position_data.is_empty() {
-            let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
-            
+            // Encode with proper type flags for dual-graph support
+            let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
+                &position_data,
+                &agent_ids,
+                &knowledge_ids
+            );
+
             // Send to client manager for broadcasting
             self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
                 positions: binary_data,
             });
-            
+
             // Update broadcast time and ensure initial positions flag is set
             self.last_broadcast_time = Some(std::time::Instant::now());
             self.initial_positions_sent = true;
-            
-            info!("Force broadcast complete: {} nodes sent (reason: {})", position_data.len(), msg.reason);
+
+            info!("Force broadcast complete: {} nodes ({} knowledge + {} agents) sent (reason: {})",
+                  position_data.len(), knowledge_ids.len(), agent_ids.len(), msg.reason);
         } else {
             warn!("Force broadcast requested but no position data available (reason: {})", msg.reason);
         }
-        
+
         Ok(())
     }
 }
@@ -2788,36 +2775,55 @@ impl Handler<InitialClientSync> for GraphServiceActor {
 
     fn handle(&mut self, msg: InitialClientSync, _ctx: &mut Self::Context) -> Self::Result {
         info!("Initial client sync requested by {} from {}", msg.client_identifier, msg.trigger_source);
-        
-        // Force broadcast current positions to ensure new client gets synchronized
-        // This provides immediate feedback after REST endpoint returns graph structure
+
+        // DUAL-GRAPH FIX: Collect BOTH knowledge and agent nodes with proper type flags
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
-        
+        let mut knowledge_ids: Vec<u32> = Vec::new();
+        let mut agent_ids: Vec<u32> = Vec::new();
+
+        // Collect knowledge graph nodes
         for (node_id, node) in self.node_map.iter() {
             position_data.push((*node_id, BinaryNodeDataClient::new(
                 *node_id,
                 node.data.position(),
                 node.data.velocity(),
             )));
+            knowledge_ids.push(*node_id);
         }
-        
+
+        // ALSO collect agent graph nodes
+        for node in &self.bots_graph_data.nodes {
+            position_data.push((node.id, BinaryNodeDataClient::new(
+                node.id,
+                glam_to_vec3data(Vec3::new(node.data.x, node.data.y, node.data.z)),
+                glam_to_vec3data(Vec3::new(node.data.vx, node.data.vy, node.data.vz)),
+            )));
+            agent_ids.push(node.id);
+        }
+
         if !position_data.is_empty() {
-            let binary_data = crate::utils::binary_protocol::encode_node_data(&position_data);
-            
+            // Encode with proper type flags for dual-graph support
+            let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
+                &position_data,
+                &agent_ids,
+                &knowledge_ids
+            );
+
             // Send to client manager for broadcasting to all clients
             self.client_manager.do_send(crate::actors::messages::BroadcastNodePositions {
                 positions: binary_data,
             });
-            
+
             // Update tracking flags
             self.last_broadcast_time = Some(std::time::Instant::now());
             self.initial_positions_sent = true;
-            
-            info!("Initial sync broadcast complete: {} nodes sent for client {}", position_data.len(), msg.client_identifier);
+
+            info!("Initial sync broadcast complete: {} nodes ({} knowledge + {} agents) sent for client {}",
+                  position_data.len(), knowledge_ids.len(), agent_ids.len(), msg.client_identifier);
         } else {
             warn!("Initial sync requested but no nodes available for client {}", msg.client_identifier);
         }
-        
+
         Ok(())
     }
 }

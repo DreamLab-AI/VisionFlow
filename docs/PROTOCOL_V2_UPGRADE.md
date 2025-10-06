@@ -1,33 +1,36 @@
 # Binary Protocol V2 Upgrade - Client-Server Alignment Fix
 
 **Date:** 2025-10-06
-**Status:** ✅ FIXED
+**Status:** ✅ FIXED (Updated 2025-10-06: Fixed 38→36 byte error)
 
 ## Problem Summary
 
-The server was sending Binary Protocol V2 (38 bytes/node, u32 IDs) but the client was still parsing Protocol V1 (34 bytes/node, u16 IDs), causing:
+**Phase 1:** The server was sending Binary Protocol V2 (documented as 38 bytes/node, u32 IDs) but the client was still parsing Protocol V1 (34 bytes/node, u16 IDs), causing:
 
 1. **Node conflation** - Wrong byte offsets corrupted position/velocity data
 2. **Knowledge nodes drifting to center** - Misaligned data read as invalid positions
 3. **Type flag mismatch** - Server flags at bits 31/30, client checking bits 15/14
 
+**Phase 2 (CRITICAL):** After upgrading client to V2, discovered **documentation bug**: Protocol V2 is actually **36 bytes/node**, not 38! This caused 2-byte misalignment and "corrupted node data" errors.
+
 ## Root Cause
 
-**Server (V2):**
+**Server (V2 - CORRECTED):**
 ```rust
 // src/utils/binary_protocol.rs
 const PROTOCOL_V2: u8 = 2;
-const WIRE_V2_ITEM_SIZE: usize = 38; // u32 ID (4 bytes) + position + velocity + SSSP
+const WIRE_V2_ITEM_SIZE: usize = 36; // FIXED: Was incorrectly 38!
+                                      // Actual: 4 (u32 ID) + 12 (pos) + 12 (vel) + 4 (sssp) + 4 (parent) = 36
 const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31
 const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30
 ```
 
-**Client (V1 - OLD):**
+**Client (V2 - CORRECTED):**
 ```typescript
 // client/src/types/binaryProtocol.ts
-export const BINARY_NODE_SIZE = 34; // u16 ID (2 bytes)
-export const AGENT_NODE_FLAG = 0x8000;     // Bit 15
-export const KNOWLEDGE_NODE_FLAG = 0x4000; // Bit 14
+export const BINARY_NODE_SIZE = 36; // FIXED: Was incorrectly 38!
+export const AGENT_NODE_FLAG = 0x80000000;     // Bit 31
+export const KNOWLEDGE_NODE_FLAG = 0x40000000; // Bit 30
 ```
 
 ## Why V2 Exists
@@ -40,7 +43,7 @@ export const KNOWLEDGE_NODE_FLAG = 0x4000; // Bit 14
 **V2 Fix:**
 - u32 node IDs support 30 bits (max 1,073,741,823 nodes)
 - Prevents truncation and collisions
-- Only 4 extra bytes per node (38 vs 34)
+- Only 2 extra bytes per node (**36 vs 34**, not 38!)
 
 ## Changes Implemented
 

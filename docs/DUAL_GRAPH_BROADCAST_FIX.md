@@ -1,22 +1,31 @@
 # Dual-Graph WebSocket Broadcast Fix
 
 **Date:** 2025-10-06
-**Status:** ✅ IMPLEMENTED
+**Status:** ✅ FIXED
+**Last Updated:** 2025-10-06 (Removed conflicting immediate GPU broadcast)
 
 ## Problem Summary
 
 The system has dual parallel graph structures (knowledge graph + agent graph) but was broadcasting them **separately**, causing WebSocket conflicts and incorrect visualization movement.
 
-### Root Cause
+### Root Cause (Fixed in Two Phases)
 
 **Graph Actor Structure:**
 - `graph_data` / `node_map`: Knowledge graph (185 nodes)
 - `bots_graph_data`: Agent graph (3 nodes)
 
-**Broken Flow:**
+**Phase 1 - Original Broken Flow:**
 1. **Physics Loop** → Broadcast ONLY knowledge nodes → NO type flags
 2. **UpdateBotsGraph Handler** → Broadcast ONLY agent nodes → WITH AGENT_NODE_FLAG
 3. **Client receives TWO conflicting broadcasts**
+
+**Phase 2 - Regression Bug (FIXED):**
+After initial fix, an "immediate GPU broadcast" was added that:
+1. **Unified Physics Loop** → Broadcast BOTH graphs with flags ✅
+2. **Immediate GPU Broadcast** → Broadcast ONLY knowledge nodes → NO type flags ❌
+3. **Client receives conflicting messages again**
+
+This regression was introduced during agent management refactoring and has now been removed.
 
 ## Solution Implemented
 
@@ -158,10 +167,25 @@ DEBUG Agent graph data updated (3 nodes). Physics loop will broadcast with AGENT
 
 ## Files Modified
 
+### Phase 1 (Initial Fix)
 1. **src/actors/graph_actor.rs**
    - Lines 2087-2122: Modified physics broadcast to collect both graphs
    - Lines 2132-2149: Updated log messages
    - Lines 3186-3204: Removed duplicate broadcast from UpdateBotsGraph
+
+### Phase 2 (Regression Fix - Complete)
+1. **src/actors/graph_actor.rs**
+   - Lines 2155-2160: **REMOVED** conflicting "immediate GPU broadcast" section
+   - Lines 2717-2770: **FIXED** `ForcePositionBroadcast` handler to use unified dual-graph encoding
+   - Lines 2776-2828: **FIXED** `InitialClientSync` handler to use unified dual-graph encoding
+
+**Issue:** Three separate broadcast paths were conflicting:
+   1. ✅ Unified physics loop broadcast (lines 2087-2150) - **CORRECT**
+   2. ❌ Immediate GPU broadcast (removed) - **WAS BROKEN**
+   3. ❌ ForcePositionBroadcast handler - **WAS BROKEN**
+   4. ❌ InitialClientSync handler - **WAS BROKEN**
+
+**Fix:** Removed #2, fixed #3 and #4 to use `encode_node_data_with_types()` with both agent and knowledge node lists
 
 ## Testing Checklist
 

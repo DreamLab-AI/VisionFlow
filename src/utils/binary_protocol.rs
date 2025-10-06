@@ -59,8 +59,8 @@ const WIRE_V2_ID_SIZE: usize = 4;  // u32 (FIXED)
 const WIRE_VEC3_SIZE: usize = 12;  // 3 * f32
 const WIRE_F32_SIZE: usize = 4;    // f32
 const WIRE_I32_SIZE: usize = 4;    // i32
-const WIRE_V1_ITEM_SIZE: usize = WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes
-const WIRE_V2_ITEM_SIZE: usize = WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 38 bytes
+const WIRE_V1_ITEM_SIZE: usize = WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes (2+12+12+4+4)
+const WIRE_V2_ITEM_SIZE: usize = WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 36 bytes (4+12+12+4+4) NOT 38!
 
 // Backwards compatibility alias - DEPRECATED
 const WIRE_ID_SIZE: usize = WIRE_V2_ID_SIZE;
@@ -69,13 +69,13 @@ const WIRE_ITEM_SIZE: usize = WIRE_V2_ITEM_SIZE;
 // Binary format (explicit):
 //
 // PROTOCOL V2 (CURRENT - FIXES node ID truncation bug):
-// - Wire format sent to client (38 bytes total):
+// - Wire format sent to client (36 bytes total):
 //   - Node Index: 4 bytes (u32) - Bits 30-31 for flags, bits 0-29 for ID
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
 //   - SSSP Distance: 4 bytes (f32)
 //   - SSSP Parent: 4 bytes (i32)
-// Total: 38 bytes per node
+// Total: 36 bytes per node (NOT 38 - that was a documentation error!)
 // Supports node IDs: 0 to 1,073,741,823 (2^30 - 1)
 //
 // PROTOCOL V1 (LEGACY - HAS BUG):

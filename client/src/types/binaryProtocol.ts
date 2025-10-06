@@ -25,14 +25,16 @@ export interface BinaryNodeData {
  * - Velocity: 12 bytes (3 float32 values)
  * - SSSP Distance: 4 bytes (float32)
  * - SSSP Parent: 4 bytes (int32)
- * Total: 38 bytes per node
+ * Total: 36 bytes per node (NOT 38 - that was a documentation error!)
+ *
+ * Calculation: 4 + 12 + 12 + 4 + 4 = 36 bytes
  *
  * SSSP data is included for real-time path visualization
  *
  * FIXED: V1 had a bug that truncated node IDs > 16383 causing collisions
  * V2 uses full u32 IDs with flags at bits 31/30 instead of 15/14
  */
-export const BINARY_NODE_SIZE = 38;
+export const BINARY_NODE_SIZE = 36;
 export const BINARY_NODE_ID_OFFSET = 0;
 export const BINARY_POSITION_OFFSET = 4;  // After uint32 node ID
 export const BINARY_VELOCITY_OFFSET = 16; // After position (4 + 12)
