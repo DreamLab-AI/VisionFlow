@@ -21,6 +21,7 @@ import { useAutoBalanceNotifications } from '../hooks/useAutoBalanceNotification
 import ErrorBoundary from '../components/ErrorBoundary';
 import { remoteLogger } from '../services/remoteLogger';
 import { VircadiaProvider } from '../contexts/VircadiaContext';
+import { VircadiaBridgesProvider } from '../contexts/VircadiaBridgesContext';
 
 const logger = createLogger('App');
 
@@ -112,9 +113,17 @@ function App() {
       case 'initialized':
         return shouldUseImmersiveClient() ? (
           <BotsDataProvider>
-            <ImmersiveApp />
+            <VircadiaBridgesProvider enableBotsBridge={true} enableGraphBridge={true}>
+              <ImmersiveApp />
+            </VircadiaBridgesProvider>
           </BotsDataProvider>
-        ) : <MainLayout />;
+        ) : (
+          <BotsDataProvider>
+            <VircadiaBridgesProvider enableBotsBridge={true} enableGraphBridge={false}>
+              <MainLayout />
+            </VircadiaBridgesProvider>
+          </BotsDataProvider>
+        );
     }
   };
 

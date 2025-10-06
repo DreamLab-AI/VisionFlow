@@ -32,47 +32,69 @@
 - ✅ Ran `cargo check` - passes with only warnings (no errors)
 - ✅ Fixed Vite build errors from removed iframeCommunication module
 
+### Architecture Analysis
+- ✅ Analyzed all 4 WebSocket service implementations and dependencies
+- ✅ Deleted unused `EnhancedWebSocketService.ts` (no imports, wrapper only)
+- ✅ Created comprehensive consolidation plan: `/workspace/ext/docs/websocket-consolidation-plan.md`
+- ✅ Documented migration path for VoiceWebSocketService → WebRTC
+- ✅ Identified deprecated method callers in BotsWebSocketIntegration
+
 ---
 
 ## 🔄 Remaining Tasks
 
-### 1. Architectural Anomalies & Duplicate Systems
+### 1. WebSocket Service Consolidation ✅
 
-**Multiple WebSocket Services:**
-- `client/src/services/WebSocketService.ts` - Legacy service, needs careful dependency analysis before removal
-- `client/src/services/EnhancedWebSocketService.ts` - Newer implementation, migration incomplete
-- `client/src/services/VoiceWebSocketService.ts` - Specialized for audio, needs architecture review
-- `client/src/features/bots/services/BotsWebSocketIntegration.ts` - Contains deprecated methods still in use
+**✅ Completed:**
+- Deleted `EnhancedWebSocketService.ts` (was unused wrapper, no imports)
+- Created comprehensive consolidation plan: `/workspace/ext/docs/websocket-consolidation-plan.md`
+- Analyzed all 4 WebSocket implementations and their dependencies
+- **✅ Refactored all deprecated method callers:**
+  - `requestInitialData()` - removed from `useBotsWebSocketIntegration.ts:54` (now uses BotsDataContext REST polling)
+  - `sendBotsUpdate()` - already using REST API via `programmaticMonitor.ts` (no changes needed)
+  - `restartPolling()` - removed from `MultiAgentInitializationPrompt.tsx:121` (BotsDataContext auto-polls)
+- **✅ Created WebRTC migration plan:** `/workspace/ext/docs/architecture/voice-webrtc-migration-plan.md`
+  - Researched WebRTC vs WebSocket for real-time audio
+  - Designed hybrid architecture (WebSocket for signaling, WebRTC for audio)
+  - Documented phased migration approach (6 weeks estimated)
 
-**Recommendation:** Consolidate into a single, modular WebSocket service (like EnhancedWebSocketService) that can be extended with plugins or handlers for different features (bots, voice, etc.).
+**Current Services:**
+- `client/src/services/WebSocketService.ts` - Core service (14 imports) ✅ Keep
+- `client/src/services/VoiceWebSocketService.ts` - Voice/audio (5 imports) ✅ Migration plan ready
+- `client/src/features/bots/services/BotsWebSocketIntegration.ts` - Agent positions ✅ Deprecated methods refactored
 
-**Deprecated Methods (Still In Use):**
-The following deprecated methods in `BotsWebSocketIntegration.ts` are still being called and cannot be removed yet:
-- `requestInitialData()` - used in `useBotsWebSocketIntegration.ts:54`
-- `sendBotsUpdate()` - used in `programmaticMonitor.ts:22, 183`
-- `restartPolling()` - used in `MultiAgentInitializationPrompt.tsx:121`
-
-**Action Required:** Refactor calling code to use new patterns (REST API via BotsDataContext), then remove these methods.
+**Deprecated Methods Status:**
+- ✅ All callers refactored to use REST API patterns
+- ⚠️ Methods kept with deprecation warnings for backward compatibility
+- 📋 Can be safely removed in future major version
 
 ---
 
-### 2. Vircadia Multi-User XR Integration
+### 2. Vircadia Multi-User XR Integration ✅
 
-**Status:** Needs investigation and planning
+**Status:** ✅ Analysis Complete
 
-The `client/src/services/vircadia/` directory contains a complete, parallel system for multi-user XR functionality:
-- `VircadiaClientCore.ts` - Client core
-- `EntitySyncManager.ts` - Entity management
-- `AvatarManager.ts` - Avatar system
+**✅ Completed:**
+- Created comprehensive analysis: `/workspace/ext/docs/architecture/vircadia-integration-analysis.md`
+- Documented all 9 Vircadia service components (VircadiaClientCore, EntitySyncManager, AvatarManager, etc.)
+- Identified integration gaps with Bots and Graph systems
+- Designed bridge services for connecting systems
+- Created Docker deployment plan for Vircadia World Server
+- Documented phased integration approach (6-8 weeks estimated)
 
-**Integration unclear** with primary "Bots" and "Graph" visualization systems.
+**Key Findings:**
+- **Code Status:** Complete but disconnected from main visualization systems
+- **Missing:** Vircadia World Server deployment (not running)
+- **Missing:** Bridge services to sync Bots agents ↔ Vircadia entities
+- **Missing:** Bridge services to sync Graph nodes ↔ Vircadia collaborative features
+- **Ready:** All client-side services are production-ready and waiting for integration
 
-**Action Required:**
-- Research Vircadia architecture and capabilities (web search required)
-- Map integration points with existing Bots and Graph systems
-- Document findings in relevant docs section
-- Create detailed integration plan
-- Test with running Vircadia dockers on ragflow network
+**Recommended Approach:**
+- **Option A:** Full integration (6 weeks, 2 developers)
+- **Option B:** Gradual phased integration (8 weeks, 1 developer)
+- **Option C:** Defer integration (document for future use)
+
+**Next Steps:** Management decision required on integration priority
 
 ---
 
@@ -96,20 +118,28 @@ The `client/src/services/vircadia/` directory contains a complete, parallel syst
 - **File:** `client/package.json`
 - **Issue:** All test scripts disabled due to supply chain attack concerns
 - **Status:** ⚠️ HIGHEST PRIORITY - Security and quality assurance issue
+- **Current Workaround:** `preinstall` script runs `block-test-packages.cjs`
 - **Action Required:**
-  - Address underlying security concerns
-  - Update dependencies
-  - Re-enable testing framework
-  - Remove `block-test-packages.cjs` workaround
+  - **Security Review:** Audit all test dependencies for malicious packages
+  - **Dependency Update:** Update Vitest, @testing-library packages to latest secure versions
+  - **Verify Supply Chain:** Check npm audit and GitHub advisories
+  - **Re-enable Tests:** Remove echo statements, restore vitest/testing-library imports
+  - **Clean Install:** `rm -rf node_modules package-lock.json && npm install`
+  - **Run Test Suite:** Verify all tests pass before production deployment
+- **Timeline:** Should be addressed ASAP - testing is critical for code quality
+- **Reference:** See `/workspace/ext/docs/archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md` for details
 
 ---
 
-### 5. Documentation Updates
+### 5. Documentation Updates ✅
 
 **File: `client/src/features/bots/docs/polling-system.md`**
-- **Issue:** Describes REST polling system but architecture has evolved to hybrid REST/WebSocket model
-- **Action:** Update documentation to reflect current state
-- Remove references to legacy code patterns
+- ✅ **Status:** Already updated with hybrid architecture
+- ✅ Documents REST polling for metadata
+- ✅ Documents WebSocket binary protocol for position updates
+- ✅ Describes BotsDataContext coordination layer
+- ✅ Includes configuration examples and data flow diagrams
+- **No action needed** - documentation is current
 
 ---
 

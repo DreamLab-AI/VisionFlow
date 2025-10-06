@@ -117,8 +117,9 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);
-        // Restart polling to get the new agents
-        botsWebSocketIntegration.restartPolling();
+        // NOTE: No need to restart polling - BotsDataContext automatically polls via REST API
+        // WebSocket handles only binary position updates
+        // New agents will be picked up by the next polling cycle (3s active interval)
         onInitialized();
       } else {
         throw new Error(response.error || 'Failed to spawn hive mind');

@@ -21,7 +21,7 @@ visualisation:
     waveSpeed: 0.5
   glow:
     enabled: false
-    intensity: 3.5
+    intensity: 1.2
     radius: 1.2
     threshold: 0.39
     diffuseStrength: 1.5
@@ -142,7 +142,7 @@ visualisation:
           resumeOnInteraction: true
         boundsSize: 1000.0
         separationRadius: 2.1155233
-        damping: 0.4945055
+        damping: 0.6
         enableBounds: false
         enabled: true
         iterations: 50

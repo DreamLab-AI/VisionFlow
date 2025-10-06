@@ -19,7 +19,7 @@ export function useBotsWebSocketIntegration() {
   });
 
   useEffect(() => {
-    logger.info('Initializing bots WebSocket integration');
+    logger.info('Initializing bots WebSocket integration (binary position updates only)');
 
     // Listen for connection status changes
     const unsubMcp = botsWebSocketIntegration.on('mcp-connected', ({ connected }) => {
@@ -46,29 +46,15 @@ export function useBotsWebSocketIntegration() {
       });
     }, 2000);
 
-    // Request initial data once connected
-    const checkAndRequestData = setInterval(() => {
-      const status = botsWebSocketIntegration.getConnectionStatus();
-      if (status.overall) {
-        agentTelemetry.logAgentAction('websocket', 'hook', 'requesting_initial_data');
-        botsWebSocketIntegration.requestInitialData()
-          .then(() => {
-            logger.info('Initial data requested');
-            agentTelemetry.logAgentAction('websocket', 'hook', 'initial_data_success');
-          })
-          .catch(err => {
-            logger.error('Failed to request initial data:', err);
-            agentTelemetry.logAgentAction('websocket', 'hook', 'initial_data_failed', { error: err.message });
-          });
-        clearInterval(checkAndRequestData);
-      }
-    }, 1000);
+    // REMOVED: requestInitialData() call - initial data is now fetched by BotsDataContext via REST polling
+    // WebSocket connection is only used for real-time binary position updates
+    logger.info('WebSocket connection ready for binary position updates. Agent metadata fetched via REST API.');
+    agentTelemetry.logAgentAction('websocket', 'hook', 'initialized_position_updates');
 
     return () => {
       unsubMcp();
       unsubLogseq();
       clearInterval(updateOverall);
-      clearInterval(checkAndRequestData);
 
       // Log hook cleanup
       agentTelemetry.logAgentAction('websocket', 'hook', 'cleanup');
