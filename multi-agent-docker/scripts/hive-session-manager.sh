@@ -106,13 +106,16 @@ start_session() {
     local SESSION_JSON="${SESSION_DIR}/session.json"
     local LOG_FILE=$(jq -r '.log_file' "${SESSION_JSON}")
     local OUTPUT_DIR=$(jq -r '.output_dir' "${SESSION_JSON}")
+    local TASK=$(jq -r '.task' "${SESSION_JSON}")
 
     mkdir -p "$(dirname "$LOG_FILE")"
+    chown -R dev:dev "$(dirname "$LOG_FILE")" 2>/dev/null || true
 
     echo "[SESSION-MGR] Starting session: ${SESSION_UUID}" | tee -a "$LOG_FILE"
     echo "[SESSION-MGR] Working directory: ${SESSION_DIR}" | tee -a "$LOG_FILE"
     echo "[SESSION-MGR] Output directory: ${OUTPUT_DIR}" | tee -a "$LOG_FILE"
-    echo "[SESSION-MGR] Command: claude-flow hive-mind spawn $@" | tee -a "$LOG_FILE"
+    echo "[SESSION-MGR] Task: ${TASK}" | tee -a "$LOG_FILE"
+    echo "[SESSION-MGR] Command: claude-flow hive-mind spawn \"${TASK}\" --claude" | tee -a "$LOG_FILE"
 
     # Update status to running
     update_session_status "${SESSION_UUID}" "running"
@@ -125,7 +128,7 @@ start_session() {
         cd '${SESSION_DIR}'
         export HIVE_MIND_SESSION_ID='${SESSION_UUID}'
         export HIVE_MIND_OUTPUT_DIR='${OUTPUT_DIR}'
-        /app/node_modules/.bin/claude-flow hive-mind spawn \"\$@\" --claude 2>&1 | tee -a '${LOG_FILE}'
+        /app/node_modules/.bin/claude-flow hive-mind spawn '${TASK}' --claude 2>&1 | tee -a '${LOG_FILE}'
         EXIT_CODE=\${PIPESTATUS[0]}
         exit \${EXIT_CODE}
     " -- "$@"

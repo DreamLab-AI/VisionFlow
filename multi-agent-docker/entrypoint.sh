@@ -57,11 +57,13 @@ echo "✨ Automatic setup will begin in a few seconds..."
 echo "   (Check progress with: tail -f /workspace/.setup.log)"
 echo ""
 
-# Create symlink for claude-flow from the installed node_modules
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting up claude-flow symlink..."
+# Create wrapper for claude-flow to ensure database isolation
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting up claude-flow wrapper..."
 if [ -f "/app/node_modules/.bin/claude-flow" ]; then
-    ln -sf /app/node_modules/.bin/claude-flow /usr/bin/claude-flow
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Created claude-flow symlink from node_modules"
+    # Install wrapper script that isolates root user database access
+    ln -sf /app/scripts/claude-flow-wrapper.sh /usr/bin/claude-flow
+    chmod +x /app/scripts/claude-flow-wrapper.sh
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Installed claude-flow wrapper (prevents database conflicts)"
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Warning: claude-flow not found in /app/node_modules/.bin/"
 fi
