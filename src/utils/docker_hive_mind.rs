@@ -236,19 +236,27 @@ impl DockerHiveMind {
         // 1. Check container health
         self.health_monitor.check_container_health().await?;
 
-        // 2. Prepare metadata JSON
+        // 2. Escape task string for JSON - replace newlines and quotes
+        let escaped_task = task
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r")
+            .replace('\t', "\\t");
+
+        // 3. Prepare metadata JSON
         let metadata_json = metadata
             .map(|m| serde_json::to_string(&m).unwrap_or_else(|_| "{}".to_string()))
             .unwrap_or_else(|| "{}".to_string());
 
-        // 3. Build Docker command to create session
+        // 4. Build Docker command to create session
         let mut cmd = Command::new("docker");
         cmd.args(&[
             "exec",
             &self.container_name,
             &self.session_manager_script,
             "create",
-            task,
+            &escaped_task,
             priority,
             &metadata_json,
         ]);
