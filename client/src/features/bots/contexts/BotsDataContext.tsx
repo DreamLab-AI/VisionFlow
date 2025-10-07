@@ -114,26 +114,40 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Transform backend nodes to BotsAgent format
     const transformedAgents = (data.nodes || []).map((node: any) => {
       // Read agent type from correct field - check multiple possible locations
-      const agentType = node.metadata?.agent_type || node.node_type || node.nodeType;
-      
+      const agentType = node.metadata?.agent_type || node.type || node.node_type || node.nodeType;
+
       if (!agentType) {
         console.error('Missing agent type for node:', {
           nodeId: node.id,
-          metadataId: node.metadata_id,
+          metadataId: node.metadataId || node.metadata_id,
           metadata: node.metadata,
+          type: node.type,
           node_type: node.node_type,
           nodeType: node.nodeType
         });
       }
-      
+
+      // Handle both nested position/velocity and flat x/y/z coordinates
+      const position = node.data?.position || {
+        x: node.data?.x || 0,
+        y: node.data?.y || 0,
+        z: node.data?.z || 0
+      };
+
+      const velocity = node.data?.velocity || {
+        x: node.data?.vx || 0,
+        y: node.data?.vy || 0,
+        z: node.data?.vz || 0
+      };
+
       return {
-        // Use metadata_id as the agent ID (original string ID)
-        id: node.metadata_id || String(node.id),
+        // Use metadataId (camelCase from API) as the agent ID (original string ID)
+        id: node.metadataId || node.metadata_id || String(node.id),
         name: node.label || node.metadata?.name || `Agent-${node.id}`,
         type: agentType,
         status: node.metadata?.status || 'active', // 'active' is the default status in backend
-        position: node.data?.position || { x: 0, y: 0, z: 0 },
-        velocity: node.data?.velocity || { x: 0, y: 0, z: 0 },
+        position,
+        velocity,
         force: { x: 0, y: 0, z: 0 },
         // Parse numeric values from metadata (use camelCase for frontend)
         cpuUsage: parseFloat(node.metadata?.cpu_usage || '0'),
@@ -157,7 +171,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Need to map numeric node IDs to agent string IDs
     const nodeIdToAgentId = new Map();
     data.nodes?.forEach((node: any) => {
-      nodeIdToAgentId.set(node.id, node.metadata_id || String(node.id));
+      nodeIdToAgentId.set(node.id, node.metadataId || node.metadata_id || String(node.id));
     });
 
     const transformedEdges = (data.edges || []).map((edge: any) => ({

@@ -17,23 +17,30 @@ const logger = createLogger('AgentPollingService');
 export interface AgentSwarmData {
   nodes: Array<{
     id: number;
-    metadata_id: string;
+    metadataId: string; // API returns camelCase
     label: string;
-    node_type: string;
+    type?: string; // node_type is renamed to 'type' in API
     data?: {
-      position: { x: number; y: number; z: number };
-      velocity: { x: number; y: number; z: number };
+      nodeId?: number;
+      x?: number;
+      y?: number;
+      z?: number;
+      vx?: number;
+      vy?: number;
+      vz?: number;
+      position?: { x: number; y: number; z: number };
+      velocity?: { x: number; y: number; z: number };
     };
     metadata?: {
-      agent_type: string;
-      status: string;
-      health: string;
-      cpu_usage: string;
-      memory_usage: string;
-      workload: string;
-      tokens: string;
-      created_at: string;
-      age: string;
+      agent_type?: string;
+      status?: string;
+      health?: string;
+      cpu_usage?: string;
+      memory_usage?: string;
+      workload?: string;
+      tokens?: string;
+      created_at?: string;
+      age?: string;
       swarm_id?: string;
       parent_queen_id?: string;
       capabilities?: string;

@@ -12,6 +12,7 @@ export { SystemHealthPanel } from './SystemHealthPanel';
 export { ActivityLogPanel } from './ActivityLogPanel';
 export { AgentDetailPanel } from './AgentDetailPanel';
 export { AgentPollingStatus } from './AgentPollingStatus';
+export { AgentTelemetryStream } from './AgentTelemetryStream';
 
 // Services
 export { configurationMapper } from '../services/ConfigurationMapper';

@@ -70,7 +70,7 @@ visualisation:
         metalness: 0.1
         opacity: 0.16
         roughness: 0.6
-        nodeSize: 1.9
+        nodeSize: 1.7
         quality: high
         enableInstancing: true
         enableHologram: true
@@ -87,7 +87,7 @@ visualisation:
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.11
+        desktopFontSize: 1.21
         enableLabels: true
         textColor: '#676565'
         textOutlineColor: '#00ff40'

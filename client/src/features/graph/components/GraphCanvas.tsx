@@ -9,7 +9,6 @@ import GraphManager from './GraphManager';
 import { SelectiveBloom } from '../../../rendering/SelectiveBloom';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
-import { AgentPollingStatus } from '../../bots/components/AgentPollingStatus';
 // SpacePilot Integration - using simpler version that works with useFrame
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
 // Head Tracking for Parallax
@@ -100,10 +99,7 @@ const GraphCanvas: React.FC = () => {
                     Nodes: {graphData.nodes.length} | Edges: {graphData.edges.length} | Ready: {canvasReady ? 'Yes' : 'No'}
                 </div>
             )}
-            
-            {/* Agent Polling Status Overlay */}
-            <AgentPollingStatus />
-            
+
             <Canvas
                 camera={{
                     fov: 75,

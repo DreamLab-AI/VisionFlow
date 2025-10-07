@@ -58,20 +58,33 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     // Create node ID to agent ID mapping
     const nodeIdToAgentId = new Map<number, string>();
     data.nodes?.forEach(node => {
-      nodeIdToAgentId.set(node.id, node.metadata_id || String(node.id));
+      nodeIdToAgentId.set(node.id, node.metadataId || String(node.id));
     });
 
     // Transform nodes to agents
     const agents = data.nodes?.map(node => {
-      const agentType = node.metadata?.agent_type || node.node_type || 'specialist';
-      
+      const agentType = node.metadata?.agent_type || node.type || 'specialist';
+
+      // Handle both nested position object and flat x/y/z coordinates
+      const position = node.data?.position || {
+        x: node.data?.x || 0,
+        y: node.data?.y || 0,
+        z: node.data?.z || 0
+      };
+
+      const velocity = node.data?.velocity || {
+        x: node.data?.vx || 0,
+        y: node.data?.vy || 0,
+        z: node.data?.vz || 0
+      };
+
       return {
-        id: node.metadata_id || String(node.id),
+        id: node.metadataId || String(node.id),
         name: node.label || `Agent-${node.id}`,
         type: agentType as BotsAgent['type'],
         status: (node.metadata?.status || 'active') as BotsAgent['status'],
-        position: node.data?.position || { x: 0, y: 0, z: 0 },
-        velocity: node.data?.velocity || { x: 0, y: 0, z: 0 },
+        position,
+        velocity,
         cpuUsage: parseFloat(node.metadata?.cpu_usage || '0'),
         memoryUsage: parseFloat(node.metadata?.memory_usage || '0'),
         health: parseFloat(node.metadata?.health || '100'),
@@ -81,8 +94,8 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
         age: parseInt(node.metadata?.age || '0'),
         swarmId: node.metadata?.swarm_id,
         parentQueenId: node.metadata?.parent_queen_id,
-        capabilities: node.metadata?.capabilities ? 
-          node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) : 
+        capabilities: node.metadata?.capabilities ?
+          node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) :
           undefined,
       } as BotsAgent;
     }) || [];

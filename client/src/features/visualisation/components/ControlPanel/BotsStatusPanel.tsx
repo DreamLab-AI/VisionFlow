@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { Zap } from 'lucide-react';
 import { MultiAgentInitializationPrompt } from '../../../bots/components';
+import { AgentTelemetryStream } from '../../../bots/components/AgentTelemetryStream';
 import { unifiedApiClient } from '../../../../services/api/UnifiedApiClient';
 import { botsWebSocketIntegration } from '../../../bots/services/BotsWebSocketIntegration';
 import { useBotsData } from '../../../bots/contexts/BotsDataContext';
@@ -161,6 +162,11 @@ export const BotsStatusPanel: React.FC<BotsStatusPanelProps> = ({ botsData }) =>
           </>
         )}
       </div>
+
+      {/* Telemetry Stream - Always visible when agents are active */}
+      {botsData.nodeCount > 0 && (
+        <AgentTelemetryStream />
+      )}
 
       {showMultiAgentPrompt && (
         <MultiAgentInitializationPrompt
