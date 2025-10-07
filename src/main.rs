@@ -10,7 +10,6 @@ use webxr::{
         speech_socket_handler::speech_socket_handler,
         mcp_relay_handler::mcp_relay_handler,
         nostr_handler,
-        bots_handler,
         bots_visualization_handler,
         hybrid_health_handler,
         workspace_handler,
@@ -30,7 +29,7 @@ use webxr::{
     handlers::hybrid_health_handler::HybridHealthManager,
 };
 
-use actix_web::{web, App, HttpServer, middleware, Error as ActixError, HttpRequest, HttpResponse};
+use actix_web::{web, App, HttpServer, middleware, Error as ActixError};
 use actix_cors::Cors;
 use std::future::{Ready, ready};
 use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
@@ -308,7 +307,7 @@ async fn main() -> std::io::Result<()> {
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");
-    let mut metadata_store = FileService::load_or_create_metadata()
+    let metadata_store = FileService::load_or_create_metadata()
         .map_err(|e| {
             error!("Failed to load existing metadata: {}", e);
             std::io::Error::new(std::io::ErrorKind::Other, e.to_string())

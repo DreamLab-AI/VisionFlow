@@ -407,47 +407,19 @@ pub async fn initialize_hive_mind_swarm(
                 *current_id = swarm_id.clone();
             }
 
-            // Wait briefly (2s) for agents to spawn
-            tokio::time::sleep(Duration::from_secs(2)).await;
-
-            // Fetch initial agents to get the state
-            match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
-                Ok(agents) => {
-                    info!("🎯 Initial swarm has {} agents", agents.len());
-
-                    let nodes = convert_agents_to_nodes(agents);
-                    let edges = vec![]; // TODO: Generate edges based on swarm topology
-
-                    // Update bots graph
-                    let mut graph = BOTS_GRAPH.write().await;
-                    graph.nodes = nodes.clone();
-                    graph.edges = edges.clone();
-
-                    Ok(HttpResponse::Ok().json(json!({
-                        "success": true,
-                        "message": "Hive mind swarm initialized successfully",
-                        "uuid": uuid,
-                        "swarm_id": swarm_id,
-                        "topology": request.topology,
-                        "strategy": request.strategy,
-                        "initial_agents": nodes.len(),
-                        "nodes": nodes,
-                        "edges": edges,
-                    })))
-                }
-                Err(e) => {
-                    warn!("Swarm spawned but failed to fetch initial agents: {}", e);
-                    Ok(HttpResponse::Ok().json(json!({
-                        "success": true,
-                        "message": "Swarm initialization requested, agents will appear shortly",
-                        "uuid": uuid,
-                        "swarm_id": swarm_id,
-                        "topology": request.topology,
-                        "strategy": request.strategy,
-                        "warning": e.to_string(),
-                    })))
-                }
-            }
+            // Return immediately - frontend will poll /bots/status to get agent updates
+            // This prevents timeout issues when agent initialization takes >30s
+            Ok(HttpResponse::Ok().json(json!({
+                "success": true,
+                "message": "Hive mind swarm spawned successfully. Agents will appear shortly.",
+                "uuid": uuid,
+                "swarm_id": swarm_id,
+                "topology": request.topology,
+                "strategy": request.strategy,
+                "agent_types": request.agent_types,
+                "max_agents": request.max_agents,
+                "enable_neural": request.enable_neural,
+            })))
         }
         Err(e) => {
             error!("✗ Failed to spawn hive mind swarm: {}", e);
