@@ -222,6 +222,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Install websockify for noVNC
 RUN /opt/venv312/bin/pip install --no-cache-dir websockify
 
+# Install copyparty file server
+RUN /opt/venv312/bin/pip install --no-cache-dir copyparty
+
 # Configure VNC for dev user
 USER dev
 RUN mkdir -p ~/.vnc && \
