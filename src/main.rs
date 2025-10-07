@@ -16,6 +16,7 @@ use webxr::{
         workspace_handler,
         graph_export_handler,
         client_log_handler,
+        client_messages_handler,
     },
     services::{
         file_service::FileService,
@@ -559,6 +560,7 @@ async fn main() -> std::io::Result<()> {
             .route("/ws/speech", web::get().to(speech_socket_handler))
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) // Legacy MCP relay endpoint
             .route("/ws/hybrid-health", web::get().to(hybrid_health_handler::websocket_hybrid_status)) // Hybrid health WebSocket
+            .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages)) // Agent -> User messages
             .service(
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.

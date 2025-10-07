@@ -108,6 +108,12 @@ fi
 # Set proper ownership
 chown -R dev:dev "$CLAUDE_DIR" /workspace/.mcp.json /workspace/.claude 2>/dev/null || true
 
+# Configure SQLite databases with optimal settings
+if [ -f "/app/scripts/sqlite-db-setup.sh" ]; then
+    echo "📝 Configuring SQLite databases..."
+    /app/scripts/sqlite-db-setup.sh configure
+fi
+
 echo "✅ Claude MCP configuration complete"
 echo ""
 echo "MCP Architecture:"

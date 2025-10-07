@@ -60,7 +60,11 @@ class PersistentMCPServer {
       CLAUDE_FLOW_DB_PATH: '/workspace/.swarm/tcp-server.db',
       // Ensure access to Claude configuration
       CLAUDE_CONFIG_DIR: '/home/dev/.claude',
-      CLAUDE_PROJECT_ROOT: '/workspace'
+      CLAUDE_PROJECT_ROOT: '/workspace',
+      // SQLite connection pooling settings
+      SQLITE_BUSY_TIMEOUT: '60000',  // 60 second timeout
+      SQLITE_JOURNAL_MODE: 'WAL',    // Write-Ahead Logging
+      SQLITE_SYNCHRONOUS: 'NORMAL'   // Balance safety/performance
     };
 
     this.mcpProcess = spawn(mcpCommand, mcpArgs, {
@@ -117,6 +121,26 @@ class PersistentMCPServer {
         this.initPromise = null;
         return;
       }
+
+      // Check for client messages from hooks/notifications
+      if (msg.method === 'notifications/message' || msg.method === 'notification' ||
+          (msg.params && (msg.params.type === 'client' || msg.params.level === 'client'))) {
+        this.log('info', 'Client message detected from agent:', msg.params?.message);
+        // Broadcast as client_message event
+        const clientMessageEvent = {
+          jsonrpc: '2.0',
+          method: 'notification',
+          params: {
+            type: 'client_message',
+            message: msg.params?.message || msg.params?.text,
+            timestamp: new Date().toISOString(),
+            session_id: msg.params?.session_id,
+            agent_id: msg.params?.agent_id
+          }
+        };
+        this.broadcastToClients(JSON.stringify(clientMessageEvent));
+      }
+
       if (!msg.id) {
         this.broadcastToClients(line);
         return;

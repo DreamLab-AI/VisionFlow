@@ -330,14 +330,54 @@ pub async fn initialize_hive_mind_swarm(
         }
     }
 
-    // Build task description from swarm parameters
+    // Build task description - use custom prompt if provided, otherwise generate from parameters
+    let base_task = if let Some(custom_prompt) = &request.custom_prompt {
+        if !custom_prompt.trim().is_empty() {
+            custom_prompt.trim().to_string()
+        } else {
+            format!(
+                "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
+                request.topology,
+                request.strategy,
+                request.max_agents,
+                request.agent_types.join(", "),
+                request.enable_neural
+            )
+        }
+    } else {
+        format!(
+            "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
+            request.topology,
+            request.strategy,
+            request.max_agents,
+            request.agent_types.join(", "),
+            request.enable_neural
+        )
+    };
+
+    // Append communication protocol instructions for MCP/TCP routing
     let task = format!(
-        "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
-        request.topology,
-        request.strategy,
-        request.max_agents,
-        request.agent_types.join(", "),
-        request.enable_neural
+        "{}\n\n**IMPORTANT COMMUNICATION PROTOCOL:**\n\
+        When you need to send important updates to the user, use one of these methods:\n\n\
+        **Method 1: Direct TCP message (recommended)**\n\
+        ```bash\n\
+        /app/scripts/send-client-message.sh \"Your message here\"\n\
+        ```\n\n\
+        **Method 2: Markdown format (auto-extracted from logs)**\n\
+        Write in your output:\n\
+        **[CLIENT_MESSAGE]** Your message here **[/CLIENT_MESSAGE]**\n\n\
+        Messages will be displayed in the user's telemetry panel in real-time.\n\n\
+        Use this for:\n\
+        - Progress updates on major milestones\n\
+        - Important decisions or changes requiring user awareness\n\
+        - Questions that need user input\n\
+        - Final results or deliverables\n\
+        - Critical errors or blockers\n\n\
+        Examples:\n\
+        - `/app/scripts/send-client-message.sh \"Database schema completed with 12 tables. Ready for review.\"`\n\
+        - **[CLIENT_MESSAGE]** Started API implementation. ETA: 15 minutes **[/CLIENT_MESSAGE]**\n\
+        - `/app/scripts/send-client-message.sh \"ERROR: Missing API key. User input required.\"`",
+        base_task
     );
 
     info!("🔧 Swarm initialization task: {}", task);

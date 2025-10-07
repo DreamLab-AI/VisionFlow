@@ -21,6 +21,8 @@ use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
 use crate::services::mcp_session_bridge::McpSessionBridge;
 use crate::services::session_correlation_bridge::SessionCorrelationBridge;
+use tokio::sync::mpsc;
+use crate::utils::client_message_extractor::ClientMessage;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -47,6 +49,8 @@ pub struct AppState {
     pub mcp_session_bridge: Arc<McpSessionBridge>,
     pub session_correlation_bridge: Arc<SessionCorrelationBridge>,
     pub debug_enabled: bool,
+    pub client_message_tx: mpsc::UnboundedSender<ClientMessage>,
+    pub client_message_rx: Arc<tokio::sync::Mutex<mpsc::UnboundedReceiver<ClientMessage>>>,
 }
 
 impl AppState {
@@ -226,6 +230,10 @@ impl AppState {
         
         info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
 
+        // Create client message channel for agent -> user communication
+        let (client_message_tx, client_message_rx) = mpsc::unbounded_channel::<ClientMessage>();
+        info!("[AppState::new] Client message channel created");
+
         Ok(Self {
             graph_service_addr,
             gpu_manager_addr,
@@ -250,6 +258,8 @@ impl AppState {
             mcp_session_bridge,
             session_correlation_bridge,
             debug_enabled,
+            client_message_tx,
+            client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
         })
     }
 

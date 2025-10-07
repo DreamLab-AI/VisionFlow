@@ -87,7 +87,7 @@ visualisation:
         - 1.5
         quality: high
       labels:
-        desktopFontSize: 1.21
+        desktopFontSize: 1.01
         enableLabels: true
         textColor: '#676565'
         textOutlineColor: '#00ff40'

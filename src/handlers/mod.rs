@@ -23,6 +23,7 @@ pub mod graph_export_handler;
 pub mod realtime_websocket_handler;
 pub mod websocket_settings_handler;
 pub mod client_log_handler;
+pub mod client_messages_handler;
 
 #[cfg(test)]
 pub mod tests;

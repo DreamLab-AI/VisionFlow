@@ -50,6 +50,10 @@ This task will be executed by a **coordinated agent swarm** in a **single parall
 13. **Type Safety Agent** - Ensure Rust/TS type consistency
 14. **Code Review Agent** - Final quality check
 
+**Wave 5: Documentation & Deployment (Parallel, depends on Wave 4)**
+15. **Documentation Agent** - Update architecture and usage docs integrated into the knowledgebase in /workspace/ext/docs with forward and backward links and mermaid diagrams.
+
+
 ---
 
 ## Detailed Task Breakdown

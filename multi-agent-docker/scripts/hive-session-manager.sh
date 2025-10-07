@@ -155,26 +155,49 @@ update_session_status() {
         return 1
     fi
 
-    # Update session.json
+    # Update session.json with timestamp
     local TEMP_FILE=$(mktemp)
+    local TIMESTAMP=$(date -Iseconds)
     jq --arg status "$STATUS" \
-       --arg updated "$(date -Iseconds)" \
-       '.status = $status | .updated = $updated' \
+       --arg updated "$TIMESTAMP" \
+       '.status = $status | .updated = $updated | .last_activity = $updated' \
        "${SESSION_DIR}/session.json" > "${TEMP_FILE}"
     mv "${TEMP_FILE}" "${SESSION_DIR}/session.json"
 
-    # Update index
+    # Update index with file locking
     (
         flock -x 200
         local TEMP_INDEX=$(mktemp)
         jq --arg uuid "$SESSION_UUID" \
            --arg status "$STATUS" \
-           --arg updated "$(date -Iseconds)" \
+           --arg updated "$TIMESTAMP" \
            '.sessions[$uuid].status = $status |
-            .sessions[$uuid].updated = $updated' \
+            .sessions[$uuid].updated = $updated |
+            .sessions[$uuid].last_activity = $updated' \
            "${SESSIONS_INDEX}" > "${TEMP_INDEX}"
         mv "${TEMP_INDEX}" "${SESSIONS_INDEX}"
     ) 200>"${SESSIONS_LOCK}"
+
+    # If status is failed/completed, close database connections
+    if [ "$STATUS" = "failed" ] || [ "$STATUS" = "completed" ]; then
+        close_session_databases "$SESSION_UUID"
+    fi
+}
+
+# Close database connections for a session
+close_session_databases() {
+    local SESSION_UUID="$1"
+    local SESSION_DIR="${SESSIONS_ROOT}/${SESSION_UUID}"
+
+    # Find and checkpoint/close databases
+    if [ -d "${SESSION_DIR}/.hive-mind" ]; then
+        for DB in "${SESSION_DIR}/.hive-mind"/*.db; do
+            if [ -f "$DB" ]; then
+                # Force WAL checkpoint and close
+                sqlite3 "$DB" "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true
+            fi
+        done
+    fi
 }
 
 # Get session info

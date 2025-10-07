@@ -26,3 +26,5 @@ pub mod websocket_heartbeat;
 pub mod handler_commons;
 pub mod standard_websocket_messages;
 pub mod realtime_integration;
+pub mod client_message_extractor;
+pub mod session_log_monitor;
