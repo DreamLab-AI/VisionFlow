@@ -134,6 +134,7 @@ services:
       # Configuration (read-write for Claude to save state)
       - ~/.claude:/home/dev/.claude:rw
       - ~/.claude.json:/home/dev/.claude.json:rw
+      - ~/.config/claude:/home/dev/.config/claude:rw
       # Runtime data (ephemeral)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./blender-files:/blender-files:rw
