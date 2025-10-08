@@ -56,11 +56,11 @@ __global__ void init_centroids_kernel(
             selected_nodes[0] = random_idx;
         }
     } else {
-        // K-means++ selection: proportional to squared distance
+        // K-means++ selection: proportional to squared distance (parallel version)
         float3 pos = make_float3(pos_x[idx], pos_y[idx], pos_z[idx]);
         float min_dist_sq = FLT_MAX;
 
-        // Find minimum distance to existing centroids
+        // Find minimum distance to existing centroids (parallel)
         for (int c = 0; c < centroid_idx; c++) {
             float3 centroid = make_float3(centroids_x[c], centroids_y[c], centroids_z[c]);
             float3 diff = make_float3(pos.x - centroid.x, pos.y - centroid.y, pos.z - centroid.z);
@@ -69,27 +69,67 @@ __global__ void init_centroids_kernel(
         }
 
         min_distances[idx] = min_dist_sq;
+    }
+}
+
+// Parallel reduction for total weight sum
+__global__ void compute_total_weight_kernel(
+    const float* __restrict__ min_distances,
+    float* __restrict__ total_weight,
+    const int num_nodes)
+{
+    extern __shared__ float sdata[];
+    int tid = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Load data into shared memory
+    sdata[tid] = (idx < num_nodes) ? min_distances[idx] : 0.0f;
+    __syncthreads();
+
+    // Block-level reduction
+    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+        if (tid < s) {
+            sdata[tid] += sdata[tid + s];
+        }
         __syncthreads();
+    }
 
-        // Use cumulative sum for weighted selection (simplified)
-        if (idx == 0) {
-            float total_weight = 0.0f;
-            for (int i = 0; i < num_nodes; i++) {
-                total_weight += min_distances[i];
-            }
+    // Write result for this block
+    if (tid == 0) {
+        atomicAdd(total_weight, sdata[0]);
+    }
+}
 
-            float random_weight = curand_uniform(&local_state) * total_weight;
-            float cumsum = 0.0f;
-            for (int i = 0; i < num_nodes; i++) {
-                cumsum += min_distances[i];
-                if (cumsum >= random_weight) {
-                    centroids_x[centroid_idx] = pos_x[i];
-                    centroids_y[centroid_idx] = pos_y[i];
-                    centroids_z[centroid_idx] = pos_z[i];
-                    selected_nodes[centroid_idx] = i;
-                    break;
-                }
+// Parallel prefix sum + binary search for weighted selection
+__global__ void select_weighted_centroid_kernel(
+    const float* __restrict__ pos_x,
+    const float* __restrict__ pos_y,
+    const float* __restrict__ pos_z,
+    const float* __restrict__ min_distances,
+    float* __restrict__ centroids_x,
+    float* __restrict__ centroids_y,
+    float* __restrict__ centroids_z,
+    int* __restrict__ selected_nodes,
+    const float total_weight,
+    const float random_value,
+    const int centroid_idx,
+    const int num_nodes)
+{
+    // Linear scan for weighted random selection
+    float target = random_value * total_weight;
+    float cumsum = 0.0f;
+
+    // Compute prefix sum on-the-fly
+    for (int i = 0; i < num_nodes; i++) {
+        cumsum += min_distances[i];
+        if (cumsum >= target) {
+            if (threadIdx.x == 0 && blockIdx.x == 0) {
+                centroids_x[centroid_idx] = pos_x[i];
+                centroids_y[centroid_idx] = pos_y[i];
+                centroids_z[centroid_idx] = pos_z[i];
+                selected_nodes[centroid_idx] = i;
             }
+            break;
         }
     }
 }
@@ -567,6 +607,7 @@ __global__ void compute_stress_kernel(
 }
 
 // Update positions using stress majorization
+// Sparse stress majorization using CSR edge list (O(m) instead of O(n²))
 __global__ void stress_majorization_step_kernel(
     const float* __restrict__ pos_x,
     const float* __restrict__ pos_y,
@@ -576,6 +617,8 @@ __global__ void stress_majorization_step_kernel(
     float* __restrict__ new_pos_z,
     const float* __restrict__ target_distances,
     const float* __restrict__ weights,
+    const int* __restrict__ edge_row_offsets,
+    const int* __restrict__ edge_col_indices,
     const float learning_rate,
     const int num_nodes,
     const float force_epsilon)
@@ -587,35 +630,38 @@ __global__ void stress_majorization_step_kernel(
     float3 weighted_sum = make_float3(0.0f, 0.0f, 0.0f);
     float weight_sum = 0.0f;
 
-    // Compute weighted position update
-    for (int j = 0; j < num_nodes; j++) {
-        if (i != j) {
-            float3 pos_j = make_float3(pos_x[j], pos_y[j], pos_z[j]);
-            float weight = weights[i * num_nodes + j];
-            float target_dist = target_distances[i * num_nodes + j];
+    // Only iterate over edges (CSR sparse format)
+    int row_start = edge_row_offsets[i];
+    int row_end = edge_row_offsets[i + 1];
 
-            if (weight > 0.0f && target_dist > 0.0f) {
-                float3 diff = make_float3(
-                    pos_i.x - pos_j.x,
-                    pos_i.y - pos_j.y,
-                    pos_i.z - pos_j.z
+    for (int edge_idx = row_start; edge_idx < row_end; edge_idx++) {
+        int j = edge_col_indices[edge_idx];
+
+        float3 pos_j = make_float3(pos_x[j], pos_y[j], pos_z[j]);
+        float weight = weights[i * num_nodes + j];
+        float target_dist = target_distances[i * num_nodes + j];
+
+        if (weight > 0.0f && target_dist > 0.0f) {
+            float3 diff = make_float3(
+                pos_i.x - pos_j.x,
+                pos_i.y - pos_j.y,
+                pos_i.z - pos_j.z
+            );
+
+            float actual_dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+
+            if (actual_dist > force_epsilon) {
+                float scale = target_dist / actual_dist;
+                float3 target_pos = make_float3(
+                    pos_i.x - diff.x * (1.0f - scale),
+                    pos_i.y - diff.y * (1.0f - scale),
+                    pos_i.z - diff.z * (1.0f - scale)
                 );
 
-                float actual_dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-
-                if (actual_dist > force_epsilon) {
-                    float scale = target_dist / actual_dist;
-                    float3 target_pos = make_float3(
-                        pos_i.x - diff.x * (1.0f - scale),
-                        pos_i.y - diff.y * (1.0f - scale),
-                        pos_i.z - diff.z * (1.0f - scale)
-                    );
-
-                    weighted_sum.x += weight * target_pos.x;
-                    weighted_sum.y += weight * target_pos.y;
-                    weighted_sum.z += weight * target_pos.z;
-                    weight_sum += weight;
-                }
+                weighted_sum.x += weight * target_pos.x;
+                weighted_sum.y += weight * target_pos.y;
+                weighted_sum.z += weight * target_pos.z;
+                weight_sum += weight;
             }
         }
     }

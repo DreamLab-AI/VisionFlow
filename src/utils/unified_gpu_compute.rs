@@ -353,6 +353,10 @@ pub struct UnifiedGPUCompute {
     current_vel_buffer: bool,                        // false=A, true=B (ping-pong state)
     pos_transfer_pending: bool,                      // Track if position transfer is in progress
     vel_transfer_pending: bool,                      // Track if velocity transfer is in progress
+
+    // AABB reduction buffers
+    aabb_block_results: DeviceBuffer<AABB>,          // Per-block AABB results
+    aabb_num_blocks: usize,                          // Number of blocks for AABB reduction
 }
 
 
@@ -593,13 +597,14 @@ impl UnifiedGPUCompute {
             current_vel_buffer: false,     // Start with buffer A
             pos_transfer_pending: false,   // No transfers initially
             vel_transfer_pending: false,   // No transfers initially
+
+            // AABB reduction buffers (256 threads per block)
+            aabb_num_blocks: (num_nodes + 255) / 256,
+            aabb_block_results: DeviceBuffer::zeroed((num_nodes + 255) / 256)?,
         };
         
-        // Note: Constant memory initialization would require cust's global symbol API
-        // which is not readily available. Parameters will be passed as kernel arguments
-        // until we can implement proper constant memory sync.
-        // TODO: Investigate cust::module::Module::get_global() API for constant memory
-        
+        // Constant memory will be initialized per execute() call via get_global()
+
         Ok(gpu_compute)
     }
 
@@ -1024,10 +1029,12 @@ impl UnifiedGPUCompute {
             return Err(anyhow!("CRITICAL: num_nodes ({}) exceeds allocated_nodes ({}). This would cause buffer overflow!", self.num_nodes, self.allocated_nodes));
         }
 
-        // Update constant memory with simulation parameters (including stability thresholds)
-        // Note: cust doesn't provide direct constant memory access, so we'd need to use
-        // a workaround like a device buffer or pass params to each kernel
+        // Update constant memory with simulation parameters
         self.params = params;
+
+        // Initialize constant memory c_params on device
+        let c_params_global = self._module.get_global("c_params")?;
+        c_params_global.copy_from(&[params])?;
 
         // GPU STABILITY GATE: Check if system has reached equilibrium using GPU kernels
         // This is much more efficient than copying velocities to CPU
@@ -1090,27 +1097,40 @@ impl UnifiedGPUCompute {
         // Validate kernel launch parameters upfront
         crate::utils::gpu_diagnostics::validate_kernel_launch("unified_gpu_execute", grid_size, block_size, self.num_nodes).map_err(|e| anyhow::anyhow!(e))?;
 
-        // 1. Calculate AABB (on CPU for now, can be moved to GPU later)
-        // Use allocated_nodes for buffer sizes to ensure they match GPU buffers
-        let mut host_pos_x = vec![0.0; self.allocated_nodes];
-        self.pos_in_x.copy_to(&mut host_pos_x)?;
-        let mut host_pos_y = vec![0.0; self.allocated_nodes];
-        self.pos_in_y.copy_to(&mut host_pos_y)?;
-        let mut host_pos_z = vec![0.0; self.allocated_nodes];
-        self.pos_in_z.copy_to(&mut host_pos_z)?;
+        // 1. Calculate AABB using GPU reduction kernel
+        let aabb_kernel = self._module.get_function("compute_aabb_reduction_kernel")?;
+        let aabb_block_size = 256u32;
+        let aabb_grid_size = self.aabb_num_blocks as u32;
+        let shared_mem = 6 * aabb_block_size * std::mem::size_of::<f32>() as u32;
+
+        unsafe {
+            let s = &self.stream;
+            launch!(
+                aabb_kernel<<<aabb_grid_size, aabb_block_size, shared_mem, s>>>(
+                    self.pos_in_x.as_device_ptr(),
+                    self.pos_in_y.as_device_ptr(),
+                    self.pos_in_z.as_device_ptr(),
+                    self.aabb_block_results.as_device_ptr(),
+                    self.num_nodes as i32
+                )
+            )?;
+        }
+
+        // Final reduction on CPU (small N = num_blocks)
+        let mut block_results = vec![AABB::default(); self.aabb_num_blocks];
+        self.aabb_block_results.copy_to(&mut block_results)?;
 
         let mut aabb = AABB {
             min: [f32::MAX; 3],
             max: [f32::MIN; 3],
         };
-        // Only iterate over actual nodes, not allocated buffer size
-        for i in 0..self.num_nodes {
-            aabb.min[0] = aabb.min[0].min(host_pos_x[i]);
-            aabb.min[1] = aabb.min[1].min(host_pos_y[i]);
-            aabb.min[2] = aabb.min[2].min(host_pos_z[i]);
-            aabb.max[0] = aabb.max[0].max(host_pos_x[i]);
-            aabb.max[1] = aabb.max[1].max(host_pos_y[i]);
-            aabb.max[2] = aabb.max[2].max(host_pos_z[i]);
+        for block_aabb in block_results.iter().take(self.aabb_num_blocks) {
+            aabb.min[0] = aabb.min[0].min(block_aabb.min[0]);
+            aabb.min[1] = aabb.min[1].min(block_aabb.min[1]);
+            aabb.min[2] = aabb.min[2].min(block_aabb.min[2]);
+            aabb.max[0] = aabb.max[0].max(block_aabb.max[0]);
+            aabb.max[1] = aabb.max[1].max(block_aabb.max[1]);
+            aabb.max[2] = aabb.max[2].max(block_aabb.max[2]);
         }
         // Auto-tune grid cell size for optimal spatial hashing (target 4-16 neighbors per cell)
         let scene_volume = (aabb.max[0] - aabb.min[0]) * (aabb.max[1] - aabb.min[1]) * (aabb.max[2] - aabb.min[2]);

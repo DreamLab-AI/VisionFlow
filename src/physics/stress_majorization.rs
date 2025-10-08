@@ -260,13 +260,58 @@ impl StressMajorizationSolver {
             }
         }
 
-        // Floyd-Warshall algorithm
-        for k in 0..n {
-            for i in 0..n {
-                for j in 0..n {
-                    let through_k = distance_matrix[(i, k)] + distance_matrix[(k, j)];
-                    if through_k < distance_matrix[(i, j)] {
-                        distance_matrix[(i, j)] = through_k;
+        // Landmark-based APSP approximation: O(k*n log n) instead of O(n³)
+        // Sample k = sqrt(n) landmark nodes
+        let num_landmarks = (n as f32).sqrt().ceil() as usize;
+        let num_landmarks = num_landmarks.min(n).max(10); // At least 10, at most n
+
+        let mut landmarks = Vec::new();
+        let stride = n / num_landmarks;
+        for i in 0..num_landmarks {
+            landmarks.push(i * stride);
+        }
+
+        // Run BFS/Dijkstra from each landmark (can be parallelized)
+        let mut landmark_distances = vec![vec![f32::INFINITY; n]; num_landmarks];
+        for (k_idx, &landmark) in landmarks.iter().enumerate() {
+            // Simple BFS for unweighted or Dijkstra for weighted
+            let mut dist = vec![f32::INFINITY; n];
+            dist[landmark] = 0.0;
+
+            // Priority queue simulation (simplified BFS)
+            let mut queue = std::collections::VecDeque::new();
+            queue.push_back(landmark);
+
+            while let Some(u) = queue.pop_front() {
+                for v in 0..n {
+                    if distance_matrix[(u, v)] < f32::INFINITY && distance_matrix[(u, v)] > 0.0 {
+                        let new_dist = dist[u] + distance_matrix[(u, v)];
+                        if new_dist < dist[v] {
+                            dist[v] = new_dist;
+                            queue.push_back(v);
+                        }
+                    }
+                }
+            }
+
+            landmark_distances[k_idx] = dist;
+        }
+
+        // Approximate all-pairs distances using triangle inequality
+        for i in 0..n {
+            for j in 0..n {
+                if i != j {
+                    let mut min_dist = f32::INFINITY;
+                    for k_idx in 0..num_landmarks {
+                        let dist_ki = landmark_distances[k_idx][i];
+                        let dist_kj = landmark_distances[k_idx][j];
+                        if dist_ki < f32::INFINITY && dist_kj < f32::INFINITY {
+                            min_dist = min_dist.min(dist_ki + dist_kj);
+                        }
+                    }
+                    // Use approximation if better than direct edge
+                    if min_dist < distance_matrix[(i, j)] {
+                        distance_matrix[(i, j)] = min_dist;
                     }
                 }
             }

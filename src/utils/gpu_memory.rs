@@ -44,62 +44,51 @@ impl<T: cust_core::DeviceCopy> Drop for ManagedDeviceBuffer<T> {
     }
 }
 
-/// Global GPU memory tracker for leak detection
+/// Global GPU memory tracker for leak detection (using std::sync for hot path)
 struct GPUMemoryTracker {
-    allocations: Arc<Mutex<HashMap<String, usize>>>,
-    total_allocated: Arc<Mutex<usize>>,
+    allocations: Arc<std::sync::Mutex<HashMap<String, usize>>>,
+    total_allocated: Arc<std::sync::atomic::AtomicUsize>,
 }
 
 impl GPUMemoryTracker {
     fn new() -> Self {
         Self {
-            allocations: Arc::new(Mutex::new(HashMap::new())),
-            total_allocated: Arc::new(Mutex::new(0)),
+            allocations: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            total_allocated: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         }
     }
 
     fn track_allocation(&self, name: String, size: usize) {
-        let allocations = self.allocations.clone();
-        let total = self.total_allocated.clone();
-
-        tokio::spawn(async move {
-            let mut alloc_map = allocations.lock().await;
-            let mut total_size = total.lock().await;
-
+        // Direct synchronous update (no task spawning)
+        if let Ok(mut alloc_map) = self.allocations.lock() {
             alloc_map.insert(name.clone(), size);
-            *total_size += size;
-
+            let total = self.total_allocated.fetch_add(size, std::sync::atomic::Ordering::Relaxed);
             debug!("GPU Memory: +{} bytes for '{}', total: {} bytes",
-                   size, name, *total_size);
-        });
+                   size, name, total + size);
+        }
     }
 
     fn track_deallocation(&self, name: String, size: usize) {
-        let allocations = self.allocations.clone();
-        let total = self.total_allocated.clone();
-
-        tokio::spawn(async move {
-            let mut alloc_map = allocations.lock().await;
-            let mut total_size = total.lock().await;
-
+        // Direct synchronous update (no task spawning)
+        if let Ok(mut alloc_map) = self.allocations.lock() {
             if alloc_map.remove(&name).is_some() {
-                *total_size = total_size.saturating_sub(size);
+                let total = self.total_allocated.fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
                 debug!("GPU Memory: -{} bytes for '{}', total: {} bytes",
-                       size, name, *total_size);
+                       size, name, total - size);
             } else {
                 warn!("Attempted to free untracked GPU buffer: {}", name);
             }
-        });
+        }
     }
 
-    pub async fn get_memory_usage(&self) -> (usize, HashMap<String, usize>) {
-        let allocations = self.allocations.lock().await;
-        let total = self.total_allocated.lock().await;
-        (*total, allocations.clone())
+    pub fn get_memory_usage(&self) -> (usize, HashMap<String, usize>) {
+        let allocations = self.allocations.lock().unwrap();
+        let total = self.total_allocated.load(std::sync::atomic::Ordering::Relaxed);
+        (total, allocations.clone())
     }
 
-    pub async fn check_leaks(&self) -> Vec<String> {
-        let allocations = self.allocations.lock().await;
+    pub fn check_leaks(&self) -> Vec<String> {
+        let allocations = self.allocations.lock().unwrap();
         if !allocations.is_empty() {
             let leaks: Vec<String> = allocations.keys().cloned().collect();
             error!("GPU memory leaks detected: {} buffers still allocated", leaks.len());

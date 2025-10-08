@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use actix::Addr;
 use cudarc::driver::CudaDevice;
 use serde::{Serialize, Deserialize};
-use tokio::sync::Semaphore;
+use tokio::sync::RwLock;
 use super::cuda_stream_wrapper::SafeCudaStream;
 
 use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
@@ -99,11 +99,11 @@ pub struct SharedGPUContext {
     pub stream: Arc<std::sync::Mutex<SafeCudaStream>>,
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
 
-    // Enhanced resource contention management
-    pub gpu_access_semaphore: Arc<Semaphore>,
+    // Enhanced resource contention management (using RwLock to prevent deadlock)
+    // Read access = normal concurrent operations, Write access = exclusive operations
+    pub gpu_access_lock: Arc<RwLock<()>>,
     pub resource_metrics: Arc<Mutex<GPUResourceMetrics>>,
     pub operation_batch: Arc<Mutex<Vec<GPUOperation>>>,
-    pub exclusive_access_lock: Arc<Mutex<()>>, // For critical operations requiring exclusive access
     pub batch_timeout: Duration, // 10ms timeout for batching operations
 }
 
@@ -378,6 +378,18 @@ impl SharedGPUContext {
         Ok(())
     }
 
+    /// Acquire GPU access for normal concurrent operations
+    pub async fn acquire_gpu_access(&self) -> Result<tokio::sync::RwLockReadGuard<()>, String> {
+        let start_time = Instant::now();
+        let guard = self.gpu_access_lock.read().await;
+
+        if let Ok(mut metrics) = self.resource_metrics.lock() {
+            metrics.total_wait_time_ms += start_time.elapsed().as_millis() as u64;
+        }
+
+        Ok(guard)
+    }
+
     /// Batch operations for efficient GPU execution
     /// Collects operations from the batch queue and executes them together
     pub async fn batch_operations(&self) -> Result<Vec<GPUOperation>, String> {
@@ -389,9 +401,8 @@ impl SharedGPUContext {
         let operations = self.try_flush_batch()?;
 
         if !operations.is_empty() {
-            // Acquire semaphore permit for batched execution
-            let _permit = self.gpu_access_semaphore.acquire().await
-                .map_err(|e| format!("Failed to acquire semaphore for batch: {}", e))?;
+            // Acquire read lock for batched execution
+            let _guard = self.gpu_access_lock.read().await;
 
             // Update metrics for batch execution
             if let Ok(mut metrics) = self.resource_metrics.lock() {
@@ -406,20 +417,11 @@ impl SharedGPUContext {
 
     /// Acquire exclusive access to GPU for critical operations
     /// This method provides serialized access for operations that cannot be run concurrently
-    pub async fn acquire_exclusive_access(&self) -> Result<std::sync::MutexGuard<()>, String> {
+    pub async fn acquire_exclusive_access(&self) -> Result<tokio::sync::RwLockWriteGuard<()>, String> {
         let start_time = Instant::now();
 
-        // First acquire all semaphore permits to ensure no other operations are running
-        let mut permits = Vec::new();
-        for _ in 0..3 { // Assuming semaphore has 3 permits
-            let permit = self.gpu_access_semaphore.acquire().await
-                .map_err(|e| format!("Failed to acquire semaphore permit for exclusive access: {}", e))?;
-            permits.push(permit);
-        }
-
-        // Now acquire the exclusive lock
-        let exclusive_guard = self.exclusive_access_lock.lock()
-            .map_err(|e| format!("Failed to acquire exclusive lock: {}", e))?;
+        // Acquire write lock for exclusive access (blocks all readers and other writers)
+        let guard = self.gpu_access_lock.write().await;
 
         // Update metrics for exclusive access
         if let Ok(mut metrics) = self.resource_metrics.lock() {
@@ -427,10 +429,7 @@ impl SharedGPUContext {
             metrics.concurrent_access_attempts += 1;
         }
 
-        // Permits are automatically dropped here, but we keep the exclusive guard
-        drop(permits);
-
-        Ok(exclusive_guard)
+        Ok(guard)
     }
 }
 
