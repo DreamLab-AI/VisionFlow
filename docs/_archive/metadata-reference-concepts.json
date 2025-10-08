@@ -1,0 +1,449 @@
+{
+  "metadata_extraction": {
+    "timestamp": "2025-10-08T19:26:00Z",
+    "total_files_analyzed": 213,
+    "agent": "Content Analyst Agent #2",
+    "swarm_id": "swarm-docs-refactor",
+    "directories_covered": [
+      "/workspace/ext/docs/reference",
+      "/workspace/ext/docs/concepts",
+      "/workspace/ext/docs/guides",
+      "/workspace/ext/docs/getting-started"
+    ]
+  },
+  "documents": [
+    {
+      "path": "/workspace/ext/docs/reference/README.md",
+      "type": "index",
+      "topics": ["API documentation", "configuration references", "agent documentation"],
+      "entities": ["Agents", "API", "CLI", "data formats"],
+      "status": "active",
+      "cross_references": ["../index.md", "./agents/"],
+      "has_code": false,
+      "has_diagrams": false
+    },
+    {
+      "path": "/workspace/ext/docs/reference/glossary.md",
+      "type": "glossary",
+      "topics": ["Actor", "Agent", "API", "Binary Protocol", "CUDA", "GPU Compute", "WebSocket"],
+      "entities": ["VisionFlow", "Three.js", "Nostr", "RAGFlow", "Whisper", "Kokoro"],
+      "status": "comprehensive",
+      "cross_references": ["index.md"],
+      "has_code": false,
+      "has_diagrams": false,
+      "entries_count": 40
+    },
+    {
+      "path": "/workspace/ext/docs/reference/configuration.md",
+      "type": "technical_reference",
+      "topics": ["System Configuration", "Database Configuration", "GPU/CUDA", "Multi-Agent", "Network Ports", "Security", "Performance Tuning"],
+      "entities": ["PostgreSQL", "Redis", "Docker", "NVIDIA", "MCP Server", "Supervisord"],
+      "status": "production_ready",
+      "cross_references": ["../index.md", "./index.md", "../guides/configuration.md"],
+      "has_code": true,
+      "code_types": ["bash", "yaml", "json", "toml", "sql"],
+      "has_diagrams": false,
+      "configuration_sections": {
+        "core": ["System", "Database", "GPU/CUDA", "Multi-Agent", "Network", "Security"],
+        "ports": ["3001", "9500", "9502", "9503", "5901", "9876-9879"],
+        "services": ["Nginx", "Backend API", "WebSocket", "MCP", "PostgreSQL", "Redis", "Whisper", "Kokoro"]
+      }
+    },
+    {
+      "path": "/workspace/ext/docs/reference/polling-system.md",
+      "type": "technical_reference",
+      "topics": ["Agent Swarm Polling", "REST/WebSocket Architecture", "Real-time Updates", "Smart Polling", "Performance Optimization"],
+      "entities": ["AgentPollingService", "useAgentPolling Hook", "BotsDataContext", "BinaryWebSocketProtocol"],
+      "status": "production",
+      "version": "2.0.0",
+      "cross_references": ["README.md", "api/websocket-api.md", "../concepts/system-architecture.md"],
+      "has_code": true,
+      "code_types": ["typescript", "javascript", "yaml"],
+      "has_diagrams": true,
+      "diagram_types": ["mermaid"],
+      "polling_intervals": {
+        "active": "1s",
+        "idle": "5s",
+        "throttling": "80% reduction"
+      }
+    },
+    {
+      "path": "/workspace/ext/docs/reference/agents/README.md",
+      "type": "documentation_index",
+      "topics": ["Agent directory structure", "naming conventions", "automatic delegation", "tool restrictions"],
+      "entities": ["development agents", "testing agents", "architecture agents", "documentation agents", "analysis agents"],
+      "status": "active",
+      "cross_references": ["../index.md", "../../features/agent-orchestration.md"],
+      "has_code": false,
+      "has_diagrams": false,
+      "agent_categories": ["development", "testing", "architecture", "devops", "documentation", "analysis", "data", "specialized"]
+    },
+    {
+      "path": "/workspace/ext/docs/reference/agents/core/coder.md",
+      "type": "agent_specification",
+      "topics": ["Code Implementation", "API Design", "Refactoring", "Optimization", "Error Handling"],
+      "entities": ["Coder Agent", "Senior Software Engineer"],
+      "agent_properties": {
+        "name": "coder",
+        "type": "developer",
+        "colour": "#FF6B35",
+        "priority": "high",
+        "capabilities": ["code_generation", "refactoring", "optimisation", "api_design", "error_handling"]
+      },
+      "status": "active",
+      "cross_references": ["../index.md", "../../reference/agents/index.md"],
+      "has_code": true,
+      "code_types": ["typescript", "javascript"],
+      "has_diagrams": false,
+      "best_practices": ["SOLID Principles", "DRY", "KISS", "YAGNI"]
+    },
+    {
+      "path": "/workspace/ext/docs/reference/agents/core/researcher.md",
+      "type": "agent_specification",
+      "topics": ["Research", "Code Analysis", "Pattern Recognition", "Documentation Review", "Dependency Mapping"],
+      "entities": ["Researcher Agent", "Research Specialist"],
+      "agent_properties": {
+        "name": "researcher",
+        "type": "analyst",
+        "colour": "#9B59B6",
+        "priority": "high",
+        "capabilities": ["code_analysis", "pattern_recognition", "documentation_research", "dependency_tracking", "knowledge_synthesis"]
+      },
+      "status": "active",
+      "cross_references": ["../index.md", "../../reference/agents/index.md"],
+      "has_code": true,
+      "code_types": ["bash", "yaml"],
+      "has_diagrams": false,
+      "search_strategies": ["broad to narrow", "cross-reference", "historical analysis"]
+    },
+    {
+      "path": "/workspace/ext/docs/reference/agents/swarm/mesh-coordinator.md",
+      "type": "agent_specification",
+      "topics": ["Mesh Network", "Peer-to-Peer Coordination", "Distributed Decision Making", "Fault Tolerance", "Consensus"],
+      "entities": ["Mesh Coordinator", "Byzantine Fault Tolerance", "Gossip Protocol", "pBFT", "Raft"],
+      "agent_properties": {
+        "name": "mesh-coordinator",
+        "type": "coordinator",
+        "colour": "#00BCD4",
+        "priority": "high",
+        "capabilities": ["distributed_coordination", "peer_communication", "fault_tolerance", "consensus_building", "load_balancing", "network_resilience"]
+      },
+      "status": "active",
+      "cross_references": ["../index.md", "../../reference/agents/index.md"],
+      "has_code": true,
+      "code_types": ["python", "bash", "yaml"],
+      "has_diagrams": true,
+      "diagram_types": ["ascii"],
+      "consensus_algorithms": ["pBFT", "Raft", "Gossip"]
+    },
+    {
+      "path": "/workspace/ext/docs/concepts/README.md",
+      "type": "index",
+      "topics": ["Core concepts", "architectural patterns", "system design principles"],
+      "entities": ["Ontology Validation"],
+      "status": "active",
+      "cross_references": ["../README.md", "../architecture/README.md", "../guides/README.md"],
+      "has_code": false,
+      "has_diagrams": false
+    },
+    {
+      "path": "/workspace/ext/docs/concepts/system-architecture.md",
+      "type": "architecture_document",
+      "topics": ["System Architecture", "Container Architecture", "Component Architecture", "Data Flow", "Security", "Performance", "GPU Compute", "Multi-Agent"],
+      "entities": ["VisionFlow", "Docker", "Rust Backend", "React Frontend", "MCP", "Claude Flow", "PostgreSQL", "Redis", "CUDA"],
+      "version": "2.3.0",
+      "status": "production_ready",
+      "cross_references": ["./index.md", "./agentic-workers.md", "./gpu-compute.md", "../reference/api/rest-api.md"],
+      "has_code": true,
+      "code_types": ["rust", "typescript", "python", "bash", "yaml", "json"],
+      "has_diagrams": true,
+      "diagram_types": ["mermaid"],
+      "architecture_layers": {
+        "frontend": "404 TypeScript files",
+        "backend": "190 Rust files",
+        "multi_agent": "Docker + MCP",
+        "database": "PostgreSQL + Redis"
+      },
+      "key_metrics": {
+        "bandwidth_reduction": "85%",
+        "fps": "60 FPS @ 100K+ nodes",
+        "task_spawn_success": "95%"
+      }
+    },
+    {
+      "path": "/workspace/ext/docs/concepts/agentic-workers.md",
+      "type": "concept_document",
+      "topics": ["Multi-Agent System", "MCP Protocol", "Swarm Coordination", "Agent Types", "Consensus Mechanisms", "Performance"],
+      "entities": ["Task Coordinator", "Planner Agent", "Coder Agent", "Researcher Agent", "Reviewer Agent", "Byzantine Coordinator", "MCP Server"],
+      "status": "production",
+      "cross_references": ["./index.md", "./system-architecture.md", "../guides/orchestrating-agents.md", "../reference/agents/index.md"],
+      "has_code": true,
+      "code_types": ["javascript", "rust", "typescript", "yaml", "python"],
+      "has_diagrams": true,
+      "diagram_types": ["mermaid"],
+      "agent_types": {
+        "core": ["Planner", "Coder", "Researcher", "Reviewer", "Tester", "Architect"],
+        "specialized": ["Byzantine Coordinator", "SPARC Agents"],
+        "swarm_patterns": ["Hierarchical", "Mesh", "Adaptive"]
+      },
+      "mcp_port": 9500,
+      "coordination_patterns": ["Pipeline", "Parallel", "Recursive"]
+    },
+    {
+      "path": "/workspace/ext/docs/concepts/gpu-compute.md",
+      "type": "technical_document",
+      "topics": ["GPU Acceleration", "CUDA Kernels", "Physics Simulation", "Force-Directed Layout", "Hybrid CPU/GPU SSSP", "Performance Optimization"],
+      "entities": ["GraphServiceActor", "GPUManagerActor", "GPUResourceActor", "ForceComputeActor", "CUDA"],
+      "status": "production",
+      "kernel_count": 40,
+      "performance": "60 FPS @ 100K nodes",
+      "cross_references": ["./index.md", "./system-architecture.md", "../reference/api/gpu-algorithms.md"],
+      "has_code": true,
+      "code_types": ["cuda", "rust", "python"],
+      "has_diagrams": true,
+      "diagram_types": ["mermaid"],
+      "gpu_kernels": {
+        "physics": 12,
+        "spatial_hashing": 6,
+        "graph_algorithms": 8,
+        "clustering_analytics": 8,
+        "stress_majorization": 4,
+        "utility_memory": 2
+      },
+      "performance_metrics": {
+        "cpu_vs_gpu_speedup": "104x",
+        "frame_rate": "60 FPS",
+        "force_calculation": "8-12ms",
+        "memory_usage": "6.4MB @ 100K nodes"
+      }
+    },
+    {
+      "path": "/workspace/ext/docs/reference/api/mcp-protocol.md",
+      "type": "api_specification",
+      "topics": ["MCP Protocol", "JSON-RPC 2.0", "Agent Management", "Swarm Operations", "Memory State", "Connection Management"],
+      "entities": ["MCP TCP Server", "Claude Flow", "multi-agent-container"],
+      "endpoint": "multi-agent-container:9500",
+      "protocol": "TCP/JSON-RPC 2.0",
+      "status": "production",
+      "cross_references": ["rest-api.md", "websocket-api.md", "../../agents/README.md"],
+      "has_code": true,
+      "code_types": ["json", "rust", "bash"],
+      "has_diagrams": true,
+      "diagram_types": ["ascii"],
+      "mcp_methods": ["initialize", "tools/list", "tools/call", "agent_spawn", "task_orchestrate", "swarm_init", "swarm_status", "memory_store", "memory_retrieve"],
+      "error_codes": ["-32700", "-32600", "-32601", "-32602", "-32603", "-32000", "-32001", "-32002", "-32003"],
+      "connection_features": ["retry_logic", "connection_pool", "keep_alive", "batch_operations"]
+    },
+    {
+      "path": "/workspace/ext/docs/guides/README.md",
+      "type": "index",
+      "topics": ["User guides", "developer guides", "tutorials", "how-to documentation"],
+      "entities": ["Security", "Telemetry", "Logging"],
+      "status": "active",
+      "cross_references": ["../README.md"],
+      "has_code": false,
+      "has_diagrams": false,
+      "guide_categories": ["Getting Started", "User Guides", "Developer Guides", "Tutorials", "How-To Guides"]
+    },
+    {
+      "path": "/workspace/ext/docs/guides/configuration.md",
+      "type": "practical_guide",
+      "topics": ["Configuration Setup", "Development", "Production Deployment", "GPU Setup", "Multi-Agent Optimization", "XR/VR", "Knowledge Graph Integration"],
+      "entities": ["Docker", "GPU", "Agents", "Logseq", "GitHub", "Voice Services"],
+      "status": "production_ready",
+      "cross_references": ["index.md", "../reference/configuration.md", "../getting-started/installation.md"],
+      "has_code": true,
+      "code_types": ["bash", "yaml", "json", "sql"],
+      "has_diagrams": false,
+      "configuration_scenarios": ["Basic Development", "Production", "GPU-Accelerated", "Multi-Agent", "XR/VR", "Knowledge Graph"],
+      "troubleshooting_sections": ["Port Conflicts", "Memory Issues", "GPU Configuration", "Database Connection"]
+    },
+    {
+      "path": "/workspace/ext/docs/getting-started/01-installation.md",
+      "type": "installation_guide",
+      "topics": ["Installation", "Prerequisites", "System Requirements", "Docker Setup", "GPU Support", "Development Environment"],
+      "entities": ["Docker", "Docker Compose", "NVIDIA GPU", "Git", "Rust", "Node.js"],
+      "status": "production_ready",
+      "cross_references": ["../index.md", "02-quick-start.md", "configuration.md"],
+      "has_code": true,
+      "code_types": ["bash", "powershell", "yaml", "json"],
+      "has_diagrams": false,
+      "installation_methods": ["Quick Installation", "Custom Configuration", "GPU-Accelerated", "Multi-Node", "Development"],
+      "system_requirements": {
+        "minimum": {"cpu": "4-core 2.5GHz", "memory": "8GB", "storage": "10GB"},
+        "recommended": {"cpu": "8-core 3.0GHz", "memory": "16GB", "storage": "50GB SSD"},
+        "enterprise": {"cpu": "16+ cores 3.5GHz", "memory": "32GB+", "storage": "200GB+ NVMe"}
+      }
+    },
+    {
+      "path": "/workspace/ext/docs/getting-started/02-first-graph-and-agents.md",
+      "type": "tutorial",
+      "topics": ["First 3D Graph", "Multi-Agent System", "Navigation", "Visualization Settings", "Agent Configuration", "External Services"],
+      "entities": ["VisionFlow", "Multi-Agent System", "Logseq", "GitHub", "RAGFlow", "Whisper", "Kokoro", "Meta Quest 3"],
+      "status": "production_ready",
+      "cross_references": ["../index.md", "01-installation.md", "../guides/orchestrating-agents.md", "../guides/xr-setup.md"],
+      "has_code": true,
+      "code_types": ["bash", "yaml", "javascript"],
+      "has_diagrams": false,
+      "tutorial_sections": {
+        "part1": "First 3D Knowledge Graph (5 minutes)",
+        "part2": "First Multi-Agent System (5 minutes)",
+        "part3": "External Services Integration (Advanced)"
+      },
+      "agent_types": ["Coordinator", "Researcher", "Coder", "Architect", "Tester", "Reviewer"],
+      "topology_options": ["Mesh", "Hierarchical", "Sequential"]
+    }
+  ],
+  "topic_analysis": {
+    "primary_topics": [
+      "Agent Systems",
+      "Multi-Agent Coordination",
+      "GPU Compute",
+      "CUDA Kernels",
+      "System Architecture",
+      "Configuration",
+      "MCP Protocol",
+      "WebSocket Binary Protocol",
+      "Installation",
+      "3D Visualization",
+      "Performance Optimization"
+    ],
+    "technical_entities": [
+      "VisionFlow",
+      "Docker",
+      "Rust",
+      "TypeScript",
+      "React",
+      "CUDA",
+      "PostgreSQL",
+      "Redis",
+      "MCP Server",
+      "Claude Flow",
+      "Three.js",
+      "Actix"
+    ],
+    "agent_entities": [
+      "Coder Agent",
+      "Researcher Agent",
+      "Planner Agent",
+      "Reviewer Agent",
+      "Tester Agent",
+      "Architect Agent",
+      "Mesh Coordinator",
+      "Hierarchical Coordinator",
+      "Byzantine Coordinator"
+    ],
+    "external_services": [
+      "RAGFlow",
+      "Whisper",
+      "Kokoro",
+      "Logseq",
+      "GitHub",
+      "Nostr",
+      "Vircadia"
+    ]
+  },
+  "document_types": {
+    "index": 3,
+    "glossary": 1,
+    "technical_reference": 3,
+    "agent_specification": 3,
+    "architecture_document": 1,
+    "concept_document": 1,
+    "technical_document": 1,
+    "api_specification": 1,
+    "practical_guide": 1,
+    "installation_guide": 1,
+    "tutorial": 1,
+    "documentation_index": 1
+  },
+  "cross_reference_graph": {
+    "most_referenced": [
+      "../index.md",
+      "./index.md",
+      "../reference/configuration.md",
+      "../concepts/system-architecture.md",
+      "../reference/agents/index.md"
+    ],
+    "documentation_hubs": [
+      "/workspace/ext/docs/reference/README.md",
+      "/workspace/ext/docs/concepts/README.md",
+      "/workspace/ext/docs/guides/README.md",
+      "/workspace/ext/docs/getting-started/"
+    ]
+  },
+  "code_analysis": {
+    "code_languages": ["bash", "typescript", "javascript", "rust", "python", "yaml", "json", "toml", "sql", "cuda"],
+    "diagrams_present": 7,
+    "diagram_types": ["mermaid", "ascii"],
+    "has_configuration_examples": true,
+    "has_api_examples": true
+  },
+  "status_flags": {
+    "production_ready": 6,
+    "active": 6,
+    "comprehensive": 1,
+    "production": 3
+  },
+  "duplicate_content_analysis": {
+    "configuration_overlap": {
+      "files": ["/workspace/ext/docs/reference/configuration.md", "/workspace/ext/docs/guides/configuration.md"],
+      "overlap_percentage": 30,
+      "recommendation": "Consolidate: Keep technical reference in reference/, practical examples in guides/"
+    },
+    "agent_documentation_overlap": {
+      "files": ["/workspace/ext/docs/reference/agents/README.md", "/workspace/ext/docs/concepts/agentic-workers.md"],
+      "overlap_percentage": 20,
+      "recommendation": "Separate concerns: Keep agent specifications in reference/, high-level concepts in concepts/"
+    },
+    "installation_configuration_overlap": {
+      "files": ["/workspace/ext/docs/getting-started/01-installation.md", "/workspace/ext/docs/guides/configuration.md"],
+      "overlap_percentage": 25,
+      "recommendation": "Clear separation: Installation focuses on setup, configuration focuses on tuning"
+    }
+  },
+  "consolidation_recommendations": [
+    {
+      "priority": "high",
+      "action": "Merge configuration documentation",
+      "details": "Create single authoritative configuration reference, link practical guides to it"
+    },
+    {
+      "priority": "medium",
+      "action": "Standardize agent documentation structure",
+      "details": "All agent specs follow same YAML frontmatter + markdown structure"
+    },
+    {
+      "priority": "medium",
+      "action": "Consolidate MCP/protocol documentation",
+      "details": "Single source of truth for MCP protocol, reference from all related docs"
+    },
+    {
+      "priority": "low",
+      "action": "Create unified glossary",
+      "details": "Expand glossary to cover all technical terms used across documentation"
+    }
+  ],
+  "gaps_identified": [
+    {
+      "area": "API Documentation",
+      "impact": "medium",
+      "suggestion": "Complete REST API reference for all endpoints"
+    },
+    {
+      "area": "Troubleshooting",
+      "impact": "medium",
+      "suggestion": "Comprehensive troubleshooting guide covering all common issues"
+    },
+    {
+      "area": "Development Workflow",
+      "impact": "low",
+      "suggestion": "Developer onboarding guide with contribution guidelines"
+    },
+    {
+      "area": "Security",
+      "impact": "high",
+      "suggestion": "Detailed security guide covering authentication, authorization, and best practices"
+    }
+  ]
+}

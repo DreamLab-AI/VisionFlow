@@ -68,7 +68,7 @@ visualisation:
       nodes:
         baseColor: '#202724'
         metalness: 0.1
-        opacity: 0.16
+        opacity: 0.88
         roughness: 0.6
         nodeSize: 1.7
         quality: high
