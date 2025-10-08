@@ -4,7 +4,6 @@
 use cust::memory::DeviceBuffer;
 use std::sync::Arc;
 use std::collections::HashMap;
-use tokio::sync::Mutex;
 use log::{debug, warn, error};
 use once_cell::sync::Lazy;
 
@@ -103,10 +102,7 @@ impl GPUMemoryTracker {
     }
 }
 
-static GPU_MEMORY_TRACKER: Lazy<GPUMemoryTracker> = Lazy::new(|| GPUMemoryTracker {
-    allocations: Arc::new(Mutex::new(HashMap::new())),
-    total_allocated: Arc::new(Mutex::new(0)),
-});
+static GPU_MEMORY_TRACKER: Lazy<GPUMemoryTracker> = Lazy::new(|| GPUMemoryTracker::new());
 
 /// Convenience functions for creating managed GPU buffers
 pub fn create_managed_buffer<T>(capacity: usize, name: &str) -> Result<ManagedDeviceBuffer<T>, cust::error::CudaError>
@@ -126,13 +122,13 @@ where
 }
 
 /// Check for memory leaks and report
-pub async fn check_gpu_memory_leaks() -> Vec<String> {
-    GPU_MEMORY_TRACKER.check_leaks().await
+pub fn check_gpu_memory_leaks() -> Vec<String> {
+    GPU_MEMORY_TRACKER.check_leaks()
 }
 
 /// Get current GPU memory usage
-pub async fn get_gpu_memory_usage() -> (usize, HashMap<String, usize>) {
-    GPU_MEMORY_TRACKER.get_memory_usage().await
+pub fn get_gpu_memory_usage() -> (usize, HashMap<String, usize>) {
+    GPU_MEMORY_TRACKER.get_memory_usage()
 }
 
 /// Multiple CUDA stream manager for overlapped operations

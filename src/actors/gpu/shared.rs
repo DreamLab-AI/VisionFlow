@@ -14,7 +14,7 @@ use crate::models::simulation_params::SimulationParams;
 use crate::models::constraints::Constraint;
 
 // Import the child actors for address storage
-// use super::{GPUResourceActor, ForceComputeActor, ClusteringActor, 
+// use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
 //            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
 
 /// Child actor addresses for the GPU manager
@@ -176,7 +176,7 @@ pub struct StressMajorizationSafety {
     pub convergence_threshold: f32,
     /// Maximum allowed stress value before emergency stop
     pub max_stress_threshold: f32,
-    
+
     // Runtime state
     pub consecutive_failures: u32,
     pub last_stress_values: Vec<f32>,
@@ -196,7 +196,7 @@ impl StressMajorizationSafety {
             max_consecutive_failures: 3,
             convergence_threshold: 0.01,
             max_stress_threshold: 1e6,
-            
+
             consecutive_failures: 0,
             last_stress_values: Vec::with_capacity(10),
             last_displacement_values: Vec::with_capacity(10),
@@ -207,11 +207,11 @@ impl StressMajorizationSafety {
             last_emergency_stop_reason: String::new(),
         }
     }
-    
+
     pub fn is_safe_to_run(&self) -> bool {
         !self.is_emergency_stopped && self.consecutive_failures < self.max_consecutive_failures
     }
-    
+
     pub fn record_failure(&mut self, reason: String) {
         self.consecutive_failures += 1;
         self.total_runs += 1;
@@ -220,35 +220,35 @@ impl StressMajorizationSafety {
             self.last_emergency_stop_reason = reason;
         }
     }
-    
+
     pub fn record_success(&mut self, computation_time_ms: u64) {
         self.consecutive_failures = 0;
         self.total_runs += 1;
         self.successful_runs += 1;
         self.total_computation_time_ms += computation_time_ms;
     }
-    
+
     pub fn record_iteration(&mut self, stress: f32, displacement: f32, converged: bool) {
         self.last_stress_values.push(stress);
         if self.last_stress_values.len() > 10 {
             self.last_stress_values.remove(0);
         }
-        
+
         self.last_displacement_values.push(displacement);
         if self.last_displacement_values.len() > 10 {
             self.last_displacement_values.remove(0);
         }
-        
+
         // Check for emergency conditions
         if stress > self.max_stress_threshold {
             self.record_failure(format!("Stress exceeded threshold: {}", stress));
         }
-        
+
         if displacement > self.max_displacement_threshold {
             self.record_failure(format!("Displacement exceeded threshold: {}", displacement));
         }
     }
-    
+
     pub fn clamp_position(&self, position: &[f32; 3]) -> [f32; 3] {
         let magnitude = (position[0].powi(2) + position[1].powi(2) + position[2].powi(2)).sqrt();
         if magnitude > self.max_position_magnitude {
@@ -262,7 +262,7 @@ impl StressMajorizationSafety {
             *position
         }
     }
-    
+
     pub fn get_stats(&self) -> crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
         crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
             stress_value: 0.0, // Default value
@@ -275,13 +275,13 @@ impl StressMajorizationSafety {
             },
         }
     }
-    
+
     pub fn reset_safety_state(&mut self) {
         self.consecutive_failures = 0;
         self.is_emergency_stopped = false;
         self.last_emergency_stop_reason.clear();
     }
-    
+
     pub fn should_disable(&self) -> bool {
         self.is_emergency_stopped
     }
@@ -289,7 +289,7 @@ impl StressMajorizationSafety {
 
 impl SharedGPUContext {
     /// Acquire GPU access with proper synchronization and metrics tracking
-    pub async fn acquire_gpu_access(&self, operation: GPUOperation, priority: GPUOperationPriority) -> Result<(), String> {
+    pub async fn acquire_gpu_access_qos(&self, operation: GPUOperation, priority: GPUOperationPriority) -> Result<(), String> {
         let start_time = Instant::now();
 
         // Update resource metrics - concurrent access tracking
@@ -298,15 +298,15 @@ impl SharedGPUContext {
             metrics.concurrent_access_attempts += 1;
         }
 
-        // For critical operations, acquire exclusive access
-        let _exclusive_guard = if matches!(priority, GPUOperationPriority::Critical) {
-            Some(self.exclusive_access_lock.lock().map_err(|e| format!("Failed to acquire exclusive lock: {}", e))?)
+        // Acquire access based on priority (write for critical, read otherwise)
+        if matches!(priority, GPUOperationPriority::Critical) {
+            let _guard = self.gpu_access_lock.write().await;
+            drop(_guard);
         } else {
-            None
-        };
+            let _guard = self.gpu_access_lock.read().await;
+            drop(_guard);
+        }
 
-        // Acquire semaphore permit (limits concurrent GPU operations)
-        let _permit = self.gpu_access_semaphore.acquire().await.map_err(|e| format!("Failed to acquire semaphore: {}", e))?;
 
         // Check if we should batch this operation
         let should_batch = self.should_batch_operation(&operation);

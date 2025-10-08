@@ -16,6 +16,10 @@ pub mod socket_flow_constants;
 pub mod socket_flow_messages;
 pub mod unified_gpu_compute;
 pub mod ptx;
+#[cfg(test)]
+mod ptx_tests;
+#[cfg(test)]
+mod gpu_compute_tests;
 pub mod validation;
 pub mod docker_hive_mind;
 pub mod hybrid_fault_tolerance;

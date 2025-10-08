@@ -116,6 +116,7 @@ use cust::module::Module;
 use cust::stream::{Stream, StreamFlags};
 use cust::event::{Event, EventFlags};
 use std::collections::HashMap;
+use std::ffi::CStr;
 
 // Opaque type for curandState (CUDA random number generator state)
 #[repr(C)]
@@ -132,12 +133,12 @@ pub struct GPUPerformanceMetrics {
     // Kernel execution times (in milliseconds)
     pub kernel_times: HashMap<String, Vec<f32>>,
     pub total_kernel_calls: HashMap<String, u64>,
-    
-    // Memory usage statistics  
+
+    // Memory usage statistics
     pub total_memory_allocated: usize,
     pub peak_memory_usage: usize,
     pub current_memory_usage: usize,
-    
+
     // Kernel-specific performance
     pub force_kernel_avg_time: f32,
     pub integrate_kernel_avg_time: f32,
@@ -146,11 +147,11 @@ pub struct GPUPerformanceMetrics {
     pub clustering_avg_time: f32,
     pub anomaly_detection_avg_time: f32,
     pub community_detection_avg_time: f32,
-    
+
     // GPU utilization metrics
     pub gpu_utilization_percent: f32,
     pub memory_bandwidth_utilization: f32,
-    
+
     // Performance counters
     pub frames_per_second: f32,
     pub total_simulation_time: f32,
@@ -203,6 +204,9 @@ struct AABB {
     max: [f32; 3],
 }
 
+unsafe impl bytemuck::Zeroable for AABB {}
+unsafe impl bytemuck::Pod for AABB {}
+
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, DeviceCopy)]
 struct int3 {
@@ -215,6 +219,7 @@ pub struct UnifiedGPUCompute {
     // Context and modules
     _context: Context,
     _module: Module,
+    clustering_module: Option<Module>,
     stream: Stream,
 
     // Kernel names for lookup
@@ -260,7 +265,7 @@ pub struct UnifiedGPUCompute {
     sorted_node_indices: DeviceBuffer<i32>,
     cell_start: DeviceBuffer<i32>,
     cell_end: DeviceBuffer<i32>,
-    
+
     // Temporary storage for CUB
     cub_temp_storage: DeviceBuffer<u8>,
 
@@ -271,35 +276,35 @@ pub struct UnifiedGPUCompute {
     allocated_edges: usize,  // Track allocated buffer size
     pub max_grid_cells: usize,   // Track allocated grid cell buffer size
     iteration: i32,
-    
+
     // Reusable host buffer for zeroing grid cells
     zero_buffer: Vec<i32>,
-    
+
     // Cell buffer memory management
     cell_buffer_growth_factor: f32,
     max_allowed_grid_cells: usize,
     resize_count: usize,
     total_memory_allocated: usize,  // Track total GPU memory usage
-    
+
     // SSSP state
     pub dist: DeviceBuffer<f32>,                // [n] distances
     pub current_frontier: DeviceBuffer<i32>,    // Dynamic frontier
     pub next_frontier_flags: DeviceBuffer<i32>, // [n] flags
     pub parents: Option<DeviceBuffer<i32>>,     // Optional for paths
-    
+
     // Dedicated SSSP stream for overlap
     sssp_stream: Option<Stream>,
-    
+
     // Constraint data
     constraint_data: DeviceBuffer<ConstraintData>,
     num_constraints: usize,
-    
+
     // State validity flag
     pub sssp_available: bool,
-    
+
     // Performance metrics tracking
     performance_metrics: GPUPerformanceMetrics,
-    
+
     // K-means clustering buffers
     pub centroids_x: DeviceBuffer<f32>,
     pub centroids_y: DeviceBuffer<f32>,
@@ -311,7 +316,7 @@ pub struct UnifiedGPUCompute {
     pub min_distances: DeviceBuffer<f32>,
     pub selected_nodes: DeviceBuffer<i32>,
     pub max_clusters: usize,
-    
+
     // Anomaly detection buffers
     pub lof_scores: DeviceBuffer<f32>,
     pub local_densities: DeviceBuffer<f32>,
@@ -319,7 +324,7 @@ pub struct UnifiedGPUCompute {
     pub feature_values: DeviceBuffer<f32>,
     pub partial_sums: DeviceBuffer<f32>,
     pub partial_sq_sums: DeviceBuffer<f32>,
-    
+
     // Community detection buffers (Label Propagation)
     pub labels_current: DeviceBuffer<i32>,     // Current node labels
     pub labels_next: DeviceBuffer<i32>,        // Next iteration labels (for sync mode)
@@ -331,7 +336,7 @@ pub struct UnifiedGPUCompute {
     pub label_mapping: DeviceBuffer<i32>,      // For relabeling communities
     pub rand_states: DeviceBuffer<curandState>, // curandState buffer for tie-breaking
     pub max_labels: usize,                     // Maximum number of possible labels
-    
+
     // GPU Stability Gate buffers
     pub partial_kinetic_energy: DeviceBuffer<f32>,  // Per-block kinetic energy sums
     pub active_node_count: DeviceBuffer<i32>,        // Count of actively moving nodes
@@ -362,21 +367,52 @@ pub struct UnifiedGPUCompute {
 
 impl UnifiedGPUCompute {
     pub fn new(num_nodes: usize, num_edges: usize, ptx_content: &str) -> Result<Self> {
+        Self::new_with_modules(num_nodes, num_edges, ptx_content, None)
+    }
+
+    pub fn new_with_modules(
+        num_nodes: usize,
+        num_edges: usize,
+        ptx_content: &str,
+        clustering_ptx: Option<&str>,
+    ) -> Result<Self> {
         // Enhanced PTX validation before device initialization
         if let Err(e) = crate::utils::gpu_diagnostics::validate_ptx_content(ptx_content) {
             let diagnosis = crate::utils::gpu_diagnostics::diagnose_ptx_error(&e);
             return Err(anyhow!("PTX validation failed: {}\n{}", e, diagnosis));
         }
-        
+
         let device = Device::get_device(0)?;
         let _context = Context::new(device)?;
-        
+
         // Enhanced module creation with better error reporting
         let module = Module::from_ptx(ptx_content, &[]).map_err(|e| {
             let error_msg = format!("Module::from_ptx() failed: {}", e);
             let diagnosis = crate::utils::gpu_diagnostics::diagnose_ptx_error(&error_msg);
             anyhow!("{}\n{}", error_msg, diagnosis)
         })?;
+
+        // Load clustering module if provided
+        let clustering_module = if let Some(clustering_ptx_content) = clustering_ptx {
+            if let Err(e) = crate::utils::gpu_diagnostics::validate_ptx_content(clustering_ptx_content) {
+                warn!("Clustering PTX validation failed: {}. Continuing without clustering support.", e);
+                None
+            } else {
+                match Module::from_ptx(clustering_ptx_content, &[]) {
+                    Ok(module) => {
+                        info!("Successfully loaded clustering module");
+                        Some(module)
+                    }
+                    Err(e) => {
+                        warn!("Failed to load clustering module: {}. Continuing without clustering support.", e);
+                        None
+                    }
+                }
+            }
+        } else {
+            None
+        };
+
         let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
 
         // Allocate double buffers for position and velocity
@@ -428,7 +464,7 @@ impl UnifiedGPUCompute {
         let current_frontier = DeviceBuffer::zeroed(num_nodes)?;
         let next_frontier_flags = DeviceBuffer::zeroed(num_nodes)?;
         let sssp_stream = Some(Stream::new(StreamFlags::NON_BLOCKING, None)?);
-        
+
         // K-means clustering buffers (start with max 50 clusters)
         let max_clusters = 50;
         let centroids_x = DeviceBuffer::zeroed(max_clusters)?;
@@ -442,7 +478,7 @@ impl UnifiedGPUCompute {
         let partial_inertia = DeviceBuffer::zeroed(num_blocks)?;
         let min_distances = DeviceBuffer::zeroed(num_nodes)?;
         let selected_nodes = DeviceBuffer::zeroed(max_clusters)?;
-        
+
         // Anomaly detection buffers
         let lof_scores = DeviceBuffer::zeroed(num_nodes)?;
         let local_densities = DeviceBuffer::zeroed(num_nodes)?;
@@ -450,7 +486,7 @@ impl UnifiedGPUCompute {
         let feature_values = DeviceBuffer::zeroed(num_nodes)?;
         let partial_sums = DeviceBuffer::zeroed(num_blocks)?;
         let partial_sq_sums = DeviceBuffer::zeroed(num_blocks)?;
-        
+
         // Community detection buffers (Label Propagation)
         let labels_current = DeviceBuffer::zeroed(num_nodes)?;
         let labels_next = DeviceBuffer::zeroed(num_nodes)?;
@@ -463,17 +499,18 @@ impl UnifiedGPUCompute {
         // curandState buffer for random number generation
         let rand_states = DeviceBuffer::from_slice(&vec![curandState { _private: [0u8; 48] }; num_nodes])?;
         let max_labels = num_nodes;
-        
+
         // Store the module for kernel lookup
         let kernel_module = module;
 
 
         // Calculate initial memory usage
         let initial_memory = Self::calculate_memory_usage(num_nodes, num_edges, max_grid_cells);
-        
+
         let gpu_compute = Self {
             _context,
             _module: kernel_module,
+            clustering_module,
             stream,
             build_grid_kernel_name: "build_grid_kernel",
             compute_cell_bounds_kernel_name: "compute_cell_bounds_kernel",
@@ -602,7 +639,7 @@ impl UnifiedGPUCompute {
             aabb_num_blocks: (num_nodes + 255) / 256,
             aabb_block_results: DeviceBuffer::zeroed((num_nodes + 255) / 256)?,
         };
-        
+
         // Constant memory will be initialized per execute() call via get_global()
 
         Ok(gpu_compute)
@@ -757,10 +794,10 @@ impl UnifiedGPUCompute {
         let force_memory = num_nodes * 3 * 4;
         // Other buffers (SSSP, clustering, etc.)
         let other_memory = num_nodes * 10 * 4;
-        
+
         node_memory + edge_memory + grid_memory + force_memory + other_memory
     }
-    
+
     /// Get memory utilization metrics
     pub fn get_memory_metrics(&self) -> (usize, f32, usize) {
         let current_usage = Self::calculate_memory_usage(self.num_nodes, self.num_edges, self.max_grid_cells);
@@ -768,7 +805,7 @@ impl UnifiedGPUCompute {
         let utilization = current_usage as f32 / allocated_usage as f32;
         (current_usage, utilization, self.resize_count)
     }
-    
+
     /// Get grid occupancy metrics
     pub fn get_grid_occupancy(&self, num_grid_cells: usize) -> f32 {
         if num_grid_cells == 0 { return 0.0; }
@@ -777,36 +814,36 @@ impl UnifiedGPUCompute {
         let optimal_occupancy = 8.0;
         (avg_nodes_per_cell / optimal_occupancy).min(1.0)
     }
-    
+
     /// Resize cell buffers dynamically with safety checks
     pub fn resize_cell_buffers(&mut self, required_cells: usize) -> Result<()> {
         if required_cells <= self.max_grid_cells {
             return Ok(());
         }
-        
+
         // Check against maximum allowed size
         if required_cells > self.max_allowed_grid_cells {
-            warn!("Grid size {} exceeds maximum allowed {}, capping to maximum", 
+            warn!("Grid size {} exceeds maximum allowed {}, capping to maximum",
                   required_cells, self.max_allowed_grid_cells);
             let capped_size = self.max_allowed_grid_cells;
             return self.resize_cell_buffers_internal(capped_size);
         }
-        
+
         // Apply growth factor to reduce future reallocations
         let new_size = ((required_cells as f32 * self.cell_buffer_growth_factor) as usize)
             .min(self.max_allowed_grid_cells);
-        
+
         self.resize_cell_buffers_internal(new_size)
     }
-    
+
     /// Internal cell buffer resize implementation
     fn resize_cell_buffers_internal(&mut self, new_size: usize) -> Result<()> {
-        info!("Resizing cell buffers from {} to {} cells ({}x growth)", 
+        info!("Resizing cell buffers from {} to {} cells ({}x growth)",
               self.max_grid_cells, new_size, self.cell_buffer_growth_factor);
-        
+
         // Preserve existing cell data if there was any meaningful data
         let preserve_data = self.max_grid_cells > 0 && self.iteration > 0;
-        
+
         let old_cell_start_data = if preserve_data {
             let mut data = vec![0i32; self.max_grid_cells];
             self.cell_start.copy_to(&mut data).unwrap_or_else(|e| {
@@ -816,7 +853,7 @@ impl UnifiedGPUCompute {
         } else {
             None
         };
-        
+
         let old_cell_end_data = if preserve_data {
             let mut data = vec![0i32; self.max_grid_cells];
             self.cell_end.copy_to(&mut data).unwrap_or_else(|e| {
@@ -826,7 +863,7 @@ impl UnifiedGPUCompute {
         } else {
             None
         };
-        
+
         // Create new buffers
         self.cell_start = DeviceBuffer::zeroed(new_size).map_err(|e| {
             anyhow!("Failed to allocate cell_start buffer of size {}: {}", new_size, e)
@@ -834,7 +871,7 @@ impl UnifiedGPUCompute {
         self.cell_end = DeviceBuffer::zeroed(new_size).map_err(|e| {
             anyhow!("Failed to allocate cell_end buffer of size {}: {}", new_size, e)
         })?;
-        
+
         // Restore data if we had any
         if let (Some(start_data), Some(end_data)) = (old_cell_start_data, old_cell_end_data) {
             let copy_size = start_data.len().min(new_size);
@@ -844,7 +881,7 @@ impl UnifiedGPUCompute {
                 debug!("Preserved {} cells of data during resize", copy_size);
             }
         }
-        
+
         // Update tracking variables
         let old_memory = self.total_memory_allocated;
         self.max_grid_cells = new_size;
@@ -853,20 +890,20 @@ impl UnifiedGPUCompute {
         self.total_memory_allocated = Self::calculate_memory_usage(
             self.allocated_nodes, self.allocated_edges, self.max_grid_cells
         );
-        
+
         let memory_delta = self.total_memory_allocated as i64 - old_memory as i64;
-        info!("Cell buffer resize complete. Memory change: {:+} bytes, Total: {} MB", 
+        info!("Cell buffer resize complete. Memory change: {:+} bytes, Total: {} MB",
               memory_delta, self.total_memory_allocated / 1024 / 1024);
-        
+
         // Warn if we're doing too many resizes
         if self.resize_count > 10 {
-            warn!("High resize frequency detected ({} resizes). Consider increasing initial buffer size.", 
+            warn!("High resize frequency detected ({} resizes). Consider increasing initial buffer size.",
                   self.resize_count);
         }
-        
+
         Ok(())
     }
-    
+
     /// Resize buffers with growth factor while preserving data
     pub fn resize_buffers(&mut self, new_num_nodes: usize, new_num_edges: usize) -> Result<()> {
         // Only resize if we need more capacity
@@ -876,7 +913,7 @@ impl UnifiedGPUCompute {
             return Ok(());
         }
 
-        info!("Resizing GPU buffers from {}/{} to {}/{} nodes/edges", 
+        info!("Resizing GPU buffers from {}/{} to {}/{} nodes/edges",
               self.num_nodes, self.num_edges, new_num_nodes, new_num_edges);
 
         // Calculate new sizes with 1.5x growth factor
@@ -932,11 +969,11 @@ impl UnifiedGPUCompute {
         self.force_y = DeviceBuffer::zeroed(actual_new_nodes)?;
         self.force_z = DeviceBuffer::zeroed(actual_new_nodes)?;
 
-        // Recreate spatial grid buffers  
+        // Recreate spatial grid buffers
         self.cell_keys = DeviceBuffer::zeroed(actual_new_nodes)?;
         let sorted_indices: Vec<i32> = (0..actual_new_nodes as i32).collect();
         self.sorted_node_indices = DeviceBuffer::from_slice(&sorted_indices)?;
-        
+
         // Update total memory tracking
         self.total_memory_allocated = Self::calculate_memory_usage(
             self.allocated_nodes, self.allocated_edges, self.max_grid_cells
@@ -948,7 +985,7 @@ impl UnifiedGPUCompute {
         let new_num_blocks = (actual_new_nodes + 255) / 256;
         self.partial_inertia = DeviceBuffer::zeroed(new_num_blocks)?;
         self.min_distances = DeviceBuffer::zeroed(actual_new_nodes)?;
-        
+
         // Anomaly detection buffers
         self.lof_scores = DeviceBuffer::zeroed(actual_new_nodes)?;
         self.local_densities = DeviceBuffer::zeroed(actual_new_nodes)?;
@@ -963,24 +1000,24 @@ impl UnifiedGPUCompute {
         self.allocated_nodes = actual_new_nodes;
         self.allocated_edges = actual_new_edges;
 
-        info!("Successfully resized GPU buffers to {}/{} allocated nodes/edges", 
+        info!("Successfully resized GPU buffers to {}/{} allocated nodes/edges",
               actual_new_nodes, actual_new_edges);
         Ok(())
     }
 
     pub fn set_params(&mut self, params: SimParams) -> Result<()> {
         // Store parameters to be passed to kernels
-        info!("Setting SimParams - spring_k: {:.4}, repel_k: {:.2}, damping: {:.3}, dt: {:.3}", 
+        info!("Setting SimParams - spring_k: {:.4}, repel_k: {:.2}, damping: {:.3}, dt: {:.3}",
               params.spring_k, params.repel_k, params.damping, params.dt);
-        
+
         self.params = params;
-        
+
         // Note: With the cust crate, constant memory updates require different API
         // For now, parameters are passed as kernel arguments which still works
         // but may have slightly lower performance than constant memory.
         // TODO: Implement proper constant memory sync when cust API supports it
         // The kernels already read from c_params when available, falling back to arguments
-        
+
         info!("SimParams successfully updated");
         Ok(())
     }
@@ -998,10 +1035,10 @@ impl UnifiedGPUCompute {
                 debug!("Setting activation frame {} for constraint type {}", current_iteration, constraint.kind);
             }
         }
-        
+
         // Resize constraint buffers if needed
         if constraints.len() > self.constraint_data.len() {
-            info!("Resizing constraint buffer from {} to {} with progressive activation", 
+            info!("Resizing constraint buffer from {} to {} with progressive activation",
                 self.constraint_data.len(), constraints.len());
             // Create new constraint buffer
             let new_constraint_buffer = DeviceBuffer::from_slice(&constraints)?;
@@ -1012,9 +1049,9 @@ impl UnifiedGPUCompute {
             let copy_len = constraints.len().min(constraint_len);
             self.constraint_data.copy_from(&constraints[..copy_len])?;
         }
-        
+
         self.num_constraints = constraints.len();
-        debug!("Updated GPU constraints: {} active constraints with progressive activation support", 
+        debug!("Updated GPU constraints: {} active constraints with progressive activation support",
             self.num_constraints);
         Ok(())
     }
@@ -1033,7 +1070,7 @@ impl UnifiedGPUCompute {
         self.params = params;
 
         // Initialize constant memory c_params on device
-        let c_params_global = self._module.get_global("c_params")?;
+        let mut c_params_global = self._module.get_global(CStr::from_bytes_with_nul(b"c_params\0").unwrap())?;
         c_params_global.copy_from(&[params])?;
 
         // GPU STABILITY GATE: Check if system has reached equilibrium using GPU kernels
@@ -1041,11 +1078,11 @@ impl UnifiedGPUCompute {
         if self.num_nodes > 0 && params.stability_threshold > 0.0 {
             let num_blocks = (self.num_nodes + block_size as usize - 1) / block_size as usize;
             let shared_mem_size = block_size * (std::mem::size_of::<f32>() + std::mem::size_of::<i32>()) as u32;
-            
+
             // Reset counters
             self.active_node_count.copy_from(&[0i32])?;
             self.should_skip_physics.copy_from(&[0i32])?;
-            
+
             // Step 1: Calculate kinetic energy with block reduction
             let ke_kernel = self._module.get_function("calculate_kinetic_energy_kernel")?;
             unsafe {
@@ -1063,7 +1100,7 @@ impl UnifiedGPUCompute {
                     )
                 )?;
             }
-            
+
             // Step 2: Check system stability with final reduction
             let stability_kernel = self._module.get_function("check_system_stability_kernel")?;
             let reduction_blocks = (num_blocks as u32).min(256);
@@ -1082,11 +1119,11 @@ impl UnifiedGPUCompute {
                     )
                 )?;
             }
-            
+
             // Check if we should skip physics
             let mut skip_physics = vec![0i32; 1];
             self.should_skip_physics.copy_to(&mut skip_physics)?;
-            
+
             if skip_physics[0] != 0 {
                 // System is stable - skip physics computation
                 self.iteration += 1;
@@ -1137,15 +1174,15 @@ impl UnifiedGPUCompute {
         let target_neighbors_per_cell = 8.0; // Middle of 4-16 range
         let optimal_cells = self.num_nodes as f32 / target_neighbors_per_cell;
         let optimal_cell_size = (scene_volume / optimal_cells).powf(1.0/3.0);
-        
+
         // Use auto-tuned size if reasonable, otherwise fall back to parameter
         let auto_tuned_cell_size = if optimal_cell_size > 10.0 && optimal_cell_size < 1000.0 {
             optimal_cell_size
         } else {
             params.grid_cell_size
         };
-        
-        debug!("Spatial hashing: scene_volume={:.2}, optimal_cell_size={:.2}, using_size={:.2}", 
+
+        debug!("Spatial hashing: scene_volume={:.2}, optimal_cell_size={:.2}, using_size={:.2}",
                scene_volume, optimal_cell_size, auto_tuned_cell_size);
 
         // Add padding to AABB
@@ -1164,17 +1201,17 @@ impl UnifiedGPUCompute {
         // Check for pathological cases
         let occupancy = self.get_grid_occupancy(num_grid_cells);
         if occupancy < 0.1 {
-            warn!("Low grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider larger cell size.", 
+            warn!("Low grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider larger cell size.",
                   occupancy * 100.0, self.num_nodes as f32 / num_grid_cells as f32);
         } else if occupancy > 2.0 {
-            warn!("High grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider smaller cell size.", 
+            warn!("High grid occupancy detected: {:.1}% (avg {:.1} nodes/cell). Consider smaller cell size.",
                   occupancy * 100.0, self.num_nodes as f32 / num_grid_cells as f32);
         }
-        
+
         // Dynamically resize cell buffers if needed
         if num_grid_cells > self.max_grid_cells {
             self.resize_cell_buffers(num_grid_cells)?;
-            debug!("Grid buffer resize completed. Current grid: {}x{}x{} = {} cells", 
+            debug!("Grid buffer resize completed. Current grid: {}x{}x{} = {} cells",
                    grid_dims.x, grid_dims.y, grid_dims.z, num_grid_cells);
         }
 
@@ -1205,7 +1242,7 @@ impl UnifiedGPUCompute {
         // Use allocated_nodes to match buffer sizes
         let d_keys_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
         let mut d_values_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
-        
+
         unsafe {
             // Get the raw CUDA stream handle to ensure Thrust uses the same stream as kernels
             let stream_ptr = self.stream.as_inner() as *mut ::std::os::raw::c_void;
@@ -1253,15 +1290,15 @@ impl UnifiedGPUCompute {
         };
         let force_pass_kernel = self._module.get_function(force_kernel_name)?;
         let stream = &self.stream;
-        
+
         // Get SSSP distances pointer if available
-        let d_sssp = if self.sssp_available && 
+        let d_sssp = if self.sssp_available &&
                       (params.feature_flags & crate::models::simulation_params::FeatureFlags::ENABLE_SSSP_SPRING_ADJUST != 0) {
             self.dist.as_device_ptr()
         } else {
             DevicePointer::null()
         };
-        
+
         unsafe {
             if params.stability_threshold > 0.0 {
                 // Use optimized kernel with velocity inputs and stability flag
@@ -1313,7 +1350,7 @@ impl UnifiedGPUCompute {
                     self.constraint_data.as_device_ptr(),
                     self.num_constraints as i32,
                     DevicePointer::<f32>::null(), // constraint_violations
-                    DevicePointer::<f32>::null(), // constraint_energy  
+                    DevicePointer::<f32>::null(), // constraint_energy
                     DevicePointer::<f32>::null()  // node_constraint_force
                 ))?;
             }
@@ -1358,55 +1395,61 @@ impl UnifiedGPUCompute {
 
         self.swap_buffers();
         self.iteration += 1;
-        
+
         // Log efficiency metrics periodically
         if self.iteration % 100 == 0 {
             let (memory_used, utilization, resize_count) = self.get_memory_metrics();
             let grid_occupancy = self.get_grid_occupancy(num_grid_cells);
             info!("Performance metrics [iter {}]: Memory: {:.1}MB ({:.1}% utilized), Grid occupancy: {:.1}%, Resizes: {}",
-                  self.iteration, memory_used as f32 / 1024.0 / 1024.0, 
+                  self.iteration, memory_used as f32 / 1024.0 / 1024.0,
                   utilization * 100.0, grid_occupancy * 100.0, resize_count);
         }
 
         Ok(())
     }
-    
+
     pub fn run_sssp(&mut self, source_idx: usize) -> Result<Vec<f32>> {
         // Invalidate previous results immediately
         self.sssp_available = false;
-        
+
         // Wrap main logic for clean error handling
         let result = (|| -> Result<Vec<f32>> {
             // Initialize distances
             let mut host_dist = vec![f32::INFINITY; self.num_nodes];
             host_dist[source_idx] = 0.0;
             self.dist.copy_from(&host_dist)?;
-            
-            // Initialize frontier on GPU
-            let initial_frontier = vec![source_idx as i32];
-            self.current_frontier = DeviceBuffer::from_slice(&initial_frontier)?;
+
+            // Initialize frontier on GPU without reallocating (keep buffer sized to num_nodes)
+            // Place the source index at position 0; remaining entries are ignored by frontier_len
+            let mut frontier_host = vec![-1i32; self.num_nodes];
+            frontier_host[0] = source_idx as i32;
+            self.current_frontier.copy_from(&frontier_host)?;
             let mut frontier_len = 1usize; // Track frontier size
-            
-            // Compute k parameter
-            let k = ((self.num_nodes as f32).log2().cbrt().ceil() as u32).max(3);
+
+            // Iterate until frontier is empty (GPU-CPU hybrid frontier stepping)
             let s = self.sssp_stream.as_ref().unwrap_or(&self.stream);
-            
-            // Main iteration loop
-            for iteration in 0..k {
+            let mut iter_count = 0usize;
+            let max_iters = 10 * self.num_nodes.max(1); // safety cap
+            while frontier_len > 0 {
+                iter_count += 1;
+                if iter_count > max_iters {
+                    log::warn!("SSSP safety cap reached ({} iters) with frontier_len={}", iter_count, frontier_len);
+                    break;
+                }
                 // Clear next frontier flags
                 let zeros = vec![0i32; self.num_nodes];
                 self.next_frontier_flags.copy_from(&zeros)?;
-                
+
                 // Check for convergence
                 if frontier_len == 0 {
-                    log::debug!("SSSP converged at iteration {}", iteration);
+                    log::debug!("SSSP converged at iteration {}", iter_count);
                     break;
                 }
-                
+
                 // Launch relaxation kernel
                 let block = 256;
                 let grid = ((frontier_len as u32 + block - 1) / block) as u32;
-                
+
                 let func = self._module.get_function("relaxation_step_kernel")?;
                 unsafe {
                     launch!(func<<<grid, block, 0, s>>>(
@@ -1421,16 +1464,16 @@ impl UnifiedGPUCompute {
                         self.num_nodes as i32
                     ))?;
                 }
-                
+
                 // Device-side frontier compaction using GPU kernel
                 // Allocate counter for new frontier size
                 let d_frontier_counter = DeviceBuffer::from_slice(&[0i32])?;
-                
+
                 // Compact frontier on GPU
                 let compact_func = self._module.get_function("compact_frontier_kernel")?;
                 let compact_grid = ((self.num_nodes as u32 + 255) / 256, 1, 1);
                 let compact_block = (256, 1, 1);
-                
+
                 unsafe {
                     launch!(compact_func<<<compact_grid, compact_block, 0, s>>>(
                         self.next_frontier_flags.as_device_ptr(),
@@ -1439,20 +1482,20 @@ impl UnifiedGPUCompute {
                         self.num_nodes as i32
                     ))?;
                 }
-                
+
                 // Get new frontier size
                 let mut new_frontier_size = vec![0i32; 1];
                 d_frontier_counter.copy_to(&mut new_frontier_size)?;
                 frontier_len = new_frontier_size[0] as usize;
-                
+
                 // No need to copy back to host - frontier stays on GPU!
             }
-            
+
             // Copy results back
             self.dist.copy_to(&mut host_dist)?;
             Ok(host_dist)
         })();
-        
+
         // Handle result and update state
         match result {
             Ok(distances) => {
@@ -1467,22 +1510,29 @@ impl UnifiedGPUCompute {
             }
         }
     }
-    
+
     /// Run K-means clustering on node positions
     pub fn run_kmeans(&mut self, num_clusters: usize, max_iterations: u32, tolerance: f32, seed: u32) -> Result<(Vec<i32>, Vec<(f32, f32, f32)>, f32)> {
         if num_clusters > self.max_clusters {
             return Err(anyhow!("Too many clusters requested: {} > {}", num_clusters, self.max_clusters));
         }
-        
+
+        // Use clustering module if available, otherwise fall back to main module
+        let module = if let Some(ref clustering_mod) = self.clustering_module {
+            clustering_mod
+        } else {
+            &self._module
+        };
+
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
-        
+
         // Initialize centroids using K-means++
         for centroid in 0..num_clusters {
-            let init_kernel = self._module.get_function("init_centroids_kernel")?;
+            let init_kernel = module.get_function("init_centroids_kernel")?;
             let shared_memory_size = block_size * 4; // 4 bytes per float
             let stream = &self.stream;
-            
+
             unsafe {
                 launch!(
                     init_kernel<<<num_clusters as u32, block_size, shared_memory_size, stream>>>(
@@ -1502,10 +1552,10 @@ impl UnifiedGPUCompute {
             }
             self.stream.synchronize()?;
         }
-        
+
         let mut prev_inertia = f32::INFINITY;
         let mut final_inertia = 0.0f32;
-        
+
         // Main K-means iteration loop
         for _iteration in 0..max_iterations {
             // Step 1: Assign nodes to nearest centroid
@@ -1526,7 +1576,7 @@ impl UnifiedGPUCompute {
                     num_clusters as i32
                 ))?;
             }
-            
+
             // Step 2: Update centroids
             let update_kernel = self._module.get_function("update_centroids_kernel")?;
             let centroid_shared_memory = block_size * (3 * 4 + 4); // 3 floats + 1 int per thread
@@ -1546,7 +1596,7 @@ impl UnifiedGPUCompute {
                     num_clusters as i32
                 ))?;
             }
-            
+
             // Step 3: Compute inertia for convergence check
             let inertia_kernel = self._module.get_function("compute_inertia_kernel")?;
             let inertia_shared_memory = block_size * 4; // One float per thread
@@ -1565,41 +1615,41 @@ impl UnifiedGPUCompute {
                     self.num_nodes as i32
                 ))?;
             }
-            
+
             self.stream.synchronize()?;
-            
+
             // Sum partial inertias on CPU
             let mut partial_inertias = vec![0.0f32; grid_size as usize];
             self.partial_inertia.copy_to(&mut partial_inertias)?;
             let current_inertia: f32 = partial_inertias.iter().sum();
             final_inertia = current_inertia;
-            
+
             // Check convergence
             if (prev_inertia - current_inertia).abs() < tolerance {
                 info!("K-means converged at iteration {} with inertia {:.4}", _iteration, current_inertia);
                 break;
             }
-            
+
             prev_inertia = current_inertia;
         }
-        
+
         // Download results
         let mut assignments = vec![0i32; self.num_nodes];
         self.cluster_assignments.copy_to(&mut assignments)?;
-        
+
         let mut centroids_x = vec![0.0f32; num_clusters];
         let mut centroids_y = vec![0.0f32; num_clusters];
         let mut centroids_z = vec![0.0f32; num_clusters];
         self.centroids_x.copy_to(&mut centroids_x)?;
         self.centroids_y.copy_to(&mut centroids_y)?;
         self.centroids_z.copy_to(&mut centroids_z)?;
-        
+
         let centroids: Vec<(f32, f32, f32)> = centroids_x.into_iter()
             .zip(centroids_y.into_iter())
             .zip(centroids_z.into_iter())
             .map(|((x, y), z)| (x, y, z))
             .collect();
-        
+
         Ok((assignments, centroids, final_inertia))
     }
 
@@ -1754,11 +1804,11 @@ impl UnifiedGPUCompute {
         // First ensure spatial grid is built (reuse existing grid from simulation)
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
-        
+
         // Get current grid dimensions from the last simulation run
         // For now, use a simple fixed grid - in practice this would be computed
         let grid_dims = int3 { x: 32, y: 32, z: 32 };
-        
+
         let lof_kernel = self._module.get_function("compute_lof_kernel")?;
         let stream = &self.stream;
         unsafe {
@@ -1783,31 +1833,31 @@ impl UnifiedGPUCompute {
                 crate::config::dev_config::physics().k_neighbors_max as i32
             ))?;
         }
-        
+
         self.stream.synchronize()?;
-        
+
         // Download results
         let mut lof_scores = vec![0.0f32; self.num_nodes];
         let mut local_densities = vec![0.0f32; self.num_nodes];
         self.lof_scores.copy_to(&mut lof_scores)?;
         self.local_densities.copy_to(&mut local_densities)?;
-        
+
         Ok((lof_scores, local_densities))
     }
-    
+
     /// Run Z-score based anomaly detection
     pub fn run_zscore_anomaly_detection(&mut self, feature_data: &[f32]) -> Result<Vec<f32>> {
         if feature_data.len() != self.num_nodes {
-            return Err(anyhow!("Feature data size {} doesn't match number of nodes {}", 
+            return Err(anyhow!("Feature data size {} doesn't match number of nodes {}",
                               feature_data.len(), self.num_nodes));
         }
-        
+
         // Upload feature data
         self.feature_values.copy_from(feature_data)?;
-        
+
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
-        
+
         // Step 1: Compute feature statistics
         let stats_kernel = self._module.get_function("compute_feature_stats_kernel")?;
         let stats_shared_memory = block_size * 2 * 4; // 2 floats per thread
@@ -1821,22 +1871,22 @@ impl UnifiedGPUCompute {
                 self.num_nodes as i32
             ))?;
         }
-        
+
         self.stream.synchronize()?;
-        
+
         // Sum partial results on CPU
         let mut partial_sums = vec![0.0f32; grid_size as usize];
         let mut partial_sq_sums = vec![0.0f32; grid_size as usize];
         self.partial_sums.copy_to(&mut partial_sums)?;
         self.partial_sq_sums.copy_to(&mut partial_sq_sums)?;
-        
+
         let total_sum: f32 = partial_sums.iter().sum();
         let total_sq_sum: f32 = partial_sq_sums.iter().sum();
-        
+
         let mean = total_sum / self.num_nodes as f32;
         let variance = (total_sq_sum / self.num_nodes as f32) - (mean * mean);
         let std_dev = variance.sqrt();
-        
+
         // Step 2: Compute Z-scores
         let zscore_kernel = self._module.get_function("compute_zscore_kernel")?;
         let stream = &self.stream;
@@ -1850,21 +1900,21 @@ impl UnifiedGPUCompute {
                 self.num_nodes as i32
             ))?;
         }
-        
+
         self.stream.synchronize()?;
-        
+
         // Download results
         let mut zscore_values = vec![0.0f32; self.num_nodes];
         self.zscore_values.copy_to(&mut zscore_values)?;
-        
+
         Ok(zscore_values)
     }
 
     /// Run community detection using label propagation algorithm
     pub fn run_community_detection(
-        &mut self, 
-        max_iterations: u32, 
-        synchronous: bool, 
+        &mut self,
+        max_iterations: u32,
+        synchronous: bool,
         seed: u32
     ) -> Result<(Vec<i32>, usize, f32, u32, Vec<i32>, bool)> {
         let block_size = 256;
@@ -1994,7 +2044,7 @@ impl UnifiedGPUCompute {
                 self.stream.synchronize()?;
                 let mut convergence_flag_host = vec![0i32];
                 self.convergence_flag.copy_to(&mut convergence_flag_host)?;
-                
+
                 if convergence_flag_host[0] == 1 {
                     converged = true;
                     break;
@@ -2072,7 +2122,7 @@ impl UnifiedGPUCompute {
         // Relabel nodes with compact labels
         if num_communities < self.max_labels {
             self.label_mapping.copy_from(&label_map)?;
-            
+
             let relabel_kernel = self._module.get_function("relabel_communities_kernel")?;
             unsafe {
                 launch!(
@@ -2090,19 +2140,19 @@ impl UnifiedGPUCompute {
 
         Ok((labels, num_communities, modularity, iterations, compact_community_sizes, converged))
     }
-    
+
     /// Record kernel execution time and update metrics
     pub fn record_kernel_time(&mut self, kernel_name: &str, execution_time_ms: f32) {
         // Update total calls
         *self.performance_metrics.total_kernel_calls.entry(kernel_name.to_string()).or_insert(0) += 1;
-        
+
         // Record execution time (keep last 100 measurements for average calculation)
         let times = self.performance_metrics.kernel_times.entry(kernel_name.to_string()).or_insert_with(Vec::new);
         times.push(execution_time_ms);
         if times.len() > 100 {
             times.remove(0);
         }
-        
+
         // Update specialized kernel averages
         let avg_time = times.iter().sum::<f32>() / times.len() as f32;
         match kernel_name {
@@ -2115,51 +2165,51 @@ impl UnifiedGPUCompute {
             "label_propagation_kernel" => self.performance_metrics.community_detection_avg_time = avg_time,
             _ => {}
         }
-        
+
         // Log GPU kernel performance to advanced logging system
         let execution_time_us = execution_time_ms * 1000.0;
         let memory_mb = self.performance_metrics.current_memory_usage as f64 / (1024.0 * 1024.0);
         let peak_memory_mb = self.performance_metrics.peak_memory_usage as f64 / (1024.0 * 1024.0);
         log_gpu_kernel(kernel_name, execution_time_us as f64, memory_mb, peak_memory_mb);
     }
-    
+
     /// Execute kernel with timing
-    pub fn execute_kernel_with_timing<F>(&mut self, kernel_name: &str, mut kernel_func: F) -> Result<()> 
+    pub fn execute_kernel_with_timing<F>(&mut self, kernel_name: &str, mut kernel_func: F) -> Result<()>
     where
         F: FnMut() -> Result<()>,
     {
         let start_event = Event::new(EventFlags::DEFAULT)?;
         let stop_event = Event::new(EventFlags::DEFAULT)?;
-        
+
         // Record start time
         start_event.record(&self.stream)?;
-        
+
         // Execute kernel
         kernel_func()?;
-        
+
         // Record stop time
         stop_event.record(&self.stream)?;
-        
+
         // Synchronize and calculate elapsed time
         self.stream.synchronize()?;
         let elapsed_ms = start_event.elapsed_time_f32(&stop_event)?;
-        
+
         // Record timing
         self.record_kernel_time(kernel_name, elapsed_ms);
-        
+
         Ok(())
     }
-    
+
     /// Get current GPU performance metrics
     pub fn get_performance_metrics(&self) -> &GPUPerformanceMetrics {
         &self.performance_metrics
     }
-    
+
     /// Get mutable reference to performance metrics for external updates
     pub fn get_performance_metrics_mut(&mut self) -> &mut GPUPerformanceMetrics {
         &mut self.performance_metrics
     }
-    
+
     /// Update memory usage statistics
     pub fn update_memory_usage(&mut self) {
         // Calculate current memory usage from all allocated buffers
@@ -2168,16 +2218,16 @@ impl UnifiedGPUCompute {
         let grid_memory = self.max_grid_cells * std::mem::size_of::<i32>() * 4;
         let cluster_memory = self.max_clusters * std::mem::size_of::<f32>() * 3; // centroids
         let anomaly_memory = self.allocated_nodes * std::mem::size_of::<f32>() * 4; // LOF buffers
-        
+
         let current_usage = node_memory + edge_memory + grid_memory + cluster_memory + anomaly_memory;
         let previous_usage = self.performance_metrics.current_memory_usage;
-        
+
         self.performance_metrics.current_memory_usage = current_usage;
         if current_usage > self.performance_metrics.peak_memory_usage {
             self.performance_metrics.peak_memory_usage = current_usage;
         }
         self.performance_metrics.total_memory_allocated = self.total_memory_allocated;
-        
+
         // Log memory events if there was a significant change
         if (current_usage as f64 - previous_usage as f64).abs() > (1024.0 * 1024.0) { // 1MB threshold
             let event_type = if current_usage > previous_usage { "allocation" } else { "deallocation" };
@@ -2186,22 +2236,22 @@ impl UnifiedGPUCompute {
             log_memory_event(event_type, allocated_mb, peak_mb);
         }
     }
-    
+
     /// Log GPU error with recovery attempt tracking
     pub fn log_gpu_error(&self, error_msg: &str, recovery_attempted: bool) {
         log_gpu_error(error_msg, recovery_attempted);
     }
-    
+
     /// Reset performance metrics
     pub fn reset_performance_metrics(&mut self) {
         let peak_memory = self.performance_metrics.peak_memory_usage;
         let total_allocated = self.performance_metrics.total_memory_allocated;
-        
+
         self.performance_metrics = GPUPerformanceMetrics::default();
         self.performance_metrics.peak_memory_usage = peak_memory;
         self.performance_metrics.total_memory_allocated = total_allocated;
     }
-    
+
     /// Initialize graph with CSR format data and positions
     pub fn initialize_graph(
         &mut self,
@@ -2218,17 +2268,17 @@ impl UnifiedGPUCompute {
         if num_nodes != self.num_nodes || num_edges != self.num_edges {
             self.resize_buffers(num_nodes, num_edges)?;
         }
-        
+
         // Upload edge data in CSR format
         self.upload_edges_csr(&row_offsets, &col_indices, &edge_weights)?;
-        
+
         // Upload position data
         self.upload_positions(&positions_x, &positions_y, &positions_z)?;
-        
+
         info!("Graph initialized with {} nodes and {} edges", num_nodes, num_edges);
         Ok(())
     }
-    
+
     /// Update positions only (for position-only updates from external algorithms)
     pub fn update_positions_only(
         &mut self,
@@ -2239,7 +2289,7 @@ impl UnifiedGPUCompute {
         self.upload_positions(positions_x, positions_y, positions_z)?;
         Ok(())
     }
-    
+
     /// Run K-means clustering (alias for run_kmeans with compatible signature)
     pub fn run_kmeans_clustering(
         &mut self,
@@ -2250,7 +2300,7 @@ impl UnifiedGPUCompute {
     ) -> Result<(Vec<i32>, Vec<(f32, f32, f32)>, f32)> {
         self.run_kmeans(num_clusters, max_iterations, tolerance, seed)
     }
-    
+
     /// Run community detection using label propagation algorithm
     pub fn run_community_detection_label_propagation(
         &mut self,
@@ -2260,7 +2310,7 @@ impl UnifiedGPUCompute {
         // Use synchronous label propagation for better convergence
         self.run_community_detection(max_iterations, true, seed)
     }
-    
+
     /// Run LOF-based anomaly detection (alias for run_lof_anomaly_detection)
     pub fn run_anomaly_detection_lof(
         &mut self,
@@ -2269,7 +2319,7 @@ impl UnifiedGPUCompute {
     ) -> Result<(Vec<f32>, Vec<f32>)> {
         self.run_lof_anomaly_detection(k_neighbors, radius)
     }
-    
+
     /// Run stress majorization layout algorithm with REAL GPU implementation
     pub fn run_stress_majorization(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
         info!("Running REAL stress majorization on GPU");
@@ -2327,6 +2377,8 @@ impl UnifiedGPUCompute {
                         d_new_pos_z.as_device_ptr(),
                         d_target_distances.as_device_ptr(),
                         d_weights.as_device_ptr(),
+                        self.edge_row_offsets.as_device_ptr(),
+                        self.edge_col_indices.as_device_ptr(),
                         learning_rate,
                         self.num_nodes as i32,
                         crate::config::dev_config::physics().force_epsilon
@@ -2505,14 +2557,14 @@ impl UnifiedGPUCompute {
     /// Get kernel statistics for dashboard
     pub fn get_kernel_statistics(&self) -> HashMap<String, serde_json::Value> {
         let mut stats = HashMap::new();
-        
+
         for (kernel_name, times) in &self.performance_metrics.kernel_times {
             if !times.is_empty() {
                 let avg_time = times.iter().sum::<f32>() / times.len() as f32;
                 let min_time = times.iter().cloned().fold(f32::INFINITY, f32::min);
                 let max_time = times.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
                 let total_calls = self.performance_metrics.total_kernel_calls.get(kernel_name).unwrap_or(&0);
-                
+
                 let mut kernel_stats = HashMap::new();
                 kernel_stats.insert("avg_time_ms".to_string(), serde_json::Value::Number(
                     serde_json::Number::from_f64(avg_time as f64).unwrap()
@@ -2529,16 +2581,16 @@ impl UnifiedGPUCompute {
                 kernel_stats.insert("recent_samples".to_string(), serde_json::Value::Number(
                     serde_json::Number::from(times.len())
                 ));
-                
+
                 stats.insert(kernel_name.clone(), serde_json::Value::Object(kernel_stats.into_iter().collect()));
             }
         }
-        
+
         stats
     }
-    
+
     // Implementation of required methods for compilation compatibility
-    
+
     pub fn execute_physics_step(&mut self, params: &crate::models::simulation_params::SimulationParams) -> Result<()> {
         // Convert SimulationParams to SimParams and call execute
         let sim_params = crate::models::simulation_params::SimParams {
@@ -2587,7 +2639,7 @@ impl UnifiedGPUCompute {
         };
         self.execute(sim_params)
     }
-    
+
     pub fn get_node_positions(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
         // Extract positions from current state
         // Use allocated_nodes to match GPU buffer size, then truncate to actual nodes

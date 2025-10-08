@@ -1,7 +1,7 @@
 //! GPU Resource Actor - Handles GPU initialization, memory management, and device status
 
 use actix::prelude::*;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
@@ -92,20 +92,35 @@ impl GPUResourceActor {
         // Initialize unified compute engine
         // Load PTX using the ptx utility module which handles both build-time and runtime scenarios
         debug!("Loading PTX content using ptx utility module");
-        let ptx_content = crate::utils::ptx::load_ptx_sync()
+        let ptx_content = crate::utils::ptx::load_ptx_module_sync(crate::utils::ptx::PTXModule::VisionflowUnified)
             .map_err(|e| {
                 error!("Failed to load PTX content: {}", e);
                 format!("Failed to load PTX content: {}", e)
             })?;
-        debug!("PTX content loaded successfully, size: {} bytes", ptx_content.len());
-        debug!("PTX first 100 chars: {}", &ptx_content[..100.min(ptx_content.len())]);
+        debug!("Main PTX content loaded successfully, size: {} bytes", ptx_content.len());
+
+        // Load clustering PTX module (optional - system can work without it)
+        let clustering_ptx = match crate::utils::ptx::load_ptx_module_sync(crate::utils::ptx::PTXModule::GpuClusteringKernels) {
+            Ok(content) => {
+                debug!("Clustering PTX content loaded successfully, size: {} bytes", content.len());
+                Some(content)
+            }
+            Err(e) => {
+                warn!("Failed to load clustering PTX (will use fallback): {}", e);
+                None
+            }
+        };
 
         debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
-        let mut unified_compute = UnifiedGPUCompute::new(1000, 1000, &ptx_content)
-            .map_err(|e| {
-                error!("Failed to create unified compute: {}", e);
-                format!("Failed to create unified compute: {}", e)
-            })?;
+        let mut unified_compute = UnifiedGPUCompute::new_with_modules(
+            1000,
+            1000,
+            &ptx_content,
+            clustering_ptx.as_deref()
+        ).map_err(|e| {
+            error!("Failed to create unified compute: {}", e);
+            format!("Failed to create unified compute: {}", e)
+        })?;
         
         info!("UnifiedGPUCompute engine initialized successfully");
         

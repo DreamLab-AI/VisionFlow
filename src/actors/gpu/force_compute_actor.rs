@@ -179,10 +179,11 @@ impl ForceComputeActor {
             }
         };
 
-        // Acquire exclusive GPU access for force computation (critical operation)
-        let _exclusive_guard = shared_context.exclusive_access_lock.lock()
+        // Acquire GPU access for force computation
+        // Note: Using read access for concurrent operations, not exclusive
+        let _gpu_guard = futures::executor::block_on(shared_context.acquire_gpu_access())
             .map_err(|e| {
-                let error_msg = format!("Failed to acquire exclusive GPU lock: {}", e);
+                let error_msg = format!("Failed to acquire GPU lock: {}", e);
 
                 // Log GPU lock acquisition failure
                 if let Some(logger) = get_telemetry_logger() {
