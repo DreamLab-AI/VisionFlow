@@ -105,6 +105,30 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting setup background job..."
         /app/scripts/hive-session-manager.sh init || echo "⚠️ Session manager init failed, continuing..."
     fi
 
+    # Generate topics.json from markdown directory if available
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking for markdown directory to generate topics.json..."
+    if [ -d /workspace/ext/data/markdown ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Found markdown directory, generating topics.json..."
+        if [ -f /app/scripts/generate-topics-from-markdown.py ]; then
+            mkdir -p /app/core-assets/config
+            python3 /app/scripts/generate-topics-from-markdown.py \
+                /workspace/ext/data/markdown \
+                /app/core-assets/config/topics.json || {
+                echo "⚠️ Topics generation failed, continuing..."
+            }
+            # Verify generation succeeded
+            if [ -f /app/core-assets/config/topics.json ]; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ Generated topics.json successfully"
+            else
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️ topics.json not found after generation"
+            fi
+        else
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️ generate-topics-from-markdown.py not found, skipping..."
+        fi
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] No markdown directory found, skipping topics.json generation"
+    fi
+
     # Check if workspace setup hasn't been done yet
     if [ ! -f /workspace/.setup_completed ]; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running workspace setup..."

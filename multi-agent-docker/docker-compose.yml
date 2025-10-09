@@ -131,6 +131,8 @@ services:
       - ./workspace:/workspace:rw
       - ./pbr_outputs:/workspace/pbr_outputs:rw
       - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
+      # Markdown data for topics.json generation (read-only)
+      - ../data/markdown:/workspace/ext/data/markdown:ro
       # Configuration (read-write for Claude to save state)
       - ~/.claude:/home/dev/.claude:rw
       - ~/.claude.json:/home/dev/.claude.json:rw

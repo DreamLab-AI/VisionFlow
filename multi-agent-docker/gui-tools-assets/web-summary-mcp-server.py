@@ -340,15 +340,15 @@ Start your response immediately with the first line of the file content.
 
 Response:"""
 
-            # Call Z.AI container HTTP API
+            # Call Z.AI container HTTP API with longer timeout for large files
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{ZAI_CONTAINER_URL}/prompt",
                     json={
                         "prompt": prompt,
-                        "timeout": 60000
+                        "timeout": 120000  # 2 minutes for large files
                     },
-                    timeout=65.0
+                    timeout=125.0  # httpx timeout slightly longer
                 )
 
                 if response.status_code != 200:
