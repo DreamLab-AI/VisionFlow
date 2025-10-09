@@ -29,8 +29,8 @@ RUN pacman -S --noconfirm \
     && pacman -Scc --noconfirm && \
     systemd-machine-id-setup 2>/dev/null || dbus-uuidgen > /etc/machine-id || echo "00000000000000000000000000000000" > /etc/machine-id
 
-# Install VirtualGL, Chrome/Chromium, and desktop environment
-RUN pacman -S --noconfirm virtualgl lib32-virtualgl chromium xfce4 xfce4-goodies
+# Install VirtualGL, Chrome/Chromium, Firefox, and desktop environment
+RUN pacman -S --noconfirm virtualgl lib32-virtualgl chromium firefox xfce4 xfce4-goodies --ignore xfce4-screensaver
 
 # Install texlive
 RUN pacman -S --noconfirm texlive-basic texlive-latex texlive-latexrecommended
@@ -225,13 +225,20 @@ RUN /opt/venv312/bin/pip install --no-cache-dir websockify
 # Install copyparty file server
 RUN /opt/venv312/bin/pip install --no-cache-dir copyparty
 
+# Install code-server (VS Code web)
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
 # Configure VNC for dev user
 USER dev
 RUN mkdir -p ~/.vnc && \
     echo "password" | vncpasswd -f > ~/.vnc/passwd && \
     chmod 600 ~/.vnc/passwd && \
     echo "exec startxfce4" > ~/.vnc/xstartup && \
-    chmod +x ~/.vnc/xstartup
+    chmod +x ~/.vnc/xstartup && \
+    mkdir -p ~/.config/autostart && \
+    echo '[Desktop Entry]\nHidden=true' > ~/.config/autostart/xfce4-screensaver.desktop && \
+    mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>\n<channel name="xfce4-screensaver" version="1.0">\n  <property name="saver" type="empty">\n    <property name="enabled" type="bool" value="false"/>\n    <property name="idle-activation" type="empty">\n      <property name="enabled" type="bool" value="false"/>\n    </property>\n  </property>\n  <property name="lock" type="empty">\n    <property name="enabled" type="bool" value="false"/>\n  </property>\n</channel>' > ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml
 
 USER root
 WORKDIR /workspace

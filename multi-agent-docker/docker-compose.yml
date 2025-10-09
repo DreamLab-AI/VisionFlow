@@ -111,12 +111,15 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - DEBUG_MODE=${DEBUG_MODE:-true}
       - VERBOSE_LOGGING=${VERBOSE_LOGGING:-true}
+      # Chromium Configuration
+      - CHROMIUM_STARTUP_URL=${CHROMIUM_STARTUP_URL:-}
 
     ports:
       - "3000:3000"    # Claude Flow UI
       - "3002:3002"    # WebSocket Bridge
       - "5901:5901"    # VNC port for GUI access
       - "6901:6901"    # KasmVNC web access (HTTPS)
+      - "8080:8080"    # VS Code Server (code-server)
       - "9500:9500"    # MCP TCP Server (shared claude-flow) - PRIMARY
       - "9502:9502"    # Claude-Flow TCP (isolated sessions per client)
       - "9503:9503"    # Claude-Flow TCP health endpoint
@@ -131,8 +134,8 @@ services:
       - ./workspace:/workspace:rw
       - ./pbr_outputs:/workspace/pbr_outputs:rw
       - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
-      # Markdown data for topics.json generation (read-only)
-      - ../data/markdown:/workspace/ext/data/markdown:ro
+      # Markdown data for topics.json generation (read-write)
+      - ../data/markdown:/workspace/ext/data/markdown:rw
       # Configuration (read-write for Claude to save state)
       - ~/.claude:/home/dev/.claude:rw
       - ~/.claude.json:/home/dev/.claude.json:rw

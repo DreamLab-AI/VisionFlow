@@ -14,10 +14,11 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting entrypoint.sh"
 # issues with npx, cargo, etc. Run in background to avoid blocking startup.
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting home directory permissions for user 'dev' (background)..."
 (
-    # Max depth 1 first (fast)
-    find /home/dev -maxdepth 1 ! -name '.claude*' -exec chown dev:dev {} \; 2>/dev/null || true
-    # Deeper directories in background (slow, skip .claude entirely)
-    find /home/dev -mindepth 2 -maxdepth 5 -not -path "/home/dev/.claude*" -exec chown dev:dev {} \; 2>/dev/null || true
+    # Only fix specific critical directories, avoid traversing into mounts
+    chown -R dev:dev /home/dev/.config 2>/dev/null || true
+    chown -R dev:dev /home/dev/.local 2>/dev/null || true
+    chown -R dev:dev /home/dev/.cargo 2>/dev/null || true
+    chown dev:dev /home/dev/.bashrc /home/dev/.profile 2>/dev/null || true
 ) &
 PERM_PID=$!
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Permission fixing started in background (PID: $PERM_PID)"
@@ -45,6 +46,11 @@ echo "=== MCP Environment Ready ==="
 echo "Starting background services..."
 echo ""
 
+# Clean up stale X11 locks (must be done BEFORE supervisor starts)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleaning X11 lock files..."
+rm -f /tmp/.X*-lock /tmp/.X11-unix/X* 2>/dev/null || true
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] X11 locks cleaned"
+
 # Detect and configure GPU
 if [ -f /app/scripts/gpu-detect.sh ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running GPU detection..."
@@ -56,6 +62,15 @@ echo ""
 echo "✨ Automatic setup will begin in a few seconds..."
 echo "   (Check progress with: tail -f /workspace/.setup.log)"
 echo ""
+
+# Install Chrome extensions
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Installing Chrome extensions..."
+if [ -f /app/scripts/install-chrome-extensions.sh ]; then
+    /app/scripts/install-chrome-extensions.sh &
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Chrome extension installation started in background"
+else
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Warning: Chrome extension installer not found"
+fi
 
 # Create wrapper for claude-flow to ensure database isolation
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting up claude-flow wrapper..."
