@@ -378,26 +378,20 @@ Response:"""
 
             expanded_content = expanded_content.strip()
 
-            # Remove meta-commentary prefixes that Z.AI might add
-            meta_prefixes = [
-                "Here's a summary",
-                "Here is a summary",
-                "Here's the summary",
-                "Here is the summary",
-                "Summary:",
-                "formatted in UK English",
-                "using UK English",
-                "following your specifications",
+            # Remove meta-commentary that Z.AI might add
+            meta_patterns = [
+                r"Here'?s? (?:a |the )?summary[^:]*:\s*",
+                r"Here is (?:a |the )?summary[^:]*:\s*",
+                r"Summary:\s*",
+                r"formatted in UK English[.,\s]*",
+                r"using UK English spelling[.,\s]*",
+                r"following your specifications[.,\s]*",
+                r"[Hh]ere'?s? (?:a |the )?(?:summary|content)[^:]*:\s*\n*",
             ]
 
-            lines = expanded_content.split('\n')
-            # Remove first line if it contains meta-commentary
-            if lines and any(prefix.lower() in lines[0].lower() for prefix in meta_prefixes):
-                # Remove the meta line and any following blank lines
-                lines = lines[1:]
-                while lines and not lines[0].strip():
-                    lines = lines[1:]
-                expanded_content = '\n'.join(lines)
+            # Remove meta-commentary lines (case-insensitive)
+            for pattern in meta_patterns:
+                expanded_content = re.sub(pattern, '', expanded_content, flags=re.IGNORECASE | re.MULTILINE)
 
             # CRITICAL: Remove all unauthorized topic links using sed
             # This ensures only topics from topics.json remain
