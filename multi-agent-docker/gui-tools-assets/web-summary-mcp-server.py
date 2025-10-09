@@ -2,7 +2,7 @@
 """
 Web Summary MCP Server - Google AI Studio with Topic Matching
 Retrieves web content and generates UK English summaries formatted for Logseq
-Uses Claude CLI to match content to predefined topics
+Uses Z.AI GLM-4.6 to match content to predefined topics
 """
 
 import json
@@ -13,6 +13,7 @@ import subprocess
 from typing import Any, Dict, List, Set
 import google.generativeai as genai
 import re
+import httpx
 from youtube_transcript_api import YouTubeTranscriptApi
 from urllib.parse import urlparse, parse_qs
 from googleapiclient.discovery import build
@@ -22,6 +23,10 @@ from googleapiclient.errors import HttpError
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
+
+# Configure Z.AI
+ZAI_API_KEY = os.getenv("ZAI_API_KEY", "")
+ZAI_API_URL = "https://api.z.ai/v1/chat/completions"
 
 # Load permitted topics
 TOPICS_FILE = "/app/core-assets/topics.json"
@@ -42,9 +47,9 @@ class WebSummaryMCPServer:
             # Note: Google Search grounding requires Vertex AI setup
         )
 
-    async def add_topic_links_with_claude(self, summary_text: str, topics: List[str]) -> tuple[str, List[str]]:
-        """Use Claude CLI to add [[topic links]] to summary based on semantic matching"""
-        if not topics:
+    async def add_topic_links_with_zai(self, summary_text: str, topics: List[str]) -> tuple[str, List[str]]:
+        """Use Z.AI GLM-4.6 to add [[topic links]] to summary based on semantic matching"""
+        if not topics or not ZAI_API_KEY:
             return summary_text, []
 
         try:
@@ -82,40 +87,56 @@ MATCHED_TOPICS:
 
 Response:"""
 
-            # Call Claude CLI
-            result = subprocess.run(
-                ['claude', '--dangerously-skip-permissions'],
-                input=prompt,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            # Call Z.AI API
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    ZAI_API_URL,
+                    headers={
+                        "Authorization": f"Bearer {ZAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "glm-4.6",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are a helpful AI assistant that formats text with wiki-style topic links."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ]
+                    },
+                    timeout=30.0
+                )
 
-            if result.returncode == 0:
-                response_text = result.stdout.strip()
+                if response.status_code == 200:
+                    response_data = response.json()
+                    response_text = response_data['choices'][0]['message']['content'].strip()
 
-                # Extract formatted summary
-                summary_match = re.search(r'FORMATTED_SUMMARY:\s*(.+?)(?=MATCHED_TOPICS:|$)', response_text, re.DOTALL)
-                # Extract matched topics JSON
-                topics_match = re.search(r'MATCHED_TOPICS:\s*(\[.*?\])', response_text, re.DOTALL)
+                    # Extract formatted summary
+                    summary_match = re.search(r'FORMATTED_SUMMARY:\s*(.+?)(?=MATCHED_TOPICS:|$)', response_text, re.DOTALL)
+                    # Extract matched topics JSON
+                    topics_match = re.search(r'MATCHED_TOPICS:\s*(\[.*?\])', response_text, re.DOTALL)
 
-                if summary_match:
-                    formatted_summary = summary_match.group(1).strip()
-                    matched_topics = []
+                    if summary_match:
+                        formatted_summary = summary_match.group(1).strip()
+                        matched_topics = []
 
-                    if topics_match:
-                        try:
-                            matched_topics = json.loads(topics_match.group(1))
-                        except:
-                            pass
+                        if topics_match:
+                            try:
+                                matched_topics = json.loads(topics_match.group(1))
+                            except:
+                                pass
 
-                    return formatted_summary, matched_topics
+                        return formatted_summary, matched_topics
+                    else:
+                        print(f"Warning: Could not parse Z.AI response", file=sys.stderr)
+                        return summary_text, []
                 else:
-                    print(f"Warning: Could not parse Claude response", file=sys.stderr)
+                    print(f"Warning: Z.AI API failed with status {response.status_code}: {response.text}", file=sys.stderr)
                     return summary_text, []
-            else:
-                print(f"Warning: Claude CLI failed: {result.stderr}", file=sys.stderr)
-                return summary_text, []
         except Exception as e:
             print(f"Warning: Topic linking failed: {e}", file=sys.stderr)
             return summary_text, []
@@ -136,6 +157,32 @@ Response:"""
             lines.append(f"- {block}\r\n")
 
         return ''.join(lines)
+
+    def remove_unauthorized_topics(self, content: str, permitted_topics: List[str]) -> str:
+        """Remove all [[topic]] links not in the permitted list"""
+        # Extract all [[topic]] links from content
+        all_links = re.findall(r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]', content)
+        unique_links = set(all_links)
+
+        # Find unauthorized topics (case-insensitive comparison)
+        permitted_lower = [t.lower() for t in permitted_topics]
+        unauthorized = [link for link in unique_links if link.lower() not in permitted_lower]
+
+        if not unauthorized:
+            return content
+
+        # Use Python regex to remove unauthorized topics
+        cleaned_content = content
+        for topic in unauthorized:
+            # Escape special regex characters
+            escaped_topic = re.escape(topic)
+
+            # Remove [[topic]] or [[topic|alias]] - replace with just the topic text (no brackets)
+            pattern = rf'\[\[{escaped_topic}(?:\|[^\]]+)?\]\]'
+            cleaned_content = re.sub(pattern, topic, cleaned_content)
+
+        print(f"Removed {len(unauthorized)} unauthorized topics: {', '.join(sorted(unauthorized))}", file=sys.stderr)
+        return cleaned_content
 
     async def expand_markdown_links(self, file_path: str) -> Dict[str, Any]:
         """Expand both bare [[links]] and URL links with descriptions"""
@@ -205,77 +252,107 @@ Traffic light system:
 ⚫ = 1+ years (archived)
 """
 
-            prompt = f"""You are enhancing a Logseq markdown file by expanding both bare [[links]] and URL links.
+            prompt = f"""You are updating a Logseq markdown file by adding summaries to URL links and descriptions to bare [[links]].
 
 Original file content:
 {original_content}
 
-Bare [[links]] to expand: {json.dumps(bare_links)}
+Bare [[links]] to expand (write concise 1-2 sentence descriptions for these):
+{json.dumps(bare_links)}
 
-URL summaries to add (add these as descriptions AFTER the URL link on the same line):
+URL summaries to INSERT (these are COMPLETE - just insert them EXACTLY as provided):
 {json.dumps(url_summaries, indent=2)}{age_emoji_info}
 
-Available topics for linking:
+Available topics for bare link descriptions ONLY:
 {json.dumps(PERMITTED_TOPICS)}
 
-TASK:
-1. **For URL links** `[text](url)`: Add the provided summary as a description AFTER the link on the same line, separated by " - "
-   - If an age emoji is provided for that URL, add it at the START of the summary (e.g., " - 🟠 Summary text...")
-   - If no age emoji is provided, just add the summary without an emoji
-2. **For bare [[links]]**: Write a concise 1-2 sentence description and integrate the [[link]] naturally
-3. Add [[topic links]] from the approved list where semantically relevant (max 3-5 additional links per description)
-4. Use UK English spelling
-5. Keep ALL existing content structure EXACTLY as is
+CRITICAL RULES:
+1. **For URL links** `[text](url)`: INSERT the provided summary EXACTLY as given, no modifications
+   - Add " - " before the summary
+   - If an age emoji is provided, add it at the START: " - 🟠 Summary text..."
+   - If no age emoji, just: " - Summary text..."
+   - DO NOT rewrite, expand, or modify the provided summaries
+   - DO NOT add additional [[topic links]] to URL summaries (they already have them)
 
-EXAMPLE FOR URL LINKS WITH AGE EMOJI:
+2. **For bare [[links]]** ONLY: Write a concise 1-2 sentence description
+   - You MAY add [[topic links]] from the approved list for bare links only (max 2-3 links)
+   - Use UK English spelling
+   - Integrate the [[link]] naturally into the description
+
+3. Keep ALL existing content structure EXACTLY as is (indentation, formatting, line breaks)
+
+EXAMPLE FOR URL LINKS (EXACT INSERTION):
+Input summary for https://example.com: "Explains [[machine learning]] basics"
 Before:
 ```
-	- ### Tutorials
-		- [Beginner Tutorial](https://example.com)
+	- [Tutorial](https://example.com)
 ```
-
 After:
 ```
-	- ### Tutorials
-		- [Beginner Tutorial](https://example.com) - 🟠 A comprehensive guide to getting started with [[machine learning]] concepts and practical implementations
+	- [Tutorial](https://example.com) - Explains [[machine learning]] basics
 ```
 
-EXAMPLE FOR BARE LINKS:
+EXAMPLE WITH AGE EMOJI (EXACT INSERTION):
+Input summary for https://example.com: "Guide to [[neural networks]]"
+Age emoji: 🟠
 Before:
 ```
-	- ## See Also
-		- [[AI Video]]
+	- [Tutorial](https://example.com)
 ```
-
 After:
 ```
-	- ## See Also
-		- [[AI Video]] is a broad category encompassing techniques for generating video content using [[artificial intelligence]]
+	- [Tutorial](https://example.com) - 🟠 Guide to [[neural networks]]
 ```
 
-Return the complete rewritten markdown file.
+EXAMPLE FOR BARE LINKS (WRITE NEW DESCRIPTION):
+Before:
+```
+	- [[AI Video]]
+```
+After:
+```
+	- [[AI Video]] encompasses techniques for generating video content using [[artificial intelligence]]
+```
+
+Return ONLY the complete updated markdown file, no explanations.
 
 Response:"""
 
-            # Call Claude CLI
-            result = subprocess.run(
-                ['claude', '--dangerously-skip-permissions'],
-                input=prompt,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            # Call Z.AI API
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    ZAI_API_URL,
+                    headers={
+                        "Authorization": f"Bearer {ZAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "glm-4.6",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are a helpful AI assistant that formats Logseq markdown files."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ]
+                    },
+                    timeout=60.0
+                )
 
-            if result.returncode != 0:
-                return {
-                    "success": False,
-                    "error": f"Claude CLI failed: {result.stderr}",
-                    "file_path": file_path
-                }
+                if response.status_code != 200:
+                    return {
+                        "success": False,
+                        "error": f"Z.AI API failed with status {response.status_code}: {response.text}",
+                        "file_path": file_path
+                    }
 
-            expanded_content = result.stdout.strip()
+                response_data = response.json()
+                expanded_content = response_data['choices'][0]['message']['content'].strip()
 
-            # Remove markdown code fences if Claude added them
+            # Remove markdown code fences if Z.AI added them
             if expanded_content.startswith('```markdown'):
                 expanded_content = expanded_content.replace('```markdown\n', '', 1)
                 expanded_content = expanded_content.rsplit('```', 1)[0]
@@ -284,6 +361,10 @@ Response:"""
                 expanded_content = expanded_content.rsplit('```', 1)[0]
 
             expanded_content = expanded_content.strip()
+
+            # CRITICAL: Remove all unauthorized topic links using sed
+            # This ensures only topics from topics.json remain
+            expanded_content = self.remove_unauthorized_topics(expanded_content, PERMITTED_TOPICS)
 
             # Create backup
             backup_path = f"{file_path}.backup"
@@ -554,7 +635,7 @@ Summary:"""
                 age_emoji = self.get_age_emoji(metadata['publish_date'])
 
             # Use Claude to add topic links with semantic matching
-            formatted_with_links, matched_topics = await self.add_topic_links_with_claude(summary_text, PERMITTED_TOPICS)
+            formatted_with_links, matched_topics = await self.add_topic_links_with_zai(summary_text, PERMITTED_TOPICS)
 
             # Add age emoji to beginning if available
             if age_emoji:
@@ -668,6 +749,26 @@ Summary:"""
                 print(json.dumps({"error": str(e)}), flush=True)
 
 async def main():
+    # Check for CLI mode
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+        server = WebSummaryMCPServer()
+
+        if command == "expand_markdown_links" and len(sys.argv) > 2:
+            file_path = sys.argv[2]
+            result = await server.expand_markdown_links(file_path)
+            print(json.dumps(result, indent=2))
+            return
+        elif command == "summarize_url" and len(sys.argv) > 2:
+            url = sys.argv[2]
+            result = await server.summarize_url(url)
+            print(json.dumps(result, indent=2))
+            return
+        else:
+            print("Usage: python web-summary-mcp-server.py [expand_markdown_links|summarize_url] <path|url>")
+            return
+
+    # Run as MCP server
     server = WebSummaryMCPServer()
     await server.run()
 
