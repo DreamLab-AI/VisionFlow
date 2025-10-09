@@ -10,6 +10,41 @@ import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('AgentTelemetryStream');
 
+// Load GOAP widget script dynamically
+const loadGoapWidget = () => {
+  if (typeof window === 'undefined' || document.getElementById('goap-widget-script')) return;
+
+  (window as any).GOAPWidgetConfig = {
+    primaryColor: '#ff8800',
+    accentColor: '#fbbf24',
+    backgroundColor: '#1a1a1a',
+    cardBackgroundColor: '#262626',
+    cardBorderColor: '#ff8800',
+    textColor: '#ff8800',
+    secondaryTextColor: '#fbbf24',
+    successColor: '#22c55e',
+    title: 'Goal-Oriented Action Planning',
+    description: 'AI-powered research planning using A* pathfinding and dynamic agent coordination',
+    brandName: 'JunkieJarvis',
+    defaultGoal: 'Research Knowledge Graphs and Human Scale Spring Force Systems',
+    fontFamily: 'monospace',
+    borderRadius: '0.5rem',
+    animationSpeed: 'fast',
+    cardSpacing: '0.5rem',
+    showMetrics: true,
+    showStats: true,
+    compactMode: true,
+    enableAI: true,
+    aiModel: 'google/gemini-2.5-flash'
+  };
+
+  const script = document.createElement('script');
+  script.id = 'goap-widget-script';
+  script.src = 'https://goal.ruv.io/widget.js';
+  script.async = true;
+  document.body.appendChild(script);
+};
+
 interface TelemetryMessage {
   timestamp: number;
   agentId: string;
@@ -21,6 +56,7 @@ interface TelemetryMessage {
 export const AgentTelemetryStream: React.FC = () => {
   const [messages, setMessages] = useState<TelemetryMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'goap'>('telemetry');
   const streamRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -30,6 +66,13 @@ export const AgentTelemetryStream: React.FC = () => {
       streamRef.current.scrollTop = streamRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Load GOAP widget when GOAP tab is active
+  useEffect(() => {
+    if (activeTab === 'goap') {
+      loadGoapWidget();
+    }
+  }, [activeTab]);
 
   // Poll telemetry data from REST API
   useEffect(() => {
@@ -120,11 +163,45 @@ export const AgentTelemetryStream: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: '6px',
-        fontSize: '10px',
+        fontSize: '9px',
         fontWeight: '600',
         color: '#fbbf24'
       }}>
-        <span>TELEMETRY STREAM</span>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setActiveTab('telemetry')}
+            style={{
+              background: activeTab === 'telemetry' ? '#ff8800' : 'transparent',
+              color: activeTab === 'telemetry' ? '#000000' : '#fbbf24',
+              border: '1px solid #ff8800',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontSize: '9px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            TELEMETRY
+          </button>
+          <button
+            onClick={() => setActiveTab('goap')}
+            onDoubleClick={() => window.open('https://goal.ruv.io/', '_blank')}
+            style={{
+              background: activeTab === 'goap' ? '#ff8800' : 'transparent',
+              color: activeTab === 'goap' ? '#000000' : '#fbbf24',
+              border: '1px solid #ff8800',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontSize: '9px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            GOAP
+          </button>
+        </div>
         <span style={{
           width: '8px',
           height: '8px',
@@ -134,70 +211,97 @@ export const AgentTelemetryStream: React.FC = () => {
         }} />
       </div>
 
-      <div
-        ref={streamRef}
-        style={{
-          background: '#ff8800',
-          border: '2px solid #cc6600',
+      {activeTab === 'telemetry' ? (
+        <div
+          ref={streamRef}
+          style={{
+            background: '#ff8800',
+            border: '2px solid #cc6600',
+            borderRadius: '4px',
+            padding: '8px',
+            height: '200px',
+            overflowY: 'auto',
+            fontFamily: 'DSEG7Classic, monospace',
+            fontSize: '10px',
+            lineHeight: '1.4',
+            color: '#000000',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+          }}
+        >
+          {messages.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '20px',
+              color: 'rgba(0,0,0,0.5)',
+              fontFamily: 'monospace',
+              fontSize: '9px'
+            }}>
+              WAITING FOR TELEMETRY...
+            </div>
+          ) : (
+            messages.map((msg, idx) => (
+              <div key={idx} style={{
+                marginBottom: '4px',
+                padding: '2px 4px',
+                background: 'rgba(0,0,0,0.1)',
+                borderRadius: '2px',
+                display: 'flex',
+                gap: '8px',
+                fontSize: '9px'
+              }}>
+                <span style={{
+                  color: getLevelColor(msg.level),
+                  fontWeight: 'bold',
+                  minWidth: '60px'
+                }}>
+                  {formatTime(msg.timestamp)}
+                </span>
+                <span style={{
+                  color: '#000000',
+                  fontWeight: 'bold',
+                  minWidth: '80px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {msg.agentId.substring(0, 12)}
+                </span>
+                <span style={{
+                  color: '#000000',
+                  flex: 1,
+                  fontFamily: 'DSEG7Classic, monospace'
+                }}>
+                  {msg.message}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div style={{
+          background: '#1a1a1a',
+          border: '2px solid #ff8800',
           borderRadius: '4px',
-          padding: '8px',
+          padding: '4px',
           height: '200px',
           overflowY: 'auto',
-          fontFamily: 'DSEG7Classic, monospace',
-          fontSize: '11px',
-          lineHeight: '1.4',
-          color: '#000000',
+          fontFamily: 'monospace',
+          fontSize: '9px',
+          color: '#ff8800',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
-        }}
-      >
-        {messages.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '20px',
-            color: 'rgba(0,0,0,0.5)',
-            fontFamily: 'monospace'
-          }}>
-            WAITING FOR TELEMETRY...
-          </div>
-        ) : (
-          messages.map((msg, idx) => (
-            <div key={idx} style={{
-              marginBottom: '4px',
-              padding: '2px 4px',
-              background: 'rgba(0,0,0,0.1)',
-              borderRadius: '2px',
-              display: 'flex',
-              gap: '8px',
-              fontSize: '10px'
-            }}>
-              <span style={{
-                color: getLevelColor(msg.level),
-                fontWeight: 'bold',
-                minWidth: '60px'
-              }}>
-                {formatTime(msg.timestamp)}
-              </span>
-              <span style={{
-                color: '#000000',
-                fontWeight: 'bold',
-                minWidth: '80px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}>
-                {msg.agentId.substring(0, 12)}
-              </span>
-              <span style={{
-                color: '#000000',
-                flex: 1,
-                fontFamily: 'DSEG7Classic, monospace'
-              }}>
-                {msg.message}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
+        }}>
+          <div id="goap-widget-container"></div>
+          <style>{`
+            #goap-widget-container * {
+              font-size: 9px !important;
+            }
+            #goap-widget-container {
+              max-width: 100%;
+              margin: 0;
+            }
+          `}</style>
+        </div>
+      )}
 
       <style>{`
         @font-face {
