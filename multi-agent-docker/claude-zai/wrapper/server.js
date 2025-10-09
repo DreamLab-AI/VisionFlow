@@ -27,7 +27,9 @@ app.post('/prompt', async (req, res) => {
         ], {
             env: {
                 ...process.env,
-                CLAUDE_CONFIG_DIR: '/root/.claude'
+                CLAUDE_CONFIG_DIR: '/home/claude/.claude',
+                ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL || 'https://api.z.ai/api/anthropic',
+                ANTHROPIC_AUTH_TOKEN: process.env.ANTHROPIC_AUTH_TOKEN
             }
         });
 
@@ -72,6 +74,7 @@ app.post('/prompt', async (req, res) => {
                     success: false,
                     error: 'Claude process failed',
                     code: code,
+                    stdout: stdout.trim(),
                     stderr: stderr.trim()
                 });
             }

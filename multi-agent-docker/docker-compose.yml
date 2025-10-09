@@ -187,7 +187,10 @@ services:
 
     environment:
       - NODE_ENV=production
-      - CLAUDE_CONFIG_DIR=/root/.claude
+      - CLAUDE_CONFIG_DIR=/home/claude/.claude
+      - HOME=/home/claude
+      - ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+      - ANTHROPIC_AUTH_TOKEN=${ZAI_API_KEY}
 
     ports:
       - "9600:9600"  # Z.AI Claude Code HTTP API
