@@ -72,7 +72,7 @@
     },
     "web-summary": {
       "command": "/opt/venv312/bin/python3",
-      "args": ["-u", "/opt/web-summary-mcp-server.py"],
+      "args": ["-u", "/app/core-assets/scripts/web-summary-mcp-server.py"],
       "type": "stdio",
       "env": {
         "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"

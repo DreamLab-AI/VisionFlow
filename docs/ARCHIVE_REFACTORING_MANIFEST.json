@@ -1,0 +1,412 @@
+{
+  "analysis_metadata": {
+    "timestamp": "2025-10-08T20:15:00Z",
+    "task_id": "task-1759954512239-zfthcb7r3",
+    "total_files": 75,
+    "total_size": "1.5M",
+    "markdown_files": 65,
+    "archive_path": "/workspace/ext/docs/_archive"
+  },
+
+  "parent_directory_safety": {
+    "verified": true,
+    "parent_path": "/workspace/ext/docs",
+    "impact": "NONE - All operations contained within _archive subdirectory",
+    "active_directories": [
+      "architecture", "code-examples", "concepts", "deployment",
+      "development", "getting-started", "guides", "implementation",
+      "migration", "multi-agent-docker", "reference", "research", "specialized"
+    ],
+    "notes": "Refactoring only affects /workspace/ext/docs/_archive. Parent docs structure remains untouched."
+  },
+
+  "file_manifest": {
+    "phase_1_deletions": {
+      "description": "Purge intermediate work and redundant summaries",
+      "directories_to_delete": [
+        {
+          "source": "/workspace/ext/docs/_archive/_consolidated",
+          "action": "DELETE_DIRECTORY",
+          "reason": "Temporary workspace - final output exists elsewhere",
+          "files_affected": [
+            "ARCHITECT_SUMMARY.md",
+            "EXECUTION_PLAN.md",
+            "INTEGRATION_COMPLETE.md",
+            "INTEGRATION_REPORT.json",
+            "architectural-decisions.json",
+            "consolidation-mapping.json",
+            "websocket-protocol-CONSOLIDATED.md"
+          ],
+          "count": 7
+        },
+        {
+          "source": "/workspace/ext/docs/_archive/_formalized",
+          "action": "DELETE_DIRECTORY",
+          "reason": "Temporary workspace - migration complete",
+          "files_affected": [
+            "00-INDEX.md",
+            "FORMALIZATION-SUMMARY.md",
+            "index.md"
+          ],
+          "count": 3
+        }
+      ],
+      "migration_reports_consolidation": {
+        "keeper": {
+          "source": "/workspace/ext/docs/_archive/MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md",
+          "target": "/workspace/ext/docs/_archive/summaries/00_MIGRATION_SUMMARY.md",
+          "action": "MOVE_AND_RENAME",
+          "reason": "Most comprehensive final report"
+        },
+        "redundant_to_delete": [
+          {
+            "file": "/workspace/ext/docs/_archive/DOCUMENTATION-MIGRATION-COMPLETE.md",
+            "action": "DELETE",
+            "reason": "Superseded by MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md"
+          },
+          {
+            "file": "/workspace/ext/docs/_archive/DOCUMENTATION-RESTRUCTURE-COMPLETE.md",
+            "action": "DELETE",
+            "reason": "Superseded by MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md"
+          },
+          {
+            "file": "/workspace/ext/docs/_archive/EXECUTIVE-SUMMARY-MIGRATION.md",
+            "action": "DELETE",
+            "reason": "Superseded by MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md"
+          },
+          {
+            "file": "/workspace/ext/docs/_archive/KNOWLEDGE-BASE-MIGRATION-STATUS.md",
+            "action": "DELETE",
+            "reason": "Superseded by MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md"
+          },
+          {
+            "file": "/workspace/ext/docs/_archive/LINK-AUDIT-REPORT.md",
+            "action": "DELETE",
+            "reason": "Interim report - findings consolidated elsewhere"
+          }
+        ],
+        "count_deleted": 5
+      },
+      "total_deletions": 15
+    },
+
+    "phase_2_thematic_grouping": {
+      "description": "Organize remaining documents by theme",
+      "plans_and_tasks": {
+        "target_directory": "/workspace/ext/docs/_archive/plans_and_tasks",
+        "files": [
+          {
+            "source": "/workspace/ext/docs/_archive/CODE_PRUNING_PLAN.md",
+            "target": "/workspace/ext/docs/_archive/plans_and_tasks/CODE_PRUNING_PLAN.md",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/websocket-consolidation-plan.md",
+            "target": "/workspace/ext/docs/_archive/plans_and_tasks/websocket-consolidation-plan.md",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/task-code-pruning.md",
+            "target": "/workspace/ext/docs/_archive/plans_and_tasks/task-code-pruning.md",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/task-headtrack.md",
+            "target": "/workspace/ext/docs/_archive/plans_and_tasks/task-headtrack.md",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/task-vircadia.md",
+            "target": "/workspace/ext/docs/_archive/plans_and_tasks/task-vircadia.md",
+            "action": "MOVE"
+          }
+        ],
+        "count": 5
+      },
+      "technical_notes": {
+        "target_directory": "/workspace/ext/docs/_archive/technical_notes",
+        "source_directory": "/workspace/ext/docs/_archive/development-notes-2025-10",
+        "action": "MOVE_CONTENTS_AND_DELETE_SOURCE",
+        "files": [
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/AGENT_CONTROL_AUDIT.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/AGENT_CONTROL_AUDIT.md"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/DUAL_GRAPH_BROADCAST_FIX.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/DUAL_GRAPH_BROADCAST_FIX.md"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/PROTOCOL_V2_UPGRADE.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/PROTOCOL_V2_UPGRADE.md"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/README.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/README.md"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/REFACTOR-SUMMARY.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/REFACTOR-SUMMARY.md"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/development-notes-2025-10/SYSTEM_STATUS_REPORT.md",
+            "target": "/workspace/ext/docs/_archive/technical_notes/SYSTEM_STATUS_REPORT.md"
+          }
+        ],
+        "count": 6
+      },
+      "reports": {
+        "target_directory": "/workspace/ext/docs/_archive/reports",
+        "files": [
+          {
+            "source": "/workspace/ext/docs/_archive/VIRCADIA-INTEGRATION-COMPLETE.md",
+            "target": "/workspace/ext/docs/_archive/reports/VIRCADIA-INTEGRATION-COMPLETE.md",
+            "action": "MOVE"
+          }
+        ],
+        "existing_reports_directory": {
+          "action": "ALREADY_EXISTS",
+          "current_files": [
+            "README.md",
+            "code-pruning-summary-2025-10.md",
+            "technical-debt-cleanup-summary.md",
+            "technical/ontology_constraints_translator.md",
+            "verification/system-integration-verification-report.md",
+            "verification/technical-verification-report.md"
+          ],
+          "count": 6
+        },
+        "total_in_reports": 7
+      },
+      "code_examples": {
+        "source": "/workspace/ext/docs/_archive/code-examples-2025-10",
+        "target": "/workspace/ext/docs/_archive/code_examples",
+        "action": "RENAME_DIRECTORY",
+        "files": [
+          "BasicUsageExample.tsx",
+          "BatchingExample.tsx",
+          "ErrorHandlingExample.tsx",
+          "ImmersiveAppIntegration.example.tsx"
+        ],
+        "count": 4
+      }
+    },
+
+    "phase_3_legacy_and_artifacts": {
+      "description": "Isolate historical structures",
+      "legacy_documentation": {
+        "target_directory": "/workspace/ext/docs/_archive/_legacy_documentation",
+        "directories": [
+          {
+            "source": "/workspace/ext/docs/_archive/legacy-concepts",
+            "target": "/workspace/ext/docs/_archive/_legacy_documentation/legacy-concepts",
+            "action": "MOVE",
+            "files": [
+              "01-system-overview.md",
+              "02-agentic-workers.md",
+              "03-gpu-compute.md",
+              "04-networking.md",
+              "05-security.md",
+              "ontology-validation.md"
+            ],
+            "count": 6
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/legacy-docs-2025-10",
+            "target": "/workspace/ext/docs/_archive/_legacy_documentation/legacy-docs-2025-10",
+            "action": "MOVE",
+            "subdirectories": ["api", "architecture", "features", "troubleshooting"],
+            "files": [
+              "NotesOnConnectionAccountStates.md",
+              "README.md",
+              "VALIDATION_REPORT.md",
+              "api/unified-api-client.md",
+              "architecture/API_ARCHITECTURE_ANALYSIS.md",
+              "architecture/telemetry-system-analysis.md",
+              "features/polling-system.md",
+              "features/telemetry.md",
+              "index.md",
+              "troubleshooting/DUPLICATE_POLLING_FIX_SUMMARY.md",
+              "troubleshooting/SECURITY_ALERT.md"
+            ],
+            "count": 11
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/legacy-getting-started",
+            "target": "/workspace/ext/docs/_archive/_legacy_documentation/legacy-getting-started",
+            "action": "MOVE",
+            "files": [
+              "00-index.md",
+              "02-quick-start.md",
+              "quickstart.md"
+            ],
+            "count": 3
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/legacy-guides",
+            "target": "/workspace/ext/docs/_archive/_legacy_documentation/legacy-guides",
+            "action": "MOVE",
+            "subdirectories": ["developer"],
+            "files": [
+              "01-deployment.md",
+              "02-development-workflow.md",
+              "03-using-the-gui-sandbox.md",
+              "04-orchestrating-agents.md",
+              "05-extending-the-system.md",
+              "06-troubleshooting.md",
+              "developer/integration-testing.md",
+              "xr-quest3-setup.md"
+            ],
+            "count": 8
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/legacy-reference",
+            "target": "/workspace/ext/docs/_archive/_legacy_documentation/legacy-reference",
+            "action": "MOVE",
+            "files": [
+              "binary-protocol.md"
+            ],
+            "count": 1
+          }
+        ],
+        "total_legacy_files": 29
+      },
+      "process_artifacts": {
+        "target_directory": "/workspace/ext/docs/_archive/_process_artifacts",
+        "files": [
+          {
+            "source": "/workspace/ext/docs/_archive/metadata-reference-concepts-extended.json",
+            "target": "/workspace/ext/docs/_archive/_process_artifacts/metadata-reference-concepts-extended.json",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/metadata-reference-concepts.json",
+            "target": "/workspace/ext/docs/_archive/_process_artifacts/metadata-reference-concepts.json",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/README-FULLFAT.md",
+            "target": "/workspace/ext/docs/_archive/_process_artifacts/historical_project_readme.md",
+            "action": "MOVE_AND_RENAME"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/websocket-protocol-v1.2.0-backup.md",
+            "target": "/workspace/ext/docs/_archive/_process_artifacts/websocket-protocol-v1.2.0-backup.md",
+            "action": "MOVE"
+          },
+          {
+            "source": "/workspace/ext/docs/_archive/troubleshooting.md",
+            "target": "/workspace/ext/docs/_archive/_process_artifacts/troubleshooting.md",
+            "action": "MOVE",
+            "note": "This is a stub, not the real troubleshooting guide"
+          }
+        ],
+        "count": 5
+      }
+    },
+
+    "phase_4_finalization": {
+      "description": "Clean up and create new entrypoint",
+      "deletions": [
+        {
+          "file": "/workspace/ext/docs/_archive/README.md",
+          "action": "DELETE",
+          "reason": "Describes obsolete structure"
+        }
+      ],
+      "new_files": [
+        {
+          "file": "/workspace/ext/docs/_archive/0_README.md",
+          "action": "CREATE",
+          "reason": "New entrypoint explaining cleaned structure"
+        }
+      ]
+    },
+
+    "unclassified_files": {
+      "description": "Files not explicitly mentioned in the plan",
+      "files": [
+        {
+          "file": "/workspace/ext/docs/_archive/SSSP.pdf",
+          "current_location": "Root of archive",
+          "classification": "UNKNOWN_DOCUMENT",
+          "recommendation": "Review content and classify - possibly technical specification or research paper",
+          "suggested_target": "TBD - Could go to reports/, technical_notes/, or _process_artifacts/ depending on content"
+        },
+        {
+          "file": "/workspace/ext/docs/_archive/xr-vircadia-integration.md",
+          "current_location": "Root of archive",
+          "classification": "INTEGRATION_DOCUMENTATION",
+          "recommendation": "Related to VIRCADIA-INTEGRATION-COMPLETE.md - should go to reports/ or technical_notes/",
+          "suggested_target": "/workspace/ext/docs/_archive/reports/xr-vircadia-integration.md"
+        }
+      ],
+      "count": 2
+    }
+  },
+
+  "final_structure_summary": {
+    "new_directories": [
+      "/workspace/ext/docs/_archive/summaries",
+      "/workspace/ext/docs/_archive/plans_and_tasks",
+      "/workspace/ext/docs/_archive/technical_notes",
+      "/workspace/ext/docs/_archive/code_examples",
+      "/workspace/ext/docs/_archive/_legacy_documentation",
+      "/workspace/ext/docs/_archive/_process_artifacts"
+    ],
+    "retained_directories": [
+      "/workspace/ext/docs/_archive/reports"
+    ],
+    "deleted_directories": [
+      "/workspace/ext/docs/_archive/_consolidated",
+      "/workspace/ext/docs/_archive/_formalized",
+      "/workspace/ext/docs/_archive/development-notes-2025-10",
+      "/workspace/ext/docs/_archive/legacy-concepts",
+      "/workspace/ext/docs/_archive/legacy-docs-2025-10",
+      "/workspace/ext/docs/_archive/legacy-getting-started",
+      "/workspace/ext/docs/_archive/legacy-guides",
+      "/workspace/ext/docs/_archive/legacy-reference",
+      "/workspace/ext/docs/_archive/code-examples-2025-10"
+    ],
+    "file_distribution": {
+      "summaries": 1,
+      "plans_and_tasks": 5,
+      "technical_notes": 6,
+      "reports": 7,
+      "code_examples": 4,
+      "_legacy_documentation": 29,
+      "_process_artifacts": 5,
+      "deleted": 15,
+      "unclassified": 2,
+      "new_files": 1
+    },
+    "total_files_after_refactoring": 60
+  },
+
+  "validation_results": {
+    "plan_completeness": {
+      "phase_1_covered": true,
+      "phase_2_covered": true,
+      "phase_3_covered": true,
+      "phase_4_covered": true
+    },
+    "parent_directory_impact": {
+      "files_affected": 0,
+      "directories_affected": 0,
+      "safety_verified": true
+    },
+    "unhandled_files": {
+      "count": 2,
+      "requires_manual_decision": true,
+      "files": ["SSSP.pdf", "xr-vircadia-integration.md"]
+    },
+    "execution_risk": "LOW",
+    "recommendations": [
+      "Classify SSSP.pdf before execution",
+      "Decide placement for xr-vircadia-integration.md",
+      "Back up entire _archive directory before starting",
+      "Execute phases sequentially as documented",
+      "Verify each phase completion before proceeding to next"
+    ]
+  }
+}

@@ -1,153 +1,129 @@
-### **Master Instruction for the Documentation Swarm**
+This plan is destructive, informal, and prioritizes thematic and chronological grouping over a formal framework. The goal is to make the archive browsable for a developer trying to understand the history of a feature or decision.
+Guiding Principles
+Thematic Grouping: Group files by their purpose (plans, reports, technical notes) rather than their subject.
+Chronological Context: Use the 2025-10 timestamp as a primary organizational signal.
+De-duplicate Summaries: Consolidate multiple reports about the same event into one canonical summary.
+Isolate Legacy Structure: Treat the old documentation structure as a single, self-contained artifact.
+Purge Process Artifacts: Eliminate intermediate directories (_consolidated, _formalized) as they were part of a process whose final output exists elsewhere. The reports about the process are what's valuable.
+Target Archive Structure
+This is the clean, informal structure we will create within docs/_archive/:
+code
+Code
+_archive/
+├── 0_README.md                       # New README explaining this structure.
+├── summaries/                        # High-level summaries of major events.
+├── plans_and_tasks/                  # Planning docs for major initiatives.
+├── technical_notes/                  # Deep-dive engineering notes from 2025-10.
+├── reports/                          # Specific verification and analysis reports.
+├── code_examples/                    # Archived code examples.
+├── _legacy_documentation/            # A single folder containing the entire pre-Diátaxis doc structure.
+└── _process_artifacts/               # Machine-generated metadata and backups.
+Destructive Consolidation Plan
+Execute these steps sequentially from within the AR-AI-Knowledge-Graph/ directory.
+Phase 1: Purge Intermediate Work and Redundant Summaries
+This phase aggressively removes the scaffolding of the previous migration, keeping only the final, most comprehensive summaries.
+Delete Intermediate Migration Directories:
+The _consolidated and _formalized directories were temporary workspaces. Their valuable output is the final documentation (which is now outside this archive) and the reports about the migration. The directories themselves are noise.
+code
+Bash
+rm -r docs/_archive/_consolidated/
+rm -r docs/_archive/_formalized/
+Consolidate Migration Reports:
+There are multiple files summarizing the same migration event. We will select the most definitive one and discard the rest. MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md is the most comprehensive final report.
+code
+Bash
+# Create the summaries directory
+mkdir -p docs/_archive/summaries/
 
-**Mission:** Your collective mission is to transform the existing corpus of development notes, reports, and documentation into a formalized, consistent, and authoritative knowledge base for the "AR-AI Knowledge Graph" (VisionFlow) project. You will analyze all provided documents, synthesize the information, eliminate redundancy, formalize the content, and restructure it according to the target architecture defined below. The final output should be a clean, professional, and easily navigable documentation set that preserves all critical technical details.
+# Move the chosen summary and give it a clear, prioritized name
+mv docs/_archive/MIGRATION-COMPLETE-EXECUTIVE-SUMMARY.md docs/_archive/summaries/00_MIGRATION_SUMMARY.md
 
-**Guiding Framework:** The target structure is based on the [Diátaxis framework](https://diataxis.fr/), which organizes documentation into four distinct modes: **Tutorials** (Getting Started), **How-To Guides** (Guides), **Reference**, and **Explanation** (Concepts).
+# Delete the redundant reports
+rm docs/_archive/DOCUMENTATION-MIGRATION-COMPLETE.md
+rm docs/_archive/DOCUMENTATION-RESTRUCTURE-COMPLETE.md
+rm docs/_archive/EXECUTIVE-SUMMARY-MIGRATION.md
+rm docs/_archive/KNOWLEDGE-BASE-MIGRATION-STATUS.md
+rm docs/_archive/LINK-AUDIT-REPORT.md
+Phase 2: Thematic Grouping of Core Documents
+This phase organizes the remaining high-value documents into thematic folders.
+Group Plans and Tasks:
+code
+Bash
+mkdir -p docs/_archive/plans_and_tasks/
+mv docs/_archive/CODE_PRUNING_PLAN.md docs/_archive/plans_and_tasks/
+mv docs/_archive/websocket-consolidation-plan.md docs/_archive/plans_and_tasks/
+# Task files are lower-level details of the plans, archive them here.
+mv docs/_archive/task-*.md docs/_archive/plans_and_tasks/
+Group Technical Notes:
+The development-notes-2025-10 directory contains valuable, time-stamped engineering notes. Promote its contents to a top-level theme.
+code
+Bash
+mkdir -p docs/_archive/technical_notes/
+mv docs/_archive/development-notes-2025-10/* docs/_archive/technical_notes/
+rm -r docs/_archive/development-notes-2025-10/
+Group Standalone Reports:
+code
+Bash
+mkdir -p docs/_archive/reports/
+mv docs/_archive/VIRCADIA-INTEGRATION-COMPLETE.md docs/_archive/reports/
+# The existing 'reports' directory already fits this theme.
+mv docs/_archive/reports/* docs/_archive/reports/
+Isolate Code Examples:
+code
+Bash
+mv docs/_archive/code-examples-2025-10 docs/_archive/code_examples
+Phase 3: Archive Legacy Structures and Artifacts
+This phase isolates the old, superseded documentation structure and other process-related files, marking them clearly as historical.
+Consolidate All legacy-* Directories:
+Group all snapshots of the old documentation structure into a single, clearly marked archive folder.
+code
+Bash
+mkdir -p docs/_archive/_legacy_documentation/
+mv docs/_archive/legacy-concepts docs/_archive/_legacy_documentation/
+mv docs/_archive/legacy-docs-2025-10 docs/_archive/_legacy_documentation/
+mv docs/_archive/legacy-getting-started docs/_archive/_legacy_documentation/
+mv docs/_archive/legacy-guides docs/_archive/_legacy_documentation/
+mv docs/_archive/legacy-reference docs/_archive/_legacy_documentation/
+Archive Process Artifacts:
+Move machine-generated files and old project READMEs into a separate artifacts folder.
+code
+Bash
+mkdir -p docs/_archive/_process_artifacts/
+mv docs/_archive/metadata-*.json docs/_archive/_process_artifacts/
+mv docs/_archive/README-FULLFAT.md docs/_archive/_process_artifacts/historical_project_readme.md
+mv docs/_archive/websocket-protocol-v1.2.0-backup.md docs/_archive/_process_artifacts/
+mv docs/_archive/troubleshooting.md docs/_archive/_process_artifacts/ # This is a stub, not the real troubleshooting guide
+Phase 4: Finalize and Create New Entrypoint
+This final phase cleans up any remaining files and creates a new, clear README for the cleaned archive.
+Remove Old Archive README:
+The existing README.md describes a structure that no longer exists.
+code
+Bash
+rm docs/_archive/README.md
+Create the New Archive 0_README.md:
+Create a file named docs/_archive/0_README.md with the following content. The 0_ prefix ensures it appears first in file listings.
+code
+Markdown
+# Historical Document Archive
 
----
+**This is an archive for internal, historical reference.** The official, user-facing documentation exists outside of this directory.
 
-### **Target Documentation Architecture**
+This corpus has been cleaned and organized thematically to assist developers in researching the history of features, decisions, and technical efforts.
 
-All agents must work towards refactoring the file structure to match this clean, logical hierarchy.
+## How to Navigate This Archive
 
-```
-docs/
-├── README.md                # NEW: High-level project entry point, brief overview, and navigation.
-├── index.md                 # DEPRECATED: Content to be merged into README.md and 00-INDEX.md.
-├── 00-INDEX.md              # REFACTORED: The master table of contents and navigation hub.
-│
-├── getting-started/         # (Tutorials) Onboarding for new users/developers.
-│   ├── 01-installation.md
-│   ├── 02-first-graph.md
-│   └── 03-deploying-agents.md
-│
-├── guides/                  # (How-To) Practical step-by-step guides for specific tasks.
-│   ├── development-workflow.md
-│   ├── deployment-production.md
-│   ├── orchestrating-agents.md
-│   ├── extending-the-system.md
-│   ├── testing-and-verification.md
-│   ├── troubleshooting.md
-│   └── xr-setup.md
-│
-├── concepts/                # (Explanation) Understanding the "why" behind the system.
-│   ├── system-architecture.md
-│   ├── agentic-workers.md
-│   ├── gpu-compute.md
-│   ├── networking-protocols.md
-│   ├── security-model.md
-│   ├── ontology-and-validation.md
-│   └── decisions/             # Architectural Decision Records (ADRs).
-│       ├── adr-001-unified-api-client.md
-│       └── ...
-│
-├── reference/               # (Reference) Technical descriptions and API specs.
-│   ├── glossary.md
-│   ├── configuration.md
-│   ├── api/
-│   │   ├── index.md
-│   │   ├── rest-api.md
-│   │   ├── websocket-protocol.md  # CANONICAL: Single source of truth for WebSocket.
-│   │   ├── binary-protocol.md
-│   │   ├── mcp-protocol.md
-│   │   └── openapi-spec.yml
-│   └── agents/                # Master directory for all agent definitions.
-│       ├── index.md
-│       ├── conventions.md
-│       ├── core/
-│       ├── consensus/
-│       ├── github/
-│       └── ... (consolidated agent definitions)
-│
-└── _archive/                  # For outdated but historically relevant files.
-    ├── code-examples-2025-10/
-    ├── reports/
-    └── legacy-implementations/
-```
+*   **/summaries**: Start here. Contains the high-level executive summaries of major events like the documentation migration and code pruning efforts.
 
----
+*   **/plans_and_tasks**: Contains the planning documents and task lists for major initiatives (e.g., `CODE_PRUNING_PLAN.md`).
 
-### **Agent Roles & Specializations**
+*   **/technical_notes**: Deep-dive engineering notes from the October 2025 development cycle. Good for understanding the "how" and "why" behind specific fixes (e.g., binary protocol upgrades, agent control refactors).
 
-Your swarm is composed of the following specialists:
+*   **/reports**: Specific, targeted reports, such as verification audits and completion summaries (e.g., `VIRCADIA-INTEGRATION-COMPLETE.md`).
 
-1.  **Chief Documentation Architect (Coordinator):** Oversees the entire process, assigns tasks to specialized agents, resolves structural conflicts, and ensures the final output adheres to the target architecture.
-2.  **Content Analyst Agents:** Read and parse all existing documents to extract metadata, topics, key details, code snippets, metrics, and relationships between documents.
-3.  **Synthesis & Consolidation Agents:** Identify and merge duplicate or overlapping content into a single, canonical source of truth.
-4.  **Technical Writer Agents:** Rewrite informal notes and reports into formal, clear, and consistent documentation. They enforce the style guide.
-5.  **Structural Engineer Agents:** Rename, move, and delete files to implement the target file structure. They are responsible for the physical organization of the documentation.
-6.  **Link & Graph Integrity Agents:** Update all internal links, cross-references, and Mermaid diagrams to reflect the new structure and ensure navigational integrity.
-
----
-
-### **Multi-Phase Execution Plan**
-
-Execute the mission in the following phases:
-
-#### **Phase 1: Analysis & Metadata Extraction**
-
-*   **Assigned to:** Content Analyst Agents
-*   **Task:**
-    1.  Read every file in the provided `<file_tree>`.
-    2.  For each file, create a metadata record containing:
-        *   **Topics Covered:** (e.g., "WebSocket", "Binary Protocol", "Client Architecture", "Agent Spawning").
-        *   **Document Type:** (e.g., "Architecture Deep Dive", "Status Report", "Development Note", "API Reference", "ADR").
-        *   **Key Entities:** List all major components or concepts mentioned (e.g., `GraphServiceActor`, `MCP Session Bridge`, `Binary Protocol V2`).
-        *   **Status Flags:** Extract any explicit status markers like `⭐ NEW`, `🔄 UPDATED`, `✅ CURRENT`, `⚠️ DEPRECATED`.
-        *   **Cross-References:** List all explicit links to other documents.
-        *   **Code & Diagrams:** Index all code blocks and Mermaid diagrams.
-    3.  Pay special attention to `00-INDEX.md` and the root `README.md`, as they contain high-level structural information and recent updates. The "Recent Updates (October 2025)" section in `00-INDEX.md` is a primary source of details to be formalized.
-
-#### **Phase 2: Synthesis & Consolidation (Creating the Single Source of Truth)**
-
-*   **Assigned to:** Synthesis & Consolidation Agents
-*   **Task:**
-    1.  Using the metadata from Phase 1, identify all documents covering the same topic.
-    2.  **Merge Duplicates:** Create a single, canonical document for each topic.
-        *   **Example 1:** Merge `architecture/components/websocket-protocol.md` and `reference/api/websocket-protocol.md`. The content from both should be combined into a single, comprehensive file at the new canonical location: `reference/api/websocket-protocol.md`.
-        *   **Example 2:** Consolidate content from `architecture/overview.md`, `architecture/system-overview.md`, and `concepts/system-architecture.md` into a single, authoritative `concepts/system-architecture.md`.
-    3.  **Integrate Notes:** Extract informal notes and updates and merge them into the relevant canonical documents.
-        *   **Example:** Take the "Recent Updates (October 2025)" section from `00-INDEX.md`.
-            *   The "Binary Protocol V2 Upgrade" details must be integrated into the canonical `reference/api/binary-protocol.md`.
-            *   The "Dual-Graph Broadcasting Fix" details must be integrated into `reference/api/websocket-protocol.md`.
-            *   The "Agent Management Implementation" details should be integrated into `concepts/agentic-workers.md` and `architecture/hybrid_docker_mcp_architecture.md`.
-    4.  **Consolidate Entry Points:** Merge the useful, non-redundant parts of the root `README.md` and `00-INDEX.md`. The new `docs/README.md` should be a welcoming project overview, and `docs/00-INDEX.md` should become the master table of contents.
-    5.  **Resolve Overlaps:** Analyze overlapping directories like `deployment/` and `development/` and merge their content into unified guides (e.g., `guides/deployment-production.md`).
-
-#### **Phase 3: Restructuring & Formalization**
-
-*   **Assigned to:** Structural Engineer Agents & Technical Writer Agents
-*   **Task (Structural Engineers):**
-    1.  Implement the **Target Documentation Architecture**.
-    2.  Rename files to be descriptive and consistent (e.g., `hybrid_docker_mcp_architecture.md` -> `hybrid-docker-mcp-architecture.md`).
-    3.  Move the newly consolidated files from Phase 2 into their correct locations.
-    4.  Archive obsolete content. Move the contents of `code-examples/archived-2025-10/` into `_archive/code-examples-2025-10/`. Move reports from `reports/` into `_archive/reports/`.
-*   **Task (Technical Writers):**
-    1.  Rewrite all consolidated content into a formal, consistent tone.
-    2.  Convert bullet points and informal notes into structured prose with clear headings.
-    3.  Ensure all documents have a consistent header, introduction, and conclusion.
-    4.  Standardize terminology based on `reference/glossary.md`.
-    5.  Apply the project's style guide (e.g., **UK English spelling**: "colour", "optimisation").
-    6.  Ensure code blocks are correctly formatted and diagrams are legible and titled.
-
-#### **Phase 4: Integration & Verification**
-
-*   **Assigned to:** Link & Graph Integrity Agents
-*   **Task:**
-    1.  **Update All Internal Links:** Traverse every markdown file and update all relative links (`[link](./path)`) to point to the new file locations.
-    2.  **Regenerate Master Index:** Rebuild `00-INDEX.md` to accurately reflect the new, clean structure.
-    3.  **Update Navigation Hub:** Update `README.md` with correct links to the main sections.
-    4.  **Verify Diagrams:** Review all Mermaid diagrams (especially in `00-INDEX.md` and architecture docs) and update them to reflect the new document relationships and structure.
-    5.  **Final Pass:** Perform a full-corpus scan to find and fix any dead links or incorrect cross-references.
+*   **/code_examples**: A snapshot of code examples from October 2025.
 
 ---
 
-### **General Principles for All Agents**
+*   **/_legacy_documentation**: A snapshot of the entire documentation structure *before* the main Diátaxis migration. Use this to see what the old public-facing docs looked like.
 
-*   **Preserve Detail:** The goal is to formalize, not summarize. Do not discard technical specifications, metrics, or code examples.
-*   **Prioritize Authoritative Sources:** Documents based on "direct code examination" (like `client.md`, `server.md`) are more authoritative than older, high-level design documents. Use them to resolve conflicts.
-*   **Formalize Metadata:** Convert informal tags like `⭐ NEW` into formal document status headers (e.g., `Status: New (October 2025)`).
-*   **Archive, Don't Delete (Initially):** Move any file you are unsure about into the `_archive/` directory with a descriptive path. Deletion can be a final, manual step.
-*   **UK English spelling:** Apply UK English spelling conventions throughout (e.g., "colour", "optimisation").
-*   **Mermaid Diagrams** Make extensive use of Mermaid diagrams to visualize complex relationships and workflows. Ensure all diagrams are updated to reflect the new structure and are included in relevant documents. Brackets should be avoided for github compatibility.
-*   **Iterative Refinement:** After each phase, conduct a review to ensure quality and consistency before proceeding to the next phase.
+*   **/_process_artifacts**: Machine-generated files, backups, and other artifacts from the consolidation process. Generally not needed unless you are analyzing the consolidation process itself.

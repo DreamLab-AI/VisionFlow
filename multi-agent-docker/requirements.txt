@@ -20,4 +20,4 @@ pymeshlab
 # A specific implementation will need to be installed via pip git+https,
 # which can be added later once a repository is chosen.
 # For now, this is a placeholder.
-# gaussian-splatting-pytorch
+# gaussian-splatting-pytorchanthropic
