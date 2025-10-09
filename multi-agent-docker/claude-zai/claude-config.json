@@ -1,0 +1,8 @@
+{
+  "apiConfiguration": {
+    "baseURL": "https://api.z.ai/api/paas/v4",
+    "apiKey": "135372c867b34105b4bbc7b9d9650cf2.RQQK9foovXTlBP9T"
+  },
+  "installMethod": "docker",
+  "autoUpdates": false
+}

@@ -177,6 +177,33 @@ services:
     networks:
       - docker_ragflow
 
+  claude-zai:
+    build:
+      context: .
+      dockerfile: claude-zai/Dockerfile
+    image: claude-zai:latest
+    container_name: claude-zai-container
+    hostname: claude-zai
+
+    environment:
+      - NODE_ENV=production
+      - CLAUDE_CONFIG_DIR=/root/.claude
+
+    ports:
+      - "9600:9600"  # Z.AI Claude Code HTTP API
+
+    networks:
+      - docker_ragflow
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    restart: unless-stopped
+
 networks:
   docker_ragflow:
     name: docker_ragflow

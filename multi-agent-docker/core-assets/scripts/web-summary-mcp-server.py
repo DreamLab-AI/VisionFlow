@@ -2,7 +2,7 @@
 """
 Web Summary MCP Server - Google AI Studio with Topic Matching
 Retrieves web content and generates UK English summaries formatted for Logseq
-Uses Z.AI GLM-4.6 to match content to predefined topics
+Uses Z.AI GLM-4.6 (via Docker container) to match content to predefined topics
 """
 
 import json
@@ -24,9 +24,8 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
 
-# Configure Z.AI
-ZAI_API_KEY = os.getenv("ZAI_API_KEY", "")
-ZAI_API_URL = "https://api.z.ai/v1/chat/completions"
+# Configure Z.AI Docker container endpoint
+ZAI_CONTAINER_URL = os.getenv("ZAI_CONTAINER_URL", "http://claude-zai:9600")
 
 # Load permitted topics
 TOPICS_FILE = "/app/core-assets/topics.json"
@@ -48,8 +47,8 @@ class WebSummaryMCPServer:
         )
 
     async def add_topic_links_with_zai(self, summary_text: str, topics: List[str]) -> tuple[str, List[str]]:
-        """Use Z.AI GLM-4.6 to add [[topic links]] to summary based on semantic matching"""
-        if not topics or not ZAI_API_KEY:
+        """Use Z.AI GLM-4.6 (via Docker container) to add [[topic links]] to summary"""
+        if not topics:
             return summary_text, []
 
         try:
@@ -87,55 +86,46 @@ MATCHED_TOPICS:
 
 Response:"""
 
-            # Call Z.AI API
+            # Call Z.AI container HTTP API
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    ZAI_API_URL,
-                    headers={
-                        "Authorization": f"Bearer {ZAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
+                    f"{ZAI_CONTAINER_URL}/prompt",
                     json={
-                        "model": "glm-4.6",
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": "You are a helpful AI assistant that formats text with wiki-style topic links."
-                            },
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ]
+                        "prompt": prompt,
+                        "timeout": 30000
                     },
-                    timeout=30.0
+                    timeout=35.0
                 )
 
                 if response.status_code == 200:
                     response_data = response.json()
-                    response_text = response_data['choices'][0]['message']['content'].strip()
+                    if response_data.get('success'):
+                        response_text = response_data.get('response', '').strip()
 
-                    # Extract formatted summary
-                    summary_match = re.search(r'FORMATTED_SUMMARY:\s*(.+?)(?=MATCHED_TOPICS:|$)', response_text, re.DOTALL)
-                    # Extract matched topics JSON
-                    topics_match = re.search(r'MATCHED_TOPICS:\s*(\[.*?\])', response_text, re.DOTALL)
+                        # Extract formatted summary
+                        summary_match = re.search(r'FORMATTED_SUMMARY:\s*(.+?)(?=MATCHED_TOPICS:|$)', response_text, re.DOTALL)
+                        # Extract matched topics JSON
+                        topics_match = re.search(r'MATCHED_TOPICS:\s*(\[.*?\])', response_text, re.DOTALL)
 
-                    if summary_match:
-                        formatted_summary = summary_match.group(1).strip()
-                        matched_topics = []
+                        if summary_match:
+                            formatted_summary = summary_match.group(1).strip()
+                            matched_topics = []
 
-                        if topics_match:
-                            try:
-                                matched_topics = json.loads(topics_match.group(1))
-                            except:
-                                pass
+                            if topics_match:
+                                try:
+                                    matched_topics = json.loads(topics_match.group(1))
+                                except:
+                                    pass
 
-                        return formatted_summary, matched_topics
+                            return formatted_summary, matched_topics
+                        else:
+                            print(f"Warning: Could not parse Z.AI response", file=sys.stderr)
+                            return summary_text, []
                     else:
-                        print(f"Warning: Could not parse Z.AI response", file=sys.stderr)
+                        print(f"Warning: Z.AI container failed: {response_data.get('error')}", file=sys.stderr)
                         return summary_text, []
                 else:
-                    print(f"Warning: Z.AI API failed with status {response.status_code}: {response.text}", file=sys.stderr)
+                    print(f"Warning: Z.AI container returned status {response.status_code}", file=sys.stderr)
                     return summary_text, []
         except Exception as e:
             print(f"Warning: Topic linking failed: {e}", file=sys.stderr)
@@ -318,39 +308,33 @@ Return ONLY the complete updated markdown file, no explanations.
 
 Response:"""
 
-            # Call Z.AI API
+            # Call Z.AI container HTTP API
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    ZAI_API_URL,
-                    headers={
-                        "Authorization": f"Bearer {ZAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
+                    f"{ZAI_CONTAINER_URL}/prompt",
                     json={
-                        "model": "glm-4.6",
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": "You are a helpful AI assistant that formats Logseq markdown files."
-                            },
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ]
+                        "prompt": prompt,
+                        "timeout": 60000
                     },
-                    timeout=60.0
+                    timeout=65.0
                 )
 
                 if response.status_code != 200:
                     return {
                         "success": False,
-                        "error": f"Z.AI API failed with status {response.status_code}: {response.text}",
+                        "error": f"Z.AI container returned status {response.status_code}",
                         "file_path": file_path
                     }
 
                 response_data = response.json()
-                expanded_content = response_data['choices'][0]['message']['content'].strip()
+                if not response_data.get('success'):
+                    return {
+                        "success": False,
+                        "error": f"Z.AI container failed: {response_data.get('error')}",
+                        "file_path": file_path
+                    }
+
+                expanded_content = response_data.get('response', '').strip()
 
             # Remove markdown code fences if Z.AI added them
             if expanded_content.startswith('```markdown'):
