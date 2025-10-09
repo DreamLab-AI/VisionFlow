@@ -38,48 +38,46 @@ The Web Summary MCP Server is a comprehensive tool for processing markdown files
 
 ### Docker-to-Docker Communication
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Multi-Agent Container                         │
-│                                                                   │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Web Summary MCP Server (/opt/web-summary-mcp-server.py)  │ │
-│  │                                                              │ │
-│  │  1. Fetch URL content via Google Gemini API                │ │
-│  │  2. Get YouTube transcripts via YouTube Transcript API     │ │
-│  │  3. Call Z.AI container for topic matching  ───────────┐   │ │
-│  │  4. Format for Logseq (bullets, line endings)          │   │ │
-│  │  5. Remove unauthorized topics                         │   │ │
-│  └────────────────────────────────────────────────────────┼───┘ │
-│                                                            │     │
-└────────────────────────────────────────────────────────────┼─────┘
-                                                             │
-                                    HTTP POST                │
-                                    http://claude-zai:9600   │
-                                                             │
-┌────────────────────────────────────────────────────────────▼─────┐
-│                    Claude-ZAI Container                           │
-│                                                                   │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Express HTTP Wrapper (Node.js)                            │ │
-│  │  Port: 9600                                                │ │
-│  │                                                              │ │
-│  │  POST /prompt                                               │ │
-│  │  {                                                          │ │
-│  │    "prompt": "...",                                         │ │
-│  │    "timeout": 120000                                        │ │
-│  │  }                                                          │ │
-│  └────────────────────┬───────────────────────────────────────┘ │
-│                       │                                          │
-│                       ▼                                          │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Claude Code CLI                                           │ │
-│  │  Model: Z.AI GLM-4.6                                       │ │
-│  │  Auth: ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic  │ │
-│  │        ANTHROPIC_AUTH_TOKEN=${ZAI_API_KEY}                 │ │
-│  └────────────────────────────────────────────────────────────┘ │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph MultiAgent["Multi-Agent Container"]
+        WebSummary["Web Summary MCP Server<br/>/opt/web-summary-mcp-server.py"]
+
+        Step1["1. Fetch URL content<br/>via Google Gemini API"]
+        Step2["2. Get YouTube transcripts<br/>via YouTube Transcript API"]
+        Step3["3. Call Z.AI container<br/>for topic matching"]
+        Step4["4. Format for Logseq<br/>(bullets, line endings)"]
+        Step5["5. Remove unauthorized topics"]
+
+        WebSummary --> Step1
+        Step1 --> Step2
+        Step2 --> Step3
+        Step3 --> Step4
+        Step4 --> Step5
+    end
+
+    subgraph ZAIContainer["Claude-ZAI Container"]
+        ExpressWrapper["Express HTTP Wrapper<br/>Node.js - Port 9600"]
+        ClaudeCLI["Claude Code CLI<br/>Model: Z.AI GLM-4.6"]
+
+        ExpressWrapper --> ClaudeCLI
+
+        API["POST /prompt<br/>{<br/>  'prompt': '...',<br/>  'timeout': 120000<br/>}"]
+        Auth["Auth:<br/>ANTHROPIC_BASE_URL<br/>ANTHROPIC_AUTH_TOKEN"]
+
+        API -.-> ExpressWrapper
+        Auth -.-> ClaudeCLI
+    end
+
+    Step3 -->|HTTP POST<br/>http://claude-zai:9600| ExpressWrapper
+
+    classDef containerBox fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    classDef processBox fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef apiBox fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+
+    class MultiAgent,ZAIContainer containerBox
+    class WebSummary,ExpressWrapper,ClaudeCLI processBox
+    class API,Auth apiBox
 ```
 
 ### Component Details
