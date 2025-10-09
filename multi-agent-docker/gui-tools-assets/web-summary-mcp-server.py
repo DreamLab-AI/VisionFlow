@@ -174,6 +174,26 @@ Response:"""
         print(f"Removed {len(unauthorized)} unauthorized topics: {', '.join(sorted(unauthorized))}", file=sys.stderr)
         return cleaned_content
 
+    def format_for_logseq(self, content: str) -> str:
+        """
+        Format content for Logseq compliance:
+        1. Convert asterisk/star bullets (*) to hyphens (-)
+        2. Ensure \r\n line endings (Windows-style CRLF)
+        """
+        lines = content.split('\n')
+        formatted_lines = []
+
+        for line in lines:
+            # Convert bullet points: * -> -
+            # Match lines starting with * (with optional leading whitespace)
+            if re.match(r'^(\s*)\*\s', line):
+                line = re.sub(r'^(\s*)\*\s', r'\1- ', line)
+
+            formatted_lines.append(line)
+
+        # Join with \r\n (CRLF) for Logseq
+        return '\r\n'.join(formatted_lines)
+
     async def expand_markdown_links(self, file_path: str) -> Dict[str, Any]:
         """Expand both bare [[links]] and URL links with descriptions"""
         try:
@@ -271,6 +291,12 @@ CRITICAL RULES:
 
 3. Keep ALL existing content structure EXACTLY as is (indentation, formatting, line breaks)
 
+4. **OUTPUT FORMAT**: Return ONLY the updated markdown file content
+   - NO meta-commentary like "Here's a summary..." or "formatted in UK English..."
+   - NO explanations or preamble
+   - Start directly with the file content
+   - Use hyphen bullets (-) not asterisks (*)
+
 EXAMPLE FOR URL LINKS (EXACT INSERTION):
 Input summary for https://example.com: "Explains [[machine learning]] basics"
 Before:
@@ -304,7 +330,13 @@ After:
 	- [[AI Video]] encompasses techniques for generating video content using [[artificial intelligence]]
 ```
 
-Return ONLY the complete updated markdown file, no explanations.
+CRITICAL: Your response must be ONLY the updated file content. Do NOT include:
+- "Here's a summary..." or similar meta-commentary
+- "Formatted in UK English..." explanations
+- Any preamble or postamble
+- Markdown code fences around the output
+
+Start your response immediately with the first line of the file content.
 
 Response:"""
 
@@ -346,17 +378,41 @@ Response:"""
 
             expanded_content = expanded_content.strip()
 
+            # Remove meta-commentary prefixes that Z.AI might add
+            meta_prefixes = [
+                "Here's a summary",
+                "Here is a summary",
+                "Here's the summary",
+                "Here is the summary",
+                "Summary:",
+                "formatted in UK English",
+                "using UK English",
+                "following your specifications",
+            ]
+
+            lines = expanded_content.split('\n')
+            # Remove first line if it contains meta-commentary
+            if lines and any(prefix.lower() in lines[0].lower() for prefix in meta_prefixes):
+                # Remove the meta line and any following blank lines
+                lines = lines[1:]
+                while lines and not lines[0].strip():
+                    lines = lines[1:]
+                expanded_content = '\n'.join(lines)
+
             # CRITICAL: Remove all unauthorized topic links using sed
             # This ensures only topics from topics.json remain
             expanded_content = self.remove_unauthorized_topics(expanded_content, PERMITTED_TOPICS)
 
+            # Format for Logseq: convert bullet points and line endings
+            expanded_content = self.format_for_logseq(expanded_content)
+
             # Create backup
             backup_path = f"{file_path}.backup"
-            with open(backup_path, 'w', encoding='utf-8') as f:
+            with open(backup_path, 'w', encoding='utf-8', newline='') as f:
                 f.write(original_content)
 
-            # Write expanded content
-            with open(file_path, 'w', encoding='utf-8') as f:
+            # Write expanded content with Logseq formatting
+            with open(file_path, 'w', encoding='utf-8', newline='') as f:
                 f.write(expanded_content)
 
             total_expanded = len(bare_links) + len(url_links)
