@@ -28,7 +28,7 @@ if GOOGLE_API_KEY:
 ZAI_CONTAINER_URL = os.getenv("ZAI_CONTAINER_URL", "http://claude-zai:9600")
 
 # Load permitted topics
-TOPICS_FILE = "/app/core-assets/topics.json"
+TOPICS_FILE = "/app/core-assets/config/topics.json"
 PERMITTED_TOPICS = []
 try:
     with open(TOPICS_FILE, 'r') as f:

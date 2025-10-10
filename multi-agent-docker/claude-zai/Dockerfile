@@ -27,9 +27,8 @@ COPY claude-zai/wrapper/ /app/wrapper/
 WORKDIR /app/wrapper
 RUN npm install
 
-# Configure Claude Code for Z.AI
-COPY claude-zai/claude-config.json /home/claude/.claude/.claude.json
-RUN chown -R claude:claude /home/claude/.claude
+# Copy config template (will be populated at runtime)
+COPY claude-zai/claude-config.json /app/claude-config.template.json
 
 # Change ownership of app directory
 RUN chown -R claude:claude /app
@@ -44,5 +43,21 @@ USER claude
 # Expose HTTP API port
 EXPOSE 9600
 
-# Start the wrapper service
-CMD ["node", "server.js"]
+# Create entrypoint script to substitute env vars
+RUN echo '#!/bin/bash\n\
+set -e\n\
+# Substitute environment variables in config\n\
+mkdir -p /home/claude/.claude\n\
+envsubst < /app/claude-config.template.json > /home/claude/.claude/.claude.json\n\
+chown -R claude:claude /home/claude/.claude\n\
+# Start the service\n\
+exec node server.js\n\
+' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Install envsubst (from gettext package)
+USER root
+RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
+USER claude
+
+# Start via entrypoint
+CMD ["/app/entrypoint.sh"]

@@ -17,7 +17,6 @@ RUN pacman -S --noconfirm \
     tigervnc \
     python python-pip python-virtualenv \
     nodejs npm \
-    docker docker-compose \
     sqlite jq unzip p7zip \
     shellcheck openssh tmux \
     net-tools iputils traceroute nmap tcpdump bind \
@@ -30,10 +29,14 @@ RUN pacman -S --noconfirm \
     systemd-machine-id-setup 2>/dev/null || dbus-uuidgen > /etc/machine-id || echo "00000000000000000000000000000000" > /etc/machine-id
 
 # Install VirtualGL, Chrome/Chromium, Firefox, and desktop environment
-RUN pacman -S --noconfirm virtualgl lib32-virtualgl chromium firefox xfce4 xfce4-goodies --ignore xfce4-screensaver
+RUN pacman -Sy --noconfirm && \
+    pacman -S --noconfirm --needed virtualgl chromium firefox xfce4 xfce4-goodies --ignore xfce4-screensaver || \
+    (echo "Package installation failed, retrying with individual packages..." && \
+     pacman -S --noconfirm --needed virtualgl chromium firefox && \
+     pacman -S --noconfirm --needed xfce4 xfce4-terminal xfce4-panel xfce4-session xfce4-settings xfce4-power-manager thunar)
 
-# Install texlive
-RUN pacman -S --noconfirm texlive-basic texlive-latex texlive-latexrecommended
+# Install texlive (comprehensive LaTeX environment)
+RUN pacman -S --noconfirm texlive
 
 # Install Google Cloud SDK
 RUN cd /tmp && \
@@ -76,7 +79,7 @@ RUN \
         useradd --uid ${HOST_UID} --gid ${HOST_GID} -m -s /bin/bash dev; \
     fi && \
     \
-    usermod -aG wheel,docker dev && \
+    usermod -aG wheel dev && \
     echo "dev:password" | chpasswd && \
     echo "dev ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/dev && \
     chmod 0440 /etc/sudoers.d/dev && \

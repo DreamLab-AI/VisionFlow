@@ -8,7 +8,6 @@ services:
         HOST_GID: ${HOST_GID:-1000}
     image: multi-agent-docker:latest
     container_name: multi-agent-container
-    privileged: true
     user: root
     hostname: multi-agent-dev
 
@@ -115,31 +114,23 @@ services:
       - CHROMIUM_STARTUP_URL=${CHROMIUM_STARTUP_URL:-}
 
     ports:
-      - "3000:3000"    # Claude Flow UI
-      - "3002:3002"    # WebSocket Bridge
       - "5901:5901"    # VNC port for GUI access
-      - "6901:6901"    # KasmVNC web access (HTTPS)
       - "8080:8080"    # VS Code Server (code-server)
       - "9500:9500"    # MCP TCP Server (shared claude-flow) - PRIMARY
-      - "9502:9502"    # Claude-Flow TCP (isolated sessions per client)
-      - "9503:9503"    # Claude-Flow TCP health endpoint
-      - "9876:9876"    # MCP Blender port
-      - "9877:9877"    # MCP QGIS port
-      - "9878:9878"    # MCP PBR Generator port
-      - "9879:9879"    # MCP Playwright port
-      - "9880:9880"    # MCP Web Summary port
 
     volumes:
+      # Docker socket (host daemon access)
+      - /var/run/docker.sock:/var/run/docker.sock:rw
       # Persistent data (read-write)
       - ./workspace:/workspace:rw
       - ./pbr_outputs:/workspace/pbr_outputs:rw
-      - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
+      # - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
       # Markdown data for topics.json generation (read-write)
-      - ../data/markdown:/workspace/ext/data/markdown:rw
+      - ../logseq/mainKnowledgeGraph/pages/:/workspace/logseq:rw
       # Configuration (read-write for Claude to save state)
-      - ~/.claude:/home/dev/.claude:rw
-      - ~/.claude.json:/home/dev/.claude.json:rw
-      - ~/.config/claude:/home/dev/.config/claude:rw
+      # - ~/.claude:/home/dev/.claude:rw
+      # - ~/.claude.json:/home/dev/.claude.json:rw
+      # - ~/.config/claude:/home/dev/.config/claude:rw
       # Runtime data (ephemeral)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ./blender-files:/blender-files:rw
@@ -149,7 +140,7 @@ services:
       - ./logs/supervisor:/var/log/supervisor:rw
 
     entrypoint: ["/entrypoint.sh"]
-    command: ["/bin/bash", "-l"]
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
     # Keep stdin open and allocate a pseudo-TTY
     stdin_open: true
@@ -157,6 +148,10 @@ services:
 
     # Prevent container exit on process failures
     init: true
+
+    # Stop signal and grace period for clean shutdowns
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
 
     # Security options
     security_opt:
@@ -167,14 +162,6 @@ services:
 
     # Shared memory for GUI applications and browsers
     shm_size: '4gb'
-
-    # Health check for MCP services
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 9876 && nc -z localhost 9877 && nc -z localhost 9878 && nc -z localhost 9879 && nc -z localhost 9880 && nc -z localhost 5901"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
 
     # Restart policy
     restart: unless-stopped
@@ -202,13 +189,6 @@ services:
 
     networks:
       - docker_ragflow
-
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9600/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
 
     restart: unless-stopped
 

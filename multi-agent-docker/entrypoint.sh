@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ex
+set -e
+trap 'echo "[ENTRYPOINT ERROR] Caught error at line $LINENO, continuing..." >> /var/log/multi-agent/entrypoint.log' ERR
 
 # Persistent logging
 ENTRYPOINT_LOG="/var/log/multi-agent/entrypoint.log"
@@ -19,6 +20,15 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setting home directory permissions for user
     chown -R dev:dev /home/dev/.local 2>/dev/null || true
     chown -R dev:dev /home/dev/.cargo 2>/dev/null || true
     chown dev:dev /home/dev/.bashrc /home/dev/.profile 2>/dev/null || true
+
+    # Grant dev user access to Docker socket
+    if [ -S /var/run/docker.sock ]; then
+        DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+        if ! getent group "$DOCKER_GID" >/dev/null 2>&1; then
+            groupadd -g "$DOCKER_GID" docker-host
+        fi
+        usermod -aG "$DOCKER_GID" dev 2>/dev/null || true
+    fi
 ) &
 PERM_PID=$!
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Permission fixing started in background (PID: $PERM_PID)"
@@ -86,16 +96,8 @@ fi
 # Ensure Claude CLI is available (installed via npm as @anthropic-ai/claude-code)
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Claude CLI installed globally via npm"
 
-# Start supervisord in the background for all cases
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting supervisord in background..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &
-SUPERVISORD_PID=$!
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Supervisord started with PID: $SUPERVISORD_PID"
-
-# Give supervisord a moment to start
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for supervisord to initialize..."
-sleep 2
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Supervisord initialization wait complete"
+# Supervisord will be started by CMD (not here)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Entrypoint initialization complete, supervisord will start via CMD"
 
 # Initialize Claude in background after a short delay
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting setup background job..."
@@ -160,14 +162,6 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting setup background job..."
 SETUP_PID=$!
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Setup job started with PID: $SETUP_PID"
 
-# If a command is passed to the entrypoint (like /bin/bash), execute it.
-# Otherwise, just wait for supervisord
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking for command arguments..."
-if [ "$#" -gt 0 ]; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing command: $@"
-    exec "$@"
-else
-    # Keep the container running by following supervisor logs
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] No command specified, tailing supervisord logs..."
-    exec tail -f /app/mcp-logs/supervisord.log
-fi
+# Execute the command (supervisord or override)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing command: $@"
+exec "$@"
