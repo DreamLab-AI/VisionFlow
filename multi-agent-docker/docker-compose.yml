@@ -124,7 +124,8 @@ services:
       # Persistent data (read-write)
       - ./workspace:/workspace:rw
       - ./pbr_outputs:/workspace/pbr_outputs:rw
-      # - ${EXTERNAL_DIR:-./.agent-mount/ext}:/workspace/ext:rw
+      # External project directory (restored for build file access)
+      - /mnt/mldata/githubs/AR-AI-Knowledge-Graph/:/workspace/ext:rw
       # Markdown data for topics.json generation (read-write)
       - ../logseq/mainKnowledgeGraph/pages/:/workspace/logseq:rw
       # Configuration (read-write for Claude to save state)

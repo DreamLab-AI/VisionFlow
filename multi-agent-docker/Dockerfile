@@ -153,6 +153,7 @@ COPY gui-tools-assets/addon.py /home/dev/addon.py
 COPY gui-tools-assets/autostart.py /home/dev/autostart.py
 COPY gui-tools-assets/playwright-mcp-server.js /opt/playwright-mcp/server.js
 COPY gui-tools-assets/qgis-mcp-server.js /opt/qgis-mcp-server.js
+COPY core-assets/opt/blender-mcp-server.js /opt/blender-mcp-server.js
 COPY gui-tools-assets/pbr-mcp-simple.py /opt/pbr-mcp-simple.py
 COPY gui-tools-assets/web-summary-mcp-server.py /opt/web-summary-mcp-server.py
 RUN chown dev:dev /home/dev/addon.py /home/dev/autostart.py
@@ -199,8 +200,8 @@ COPY --chown=dev:dev core-assets/ /app/core-assets/
 COPY core-assets/patches /app/core-assets/patches
 RUN cd /app/core-assets/scripts && npm install && \
     mkdir -p /var/run/mcp /workspace /opt/playwright-mcp && \
-    chmod +x /opt/playwright-mcp/server.js /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py /opt/web-summary-mcp-server.py && \
-    chown -R dev:dev /var/run/mcp /workspace /app/core-assets /home/dev /opt/playwright-mcp /opt/qgis-mcp-server.js /opt/pbr-mcp-simple.py /opt/web-summary-mcp-server.py && \
+    chmod +x /opt/playwright-mcp/server.js /opt/qgis-mcp-server.js /opt/blender-mcp-server.js /opt/pbr-mcp-simple.py /opt/web-summary-mcp-server.py && \
+    chown -R dev:dev /var/run/mcp /workspace /app/core-assets /home/dev /opt/playwright-mcp /opt/qgis-mcp-server.js /opt/blender-mcp-server.js /opt/pbr-mcp-simple.py /opt/web-summary-mcp-server.py && \
     git config --global user.email "agent@multi-agent-docker.com" && \
     git config --global user.name "Development Agent" && \
     chmod 2775 /workspace /app
@@ -222,8 +223,8 @@ BASHRC
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Install websockify for noVNC
-RUN /opt/venv312/bin/pip install --no-cache-dir websockify
+# Install websockify for noVNC and youtube_transcript_api for web-summary-mcp
+RUN /opt/venv312/bin/pip install --no-cache-dir websockify youtube_transcript_api
 
 # Install copyparty file server
 RUN /opt/venv312/bin/pip install --no-cache-dir copyparty
