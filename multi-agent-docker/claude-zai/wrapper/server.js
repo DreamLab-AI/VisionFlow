@@ -55,7 +55,10 @@ class ClaudeWorkerPool {
             });
     }
 
-    async runClaude(worker, { prompt, timeout }) {
+    async runClaude(worker, { prompt, timeout }, retryCount = 0) {
+        const MAX_RETRIES = 3;
+        const BASE_DELAY = 1000; // 1 second
+
         return new Promise((resolve, reject) => {
             const claudeProcess = spawn('claude', [
                 '--dangerously-skip-permissions',
@@ -102,20 +105,55 @@ class ClaudeWorkerPool {
                         stderr: stderr.trim()
                     });
                 } else {
-                    reject({
+                    const error = {
                         success: false,
                         error: 'Claude process failed',
                         code: code,
                         stdout: stdout.trim(),
                         stderr: stderr.trim()
-                    });
+                    };
+
+                    // Retry on transient errors (network, API rate limits)
+                    const isRetryable = code === 124 || // Timeout
+                                       stderr.includes('ECONNRESET') ||
+                                       stderr.includes('ETIMEDOUT') ||
+                                       stderr.includes('rate_limit') ||
+                                       stderr.includes('429');
+
+                    if (isRetryable && retryCount < MAX_RETRIES) {
+                        const delay = BASE_DELAY * Math.pow(2, retryCount); // Exponential backoff
+                        console.log(`Retry attempt ${retryCount + 1}/${MAX_RETRIES} after ${delay}ms`);
+
+                        setTimeout(() => {
+                            this.runClaude(worker, { prompt, timeout }, retryCount + 1)
+                                .then(resolve)
+                                .catch(reject);
+                        }, delay);
+                    } else {
+                        reject(error);
+                    }
                 }
             });
 
             claudeProcess.on('error', (err) => {
                 clearTimeout(timeoutHandle);
                 if (killed) return;
-                reject({ success: false, error: err.message });
+
+                const error = { success: false, error: err.message };
+
+                // Retry on spawn errors
+                if (retryCount < MAX_RETRIES && (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND')) {
+                    const delay = BASE_DELAY * Math.pow(2, retryCount);
+                    console.log(`Retry attempt ${retryCount + 1}/${MAX_RETRIES} after ${delay}ms (spawn error)`);
+
+                    setTimeout(() => {
+                        this.runClaude(worker, { prompt, timeout }, retryCount + 1)
+                            .then(resolve)
+                            .catch(reject);
+                    }, delay);
+                } else {
+                    reject(error);
+                }
             });
         });
     }

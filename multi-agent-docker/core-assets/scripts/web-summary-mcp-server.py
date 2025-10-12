@@ -33,7 +33,11 @@ PERMITTED_TOPICS = []
 try:
     with open(TOPICS_FILE, 'r') as f:
         topics_data = json.load(f)
-        PERMITTED_TOPICS = topics_data.get("topics", [])
+        # Support both array and object format
+        if isinstance(topics_data, list):
+            PERMITTED_TOPICS = topics_data
+        else:
+            PERMITTED_TOPICS = topics_data.get("topics", [])
 except Exception as e:
     print(f"Warning: Could not load topics from {TOPICS_FILE}: {e}", file=sys.stderr)
 

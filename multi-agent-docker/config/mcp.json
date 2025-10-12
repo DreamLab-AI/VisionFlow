@@ -1,0 +1,96 @@
+{
+  "mcpServers": {
+    "claude-flow": {
+      "command": "npx",
+      "args": ["-y", "claude-flow", "mcp", "start"],
+      "type": "stdio",
+      "description": "Claude Flow MCP integration for agentic workflows"
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "type": "stdio",
+      "description": "Up-to-date code documentation - fetches current API docs and examples",
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"],
+      "type": "stdio",
+      "description": "Browser automation via Playwright",
+      "env": {
+        "DISPLAY": ":1"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/devuser/workspace"],
+      "type": "stdio",
+      "description": "Read and write files in workspace"
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git"],
+      "type": "stdio",
+      "description": "Git operations"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "type": "stdio",
+      "description": "GitHub API operations",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "type": "stdio",
+      "description": "Fetch web content"
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "type": "stdio",
+      "description": "Web search via Brave API",
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "web-summary": {
+      "command": "/opt/venv/bin/python3",
+      "args": [
+        "-u",
+        "/app/core-assets/scripts/web-summary-mcp-server.py"
+      ],
+      "type": "stdio",
+      "description": "Fetches and summarizes web content, including YouTube videos, and adds semantic topic links for Logseq",
+      "env": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+        "ZAI_CONTAINER_URL": "http://claude-zai-service:9600"
+      }
+    }
+  },
+  "toolCategories": {
+    "documentation": ["context7"],
+    "automation": ["playwright"],
+    "filesystem": ["filesystem", "git"],
+    "web": ["fetch", "brave-search", "web-summary"],
+    "github": ["github"],
+    "workflows": ["claude-flow"]
+  },
+  "config": {
+    "defaultTimeout": 30000,
+    "retryAttempts": 3,
+    "logLevel": "info"
+  },
+  "notes": {
+    "architecture": "All MCP servers run via stdio when spawned by workers",
+    "no_http": "No HTTP servers or exposed ports for MCP tools",
+    "isolation": "Each worker session spawns its own tool instances",
+    "on_demand": "Tools only run when actually needed by tasks"
+  }
+}

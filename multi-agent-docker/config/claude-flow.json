@@ -1,0 +1,30 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/mcp.json",
+  "mcpServers": {
+    "claude-flow": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "claude-flow"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "description": "Claude Flow MCP server with 101 tools for orchestration, memory, GitHub, neural networks"
+    },
+    "agentic-flow": {
+      "command": "node",
+      "args": [
+        "/tmp/agentic-flow/dist/mcp/server.js"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "GOOGLE_GEMINI_API_KEY": "${GOOGLE_GEMINI_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
+      },
+      "description": "Agentic Flow in-process MCP server with model optimization and routing"
+    }
+  }
+}

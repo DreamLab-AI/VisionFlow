@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  agentic-flow-cachyos:
+    build:
+      context: ../..
+      dockerfile: docker/cachyos/Dockerfile.workstation
+    container_name: agentic-flow-cachyos
+    hostname: agentic-workstation
+
+    # GPU access
+    runtime: nvidia
+    shm_size: 32gb
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 64G
+          cpus: '32'
+        reservations:
+          memory: 16G
+          cpus: '8'
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility]
+
+    # Volumes for persistence
+    volumes:
+      # Persistent workspace for development
+      - workspace:/home/devuser/workspace:rw
+
+      # Model cache
+      - model-cache:/home/devuser/models:rw
+
+      # Agent memory (session data)
+      - agent-memory:/home/devuser/.agentic-flow:rw
+
+      # Configuration persistence
+      - config-persist:/home/devuser/.config:rw
+
+      # Management API logs
+      - management-logs:/home/devuser/logs:rw
+
+      # X11 socket for GUI applications (if desktop enabled)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+    # Environment variables
+    environment:
+      # Display
+      DISPLAY: ${DISPLAY:-:0}
+
+      # API Keys
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      CONTEXT7_API_KEY: ${CONTEXT7_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}
+
+      # Router configuration
+      ROUTER_MODE: ${ROUTER_MODE:-performance}
+      PRIMARY_PROVIDER: ${PRIMARY_PROVIDER:-gemini}
+      FALLBACK_CHAIN: ${FALLBACK_CHAIN:-gemini,openai,claude,openrouter}
+
+      # GPU
+      GPU_ACCELERATION: ${GPU_ACCELERATION:-true}
+      CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-all}
+
+      # Management API
+      MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:-change-this-secret-key}
+      MANAGEMENT_API_PORT: ${MANAGEMENT_API_PORT:-9090}
+      MANAGEMENT_API_HOST: ${MANAGEMENT_API_HOST:-0.0.0.0}
+
+      # Optional services
+      ENABLE_DESKTOP: ${ENABLE_DESKTOP:-false}
+      ENABLE_CODE_SERVER: ${ENABLE_CODE_SERVER:-false}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Node environment
+      NODE_ENV: ${NODE_ENV:-production}
+
+    # Port mapping - ONLY management and optional services
+    ports:
+      - "9090:9090"   # Management API - PRIMARY INTERFACE
+      - "5901:5901"   # VNC (if ENABLE_DESKTOP=true)
+      - "6901:6901"   # noVNC (if ENABLE_DESKTOP=true)
+      - "8080:8080"   # code-server (if ENABLE_CODE_SERVER=true)
+
+    # Device access for GPU
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+
+    # Security options
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+
+    # Capabilities for GPU access
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Labels
+    labels:
+      com.agentic-flow.type: "workstation"
+      com.agentic-flow.version: "2.0.0"
+      com.agentic-flow.architecture: "simplified"
+
+    # Network
+    networks:
+      - agentic-network
+
+  claude-zai:
+    build:
+      context: .
+      dockerfile: claude-zai/Dockerfile
+    container_name: claude-zai-service
+    hostname: claude-zai
+    environment:
+      - NODE_ENV=production
+      - CLAUDE_CONFIG_DIR=/home/claude/.claude
+      - HOME=/home/claude
+      - ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+      - ANTHROPIC_AUTH_TOKEN=${ZAI_API_KEY}
+      - CLAUDE_WORKER_POOL_SIZE=${CLAUDE_WORKER_POOL_SIZE:-4}
+      - CLAUDE_MAX_QUEUE_SIZE=${CLAUDE_MAX_QUEUE_SIZE:-50}
+    restart: unless-stopped
+    networks:
+      - agentic-network
+    ports:
+      - "9600:9600"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  agentic-network:
+    driver: bridge
+
+# Named volumes
+volumes:
+  workspace:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/agentic-cachyos-workspace/_data
+
+  model-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/agentic-cachyos-models/_data
+
+  agent-memory:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/agentic-cachyos-memory/_data
+
+  config-persist:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/agentic-cachyos-config/_data
+
+  management-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/agentic-cachyos-management-logs/_data

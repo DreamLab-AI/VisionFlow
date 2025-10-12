@@ -1,31 +1,76 @@
-# Environment files
+# Agentic Flow CachyOS Workstation - Git Ignore
+
+# ===== Environment and Secrets =====
 .env
 .env.*
-!/.env.example
+*.local.*
+secrets/
+*.key
+*.pem
 
-# Local directories
-workspace/
-mcp-logs/
-.venv/
-pbr_outputs/
-docs/_archive
+# ===== API Keys =====
+*_API_KEY*
+anthropic.key
+openai.key
+gemini.key
 
-# IDE/Editor specific files
+# ===== Docker Volumes =====
+volumes/
+data/
+
+# ===== Logs =====
+*.log
+logs/
+*.log.*
+
+# ===== Temporary Files =====
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+
+# ===== Backup Files =====
+*.bak
+*.backup
+backup/
+backups/
+
+# ===== OS Files =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Editor Files =====
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Python artifacts
+# ===== Node.js =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== Python =====
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
+*.py[cod]
+*.so
+.Python
 
-# Build artifacts
+# ===== Build Artifacts =====
 dist/
 build/
 *.egg-info/
-gui-based-tools-docker/blender-4.5.1-linux-x64.tar.xz
 
-# Log files
-*.log
+# ===== Test Coverage =====
+coverage/
+.coverage
+*.cover
+
+# ===== Keep These =====
+!config/*.template
+!scripts/*.sh
+!README*.md
