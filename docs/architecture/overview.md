@@ -125,8 +125,8 @@ The current **75-80% completion** demonstrates mature architectural foundations 
 13. [Voice System Pipeline](#voice-system-pipeline) ✅ INTEGRATED
 
 ### Agent Systems
-14. [Multi-Agent System Integration](#multi-agent-system-integration)
-15. [Agent Spawn Flow](#agent-spawn-flow) ✅ COMPLETE
+14. [Multi-Agent System Integration](#multi-agent-system-integration) ✅ SIMPLIFIED
+15. [Agent Spawn Flow](#agent-spawn-flow) ✅ HTTP API-BASED
 16. [Agent Visualization Pipeline](#agent-visualization-pipeline) ✅ COMPLETE
 
 ### Status & Validation
@@ -140,6 +140,8 @@ The current **75-80% completion** demonstrates mature architectural foundations 
 
 ✅ **CURRENT STATUS**: Comprehensive Docker infrastructure operational, container networking validated, voice services fully integrated with centralized state management, API consolidation complete, GPU pipeline validated
 
+🔄 **ARCHITECTURE UPDATE (2025-10-12)**: Multi-agent integration simplified with Management API (HTTP :9090) replacing Docker exec pattern. Container renamed from `multi-agent-container` to `agentic-workstation` for clarity.
+
 ```mermaid
 graph TB
     subgraph "Docker Network: docker_ragflow"
@@ -150,11 +152,11 @@ graph TB
             Supervisor[Supervisord]
         end
 
-        subgraph "Multi-Agent Container (Basic Setup)"
-            ClaudeFlow[Claude-Flow Service]
+        subgraph "Agentic Workstation (agentic-workstation)"
+            ManagementAPI["Management API<br/>Port 9090"]
             MCPServer["MCP TCP Server<br/>Port 9500"]
-            WSBridge["WebSocket Bridge<br/>Port 3002"]
-            HealthCheck["Health Check<br/>Port 9501"]
+            AgentProcesses["Isolated Agent Processes<br/>/workspace/tasks/*"]
+            SystemMonitor["System Monitor<br/>GPU/Health"]
         end
 
         subgraph "Voice Services (External)"
@@ -184,19 +186,21 @@ graph TB
     Nginx -->|Proxy /| Frontend
     Nginx -->|Proxy /wss| Backend
 
+    Backend <-->|HTTP 9090| ManagementAPI
     Backend <-->|TCP 9500| MCPServer
-    Backend <-->|WS 3002| WSBridge
     Backend <-->|HTTP| Whisper
     Backend <-->|HTTP| Kokoro
 
-    ClaudeFlow <-->|Internal| MCPServer
-    ClaudeFlow <-->|Internal| WSBridge
+    ManagementAPI <-->|Spawn| AgentProcesses
+    ManagementAPI <-->|Query| SystemMonitor
+    AgentProcesses <-->|Status| MCPServer
 
     Supervisor -->|Manage| Nginx
     Supervisor -->|Manage| Backend
     Supervisor -->|Manage| Frontend
 
     style Backend fill:#c8e6c9
+    style ManagementAPI fill:#90caf9
     style MCPServer fill:#ffccbc
     style Whisper fill:#e1bee7
     style Kokoro fill:#e1bee7
@@ -1022,57 +1026,77 @@ sequenceDiagram
 
 ## Multi-Agent System Integration
 
+✅ **SIMPLIFIED ARCHITECTURE (2025-10-12)**: Task management via HTTP Management API, agent monitoring via MCP TCP
+
 ```mermaid
 sequenceDiagram
     participant User as User Interface
     participant Backend as VisionFlow Backend
-    participant MCP as MCP Server (9500)
-    participant CF as Claude-Flow
-    participant Agents as Agent Swarm
-    participant Memory as Shared Memory
+    participant MgmtAPI as Management API (9090)
+    participant ProcessMgr as Process Manager
+    participant Agents as Isolated Agent Tasks
+    participant MCP as MCP TCP Server (9500)
+    participant Monitor as AgentMonitorActor
 
-    Note over User,Memory: Agent Orchestration Flow
+    Note over User,Monitor: Task Creation Flow (HTTP)
 
-    User->>Backend: Request task
-    Backend->>MCP: JSON-RPC call
-    MCP->>CF: InitializeSwarm
+    User->>Backend: POST /api/bots/spawn
+    Backend->>MgmtAPI: POST /v1/tasks
+    Note over MgmtAPI: {agent: "coder",<br/>task: "...",<br/>provider: "gemini"}
+    MgmtAPI->>ProcessMgr: Spawn isolated process
+    ProcessMgr->>Agents: Start in /workspace/tasks/{taskId}
+    MgmtAPI-->>Backend: {taskId, status: "accepted"}
+    Backend-->>User: Task created
 
-    CF->>CF: Determine topology
-    Note over CF: Mesh: Collaborative<br/>Hierarchical: Complex<br/>Ring: Sequential
+    Note over User,Monitor: Agent Monitoring Flow (MCP TCP)
 
-    CF->>Agents: SpawnAgents
-
-    par Agent Creation
-        CF->>Agents: Create Researcher
-        and
-        CF->>Agents: Create Analyzer
-        and
-        CF->>Agents: Create Coordinator
+    loop Poll every 2s
+        Monitor->>MCP: JSON-RPC list-agents
+        MCP-->>Monitor: [agent1, agent2, ...]
+        Monitor->>Backend: UpdateAgentCache
+        Backend-->>User: WebSocket update
     end
 
-    Agents->>Memory: Store capabilities
+    Note over User,Monitor: Task Status Polling (HTTP)
 
-    loop Task Execution
-        CF->>Agents: AssignTask
-        Agents->>Agents: Process
-        Agents->>Memory: UpdateProgress
-        Memory-->>CF: Status
-        CF-->>MCP: Progress
-        MCP-->>Backend: Update
-        Backend-->>User: Feedback
+    loop Poll task status
+        User->>Backend: GET /api/bots/tasks/{taskId}
+        Backend->>MgmtAPI: GET /v1/tasks/{taskId}
+        MgmtAPI-->>Backend: {status, logs, exitCode}
+        Backend-->>User: Display status
     end
 
-    Agents-->>CF: Results
-    CF-->>MCP: Complete
-    MCP-->>Backend: Final result
-    Backend-->>User: Display
+    Agents-->>ProcessMgr: Exit (success/failure)
+    ProcessMgr-->>MgmtAPI: Record exit code
+    MgmtAPI-->>Backend: Task completed
+    Backend-->>User: Final result
 ```
+
+### Key Architecture Changes
+
+**Before (Docker Exec)**:
+- DockerHiveMind utility
+- Direct `docker exec` commands
+- Session correlation bridges
+- Complex state management
+
+**After (HTTP API)**:
+- Management API Client (HTTP)
+- RESTful task management
+- Process isolation by default
+- Clean separation of concerns
+
+**Benefits**:
+- Simpler integration (HTTP vs Docker exec)
+- Better task isolation (dedicated directories)
+- Enhanced security (Bearer tokens, rate limiting)
+- Improved observability (structured logs, metrics)
 
 ---
 
 ## Agent Spawn Flow
 
-⚠️ **THEORETICAL**: Agent spawn logic exists but runtime behaviour needs testing
+✅ **HTTP API-BASED (2025-10-12)**: Tasks created via Management API with automatic isolation
 
 ```mermaid
 flowchart TB
@@ -1118,10 +1142,12 @@ flowchart TB
 ```
 
 ### Implementation Status:
-- ⚠️ **Position Generation**: Spherical distribution code exists
-- ⚠️ **Binary Protocol**: 34-byte format specified
-- ⚠️ **Agent Metadata**: Data structures defined
-- ⚠️ **Initial Velocity**: Zero velocity configured
+- ✅ **Position Generation**: Spherical distribution code exists
+- ✅ **Binary Protocol**: 34-byte format specified and implemented
+- ✅ **Agent Metadata**: Data structures defined
+- ✅ **Initial Velocity**: Zero velocity configured
+- ✅ **Task Isolation**: Management API creates dedicated directories per task
+- ✅ **Status Monitoring**: AgentMonitorActor polls MCP TCP every 2s
 
 ---
 

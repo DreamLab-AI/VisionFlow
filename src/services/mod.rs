@@ -9,7 +9,6 @@ pub mod file_service;
 pub mod github;
 // graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
-pub mod mcp_session_bridge;
 pub mod nostr_service;
 pub mod owl_validator;
 pub mod perplexity_service;
@@ -20,4 +19,3 @@ pub mod voice_context_manager;
 pub mod voice_tag_manager;
 pub mod speech_voice_integration;
 pub mod graph_serialization;
-pub mod session_correlation_bridge;

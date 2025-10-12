@@ -101,6 +101,7 @@ services:
 
     networks:
       - agentic-network
+      - docker_ragflow
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
@@ -127,6 +128,7 @@ services:
 
     networks:
       - agentic-network
+      - docker_ragflow
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9600/health"]
@@ -140,6 +142,9 @@ services:
 networks:
   agentic-network:
     driver: bridge
+  docker_ragflow:
+    external: true
+    name: docker_ragflow
 
 volumes:
   workspace:

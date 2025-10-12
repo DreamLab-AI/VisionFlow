@@ -50,7 +50,8 @@ services:
       - VITE_HMR_PORT=24678
       - RUST_LOG_REDIRECT=true
       - SYSTEM_NETWORK_PORT=4000
-      - CLAUDE_FLOW_HOST=multi-agent-container
+      - CLAUDE_FLOW_HOST=agentic-workstation
+      - MCP_HOST=agentic-workstation
       - MCP_TCP_PORT=9500
       - MCP_TRANSPORT=tcp
       - MCP_RECONNECT_ATTEMPTS=3
@@ -58,7 +59,9 @@ services:
       - MCP_CONNECTION_TIMEOUT=30000
       - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
       - MCP_RELAY_FALLBACK_TO_MOCK=true
-      - BOTS_ORCHESTRATOR_URL=ws://multi-agent-container:3002
+      - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
+      - MANAGEMENT_API_HOST=agentic-workstation
+      - MANAGEMENT_API_PORT=9090
     ports:
       - "3001:3001"  # Nginx entry point for dev
     networks:
@@ -85,7 +88,8 @@ services:
       - NODE_ENV=production
       - RUST_LOG=warn
       - SYSTEM_NETWORK_PORT=4001
-      - CLAUDE_FLOW_HOST=multi-agent-container
+      - CLAUDE_FLOW_HOST=agentic-workstation
+      - MCP_HOST=agentic-workstation
       - MCP_TCP_PORT=9500
       - MCP_TRANSPORT=tcp
       - MCP_RECONNECT_ATTEMPTS=3
@@ -93,7 +97,9 @@ services:
       - MCP_CONNECTION_TIMEOUT=30000
       - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
       - MCP_RELAY_FALLBACK_TO_MOCK=true
-      - BOTS_ORCHESTRATOR_URL=ws://multi-agent-container:3002
+      - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
+      - MANAGEMENT_API_HOST=agentic-workstation
+      - MANAGEMENT_API_PORT=9090
     volumes:
       - ./client:/app/client
       - ./src:/app/src

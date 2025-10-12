@@ -10,7 +10,7 @@ use crate::models::simulation_params::{SimulationParams};
 use crate::actors::messages::{GetSettings, GetBotsGraphData};
 use crate::services::bots_client::{BotsClient, Agent};
 use crate::handlers::hybrid_health_handler::{HybridHealthManager, SpawnSwarmRequest};
-use crate::utils::docker_hive_mind::{DockerHiveMind, SessionInfo, SwarmConfig, SwarmPriority, SwarmStrategy};
+use crate::actors::{CreateTask, StopTask};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -85,97 +85,17 @@ static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
 static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
     Lazy::new(|| Arc::new(RwLock::new(None)));
 
-/// Convert Docker sessions to Agent format for compatibility
-fn convert_sessions_to_agents(sessions: Vec<SessionInfo>) -> Vec<Agent> {
-    sessions.into_iter().enumerate().map(|(idx, session)| {
-        let base_id = idx as f32;
-        Agent {
-            id: session.session_id.clone(),
-            name: format!("Swarm-{}", &session.session_id[..8]),
-            agent_type: match session.config.strategy {
-                SwarmStrategy::Strategic => "queen".to_string(),
-                SwarmStrategy::Tactical => "coordinator".to_string(),
-                SwarmStrategy::Adaptive => "optimizer".to_string(),
-                SwarmStrategy::HiveMind => "worker".to_string(),
-            },
-            status: match session.status {
-                crate::utils::docker_hive_mind::SwarmStatus::Active => "active".to_string(),
-                crate::utils::docker_hive_mind::SwarmStatus::Spawning => "spawning".to_string(),
-                crate::utils::docker_hive_mind::SwarmStatus::Completed => "completed".to_string(),
-                crate::utils::docker_hive_mind::SwarmStatus::Failed => "failed".to_string(),
-                _ => "unknown".to_string(),
-            },
-            x: (base_id * 50.0) % 300.0 - 150.0, // Spread agents in a grid
-            y: (base_id * 30.0) % 200.0 - 100.0,
-            z: 0.0,
-            cpu_usage: session.metrics.cpu_usage_percent as f32,
-            memory_usage: session.metrics.memory_usage_mb as f32,
-            health: if session.metrics.failed_tasks == 0 { 100.0 } else { 50.0 },
-            workload: session.metrics.active_workers as f32,
-            created_at: Some(session.created_at.to_rfc3339()),
-            age: Some((chrono::Utc::now() - session.created_at).num_seconds() as u64),
-        }
-    }).collect()
-}
-
-fn convert_monitored_sessions_to_agents(sessions: Vec<crate::services::mcp_session_bridge::MonitoredSessionMetadata>) -> Vec<Agent> {
-    sessions.into_iter().enumerate().map(|(idx, session)| {
-        let base_id = idx as f32;
-        let display_id = session.swarm_id.as_ref().unwrap_or(&session.uuid);
-
-        Agent {
-            id: display_id.clone(),
-            name: format!("Session-{}", &session.uuid[..8]),
-            agent_type: "worker".to_string(), // Default type, can be enhanced with MCP data
-            status: session.status.clone(),
-            x: (base_id * 50.0) % 300.0 - 150.0,
-            y: (base_id * 30.0) % 200.0 - 100.0,
-            z: 0.0,
-            cpu_usage: 0.0, // TODO: Get from MCP telemetry
-            memory_usage: 0.0, // TODO: Get from MCP telemetry
-            health: if session.status == "active" { 100.0 } else { 50.0 },
-            workload: session.agent_count as f32,
-            created_at: Some(session.created_at.to_rfc3339()),
-            age: Some((chrono::Utc::now() - session.created_at).num_seconds() as u64),
-        }
-    }).collect()
-}
+// Legacy converter functions removed - agent data now comes from MCP TCP via AgentMonitorActor
 
 pub async fn fetch_hive_mind_agents(
     state: &AppState,
-    hybrid_manager: Option<&Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<&Arc<HybridHealthManager>>,
 ) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
-    // Try MCP session bridge first to get real session data
-    let bridge = state.get_mcp_session_bridge();
-    match bridge.list_monitored_sessions().await {
-        sessions if !sessions.is_empty() => {
-            info!("Retrieved {} sessions from MCP bridge", sessions.len());
-            let agents = convert_monitored_sessions_to_agents(sessions);
-            return Ok(agents);
-        }
-        _ => {
-            info!("No sessions from MCP bridge, trying other methods");
-        }
-    }
-
-    // Try hybrid approach if available
-    if let Some(manager) = hybrid_manager {
-        match manager.get_system_status().await {
-            Ok(status) => {
-                info!("Retrieved {} active sessions from DockerHiveMind", status.active_sessions.len());
-                let agents = convert_sessions_to_agents(status.active_sessions);
-                return Ok(agents);
-            }
-            Err(e) => {
-                warn!("Failed to get sessions from DockerHiveMind, falling back to BotsClient: {}", e);
-            }
-        }
-    }
-
-    // Fallback to existing BotsClient
+    // Agent data comes from AgentMonitorActor via MCP TCP polling
+    // Use BotsClient which caches the latest agent data from the graph
     match state.bots_client.get_agents_snapshot().await {
         Ok(agents) => {
-            info!("Retrieved {} agents from BotsClient", agents.len());
+            info!("Retrieved {} agents from BotsClient cache", agents.len());
             Ok(agents)
         }
         Err(e) => {
@@ -307,30 +227,11 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 pub async fn initialize_hive_mind_swarm(
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
-    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+    _hybrid_manager: web::Data<Arc<HybridHealthManager>>,
 ) -> Result<impl Responder> {
-    info!("🐝 Initializing hive mind swarm with topology: {}", request.topology);
+    info!("🐝 Initializing hive mind swarm via Management API with topology: {}", request.topology);
 
-    // Test MCP connection first
-    match state.bots_client.test_connection().await {
-        Ok(true) => info!("✓ MCP server is connected"),
-        Ok(false) => {
-            error!("✗ MCP server is not connected");
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "success": false,
-                "error": "MCP server is not connected. Please check the multi-agent-container is running."
-            })));
-        }
-        Err(e) => {
-            error!("✗ Failed to test MCP connection: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "success": false,
-                "error": format!("Failed to test MCP connection: {}", e)
-            })));
-        }
-    }
-
-    // Build task description - use custom prompt if provided, otherwise generate from parameters
+    // Build task description
     let base_task = if let Some(custom_prompt) = &request.custom_prompt {
         if !custom_prompt.trim().is_empty() {
             custom_prompt.trim().to_string()
@@ -355,79 +256,70 @@ pub async fn initialize_hive_mind_swarm(
         )
     };
 
-    // Append communication protocol instructions for MCP/TCP routing
+    // Append communication protocol instructions
     let task = format!(
         "{}\n\n**IMPORTANT COMMUNICATION PROTOCOL:**\n\
-        When you need to send important updates to the user, use one of these methods:\n\n\
-        **Method 1: Direct TCP message (recommended)**\n\
-        ```bash\n\
-        /app/scripts/send-client-message.sh \"Your message here\"\n\
-        ```\n\n\
-        **Method 2: Markdown format (auto-extracted from logs)**\n\
-        Write in your output:\n\
-        **[CLIENT_MESSAGE]** Your message here **[/CLIENT_MESSAGE]**\n\n\
-        Messages will be displayed in the user's telemetry panel in real-time.\n\n\
-        Use this for:\n\
-        - Progress updates on major milestones\n\
-        - Important decisions or changes requiring user awareness\n\
-        - Questions that need user input\n\
-        - Final results or deliverables\n\
-        - Critical errors or blockers\n\n\
-        Examples:\n\
-        - `/app/scripts/send-client-message.sh \"Database schema completed with 12 tables. Ready for review.\"`\n\
-        - **[CLIENT_MESSAGE]** Started API implementation. ETA: 15 minutes **[/CLIENT_MESSAGE]**\n\
-        - `/app/scripts/send-client-message.sh \"ERROR: Missing API key. User input required.\"`",
+        Messages will be displayed in the user's telemetry panel in real-time.\n\
+        Use this for progress updates, decisions, questions, results, and errors.",
         base_task
     );
 
     info!("🔧 Swarm initialization task: {}", task);
 
-    // Parse strategy from request
-    let strategy = match request.strategy.as_str() {
-        "strategic" => SwarmStrategy::Strategic,
-        "tactical" => SwarmStrategy::Tactical,
-        "adaptive" => SwarmStrategy::Adaptive,
-        _ => SwarmStrategy::HiveMind,
+    // Determine agent type and provider based on strategy
+    let agent_type = match request.strategy.as_str() {
+        "strategic" => "coordinator",
+        "tactical" => "coder",
+        "adaptive" => "optimizer",
+        _ => "claude-flow",
     };
 
-    // Use MCP session bridge to spawn real sessions with spawn_and_monitor
-    match spawn_swarm_monitored(
-        state.get_ref(),
-        &task,
-        Some(SwarmPriority::High),
-        Some(strategy),
-        &request.agent_types,
-    ).await {
-        Ok((uuid, swarm_id)) => {
-            info!("✓ Successfully spawned hive mind swarm - UUID: {}, Swarm ID: {:?}", uuid, swarm_id);
+    let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
 
-            // Store the swarm ID for reference
+    // Create task via TaskOrchestratorActor
+    let create_task_msg = CreateTask {
+        agent: agent_type.to_string(),
+        task: task.clone(),
+        provider: provider.clone(),
+    };
+
+    match state.get_task_orchestrator_addr().send(create_task_msg).await {
+        Ok(Ok(task_response)) => {
+            info!("✓ Successfully created task via Management API - Task ID: {}", task_response.task_id);
+
+            // Store the task ID for reference
             {
                 let mut current_id = CURRENT_SWARM_ID.write().await;
-                *current_id = swarm_id.clone();
+                *current_id = Some(task_response.task_id.clone());
             }
 
-            // Return immediately - frontend will poll /bots/status to get agent updates
-            // This prevents timeout issues when agent initialization takes >30s
-            Ok(HttpResponse::Ok().json(json!({
+            // Return immediately - AgentMonitorActor will poll MCP for agent updates
+            Ok(HttpResponse::Accepted().json(json!({
                 "success": true,
-                "message": "Hive mind swarm spawned successfully. Agents will appear shortly.",
-                "uuid": uuid,
-                "swarm_id": swarm_id,
+                "message": "Hive mind swarm task created. Agents will appear shortly.",
+                "task_id": task_response.task_id,
                 "topology": request.topology,
                 "strategy": request.strategy,
                 "agent_types": request.agent_types,
                 "max_agents": request.max_agents,
                 "enable_neural": request.enable_neural,
+                "provider": provider,
+            })))
+        }
+        Ok(Err(e)) => {
+            error!("✗ Failed to create swarm task: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": format!("Failed to create task: {}", e),
+                "topology": request.topology,
+                "strategy": request.strategy,
             })))
         }
         Err(e) => {
-            error!("✗ Failed to spawn hive mind swarm: {}", e);
+            error!("✗ Actor communication error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "success": false,
-                "error": format!("Failed to initialize swarm: {}", e),
-                "topology": request.topology,
-                "strategy": request.strategy,
+                "error": format!("Actor communication error: {}", e),
             })))
         }
     }
@@ -480,65 +372,46 @@ pub async fn spawn_agent_hybrid(
     state: web::Data<AppState>,
     req: web::Json<SpawnAgentHybridRequest>,
 ) -> Result<impl Responder> {
-    info!("Spawning agent hybrid: {:?}", req);
+    info!("Spawning agent via Management API: {:?}", req);
 
-    // Parse priority and strategy from request
-    let priority = match req.priority.as_deref() {
-        Some("low") => Some(SwarmPriority::Low),
-        Some("high") => Some(SwarmPriority::High),
-        Some("critical") => Some(SwarmPriority::Critical),
-        _ => Some(SwarmPriority::Medium),
+    let task = format!("Spawn {} agent for swarm {}", req.agent_type, req.swarm_id);
+    let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
+
+    // Create task via TaskOrchestratorActor
+    let create_task_msg = CreateTask {
+        agent: req.agent_type.clone(),
+        task,
+        provider: provider.clone(),
     };
 
-    let strategy = match req.strategy.as_deref() {
-        Some("strategic") => Some(SwarmStrategy::Strategic),
-        Some("tactical") => Some(SwarmStrategy::Tactical),
-        Some("adaptive") => Some(SwarmStrategy::Adaptive),
-        _ => Some(SwarmStrategy::HiveMind),
-    };
-
-    // Try Docker method first if requested
-    if req.method == "docker" {
-        let task = format!("Spawn {} agent for hive mind coordination", req.agent_type);
-
-        // Use MCP session bridge to spawn and monitor
-        match spawn_docker_agent_monitored(state.get_ref(), &task, priority, strategy).await {
-            Ok((uuid, swarm_id)) => {
-                info!("Successfully spawned {} agent via Docker - UUID: {}, Swarm ID: {:?}",
-                      req.agent_type, uuid, swarm_id);
-                return Ok(HttpResponse::Ok().json(SpawnAgentResponse {
-                    success: true,
-                    swarm_id: swarm_id.or(Some(uuid.clone())),
-                    error: None,
-                    method_used: Some("docker".to_string()),
-                    message: Some(format!("Successfully spawned {} agent via Docker (UUID: {})", req.agent_type, uuid)),
-                }));
-            }
-            Err(e) => {
-                warn!("Docker spawn failed for {} agent: {}", req.agent_type, e);
-                // Fall through to MCP fallback if Docker fails
-            }
-        }
-    }
-
-    // MCP fallback method
-    match spawn_mcp_agent(state.get_ref(), &req.agent_type, &req.swarm_id).await {
-        Ok(agent_id) => {
-            info!("Successfully spawned {} agent via MCP with ID: {}", req.agent_type, agent_id);
-            Ok(HttpResponse::Ok().json(SpawnAgentResponse {
+    match state.get_task_orchestrator_addr().send(create_task_msg).await {
+        Ok(Ok(task_response)) => {
+            info!("Successfully spawned {} agent via Management API - Task ID: {}",
+                  req.agent_type, task_response.task_id);
+            Ok(HttpResponse::Accepted().json(SpawnAgentResponse {
                 success: true,
-                swarm_id: Some(agent_id),
+                swarm_id: Some(task_response.task_id),
                 error: None,
-                method_used: Some("mcp".to_string()),
-                message: Some(format!("Successfully spawned {} agent via MCP", req.agent_type)),
+                method_used: Some("management-api".to_string()),
+                message: Some(format!("Successfully spawned {} agent via Management API", req.agent_type)),
             }))
         }
-        Err(e) => {
-            error!("Both Docker and MCP failed for {} agent: {}", req.agent_type, e);
+        Ok(Err(e)) => {
+            error!("Failed to spawn {} agent: {}", req.agent_type, e);
             Ok(HttpResponse::InternalServerError().json(SpawnAgentResponse {
                 success: false,
                 swarm_id: None,
-                error: Some(format!("Both Docker and MCP methods failed: {}", e)),
+                error: Some(format!("Failed to create task: {}", e)),
+                method_used: None,
+                message: None,
+            }))
+        }
+        Err(e) => {
+            error!("Actor communication error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(SpawnAgentResponse {
+                success: false,
+                swarm_id: None,
+                error: Some(format!("Actor communication error: {}", e)),
                 method_used: None,
                 message: None,
             }))
@@ -546,81 +419,7 @@ pub async fn spawn_agent_hybrid(
     }
 }
 
-async fn spawn_docker_agent_monitored(
-    state: &AppState,
-    task: &str,
-    priority: Option<SwarmPriority>,
-    strategy: Option<SwarmStrategy>,
-) -> Result<(String, Option<String>), Box<dyn std::error::Error + Send + Sync>> {
-    use crate::utils::docker_hive_mind::SwarmConfig;
-
-    let config = SwarmConfig {
-        priority: priority.unwrap_or(SwarmPriority::Medium),
-        strategy: strategy.unwrap_or(SwarmStrategy::HiveMind),
-        auto_scale: true,
-        monitor: true,
-        max_workers: Some(8),
-        consensus_type: None,
-        memory_size_mb: None,
-        encryption: false,
-        verbose: false,
-    };
-
-    // Use MCP session bridge to spawn and monitor for swarm ID
-    let bridge = state.get_mcp_session_bridge();
-    let monitored = bridge.spawn_and_monitor(task, config).await?;
-
-    Ok((monitored.uuid, monitored.swarm_id))
-}
-
-async fn spawn_swarm_monitored(
-    state: &AppState,
-    task: &str,
-    priority: Option<SwarmPriority>,
-    strategy: Option<SwarmStrategy>,
-    agent_types: &[String],
-) -> Result<(String, Option<String>), Box<dyn std::error::Error + Send + Sync>> {
-    use crate::utils::docker_hive_mind::SwarmConfig;
-
-    // Calculate max workers based on agent types requested
-    let max_workers = agent_types.len().max(4) as u32;
-
-    let config = SwarmConfig {
-        priority: priority.unwrap_or(SwarmPriority::High),
-        strategy: strategy.unwrap_or(SwarmStrategy::HiveMind),
-        auto_scale: true,
-        monitor: true,
-        max_workers: Some(max_workers),
-        consensus_type: None,
-        memory_size_mb: None,
-        encryption: false,
-        verbose: true,
-    };
-
-    info!("🚀 Spawning swarm with config: {:?}", config);
-
-    // Use MCP session bridge to spawn and monitor for swarm ID
-    let bridge = state.get_mcp_session_bridge();
-    let monitored = bridge.spawn_and_monitor(task, config)
-        .await
-        .map_err(|e| format!("Failed to spawn and monitor swarm: {}", e))?;
-
-    info!("✓ Swarm spawned - UUID: {}, Swarm ID: {:?}", monitored.uuid, monitored.swarm_id);
-
-    Ok((monitored.uuid, monitored.swarm_id))
-}
-
-async fn spawn_mcp_agent(
-    state: &AppState,
-    agent_type: &str,
-    swarm_id: &str,
-) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    // Use the bots_client from AppState for MCP spawning
-    match timeout(Duration::from_secs(10), state.bots_client.spawn_agent_mcp(agent_type, swarm_id)).await {
-        Ok(result) => result.map_err(|e| format!("MCP spawn failed: {}", e).into()),
-        Err(_) => Err("MCP spawn timeout".into()),
-    }
-}
+// Legacy spawn helper functions removed - all task creation now via TaskOrchestratorActor
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -634,14 +433,18 @@ pub struct TaskResponse {
 /// Remove/stop a task by ID
 pub async fn remove_task(
     path: web::Path<String>,
-    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+    state: web::Data<AppState>,
 ) -> Result<impl Responder> {
     let task_id = path.into_inner();
-    info!("Removing task: {}", task_id);
+    info!("Stopping task via Management API: {}", task_id);
 
-    // Use DockerHiveMind directly from the hybrid manager
-    match hybrid_manager.docker_hive_mind.stop_swarm(&task_id).await {
-        Ok(()) => {
+    // Send StopTask message to TaskOrchestratorActor
+    let stop_task_msg = StopTask {
+        task_id: task_id.clone(),
+    };
+
+    match state.get_task_orchestrator_addr().send(stop_task_msg).await {
+        Ok(Ok(())) => {
             info!("Successfully stopped task: {}", task_id);
             Ok(HttpResponse::Ok().json(TaskResponse {
                 success: true,
@@ -650,41 +453,20 @@ pub async fn remove_task(
                 error: None,
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("Failed to stop task {}: {}", task_id, e);
             Ok(HttpResponse::InternalServerError().json(TaskResponse {
                 success: false,
                 message: format!("Failed to stop task: {}", e),
                 task_id: Some(task_id),
-                error: Some(e.to_string()),
-            }))
-        }
-    }
-}
-
-/// Pause a task by ID
-pub async fn pause_task(
-    path: web::Path<String>,
-    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
-) -> Result<impl Responder> {
-    let task_id = path.into_inner();
-    info!("Pausing task: {}", task_id);
-
-    match hybrid_manager.docker_hive_mind.pause_swarm(&task_id).await {
-        Ok(()) => {
-            info!("Successfully paused task: {}", task_id);
-            Ok(HttpResponse::Ok().json(TaskResponse {
-                success: true,
-                message: format!("Task {} paused successfully", task_id),
-                task_id: Some(task_id),
-                error: None,
+                error: Some(e),
             }))
         }
         Err(e) => {
-            error!("Failed to pause task {}: {}", task_id, e);
+            error!("Actor communication error: {}", e);
             Ok(HttpResponse::InternalServerError().json(TaskResponse {
                 success: false,
-                message: format!("Failed to pause task: {}", e),
+                message: format!("Actor communication error: {}", e),
                 task_id: Some(task_id),
                 error: Some(e.to_string()),
             }))
@@ -692,35 +474,7 @@ pub async fn pause_task(
     }
 }
 
-/// Resume a paused task by ID
-pub async fn resume_task(
-    path: web::Path<String>,
-    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
-) -> Result<impl Responder> {
-    let task_id = path.into_inner();
-    info!("Resuming task: {}", task_id);
-
-    match hybrid_manager.docker_hive_mind.resume_swarm(&task_id).await {
-        Ok(()) => {
-            info!("Successfully resumed task: {}", task_id);
-            Ok(HttpResponse::Ok().json(TaskResponse {
-                success: true,
-                message: format!("Task {} resumed successfully", task_id),
-                task_id: Some(task_id),
-                error: None,
-            }))
-        }
-        Err(e) => {
-            error!("Failed to resume task {}: {}", task_id, e);
-            Ok(HttpResponse::InternalServerError().json(TaskResponse {
-                success: false,
-                message: format!("Failed to resume task: {}", e),
-                task_id: Some(task_id),
-                error: Some(e.to_string()),
-            }))
-        }
-    }
-}
+// pause_task and resume_task removed - Management API does not support pause/resume
 
 // Helper function for socket handler to get bot positions
 pub async fn get_bots_positions(bots_client: &Arc<BotsClient>) -> Vec<BotsNodeData> {

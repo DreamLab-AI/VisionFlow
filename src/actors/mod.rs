@@ -7,9 +7,7 @@ pub mod metadata_actor;
 pub mod client_coordinator_actor;
 pub mod gpu; // Modular GPU actors system
 pub mod protected_settings_actor;
-pub mod claude_flow_actor;
-pub mod tcp_connection_actor;
-pub mod jsonrpc_client;
+pub mod agent_monitor_actor;
 pub mod supervisor;
 pub mod voice_commands;
 // pub mod supervisor_voice; // Removed - duplicate handlers in supervisor.rs
@@ -18,6 +16,7 @@ pub mod workspace_actor;
 pub mod semantic_processor_actor;
 pub mod ontology_actor;
 pub mod graph_service_supervisor;
+pub mod task_orchestrator_actor;
 pub mod messages;
 pub mod graph_messages;
 
@@ -28,15 +27,14 @@ pub use metadata_actor::MetadataActor;
 pub use client_coordinator_actor::{ClientCoordinatorActor, ClientCoordinatorStats, ClientManager, ClientState};
 pub use gpu::GPUManagerActor; // Modular GPU manager system
 pub use protected_settings_actor::ProtectedSettingsActor;
-pub use claude_flow_actor::ClaudeFlowActorTcp as ClaudeFlowActor;
-pub use tcp_connection_actor::TcpConnectionActor;
-pub use jsonrpc_client::JsonRpcClient;
+pub use agent_monitor_actor::AgentMonitorActor;
 pub use supervisor::{SupervisorActor, SupervisionStrategy, SupervisedActorTrait, SupervisedActorInfo};
 pub use voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent, VoicePreamble};
 pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor;
 pub use workspace_actor::WorkspaceActor;
 pub use semantic_processor_actor::{SemanticProcessorActor, SemanticProcessorConfig, SemanticStats, AISemanticFeatures};
 pub use ontology_actor::{OntologyActor, OntologyActorConfig, ValidationJob, JobPriority, JobStatus, ActorStatistics as OntologyActorStatistics};
+pub use task_orchestrator_actor::{TaskOrchestratorActor, CreateTask, GetTaskStatus, StopTask, ListActiveTasks, GetSystemStatus, SystemStatusInfo, TaskState};
 pub use graph_service_supervisor::{
     GraphServiceSupervisor, GraphSupervisionStrategy, RestartPolicy, BackoffStrategy,
     ActorHealth, ActorType, SupervisorStatus, SupervisorMessage, ActorHeartbeat,

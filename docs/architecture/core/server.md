@@ -1,10 +1,10 @@
 # Rust Server Architecture
 
-**Last Updated**: 2025-09-27
-**Status**: Transitional Architecture - Migration from Monolithic to Supervised Actor System
+**Last Updated**: 2025-10-12
+**Status**: Simplified Multi-Agent Integration via Management API
 **Analysis Base**: Direct source code inspection of Rust server implementation
 
-> **Note**: This codebase is evolving rapidly. The server is currently in a transitional state, migrating from a monolithic `GraphServiceActor` to a fully supervised architecture. This document reflects the current hybrid implementation.
+> **Note**: This document reflects the current simplified architecture where VisionFlow integrates with the agentic-workstation container via HTTP Management API (port 9090) for task orchestration and MCP TCP (port 9500) for agent monitoring.
 
 ## High-Level System Overview
 
@@ -42,7 +42,7 @@ graph TB
         ProtectedSettings[ProtectedSettingsActor<br/>Secure Configuration]
         MetadataActor[MetadataActor<br/>File Metadata Storage]
         WorkspaceActor[WorkspaceActor<br/>Project Management]
-        ClaudeFlowActor[ClaudeFlowActor<br/>MCP Integration]
+        AgentMonitorActor[AgentMonitorActor<br/>MCP TCP Polling :9500]
         TcpConnectionActor[TcpConnectionActor<br/>TCP Management]
         FileSearchActor[FileSearchActor<br/>Content Search]
         CacheActor[CacheActor<br/>Memory Caching]
@@ -51,7 +51,7 @@ graph TB
 
     %% Non-Actor Services
     subgraph "Utility Services (Non-Actor)"
-        DockerHiveMind[DockerHiveMind<br/>Container Orchestration]
+        ManagementApiClient[ManagementApiClient<br/>HTTP Client for Task Management]
         McpTcpClient[McpTcpClient<br/>Direct TCP Client]
         JsonRpcClient[JsonRpcClient<br/>MCP Protocol]
     end
@@ -95,9 +95,7 @@ graph TB
     %% External Services
     subgraph "External Integrations"
         GitHub[GitHub API<br/>Content Fetching]
-        Docker[Docker Services<br/>multi-agent-container]
-        ClaudeFlowCLI[Claude Flow CLI<br/>npx claude-flow]
-        MCP[MCP Servers<br/>TCP :9500]
+        AgenticWorkstation[agentic-workstation<br/>Management API :9090<br/>MCP TCP :9500]
         Nostr[Nostr Protocol<br/>Decentralised Identity]
         RAGFlow[RAGFlow API<br/>Chat Integration]
         Speech[Speech Services<br/>Voice Processing]
@@ -118,13 +116,13 @@ graph TB
     AppState --> GPUManager
     AppState --> ClientCoordinator
     AppState --> OptimisedSettings
-    AppState --> ClaudeFlowActor
+    AppState --> AgentMonitorActor
 
-    ClaudeFlowActor --> TcpConnectionActor
-    ClaudeFlowActor --> JsonRpcClient
+    AgentMonitorActor --> TcpConnectionActor
+    AgentMonitorActor --> JsonRpcClient
 
-    BotsAPI --> DockerHiveMind
-    DockerHiveMind --> Docker
+    BotsAPI --> ManagementApiClient
+    ManagementApiClient --> AgenticWorkstation
 
     Router --> SocketFlow
     SocketFlow --> ClientCoordinator
@@ -136,8 +134,7 @@ graph TB
     GPUManager --> AnomalyDetectionActor
     GPUManager --> StressMajorizationActor
 
-    TcpConnectionActor --> MCP
-    DockerHiveMind --> ClaudeFlowCLI
+    TcpConnectionActor --> AgenticWorkstation
 ```
 
 ## Actor System Architecture - Transitional State
@@ -264,45 +261,86 @@ GPUManagerActor (Supervisor)
 
 ## External Integration Architecture
 
-### Task & Container Orchestration
+### Simplified Multi-Agent Integration
 
-**Important**: Task orchestration is implemented via utility services, NOT actors:
+**Architecture Overview**: VisionFlow now integrates with the agentic-workstation container through two clean interfaces:
 
-#### DockerHiveMind (Utility Service)
-- **Location**: `/src/utils/docker_hive_mind.rs`
-- **Pattern**: Direct Docker exec commands
-- **Target**: `multi-agent-container`
-- **Features**: Session caching, health monitoring, cleanup automation
+1. **Management API (HTTP)**: Task orchestration and control
+2. **MCP TCP (Port 9500)**: Agent status monitoring
 
-```bash
-# Example command executed
-docker exec multi-agent-container /app/node_modules/.bin/claude-flow hive-mind spawn
+#### Management API Client (HTTP :9090)
+- **Location**: Utility service (to be implemented)
+- **Pattern**: RESTful HTTP client
+- **Target**: `agentic-workstation:9090`
+- **Operations**:
+  - `POST /v1/tasks` - Create isolated tasks
+  - `GET /v1/tasks/:taskId` - Get task status and logs
+  - `DELETE /v1/tasks/:taskId` - Stop running task
+  - `GET /v1/status` - System health and GPU monitoring
+
+**Key Benefits**:
+- Clean HTTP interface replaces Docker exec complexity
+- Process isolation via Management API task directories
+- Bearer token authentication
+- Structured JSON responses
+- Rate limiting and security built-in
+
+#### Agent Monitor Actor (formerly ClaudeFlowActor)
+- **Location**: `/src/actors/claude_flow_actor.rs`
+- **Renamed to**: AgentMonitorActor (conceptually)
+- **Purpose**: Poll MCP TCP for agent status updates only
+- **Pattern**: Read-only monitoring via MCP protocol
+- **Target**: `agentic-workstation:9500`
+
+**Responsibilities**:
+- Poll agent list via MCP TCP
+- Update graph visualization with agent status
+- Monitor agent health metrics
+- NO task creation/management (delegated to Management API)
+
+### Integration Stack
+
+#### Task Management Flow
+```
+REST Handler (/api/bots/*)
+    ↓
+ManagementApiClient (HTTP)
+    ↓
+Management API Server (agentic-workstation:9090)
+    ↓
+Process Manager spawns isolated agentic-flow tasks
 ```
 
-#### Task Management Endpoints
-- **Implementation**: `/src/handlers/bots_handler.rs`
-- **Endpoints**: `/bots/remove-task`, `/pause-task`, `/resume-task`
-- **Pattern**: REST handlers calling DockerHiveMind methods
-
-### MCP Communication Stack
-
-Layered actor system for MCP protocol:
-
+#### Agent Monitoring Flow
 ```
-ClaudeFlowActor (Application Logic)
+AgentMonitorActor (Polling Timer)
     ↓
-TcpConnectionActor (TCP Stream Management)
+TcpConnectionActor (TCP Stream)
     ↓
-JsonRpcClient (Protocol Correlation)
+JsonRpcClient (MCP Protocol)
     ↓
-MCP Server (multi-agent-container:9500)
+MCP Server (agentic-workstation:9500)
+    ↓
+Graph Service (Update visualization)
 ```
 
-### Integration Patterns
+### Network Architecture
 
-1. **Docker Direct**: DockerHiveMind → Docker exec → claude-flow CLI
-2. **MCP TCP**: ClaudeFlowActor → TcpConnectionActor → MCP:9500
-3. **Backup Path**: McpTcpClient → Direct TCP → MCP:9500
+**Container Network**: `docker_ragflow` (shared network)
+
+| Container | Hostname | Services |
+|-----------|----------|----------|
+| VisionFlow | visionflow_container | Rust server :4000, Frontend :5173 |
+| Agentic Flow | agentic-workstation | Management API :9090, MCP TCP :9500 |
+
+### Removed Components
+
+The following have been removed in the simplified architecture:
+
+- **DockerHiveMind**: Replaced by Management API HTTP client
+- **McpSessionBridge**: No longer needed with direct HTTP task management
+- **SessionCorrelationBridge**: Removed in favor of task isolation
+- **Docker exec pattern**: Replaced by RESTful HTTP API
 
 ## Data Models & Configuration
 

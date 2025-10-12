@@ -3,7 +3,7 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn};
 
-use crate::actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, GPUManagerActor, ProtectedSettingsActor, ClaudeFlowActor, WorkspaceActor};
+use crate::actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, GPUManagerActor, ProtectedSettingsActor, AgentMonitorActor, WorkspaceActor, TaskOrchestratorActor};
 use crate::actors::graph_service_supervisor::{GraphServiceSupervisor, TransitionalGraphSupervisor};
 use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::gpu;
@@ -19,8 +19,7 @@ use crate::services::speech_service::SpeechService;
 use crate::services::ragflow_service::RAGFlowService;
 use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
-use crate::services::mcp_session_bridge::McpSessionBridge;
-use crate::services::session_correlation_bridge::SessionCorrelationBridge;
+use crate::services::management_api_client::ManagementApiClient;
 use tokio::sync::mpsc;
 use crate::utils::client_message_extractor::ClientMessage;
 
@@ -33,7 +32,7 @@ pub struct AppState {
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
     pub client_manager_addr: Addr<ClientCoordinatorActor>,
-    pub claude_flow_addr: Addr<ClaudeFlowActor>,
+    pub agent_monitor_addr: Addr<AgentMonitorActor>,
     pub workspace_addr: Addr<WorkspaceActor>,
     pub ontology_actor_addr: Addr<OntologyActor>,
     pub github_client: Arc<GitHubClient>,
@@ -46,8 +45,7 @@ pub struct AppState {
     pub ragflow_session_id: String,
     pub active_connections: Arc<AtomicUsize>,
     pub bots_client: Arc<BotsClient>,
-    pub mcp_session_bridge: Arc<McpSessionBridge>,
-    pub session_correlation_bridge: Arc<SessionCorrelationBridge>,
+    pub task_orchestrator_addr: Addr<TaskOrchestratorActor>,
     pub debug_enabled: bool,
     pub client_message_tx: mpsc::UnboundedSender<ClientMessage>,
     pub client_message_rx: Arc<tokio::sync::Mutex<mpsc::UnboundedReceiver<ClientMessage>>>,
@@ -133,23 +131,20 @@ impl AppState {
         })?;
         let settings_addr = settings_actor.start();
         
-        info!("[AppState::new] Starting ClaudeFlowActor (TCP)");
-        // Create ClaudeFlowClient for MCP connection on port 9500
-        // Use multi-agent-container hostname since VisionFlow runs in a separate container
-        let claude_flow_host = std::env::var("CLAUDE_FLOW_HOST")
-            .or_else(|_| std::env::var("MCP_HOST"))
-            .unwrap_or_else(|_| "multi-agent-container".to_string());
-        let claude_flow_port = std::env::var("MCP_TCP_PORT")
+        info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
+        let mcp_host = std::env::var("MCP_HOST")
+            .unwrap_or_else(|_| "agentic-workstation".to_string());
+        let mcp_port = std::env::var("MCP_TCP_PORT")
             .unwrap_or_else(|_| "9500".to_string())
             .parse::<u16>()
             .unwrap_or(9500);
-        
-        info!("[AppState::new] Connecting ClaudeFlowActor to {}:{}", claude_flow_host, claude_flow_port);
+
+        info!("[AppState::new] AgentMonitorActor will poll MCP at {}:{}", mcp_host, mcp_port);
         let claude_flow_client = crate::types::claude_flow::ClaudeFlowClient::new(
-            claude_flow_host,
-            claude_flow_port
+            mcp_host,
+            mcp_port
         );
-        let claude_flow_addr = ClaudeFlowActor::new(
+        let agent_monitor_addr = AgentMonitorActor::new(
             claude_flow_client,
             graph_service_addr.clone()
         ).start();
@@ -184,30 +179,21 @@ impl AppState {
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
 
-        info!("[AppState::new] Initializing McpSessionBridge");
-        let mcp_session_bridge = Arc::new(McpSessionBridge::new("multi-agent-container".to_string()));
+        info!("[AppState::new] Initializing TaskOrchestratorActor with Management API");
+        let mgmt_api_host = std::env::var("MANAGEMENT_API_HOST")
+            .unwrap_or_else(|_| "agentic-workstation".to_string());
+        let mgmt_api_port = std::env::var("MANAGEMENT_API_PORT")
+            .unwrap_or_else(|_| "9090".to_string())
+            .parse::<u16>()
+            .unwrap_or(9090);
+        let mgmt_api_key = std::env::var("MANAGEMENT_API_KEY")
+            .unwrap_or_else(|_| {
+                warn!("[AppState] MANAGEMENT_API_KEY not set, using default");
+                "change-this-secret-key".to_string()
+            });
 
-        // Start background refresh task for MCP session monitoring
-        let bridge_clone = mcp_session_bridge.clone();
-        tokio::spawn(async move {
-            info!("[AppState] Starting MCP session bridge background refresh (10s interval)");
-            bridge_clone.start_background_refresh(Duration::from_secs(10)).await;
-        });
-
-        info!("[AppState::new] Initializing SessionCorrelationBridge");
-        let session_correlation_bridge = Arc::new(SessionCorrelationBridge::new());
-
-        // Start background cleanup task for expired session mappings (5 minute TTL)
-        let bridge_cleanup = session_correlation_bridge.clone();
-        tokio::spawn(async move {
-            loop {
-                tokio::time::sleep(Duration::from_secs(300)).await; // Run every 5 minutes
-                let (removed, remaining) = bridge_cleanup.cleanup_expired(Duration::from_secs(1800)).await; // 30 minute TTL
-                if removed > 0 {
-                    info!("[SessionCorrelationBridge] Cleaned up {} expired mappings, {} remaining", removed, remaining);
-                }
-            }
-        });
+        let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);
+        let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();
 
         // GPU initialization will be handled later by the actors themselves
         // This avoids the tokio runtime panic during initialization
@@ -242,7 +228,7 @@ impl AppState {
             protected_settings_addr,
             metadata_addr,
             client_manager_addr,
-            claude_flow_addr,
+            agent_monitor_addr,
             workspace_addr,
             ontology_actor_addr,
             github_client,
@@ -255,8 +241,7 @@ impl AppState {
             ragflow_session_id,
             active_connections: Arc::new(AtomicUsize::new(0)),
             bots_client,
-            mcp_session_bridge,
-            session_correlation_bridge,
+            task_orchestrator_addr,
             debug_enabled,
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
@@ -348,11 +333,7 @@ impl AppState {
         &self.ontology_actor_addr
     }
 
-    pub fn get_mcp_session_bridge(&self) -> &Arc<McpSessionBridge> {
-        &self.mcp_session_bridge
-    }
-
-    pub fn get_session_correlation_bridge(&self) -> &Arc<SessionCorrelationBridge> {
-        &self.session_correlation_bridge
+    pub fn get_task_orchestrator_addr(&self) -> &Addr<TaskOrchestratorActor> {
+        &self.task_orchestrator_addr
     }
 }

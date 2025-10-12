@@ -21,7 +21,6 @@ mod ptx_tests;
 #[cfg(test)]
 mod gpu_compute_tests;
 pub mod validation;
-pub mod docker_hive_mind;
 pub mod hybrid_fault_tolerance;
 pub mod hybrid_performance_optimizer;
 pub mod gpu_memory;
