@@ -4,7 +4,7 @@ services:
   agentic-flow-cachyos:
     build:
       context: .
-      dockerfile: Dockerfile.workstation.standalone
+      dockerfile: Dockerfile.workstation
     container_name: agentic-flow-cachyos
     hostname: agentic-workstation
 

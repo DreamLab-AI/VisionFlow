@@ -267,11 +267,12 @@ pub async fn initialize_hive_mind_swarm(
     info!("🔧 Swarm initialization task: {}", task);
 
     // Determine agent type and provider based on strategy
+    // Maps UI strategy selection to actual agent names from agentic-flow container
     let agent_type = match request.strategy.as_str() {
-        "strategic" => "coordinator",
-        "tactical" => "coder",
-        "adaptive" => "optimizer",
-        _ => "claude-flow",
+        "strategic" => "planner",  // Strategic planning → planner agent
+        "tactical" => "coder",     // Tactical execution → coder agent
+        "adaptive" => "researcher", // Adaptive research → researcher agent
+        _ => "coder",              // Default to coder for general tasks
     };
 
     let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());

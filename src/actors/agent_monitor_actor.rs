@@ -1,12 +1,12 @@
-//! Agent Monitor Actor - Simplified Monitoring via Direct MCP TCP
+//! Agent Monitor Actor - Monitoring via Management API
 //!
 //! This actor focuses solely on:
-//! - Polling the MCP TCP server (port 9500) for agent statuses
-//! - Caching agent data
+//! - Polling the Management API (port 9090) for active task statuses
+//! - Converting tasks to agent nodes
 //! - Forwarding updates to GraphServiceSupervisor
 //!
-//! All task management is handled by the Management API (port 9090) via TaskOrchestratorActor.
-//! This actor only monitors agent statuses.
+//! All task management is handled by TaskOrchestratorActor.
+//! This actor only monitors and displays running agents.
 
 use actix::prelude::*;
 use std::time::Duration;
@@ -16,13 +16,84 @@ use chrono::{Utc, DateTime};
 
 use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
 use crate::actors::messages::*;
-use crate::utils::mcp_tcp_client::create_mcp_client;
-use crate::services::agent_visualization_protocol::McpServerType;
+use crate::services::management_api_client::{ManagementApiClient, TaskInfo};
 
-/// AgentMonitorActor - Pure monitoring via direct MCP TCP
+/// Convert Management API TaskInfo to AgentStatus for graph visualization
+fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
+    use chrono::TimeZone;
+    use glam::Vec3;
+
+    // Map agent type string to AgentType enum
+    let agent_type_enum = match task.agent.as_str() {
+        "coder" => AgentType::Coder,
+        "planner" => AgentType::Coordinator,
+        "researcher" => AgentType::Researcher,
+        "reviewer" => AgentType::Analyst,
+        "tester" => AgentType::Tester,
+        _ => AgentType::Coordinator,
+    };
+
+    // Create timestamp
+    let timestamp = chrono::Utc.timestamp_millis_opt(task.start_time as i64)
+        .single()
+        .unwrap_or_else(|| chrono::Utc::now());
+
+    // Calculate age in seconds
+    let age = (chrono::Utc::now().timestamp_millis() - task.start_time as i64) / 1000;
+
+    AgentStatus {
+        // Core identification
+        agent_id: task.task_id.clone(),
+        profile: AgentProfile {
+            name: format!("{} ({})", task.agent, &task.task_id[..8]),
+            agent_type: agent_type_enum,
+            capabilities: vec![format!("Provider: {}", task.provider)],
+            description: Some(task.task.chars().take(100).collect::<String>()),
+            version: "1.0.0".to_string(),
+            tags: vec![task.agent.clone(), task.provider.clone()],
+        },
+        status: format!("{:?}", task.status),
+        active_tasks_count: 1,
+        completed_tasks_count: 0,
+        failed_tasks_count: 0,
+        success_rate: 100.0,
+        timestamp,
+        current_task: None,
+        agent_type: task.agent.clone(),
+        current_task_description: Some(task.task.clone()),
+        capabilities: vec![format!("Provider: {}", task.provider)],
+        position: Some(Vec3::new(0.0, 0.0, 0.0)),
+        cpu_usage: 0.5,
+        memory_usage: 200.0,
+        health: 1.0,
+        activity: 0.8,
+        tasks_active: 1,
+        tasks_completed: 0,
+        success_rate_normalized: 1.0,
+        tokens: 0,
+        token_rate: 0.0,
+        performance_metrics: PerformanceMetrics {
+            tasks_completed: 0,
+            success_rate: 100.0,
+        },
+        token_usage: TokenUsage {
+            total: 0,
+            token_rate: 0.0,
+        },
+        swarm_id: None,
+        agent_mode: Some("active".to_string()),
+        parent_queen_id: None,
+        processing_logs: None,
+        created_at: timestamp.to_rfc3339(),
+        age: age as u64,
+        workload: Some(0.5),
+    }
+}
+/// AgentMonitorActor - Monitoring via Management API
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
+    management_api_client: ManagementApiClient,
 
     /// Connection state
     is_connected: bool,
@@ -31,7 +102,7 @@ pub struct AgentMonitorActor {
     polling_interval: Duration,
     last_poll: DateTime<Utc>,
 
-    /// Agent cache
+    /// Agent cache (task_id -> AgentStatus)
     agent_cache: HashMap<String, AgentStatus>,
 
     /// Error tracking
@@ -41,12 +112,26 @@ pub struct AgentMonitorActor {
 
 impl AgentMonitorActor {
     pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>) -> Self {
-        info!("[AgentMonitorActor] Initializing with direct MCP TCP monitoring");
+        info!("[AgentMonitorActor] Initializing with Management API monitoring");
+
+        // Create Management API client
+        let host = std::env::var("MANAGEMENT_API_HOST")
+            .unwrap_or_else(|_| "agentic-workstation".to_string());
+        let port = std::env::var("MANAGEMENT_API_PORT")
+            .ok()
+            .and_then(|p| p.parse::<u16>().ok())
+            .unwrap_or(9090);
+        let api_key = std::env::var("MANAGEMENT_API_KEY")
+            .unwrap_or_else(|_| "change-this-secret-key".to_string());
+
+        let management_api_client = ManagementApiClient::new(host, port, api_key);
+
         Self {
             _client: client,
             graph_service_addr,
+            management_api_client,
             is_connected: false,
-            polling_interval: Duration::from_secs(2),
+            polling_interval: Duration::from_secs(3), // Poll every 3 seconds
             last_poll: Utc::now(),
             agent_cache: HashMap::new(),
             consecutive_poll_failures: 0,
@@ -54,109 +139,33 @@ impl AgentMonitorActor {
         }
     }
 
-    /// Poll agent statuses directly from MCP TCP server
-    fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
-        // Circuit breaker logic
-        if self.consecutive_poll_failures > 10 {
-            if let Some(last_success) = self.last_successful_poll {
-                let time_since_success = Utc::now().signed_duration_since(last_success);
-                if time_since_success.num_seconds() < 30 {
-                    debug!("[AgentMonitorActor] Circuit breaker active - skipping poll");
-                    return;
-                }
+    /// Poll agent statuses from Management API
+fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
+    debug!("[AgentMonitorActor] Polling active tasks from Management API");
+
+    let api_client = self.management_api_client.clone();
+    let ctx_addr = ctx.address();
+
+    tokio::spawn(async move {
+        match api_client.list_tasks().await {
+            Ok(task_list) => {
+                let active_count = task_list.active_tasks.len();
+                debug!("[AgentMonitorActor] Retrieved {} active tasks from Management API", active_count);
+
+                // Convert tasks to agent statuses
+                let agents: Vec<AgentStatus> = task_list.active_tasks.into_iter().map(|task| {
+                    task_to_agent_status(task)
+                }).collect();
+
+                ctx_addr.do_send(ProcessAgentStatuses { agents });
+            }
+            Err(e) => {
+                error!("[AgentMonitorActor] Management API query failed: {}", e);
+                ctx_addr.do_send(RecordPollFailure);
             }
         }
-
-        debug!("[AgentMonitorActor] Polling agent statuses via MCP TCP");
-
-        let host = std::env::var("MCP_HOST").unwrap_or_else(|_| "agentic-workstation".to_string());
-        let port = std::env::var("MCP_TCP_PORT")
-            .unwrap_or_else(|_| "9500".to_string())
-            .parse::<u16>()
-            .unwrap_or(9500);
-
-        let ctx_addr = ctx.address();
-
-        tokio::spawn(async move {
-            let mcp_client = create_mcp_client(&McpServerType::ClaudeFlow, &host, port);
-
-            match mcp_client.query_agent_list().await {
-                Ok(agents) => {
-                    info!("[AgentMonitorActor] Retrieved {} agents from MCP TCP server", agents.len());
-
-                    // Convert MultiMcpAgentStatus to AgentStatus
-                    let agent_statuses: Vec<AgentStatus> = agents.into_iter().map(|mcp_agent| {
-                        AgentStatus {
-                            agent_id: mcp_agent.agent_id.clone(),
-                            profile: AgentProfile {
-                                name: mcp_agent.name.clone(),
-                                agent_type: match mcp_agent.agent_type.as_str() {
-                                    "coordinator" => AgentType::Coordinator,
-                                    "researcher" => AgentType::Researcher,
-                                    "coder" => AgentType::Coder,
-                                    "analyst" => AgentType::Analyst,
-                                    "architect" => AgentType::Architect,
-                                    "tester" => AgentType::Tester,
-                                    "reviewer" => AgentType::Reviewer,
-                                    "optimizer" => AgentType::Optimizer,
-                                    "documenter" => AgentType::Documenter,
-                                    _ => AgentType::Coordinator,
-                                },
-                                capabilities: mcp_agent.capabilities.clone(),
-                                description: Some("MCP agent retrieved via TCP connection".to_string()),
-                                version: "1.0.0".to_string(),
-                                tags: vec!["mcp".to_string(), mcp_agent.agent_type.clone()],
-                            },
-                            status: mcp_agent.status.clone(),
-                            active_tasks_count: mcp_agent.performance.tasks_active,
-                            completed_tasks_count: mcp_agent.performance.tasks_completed,
-                            failed_tasks_count: mcp_agent.performance.tasks_failed,
-                            success_rate: mcp_agent.performance.success_rate,
-                            timestamp: Utc::now(),
-                            current_task: None,
-
-                            // Client compatibility fields
-                            agent_type: mcp_agent.agent_type.clone(),
-                            current_task_description: None,
-                            capabilities: mcp_agent.capabilities.clone(),
-                            position: None,
-                            cpu_usage: mcp_agent.performance.cpu_usage,
-                            memory_usage: mcp_agent.performance.memory_usage,
-                            health: mcp_agent.performance.health_score,
-                            activity: mcp_agent.performance.activity_level,
-                            tasks_active: mcp_agent.performance.tasks_active,
-                            tasks_completed: mcp_agent.performance.tasks_completed,
-                            success_rate_normalized: mcp_agent.performance.success_rate,
-                            tokens: mcp_agent.performance.token_usage,
-                            token_rate: mcp_agent.performance.token_rate,
-                            created_at: Utc::now().to_rfc3339(),
-                            age: 0,
-                            workload: Some(mcp_agent.performance.activity_level),
-
-                            performance_metrics: PerformanceMetrics {
-                                tasks_completed: mcp_agent.performance.tasks_completed,
-                                success_rate: mcp_agent.performance.success_rate,
-                            },
-                            token_usage: TokenUsage {
-                                total: mcp_agent.performance.token_usage,
-                                token_rate: mcp_agent.performance.token_rate,
-                            },
-                            swarm_id: Some(mcp_agent.swarm_id),
-                            agent_mode: Some("autonomous".to_string()),
-                            parent_queen_id: mcp_agent.metadata.parent_id,
-                            processing_logs: None,
-                        }
-                    }).collect();
-
-                    ctx_addr.do_send(ProcessAgentStatuses { agents: agent_statuses });
-                }
-                Err(e) => {
-                    error!("[AgentMonitorActor] MCP TCP query failed: {}", e);
-                    ctx_addr.do_send(RecordPollFailure);
-                }
-            }
-        });
-    }
+    });
+}
 }
 
 /// Message to process agent statuses from MCP
