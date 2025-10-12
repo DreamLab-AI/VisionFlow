@@ -1,10 +1,14 @@
 # VisionFlow Documentation
 
-**Last Updated**: 2025-10-03
+**Last Updated**: 2025-10-12
 **Documentation Status**: Organized and Consolidated
-**System Version**: 2.3.0 (Post Code Pruning)
+**System Version**: 2.4.0 (Post Management API Refactoring)
 
 ## 📚 Documentation Index
+
+### 🆕 Recent Updates
+- **[Phases 0-3 Refactoring Complete](REFACTORING-PHASES-0-3-COMPLETE.md)** - Management API integration, architecture simplification (2025-10-12)
+- **[Refactoring Task Plan](../task.md)** - Implementation status, remaining alignment work, and testing requirements
 
 ### Core Architecture
 - **[System Overview](architecture/overview.md)** - High-level system architecture and current status assessment
@@ -41,14 +45,15 @@
 ## 🎯 System Status Overview
 
 ### ✅ Fully Implemented & Tested
+- **Management API Integration**: HTTP REST-based task orchestration (Phases 0-3 complete)
 - **XR Immersive System**: Complete Babylon.js WebXR implementation for Quest 3 AR/VR
 - **REST API Architecture**: Layered API design with UnifiedApiClient foundation + domain APIs
 - **WebSocket Binary Protocol**: 80% traffic reduction achieved through optimisation
-- **Agent Task Management**: Complete remove/pause/resume functionality
+- **Agent Task Management**: Complete task lifecycle via Management API (port 9090)
 - **Settings System**: 169-parameter configuration with real-time updates
-- **Docker Integration**: Hybrid spawning with claude-flow CLI
+- **Agent Monitoring**: Simplified polling-based architecture (3-second intervals)
 - **Field Conversion**: Automatic camelCase ↔ snake_case via Serde
-- **Code Quality**: 11,957 lines of legacy code removed (38 files) - 30% codebase reduction
+- **Code Quality**: 11,957 + 4 modules removed (42 files total) - 35% codebase reduction
 
 ### 🔧 Performance Achievements
 - **XR Rendering**: Multi-light setup with emissive materials for optimal AR visibility

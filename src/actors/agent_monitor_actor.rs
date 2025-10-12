@@ -62,7 +62,7 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         agent_type: task.agent.clone(),
         current_task_description: Some(task.task.clone()),
         capabilities: vec![format!("Provider: {}", task.provider)],
-        position: Some(Vec3::new(0.0, 0.0, 0.0)),
+        position: None, // Will be positioned by physics engine
         cpu_usage: 0.5,
         memory_usage: 200.0,
         health: 1.0,
