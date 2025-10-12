@@ -72,36 +72,31 @@ curl http://localhost:9600/health  # Claude-ZAI
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Management API (Port 9090)               │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │ Task Manager│  │ System Monitor│  │ Process Manager  │   │
-│  └─────────────┘  └──────────────┘  └──────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              │               │               │
-    ┌─────────▼────────┐     │     ┌────────▼──────────┐
-    │  Model Router    │     │     │ Claude-ZAI (9600) │
-    │  ┌────────────┐  │     │     │  Worker Pool      │
-    │  │  Gemini    │  │     │     └───────────────────┘
-    │  │  OpenAI    │  │     │
-    │  │  Claude    │  │     │
-    │  │ OpenRouter │  │     │
-    │  └────────────┘  │     │
-    └──────────────────┘     │
-                              │
-                    ┌─────────▼──────────┐
-                    │   MCP Tools        │
-                    │  ┌──────────────┐  │
-                    │  │ Claude Flow  │  │
-                    │  │ Filesystem   │  │
-                    │  │ Playwright   │  │
-                    │  │ Git/GitHub   │  │
-                    │  │ Web Tools    │  │
-                    │  └──────────────┘  │
-                    └────────────────────┘
+```mermaid
+graph TD
+    A[Management API Port 9090] --> B[Task Manager]
+    A --> C[System Monitor]
+    A --> D[Process Manager]
+
+    A --> E[Model Router]
+    E --> E1[Gemini]
+    E --> E2[OpenAI]
+    E --> E3[Claude]
+    E --> E4[OpenRouter]
+
+    A --> F[Claude-ZAI 9600<br/>Worker Pool]
+
+    A --> G[MCP Tools]
+    G --> G1[Claude Flow]
+    G --> G2[Filesystem]
+    G --> G3[Playwright]
+    G --> G4[Git/GitHub]
+    G --> G5[Web Tools]
+
+    style A fill:#4a90e2,stroke:#2e5c8a,color:#fff
+    style E fill:#7ed321,stroke:#5a9a18,color:#000
+    style F fill:#f5a623,stroke:#b87a1a,color:#000
+    style G fill:#bd10e0,stroke:#8a0ba6,color:#fff
 ```
 
 ## Documentation Structure

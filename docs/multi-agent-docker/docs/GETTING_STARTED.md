@@ -577,37 +577,47 @@ htop
 
 ### Container Directory Layout
 
-```
-/home/devuser/                    # User home directory
-├── workspace/                    # Your projects and development files
-│   ├── projects/                 # Active development projects
-│   ├── temp/                     # Temporary working files
-│   └── agents/                   # Custom agent definitions
-│
-├── models/                       # Model cache and ONNX models
-│   ├── phi-4.onnx               # Offline ONNX model
-│   └── embeddings/               # Embedding models
-│
-├── .agentic-flow/               # Agent memory and state
-│   ├── memory/                   # Persistent agent memory
-│   ├── metrics/                  # Performance metrics
-│   ├── logs/                     # Execution logs
-│   └── sessions/                 # Session data
-│
-├── .config/                      # Configuration files
-│   ├── agentic-flow/            # Router and system config
-│   │   ├── router.config.json
-│   │   └── agents/
-│   └── claude/                   # MCP server configurations
-│       └── mcp-servers.json
-│
-├── logs/                         # Management API logs
-│   ├── api.log
-│   └── tasks/
-│
-└── .claude/                      # Claude Code configuration
-    ├── agents/                   # Agent definitions
-    └── CLAUDE.md                 # Claude configuration
+```mermaid
+graph TD
+    A[/home/devuser/]
+
+    A --> B[workspace/]
+    B --> B1[projects/]
+    B --> B2[temp/]
+    B --> B3[agents/]
+
+    A --> C[models/]
+    C --> C1[phi-4.onnx]
+    C --> C2[embeddings/]
+
+    A --> D[.agentic-flow/]
+    D --> D1[memory/]
+    D --> D2[metrics/]
+    D --> D3[logs/]
+    D --> D4[sessions/]
+
+    A --> E[.config/]
+    E --> E1[agentic-flow/]
+    E1 --> E11[router.config.json]
+    E1 --> E12[agents/]
+    E --> E2[claude/]
+    E2 --> E21[mcp-servers.json]
+
+    A --> F[logs/]
+    F --> F1[api.log]
+    F --> F2[tasks/]
+
+    A --> G[.claude/]
+    G --> G1[agents/]
+    G --> G2[CLAUDE.md]
+
+    style A fill:#4a90e2,stroke:#2e5c8a,color:#fff
+    style B fill:#7ed321,stroke:#5a9a18,color:#000
+    style C fill:#f5a623,stroke:#b87a1a,color:#000
+    style D fill:#bd10e0,stroke:#8a0ba6,color:#fff
+    style E fill:#50e3c2,stroke:#3ab09e,color:#000
+    style F fill:#f8e71c,stroke:#b8a915,color:#000
+    style G fill:#ff6b6b,stroke:#cc5555,color:#fff
 ```
 
 ### Persistent Volumes

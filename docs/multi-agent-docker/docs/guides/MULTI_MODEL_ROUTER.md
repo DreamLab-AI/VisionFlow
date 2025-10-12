@@ -13,51 +13,35 @@ The Multi-Model Router is an intelligent routing system that enables the Agentic
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│            Agentic Flow Workstation             │
-│        (Multi-Agent Container System)           │
-└────────────────────┬────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────┐
-│          Multi-Model Router Layer               │
-│  ┌──────────────────────────────────────────┐  │
-│  │  Router Mode Selection                   │  │
-│  │  - performance │ cost │ quality          │  │
-│  │  - balanced    │ offline                 │  │
-│  └──────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────┐  │
-│  │  Rule-Based Routing Engine               │  │
-│  │  - Task type matching                    │  │
-│  │  - Privacy requirements                  │  │
-│  │  - Agent preferences                     │  │
-│  └──────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────┐  │
-│  │  Fallback Chain Management               │  │
-│  │  - Circuit breaker                       │  │
-│  │  - Retry logic                           │  │
-│  │  - Health monitoring                     │  │
-│  └──────────────────────────────────────────┘  │
-└────────────────────┬────────────────────────────┘
-                     │
-        ┌────────────┴────────────┐
-        │                         │
-        ▼                         ▼
-┌──────────────┐          ┌──────────────┐
-│  Cloud APIs  │          │ Local Models │
-└──────────────┘          └──────────────┘
-   │   │   │                  │      │
-   ▼   ▼   ▼                  ▼      ▼
-┌────┐┌────┐┌────┐      ┌────────┐┌────┐
-│Gem││Ope││Cla│      │Xinfer││ONNX│
-│ini││nAI││ude│      │ence  ││Phi4│
-└────┘└────┘└────┘      └────────┘└────┘
-  │      │      │            │        │
-┌────┐┌────┐┌────┐      ┌────────┐┌────┐
-│OR  ││Vert││Bedr│      │RAGFlow││GPU │
-│    ││ex  ││ock │      │Network││Acc │
-└────┘└────┘└────┘      └────────┘└────┘
+```mermaid
+graph TB
+    A[Agentic Flow Workstation<br/>Multi-Agent Container System]
+
+    A --> B[Multi-Model Router Layer]
+
+    B --> B1[Router Mode Selection<br/>performance | cost | quality<br/>balanced | offline]
+    B --> B2[Rule-Based Routing Engine<br/>Task type matching<br/>Privacy requirements<br/>Agent preferences]
+    B --> B3[Fallback Chain Management<br/>Circuit breaker<br/>Retry logic<br/>Health monitoring]
+
+    B --> C[Cloud APIs]
+    B --> D[Local Models]
+
+    C --> C1[Gemini]
+    C --> C2[OpenAI]
+    C --> C3[Claude]
+    C --> C4[OpenRouter]
+    C --> C5[Vertex]
+    C --> C6[Bedrock]
+
+    D --> D1[Xinference]
+    D --> D2[ONNX Phi4]
+    D --> D3[RAGFlow Network]
+    D --> D4[GPU Acceleration]
+
+    style A fill:#4a90e2,stroke:#2e5c8a,color:#fff
+    style B fill:#7ed321,stroke:#5a9a18,color:#000
+    style C fill:#f5a623,stroke:#b87a1a,color:#000
+    style D fill:#bd10e0,stroke:#8a0ba6,color:#fff
 ```
 
 ## Router Modes

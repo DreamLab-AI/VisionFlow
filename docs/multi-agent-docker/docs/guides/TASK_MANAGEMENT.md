@@ -37,32 +37,25 @@ Each task runs in complete isolation with:
 - **Separate Process**: Detached child process with unique PID
 - **Environment Variables**: Task-specific environment including `TASK_ID`
 
-```
-┌─────────────────────────────────────────────┐
-│          Management API                     │
-│          (Port 9090)                        │
-└──────────────────┬──────────────────────────┘
-                   │
-                   ↓
-┌─────────────────────────────────────────────┐
-│          Process Manager                    │
-│  • Task spawning                            │
-│  • Process tracking                         │
-│  • Resource management                      │
-│  • Cleanup operations                       │
-└──────────────────┬──────────────────────────┘
-                   │
-        ┌──────────┴──────────┬──────────────┐
-        ↓                     ↓              ↓
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Task 1     │    │   Task 2     │    │   Task N     │
-│              │    │              │    │              │
-│  Workspace:  │    │  Workspace:  │    │  Workspace:  │
-│  /tasks/uuid1│    │  /tasks/uuid2│    │  /tasks/uuidN│
-│              │    │              │    │              │
-│  Log File:   │    │  Log File:   │    │  Log File:   │
-│  uuid1.log   │    │  uuid2.log   │    │  uuidN.log   │
-└──────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+graph TD
+    A[Management API<br/>Port 9090]
+
+    A --> B[Process Manager]
+    B --> B1[Task spawning]
+    B --> B2[Process tracking]
+    B --> B3[Resource management]
+    B --> B4[Cleanup operations]
+
+    B --> C[Task 1<br/>Workspace: /tasks/uuid1<br/>Log File: uuid1.log]
+    B --> D[Task 2<br/>Workspace: /tasks/uuid2<br/>Log File: uuid2.log]
+    B --> E[Task N<br/>Workspace: /tasks/uuidN<br/>Log File: uuidN.log]
+
+    style A fill:#4a90e2,stroke:#2e5c8a,color:#fff
+    style B fill:#7ed321,stroke:#5a9a18,color:#000
+    style C fill:#f5a623,stroke:#b87a1a,color:#000
+    style D fill:#f5a623,stroke:#b87a1a,color:#000
+    style E fill:#f5a623,stroke:#b87a1a,color:#000
 ```
 
 ### Key Benefits
@@ -217,22 +210,32 @@ agentic-flow router --agent coder --task "Build authentication system" --provide
 
 ### State Machine
 
-```
-┌──────────────┐
-│   ACCEPTED   │ ← Task created via API
-└──────┬───────┘
-       ↓
-┌──────────────┐
-│   RUNNING    │ ← Process spawned and executing
-└──┬────────┬──┘
-   ↓        ↓
-┌──────┐  ┌───────────┐
-│COMPLETED│  │  FAILED   │ ← Task finished
-└──────┘  └───────────┘
-   ↓        ↓
-┌──────────────┐
-│   STOPPED    │ ← Manually terminated
-└──────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> ACCEPTED: Task created via API
+    ACCEPTED --> RUNNING: Process spawned
+    RUNNING --> COMPLETED: Success
+    RUNNING --> FAILED: Error
+    RUNNING --> STOPPED: Manually terminated
+    COMPLETED --> [*]
+    FAILED --> [*]
+    STOPPED --> [*]
+
+    note right of ACCEPTED
+        Task queued
+    end note
+
+    note right of RUNNING
+        Process executing
+    end note
+
+    note right of COMPLETED
+        Exit code: 0
+    end note
+
+    note right of FAILED
+        Exit code: >0
+    end note
 ```
 
 ### State Definitions
