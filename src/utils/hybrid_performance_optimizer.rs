@@ -1,3 +1,8 @@
+// DEPRECATED: Legacy hybrid performance optimizer removed
+// Docker exec architecture replaced by HTTP Management API
+// Connection pooling now handled by reqwest HTTP client
+
+/*
 use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -1114,4 +1119,4 @@ pub struct OptimizationRecommendation {
 /// Create a complete performance optimization system
 pub fn create_performance_optimizer(mcp_pool: MCPConnectionPool) -> HybridPerformanceOptimizer {
     HybridPerformanceOptimizer::new(Arc::new(mcp_pool))
-}
+}*/

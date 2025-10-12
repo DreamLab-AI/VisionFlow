@@ -11,7 +11,7 @@ use webxr::{
         mcp_relay_handler::mcp_relay_handler,
         nostr_handler,
         bots_visualization_handler,
-        hybrid_health_handler,
+        // DEPRECATED: hybrid_health_handler removed
         workspace_handler,
         graph_export_handler,
         client_log_handler,
@@ -24,16 +24,15 @@ use webxr::{
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
     services::speech_service::SpeechService,
-    utils::docker_hive_mind::DockerHiveMind,
+    // DEPRECATED: docker_hive_mind, HybridHealthManager removed
     utils::mcp_connection::MCPConnectionPool,
-    handlers::hybrid_health_handler::HybridHealthManager,
 };
 
 use actix_web::{web, App, HttpServer, middleware, Error as ActixError};
 use actix_cors::Cors;
-use std::future::{Ready, ready};
-use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
-use futures::future::LocalBoxFuture;
+// DEPRECATED: std::future imports removed (were for ErrorRecoveryMiddleware)
+// DEPRECATED: Actix dev imports removed (were for ErrorRecoveryMiddleware)
+// DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
 // use actix_files::Files; // Removed unused import
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -45,6 +44,8 @@ use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use tokio::signal::unix::{signal, SignalKind};
 
+// DEPRECATED: ErrorRecoveryMiddleware removed - NetworkRecoveryManager deleted
+/*
 /// Simple error recovery middleware that integrates with NetworkRecoveryManager
 pub struct ErrorRecoveryMiddleware {
     recovery_manager: Option<Arc<webxr::utils::hybrid_fault_tolerance::NetworkRecoveryManager>>,
@@ -124,6 +125,7 @@ where
         })
     }
 }
+*/
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -271,18 +273,8 @@ async fn main() -> std::io::Result<()> {
     // Initialize Nostr service
     nostr_handler::init_nostr_service(&mut app_state);
 
-    // Initialize HybridHealthManager for Docker/MCP orchestration
-    info!("Initializing Docker Hive Mind and MCP connection pool...");
-    let docker_hive_mind = DockerHiveMind::new("multi-agent-container".to_string());
-
-    // Create MCP connection pool with host and port
-    let mcp_pool = MCPConnectionPool::new("localhost".to_string(), "9500".to_string());
-
-    let hybrid_health_manager = Arc::new(HybridHealthManager::new(docker_hive_mind, mcp_pool));
-
-    // Start background monitoring
-    hybrid_health_manager.start_background_monitoring().await;
-    info!("HybridHealthManager initialized and monitoring started");
+    // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
+    // Docker exec architecture replaced by HTTP Management API
 
     // Initialize BotsClient connection with proper WebSocket protocol
     info!("Connecting to bots orchestrator via WebSocket...");
@@ -497,9 +489,7 @@ async fn main() -> std::io::Result<()> {
 
     // Create web::Data after all initialization is complete
     let app_state_data = web::Data::new(app_state);
-    let hybrid_health_manager_data = web::Data::new(hybrid_health_manager.clone());
-    let mcp_session_bridge_data = web::Data::new(app_state_data.get_mcp_session_bridge().clone());
-    let session_correlation_bridge_data = web::Data::new(app_state_data.get_session_correlation_bridge().clone());
+    // DEPRECATED: hybrid_health_manager_data, mcp_session_bridge, session_correlation_bridge removed
 
     // Start the server
     let bind_address = {
@@ -537,7 +527,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .wrap(middleware::Compress::default())
-            .wrap(ErrorRecoveryMiddleware::new()) // Add error recovery middleware
+            // DEPRECATED: ErrorRecoveryMiddleware removed
             // Pass AppFullSettings wrapped in Data
             .app_data(settings_data.clone())
             .app_data(web::Data::new(github_client.clone()))
@@ -552,13 +542,11 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
-            .app_data(hybrid_health_manager_data.clone()) // Add HybridHealthManager
-            .app_data(mcp_session_bridge_data.clone()) // Add McpSessionBridge
-            .app_data(session_correlation_bridge_data.clone()) // Add SessionCorrelationBridge
+            // DEPRECATED: hybrid_health_manager_data, mcp_session_bridge, session_correlation_bridge removed
             .route("/wss", web::get().to(socket_flow_handler)) // Changed from /ws to /wss
             .route("/ws/speech", web::get().to(speech_socket_handler))
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) // Legacy MCP relay endpoint
-            .route("/ws/hybrid-health", web::get().to(hybrid_health_handler::websocket_hybrid_status)) // Hybrid health WebSocket
+            // DEPRECATED: hybrid health routes removed
             .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages)) // Agent -> User messages
             .service(
                 web::scope("/api") // Add /api prefix for these routes
@@ -569,12 +557,7 @@ async fn main() -> std::io::Result<()> {
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
                     .configure(graph_export_handler::configure_routes) // Graph export and sharing endpoints
                     .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) // Client browser logs endpoint
-                    .service(web::scope("/hybrid")
-                        .route("/status", web::get().to(hybrid_health_handler::get_hybrid_status))
-                        .route("/performance", web::get().to(hybrid_health_handler::get_performance_report))
-                        .route("/spawn", web::post().to(hybrid_health_handler::spawn_swarm_hybrid))
-                        .route("/stop/{session_id}", web::delete().to(hybrid_health_handler::stop_swarm))
-                    ) // Hybrid health and orchestration endpoints
+                    // DEPRECATED: hybrid health routes removed
             );
 
         app

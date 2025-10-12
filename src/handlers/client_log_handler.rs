@@ -48,23 +48,14 @@ pub async fn handle_client_logs(
         .as_ref()
         .unwrap_or(&payload.session_id);
 
-    // Register session-correlation mapping
-    let bridge = app_state.get_session_correlation_bridge();
-
-    // Check if we already have a mapping for this session
-    let correlation_id = match bridge.lookup_correlation(client_session_id).await {
-        Some(existing_corr_id) => {
-            debug!("Found existing correlation ID for session {}: {}", client_session_id, existing_corr_id);
-            existing_corr_id
-        }
-        None => {
-            // Create new correlation ID and register mapping
+    // DEPRECATED: SessionCorrelationBridge removed - using client session ID directly
+    let correlation_id = Uuid::parse_str(client_session_id)
+        .unwrap_or_else(|_| {
+            // If not a valid UUID, create one from the session ID
             let new_corr_id = Uuid::new_v4();
-            bridge.register(client_session_id.clone(), new_corr_id).await;
-            info!("Registered new session correlation: {} ↔ {}", client_session_id, new_corr_id);
+            debug!("Created new correlation ID for session {}: {}", client_session_id, new_corr_id);
             new_corr_id
-        }
-    };
+        });
 
     // Log telemetry event with correlation ID
     if let Some(telemetry) = get_telemetry_logger() {

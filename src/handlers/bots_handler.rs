@@ -9,7 +9,7 @@ use crate::models::edge::Edge;
 use crate::models::simulation_params::{SimulationParams};
 use crate::actors::messages::{GetSettings, GetBotsGraphData};
 use crate::services::bots_client::{BotsClient, Agent};
-use crate::handlers::hybrid_health_handler::{HybridHealthManager, SpawnSwarmRequest};
+// DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
 use crate::actors::{CreateTask, StopTask};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -89,7 +89,7 @@ static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
 
 pub async fn fetch_hive_mind_agents(
     state: &AppState,
-    _hybrid_manager: Option<&Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<()>, // DEPRECATED
 ) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
     // Agent data comes from AgentMonitorActor via MCP TCP polling
     // Use BotsClient which caches the latest agent data from the graph
@@ -227,7 +227,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 pub async fn initialize_hive_mind_swarm(
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
-    _hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<()>, // DEPRECATED
 ) -> Result<impl Responder> {
     info!("🐝 Initializing hive mind swarm via Management API with topology: {}", request.topology);
 
@@ -336,9 +336,9 @@ pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<im
 
 pub async fn get_bots_agents(
     state: web::Data<AppState>,
-    hybrid_manager: web::Data<Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<()>, // DEPRECATED
 ) -> Result<impl Responder> {
-    match fetch_hive_mind_agents(&state, Some(&hybrid_manager)).await {
+    match fetch_hive_mind_agents(&state, None).await {
         Ok(agents) => Ok(HttpResponse::Ok().json(json!({
             "success": true,
             "agents": agents,

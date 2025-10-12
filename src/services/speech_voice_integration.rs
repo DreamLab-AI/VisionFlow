@@ -60,55 +60,26 @@ impl VoiceSwarmIntegration for SpeechService {
                 // Update voice command with tag
                 voice_cmd.voice_tag = Some(tag.tag_id.clone());
 
-                // Send to SupervisorActor (Queen orchestrator)
-                let supervisor = SupervisorActor::new("VoiceIntegrationSupervisor".to_string()).start();
+                // DEPRECATED: SupervisorActor voice command handler removed
+                // Return deprecation response
+                warn!("Voice command processing deprecated - SupervisorActor handler removed");
 
-                // Send command and await response
-                match supervisor.send(voice_cmd).await {
-                    Ok(Ok(mut response)) => {
-                        // Add tag to response for routing
-                        response.voice_tag = Some(tag.tag_id.clone());
-                        response.is_final = Some(true);
+                let error_response = TaggedVoiceResponse {
+                    response: SwarmVoiceResponse {
+                        text: "Voice command processing is currently unavailable. Please use the API endpoints instead.".to_string(),
+                        use_voice: true,
+                        metadata: None,
+                        follow_up: None,
+                        voice_tag: Some(tag.tag_id.clone()),
+                        is_final: Some(true),
+                    },
+                    tag: tag.clone(),
+                    is_final: true,
+                    responded_at: chrono::Utc::now(),
+                };
 
-                        // Create tagged response
-                        let tagged_response = TaggedVoiceResponse {
-                            response,
-                            tag: tag.clone(),
-                            is_final: true,
-                            responded_at: chrono::Utc::now(),
-                        };
-
-                        // Process the tagged response
-                        tag_manager.process_tagged_response(tagged_response).await.map_err(|e| e.to_string())?;
-
-                        Ok(tag)
-                    }
-                    Ok(Err(e)) => {
-                        error!("Swarm processing error: {}", e);
-
-                        // Create error response
-                        let error_response = TaggedVoiceResponse {
-                            response: SwarmVoiceResponse {
-                                text: format!("I encountered an error: {}. Please try again.", e),
-                                use_voice: true,
-                                metadata: None,
-                                follow_up: Some("What would you like me to do instead?".to_string()),
-                                voice_tag: Some(tag.tag_id.clone()),
-                                is_final: Some(true),
-                            },
-                            tag: tag.clone(),
-                            is_final: true,
-                            responded_at: chrono::Utc::now(),
-                        };
-
-                        tag_manager.process_tagged_response(error_response).await?;
-                        Ok(tag)
-                    }
-                    Err(e) => {
-                        error!("Failed to send command to supervisor: {}", e);
-                        Err(format!("Communication error: {}", e))
-                    }
-                }
+                tag_manager.process_tagged_response(error_response).await?;
+                Ok(tag)
             }
             Err(e) => {
                 warn!("Failed to parse voice command '{}': {}", text, e);
@@ -151,33 +122,18 @@ impl VoiceSwarmIntegration for SpeechService {
             Ok(voice_cmd) => {
                 debug!("Parsed voice command: {:?}", voice_cmd.parsed_intent);
 
-                // Send to SupervisorActor (Queen orchestrator)
-                let supervisor = SupervisorActor::new("VoiceProcessingSupervisor".to_string()).start();
-                
-                // Send command and await response
-                match supervisor.send(voice_cmd).await {
-                    Ok(Ok(response)) => {
-                        // Handle the swarm response
-                        self.handle_swarm_response(response).await
-                    }
-                    Ok(Err(e)) => {
-                        error!("Swarm processing error: {}", e);
-                        // Send error message via TTS
-                        let error_response = SwarmVoiceResponse {
-                            text: format!("I encountered an error: {}. Please try again.", e),
-                            use_voice: true,
-                            metadata: None,
-                            follow_up: Some("What would you like me to do instead?".to_string()),
-                            voice_tag: None,
-                            is_final: Some(true),
-                        };
-                        self.handle_swarm_response(error_response).await
-                    }
-                    Err(e) => {
-                        error!("Failed to send command to supervisor: {}", e);
-                        Err(format!("Communication error: {}", e))
-                    }
-                }
+                // DEPRECATED: SupervisorActor voice command handler removed
+                warn!("Voice command processing deprecated - SupervisorActor handler removed");
+
+                let error_response = SwarmVoiceResponse {
+                    text: "Voice command processing is currently unavailable. Please use the API endpoints instead.".to_string(),
+                    use_voice: true,
+                    metadata: None,
+                    follow_up: None,
+                    voice_tag: None,
+                    is_final: Some(true),
+                };
+                self.handle_swarm_response(error_response).await
             }
             Err(e) => {
                 warn!("Failed to parse voice command '{}': {}", text, e);

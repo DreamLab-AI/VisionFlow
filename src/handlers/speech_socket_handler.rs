@@ -10,7 +10,7 @@ use crate::app_state::AppState;
 use crate::actors::messages::GetSettings;
 use crate::types::speech::SpeechOptions;
 use crate::actors::voice_commands::VoiceCommand;
-use crate::handlers::hybrid_health_handler::{HybridHealthManager, SpawnSwarmRequest};
+// DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor instead
 use tokio::sync::broadcast;
 use futures::FutureExt;
 
@@ -53,14 +53,14 @@ struct VoiceCommandRequest {
 pub struct SpeechSocket {
     id: String,
     app_state: Arc<AppState>,
-    hybrid_manager: Option<Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<()>, // DEPRECATED: HybridHealthManager removed
     heartbeat: Instant,
     audio_rx: Option<broadcast::Receiver<Vec<u8>>>,
     transcription_rx: Option<broadcast::Receiver<String>>,
 }
 
 impl SpeechSocket {
-    pub fn new(id: String, app_state: Arc<AppState>, hybrid_manager: Option<Arc<HybridHealthManager>>) -> Self {
+    pub fn new(id: String, app_state: Arc<AppState>, _hybrid_manager: Option<()>) -> Self {
         let (audio_rx, transcription_rx) = if let Some(speech_service) = &app_state.speech_service {
             (
                 Some(speech_service.subscribe_to_audio()),
@@ -73,7 +73,7 @@ impl SpeechSocket {
         Self {
             id,
             app_state,
-            hybrid_manager,
+            _hybrid_manager: None,
             heartbeat: Instant::now(),
             audio_rx,
             transcription_rx,
@@ -138,8 +138,16 @@ impl SpeechSocket {
         text_lower.contains("docker hive")
     }
 
-    /// Handle swarm-related voice commands
-    fn handle_swarm_voice_command(&self, text: &str, ctx: &mut ws::WebsocketContext<Self>) {
+    /// Handle swarm-related voice commands (DEPRECATED)
+    fn handle_swarm_voice_command(&self, _text: &str, ctx: &mut ws::WebsocketContext<Self>) {
+        // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
+        let error_msg = json!({
+            "type": "error",
+            "message": "Swarm voice commands deprecated - use API endpoints instead"
+        }).to_string();
+        ctx.text(error_msg);
+
+        /*
         if let Some(hybrid_manager) = &self.hybrid_manager {
             let text_lower = text.to_lowercase();
             let manager = Arc::clone(hybrid_manager);
@@ -244,6 +252,7 @@ impl SpeechSocket {
             }).to_string();
             ctx.text(error_msg);
         }
+        */
     }
 }
 
@@ -571,11 +580,10 @@ pub async fn speech_socket_handler(
     req: HttpRequest,
     stream: web::Payload,
     app_state: web::Data<AppState>,
-    hybrid_manager: Option<web::Data<Arc<HybridHealthManager>>>,
+    _hybrid_manager: Option<()>, // DEPRECATED: HybridHealthManager removed
 ) -> Result<HttpResponse, Error> {
     let socket_id = format!("speech_{}", uuid::Uuid::new_v4());
-    let hybrid_manager_arc = hybrid_manager.map(|m| (**m).clone());
-    let socket = SpeechSocket::new(socket_id, app_state.into_inner(), hybrid_manager_arc);
+    let socket = SpeechSocket::new(socket_id, app_state.into_inner(), None);
 
     match ws::start(socket, &req, stream) {
         Ok(response) => {

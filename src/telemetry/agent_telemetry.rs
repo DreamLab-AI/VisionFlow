@@ -343,22 +343,16 @@ impl AgentTelemetryLogger {
     pub fn from_client_session(
         &self,
         client_session_id: &str,
-        bridge: Option<&crate::services::session_correlation_bridge::SessionCorrelationBridge>,
+        _bridge: Option<()>, // DEPRECATED: SessionCorrelationBridge removed
         level: LogLevel,
         category: &str,
         event_type: &str,
         message: &str,
         component: &str,
     ) -> TelemetryEvent {
-        // Try to get mapped correlation ID from bridge
-        let correlation_id = if let Some(bridge) = bridge {
-            bridge.get_correlation_id(client_session_id)
-                .unwrap_or_else(|| {
-                    debug!("No correlation ID found for client session {}, creating fallback", client_session_id);
-                    CorrelationId::from_client_session(client_session_id)
-                })
-        } else {
-            debug!("No SessionCorrelationBridge provided, using client session as correlation ID");
+        // DEPRECATED: Bridge parameter removed, using fallback correlation ID
+        let correlation_id = {
+            debug!("Creating fallback correlation ID for client session {}", client_session_id);
             CorrelationId::from_client_session(client_session_id)
         };
 

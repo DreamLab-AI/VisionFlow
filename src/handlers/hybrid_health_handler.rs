@@ -1,3 +1,8 @@
+// DEPRECATED: Legacy hybrid health handler removed
+// Docker exec architecture replaced by HTTP Management API
+// Health monitoring now via Management API /health endpoint
+
+/*
 use actix_web::{
     web::{self},
     HttpResponse, HttpRequest, Result, Error,
@@ -812,3 +817,4 @@ pub async fn websocket_hybrid_status(
     ws::start(ws_actor, &req, stream)
 }
 
+*/

@@ -1,3 +1,8 @@
+// DEPRECATED: Legacy hybrid fault tolerance removed
+// Docker exec architecture replaced by HTTP Management API
+// Use TaskOrchestratorActor with retry logic instead
+
+/*
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLock, Mutex};
@@ -861,4 +866,4 @@ pub fn create_fault_tolerance_system(
         mcp_pool,
         "multi-agent-container".to_string(),
     )
-}
+}*/

@@ -399,6 +399,10 @@ pub enum TaskMethod {
     Hybrid,     // Try Docker first, fallback to MCP
 }
 
+// DEPRECATED: Legacy Docker orchestration functions removed
+// Use TaskOrchestratorActor with Management API instead
+
+/*
 /// Docker-based task orchestration using hive-mind
 /// This is the PRIMARY method for task creation, replacing TCP MCP spawning
 pub async fn call_task_orchestrate_docker(
@@ -594,6 +598,7 @@ pub async fn get_all_swarms_hybrid(
         "timestamp": chrono::Utc::now().to_rfc3339()
     }))
 }
+*/
 
 /// Simplified function to get task status
 pub async fn call_task_status(

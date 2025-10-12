@@ -355,6 +355,10 @@ impl Handler<RestartAttempt> for SupervisorActor {
     }
 }
 
+// DEPRECATED: Voice command handler removed - uses legacy DockerHiveMind
+// Replace with TaskOrchestratorActor integration
+
+/*
 /// Handler for voice commands from the speech system
 impl Handler<VoiceCommand> for SupervisorActor {
     type Result = Result<SwarmVoiceResponse, String>;
@@ -526,6 +530,7 @@ impl Handler<VoiceCommand> for SupervisorActor {
         Ok(response)
     }
 }
+*/
 
 /// Helper trait for actors to integrate with supervision
 pub trait SupervisedActorTrait: Actor {

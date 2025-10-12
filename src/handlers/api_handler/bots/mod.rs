@@ -7,8 +7,6 @@ use crate::handlers::bots_handler::{
     get_bots_agents,
     spawn_agent_hybrid,
     remove_task,
-    pause_task,
-    resume_task,
 };
 
 // Configure bots API routes
@@ -23,7 +21,5 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/agents", web::get().to(get_bots_agents))
             .route("/spawn-agent-hybrid", web::post().to(spawn_agent_hybrid))
             .route("/remove-task/{id}", web::delete().to(remove_task))
-            .route("/pause-task/{id}", web::post().to(pause_task))
-            .route("/resume-task/{id}", web::post().to(resume_task))
     );
 }

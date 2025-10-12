@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 use crate::AppState;
 use crate::services::agent_visualization_protocol::McpServerType;
-use crate::handlers::hybrid_health_handler::HybridHealthManager;
+// DEPRECATED: HybridHealthManager removed
 use crate::utils::network::{
     TimeoutConfig, CircuitBreaker,
     HealthCheckManager, RetryConfig, retry_with_backoff,
@@ -43,7 +43,7 @@ impl RetryableError for McpError {
 /// WebSocket actor for multi-MCP agent visualization
 pub struct MultiMcpVisualizationWs {
     app_state: web::Data<AppState>,
-    hybrid_manager: Option<std::sync::Arc<HybridHealthManager>>,
+    _hybrid_manager: Option<()>, // DEPRECATED
     client_id: String,
     // visualization_actor_addr: Option<Addr<MultiMcpVisualizationActor>>, // Removed - not implemented
     last_heartbeat: Instant,
@@ -110,7 +110,7 @@ impl Default for PerformanceMode {
 }
 
 impl MultiMcpVisualizationWs {
-    pub fn new(app_state: web::Data<AppState>, hybrid_manager: Option<std::sync::Arc<HybridHealthManager>>) -> Self {
+    pub fn new(app_state: web::Data<AppState>, _hybrid_manager: Option<()>) -> Self {
         let client_id = Uuid::new_v4().to_string();
         info!("Creating new Multi-MCP WebSocket client with resilience and hybrid integration: {}", client_id);
 
@@ -122,7 +122,7 @@ impl MultiMcpVisualizationWs {
 
         Self {
             app_state,
-            hybrid_manager,
+            _hybrid_manager: None,
             client_id,
             // visualization_actor_addr: None, // Removed - not implemented
             last_heartbeat: Instant::now(),
@@ -758,11 +758,10 @@ pub async fn multi_mcp_visualization_ws(
     req: HttpRequest,
     stream: web::Payload,
     app_state: web::Data<AppState>,
-    hybrid_manager: Option<web::Data<Arc<HybridHealthManager>>>,
+    _hybrid_manager: Option<()>, // DEPRECATED
 ) -> ActixResult<HttpResponse> {
-    debug!("Starting Multi-MCP visualization WebSocket connection with hybrid integration");
-    let hybrid_manager_arc = hybrid_manager.map(|m| (**m).clone());
-    ws::start(MultiMcpVisualizationWs::new(app_state, hybrid_manager_arc), &req, stream)
+    debug!("Starting Multi-MCP visualization WebSocket connection");
+    ws::start(MultiMcpVisualizationWs::new(app_state, None), &req, stream)
 }
 
 /// HTTP endpoint to get current MCP server status
