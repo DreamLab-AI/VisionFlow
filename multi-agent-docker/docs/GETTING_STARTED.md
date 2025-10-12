@@ -1,456 +1,899 @@
-# Getting Started with Agentic Flow
+# Getting Started with Agentic Flow Docker System
+
+A complete guide to setting up and running the Agentic Flow multi-agent orchestration platform with GPU acceleration, multiple AI providers, and Claude-ZAI integration.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Initial Setup](#initial-setup)
+3. [API Key Configuration](#api-key-configuration)
+4. [First Time Build and Start](#first-time-build-and-start)
+5. [Verification Steps](#verification-steps)
+6. [Creating Your First Task](#creating-your-first-task)
+7. [Using Claude-ZAI](#using-claude-zai)
+8. [Accessing the Desktop Environment](#accessing-the-desktop-environment)
+9. [Understanding the Directory Structure](#understanding-the-directory-structure)
+10. [Next Steps and Resources](#next-steps-and-resources)
 
 ---
-**Version:** 1.0.0
-**Last Updated:** 2025-10-12
-**Status:** Active
-**Category:** Guide
-**Tags:** [quickstart, installation, tutorial]
----
-
-## Overview
-
-This guide will help you get Agentic Flow up and running in under 10 minutes. By the end, you'll have a fully functional AI agent orchestration system with multi-model routing and observability.
 
 ## Prerequisites
 
 ### System Requirements
-- **Node.js:** v20.0.0 or higher
-- **RAM:** 4GB minimum, 8GB recommended
-- **Disk Space:** 2GB for installation
-- **OS:** Linux, macOS, or Windows (WSL2)
 
-### Optional Requirements
-- **Docker:** v20.10+ (for containerised deployment)
-- **Git:** v2.30+ (for source installation)
+**Minimum:**
+- 16GB RAM
+- 8 CPU cores
+- 50GB free disk space
+- Linux/macOS/Windows with WSL2
+
+**Recommended:**
+- 32GB+ RAM
+- 16+ CPU cores
+- 100GB+ free disk space
+- NVIDIA GPU with 8GB+ VRAM (optional but recommended)
+
+### Required Software
+
+**Docker and Docker Compose:**
+
+```bash
+# Install Docker (Ubuntu/Debian)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Install Docker Compose
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+
+# Verify installation
+docker --version
+docker compose version
+```
+
+**NVIDIA GPU Support (Optional):**
+
+If you have an NVIDIA GPU and want GPU acceleration:
+
+```bash
+# Install NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+  sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+
+# Verify GPU access
+docker run --rm --gpus all nvidia/cuda:11.8.0-base-ubuntu22.04 nvidia-smi
+```
 
 ### API Keys
 
-You'll need at least one of the following:
-- **Anthropic API Key** (Claude models)
-- **OpenRouter API Key** (100+ models)
-- **Google AI API Key** (Gemini models)
-- **OpenAI API Key** (GPT models)
+You'll need at least ONE of these API keys:
 
-Get your API keys:
-- Anthropic: [https://console.anthropic.com/](https://console.anthropic.com/)
-- OpenRouter: [https://openrouter.ai/keys](https://openrouter.ai/keys)
-- Google AI: [https://makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
-- OpenAI: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Anthropic Claude** (recommended): Get from [console.anthropic.com](https://console.anthropic.com/)
+- **Google Gemini**: Get from [aistudio.google.com](https://aistudio.google.com/)
+- **OpenAI**: Get from [platform.openai.com](https://platform.openai.com/)
+- **OpenRouter**: Get from [openrouter.ai](https://openrouter.ai/)
+
+Optional:
+- **GitHub Token**: For GitHub integration features
+- **Context7**: For advanced search
+- **Brave**: For web search capabilities
 
 ---
 
-## Installation Methods
+## Initial Setup
 
-### Method 1: NPM Installation (Recommended)
+### 1. Clone the Repository
 
 ```bash
-# Install globally
-npm install -g agentic-flow
+# Navigate to your projects directory
+cd ~/projects
 
-# Or install locally in your project
-npm install agentic-flow
-
-# Verify installation
-agentic-flow --version
+# Clone the repository
+git clone https://github.com/your-org/AR-AI-Knowledge-Graph.git
+cd AR-AI-Knowledge-Graph/multi-agent-docker
 ```
 
-### Method 2: Source Installation
+### 2. Review the Docker Compose Configuration
 
 ```bash
-# Clone the repository
-git clone https://github.com/ruvnet/agentic-flow.git
-cd agentic-flow
+# View the docker-compose configuration
+cat docker-compose.yml
 
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Link for global usage
-npm link
+# Check available Dockerfiles
+ls -la Dockerfile*
 ```
 
-### Method 3: Docker Deployment
+The system consists of two main services:
+- **agentic-flow-cachyos**: Main orchestration container (CachyOS-based)
+- **claude-zai**: Z.AI semantic processing service
+
+---
+
+## API Key Configuration
+
+### 1. Create Environment File
 
 ```bash
-# Clone the repository
-git clone https://github.com/ruvnet/agentic-flow.git
-cd agentic-flow/docker/cachyos
-
-# Configure environment
+# Copy the example environment file
 cp .env.example .env
-# Edit .env with your API keys
 
-# Start services
-./start-agentic-flow.sh
-
-# Verify containers
-docker ps
+# Open in your preferred editor
+nano .env
+# or
+vim .env
+# or
+code .env
 ```
 
----
+### 2. Configure Required API Keys
 
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in your project root:
+Edit `.env` and add your API keys:
 
 ```bash
-# Core Configuration
-NODE_ENV=production
-PORT=9090
+# ============================================================================
+# API Keys (At least one provider required)
+# ============================================================================
 
-# API Keys
-ANTHROPIC_API_KEY=your_anthropic_key_here
-OPENROUTER_API_KEY=your_openrouter_key_here
-GOOGLE_API_KEY=your_google_key_here
-OPENAI_API_KEY=your_openai_key_here
+# Anthropic Claude (recommended)
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Z.AI Configuration (optional)
-ZAI_API_KEY=your_zai_key_here
+# Z.AI (required for claude-zai service)
 ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 
-# Router Configuration
-DEFAULT_MODEL=claude-sonnet-4
-ROUTING_POLICY=cost-optimised
-ENABLE_FALLBACK=true
+# OpenAI
+OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Management API
-MANAGEMENT_API_KEY=your_secure_api_key_here
+# Google Gemini
+GOOGLE_GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Monitoring
-ENABLE_METRICS=true
-METRICS_PORT=9090
-LOG_LEVEL=info
+# OpenRouter (multi-model access)
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# GitHub Token (optional)
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### Configuration File
+### 3. Configure System Settings
 
-Alternatively, create `config.json`:
+```bash
+# ============================================================================
+# Management API Configuration
+# ============================================================================
 
-```json
-{
-  "router": {
-    "policy": "cost-optimised",
-    "fallbacks": ["claude", "gemini", "openrouter"],
-    "timeout": 30000,
-    "retries": 3
-  },
-  "models": {
-    "default": "claude-sonnet-4",
-    "fallback": "gemini-1.5-pro"
-  },
-  "monitoring": {
-    "enabled": true,
-    "metrics": {
-      "port": 9090,
-      "path": "/metrics"
-    },
-    "logging": {
-      "level": "info",
-      "format": "json"
-    }
-  },
-  "agents": {
-    "poolSize": 4,
-    "maxQueue": 50
-  }
-}
+# IMPORTANT: Change this secret key for production
+MANAGEMENT_API_KEY=your-secure-random-key-here
+MANAGEMENT_API_PORT=9090
+MANAGEMENT_API_HOST=0.0.0.0
+
+# ============================================================================
+# Model Router Configuration
+# ============================================================================
+
+# Router mode: performance, cost, quality, balanced, offline
+ROUTER_MODE=performance
+
+# Primary provider: gemini, openai, claude, openrouter
+PRIMARY_PROVIDER=gemini
+
+# Fallback chain (comma-separated)
+FALLBACK_CHAIN=gemini,openai,claude,openrouter
+
+# ============================================================================
+# GPU Configuration
+# ============================================================================
+
+GPU_ACCELERATION=true
+CUDA_VISIBLE_DEVICES=all
+
+# ============================================================================
+# Optional Services
+# ============================================================================
+
+# Desktop environment (VNC/noVNC)
+ENABLE_DESKTOP=false
+
+# VS Code Server
+ENABLE_CODE_SERVER=false
+```
+
+### 4. Secure Your Environment File
+
+```bash
+# Set restrictive permissions
+chmod 600 .env
+
+# Verify it's not tracked by git
+echo ".env" >> .gitignore
 ```
 
 ---
 
-## First Run
+## First Time Build and Start
 
-### Start the Server
+### 1. Build the Docker Images
 
 ```bash
-# Using NPM package
-agentic-flow start
+# Build both containers (first time will take 10-20 minutes)
+./start-agentic-flow.sh --build
+```
 
-# Using source
-npm start
+This command:
+- Builds the agentic-flow-cachyos container from CachyOS base
+- Builds the claude-zai service container
+- Installs all dependencies and tools
+- Sets up MCP servers and agents
+- Configures GPU access if available
 
-# Using Docker
+### 2. Start the Services
+
+The build command automatically starts the services. For subsequent starts:
+
+```bash
+# Regular startup (without rebuild)
 ./start-agentic-flow.sh
+
+# Or use docker-compose directly
+docker-compose up -d
 ```
 
-### Verify Installation
+### 3. Monitor Startup Progress
 
 ```bash
-# Check health endpoint
+# Watch container logs
+./start-agentic-flow.sh --logs
+
+# Or follow specific service logs
+docker-compose logs -f agentic-flow-cachyos
+docker-compose logs -f claude-zai
+```
+
+Wait for these messages:
+```
+✅ Management API server listening on http://0.0.0.0:9090
+✅ claude-zai service is healthy
+✅ agentic-flow-cachyos container is running
+```
+
+---
+
+## Verification Steps
+
+### 1. Check Service Status
+
+```bash
+# Check overall status
+./start-agentic-flow.sh --status
+
+# Verify containers are running
+docker ps
+```
+
+You should see:
+```
+CONTAINER ID   IMAGE                          STATUS         PORTS
+abc123...      cachyos-agentic-flow-cachyos  Up 2 minutes   0.0.0.0:9090->9090/tcp
+def456...      cachyos-claude-zai            Up 2 minutes   0.0.0.0:9600->9600/tcp
+```
+
+### 2. Test Health Endpoints
+
+```bash
+# Test Management API
 curl http://localhost:9090/health
+# Expected: {"status":"healthy","timestamp":"..."}
 
-# Expected response:
-{
-  "status": "ok",
-  "service": "agentic-flow",
-  "version": "1.3.0",
-  "uptime": 42.5,
-  "memory": {
-    "heapUsed": 52428800,
-    "heapTotal": 104857600
-  }
-}
+# Test Claude-ZAI Service
+curl http://localhost:9600/health
+# Expected: {"status":"ok","uptime":...}
+
+# Get API information
+curl http://localhost:9090/
 ```
 
-### Access API Documentation
-
-Open your browser to:
-```
-http://localhost:9090/docs
-```
-
-You'll see the interactive Swagger UI with all available endpoints.
-
----
-
-## Basic Usage
-
-### Example 1: Simple Completion
-
-```javascript
-const { AgenticFlow } = require('agentic-flow');
-
-const client = new AgenticFlow({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
-
-const response = await client.complete({
-  prompt: 'Explain quantum computing in simple terms',
-  model: 'claude-sonnet-4',
-  maxTokens: 500
-});
-
-console.log(response.content);
-```
-
-### Example 2: Multi-Model Routing
-
-```javascript
-const { MultiModelRouter } = require('agentic-flow');
-
-const router = new MultiModelRouter({
-  policy: 'cost-optimised',
-  fallbacks: ['claude', 'gemini', 'openai']
-});
-
-const response = await router.route({
-  prompt: 'Write a Python function to calculate Fibonacci numbers',
-  task: 'code-generation',
-  budget: 0.01 // USD
-});
-
-console.log(`Model used: ${response.model}`);
-console.log(`Cost: $${response.cost.toFixed(4)}`);
-console.log(`Response: ${response.content}`);
-```
-
-### Example 3: Agent Execution
-
-```javascript
-const { AgentSystem } = require('agentic-flow');
-
-const agents = new AgentSystem();
-
-const result = await agents.execute({
-  agent: 'coder',
-  task: 'refactor-code',
-  input: './src/legacy.js',
-  output: './src/modern.js',
-  options: {
-    style: 'functional',
-    tests: true
-  }
-});
-
-console.log(`Refactored: ${result.success}`);
-console.log(`Changes: ${result.changes.length}`);
-```
-
----
-
-## Testing Your Installation
-
-### Run System Tests
+### 3. Verify GPU Access (If Available)
 
 ```bash
-# Run all tests
-npm test
+# Enter the container
+docker exec -it agentic-flow-cachyos zsh
 
-# Run specific test suites
-npm run test:unit
-npm run test:integration
-npm run test:e2e
-
-# With coverage
-npm run test:coverage
-```
-
-### Performance Benchmark
-
-```bash
-# Run benchmarks
-npm run benchmark
+# Check GPU
+nvidia-smi
 
 # Expected output:
-📊 Benchmark: Health Check Latency
-  Mean:    12.34ms
-  P95:     18.90ms
-  P99:     32.11ms
-  Ops/sec: 81.04
+# +-----------------------------------------------------------------------------+
+# | NVIDIA-SMI 535.xx       Driver Version: 535.xx       CUDA Version: 12.x   |
+# |-------------------------------+----------------------+----------------------+
+# | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+# ...
 ```
 
-### Load Testing
+### 4. Test AI Provider Connectivity
 
 ```bash
-# Install Artillery (if not already)
-npm install -g artillery
+# Inside container
+docker exec -it agentic-flow-cachyos zsh
 
-# Run load tests
-cd docker/cachyos/tests
-artillery run load-tests/api-load-test.yml
+# Run provider tests
+/opt/scripts/test-all-providers.sh
+
+# Or test specific provider
+agentic-flow --agent coder --task "Print hello world" --provider gemini --max-tokens 50
+```
+
+### 5. Check RAGFlow Network Integration (Optional)
+
+```bash
+# Check if connected to RAGFlow network
+docker network inspect docker_ragflow | grep agentic-flow-cachyos
+
+# Test Xinference connectivity (if RAGFlow is running)
+docker exec -it agentic-flow-cachyos curl -s http://172.18.0.11:9997/v1/models
 ```
 
 ---
 
-## Next Steps
+## Creating Your First Task
 
-### 1. Configure Multi-Model Routing
-Learn how to optimise costs and performance:
-→ [Multi-Model Routing Guide](architecture/multi-model-routing.md)
+### Using the Management API
 
-### 2. Explore Agent System
-Discover 66+ specialised agents:
-→ [Agent System Overview](agents/overview.md)
+The Management API is the primary interface for task management.
 
-### 3. Set Up Monitoring
-Implement observability:
-→ [Monitoring Guide](operations/monitoring.md)
+**1. Create a Task via HTTP:**
 
-### 4. Deploy to Production
-Production deployment strategies:
-→ [Deployment Guide](guides/deployment.md)
+```bash
+# Create a simple task
+curl -X POST http://localhost:9090/v1/tasks \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secure-random-key-here" \
+  -d '{
+    "agent": "coder",
+    "task": "Create a Python function that calculates the fibonacci sequence",
+    "provider": "gemini",
+    "maxTokens": 1000
+  }'
+```
 
-### 5. Integrate MCP Servers
-Extend functionality with custom tools:
-→ [MCP Integration Guide](integrations/mcp-servers.md)
+Response:
+```json
+{
+  "taskId": "task-1234567890",
+  "status": "running",
+  "createdAt": "2025-10-12T17:00:00.000Z"
+}
+```
+
+**2. Check Task Status:**
+
+```bash
+# Get task status
+curl http://localhost:9090/v1/tasks/task-1234567890 \
+  -H "X-API-Key: your-secure-random-key-here"
+```
+
+**3. List All Tasks:**
+
+```bash
+curl http://localhost:9090/v1/tasks \
+  -H "X-API-Key: your-secure-random-key-here"
+```
+
+### Using the Command-Line Interface
+
+**1. Enter the Container:**
+
+```bash
+# Open interactive shell
+docker exec -it agentic-flow-cachyos zsh
+```
+
+**2. Run Your First Agent:**
+
+```bash
+# Simple coding task
+agentic-flow --agent coder --task "Create a Python REST API with FastAPI"
+
+# Use specific provider
+agentic-flow --agent coder --task "Build authentication system" --provider claude
+
+# With intelligent routing
+agentic-flow --agent coder --task "Complex task" --optimize --priority quality
+```
+
+**3. Common Agent Commands:**
+
+```bash
+# Code review
+agentic-flow --agent reviewer --task "Review this code for security issues" --file ./app.py
+
+# Research
+agentic-flow --agent researcher --task "Latest developments in transformer architectures"
+
+# Testing
+agentic-flow --agent tester --task "Generate comprehensive unit tests" --file ./api.py
+
+# Backend development
+agentic-flow --agent backend-dev --task "Create GraphQL API with PostgreSQL"
+
+# List all available agents
+agentic-flow --list-agents
+```
+
+### Example: Multi-Step Workflow
+
+```bash
+# Inside container
+
+# Step 1: Research and plan
+agentic-flow --agent researcher --task "Best practices for REST API authentication" \
+  --save-context auth-research
+
+# Step 2: Implement
+agentic-flow --agent coder --task "Implement JWT authentication based on research" \
+  --load-context auth-research --save-context auth-implementation
+
+# Step 3: Test
+agentic-flow --agent tester --task "Create tests for authentication" \
+  --load-context auth-implementation --save-context auth-tests
+
+# Step 4: Review
+agentic-flow --agent reviewer --task "Security review of authentication" \
+  --load-context auth-implementation
+```
 
 ---
 
-## Common Issues
+## Using Claude-ZAI
 
-### Issue: Port Already in Use
+Claude-ZAI provides semantic processing and enhanced Claude integration through Z.AI's optimized infrastructure.
+
+### Basic Usage
+
+**1. Direct API Access:**
 
 ```bash
-# Error: EADDRINUSE: address already in use :::9090
-
-# Solution: Change port in .env
-PORT=9091
-
-# Or kill process using port 9090
-lsof -ti:9090 | xargs kill -9
+# Send a request to Claude-ZAI
+curl -X POST http://localhost:9600/v1/messages \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain quantum computing in simple terms"
+      }
+    ]
+  }'
 ```
 
-### Issue: API Key Not Found
+**2. Check Service Health:**
 
 ```bash
-# Error: ANTHROPIC_API_KEY is required
-
-# Solution: Ensure .env file exists and is loaded
-cat .env | grep ANTHROPIC_API_KEY
-
-# Verify environment variables
-node -e "console.log(process.env.ANTHROPIC_API_KEY)"
+curl http://localhost:9600/health
 ```
 
-### Issue: Docker Container Won't Start
+**3. View Service Metrics:**
 
 ```bash
-# Check container logs
-docker logs agentic-flow-cachyos
-
-# Common fix: Remove old containers
-docker-compose down -v
-docker system prune -f
-
-# Rebuild and restart
-./start-agentic-flow.sh --clean
+curl http://localhost:9600/metrics
 ```
 
-### Issue: Connection Timeout
+### Integration with Agentic Flow
+
+Claude-ZAI is automatically used when you specify the Claude provider:
 
 ```bash
-# Check service health
-curl -v http://localhost:9090/health
-
-# Verify services are running
-docker ps
-ps aux | grep node
-
-# Check firewall rules
-sudo ufw status
+# Uses claude-zai service internally
+docker exec -it agentic-flow-cachyos \
+  agentic-flow --agent coder --task "Your task" --provider claude
 ```
 
----
+### Configuration
 
-## Development Mode
-
-### Hot Reload
+Claude-ZAI settings in `.env`:
 
 ```bash
-# Start with nodemon
-npm run dev
+# Z.AI Configuration
+ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_API_KEY}
 
-# Or using Docker
-./start-agentic-flow.sh --dev
-```
-
-### Debug Mode
-
-```bash
-# Enable debug logging
-DEBUG=* npm start
-
-# Or with specific namespace
-DEBUG=agentic-flow:* npm start
-
-# Using VS Code debugger
-code .
-# Press F5 to start debugging
+# Worker Pool Settings
+CLAUDE_WORKER_POOL_SIZE=4    # Number of concurrent workers
+CLAUDE_MAX_QUEUE_SIZE=50     # Maximum queued requests
 ```
 
 ---
 
-## Resources
+## Accessing the Desktop Environment
+
+The system includes an optional XFCE desktop environment accessible via VNC/noVNC for visual debugging and GUI tools.
+
+### Enable Desktop Environment
+
+**1. Edit `.env`:**
+
+```bash
+ENABLE_DESKTOP=true
+```
+
+**2. Restart Services:**
+
+```bash
+./start-agentic-flow.sh --restart
+```
+
+### Access Methods
+
+**Option 1: Web Browser (noVNC - Recommended)**
+
+1. Open browser: `http://localhost:6901`
+2. Click "Connect"
+3. Password: `vncpassword` (or your custom VNC_PASSWORD)
+
+**Option 2: VNC Client**
+
+1. Install VNC client (TigerVNC, RealVNC, etc.)
+2. Connect to: `localhost:5901`
+3. Password: `vncpassword`
+
+### Desktop Features
+
+- **XFCE Desktop**: Lightweight, no screen locking
+- **Chromium Browser**: For web-based tools
+- **Terminal**: Integrated zsh terminal
+- **File Manager**: Thunar file manager
+- **Text Editor**: gedit and vim
+- **Development Tools**: All CLI tools accessible from desktop terminal
+
+### GUI Applications
+
+```bash
+# Inside container (from desktop terminal)
+
+# Open file manager
+thunar &
+
+# Open browser
+chromium &
+
+# Open text editor
+gedit &
+
+# Visual monitoring
+htop
+```
+
+---
+
+## Understanding the Directory Structure
+
+### Container Directory Layout
+
+```
+/home/devuser/                    # User home directory
+├── workspace/                    # Your projects and development files
+│   ├── projects/                 # Active development projects
+│   ├── temp/                     # Temporary working files
+│   └── agents/                   # Custom agent definitions
+│
+├── models/                       # Model cache and ONNX models
+│   ├── phi-4.onnx               # Offline ONNX model
+│   └── embeddings/               # Embedding models
+│
+├── .agentic-flow/               # Agent memory and state
+│   ├── memory/                   # Persistent agent memory
+│   ├── metrics/                  # Performance metrics
+│   ├── logs/                     # Execution logs
+│   └── sessions/                 # Session data
+│
+├── .config/                      # Configuration files
+│   ├── agentic-flow/            # Router and system config
+│   │   ├── router.config.json
+│   │   └── agents/
+│   └── claude/                   # MCP server configurations
+│       └── mcp-servers.json
+│
+├── logs/                         # Management API logs
+│   ├── api.log
+│   └── tasks/
+│
+└── .claude/                      # Claude Code configuration
+    ├── agents/                   # Agent definitions
+    └── CLAUDE.md                 # Claude configuration
+```
+
+### Persistent Volumes
+
+Data is stored in Docker volumes that persist across container restarts:
+
+```bash
+# View volumes
+docker volume ls | grep agentic
+
+# Outputs:
+# workspace         - Development files
+# model-cache       - AI models
+# agent-memory      - Agent state
+# config-persist    - Configuration
+# management-logs   - API logs
+```
+
+### Important Paths
+
+**Configuration:**
+- `.env` - Environment variables (host)
+- `/home/devuser/.config/agentic-flow/router.config.json` - Model router config
+- `/home/devuser/.claude/agents/` - Custom agent definitions
+- `/opt/management-api/` - Management API source
+
+**Scripts:**
+- `/opt/scripts/` - System scripts
+- `/opt/scripts/test-all-providers.sh` - Provider testing
+- `/opt/scripts/healthcheck.sh` - Health monitoring
+- `/opt/scripts/init-workstation.sh` - Initialization
+
+**Executables:**
+- `/usr/local/bin/agentic-flow` - Main CLI
+- `/usr/local/bin/claude` - Claude CLI
+- `/opt/management-api/server.js` - Management API server
+
+---
+
+## Next Steps and Resources
+
+### Recommended Learning Path
+
+1. **Explore Available Agents** (15 minutes)
+   ```bash
+   docker exec -it agentic-flow-cachyos zsh
+   agentic-flow --list-agents
+   agentic-flow --help
+   ```
+
+2. **Try Different Providers** (30 minutes)
+   ```bash
+   # Test each provider
+   /opt/scripts/test-all-providers.sh
+
+   # Compare results
+   agentic-flow --agent coder --task "Same task" --provider gemini
+   agentic-flow --agent coder --task "Same task" --provider claude
+   ```
+
+3. **Build a Sample Project** (1 hour)
+   ```bash
+   cd ~/workspace
+   mkdir my-first-project
+   cd my-first-project
+
+   # Use agents to build a complete application
+   agentic-flow --agent backend-dev --task "Create Express.js API with JWT auth"
+   agentic-flow --agent tester --task "Generate tests for the API"
+   agentic-flow --agent reviewer --task "Review code security"
+   ```
+
+4. **Explore Advanced Features** (ongoing)
+   - Model routing and optimization
+   - Custom agent creation
+   - MCP tool integration
+   - Multi-agent orchestration
+   - RAGFlow integration
 
 ### Documentation
-- [Architecture Overview](ARCHITECTURE.md)
-- [API Reference](api/README.md)
-- [Agent Guide](agents/README.md)
-- [Command Reference](commands/README.md)
 
-### Examples
-- [Code Examples](examples/README.md)
-- [Integration Patterns](integrations/README.md)
-- [Deployment Scenarios](guides/deployment.md)
+**Core Documentation:**
+- [Architecture Overview](ARCHITECTURE-SIMPLIFIED.md) - System design
+- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Workstation Guide](README.workstation.md) - Full workstation features
+- [API Reference](http://localhost:9090/docs) - Management API docs (when running)
 
-### Support
-- [GitHub Issues](https://github.com/ruvnet/agentic-flow/issues)
-- [Discussions](https://github.com/ruvnet/agentic-flow/discussions)
-- [Discord Community](https://discord.gg/agentic-flow)
+**Integration Guides:**
+- [Gemini Flow](GEMINI-FLOW.md) - Google Gemini integration
+- [ONNX Proxy](ONNX-PROXY-IMPLEMENTATION.md) - Offline inference
+- [Test Framework](TEST-FRAMEWORK.md) - Testing strategies
+
+### API Endpoints Reference
+
+**Management API (Port 9090):**
+
+```bash
+# Base URL: http://localhost:9090
+
+# Health and status
+GET  /health                # Health check
+GET  /ready                 # Readiness check
+GET  /metrics               # Prometheus metrics
+GET  /v1/status             # System status
+
+# Task management
+POST /v1/tasks              # Create task
+GET  /v1/tasks              # List tasks
+GET  /v1/tasks/:taskId      # Get task details
+DELETE /v1/tasks/:taskId    # Cancel task
+
+# API documentation
+GET  /docs                  # Swagger UI
+GET  /                      # API information
+```
+
+**Claude-ZAI API (Port 9600):**
+
+```bash
+# Base URL: http://localhost:9600
+
+# Service endpoints
+GET  /health                      # Health check
+GET  /metrics                     # Service metrics
+POST /v1/messages                 # Claude messages API
+POST /v1/messages/stream          # Streaming messages
+```
+
+### Shell Aliases and Shortcuts
+
+Inside the container, these aliases are available:
+
+```bash
+# Navigation
+workspace       # cd ~/workspace
+projects        # cd ~/workspace/projects
+
+# Development
+afh             # agentic-flow --help
+afl             # agentic-flow --list-agents
+test-gpu        # Check GPU status
+test-providers  # Test all providers
+check-keys      # Verify API keys
+
+# Provider shortcuts
+af-gemini       # Use Gemini provider
+af-openai       # Use OpenAI provider
+af-claude       # Use Claude provider
+af-local        # Use Xinference (local)
+af-offline      # Use ONNX (offline)
+
+# Router shortcuts
+af-optimize     # Intelligent routing
+af-perf         # Performance mode
+af-cost         # Cost optimization
+af-quality      # Quality mode
+```
+
+### Troubleshooting Commands
+
+```bash
+# View logs
+./start-agentic-flow.sh --logs
+
+# Check status
+./start-agentic-flow.sh --status
+
+# Restart services
+./start-agentic-flow.sh --restart
+
+# Complete rebuild
+./start-agentic-flow.sh --clean
+./start-agentic-flow.sh --build
+
+# Test specific components
+docker exec -it agentic-flow-cachyos /opt/scripts/test-all-providers.sh
+docker exec -it agentic-flow-cachyos /opt/scripts/healthcheck.sh
+
+# Check GPU
+docker exec -it agentic-flow-cachyos nvidia-smi
+
+# Verify network
+docker network inspect docker_ragflow
+docker network inspect agentic-network
+```
+
+### Community and Support
+
+- **GitHub Repository**: [https://github.com/your-org/AR-AI-Knowledge-Graph](https://github.com/your-org/AR-AI-Knowledge-Graph)
+- **Issues**: Report bugs and request features
+- **Discussions**: Share ideas and get help
+- **Pull Requests**: Contribute improvements
+
+### Performance Tips
+
+1. **Use the Intelligent Router**: Let the system choose the optimal provider
+   ```bash
+   agentic-flow --agent coder --task "..." --optimize --priority performance
+   ```
+
+2. **Cache Common Operations**: Enable caching for repeated tasks
+   ```bash
+   export ENABLE_CACHE=true
+   ```
+
+3. **Leverage Local Models**: Use Xinference/ONNX for cost savings
+   ```bash
+   export PRIMARY_PROVIDER=xinference
+   ```
+
+4. **Monitor Resource Usage**:
+   ```bash
+   docker stats agentic-flow-cachyos
+   docker exec -it agentic-flow-cachyos htop
+   ```
+
+5. **Optimize GPU Usage**: Ensure GPU is utilized for ONNX
+   ```bash
+   export ONNX_EXECUTION_PROVIDER=cuda
+   ```
+
+### Security Best Practices
+
+1. **Secure API Keys**: Never commit `.env` file
+2. **Change Default Secrets**: Update `MANAGEMENT_API_KEY` in production
+3. **Network Isolation**: Use Docker networks appropriately
+4. **Regular Updates**: Keep containers and dependencies updated
+5. **Monitor Logs**: Regularly review logs for anomalies
 
 ---
 
-## Feedback
+## Quick Reference Card
 
-Found an issue with this guide? Please let us know:
-- [Report Documentation Issue](https://github.com/ruvnet/agentic-flow/issues/new?labels=documentation)
-- [Suggest Improvements](https://github.com/ruvnet/agentic-flow/discussions/new)
+```bash
+# Start/Stop
+./start-agentic-flow.sh              # Start services
+./start-agentic-flow.sh --stop       # Stop services
+./start-agentic-flow.sh --restart    # Restart services
+
+# Build
+./start-agentic-flow.sh --build      # Build containers
+
+# Monitoring
+./start-agentic-flow.sh --status     # Check status
+./start-agentic-flow.sh --logs       # View logs
+
+# Shell Access
+docker exec -it agentic-flow-cachyos zsh
+
+# Basic Task
+agentic-flow --agent coder --task "your task"
+
+# API Request
+curl -X POST http://localhost:9090/v1/tasks \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-key" \
+  -d '{"agent":"coder","task":"your task"}'
+
+# Health Check
+curl http://localhost:9090/health
+
+# Test Everything
+/opt/scripts/test-all-providers.sh
+```
 
 ---
 
-**Next:** [Configuration Guide](guides/configuration.md) | [Architecture Overview](ARCHITECTURE.md)
+## Success Checklist
+
+- [ ] Docker and Docker Compose installed
+- [ ] NVIDIA drivers installed (if using GPU)
+- [ ] Repository cloned
+- [ ] `.env` file configured with at least one API key
+- [ ] Containers built successfully
+- [ ] Services started and healthy
+- [ ] Health endpoints responding
+- [ ] GPU detected (if applicable)
+- [ ] At least one provider working
+- [ ] First task completed successfully
+- [ ] Management API accessible
+- [ ] Documentation reviewed
+
+**Congratulations!** You're ready to build with Agentic Flow.
+
+For more advanced usage, explore the [Architecture Guide](ARCHITECTURE-SIMPLIFIED.md) and [API Documentation](http://localhost:9090/docs).
+
+---
+
+**Need Help?** Open an issue on GitHub or review the troubleshooting section above.

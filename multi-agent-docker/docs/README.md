@@ -1,125 +1,141 @@
-# Agentic Flow Docker Deployment
+# Agentic Flow Docker Environment
 
-**Standalone, production-ready Docker deployment for Agentic Flow AI orchestration platform.**
+**GPU-accelerated Docker workstation for AI agent development with multi-model orchestration, MCP tool integration, and Claude Z.AI wrapper.**
 
-This directory contains everything needed to deploy Agentic Flow using Docker. No other files from the repository are required - the `agentic-flow` package is installed directly from npm.
+## Overview
+
+This Docker environment provides a complete, production-ready platform for developing and deploying AI agent workflows. It includes:
+
+- **GPU-Accelerated Workstation**: CachyOS-based container with NVIDIA GPU support
+- **Multi-Model Router**: Intelligent routing across Gemini, OpenAI, Claude, and OpenRouter
+- **Management API**: RESTful HTTP API for task management and system monitoring
+- **Claude-ZAI Service**: High-performance Claude AI wrapper with worker pool
+- **MCP Integration**: Model Context Protocol tools for Claude integration
+- **Desktop Environment**: Optional VNC/noVNC for GUI applications
+- **Development Tools**: Full development toolchain with VS Code server option
 
 ## Quick Start
 
 ```bash
-# 1. Configure API keys
+# 1. Clone and navigate
+cd multi-agent-docker
+
+# 2. Configure API keys
 cp .env.example .env
 nano .env  # Add your API keys
 
-# 2. Start services
+# 3. Start services
 ./start-agentic-flow.sh --build
 
-# 3. Verify
-curl http://localhost:9090/health
-curl http://localhost:9600/health
+# 4. Verify services
+curl http://localhost:9090/health  # Management API
+curl http://localhost:9600/health  # Claude-ZAI
 ```
 
 ## Services
 
 | Service | Port | Description |
 |---------|------|-------------|
-| **Management API** | 9090 | Primary interface for task management |
+| **Management API** | 9090 | Primary interface for task management and monitoring |
 | **Claude-ZAI** | 9600 | Claude AI wrapper with Z.AI integration |
-| **VNC** | 5901 | Remote desktop (if enabled) |
-| **noVNC** | 6901 | Browser-based VNC (if enabled) |
-| **Code Server** | 8080 | VS Code in browser (if enabled) |
+| **VNC** | 5901 | Remote desktop (if `ENABLE_DESKTOP=true`) |
+| **noVNC** | 6901 | Browser-based VNC (if `ENABLE_DESKTOP=true`) |
+| **Code Server** | 8080 | VS Code in browser (if `ENABLE_CODE_SERVER=true`) |
 
-## Directory Structure
+## Key Features
+
+### Multi-Model AI Orchestration
+- **Intelligent Router**: Automatic provider selection based on task requirements
+- **Fallback Chain**: Graceful degradation across multiple providers
+- **Performance Optimization**: Route to fastest provider for latency-sensitive tasks
+- **Cost Optimization**: Balance quality and cost based on configurable priorities
+
+### GPU Acceleration
+- **NVIDIA GPU Support**: Full CUDA and GPU compute capabilities
+- **Resource Management**: Configurable GPU memory and compute limits
+- **Multi-GPU**: Support for multiple GPU allocation
+- **Monitoring**: Real-time GPU utilization and temperature tracking
+
+### Task Isolation
+- **Process Isolation**: Each task runs in dedicated workspace
+- **Database Isolation**: Separate SQLite databases per task
+- **Log Separation**: Individual log files for each task
+- **Resource Limits**: Per-task CPU and memory constraints
+
+### MCP Tool Ecosystem
+- **Claude Flow**: Agentic workflow orchestration
+- **Context7**: Up-to-date code documentation
+- **Playwright**: Browser automation
+- **Filesystem**: Workspace file operations
+- **Git/GitHub**: Version control and repository management
+- **Web Tools**: Fetch, search, and summarize web content
+
+## Architecture
 
 ```
-docker/cachyos/                      ← ONLY THIS DIRECTORY NEEDED
-├── start-agentic-flow.sh           # Launch script
-├── docker-compose.yml              # Standalone compose (installs from npm)
-├── docker-compose.dev.yml          # Development compose (local source)
-├── Dockerfile.workstation          # Standalone Dockerfile
-├── Dockerfile.workstation.dev      # Development Dockerfile
-├── .env.example                    # Environment template
-├── management-api/                 # Management API service
-│   ├── server.js
-│   ├── routes/
-│   ├── middleware/
-│   └── utils/
-├── claude-zai/                     # Claude Z.AI wrapper
-│   ├── Dockerfile
-│   └── wrapper/
-├── config/                         # Configuration files
-│   ├── .zshrc
-│   ├── router.config.json
-│   ├── mcp.json
-│   ├── gemini-flow.config.ts
-│   └── supervisord.conf
-├── scripts/                        # Helper scripts
-│   ├── init-workstation.sh
-│   └── mcp-cli.sh
-└── core-assets/                    # Core assets
-    └── scripts/
+┌─────────────────────────────────────────────────────────────┐
+│                    Management API (Port 9090)               │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
+│  │ Task Manager│  │ System Monitor│  │ Process Manager  │   │
+│  └─────────────┘  └──────────────┘  └──────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+    ┌─────────▼────────┐     │     ┌────────▼──────────┐
+    │  Model Router    │     │     │ Claude-ZAI (9600) │
+    │  ┌────────────┐  │     │     │  Worker Pool      │
+    │  │  Gemini    │  │     │     └───────────────────┘
+    │  │  OpenAI    │  │     │
+    │  │  Claude    │  │     │
+    │  │ OpenRouter │  │     │
+    │  └────────────┘  │     │
+    └──────────────────┘     │
+                              │
+                    ┌─────────▼──────────┐
+                    │   MCP Tools        │
+                    │  ┌──────────────┐  │
+                    │  │ Claude Flow  │  │
+                    │  │ Filesystem   │  │
+                    │  │ Playwright   │  │
+                    │  │ Git/GitHub   │  │
+                    │  │ Web Tools    │  │
+                    │  └──────────────┘  │
+                    └────────────────────┘
 ```
 
-## Usage
+## Documentation Structure
 
-### Starting Services
+### Getting Started
+- [**Getting Started Guide**](GETTING_STARTED.md) - Detailed setup and first steps
+- [**Quick Reference**](reference/QUICK_REFERENCE.md) - Command cheat sheet
+
+### Core Documentation
+- [**Architecture**](ARCHITECTURE.md) - System design and components
+- [**API Reference**](API_REFERENCE.md) - Complete API documentation
+- [**Configuration**](CONFIGURATION.md) - All configuration options
+- [**Deployment**](DEPLOYMENT.md) - Production deployment guide
+- [**Troubleshooting**](TROUBLESHOOTING.md) - Common issues and solutions
+
+### User Guides
+- [**Multi-Model Router Guide**](guides/MULTI_MODEL_ROUTER.md) - Configure model routing
+- [**MCP Tools Guide**](guides/MCP_TOOLS.md) - Using MCP integrations
+- [**GPU Configuration**](guides/GPU_CONFIGURATION.md) - GPU setup and optimization
+- [**Task Management**](guides/TASK_MANAGEMENT.md) - Creating and monitoring tasks
+- [**Desktop Environment**](guides/DESKTOP_ENVIRONMENT.md) - Using VNC and GUI tools
+
+### Reference
+- [**Environment Variables**](reference/ENVIRONMENT_VARIABLES.md) - Complete env var reference
+- [**Scripts Reference**](reference/SCRIPTS.md) - Helper script documentation
+- [**Docker Reference**](reference/DOCKER.md) - Docker commands and volumes
+
+## Common Tasks
+
+### Create and Monitor a Task
 
 ```bash
-# First time (builds images)
-./start-agentic-flow.sh --build
-
-# Regular start
-./start-agentic-flow.sh
-
-# With RAGFlow network
-./start-agentic-flow.sh
-
-# Without RAGFlow
-./start-agentic-flow.sh --no-ragflow
-```
-
-### Managing Services
-
-```bash
-# Check status
-./start-agentic-flow.sh --status
-
-# View logs
-./start-agentic-flow.sh --logs
-
-# Restart
-./start-agentic-flow.sh --restart
-
-# Stop
-./start-agentic-flow.sh --stop
-
-# Shell access
-./start-agentic-flow.sh --shell
-# or
-docker exec -it agentic-flow-cachyos zsh
-```
-
-### Cleanup
-
-```bash
-# Stop and remove containers
-./start-agentic-flow.sh --stop
-
-# Complete cleanup (removes volumes)
-./start-agentic-flow.sh --clean
-```
-
-## API Usage
-
-### Management API
-
-```bash
-# Authentication required (except /health, /ready, /metrics)
-export API_KEY="change-this-secret-key"
-
-# Get API info
-curl -H "Authorization: Bearer $API_KEY" \
-  http://localhost:9090/
+# Set API key
+export API_KEY="your-management-api-key"
 
 # Create task
 curl -X POST http://localhost:9090/v1/tasks \
@@ -127,25 +143,17 @@ curl -X POST http://localhost:9090/v1/tasks \
   -H "Content-Type: application/json" \
   -d '{
     "agent": "coder",
-    "task": "Write a Python function to reverse a string",
+    "task": "Build a REST API with Express",
     "provider": "gemini"
   }'
 
-# Check task status
+# Monitor task (returns task ID)
+TASK_ID="<task-id-from-response>"
 curl -H "Authorization: Bearer $API_KEY" \
-  http://localhost:9090/v1/tasks/{taskId}
-
-# List active tasks
-curl -H "Authorization: Bearer $API_KEY" \
-  http://localhost:9090/v1/tasks
-
-# Stop task
-curl -X DELETE \
-  -H "Authorization: Bearer $API_KEY" \
-  http://localhost:9090/v1/tasks/{taskId}
+  http://localhost:9090/v1/tasks/$TASK_ID
 ```
 
-### Claude-ZAI Wrapper
+### Use Claude-ZAI Wrapper
 
 ```bash
 # Simple prompt
@@ -155,234 +163,174 @@ curl -X POST http://localhost:9600/prompt \
     "prompt": "Explain Docker in 3 sentences",
     "timeout": 15000
   }'
-
-# Complex prompt
-curl -X POST http://localhost:9600/prompt \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Generate a Python function that calculates Fibonacci numbers",
-    "timeout": 30000
-  }'
 ```
 
-## Configuration
-
-### Environment Variables
-
-Edit `.env` file:
+### Access Desktop Environment
 
 ```bash
-# Required
-ANTHROPIC_API_KEY=sk-ant-...        # For Claude
-GOOGLE_GEMINI_API_KEY=...           # For Gemini
-OPENAI_API_KEY=sk-...               # For GPT-4
+# Enable desktop in .env
+ENABLE_DESKTOP=true
 
-# Management API
-MANAGEMENT_API_KEY=your-secret-key
+# Rebuild and start
+./start-agentic-flow.sh --build
 
-# Optional
-ENABLE_DESKTOP=false                # Enable VNC desktop
-ENABLE_CODE_SERVER=false            # Enable VS Code
-GPU_ACCELERATION=true               # Use GPU if available
+# Access via browser
+open http://localhost:6901
 ```
 
-### API Documentation
+### Check System Status
 
-Interactive API docs available at:
-- **Swagger UI**: http://localhost:9090/docs
-- **OpenAPI spec**: http://localhost:9090/docs/json
+```bash
+# Overall system status
+curl -H "Authorization: Bearer $API_KEY" \
+  http://localhost:9090/v1/status | jq
 
-## Deployment Options
+# GPU status
+curl -H "Authorization: Bearer $API_KEY" \
+  http://localhost:9090/v1/status | jq '.gpu'
 
-### 1. Standalone (Default)
+# Active tasks
+curl -H "Authorization: Bearer $API_KEY" \
+  http://localhost:9090/v1/tasks | jq '.count'
+```
+
+### Shell Access
+
+```bash
+# Access workstation container
+docker exec -it agentic-flow-cachyos zsh
+
+# Or use the helper script
+./start-agentic-flow.sh --shell
+```
+
+## Environment Configuration
+
+Create `.env` from template and configure:
+
+```bash
+# Required: At least one AI provider
+ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_GEMINI_API_KEY=...
+OPENAI_API_KEY=sk-...
+OPENROUTER_API_KEY=...
+
+# Management API
+MANAGEMENT_API_KEY=change-this-secret-key
+
+# Router Configuration
+ROUTER_MODE=performance
+PRIMARY_PROVIDER=gemini
+FALLBACK_CHAIN=gemini,openai,claude,openrouter
+
+# GPU
+GPU_ACCELERATION=true
+
+# Optional Services
+ENABLE_DESKTOP=false
+ENABLE_CODE_SERVER=false
+```
+
+## Deployment Modes
+
+### Standalone (Production)
 - Installs `agentic-flow` from npm
-- Only requires `docker/cachyos/` directory
-- Production-ready
+- Only requires this directory
 - Always uses latest published version
 
 ```bash
 docker compose up -d --build
 ```
 
-### 2. Development
-- Uses local `agentic-flow` source
+### Development
+- Uses local source code
+- For development and testing
 - Requires full repository
-- For development/testing
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
-## Persistent Storage
+## Persistent Data
 
-Data persisted in Docker volumes:
+Data is stored in Docker volumes:
 
 - `workspace` - User workspace files
 - `model-cache` - Downloaded AI models
 - `agent-memory` - Agent session data
 - `config-persist` - Configuration files
-- `management-logs` - API logs
+- `management-logs` - API and task logs
 
-View volumes:
 ```bash
+# List volumes
 docker volume ls | grep cachyos
-```
 
-Backup volumes:
-```bash
-docker run --rm -v cachyos_workspace:/data -v $(pwd):/backup \
+# Backup workspace
+docker run --rm -v workspace:/data -v $(pwd):/backup \
   alpine tar czf /backup/workspace-backup.tar.gz /data
 ```
 
-## GPU Support
+## Requirements
 
-Requires:
-- NVIDIA GPU
-- NVIDIA Docker runtime
-- `nvidia-container-toolkit`
-
-Test GPU access:
-```bash
-docker exec agentic-flow-cachyos nvidia-smi
-```
-
-## Troubleshooting
-
-### Services not starting
-
-```bash
-# Check logs
-docker compose logs -f
-
-# Check specific service
-docker logs agentic-flow-cachyos
-docker logs claude-zai-service
-```
-
-### Management API not responding
-
-```bash
-# Check if running
-curl http://localhost:9090/health
-
-# Check inside container
-docker exec agentic-flow-cachyos ps aux | grep node
-
-# View logs
-docker exec agentic-flow-cachyos cat ~/logs/management-api.log
-```
-
-### Permission errors
-
-```bash
-# Fix volume permissions
-docker compose down
-docker volume rm cachyos_workspace cachyos_config-persist
-docker compose up -d --build
-```
-
-## Architecture
-
-### Standalone vs Development
-
-| Feature | Standalone | Development |
-|---------|------------|-------------|
-| **Build context** | `.` (cachyos dir) | `../..` (repo root) |
-| **agentic-flow** | `npm install -g` | `COPY agentic-flow/` |
-| **Version** | npm latest (1.5.10) | Local source |
-| **Deployment** | Just cachyos dir | Full repo |
-| **Use case** | Production | Development |
-
-### Service Communication
-
-```
-External Request
-    ↓
-Management API (9090) ← Authentication
-    ↓
-Process Manager
-    ↓
-Agent Workers (isolated)
-    ↓
-Claude-ZAI (9600) ← AI Processing
-    ↓
-Z.AI API / Anthropic API
-```
-
-## Advanced Usage
-
-### Custom Network Integration
-
-Connect to existing Docker networks:
-
-```yaml
-# docker-compose.yml
-networks:
-  agentic-network:
-    external: true
-    name: your-network-name
-```
-
-### Resource Limits
-
-Adjust in `docker-compose.yml`:
-
-```yaml
-deploy:
-  resources:
-    limits:
-      memory: 32G
-      cpus: '16'
-```
-
-### Desktop Environment
-
-Enable GUI access:
-
-```bash
-# .env
-ENABLE_DESKTOP=true
-
-# Access via browser
-http://localhost:6901
-
-# Or VNC client
-vnc://localhost:5901
-```
+- Docker 20.10+
+- Docker Compose 2.0+
+- NVIDIA GPU (optional, for GPU acceleration)
+- NVIDIA Docker runtime (for GPU support)
+- At least 16GB RAM (32GB+ recommended)
+- 50GB free disk space
 
 ## Security
 
-### Best Practices
+1. **Change Default API Key**: Set strong `MANAGEMENT_API_KEY`
+2. **Network Isolation**: Use Docker networks
+3. **Restrict Ports**: Firewall access to 9090, 9600
+4. **Use Secrets**: Mount secrets instead of environment variables
+5. **Regular Updates**: Rebuild with `--build` for latest packages
+6. **TLS/HTTPS**: Use reverse proxy (nginx/traefik) in production
 
-1. **Change default API key**: Update `MANAGEMENT_API_KEY` in `.env`
-2. **Restrict ports**: Use firewall to limit access to 9090, 9600
-3. **Use secrets**: Mount secrets instead of environment variables
-4. **Network isolation**: Use Docker networks
-5. **Regular updates**: Rebuild with `--build` to get latest npm packages
+## Monitoring
 
-### Production Deployment
+### Health Checks
 
 ```bash
-# Use strong API key
-openssl rand -hex 32 > .api_key
-export MANAGEMENT_API_KEY=$(cat .api_key)
+# Management API health
+curl http://localhost:9090/health
 
-# Run behind reverse proxy
-# nginx/traefik/caddy in front of port 9090
+# Claude-ZAI health
+curl http://localhost:9600/health
 
-# Enable TLS
-# Add SSL certificates to reverse proxy
+# Detailed system status
+curl -H "Authorization: Bearer $API_KEY" \
+  http://localhost:9090/v1/status
+```
 
-# Restrict network access
-# iptables or cloud security groups
+### Logs
+
+```bash
+# Service logs
+docker compose logs -f
+
+# Management API logs
+docker logs agentic-flow-cachyos | grep management-api
+
+# Task logs
+docker exec agentic-flow-cachyos cat ~/logs/tasks/<task-id>.log
 ```
 
 ## Support
 
-- **Documentation**: See `docs/` directory in main repo
-- **Issues**: https://github.com/ruvnet/agentic-flow/issues
-- **Package**: https://www.npmjs.com/package/agentic-flow
+- **Documentation**: This directory
+- **Issues**: [GitHub Issues](https://github.com/ruvnet/agentic-flow/issues)
+- **Package**: [npm: agentic-flow](https://www.npmjs.com/package/agentic-flow)
 
 ## License
 
 See main repository for license information.
+
+## Next Steps
+
+1. [Set up your environment](GETTING_STARTED.md)
+2. [Understand the architecture](ARCHITECTURE.md)
+3. [Configure the model router](guides/MULTI_MODEL_ROUTER.md)
+4. [Explore the API](API_REFERENCE.md)
+5. [Deploy to production](DEPLOYMENT.md)
