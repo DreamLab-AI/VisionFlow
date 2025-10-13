@@ -47,8 +47,8 @@ services:
       # X11 socket for GUI applications (if desktop enabled)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
 
-      # Claude authentication from host user
-      - ${HOST_HOME:-~}/.claude:/home/devuser/.claude:ro
+      # Claude authentication from host user (writable for session data)
+      - ${HOST_HOME:-~}/.claude:/home/devuser/.claude:rw
 
     # Environment variables
     environment:
@@ -59,6 +59,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       CONTEXT7_API_KEY: ${CONTEXT7_API_KEY:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}

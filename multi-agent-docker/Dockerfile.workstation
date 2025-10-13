@@ -65,7 +65,11 @@ COPY --chown=devuser:devuser scripts/ /home/devuser/scripts/
 RUN chmod +x /home/devuser/scripts/*.sh
 
 USER root
-RUN ln -sf /home/devuser/scripts/mcp-cli.sh /usr/local/bin/mcp
+RUN ln -sf /home/devuser/scripts/mcp-cli.sh /usr/local/bin/mcp && \
+    chmod +x /home/devuser/scripts/claude-wrapper.sh && \
+    chmod +x /home/devuser/scripts/dsp.sh && \
+    ln -sf /home/devuser/scripts/claude-wrapper.sh /usr/local/bin/claude-safe && \
+    ln -sf /home/devuser/scripts/dsp.sh /usr/local/bin/dsp
 USER devuser
 
 # ===== X11 and Desktop configuration =====
@@ -88,9 +92,8 @@ RUN python -m venv /opt/venv && \
 # ===== Install supervisord configuration =====
 COPY --chown=root:root config/supervisord.conf /etc/supervisord.conf
 
-USER devuser
-
 # ===== Environment defaults =====
+USER devuser
 ENV SHELL=/usr/bin/zsh \
     TERM=xterm-256color \
     DISPLAY=:1 \
@@ -109,9 +112,12 @@ ENV SHELL=/usr/bin/zsh \
     GEMINI_FLOW_TOPOLOGY=hierarchical \
     GEMINI_FLOW_MAX_AGENTS=66
 
-# ===== Startup script =====
+# ===== Startup scripts =====
+USER root
 COPY --chown=devuser:devuser scripts/init-workstation.sh /home/devuser/
-RUN chmod +x /home/devuser/init-workstation.sh
+COPY --chown=root:root scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /home/devuser/init-workstation.sh && \
+    chmod +x /entrypoint.sh
 
 # ===== Expose ports =====
 # 5901: VNC, 8080: code-server, 9090: Management API, 3000: dev server
@@ -120,6 +126,6 @@ EXPOSE 5901 8080 9090 3000
 # ===== Volume mount points =====
 VOLUME ["/home/devuser/workspace", "/home/devuser/models", "/home/devuser/.claude-flow", "/home/devuser/.config", "/home/devuser/logs"]
 
-# ===== Start with supervisord =====
+# ===== Start with entrypoint =====
 USER root
-CMD ["/opt/venv/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["/entrypoint.sh"]
