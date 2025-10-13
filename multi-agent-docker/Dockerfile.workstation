@@ -32,7 +32,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # ===== Install agentic-flow from npm =====
 USER root
 RUN npm install -g agentic-flow@latest pm2 gemini-flow @anthropic-ai/claude-code && \
-    npx -y playwright install chromium --with-deps
+    npx -y playwright install chromium
 
 # ===== Install Management API =====
 COPY --chown=devuser:devuser management-api/package*.json /home/devuser/management-api/
