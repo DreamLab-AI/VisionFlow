@@ -36,23 +36,49 @@ class ProcessManager {
 
     this.logger.info({ taskId, agent, provider }, 'Spawning new task');
 
-    // Build command arguments
-    const args = [
-      'router',
-      '--agent', agent,
-      '--task', task,
-      '--provider', provider
-    ];
+    let command, args, taskEnv;
+
+    // Use Claude CLI directly for claude-flow provider (accesses MCP servers)
+    if (provider === 'claude-flow') {
+      command = 'claude';
+      // Prepend task directory instruction to the prompt
+      const enhancedTask = `Working directory: ${taskDir}\n\n${task}\n\nWrite all files to the working directory specified above.`;
+      args = [
+        '--dangerously-skip-permissions',
+        enhancedTask
+      ];
+      // Pass through all API keys for MCP servers (matching dsp script)
+      taskEnv = {
+        ...process.env,
+        TASK_ID: taskId,
+        CONTEXT7_API_KEY: process.env.CONTEXT7_API_KEY || '',
+        BRAVE_API_KEY: process.env.BRAVE_API_KEY || '',
+        GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
+        GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || '',
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+        GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY || '',
+        OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
+        ZAI_CONTAINER_URL: 'http://claude-zai-service:9600'
+      };
+      this.logger.info({ taskId, workDir: taskDir }, 'Using Claude CLI with dangerously-skip-permissions for automated task');
+    } else {
+      // Use agentic-flow for other providers
+      command = 'agentic-flow';
+      args = [
+        '--agent', agent,
+        '--task', task,
+        '--provider', provider
+      ];
+      taskEnv = { ...process.env, TASK_ID: taskId };
+    }
 
     // Spawn process in isolated directory
     const logStream = fs.createWriteStream(logFile, { flags: 'a' });
 
-    const childProcess = spawn('agentic-flow', args, {
+    const childProcess = spawn(command, args, {
       cwd: taskDir,
-      env: {
-        ...process.env,
-        TASK_ID: taskId
-      },
+      env: taskEnv,
       detached: true,
       stdio: ['ignore', 'pipe', 'pipe']
     });

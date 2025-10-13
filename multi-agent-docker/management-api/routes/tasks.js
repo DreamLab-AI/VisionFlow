@@ -18,7 +18,7 @@ async function tasksRoutes(fastify, options) {
         properties: {
           agent: { type: 'string' },
           task: { type: 'string' },
-          provider: { type: 'string', default: 'gemini' }
+          provider: { type: 'string', default: 'claude-flow' }
         }
       },
       response: {
@@ -33,7 +33,7 @@ async function tasksRoutes(fastify, options) {
       }
     }
   }, async (request, reply) => {
-    const { agent, task, provider = 'gemini' } = request.body;
+    const { agent, task, provider = 'claude-flow' } = request.body;
 
     logger.info({ agent, provider, task: task.substring(0, 100) }, 'Creating new task');
 
