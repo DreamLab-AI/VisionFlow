@@ -23,20 +23,20 @@ if [ "$(id -u)" -eq 0 ]; then
     cd "$(pwd)" 2>/dev/null || cd /home/devuser/workspace/project
     # Load environment variables
     load_mcp_env
-    # Pass all environment variables explicitly to devuser shell
-    exec su -m devuser -c "
-        export HOME=/home/devuser
-        export CONTEXT7_API_KEY='${CONTEXT7_API_KEY}'
-        export BRAVE_API_KEY='${BRAVE_API_KEY}'
-        export GITHUB_TOKEN='${GITHUB_TOKEN}'
-        export GOOGLE_API_KEY='${GOOGLE_API_KEY}'
-        export OPENAI_API_KEY='${OPENAI_API_KEY}'
-        export ANTHROPIC_API_KEY='${ANTHROPIC_API_KEY}'
-        export GOOGLE_GEMINI_API_KEY='${GOOGLE_GEMINI_API_KEY}'
-        export OPENROUTER_API_KEY='${OPENROUTER_API_KEY}'
-        export ZAI_CONTAINER_URL='http://claude-zai-service:9600'
-        export DISPLAY='${DISPLAY:-:1}'
-        cd '$(pwd)' && claude --dangerously-skip-permissions $*
+    # Pass environment variables through su using env command
+    exec su devuser -c "
+        HOME=/home/devuser \
+        CONTEXT7_API_KEY=\"${CONTEXT7_API_KEY}\" \
+        BRAVE_API_KEY=\"${BRAVE_API_KEY}\" \
+        GITHUB_TOKEN=\"${GITHUB_TOKEN}\" \
+        GOOGLE_API_KEY=\"${GOOGLE_API_KEY}\" \
+        OPENAI_API_KEY=\"${OPENAI_API_KEY}\" \
+        ANTHROPIC_API_KEY=\"${ANTHROPIC_API_KEY}\" \
+        GOOGLE_GEMINI_API_KEY=\"${GOOGLE_GEMINI_API_KEY}\" \
+        OPENROUTER_API_KEY=\"${OPENROUTER_API_KEY}\" \
+        ZAI_CONTAINER_URL=\"http://claude-zai-service:9600\" \
+        DISPLAY=\"${DISPLAY:-:1}\" \
+        bash -c 'cd \"$(pwd)\" && claude --dangerously-skip-permissions $*'
     "
 else
     # Already running as devuser
