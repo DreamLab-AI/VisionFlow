@@ -711,7 +711,23 @@ Summary:"""
         method = request.get("method", "")
         params = request.get("params", {})
 
-        if method == "tools/list":
+        if method == "initialize":
+            return {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {}
+                },
+                "serverInfo": {
+                    "name": "web-summary",
+                    "version": "1.0.0"
+                }
+            }
+
+        elif method == "initialized":
+            # Acknowledgment of initialization complete
+            return {}
+
+        elif method == "tools/list":
             return {
                 "tools": [
                     {
@@ -777,14 +793,46 @@ Summary:"""
                     break
 
                 request = json.loads(line)
-                response = await self.handle_request(request)
+                request_id = request.get("id")
+
+                response_data = await self.handle_request(request)
+
+                # Build JSON-RPC 2.0 response
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_id
+                }
+
+                if "error" in response_data:
+                    response["error"] = {
+                        "code": -32000,
+                        "message": response_data["error"]
+                    }
+                else:
+                    response["result"] = response_data
 
                 print(json.dumps(response), flush=True)
 
             except json.JSONDecodeError:
-                print(json.dumps({"error": "Invalid JSON"}), flush=True)
+                error_response = {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {
+                        "code": -32700,
+                        "message": "Parse error: Invalid JSON"
+                    }
+                }
+                print(json.dumps(error_response), flush=True)
             except Exception as e:
-                print(json.dumps({"error": str(e)}), flush=True)
+                error_response = {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {
+                        "code": -32603,
+                        "message": f"Internal error: {str(e)}"
+                    }
+                }
+                print(json.dumps(error_response), flush=True)
 
 async def main():
     # Check for CLI mode
