@@ -64,19 +64,25 @@ connect_to_ragflow() {
     fi
 
     if check_ragflow_network; then
-        log_info "Connecting containers to RAGFlow network..."
+        log_success "Containers are natively configured on docker_ragflow network"
 
-        # Connect agentic-flow container
+        # Verify connections
         if docker ps -q -f name=agentic-flow-cachyos >/dev/null 2>&1; then
-            docker network connect docker_ragflow agentic-flow-cachyos 2>/dev/null || log_warning "agentic-flow-cachyos already connected"
+            if docker inspect agentic-flow-cachyos --format '{{range $net, $v := .NetworkSettings.Networks}}{{$net}}{{"\n"}}{{end}}' | grep -q docker_ragflow; then
+                log_success "agentic-flow-cachyos connected to docker_ragflow"
+            else
+                log_warning "agentic-flow-cachyos not on docker_ragflow network"
+            fi
         fi
 
-        # Connect claude-zai container
+        # Verify claude-zai
         if docker ps -q -f name=claude-zai-service >/dev/null 2>&1; then
-            docker network connect docker_ragflow claude-zai-service 2>/dev/null || log_warning "claude-zai-service already connected"
+            if docker inspect claude-zai-service --format '{{range $net, $v := .NetworkSettings.Networks}}{{$net}}{{"\n"}}{{end}}' | grep -q docker_ragflow; then
+                log_success "claude-zai-service connected to docker_ragflow"
+            else
+                log_warning "claude-zai-service not on docker_ragflow network"
+            fi
         fi
-
-        log_success "Containers connected to RAGFlow network"
     else
         log_warning "RAGFlow not running. Services will use internal network only."
         log_info "To enable RAGFlow integration, start RAGFlow first:"
@@ -304,8 +310,7 @@ Services:
     - claude-zai-service:    Z.AI semantic processing (port 9600)
 
 Networks:
-    - agentic-network:       Internal bridge network
-    - docker_ragflow:        RAGFlow integration (optional)
+    - docker_ragflow:        RAGFlow integration network
 
 Examples:
     # First time setup
@@ -409,7 +414,7 @@ case $ACTION in
         log_info "Access points:"
         log_info "  Management API:  http://localhost:9090"
         log_info "  Claude-ZAI API:  http://localhost:9600"
-        log_info "  VNC Desktop:     http://localhost:6901 (if enabled)"
+        log_info "  VNC Desktop:     localhost:5901 (if enabled)"
         echo ""
         log_info "Next steps:"
         log_info "  - Check status:  $0 --status"

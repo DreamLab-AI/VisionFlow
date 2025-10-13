@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   agentic-flow-cachyos:
     build:
@@ -31,6 +29,9 @@ services:
       # Persistent workspace for development
       - workspace:/home/devuser/workspace:rw
 
+      # External project directory (optional, configured via PROJECT_DIR in .env)
+      - ${PROJECT_DIR:-./empty-project}:/home/devuser/workspace/project:rw
+
       # Model cache
       - model-cache:/home/devuser/models:rw
 
@@ -45,6 +46,9 @@ services:
 
       # X11 socket for GUI applications (if desktop enabled)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+      # Claude authentication from host user
+      - ${HOST_HOME:-~}/.claude:/home/devuser/.claude:ro
 
     # Environment variables
     environment:
@@ -88,7 +92,6 @@ services:
     ports:
       - "9090:9090"   # Management API - PRIMARY INTERFACE
       - "5901:5901"   # VNC (if ENABLE_DESKTOP=true)
-      - "6901:6901"   # noVNC (if ENABLE_DESKTOP=true)
       - "8080:8080"   # code-server (if ENABLE_CODE_SERVER=true)
 
     # Device access for GPU
@@ -100,7 +103,6 @@ services:
       - /dev/nvidia-modeset:/dev/nvidia-modeset
 
     networks:
-      - agentic-network
       - docker_ragflow
 
     healthcheck:
@@ -127,7 +129,6 @@ services:
       - "9600:9600"
 
     networks:
-      - agentic-network
       - docker_ragflow
 
     healthcheck:
@@ -140,8 +141,6 @@ services:
     restart: unless-stopped
 
 networks:
-  agentic-network:
-    driver: bridge
   docker_ragflow:
     external: true
     name: docker_ragflow

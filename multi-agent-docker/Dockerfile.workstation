@@ -30,7 +30,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 
 # ===== Install agentic-flow from npm =====
 USER root
-RUN npm install -g agentic-flow@latest pm2 gemini-flow claude
+RUN npm install -g agentic-flow@latest pm2 gemini-flow @anthropic-ai/claude-code
 
 # ===== Install Management API =====
 COPY --chown=devuser:devuser management-api/package*.json /home/devuser/management-api/
@@ -70,18 +70,20 @@ USER devuser
 
 # ===== X11 and Desktop configuration =====
 RUN mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml ~/.config/autostart && \
-    echo '[Desktop Entry]\nHidden=true' > ~/.config/autostart/xfce4-screensaver.desktop
+    echo '[Desktop Entry]\nType=Application\nName=Disable Screensaver\nHidden=true' > ~/.config/autostart/xfce4-screensaver.desktop && \
+    echo '[Desktop Entry]\nType=Application\nName=Disable Power Manager\nHidden=true' > ~/.config/autostart/xfce4-power-manager.desktop && \
+    mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>\n<channel name="xfce4-screensaver" version="1.0">\n  <property name="saver" type="empty">\n    <property name="enabled" type="bool" value="false"/>\n    <property name="mode" type="int" value="0"/>\n  </property>\n  <property name="lock" type="empty">\n    <property name="enabled" type="bool" value="false"/>\n  </property>\n</channel>' > ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>\n<channel name="xfce4-power-manager" version="1.0">\n  <property name="xfce4-power-manager" type="empty">\n    <property name="blank-on-ac" type="int" value="0"/>\n    <property name="blank-on-battery" type="int" value="0"/>\n    <property name="dpms-enabled" type="bool" value="false"/>\n    <property name="dpms-on-ac-off" type="uint" value="0"/>\n    <property name="dpms-on-ac-sleep" type="uint" value="0"/>\n    <property name="dpms-on-battery-off" type="uint" value="0"/>\n    <property name="dpms-on-battery-sleep" type="uint" value="0"/>\n    <property name="lock-screen-suspend-hibernate" type="bool" value="false"/>\n  </property>\n</channel>' > ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
 
 # ===== Install Python virtual environment and supervisord =====
 USER root
 RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --upgrade pip supervisor websockify \
+    /opt/venv/bin/pip install --upgrade pip supervisor \
     google-generativeai \
     youtube_transcript_api \
     httpx \
-    google-api-python-client && \
-    mkdir -p /usr/share/novnc && \
-    git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc || true
+    google-api-python-client
 
 # ===== Install supervisord configuration =====
 COPY --chown=root:root config/supervisord.conf /etc/supervisord.conf
@@ -112,8 +114,8 @@ COPY --chown=devuser:devuser scripts/init-workstation.sh /home/devuser/
 RUN chmod +x /home/devuser/init-workstation.sh
 
 # ===== Expose ports =====
-# 8080: code-server, 6901: noVNC, 9090: Management API, 3000: dev server
-EXPOSE 8080 6901 9090 3000
+# 5901: VNC, 8080: code-server, 9090: Management API, 3000: dev server
+EXPOSE 5901 8080 9090 3000
 
 # ===== Volume mount points =====
 VOLUME ["/home/devuser/workspace", "/home/devuser/models", "/home/devuser/.claude-flow", "/home/devuser/.config", "/home/devuser/logs"]
