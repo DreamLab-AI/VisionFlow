@@ -14,6 +14,11 @@ RUN pacman -Syu --noconfirm && \
         xfce4-terminal xorg-server xorg-xinit \
         tigervnc xfce4 xfce4-goodies \
         jq htop ripgrep fd openssh \
+        chromium \
+        dbus nss freetype2 harfbuzz \
+        ttf-liberation ttf-dejavu \
+        alsa-lib pipewire gtk4 \
+        mesa mesa-utils libva-mesa-driver \
     && rm -rf /var/cache/pacman/pkg/*
 
 # ===== Create development user =====
@@ -37,9 +42,10 @@ RUN npm install && npm cache clean --force
 COPY --chown=devuser:devuser agentic-flow/ /tmp/agentic-flow/
 RUN npm run build 2>/dev/null || echo "Build step skipped"
 
-# ===== Install agentic-flow globally as root =====
+# ===== Install agentic-flow globally and code-server as root =====
 USER root
-RUN cd /tmp/agentic-flow && npm install -g .
+RUN cd /tmp/agentic-flow && npm install -g . && \
+    curl -fsSL https://code-server.dev/install.sh | sh
 
 # ===== Create symlinks for devDependencies binaries =====
 RUN ln -sf /tmp/agentic-flow/node_modules/.bin/pm2 /usr/local/bin/pm2 && \

@@ -15,6 +15,10 @@ RUN pacman -Syu --noconfirm && \
         tigervnc xfce4 xfce4-goodies \
         jq htop ripgrep fd openssh \
         chromium \
+        dbus nss freetype2 harfbuzz \
+        ttf-liberation ttf-dejavu \
+        alsa-lib pipewire gtk4 \
+        mesa mesa-utils libva-mesa-driver \
     && rm -rf /var/cache/pacman/pkg/*
 
 # ===== Create development user =====
@@ -29,10 +33,11 @@ WORKDIR /home/devuser
 # ===== Install Oh-My-Zsh =====
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-# ===== Install agentic-flow from npm =====
+# ===== Install agentic-flow and code-server from npm =====
 USER root
 RUN npm install -g agentic-flow@latest pm2 gemini-flow @anthropic-ai/claude-code && \
-    npx -y playwright install chromium
+    npx -y playwright install chromium && \
+    curl -fsSL https://code-server.dev/install.sh | sh
 
 # ===== Install Management API =====
 COPY --chown=devuser:devuser management-api/package*.json /home/devuser/management-api/
@@ -70,12 +75,18 @@ USER root
 RUN ln -sf /home/devuser/scripts/mcp-cli.sh /usr/local/bin/mcp && \
     chmod +x /home/devuser/scripts/claude-wrapper.sh && \
     chmod +x /home/devuser/scripts/dsp.sh && \
+    chmod +x /home/devuser/scripts/chromium-safe.sh && \
     ln -sf /home/devuser/scripts/claude-wrapper.sh /usr/local/bin/claude-safe && \
-    ln -sf /home/devuser/scripts/dsp.sh /usr/local/bin/dsp
+    ln -sf /home/devuser/scripts/dsp.sh /usr/local/bin/dsp && \
+    ln -sf /home/devuser/scripts/chromium-safe.sh /usr/local/bin/chromium-browser && \
+    ln -sf /home/devuser/scripts/chromium-safe.sh /usr/local/bin/google-chrome && \
+    mv /usr/bin/chromium /usr/bin/chromium.real && \
+    ln -sf /home/devuser/scripts/chromium-safe.sh /usr/bin/chromium
 USER devuser
 
 # ===== X11 and Desktop configuration =====
 RUN mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml ~/.config/autostart && \
+    echo 'WebBrowser=chromium-browser' > ~/.config/xfce4/helpers.rc && \
     echo '[Desktop Entry]\nType=Application\nName=Disable Screensaver\nHidden=true' > ~/.config/autostart/xfce4-screensaver.desktop && \
     echo '[Desktop Entry]\nType=Application\nName=Disable Power Manager\nHidden=true' > ~/.config/autostart/xfce4-power-manager.desktop && \
     mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml && \

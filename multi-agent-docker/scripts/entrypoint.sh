@@ -6,6 +6,13 @@ set -e
 # Ensure directories exist
 mkdir -p /home/devuser/logs /var/log
 
+# Initialize DBus for Chromium
+mkdir -p /run/dbus
+if [ ! -f /run/dbus/pid ]; then
+    echo "Starting DBus daemon..."
+    dbus-daemon --system --fork 2>/dev/null || true
+fi
+
 # Fix Claude directory permissions if mounted
 if [ -d "/home/devuser/.claude" ]; then
     echo "Setting up Claude directory permissions..."

@@ -95,6 +95,10 @@ services:
       - "5901:5901"   # VNC (if ENABLE_DESKTOP=true)
       - "8080:8080"   # code-server (if ENABLE_CODE_SERVER=true)
 
+    # Security capabilities for Chromium
+    cap_add:
+      - SYS_ADMIN
+
     # Device access for GPU
     devices:
       - /dev/dri:/dev/dri
