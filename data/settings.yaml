@@ -81,7 +81,7 @@ visualisation:
         baseWidth: 0.61
         color: '#ff0000'
         enableArrows: false
-        opacity: 0.3
+        opacity: 0.4
         widthRange:
         - 0.3
         - 1.5
