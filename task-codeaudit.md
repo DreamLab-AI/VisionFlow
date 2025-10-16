@@ -1154,6 +1154,55 @@ docs/_archive/
 
 ---
 
+### Phase 5: Binary Protocol V1 Legacy Removal ✅
+**Status:** COMPLETE
+**Date:** 2025-10-16
+
+**Rationale:** V1 encoding path was dead code - hardcoded `use_v2 = true` at line 295 meant V1 encoding never executed.
+
+**Files Modified:**
+- `src/utils/binary_protocol.rs` - Removed V1 encoding dead code while keeping V1 decoder for backward compatibility
+
+**Components Removed:**
+1. **V1 Encoding Functions:**
+   - `to_wire_id_v1()` (lines 198-210) - Deprecated encoder with node ID truncation bug
+   - `from_wire_id_v1()` (lines 215-226) - Deprecated decoder
+   - Moved logic inline in V1 decoder for backward compatibility only
+
+2. **V1 Constants:**
+   - `WIRE_V1_AGENT_FLAG` (0x8000)
+   - `WIRE_V1_KNOWLEDGE_FLAG` (0x4000)
+   - `WIRE_V1_NODE_ID_MASK` (0x3FFF)
+   - Kept `WIRE_V1_ITEM_SIZE` for decoder only
+
+3. **V1 Structures:**
+   - `WireNodeDataItemV1` struct (lines 39-46) - Legacy 34-byte format with ID truncation bug
+
+4. **V1 Test:**
+   - Replaced `test_v1_backwards_compatibility()` with `test_v1_backwards_compatibility_decoder()`
+   - New test manually constructs V1 wire format instead of using removed encoding functions
+
+**Components Retained:**
+- `decode_node_data_v1()` - Kept for backward compatibility with old clients
+- `PROTOCOL_V1` constant - Required for protocol version detection
+- `WIRE_V1_ITEM_SIZE` - Required for V1 decoder chunk size calculation
+
+**Changes Made:**
+1. Removed V1 encoding branch from `encode_node_data_extended()` (lines 343-346)
+2. Inlined V1 decoding logic in `decode_node_data_v1()` using magic constants (0x8000, 0x4000, 0x3FFF)
+3. Updated comments to clarify V1 removal rationale
+4. Simplified V1 size constant to hardcoded value (34 bytes)
+
+**Impact:**
+- Removed ~80 lines of dead code
+- Simplified encoding path (now V2-only)
+- Maintained backward compatibility with V1 clients via decoder
+- Improved code clarity (no unused encoding path)
+
+**Build Verification:** Pending - awaiting cargo check completion
+
+---
+
 ## Outstanding Work (Deferred)
 
 ### Test Coverage Improvements

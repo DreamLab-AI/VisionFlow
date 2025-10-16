@@ -3,10 +3,10 @@ use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn};
 
-use crate::actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, ProtectedSettingsActor, AgentMonitorActor, WorkspaceActor, TaskOrchestratorActor};
+use crate::actors::{OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, ProtectedSettingsActor, AgentMonitorActor, WorkspaceActor, TaskOrchestratorActor};
 #[cfg(feature = "gpu")]
 use crate::actors::GPUManagerActor;
-use crate::actors::graph_service_supervisor::{GraphServiceSupervisor, TransitionalGraphSupervisor};
+use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 #[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
 #[cfg(feature = "gpu")]
@@ -30,7 +30,7 @@ use crate::utils::client_message_extractor::ClientMessage;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
+    pub graph_service_addr: Addr<GraphServiceSupervisor>,
     #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
     #[cfg(feature = "gpu")]
@@ -81,7 +81,7 @@ impl AppState {
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        // Create GraphServiceSupervisor instead of the monolithic GraphServiceActor
+        // Create GraphServiceSupervisor with refactored architecture
         info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
         #[cfg(feature = "gpu")]
         {
@@ -90,30 +90,9 @@ impl AppState {
                 format!("CUDA initialization failed: {}", e)
             })?;
         }
-        let graph_service_addr = TransitionalGraphSupervisor::new(
-            Some(client_manager_addr.clone()),
-            None // GPU manager will be linked later
-        ).start();
-        
-        // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
-        info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
-        // Get the internal GraphServiceActor from the supervisor and set it in ClientManagerActor
-        let graph_supervisor_clone = graph_service_addr.clone();
-        let client_manager_clone = client_manager_addr.clone();
-        actix::spawn(async move {
-            // Wait a moment for supervisor to initialize
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        let graph_service_addr = GraphServiceSupervisor::new().start();
 
-            // Get the internal GraphServiceActor address
-            if let Ok(Some(graph_actor)) = graph_supervisor_clone.send(crate::actors::messages::GetGraphServiceActor).await {
-                info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
-                client_manager_clone.do_send(crate::actors::messages::SetGraphServiceAddress {
-                    addr: graph_actor,
-                });
-            } else {
-                warn!("Could not retrieve GraphServiceActor from supervisor");
-            }
-        });
+        info!("[AppState::new] GraphServiceSupervisor started successfully - will initialize child actors");
         
         // Create the modular GPU manager system
         #[cfg(feature = "gpu")]
@@ -344,7 +323,7 @@ impl AppState {
         &self.client_manager_addr
     }
 
-    pub fn get_graph_service_addr(&self) -> &Addr<TransitionalGraphSupervisor> {
+    pub fn get_graph_service_addr(&self) -> &Addr<GraphServiceSupervisor> {
         &self.graph_service_addr
     }
 

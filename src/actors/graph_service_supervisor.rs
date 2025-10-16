@@ -746,20 +746,40 @@ impl Handler<RestartAllActors> for GraphServiceSupervisor {
 impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("UpdateGraphData: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref addr) = self.graph_state {
+            let addr = addr.clone();
+            self.total_messages_routed += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("GraphState actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            warn!("UpdateGraphData: GraphState actor not available");
+            Box::pin(actix::fut::ready(Err("GraphState actor not available".to_string())))
+        }
     }
 }
 
 impl Handler<msgs::AddNodesFromMetadata> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::AddNodesFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("AddNodesFromMetadata: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::AddNodesFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref addr) = self.graph_state {
+            let addr = addr.clone();
+            self.total_messages_routed += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("GraphState actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            warn!("AddNodesFromMetadata: GraphState actor not available");
+            Box::pin(actix::fut::ready(Err("GraphState actor not available".to_string())))
+        }
     }
 }
 
@@ -769,49 +789,90 @@ impl Handler<msgs::AddNodesFromMetadata> for GraphServiceSupervisor {
 impl Handler<msgs::StartSimulation> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::StartSimulation, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("StartSimulation: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::StartSimulation, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref addr) = self.graph_state {
+            let addr = addr.clone();
+            self.total_messages_routed += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("GraphState actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            warn!("StartSimulation: GraphState actor not available");
+            Box::pin(actix::fut::ready(Err("GraphState actor not available".to_string())))
+        }
     }
 }
 
 impl Handler<msgs::SimulationStep> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::SimulationStep, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("SimulationStep: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::SimulationStep, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref addr) = self.graph_state {
+            let addr = addr.clone();
+            self.total_messages_routed += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("GraphState actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            warn!("SimulationStep: GraphState actor not available");
+            Box::pin(actix::fut::ready(Err("GraphState actor not available".to_string())))
+        }
     }
 }
 
 impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
 
-    fn handle(&mut self, _msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("GetBotsGraphData: Supervisor not fully implemented");
-        let result = Err("Supervisor not fully implemented".to_string()); // Return error for now since we need Arc<GraphData>
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref addr) = self.graph_state {
+            let addr = addr.clone();
+            self.total_messages_routed += 1;
+            Box::pin(async move {
+                match addr.send(msg).await {
+                    Ok(result) => result,
+                    Err(e) => Err(format!("GraphState actor communication error: {}", e)),
+                }
+            }.into_actor(self))
+        } else {
+            warn!("GetBotsGraphData: GraphState actor not available");
+            Box::pin(actix::fut::ready(Err("GraphState actor not available".to_string())))
+        }
     }
 }
 
 impl Handler<msgs::UpdateSimulationParams> for GraphServiceSupervisor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, _msg: msgs::UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("UpdateSimulationParams: Supervisor not fully implemented");
-        // This is a fire-and-forget message, so we just log and return
-        Ok(())
+    fn handle(&mut self, msg: msgs::UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+        // Send to GraphState actor (fire-and-forget)
+        if let Some(ref addr) = self.graph_state {
+            addr.do_send(msg);
+            self.total_messages_routed += 1;
+            Ok(())
+        } else {
+            warn!("UpdateSimulationParams: GraphState actor not available");
+            Err("GraphState actor not available".to_string())
+        }
     }
 }
 
 impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
     type Result = ();
 
-    fn handle(&mut self, _msg: msgs::InitializeGPUConnection, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("InitializeGPUConnection: Supervisor not fully implemented");
-        // This is a fire-and-forget message, so we just log and return
+    fn handle(&mut self, msg: msgs::InitializeGPUConnection, _ctx: &mut Self::Context) -> Self::Result {
+        // Send to GraphState actor (fire-and-forget)
+        if let Some(ref addr) = self.graph_state {
+            addr.do_send(msg);
+            self.total_messages_routed += 1;
+        } else {
+            warn!("InitializeGPUConnection: GraphState actor not available");
+        }
     }
 }
 

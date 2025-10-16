@@ -21,29 +21,10 @@ const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000;   // Bit 28: OWL Property
 
 const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
-// Node type flag constants for u16 (wire format v1 - DEPRECATED)
-// BUG: These constants truncate node IDs > 16383, causing collisions
-// FIXED: Use PROTOCOL_V2 with full u32 IDs for node_id > 16383
-const WIRE_V1_AGENT_FLAG: u16 = 0x8000;         // Bit 15 indicates agent node
-const WIRE_V1_KNOWLEDGE_FLAG: u16 = 0x4000;     // Bit 14 indicates knowledge graph node
-const WIRE_V1_NODE_ID_MASK: u16 = 0x3FFF;       // Mask to extract actual node ID (bits 0-13)
-
 // Node type flag constants for u32 (wire format v2)
 const WIRE_V2_AGENT_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
 const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
 const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF;   // Mask to extract actual node ID (bits 0-29)
-
-/// Wire format v1 struct (LEGACY - 34 bytes)
-/// BUG: Truncates node IDs to 14 bits (max 16383), causing collisions
-/// DEPRECATED: Use WireNodeDataItemV2 for new implementations
-pub struct WireNodeDataItemV1 {
-    pub id: u16,                // 2 bytes - TRUNCATED to 14 bits + 2 flag bits
-    pub position: Vec3Data,     // 12 bytes
-    pub velocity: Vec3Data,     // 12 bytes
-    pub sssp_distance: f32,     // 4 bytes - SSSP distance from source
-    pub sssp_parent: i32,       // 4 bytes - Parent node for path reconstruction
-    // Total: 34 bytes
-}
 
 /// Wire format v2 struct (FIXED - 38 bytes)
 /// FIXES: Uses full 32-bit node IDs (30 bits + 2 flag bits)
@@ -61,12 +42,11 @@ pub struct WireNodeDataItemV2 {
 pub type WireNodeDataItem = WireNodeDataItemV2;
 
 // Constants for wire format sizes
-const WIRE_V1_ID_SIZE: usize = 2;  // u16 (LEGACY)
 const WIRE_V2_ID_SIZE: usize = 4;  // u32 (FIXED)
 const WIRE_VEC3_SIZE: usize = 12;  // 3 * f32
 const WIRE_F32_SIZE: usize = 4;    // f32
 const WIRE_I32_SIZE: usize = 4;    // i32
-const WIRE_V1_ITEM_SIZE: usize = WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes (2+12+12+4+4)
+const WIRE_V1_ITEM_SIZE: usize = 34; // V1 legacy size (2+12+12+4+4) - kept for decoder only
 const WIRE_V2_ITEM_SIZE: usize = WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 36 bytes (4+12+12+4+4) NOT 38!
 
 // Backwards compatibility alias - DEPRECATED
@@ -191,40 +171,6 @@ pub fn is_ontology_node(node_id: u32) -> bool {
     (node_id & ONTOLOGY_TYPE_MASK) != 0
 }
 
-/// Convert u32 node ID with flags to u16 wire format (V1 - LEGACY)
-/// BUG: Truncates node IDs to 14 bits! Use to_wire_id_v2 instead.
-/// DEPRECATED: Only kept for backwards compatibility with old clients
-#[deprecated(note = "Use to_wire_id_v2 for full 32-bit node ID support")]
-pub fn to_wire_id_v1(node_id: u32) -> u16 {
-    let actual_id = get_actual_node_id(node_id);
-    let wire_id = (actual_id & 0x3FFF) as u16; // BUG: Truncates to 14 bits!
-
-    // Preserve node type flags
-    if is_agent_node(node_id) {
-        wire_id | WIRE_V1_AGENT_FLAG
-    } else if is_knowledge_node(node_id) {
-        wire_id | WIRE_V1_KNOWLEDGE_FLAG
-    } else {
-        wire_id
-    }
-}
-
-/// Convert u16 wire ID back to u32 preserving flags (V1 - LEGACY)
-/// DEPRECATED: Only kept for backwards compatibility with old clients
-#[deprecated(note = "Use from_wire_id_v2 for full 32-bit node ID support")]
-pub fn from_wire_id_v1(wire_id: u16) -> u32 {
-    let actual_id = (wire_id & WIRE_V1_NODE_ID_MASK) as u32;
-
-    // Restore node type flags
-    if (wire_id & WIRE_V1_AGENT_FLAG) != 0 {
-        actual_id | AGENT_NODE_FLAG
-    } else if (wire_id & WIRE_V1_KNOWLEDGE_FLAG) != 0 {
-        actual_id | KNOWLEDGE_NODE_FLAG
-    } else {
-        actual_id
-    }
-}
-
 /// Convert u32 node ID with flags to u32 wire format (V2 - FIXED)
 /// FIXED: Preserves full 32-bit node ID without truncation
 pub fn to_wire_id_v2(node_id: u32) -> u32 {
@@ -291,8 +237,8 @@ pub fn encode_node_data_extended(
     ontology_individual_ids: &[u32],
     ontology_property_ids: &[u32]
 ) -> Vec<u8> {
-    // Always use V2 protocol to prevent truncation bugs (V1 is only for backwards compat)
-    let use_v2 = true; // Force V2 for all new encoding
+    // Always use V2 protocol to prevent truncation bugs
+    // V1 encoding removed - decoder kept for backward compatibility only
     let item_size = WIRE_V2_ITEM_SIZE;
     let protocol_version = PROTOCOL_V2;
 
@@ -340,16 +286,10 @@ pub fn encode_node_data_extended(
                 agent_node_ids.contains(node_id));
         }
 
-        if use_v2 {
-            // V2: Write u32 ID (4 bytes) - NO TRUNCATION
-            let wire_id = to_wire_id_v2(flagged_id);
-            buffer.extend_from_slice(&wire_id.to_le_bytes());
-        } else {
-            // V1: Write u16 ID (2 bytes) - TRUNCATES (legacy support only)
-            #[allow(deprecated)]
-            let wire_id = to_wire_id_v1(flagged_id);
-            buffer.extend_from_slice(&wire_id.to_le_bytes());
-        }
+        // V2: Write u32 ID (4 bytes) - NO TRUNCATION
+        // Note: use_v2 is always true (line 295), V1 encoding removed as dead code
+        let wire_id = to_wire_id_v2(flagged_id);
+        buffer.extend_from_slice(&wire_id.to_le_bytes());
 
         // Write position (12 bytes = 3 * f32)
         buffer.extend_from_slice(&node.x.to_le_bytes());
@@ -456,9 +396,16 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         cursor += 4;
         let _sssp_parent = i32::from_le_bytes([chunk[cursor], chunk[cursor + 1], chunk[cursor + 2], chunk[cursor + 3]]);
 
-        // Convert V1 wire ID back to u32 with flags
-        #[allow(deprecated)]
-        let full_node_id = from_wire_id_v1(wire_id);
+        // Convert V1 wire ID back to u32 with flags (inlined for backward compatibility)
+        // V1 constants: AGENT_FLAG=0x8000, KNOWLEDGE_FLAG=0x4000, ID_MASK=0x3FFF
+        let actual_id = (wire_id & 0x3FFF) as u32;
+        let full_node_id = if (wire_id & 0x8000) != 0 {
+            actual_id | AGENT_NODE_FLAG
+        } else if (wire_id & 0x4000) != 0 {
+            actual_id | KNOWLEDGE_NODE_FLAG
+        } else {
+            actual_id
+        };
 
         if samples_logged < max_samples {
             let is_agent = is_agent_node(full_node_id);
@@ -883,23 +830,15 @@ mod tests {
     }
 
     #[test]
-    fn test_v1_backwards_compatibility() {
-        // Test that small node IDs can use V1 if needed
-        let small_nodes = vec![
-            (100u32, BinaryNodeData {
-                node_id: 100,
-                x: 1.0, y: 2.0, z: 3.0,
-                vx: 0.1, vy: 0.2, vz: 0.3,
-            }),
-        ];
-
-        // V1 not needed, but should decode correctly if received
+    fn test_v1_backwards_compatibility_decoder() {
+        // Test V1 decoder for backward compatibility with old clients
+        // V1 encoding removed, but decoder kept to support legacy data
         let mut v1_encoded = vec![PROTOCOL_V1];
-        #[allow(deprecated)]
-        {
-            let wire_id = to_wire_id_v1(100);
-            v1_encoded.extend_from_slice(&wire_id.to_le_bytes());
-        }
+
+        // Manually construct V1 wire format (u16 ID with flags)
+        let wire_id: u16 = 100; // Small node ID without flags
+        v1_encoded.extend_from_slice(&wire_id.to_le_bytes());
+
         // Add position
         v1_encoded.extend_from_slice(&1.0f32.to_le_bytes());
         v1_encoded.extend_from_slice(&2.0f32.to_le_bytes());
