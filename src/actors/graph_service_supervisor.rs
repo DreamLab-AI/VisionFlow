@@ -318,11 +318,12 @@ impl GraphServiceSupervisor {
             stats: ActorStats::default(),
         });
 
-        // Start actors
-        self.start_actor(ActorType::GraphState, ctx);
+        // Start actors in dependency order
+        // ClientCoordinator must start first as GraphState depends on it
+        self.start_actor(ActorType::ClientCoordinator, ctx);
         self.start_actor(ActorType::PhysicsOrchestrator, ctx);
         self.start_actor(ActorType::SemanticProcessor, ctx);
-        self.start_actor(ActorType::ClientCoordinator, ctx);
+        self.start_actor(ActorType::GraphState, ctx); // GraphState last - depends on ClientCoordinator
 
         // Schedule health checks
         ctx.run_interval(self.health_check_interval, |act, ctx| {
@@ -339,11 +340,25 @@ impl GraphServiceSupervisor {
 
         match actor_type {
             ActorType::GraphState => {
-                // Create a GraphServiceActor with minimal dependencies for now
-                // The supervisor will handle coordination between actors
-                warn!("GraphState actor (GraphServiceActor) started in supervised mode");
-                // For now, we'll use the existing GraphServiceActor as the graph state manager
-                // In a full refactor, this would be replaced with a dedicated GraphStateActor
+                // Temporarily use GraphServiceActor as the graph state manager
+                // This will be replaced with a dedicated GraphStateActor during gradual refactoring
+                info!("Starting GraphServiceActor as temporary GraphState manager");
+
+                // GraphServiceActor needs client_manager and optionally gpu_compute addresses
+                // For now we'll create it without these dependencies and add them later
+                // The supervisor will coordinate message routing
+                let client_manager = self.client.as_ref().map(|addr| addr.clone());
+                if let Some(client_addr) = client_manager {
+                    let actor = GraphServiceActor::new(
+                        client_addr,
+                        None, // GPU compute will be linked later
+                        None, // Settings actor will be linked later
+                    ).start();
+                    self.graph_state = Some(actor);
+                    info!("GraphServiceActor started successfully as GraphState manager");
+                } else {
+                    warn!("Cannot start GraphServiceActor without ClientCoordinator - will retry after client actor starts");
+                }
             },
             ActorType::PhysicsOrchestrator => {
                 use crate::models::simulation_params::SimulationParams;
