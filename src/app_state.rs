@@ -34,6 +34,7 @@ pub struct AppState {
     pub client_manager_addr: Addr<ClientCoordinatorActor>,
     pub agent_monitor_addr: Addr<AgentMonitorActor>,
     pub workspace_addr: Addr<WorkspaceActor>,
+    pub ontology_actor_addr: Option<Addr<OntologyActor>>,
     pub ontology_actor_addr: Addr<OntologyActor>,
     pub github_client: Arc<GitHubClient>,
     pub content_api: Arc<ContentAPI>,
@@ -174,7 +175,12 @@ impl AppState {
         let workspace_addr = WorkspaceActor::new().start();
 
         info!("[AppState::new] Starting OntologyActor");
-        let ontology_actor_addr = OntologyActor::new().start();
+        info!("[AppState::new] Starting OntologyActor");
+        let ontology_actor_addr = if cfg!(feature = "ontology") {
+            Some(OntologyActor::new().start())
+        } else {
+            None
+        };
 
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));

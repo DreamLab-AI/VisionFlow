@@ -2080,6 +2080,7 @@ pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResp
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FeatureFlags {
     pub gpu_clustering: bool,
+    pub ontology_validation: bool,
     pub gpu_anomaly_detection: bool,
     pub real_time_insights: bool,
     pub advanced_visualizations: bool,

@@ -1353,3 +1353,44 @@ pub enum WorkspaceChangeType {
     Unarchived,
 }
 
+
+// ============================================================================
+// Ontology Actor Messages
+// ============================================================================
+
+use crate::ontology::parser::parser::LogseqPage;
+
+/// Message to send parsed ontology data to the OntologyActor.
+/// This is sent by the file handler after parsing the Logseq markdown files.
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ProcessOntologyData {
+    pub pages: Vec<LogseqPage>,
+}
+
+/// Triggers a validation run of the current graph data against the loaded ontology.
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")] // Returns a job ID
+pub struct ValidateGraph {
+    pub mode: ValidationMode,
+}
+
+/// Validation mode for ontology validation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ValidationMode {
+    Quick,      // Basic constraints only
+    Full,       // Complete validation with inference
+    Incremental, // Only validate changes since last run
+}
+
+/// Retrieves a validation report.
+#[derive(Message)]
+#[rtype(result = "Result<Option<String>, String>")] // Returns JSON string of the report
+pub struct GetValidationReport {
+    pub report_id: Option<String>, // Get specific report or latest if None
+}
+
+/// Retrieves the system health of the ontology module.
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")] // Returns JSON string of the health status
+pub struct GetOntologyHealth;

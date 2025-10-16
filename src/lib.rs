@@ -1,3 +1,4 @@
+pub mod ontology;
 pub mod actors;
 pub mod app_state;
 pub mod client;
