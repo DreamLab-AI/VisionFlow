@@ -453,4 +453,45 @@ whisper:
   returnTimestamps: false
   vadFilter: true
   wordTimestamps: false
+ontology:
+  enabled: true
+  validation:
+    mode: "full"  # quick, full, incremental
+    auto_validate: true
+    validation_interval_ms: 5000
+
+  constraints:
+    disjoint_classes:
+      enabled: true
+      separation_strength: 0.8
+      min_distance: 5.0
+
+    subclass_hierarchy:
+      enabled: true
+      alignment_strength: 0.6
+      vertical_spacing: 3.0
+
+    sameas_colocate:
+      enabled: true
+      colocate_strength: 0.9
+      max_distance: 0.5
+
+    inverse_symmetry:
+      enabled: true
+      symmetry_strength: 0.7
+
+    functional_cardinality:
+      enabled: true
+      cardinality_penalty: 1.0
+
+  physics:
+    use_gpu: true
+    fallback_to_cpu: true
+    max_iterations: 100
+    convergence_threshold: 0.001
+
+  cache:
+    enabled: true
+    ttl_seconds: 3600
+    max_ontologies: 10
 version: 1.0.0

@@ -66,9 +66,9 @@ bcrypt = "0.15"
 # GPU/Compute
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"
-cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"] }
-cust = "0.3.2"
-cust_core = "0.1.1"
+cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"], optional = true }
+cust = { version = "0.3.2", optional = true }
+cust_core = { version = "0.1.1", optional = true }
 
 # HTTP client and API
 reqwest = { version = "0.12.23", features = ["json", "stream", "multipart"] }
@@ -107,9 +107,9 @@ sysinfo = "0.37.0"
 rayon = "1.11.0"
 
 # Ontology dependencies (optional)
-horned-owl = { version = "0.11", optional = true }
-horned-functional = { version = "0.4", optional = true }
-whelk-rs = { version = "0.1", optional = true, git = "https://github.com/pchampin/whelk-rs.git" } # Using git repo as it's not on crates.io
+horned-owl = { version = "1.2.0", optional = true }
+horned-functional = { version = "0.4.0", optional = true }
+# whelk-rs = { version = "0.1", optional = true, git = "https://github.com/pchampin/whelk-rs.git" } # Using git repo as it's not on crates.io - temporarily disabled due to auth issues
 walkdir = { version = "2.4", optional = true }
 clap = { version = "4.5", features = ["derive"], optional = true }
 
@@ -132,11 +132,11 @@ js-sys = "0.3"
 tempfile = "3.14"
 
 [features]
-default = ["gpu"]
-gpu = ["cudarc/driver"]  # Enable GPU support with CUDA driver
+default = ["gpu", "ontology"]
+gpu = ["cudarc", "cust", "cust_core"]  # Enable GPU support with CUDA dependencies
 gpu-safe = []  # Feature for GPU-safe types
 cpu = []  # CPU-only mode
-ontology = ["horned-owl", "horned-functional", "whelk-rs", "walkdir", "clap"]  # Enable ontology validation
+ontology = ["horned-owl", "horned-functional", "walkdir", "clap"]  # Enable ontology validation (whelk-rs temporarily disabled)
 
 [profile.release]
 opt-level = 3

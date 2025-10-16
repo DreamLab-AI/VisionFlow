@@ -250,6 +250,109 @@ pub enum BotsWebSocketMessage {
     },
 }
 
+/// Ontology-specific WebSocket messages (Protocol v2.0.0)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "type")]
+pub enum OntologyWebSocketMessage {
+    #[serde(rename = "ontology_load")]
+    LoadOntology {
+        graph_id: String,
+        source: OntologySource,
+        mapping_config: Option<String>,
+        physics_config: Option<OntologyPhysicsConfig>,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_validation")]
+    ValidateGraph {
+        graph_id: String,
+        status: ValidationStatus,
+        consistency: bool,
+        violations: Vec<ValidationViolation>,
+        metrics: Option<OntologyMetrics>,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_constraint_update")]
+    ApplyConstraints {
+        graph_id: String,
+        constraints: Vec<serde_json::Value>,
+        enable_gpu: bool,
+        convergence_threshold: f64,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_constraint_toggle")]
+    ToggleConstraintGroup {
+        graph_id: String,
+        group_name: String,
+        enabled: bool,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_validation_report")]
+    GetValidationReport {
+        graph_id: String,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_reasoning")]
+    ReasoningRequest {
+        graph_id: String,
+        reasoner: String,
+        inference_level: String,
+        materialize_inferences: bool,
+        timeout_ms: u64,
+        timestamp: DateTime<Utc>,
+    },
+
+    #[serde(rename = "ontology_query")]
+    Query {
+        graph_id: String,
+        query_type: String,
+        subject_uri: String,
+        include_inferred: bool,
+        timestamp: DateTime<Utc>,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct OntologySource {
+    pub format: String,
+    pub uri: Option<String>,
+    pub content: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct OntologyPhysicsConfig {
+    pub enable_constraints: bool,
+    pub constraint_groups: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum ValidationStatus {
+    Valid,
+    Invalid,
+    Processing,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ValidationViolation {
+    pub violation_type: String,
+    pub severity: String,
+    pub nodes: Vec<u32>,
+    pub message: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct OntologyMetrics {
+    pub class_count: u32,
+    pub property_count: u32,
+    pub axiom_count: u32,
+    pub reasoning_time_ms: u64,
+}
+
 /// Helper trait for converting messages to standard format
 pub trait ToStandardMessage {
     fn to_standard_envelope(&self, client_id: Option<String>) -> WebSocketEnvelope<serde_json::Value>;
@@ -341,6 +444,7 @@ impl Default for ChannelManager {
                 "mcp".to_string(),
                 "speech".to_string(),
                 "system".to_string(),
+                "ontology".to_string(),
             ],
         }
     }

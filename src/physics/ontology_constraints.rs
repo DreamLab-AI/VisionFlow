@@ -329,7 +329,7 @@ impl OntologyConstraintTranslator {
     // Private helper methods
 
     /// Update the node type cache based on current nodes
-    fn update_node_type_cache(&mut self, nodes: &[Node]) {
+    pub fn update_node_type_cache(&mut self, nodes: &[Node]) {
         for node in nodes {
             let mut types = HashSet::new();
 

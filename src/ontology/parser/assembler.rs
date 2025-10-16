@@ -86,13 +86,17 @@ impl OntologyAssembler {
 
     /// Validate the ontology using horned-owl
     pub fn validate(&self) -> Result<()> {
-        use horned_functional::from_str;
+        use horned_owl::io::ofn::reader::read as read_ofn;
+        use horned_owl::io::ParserConfiguration;
         use horned_owl::ontology::set::SetOntology;
+        use std::sync::Arc;
+        use std::io::Cursor;
 
         let ontology_text = self.to_string();
+        let cursor = Cursor::new(ontology_text.as_bytes());
 
-        // Try to parse with horned-functional
-        match from_str::<SetOntology, _>(&ontology_text) {
+        // Try to parse with horned-owl's native OFN reader
+        match read_ofn::<Arc<str>, SetOntology<Arc<str>>, _>(cursor, Default::default()) {
             Ok((_ontology, _prefixes)) => {
                 println!("  ✓ Parsed successfully");
                 println!("  ✓ OWL Functional Syntax is valid");
@@ -104,7 +108,7 @@ impl OntologyAssembler {
                 Ok(())
             }
             Err(e) => {
-                anyhow::bail!("Failed to parse ontology: {}", e)
+                anyhow::bail!("Failed to parse ontology: {:?}", e)
             }
         }
     }

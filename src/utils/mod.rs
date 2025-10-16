@@ -3,6 +3,7 @@
 pub mod audio_processor;
 pub mod binary_protocol;
 pub mod edge_data;
+#[cfg(feature = "gpu")]
 pub mod gpu_diagnostics;
 pub mod gpu_safety;
 pub mod logging;
@@ -14,15 +15,18 @@ pub mod network;
 pub mod resource_monitor;
 pub mod socket_flow_constants;
 pub mod socket_flow_messages;
+#[cfg(feature = "gpu")]
 pub mod unified_gpu_compute;
+#[cfg(feature = "gpu")]
 pub mod ptx;
-#[cfg(test)]
+#[cfg(all(test, feature = "gpu"))]
 mod ptx_tests;
-#[cfg(test)]
+#[cfg(all(test, feature = "gpu"))]
 mod gpu_compute_tests;
 pub mod validation;
 pub mod hybrid_fault_tolerance;
 pub mod hybrid_performance_optimizer;
+#[cfg(feature = "gpu")]
 pub mod gpu_memory;
 pub mod async_improvements;
 pub mod websocket_heartbeat;

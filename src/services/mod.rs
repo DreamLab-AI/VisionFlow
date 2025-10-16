@@ -11,6 +11,7 @@ pub mod management_api_client;
 // graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
 pub mod nostr_service;
+#[cfg(feature = "ontology")]
 pub mod owl_validator;
 pub mod perplexity_service;
 pub mod ragflow_service;

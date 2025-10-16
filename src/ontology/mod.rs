@@ -6,5 +6,9 @@
 pub mod actors;
 pub mod handlers;
 pub mod physics;
+
+#[cfg(feature = "ontology")]
 pub mod services;
+
+#[cfg(feature = "ontology")]
 pub mod parser;

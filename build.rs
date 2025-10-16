@@ -3,6 +3,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
+    // Check if GPU feature is enabled
+    let gpu_enabled = env::var("CARGO_FEATURE_GPU").is_ok();
+
+    if !gpu_enabled {
+        println!("cargo:warning=GPU feature disabled, skipping CUDA compilation");
+        return;
+    }
+
     // All CUDA source files that need compilation
     let cuda_files = [
         "src/utils/visionflow_unified.cu",
@@ -28,7 +36,7 @@ fn main() {
 
     // Determine CUDA architecture
     let cuda_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "75".to_string());
-    
+
     // Compile all CUDA files to PTX
     println!("Compiling {} CUDA kernels to PTX...", cuda_files.len());
 
@@ -84,7 +92,7 @@ fn main() {
     // Compile visionflow_unified for Thrust wrapper (legacy compatibility)
     let cuda_src = Path::new("src/utils/visionflow_unified.cu");
     let obj_output = PathBuf::from(&out_dir).join("thrust_wrapper.o");
-    
+
     // Compile Thrust wrapper functions to object file
     println!("Compiling Thrust wrapper functions...");
     let obj_status = Command::new("nvcc")
@@ -100,11 +108,11 @@ fn main() {
         ])
         .status()
         .expect("Failed to compile Thrust wrapper");
-    
+
     if !obj_status.success() {
         panic!("Thrust wrapper compilation failed");
     }
-    
+
     // Device link the object file (required for Thrust)
     let dlink_output = PathBuf::from(&out_dir).join("thrust_wrapper_dlink.o");
     println!("Device linking Thrust code...");
@@ -117,11 +125,11 @@ fn main() {
         ])
         .status()
         .expect("Failed to device link");
-    
+
     if !dlink_status.success() {
         panic!("Device linking failed");
     }
-    
+
     // Create static library from both object files
     let lib_output = PathBuf::from(&out_dir).join("libthrust_wrapper.a");
     println!("Creating static library...");
@@ -134,22 +142,22 @@ fn main() {
         ])
         .status()
         .expect("Failed to create static library");
-    
+
     if !ar_status.success() {
         panic!("Failed to create static library");
     }
-    
+
     // Link the static library
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=thrust_wrapper");
-    
+
     // Link CUDA libraries
     println!("cargo:rustc-link-search=native={}/lib64", cuda_path);
     println!("cargo:rustc-link-search=native={}/lib64/stubs", cuda_path);
     println!("cargo:rustc-link-lib=cudart");
     println!("cargo:rustc-link-lib=cuda");
     println!("cargo:rustc-link-lib=cudadevrt");  // Device runtime for Thrust
-    
+
     // Link C++ standard library for Thrust
     println!("cargo:rustc-link-lib=stdc++");
 

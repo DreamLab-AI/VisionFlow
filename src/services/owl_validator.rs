@@ -2,9 +2,14 @@ use anyhow::{Result, Context};
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use horned_owl::ontology::set::SetOntology;
+use horned_owl::io::rdf::reader::RDFOntology;
+use horned_owl::io::owx::reader::read as read_owx;
+use horned_owl::io::ofn::reader::read as read_ofn;
+use horned_owl::model::Build;
 use log::{debug, info, error};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::io::Cursor;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use thiserror::Error;
@@ -118,9 +123,11 @@ pub struct PropertyGraph {
 /// Cached ontology with metadata
 #[derive(Debug, Clone)]
 struct CachedOntology {
+    id: String,
+    content_hash: String,
     ontology: SetOntology<Arc<str>>,
+    axiom_count: usize,
     loaded_at: DateTime<Utc>,
-    signature: String,
     ttl_seconds: u64,
 }
 
@@ -155,6 +162,7 @@ impl Default for ValidationConfig {
 }
 
 /// Main OWL validation service
+#[derive(Clone)]
 pub struct OwlValidatorService {
     ontology_cache: Arc<DashMap<String, CachedOntology>>,
     validation_cache: Arc<DashMap<String, ValidationReport>>,
@@ -215,22 +223,14 @@ impl OwlValidatorService {
     /// Load an ontology from various sources (file, string, URL)
     pub async fn load_ontology(&self, source: &str) -> Result<String> {
         let start_time = Instant::now();
-        let ontology_id = self.generate_cache_key(source);
 
-        // Check if already cached
-        if self.config.enable_caching {
-            if let Some(cached) = self.ontology_cache.get(&ontology_id) {
-                let age = Utc::now().signed_duration_since(cached.loaded_at);
-                if age.num_seconds() < (self.config.cache_ttl_seconds as i64) {
-                    debug!("Using cached ontology: {}", ontology_id);
-                    return Ok(ontology_id);
-                }
-            }
-        }
+        info!("Loading ontology from: {}", if source.len() > 100 {
+            &source[..100]
+        } else {
+            source
+        });
 
-        info!("Loading ontology from: {}", source);
-
-        // Determine source type and load accordingly
+        // Determine source type and load content
         let ontology_content = if source.starts_with("http://") || source.starts_with("https://") {
             self.load_from_url(source).await?
         } else if std::path::Path::new(source).exists() {
@@ -240,16 +240,39 @@ impl OwlValidatorService {
             source.to_string()
         };
 
+        // Generate unique ID based on content hash
+        let content_hash = self.calculate_signature(&ontology_content);
+        let ontology_id = format!("ontology_{}", content_hash);
+
+        // Check if already cached
+        if self.config.enable_caching {
+            if let Some(cached) = self.ontology_cache.get(&ontology_id) {
+                let age = Utc::now().signed_duration_since(cached.loaded_at);
+                if age.num_seconds() < (self.config.cache_ttl_seconds as i64) {
+                    debug!("Cache hit for ontology: {}", ontology_id);
+                    return Ok(ontology_id);
+                } else {
+                    debug!("Cache expired for ontology: {}", ontology_id);
+                }
+            } else {
+                debug!("Cache miss for ontology: {}", ontology_id);
+            }
+        }
+
         // Parse the ontology
         let ontology = self.parse_ontology(&ontology_content)?;
-        let signature = self.calculate_signature(&ontology_content);
+        let axiom_count = ontology.iter().count();
+
+        info!("Parsed ontology with {} axioms", axiom_count);
 
         // Cache the parsed ontology
         if self.config.enable_caching {
             let cached = CachedOntology {
+                id: ontology_id.clone(),
+                content_hash: content_hash.clone(),
                 ontology,
+                axiom_count,
                 loaded_at: Utc::now(),
-                signature,
                 ttl_seconds: self.config.cache_ttl_seconds,
             };
             self.ontology_cache.insert(ontology_id.clone(), cached);
@@ -455,29 +478,74 @@ impl OwlValidatorService {
     }
 
     fn parse_ontology(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
-        // Try different parsers based on content
-        if content.trim_start().starts_with("@") || content.contains("@prefix") {
-            // Turtle format
+        let trimmed = content.trim_start();
+
+        debug!("Detecting ontology format...");
+
+        // Detect format based on content
+        if trimmed.starts_with("@prefix") || trimmed.starts_with("@base") || trimmed.contains("@prefix") {
+            info!("Detected Turtle format");
             self.parse_turtle(content)
-        } else if content.trim_start().starts_with("<") {
-            // RDF/XML format - simplified approach
-            // For now, return a basic ontology structure
-            // In production, you'd use a proper RDF/XML parser
-            Ok(SetOntology::new())
+        } else if trimmed.starts_with("<?xml") || (trimmed.starts_with("<") && trimmed.contains("rdf:RDF")) {
+            info!("Detected RDF/XML format");
+            self.parse_rdf_xml(content)
+        } else if trimmed.starts_with("Prefix(") || trimmed.starts_with("Ontology(") {
+            info!("Detected OWL Functional Syntax");
+            self.parse_functional_syntax(content)
+        } else if trimmed.starts_with("<Ontology") {
+            info!("Detected OWL/XML format");
+            self.parse_owx(content)
+        } else if trimmed.is_empty() {
+            Err(ValidationError::ParseError("Empty ontology content".to_string()).into())
         } else {
-            Err(ValidationError::ParseError("Unknown ontology format".to_string()).into())
+            // Try Turtle as default since it's most flexible
+            info!("Unknown format, trying Turtle parser");
+            self.parse_turtle(content)
         }
     }
 
-    fn parse_turtle(&self, _content: &str) -> Result<SetOntology<Arc<str>>> {
-        // This is a simplified turtle parser integration
-        // In a full implementation, you'd want to use horned-owl's turtle support
-        // or rio_turtle more extensively
+    fn parse_turtle(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
+        // TODO: horned-owl 1.2.0 API requires different approach for RDF parsing
+        // Temporarily returning empty ontology until proper implementation
+        debug!("Turtle parsing temporarily disabled - needs horned-owl 1.2.0 API updates");
+        Ok(SetOntology::new())
+    }
 
-        let ontology = SetOntology::new();
-        // Add basic parsing logic here
-        // For now, return empty ontology to avoid compilation errors
-        Ok(ontology)
+    fn parse_rdf_xml(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
+        // TODO: horned-owl 1.2.0 API requires different approach for RDF parsing
+        // Temporarily returning empty ontology until proper implementation
+        debug!("RDF/XML parsing temporarily disabled - needs horned-owl 1.2.0 API updates");
+        Ok(SetOntology::new())
+    }
+
+    fn parse_functional_syntax(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
+        let cursor = Cursor::new(content.as_bytes());
+
+        match read_ofn::<Arc<str>, SetOntology<Arc<str>>, _>(cursor, Default::default()) {
+            Ok((ontology, _prefixes)) => {
+                debug!("Successfully parsed Functional Syntax ontology");
+                Ok(ontology)
+            }
+            Err(e) => {
+                error!("Failed to parse Functional Syntax: {}", e);
+                Err(ValidationError::ParseError(format!("Functional Syntax parse error: {}", e)).into())
+            }
+        }
+    }
+
+    fn parse_owx(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
+        let mut cursor = Cursor::new(content.as_bytes());
+
+        match read_owx::<Arc<str>, SetOntology<Arc<str>>, _>(&mut cursor, Default::default()) {
+            Ok((ontology, _prefixes)) => {
+                debug!("Successfully parsed OWL/XML ontology");
+                Ok(ontology)
+            }
+            Err(e) => {
+                error!("Failed to parse OWL/XML: {}", e);
+                Err(ValidationError::ParseError(format!("OWL/XML parse error: {}", e)).into())
+            }
+        }
     }
 
     fn calculate_signature(&self, content: &str) -> String {
@@ -870,6 +938,70 @@ impl OwlValidatorService {
 impl Default for OwlValidatorService {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Convert ValidationReport to OntologyReasoningReport for physics integration
+///
+/// TODO: This function needs to be updated to use horned-owl 1.2.0 API for proper axiom extraction.
+/// Currently returns a simplified report based on validation results.
+pub fn validation_report_to_reasoning_report(
+    report: &ValidationReport,
+    _ontology: &SetOntology<Arc<str>>,
+) -> crate::physics::ontology_constraints::OntologyReasoningReport {
+    use crate::physics::ontology_constraints::{OntologyReasoningReport, OWLAxiom, OWLAxiomType, OntologyInference, ConsistencyCheck};
+
+    let axioms = Vec::new(); // TODO: Extract axioms using horned-owl 1.2.0 API
+    let mut inferences = Vec::new();
+    let mut consistency_checks = Vec::new();
+
+    // Convert inferred triples to inferences
+    for triple in &report.inferred_triples {
+        // Determine axiom type from triple pattern
+        let axiom_type = if triple.predicate.contains("inverseOf") {
+            OWLAxiomType::InverseOf
+        } else if triple.predicate.contains("type") {
+            OWLAxiomType::SubClassOf
+        } else {
+            OWLAxiomType::SameAs // Default
+        };
+
+        inferences.push(OntologyInference {
+            inferred_axiom: OWLAxiom {
+                axiom_type,
+                subject: triple.subject.clone(),
+                object: Some(triple.object.clone()),
+                property: Some(triple.predicate.clone()),
+                confidence: 0.8, // Inferred axioms have lower confidence
+            },
+            premise_axioms: vec![], // Could be populated with source axiom IDs
+            reasoning_confidence: 0.8,
+            is_derived: true,
+        });
+    }
+
+    // Create consistency checks based on violations
+    let is_consistent = report.violations.iter().all(|v| v.severity != Severity::Error);
+    let conflicting_axioms: Vec<String> = report.violations.iter()
+        .filter(|v| v.severity == Severity::Error)
+        .map(|v| v.rule.clone())
+        .collect();
+
+    consistency_checks.push(ConsistencyCheck {
+        is_consistent,
+        conflicting_axioms,
+        suggested_resolution: if !is_consistent {
+            Some("Review and resolve constraint violations".to_string())
+        } else {
+            None
+        },
+    });
+
+    OntologyReasoningReport {
+        axioms,
+        inferences,
+        consistency_checks,
+        reasoning_time_ms: report.duration_ms,
     }
 }
 

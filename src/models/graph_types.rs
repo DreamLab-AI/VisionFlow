@@ -14,6 +14,8 @@ pub enum GraphType {
     Hierarchical,
     /// Network topology graph
     Network,
+    /// OWL/RDF ontology graph with semantic constraints
+    Ontology,
 }
 
 impl Default for GraphType {
@@ -30,6 +32,23 @@ impl std::fmt::Display for GraphType {
             GraphType::ForceDirected => write!(f, "force-directed"),
             GraphType::Hierarchical => write!(f, "hierarchical"),
             GraphType::Network => write!(f, "network"),
+            GraphType::Ontology => write!(f, "ontology"),
+        }
+    }
+}
+
+impl std::str::FromStr for GraphType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "standard" => Ok(GraphType::Standard),
+            "multi-agent" | "multiagent" => Ok(GraphType::MultiAgent),
+            "force-directed" | "forcedirected" => Ok(GraphType::ForceDirected),
+            "hierarchical" => Ok(GraphType::Hierarchical),
+            "network" => Ok(GraphType::Network),
+            "ontology" => Ok(GraphType::Ontology),
+            _ => Err(format!("Unknown graph type: {}", s)),
         }
     }
 }

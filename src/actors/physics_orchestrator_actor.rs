@@ -8,6 +8,7 @@ use actix::MessageResult;
 use glam::Vec3;
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use std::time::{Duration, Instant};
+use std::collections::HashMap;
 use log::{debug, info, warn};
 
 use crate::errors::VisionFlowError;
@@ -24,11 +25,13 @@ use crate::actors::messages::{
 use crate::models::simulation_params::SimulationParams;
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::models::constraints::ConstraintSet;
 use crate::actors::messages::{
     StartSimulation, StopSimulation, SimulationStep, UpdateNodePosition,
     RequestPositionSnapshot, PhysicsPauseMessage, NodeInteractionMessage,
     ForceResumePhysics, StoreGPUComputeAddress, UpdateSimulationParams,
-    UpdateNodePositions
+    UpdateNodePositions, ApplyOntologyConstraints, ConstraintMergeMode,
+    SetConstraintGroupActive, GetConstraintStats, ConstraintStats
 };
 
 /// Physics orchestration actor responsible for managing all physics simulation
@@ -45,6 +48,10 @@ pub struct PhysicsOrchestratorActor {
 
     /// GPU compute actor address for hardware acceleration
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+
+    /// Ontology actor address for constraint generation
+    #[cfg(feature = "ontology")]
+    ontology_actor_addr: Option<Addr<crate::actors::ontology_actor::OntologyActor>>,
 
     /// Graph data reference for physics calculations
     graph_data_ref: Option<Arc<GraphData>>,
@@ -78,6 +85,12 @@ pub struct PhysicsOrchestratorActor {
 
     /// Performance metrics
     performance_metrics: PhysicsPerformanceMetrics,
+
+    /// Ontology-derived constraints
+    ontology_constraints: Option<ConstraintSet>,
+
+    /// User-defined constraints (non-ontology)
+    user_constraints: Option<ConstraintSet>,
 }
 
 /// Physics performance tracking metrics
@@ -105,6 +118,8 @@ impl PhysicsOrchestratorActor {
             simulation_params,
             target_params,
             gpu_compute_addr,
+            #[cfg(feature = "ontology")]
+            ontology_actor_addr: None,
             graph_data_ref: graph_data,
             gpu_initialized: false,
             gpu_init_in_progress: false,
@@ -116,7 +131,16 @@ impl PhysicsOrchestratorActor {
             last_node_count: 0,
             current_iteration: 0,
             performance_metrics: PhysicsPerformanceMetrics::default(),
+            ontology_constraints: None,
+            user_constraints: None,
         }
+    }
+
+    /// Set the ontology actor address for constraint generation
+    #[cfg(feature = "ontology")]
+    pub fn set_ontology_actor(&mut self, addr: Addr<crate::actors::ontology_actor::OntologyActor>) {
+        info!("PhysicsOrchestratorActor: Ontology actor address set");
+        self.ontology_actor_addr = Some(addr);
     }
 
     /// Start the physics simulation loop
@@ -459,6 +483,208 @@ impl PhysicsOrchestratorActor {
             current_params: self.simulation_params.clone(),
         }
     }
+
+    /// Apply ontology constraints to the physics system
+    fn apply_ontology_constraints_internal(
+        &mut self,
+        constraint_set: ConstraintSet,
+        merge_mode: &ConstraintMergeMode,
+    ) -> Result<(), String> {
+        match merge_mode {
+            ConstraintMergeMode::Replace => {
+                // Replace all ontology constraints
+                let constraints_len = constraint_set.constraints.len();
+                let groups_len = constraint_set.groups.len();
+                self.ontology_constraints = Some(constraint_set);
+                info!("Replaced ontology constraints: {} constraints in {} groups",
+                      constraints_len, groups_len);
+            }
+            ConstraintMergeMode::Merge => {
+                // Merge with existing ontology constraints
+                if let Some(ref mut existing) = self.ontology_constraints {
+                    let start_count = existing.constraints.len();
+                    existing.constraints.extend(constraint_set.constraints);
+
+                    // Merge groups
+                    for (group_name, indices) in constraint_set.groups {
+                        let offset = start_count;
+                        let adjusted_indices: Vec<usize> = indices.iter()
+                            .map(|&idx| idx + offset)
+                            .collect();
+
+                        existing.groups.entry(group_name)
+                            .or_insert_with(Vec::new)
+                            .extend(adjusted_indices);
+                    }
+
+                    info!("Merged ontology constraints: {} total constraints",
+                          existing.constraints.len());
+                } else {
+                    self.ontology_constraints = Some(constraint_set);
+                }
+            }
+            ConstraintMergeMode::AddIfNoConflict => {
+                // Add only non-conflicting constraints
+                if let Some(ref mut existing) = self.ontology_constraints {
+                    let start_count = existing.constraints.len();
+                    let mut added = 0;
+
+                    for constraint in constraint_set.constraints {
+                        // Simple conflict check: don't add if same nodes are already constrained
+                        let has_conflict = existing.constraints.iter().any(|c| {
+                            c.kind == constraint.kind &&
+                            c.node_indices == constraint.node_indices
+                        });
+
+                        if !has_conflict {
+                            existing.constraints.push(constraint);
+                            added += 1;
+                        }
+                    }
+
+                    // Update groups for added constraints
+                    for (group_name, indices) in constraint_set.groups {
+                        let adjusted_indices: Vec<usize> = indices.iter()
+                            .filter_map(|&idx| {
+                                if idx < added {
+                                    Some(idx + start_count)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
+                        if !adjusted_indices.is_empty() {
+                            existing.groups.entry(group_name)
+                                .or_insert_with(Vec::new)
+                                .extend(adjusted_indices);
+                        }
+                    }
+
+                    info!("Added {} non-conflicting constraints", added);
+                } else {
+                    self.ontology_constraints = Some(constraint_set);
+                }
+            }
+        }
+
+        // Upload constraints to GPU if initialized
+        self.upload_constraints_to_gpu();
+
+        Ok(())
+    }
+
+    /// Upload all active constraints to GPU
+    fn upload_constraints_to_gpu(&self) {
+        if !self.gpu_initialized || self.gpu_compute_addr.is_none() {
+            return;
+        }
+
+        // Combine ontology and user constraints
+        let mut all_constraints = Vec::new();
+
+        if let Some(ref ont_constraints) = self.ontology_constraints {
+            all_constraints.extend(ont_constraints.active_constraints());
+        }
+
+        if let Some(ref user_constraints) = self.user_constraints {
+            all_constraints.extend(user_constraints.active_constraints());
+        }
+
+        if all_constraints.is_empty() {
+            debug!("No active constraints to upload to GPU");
+            return;
+        }
+
+        // Convert to GPU format
+        let gpu_constraints: Vec<_> = all_constraints.iter()
+            .map(|c| c.to_gpu_format())
+            .collect();
+
+        info!("Uploading {} active constraints to GPU", gpu_constraints.len());
+
+        // Send to GPU actor
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            use crate::actors::messages::UploadConstraintsToGPU;
+            gpu_addr.do_send(UploadConstraintsToGPU {
+                constraint_data: gpu_constraints,
+            });
+        }
+    }
+
+    /// Get constraint statistics
+    fn get_constraint_statistics(&self) -> ConstraintStats {
+        let mut total_constraints = 0;
+        let mut active_constraints = 0;
+        let mut constraint_groups = HashMap::new();
+        let mut ontology_constraints = 0;
+        let mut user_constraints = 0;
+
+        // Count ontology constraints
+        if let Some(ref ont) = self.ontology_constraints {
+            total_constraints += ont.constraints.len();
+            ontology_constraints = ont.constraints.len();
+            active_constraints += ont.active_constraints().len();
+
+            for (group_name, indices) in &ont.groups {
+                constraint_groups.insert(
+                    format!("ontology_{}", group_name),
+                    indices.len()
+                );
+            }
+        }
+
+        // Count user constraints
+        if let Some(ref user) = self.user_constraints {
+            total_constraints += user.constraints.len();
+            user_constraints = user.constraints.len();
+            active_constraints += user.active_constraints().len();
+
+            for (group_name, indices) in &user.groups {
+                constraint_groups.insert(
+                    format!("user_{}", group_name),
+                    indices.len()
+                );
+            }
+        }
+
+        ConstraintStats {
+            total_constraints,
+            active_constraints,
+            constraint_groups,
+            ontology_constraints,
+            user_constraints,
+        }
+    }
+
+    /// Set constraint group active/inactive status
+    fn set_constraint_group_active(&mut self, group_name: &str, active: bool) -> Result<(), String> {
+        let mut found = false;
+
+        // Check in ontology constraints
+        if let Some(ref mut ont) = self.ontology_constraints {
+            if ont.groups.contains_key(group_name) {
+                ont.set_group_active(group_name, active);
+                found = true;
+            }
+        }
+
+        // Check in user constraints
+        if let Some(ref mut user) = self.user_constraints {
+            if user.groups.contains_key(group_name) {
+                user.set_group_active(group_name, active);
+                found = true;
+            }
+        }
+
+        if found {
+            info!("Set constraint group '{}' active={}", group_name, active);
+            self.upload_constraints_to_gpu();
+            Ok(())
+        } else {
+            Err(format!("Constraint group '{}' not found", group_name))
+        }
+    }
 }
 
 /// Physics orchestrator status information
@@ -752,5 +978,53 @@ impl Handler<SetParameterInterpolationRate> for PhysicsOrchestratorActor {
     fn handle(&mut self, msg: SetParameterInterpolationRate, _ctx: &mut Self::Context) -> Self::Result {
         self.param_interpolation_rate = msg.rate.clamp(0.01, 1.0);
         info!("Parameter interpolation rate set to: {}", self.param_interpolation_rate);
+    }
+}
+
+/// Handler for applying ontology-derived constraints
+impl Handler<ApplyOntologyConstraints> for PhysicsOrchestratorActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ApplyOntologyConstraints, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Applying ontology constraints: {} constraints, merge mode: {:?}",
+              msg.constraint_set.constraints.len(), msg.merge_mode);
+
+        self.apply_ontology_constraints_internal(msg.constraint_set, &msg.merge_mode)
+    }
+}
+
+/// Handler for enabling/disabling constraint groups
+impl Handler<SetConstraintGroupActive> for PhysicsOrchestratorActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetConstraintGroupActive, _ctx: &mut Self::Context) -> Self::Result {
+        self.set_constraint_group_active(&msg.group_name, msg.active)
+    }
+}
+
+/// Handler for getting constraint statistics
+impl Handler<GetConstraintStats> for PhysicsOrchestratorActor {
+    type Result = Result<ConstraintStats, String>;
+
+    fn handle(&mut self, _msg: GetConstraintStats, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(self.get_constraint_statistics())
+    }
+}
+
+/// Message to set ontology actor address in physics orchestrator
+#[cfg(feature = "ontology")]
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetOntologyActor {
+    pub addr: Addr<crate::actors::ontology_actor::OntologyActor>,
+}
+
+/// Handler for setting ontology actor address
+#[cfg(feature = "ontology")]
+impl Handler<SetOntologyActor> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetOntologyActor, _ctx: &mut Self::Context) -> Self::Result {
+        self.set_ontology_actor(msg.addr);
     }
 }

@@ -61,6 +61,7 @@ pub enum GPUOperation {
     Clustering,
     AnomalyDetection,
     StressMajorization,
+    OntologyConstraints,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -335,6 +336,7 @@ impl SharedGPUContext {
             GPUOperation::PositionUpdate | GPUOperation::VelocityUpdate => true, // Good candidates for batching
             GPUOperation::Clustering | GPUOperation::AnomalyDetection => false, // Too heavy to batch
             GPUOperation::StressMajorization => false, // Critical operation
+            GPUOperation::OntologyConstraints => false, // Constraint updates should execute immediately
         }
     }
 
@@ -449,7 +451,8 @@ impl GPUState {
             (GPUOperation::VelocityUpdate, GPUOperation::VelocityUpdate) |
             (GPUOperation::Clustering, GPUOperation::Clustering) |
             (GPUOperation::AnomalyDetection, GPUOperation::AnomalyDetection) |
-            (GPUOperation::StressMajorization, GPUOperation::StressMajorization)
+            (GPUOperation::StressMajorization, GPUOperation::StressMajorization) |
+            (GPUOperation::OntologyConstraints, GPUOperation::OntologyConstraints)
         ));
         if self.concurrent_access_count > 0 {
             self.concurrent_access_count -= 1;
@@ -491,4 +494,5 @@ pub struct ChildActorAddresses {
     pub anomaly_detection_actor: Addr<super::AnomalyDetectionActor>,
     pub stress_majorization_actor: Addr<super::StressMajorizationActor>,
     pub constraint_actor: Addr<super::ConstraintActor>,
+    pub ontology_constraint_actor: Addr<super::OntologyConstraintActor>,
 }

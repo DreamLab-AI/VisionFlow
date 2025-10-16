@@ -1,7 +1,7 @@
 use anyhow::Result;
 use regex::Regex;
 
-use crate::parser::LogseqPage;
+use crate::ontology::parser::parser::LogseqPage;
 
 /// Convert Logseq properties to OWL axioms
 pub fn logseq_properties_to_owl(page: &LogseqPage) -> Result<Vec<String>> {

@@ -2088,7 +2088,6 @@ pub struct FeatureFlags {
     pub stress_majorization: bool,
     pub semantic_constraints: bool,
     pub sssp_integration: bool,
-    pub ontology_validation: bool,
 }
 
 impl Default for FeatureFlags {

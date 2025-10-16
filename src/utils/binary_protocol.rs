@@ -12,6 +12,13 @@ const PROTOCOL_V2: u8 = 2;  // Full 32-bit node IDs (38 bytes per node)
 // Node type flag constants for u32 (server-side)
 const AGENT_NODE_FLAG: u32 = 0x80000000;     // Bit 31 indicates agent node
 const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
+
+// Ontology node type flags (bits 26-28, only valid when GraphType::Ontology)
+const ONTOLOGY_TYPE_MASK: u32 = 0x1C000000;      // Bits 26-28: Ontology node types
+const ONTOLOGY_CLASS_FLAG: u32 = 0x04000000;     // Bit 26: OWL Class
+const ONTOLOGY_INDIVIDUAL_FLAG: u32 = 0x08000000; // Bit 27: OWL Individual
+const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000;   // Bit 28: OWL Property
+
 const NODE_ID_MASK: u32 = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
 
 // Node type flag constants for u16 (wire format v1 - DEPRECATED)
@@ -96,6 +103,7 @@ const WIRE_ITEM_SIZE: usize = WIRE_V2_ITEM_SIZE;
 //
 // Node Type Flags:
 // - V2: Bits 30-31 of u32 ID (Bit 31 = Agent, Bit 30 = Knowledge)
+// - V2: Bits 26-28 of u32 ID for Ontology types (Bit 26 = Class, Bit 27 = Individual, Bit 28 = Property)
 // - V1: Bits 14-15 of u16 ID (Bit 15 = Agent, Bit 14 = Knowledge) [BUGGY]
 // This allows the client to distinguish between different node types for visualization.
 
@@ -132,6 +140,9 @@ pub fn get_actual_node_id(node_id: u32) -> u32 {
 pub enum NodeType {
     Knowledge,
     Agent,
+    OntologyClass,
+    OntologyIndividual,
+    OntologyProperty,
     Unknown,
 }
 
@@ -140,9 +151,44 @@ pub fn get_node_type(node_id: u32) -> NodeType {
         NodeType::Agent
     } else if is_knowledge_node(node_id) {
         NodeType::Knowledge
+    } else if is_ontology_class(node_id) {
+        NodeType::OntologyClass
+    } else if is_ontology_individual(node_id) {
+        NodeType::OntologyIndividual
+    } else if is_ontology_property(node_id) {
+        NodeType::OntologyProperty
     } else {
         NodeType::Unknown
     }
+}
+
+/// Ontology node type utility functions
+pub fn set_ontology_class_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | ONTOLOGY_CLASS_FLAG
+}
+
+pub fn set_ontology_individual_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | ONTOLOGY_INDIVIDUAL_FLAG
+}
+
+pub fn set_ontology_property_flag(node_id: u32) -> u32 {
+    (node_id & NODE_ID_MASK) | ONTOLOGY_PROPERTY_FLAG
+}
+
+pub fn is_ontology_class(node_id: u32) -> bool {
+    (node_id & ONTOLOGY_TYPE_MASK) == ONTOLOGY_CLASS_FLAG
+}
+
+pub fn is_ontology_individual(node_id: u32) -> bool {
+    (node_id & ONTOLOGY_TYPE_MASK) == ONTOLOGY_INDIVIDUAL_FLAG
+}
+
+pub fn is_ontology_property(node_id: u32) -> bool {
+    (node_id & ONTOLOGY_TYPE_MASK) == ONTOLOGY_PROPERTY_FLAG
+}
+
+pub fn is_ontology_node(node_id: u32) -> bool {
+    (node_id & ONTOLOGY_TYPE_MASK) != 0
 }
 
 /// Convert u32 node ID with flags to u16 wire format (V1 - LEGACY)
@@ -225,13 +271,25 @@ pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     })
 }
 
-/// Enhanced encoding function that accepts metadata about node types
+/// Enhanced encoding function that accepts metadata about node types including ontology nodes
 /// FIXED: Always uses V2 protocol by default (full 32-bit node ID support)
 /// Only falls back to V1 for backwards compatibility when all IDs are small
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
     knowledge_node_ids: &[u32]
+) -> Vec<u8> {
+    encode_node_data_extended(nodes, agent_node_ids, knowledge_node_ids, &[], &[], &[])
+}
+
+/// Extended encoding function with ontology node type support
+pub fn encode_node_data_extended(
+    nodes: &[(u32, BinaryNodeData)],
+    agent_node_ids: &[u32],
+    knowledge_node_ids: &[u32],
+    ontology_class_ids: &[u32],
+    ontology_individual_ids: &[u32],
+    ontology_property_ids: &[u32]
 ) -> Vec<u8> {
     // Always use V2 protocol to prevent truncation bugs (V1 is only for backwards compat)
     let use_v2 = true; // Force V2 for all new encoding
@@ -258,10 +316,17 @@ pub fn encode_node_data_with_types(
 
     for (node_id, node) in nodes {
         // Check node type and set the appropriate flag
+        // Priority: Agent > Knowledge > Ontology types > None
         let flagged_id = if agent_node_ids.contains(node_id) {
             set_agent_flag(*node_id)
         } else if knowledge_node_ids.contains(node_id) {
             set_knowledge_flag(*node_id)
+        } else if ontology_class_ids.contains(node_id) {
+            set_ontology_class_flag(*node_id)
+        } else if ontology_individual_ids.contains(node_id) {
+            set_ontology_individual_flag(*node_id)
+        } else if ontology_property_ids.contains(node_id) {
+            set_ontology_property_flag(*node_id)
         } else {
             *node_id  // No flags for unknown nodes
         };
@@ -710,6 +775,111 @@ mod tests {
         // Verify node IDs are preserved without truncation
         assert_eq!(decoded[0].0, 20000u32);
         assert_eq!(decoded[1].0, 100000u32);
+    }
+
+    #[test]
+    fn test_ontology_node_flags() {
+        let node_id = 123u32;
+
+        // Test ontology class flag
+        let class_id = set_ontology_class_flag(node_id);
+        assert!(is_ontology_class(class_id));
+        assert!(is_ontology_node(class_id));
+        assert!(!is_ontology_individual(class_id));
+        assert!(!is_ontology_property(class_id));
+        assert_eq!(get_actual_node_id(class_id), node_id);
+        assert_eq!(get_node_type(class_id), NodeType::OntologyClass);
+
+        // Test ontology individual flag
+        let individual_id = set_ontology_individual_flag(node_id);
+        assert!(is_ontology_individual(individual_id));
+        assert!(is_ontology_node(individual_id));
+        assert!(!is_ontology_class(individual_id));
+        assert!(!is_ontology_property(individual_id));
+        assert_eq!(get_actual_node_id(individual_id), node_id);
+        assert_eq!(get_node_type(individual_id), NodeType::OntologyIndividual);
+
+        // Test ontology property flag
+        let property_id = set_ontology_property_flag(node_id);
+        assert!(is_ontology_property(property_id));
+        assert!(is_ontology_node(property_id));
+        assert!(!is_ontology_class(property_id));
+        assert!(!is_ontology_individual(property_id));
+        assert_eq!(get_actual_node_id(property_id), node_id);
+        assert_eq!(get_node_type(property_id), NodeType::OntologyProperty);
+
+        // Test non-ontology node
+        assert!(!is_ontology_node(node_id));
+        assert!(!is_ontology_class(node_id));
+        assert!(!is_ontology_individual(node_id));
+        assert!(!is_ontology_property(node_id));
+    }
+
+    #[test]
+    fn test_encode_with_ontology_types() {
+        let nodes = vec![
+            (1u32, BinaryNodeData {
+                node_id: 1,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
+            }),
+            (2u32, BinaryNodeData {
+                node_id: 2,
+                x: 4.0, y: 5.0, z: 6.0,
+                vx: 0.4, vy: 0.5, vz: 0.6,
+            }),
+            (3u32, BinaryNodeData {
+                node_id: 3,
+                x: 7.0, y: 8.0, z: 9.0,
+                vx: 0.7, vy: 0.8, vz: 0.9,
+            }),
+        ];
+
+        // Mark nodes with different ontology types
+        let class_ids = vec![1u32];
+        let individual_ids = vec![2u32];
+        let property_ids = vec![3u32];
+
+        let encoded = encode_node_data_extended(&nodes, &[], &[], &class_ids, &individual_ids, &property_ids);
+
+        // Verify encoded size: 1 byte version + nodes * V2 item size
+        assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
+
+        let decoded = decode_node_data(&encoded).unwrap();
+        assert_eq!(nodes.len(), decoded.len());
+
+        // Verify positions and velocities are preserved
+        for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
+            assert_eq!(orig_id, dec_id);
+            assert_eq!(orig_data.position(), dec_data.position());
+            assert_eq!(orig_data.velocity(), dec_data.velocity());
+        }
+    }
+
+    #[test]
+    fn test_ontology_flags_preserved_in_wire_format() {
+        let nodes = vec![
+            (100u32, BinaryNodeData {
+                node_id: 100,
+                x: 1.0, y: 2.0, z: 3.0,
+                vx: 0.1, vy: 0.2, vz: 0.3,
+            }),
+        ];
+
+        let class_ids = vec![100u32];
+        let encoded = encode_node_data_extended(&nodes, &[], &[], &class_ids, &[], &[]);
+
+        // First byte is protocol version
+        assert_eq!(encoded[0], PROTOCOL_V2);
+
+        // Next 4 bytes are the node ID with flags
+        let wire_id = u32::from_le_bytes([
+            encoded[1], encoded[2], encoded[3], encoded[4]
+        ]);
+
+        // Verify the class flag is set
+        assert_eq!(wire_id & ONTOLOGY_TYPE_MASK, ONTOLOGY_CLASS_FLAG);
+        assert_eq!(wire_id & NODE_ID_MASK, 100u32);
     }
 
     #[test]

@@ -49,6 +49,8 @@ Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agen
 
 *   **🔌 Seamless Data Integration**: Connect to your existing knowledge sources with our powerful Markdown-based data management system, built on [Logseq](https://logseq.com/). Enjoy block-based organisation, bidirectional linking, and local-first privacy.
 
+*   **🦉 Ontology-Driven Validation**: Ensure logical consistency with OWL/RDF semantic validation. Automatically infer new relationships, detect contradictions, and visualize ontological constraints as physics forces for intuitive graph layouts.
+
 *   **⚡ GPU-Accelerated Performance**: 40 production CUDA kernels deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
 
 ---
@@ -87,6 +89,7 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | **Backend** | Rust + Actix | Supervised actor system, 1,000+ req/min |
 | **GPU Acceleration** | CUDA (40 Kernels) | Physics, clustering, pathfinding—100x speedup |
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
+| **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
 | **Networking** | Binary WebSocket (34-byte protocol) | <10ms latency, 95% bandwidth reduction |
 | **Data Layer** | Git + Logseq (Markdown) | Version control, bidirectional linking, privacy |
 
@@ -94,6 +97,7 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 - **Microsoft GraphRAG** for hierarchical knowledge structures
 - **Leiden Clustering** for community detection
 - **Shortest Path Analysis** enabling multi-hop reasoning
+- **OWL Reasoning** for semantic validation and inference
 
 ---
 
@@ -107,9 +111,9 @@ We welcome contributions! Whether you're fixing bugs, improving documentation, o
 
 ## 🔮 Roadmap
 
-- ✅ **Current**: Real-time multi-user collaboration, voice-to-voice AI, 50+ concurrent agents, GPU acceleration, mobile companion app (Logseq), ML tools
-- 🔄 **Coming Soon**: AR/VR (Quest 3) interface, multi-language voice support, email integration
-- 🎯 **Future Vision**: Scaled collaborative VR, predictive intelligence, autonomous workflows, community plugin marketplace
+- ✅ **Current**: Real-time multi-user collaboration, voice-to-voice AI, 50+ concurrent agents, GPU acceleration, ontology validation, mobile companion app (Logseq), ML tools
+- 🔄 **Coming Soon**: AR/VR (Quest 3) interface, multi-language voice support, email integration, SPARQL query interface
+- 🎯 **Future Vision**: Scaled collaborative VR, predictive intelligence, autonomous workflows, federated ontologies, community plugin marketplace
 
 ---
 

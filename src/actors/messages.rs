@@ -1375,14 +1375,6 @@ pub struct ValidateGraph {
     pub mode: ValidationMode,
 }
 
-/// Validation mode for ontology validation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ValidationMode {
-    Quick,      // Basic constraints only
-    Full,       // Complete validation with inference
-    Incremental, // Only validate changes since last run
-}
-
 /// Retrieves a validation report.
 #[derive(Message)]
 #[rtype(result = "Result<Option<String>, String>")] // Returns JSON string of the report
@@ -1393,4 +1385,67 @@ pub struct GetValidationReport {
 /// Retrieves the system health of the ontology module.
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")] // Returns JSON string of the health status
-pub struct GetOntologyHealth;
+pub struct GetOntologyHealthLegacy;
+
+// ============================================================================
+// Ontology-Physics Integration Messages
+// ============================================================================
+
+/// Apply ontology-derived constraints to the physics simulation
+#[derive(Message, Clone)]
+#[rtype(result = "Result<(), String>")]
+pub struct ApplyOntologyConstraints {
+    pub constraint_set: ConstraintSet,
+    pub merge_mode: ConstraintMergeMode,
+    pub graph_id: u32,
+}
+
+/// Mode for merging ontology constraints with existing constraints
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ConstraintMergeMode {
+    /// Replace all existing ontology constraints
+    Replace,
+    /// Merge with existing constraints, keeping both
+    Merge,
+    /// Add only if no conflicts with existing constraints
+    AddIfNoConflict,
+}
+
+/// Enable or disable specific constraint groups
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct SetConstraintGroupActive {
+    pub group_name: String,
+    pub active: bool,
+}
+
+/// Get statistics about currently active constraints
+#[derive(Message)]
+#[rtype(result = "Result<ConstraintStats, String>")]
+pub struct GetConstraintStats;
+
+/// Get statistics about ontology constraints
+#[derive(Message)]
+#[rtype(result = "Result<OntologyConstraintStats, String>")]
+pub struct GetOntologyConstraintStats;
+
+/// Ontology constraint statistics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntologyConstraintStats {
+    pub total_axioms_processed: u32,
+    pub active_ontology_constraints: u32,
+    pub constraint_evaluation_count: u32,
+    pub last_update_time_ms: f32,
+    pub gpu_failure_count: u32,
+    pub cpu_fallback_count: u32,
+}
+
+/// Statistics about constraint application
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConstraintStats {
+    pub total_constraints: usize,
+    pub active_constraints: usize,
+    pub constraint_groups: HashMap<String, usize>,
+    pub ontology_constraints: usize,
+    pub user_constraints: usize,
+}

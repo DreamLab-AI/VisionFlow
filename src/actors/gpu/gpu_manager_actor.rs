@@ -66,7 +66,9 @@ impl GPUManagerActor {
         let stress_majorization_actor = StressMajorizationActor::new().start();
         debug!("Creating ConstraintActor...");
         let constraint_actor = ConstraintActor::new().start();
-        
+        debug!("Creating OntologyConstraintActor...");
+        let ontology_constraint_actor = super::OntologyConstraintActor::new().start();
+
         self.child_actors = Some(ChildActorAddresses {
             resource_actor,
             force_compute_actor,
@@ -74,6 +76,7 @@ impl GPUManagerActor {
             anomaly_detection_actor,
             stress_majorization_actor,
             constraint_actor,
+            ontology_constraint_actor,
         });
         
         self.children_spawned = true;
@@ -559,6 +562,16 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to AnomalyDetectionActor");
         }
 
+        // Distribute to OntologyConstraintActor
+        if let Err(e) = child_actors.ontology_constraint_actor.try_send(SetSharedGPUContext {
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
+        }) {
+            errors.push(format!("OntologyConstraintActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to OntologyConstraintActor");
+        }
+
         if errors.is_empty() {
             info!("SharedGPUContext successfully distributed to all child actors");
             Ok(())
@@ -570,6 +583,20 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             } else {
                 Err(format!("Critical: Failed to send context to ForceComputeActor"))
             }
+        }
+    }
+}
+
+/// Handler for ApplyOntologyConstraints - delegate to OntologyConstraintActor
+impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ApplyOntologyConstraints, ctx: &mut Self::Context) -> Self::Result {
+        let child_actors = self.get_child_actors(ctx)?;
+
+        match child_actors.ontology_constraint_actor.try_send(msg) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(format!("Failed to delegate ApplyOntologyConstraints: {}", e))
         }
     }
 }

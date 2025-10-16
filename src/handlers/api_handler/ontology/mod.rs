@@ -34,7 +34,27 @@ use crate::handlers::api_handler::analytics::FEATURE_FLAGS;
 // REQUEST/RESPONSE DTOs
 // ============================================================================
 
-/// Request to load ontology axioms from various sources
+/// Request to load ontology content (spec-compliant)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoadOntologyRequest {
+    /// Ontology content as string
+    pub content: String,
+    /// Optional format specification ("turtle", "rdf-xml", "n-triples")
+    pub format: Option<String>,
+}
+
+/// Response for successful ontology loading (spec-compliant)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoadOntologyResponse {
+    /// Generated ontology ID
+    pub ontology_id: String,
+    /// Number of axioms loaded
+    pub axiom_count: usize,
+}
+
+/// Request to load ontology axioms from various sources (extended version)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsRequest {
@@ -46,7 +66,7 @@ pub struct LoadAxiomsRequest {
     pub validate_immediately: Option<bool>,
 }
 
-/// Response for successful axiom loading
+/// Response for successful axiom loading (extended version)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsResponse {
@@ -60,6 +80,16 @@ pub struct LoadAxiomsResponse {
     pub loading_time_ms: u64,
     /// Optional validation job ID if immediate validation was requested
     pub validation_job_id: Option<String>,
+}
+
+/// Request to validate ontology (spec-compliant)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidateRequest {
+    /// Ontology ID (optional, uses latest if not provided)
+    pub ontology_id: Option<String>,
+    /// Validation mode
+    pub mode: Option<ValidationModeDto>,
 }
 
 /// Request to update ontology mapping configuration
@@ -338,12 +368,22 @@ fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorRespo
 // REST ENDPOINTS
 // ============================================================================
 
-/// POST /api/ontology/load-axioms - Load ontology from file/URL
+/// POST /api/ontology/load - Load ontology from content string (spec-compliant)
 pub async fn load_axioms(
     state: web::Data<AppState>,
-    req: web::Json<LoadAxiomsRequest>,
+    body: web::Bytes,
 ) -> impl Responder {
-    info!("Loading ontology axioms from source: {}", req.source);
+    // Try to parse as either LoadOntologyRequest or LoadAxiomsRequest
+    let (source, format) = if let Ok(req) = serde_json::from_slice::<LoadOntologyRequest>(&body) {
+        info!("Loading ontology from content string");
+        (req.content, req.format)
+    } else if let Ok(req) = serde_json::from_slice::<LoadAxiomsRequest>(&body) {
+        info!("Loading ontology axioms from source: {}", req.source);
+        (req.source, req.format)
+    } else {
+        let error_response = ErrorResponse::new("Invalid request format", "INVALID_REQUEST");
+        return HttpResponse::BadRequest().json(error_response);
+    };
 
     // Check feature flag
     if let Err(error) = check_feature_enabled().await {
@@ -354,20 +394,23 @@ pub async fn load_axioms(
 
     // Send message to OntologyActor
     let load_msg = LoadOntologyAxioms {
-        source: req.source.clone(),
-        format: req.format.clone(),
+        source,
+        format,
     };
 
-    match state.ontology_actor_addr.send(load_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(load_msg).await {
         Ok(Ok(ontology_id)) => {
             let loading_time_ms = start_time.elapsed().as_millis() as u64;
 
-            let response = LoadAxiomsResponse {
-                ontology_id,
-                loaded_at: Utc::now(),
-                axiom_count: None, // TODO: Return actual axiom count
-                loading_time_ms,
-                validation_job_id: None, // TODO: Implement immediate validation
+            // Return spec-compliant response
+            let response = LoadOntologyResponse {
+                ontology_id: ontology_id.clone(),
+                axiom_count: 0, // TODO: Return actual axiom count from actor
             };
 
             info!("Successfully loaded ontology: {}", response.ontology_id);
@@ -403,7 +446,12 @@ pub async fn update_mapping(
 
     let update_msg = UpdateOntologyMapping { config };
 
-    match state.ontology_actor_addr.send(update_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(update_msg).await {
         Ok(Ok(())) => {
             info!("Successfully updated ontology mapping");
             HttpResponse::Ok().json(serde_json::json!({
@@ -449,7 +497,12 @@ pub async fn validate_ontology(
         mode: ValidationMode::from(req.mode.clone()),
     };
 
-    match state.ontology_actor_addr.send(validation_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(validation_msg).await {
         Ok(Ok(report)) => {
             // For synchronous validation, return the report immediately
             // In a real implementation, this would be asynchronous with job tracking
@@ -496,7 +549,12 @@ pub async fn get_validation_report(
 
     let report_msg = GetOntologyReport { report_id };
 
-    match state.ontology_actor_addr.send(report_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(report_msg).await {
         Ok(Ok(Some(report))) => {
             info!("Retrieved validation report: {}", report.id);
             HttpResponse::Ok().json(report)
@@ -543,7 +601,12 @@ pub async fn apply_inferences(
         max_depth: req.max_depth,
     };
 
-    match state.ontology_actor_addr.send(apply_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(apply_msg).await {
         Ok(Ok(inferred_triples)) => {
             let processing_time_ms = start_time.elapsed().as_millis() as u64;
 
@@ -578,7 +641,12 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
 
     let health_msg = GetOntologyHealth;
 
-    match state.ontology_actor_addr.send(health_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(health_msg).await {
         Ok(Ok(health)) => {
             let response = HealthStatusResponse {
                 status: if health.validation_queue_size > 100 { "degraded" } else { "healthy" }.to_string(),
@@ -613,7 +681,12 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
 
     let clear_msg = ClearOntologyCaches;
 
-    match state.ontology_actor_addr.send(clear_msg).await {
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(clear_msg).await {
         Ok(Ok(())) => {
             info!("Successfully cleared ontology caches");
             HttpResponse::Ok().json(serde_json::json!({
@@ -625,6 +698,215 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
         Ok(Err(error)) => {
             error!("Failed to clear caches: {}", error);
             let error_response = ErrorResponse::new(&error, "CACHE_CLEAR_FAILED");
+            HttpResponse::InternalServerError().json(error_response)
+        },
+        Err(mailbox_error) => {
+            error!("Actor communication error: {}", mailbox_error);
+            let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
+            HttpResponse::InternalServerError().json(error_response)
+        }
+    }
+}
+
+/// GET /api/ontology/axioms - List all loaded axioms
+pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
+    info!("Listing all loaded axioms");
+
+    // Check feature flag
+    if let Err(error) = check_feature_enabled().await {
+        return HttpResponse::ServiceUnavailable().json(error);
+    }
+
+    use crate::actors::messages::GetCachedOntologies;
+    let list_msg = GetCachedOntologies;
+
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(list_msg).await {
+        Ok(Ok(ontologies)) => {
+            info!("Retrieved {} loaded ontologies", ontologies.len());
+            HttpResponse::Ok().json(serde_json::json!({
+                "axioms": ontologies,
+                "count": ontologies.len(),
+                "timestamp": Utc::now()
+            }))
+        },
+        Ok(Err(error)) => {
+            error!("Failed to list axioms: {}", error);
+            let error_response = ErrorResponse::new(&error, "AXIOM_LIST_FAILED");
+            HttpResponse::InternalServerError().json(error_response)
+        },
+        Err(mailbox_error) => {
+            error!("Actor communication error: {}", mailbox_error);
+            let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
+            HttpResponse::InternalServerError().json(error_response)
+        }
+    }
+}
+
+/// GET /api/ontology/inferences - Get inferred relationships
+pub async fn get_inferences(
+    state: web::Data<AppState>,
+    query: web::Query<HashMap<String, String>>,
+) -> impl Responder {
+    info!("Retrieving inferred relationships");
+
+    // Check feature flag
+    if let Err(error) = check_feature_enabled().await {
+        return HttpResponse::ServiceUnavailable().json(error);
+    }
+
+    let ontology_id = query.get("ontology_id").cloned();
+
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    // Get the latest validation report to extract inferences
+    let report_msg = GetOntologyReport {
+        report_id: ontology_id
+    };
+
+    match ontology_addr.send(report_msg).await {
+        Ok(Ok(Some(report))) => {
+            info!("Retrieved inferences from report: {}", report.id);
+
+            // Extract inferred triples from the validation report
+            let inferences = serde_json::json!({
+                "report_id": report.id,
+                "inferred_count": report.inferred_triples.len(),
+                "inferences": report.inferred_triples,
+                "generated_at": report.timestamp,
+                "inference_depth": 3,
+                "timestamp": Utc::now()
+            });
+
+            HttpResponse::Ok().json(inferences)
+        },
+        Ok(Ok(None)) => {
+            warn!("No validation report found for inference retrieval");
+            HttpResponse::Ok().json(serde_json::json!({
+                "inferred_count": 0,
+                "inferences": [],
+                "message": "No inferences available. Run validation first.",
+                "timestamp": Utc::now()
+            }))
+        },
+        Ok(Err(error)) => {
+            error!("Failed to retrieve inferences: {}", error);
+            let error_response = ErrorResponse::new(&error, "INFERENCE_RETRIEVAL_FAILED");
+            HttpResponse::InternalServerError().json(error_response)
+        },
+        Err(mailbox_error) => {
+            error!("Actor communication error: {}", mailbox_error);
+            let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
+            HttpResponse::InternalServerError().json(error_response)
+        }
+    }
+}
+
+/// POST /api/ontology/validate - Trigger validation job (spec-compliant endpoint)
+pub async fn validate_graph(
+    state: web::Data<AppState>,
+    req: web::Json<ValidationRequest>,
+) -> impl Responder {
+    info!("Triggering validation job for ontology: {} (mode: {:?})", req.ontology_id, req.mode);
+
+    // Check feature flag
+    if let Err(error) = check_feature_enabled().await {
+        return HttpResponse::ServiceUnavailable().json(error);
+    }
+
+    // Extract property graph from current graph data
+    let property_graph = match extract_property_graph(&state) {
+        Ok(graph) => graph,
+        Err(error) => return HttpResponse::InternalServerError().json(error),
+    };
+
+    let validation_msg = ValidateOntology {
+        ontology_id: req.ontology_id.clone(),
+        graph_data: property_graph,
+        mode: ValidationMode::from(req.mode.clone()),
+    };
+
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    // Return job ID immediately (async validation)
+    let job_id = Uuid::new_v4().to_string();
+    let job_id_clone = job_id.clone();
+
+    // Spawn validation task asynchronously
+    let ontology_addr_clone = ontology_addr.clone();
+    actix::spawn(async move {
+        match ontology_addr_clone.send(validation_msg).await {
+            Ok(Ok(report)) => {
+                info!("Validation completed for job {}: {} violations found", job_id_clone, report.violations.len());
+            },
+            Ok(Err(e)) => {
+                error!("Validation failed for job {}: {}", job_id_clone, e);
+            },
+            Err(e) => {
+                error!("Actor communication error for job {}: {}", job_id_clone, e);
+            }
+        }
+    });
+
+    let response = ValidationResponse {
+        job_id,
+        status: "queued".to_string(),
+        estimated_completion: Some(Utc::now() + chrono::Duration::seconds(30)),
+        queue_position: Some(1),
+        websocket_url: req.client_id.as_ref().map(|id|
+            format!("/api/ontology/ws?client_id={}", id)
+        ),
+    };
+
+    info!("Validation job queued with ID: {}", response.job_id);
+    HttpResponse::Accepted().json(response)
+}
+
+/// GET /api/ontology/reports/{id} - Get validation report by ID (spec-compliant endpoint)
+pub async fn get_report_by_id(
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> impl Responder {
+    let report_id = path.into_inner();
+    info!("Retrieving validation report by ID: {}", report_id);
+
+    // Check feature flag
+    if let Err(error) = check_feature_enabled().await {
+        return HttpResponse::ServiceUnavailable().json(error);
+    }
+
+    let report_msg = GetOntologyReport {
+        report_id: Some(report_id.clone())
+    };
+
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return HttpResponse::ServiceUnavailable().json(error_response);
+    };
+
+    match ontology_addr.send(report_msg).await {
+        Ok(Ok(Some(report))) => {
+            info!("Retrieved validation report: {}", report.id);
+            HttpResponse::Ok().json(report)
+        },
+        Ok(Ok(None)) => {
+            warn!("Validation report not found: {}", report_id);
+            let error_response = ErrorResponse::new("Report not found", "REPORT_NOT_FOUND");
+            HttpResponse::NotFound().json(error_response)
+        },
+        Ok(Err(error)) => {
+            error!("Failed to retrieve report: {}", error);
+            let error_response = ErrorResponse::new(&error, "REPORT_RETRIEVAL_FAILED");
             HttpResponse::InternalServerError().json(error_response)
         },
         Err(mailbox_error) => {
@@ -720,9 +1002,14 @@ pub async fn websocket_handler(
         .cloned()
         .unwrap_or_else(|| Uuid::new_v4().to_string());
 
+    let Some(ref ontology_addr) = state.ontology_actor_addr else {
+        let error_response = ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
+        return Ok(HttpResponse::ServiceUnavailable().json(error_response));
+    };
+
     let websocket = OntologyWebSocket::new(
         client_id,
-        state.ontology_actor_addr.clone()
+        ontology_addr.clone()
     );
 
     ws::start(websocket, &req, stream)
@@ -736,13 +1023,24 @@ pub async fn websocket_handler(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/ontology")
-            .route("/load-axioms", web::post().to(load_axioms))
+            // Load ontology content
+            .route("/load", web::post().to(load_axioms))
+            .route("/load-axioms", web::post().to(load_axioms)) // Alias for compatibility
+            // Trigger validation
+            .route("/validate", web::post().to(validate_graph))
+            // Get validation report by ID (path parameter)
+            .route("/reports/{id}", web::get().to(get_report_by_id))
+            .route("/report", web::get().to(get_validation_report)) // Alias for compatibility
+            // List all loaded axioms
+            .route("/axioms", web::get().to(list_axioms))
+            // Get inferred relationships
+            .route("/inferences", web::get().to(get_inferences))
+            // Clear caches
+            .route("/cache", web::delete().to(clear_caches))
+            // Additional endpoints
             .route("/mapping", web::post().to(update_mapping))
-            .route("/validate", web::post().to(validate_ontology))
-            .route("/report", web::get().to(get_validation_report))
             .route("/apply", web::post().to(apply_inferences))
             .route("/health", web::get().to(get_health_status))
-            .route("/cache", web::delete().to(clear_caches))
             .route("/ws", web::get().to(websocket_handler))
     );
 }

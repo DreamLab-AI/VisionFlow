@@ -1,4 +1,5 @@
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "gpu")]
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 
 #[repr(C)]
@@ -9,8 +10,10 @@ pub struct EdgeData {
     pub weight: f32,
 }
 
-// Implement DeviceRepr for EdgeData
+// Implement DeviceRepr for EdgeData (only when gpu feature is enabled)
+#[cfg(feature = "gpu")]
 unsafe impl DeviceRepr for EdgeData {}
 
-// Implement ValidAsZeroBits for EdgeData
+// Implement ValidAsZeroBits for EdgeData (only when gpu feature is enabled)
+#[cfg(feature = "gpu")]
 unsafe impl ValidAsZeroBits for EdgeData {}
