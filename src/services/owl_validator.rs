@@ -2,10 +2,8 @@ use anyhow::{Result, Context};
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use horned_owl::ontology::set::SetOntology;
-use horned_owl::io::rdf::reader::RDFOntology;
 use horned_owl::io::owx::reader::read as read_owx;
 use horned_owl::io::ofn::reader::read as read_ofn;
-use horned_owl::model::Build;
 use log::{debug, info, error};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -484,11 +482,11 @@ impl OwlValidatorService {
 
         // Detect format based on content
         if trimmed.starts_with("@prefix") || trimmed.starts_with("@base") || trimmed.contains("@prefix") {
-            info!("Detected Turtle format");
-            self.parse_turtle(content)
+            error!("Turtle format not supported. Please use OWL Functional Syntax or OWL/XML.");
+            Err(ValidationError::ParseError("Turtle format not supported. Use OWL Functional Syntax (starts with 'Prefix(' or 'Ontology(') or OWL/XML.".to_string()).into())
         } else if trimmed.starts_with("<?xml") || (trimmed.starts_with("<") && trimmed.contains("rdf:RDF")) {
-            info!("Detected RDF/XML format");
-            self.parse_rdf_xml(content)
+            error!("RDF/XML format not supported. Please use OWL Functional Syntax or OWL/XML.");
+            Err(ValidationError::ParseError("RDF/XML format not supported. Use OWL Functional Syntax (starts with 'Prefix(' or 'Ontology(') or OWL/XML.".to_string()).into())
         } else if trimmed.starts_with("Prefix(") || trimmed.starts_with("Ontology(") {
             info!("Detected OWL Functional Syntax");
             self.parse_functional_syntax(content)
@@ -498,24 +496,9 @@ impl OwlValidatorService {
         } else if trimmed.is_empty() {
             Err(ValidationError::ParseError("Empty ontology content".to_string()).into())
         } else {
-            // Try Turtle as default since it's most flexible
-            info!("Unknown format, trying Turtle parser");
-            self.parse_turtle(content)
+            error!("Unsupported or unrecognized ontology format");
+            Err(ValidationError::ParseError("Unsupported format. Please use OWL Functional Syntax (starts with 'Prefix(' or 'Ontology(') or OWL/XML (starts with '<Ontology').".to_string()).into())
         }
-    }
-
-    fn parse_turtle(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
-        // TODO: horned-owl 1.2.0 API requires different approach for RDF parsing
-        // Temporarily returning empty ontology until proper implementation
-        debug!("Turtle parsing temporarily disabled - needs horned-owl 1.2.0 API updates");
-        Ok(SetOntology::new())
-    }
-
-    fn parse_rdf_xml(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
-        // TODO: horned-owl 1.2.0 API requires different approach for RDF parsing
-        // Temporarily returning empty ontology until proper implementation
-        debug!("RDF/XML parsing temporarily disabled - needs horned-owl 1.2.0 API updates");
-        Ok(SetOntology::new())
     }
 
     fn parse_functional_syntax(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
