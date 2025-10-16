@@ -204,14 +204,48 @@ impl SocketFlowServer {
             if let Ok(Ok(graph_data)) = app_state.graph_state_addr.send(crate::actors::messages::GetGraphData).await {
                 // Get settings with version
                 if let Ok(Ok(settings)) = app_state.settings_addr.send(crate::actors::messages::GetSettings).await {
-                    // Prepare state sync message
+                    // Prepare nodes with labels for JSON
+                    let nodes_json: Vec<serde_json::Value> = graph_data.nodes.iter().map(|node| {
+                        serde_json::json!({
+                            "id": node.id,
+                            "metadata_id": node.metadata_id,
+                            "label": node.label,
+                            "position": {
+                                "x": node.data.x,
+                                "y": node.data.y,
+                                "z": node.data.z,
+                            },
+                            "velocity": {
+                                "x": node.data.vx,
+                                "y": node.data.vy,
+                                "z": node.data.vz,
+                            },
+                            "type": node.node_type,
+                            "size": node.size,
+                            "color": node.color,
+                            "weight": node.weight,
+                            "group": node.group,
+                        })
+                    }).collect();
+
+                    // Prepare edges for JSON
+                    let edges_json: Vec<serde_json::Value> = graph_data.edges.iter().map(|edge| {
+                        serde_json::json!({
+                            "id": edge.id,
+                            "source": edge.source,
+                            "target": edge.target,
+                            "weight": edge.weight,
+                        })
+                    }).collect();
+
+                    // Prepare state sync message with FULL graph data
                     let state_sync = serde_json::json!({
                         "type": "state_sync",
                         "data": {
                             "graph": {
-                                "nodes_count": graph_data.nodes.len(),
-                                "edges_count": graph_data.edges.len(),
-                                "metadata_count": graph_data.metadata.len(),
+                                "nodes": nodes_json,
+                                "edges": edges_json,
+                                "metadata": graph_data.metadata,
                             },
                             "settings": {
                                 "version": settings.version,
@@ -222,18 +256,18 @@ impl SocketFlowServer {
                                 .as_secs(),
                         }
                     });
-                    
+
                     // Send state sync as text message through the actor
                     if let Ok(msg_str) = serde_json::to_string(&state_sync) {
                         addr.do_send(SendToClientText(msg_str));
-                        info!("Sent state sync: {} nodes, {} edges, version: {}", 
-                            graph_data.nodes.len(), 
+                        info!("Sent full state sync: {} nodes, {} edges (with labels), version: {}",
+                            graph_data.nodes.len(),
                             graph_data.edges.len(),
                             settings.version
                         );
                     }
-                    
-                    // Send initial positions as binary data
+
+                    // Send initial positions as binary data (for legacy compatibility)
                     if !graph_data.nodes.is_empty() {
                         let node_data: Vec<(u32, BinaryNodeData)> = graph_data.nodes.iter()
                             .map(|node| (node.id, BinaryNodeData {
@@ -246,7 +280,7 @@ impl SocketFlowServer {
                                 vz: node.data.vz,
                             }))
                             .collect();
-                        
+
                         // Send position update through the actor
                         addr.do_send(BroadcastPositionUpdate(node_data));
                         debug!("Sent initial node positions for state sync");

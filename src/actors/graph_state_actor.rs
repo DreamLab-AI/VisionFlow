@@ -424,9 +424,9 @@ impl Handler<AddNodesFromMetadata> for GraphStateActor {
         // Convert metadata to nodes
         // MetadataStore is HashMap<String, Metadata> where key is filename
         for (filename, _metadata) in msg.metadata.iter() {
-            // Create node with filename as metadata_id
-            // Metadata can be added separately via key-value pairs if needed
-            let node = Node::new(filename.clone());
+            // Create node with filename as both metadata_id and label
+            let mut node = Node::new(filename.clone());
+            node.label = filename.clone(); // Set label so it displays in UI
             nodes.push(node);
         }
 
@@ -491,7 +491,8 @@ impl Handler<BuildGraphFromMetadata> for GraphStateActor {
         let mut nodes = Vec::new();
 
         for (filename, _metadata) in msg.metadata.iter() {
-            let node = Node::new(filename.clone());
+            let mut node = Node::new(filename.clone());
+            node.label = filename.clone(); // Set label so it displays in UI
             nodes.push(node);
         }
 
